@@ -3274,6 +3274,17 @@ components:
             - Alpha
       required:
         - path
+    PortalNavigationStructure:
+      description: Portal navigation grouped by area.
+      type: object
+      properties:
+        topNavbar:
+          type: array
+          description: |
+            Top navbar entries as an ordered list of paths.
+            Intermediate folders are implicitly created if not listed explicitly.
+          items:
+            $ref: "#/components/schemas/PortalNavigationPath"
     PortalSpec:
       description: Specification of a Portal resource. Represents a next-gen developer portal instance.
       type: object
@@ -3285,12 +3296,14 @@ components:
           description: Display name of the portal
           examples:
             - Default Portal
+        structure:
+          $ref: "#/components/schemas/PortalNavigationStructure"
         navigation:
           type: array
+          deprecated: true
           description: |
-            The portal's navigation hierarchy as a flat list of paths.
-            Paths are ordered — the order in the list is preserved.
-            Intermediate folders are implicitly created if not listed explicitly.
+            Deprecated. Use `structure.topNavbar` instead. When `structure` is set,
+            `navigation` is ignored; otherwise `navigation` is mapped to `structure.topNavbar` for backward compatibility.
           items:
             $ref: "#/components/schemas/PortalNavigationPath"
       required:

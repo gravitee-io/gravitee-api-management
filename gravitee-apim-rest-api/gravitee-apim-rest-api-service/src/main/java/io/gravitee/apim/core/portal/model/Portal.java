@@ -16,7 +16,6 @@
 package io.gravitee.apim.core.portal.model;
 
 import jakarta.annotation.Nonnull;
-import java.util.List;
 import lombok.Getter;
 
 @Getter
@@ -35,33 +34,39 @@ public class Portal {
     private final String name;
 
     @Nonnull
-    private final List<NavigationPath> portalNavigation;
+    private final PortalNavigationStructure navigationStructure;
 
-    private Portal(PortalId id, String environmentId, String organizationId, String name, List<NavigationPath> portalNavigation) {
+    private Portal(PortalId id, String environmentId, String organizationId, String name, PortalNavigationStructure navigationStructure) {
         this.id = id;
         this.environmentId = environmentId;
         this.organizationId = organizationId;
         this.name = name;
-        this.portalNavigation = portalNavigation == null ? List.of() : List.copyOf(portalNavigation);
+        this.navigationStructure = navigationStructure == null ? PortalNavigationStructure.empty() : navigationStructure;
     }
 
     /** New portal with a random id and no navigation. */
     public static Portal create(String environmentId, String organizationId, String name) {
-        return new Portal(PortalId.random(), environmentId, organizationId, name, List.of());
+        return new Portal(PortalId.random(), environmentId, organizationId, name, PortalNavigationStructure.empty());
     }
 
     /** Reconstitute a portal from a known id (HRID-derived, persistence, etc.). */
     public static Portal of(PortalId id, String environmentId, String organizationId, String name) {
-        return new Portal(id, environmentId, organizationId, name, List.of());
+        return new Portal(id, environmentId, organizationId, name, PortalNavigationStructure.empty());
     }
 
-    /** Reconstitute a portal with a persisted navigation array. */
-    public static Portal of(PortalId id, String environmentId, String organizationId, String name, List<NavigationPath> portalNavigation) {
-        return new Portal(id, environmentId, organizationId, name, portalNavigation);
+    /** Reconstitute a portal with a persisted navigation structure. */
+    public static Portal of(
+        PortalId id,
+        String environmentId,
+        String organizationId,
+        String name,
+        PortalNavigationStructure navigationStructure
+    ) {
+        return new Portal(id, environmentId, organizationId, name, navigationStructure);
     }
 
-    public Portal withNavigation(List<NavigationPath> portalNavigation) {
-        return new Portal(this.id, this.environmentId, this.organizationId, this.name, portalNavigation);
+    public Portal withNavigationStructure(PortalNavigationStructure navigationStructure) {
+        return new Portal(this.id, this.environmentId, this.organizationId, this.name, navigationStructure);
     }
 
     @Override

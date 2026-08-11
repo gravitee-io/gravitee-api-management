@@ -51,6 +51,7 @@ public final class NavigationSyncPlanExecutor {
     public void execute(
         NavigationSyncPlan plan,
         AuditInfo auditInfo,
+        PortalArea area,
         // null for top-level portal navigation; the nav-api row for api-folder subtrees
         @Nullable PortalNavigationItemContainer root,
         Function<String, PortalNavigationItemId> idFactory,
@@ -59,7 +60,7 @@ public final class NavigationSyncPlanExecutor {
         final var byPath = new HashMap<String, PortalNavigationItemContainer>();
         for (var action : plan.actions()) {
             switch (action) {
-                case FolderActions.FolderMutation m -> applyMutation(m, byPath, auditInfo, root, idFactory);
+                case FolderActions.FolderMutation m -> applyMutation(m, byPath, auditInfo, area, root, idFactory);
                 case FolderActions.DeleteFolder d -> applyDelete(d, auditInfo.environmentId(), strategy);
             }
         }
@@ -69,13 +70,14 @@ public final class NavigationSyncPlanExecutor {
         FolderActions.FolderMutation mutation,
         Map<String, PortalNavigationItemContainer> byPath,
         AuditInfo auditInfo,
+        PortalArea area,
         PortalNavigationItemContainer root,
         Function<String, PortalNavigationItemId> idFactory
     ) {
         final var df = mutation.desired();
         final var parent = df.parentPath() == null ? root : byPath.get(df.parentPath());
         final PortalNavigationFolder result = switch (mutation) {
-            case FolderActions.CreateFolder c -> createFolder(c.desired(), parent, auditInfo, idFactory);
+            case FolderActions.CreateFolder c -> createFolder(c.desired(), parent, auditInfo, area, idFactory);
             case FolderActions.UpdateFolder u -> applyUpdate(u.existing(), u.desired(), parent);
         };
         byPath.put(df.path(), result);
@@ -108,6 +110,7 @@ public final class NavigationSyncPlanExecutor {
         FolderActions.DesiredFolder df,
         PortalNavigationItemContainer parent,
         AuditInfo auditInfo,
+        PortalArea area,
         Function<String, PortalNavigationItemId> idFactory
     ) {
         final var folderId = idFactory.apply(df.path());
@@ -117,7 +120,7 @@ public final class NavigationSyncPlanExecutor {
             .id(folderId)
             .title(df.title())
             .segment(df.segment().value())
-            .area(PortalArea.TOP_NAVBAR)
+            .area(area)
             .type(PortalNavigationItemType.FOLDER)
             .order(df.order())
             .visibility(PortalVisibility.PUBLIC)

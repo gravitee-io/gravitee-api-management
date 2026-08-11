@@ -22,8 +22,8 @@ import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
-import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
@@ -43,17 +43,17 @@ public class CreateOrUpdatePortalUseCase {
     private final PortalDocumentationSyncDomainService portalDocumentationSyncDomainService;
     private final PortalAutomationScopeDomainService portalAutomationScopeEnforcer;
 
-    public record Input(AuditInfo auditInfo, Portal portal, List<NavigationPath> navigation) {
+    public record Input(AuditInfo auditInfo, Portal portal, PortalNavigationStructure structure) {
         public Input(AuditInfo auditInfo, Portal portal) {
-            this(auditInfo, portal, List.of());
+            this(auditInfo, portal, PortalNavigationStructure.empty());
         }
     }
 
-    public record Output(Portal portal, List<NavigationPath> navigation, List<Validator.Error> errors) {}
+    public record Output(Portal portal, PortalNavigationStructure structure, List<Validator.Error> errors) {}
 
     public Output execute(Input input) {
         var validation = validator.validateAndSanitize(
-            new ValidatePortalDomainService.Input(input.auditInfo(), input.portal(), input.navigation())
+            new ValidatePortalDomainService.Input(input.auditInfo(), input.portal(), input.structure())
         );
 
         validation
@@ -66,23 +66,23 @@ public class CreateOrUpdatePortalUseCase {
 
         var sanitized = validation.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize portal"));
         var existing = portalCrudService.findByIdAndEnvironmentId(sanitized.portal().getId(), input.auditInfo().environmentId());
-        var previouslyPersisted = existing.map(Portal::getPortalNavigation).orElseGet(List::of);
+        var previouslyPersisted = existing.map(Portal::getNavigationStructure).orElseGet(PortalNavigationStructure::empty);
         portalNavigationSyncDomainService.validateForConflicts(
             input.auditInfo(),
             sanitized.portal().getId(),
             previouslyPersisted,
-            sanitized.navigation()
+            sanitized.structure()
         );
-        var portalToSave = sanitized.portal().withNavigation(sanitized.navigation());
+        var portalToSave = sanitized.portal().withNavigationStructure(sanitized.structure());
         var saved = existing.isPresent() ? portalCrudService.update(portalToSave) : portalCrudService.create(portalToSave);
         var isDefault = portalAutomationScopeEnforcer.isDefaultPortal(input.auditInfo(), saved.getId());
         // Skip nav-tree materialization for non-default portals — app is not ready for that.
         if (isDefault) {
-            portalNavigationSyncDomainService.sync(input.auditInfo(), saved.getId(), previouslyPersisted, sanitized.navigation());
+            portalNavigationSyncDomainService.sync(input.auditInfo(), saved.getId(), previouslyPersisted, sanitized.structure());
             portalPageContentQueryService
                 .findByReference(input.auditInfo().environmentId(), AutomationMetadata.ReferenceType.PORTAL, saved.getId().toString())
                 .forEach(pc -> portalDocumentationSyncDomainService.materialize(input.auditInfo(), pc));
         }
-        return new Output(saved, saved.getPortalNavigation(), warnings);
+        return new Output(saved, saved.getNavigationStructure(), warnings);
     }
 }

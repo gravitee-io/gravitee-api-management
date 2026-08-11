@@ -35,6 +35,7 @@ import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
@@ -140,7 +141,9 @@ class DeletePortalUseCaseTest {
             new CreateOrUpdatePortalUseCase.Input(
                 AUDIT_INFO,
                 portal,
-                List.of(new NavigationPath("/projects/alpha", null), new NavigationPath("/projects/beta", null))
+                PortalNavigationStructure.ofTopNavbar(
+                    List.of(new NavigationPath("/projects/alpha", null), new NavigationPath("/projects/beta", null))
+                )
             )
         );
         assertThat(navCrudService.storage()).as("setup should materialize folders").isNotEmpty();
@@ -165,8 +168,20 @@ class DeletePortalUseCaseTest {
             otherEnvAudit.organizationId(),
             "Other Portal"
         );
-        setupUseCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portalA, List.of(new NavigationPath("/alpha", null))));
-        setupUseCase.execute(new CreateOrUpdatePortalUseCase.Input(otherEnvAudit, portalB, List.of(new NavigationPath("/beta", null))));
+        setupUseCase.execute(
+            new CreateOrUpdatePortalUseCase.Input(
+                AUDIT_INFO,
+                portalA,
+                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/alpha", null)))
+            )
+        );
+        setupUseCase.execute(
+            new CreateOrUpdatePortalUseCase.Input(
+                otherEnvAudit,
+                portalB,
+                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/beta", null)))
+            )
+        );
         assertThat(navCrudService.storage()).hasSize(2);
 
         useCase.execute(new DeletePortalUseCase.Input(AUDIT_INFO, portalA.getId()));

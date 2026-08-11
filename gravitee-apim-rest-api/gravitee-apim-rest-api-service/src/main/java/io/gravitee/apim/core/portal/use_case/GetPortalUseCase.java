@@ -19,10 +19,9 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
-import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
-import java.util.List;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -33,12 +32,12 @@ public class GetPortalUseCase {
 
     public record Input(AuditInfo auditInfo, PortalId portalId) {}
 
-    public record Output(Portal portal, List<NavigationPath> navigation) {}
+    public record Output(Portal portal, PortalNavigationStructure structure) {}
 
     public Output execute(Input input) {
         var portal = portalCrudService
             .findByIdAndEnvironmentId(input.portalId(), input.auditInfo().environmentId())
             .orElseThrow(() -> new PortalNotFoundException(input.portalId().toString()));
-        return new Output(portal, portal.getPortalNavigation());
+        return new Output(portal, portal.getNavigationStructure());
     }
 }

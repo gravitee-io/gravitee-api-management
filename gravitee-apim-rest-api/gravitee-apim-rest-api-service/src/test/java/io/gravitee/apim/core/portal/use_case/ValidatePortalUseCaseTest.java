@@ -25,6 +25,8 @@ import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,7 +66,9 @@ class ValidatePortalUseCaseTest {
             new CreateOrUpdatePortalUseCase.Input(
                 AUDIT_INFO,
                 PORTAL,
-                List.of(new NavigationPath("/docs", null), new NavigationPath("/docs/getting-started", null))
+                PortalNavigationStructure.ofTopNavbar(
+                    List.of(new NavigationPath("/docs", null), new NavigationPath("/docs/getting-started", null))
+                )
             )
         );
 
@@ -78,19 +82,20 @@ class ValidatePortalUseCaseTest {
             new CreateOrUpdatePortalUseCase.Input(
                 AUDIT_INFO,
                 PORTAL,
-                List.of(new NavigationPath("/valid", null), new NavigationPath("bad-path", null))
+                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/valid", null), new NavigationPath("bad-path", null)))
             )
         );
 
-        assertThat(output.errors()).anyMatch(e -> e.getMessage().contains("navigation[1].path"));
+        assertThat(output.errors()).anyMatch(e -> e.getMessage().contains("structure.topNavbar[1].path"));
     }
 
     @Test
     void should_echo_navigation_in_output() {
         var nav = List.of(new NavigationPath("/docs", null));
-        var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, PORTAL, nav));
+        var structure = PortalNavigationStructure.ofTopNavbar(nav);
+        var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, PORTAL, structure));
 
-        assertThat(output.navigation()).containsExactlyElementsOf(nav);
+        assertThat(output.structure().forArea(PortalArea.TOP_NAVBAR)).containsExactlyElementsOf(nav);
         assertThat(output.errors()).isEmpty();
     }
 }

@@ -63,7 +63,14 @@ class NavigationSyncPlanExecutorTest {
     void create_folder_under_root_when_parent_path_is_null() {
         var plan = new NavigationSyncPlan(List.of(new FolderActions.CreateFolder(desired("/a", null, "a", 0))));
 
-        executor.execute(plan, AUDIT_INFO, null, path -> PortalNavigationItemId.random(), new DeleteStrategy(item -> false, false));
+        executor.execute(
+            plan,
+            AUDIT_INFO,
+            PortalArea.TOP_NAVBAR,
+            null,
+            path -> PortalNavigationItemId.random(),
+            new DeleteStrategy(item -> false, false)
+        );
 
         assertThat(crud.storage()).hasSize(1);
         var folder = (PortalNavigationFolder) crud.storage().get(0);
@@ -83,7 +90,14 @@ class NavigationSyncPlanExecutorTest {
             )
         );
 
-        executor.execute(plan, AUDIT_INFO, null, path -> PortalNavigationItemId.random(), new DeleteStrategy(item -> false, false));
+        executor.execute(
+            plan,
+            AUDIT_INFO,
+            PortalArea.TOP_NAVBAR,
+            null,
+            path -> PortalNavigationItemId.random(),
+            new DeleteStrategy(item -> false, false)
+        );
 
         assertThat(crud.storage()).hasSize(2);
         var a = (PortalNavigationFolder) crud.storage().get(0);
@@ -95,7 +109,7 @@ class NavigationSyncPlanExecutorTest {
     void id_comes_from_id_factory() {
         var plan = new NavigationSyncPlan(List.of(new FolderActions.CreateFolder(desired("/a", null, "a", 0))));
 
-        executor.execute(plan, AUDIT_INFO, null, path -> FIXED_ID, new DeleteStrategy(item -> false, false));
+        executor.execute(plan, AUDIT_INFO, PortalArea.TOP_NAVBAR, null, path -> FIXED_ID, new DeleteStrategy(item -> false, false));
 
         assertThat(crud.storage()).hasSize(1);
         assertThat(crud.storage().get(0).getId()).isEqualTo(FIXED_ID);
@@ -108,7 +122,14 @@ class NavigationSyncPlanExecutorTest {
         crud.initWith(List.of(existing));
         var plan = new NavigationSyncPlan(List.of(new FolderActions.UpdateFolder(existing, desired("/a", null, "a", 0))));
 
-        executor.execute(plan, AUDIT_INFO, null, path -> PortalNavigationItemId.random(), new DeleteStrategy(item -> false, false));
+        executor.execute(
+            plan,
+            AUDIT_INFO,
+            PortalArea.TOP_NAVBAR,
+            null,
+            path -> PortalNavigationItemId.random(),
+            new DeleteStrategy(item -> false, false)
+        );
 
         assertThat(crud.storage()).hasSize(1);
         assertThat(crud.storage().get(0).getTitle()).isEqualTo("a");
@@ -121,7 +142,14 @@ class NavigationSyncPlanExecutorTest {
         crud.initWith(List.of(existing));
         var plan = new NavigationSyncPlan(List.of(new FolderActions.UpdateFolder(existing, desired("/a", null, "a", 0))));
 
-        executor.execute(plan, AUDIT_INFO, null, path -> PortalNavigationItemId.random(), new DeleteStrategy(item -> false, false));
+        executor.execute(
+            plan,
+            AUDIT_INFO,
+            PortalArea.TOP_NAVBAR,
+            null,
+            path -> PortalNavigationItemId.random(),
+            new DeleteStrategy(item -> false, false)
+        );
 
         assertThat(crud.storage()).hasSize(1);
         assertThat(crud.storage().get(0)).isSameAs(existing);
@@ -135,7 +163,14 @@ class NavigationSyncPlanExecutorTest {
         crud.initWith(List.of(parent, child));
         var plan = new NavigationSyncPlan(List.of(new FolderActions.DeleteFolder(parent)));
 
-        executor.execute(plan, AUDIT_INFO, null, path -> PortalNavigationItemId.random(), new DeleteStrategy(item -> false, false));
+        executor.execute(
+            plan,
+            AUDIT_INFO,
+            PortalArea.TOP_NAVBAR,
+            null,
+            path -> PortalNavigationItemId.random(),
+            new DeleteStrategy(item -> false, false)
+        );
 
         assertThat(crud.storage()).isEmpty();
     }
@@ -153,6 +188,7 @@ class NavigationSyncPlanExecutorTest {
         executor.execute(
             plan,
             AUDIT_INFO,
+            PortalArea.TOP_NAVBAR,
             null,
             path -> PortalNavigationItemId.random(),
             new DeleteStrategy(item -> skipIds.contains(item.getId()), false)

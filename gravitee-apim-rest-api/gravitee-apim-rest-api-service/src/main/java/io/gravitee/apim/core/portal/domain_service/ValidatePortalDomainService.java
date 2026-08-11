@@ -19,7 +19,9 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.validation.NavigationPathValidator;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.validation.Validator;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,16 +38,23 @@ public class ValidatePortalDomainService implements Validator<ValidatePortalDoma
 
     private final PortalAutomationScopeDomainService portalAutomationScopeEnforcer;
 
-    public record Input(AuditInfo auditInfo, Portal portal, List<NavigationPath> navigation) implements Validator.Input {}
+    public record Input(AuditInfo auditInfo, Portal portal, PortalNavigationStructure structure) implements Validator.Input {}
 
     @Override
     public Result<Input> validateAndSanitize(Input input) {
         var errors = new ArrayList<Error>();
         errors.addAll(portalAutomationScopeEnforcer.validate(input.auditInfo(), input.portal().getId(), "hrid"));
-        List<NavigationPath> navigation = input.navigation() == null ? List.of() : input.navigation();
-        for (int i = 0; i < navigation.size(); i++) {
-            errors.addAll(NavigationPathValidator.validate(navigation.get(i).path(), "navigation[" + i + "].path"));
-        }
+        var structure = input.structure() == null ? PortalNavigationStructure.empty() : input.structure();
+        structure.areas().forEach((area, paths) -> errors.addAll(validateArea(area, paths)));
         return Result.ofBoth(input, errors);
+    }
+
+    private static List<Error> validateArea(PortalArea area, List<NavigationPath> paths) {
+        var errors = new ArrayList<Error>();
+        var fieldPrefix = "structure." + area.wireName();
+        for (int i = 0; i < paths.size(); i++) {
+            errors.addAll(NavigationPathValidator.validate(paths.get(i).path(), fieldPrefix + "[" + i + "].path"));
+        }
+        return errors;
     }
 }
