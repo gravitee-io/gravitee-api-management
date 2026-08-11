@@ -130,7 +130,7 @@ Typical top-level modules:
 - **Java:** `gravitee-apim-common`, `gravitee-apim-definition`, `gravitee-apim-distribution`, `gravitee-apim-gateway`, `gravitee-apim-plugin`, `gravitee-apim-repository`, `gravitee-apim-reporter`, `gravitee-apim-rest-api`, and the Maven modules under `gravitee-gamma/` when that tree exists (its own `pom.xml` lists them).
 - **Angular:** `gravitee-apim-console-webui`, `gravitee-apim-portal-webui-next`, `gravitee-apim-webui-libs/*`.
 
-Optional **`gravitee-gamma/`** trees are **Gamma** management plugins on the Management API — they are not Gateway runtime; hubs rules for `product: gamma` apply only when the manifest declares `gamma`.
+Optional **`gravitee-gamma/`** trees are **Gamma** management plugins on the Management API — they are not Gateway runtime; the `product: gamma` rules apply only when this repo's `.ai/manifest.yaml` declares `gamma`.
 
 - **Local full stack:** service layout, ports, and compose definitions live in `CONTRIBUTING.adoc`, section **AI Agent Context (Docker Compose Full Stack)** — do not invent alternatives.
 - **Layering:** keep **definition** and **plugin handler** separate from Gateway execution and from Console / Portal UI — do not reach from management resources or UI code into Gateway internals.
