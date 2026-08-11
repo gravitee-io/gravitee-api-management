@@ -22,12 +22,23 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatTableHarness } from '@angular/material/table/testing';
+import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 
 import { CategoryCatalogComponent } from './category.component';
 import { CategoryHarness } from './category.harness';
+import { AddApiToCategoryDialogHarness } from './add-api-to-category-dialog/add-api-to-category-dialog.harness';
 
-import { GioTestingModule } from '../../../shared/testing';
-import { fakePortalCategory, PortalCategory } from '../../../entities/management-api-v2';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+import {
+  Api,
+  fakeApiV2,
+  fakePortalCategory,
+  fakePortalNavigationApi,
+  fakePortalNavigationItemsResponse,
+  PortalCategory,
+  PortalNavigationApi,
+  UpdateApiPortalNavigationItem,
+} from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { PortalCatalogComponent } from '../portal-catalog.component';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -42,6 +53,7 @@ describe('CategoryCatalogComponent', () => {
   let fixture: ComponentFixture<CategoryCatalogComponent>;
   let httpTestingController: HttpTestingController;
   let harnessLoader: HarnessLoader;
+  let rootLoader: HarnessLoader;
   let router: Router;
   let componentHarness: CategoryHarness;
 
@@ -79,9 +91,35 @@ describe('CategoryCatalogComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, CategoryHarness);
     component = fixture.componentInstance;
     fixture.detectChanges();
+  };
+
+  const expectGetPortalNavigationItems = (items: PortalNavigationApi[] = []) => {
+    const req = httpTestingController.expectOne({
+      method: 'GET',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items?area=TOP_NAVBAR`,
+    });
+    req.flush(fakePortalNavigationItemsResponse({ items }));
+  };
+
+  const expectGetApi = (api: Api) => {
+    const req = httpTestingController.expectOne({
+      method: 'GET',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
+    });
+    req.flush(api);
+  };
+
+  const expectUpdateNavigationItem = (navItemId: string, expectedBody: UpdateApiPortalNavigationItem, response: PortalNavigationApi) => {
+    const req = httpTestingController.expectOne({
+      method: 'PUT',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${navItemId}`,
+    });
+    expect(req.request.body).toEqual(expectedBody);
+    req.flush(response);
   };
 
   afterEach(() => {
@@ -122,6 +160,7 @@ describe('CategoryCatalogComponent', () => {
       await init(CATEGORY.id);
       expectListPortalCategoriesRequest(httpTestingController, [CATEGORY]);
       fixture.detectChanges();
+      expectGetPortalNavigationItems([]);
 
       expect(component.mode).toEqual('edit');
     });
@@ -152,6 +191,7 @@ describe('CategoryCatalogComponent', () => {
       await init(CATEGORY.id);
       expectListPortalCategoriesRequest(httpTestingController, [CATEGORY]);
       fixture.detectChanges();
+      expectGetPortalNavigationItems([]);
     });
 
     it('should require title', async () => {
@@ -193,16 +233,169 @@ describe('CategoryCatalogComponent', () => {
       fixture.detectChanges();
     });
 
-    it('should show empty APIs, API association not yet supported', async () => {
+    it('should show empty APIs when none are assigned to the category', async () => {
+      expectGetPortalNavigationItems([]);
+      fixture.detectChanges();
+
       const table = await harnessLoader.getHarness(MatTableHarness);
       const tableHost = await table.host();
       expect(await tableHost.text()).toContain('There are no APIs for this category.');
     });
 
-    it('should have the add API button disabled', async () => {
+    it('should have the add API button enabled', async () => {
+      expectGetPortalNavigationItems([]);
+      fixture.detectChanges();
+
       const addApiButton = await componentHarness.getAddApiButton(harnessLoader);
       expect(addApiButton).toBeTruthy();
-      expect(await addApiButton.isDisabled()).toEqual(true);
+      expect(await addApiButton!.isDisabled()).toEqual(false);
+    });
+
+    it('should list APIs assigned to the category', async () => {
+      const navItem = fakePortalNavigationApi({
+        id: 'nav-api-1',
+        apiId: 'api-1',
+        title: 'Planets API',
+        categoryIds: [CATEGORY.id],
+      });
+      const api = fakeApiV2({ id: 'api-1', name: 'Planets API', apiVersion: '1.0' });
+
+      expectGetPortalNavigationItems([navItem]);
+      expectGetApi(api);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(await componentHarness.getNameByRowIndex(harnessLoader, 0)).toEqual('Planets API');
+      expect(await componentHarness.getTextByColumnNameAndRowIndex(harnessLoader, 'version', 0)).toEqual('1.0');
+      expect(await componentHarness.getTextByColumnNameAndRowIndex(harnessLoader, 'contextPath', 0)).toEqual('/planets');
+    });
+
+    describe('Add API to Category', () => {
+      beforeEach(async () => {
+        expectGetPortalNavigationItems([]);
+        fixture.detectChanges();
+      });
+
+      it('should add the selected API to the category', async () => {
+        const navItem = fakePortalNavigationApi({
+          id: 'nav-api-1',
+          apiId: 'api-1',
+          title: 'Planets API',
+          categoryIds: [],
+        });
+
+        const successSpy = jest.spyOn(TestBed.inject(SnackBarService), 'success');
+
+        const addApiButton = await componentHarness.getAddApiButton(harnessLoader);
+        await addApiButton!.click();
+        expectGetPortalNavigationItems([navItem]);
+
+        const dialog = await rootLoader.getHarness(AddApiToCategoryDialogHarness);
+        await dialog.fillFormAndSubmit('Planets API');
+
+        const updatedNavItem = { ...navItem, categoryIds: [CATEGORY.id] };
+        expectUpdateNavigationItem(
+          navItem.id,
+          {
+            type: 'API',
+            title: navItem.title,
+            published: navItem.published,
+            visibility: navItem.visibility,
+            parentId: navItem.parentId,
+            order: navItem.order,
+            apiId: navItem.apiId,
+            categoryIds: [CATEGORY.id],
+          },
+          updatedNavItem,
+        );
+
+        expect(successSpy).toHaveBeenCalledWith('API [Planets API] has been added to the category.');
+
+        const api = fakeApiV2({ id: 'api-1', name: 'Planets API' });
+        expectGetPortalNavigationItems([updatedNavItem]);
+        expectGetApi(api);
+      });
+
+      it('should not offer APIs already assigned to the category', async () => {
+        const alreadyInCategory = fakePortalNavigationApi({
+          id: 'nav-api-1',
+          apiId: 'api-1',
+          title: 'Already In Category',
+          categoryIds: [CATEGORY.id],
+        });
+        const selectable = fakePortalNavigationApi({
+          id: 'nav-api-2',
+          apiId: 'api-2',
+          title: 'Selectable API',
+          categoryIds: [],
+        });
+
+        const addApiButton = await componentHarness.getAddApiButton(harnessLoader);
+        await addApiButton!.click();
+        expectGetPortalNavigationItems([alreadyInCategory, selectable]);
+
+        const dialog = await rootLoader.getHarness(AddApiToCategoryDialogHarness);
+        expect(await dialog.getOptionLabels()).toEqual(['Selectable API']);
+      });
+    });
+
+    describe('Remove API from Category', () => {
+      const navItem = fakePortalNavigationApi({
+        id: 'nav-api-1',
+        apiId: 'api-1',
+        title: 'Planets API',
+        categoryIds: [CATEGORY.id],
+      });
+      const api = fakeApiV2({ id: 'api-1', name: 'Planets API' });
+
+      beforeEach(async () => {
+        expectGetPortalNavigationItems([navItem]);
+        expectGetApi(api);
+        fixture.detectChanges();
+        await fixture.whenStable();
+        fixture.detectChanges();
+      });
+
+      it('should remove the API from the category after confirmation', async () => {
+        const successSpy = jest.spyOn(TestBed.inject(SnackBarService), 'success');
+
+        const removeBtn = await componentHarness.getRemoveApiButtonByRowIndex(harnessLoader, 0);
+        expect(removeBtn).toBeTruthy();
+        await removeBtn!.click();
+
+        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+        await confirmDialog.confirm();
+
+        expectUpdateNavigationItem(
+          navItem.id,
+          {
+            type: 'API',
+            title: navItem.title,
+            published: navItem.published,
+            visibility: navItem.visibility,
+            parentId: navItem.parentId,
+            order: navItem.order,
+            apiId: navItem.apiId,
+            categoryIds: [],
+          },
+          { ...navItem, categoryIds: [] },
+        );
+
+        expect(successSpy).toHaveBeenCalledWith(`'Planets API' removed successfully`);
+
+        expectGetPortalNavigationItems([]);
+      });
+
+      it('should not remove the API when cancelling the confirmation', async () => {
+        const removeBtn = await componentHarness.getRemoveApiButtonByRowIndex(harnessLoader, 0);
+        await removeBtn!.click();
+
+        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+        await confirmDialog.cancel();
+
+        expect(await componentHarness.getNameByRowIndex(harnessLoader, 0)).toEqual('Planets API');
+      });
     });
   });
 });

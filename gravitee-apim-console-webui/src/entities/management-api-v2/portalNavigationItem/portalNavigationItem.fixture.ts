@@ -117,6 +117,7 @@ export function fakePortalNavigationApi(overrides?: Partial<PortalNavigationApi>
     apiId: 'api-1',
     published: true,
     visibility: 'PUBLIC',
+    categoryIds: [],
   };
 
   if (isFunction(overrides)) {
@@ -231,6 +232,7 @@ export function fakeNewApiPortalNavigationItem(overrides?: Partial<NewApiPortalN
     area: 'TOP_NAVBAR',
     apiId: 'api-1',
     visibility: 'PUBLIC',
+    categoryIds: [],
   };
 
   if (isFunction(overrides)) {
@@ -328,6 +330,7 @@ export function fakeUpdateApiPortalNavigationItem(overrides?: Partial<UpdateApiP
     title: '',
     visibility: 'PUBLIC',
     apiId: 'api-1',
+    categoryIds: [],
   };
 
   if (isFunction(overrides)) {

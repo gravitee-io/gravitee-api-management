@@ -53,8 +53,7 @@
               class="add-button"
               mat-raised-button
               color="primary"
-              [disabled]="!apiAssociationEnabled"
-              matTooltip="Assigning APIs to Portal Next categories is not yet available"
+              (click)="addApiToCategory()"
               *gioPermission="{ anyOf: ['environment-api-u'] }"
             >
               <mat-icon>add</mat-icon>
@@ -85,6 +84,21 @@
                 <th mat-header-cell *matHeaderCellDef id="context-path">Context path</th>
                 <td mat-cell *matCellDef="let element">
                   {{ element.contextPath }}
+                </td>
+              </ng-container>
+
+              <!-- Display Actions Column -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef id="api-list-actions"></th>
+                <td mat-cell *matCellDef="let element">
+                  <button
+                    mat-button
+                    (click)="removeApiFromCategory(element)"
+                    matTooltip="Remove API"
+                    *gioPermission="{ anyOf: ['environment-api-u'] }"
+                  >
+                    <mat-icon svgIcon="gio:trash"></mat-icon>
+                  </button>
                 </td>
               </ng-container>
 

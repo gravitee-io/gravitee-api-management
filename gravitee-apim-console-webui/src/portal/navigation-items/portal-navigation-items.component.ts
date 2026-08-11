@@ -667,6 +667,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
               order: existingItem.order,
               published: existingItem.published,
               apiId: (existingItem as PortalNavigationApi).apiId,
+              categoryIds: (existingItem as PortalNavigationApi).categoryIds,
               url: result.url,
               visibility: result.visibility,
             });
@@ -980,6 +981,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
             visibility: navItem.visibility,
             url: (navItem as PortalNavigationLink).url,
             apiId: (navItem as PortalNavigationApi).apiId,
+            categoryIds: (navItem as PortalNavigationApi).categoryIds,
             parentId: newParentId ?? undefined,
             order: newOrder,
           };

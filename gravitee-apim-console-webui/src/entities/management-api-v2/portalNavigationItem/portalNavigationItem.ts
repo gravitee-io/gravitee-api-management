@@ -60,6 +60,7 @@ export interface PortalNavigationLink extends BasePortalNavigationItem<'LINK'> {
 
 export interface PortalNavigationApi extends BasePortalNavigationItem<'API'> {
   apiId: string;
+  categoryIds?: string[];
 }
 
 export interface PortalNavigationApiProduct extends BasePortalNavigationItem<'API_PRODUCT'> {
@@ -98,6 +99,7 @@ export interface NewLinkPortalNavigationItem extends BaseNewPortalNavigationItem
 
 export interface NewApiPortalNavigationItem extends BaseNewPortalNavigationItem<'API'> {
   apiId: string;
+  categoryIds?: string[];
 }
 
 export interface NewApiProductPortalNavigationItem extends BaseNewPortalNavigationItem<'API_PRODUCT'> {
@@ -134,6 +136,7 @@ export interface UpdateLinkPortalNavigationItem extends BaseUpdatePortalNavigati
 
 export interface UpdateApiPortalNavigationItem extends BaseUpdatePortalNavigationItem<'API'> {
   apiId: string;
+  categoryIds?: string[];
 }
 
 export interface UpdateApiProductPortalNavigationItem extends BaseUpdatePortalNavigationItem<'API_PRODUCT'> {}
