@@ -59,9 +59,6 @@ public class VertxHttpServerRequest extends AbstractRequest {
         this.nativeRequest = nativeRequest;
         this.originalHost = hostWithPort(this.nativeRequest.authority());
         this.timestamp = System.currentTimeMillis();
-        // Taken here rather than when the metrics are built, so the gateway's own overhead on the way in is inside the
-        // measure instead of before it.
-        this.timestampNs = System.nanoTime();
         this.id = idGenerator.randomString();
         this.headers = new VertxHttpHeaders(nativeRequest.headers());
         this.bufferFlow = new BufferFlow(nativeRequest.toFlowable().map(Buffer::buffer), this::isStreaming);

@@ -63,8 +63,12 @@ public abstract class AbstractRequest implements MutableRequest, HttpRequestInte
     protected String scheme;
     protected HttpVersion version;
     protected long timestamp;
-    /** Monotonic counterpart of {@link #timestamp}, taken at the same instant. See {@link #timestampNs()}. */
-    protected long timestampNs = -1;
+    /**
+     * Monotonic counterpart of {@link #timestamp}, taken when the request is created rather than assigned by each
+     * implementation: an implementation that forgot to set it would silently downgrade every duration derived from it
+     * back to the wall clock, with nothing failing to say so. See {@link #timestampNs()}.
+     */
+    protected long timestampNs = System.nanoTime();
     protected String remoteAddress;
     protected String localAddress;
     protected SSLSession sslSession;

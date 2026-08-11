@@ -92,6 +92,10 @@ public interface HttpRequestInternal extends HttpRequest, OnMessagesInterceptor<
      * request gets indexed on — and an adjustable clock cannot measure a duration.
      * <p>
      * The value is only meaningful relative to another {@link System#nanoTime()} reading.
+     * <p>
+     * The default exists so that an implementation outside this codebase still compiles; every implementation here
+     * inherits a reading taken at construction from {@code AbstractRequest}. Returning {@code -1} means no monotonic
+     * origin is available and durations fall back to the wall clock.
      *
      * @return the {@link System#nanoTime()} reading taken when the request arrived, or {@code -1} when unknown.
      */
