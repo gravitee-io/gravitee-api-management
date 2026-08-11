@@ -27,7 +27,9 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyncPlanExecutor;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -72,16 +74,18 @@ class PortalNavigationListingDomainServiceTest {
         syncService.sync(
             AUDIT_INFO,
             PORTAL_ID,
-            List.of(),
-            List.of(
-                new NavigationPath("/a", null),
-                new NavigationPath("/a/b", null),
-                new NavigationPath("/c", null),
-                new NavigationPath("/c/d", null)
+            PortalNavigationStructure.empty(),
+            PortalNavigationStructure.ofTopNavbar(
+                List.of(
+                    new NavigationPath("/a", null),
+                    new NavigationPath("/a/b", null),
+                    new NavigationPath("/c", null),
+                    new NavigationPath("/c/d", null)
+                )
             )
         );
 
-        var result = listingService.listAsNavigationPaths(AUDIT_INFO.environmentId());
+        var result = listingService.listAsNavigationPaths(AUDIT_INFO.environmentId(), PortalArea.TOP_NAVBAR);
 
         assertThat(result).extracting(NavigationPath::path).containsExactly("/a", "/a/b", "/c", "/c/d");
     }
@@ -91,20 +95,27 @@ class PortalNavigationListingDomainServiceTest {
         syncService.sync(
             AUDIT_INFO,
             PORTAL_ID,
-            List.of(),
-            List.of(new NavigationPath("/projects/alpha", "Alpha"), new NavigationPath("/projects/alpha/docs", null))
+            PortalNavigationStructure.empty(),
+            PortalNavigationStructure.ofTopNavbar(
+                List.of(new NavigationPath("/projects/alpha", "Alpha"), new NavigationPath("/projects/alpha/docs", null))
+            )
         );
 
-        var result = listingService.listAsNavigationPaths(AUDIT_INFO.environmentId());
+        var result = listingService.listAsNavigationPaths(AUDIT_INFO.environmentId(), PortalArea.TOP_NAVBAR);
 
         assertThat(result).extracting(NavigationPath::path).containsExactly("/projects", "/projects/alpha", "/projects/alpha/docs");
     }
 
     @Test
     void display_name_is_surfaced_when_title_differs_from_segment() {
-        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/projects/alpha", "Alpha")));
+        syncService.sync(
+            AUDIT_INFO,
+            PORTAL_ID,
+            PortalNavigationStructure.empty(),
+            PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/projects/alpha", "Alpha")))
+        );
 
-        var result = listingService.listAsNavigationPaths(AUDIT_INFO.environmentId());
+        var result = listingService.listAsNavigationPaths(AUDIT_INFO.environmentId(), PortalArea.TOP_NAVBAR);
 
         assertThat(result)
             .filteredOn(p -> "/projects/alpha".equals(p.path()))
@@ -115,9 +126,14 @@ class PortalNavigationListingDomainServiceTest {
 
     @Test
     void display_name_is_null_when_title_equals_segment() {
-        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/a", null)));
+        syncService.sync(
+            AUDIT_INFO,
+            PORTAL_ID,
+            PortalNavigationStructure.empty(),
+            PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/a", null)))
+        );
 
-        var result = listingService.listAsNavigationPaths(AUDIT_INFO.environmentId());
+        var result = listingService.listAsNavigationPaths(AUDIT_INFO.environmentId(), PortalArea.TOP_NAVBAR);
 
         assertThat(result).singleElement().extracting(NavigationPath::displayName).isNull();
     }

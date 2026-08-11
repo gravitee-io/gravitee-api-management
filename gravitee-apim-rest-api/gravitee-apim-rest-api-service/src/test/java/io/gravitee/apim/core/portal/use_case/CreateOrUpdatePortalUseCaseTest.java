@@ -34,6 +34,7 @@ import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyncPlanExecutor;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
@@ -161,7 +162,9 @@ class CreateOrUpdatePortalUseCaseTest {
             new CreateOrUpdatePortalUseCase.Input(
                 AUDIT_INFO,
                 portal,
-                List.of(new NavigationPath("/projects/alpha", "Alpha"), new NavigationPath("/projects/beta", null))
+                PortalNavigationStructure.ofTopNavbar(
+                    List.of(new NavigationPath("/projects/alpha", "Alpha"), new NavigationPath("/projects/beta", null))
+                )
             )
         );
 
@@ -186,19 +189,25 @@ class CreateOrUpdatePortalUseCaseTest {
                 new CreateOrUpdatePortalUseCase.Input(
                     AUDIT_INFO,
                     portal,
-                    List.of(new NavigationPath("/valid", null), new NavigationPath("bad-path", null))
+                    PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/valid", null), new NavigationPath("bad-path", null)))
                 )
             )
         )
             .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("navigation[1].path");
+            .hasMessageContaining("structure.topNavbar[1].path");
     }
 
     @Test
     void should_return_empty_errors_when_navigation_is_valid() {
         var portal = PortalFixtures.aPortal();
 
-        var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal, List.of(new NavigationPath("/docs", null))));
+        var output = useCase.execute(
+            new CreateOrUpdatePortalUseCase.Input(
+                AUDIT_INFO,
+                portal,
+                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/docs", null)))
+            )
+        );
 
         assertThat(output.errors()).isEmpty();
     }
@@ -206,20 +215,30 @@ class CreateOrUpdatePortalUseCaseTest {
     @Test
     void should_persist_navigation_array_on_portal_row() {
         var portal = PortalFixtures.aPortal();
-        var input = List.of(new NavigationPath("/a", "A"), new NavigationPath("/b", null));
+        var input = PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/a", "A"), new NavigationPath("/b", null)));
 
         var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal, input));
 
-        assertThat(output.portal().getPortalNavigation()).extracting(NavigationPath::path).containsExactly("/a", "/b");
+        assertThat(output.portal().getNavigationStructure().forArea(PortalArea.TOP_NAVBAR))
+            .extracting(NavigationPath::path)
+            .containsExactly("/a", "/b");
         assertThat(portalCrudService.storage()).hasSize(1);
-        assertThat(portalCrudService.storage().get(0).getPortalNavigation()).extracting(NavigationPath::path).containsExactly("/a", "/b");
-        assertThat(output.navigation()).isEqualTo(output.portal().getPortalNavigation());
+        assertThat(portalCrudService.storage().get(0).getNavigationStructure().forArea(PortalArea.TOP_NAVBAR))
+            .extracting(NavigationPath::path)
+            .containsExactly("/a", "/b");
+        assertThat(output.structure()).isEqualTo(output.portal().getNavigationStructure());
     }
 
     @Test
     void should_use_previously_persisted_to_skip_unmanaged_folders_on_delete() {
         var portal = PortalFixtures.aPortal();
-        useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal, List.of(new NavigationPath("/managed", null))));
+        useCase.execute(
+            new CreateOrUpdatePortalUseCase.Input(
+                AUDIT_INFO,
+                portal,
+                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/managed", null)))
+            )
+        );
         var unmanaged = io.gravitee.apim.core.portal_page.model.PortalNavigationFolder.builder()
             .id(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.random())
             .organizationId(AUDIT_INFO.organizationId())
@@ -234,7 +253,7 @@ class CreateOrUpdatePortalUseCaseTest {
         unmanaged.markAsRoot();
         navCrudService.initWith(List.of(unmanaged));
 
-        useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal, List.of()));
+        useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal, PortalNavigationStructure.ofTopNavbar(List.of())));
 
         assertThat(navCrudService.storage()).contains(unmanaged);
         assertThat(

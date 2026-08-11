@@ -17,13 +17,18 @@ package io.gravitee.apim.rest.api.automation.mapper;
 
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.rest.api.automation.model.Errors;
 import io.gravitee.apim.rest.api.automation.model.PortalNavigationPath;
+import io.gravitee.apim.rest.api.automation.model.PortalNavigationStructure;
+import io.gravitee.apim.rest.api.automation.model.PortalSpec;
 import io.gravitee.apim.rest.api.automation.model.PortalState;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -40,7 +45,7 @@ public interface PortalMapper {
     default PortalState toPortalState(
         Portal portal,
         String hrid,
-        List<io.gravitee.apim.core.portal.model.NavigationPath> navigation,
+        io.gravitee.apim.core.portal.model.PortalNavigationStructure structure,
         List<Validator.Error> errors
     ) {
         var state = new PortalState(
@@ -51,8 +56,22 @@ public interface PortalMapper {
         );
         state.setHrid(hrid);
         mapPortalToState(portal, state);
-        state.setNavigation(toApiNavigation(navigation));
+        var wireStructure = new PortalNavigationStructure();
+        structure.areas().forEach((area, paths) -> writeWireArea(wireStructure, area, toApiNavigation(paths)));
+        state.setStructure(wireStructure);
+        state.setNavigation(wireStructure.getTopNavbar());
         return state;
+    }
+
+    private static void writeWireArea(PortalNavigationStructure wireStructure, PortalArea area, List<PortalNavigationPath> paths) {
+        switch (area) {
+            case TOP_NAVBAR -> wireStructure.setTopNavbar(paths);
+            case HOMEPAGE -> navigationNotAllowedFor(area);
+        }
+    }
+
+    private static void navigationNotAllowedFor(PortalArea area) {
+        throw new IllegalArgumentException("Setting navigation for " + area + " area is not allowed.");
     }
 
     default Errors toErrors(List<Validator.Error> validationErrors) {
@@ -71,19 +90,34 @@ public interface PortalMapper {
     @Mapping(target = "errors", ignore = true)
     @Mapping(target = "hrid", ignore = true)
     @Mapping(target = "navigation", ignore = true)
+    @Mapping(target = "structure", ignore = true)
     void mapPortalToState(Portal portal, @MappingTarget PortalState state);
 
-    default List<io.gravitee.apim.core.portal.model.NavigationPath> toCoreNavigation(List<PortalNavigationPath> navigation) {
+    default io.gravitee.apim.core.portal.model.PortalNavigationStructure toCoreStructure(PortalSpec spec) {
+        Map<PortalArea, List<NavigationPath>> areas = new EnumMap<>(PortalArea.class);
+        var topNavbar = resolveTopNavbar(spec);
+        if (!topNavbar.isEmpty()) {
+            areas.put(PortalArea.TOP_NAVBAR, topNavbar);
+        }
+        return new io.gravitee.apim.core.portal.model.PortalNavigationStructure(areas);
+    }
+
+    private static List<NavigationPath> resolveTopNavbar(PortalSpec spec) {
+        if (spec.getStructure() != null) {
+            return toCoreNavigationPathList(spec.getStructure().getTopNavbar());
+        }
+        return toCoreNavigationPathList(spec.getNavigation());
+    }
+
+    private static List<NavigationPath> toCoreNavigationPathList(List<PortalNavigationPath> navigation) {
         if (navigation == null) {
             return List.of();
         }
-
         List<NavigationPath> list = new ArrayList<>();
         for (int i = 0; i < navigation.size(); i++) {
             PortalNavigationPath n = navigation.get(i);
             if (isValidNavigationPath(n)) {
-                NavigationPath navigationPath = new NavigationPath(n.getPath(), n.getDisplayName(), i);
-                list.add(navigationPath);
+                list.add(new NavigationPath(n.getPath(), n.getDisplayName(), i));
             }
         }
         return list;

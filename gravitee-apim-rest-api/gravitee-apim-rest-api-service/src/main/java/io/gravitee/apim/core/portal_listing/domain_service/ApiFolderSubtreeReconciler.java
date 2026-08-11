@@ -60,7 +60,7 @@ class ApiFolderSubtreeReconciler {
         var plan = NavigationSyncPlanner.plan(desired, currentFolders, previousPaths, ownership);
         Function<String, PortalNavigationItemId> idMapper = path -> apiFolderId(auditInfo, navApi.getId(), path);
         var deleteStrategy = ownership.asDeleteStrategy();
-        planExecutor.execute(plan, auditInfo, navApi, idMapper, deleteStrategy);
+        planExecutor.execute(plan, auditInfo, navApi.getArea(), navApi, idMapper, deleteStrategy);
     }
 
     void validateConflicts(

@@ -34,17 +34,24 @@ public class PortalNavigationListingDomainService {
 
     private final PortalNavigationItemsQueryService queryService;
 
-    public List<NavigationPath> listAsNavigationPaths(String environmentId) {
+    public List<NavigationPath> listAsNavigationPaths(String environmentId, PortalArea area) {
+        rejectUnsupportedArea(area);
         final var folders = queryService.search(
             PortalNavigationItemQueryCriteria.builder()
                 .environmentId(environmentId)
-                .area(PortalArea.TOP_NAVBAR)
+                .area(area)
                 .type(PortalNavigationItemType.FOLDER)
                 .build()
         );
         final var collector = new PathCollector();
         PortalNavigationTreeWalker.walk(folders, collector);
         return collector.paths;
+    }
+
+    private static void rejectUnsupportedArea(PortalArea area) {
+        if (area != PortalArea.TOP_NAVBAR) {
+            throw new IllegalArgumentException("Listing navigation for " + area + " area is not allowed.");
+        }
     }
 
     private static final class PathCollector implements PortalNavigationVisitor {

@@ -21,7 +21,7 @@ import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.PortalId;
-import java.util.List;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -37,7 +37,12 @@ public class DeletePortalUseCase {
         var portal = portalCrudService
             .findByIdAndEnvironmentId(input.portalId(), input.auditInfo().environmentId())
             .orElseThrow(() -> new PortalNotFoundException(input.portalId().toString()));
-        navigationSyncDomainService.sync(input.auditInfo(), input.portalId(), portal.getPortalNavigation(), List.of());
+        navigationSyncDomainService.sync(
+            input.auditInfo(),
+            input.portalId(),
+            portal.getNavigationStructure(),
+            PortalNavigationStructure.empty()
+        );
         portalCrudService.delete(input.portalId());
     }
 }

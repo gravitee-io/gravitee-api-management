@@ -23,6 +23,7 @@ import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyn
 import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyncPlanner;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -30,31 +31,82 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
 @RequiredArgsConstructor
 public class PortalNavigationSyncDomainService {
 
-    private static final PortalArea AREA = PortalArea.TOP_NAVBAR;
-
     private final PortalNavigationItemsQueryService queryService;
     private final AutomationManagedNavigationItemsQueryService automationManagedNavigationItemsQueryService;
     private final NavigationSyncPlanExecutor planExecutor;
 
-    public void sync(AuditInfo auditInfo, PortalId portalId, List<NavigationPath> previouslyPersisted, List<NavigationPath> desired) {
-        var ctx = buildSyncContext(auditInfo, portalId, previouslyPersisted, desired);
-        executeSyncPlan(auditInfo, portalId, buildSyncPlan(ctx, desired), ctx);
+    public void sync(
+        AuditInfo auditInfo,
+        PortalId portalId,
+        PortalNavigationStructure previouslyPersisted,
+        PortalNavigationStructure desired
+    ) {
+        for (var area : allAreas(previouslyPersisted, desired)) {
+            syncArea(auditInfo, portalId, area, previouslyPersisted.forArea(area), desired.forArea(area));
+        }
     }
 
     public void validateForConflicts(
         AuditInfo auditInfo,
         PortalId portalId,
-        List<NavigationPath> previouslyPersisted,
-        List<NavigationPath> desired
+        PortalNavigationStructure previouslyPersisted,
+        PortalNavigationStructure desired
     ) {
-        buildSyncPlan(buildSyncContext(auditInfo, portalId, previouslyPersisted, desired), desired);
+        for (var area : allAreas(previouslyPersisted, desired)) {
+            planForArea(auditInfo, portalId, area, previouslyPersisted.forArea(area), desired.forArea(area));
+        }
+    }
+
+    private void syncArea(
+        AuditInfo auditInfo,
+        PortalId portalId,
+        PortalArea area,
+        List<NavigationPath> previousPaths,
+        List<NavigationPath> desiredPaths
+    ) {
+        rejectUnsupportedArea(area);
+        var ctx = buildSyncContext(auditInfo, portalId, area, previousPaths, desiredPaths);
+        planExecutor.execute(
+            buildSyncPlan(ctx, desiredPaths),
+            auditInfo,
+            area,
+            null,
+            path -> PortalNavigationItemId.forPortalFolder(auditInfo, portalId.toString(), path),
+            ctx.ownership().asDeleteStrategy()
+        );
+    }
+
+    private void planForArea(
+        AuditInfo auditInfo,
+        PortalId portalId,
+        PortalArea area,
+        List<NavigationPath> previousPaths,
+        List<NavigationPath> desiredPaths
+    ) {
+        rejectUnsupportedArea(area);
+        buildSyncPlan(buildSyncContext(auditInfo, portalId, area, previousPaths, desiredPaths), desiredPaths);
+    }
+
+    private static void rejectUnsupportedArea(PortalArea area) {
+        if (area != PortalArea.TOP_NAVBAR) {
+            throw new IllegalArgumentException("Setting navigation for " + area + " area is not allowed.");
+        }
+    }
+
+    private static Set<PortalArea> allAreas(PortalNavigationStructure previouslyPersisted, PortalNavigationStructure desired) {
+        Set<PortalArea> areas = new HashSet<>();
+        areas.addAll(previouslyPersisted.areas().keySet());
+        areas.addAll(desired.areas().keySet());
+        return areas;
     }
 
     private NavigationSyncPlan buildSyncPlan(SyncContext ctx, List<NavigationPath> desired) {
@@ -66,26 +118,17 @@ public class PortalNavigationSyncDomainService {
         );
     }
 
-    private void executeSyncPlan(AuditInfo auditInfo, PortalId portalId, NavigationSyncPlan plan, SyncContext ctx) {
-        planExecutor.execute(
-            plan,
-            auditInfo,
-            null,
-            path -> PortalNavigationItemId.forPortalFolder(auditInfo, portalId.toString(), path),
-            ctx.ownership.asDeleteStrategy()
-        );
-    }
-
     private SyncContext buildSyncContext(
         AuditInfo auditInfo,
         PortalId portalId,
+        PortalArea area,
         List<NavigationPath> previouslyPersisted,
         List<NavigationPath> desired
     ) {
         var currentFolders = queryService.search(
             PortalNavigationItemQueryCriteria.builder()
                 .environmentId(auditInfo.environmentId())
-                .area(AREA)
+                .area(area)
                 .type(PortalNavigationItemType.FOLDER)
                 .build()
         );

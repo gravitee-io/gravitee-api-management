@@ -29,10 +29,10 @@ public class ValidatePortalUseCase {
 
     public CreateOrUpdatePortalUseCase.Output execute(CreateOrUpdatePortalUseCase.Input input) {
         var result = validator.validateAndSanitize(
-            new ValidatePortalDomainService.Input(input.auditInfo(), input.portal(), input.navigation())
+            new ValidatePortalDomainService.Input(input.auditInfo(), input.portal(), input.structure())
         );
         List<Validator.Error> errors = result.errors().orElseGet(List::of);
-        var sanitized = result.value().orElse(new ValidatePortalDomainService.Input(input.auditInfo(), input.portal(), input.navigation()));
-        return new CreateOrUpdatePortalUseCase.Output(sanitized.portal(), sanitized.navigation(), errors);
+        var sanitized = result.value().orElse(new ValidatePortalDomainService.Input(input.auditInfo(), input.portal(), input.structure()));
+        return new CreateOrUpdatePortalUseCase.Output(sanitized.portal(), sanitized.structure(), errors);
     }
 }

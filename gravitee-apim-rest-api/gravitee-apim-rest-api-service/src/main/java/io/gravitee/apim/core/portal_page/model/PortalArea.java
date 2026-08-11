@@ -16,6 +16,16 @@
 package io.gravitee.apim.core.portal_page.model;
 
 public enum PortalArea {
-    HOMEPAGE,
-    TOP_NAVBAR,
+    HOMEPAGE("homepage"),
+    TOP_NAVBAR("topNavbar");
+
+    private final String wireName;
+
+    PortalArea(String wireName) {
+        this.wireName = wireName;
+    }
+
+    public String wireName() {
+        return wireName;
+    }
 }

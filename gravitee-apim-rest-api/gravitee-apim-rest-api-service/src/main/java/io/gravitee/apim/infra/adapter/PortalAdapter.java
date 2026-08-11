@@ -16,11 +16,16 @@
 package io.gravitee.apim.infra.adapter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
 import java.io.IOException;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -50,29 +55,37 @@ public interface PortalAdapter {
             .environmentId(portal.getEnvironmentId())
             .organizationId(portal.getOrganizationId())
             .name(portal.getName())
-            .portalNavigation(serializePortalNavigation(portal.getPortalNavigation()))
+            .portalNavigation(serializePortalNavigation(portal.getNavigationStructure()))
             .build();
     }
 
+    TypeReference<Map<PortalArea, List<NavigationPath>>> NAVIGATION_STRUCTURE_MAP = new TypeReference<>() {};
     TypeReference<List<NavigationPath>> NAVIGATION_PATH_LIST = new TypeReference<>() {};
 
-    default String serializePortalNavigation(List<NavigationPath> portalNavigation) {
-        if (portalNavigation == null || portalNavigation.isEmpty()) {
+    default String serializePortalNavigation(PortalNavigationStructure structure) {
+        if (structure == null || structure.isEmpty()) {
             return null;
         }
         try {
-            return GraviteeJacksonMapper.getInstance().writeValueAsString(portalNavigation);
+            return GraviteeJacksonMapper.getInstance().writeValueAsString(structure.areas());
         } catch (IOException ioe) {
             throw new IllegalArgumentException("Unexpected error while serializing portal navigation", ioe);
         }
     }
 
-    default List<NavigationPath> deserializePortalNavigation(String json) {
+    default PortalNavigationStructure deserializePortalNavigation(String json) {
         if (json == null || json.isBlank()) {
-            return List.of();
+            return PortalNavigationStructure.empty();
         }
         try {
-            return GraviteeJacksonMapper.getInstance().readValue(json, NAVIGATION_PATH_LIST);
+            JsonNode root = GraviteeJacksonMapper.getInstance().readTree(json);
+            if (root.isArray()) {
+                // Legacy shape: bare array of navigation paths, treated as TOP_NAVBAR entries.
+                var legacy = GraviteeJacksonMapper.getInstance().treeToValue(root, NAVIGATION_PATH_LIST);
+                return PortalNavigationStructure.ofTopNavbar(legacy);
+            }
+            Map<PortalArea, List<NavigationPath>> areas = GraviteeJacksonMapper.getInstance().treeToValue(root, NAVIGATION_STRUCTURE_MAP);
+            return areas.isEmpty() ? PortalNavigationStructure.empty() : new PortalNavigationStructure(new EnumMap<>(areas));
         } catch (IOException ioe) {
             throw new IllegalArgumentException("Invalid portal navigation JSON: " + json, ioe);
         }

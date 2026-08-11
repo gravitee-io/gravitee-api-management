@@ -1,0 +1,12 @@
+{
+  "hrid": "default-portal",
+  "name": "Default Portal",
+  "structure": {
+    "topNavbar": [
+      { "path": "/from-structure" }
+    ]
+  },
+  "navigation": [
+    { "path": "/from-legacy" }
+  ]
+}

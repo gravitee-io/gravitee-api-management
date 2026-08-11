@@ -25,6 +25,8 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,7 +64,7 @@ class GetPortalUseCaseTest {
         var output = useCase.execute(new GetPortalUseCase.Input(AUDIT_INFO, portal.getId()));
 
         assertThat(output.portal()).isEqualTo(portal);
-        assertThat(output.navigation()).isEmpty();
+        assertThat(output.structure().isEmpty()).isTrue();
     }
 
     @Test
@@ -92,12 +94,13 @@ class GetPortalUseCaseTest {
     @Test
     void should_return_persisted_navigation_paths() {
         var navigation = List.of(new NavigationPath("/a", null), new NavigationPath("/a/b", "B"));
-        var portal = PortalFixtures.aPortal().withNavigation(navigation);
+        var portal = PortalFixtures.aPortal().withNavigationStructure(PortalNavigationStructure.ofTopNavbar(navigation));
         portalCrudService.initWith(List.of(portal));
 
         var output = useCase.execute(new GetPortalUseCase.Input(AUDIT_INFO, portal.getId()));
 
-        assertThat(output.navigation()).extracting(NavigationPath::path).containsExactly("/a", "/a/b");
-        assertThat(output.navigation().get(1).displayName()).isEqualTo("B");
+        var topNavbar = output.structure().forArea(PortalArea.TOP_NAVBAR);
+        assertThat(topNavbar).extracting(NavigationPath::path).containsExactly("/a", "/a/b");
+        assertThat(topNavbar.get(1).displayName()).isEqualTo("B");
     }
 }
