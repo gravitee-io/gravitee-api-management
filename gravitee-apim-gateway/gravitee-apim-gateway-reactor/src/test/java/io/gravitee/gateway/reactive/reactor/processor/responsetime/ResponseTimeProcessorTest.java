@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.reactor.processor.responsetime;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -79,6 +80,21 @@ class ResponseTimeProcessorTest extends AbstractProcessorTest {
         // every dashboard average down; rounding keeps what a difference of currentTimeMillis() used to yield.
         assertThat(metrics.getGatewayLatencyNs()).isPositive();
         assertThat(metrics.getGatewayLatencyMs()).isEqualTo(metrics.getGatewayLatencyNs() >= 500_000 ? 1 : 0);
+    }
+
+    @Test
+    void should_keep_the_latency_a_difference_when_the_reactor_only_reports_milliseconds() {
+        final Metrics metrics = ctx.metrics();
+        metrics.setRequestStartNs(System.nanoTime() - ELAPSED_NS);
+        // What the v2 emulation reactor does: it writes the millisecond field and never the nanosecond one, while
+        // running behind the same platform chain, which does set the monotonic origin.
+        metrics.setEndpointResponseTimeMs(MILLISECONDS.convert(ENDPOINT_RESPONSE_TIME_NS, NANOSECONDS));
+
+        new ResponseTimeProcessor().execute(ctx).test().assertResult();
+
+        // Not the whole response time: the endpoint's share still has to be taken out.
+        assertThat(metrics.getGatewayLatencyNs()).isLessThan(metrics.getGatewayResponseTimeNs());
+        assertThat(metrics.getGatewayLatencyNs()).isEqualTo(metrics.getGatewayResponseTimeNs() - ENDPOINT_RESPONSE_TIME_NS);
     }
 
     @Test

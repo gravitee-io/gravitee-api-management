@@ -19,6 +19,7 @@ import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -44,12 +45,8 @@ public class ResponseTimeProcessor implements Processor {
                 // resolution the gateway's own overhead — a couple of milliseconds — is actually visible at. Setting
                 // the nanoseconds derives the milliseconds.
                 final long gatewayResponseTimeNs = System.nanoTime() - requestStartNs;
-                final long endpointResponseTimeNs = metrics.getEndpointResponseTimeNs();
                 metrics.setGatewayResponseTimeNs(gatewayResponseTimeNs);
-                // No endpoint involved — a request rejected before reaching one — leaves the whole time to the gateway.
-                metrics.setGatewayLatencyNs(
-                    endpointResponseTimeNs > -1 ? gatewayResponseTimeNs - endpointResponseTimeNs : gatewayResponseTimeNs
-                );
+                metrics.setGatewayLatencyNs(gatewayResponseTimeNs - endpointResponseTimeNs(metrics));
             } else {
                 // No monotonic origin (a request that did not go through the HTTP layer): fall back to the wall clock.
                 final long gatewayResponseTimeInMs = System.currentTimeMillis() - metrics.timestamp().toEpochMilli();
@@ -59,5 +56,20 @@ public class ResponseTimeProcessor implements Processor {
                 }
             }
         });
+    }
+
+    /**
+     * The endpoint response time in nanoseconds.
+     * <p>
+     * Not every reactor reports one: the v2 emulation reactor only sets the millisecond field, and it runs behind the
+     * very same platform chain as the v4 one, so its value has to be converted rather than ignored — otherwise its
+     * latency would come out as the whole response time instead of a difference.
+     * <p>
+     * A request that never reached an endpoint leaves the millisecond field at its {@code 0} default, which charges
+     * the whole time to the gateway, as it always has.
+     */
+    private static long endpointResponseTimeNs(final Metrics metrics) {
+        final long endpointResponseTimeNs = metrics.getEndpointResponseTimeNs();
+        return endpointResponseTimeNs > -1 ? endpointResponseTimeNs : TimeUnit.MILLISECONDS.toNanos(metrics.getEndpointResponseTimeMs());
     }
 }
