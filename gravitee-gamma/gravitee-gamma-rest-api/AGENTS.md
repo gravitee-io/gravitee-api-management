@@ -152,6 +152,13 @@ Allowed dependencies:
 
 Only exception: `@UseCase` uses `@Transactional` (accepted trade-off).
 
+**The core layer does not log.** Two guardrails overlap to forbid both logger annotations here, and neither fires during `mvn test`:
+
+- `@CustomLog` resolves to `io.gravitee.node.logging.NodeLoggerFactory` (see the root `lombok.config`), which is not in the allowlist above — caught by `CoreRulesTest`.
+- `@Slf4j` resolves to `org.slf4j.LoggerFactory`, forbidden repo-wide by the `gravitee-archrules-maven-plugin` `global-logging-check` goal. The allowlist entry `org.slf4j.*` above therefore only covers types like `Logger` passed around, never the factory.
+
+Log from the REST or infra layer instead, with `@CustomLog`. Run `mvn verify -pl <module> -DskipTests` before pushing: the plugin check runs after `test`, so a green `mvn test` proves nothing about it.
+
 ## 6. Infrastructure Layer
 
 - Generate adapters to convert between repository models and core domain models (Anticorruption Layer).
@@ -315,6 +322,8 @@ public class GammaTracingConfiguration {
 ## Exceptions (adds to §8)
 
 - Map domain exceptions to HTTP status codes in the JAX-RS layer, or rely on the apim management-rest exception mappers, which already cover the base types.
+
+**Check the base type actually has a registered mapper before relying on one.** `GammaModuleApplication` registers mappers explicitly, one by one, and management-rest does not ship a mapper for every base exception — `ConflictDomainException` has none, so a domain exception extending it falls through to `ThrowableMapper` and surfaces as a **500**. Nothing fails at compile time and nothing fails at startup; the wrong status only shows up if a test asserts on it. When adding a domain exception, either confirm its base is in the `register(...)` list or write a mapper under `resources/<domain>/exception/` and register it there. A dedicated mapper is required anyway whenever the response body carries more than `message`/`http_status`.
 
 ## REST registration (refines §9)
 
