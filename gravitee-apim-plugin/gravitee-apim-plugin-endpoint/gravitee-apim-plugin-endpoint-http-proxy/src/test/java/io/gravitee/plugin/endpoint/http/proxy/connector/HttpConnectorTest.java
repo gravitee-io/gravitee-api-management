@@ -37,9 +37,11 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.longThat;
+import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -109,6 +111,12 @@ class HttpConnectorTest {
     private static final String ERROR_ENDPOINT = "/error";
     /** Port nothing listens on, to exercise a connection that cannot be acquired. */
     private static final int UNBOUND_PORT = 1;
+    /**
+     * How long to let doFinally's action land. Draining the chunks returns as soon as the subscriber sees the terminal
+     * signal, which doFinally propagates before running its own action — so the measure is set just after, on a
+     * schedule the test does not control.
+     */
+    private static final long VERIFY_TIMEOUT_MS = 5_000;
     private static WireMockServer wiremock;
     private static Vertx vertx;
 
@@ -813,8 +821,8 @@ class HttpConnectorTest {
 
         final ArgumentCaptor<Long> connectTimeNs = ArgumentCaptor.forClass(Long.class);
         final ArgumentCaptor<Long> responseTimeNs = ArgumentCaptor.forClass(Long.class);
-        verify(metrics).setEndpointConnectTimeNs(connectTimeNs.capture());
-        verify(metrics).setEndpointResponseTimeNs(responseTimeNs.capture());
+        verify(metrics, timeout(VERIFY_TIMEOUT_MS)).setEndpointConnectTimeNs(connectTimeNs.capture());
+        verify(metrics, timeout(VERIFY_TIMEOUT_MS)).setEndpointResponseTimeNs(responseTimeNs.capture());
 
         // The durations are nested, not additive: acquiring the connection is part of the response time, which is what
         // lets the gateway latency subtract a pool wait instead of being charged with it.
@@ -851,7 +859,9 @@ class HttpConnectorTest {
         verify(response).chunks(chunksCaptor.capture());
         chunksCaptor.getValue().test(1).cancel();
 
-        verify(metrics).setEndpointResponseTimeNs(longThat(responseTimeNs -> responseTimeNs >= BACKEND_ELAPSED_NS));
+        verify(metrics, timeout(VERIFY_TIMEOUT_MS)).setEndpointResponseTimeNs(
+            longThat(responseTimeNs -> responseTimeNs >= BACKEND_ELAPSED_NS)
+        );
     }
 
     @Test
@@ -872,7 +882,9 @@ class HttpConnectorTest {
         consumeResponseChunks();
 
         // The whole response is now in, body included — this is what nginx reports as $upstream_response_time.
-        verify(metrics).setEndpointResponseTimeNs(longThat(responseTimeNs -> responseTimeNs >= BACKEND_ELAPSED_NS));
+        verify(metrics, timeout(VERIFY_TIMEOUT_MS)).setEndpointResponseTimeNs(
+            longThat(responseTimeNs -> responseTimeNs >= BACKEND_ELAPSED_NS)
+        );
     }
 
     @Test
@@ -890,7 +902,7 @@ class HttpConnectorTest {
         consumeResponseChunks();
 
         // No common origin to derive a duration from: the reactor's time to first byte has to stand as-is.
-        verify(metrics, never()).setEndpointResponseTimeNs(anyLong());
+        verify(metrics, after(VERIFY_TIMEOUT_MS).never()).setEndpointResponseTimeNs(anyLong());
     }
 
     /**
