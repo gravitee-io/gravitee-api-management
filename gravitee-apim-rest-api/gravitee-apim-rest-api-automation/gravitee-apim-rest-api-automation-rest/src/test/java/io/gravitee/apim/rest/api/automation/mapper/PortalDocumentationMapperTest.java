@@ -91,7 +91,12 @@ class PortalDocumentationMapperTest {
             )
         );
 
-        var state = PortalDocumentationMapper.INSTANCE.toDocumentationState(pageContent, "getting-started", "default-portal");
+        var state = PortalDocumentationMapper.INSTANCE.toDocumentationState(
+            pageContent,
+            io.gravitee.apim.core.portal_page.model.PortalArea.TOP_NAVBAR,
+            "getting-started",
+            "default-portal"
+        );
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(state.getId()).isEqualTo(DOC_ID.toString());

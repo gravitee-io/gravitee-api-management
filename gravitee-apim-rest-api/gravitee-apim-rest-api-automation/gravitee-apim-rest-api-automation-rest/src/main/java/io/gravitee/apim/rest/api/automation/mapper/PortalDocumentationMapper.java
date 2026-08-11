@@ -19,6 +19,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal_page.model.AsyncApiPageContent;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.validation.Validator;
@@ -50,10 +51,11 @@ public interface PortalDocumentationMapper {
         state.setContent(spec.getContent());
         state.setLocation(spec.getLocation());
         state.setOrder(spec.getOrder());
+        state.setArea(spec.getArea());
         return state;
     }
 
-    default DocumentationState toDocumentationState(PortalPageContent<?> pageContent, String hrid, String portalHrid) {
+    default DocumentationState toDocumentationState(PortalPageContent<?> pageContent, PortalArea area, String hrid, String portalHrid) {
         var meta = pageContent.getAutomationMetadata();
         String rawContent = switch (pageContent) {
             case GraviteeMarkdownPageContent gmd -> gmd.getContent().value();
@@ -74,6 +76,7 @@ public interface PortalDocumentationMapper {
         state.setContent(rawContent);
         state.setLocation(meta.location().orElse(null));
         state.setOrder(meta.order().orElse(null));
+        state.setArea(toWireArea(area));
         return state;
     }
 
@@ -93,5 +96,19 @@ public interface PortalDocumentationMapper {
 
     default io.gravitee.apim.rest.api.automation.model.DocumentationType toWireType(PortalPageContentType domain) {
         return domain == null ? null : io.gravitee.apim.rest.api.automation.model.DocumentationType.fromValue(domain.name());
+    }
+
+    default io.gravitee.apim.core.portal_page.model.PortalArea toDomainArea(
+        io.gravitee.apim.rest.api.automation.model.DocumentationArea wire
+    ) {
+        return wire == null
+            ? io.gravitee.apim.core.portal_page.model.PortalArea.TOP_NAVBAR
+            : io.gravitee.apim.core.portal_page.model.PortalArea.valueOf(wire.getValue());
+    }
+
+    default io.gravitee.apim.rest.api.automation.model.DocumentationArea toWireArea(
+        io.gravitee.apim.core.portal_page.model.PortalArea domain
+    ) {
+        return domain == null ? null : io.gravitee.apim.rest.api.automation.model.DocumentationArea.fromValue(domain.name());
     }
 }

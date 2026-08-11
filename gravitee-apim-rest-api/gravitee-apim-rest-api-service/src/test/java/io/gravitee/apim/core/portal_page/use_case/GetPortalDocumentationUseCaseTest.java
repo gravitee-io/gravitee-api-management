@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -25,6 +26,7 @@ import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_documentation.exception.PortalDocumentationNotFoundException;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import java.util.List;
@@ -46,16 +48,18 @@ class GetPortalDocumentationUseCaseTest {
     private static final PortalPageContentId DOC_ID = PortalPageContentId.of("00000000-0000-0000-0000-0000000000c1");
 
     private final PortalPageContentQueryServiceInMemory queryService = new PortalPageContentQueryServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory();
     private GetPortalDocumentationUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        useCase = new GetPortalDocumentationUseCase(queryService);
+        useCase = new GetPortalDocumentationUseCase(queryService, navigationItemsQueryService);
     }
 
     @AfterEach
     void tearDown() {
         queryService.reset();
+        navigationItemsQueryService.reset();
     }
 
     @Test
@@ -69,6 +73,7 @@ class GetPortalDocumentationUseCaseTest {
         assertThat(output.pageContent().getType()).isEqualTo(PortalPageContentType.GRAVITEE_MARKDOWN);
         assertThat(output.pageContent().getAutomationMetadata().location()).contains("/projects/alpha");
         assertThat(output.pageContent().getAutomationMetadata().order()).contains(1);
+        assertThat(output.area()).isEqualTo(PortalArea.TOP_NAVBAR);
     }
 
     @Test

@@ -18,7 +18,6 @@ package io.gravitee.apim.core.portal_page.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.exception.PathConflictException;
-import io.gravitee.apim.core.portal_documentation.domain_service.navigation.DocumentationNavigationPageMapper;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
@@ -122,7 +121,7 @@ public class PortalLinkSyncDomainService {
         if (existing instanceof PortalNavigationItemContainer container) {
             return container;
         }
-        return DocumentationNavigationPageMapper.phantomParent(folderId);
+        return PortalNavigationItemContainer.phantom(folderId);
     }
 
     private void rejectIfSegmentTakenByForeignItem(

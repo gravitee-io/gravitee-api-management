@@ -17,15 +17,18 @@ package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.portal_documentation.domain_service.navigation.DocumentationNavigationPageMapper;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
-import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
+import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
+import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.slug.model.Slug;
 import java.util.Set;
@@ -38,14 +41,19 @@ public class PortalDocumentationSyncDomainService {
 
     private final PortalNavigationItemCrudService navigationItemCrudService;
     private final PortalNavigationItemsQueryService navigationItemsQueryService;
+    private final HomepageReconciler homepageReconciler;
+
+    public void materialize(AuditInfo auditInfo, PortalPageContent<?> pageContent, PortalArea targetArea) {
+        var navigationItemId = PortalNavigationItemId.forPortalDocumentationContent(auditInfo, pageContent);
+        var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), navigationItemId);
+        upsertNavigationPage(auditInfo, pageContent, navigationItemId, existing, targetArea);
+    }
 
     public void materialize(AuditInfo auditInfo, PortalPageContent<?> pageContent) {
-        final var meta = pageContent.getAutomationMetadata();
-        final var portalId = meta.referenceId();
-        final var contentId = pageContent.getId();
-        final var navigationItemId = PortalNavigationItemId.forPortalDocumentation(auditInfo, portalId, contentId);
-        final var parent = resolveParent(auditInfo, meta.location().orElse(null), portalId);
-        upsertNavigationPage(auditInfo, navigationItemId, contentId, parent, meta);
+        var navigationItemId = PortalNavigationItemId.forPortalDocumentationContent(auditInfo, pageContent);
+        var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), navigationItemId);
+        var targetArea = existing instanceof PortalNavigationPage page ? page.getArea() : PortalArea.TOP_NAVBAR;
+        upsertNavigationPage(auditInfo, pageContent, navigationItemId, existing, targetArea);
     }
 
     public void dematerialize(AuditInfo auditInfo, String portalId, PortalPageContentId pageContentId) {
@@ -58,35 +66,46 @@ public class PortalDocumentationSyncDomainService {
 
     private void upsertNavigationPage(
         AuditInfo auditInfo,
+        PortalPageContent<?> pageContent,
         PortalNavigationItemId navigationItemId,
-        PortalPageContentId contentId,
-        PortalNavigationItemContainer parent,
-        AutomationMetadata meta
+        PortalNavigationItem existing,
+        PortalArea targetArea
     ) {
-        final var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), navigationItemId);
+        final var meta = pageContent.getAutomationMetadata();
+        final var parent = resolveParent(auditInfo, meta.location().orElse(null), meta.referenceId());
         final var parentId = parent == null ? null : parent.getId();
 
-        if (existing instanceof PortalNavigationPage page) {
+        if (isUpdatableInPlace(existing, targetArea)) {
+            var page = (PortalNavigationPage) existing;
             final var segment = Slug.from(meta.name(), siblingsSlugs(auditInfo.environmentId(), parentId, navigationItemId));
-            DocumentationNavigationPageMapper.apply(page, contentId, parent, meta, segment);
+            page.update(meta, parent, segment);
             navigationItemCrudService.update(page);
             return;
         }
         if (existing != null) {
             navigationItemCrudService.delete(navigationItemId);
         }
+        if (targetArea == PortalArea.HOMEPAGE) {
+            homepageReconciler.dropStaleHomepages(auditInfo.environmentId(), meta.referenceId(), navigationItemId);
+        }
         final var segment = Slug.from(meta.name(), siblingsSlugs(auditInfo.environmentId(), parentId, null));
-        navigationItemCrudService.create(
-            DocumentationNavigationPageMapper.build(
-                navigationItemId,
-                contentId,
-                parent,
-                auditInfo.organizationId(),
-                auditInfo.environmentId(),
-                meta,
-                segment
-            )
-        );
+        var create = CreatePortalNavigationItem.builder()
+            .id(navigationItemId)
+            .title(meta.name())
+            .segment(segment.value())
+            .area(targetArea)
+            .type(PortalNavigationItemType.PAGE)
+            .order(meta.order().orElse(0))
+            .portalPageContentId(pageContent.getId())
+            .reference(meta.reference())
+            .visibility(PortalVisibility.PUBLIC)
+            .published(true)
+            .build();
+        navigationItemCrudService.create(PortalNavigationItem.from(create, auditInfo.organizationId(), auditInfo.environmentId(), parent));
+    }
+
+    private static boolean isUpdatableInPlace(PortalNavigationItem existing, PortalArea targetArea) {
+        return existing instanceof PortalNavigationPage page && page.getArea() == targetArea;
     }
 
     private Set<Slug> siblingsSlugs(String environmentId, PortalNavigationItemId parentId, PortalNavigationItemId excludeId) {
@@ -106,6 +125,6 @@ public class PortalDocumentationSyncDomainService {
         if (existing instanceof PortalNavigationItemContainer container) {
             return container;
         }
-        return DocumentationNavigationPageMapper.phantomParent(folderId);
+        return PortalNavigationItemContainer.phantom(folderId);
     }
 }

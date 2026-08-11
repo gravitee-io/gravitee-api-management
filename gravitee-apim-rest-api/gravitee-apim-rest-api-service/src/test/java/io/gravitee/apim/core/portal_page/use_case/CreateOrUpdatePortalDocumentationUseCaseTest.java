@@ -31,6 +31,7 @@ import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.ValidatePortalDocumentationDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
@@ -74,7 +75,11 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
             validator,
             crudService,
             queryService,
-            new PortalDocumentationSyncDomainService(navCrudService, navQueryService),
+            new PortalDocumentationSyncDomainService(
+                navCrudService,
+                navQueryService,
+                new HomepageReconciler(navQueryService, navCrudService, crudService)
+            ),
             scopeEnforcer
         );
     }
@@ -209,7 +214,11 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
             new ValidatePortalDocumentationDomainService(restrictedEnforcer),
             crudService,
             queryService,
-            new PortalDocumentationSyncDomainService(navCrudService, navQueryService),
+            new PortalDocumentationSyncDomainService(
+                navCrudService,
+                navQueryService,
+                new HomepageReconciler(navQueryService, navCrudService, crudService)
+            ),
             restrictedEnforcer
         );
         var nonDefaultPortalId = PortalId.of(HRIDToUUID.portal().context(AUDIT_INFO).hrid("foo-portal").id());
@@ -224,7 +233,8 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
                     PortalPageContentType.GRAVITEE_MARKDOWN,
                     "# Hello",
                     "/projects/alpha",
-                    1
+                    1,
+                    null
                 )
             )
         );
@@ -251,7 +261,8 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
                 PortalPageContentType.GRAVITEE_MARKDOWN,
                 "# Hello",
                 "/projects/alpha",
-                1
+                1,
+                null
             )
         );
 
@@ -267,6 +278,16 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
         String location,
         Integer order
     ) {
-        return new CreateOrUpdatePortalDocumentationUseCase.Input(AUDIT_INFO, DOC_ID, PORTAL_ID, name, type, content, location, order);
+        return new CreateOrUpdatePortalDocumentationUseCase.Input(
+            AUDIT_INFO,
+            DOC_ID,
+            PORTAL_ID,
+            name,
+            type,
+            content,
+            location,
+            order,
+            null
+        );
     }
 }
