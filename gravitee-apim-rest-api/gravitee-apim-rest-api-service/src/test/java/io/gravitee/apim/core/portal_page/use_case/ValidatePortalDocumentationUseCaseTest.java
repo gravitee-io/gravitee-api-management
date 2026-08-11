@@ -117,6 +117,16 @@ class ValidatePortalDocumentationUseCaseTest {
         String location,
         Integer order
     ) {
-        return new CreateOrUpdatePortalDocumentationUseCase.Input(AUDIT_INFO, DOC_ID, PORTAL_ID, name, type, content, location, order);
+        return new CreateOrUpdatePortalDocumentationUseCase.Input(
+            AUDIT_INFO,
+            DOC_ID,
+            PORTAL_ID,
+            name,
+            type,
+            content,
+            location,
+            order,
+            null
+        );
     }
 }

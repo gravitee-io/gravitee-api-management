@@ -49,6 +49,10 @@ public class PortalNavigationItemId implements Comparable<PortalNavigationItemId
         return of(HRIDToUUID.navigation().context(auditInfo).portal(portalId).documentation(contentId.toString()).id());
     }
 
+    public static PortalNavigationItemId forPortalDocumentationContent(AuditInfo auditInfo, PortalPageContent<?> pageContent) {
+        return forPortalDocumentation(auditInfo, pageContent.getAutomationMetadata().referenceId(), pageContent.getId());
+    }
+
     public static @Nullable PortalNavigationItemId forPortalFolder(AuditInfo auditInfo, String portalId, @Nullable String location) {
         if (location == null || location.isBlank() || "/".equals(location)) {
             return null;

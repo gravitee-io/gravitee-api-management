@@ -37,7 +37,8 @@ public class ValidatePortalDocumentationUseCase {
                 input.type(),
                 input.content(),
                 input.location(),
-                input.order()
+                input.order(),
+                input.area()
             )
         );
         List<Validator.Error> errors = result.errors().orElseGet(List::of);

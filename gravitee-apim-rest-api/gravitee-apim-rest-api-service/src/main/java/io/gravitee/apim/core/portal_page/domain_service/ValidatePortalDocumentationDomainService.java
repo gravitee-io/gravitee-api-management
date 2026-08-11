@@ -20,6 +20,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.validation.NavigationPathValidator;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.validation.Validator;
@@ -47,7 +48,8 @@ public class ValidatePortalDocumentationDomainService implements Validator<Valid
         PortalPageContentType type,
         String content,
         String location,
-        Integer order
+        Integer order,
+        PortalArea area
     ) implements Validator.Input {}
 
     @Override

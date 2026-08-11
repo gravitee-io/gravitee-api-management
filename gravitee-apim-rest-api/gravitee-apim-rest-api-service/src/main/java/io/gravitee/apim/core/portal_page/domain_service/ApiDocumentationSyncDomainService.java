@@ -17,9 +17,10 @@ package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.portal_documentation.domain_service.navigation.DocumentationNavigationPageMapper;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
+import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
@@ -29,6 +30,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.apim.core.slug.model.Slug;
@@ -57,6 +59,7 @@ import lombok.RequiredArgsConstructor;
 public class ApiDocumentationSyncDomainService {
 
     private static final int MAX_CASCADE_DEPTH = 50;
+    private static final PortalArea API_DOCUMENTATION_AREA = PortalArea.TOP_NAVBAR;
 
     private final PortalNavigationItemCrudService navigationItemCrudService;
     private final PortalNavigationItemsQueryService navigationItemsQueryService;
@@ -144,7 +147,7 @@ public class ApiDocumentationSyncDomainService {
         if (existing instanceof PortalNavigationItemContainer container) {
             return container;
         }
-        return DocumentationNavigationPageMapper.phantomParent(folderId);
+        return PortalNavigationItemContainer.phantom(folderId);
     }
 
     private List<PortalNavigationApi> findNavApiRows(String environmentId, String apiId) {
@@ -174,7 +177,7 @@ public class ApiDocumentationSyncDomainService {
 
         if (existing instanceof PortalNavigationPage page) {
             var segment = Slug.from(meta.name(), siblingSlugs(auditInfo.environmentId(), parentId, pageId));
-            DocumentationNavigationPageMapper.apply(page, contentId, parent, meta, segment);
+            page.update(meta, parent, segment);
             navigationItemCrudService.update(page);
             return;
         }
@@ -182,17 +185,19 @@ public class ApiDocumentationSyncDomainService {
             navigationItemCrudService.delete(pageId);
         }
         var segment = Slug.from(meta.name(), siblingSlugs(auditInfo.environmentId(), parentId, null));
-        navigationItemCrudService.create(
-            DocumentationNavigationPageMapper.build(
-                pageId,
-                contentId,
-                parent,
-                auditInfo.organizationId(),
-                auditInfo.environmentId(),
-                meta,
-                segment
-            )
-        );
+        var create = CreatePortalNavigationItem.builder()
+            .id(pageId)
+            .title(meta.name())
+            .segment(segment.value())
+            .area(API_DOCUMENTATION_AREA)
+            .type(PortalNavigationItemType.PAGE)
+            .order(meta.order().orElse(0))
+            .portalPageContentId(contentId)
+            .reference(meta.reference())
+            .visibility(PortalVisibility.PUBLIC)
+            .published(true)
+            .build();
+        navigationItemCrudService.create(PortalNavigationItem.from(create, auditInfo.organizationId(), auditInfo.environmentId(), parent));
     }
 
     private Set<Slug> siblingSlugs(String environmentId, PortalNavigationItemId parentId, PortalNavigationItemId excludeId) {

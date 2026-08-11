@@ -55,7 +55,9 @@ public class PortalDocumentationResource extends AbstractResource {
         );
         try {
             var output = getPortalDocumentationUseCase.execute(new GetPortalDocumentationUseCase.Input(auditInfo, documentationId));
-            return Response.ok(PortalDocumentationMapper.INSTANCE.toDocumentationState(output.pageContent(), docHrid, portalHrid)).build();
+            return Response.ok(
+                PortalDocumentationMapper.INSTANCE.toDocumentationState(output.pageContent(), output.area(), docHrid, portalHrid)
+            ).build();
         } catch (PortalDocumentationNotFoundException e) {
             throw new HRIDNotFoundException(docHrid);
         }

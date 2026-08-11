@@ -27,6 +27,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_documentation.exception.PortalDocumentationNotFoundException;
 import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
@@ -61,7 +62,11 @@ class DeletePortalDocumentationUseCaseTest {
         useCase = new DeletePortalDocumentationUseCase(
             crudService,
             queryService,
-            new PortalDocumentationSyncDomainService(navCrudService, navQueryService)
+            new PortalDocumentationSyncDomainService(
+                navCrudService,
+                navQueryService,
+                new HomepageReconciler(navQueryService, navCrudService, crudService)
+            )
         );
     }
 
