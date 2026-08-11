@@ -25,6 +25,8 @@ import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
 import io.gravitee.gateway.reactive.reactor.processor.AbstractProcessorTest;
 import io.gravitee.reporter.api.v4.metric.Metrics;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -35,13 +37,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ResponseTimeProcessorTest extends AbstractProcessorTest {
 
     private static final long ELAPSED_NS = MILLISECONDS.toNanos(50);
     private static final long ENDPOINT_RESPONSE_TIME_NS = MILLISECONDS.toNanos(30);
 
     @Test
-    void shouldAddResponseTimeToMetric() {
+    void should_add_response_time_to_metric() {
         ResponseTimeProcessor responseTimeProcessor = new ResponseTimeProcessor();
         ctx.metrics().setEndpointResponseTimeMs(100);
         responseTimeProcessor.execute(ctx).test().assertResult();
