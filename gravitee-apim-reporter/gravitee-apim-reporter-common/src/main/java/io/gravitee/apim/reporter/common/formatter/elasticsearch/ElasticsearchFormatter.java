@@ -252,8 +252,15 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
         data.put("metrics", metrics);
 
         data.put("endpointResponseTimeMs", metrics.getEndpointResponseTimeMs() >= 0 ? metrics.getEndpointResponseTimeMs() : null);
+        data.put("endpointResponseTtfbMs", metrics.getEndpointResponseTtfbMs() >= 0 ? metrics.getEndpointResponseTtfbMs() : null);
+        data.put("endpointConnectTimeMs", metrics.getEndpointConnectTimeMs() >= 0 ? metrics.getEndpointConnectTimeMs() : null);
         data.put("gatewayResponseTimeMs", metrics.getGatewayResponseTimeMs() >= 0 ? metrics.getGatewayResponseTimeMs() : null);
         data.put("gatewayLatencyMs", metrics.getGatewayLatencyMs() >= 0 ? metrics.getGatewayLatencyMs() : null);
+        data.put("endpointResponseTimeNs", metrics.getEndpointResponseTimeNs() >= 0 ? metrics.getEndpointResponseTimeNs() : null);
+        data.put("endpointResponseTtfbNs", metrics.getEndpointResponseTtfbNs() >= 0 ? metrics.getEndpointResponseTtfbNs() : null);
+        data.put("endpointConnectTimeNs", metrics.getEndpointConnectTimeNs() >= 0 ? metrics.getEndpointConnectTimeNs() : null);
+        data.put("gatewayResponseTimeNs", metrics.getGatewayResponseTimeNs() >= 0 ? metrics.getGatewayResponseTimeNs() : null);
+        data.put("gatewayLatencyNs", metrics.getGatewayLatencyNs() >= 0 ? metrics.getGatewayLatencyNs() : null);
         data.put("requestContentLength", metrics.getRequestContentLength() >= 0 ? metrics.getRequestContentLength() : null);
         data.put("responseContentLength", metrics.getResponseContentLength() >= 0 ? metrics.getResponseContentLength() : null);
 
