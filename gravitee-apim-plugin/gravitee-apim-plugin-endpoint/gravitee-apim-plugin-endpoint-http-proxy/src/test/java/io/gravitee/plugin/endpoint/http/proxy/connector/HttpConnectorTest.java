@@ -786,6 +786,21 @@ class HttpConnectorTest {
     }
 
     @Test
+    void should_record_endpoint_connect_time_when_upstream_connection_is_acquired() throws InterruptedException {
+        when(request.method()).thenReturn(HttpMethod.GET);
+
+        wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+
+        assertNoTimeout(obs);
+        obs.assertComplete();
+
+        // Without it, a wait on a saturated pool is indistinguishable from a slow backend.
+        verify(metrics).setEndpointConnectTimeNs(longThat(connectTimeNs -> connectTimeNs >= 0));
+    }
+
+    @Test
     void should_record_endpoint_response_time_once_the_response_body_has_been_fully_received() throws InterruptedException {
         when(request.method()).thenReturn(HttpMethod.GET);
         when(metrics.getEndpointRequestStartNs()).thenReturn(System.nanoTime() - BACKEND_ELAPSED_NS);

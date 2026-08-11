@@ -210,13 +210,16 @@ public class HttpConnector implements ProxyConnector {
         final AtomicReference<HttpClientRequest> pendingUpstreamRequest,
         final String absoluteUri
     ) {
-        return Single.create(emitter ->
+        return Single.create(emitter -> {
+            // Subscription time: this is where the wait on the connection pool starts (see recordEndpointConnectTime).
+            final long connectStartNs = System.nanoTime();
             httpClientFactory
                 .getOrBuildHttpClient(ctx, configuration, sharedConfiguration)
                 .getDelegate()
                 .request(options)
                 .onComplete(asyncRequest -> {
                     if (asyncRequest.succeeded()) {
+                        recordEndpointConnectTime(ctx, connectStartNs);
                         final HttpClientRequest upstreamRequest = HttpClientRequest.newInstance(asyncRequest.result());
                         // Publish the request before checking for disposal so a concurrent disposal either sees it
                         // (doOnDispose resets it) or is detected right below; getAndSet(null) makes the double reset
@@ -230,8 +233,8 @@ public class HttpConnector implements ProxyConnector {
                     } else {
                         emitter.tryOnError(asyncRequest.cause());
                     }
-                })
-        );
+                });
+        });
     }
 
     private void resetPendingUpstreamRequest(
@@ -322,6 +325,18 @@ public class HttpConnector implements ProxyConnector {
             // Last: covers completion, error and cancellation alike, so a truncated response is measured up to the
             // point it stopped rather than left at the time to first byte.
             .doFinally(() -> recordEndpointResponseTime(ctx));
+    }
+
+    /**
+     * Records the time spent acquiring a connection to the endpoint — nginx's {@code $upstream_connect_time}. Without
+     * it, a wait on a saturated connection pool is indistinguishable from a slow backend, since both only show up in
+     * the endpoint response time.
+     */
+    private void recordEndpointConnectTime(final HttpExecutionContext ctx, final long connectStartNs) {
+        final var metrics = ctx.metrics();
+        if (metrics != null) {
+            metrics.setEndpointConnectTimeNs(System.nanoTime() - connectStartNs);
+        }
     }
 
     /**
