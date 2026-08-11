@@ -31,6 +31,7 @@ import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.ApiProductKind;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.portal_page.domain_service.PortalApiProductAccessDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
@@ -84,13 +85,13 @@ class GetPortalApiProductUseCaseTest {
             navigationItemsQueryService,
             new ApiProductAccessibleIdsDomainService(apiProductQueryService, membershipQueryService)
         );
-        useCase = new GetPortalApiProductUseCase(
+        var portalApiProductAccessDomainService = new PortalApiProductAccessDomainService(
             apiProductQueryService,
             navigationItemsQueryService,
             apiProductVisibilityDomainService,
-            apiVisibilityDomainService,
-            apiQueryService
+            apiVisibilityDomainService
         );
+        useCase = new GetPortalApiProductUseCase(portalApiProductAccessDomainService, apiVisibilityDomainService, apiQueryService);
     }
 
     @Test

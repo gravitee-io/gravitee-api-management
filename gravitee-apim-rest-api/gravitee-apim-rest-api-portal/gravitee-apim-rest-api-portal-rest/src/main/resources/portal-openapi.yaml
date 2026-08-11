@@ -241,13 +241,7 @@ paths:
                     $ref: "#/components/responses/InternalServerError"
     /api-products/{apiProductId}:
         parameters:
-            - name: apiProductId
-              in: path
-              required: true
-              description: Unique identifier of an API Product.
-              schema:
-                  type: string
-                  format: uuid
+            - $ref: "#/components/parameters/apiProductIdParam"
         get:
             tags:
                 - Api Product
@@ -269,6 +263,37 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/PortalApiProductDetails"
+                404:
+                    $ref: "#/components/responses/ApiProductNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /api-products/{apiProductId}/plans:
+        parameters:
+            - $ref: "#/components/parameters/apiProductIdParam"
+        get:
+            tags:
+                - Api Product
+            parameters:
+                - $ref: "#/components/parameters/pageNumberParam"
+                - $ref: "#/components/parameters/pageSizeParam"
+            summary: List plans for an API Product
+            description: |
+                List published plans of an API Product available to the current user.
+
+                The API Product must be exposed by an accessible, published Portal navigation item,
+                otherwise a 404 is returned.
+            operationId: getApiProductPlans
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    description: List of accessible API Product plans
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiProductPlansResponse"
                 404:
                     $ref: "#/components/responses/ApiProductNotFoundError"
                 500:
@@ -4116,6 +4141,14 @@ components:
             description: Id of an API.
             schema:
                 type: string
+        apiProductIdParam:
+            name: apiProductId
+            in: path
+            required: true
+            description: Unique identifier of an API Product.
+            schema:
+                type: string
+                format: uuid
         applicationIdParam:
             name: applicationId
             in: path
@@ -4948,6 +4981,17 @@ components:
                     $ref: "#/components/schemas/MetadataMap"
                 links:
                     $ref: "#/components/schemas/Links"
+        ApiProductPlansResponse:
+            properties:
+                data:
+                    description: List of API Product plans available to the current viewer.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ApiProductPlan"
+                metadata:
+                    $ref: "#/components/schemas/MetadataMap"
+                links:
+                    $ref: "#/components/schemas/Links"
         MembersResponse:
             properties:
                 data:
@@ -5607,6 +5651,58 @@ components:
                     $ref: "#/components/schemas/PlanMode"
                 usage_configuration:
                     $ref: "#/components/schemas/PlanUsageConfiguration"
+
+        ApiProductPlan:
+            required:
+                - id
+                - name
+                - description
+                - security
+                - validation
+                - order
+                - comment_required
+                - mode
+            properties:
+                id:
+                    description: Unique identifier of the plan.
+                    type: string
+                name:
+                    description: Name of the plan.
+                    type: string
+                description:
+                    description: Description of the plan.
+                    type: string
+                characteristics:
+                    description: List of additional terms describing the plan.
+                    type: array
+                    items:
+                        type: string
+                order:
+                    description: Priority order.
+                    type: integer
+                security:
+                    description: Security used with this plan.
+                    type: string
+                    enum:
+                        - API_KEY
+                        - KEY_LESS
+                        - JWT
+                        - OAUTH2
+                        - MTLS
+                validation:
+                    description: Type of validation for subscription requests.
+                    type: string
+                    enum:
+                        - AUTO
+                        - MANUAL
+                mode:
+                    $ref: "#/components/schemas/PlanMode"
+                comment_required:
+                    description: True if a comment is required when a subscription is created.
+                    type: boolean
+                comment_question:
+                    description: Content of the message sent to a user creating a subscription.
+                    type: string
 
         PlanUsageConfiguration:
             type: object

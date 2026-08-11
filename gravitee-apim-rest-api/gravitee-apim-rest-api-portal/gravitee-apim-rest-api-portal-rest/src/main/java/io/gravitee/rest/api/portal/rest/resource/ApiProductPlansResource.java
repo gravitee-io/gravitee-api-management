@@ -17,50 +17,41 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.rest.api.service.common.GraviteeContext.getExecutionContext;
 
-import io.gravitee.apim.core.api_product.use_case.GetPortalApiProductUseCase;
+import io.gravitee.apim.core.plan.use_case.GetPortalApiProductPlansUseCase;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.portal.rest.mapper.ApiProductMapper;
+import io.gravitee.rest.api.portal.rest.mapper.ApiProductPlanMapper;
+import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.container.ResourceContext;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.UUID;
 
-public class ApiProductResource extends AbstractResource {
-
-    private static final ApiProductMapper apiProductMapper = ApiProductMapper.INSTANCE;
+public class ApiProductPlansResource extends AbstractResource {
 
     @Inject
-    private GetPortalApiProductUseCase getPortalApiProductUseCase;
+    private GetPortalApiProductPlansUseCase getPortalApiProductPlansUseCase;
 
-    @Context
-    private ResourceContext resourceContext;
+    private static final ApiProductPlanMapper apiProductPlanMapper = ApiProductPlanMapper.INSTANCE;
 
     @GET
-    @Path("{apiProductId}")
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
-    public Response getApiProductByApiProductId(@PathParam("apiProductId") UUID apiProductId) {
+    public Response getApiProductPlans(@PathParam("apiProductId") UUID apiProductId, @BeanParam PaginationParam paginationParam) {
         var executionContext = getExecutionContext();
-        var output = getPortalApiProductUseCase.execute(
-            new GetPortalApiProductUseCase.Input(
-                executionContext.getEnvironmentId(),
-                apiProductId.toString(),
-                PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull())
-            )
+        var output = getPortalApiProductPlansUseCase.execute(
+            new GetPortalApiProductPlansUseCase.Input(executionContext.getEnvironmentId(), apiProductId.toString(), viewerContext())
         );
+        var plans = output.plans().stream().map(apiProductPlanMapper::map).toList();
 
-        return Response.ok(apiProductMapper.map(output.apiProduct())).build();
+        return createListResponse(executionContext, plans, paginationParam);
     }
 
-    @Path("{apiProductId}/plans")
-    public ApiProductPlansResource getApiProductPlansResource() {
-        return resourceContext.getResource(ApiProductPlansResource.class);
+    private PortalNavigationItemViewerContext viewerContext() {
+        return PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull());
     }
 }

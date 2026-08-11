@@ -177,6 +177,7 @@ import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService;
+import io.gravitee.apim.core.plan.query_service.PlanSearchQueryService;
 import io.gravitee.apim.core.plan.use_case.CreateApiProductPlanUseCase;
 import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase;
 import io.gravitee.apim.core.plan.use_case.GetPlansUseCase;
@@ -470,6 +471,11 @@ public class ResourceContextConfiguration {
     @Bean
     public PlanSearchService planSearchService() {
         return mock(PlanSearchService.class);
+    }
+
+    @Bean
+    public PlanSearchQueryService planSearchQueryService() {
+        return mock(PlanSearchQueryService.class);
     }
 
     @Bean
