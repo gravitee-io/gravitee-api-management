@@ -20,18 +20,12 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
-import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.PortalApiProductDetails;
-import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
-import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalApiProductAccessDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
-import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -45,19 +39,17 @@ public class GetPortalApiProductUseCase {
     private static final Comparator<String> NULL_SAFE_STRING_COMPARATOR = Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER);
     private static final ApiFieldFilter API_FIELD_FILTER = ApiFieldFilter.builder().definitionExcluded(true).pictureExcluded(true).build();
 
-    private final ApiProductQueryService apiProductQueryService;
-    private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
-    private final PortalNavigationApiProductVisibilityDomainService apiProductVisibilityDomainService;
+    private final PortalApiProductAccessDomainService portalApiProductAccessDomainService;
     private final PortalNavigationApiVisibilityDomainService apiVisibilityDomainService;
     private final ApiQueryService apiQueryService;
 
     public Output execute(Input input) {
-        var apiProduct = apiProductQueryService
-            .findById(input.apiProductId())
-            .filter(product -> input.environmentId().equals(product.getEnvironmentId()))
-            .orElseThrow(() -> new ApiProductNotFoundException(input.apiProductId()));
-
-        var navigationItem = findAccessibleNavigationItem(input);
+        var accessibleApiProduct = portalApiProductAccessDomainService.findAccessible(
+            input.environmentId(),
+            input.apiProductId(),
+            input.viewerContext()
+        );
+        var apiProduct = accessibleApiProduct.apiProduct();
         var apis = findAccessibleApis(apiProduct, input);
         var tags = apiProduct.getTags() == null
             ? List.<String>of()
@@ -70,44 +62,11 @@ public class GetPortalApiProductUseCase {
                 apiProduct.getDescription(),
                 apiProduct.getVersion(),
                 apiProduct.getKind(),
-                navigationItem.getId().json(),
+                accessibleApiProduct.navigationItem().getId().json(),
                 tags,
                 apis
             )
         );
-    }
-
-    private PortalNavigationApiProduct findAccessibleNavigationItem(Input input) {
-        Set<String> accessibleApiProductIds = apiProductVisibilityDomainService.resolveAccessibleApiProductIds(
-            input.environmentId(),
-            input.viewerContext()
-        );
-
-        return portalNavigationItemsQueryService
-            .search(
-                PortalNavigationItemQueryCriteria.builder()
-                    .environmentId(input.environmentId())
-                    .published(true)
-                    .type(PortalNavigationItemType.API_PRODUCT)
-                    .apiProductIds(Set.of(input.apiProductId()))
-                    .build()
-            )
-            .stream()
-            .filter(PortalNavigationApiProduct.class::isInstance)
-            .map(PortalNavigationApiProduct.class::cast)
-            .filter(item -> !input.viewerContext().shouldNotShow(item))
-            .filter(item -> !apiProductVisibilityDomainService.isApiProductItemHidden(item, input.viewerContext(), accessibleApiProductIds))
-            .filter(item ->
-                !apiProductVisibilityDomainService.hasHiddenApiProductAncestor(
-                    input.environmentId(),
-                    item,
-                    input.viewerContext(),
-                    accessibleApiProductIds
-                )
-            )
-            .filter(item -> !apiVisibilityDomainService.hasHiddenApiAncestor(input.environmentId(), item, input.viewerContext()))
-            .findFirst()
-            .orElseThrow(() -> new ApiProductNotFoundException(input.apiProductId()));
     }
 
     private List<PortalApiProductDetails.ApiSummary> findAccessibleApis(ApiProduct apiProduct, Input input) {
