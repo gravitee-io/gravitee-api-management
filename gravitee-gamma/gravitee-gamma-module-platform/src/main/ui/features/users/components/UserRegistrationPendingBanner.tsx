@@ -25,8 +25,8 @@ interface UserRegistrationPendingBannerProps {
 export function UserRegistrationPendingBanner({ onAccept, onReject, isPending }: UserRegistrationPendingBannerProps) {
     return (
         <Alert variant="default" className="border-warning/40 bg-warning/10">
-            <TriangleAlertIcon className="size-4 text-warning" aria-hidden />
-            <AlertTitle className="text-warning-foreground">Registration Pending</AlertTitle>
+            <TriangleAlertIcon className="size-4 text-primary" aria-hidden />
+            <AlertTitle className="text-primary">Registration Pending</AlertTitle>
             <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <span>This user has been pre-registered and is waiting for approval.</span>
                 <div className="flex shrink-0 gap-2">

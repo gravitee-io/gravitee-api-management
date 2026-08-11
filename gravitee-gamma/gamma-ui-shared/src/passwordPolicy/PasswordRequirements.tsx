@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { cn } from '@gravitee/graphene-core';
-import { CheckIcon } from '@gravitee/graphene-core/icons';
+import { CircleCheckIcon } from '@gravitee/graphene-core/icons';
 
 import type { PasswordPolicyRule } from './types';
 import { evaluatePasswordPolicyRule, resolvePasswordStrengthLabel, resolvePasswordStrengthLevel } from './passwordPolicyRules';
@@ -28,16 +28,16 @@ interface PasswordRequirementsProps {
 
 const STRENGTH_BAR_CLASS: Record<ReturnType<typeof resolvePasswordStrengthLevel>, string> = {
     weak: 'bg-destructive',
-    fair: 'bg-orange-500',
-    good: 'bg-lime-500',
-    strong: 'bg-green-600',
+    fair: 'bg-warning',
+    good: 'bg-success/70',
+    strong: 'bg-success',
 };
 
 const STRENGTH_TEXT_CLASS: Record<ReturnType<typeof resolvePasswordStrengthLevel>, string> = {
     weak: 'text-destructive',
-    fair: 'text-orange-500',
-    good: 'text-lime-600',
-    strong: 'text-green-700',
+    fair: 'text-warning',
+    good: 'text-success',
+    strong: 'text-success',
 };
 
 const STRENGTH_FILLED_BARS: Record<ReturnType<typeof resolvePasswordStrengthLevel>, number> = {
@@ -78,15 +78,14 @@ export function PasswordRequirements({ rules, password = '', showStrengthMeter =
                         const satisfied = password ? evaluatePasswordPolicyRule(rule, password) : false;
                         return (
                             <li key={rule.id} className="flex items-start gap-2 text-sm">
-                                <span
-                                    className={cn(
-                                        'mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border',
-                                        satisfied ? 'border-green-600 bg-green-600 text-white' : 'border-muted-foreground/40',
-                                    )}
-                                    aria-hidden
-                                >
-                                    {satisfied ? <CheckIcon className="size-3" /> : null}
-                                </span>
+                                {satisfied ? (
+                                    <CircleCheckIcon className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
+                                ) : (
+                                    <span
+                                        className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border border-muted-foreground/40"
+                                        aria-hidden
+                                    />
+                                )}
                                 <span className={cn(satisfied && password ? 'text-foreground' : 'text-muted-foreground')}>
                                     {rule.label}
                                 </span>
