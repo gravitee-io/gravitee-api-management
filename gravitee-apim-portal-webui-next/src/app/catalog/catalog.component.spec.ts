@@ -205,32 +205,49 @@ describe('CatalogComponent', () => {
     it('should send categoryId to the search endpoint and hydrate the selector from the URL', async () => {
       await initWithQueryParams({ category: 'cat-1' });
 
+      // the search is held back until the visible categories have loaded, so categoryId is only ever sent once validated
+      flushCategories(categories);
+      fixture.detectChanges();
+
       const req = httpTestingController.expectOne(
         r => r.url === `${TESTING_BASE_URL}/portal-navigation-items/_search` && r.params.get('categoryId') === 'cat-1',
       );
       req.flush(toPortalSearchResponse(fakeApisResponse({ data: [] }), 1, 20));
-
-      flushCategories(categories);
       fixture.detectChanges();
 
       const categorySelect = await harnessLoader.getHarness(CategorySelectHarness);
       expect(await categorySelect.getSelectedText()).toEqual('Category One');
     });
 
-    it('should show a generic error state for an unknown or hidden category id', async () => {
+    it('should show a generic error state for an unknown or hidden category id, without calling search', async () => {
       await initWithQueryParams({ category: 'unknown-id' });
-
-      // the initial search fires before the visible categories have loaded, since validity isn't known yet
-      httpTestingController
-        .expectOne(r => r.url === `${TESTING_BASE_URL}/portal-navigation-items/_search`)
-        .flush(toPortalSearchResponse(fakeApisResponse({ data: [] }), 1, 20));
 
       flushCategories(categories);
       fixture.detectChanges();
 
+      httpTestingController.expectNone(r => r.url === `${TESTING_BASE_URL}/portal-navigation-items/_search`);
+
       const emptyState = fixture.nativeElement.querySelector('.api-list__empty-state');
       expect(emptyState).toBeTruthy();
       expect(emptyState.textContent).toContain('Something went wrong');
+    });
+
+    it('should still run the search when the categories list fails to load while a category is selected', async () => {
+      await initWithQueryParams({ category: 'cat-1' });
+
+      httpTestingController
+        .expectOne(`${TESTING_BASE_URL}/portal-categories`)
+        .flush({ error: { message: 'Error occurred' } }, { status: 500, statusText: 'Internal Error' });
+      fixture.detectChanges();
+
+      const req = httpTestingController.expectOne(
+        r => r.url === `${TESTING_BASE_URL}/portal-navigation-items/_search` && r.params.get('categoryId') === 'cat-1',
+      );
+      req.flush(toPortalSearchResponse(fakeApisResponse(), 1, 20));
+      fixture.detectChanges();
+
+      const apiCard = await harnessLoader.getHarness(ApiCardHarness);
+      expect(apiCard).toBeDefined();
     });
 
     it('should navigate with the selected category and clear the search query', async () => {

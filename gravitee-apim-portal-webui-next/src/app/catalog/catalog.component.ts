@@ -21,7 +21,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 import { isEqual } from 'lodash';
-import { BehaviorSubject, catchError, distinctUntilChanged, map, Observable, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, catchError, distinctUntilChanged, filter, map, Observable, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { ApiCardComponent } from '../../components/api-card/api-card.component';
@@ -57,6 +57,11 @@ interface ApiPaginatorVM {
   page: number;
   totalResults: number;
   error: boolean;
+}
+
+interface CategoriesState {
+  categories: PortalCategory[];
+  status: 'loading' | 'loaded' | 'error';
 }
 
 @Component({
@@ -99,18 +104,18 @@ export class CatalogComponent {
   protected readonly categoryId = toSignal(this.route.queryParams.pipe(map(p => p['category'] ?? null)), {
     initialValue: null as string | null,
   });
-  private readonly categoriesState = toSignal(
+  private readonly categoriesState = toSignal<CategoriesState, CategoriesState>(
     this.portalCategoriesService.getCategories().pipe(
-      map(categories => ({ categories, loaded: true })),
-      catchError(_ => of({ categories: [] as PortalCategory[], loaded: true })),
+      map((categories): CategoriesState => ({ categories, status: 'loaded' })),
+      catchError((): Observable<CategoriesState> => of({ categories: [], status: 'error' })),
     ),
-    { initialValue: { categories: [] as PortalCategory[], loaded: false } },
+    { initialValue: { categories: [] as PortalCategory[], status: 'loading' as const } },
   );
   protected readonly categories = computed(() => this.categoriesState().categories);
   protected readonly unknownCategory = computed(() => {
     const categoryId = this.categoryId();
-    const { categories, loaded } = this.categoriesState();
-    return !!categoryId && loaded && !categories.some(category => category.id === categoryId);
+    const { categories, status } = this.categoriesState();
+    return !!categoryId && status === 'loaded' && !categories.some(category => category.id === categoryId);
   });
   protected readonly categoryNameById = computed(() => new Map(this.categories().map(category => [category.id, category.title])));
   protected readonly tableColumns = computed(() =>
@@ -178,8 +183,11 @@ export class CatalogComponent {
         pageSize: this.pageSize,
         query: this.query(),
         categoryId: this.categoryId(),
+        status: this.categoriesState().status,
         unknownCategory: this.unknownCategory(),
       })),
+      filter(({ categoryId, status }) => !categoryId || status !== 'loading'),
+      map(({ status: _status, ...rest }) => rest),
       distinctUntilChanged((previous, current) => isEqual(previous, current)),
       switchMap(({ page, pageSize, query, categoryId, unknownCategory }) => {
         if (unknownCategory) {
