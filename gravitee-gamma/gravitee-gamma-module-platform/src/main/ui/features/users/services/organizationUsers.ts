@@ -34,7 +34,7 @@ import type {
     UserInheritedApplication,
     UserInheritedResourcesListResponse,
 } from '../types/user';
-import { GROUP_MEMBERSHIP_FETCH_SIZE } from '../utils/userInheritedResources';
+import { USER_DETAIL_FULL_FETCH_SIZE } from '../utils/paginationConstants';
 
 function buildGroupMemberRoles(payload: AddUserGroupMembershipPayload): GroupMemberRolePayload[] {
     const roles: GroupMemberRolePayload[] = [];
@@ -102,7 +102,7 @@ export async function getOrganizationUserGroups(
 ): Promise<UserGroupsListResponse> {
     const searchParams = new URLSearchParams();
     searchParams.set('page', String(params.page ?? 1));
-    searchParams.set('perPage', String(params.perPage ?? GROUP_MEMBERSHIP_FETCH_SIZE));
+    searchParams.set('perPage', String(params.perPage ?? USER_DETAIL_FULL_FETCH_SIZE));
     if (params.environmentId) {
         searchParams.set('environmentId', params.environmentId);
     }
@@ -116,7 +116,7 @@ export async function getOrganizationUserApis(
     const searchParams = new URLSearchParams();
     searchParams.set('environmentId', params.environmentId);
     searchParams.set('page', String(params.page ?? 1));
-    searchParams.set('perPage', String(params.perPage ?? GROUP_MEMBERSHIP_FETCH_SIZE));
+    searchParams.set('perPage', String(params.perPage ?? USER_DETAIL_FULL_FETCH_SIZE));
     return apimFetchJsonV2Org<UserInheritedResourcesListResponse<UserInheritedApi>>(
         `/users/${encodeURIComponent(userId)}/apis?${searchParams.toString()}`,
     );
@@ -129,7 +129,7 @@ export async function getOrganizationUserApiProducts(
     const searchParams = new URLSearchParams();
     searchParams.set('environmentId', params.environmentId);
     searchParams.set('page', String(params.page ?? 1));
-    searchParams.set('perPage', String(params.perPage ?? GROUP_MEMBERSHIP_FETCH_SIZE));
+    searchParams.set('perPage', String(params.perPage ?? USER_DETAIL_FULL_FETCH_SIZE));
     return apimFetchJsonV2Org<UserInheritedResourcesListResponse<UserInheritedApiProduct>>(
         `/users/${encodeURIComponent(userId)}/api-products?${searchParams.toString()}`,
     );
@@ -142,7 +142,7 @@ export async function getOrganizationUserApplications(
     const searchParams = new URLSearchParams();
     searchParams.set('environmentId', params.environmentId);
     searchParams.set('page', String(params.page ?? 1));
-    searchParams.set('perPage', String(params.perPage ?? GROUP_MEMBERSHIP_FETCH_SIZE));
+    searchParams.set('perPage', String(params.perPage ?? USER_DETAIL_FULL_FETCH_SIZE));
     return apimFetchJsonV2Org<UserInheritedResourcesListResponse<UserInheritedApplication>>(
         `/users/${encodeURIComponent(userId)}/applications?${searchParams.toString()}`,
     );
@@ -154,7 +154,7 @@ export async function listEnvironmentGroups(
 ): Promise<EnvironmentGroupsListResponse> {
     const searchParams = new URLSearchParams();
     searchParams.set('page', String(params.page ?? 1));
-    searchParams.set('perPage', String(params.perPage ?? GROUP_MEMBERSHIP_FETCH_SIZE));
+    searchParams.set('perPage', String(params.perPage ?? USER_DETAIL_FULL_FETCH_SIZE));
     return apimFetchJsonV2<EnvironmentGroupsListResponse>(environmentId, `/groups?${searchParams.toString()}`);
 }
 

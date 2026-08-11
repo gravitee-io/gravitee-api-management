@@ -29,8 +29,8 @@ import {
     listOrganizationUserTokens,
 } from '../services/organizationUsers';
 import type { GroupMembershipRoleCatalogScope } from '../types/user';
+import { USER_DETAIL_FULL_FETCH_SIZE } from '../utils/paginationConstants';
 import { organizationUserKeys } from '../utils/queryKeys';
-import { GROUP_MEMBERSHIP_FETCH_SIZE, INHERITED_RESOURCES_FETCH_SIZE } from '../utils/userInheritedResources';
 
 export function useOrganizationUser(userId: string | undefined) {
     return useQuery({
@@ -50,7 +50,7 @@ export function useOrganizationEnvironments() {
 export function useOrganizationUserGroups(userId: string | undefined, environmentId: string | undefined) {
     return useQuery({
         queryKey: organizationUserKeys.groups(userId ?? '', environmentId),
-        queryFn: () => getOrganizationUserGroups(userId!, { environmentId, perPage: GROUP_MEMBERSHIP_FETCH_SIZE }),
+        queryFn: () => getOrganizationUserGroups(userId!, { environmentId, perPage: USER_DETAIL_FULL_FETCH_SIZE }),
         enabled: Boolean(userId) && Boolean(environmentId),
     });
 }
@@ -61,7 +61,7 @@ export function useOrganizationUserApis(userId: string | undefined, environmentI
         queryFn: () =>
             getOrganizationUserApis(userId!, {
                 environmentId: environmentId!,
-                perPage: INHERITED_RESOURCES_FETCH_SIZE,
+                perPage: USER_DETAIL_FULL_FETCH_SIZE,
             }),
         enabled: Boolean(userId) && Boolean(environmentId),
     });
@@ -73,7 +73,7 @@ export function useOrganizationUserApiProducts(userId: string | undefined, envir
         queryFn: () =>
             getOrganizationUserApiProducts(userId!, {
                 environmentId: environmentId!,
-                perPage: INHERITED_RESOURCES_FETCH_SIZE,
+                perPage: USER_DETAIL_FULL_FETCH_SIZE,
             }),
         enabled: Boolean(userId) && Boolean(environmentId),
     });
@@ -85,7 +85,7 @@ export function useOrganizationUserApplications(userId: string | undefined, envi
         queryFn: () =>
             getOrganizationUserApplications(userId!, {
                 environmentId: environmentId!,
-                perPage: INHERITED_RESOURCES_FETCH_SIZE,
+                perPage: USER_DETAIL_FULL_FETCH_SIZE,
             }),
         enabled: Boolean(userId) && Boolean(environmentId),
     });
@@ -94,7 +94,7 @@ export function useOrganizationUserApplications(userId: string | undefined, envi
 export function useEnvironmentGroups(environmentId: string | undefined, enabled = true) {
     return useQuery({
         queryKey: organizationUserKeys.environmentGroups(environmentId ?? ''),
-        queryFn: () => listEnvironmentGroups(environmentId!, { perPage: GROUP_MEMBERSHIP_FETCH_SIZE }),
+        queryFn: () => listEnvironmentGroups(environmentId!, { perPage: USER_DETAIL_FULL_FETCH_SIZE }),
         enabled: Boolean(environmentId) && enabled,
     });
 }

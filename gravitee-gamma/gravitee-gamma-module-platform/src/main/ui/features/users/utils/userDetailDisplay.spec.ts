@@ -16,6 +16,7 @@
 import {
     canConvertToServiceAccount,
     canResetPassword,
+    formatCustomFieldCopyValue,
     formatCustomFieldValue,
     formatUserDisplayName,
     formatUserTimestamp,
@@ -47,6 +48,12 @@ describe('userDetailDisplay utilities', () => {
         expect(formatCustomFieldValue({ team: 'Ops' })).toBe('{"team":"Ops"}');
     });
 
+    it('builds raw custom field clipboard values', () => {
+        expect(formatCustomFieldCopyValue('Engineering')).toBe('Engineering');
+        expect(formatCustomFieldCopyValue(null)).toBe('');
+        expect(formatCustomFieldCopyValue({ team: 'Ops' })).toBe('{"team":"Ops"}');
+    });
+
     it('resolves assigned role ids from user roles and the role catalog', () => {
         expect(resolveAssignedRoleIds([{ id: 'org-user', name: 'User' }], [{ id: 'org-user', name: 'User' }])).toEqual(['org-user']);
         expect(resolveAssignedRoleIds([{ name: 'User' }], [{ id: 'org-user', name: 'User' }])).toEqual(['org-user']);
@@ -58,7 +65,9 @@ describe('userDetailDisplay utilities', () => {
 
     it('formats timestamps for profile metadata', () => {
         expect(formatUserTimestamp(undefined)).toBe('Never');
-        expect(formatUserTimestamp(Date.parse('2025-07-10'))).toMatch(/Jul 10, 2025|10 Jul 2025/);
+        const formatted = formatUserTimestamp(Date.parse('2025-07-10T15:30:00.000Z'));
+        expect(formatted).toMatch(/Jul 10, 2025|10 Jul 2025/);
+        expect(formatted).not.toMatch(/:\d{2}/);
     });
 
     it('allows service account conversion only for gravitee users without a password flag', () => {
@@ -70,10 +79,10 @@ describe('userDetailDisplay utilities', () => {
     });
 
     it('allows password reset for active gravitee users that are not service accounts', () => {
-        expect(canResetPassword({ source: 'gravitee', hasPassword: true, isServiceAccount: false, status: 'ACTIVE' })).toBe(true);
-        expect(canResetPassword({ source: 'gravitee', hasPassword: false, isServiceAccount: false, status: 'ACTIVE' })).toBe(true);
-        expect(canResetPassword({ source: 'ldap', hasPassword: true, isServiceAccount: false, status: 'ACTIVE' })).toBe(false);
-        expect(canResetPassword({ source: 'gravitee', hasPassword: true, isServiceAccount: true, status: 'ACTIVE' })).toBe(false);
-        expect(canResetPassword({ source: 'gravitee', hasPassword: true, isServiceAccount: false, status: 'PENDING' })).toBe(false);
+        expect(canResetPassword({ source: 'gravitee', isServiceAccount: false, status: 'ACTIVE' })).toBe(true);
+        expect(canResetPassword({ source: 'gravitee', isServiceAccount: undefined, status: 'ACTIVE' })).toBe(true);
+        expect(canResetPassword({ source: 'ldap', isServiceAccount: false, status: 'ACTIVE' })).toBe(false);
+        expect(canResetPassword({ source: 'gravitee', isServiceAccount: true, status: 'ACTIVE' })).toBe(false);
+        expect(canResetPassword({ source: 'gravitee', isServiceAccount: false, status: 'PENDING' })).toBe(false);
     });
 });

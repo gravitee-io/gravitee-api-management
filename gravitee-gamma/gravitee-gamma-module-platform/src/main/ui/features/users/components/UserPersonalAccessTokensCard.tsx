@@ -21,6 +21,7 @@ import {
     CardHeader,
     CardTitle,
     DataTable,
+    DataTablePagination,
     DateCell,
     Empty,
     EmptyDescription,
@@ -31,16 +32,21 @@ import {
     type DataTableProps,
 } from '@gravitee/graphene-core';
 import { KeyIcon, PlusIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
-import { useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 
+import { ClientSideTableSearchField } from './ClientSideTableSearchField';
 import { GenerateUserTokenDialog } from './GenerateUserTokenDialog';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { notify } from '../../../shared/notify';
 import type { ColCell } from '../../applications/utils/dataTableTypes';
+import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
+import { useClientSideTableState } from '../hooks/useClientSideTableState';
 import { useOrganizationUserTokens } from '../hooks/useOrganizationUser';
 import { useRevokeOrganizationUserToken } from '../hooks/useUserMutations';
 import type { OrganizationUserToken } from '../types/user';
 import { formatTokenTimestamp } from '../utils/userTokenDisplay';
+
+const TOKEN_SEARCH_IGNORE_KEYS = ['id', 'token'] as const;
 
 interface UserPersonalAccessTokensCardProps {
     readonly userId: string;
@@ -109,12 +115,29 @@ function buildColumns(
 }
 
 export function UserPersonalAccessTokensCard({ userId, environmentId, canGenerate, canRevoke }: UserPersonalAccessTokensCardProps) {
+    const searchInputId = useId();
     const { data: tokens = [], isLoading } = useOrganizationUserTokens(userId);
     const revokeToken = useRevokeOrganizationUserToken(userId);
     const [generateOpen, setGenerateOpen] = useState(false);
     const [tokenToRevoke, setTokenToRevoke] = useState<OrganizationUserToken | null>(null);
 
+    useEffect(() => {
+        setGenerateOpen(false);
+        setTokenToRevoke(null);
+    }, [userId]);
+
     const columns = useMemo(() => buildColumns(canRevoke, token => setTokenToRevoke(token)), [canRevoke]);
+    const {
+        search,
+        page,
+        pageSize,
+        totalCount,
+        paginatedItems: paginatedTokens,
+        hasActiveSearch,
+        handleSearchChange,
+        handlePageSizeChange,
+        setPage,
+    } = useClientSideTableState(tokens, TOKEN_SEARCH_IGNORE_KEYS, { resetWhen: userId });
     const activeTokenCount = tokens.length;
     const subtitle = activeTokenCount === 0 ? 'No active tokens' : `${activeTokenCount} active token${activeTokenCount === 1 ? '' : 's'}`;
 
@@ -168,7 +191,30 @@ export function UserPersonalAccessTokensCard({ userId, environmentId, canGenerat
                             ) : null}
                         </Empty>
                     ) : (
-                        <DataTable columns={columns} data={tokens} />
+                        <section className="space-y-3" aria-label="Personal access tokens table">
+                            <DataTablePagination
+                                page={page}
+                                pageSize={pageSize}
+                                totalCount={totalCount}
+                                pageSizeOptions={[...TABLE_PAGE_SIZE_OPTIONS]}
+                                onPageChange={setPage}
+                                onPageSizeChange={handlePageSizeChange}
+                            >
+                                <ClientSideTableSearchField
+                                    id={searchInputId}
+                                    label="Search tokens"
+                                    value={search}
+                                    onChange={handleSearchChange}
+                                />
+                            </DataTablePagination>
+                            <DataTable
+                                columns={columns}
+                                data={paginatedTokens}
+                                serverSide
+                                skeletonCount={pageSize}
+                                emptyMessage={hasActiveSearch ? 'No tokens match your search.' : 'No personal access tokens'}
+                            />
+                        </section>
                     )}
                 </CardContent>
             </Card>

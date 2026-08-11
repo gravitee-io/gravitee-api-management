@@ -77,6 +77,20 @@ export function formatCustomFieldValue(value: unknown): string {
     return JSON.stringify(value);
 }
 
+/** Raw clipboard payload for custom fields, aligned with classic console `contentToCopy`. */
+export function formatCustomFieldCopyValue(value: unknown): string {
+    if (value === null || value === undefined) {
+        return '';
+    }
+    if (typeof value === 'string') {
+        return value;
+    }
+    if (typeof value === 'number' || typeof value === 'boolean') {
+        return String(value);
+    }
+    return JSON.stringify(value);
+}
+
 export function canConvertToServiceAccount(user: Pick<OrganizationUser, 'isServiceAccount' | 'hasPassword' | 'source'>): boolean {
     return (
         (user.isServiceAccount === null || user.isServiceAccount === undefined) && user.hasPassword !== true && user.source === 'gravitee'

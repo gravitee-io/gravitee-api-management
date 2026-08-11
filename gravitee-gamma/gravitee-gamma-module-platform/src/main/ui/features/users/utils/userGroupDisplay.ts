@@ -57,3 +57,7 @@ export function formatResourceVisibility(visibility: string | undefined): string
     }
     return visibility.charAt(0) + visibility.slice(1).toLowerCase();
 }
+
+export function isPublicResourceVisibility(visibility: string | undefined): boolean {
+    return visibility?.toUpperCase() === 'PUBLIC';
+}
