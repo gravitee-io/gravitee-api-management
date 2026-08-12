@@ -114,6 +114,8 @@ import java.util.stream.Stream;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -130,6 +132,7 @@ import org.slf4j.helpers.NOPLogger;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class DefaultApiReactorTest {
 
     public static final String CONTEXT_PATH = "context-path";
@@ -1176,6 +1179,38 @@ class DefaultApiReactorTest {
 
         // afterHandleProcessors must always execute (metrics, logging, etc.) even after org flow errors
         verify(spyAfterHandleProcessors).subscribe(any(CompletableObserver.class));
+    }
+
+    @Test
+    void should_record_endpoint_response_ttfb_and_fall_back_to_it_for_the_endpoint_response_time() {
+        final Metrics metrics = Metrics.builder().build();
+        when(ctx.metrics()).thenReturn(metrics);
+
+        cut.handle(ctx).test().assertComplete();
+
+        // Common origin the connectors derive the end of the response body from.
+        assertThat(metrics.getEndpointRequestStartNs()).isPositive();
+        assertThat(metrics.getEndpointResponseTtfbNs()).isNotNegative();
+        // The invoker here reports nothing beyond the response head, as a non-streaming connector would: the endpoint
+        // response time then stays the time to first byte, which is the historical behaviour.
+        assertThat(metrics.getEndpointResponseTimeNs()).isEqualTo(metrics.getEndpointResponseTtfbNs());
+        // Milliseconds are derived from the nanoseconds, rounded to the nearest, so both always agree.
+        assertThat(metrics.getEndpointResponseTtfbMs()).isEqualTo(Math.round(metrics.getEndpointResponseTtfbNs() / 1e6));
+        assertThat(metrics.getEndpointResponseTimeMs()).isEqualTo(metrics.getEndpointResponseTtfbMs());
+    }
+
+    @Test
+    void should_not_measure_the_endpoint_response_ttfb_twice() {
+        final Metrics metrics = Metrics.builder().build();
+        when(ctx.metrics()).thenReturn(metrics);
+
+        cut.handle(ctx).test().assertComplete();
+        final long ttfbNs = metrics.getEndpointResponseTtfbNs();
+
+        // handleUnexpectedError computes it again on its own path; a second pass must not restart the measure.
+        cut.handleUnexpectedError(ctx, new Exception("Mock exception")).test().assertComplete();
+
+        assertThat(metrics.getEndpointResponseTtfbNs()).isEqualTo(ttfbNs);
     }
 
     private InOrder getInOrder() {
