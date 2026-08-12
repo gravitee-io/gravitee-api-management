@@ -273,6 +273,25 @@ describe('CategoryCatalogComponent', () => {
       expect(await componentHarness.getTextByColumnNameAndRowIndex(harnessLoader, 'contextPath', 0)).toEqual('/planets');
     });
 
+    it('should still list an API assigned to the category after it was unpublished', async () => {
+      const navItem = fakePortalNavigationApi({
+        id: 'nav-api-1',
+        apiId: 'api-1',
+        title: 'Planets API',
+        categoryIds: [CATEGORY.id],
+        published: false,
+      });
+
+      expectGetPortalNavigationItemsWithApis([navItem], {
+        'nav-api-1': { id: 'api-1', name: 'Planets API', apiVersion: '1.0', contextPath: '/planets' },
+      });
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(await componentHarness.getNameByRowIndex(harnessLoader, 0)).toEqual('Planets API');
+    });
+
     describe('Add API to Category', () => {
       beforeEach(async () => {
         expectGetPortalNavigationItemsWithApis([]);

@@ -324,15 +324,19 @@ public interface PortalNavigationItemsMapper {
             return tcpHost;
         }
 
-        String kafkaHost = listeners
+        String kafkaAddress = listeners
             .stream()
             .filter(listener -> listener.getType() == ListenerType.KAFKA)
             .map(KafkaListener.class::cast)
-            .map(KafkaListener::getHost)
+            .map(
+                kafkaListener ->
+                    (kafkaListener.getHost() != null ? kafkaListener.getHost() : "") +
+                    (kafkaListener.getPort() != null ? ":" + kafkaListener.getPort() : "")
+            )
             .findFirst()
             .orElse(null);
-        if (kafkaHost != null) {
-            return kafkaHost;
+        if (kafkaAddress != null) {
+            return kafkaAddress;
         }
 
         return listeners

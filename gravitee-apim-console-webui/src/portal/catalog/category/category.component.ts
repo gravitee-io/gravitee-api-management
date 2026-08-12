@@ -162,7 +162,7 @@ export class CategoryCatalogComponent implements OnInit {
         if (this.mode !== 'edit') {
           return of([]);
         }
-        return this.publishedApiNavigationItemsWithSummaries$().pipe(
+        return this.apiNavigationItemsWithSummaries$().pipe(
           map(({ navItems, apisById }) =>
             navItems
               .filter(navItem => (navItem.categoryIds ?? []).includes(this.categoryId))
@@ -300,13 +300,17 @@ export class CategoryCatalogComponent implements OnInit {
     );
   }
 
-  private publishedApiNavigationItemsWithSummaries$(): Observable<{
+  /**
+   * Not filtered by `published`: an API assigned to this category before being unpublished must
+   * still appear here so its association can be seen and removed.
+   */
+  private apiNavigationItemsWithSummaries$(): Observable<{
     navItems: PortalNavigationApi[];
     apisById: Record<string, PortalNavigationItemApiSummary>;
   }> {
     return this.portalNavigationItemService.getNavigationItems('TOP_NAVBAR', ['apis']).pipe(
       map(response => ({
-        navItems: response.items.filter((item): item is PortalNavigationApi => item.type === 'API' && item.published),
+        navItems: response.items.filter((item): item is PortalNavigationApi => item.type === 'API'),
         apisById: response.metadata?.apis ?? {},
       })),
     );

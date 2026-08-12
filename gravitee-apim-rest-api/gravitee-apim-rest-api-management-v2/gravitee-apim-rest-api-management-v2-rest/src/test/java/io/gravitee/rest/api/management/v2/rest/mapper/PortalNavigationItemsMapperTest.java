@@ -433,4 +433,17 @@ class PortalNavigationItemsMapperTest {
             assertThat(source.isUseAutoFetch()).isFalse();
         }
     }
+
+    @Nested
+    class ApisMetadataMapping {
+
+        @Test
+        void should_include_the_port_in_a_native_kafka_api_context_path() {
+            var api = fixtures.core.model.ApiFixtures.aNativeApi();
+
+            var summary = mapper.mapApiSummary(api);
+
+            assertThat(summary.getContextPath()).isEqualTo("native.kafka:1000");
+        }
+    }
 }
