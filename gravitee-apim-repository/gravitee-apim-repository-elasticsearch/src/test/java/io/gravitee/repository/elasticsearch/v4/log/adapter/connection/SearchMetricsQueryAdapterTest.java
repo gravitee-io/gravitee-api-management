@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.List;
 import java.util.Set;
@@ -1013,6 +1014,54 @@ class SearchMetricsQueryAdapterTest {
             var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().llmProxyModels(Set.of()).build()).build();
 
             assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.LLM_PROXY_MODEL.v4Metrics())).isFalse();
+        }
+    }
+
+    @Nested
+    class TenantsFilter {
+
+        @Test
+        void should_add_tenants_terms_filter_when_provided() {
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().apiIds(Set.of("api-1")).tenants(Set.of("tenant-a", "tenant-b")).build())
+                .build();
+
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.TENANT)).isTrue();
+        }
+
+        /**
+         * The gateway writes {@code tenant} under the same name in both indexes, so — unlike the api or plan
+         * ids — the clause must not be split into a v2/v4 should.
+         */
+        @Test
+        void should_query_the_tenant_field_directly_for_both_indexes() {
+            var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().tenants(Set.of("tenant-a")).build()).build();
+
+            var mustClauses = new JsonObject(SearchMetricsQueryAdapter.adapt(query))
+                .getJsonObject("query")
+                .getJsonObject("bool")
+                .getJsonArray("must");
+
+            assertThat(mustClauses).hasSize(1);
+            assertThat(mustClauses.getJsonObject(0)).isEqualTo(
+                JsonObject.of("terms", JsonObject.of(RequestV2MetricsV4Fields.TENANT, JsonArray.of("tenant-a")))
+            );
+        }
+
+        @Test
+        void should_not_add_tenants_filter_when_null() {
+            var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().apiIds(Set.of("api-1")).tenants(null).build()).build();
+
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.TENANT)).isFalse();
+        }
+
+        @Test
+        void should_not_add_tenants_filter_when_empty() {
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().apiIds(Set.of("api-1")).tenants(Set.of()).build())
+                .build();
+
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.TENANT)).isFalse();
         }
     }
 

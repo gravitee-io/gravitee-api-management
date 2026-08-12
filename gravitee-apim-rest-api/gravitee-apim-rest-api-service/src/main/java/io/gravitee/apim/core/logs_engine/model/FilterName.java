@@ -32,4 +32,5 @@ public enum FilterName {
     API_PRODUCT,
     API_TYPE,
     PAYLOAD,
+    TENANT,
 }

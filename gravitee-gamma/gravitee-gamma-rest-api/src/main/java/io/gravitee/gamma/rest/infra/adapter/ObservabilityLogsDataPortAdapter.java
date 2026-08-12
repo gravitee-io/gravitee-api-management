@@ -285,6 +285,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         Set<String> mcpProxyTools = new HashSet<>();
         Set<String> mcpProxyResources = new HashSet<>();
         Set<String> mcpProxyPrompts = new HashSet<>();
+        Set<String> tenants = new HashSet<>();
         String uri = null;
         List<Range> responseTimeRanges = new ArrayList<>();
         var responseTimeAccumulator = new NumericRangeAccumulator<Long>("HTTP_GATEWAY_RESPONSE_TIME");
@@ -324,6 +325,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                 case "TRANSACTION_ID" -> transactionIds.addAll(values);
                 case "ERROR_KEY" -> errorKeys.addAll(values);
                 case "API_PRODUCT" -> apiProductIds.addAll(values);
+                case "TENANT" -> tenants.addAll(values);
                 case "PAYLOAD" -> {
                     if (values.isEmpty() || values.stream().allMatch(value -> value == null || value.isBlank())) {
                         throw UnsupportedObservabilityFilterException.blankValue("PAYLOAD");
@@ -365,6 +367,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         builder.mcpProxyTools(mcpProxyTools);
         builder.mcpProxyResources(mcpProxyResources);
         builder.mcpProxyPrompts(mcpProxyPrompts);
+        builder.tenants(tenants);
         builder.uri(uri);
         builder.bodyText(bodyText);
         builder.responseTimeRanges(responseTimeRanges);

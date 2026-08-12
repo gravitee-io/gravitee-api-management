@@ -59,6 +59,7 @@ public class MetricsQuery {
         private Set<String> mcpProxyTools;
         private Set<String> mcpProxyResources;
         private Set<String> mcpProxyPrompts;
+        private Set<String> tenants;
 
         @Data
         @Builder

@@ -90,6 +90,8 @@ public class SearchMetricsQueryAdapter {
 
         addMcpProxyPromptsFilter(filter, mustFilterList);
 
+        addTenantsFilter(filter, mustFilterList);
+
         if (!mustFilterList.isEmpty()) {
             return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(mustFilterList.toArray())));
         }
@@ -137,6 +139,16 @@ public class SearchMetricsQueryAdapter {
     private static void addErrorKeysFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getErrorKeys())) {
             mustFilterList.add(JsonObject.of("terms", JsonObject.of(RequestV2MetricsV4Fields.ERROR_KEY, filter.getErrorKeys().toArray())));
+        }
+    }
+
+    /**
+     * The gateway reports the tenant under the same {@code tenant} keyword in both the v2 request and the v4
+     * metrics index, so a single terms clause covers them — no v2/v4 should needed.
+     */
+    private static void addTenantsFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getTenants())) {
+            mustFilterList.add(JsonObject.of("terms", JsonObject.of(RequestV2MetricsV4Fields.TENANT, filter.getTenants().toArray())));
         }
     }
 
