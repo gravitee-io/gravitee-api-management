@@ -468,8 +468,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
     protected Completable invokeBackend(final MutableExecutionContext ctx) {
         return invokeBackend0(ctx)
-            .doOnSubscribe(disposable -> initEndpointResponseTimeMetric(ctx))
-            .doFinally(() -> computeEndpointResponseTimeMetric(ctx));
+            .doOnSubscribe(disposable -> initEndpointRequestStart(ctx))
+            .doFinally(() -> computeEndpointResponseTtfbMetric(ctx));
     }
 
     protected Completable invokeBackend0(final MutableExecutionContext ctx) {
@@ -554,24 +554,37 @@ public class DefaultApiReactor extends AbstractApiReactor {
     protected Completable handleUnexpectedError(final ExecutionContext ctx, final Throwable throwable) {
         return Completable.fromRunnable(() -> {
             ctx.withLogger(log).error("Unexpected error while handling request", throwable);
-            computeEndpointResponseTimeMetric(ctx);
+            computeEndpointResponseTtfbMetric(ctx);
 
             ctx.response().status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
             ctx.response().reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
         });
     }
 
-    private void initEndpointResponseTimeMetric(ExecutionContext ctx) {
+    private void initEndpointRequestStart(ExecutionContext ctx) {
         Metrics metrics = ctx.metrics();
-        // Initialize the response time with current time millis which is higher than Integer.MAX_VALUE
-        metrics.setEndpointResponseTimeMs(System.currentTimeMillis());
+        // Common origin every endpoint duration is derived from, here and in the connectors (see
+        // computeEndpointResponseTtfbMetric). Monotonic: a wall clock cannot measure a duration.
+        metrics.setEndpointRequestStartNs(System.nanoTime());
     }
 
-    private void computeEndpointResponseTimeMetric(ExecutionContext ctx) {
+    /**
+     * Records the time to first byte of the endpoint response: this completes as soon as the response head has been
+     * received, the body still being streamed afterwards.
+     * <p>
+     * The same value is used as the endpoint response time, so that a connector which does not report the end of the
+     * response body keeps the historical behaviour. Connectors that do stream one — the HTTP proxy connector — overwrite
+     * it once the last byte has been received.
+     */
+    private void computeEndpointResponseTtfbMetric(ExecutionContext ctx) {
         Metrics metrics = ctx.metrics();
-        // If the response time is higher than Integer.MAX_VALUE, that means it has not been already computed (see init method)
-        if (metrics.getEndpointResponseTimeMs() > Integer.MAX_VALUE) {
-            metrics.setEndpointResponseTimeMs(System.currentTimeMillis() - metrics.getEndpointResponseTimeMs());
+        final long startNs = metrics.getEndpointRequestStartNs();
+        // A ttfb already recorded means the backend was invoked once and completed; do not measure it twice (this is
+        // also called from handleUnexpectedError).
+        if (startNs > 0 && metrics.getEndpointResponseTtfbNs() < 0) {
+            final long ttfbNs = System.nanoTime() - startNs;
+            metrics.setEndpointResponseTtfbNs(ttfbNs);
+            metrics.setEndpointResponseTimeNs(ttfbNs);
         }
     }
 

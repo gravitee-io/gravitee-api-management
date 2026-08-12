@@ -33,11 +33,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.longThat;
+import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -82,6 +86,7 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -101,7 +106,15 @@ class HttpConnectorTest {
     protected static final int REQUEST_BODY_LENGTH = REQUEST_BODY.getBytes().length;
     protected static final String BACKEND_RESPONSE_BODY = "response from backend";
     public static final int TIMEOUT_SECONDS = 60;
+    /** Time already spent on the endpoint when the connector takes over, so a measured duration is provably ≥ it. */
+    private static final long BACKEND_ELAPSED_NS = TimeUnit.MILLISECONDS.toNanos(100);
     private static final String ERROR_ENDPOINT = "/error";
+    /**
+     * How long to let doFinally's action land. Draining the chunks returns as soon as the subscriber sees the terminal
+     * signal, which doFinally propagates before running its own action — so the measure is set just after, on a
+     * schedule the test does not control.
+     */
+    private static final long VERIFY_TIMEOUT_MS = 5_000;
     private static WireMockServer wiremock;
     private static Vertx vertx;
 
@@ -778,6 +791,81 @@ class HttpConnectorTest {
             any(ExecutionFailure.class)
         );
         wiremock.verify(1, getRequestedFor(urlPathEqualTo("/error")));
+    }
+
+    @Test
+    void should_record_endpoint_response_time_when_the_response_body_is_cancelled_mid_stream() throws InterruptedException {
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(metrics.getEndpointRequestStartNs()).thenReturn(System.nanoTime() - BACKEND_ELAPSED_NS);
+
+        wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+        assertNoTimeout(obs);
+        obs.assertComplete();
+
+        // A client that walks away mid-response: the doFinally has to measure what was spent, not leave the value at
+        // the time to first byte. Moving the hook to doOnComplete would leave this unnoticed.
+        final ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
+        verify(response).chunks(chunksCaptor.capture());
+        chunksCaptor.getValue().test(1).cancel();
+
+        verify(metrics, timeout(VERIFY_TIMEOUT_MS)).setEndpointResponseTimeNs(
+            longThat(responseTimeNs -> responseTimeNs >= BACKEND_ELAPSED_NS)
+        );
+    }
+
+    @Test
+    void should_record_endpoint_response_time_once_the_response_body_has_been_fully_received() throws InterruptedException {
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(metrics.getEndpointRequestStartNs()).thenReturn(System.nanoTime() - BACKEND_ELAPSED_NS);
+
+        wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+
+        assertNoTimeout(obs);
+        obs.assertComplete();
+
+        // Connecting only gets the response head: the body is still to be streamed, so nothing is measured yet.
+        verify(metrics, never()).setEndpointResponseTimeNs(anyLong());
+
+        consumeResponseChunks();
+
+        // The whole response is now proxied, body included, which is what the endpoint response time stands for.
+        verify(metrics, timeout(VERIFY_TIMEOUT_MS)).setEndpointResponseTimeNs(
+            longThat(responseTimeNs -> responseTimeNs >= BACKEND_ELAPSED_NS)
+        );
+    }
+
+    @Test
+    void should_leave_endpoint_response_time_untouched_when_the_endpoint_request_start_is_unknown() throws InterruptedException {
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(metrics.getEndpointRequestStartNs()).thenReturn(-1L);
+
+        wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+
+        assertNoTimeout(obs);
+        obs.assertComplete();
+
+        consumeResponseChunks();
+
+        // No common origin to derive a duration from: the reactor's time to first byte has to stand as-is.
+        verify(metrics, after(VERIFY_TIMEOUT_MS).never()).setEndpointResponseTimeNs(anyLong());
+    }
+
+    /**
+     * Drains the response body the connector handed over to the gateway response. Connecting only resolves the response
+     * head, so anything measured at the end of the body needs the chunks to be subscribed to.
+     */
+    @SuppressWarnings("unchecked")
+    private void consumeResponseChunks() {
+        final ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
+        verify(response).chunks(chunksCaptor.capture());
+
+        chunksCaptor.getValue().test().awaitDone(TIMEOUT_SECONDS, TimeUnit.SECONDS).assertComplete();
     }
 
     private void assertNoTimeout(TestObserver<Void> obs) throws InterruptedException {
