@@ -21,6 +21,7 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.ApiPortalSearchQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemsResponse;
@@ -56,6 +57,9 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
     @Autowired
     private PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService;
 
+    @Autowired
+    private ApiPortalSearchQueryServiceInMemory apiPortalSearchQueryService;
+
     private WebTarget target;
 
     @Override
@@ -79,6 +83,7 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
     public void tearDown() {
         GraviteeContext.cleanContext();
         portalNavigationItemsQueryService.reset();
+        apiPortalSearchQueryService.reset();
     }
 
     @Test
@@ -331,5 +336,71 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
             .contains("Invalid value")
             .contains("invalidArea")
             .contains("area");
+    }
+
+    @Test
+    void should_not_include_apis_metadata_by_default() {
+        // Given
+        var apiNavItem = PortalNavigationItemFixtures.anApi("00000000-0000-0000-0000-000000000030", "API 1", null, "api-1");
+        apiNavItem.setEnvironmentId(ENVIRONMENT);
+        portalNavigationItemsQueryService.initWith(java.util.List.of(apiNavItem));
+
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.ENVIRONMENT_DOCUMENTATION,
+                ENVIRONMENT,
+                RolePermissionAction.READ
+            )
+        ).thenReturn(true);
+
+        // When
+        Response response = target.queryParam("area", PortalArea.TOP_NAVBAR).queryParam("loadChildren", true).request().get();
+
+        // Then
+        assertThat(response)
+            .hasStatus(OK_200)
+            .asEntity(PortalNavigationItemsResponse.class)
+            .satisfies(entity -> assertThat(entity.getMetadata()).isNull());
+    }
+
+    @Test
+    void should_include_apis_metadata_when_includes_apis_is_requested() {
+        // Given
+        var api = fixtures.core.model.ApiFixtures.aProxyApiV4().toBuilder().environmentId(ENVIRONMENT).build();
+        var apiNavItem = PortalNavigationItemFixtures.anApi("00000000-0000-0000-0000-000000000030", "API 1", null, api.getId());
+        apiNavItem.setEnvironmentId(ENVIRONMENT);
+        portalNavigationItemsQueryService.initWith(java.util.List.of(apiNavItem));
+        apiPortalSearchQueryService.initWith(java.util.List.of(api));
+
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.ENVIRONMENT_DOCUMENTATION,
+                ENVIRONMENT,
+                RolePermissionAction.READ
+            )
+        ).thenReturn(true);
+
+        // When
+        Response response = target
+            .queryParam("area", PortalArea.TOP_NAVBAR)
+            .queryParam("loadChildren", true)
+            .queryParam("includes", "apis")
+            .request()
+            .get();
+
+        // Then
+        assertThat(response)
+            .hasStatus(OK_200)
+            .asEntity(PortalNavigationItemsResponse.class)
+            .satisfies(entity -> {
+                assertThat(entity.getMetadata()).isNotNull();
+                assertThat(entity.getMetadata().getApis()).containsKey(apiNavItem.getId().toString());
+                var summary = entity.getMetadata().getApis().get(apiNavItem.getId().toString());
+                assertThat(summary.getId()).isEqualTo(api.getId());
+                assertThat(summary.getName()).isEqualTo(api.getName());
+                assertThat(summary.getContextPath()).isEqualTo("/http_proxy");
+            });
     }
 }

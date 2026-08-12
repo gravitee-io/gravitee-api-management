@@ -1005,6 +1005,16 @@ paths:
           schema:
             type: boolean
             default: true
+        - name: includes
+          in: query
+          description: Additional data to include in the response, returned as a separate `metadata` map rather than inlined onto each item.
+          required: false
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [ apis ]
       responses:
         "200":
           $ref: "#/components/responses/PortalNavigationItemsResponse"
@@ -2569,6 +2579,31 @@ components:
           LINK: "#/components/schemas/PortalNavigationLink"
           API: "#/components/schemas/PortalNavigationApi"
           API_PRODUCT: "#/components/schemas/PortalNavigationApiProduct"
+    PortalNavigationItemsResponseMetadata:
+      type: object
+      description: Sidecar data resolved for the returned navigation items, present only when requested via the `includes` query parameter.
+      properties:
+        apis:
+          type: object
+          description: Map of navigation item ID to a summary of its resolved Api, present only when `includes=apis` was requested.
+          additionalProperties:
+            $ref: "#/components/schemas/PortalNavigationItemApiSummary"
+    PortalNavigationItemApiSummary:
+      type: object
+      description: A minimal summary of an Api, used to populate the `metadata.apis` map without requiring the full Api schema.
+      properties:
+        id:
+          type: string
+          description: API's uuid.
+        name:
+          type: string
+          description: API's name.
+        apiVersion:
+          type: string
+          description: API's version.
+        contextPath:
+          type: string
+          description: The API's primary access path for display, if any (context path, listener path/host, or similar depending on API type).
     BaseCreatePortalNavigationItem:
       type: object
       description: Base portal navigation item. Newly created items are unpublished by default.
@@ -3661,6 +3696,8 @@ components:
                 description: List of portal navigation items
                 items:
                   $ref: "#/components/schemas/PortalNavigationItem"
+              metadata:
+                $ref: "#/components/schemas/PortalNavigationItemsResponseMetadata"
     PortalPageContentResponse:
       description: Portal page content
       content:

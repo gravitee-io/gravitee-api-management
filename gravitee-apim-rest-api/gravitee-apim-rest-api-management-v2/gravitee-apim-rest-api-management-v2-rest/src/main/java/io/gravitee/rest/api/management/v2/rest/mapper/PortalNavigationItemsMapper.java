@@ -20,6 +20,11 @@ import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.use_case.FetchPortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForPortalNavigationItemsUseCase;
+import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
@@ -29,6 +34,7 @@ import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.FetchPortalNavigationItemResponse;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItem;
+import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemApiSummary;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemFetchResult;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemsFetchSummary;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPageContentType;
@@ -38,7 +44,9 @@ import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApiPr
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationPage;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -262,5 +270,82 @@ public interface PortalNavigationItemsMapper {
             return null;
         }
         return id.id();
+    }
+
+    /**
+     * Maps the domain APIs already resolved by the use case (via {@code ApiPortalSearchQueryService},
+     * version-agnostic) to the REST summary DTO, keyed by navigation item id.
+     */
+    default Map<String, PortalNavigationItemApiSummary> mapApisMetadata(
+        Map<PortalNavigationItemId, io.gravitee.apim.core.api.model.Api> apisByNavigationItemId
+    ) {
+        Map<String, PortalNavigationItemApiSummary> summariesByNavigationItemId = new HashMap<>();
+        apisByNavigationItemId.forEach((navigationItemId, api) ->
+            summariesByNavigationItemId.put(navigationItemId.json(), mapApiSummary(api))
+        );
+        return summariesByNavigationItemId;
+    }
+
+    default PortalNavigationItemApiSummary mapApiSummary(io.gravitee.apim.core.api.model.Api api) {
+        return new PortalNavigationItemApiSummary()
+            .id(api.getId())
+            .name(api.getName())
+            .apiVersion(api.getVersion())
+            .contextPath(resolveApiContextPath(api));
+    }
+
+    /**
+     * Mirrors the frontend's {@code getApiAccess}/{@code getApiContextPath} utilities
+     * (gravitee-apim-console-webui/src/shared/utils/api-access.util.ts): returns the API's primary
+     * access path for display, or {@code null} for API versions with no gateway-managed endpoint
+     * (federated, federated agent).
+     */
+    private String resolveApiContextPath(io.gravitee.apim.core.api.model.Api api) {
+        var v2Definition = api.getApiDefinition();
+        if (v2Definition != null) {
+            var virtualHosts = v2Definition.getProxy() != null ? v2Definition.getProxy().getVirtualHosts() : null;
+            if (virtualHosts == null || virtualHosts.isEmpty()) {
+                return null;
+            }
+            VirtualHost virtualHost = virtualHosts.get(0);
+            return (virtualHost.getHost() != null ? virtualHost.getHost() : "") + virtualHost.getPath();
+        }
+
+        var listeners = api.getApiListeners();
+
+        String tcpHost = listeners
+            .stream()
+            .filter(listener -> listener.getType() == ListenerType.TCP)
+            .map(TcpListener.class::cast)
+            .flatMap(listener -> listener.getHosts().stream())
+            .findFirst()
+            .orElse(null);
+        if (tcpHost != null) {
+            return tcpHost;
+        }
+
+        String kafkaAddress = listeners
+            .stream()
+            .filter(listener -> listener.getType() == ListenerType.KAFKA)
+            .map(KafkaListener.class::cast)
+            .map(
+                kafkaListener ->
+                    (kafkaListener.getHost() != null ? kafkaListener.getHost() : "") +
+                    (kafkaListener.getPort() != null ? ":" + kafkaListener.getPort() : "")
+            )
+            .findFirst()
+            .orElse(null);
+        if (kafkaAddress != null) {
+            return kafkaAddress;
+        }
+
+        return listeners
+            .stream()
+            .filter(listener -> listener.getType() == ListenerType.HTTP)
+            .map(HttpListener.class::cast)
+            .flatMap(listener -> listener.getPaths().stream())
+            .findFirst()
+            .map(path -> (path.getHost() != null ? path.getHost() : "") + path.getPath())
+            .orElse(null);
     }
 }

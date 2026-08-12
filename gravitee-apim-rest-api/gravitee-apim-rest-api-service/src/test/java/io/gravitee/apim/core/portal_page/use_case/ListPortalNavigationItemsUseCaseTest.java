@@ -21,7 +21,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.ApiPortalSearchQueryServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
@@ -48,12 +50,14 @@ import org.junit.jupiter.api.Test;
 class ListPortalNavigationItemsUseCaseTest {
 
     private static final String ENV_ID = "env-id";
+    private static final String ORG_ID = "org-id";
 
     private ListPortalNavigationItemsUseCase useCase;
     private PortalNavigationItemsQueryServiceInMemory queryService;
     private MembershipQueryServiceInMemory membershipQueryService;
     private SubscriptionQueryServiceInMemory subscriptionQueryService;
     private ApiQueryServiceInMemory apiQueryService;
+    private ApiPortalSearchQueryServiceInMemory apiPortalSearchQueryService;
     private ApiProductAccessibleIdsDomainService apiProductAccessibleIdsDomainService;
 
     @BeforeEach
@@ -62,6 +66,7 @@ class ListPortalNavigationItemsUseCaseTest {
         membershipQueryService = new MembershipQueryServiceInMemory();
         subscriptionQueryService = new SubscriptionQueryServiceInMemory();
         apiQueryService = new ApiQueryServiceInMemory();
+        apiPortalSearchQueryService = new ApiPortalSearchQueryServiceInMemory();
         var apiMembershipDomainService = new ApiPortalMembershipDomainService(
             membershipQueryService,
             subscriptionQueryService,
@@ -78,7 +83,8 @@ class ListPortalNavigationItemsUseCaseTest {
         useCase = new ListPortalNavigationItemsUseCase(
             queryService,
             List.of(apiVisibilityDomainService, apiProductVisibilityDomainService),
-            new PortalNavigationItemSourceDomainServiceInMemory()
+            new PortalNavigationItemSourceDomainServiceInMemory(),
+            apiPortalSearchQueryService
         );
 
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
@@ -93,10 +99,12 @@ class ListPortalNavigationItemsUseCaseTest {
         var result = useCase.execute(
             new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
+                ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
-                PortalNavigationItemViewerContext.forConsole()
+                PortalNavigationItemViewerContext.forConsole(),
+                false
             )
         );
 
@@ -130,10 +138,12 @@ class ListPortalNavigationItemsUseCaseTest {
         var result = useCase.execute(
             new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
+                ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.of(PortalNavigationItemId.of(APIS_ID)),
                 false,
-                PortalNavigationItemViewerContext.forConsole()
+                PortalNavigationItemViewerContext.forConsole(),
+                false
             )
         );
 
@@ -153,10 +163,12 @@ class ListPortalNavigationItemsUseCaseTest {
         var result = useCase.execute(
             new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
+                ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.of(PortalNavigationItemId.of(APIS_ID)),
                 true,
-                PortalNavigationItemViewerContext.forConsole()
+                PortalNavigationItemViewerContext.forConsole(),
+                false
             )
         );
 
@@ -186,10 +198,12 @@ class ListPortalNavigationItemsUseCaseTest {
         var result = useCase.execute(
             new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
+                ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
-                PortalNavigationItemViewerContext.forPortal(true)
+                PortalNavigationItemViewerContext.forPortal(true),
+                false
             )
         );
 
@@ -232,10 +246,12 @@ class ListPortalNavigationItemsUseCaseTest {
         var result = useCase.execute(
             new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
+                ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
-                PortalNavigationItemViewerContext.forPortal(true)
+                PortalNavigationItemViewerContext.forPortal(true),
+                false
             )
         );
 
@@ -262,10 +278,12 @@ class ListPortalNavigationItemsUseCaseTest {
         var result = useCase.execute(
             new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
+                ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.of(unpublishedFolder.getId()),
                 true,
-                PortalNavigationItemViewerContext.forPortal(true)
+                PortalNavigationItemViewerContext.forPortal(true),
+                false
             )
         );
 
@@ -292,10 +310,12 @@ class ListPortalNavigationItemsUseCaseTest {
         var result = useCase.execute(
             new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
+                ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.of(publishedFolder.getId()),
                 true,
-                PortalNavigationItemViewerContext.forPortal(true)
+                PortalNavigationItemViewerContext.forPortal(true),
+                false
             )
         );
 
@@ -312,10 +332,12 @@ class ListPortalNavigationItemsUseCaseTest {
         var result = useCase.execute(
             new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
+                ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.of(PortalNavigationItemId.random()),
                 true,
-                PortalNavigationItemViewerContext.forConsole()
+                PortalNavigationItemViewerContext.forConsole(),
+                false
             )
         );
 
@@ -341,10 +363,12 @@ class ListPortalNavigationItemsUseCaseTest {
         var result = useCase.execute(
             new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
+                ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.of(unpublishedFolder.getId()),
                 true,
-                PortalNavigationItemViewerContext.forPortal(true)
+                PortalNavigationItemViewerContext.forPortal(true),
+                false
             )
         );
 
@@ -368,10 +392,12 @@ class ListPortalNavigationItemsUseCaseTest {
         var result = useCase.execute(
             new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
+                ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 false,
-                PortalNavigationItemViewerContext.forPortal(true)
+                PortalNavigationItemViewerContext.forPortal(true),
+                false
             )
         );
 
@@ -395,10 +421,12 @@ class ListPortalNavigationItemsUseCaseTest {
         var result = useCase.execute(
             new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
+                ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 false,
-                PortalNavigationItemViewerContext.forPortal(false)
+                PortalNavigationItemViewerContext.forPortal(false),
+                false
             )
         );
 
@@ -424,10 +452,12 @@ class ListPortalNavigationItemsUseCaseTest {
         var result = useCase.execute(
             new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
+                ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
-                PortalNavigationItemViewerContext.forPortal("user-without-access")
+                PortalNavigationItemViewerContext.forPortal("user-without-access"),
+                false
             )
         );
 
@@ -465,10 +495,12 @@ class ListPortalNavigationItemsUseCaseTest {
         var result = useCase.execute(
             new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
+                ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
-                PortalNavigationItemViewerContext.forPortal("user-member")
+                PortalNavigationItemViewerContext.forPortal("user-member"),
+                false
             )
         );
 
@@ -504,10 +536,12 @@ class ListPortalNavigationItemsUseCaseTest {
         var result = useCase.execute(
             new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
+                ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
-                PortalNavigationItemViewerContext.forPortal("user-without-access")
+                PortalNavigationItemViewerContext.forPortal("user-without-access"),
+                false
             )
         );
 
@@ -536,10 +570,12 @@ class ListPortalNavigationItemsUseCaseTest {
         var result = useCase.execute(
             new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
+                ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.of(apiNavItem.getId()),
                 true,
-                PortalNavigationItemViewerContext.forPortal("user-without-access")
+                PortalNavigationItemViewerContext.forPortal("user-without-access"),
+                false
             )
         );
 
@@ -575,10 +611,12 @@ class ListPortalNavigationItemsUseCaseTest {
         var result = useCase.execute(
             new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
+                ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.of(childFolder.getId()),
                 true,
-                PortalNavigationItemViewerContext.forPortal("user-without-access")
+                PortalNavigationItemViewerContext.forPortal("user-without-access"),
+                false
             )
         );
 
@@ -605,10 +643,12 @@ class ListPortalNavigationItemsUseCaseTest {
         var result = useCase.execute(
             new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
+                ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
-                PortalNavigationItemViewerContext.forPortal("user-without-access")
+                PortalNavigationItemViewerContext.forPortal("user-without-access"),
+                false
             )
         );
 
@@ -640,10 +680,12 @@ class ListPortalNavigationItemsUseCaseTest {
         useCase.execute(
             new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
+                ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
-                PortalNavigationItemViewerContext.forPortal("user-without-access")
+                PortalNavigationItemViewerContext.forPortal("user-without-access"),
+                false
             )
         );
 
@@ -680,10 +722,12 @@ class ListPortalNavigationItemsUseCaseTest {
         var result = useCase.execute(
             new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
+                ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
-                PortalNavigationItemViewerContext.forPortal("product-member")
+                PortalNavigationItemViewerContext.forPortal("product-member"),
+                false
             )
         );
 
@@ -716,10 +760,12 @@ class ListPortalNavigationItemsUseCaseTest {
         var result = useCase.execute(
             new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
+                ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
-                PortalNavigationItemViewerContext.forPortal("user-without-api-access")
+                PortalNavigationItemViewerContext.forPortal("user-without-api-access"),
+                false
             )
         );
 
@@ -743,14 +789,87 @@ class ListPortalNavigationItemsUseCaseTest {
         var result = useCase.execute(
             new ListPortalNavigationItemsUseCase.Input(
                 ENV_ID,
+                ORG_ID,
                 PortalArea.TOP_NAVBAR,
                 Optional.empty(),
                 true,
-                PortalNavigationItemViewerContext.forConsole()
+                PortalNavigationItemViewerContext.forConsole(),
+                false
             )
         );
 
         // Then
         assertThat(result.items()).hasSize(1).extracting(PortalNavigationItem::getTitle).containsExactly("Nav Bar Item");
+    }
+
+    @Test
+    void should_return_empty_apis_map_when_include_apis_is_false_even_with_api_items() {
+        // Given
+        var apiNavItem = PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().toString(), "API 1", null, "api-1");
+        queryService.initWith(List.of(apiNavItem));
+        apiPortalSearchQueryService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id("api-1").environmentId(ENV_ID).build()));
+
+        // When
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                ORG_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.empty(),
+                true,
+                PortalNavigationItemViewerContext.forConsole(),
+                false
+            )
+        );
+
+        // Then
+        assertThat(result.apis()).isEmpty();
+    }
+
+    @Test
+    void should_return_empty_apis_map_when_include_apis_is_true_but_no_api_items() {
+        // Given
+        // Setup data for APIs, Guides, Support (no API-type items)
+
+        // When
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                ORG_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.of(PortalNavigationItemId.of(APIS_ID)),
+                false,
+                PortalNavigationItemViewerContext.forConsole(),
+                true
+            )
+        );
+
+        // Then
+        assertThat(result.apis()).isEmpty();
+    }
+
+    @Test
+    void should_populate_apis_map_keyed_by_navigation_item_id_when_include_apis_is_true() {
+        // Given
+        var apiNavItem = PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().toString(), "API 1", null, "api-1");
+        queryService.initWith(List.of(apiNavItem));
+        var api = ApiFixtures.aProxyApiV4().toBuilder().id("api-1").environmentId(ENV_ID).build();
+        apiPortalSearchQueryService.initWith(List.of(api));
+
+        // When
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                ORG_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.empty(),
+                true,
+                PortalNavigationItemViewerContext.forConsole(),
+                true
+            )
+        );
+
+        // Then
+        assertThat(result.apis()).containsExactly(java.util.Map.entry(apiNavItem.getId(), api));
     }
 }

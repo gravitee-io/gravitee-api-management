@@ -84,10 +84,12 @@ public class PortalNavigationItemsResource extends AbstractResource {
         var executionContext = getExecutionContext();
         var input = new ListPortalNavigationItemsUseCase.Input(
             executionContext.getEnvironmentId(),
+            executionContext.getOrganizationId(),
             portalNavigationItemMapper.map(area),
             Optional.ofNullable(parentId).map(PortalNavigationItemId::of),
             loadChildren,
-            PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull())
+            PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull()),
+            false
         );
         var output = listPortalNavigationItemsUseCase.execute(input);
         return Response.ok(portalNavigationItemMapper.map(output.items())).build();

@@ -15,7 +15,7 @@
  */
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { BehaviorSubject, forkJoin, Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -51,15 +51,14 @@ import { GioPermissionService } from '../../../shared/components/gio-permission/
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { PortalCategoryService } from '../../../services-ngx/portal-category.service';
 import { PortalNavigationItemService } from '../../../services-ngx/portal-navigation-item.service';
-import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import {
   CreatePortalCategory,
   PortalCategory,
   PortalNavigationApi,
+  PortalNavigationItemApiSummary,
   UpdateApiPortalNavigationItem,
   UpdatePortalCategory,
 } from '../../../entities/management-api-v2';
-import { getApiContextPath } from '../../../shared/utils';
 
 interface ApiVM {
   id: string;
@@ -118,7 +117,6 @@ export class CategoryCatalogComponent implements OnInit {
   private refreshApis = new BehaviorSubject(1);
   private destroyRef = inject(DestroyRef);
   private readonly portalNavigationItemService = inject(PortalNavigationItemService);
-  private readonly apiService = inject(ApiV2Service);
   private readonly matDialog = inject(MatDialog);
 
   constructor(
@@ -164,8 +162,13 @@ export class CategoryCatalogComponent implements OnInit {
         if (this.mode !== 'edit') {
           return of([]);
         }
-        return this.publishedApiNavigationItemsInCategory$().pipe(
-          switchMap(navItems => this.loadApiVMs(navItems)),
+        return this.apiNavigationItemsWithSummaries$().pipe(
+          map(({ navItems, apisById }) =>
+            navItems
+              .filter(navItem => (navItem.categoryIds ?? []).includes(this.categoryId))
+              .map(navItem => this.toApiVM(navItem, apisById[navItem.id]))
+              .filter((apiVM): apiVM is ApiVM => !!apiVM),
+          ),
           catchError(() => of([])),
         );
       }),
@@ -290,41 +293,40 @@ export class CategoryCatalogComponent implements OnInit {
     return this.activatedRoute.snapshot.params.categoryId;
   }
 
-  private publishedApiNavigationItems$(): Observable<PortalNavigationApi[]> {
-    return this.portalNavigationItemService
-      .getNavigationItems('TOP_NAVBAR')
-      .pipe(map(response => response.items.filter((item): item is PortalNavigationApi => item.type === 'API' && item.published)));
-  }
-
-  private publishedApiNavigationItemsInCategory$(): Observable<PortalNavigationApi[]> {
-    return this.publishedApiNavigationItems$().pipe(
-      map(navItems => navItems.filter(navItem => (navItem.categoryIds ?? []).includes(this.categoryId))),
-    );
-  }
-
   private selectableApiNavigationItems$(): Observable<PortalNavigationApi[]> {
-    return this.publishedApiNavigationItems$().pipe(
+    return this.portalNavigationItemService.getNavigationItems('TOP_NAVBAR').pipe(
+      map(response => response.items.filter((item): item is PortalNavigationApi => item.type === 'API' && item.published)),
       map(navItems => navItems.filter(navItem => !(navItem.categoryIds ?? []).includes(this.categoryId))),
     );
   }
 
-  private loadApiVMs(navItems: PortalNavigationApi[]): Observable<ApiVM[]> {
-    if (navItems.length === 0) {
-      return of([]);
-    }
-    return forkJoin(
-      navItems.map(navItem =>
-        this.apiService.get(navItem.apiId).pipe(
-          map(api => ({
-            id: api.id,
-            name: api.name,
-            version: api.apiVersion,
-            contextPath: getApiContextPath(api) ?? '',
-            navigationItem: navItem,
-          })),
-        ),
-      ),
+  /**
+   * Not filtered by `published`: an API assigned to this category before being unpublished must
+   * still appear here so its association can be seen and removed.
+   */
+  private apiNavigationItemsWithSummaries$(): Observable<{
+    navItems: PortalNavigationApi[];
+    apisById: Record<string, PortalNavigationItemApiSummary>;
+  }> {
+    return this.portalNavigationItemService.getNavigationItems('TOP_NAVBAR', ['apis']).pipe(
+      map(response => ({
+        navItems: response.items.filter((item): item is PortalNavigationApi => item.type === 'API'),
+        apisById: response.metadata?.apis ?? {},
+      })),
     );
+  }
+
+  private toApiVM(navItem: PortalNavigationApi, summary: PortalNavigationItemApiSummary | undefined): ApiVM | null {
+    if (!summary) {
+      return null;
+    }
+    return {
+      id: summary.id,
+      name: summary.name,
+      version: summary.apiVersion,
+      contextPath: summary.contextPath ?? '',
+      navigationItem: navItem,
+    };
   }
 
   private toUpdatePayload(navItem: PortalNavigationApi, categoryIds: string[]): UpdateApiPortalNavigationItem {

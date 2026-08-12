@@ -66,6 +66,7 @@ import io.gravitee.apim.core.api.domain_service.WsdlParserDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
+import io.gravitee.apim.core.api.query_service.ApiPortalSearchQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.service_provider.ApiTemplateModelProvider;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
@@ -1308,12 +1309,14 @@ public class ResourceContextConfiguration {
     public ListPortalNavigationItemsUseCase listPortalNavigationItemsUseCase(
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
         PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService,
-        PortalNavigationApiProductVisibilityDomainService portalNavigationApiProductVisibilityDomainService
+        PortalNavigationApiProductVisibilityDomainService portalNavigationApiProductVisibilityDomainService,
+        ApiPortalSearchQueryService apiPortalSearchQueryService
     ) {
         return new ListPortalNavigationItemsUseCase(
             portalNavigationItemsQueryService,
             List.of(portalNavigationApiVisibilityDomainService, portalNavigationApiProductVisibilityDomainService),
-            new PortalNavigationItemSourceDomainServiceInMemory()
+            new PortalNavigationItemSourceDomainServiceInMemory(),
+            apiPortalSearchQueryService
         );
     }
 

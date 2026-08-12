@@ -30,13 +30,12 @@ import { AddApiToCategoryDialogHarness } from './add-api-to-category-dialog/add-
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import {
-  Api,
-  fakeApiV2,
   fakePortalCategory,
   fakePortalNavigationApi,
   fakePortalNavigationItemsResponse,
   PortalCategory,
   PortalNavigationApi,
+  PortalNavigationItemApiSummary,
   UpdateApiPortalNavigationItem,
 } from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
@@ -105,12 +104,15 @@ describe('CategoryCatalogComponent', () => {
     req.flush(fakePortalNavigationItemsResponse({ items }));
   };
 
-  const expectGetApi = (api: Api) => {
+  const expectGetPortalNavigationItemsWithApis = (
+    items: PortalNavigationApi[] = [],
+    apisById: Record<string, PortalNavigationItemApiSummary> = {},
+  ) => {
     const req = httpTestingController.expectOne({
       method: 'GET',
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items?area=TOP_NAVBAR&includes=apis`,
     });
-    req.flush(api);
+    req.flush(fakePortalNavigationItemsResponse({ items, metadata: { apis: apisById } }));
   };
 
   const expectUpdateNavigationItem = (navItemId: string, expectedBody: UpdateApiPortalNavigationItem, response: PortalNavigationApi) => {
@@ -160,7 +162,7 @@ describe('CategoryCatalogComponent', () => {
       await init(CATEGORY.id);
       expectListPortalCategoriesRequest(httpTestingController, [CATEGORY]);
       fixture.detectChanges();
-      expectGetPortalNavigationItems([]);
+      expectGetPortalNavigationItemsWithApis([]);
 
       expect(component.mode).toEqual('edit');
     });
@@ -191,7 +193,7 @@ describe('CategoryCatalogComponent', () => {
       await init(CATEGORY.id);
       expectListPortalCategoriesRequest(httpTestingController, [CATEGORY]);
       fixture.detectChanges();
-      expectGetPortalNavigationItems([]);
+      expectGetPortalNavigationItemsWithApis([]);
     });
 
     it('should require title', async () => {
@@ -234,7 +236,7 @@ describe('CategoryCatalogComponent', () => {
     });
 
     it('should show empty APIs when none are assigned to the category', async () => {
-      expectGetPortalNavigationItems([]);
+      expectGetPortalNavigationItemsWithApis([]);
       fixture.detectChanges();
 
       const table = await harnessLoader.getHarness(MatTableHarness);
@@ -243,7 +245,7 @@ describe('CategoryCatalogComponent', () => {
     });
 
     it('should have the add API button enabled', async () => {
-      expectGetPortalNavigationItems([]);
+      expectGetPortalNavigationItemsWithApis([]);
       fixture.detectChanges();
 
       const addApiButton = await componentHarness.getAddApiButton(harnessLoader);
@@ -258,10 +260,10 @@ describe('CategoryCatalogComponent', () => {
         title: 'Planets API',
         categoryIds: [CATEGORY.id],
       });
-      const api = fakeApiV2({ id: 'api-1', name: 'Planets API', apiVersion: '1.0' });
 
-      expectGetPortalNavigationItems([navItem]);
-      expectGetApi(api);
+      expectGetPortalNavigationItemsWithApis([navItem], {
+        'nav-api-1': { id: 'api-1', name: 'Planets API', apiVersion: '1.0', contextPath: '/planets' },
+      });
       fixture.detectChanges();
       await fixture.whenStable();
       fixture.detectChanges();
@@ -271,9 +273,28 @@ describe('CategoryCatalogComponent', () => {
       expect(await componentHarness.getTextByColumnNameAndRowIndex(harnessLoader, 'contextPath', 0)).toEqual('/planets');
     });
 
+    it('should still list an API assigned to the category after it was unpublished', async () => {
+      const navItem = fakePortalNavigationApi({
+        id: 'nav-api-1',
+        apiId: 'api-1',
+        title: 'Planets API',
+        categoryIds: [CATEGORY.id],
+        published: false,
+      });
+
+      expectGetPortalNavigationItemsWithApis([navItem], {
+        'nav-api-1': { id: 'api-1', name: 'Planets API', apiVersion: '1.0', contextPath: '/planets' },
+      });
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(await componentHarness.getNameByRowIndex(harnessLoader, 0)).toEqual('Planets API');
+    });
+
     describe('Add API to Category', () => {
       beforeEach(async () => {
-        expectGetPortalNavigationItems([]);
+        expectGetPortalNavigationItemsWithApis([]);
         fixture.detectChanges();
       });
 
@@ -312,9 +333,9 @@ describe('CategoryCatalogComponent', () => {
 
         expect(successSpy).toHaveBeenCalledWith('API [Planets API] has been added to the category.');
 
-        const api = fakeApiV2({ id: 'api-1', name: 'Planets API' });
-        expectGetPortalNavigationItems([updatedNavItem]);
-        expectGetApi(api);
+        expectGetPortalNavigationItemsWithApis([updatedNavItem], {
+          'nav-api-1': { id: 'api-1', name: 'Planets API', apiVersion: '1.0', contextPath: '/planets' },
+        });
       });
 
       it('should not offer APIs already assigned to the category', async () => {
@@ -347,11 +368,11 @@ describe('CategoryCatalogComponent', () => {
         title: 'Planets API',
         categoryIds: [CATEGORY.id],
       });
-      const api = fakeApiV2({ id: 'api-1', name: 'Planets API' });
 
       beforeEach(async () => {
-        expectGetPortalNavigationItems([navItem]);
-        expectGetApi(api);
+        expectGetPortalNavigationItemsWithApis([navItem], {
+          'nav-api-1': { id: 'api-1', name: 'Planets API', apiVersion: '1.0', contextPath: '/planets' },
+        });
         fixture.detectChanges();
         await fixture.whenStable();
         fixture.detectChanges();
@@ -384,7 +405,7 @@ describe('CategoryCatalogComponent', () => {
 
         expect(successSpy).toHaveBeenCalledWith(`'Planets API' removed successfully`);
 
-        expectGetPortalNavigationItems([]);
+        expectGetPortalNavigationItemsWithApis([]);
       });
 
       it('should not remove the API when cancelling the confirmation', async () => {
