@@ -58,4 +58,11 @@ export class CategoryHarness extends ComponentHarness {
       .then(rows => rows[index])
       .then(row => row.getCellTextByIndex({ columnName }).then(cell => cell[0]));
   }
+
+  async getRemoveApiButtonByRowIndex(harnessLoader: HarnessLoader, index: number): Promise<MatButtonHarness | null> {
+    return await this.getTableRows(harnessLoader)
+      .then(rows => rows[index].getCells({ columnName: 'actions' }))
+      .then(cells => cells[0])
+      .then(actionCell => actionCell.getHarnessOrNull(MatButtonHarness));
+  }
 }

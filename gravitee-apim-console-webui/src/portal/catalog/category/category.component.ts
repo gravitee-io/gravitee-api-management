@@ -15,11 +15,19 @@
  */
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, forkJoin, Observable, of } from 'rxjs';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { filter, map, switchMap, tap } from 'rxjs/operators';
+import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { GioAvatarModule, GioFormFilePickerModule, GioFormSlideToggleModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import {
+  GIO_DIALOG_WIDTH,
+  GioAvatarModule,
+  GioConfirmDialogComponent,
+  GioConfirmDialogData,
+  GioFormFilePickerModule,
+  GioFormSlideToggleModule,
+  GioSaveBarModule,
+} from '@gravitee/ui-particles-angular';
 import { AsyncPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -29,19 +37,36 @@ import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatDialog } from '@angular/material/dialog';
+
+import {
+  AddApiToCategoryDialogComponent,
+  AddApiToCategoryDialogData,
+  AddApiToCategoryDialogResult,
+} from './add-api-to-category-dialog/add-api-to-category-dialog.component';
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { PortalCategoryService } from '../../../services-ngx/portal-category.service';
-import { CreatePortalCategory, PortalCategory, UpdatePortalCategory } from '../../../entities/management-api-v2';
+import { PortalNavigationItemService } from '../../../services-ngx/portal-navigation-item.service';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
+import {
+  CreatePortalCategory,
+  PortalCategory,
+  PortalNavigationApi,
+  UpdateApiPortalNavigationItem,
+  UpdatePortalCategory,
+} from '../../../entities/management-api-v2';
+import { getApiContextPath } from '../../../shared/utils';
 
 interface ApiVM {
   id: string;
   name: string;
   version: string;
   contextPath: string;
+  navigationItem: PortalNavigationApi;
 }
 
 @Component({
@@ -77,10 +102,6 @@ interface ApiVM {
 export class CategoryCatalogComponent implements OnInit {
   mode: 'new' | 'edit' = 'new';
 
-  // API-to-category association is not yet supported by the Portal Next category API.
-  // It will be reintroduced in a future story - for now the "APIs" table is always empty and read-only.
-  readonly apiAssociationEnabled = false;
-
   categoryDetails: FormGroup<{
     title: FormControl<string>;
     description: FormControl<string>;
@@ -89,12 +110,16 @@ export class CategoryCatalogComponent implements OnInit {
   categoryDetailsInitialValue: unknown;
 
   category$: Observable<PortalCategory>;
-  apis$: Observable<ApiVM[]> = of([]);
+  apis$: Observable<ApiVM[]>;
 
-  displayedColumns = ['name', 'version', 'contextPath'];
+  displayedColumns = ['name', 'version', 'contextPath', 'actions'];
 
   private refreshData = new BehaviorSubject(1);
+  private refreshApis = new BehaviorSubject(1);
   private destroyRef = inject(DestroyRef);
+  private readonly portalNavigationItemService = inject(PortalNavigationItemService);
+  private readonly apiService = inject(ApiV2Service);
+  private readonly matDialog = inject(MatDialog);
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -133,6 +158,18 @@ export class CategoryCatalogComponent implements OnInit {
         this.handleReadOnly();
       }),
     );
+
+    this.apis$ = this.refreshApis.pipe(
+      switchMap(() => {
+        if (this.mode !== 'edit') {
+          return of([]);
+        }
+        return this.publishedApiNavigationItemsInCategory$().pipe(
+          switchMap(navItems => this.loadApiVMs(navItems)),
+          catchError(() => of([])),
+        );
+      }),
+    );
   }
 
   onSubmit() {
@@ -151,6 +188,72 @@ export class CategoryCatalogComponent implements OnInit {
           }
         },
         error: ({ error }) => this.snackBarService.error(error.message),
+      });
+  }
+
+  addApiToCategory(): void {
+    this.selectableApiNavigationItems$()
+      .pipe(
+        switchMap(candidates =>
+          this.matDialog
+            .open<AddApiToCategoryDialogComponent, AddApiToCategoryDialogData, AddApiToCategoryDialogResult>(
+              AddApiToCategoryDialogComponent,
+              {
+                data: { title: 'Add API to Category', candidates },
+                width: GIO_DIALOG_WIDTH.SMALL,
+              },
+            )
+            .afterClosed(),
+        ),
+        filter(navItem => !!navItem),
+        switchMap(navItem =>
+          this.portalNavigationItemService.updateNavigationItem(
+            navItem.id,
+            this.toUpdatePayload(navItem, [...(navItem.categoryIds ?? []), this.categoryId]),
+          ),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: navItem => {
+          this.snackBarService.success(`API [${navItem.title}] has been added to the category.`);
+          this.refreshApis.next(1);
+        },
+        error: ({ error }) => this.snackBarService.error(error?.message ?? 'Error during API addition'),
+      });
+  }
+
+  removeApiFromCategory(apiVM: ApiVM): void {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        data: {
+          title: 'Remove API',
+          content: `Are you sure you want to remove API '${apiVM.name}' from this category?`,
+          confirmButton: 'Remove',
+        },
+        role: 'alertdialog',
+        id: 'confirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter(confirmed => !!confirmed),
+        switchMap(() =>
+          this.portalNavigationItemService.updateNavigationItem(
+            apiVM.navigationItem.id,
+            this.toUpdatePayload(
+              apiVM.navigationItem,
+              (apiVM.navigationItem.categoryIds ?? []).filter(categoryId => categoryId !== this.categoryId),
+            ),
+          ),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.snackBarService.success(`'${apiVM.name}' removed successfully`);
+          this.refreshApis.next(1);
+        },
+        error: ({ error }) => this.snackBarService.error(error?.message ?? 'Error during API removal'),
       });
   }
 
@@ -181,5 +284,59 @@ export class CategoryCatalogComponent implements OnInit {
     if (!this.permissionService.hasAnyMatching(['environment-category-u'])) {
       this.categoryDetails.disable();
     }
+  }
+
+  private get categoryId(): string {
+    return this.activatedRoute.snapshot.params.categoryId;
+  }
+
+  private publishedApiNavigationItems$(): Observable<PortalNavigationApi[]> {
+    return this.portalNavigationItemService
+      .getNavigationItems('TOP_NAVBAR')
+      .pipe(map(response => response.items.filter((item): item is PortalNavigationApi => item.type === 'API' && item.published)));
+  }
+
+  private publishedApiNavigationItemsInCategory$(): Observable<PortalNavigationApi[]> {
+    return this.publishedApiNavigationItems$().pipe(
+      map(navItems => navItems.filter(navItem => (navItem.categoryIds ?? []).includes(this.categoryId))),
+    );
+  }
+
+  private selectableApiNavigationItems$(): Observable<PortalNavigationApi[]> {
+    return this.publishedApiNavigationItems$().pipe(
+      map(navItems => navItems.filter(navItem => !(navItem.categoryIds ?? []).includes(this.categoryId))),
+    );
+  }
+
+  private loadApiVMs(navItems: PortalNavigationApi[]): Observable<ApiVM[]> {
+    if (navItems.length === 0) {
+      return of([]);
+    }
+    return forkJoin(
+      navItems.map(navItem =>
+        this.apiService.get(navItem.apiId).pipe(
+          map(api => ({
+            id: api.id,
+            name: api.name,
+            version: api.apiVersion,
+            contextPath: getApiContextPath(api) ?? '',
+            navigationItem: navItem,
+          })),
+        ),
+      ),
+    );
+  }
+
+  private toUpdatePayload(navItem: PortalNavigationApi, categoryIds: string[]): UpdateApiPortalNavigationItem {
+    return {
+      type: 'API',
+      title: navItem.title,
+      published: navItem.published,
+      visibility: navItem.visibility,
+      parentId: navItem.parentId,
+      order: navItem.order,
+      apiId: navItem.apiId,
+      categoryIds,
+    };
   }
 }
