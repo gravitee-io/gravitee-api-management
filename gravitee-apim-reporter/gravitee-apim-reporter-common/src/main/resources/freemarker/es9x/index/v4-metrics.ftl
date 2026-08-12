@@ -4,8 +4,15 @@
 <#-- @ftlvariable name="gateway" type="java.lang.String" -->
 <#-- @ftlvariable name="metrics" type="io.gravitee.reporter.api.v4.metric.Metrics" -->
 <#-- @ftlvariable name="endpointResponseTimeMs" type="java.lang.Long" -->
+<#-- @ftlvariable name="endpointResponseTtfbMs" type="java.lang.Long" -->
+<#-- @ftlvariable name="endpointConnectTimeMs" type="java.lang.Long" -->
+<#-- @ftlvariable name="endpointResponseTimeNs" type="java.lang.Long" -->
+<#-- @ftlvariable name="endpointResponseTtfbNs" type="java.lang.Long" -->
+<#-- @ftlvariable name="endpointConnectTimeNs" type="java.lang.Long" -->
 <#-- @ftlvariable name="gatewayResponseTimeMs" type="java.lang.Long" -->
 <#-- @ftlvariable name="gatewayLatencyMs" type="java.lang.Long" -->
+<#-- @ftlvariable name="gatewayResponseTimeNs" type="java.lang.Long" -->
+<#-- @ftlvariable name="gatewayLatencyNs" type="java.lang.Long" -->
 <#-- @ftlvariable name="requestContentLength" type="java.lang.Long" -->
 <#-- @ftlvariable name="responseContentLength" type="java.lang.Long" -->
 <#if index??>
@@ -96,6 +103,21 @@
   <#if endpointResponseTimeMs??>
   ,"endpoint-response-time-ms":${endpointResponseTimeMs}
   </#if>
+  <#if endpointResponseTtfbMs??>
+  ,"endpoint-response-ttfb-ms":${endpointResponseTtfbMs}
+  </#if>
+  <#if endpointConnectTimeMs??>
+  ,"endpoint-connect-time-ms":${endpointConnectTimeMs}
+  </#if>
+  <#if endpointResponseTimeNs??>
+  ,"endpoint-response-time-ns":${endpointResponseTimeNs}
+  </#if>
+  <#if endpointResponseTtfbNs??>
+  ,"endpoint-response-ttfb-ns":${endpointResponseTtfbNs}
+  </#if>
+  <#if endpointConnectTimeNs??>
+  ,"endpoint-connect-time-ns":${endpointConnectTimeNs}
+  </#if>
   <#if metrics.getStatus()??>
   ,"status":${metrics.getStatus()}
   </#if>
@@ -107,6 +129,12 @@
   </#if>
   <#if gatewayLatencyMs??>
   ,"gateway-latency-ms":${gatewayLatencyMs}
+  </#if>
+  <#if gatewayResponseTimeNs??>
+  ,"gateway-response-time-ns":${gatewayResponseTimeNs}
+  </#if>
+  <#if gatewayLatencyNs??>
+  ,"gateway-latency-ns":${gatewayLatencyNs}
   </#if>
   <#if metrics.getUser()??>
   ,"user":"${metrics.getUser()}"
