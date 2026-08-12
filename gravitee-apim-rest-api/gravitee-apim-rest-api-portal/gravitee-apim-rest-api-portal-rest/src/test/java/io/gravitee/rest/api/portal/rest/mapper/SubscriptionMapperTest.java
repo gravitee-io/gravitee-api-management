@@ -39,6 +39,7 @@ import org.mapstruct.factory.Mappers;
 public class SubscriptionMapperTest {
 
     private static final String SUBSCRIPTION_API = "my-subscription-api";
+    private static final String SUBSCRIPTION_API_PRODUCT = "my-subscription-api-product";
     private static final String SUBSCRIPTION_APPLICATION = "my-subscription-application";
     private static final String SUBSCRIPTION_PLAN = "my-subscription-plan";
     private static final String SUBSCRIPTION_ID = "my-subscription-id";
@@ -114,6 +115,22 @@ public class SubscriptionMapperTest {
 
         assertEquals(SUBSCRIPTION_API, subscription.getApi());
         assertNull(subscription.getOrigin());
+    }
+
+    @Test
+    void should_map_api_product_reference_without_api() {
+        subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setApi(null);
+        subscriptionEntity.setReferenceId(SUBSCRIPTION_API_PRODUCT);
+        subscriptionEntity.setReferenceType("API_PRODUCT");
+        subscriptionEntity.setStatus(SubscriptionStatus.ACCEPTED);
+
+        Subscription subscription = subscriptionMapper.map(subscriptionEntity);
+
+        assertNotNull(subscription);
+        assertNull(subscription.getApi());
+        assertEquals(SUBSCRIPTION_API_PRODUCT, subscription.getReferenceId());
+        assertEquals(Subscription.ReferenceTypeEnum.API_PRODUCT, subscription.getReferenceType());
     }
 
     @Test
