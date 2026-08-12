@@ -1402,7 +1402,7 @@ spec:
         # batch is a single PRODUCE. The gaps between them are meaningful — received minus forwarded
         # is what never reached the broker (policy interrupt, ACL denial, locally-generated
         # response), and forwarded minus answered is the broker not responding.
-        - name: NATIVE_OPERATIONS
+        - name: NATIVE_OPERATIONS_RECEIVED
           label: Operations Received
           apis:
               - NATIVE
@@ -1984,6 +1984,11 @@ spec:
         # unresolved when the failure happens before authentication.
         - name: NATIVE_CLIENT_ID
           label: Kafka Client ID
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
         # Kafka topic name, unbounded, so KEYWORD rather than ENUM. Values are not resolvable from
         # the management database — a value lookup would have to aggregate the event-metrics index.
         - name: NATIVE_TOPIC
@@ -2140,6 +2145,8 @@ spec:
 
         - name: NATIVE_CLIENT_ID
           label: Kafka Client ID
+          type: KEYWORD
+
         - name: NATIVE_TOPIC
           label: Kafka Topic
           type: KEYWORD

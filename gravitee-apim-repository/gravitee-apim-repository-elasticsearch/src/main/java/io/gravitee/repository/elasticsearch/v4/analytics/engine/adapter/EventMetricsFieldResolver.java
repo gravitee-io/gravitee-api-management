@@ -95,7 +95,7 @@ public class EventMetricsFieldResolver implements FieldResolver {
             case NATIVE_AUTHENTICATIONS_SUCCESS_UPSTREAM -> "upstream-authentication-successes-count-increment";
             case NATIVE_AUTHENTICATIONS_FAILURE_DOWNSTREAM -> "downstream-authentication-failures-count-increment";
             case NATIVE_AUTHENTICATIONS_FAILURE_UPSTREAM -> "upstream-authentication-failures-count-increment";
-            case NATIVE_OPERATIONS -> "upstream-count-increment";
+            case NATIVE_OPERATIONS_RECEIVED -> "upstream-count-increment";
             case NATIVE_OPERATIONS_FORWARDED -> "endpoint-upstream-count-increment";
             case NATIVE_OPERATIONS_ANSWERED -> "endpoint-downstream-count-increment";
             case NATIVE_OPERATIONS_COMPLETED -> "downstream-count-increment";
@@ -131,7 +131,7 @@ public class EventMetricsFieldResolver implements FieldResolver {
                 NATIVE_AUTHENTICATIONS_SUCCESS_UPSTREAM,
                 NATIVE_AUTHENTICATIONS_FAILURE_UPSTREAM -> DOC_TYPE_APPLICATION;
             case
-                NATIVE_OPERATIONS,
+                NATIVE_OPERATIONS_RECEIVED,
                 NATIVE_OPERATIONS_FORWARDED,
                 NATIVE_OPERATIONS_ANSWERED,
                 NATIVE_OPERATIONS_COMPLETED,

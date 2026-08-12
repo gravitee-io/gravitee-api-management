@@ -42,6 +42,9 @@ public class EventMetricsTimeSeriesQueryAdapter {
     }
 
     private JsonObject json(TimeSeriesQuery query) {
+        // A date_histogram sits above the measures, so a per-metric doc-type envelope would nest one
+        // level too deep to be read back; see requireSingleDocType.
+        measuresAdapter.requireSingleDocType(query.metrics(), "time series");
         return new JsonObject().put("size", 0).put("query", measuresAdapter.adaptQuery(query)).put("aggs", adaptTimeSeries(query));
     }
 
@@ -49,10 +52,10 @@ public class EventMetricsTimeSeriesQueryAdapter {
         if (query.facets() != null && query.facets().size() > 1) {
             throw new UnsupportedOperationException("Native event metrics time series support a single facet, got: " + query.facets());
         }
-        var docTypeHoisted = facetsQueryAdapter.docTypeHoisted(query.metrics());
         var aggs = new JsonObject();
         for (var metric : query.metrics()) {
-            aggs.mergeIn(adaptTimeSeries(metric, query, docTypeHoisted));
+            // Always hoisted: json() refuses a query whose metrics span several doc-types.
+            aggs.mergeIn(adaptTimeSeries(metric, query, true));
         }
         return aggs;
     }

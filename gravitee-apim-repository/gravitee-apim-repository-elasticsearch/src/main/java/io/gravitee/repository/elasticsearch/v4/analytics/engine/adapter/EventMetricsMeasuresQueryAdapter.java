@@ -85,6 +85,33 @@ public class EventMetricsMeasuresQueryAdapter {
      * The single {@code doc-type} shared by every metric of the query, or empty when they differ (or
      * when there is no metric at all).
      */
+    /**
+     * Guards the bucketed query kinds, which cannot express a per-metric {@code doc-type}.
+     *
+     * <p>In a facets or time-series query the {@code terms} (or {@code date_histogram}) bucket sits
+     * <em>above</em> the measures, so a per-metric {@code #__FILTER__} envelope would end up
+     * <em>inside</em> the bucket. Two things then break silently: {@code terms.order} would point at
+     * {@code METRIC#SUM}, which is no longer a direct child of the bucket (Elasticsearch rejects the
+     * path), and {@link AggregationAdapter} only unwraps the envelope for plain measure aggregations
+     * — a derived duration, nested one level deeper, would read back as 0 with no error at all.
+     *
+     * <p>Refusing is the honest option until the repository splits such a query into one Elasticsearch
+     * call per {@code doc-type}. The flat measures path is unaffected: there is no bucket, and the
+     * response side resolves the envelope by recursion.
+     */
+    void requireSingleDocType(List<MetricMeasuresQuery> metrics, String queryKind) {
+        if (sharedDocType(metrics).isPresent()) {
+            return;
+        }
+        var breakdown = metrics
+            .stream()
+            .map(metric -> metric.metric() + " (" + fieldResolver.docType(metric.metric()) + ")")
+            .toList();
+        throw new UnsupportedOperationException(
+            "Native event metrics " + queryKind + " cannot mix documents types in a single query, got: " + breakdown
+        );
+    }
+
     Optional<String> sharedDocType(List<MetricMeasuresQuery> metrics) {
         if (metrics == null || metrics.isEmpty()) {
             return Optional.empty();
@@ -129,6 +156,14 @@ public class EventMetricsMeasuresQueryAdapter {
     }
 
     JsonObject buildMeasureAggs(MetricMeasuresQuery metric) {
+        if (metric.filters() != null && !metric.filters().isEmpty()) {
+            // The `#__FILTER__` slot already carries the doc-type here, so honouring per-metric filters
+            // would mean nesting a second filter aggregation. Until that is implemented, refuse: the
+            // validator accepts these filters upstream, so dropping them would silently widen the query.
+            throw new UnsupportedOperationException(
+                "Native event metrics do not support per-metric filters yet, got " + metric.filters() + " on " + metric.metric()
+            );
+        }
         var aggs = new JsonObject();
         for (var measure : metric.measures()) {
             var aggName = AggregationAdapter.adaptName(metric.metric(), measure);

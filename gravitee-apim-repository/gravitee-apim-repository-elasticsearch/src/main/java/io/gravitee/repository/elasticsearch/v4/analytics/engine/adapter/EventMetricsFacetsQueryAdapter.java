@@ -26,8 +26,10 @@ import java.util.List;
  * on the requested dimension, whose leaf holds the metric measures built by
  * {@link EventMetricsMeasuresQueryAdapter}.
  *
- * <p>Like the native connection adapter, a single facet is supported and a second one is rejected
- * loudly rather than silently ignored.
+ * <p>A second facet is rejected loudly rather than silently ignored — note that
+ * {@link NativeFacetsQueryAdapter} keeps only the first one instead, an inconsistency worth aligning.
+ * Metrics spanning several {@code doc-type} are rejected too: the bucket sits above the measures, so
+ * the per-metric filter envelope would break both the sort path and the reading of derived durations.
  *
  * @author GraviteeSource Team
  */
@@ -42,14 +44,12 @@ public class EventMetricsFacetsQueryAdapter {
     }
 
     private JsonObject json(FacetsQuery query) {
+        // A bucketed query cannot carry a per-metric doc-type; see requireSingleDocType.
+        measuresAdapter.requireSingleDocType(query.metrics(), "facets");
         return new JsonObject()
             .put("size", 0)
             .put("query", measuresAdapter.adaptQuery(query))
-            .put("aggs", adaptFacets(query.metrics(), query.facets(), query.limit(), docTypeHoisted(query.metrics())));
-    }
-
-    boolean docTypeHoisted(List<MetricMeasuresQuery> metrics) {
-        return measuresAdapter.sharedDocType(metrics).isPresent();
+            .put("aggs", adaptFacets(query.metrics(), query.facets(), query.limit(), true));
     }
 
     public JsonObject adaptFacets(List<MetricMeasuresQuery> metrics, List<Facet> facets, Integer limit, boolean docTypeHoisted) {
