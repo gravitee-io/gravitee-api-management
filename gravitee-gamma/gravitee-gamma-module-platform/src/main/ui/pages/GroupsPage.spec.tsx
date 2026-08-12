@@ -15,7 +15,7 @@
  */
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { useNavigate } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom';
 
 import { GroupsPage } from './GroupsPage';
 import { useAssociateGroupToExisting, useCreateGroup, useDeleteGroup, useUpdateGroup } from '../features/groups/hooks/useGroupMutations';
@@ -133,7 +133,16 @@ function makeGroupsResult(groups: Group[] = SAMPLE_GROUPS, totalElements = group
 }
 
 function renderPage() {
-    return render(<GroupsPage />);
+    return render(
+        <MemoryRouter initialEntries={['/groups']}>
+            <Routes>
+                <Route path="/groups">
+                    <Route index element={<GroupsPage />} />
+                    <Route path="all" element={<div>All Groups Page</div>} />
+                </Route>
+            </Routes>
+        </MemoryRouter>,
+    );
 }
 
 describe('GroupsPage', () => {
@@ -188,6 +197,22 @@ describe('GroupsPage', () => {
             mockUseHasPermission.mockReturnValue(false);
             renderPage();
             expect(screen.queryByTestId('require-group-setting')).toBeNull();
+        });
+
+        it('shows the View all environments link and navigates to the org-wide page', () => {
+            renderPage();
+
+            const link = screen.getByRole('link', { name: /View all environments/i });
+            expect(link).not.toBeNull();
+
+            fireEvent.click(link);
+            expect(screen.queryByText('All Groups Page')).not.toBeNull();
+        });
+
+        it('hides the View all environments link without organization-tag-r permission', () => {
+            mockUseHasPermission.mockReturnValue(false);
+            renderPage();
+            expect(screen.queryByRole('link', { name: /View all environments/i })).toBeNull();
         });
     });
 

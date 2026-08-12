@@ -16,9 +16,9 @@
 
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Button } from '@gravitee/graphene-core';
-import { PlusIcon } from '@gravitee/graphene-core/icons';
+import { GlobeIcon, PlusIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { GroupDeleteSheet } from '../features/groups/components/GroupDeleteSheet';
 import { GroupSheet, type GroupFormValues } from '../features/groups/components/GroupSheet';
@@ -34,6 +34,7 @@ import {
     ENVIRONMENT_GROUP_DELETE_PERMISSION,
     ENVIRONMENT_GROUP_UPDATE_PERMISSION,
     ORGANIZATION_SETTINGS_READ_PERMISSION,
+    ORGANIZATION_TAG_READ_PERMISSION,
 } from '../features/groups/utils/groupPermissions';
 import { DEFAULT_GROUP_LIST_PAGE_SIZE, GROUP_SEARCH_DEBOUNCE_MS } from '../features/groups/utils/paginationConstants';
 import { notify } from '../shared/notify';
@@ -46,6 +47,7 @@ export function GroupsPage() {
     const canEdit = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_UPDATE_PERMISSION] });
     const canDelete = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_DELETE_PERMISSION] });
     const canReadOrgSettings = useHasPermission({ anyOf: [ORGANIZATION_SETTINGS_READ_PERMISSION] });
+    const canViewAllEnvironments = useHasPermission({ anyOf: [ORGANIZATION_TAG_READ_PERMISSION] });
 
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -196,12 +198,22 @@ export function GroupsPage() {
                         Organize users into groups to share default roles and simplify access management.
                     </p>
                 </div>
-                {canCreate && !isFirstUse ? (
-                    <Button className="shrink-0" size="sm" onClick={openCreateSheet}>
-                        <PlusIcon className="size-4" aria-hidden />
-                        Create Group
-                    </Button>
-                ) : null}
+                <div className="flex shrink-0 items-center gap-2">
+                    {canViewAllEnvironments && (
+                        <Button variant="outline" size="sm" asChild>
+                            <Link to="all">
+                                <GlobeIcon className="size-4" aria-hidden />
+                                View all environments
+                            </Link>
+                        </Button>
+                    )}
+                    {canCreate && !isFirstUse ? (
+                        <Button size="sm" onClick={openCreateSheet}>
+                            <PlusIcon className="size-4" aria-hidden />
+                            Create Group
+                        </Button>
+                    ) : null}
+                </div>
             </div>
 
             {canReadOrgSettings && <GroupsRequireGroupSetting />}

@@ -19,7 +19,6 @@ import {
     Button,
     DataTable,
     DataTableColumnHeader,
-    DataTableEmptyState,
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -30,7 +29,7 @@ import {
     InputGroupInput,
     type DataTableProps,
 } from '@gravitee/graphene-core';
-import { MoreHorizontalIcon, PencilIcon, SearchIcon, Trash2Icon, UsersRoundIcon } from '@gravitee/graphene-core/icons';
+import { MoreHorizontalIcon, PencilIcon, SearchIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 import { useEffect, useMemo, useState } from 'react';
 
 import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes';
@@ -170,7 +169,7 @@ export function GroupMembersTable({ members, loading, canManageMembers, onEditRo
 
     const filtered = useMemo(() => {
         const query = search.trim().toLowerCase();
-        return query ? members.filter(member => member.displayName.toLowerCase().includes(query)) : members;
+        return query ? members.filter(member => (member.displayName ?? '').toLowerCase().includes(query)) : members;
     }, [members, search]);
 
     const totalCount = filtered.length;
@@ -202,6 +201,9 @@ export function GroupMembersTable({ members, loading, canManageMembers, onEditRo
             data={pageData}
             loading={loading}
             skeletonCount={pageSize}
+            // Data is fetched in full up front and paginated/filtered here client-side (the backend's
+            // paged members endpoint has no server-side search param) — `serverSide` just tells DataTable
+            // not to layer its own client-side sort/filter/pagination on top of what we already did.
             serverSide
             pagination={{
                 page,
@@ -211,34 +213,9 @@ export function GroupMembersTable({ members, loading, canManageMembers, onEditRo
                 onPageChange: setPage,
                 onPageSizeChange: handlePageSizeChange,
             }}
-            emptyMessage={
-                search ? (
-                    <DataTableEmptyState
-                        variant="no-results"
-                        icon={<SearchIcon className="size-8" aria-hidden />}
-                        title="No members match your search"
-                        description="Try adjusting your search terms."
-                        action={
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                    handleSearchChange('');
-                                }}
-                            >
-                                Clear search
-                            </Button>
-                        }
-                    />
-                ) : (
-                    <DataTableEmptyState
-                        variant="first-use"
-                        icon={<UsersRoundIcon className="size-8" aria-hidden />}
-                        title="No members yet"
-                        description="Add users to this group to get started."
-                    />
-                )
-            }
+            // Matches classic Console's group.component.html, which shows this same plain text regardless
+            // of whether the table is empty because there are no members or because a search matched none.
+            emptyMessage="No members available to display"
             toolbar={
                 <div className="w-64">
                     <InputGroup>

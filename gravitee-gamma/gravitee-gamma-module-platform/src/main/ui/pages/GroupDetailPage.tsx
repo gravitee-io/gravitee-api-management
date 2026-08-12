@@ -472,8 +472,7 @@ export function GroupDetailPage() {
                             loading={apisLoading}
                             ariaLabel="APIs"
                             searchPlaceholder="Search APIs…"
-                            emptyTitle="No dependent APIs to display"
-                            emptyDescription="APIs associated with this group will appear here."
+                            emptyMessage="No dependent APIs to display"
                         />
                     )}
                 </section>
@@ -495,8 +494,7 @@ export function GroupDetailPage() {
                             loading={apiProductsLoading}
                             ariaLabel="API Products"
                             searchPlaceholder="Search API Products…"
-                            emptyTitle="No dependent API Products to display"
-                            emptyDescription="API Products associated with this group will appear here."
+                            emptyMessage="No dependent API Products to display"
                         />
                     )}
                 </section>
@@ -518,8 +516,7 @@ export function GroupDetailPage() {
                             loading={applicationsLoading}
                             ariaLabel="Applications"
                             searchPlaceholder="Search Applications…"
-                            emptyTitle="No dependent applications to display"
-                            emptyDescription="Applications associated with this group will appear here."
+                            emptyMessage="No dependent applications to display"
                             showVersionColumn={false}
                         />
                     )}

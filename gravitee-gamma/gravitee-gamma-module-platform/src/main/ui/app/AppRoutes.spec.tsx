@@ -86,6 +86,10 @@ jest.mock('../pages/GroupDetailPage', () => ({
     GroupDetailPage: () => <div data-testid="group-detail-page" />,
 }));
 
+jest.mock('../pages/OrganizationGroupsPage', () => ({
+    OrganizationGroupsPage: () => <div data-testid="organization-groups-page" />,
+}));
+
 jest.mock('../pages/RegisterApplicationPage', () => ({
     RegisterApplicationPage: () => <div data-testid="register-application-page" />,
 }));
@@ -150,7 +154,7 @@ describe('AppRoutes', () => {
 
     it('routes to the Groups page under the platform module', () => {
         render(
-            <MemoryRouter initialEntries={['/user-groups']}>
+            <MemoryRouter initialEntries={['/groups']}>
                 <AppRoutes />
             </MemoryRouter>,
         );
@@ -160,7 +164,7 @@ describe('AppRoutes', () => {
 
     it('routes to the Group detail page under the platform module', () => {
         render(
-            <MemoryRouter initialEntries={['/user-groups/group-1']}>
+            <MemoryRouter initialEntries={['/groups/group-1']}>
                 <AppRoutes />
             </MemoryRouter>,
         );
@@ -168,10 +172,35 @@ describe('AppRoutes', () => {
         expect(screen.getByTestId('group-detail-page')).not.toBeNull();
     });
 
+    it('routes to the org-wide Groups page when the user has organization-tag-r', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => anyOf.includes('organization-tag-r'));
+
+        render(
+            <MemoryRouter initialEntries={['/groups/all']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('organization-groups-page')).not.toBeNull();
+    });
+
+    it('redirects away from the org-wide Groups page without organization-tag-r', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('organization-tag-r'));
+
+        render(
+            <MemoryRouter initialEntries={['/groups/all']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.queryByTestId('organization-groups-page')).toBeNull();
+        expect(screen.getByTestId('groups-page')).not.toBeNull();
+    });
+
     it('shows the Groups nav item when the user has read permission', () => {
         renderPlatform();
 
-        expect(visibleNavKeys()).toContain('user-groups');
+        expect(visibleNavKeys()).toContain('groups');
     });
 
     it('hides the Groups nav item when the user lacks environment-group-r', () => {
@@ -179,7 +208,7 @@ describe('AppRoutes', () => {
 
         renderPlatform();
 
-        expect(visibleNavKeys()).not.toContain('user-groups');
+        expect(visibleNavKeys()).not.toContain('groups');
     });
 
     it('shows the Dictionaries nav item when the user has read permission', () => {

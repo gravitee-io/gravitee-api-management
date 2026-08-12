@@ -26,9 +26,16 @@ import type {
     GroupRole,
     GroupsPagedResponse,
     NewGroupPayload,
+    OrganizationGroup,
     SearchableUser,
     UpdateGroupPayload,
 } from '../types/group';
+
+/** Org-wide, cross-environment group list (GroupSimpleEntity) — unlike every other group call in this
+ *  file, not scoped to the currently selected environment. */
+export async function listOrganizationGroups(): Promise<OrganizationGroup[]> {
+    return apimFetchJsonOrg<OrganizationGroup[]>('/groups');
+}
 
 export async function listGroupsPaged(
     environmentId: string,

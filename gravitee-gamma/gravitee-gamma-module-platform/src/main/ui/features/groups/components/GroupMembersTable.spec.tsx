@@ -122,14 +122,21 @@ describe('GroupMembersTable', () => {
         expect(screen.queryByText('Mia Chen')).not.toBeNull();
     });
 
-    it('shows a first-use empty state with no members', () => {
+    it('shows classic Console’s plain empty-state text when there are no members', () => {
         renderTable({ members: [] });
-        expect(screen.queryByText('No members yet')).not.toBeNull();
+        expect(screen.queryByText('No members available to display')).not.toBeNull();
     });
 
-    it('shows a no-results empty state when the search matches nothing', () => {
+    it('shows the same plain empty-state text when a search matches nothing — classic doesn’t distinguish the two', () => {
         renderTable();
         fireEvent.change(screen.getByPlaceholderText('Search members…'), { target: { value: 'nobody' } });
-        expect(screen.queryByText('No members match your search')).not.toBeNull();
+        expect(screen.queryByText('No members available to display')).not.toBeNull();
+    });
+
+    it('does not throw when a member is missing displayName', () => {
+        const noName = { id: 'user-3', roles: {} } as unknown as GroupMember;
+        expect(() => renderTable({ members: [RAVI, noName] })).not.toThrow();
+        expect(() => fireEvent.change(screen.getByPlaceholderText('Search members…'), { target: { value: 'ravi' } })).not.toThrow();
+        expect(screen.queryByText('Ravi Patel')).not.toBeNull();
     });
 });

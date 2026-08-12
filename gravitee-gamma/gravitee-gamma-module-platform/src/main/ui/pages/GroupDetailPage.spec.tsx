@@ -188,9 +188,9 @@ function makeMutation(mutateAsync = jest.fn()): any {
 
 function renderPage(initialGroupId = 'group-1') {
     return render(
-        <MemoryRouter initialEntries={[`/user-groups/${initialGroupId}`]}>
+        <MemoryRouter initialEntries={[`/groups/${initialGroupId}`]}>
             <Routes>
-                <Route path="/user-groups">
+                <Route path="/groups">
                     <Route index element={<div>Groups List</div>} />
                     <Route path=":groupId" element={<GroupDetailPage />} />
                 </Route>

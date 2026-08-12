@@ -15,10 +15,8 @@
  */
 
 import {
-    Button,
     DataTable,
     DataTableColumnHeader,
-    DataTableEmptyState,
     InputGroup,
     InputGroupAddon,
     InputGroupInput,
@@ -65,8 +63,7 @@ interface GroupMembershipTableProps {
     readonly loading: boolean;
     readonly ariaLabel: string;
     readonly searchPlaceholder: string;
-    readonly emptyTitle: string;
-    readonly emptyDescription: string;
+    readonly emptyMessage: string;
     readonly showVersionColumn?: boolean;
 }
 
@@ -75,8 +72,7 @@ export function GroupMembershipTable({
     loading,
     ariaLabel,
     searchPlaceholder,
-    emptyTitle,
-    emptyDescription,
+    emptyMessage,
     showVersionColumn = true,
 }: GroupMembershipTableProps) {
     const [search, setSearch] = useState('');
@@ -114,6 +110,9 @@ export function GroupMembershipTable({
             data={pageData}
             loading={loading}
             skeletonCount={pageSize}
+            // Data is fetched in full up front and paginated/filtered here client-side — `serverSide` just
+            // tells DataTable not to layer its own client-side sort/filter/pagination on top of what we
+            // already did (see GroupMembersTable.tsx for the same pattern).
             serverSide
             pagination={{
                 page,
@@ -123,28 +122,9 @@ export function GroupMembershipTable({
                 onPageChange: setPage,
                 onPageSizeChange: handlePageSizeChange,
             }}
-            emptyMessage={
-                search ? (
-                    <DataTableEmptyState
-                        variant="no-results"
-                        icon={<SearchIcon className="size-8" aria-hidden />}
-                        title="No results match your search"
-                        description="Try adjusting your search terms."
-                        action={
-                            <Button size="sm" variant="outline" onClick={() => handleSearchChange('')}>
-                                Clear search
-                            </Button>
-                        }
-                    />
-                ) : (
-                    <DataTableEmptyState
-                        variant="first-use"
-                        icon={<SearchIcon className="size-8" aria-hidden />}
-                        title={emptyTitle}
-                        description={emptyDescription}
-                    />
-                )
-            }
+            // Matches classic Console's group.component.html, which shows this same plain text regardless
+            // of whether the table is empty because there's no data or because a search matched none.
+            emptyMessage={emptyMessage}
             toolbar={
                 <div className="w-64">
                     <InputGroup>

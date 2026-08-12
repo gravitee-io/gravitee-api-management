@@ -29,8 +29,7 @@ function renderTable(overrides: Partial<React.ComponentProps<typeof GroupMembers
             loading={false}
             ariaLabel="APIs"
             searchPlaceholder="Search APIs…"
-            emptyTitle="No dependent APIs to display"
-            emptyDescription="APIs associated with this group will appear here."
+            emptyMessage="No dependent APIs to display"
             {...overrides}
         />,
     );
@@ -66,21 +65,14 @@ describe('GroupMembershipTable', () => {
         expect(screen.queryByText('API 11')).toBeNull();
     });
 
-    it('shows a first-use empty state with no items', () => {
+    it('shows the caller-provided plain empty-state text when there are no items', () => {
         renderTable({ items: [] });
         expect(screen.queryByText('No dependent APIs to display')).not.toBeNull();
     });
 
-    it('shows a no-results empty state when the search matches nothing', () => {
+    it('shows the same plain empty-state text when a search matches nothing — classic doesn’t distinguish the two', () => {
         renderTable();
         fireEvent.change(screen.getByPlaceholderText('Search APIs…'), { target: { value: 'nobody' } });
-        expect(screen.queryByText('No results match your search')).not.toBeNull();
-    });
-
-    it('clears the search from the no-results empty state', () => {
-        renderTable();
-        fireEvent.change(screen.getByPlaceholderText('Search APIs…'), { target: { value: 'nobody' } });
-        fireEvent.click(screen.getByRole('button', { name: 'Clear search' }));
-        expect(screen.getByText('Billing API')).not.toBeNull();
+        expect(screen.queryByText('No dependent APIs to display')).not.toBeNull();
     });
 });
