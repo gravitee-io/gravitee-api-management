@@ -491,6 +491,56 @@ class SearchEnvironmentLogsUseCaseTest {
         }
 
         @ParameterizedTest
+        @MethodSource("tenantFiltersProvider")
+        void should_intersect_tenant_filters(List<Filter> filters, String[] expectedTenants) {
+            var request = new SearchLogsRequest(null, filters, 1, 10);
+
+            when_searching(request);
+
+            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
+
+            assertThat(filtersCaptor.getValue().tenants()).containsExactlyInAnyOrder(expectedTenants);
+        }
+
+        static Stream<Arguments> tenantFiltersProvider() {
+            return Stream.of(
+                Arguments.of(
+                    List.of(new Filter(new StringFilter(FilterName.TENANT, Operator.EQ, "tenant-1"))),
+                    new String[] { "tenant-1" }
+                ),
+                Arguments.of(
+                    List.of(new Filter(new ArrayFilter(FilterName.TENANT, Operator.IN, List.of("tenant-1", "tenant-2")))),
+                    new String[] { "tenant-1", "tenant-2" }
+                ),
+                Arguments.of(
+                    List.of(
+                        new Filter(new StringFilter(FilterName.TENANT, Operator.EQ, "tenant-1")),
+                        new Filter(new ArrayFilter(FilterName.TENANT, Operator.IN, List.of("tenant-1", "tenant-2")))
+                    ),
+                    new String[] { "tenant-1" }
+                ),
+                Arguments.of(
+                    List.of(
+                        new Filter(new StringFilter(FilterName.TENANT, Operator.EQ, "tenant-1")),
+                        new Filter(new StringFilter(FilterName.TENANT, Operator.EQ, "tenant-2"))
+                    ),
+                    new String[] {}
+                )
+            );
+        }
+
+        @Test
+        void should_leave_tenants_empty_when_no_tenant_filter_is_sent() {
+            when_searching(new SearchLogsRequest(null, List.of(), 1, 10));
+
+            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
+
+            assertThat(filtersCaptor.getValue().tenants()).isEmpty();
+        }
+
+        @ParameterizedTest
         @MethodSource("httpStatusFiltersProvider")
         void should_intersect_http_status_filters(List<Filter> filters, Integer[] expectedStatuses) {
             var request = new SearchLogsRequest(null, filters, 1, 10);

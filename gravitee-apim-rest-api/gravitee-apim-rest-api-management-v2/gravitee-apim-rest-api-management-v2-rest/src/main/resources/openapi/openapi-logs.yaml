@@ -457,6 +457,7 @@ components:
         - API_PRODUCT
         - API_TYPE
         - PAYLOAD
+        - TENANT
         - MCP_METHOD
         - URI
         - RESPONSE_TIME

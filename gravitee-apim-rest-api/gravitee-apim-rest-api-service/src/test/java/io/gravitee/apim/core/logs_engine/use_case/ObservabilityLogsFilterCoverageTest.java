@@ -193,7 +193,8 @@ class ObservabilityLogsFilterCoverageTest {
 
     @Test
     void analytics_only_filters_should_not_be_advertised_on_the_logs_signal() {
-        // The exact set APIM-14817 reported as offered-but-ignored on the logs screen.
+        // The set APIM-14817 reported as offered-but-ignored on the logs screen, less TENANT: OBS-37 wired it
+        // through to the search rather than dropping it from the screen.
         assertThat(
             catalog
                 .getFilters(Set.of(Signal.LOGS))
@@ -201,7 +202,6 @@ class ObservabilityLogsFilterCoverageTest {
                 .map(spec -> spec.name().name())
         ).doesNotContain(
             "GATEWAY",
-            "TENANT",
             "ZONE",
             "HOST",
             "HTTP_ENDPOINT_RESPONSE_TIME",

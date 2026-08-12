@@ -1190,6 +1190,9 @@ spec:
 
         - name: TENANT
           label: Tenant
+          signals:
+              - LOGS
+              - ANALYTICS
           type: KEYWORD
           operators:
               - EQ
