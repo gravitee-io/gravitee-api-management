@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
@@ -24,8 +25,10 @@ import type { GatewayInstanceRow } from '../features/gateway-instances/types/ins
 import { ApimApiError } from '../shared/api/apimClient';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
-    useEnvironment: () => ({ id: 'env-1' }),
+    useEnvironment: jest.fn(),
 }));
+
+const mockUseEnvironment = jest.mocked(useEnvironment);
 
 jest.mock('../features/gateway-instances/hooks/useGatewayInstanceList');
 
@@ -72,18 +75,22 @@ const ROWS: GatewayInstanceRow[] = [
 
 function renderPage() {
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    return render(
-        <QueryClientProvider client={client}>
-            <MemoryRouter>
-                <GatewayInstancesPage />
-            </MemoryRouter>
-        </QueryClientProvider>,
-    );
+    return {
+        client,
+        ...render(
+            <QueryClientProvider client={client}>
+                <MemoryRouter>
+                    <GatewayInstancesPage />
+                </MemoryRouter>
+            </QueryClientProvider>,
+        ),
+    };
 }
 
 describe('GatewayInstancesPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockUseEnvironment.mockReturnValue({ id: 'env-1' } as ReturnType<typeof useEnvironment>);
         mockUseGatewayInstanceList.mockReturnValue({
             rows: ROWS,
             totalCount: 1,
@@ -130,5 +137,22 @@ describe('GatewayInstancesPage', () => {
         const { container } = renderPage();
         expect(container.textContent).toBe('');
         expect(screen.queryByRole('heading', { name: 'Gateways' })).toBeNull();
+    });
+
+    it('resets page to 1 when the environment changes', () => {
+        const { rerender, client } = renderPage();
+        fireEvent.click(screen.getByRole('button', { name: 'Next page' }));
+        expect(mockUseGatewayInstanceList).toHaveBeenCalledWith(expect.objectContaining({ page: 2 }));
+
+        mockUseEnvironment.mockReturnValue({ id: 'env-2' } as ReturnType<typeof useEnvironment>);
+        rerender(
+            <QueryClientProvider client={client}>
+                <MemoryRouter>
+                    <GatewayInstancesPage />
+                </MemoryRouter>
+            </QueryClientProvider>,
+        );
+
+        expect(mockUseGatewayInstanceList).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1 }));
     });
 });
