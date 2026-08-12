@@ -25,12 +25,20 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.collections.Sets.newSet;
 
+import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormValidationException;
@@ -44,6 +52,8 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
+import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.portal.rest.model.ApiKeyModeEnum;
 import io.gravitee.rest.api.portal.rest.model.Key;
@@ -61,10 +71,12 @@ import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -75,8 +87,16 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
     private static final String SUBSCRIPTION = "my-subscription";
     private static final String ANOTHER_SUBSCRIPTION = "my-other-subscription";
     private static final String API = "my-api";
+    private static final String API_PRODUCT = "my-api-product";
+    private static final String ANOTHER_API_PRODUCT = "my-other-api-product";
     private static final String APPLICATION = "my-application";
     private static final String PLAN = "my-plan";
+
+    @Autowired
+    private ApiProductQueryServiceInMemory apiProductQueryService;
+
+    @Autowired
+    private PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService;
 
     @Override
     protected String contextPath() {
@@ -85,6 +105,8 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
 
     @BeforeEach
     public void init() {
+        apiProductQueryService.reset();
+        portalNavigationItemsQueryService.reset();
         resetAllMocks();
 
         io.gravitee.rest.api.model.SubscriptionEntity subscriptionEntity1 = new io.gravitee.rest.api.model.SubscriptionEntity();
@@ -122,6 +144,12 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         planEntity.setReferenceId(API);
         planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
         doReturn(planEntity).when(planSearchService).findById(GraviteeContext.getExecutionContext(), PLAN);
+    }
+
+    @AfterEach
+    void resetApiProductData() {
+        apiProductQueryService.reset();
+        portalNavigationItemsQueryService.reset();
     }
 
     @Test
@@ -209,6 +237,7 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         assertEquals("{\"url\":\"my-url\"}", useCaseInput.configuration().getEntrypointConfiguration());
         assertEquals(ApiKeyMode.EXCLUSIVE, useCaseInput.apiKeyMode());
         assertEquals(API, useCaseInput.referenceId());
+        assertEquals(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API, useCaseInput.referenceType());
         assertTrue(Boolean.TRUE.equals(useCaseInput.subscriptionFormMetadataValidationRequired()));
 
         final Subscription subscriptionResponse = response.readEntity(Subscription.class);
@@ -217,6 +246,89 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         assertNotNull(subscriptionResponse.getKeys());
         assertEquals(1, subscriptionResponse.getKeys().size());
         assertEquals(key, subscriptionResponse.getKeys().get(0));
+    }
+
+    @Test
+    void shouldCreateApiProductSubscriptionWhenProductIsAccessible() {
+        mockApiProductPlan();
+        exposeApiProductInPortal();
+
+        io.gravitee.rest.api.model.SubscriptionEntity subscriptionEntity = new io.gravitee.rest.api.model.SubscriptionEntity();
+        subscriptionEntity.setId(SUBSCRIPTION);
+        subscriptionEntity.setStatus(SubscriptionStatus.ACCEPTED);
+        subscriptionEntity.setReferenceId(API_PRODUCT);
+        subscriptionEntity.setReferenceType("API_PRODUCT");
+        subscriptionEntity.setApplication(APPLICATION);
+        doReturn(subscriptionEntity).when(subscriptionService).findById(SUBSCRIPTION);
+
+        SubscriptionInput subscriptionInput = new SubscriptionInput().application(APPLICATION).plan(PLAN).metadata(Map.of("key", "value"));
+        subscriptionInput.setGeneralConditionsAccepted(true);
+
+        Response response = target().request().post(Entity.json(subscriptionInput));
+
+        assertEquals(OK_200, response.getStatus());
+
+        ArgumentCaptor<CreateSubscriptionUseCase.Input> inputCaptor = ArgumentCaptor.forClass(CreateSubscriptionUseCase.Input.class);
+        verify(createSubscriptionUseCase).execute(inputCaptor.capture());
+        CreateSubscriptionUseCase.Input useCaseInput = inputCaptor.getValue();
+        assertEquals(API_PRODUCT, useCaseInput.referenceId());
+        assertEquals(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT, useCaseInput.referenceType());
+        assertEquals(Map.of("key", "value"), useCaseInput.metadata());
+        assertFalse(Boolean.TRUE.equals(useCaseInput.subscriptionFormMetadataValidationRequired()));
+        assertNull(useCaseInput.generalConditionsAccepted());
+        assertNull(useCaseInput.generalConditionsContentRevision());
+
+        Subscription subscription = response.readEntity(Subscription.class);
+        assertNull(subscription.getApi());
+        assertEquals(API_PRODUCT, subscription.getReferenceId());
+        assertEquals(Subscription.ReferenceTypeEnum.API_PRODUCT, subscription.getReferenceType());
+    }
+
+    @Test
+    void shouldReturnNotFoundAndNotCreateSubscriptionWhenApiProductIsNotAccessible() {
+        mockApiProductPlan();
+        initApiProduct();
+
+        Response response = target().request().post(Entity.json(new SubscriptionInput().application(APPLICATION).plan(PLAN)));
+
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+        verify(createSubscriptionUseCase, never()).execute(any());
+    }
+
+    @Test
+    void shouldFilterSubscriptionsByApiProductIdsAndIncludeApiProductMetadata() {
+        mockCurrentUserApplication();
+        Metadata metadata = new Metadata();
+        metadata.put(API_PRODUCT, "name", "My API Product");
+        doReturn(metadata).when(subscriptionService).getMetadata(eq(GraviteeContext.getExecutionContext()), any());
+
+        Response response = target().queryParam("apiProductIds", API_PRODUCT, ANOTHER_API_PRODUCT).request().get();
+
+        assertEquals(OK_200, response.getStatus());
+
+        ArgumentCaptor<SubscriptionQuery> queryCaptor = ArgumentCaptor.forClass(SubscriptionQuery.class);
+        verify(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), queryCaptor.capture(), any());
+        assertEquals(List.of(API_PRODUCT, ANOTHER_API_PRODUCT), queryCaptor.getValue().getApiProducts());
+        assertNull(queryCaptor.getValue().getApis());
+        assertNull(queryCaptor.getValue().getReferenceType());
+
+        ArgumentCaptor<SubscriptionMetadataQuery> metadataQueryCaptor = ArgumentCaptor.forClass(SubscriptionMetadataQuery.class);
+        verify(subscriptionService).getMetadata(eq(GraviteeContext.getExecutionContext()), metadataQueryCaptor.capture());
+        assertTrue(metadataQueryCaptor.getValue().ifApiProducts().isPresent());
+    }
+
+    @Test
+    void shouldRejectCombinedApiAndApiProductFilters() {
+        Response response = target().queryParam("apiIds", API).queryParam("apiProductIds", API_PRODUCT).request().get();
+
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    void shouldRejectCombinedDeprecatedApiAndApiProductFilters() {
+        Response response = target().queryParam("apiId", API).queryParam("apiProductIds", API_PRODUCT).request().get();
+
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
     @Test
@@ -385,6 +497,45 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         assertEquals(FORBIDDEN_403, target().queryParam("applicationId", APPLICATION).request().get().getStatus());
         assertEquals(OK_200, target().queryParam("apiId", API).request().get().getStatus());
         assertEquals(FORBIDDEN_403, target().queryParam("apiId", API).queryParam("applicationId", APPLICATION).request().get().getStatus());
+    }
+
+    private void mockApiProductPlan() {
+        PlanEntity planEntity = new PlanEntity();
+        planEntity.setReferenceId(API_PRODUCT);
+        planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API_PRODUCT);
+        doReturn(planEntity).when(planSearchService).findById(GraviteeContext.getExecutionContext(), PLAN);
+    }
+
+    private void exposeApiProductInPortal() {
+        initApiProduct();
+        portalNavigationItemsQueryService.initWith(
+            List.of(
+                PortalNavigationApiProduct.builder()
+                    .id(PortalNavigationItemId.random())
+                    .organizationId("organization-id")
+                    .environmentId(GraviteeContext.getCurrentEnvironment())
+                    .title("API Product")
+                    .segment("api-product")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .apiProductId(API_PRODUCT)
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .build()
+            )
+        );
+    }
+
+    private void initApiProduct() {
+        apiProductQueryService.initWith(
+            List.of(ApiProduct.builder().id(API_PRODUCT).environmentId(GraviteeContext.getCurrentEnvironment()).name("API Product").build())
+        );
+    }
+
+    private void mockCurrentUserApplication() {
+        ApplicationListItem application = new ApplicationListItem();
+        application.setId(APPLICATION);
+        doReturn(newSet(application)).when(applicationService).findByUser(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Getter

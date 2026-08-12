@@ -18,6 +18,8 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toSet;
 
+import io.gravitee.apim.core.portal_page.domain_service.PortalApiProductAccessDomainService;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.subscription.model.SubscriptionConfiguration;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
@@ -56,6 +58,7 @@ import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -106,6 +109,9 @@ public class SubscriptionsResource extends AbstractResource {
     @Inject
     private GraviteeMapper graviteeMapper;
 
+    @Inject
+    private PortalApiProductAccessDomainService portalApiProductAccessDomainService;
+
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -114,6 +120,15 @@ public class SubscriptionsResource extends AbstractResource {
         String applicationId = subscriptionInput.getApplication();
         if (hasPermission(executionContext, RolePermission.APPLICATION_SUBSCRIPTION, applicationId, RolePermissionAction.CREATE)) {
             GenericPlanEntity plan = planSearchService.findById(executionContext, subscriptionInput.getPlan());
+            boolean isApiProductPlan = GenericPlanEntity.ReferenceType.API_PRODUCT == plan.getReferenceType();
+
+            if (isApiProductPlan) {
+                portalApiProductAccessDomainService.findAccessible(
+                    executionContext.getEnvironmentId(),
+                    plan.getReferenceId(),
+                    PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull())
+                );
+            }
 
             var auditInfo = getAuditInfo();
 
@@ -127,10 +142,10 @@ public class SubscriptionsResource extends AbstractResource {
                     .metadata(subscriptionInput.getMetadata())
                     .configuration(getSubscriptionConfiguration(subscriptionInput))
                     .apiKeyMode(getApiKeyMode(subscriptionInput))
-                    .generalConditionsAccepted(subscriptionInput.getGeneralConditionsAccepted())
-                    .generalConditionsContentRevision(getPageRevisionId(subscriptionInput))
+                    .generalConditionsAccepted(isApiProductPlan ? null : subscriptionInput.getGeneralConditionsAccepted())
+                    .generalConditionsContentRevision(isApiProductPlan ? null : getPageRevisionId(subscriptionInput))
                     .auditInfo(auditInfo)
-                    .subscriptionFormMetadataValidationRequired(true)
+                    .subscriptionFormMetadataValidationRequired(!isApiProductPlan)
                     .build()
             );
 
@@ -192,21 +207,30 @@ public class SubscriptionsResource extends AbstractResource {
         @Deprecated @QueryParam("apiId") String apiId,
         @Deprecated @QueryParam("applicationId") String applicationId,
         @QueryParam("apiIds") List<String> apiIds,
+        @QueryParam("apiProductIds") List<String> apiProductIds,
         @QueryParam("applicationIds") List<String> applicationIds,
         @QueryParam("statuses") List<SubscriptionStatus> statuses,
         @BeanParam PaginationParam paginationParam
     ) {
         List<String> effectiveApiIds = resolveApiIds(apiId, apiIds);
         List<String> effectiveApplicationIds = resolveApplicationIds(applicationId, applicationIds);
+        boolean hasApiFilter = effectiveApiIds != null && !effectiveApiIds.isEmpty();
+        boolean hasApiProductFilter = apiProductIds != null && !apiProductIds.isEmpty();
+
+        if (hasApiFilter && hasApiProductFilter) {
+            throw new BadRequestException("API and API Product filters cannot be used together.");
+        }
 
         final SubscriptionQuery query = new SubscriptionQuery();
-        if (effectiveApiIds != null && !effectiveApiIds.isEmpty()) {
-            query.setApis(effectiveApiIds);
-        }
-        query.setStatuses(statuses);
-        if (apiId == null || apiId.isEmpty()) {
+        if (hasApiProductFilter) {
+            query.setApiProducts(apiProductIds);
+        } else {
+            if (hasApiFilter) {
+                query.setApis(effectiveApiIds);
+            }
             query.setReferenceType(GenericPlanEntity.ReferenceType.API);
         }
+        query.setStatuses(statuses);
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (effectiveApplicationIds == null || effectiveApplicationIds.isEmpty()) {
@@ -253,6 +277,7 @@ public class SubscriptionsResource extends AbstractResource {
             subscriptions
         )
             .withApis(true)
+            .withApiProducts(true)
             .withApplications(true)
             .withPlans(true)
             .withSubscribers(true)
