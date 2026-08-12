@@ -21,6 +21,7 @@ import io.gravitee.apim.core.async_job.crud_service.AsyncJobCrudService;
 import io.gravitee.apim.core.scoring.crud_service.ScoringReportCrudService;
 import io.gravitee.apim.core.scoring.domain_service.ScoreComputingDomainService;
 import io.gravitee.apim.core.scoring.model.ScoringReport;
+import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.common.utils.TimeProvider;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -38,6 +39,12 @@ import lombok.RequiredArgsConstructor;
 @CustomLog
 public class SaveScoringResponseUseCase {
 
+    /**
+     * Fallback used when the scoring provider reports a failure without any message, so the user is at least told the
+     * evaluation failed rather than being shown an empty error.
+     */
+    private static final String UNKNOWN_FAILURE_MESSAGE = "Scoring failed without any reported reason";
+
     private final AsyncJobCrudService asyncJobCrudService;
     private final ScoringReportCrudService scoringReportCrudService;
     private final ScoreComputingDomainService scoreComputingDomainService;
@@ -46,6 +53,15 @@ public class SaveScoringResponseUseCase {
         return Maybe.defer(() -> Maybe.fromOptional(asyncJobCrudService.findById(input.jobId)))
             .subscribeOn(Schedulers.computation())
             .flatMapCompletable(job -> {
+                if (!input.success) {
+                    // The scoring provider failed: keep the previous report and surface the failure on the job.
+                    var errorMessage = StringUtils.isEmpty(input.errorMessage) ? UNKNOWN_FAILURE_MESSAGE : input.errorMessage;
+                    return Completable.fromRunnable(() -> {
+                        log.warn("Scoring failed for API [{}]: {}", job.getSourceId(), errorMessage);
+                        asyncJobCrudService.update(job.error(errorMessage));
+                    });
+                }
+
                 String apiId = job.getSourceId();
                 String environmentId = job.getEnvironmentId();
 
@@ -116,5 +132,13 @@ public class SaveScoringResponseUseCase {
             );
     }
 
-    public record Input(String jobId, List<ScoringReport.Asset> analyzedAssets) {}
+    public record Input(String jobId, List<ScoringReport.Asset> analyzedAssets, boolean success, String errorMessage) {
+        public static Input success(String jobId, List<ScoringReport.Asset> analyzedAssets) {
+            return new Input(jobId, analyzedAssets, true, null);
+        }
+
+        public static Input failure(String jobId, String errorMessage) {
+            return new Input(jobId, List.of(), false, errorMessage);
+        }
+    }
 }
