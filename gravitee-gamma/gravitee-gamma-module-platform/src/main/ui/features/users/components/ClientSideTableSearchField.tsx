@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Input } from '@gravitee/graphene-core';
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@gravitee/graphene-core';
 import { SearchIcon } from '@gravitee/graphene-core/icons';
 
 interface ClientSideTableSearchFieldProps {
@@ -26,18 +26,16 @@ interface ClientSideTableSearchFieldProps {
 
 export function ClientSideTableSearchField({ id, label, value, onChange, placeholder = 'Search' }: ClientSideTableSearchFieldProps) {
     return (
-        <div className="relative w-64">
-            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+        <div className="w-64">
             <label htmlFor={id} className="sr-only">
                 {label}
             </label>
-            <Input
-                id={id}
-                placeholder={placeholder}
-                value={value}
-                onChange={event => onChange(event.target.value)}
-                className="h-8 w-64 pl-9"
-            />
+            <InputGroup>
+                <InputGroupAddon align="inline-start">
+                    <SearchIcon className="size-3.5 text-muted-foreground" aria-hidden />
+                </InputGroupAddon>
+                <InputGroupInput id={id} placeholder={placeholder} value={value} onChange={event => onChange(event.target.value)} />
+            </InputGroup>
         </div>
     );
 }
