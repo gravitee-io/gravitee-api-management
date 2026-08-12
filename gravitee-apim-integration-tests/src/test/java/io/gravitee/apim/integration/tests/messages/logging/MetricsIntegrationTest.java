@@ -122,7 +122,11 @@ class MetricsIntegrationTest extends AbstractGatewayTest {
                     soft.assertThat(metrics.getTransactionId()).isEqualTo(TRANSACTION_ID);
                     soft.assertThat(metrics.isRequestEnded()).isFalse();
                     soft.assertThat(metrics.getStatus()).isEqualTo(200);
-                    soft.assertThat(metrics.getEndpointResponseTimeMs()).isPositive();
+                    // Nothing is measured yet: the endpoint response is still streaming, so its durations are no more
+                    // available than the gateway ones asserted right below. The time to first byte, which does carry a
+                    // "not measured" value, states it explicitly.
+                    soft.assertThat(metrics.getEndpointResponseTtfbMs()).isEqualTo(-1);
+                    soft.assertThat(metrics.getEndpointResponseTimeMs()).isEqualTo(0);
                     soft.assertThat(metrics.getGatewayLatencyMs()).isEqualTo(0);
                     soft.assertThat(metrics.getGatewayResponseTimeMs()).isEqualTo(0);
                 });
