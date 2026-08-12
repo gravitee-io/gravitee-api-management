@@ -73,6 +73,26 @@ class MetricsProcessorTest extends AbstractProcessorTest {
         }
 
         @Test
+        void should_carry_over_the_request_monotonic_origin() {
+            // Given
+            Api api = new Api();
+            api.setAnalytics(new Analytics());
+            when(reactableApi.getDefinitionVersion()).thenReturn(api.getDefinitionVersion());
+            when(reactableApi.getDefinition()).thenReturn(api);
+            ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, reactableApi);
+            final long requestTimestampNs = System.nanoTime();
+            when(mockRequest.timestampNs()).thenReturn(requestTimestampNs);
+            metricsProcessor = new MetricsProcessor(gatewayConfiguration, true);
+
+            // When
+            metricsProcessor.execute(ctx).test().assertComplete();
+
+            // Then: this is the single seam that turns the monotonic path on. Drop it and the response time processor
+            // silently falls back to the wall clock, leaving every *-ns field at -1 with nothing failing.
+            assertThat(ctx.metrics().getRequestStartNs()).isEqualTo(requestTimestampNs);
+        }
+
+        @Test
         void should_return_noop_metrics_when_api_v4_is_found_and_analytics_are_disabled() {
             // Given
             Api api = new Api();
