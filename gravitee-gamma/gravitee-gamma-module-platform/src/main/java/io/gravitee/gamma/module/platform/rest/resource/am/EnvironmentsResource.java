@@ -51,7 +51,10 @@ public class EnvironmentsResource {
         );
     }
 
-    @Path("/{envId}/domains")
+    // amEnvId, not envId: the module is mounted under /organizations/{orgId}/environments/{envId},
+    // so an inner {envId} would declare the same template variable twice — one holding the APIM
+    // environment, one the AM environment picked from the list above.
+    @Path("/{amEnvId}/domains")
     public DomainsResource domains() {
         return resourceContext.getResource(DomainsResource.class);
     }
