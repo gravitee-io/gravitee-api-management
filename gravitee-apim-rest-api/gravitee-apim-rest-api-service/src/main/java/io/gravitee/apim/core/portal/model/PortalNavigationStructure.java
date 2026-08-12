@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.portal.model;
 
-import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;

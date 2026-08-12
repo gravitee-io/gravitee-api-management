@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.model;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import java.util.List;
 import org.junit.jupiter.api.DisplayNameGeneration;

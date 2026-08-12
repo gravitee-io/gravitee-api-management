@@ -20,9 +20,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
 import java.util.List;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;

@@ -34,6 +34,7 @@ import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationDefaultPageDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
@@ -43,7 +44,6 @@ import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDa
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;

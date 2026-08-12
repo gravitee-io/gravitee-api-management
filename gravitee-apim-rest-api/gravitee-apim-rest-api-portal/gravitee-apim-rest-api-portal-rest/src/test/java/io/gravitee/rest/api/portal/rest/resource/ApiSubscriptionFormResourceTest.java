@@ -22,7 +22,7 @@ import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.SubscriptionFormElResolverInMemory;
 import inmemory.SubscriptionFormQueryServiceInMemory;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;

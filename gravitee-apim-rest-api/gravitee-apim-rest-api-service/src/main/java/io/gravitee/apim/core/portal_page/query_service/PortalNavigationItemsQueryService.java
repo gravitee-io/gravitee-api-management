@@ -15,8 +15,8 @@
  */
 package io.gravitee.apim.core.portal_page.query_service;
 
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;

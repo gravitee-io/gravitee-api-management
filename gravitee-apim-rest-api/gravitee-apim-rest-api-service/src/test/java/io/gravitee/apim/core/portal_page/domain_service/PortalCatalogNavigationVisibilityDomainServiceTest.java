@@ -21,7 +21,7 @@ import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;

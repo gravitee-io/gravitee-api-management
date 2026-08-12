@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 import fixtures.PortalNavigationItemsFixtures;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApiProduct;

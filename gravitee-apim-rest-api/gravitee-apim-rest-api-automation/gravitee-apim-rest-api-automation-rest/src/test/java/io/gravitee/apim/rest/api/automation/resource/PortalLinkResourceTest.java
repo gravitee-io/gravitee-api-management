@@ -22,8 +22,8 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.exception.PortalLinkNotFoundException;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;

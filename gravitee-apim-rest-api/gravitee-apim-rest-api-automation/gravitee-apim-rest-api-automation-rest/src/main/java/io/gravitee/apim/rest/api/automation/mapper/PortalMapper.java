@@ -17,7 +17,7 @@ package io.gravitee.apim.rest.api.automation.mapper;
 
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.rest.api.automation.model.Errors;
 import io.gravitee.apim.rest.api.automation.model.PortalNavigationPath;

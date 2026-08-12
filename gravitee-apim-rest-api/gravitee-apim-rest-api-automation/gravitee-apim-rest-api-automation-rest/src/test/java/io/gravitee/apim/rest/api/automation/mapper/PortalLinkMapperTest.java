@@ -18,7 +18,7 @@ package io.gravitee.apim.rest.api.automation.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;

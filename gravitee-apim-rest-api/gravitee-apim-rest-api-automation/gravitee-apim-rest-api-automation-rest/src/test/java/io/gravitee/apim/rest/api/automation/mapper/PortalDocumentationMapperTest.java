@@ -93,7 +93,7 @@ class PortalDocumentationMapperTest {
 
         var state = PortalDocumentationMapper.INSTANCE.toDocumentationState(
             pageContent,
-            io.gravitee.apim.core.portal_page.model.PortalArea.TOP_NAVBAR,
+            io.gravitee.apim.core.portal.model.PortalArea.TOP_NAVBAR,
             "getting-started",
             "default-portal"
         );

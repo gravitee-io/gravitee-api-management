@@ -35,7 +35,7 @@ import static org.mockito.internal.util.collections.Sets.newSet;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;

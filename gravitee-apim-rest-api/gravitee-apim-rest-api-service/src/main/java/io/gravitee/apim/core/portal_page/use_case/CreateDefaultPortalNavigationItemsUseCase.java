@@ -17,11 +17,11 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;

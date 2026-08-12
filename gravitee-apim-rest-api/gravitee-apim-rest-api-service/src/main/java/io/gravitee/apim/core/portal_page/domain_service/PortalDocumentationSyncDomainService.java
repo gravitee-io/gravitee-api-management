@@ -17,10 +17,10 @@ package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;

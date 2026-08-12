@@ -18,7 +18,7 @@ package io.gravitee.apim.core.portal.domain_service.navigation;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.portal.model.NavigationPath;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;

@@ -20,7 +20,7 @@ import static io.gravitee.rest.api.service.impl.upgrade.upgrader.UpgraderOrder.P
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;

@@ -17,8 +17,8 @@ package io.gravitee.rest.api.portal.rest.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;

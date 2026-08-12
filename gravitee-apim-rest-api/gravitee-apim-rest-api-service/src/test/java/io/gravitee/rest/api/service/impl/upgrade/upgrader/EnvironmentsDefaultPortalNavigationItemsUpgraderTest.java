@@ -26,7 +26,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationItemsUseCase;
 import io.gravitee.node.api.upgrader.UpgraderException;

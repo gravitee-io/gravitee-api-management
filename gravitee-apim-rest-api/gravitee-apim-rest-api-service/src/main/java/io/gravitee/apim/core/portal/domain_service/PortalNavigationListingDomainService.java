@@ -19,7 +19,7 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationTreeWalker;
 import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationVisitor;
 import io.gravitee.apim.core.portal.model.NavigationPath;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
