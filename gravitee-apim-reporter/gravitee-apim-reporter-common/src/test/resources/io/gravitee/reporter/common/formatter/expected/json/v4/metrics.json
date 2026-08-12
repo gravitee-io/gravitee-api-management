@@ -25,10 +25,17 @@
   "entrypointId": "http-get",
   "endpoint": "https://api.gravitee.io/echo",
   "endpointResponseTimeMs": 137,
+  "endpointResponseTtfbMs": 18,
+  "endpointConnectTimeMs": 2,
+  "endpointResponseTimeNs": 137400000,
+  "endpointResponseTtfbNs": 18400000,
+  "endpointConnectTimeNs": 2100000,
   "status": 200,
   "responseContentLength": 274,
   "gatewayResponseTimeMs": 144,
   "gatewayLatencyMs": 7,
+  "gatewayResponseTimeNs": 143600000,
+  "gatewayLatencyNs": 6500000,
   "customMetrics": {
     "zone": "europe-north1-a"
   },
