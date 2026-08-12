@@ -690,7 +690,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
     }
 
     public OnErrorProcessorChainFactory errorProcessorChainFactory(Api api, PolicyChainFactory policyChainFactory) {
-        return new OnErrorProcessorChainFactory(api, policyChainFactory);
+        return new OnErrorProcessorChainFactory(api, policyChainFactory, new TransactionResponseProcessorConfiguration(configuration));
     }
 
     public void setApplicationContext(ApplicationContext applicationContext) {
