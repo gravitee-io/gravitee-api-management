@@ -21,7 +21,7 @@ import { NavLink, Outlet, useNavigate, useParams } from 'react-router-dom';
 import { GatewayInstanceStatusBadge } from './GatewayInstanceStatusBadge';
 import { useForbiddenResourceRedirect } from '../../../shared/hooks/useForbiddenResourceRedirect';
 import { isForbiddenApiError } from '../../../shared/utils/apiErrors';
-import { useDetailBasePath } from '../../shared/hooks/useDetailBasePath';
+import { resolveListHrefFromDetailBasePath, useDetailBasePath } from '../../shared/hooks/useDetailBasePath';
 import { useGatewayInstanceDetail } from '../hooks/useGatewayInstanceDetail';
 
 const TABS = [
@@ -33,6 +33,7 @@ export function GatewayInstanceDetailLayout() {
     const { instanceId } = useParams<{ instanceId: string }>();
     const navigate = useNavigate();
     const basePath = useDetailBasePath('gateways', instanceId);
+    const gatewaysListHref = resolveListHrefFromDetailBasePath(basePath);
     const { data: instance, isLoading, isError, error } = useGatewayInstanceDetail(instanceId);
 
     const isForbidden = isForbiddenApiError(isError, error);
@@ -66,7 +67,7 @@ export function GatewayInstanceDetailLayout() {
     if (isError || !instance) {
         return (
             <div className="space-y-4">
-                <Button type="button" variant="ghost" className="gap-1.5 px-0" onClick={() => navigate('../..')}>
+                <Button type="button" variant="ghost" className="gap-1.5 px-0" onClick={() => navigate(gatewaysListHref)}>
                     <ArrowLeftIcon className="size-4" aria-hidden />
                     Back to Gateways
                 </Button>
@@ -79,7 +80,7 @@ export function GatewayInstanceDetailLayout() {
 
     return (
         <div className="space-y-6" data-testid="gateway-instance-detail">
-            <Button type="button" variant="ghost" className="gap-1.5 px-0 cursor-pointer" onClick={() => navigate('../..')}>
+            <Button type="button" variant="ghost" className="gap-1.5 px-0 cursor-pointer" onClick={() => navigate(gatewaysListHref)}>
                 <ArrowLeftIcon className="size-4" aria-hidden />
                 Back to Gateways
             </Button>

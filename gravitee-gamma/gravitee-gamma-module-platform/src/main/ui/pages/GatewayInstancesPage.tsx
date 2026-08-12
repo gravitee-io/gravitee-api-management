@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { GatewayInstancesTable } from '../features/gateway-instances/components/GatewayInstancesTable';
 import { useGatewayInstanceList } from '../features/gateway-instances/hooks/useGatewayInstanceList';
@@ -25,8 +27,13 @@ const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 10;
 
 export function GatewayInstancesPage() {
+    const env = useEnvironment();
     const [page, setPage] = useState(DEFAULT_PAGE);
     const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+
+    useEffect(() => {
+        setPage(DEFAULT_PAGE);
+    }, [env?.id]);
 
     const { rows, totalCount, isLoading, isError, error } = useGatewayInstanceList({ page, pageSize });
 

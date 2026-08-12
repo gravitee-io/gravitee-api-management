@@ -104,7 +104,7 @@ describe('GatewayInstanceDetailLayout', () => {
         mockUseDetail.mockReturnValue({ data: INSTANCE, isLoading: false, isError: false, error: null } as never);
         renderLayout();
         fireEvent.click(screen.getByRole('button', { name: /Back to Gateways/i }));
-        expect(mockNavigate).toHaveBeenCalledWith('../..');
+        expect(mockNavigate).toHaveBeenCalledWith('/gateways');
     });
 
     it('shows not-found state when the detail query fails', () => {
