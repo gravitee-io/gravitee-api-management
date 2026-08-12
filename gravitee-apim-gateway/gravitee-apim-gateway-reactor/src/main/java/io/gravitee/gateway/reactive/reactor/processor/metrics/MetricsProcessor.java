@@ -63,6 +63,9 @@ public class MetricsProcessor implements Processor {
             if (request != null) {
                 metricsBuilder
                     .timestamp(request.timestamp())
+                    // Monotonic counterpart of the timestamp, taken when the request arrived: durations are derived
+                    // from it, the wall clock being reserved for indexing.
+                    .requestStartNs(request.timestampNs())
                     .requestId(request.id())
                     .transactionId(request.transactionId())
                     .clientIdentifier(request.clientIdentifier())

@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.http.vertx;
 
 import static io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest.NETTY_ATTR_CONNECTION_TIME;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -114,6 +115,22 @@ class VertxHttpServerRequestTest {
         when(channelHandlerContext.channel()).thenReturn(channel);
         when(channel.attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))).thenReturn(attribute);
         when(attribute.get()).thenReturn(System.currentTimeMillis());
+    }
+
+    @Nested
+    class TimestampTest {
+
+        @Test
+        void should_carry_a_monotonic_origin_alongside_the_wall_clock_timestamp() {
+            final long before = System.nanoTime();
+            cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
+            final long after = System.nanoTime();
+
+            // Durations covering the whole request are derived from this reading; without it they fall back to the
+            // wall clock, which cannot measure a duration.
+            assertThat(cut.timestampNs()).isBetween(before, after);
+            assertThat(cut.timestamp()).isPositive();
+        }
     }
 
     @Nested
