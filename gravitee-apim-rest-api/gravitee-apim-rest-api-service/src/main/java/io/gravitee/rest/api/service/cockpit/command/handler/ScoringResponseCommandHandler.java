@@ -47,11 +47,17 @@ public class ScoringResponseCommandHandler implements CommandHandler<ScoringResp
     @Override
     public Single<ScoringResponseReply> handle(ScoringResponseCommand command) {
         var payload = command.getPayload();
+        var result = payload.result();
 
-        log.info("received response [{}]", payload.result());
+        log.info("received response [{}]", result);
 
-        var analyzedAssets = payload
-            .result()
+        if (!result.success()) {
+            return saveScoringResponseUseCase
+                .execute(SaveScoringResponseUseCase.Input.failure(payload.correlationId(), result.error()))
+                .andThen(Single.just(new ScoringResponseReply(command.getId(), CommandStatus.SUCCEEDED)));
+        }
+
+        var analyzedAssets = result
             .assetDiagnostics()
             .stream()
             .map(a ->
@@ -88,7 +94,7 @@ public class ScoringResponseCommandHandler implements CommandHandler<ScoringResp
             .toList();
 
         return saveScoringResponseUseCase
-            .execute(new SaveScoringResponseUseCase.Input(payload.correlationId(), analyzedAssets))
+            .execute(SaveScoringResponseUseCase.Input.success(payload.correlationId(), analyzedAssets))
             .andThen(Single.just(new ScoringResponseReply(command.getId(), CommandStatus.SUCCEEDED)));
     }
 }
