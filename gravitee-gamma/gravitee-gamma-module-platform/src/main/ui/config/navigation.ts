@@ -106,7 +106,7 @@ export const NAV_SECTIONS: PlatformNavSection[] = [
                 label: 'Team',
                 items: [
                     { key: 'users', title: ROUTES.users.label, icon: UsersIcon },
-                    { key: 'user-groups', title: ROUTES['user-groups'].label, icon: GroupIcon },
+                    { key: 'groups', title: ROUTES.groups.label, icon: GroupIcon },
                 ],
             },
         ],

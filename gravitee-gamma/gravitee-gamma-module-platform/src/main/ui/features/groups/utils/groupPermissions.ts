@@ -24,6 +24,8 @@ export const ENVIRONMENT_GROUP_DELETE_PERMISSION = 'environment-group-d' as cons
 export const ORGANIZATION_SETTINGS_READ_PERMISSION = 'organization-settings-r' as const;
 export const ORGANIZATION_SETTINGS_UPDATE_PERMISSION = 'organization-settings-u' as const;
 
+export const ORGANIZATION_TAG_READ_PERMISSION = 'organization-tag-r' as const;
+
 export function isPrimaryOwnerGroup(group: Pick<Group, 'primary_owner' | 'apiPrimaryOwner' | 'apiProductPrimaryOwner'>): boolean {
     return Boolean(group.primary_owner || group.apiPrimaryOwner || group.apiProductPrimaryOwner);
 }

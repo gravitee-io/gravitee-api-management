@@ -47,7 +47,7 @@ import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../feat
 import { ENVIRONMENT_AUDIT_READ_PERMISSIONS, ORGANIZATION_AUDIT_READ_PERMISSIONS } from '../features/audit-logs/utils/auditPermissions';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
 import { GatewayInstanceDetailLayout } from '../features/gateway-instances/components/GatewayInstanceDetailLayout';
-import { ENVIRONMENT_GROUP_READ_PERMISSION } from '../features/groups/utils/groupPermissions';
+import { ENVIRONMENT_GROUP_READ_PERMISSION, ORGANIZATION_TAG_READ_PERMISSION } from '../features/groups/utils/groupPermissions';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
 import { SecurityPlanTypesPage } from '../features/security-plan-types/SecurityPlanTypesPage';
 import { ORGANIZATION_USER_ACCESS_PERMISSIONS } from '../features/users/utils/userPermissions';
@@ -65,6 +65,7 @@ import { GatewayInstancesPage } from '../pages/GatewayInstancesPage';
 import { GroupDetailPage } from '../pages/GroupDetailPage';
 import { GroupsPage } from '../pages/GroupsPage';
 import { MetadataPage } from '../pages/MetadataPage';
+import { OrganizationGroupsPage } from '../pages/OrganizationGroupsPage';
 import { OrgAuditLogsPage } from '../pages/OrgAuditLogsPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
 import { TenantsPage } from '../pages/TenantsPage';
@@ -126,7 +127,7 @@ function isNavItemVisible(
     if (itemKey === 'users') {
         return !permissionsReady || canAccessUsers;
     }
-    if (itemKey === 'user-groups') {
+    if (itemKey === 'groups') {
         return !permissionsReady || canReadGroups;
     }
     if (itemKey === 'metadata') {
@@ -377,7 +378,7 @@ export function AppRoutes() {
                                     }
                                 />
                             </Route>
-                            <Route path="user-groups">
+                            <Route path="groups">
                                 <Route
                                     index
                                     element={
@@ -386,6 +387,14 @@ export function AppRoutes() {
                                             unauthorizedTo="../applications"
                                         >
                                             <GroupsPage />
+                                        </PermissionPageGuard>
+                                    }
+                                />
+                                <Route
+                                    path="all"
+                                    element={
+                                        <PermissionPageGuard permission={ORGANIZATION_TAG_READ_PERMISSION} unauthorizedTo="..">
+                                            <OrganizationGroupsPage />
                                         </PermissionPageGuard>
                                     }
                                 />

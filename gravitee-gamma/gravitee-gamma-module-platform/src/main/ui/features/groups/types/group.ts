@@ -147,3 +147,10 @@ export interface GroupInvitation {
     application_role?: string;
     created_at?: number;
 }
+
+export interface OrganizationGroup {
+    id: string;
+    name: string;
+    environmentId: string;
+    environmentName: string;
+}
