@@ -58,7 +58,7 @@ class AmSdkConnectionTesterTest {
 
     @Test
     void should_probe_the_configured_am_organization_not_the_apim_org() {
-        when(clientFactory.forConnection(any())).thenReturn(new AmApis(null, defaults, null));
+        when(clientFactory.forConnection(any())).thenReturn(new AmApis(null, "am-org", defaults, null));
         when(defaults.listEnvironments("am-org")).thenReturn(Future.succeededFuture(List.<Environment>of()));
 
         var result = tester.test(APIM_ORG, connection("am-org"));
@@ -82,7 +82,7 @@ class AmSdkConnectionTesterTest {
 
     @Test
     void should_surface_am_status_and_a_clean_message_when_organization_is_rejected() {
-        when(clientFactory.forConnection(any())).thenReturn(new AmApis(null, defaults, null));
+        when(clientFactory.forConnection(any())).thenReturn(new AmApis(null, "bogus", defaults, null));
         when(defaults.listEnvironments("bogus")).thenReturn(
             Future.failedFuture(new ApiException(403, "Forbidden", null, "{\"message\":\"Permission denied\",\"http_status\":403}"))
         );
