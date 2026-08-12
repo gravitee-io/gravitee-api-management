@@ -3,7 +3,11 @@
   "compilerOptions": {
     "baseUrl": ".",
     "types": ["node", "@playwright/test"],
-    "paths": {}
+    "paths": {
+      "@model/*": ["model/*"],
+      "@utils/*": ["utils/*"],
+      "@test-data/*": ["test-data/*"]
+    }
   },
   "include": ["**/*.ts"],
   "exclude": []
