@@ -22,5 +22,6 @@
     },
     "isolatedModules": true
   },
-  "include": ["**/*.ts"]
+  "include": ["**/*.ts"],
+  "exclude": ["playwright/**"]
 }
