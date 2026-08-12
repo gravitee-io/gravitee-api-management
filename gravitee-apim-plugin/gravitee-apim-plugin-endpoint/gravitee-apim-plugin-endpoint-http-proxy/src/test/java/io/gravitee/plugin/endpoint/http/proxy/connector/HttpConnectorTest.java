@@ -881,7 +881,7 @@ class HttpConnectorTest {
 
         consumeResponseChunks();
 
-        // The whole response is now in, body included — this is what nginx reports as $upstream_response_time.
+        // The whole response is now proxied, body included, which is what the endpoint response time stands for.
         verify(metrics, timeout(VERIFY_TIMEOUT_MS)).setEndpointResponseTimeNs(
             longThat(responseTimeNs -> responseTimeNs >= BACKEND_ELAPSED_NS)
         );

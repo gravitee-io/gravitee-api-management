@@ -340,10 +340,16 @@ public class HttpConnector implements ProxyConnector {
     }
 
     /**
-     * Records the endpoint response time once the response body has been fully received, i.e. nginx's
-     * {@code $upstream_response_time}. The reactor has already set it to the time to first byte — which is what a
-     * connector that does not stream a body leaves it at; overwriting it here keeps the body transfer out of the
-     * gateway latency, which is derived by subtracting this value from the total response time.
+     * Records the endpoint response time once the response body has been fully proxied. The reactor has already set it
+     * to the time to first byte — which is what a connector that does not stream a body leaves it at; overwriting it
+     * here keeps the body transfer out of the gateway latency, which is derived by subtracting this value from the
+     * total response time.
+     * <p>
+     * This measures the <em>proxied transfer</em> of the body, not the read from the endpoint alone: demand comes from
+     * the client socket and backpressure propagates all the way up, so the body is not read faster than it is written
+     * downstream, and a slow client stretches this duration. That is deliberate — the two are not separable in a
+     * streaming path — but it is why this is not nginx's {@code $upstream_response_time}, which is a read into nginx's
+     * own buffers, nginx buffering responses by default.
      */
     private void recordEndpointResponseTime(final HttpExecutionContext ctx) {
         final var metrics = ctx.metrics();
