@@ -35,7 +35,7 @@ public class AmSdkDirectoryClient implements AmDirectoryClient {
         return AmSdkInvocations.await(
             apis
                 .defaults()
-                .listEnvironments(orgId)
+                .listEnvironments(apis.amOrganizationId())
                 .map(envs -> {
                     List<Environment> out = new ArrayList<>();
                     for (var e : envs) out.add(new Environment(e.getId(), e.getName()));
@@ -50,7 +50,7 @@ public class AmSdkDirectoryClient implements AmDirectoryClient {
         return AmSdkInvocations.await(
             apis
                 .domains()
-                .getDomainEntrypoints(orgId, envId, domainId)
+                .getDomainEntrypoints(apis.amOrganizationId(), envId, domainId)
                 .map(entrypoints -> {
                     List<GatewayEntrypoint> out = new ArrayList<>();
                     if (entrypoints != null) {
@@ -71,7 +71,7 @@ public class AmSdkDirectoryClient implements AmDirectoryClient {
         return AmSdkInvocations.await(
             apis
                 .domains()
-                .findDomain(orgId, envId, domainId)
+                .findDomain(apis.amOrganizationId(), envId, domainId)
                 .map(d -> new Domain(d.getId(), d.getName(), d.getHrid()))
         );
     }
@@ -85,7 +85,7 @@ public class AmSdkDirectoryClient implements AmDirectoryClient {
         return AmSdkInvocations.await(
             apis
                 .domains()
-                .listDomains(orgId, envId, null, null, search)
+                .listDomains(apis.amOrganizationId(), envId, null, null, search)
                 .map(page -> {
                     List<Domain> out = new ArrayList<>();
                     if (page != null && page.getData() != null) {

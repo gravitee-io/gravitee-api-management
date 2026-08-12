@@ -43,6 +43,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AmSdkClientFactory {
 
+    // AM addresses resources per organization. It comes from the connection — the APIM org passed to
+    // forOrg is only the lookup key — falling back to AM's well-known default when the connection
+    // has none configured yet.
+    private static final String AM_DEFAULT_ORGANIZATION = "DEFAULT";
+
     private final Vertx vertx;
     private final AmConnectionRepository amConnectionRepository;
 
@@ -81,7 +86,11 @@ public class AmSdkClientFactory {
         // domain payload (returned by findDomain/listDomains) deserialises cleanly.
         apiClient.getObjectMapper().addMixIn(ClientRegistrationSettings.class, ClientRegistrationSettingsMixin.class);
 
-        return new AmApis(apiClient, new DefaultApiImpl(apiClient), new DomainApiImpl(apiClient));
+        String amOrganizationId = connection.amOrganizationId() == null || connection.amOrganizationId().isBlank()
+            ? AM_DEFAULT_ORGANIZATION
+            : connection.amOrganizationId();
+
+        return new AmApis(apiClient, amOrganizationId, new DefaultApiImpl(apiClient), new DomainApiImpl(apiClient));
     }
 
     @SuppressWarnings("unused")
@@ -100,5 +109,7 @@ public class AmSdkClientFactory {
         abstract void setClientTemplateEnabled(Boolean value);
     }
 
-    public record AmApis(ApiClient client, DefaultApi defaults, DomainApi domains) {}
+    // amOrganizationId is the AM-side organization resolved from the connection — call sites address
+    // AM with it, never with the APIM org.
+    public record AmApis(ApiClient client, String amOrganizationId, DefaultApi defaults, DomainApi domains) {}
 }
