@@ -52,12 +52,16 @@ $empty-state-height: 400px;
       app-search-bar {
         width: 300px;
       }
+
+      app-category-select {
+        width: 200px;
+      }
     }
 
     &--mobile {
       display: grid;
       grid-template-columns: 1fr auto;
-      grid-template-rows: auto auto;
+      grid-template-rows: auto auto auto;
       gap: 16px;
 
       .next-gen-h1 {
@@ -74,9 +78,15 @@ $empty-state-height: 400px;
         grid-row: 1 / 2;
       }
 
-      app-search-bar {
+      app-category-select {
         grid-column: 1 / 3;
         grid-row: 2 / 3;
+        width: 100%;
+      }
+
+      app-search-bar {
+        grid-column: 1 / 3;
+        grid-row: 3 / 4;
         width: 100%;
       }
     }

@@ -29,6 +29,7 @@ export interface PortalNavigationApiSearchItem {
   labels?: string[];
   rootId: string;
   navItemId: string;
+  categoryIds?: string[];
 }
 
 export interface PortalNavigationSearchMetadata {

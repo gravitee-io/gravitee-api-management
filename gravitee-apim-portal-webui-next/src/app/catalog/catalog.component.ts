@@ -21,7 +21,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 import { isEqual } from 'lodash';
-import { BehaviorSubject, catchError, distinctUntilChanged, map, Observable, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, catchError, distinctUntilChanged, filter, map, Observable, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { ApiCardComponent } from '../../components/api-card/api-card.component';
@@ -29,11 +29,14 @@ import { BadgeComponent } from '../../components/badge/badge.component';
 import { ButtonToggleGroupComponent } from '../../components/button-toggle-group/button-toggle-group.component';
 import { ButtonToggleOptionComponent } from '../../components/button-toggle-group/button-toggle-option.component';
 import { CardsGridComponent } from '../../components/cards-grid/cards-grid.component';
+import { CategorySelectComponent } from '../../components/category-select/category-select.component';
 import { LoaderComponent } from '../../components/loader/loader.component';
 import { PaginationComponent } from '../../components/pagination/pagination.component';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
 import { MobileClassDirective } from '../../directives/mobile-class.directive';
+import { PortalCategory } from '../../entities/categories/portal-category';
 import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
+import { PortalCategoriesService } from '../../services/portal-categories.service';
 import { PortalNavigationItemsService } from '../../services/portal-navigation-items.service';
 
 interface ApiVM {
@@ -44,6 +47,7 @@ interface ApiVM {
   isEnabledMcpServer: boolean;
   picture?: string;
   labels?: string[];
+  categoryIds?: string[];
   rootId: string;
   navItemId: string;
 }
@@ -52,6 +56,12 @@ interface ApiPaginatorVM {
   data: ApiVM[];
   page: number;
   totalResults: number;
+  error: boolean;
+}
+
+interface CategoriesState {
+  categories: PortalCategory[];
+  status: 'loading' | 'loaded' | 'error';
 }
 
 @Component({
@@ -63,6 +73,7 @@ interface ApiPaginatorVM {
     ButtonToggleGroupComponent,
     ButtonToggleOptionComponent,
     CardsGridComponent,
+    CategorySelectComponent,
     LoaderComponent,
     MobileClassDirective,
     PaginationComponent,
@@ -82,6 +93,7 @@ export class CatalogComponent {
   viewMode = signal<'grid' | 'list'>('grid');
 
   private readonly portalNavigationItemsService = inject(PortalNavigationItemsService);
+  private readonly portalCategoriesService = inject(PortalCategoriesService);
   private readonly breakpointService = inject(ObservabilityBreakpointService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -89,16 +101,36 @@ export class CatalogComponent {
 
   private readonly page$ = new BehaviorSubject<number>(1);
   protected readonly query = toSignal(this.route.queryParams.pipe(map(p => p['query'] ?? '')), { initialValue: '' });
-  protected readonly tableColumns = computed(() => (this.isMobile() ? ['name', 'version', 'mcp'] : ['name', 'labels', 'version', 'mcp']));
+  protected readonly categoryId = toSignal(this.route.queryParams.pipe(map(p => p['category'] ?? null)), {
+    initialValue: null as string | null,
+  });
+  private readonly categoriesState = toSignal<CategoriesState, CategoriesState>(
+    this.portalCategoriesService.getCategories().pipe(
+      map((categories): CategoriesState => ({ categories, status: 'loaded' })),
+      catchError((): Observable<CategoriesState> => of({ categories: [], status: 'error' })),
+    ),
+    { initialValue: { categories: [] as PortalCategory[], status: 'loading' as const } },
+  );
+  protected readonly categories = computed(() => this.categoriesState().categories);
+  protected readonly unknownCategory = computed(() => {
+    const categoryId = this.categoryId();
+    const { categories, status } = this.categoriesState();
+    return !!categoryId && status === 'loaded' && !categories.some(category => category.id === categoryId);
+  });
+  protected readonly categoryNameById = computed(() => new Map(this.categories().map(category => [category.id, category.title])));
+  protected readonly tableColumns = computed(() =>
+    this.isMobile() ? ['name', 'version', 'mcp'] : ['name', 'labels', 'category', 'version', 'mcp'],
+  );
   protected apiPaginator: Signal<ApiPaginatorVM> = toSignal(this.loadNavigationItemsWithApis$(), {
-    initialValue: { data: [], page: 1, totalResults: 0 },
+    initialValue: { data: [], page: 1, totalResults: 0, error: false },
   });
 
   constructor() {
     effect(() => {
-      if (this.query() || this.query() === '') {
-        this.page$.next(1);
-      }
+      this.query();
+      this.categoryId();
+      this.categoriesState();
+      this.page$.next(1);
     });
   }
 
@@ -116,6 +148,17 @@ export class CatalogComponent {
       this.router.navigate([], {
         relativeTo: this.route,
         queryParams: { query: searchInput },
+        queryParamsHandling: 'merge',
+      });
+    }
+  }
+
+  onCategorySelect(categoryId: string | null) {
+    if (categoryId !== this.categoryId()) {
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { category: categoryId, query: null },
+        queryParamsHandling: 'merge',
       });
     }
   }
@@ -135,14 +178,27 @@ export class CatalogComponent {
 
   private loadNavigationItemsWithApis$(): Observable<ApiPaginatorVM> {
     return this.page$.pipe(
-      map(page => ({ page, pageSize: this.pageSize, query: this.query() })),
+      map(page => ({
+        page,
+        pageSize: this.pageSize,
+        query: this.query(),
+        categoryId: this.categoryId(),
+        status: this.categoriesState().status,
+        unknownCategory: this.unknownCategory(),
+      })),
+      filter(({ categoryId, status }) => !categoryId || status !== 'loading'),
+      map(({ status: _status, ...rest }) => rest),
       distinctUntilChanged((previous, current) => isEqual(previous, current)),
-      tap(_ => this.loadingPage.set(true)),
-      switchMap(({ page, pageSize, query }) =>
-        this.portalNavigationItemsService
-          .searchNavigationItemsWithApis(page, query, pageSize)
-          .pipe(catchError(_ => of({ data: [], metadata: undefined }))),
-      ),
+      switchMap(({ page, pageSize, query, categoryId, unknownCategory }) => {
+        if (unknownCategory) {
+          return of({ data: [], metadata: undefined, error: true });
+        }
+        this.loadingPage.set(true);
+        return this.portalNavigationItemsService.searchNavigationItemsWithApis(page, query, pageSize, categoryId ?? undefined).pipe(
+          map(resp => ({ ...resp, error: false })),
+          catchError(_ => of({ data: [], metadata: undefined, error: true })),
+        );
+      }),
       map(resp => {
         const data = resp.data.map(item => ({
           id: item.id,
@@ -152,6 +208,7 @@ export class CatalogComponent {
           picture: item._links?.picture,
           isEnabledMcpServer: !!item.mcp,
           labels: item.labels,
+          categoryIds: item.categoryIds,
           rootId: item.rootId,
           navItemId: item.navItemId,
         }));
@@ -162,6 +219,7 @@ export class CatalogComponent {
           data,
           page,
           totalResults,
+          error: resp.error,
         };
       }),
       tap(_ => this.loadingPage.set(false)),
