@@ -35,12 +35,12 @@ public class DomainEntrypointsResource {
     @GET
     public List<GatewayEntrypointResponse> list(
         @PathParam("orgId") String orgId,
-        @PathParam("envId") String envId,
+        @PathParam("amEnvId") String amEnvId,
         @PathParam("domainId") String domainId
     ) {
         return AmCalls.run(() ->
             listDomainEntrypointsUseCase
-                .execute(new ListDomainEntrypointsUseCase.Input(orgId, envId, domainId))
+                .execute(new ListDomainEntrypointsUseCase.Input(orgId, amEnvId, domainId))
                 .entrypoints()
                 .stream()
                 .map(e -> new GatewayEntrypointResponse(e.id(), e.name(), e.url(), e.defaultEntrypoint()))
