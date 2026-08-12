@@ -149,8 +149,7 @@ class HttpConnectorTest {
 
     @BeforeAll
     static void setup() {
-        final WireMockConfiguration wireMockConfiguration = wireMockConfig().dynamicPort().dynamicHttpsPort();
-        wiremock = new WireMockServer(wireMockConfiguration);
+        wiremock = new WireMockServer(wireMockConfig().dynamicPort().dynamicHttpsPort());
         wiremock.start();
         vertx = Vertx.vertx();
     }
@@ -158,16 +157,11 @@ class HttpConnectorTest {
     @AfterAll
     static void tearDown() {
         wiremock.stop();
-        wiremock.shutdownServer();
         vertx.close().blockingAwait(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 
     @BeforeEach
     void init() {
-        final WireMockConfiguration wireMockConfiguration = wireMockConfig().dynamicPort().dynamicHttpsPort();
-        wiremock = new WireMockServer(wireMockConfiguration);
-        wiremock.start();
-
         lenient().when(deploymentCtx.getTemplateEngine()).thenReturn(templateEngine);
 
         lenient().when(ctx.request()).thenReturn(request);
@@ -196,6 +190,9 @@ class HttpConnectorTest {
 
     @AfterEach
     void cleanUp() {
+        // One server for the whole class, reset between tests: it was init() replacing the static field on every test
+        // that leaked servers, not the class-level server itself. Resetting clears both the stubs and the request
+        // journal, which is all the isolation these tests need, and saves 31 server lifecycles per run.
         wiremock.resetAll();
     }
 
