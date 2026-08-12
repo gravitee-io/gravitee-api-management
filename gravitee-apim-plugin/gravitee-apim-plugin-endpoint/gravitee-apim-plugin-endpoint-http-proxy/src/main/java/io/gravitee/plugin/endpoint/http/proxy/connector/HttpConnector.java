@@ -210,13 +210,16 @@ public class HttpConnector implements ProxyConnector {
         final AtomicReference<HttpClientRequest> pendingUpstreamRequest,
         final String absoluteUri
     ) {
-        return Single.create(emitter ->
-            httpClientFactory
-                .getOrBuildHttpClient(ctx, configuration, sharedConfiguration)
-                .getDelegate()
+        return Single.create(emitter -> {
+            final var httpClient = httpClientFactory.getOrBuildHttpClient(ctx, configuration, sharedConfiguration).getDelegate();
+            // Taken once the client is in hand: building it on first use — SSL options, keystore loading, under a lock
+            // other requests queue on — is gateway start-up cost, not what the pool and the network contribute.
+            final long connectStartNs = System.nanoTime();
+            httpClient
                 .request(options)
                 .onComplete(asyncRequest -> {
                     if (asyncRequest.succeeded()) {
+                        recordEndpointConnectTime(ctx, connectStartNs);
                         final HttpClientRequest upstreamRequest = HttpClientRequest.newInstance(asyncRequest.result());
                         // Publish the request before checking for disposal so a concurrent disposal either sees it
                         // (doOnDispose resets it) or is detected right below; getAndSet(null) makes the double reset
@@ -230,8 +233,8 @@ public class HttpConnector implements ProxyConnector {
                     } else {
                         emitter.tryOnError(asyncRequest.cause());
                     }
-                })
-        );
+                });
+        });
     }
 
     private void resetPendingUpstreamRequest(
@@ -322,6 +325,18 @@ public class HttpConnector implements ProxyConnector {
             // Last: covers completion, error and cancellation alike, so a truncated response is measured up to the
             // point it stopped rather than left at the time to first byte.
             .doFinally(() -> recordEndpointResponseTime(ctx));
+    }
+
+    /**
+     * Records the time spent acquiring a connection to the endpoint — nginx's {@code $upstream_connect_time}. Without
+     * it, a wait on a saturated connection pool is indistinguishable from a slow backend, since both only show up in
+     * the endpoint response time.
+     */
+    private void recordEndpointConnectTime(final HttpExecutionContext ctx, final long connectStartNs) {
+        final var metrics = ctx.metrics();
+        if (metrics != null) {
+            metrics.setEndpointConnectTimeNs(System.nanoTime() - connectStartNs);
+        }
     }
 
     /**
