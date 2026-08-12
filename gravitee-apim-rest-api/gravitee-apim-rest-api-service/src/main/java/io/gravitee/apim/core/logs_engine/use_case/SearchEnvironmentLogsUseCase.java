@@ -248,6 +248,7 @@ public class SearchEnvironmentLogsUseCase {
         builder.responseTimeRanges(buildResponseTimeRanges(filterContext));
         builder.errorKeys(filterContext.errorKeys().orElseGet(Collections::emptySet));
         builder.apiProductIds(filterContext.apiProductIds().orElseGet(Collections::emptySet));
+        builder.tenants(filterContext.tenants().orElseGet(Collections::emptySet));
         builder.bodyText(filterContext.bodyText().orElse(null));
 
         if (request.timeRange() != null) {
@@ -394,6 +395,7 @@ public class SearchEnvironmentLogsUseCase {
             case REQUEST_ID -> filterContext.limitByRequestIds(ids);
             case ERROR_KEY -> filterContext.limitByErrorKeys(ids);
             case API_PRODUCT -> filterContext.limitByApiProductIds(ids);
+            case TENANT -> filterContext.limitByTenants(ids);
             case HTTP_STATUS_CODE_GROUP -> filterContext.limitByStatusCodeGroups(validateStatusCodeGroups(ids));
             case URI -> {
                 if (!ids.isEmpty()) {

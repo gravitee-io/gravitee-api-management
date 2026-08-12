@@ -332,6 +332,29 @@ class ObservabilityLogsDataPortAdapterTest {
     }
 
     @Nested
+    class TenantFilter {
+
+        @Test
+        void should_translate_tenant() {
+            stubEmptySearchResult();
+            var query = queryWith(new FilterCondition("TENANT", FilterOperator.IN, List.of("tenant-a", "tenant-b")));
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().tenants()).containsExactlyInAnyOrder("tenant-a", "tenant-b");
+        }
+
+        @Test
+        void should_leave_tenants_empty_when_not_requested() {
+            stubEmptySearchResult();
+
+            adapter.searchLogs(ORG, ENV, queryWith());
+
+            assertThat(captureSearchFilters().tenants()).isEmpty();
+        }
+    }
+
+    @Nested
     class ResponseTimeFilter {
 
         @Test
