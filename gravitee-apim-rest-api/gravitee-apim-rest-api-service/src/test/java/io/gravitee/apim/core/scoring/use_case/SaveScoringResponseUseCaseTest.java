@@ -138,7 +138,7 @@ class SaveScoringResponseUseCaseTest {
         );
 
         // When
-        useCase.execute(new Input(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        useCase.execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
 
         // Then
         assertThat(scoringReportCrudService.storage()).contains(
@@ -161,12 +161,75 @@ class SaveScoringResponseUseCaseTest {
         );
 
         // When
-        useCase.execute(new Input(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        useCase.execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
 
         // Then
         assertThat(asyncJobCrudService.storage()).contains(
             job.toBuilder().status(AsyncJob.Status.SUCCESS).updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault())).build()
         );
+    }
+
+    @Test
+    void should_flag_job_in_error_and_keep_previous_report_when_scoring_failed() {
+        // Given a previously scored API and a failed scoring response
+        var previousReport = ScoringReportFixture.aScoringReport().toBuilder().apiId(API_ID).build();
+        givenExistingScoringReports(previousReport);
+        var job = givenAnAsyncJob(
+            aPendingScoringRequestJob().toBuilder().id(JOB_ID).sourceId(API_ID).initiatorId(USER_ID).environmentId(ENVIRONMENT_ID).build()
+        );
+
+        // When
+        useCase.execute(Input.failure(JOB_ID, "boom")).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+
+        // Then the failure is surfaced on the job...
+        assertThat(asyncJobCrudService.storage()).contains(
+            job.toBuilder().status(AsyncJob.Status.ERROR).errorMessage("boom").updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault())).build()
+        );
+        // ...and the previous report is left untouched instead of being replaced by an empty one
+        assertThat(scoringReportCrudService.storage()).containsExactly(previousReport);
+    }
+
+    @Test
+    void should_fall_back_on_a_generic_message_when_the_failure_carries_none() {
+        // Given a provider failure without any message, as Cockpit forwards throwable.getMessage() as-is
+        givenAnAsyncJob(
+            aPendingScoringRequestJob().toBuilder().id(JOB_ID).sourceId(API_ID).initiatorId(USER_ID).environmentId(ENVIRONMENT_ID).build()
+        );
+
+        // When
+        useCase.execute(Input.failure(JOB_ID, null)).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+
+        // Then the user is not shown an empty error
+        assertThat(asyncJobCrudService.storage())
+            .singleElement()
+            .extracting(AsyncJob::getErrorMessage)
+            .isEqualTo("Scoring failed without any reported reason");
+    }
+
+    @Test
+    void should_override_the_timeout_verdict_when_the_response_finally_arrives() {
+        // Given a job already marked TIMEOUT, as AsyncJobCrudServiceImpl#findById does when the deadline has passed
+        givenAnAsyncJob(
+            aPendingScoringRequestJob()
+                .toBuilder()
+                .id(JOB_ID)
+                .sourceId(API_ID)
+                .initiatorId(USER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .status(AsyncJob.Status.TIMEOUT)
+                .build()
+        );
+
+        // When a late response eventually arrives
+        useCase.execute(Input.failure(JOB_ID, "boom")).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+
+        // Then the real outcome wins over the deadline guess: the response did arrive, so it is what the user is told
+        assertThat(asyncJobCrudService.storage())
+            .singleElement()
+            .satisfies(job -> {
+                assertThat(job.getStatus()).isEqualTo(AsyncJob.Status.ERROR);
+                assertThat(job.getErrorMessage()).isEqualTo("boom");
+            });
     }
 
     @Test
@@ -178,7 +241,7 @@ class SaveScoringResponseUseCaseTest {
         );
 
         // When
-        useCase.execute(new Input(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        useCase.execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
 
         // Then
         assertThat(scoringReportCrudService.storage())
@@ -204,7 +267,7 @@ class SaveScoringResponseUseCaseTest {
 
         // When
         useCase
-            .execute(new Input(JOB_ID, List.of(ANALYZED_ASSET_1, ANALYZED_ASSET_2, ANALYZED_ASSET_3, ANALYZED_ASSET_4)))
+            .execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_1, ANALYZED_ASSET_2, ANALYZED_ASSET_3, ANALYZED_ASSET_4)))
             .test()
             .awaitDone(5, TimeUnit.SECONDS)
             .assertComplete();
@@ -223,7 +286,7 @@ class SaveScoringResponseUseCaseTest {
         );
 
         // When
-        useCase.execute(new Input(JOB_ID, List.of(ANALYZED_ASSET_4))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        useCase.execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_4))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
 
         // Then
         assertThat(scoringReportCrudService.storage())
@@ -236,7 +299,7 @@ class SaveScoringResponseUseCaseTest {
         // Given
 
         // When
-        useCase.execute(new Input(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        useCase.execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
 
         // Then
         assertThat(scoringReportCrudService.storage()).isEmpty();
