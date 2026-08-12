@@ -41,6 +41,7 @@ public final class FilterContext {
     private Long responseTimeTo;
     private Set<String> errorKeys;
     private Set<String> apiProductIds;
+    private Set<String> tenants;
     private String bodyText;
 
     private <T> Set<T> limitBy(Set<T> current, Set<T> incoming) {
@@ -114,6 +115,10 @@ public final class FilterContext {
 
     public void limitByApiProductIds(Set<String> apiProductIds) {
         this.apiProductIds = limitBy(this.apiProductIds, apiProductIds);
+    }
+
+    public void limitByTenants(Set<String> tenants) {
+        this.tenants = limitBy(this.tenants, tenants);
     }
 
     public void limitByUri(String uri) {
@@ -210,6 +215,10 @@ public final class FilterContext {
 
     public Optional<Set<String>> apiProductIds() {
         return Optional.ofNullable(apiProductIds);
+    }
+
+    public Optional<Set<String>> tenants() {
+        return Optional.ofNullable(tenants);
     }
 
     public Optional<String> bodyText() {

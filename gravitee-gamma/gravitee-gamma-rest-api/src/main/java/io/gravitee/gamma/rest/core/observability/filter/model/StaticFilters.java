@@ -60,7 +60,7 @@ public enum StaticFilters {
     PLAN("Plan", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.APP_TYPES),
     API_PRODUCT("API Product", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.HTTP_PROXY)),
     GATEWAY("Gateway", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.GATEWAY_TYPES),
-    TENANT("Tenant", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.GATEWAY_TYPES),
+    TENANT("Tenant", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.GATEWAY_TYPES),
     ZONE("Zone", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.GATEWAY_TYPES),
 
     ENTRYPOINT("Entrypoint", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, ApiType.ALL),
