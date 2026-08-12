@@ -13,7 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Badge, Button, DataTable, DataTableEmptyState, DateCell, Input, type DataTableProps } from '@gravitee/graphene-core';
+import {
+    Badge,
+    Button,
+    DataTable,
+    DataTableEmptyState,
+    DateCell,
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+    type DataTableProps,
+} from '@gravitee/graphene-core';
 import { SearchIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 import { useId, useMemo } from 'react';
 import { Link } from 'react-router-dom';
@@ -230,21 +240,21 @@ export function UsersTable({
                 />
             }
             toolbar={
-                <div className="relative w-64">
-                    <SearchIcon
-                        className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none"
-                        aria-hidden
-                    />
+                <div className="w-64">
                     <label htmlFor={searchInputId} className="sr-only">
                         Search users
                     </label>
-                    <Input
-                        id={searchInputId}
-                        placeholder="Search by name, email, or ID..."
-                        value={search}
-                        onChange={e => onSearchChange(e.target.value)}
-                        className="h-8 w-64 pl-9"
-                    />
+                    <InputGroup>
+                        <InputGroupAddon align="inline-start">
+                            <SearchIcon className="size-3.5 text-muted-foreground" aria-hidden />
+                        </InputGroupAddon>
+                        <InputGroupInput
+                            id={searchInputId}
+                            placeholder="Search by name, email, or ID..."
+                            value={search}
+                            onChange={e => onSearchChange(e.target.value)}
+                        />
+                    </InputGroup>
                 </div>
             }
         />
