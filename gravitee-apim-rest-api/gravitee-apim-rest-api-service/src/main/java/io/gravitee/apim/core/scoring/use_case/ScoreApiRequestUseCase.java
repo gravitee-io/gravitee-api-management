@@ -56,6 +56,10 @@ import lombok.RequiredArgsConstructor;
 @UseCase
 public class ScoreApiRequestUseCase {
 
+    private static final long SECONDS_PER_RUN = 10;
+    private static final Duration MARGIN = Duration.ofSeconds(30);
+    private static final Duration MAX_TTL = Duration.ofMinutes(15);
+
     private final ApiCrudService apiCrudService;
     private final ApiDocumentationDomainService apiDocumentationDomainService;
     private final ApiExportDomainService apiExportDomainService;
@@ -196,16 +200,21 @@ public class ScoreApiRequestUseCase {
     /**
      * Compute the TTL of the scoring job.
      * <p>
-     * As simple rule, we consider that the scoring job will take 10 seconds per asset per ruleset to score (as simple ) and 30 seconds for the margin.
+     * As simple rule, we consider that the scoring job will take {@value #SECONDS_PER_RUN} seconds per asset per ruleset
+     * to score, plus a fixed margin. Environments with no custom ruleset still run against the built-in ones, hence the
+     * minimum of one ruleset.
+     * <p>
+     * The result is capped: a job kept PENDING is polled every second by the console, so an unbounded deadline would
+     * mean thousands of requests per opened tab. The cap is deliberately generous, as a value lower than the actual
+     * scoring time is what makes the evaluation silently expire.
      *
      * @param request the scoring request
      * @return the TTL of the scoring job
      */
     private Duration deadLine(ScoreRequest request) {
-        var margin = Duration.ofSeconds(30);
         int nbAssets = request.assets().size();
-        int rulesets = Math.min(1, request.customRulesets().size());
-        int numberOfRuns = nbAssets * rulesets;
-        return Duration.ofSeconds(10).multipliedBy(numberOfRuns).plus(margin);
+        int nbRulesets = Math.max(1, request.customRulesets().size());
+        long ttlInSeconds = SECONDS_PER_RUN * nbAssets * nbRulesets + MARGIN.toSeconds();
+        return Duration.ofSeconds(Math.min(ttlInSeconds, MAX_TTL.toSeconds()));
     }
 }
