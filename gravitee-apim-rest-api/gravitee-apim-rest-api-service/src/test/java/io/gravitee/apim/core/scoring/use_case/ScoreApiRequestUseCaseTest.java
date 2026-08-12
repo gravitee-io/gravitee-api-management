@@ -58,6 +58,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.assertj.core.api.Condition;
 import org.assertj.core.data.Index;
@@ -187,7 +188,7 @@ class ScoreApiRequestUseCaseTest {
                 .upperLimit(1L)
                 .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                 .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(30)))
+                .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(1 * 1 * 10 + 30)))
                 .build()
         );
     }
@@ -234,7 +235,7 @@ class ScoreApiRequestUseCaseTest {
                 .upperLimit(1L)
                 .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                 .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(30)))
+                .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(2 * 1 * 10 + 30)))
                 .build()
         );
     }
@@ -281,7 +282,7 @@ class ScoreApiRequestUseCaseTest {
                 .upperLimit(1L)
                 .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                 .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(30)))
+                .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(2 * 1 * 10 + 30)))
                 .build()
         );
     }
@@ -312,6 +313,54 @@ class ScoreApiRequestUseCaseTest {
                     new ScoreRequest.CustomRuleset(CUSTOM_RULESET_3.payload())
                 );
         });
+    }
+
+    @Test
+    public void should_scale_scoring_job_deadline_with_the_number_of_custom_rulesets() {
+        // Given an API with a single scorable asset, scored against 9 custom rulesets
+        var api = givenExistingApi(ApiFixtures.aFederatedApi());
+        givenExistingRulesets(
+            IntStream.rangeClosed(1, 9)
+                .mapToObj(i -> ScoringRulesetFixture.aRuleset("ruleset" + i).withReferenceId(ENVIRONMENT_ID))
+                .toArray(ScoringRuleset[]::new)
+        );
+
+        // When
+        scoreApiRequestUseCase
+            .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
+            .test()
+            .awaitDone(5, TimeUnit.SECONDS)
+            .assertComplete();
+
+        // Then the deadline accounts for every ruleset: 10s per asset per ruleset, plus a 30s margin
+        assertThat(asyncJobCrudService.storage())
+            .singleElement()
+            .extracting(AsyncJob::getDeadLine)
+            .isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(1 * 9 * 10 + 30)));
+    }
+
+    @Test
+    public void should_cap_the_scoring_job_deadline() {
+        // Given an API scored against far more rulesets than the cap allows for
+        var api = givenExistingApi(ApiFixtures.aFederatedApi());
+        givenExistingRulesets(
+            IntStream.rangeClosed(1, 200)
+                .mapToObj(i -> ScoringRulesetFixture.aRuleset("ruleset" + i).withReferenceId(ENVIRONMENT_ID))
+                .toArray(ScoringRuleset[]::new)
+        );
+
+        // When
+        scoreApiRequestUseCase
+            .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
+            .test()
+            .awaitDone(5, TimeUnit.SECONDS)
+            .assertComplete();
+
+        // Then the deadline is capped instead of growing to 1 * 200 * 10 + 30 seconds
+        assertThat(asyncJobCrudService.storage())
+            .singleElement()
+            .extracting(AsyncJob::getDeadLine)
+            .isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofMinutes(15)));
     }
 
     @Test
@@ -416,7 +465,7 @@ class ScoreApiRequestUseCaseTest {
                 .upperLimit(1L)
                 .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                 .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(30)))
+                .deadLine(INSTANT_NOW.atZone(ZoneId.systemDefault()).plus(Duration.ofSeconds(1 * 1 * 10 + 30)))
                 .build()
         );
     }
