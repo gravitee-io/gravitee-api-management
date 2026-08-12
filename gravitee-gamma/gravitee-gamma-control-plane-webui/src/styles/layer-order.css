@@ -1,0 +1,33 @@
+/**
+ * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ * App-wide cascade layer order (FOUND-166).
+ *
+ * Must stay the first stylesheet the shell loads. Layer order is fixed by each layer's
+ * FIRST declaration, and a layer discovered later sorts after the earlier ones — which
+ * means it wins against them. Only the host can set that order; a library loaded later
+ * cannot place itself ahead of layers the host has already declared.
+ *
+ * `@gravitee/gamma-lib-observability` emits its utilities into an `observability` layer.
+ * It re-emits utilities graphene also ships (it scans graphene's dist so the design-system
+ * components it renders keep their classes), so without this line its copy would sort last
+ * and win — silently cancelling overrides written on graphene components in our own code.
+ *
+ * Declaring it here, ahead of everything else, makes it the lowest-priority layer.
+ * Add any other library that ships its own Tailwind utilities to this list.
+ */
+@layer observability;
