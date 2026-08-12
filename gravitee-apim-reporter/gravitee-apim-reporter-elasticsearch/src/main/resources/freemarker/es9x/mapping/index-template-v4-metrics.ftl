@@ -138,6 +138,27 @@
                 "endpoint-response-time-ms": {
                     "type": "long"
                 },
+                "endpoint-response-ttfb-ms": {
+                    "type": "long"
+                },
+                "endpoint-connect-time-ms": {
+                    "type": "long"
+                },
+                "endpoint-response-time-ns": {
+                    "type": "long"
+                },
+                "endpoint-response-ttfb-ns": {
+                    "type": "long"
+                },
+                "endpoint-connect-time-ns": {
+                    "type": "long"
+                },
+                "gateway-response-time-ns": {
+                    "type": "long"
+                },
+                "gateway-latency-ns": {
+                    "type": "long"
+                },
                 "status": {
                     "type": "short"
                 },
