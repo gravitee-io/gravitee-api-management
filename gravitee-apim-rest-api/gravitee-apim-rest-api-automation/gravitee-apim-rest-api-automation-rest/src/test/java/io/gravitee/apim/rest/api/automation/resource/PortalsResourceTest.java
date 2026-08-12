@@ -24,11 +24,11 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.use_case.CreateOrUpdatePortalUseCase;
 import io.gravitee.apim.core.portal.use_case.ValidatePortalUseCase;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.rest.api.automation.model.PortalNavigationPath;
 import io.gravitee.apim.rest.api.automation.model.PortalState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;

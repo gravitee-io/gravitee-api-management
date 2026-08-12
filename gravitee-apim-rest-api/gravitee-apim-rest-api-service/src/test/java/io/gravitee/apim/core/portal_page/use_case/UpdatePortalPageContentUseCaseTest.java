@@ -99,7 +99,7 @@ class UpdatePortalPageContentUseCaseTest {
             .environmentId(ENVIRONMENT_ID)
             .title("Sourced Page")
             .segment("sourced-page")
-            .area(io.gravitee.apim.core.portal_page.model.PortalArea.TOP_NAVBAR)
+            .area(io.gravitee.apim.core.portal.model.PortalArea.TOP_NAVBAR)
             .order(0)
             .portalPageContentId(PortalPageContentId.of(CONTENT_ID))
             .published(true)

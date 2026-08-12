@@ -68,7 +68,7 @@ class PortalDocumentationResourceTest extends AbstractResourceTest {
         @Test
         void should_return_portal_documentation() {
             when(getPortalDocumentationUseCase.execute(any())).thenReturn(
-                new GetPortalDocumentationUseCase.Output(aPageContent(), io.gravitee.apim.core.portal_page.model.PortalArea.TOP_NAVBAR)
+                new GetPortalDocumentationUseCase.Output(aPageContent(), io.gravitee.apim.core.portal.model.PortalArea.TOP_NAVBAR)
             );
 
             try (var response = rootTarget(DOC_HRID).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {

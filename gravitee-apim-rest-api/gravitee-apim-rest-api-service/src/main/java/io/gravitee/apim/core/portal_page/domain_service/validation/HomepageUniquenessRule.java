@@ -15,9 +15,9 @@
  */
 package io.gravitee.apim.core.portal_page.domain_service.validation;
 
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import lombok.RequiredArgsConstructor;
 

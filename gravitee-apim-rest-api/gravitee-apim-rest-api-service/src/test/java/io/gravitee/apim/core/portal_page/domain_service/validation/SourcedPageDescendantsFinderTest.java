@@ -18,7 +18,7 @@ package io.gravitee.apim.core.portal_page.domain_service.validation;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;

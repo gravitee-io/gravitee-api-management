@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiPortalSearchQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;

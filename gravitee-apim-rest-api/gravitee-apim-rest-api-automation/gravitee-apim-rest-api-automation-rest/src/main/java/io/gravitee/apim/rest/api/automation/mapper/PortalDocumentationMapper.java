@@ -16,10 +16,10 @@
 package io.gravitee.apim.rest.api.automation.mapper;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.AsyncApiPageContent;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.validation.Validator;
@@ -98,17 +98,13 @@ public interface PortalDocumentationMapper {
         return domain == null ? null : io.gravitee.apim.rest.api.automation.model.DocumentationType.fromValue(domain.name());
     }
 
-    default io.gravitee.apim.core.portal_page.model.PortalArea toDomainArea(
-        io.gravitee.apim.rest.api.automation.model.DocumentationArea wire
-    ) {
+    default io.gravitee.apim.core.portal.model.PortalArea toDomainArea(io.gravitee.apim.rest.api.automation.model.DocumentationArea wire) {
         return wire == null
-            ? io.gravitee.apim.core.portal_page.model.PortalArea.TOP_NAVBAR
-            : io.gravitee.apim.core.portal_page.model.PortalArea.valueOf(wire.getValue());
+            ? io.gravitee.apim.core.portal.model.PortalArea.TOP_NAVBAR
+            : io.gravitee.apim.core.portal.model.PortalArea.valueOf(wire.getValue());
     }
 
-    default io.gravitee.apim.rest.api.automation.model.DocumentationArea toWireArea(
-        io.gravitee.apim.core.portal_page.model.PortalArea domain
-    ) {
+    default io.gravitee.apim.rest.api.automation.model.DocumentationArea toWireArea(io.gravitee.apim.core.portal.model.PortalArea domain) {
         return domain == null ? null : io.gravitee.apim.rest.api.automation.model.DocumentationArea.fromValue(domain.name());
     }
 }

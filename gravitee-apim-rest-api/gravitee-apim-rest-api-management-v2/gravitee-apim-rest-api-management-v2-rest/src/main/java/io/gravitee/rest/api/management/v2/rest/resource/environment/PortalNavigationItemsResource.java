@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
-import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.use_case.BulkCreatePortalNavigationItemUseCase;

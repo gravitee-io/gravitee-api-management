@@ -24,9 +24,9 @@ import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainSe
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
