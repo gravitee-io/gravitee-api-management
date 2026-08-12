@@ -68,7 +68,7 @@ public class EventMetricsAnalyticsQueryService implements AnalyticsEngineQuerySe
             Name.NATIVE_AUTHENTICATIONS_SUCCESS_UPSTREAM,
             Name.NATIVE_AUTHENTICATIONS_FAILURE_DOWNSTREAM,
             Name.NATIVE_AUTHENTICATIONS_FAILURE_UPSTREAM,
-            Name.NATIVE_OPERATIONS,
+            Name.NATIVE_OPERATIONS_RECEIVED,
             Name.NATIVE_OPERATIONS_FORWARDED,
             Name.NATIVE_OPERATIONS_ANSWERED,
             Name.NATIVE_OPERATIONS_COMPLETED,

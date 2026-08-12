@@ -140,6 +140,22 @@ class EventMetricsMeasuresQueryAdapterTest {
     }
 
     @Test
+    void refuses_per_metric_filters_it_cannot_honour() {
+        // The validator accepts these upstream and HTTPMeasuresQueryAdapter honours them, but here the
+        // `#__FILTER__` slot already carries the doc-type. Dropping them would silently widen the query.
+        var metric = new MetricMeasuresQuery(
+            Metric.NATIVE_MESSAGES_PRODUCED_DOWNSTREAM,
+            Set.of(Measure.SUM),
+            List.of(new Filter(Filter.Name.NATIVE_TOPIC, Filter.Operator.IN, List.of("orders"))),
+            List.of()
+        );
+
+        assertThatThrownBy(() -> adapter.adapt(query(List.of(), metric)))
+            .isInstanceOf(UnsupportedOperationException.class)
+            .hasMessageContaining("per-metric filters");
+    }
+
+    @Test
     void drops_filters_the_event_metrics_documents_do_not_carry() throws Exception {
         var json = JSON.readTree(
             adapter.adapt(

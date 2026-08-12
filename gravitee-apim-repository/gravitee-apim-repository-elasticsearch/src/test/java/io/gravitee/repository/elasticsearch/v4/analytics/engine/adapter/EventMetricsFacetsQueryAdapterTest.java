@@ -102,7 +102,35 @@ class EventMetricsFacetsQueryAdapterTest {
         var metric = new MetricMeasuresQuery(Metric.NATIVE_OPERATION_BROKER_DURATION, Set.of(Measure.AVG));
 
         var json = JSON.readTree(adapter.adapt(query(metric, Facet.NATIVE_OPERATION, 10)));
+        var bucket = json.at("/aggs/NATIVE_OPERATION_BROKER_DURATION#NATIVE_OPERATION");
 
-        assertThat(json.at("/aggs/NATIVE_OPERATION_BROKER_DURATION#NATIVE_OPERATION/terms/field").asText()).isEqualTo("operation");
+        assertThat(bucket.at("/terms/field").asText()).isEqualTo("operation");
+        // Assert the leaf too: without it this test would pass even if the measures were dropped.
+        assertThat(bucket.at("/aggs/_NATIVE_OPERATION_BROKER_DURATION#AVG/aggs/_duration_sum/sum/field").asText()).isEqualTo(
+            "endpoint-durations-nanos"
+        );
+    }
+
+    @Test
+    void refuses_metrics_that_span_several_document_types() {
+        // The terms bucket sits above the measures, so a per-metric doc-type envelope would land
+        // inside it: the sort path would no longer resolve, and a derived duration would read back as
+        // 0 with no error at all. Refusing is the only option that cannot mislead.
+        var topicMetric = new MetricMeasuresQuery(Metric.NATIVE_MESSAGES_PRODUCED_DOWNSTREAM, Set.of(Measure.SUM));
+        var apiMetric = new MetricMeasuresQuery(Metric.NATIVE_ACTIVE_CONNECTIONS_DOWNSTREAM, Set.of(Measure.MAX));
+        var mixed = new FacetsQuery(
+            new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+            List.of(),
+            List.of(topicMetric, apiMetric),
+            List.of(Facet.API),
+            10,
+            List.of()
+        );
+
+        assertThatThrownBy(() -> adapter.adapt(mixed))
+            .isInstanceOf(UnsupportedOperationException.class)
+            .hasMessageContaining("cannot mix documents types")
+            .hasMessageContaining("topic")
+            .hasMessageContaining("api");
     }
 }
