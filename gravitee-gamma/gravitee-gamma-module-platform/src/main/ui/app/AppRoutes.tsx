@@ -38,7 +38,7 @@ import { DictionariesPage } from '../pages/DictionariesPage';
 import { DictionaryDetailPage } from '../pages/DictionaryDetailPage';
 import { EntrypointsAndShardingTagsPage } from '../pages/EntrypointsAndShardingTagsPage';
 import { GatewayInstanceEnvironmentPage } from '../pages/GatewayInstanceEnvironmentPage';
-import { GatewayInstanceMonitoringStubPage } from '../pages/GatewayInstanceMonitoringStubPage';
+import { GatewayInstanceMonitoringPage } from '../pages/GatewayInstanceMonitoringPage';
 import { GatewayInstancesPage } from '../pages/GatewayInstancesPage';
 import { GroupsPage } from '../pages/GroupsPage';
 import { MetadataPage } from '../pages/MetadataPage';
@@ -284,7 +284,7 @@ export function AppRoutes() {
                             >
                                 <Route index element={<Navigate to="environment" replace />} />
                                 <Route path="environment" element={<GatewayInstanceEnvironmentPage />} />
-                                <Route path="monitoring" element={<GatewayInstanceMonitoringStubPage />} />
+                                <Route path="monitoring" element={<GatewayInstanceMonitoringPage />} />
                             </Route>
                         </Route>
                         <Route path="entrypoints-and-sharding-tags" element={<EntrypointsGuard />} />

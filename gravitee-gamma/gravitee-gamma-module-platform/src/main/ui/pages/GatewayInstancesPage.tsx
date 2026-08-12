@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import { useEffect, useState } from 'react';
-
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
+import { useEffect, useState } from 'react';
 
 import { GatewayInstancesTable } from '../features/gateway-instances/components/GatewayInstancesTable';
 import { useGatewayInstanceList } from '../features/gateway-instances/hooks/useGatewayInstanceList';
