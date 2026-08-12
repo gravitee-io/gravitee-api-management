@@ -43,7 +43,7 @@
       </mat-card-content>
     </mat-card>
     @if (mode === 'edit') {
-      <mat-card *gioPermission="{ anyOf: ['environment-api-r'] }">
+      <mat-card *gioPermission="{ anyOf: ['environment-documentation-r'] }">
         <mat-card-content class="category__content">
           <div class="category__apis__title">
             <div class="category__content__header">
@@ -54,7 +54,7 @@
               mat-raised-button
               color="primary"
               (click)="addApiToCategory()"
-              *gioPermission="{ anyOf: ['environment-api-u'] }"
+              *gioPermission="{ anyOf: ['environment-documentation-u'] }"
             >
               <mat-icon>add</mat-icon>
               Add API to Category
@@ -95,7 +95,8 @@
                     mat-button
                     (click)="removeApiFromCategory(element)"
                     matTooltip="Remove API"
-                    *gioPermission="{ anyOf: ['environment-api-u'] }"
+                    aria-label="Remove {{ element.name }} from category"
+                    *gioPermission="{ anyOf: ['environment-documentation-u'] }"
                   >
                     <mat-icon svgIcon="gio:trash"></mat-icon>
                   </button>

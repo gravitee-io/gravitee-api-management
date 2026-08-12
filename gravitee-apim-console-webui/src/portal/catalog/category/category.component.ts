@@ -164,9 +164,11 @@ export class CategoryCatalogComponent implements OnInit {
         if (this.mode !== 'edit') {
           return of([]);
         }
-        return this.publishedApiNavigationItemsInCategory$().pipe(switchMap(navItems => this.loadApiVMs(navItems)));
+        return this.publishedApiNavigationItemsInCategory$().pipe(
+          switchMap(navItems => this.loadApiVMs(navItems)),
+          catchError(() => of([])),
+        );
       }),
-      catchError(() => of([])),
     );
   }
 

@@ -63,6 +63,6 @@ export class CategoryHarness extends ComponentHarness {
     return await this.getTableRows(harnessLoader)
       .then(rows => rows[index].getCells({ columnName: 'actions' }))
       .then(cells => cells[0])
-      .then(actionCell => actionCell.getHarnessOrNull(MatButtonHarness.with({ selector: '[mattooltip="Remove API"]' })));
+      .then(actionCell => actionCell.getHarnessOrNull(MatButtonHarness));
   }
 }
