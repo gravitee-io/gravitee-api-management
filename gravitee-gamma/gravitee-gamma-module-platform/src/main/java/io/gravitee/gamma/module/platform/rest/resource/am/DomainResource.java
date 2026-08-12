@@ -39,8 +39,14 @@ public class DomainResource {
     private ResourceContext resourceContext;
 
     @GET
-    public DomainResponse get(@PathParam("orgId") String orgId, @PathParam("envId") String envId, @PathParam("domainId") String domainId) {
-        return AmCalls.run(() -> AmDtoMapper.toDto(getDomainUseCase.execute(new GetDomainUseCase.Input(orgId, envId, domainId)).domain()));
+    public DomainResponse get(
+        @PathParam("orgId") String orgId,
+        @PathParam("amEnvId") String amEnvId,
+        @PathParam("domainId") String domainId
+    ) {
+        return AmCalls.run(() ->
+            AmDtoMapper.toDto(getDomainUseCase.execute(new GetDomainUseCase.Input(orgId, amEnvId, domainId)).domain())
+        );
     }
 
     @Path("/entrypoints")
