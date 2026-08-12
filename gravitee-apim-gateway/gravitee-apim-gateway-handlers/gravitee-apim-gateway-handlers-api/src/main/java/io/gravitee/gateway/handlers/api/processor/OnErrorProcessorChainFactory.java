@@ -21,6 +21,8 @@ import io.gravitee.gateway.handlers.api.processor.cors.CorsSimpleRequestProcesso
 import io.gravitee.gateway.handlers.api.processor.error.SimpleFailureProcessor;
 import io.gravitee.gateway.handlers.api.processor.error.templates.ResponseTemplateBasedFailureProcessor;
 import io.gravitee.gateway.handlers.api.processor.pathmapping.PathMappingProcessor;
+import io.gravitee.gateway.handlers.api.processor.transaction.TransactionResponseProcessor;
+import io.gravitee.gateway.handlers.api.processor.transaction.TransactionResponseProcessorConfiguration;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -28,12 +30,21 @@ import io.gravitee.gateway.handlers.api.processor.pathmapping.PathMappingProcess
  */
 public class OnErrorProcessorChainFactory extends ApiProcessorChainFactory {
 
-    public OnErrorProcessorChainFactory(final Api api, final PolicyChainFactory policyChainFactory) {
+    private final TransactionResponseProcessorConfiguration transactionResponseProcessorConfiguration;
+
+    public OnErrorProcessorChainFactory(
+        final Api api,
+        final PolicyChainFactory policyChainFactory,
+        final TransactionResponseProcessorConfiguration transactionResponseProcessorConfiguration
+    ) {
         super(api, policyChainFactory);
+        this.transactionResponseProcessorConfiguration = transactionResponseProcessorConfiguration;
         this.initialize();
     }
 
     private void initialize() {
+        add(() -> new TransactionResponseProcessor(this.transactionResponseProcessorConfiguration));
+
         if (api.getDefinition().getProxy().getCors() != null && api.getDefinition().getProxy().getCors().isEnabled()) {
             add(() -> new CorsSimpleRequestProcessor(api.getDefinition().getProxy().getCors()));
         }
