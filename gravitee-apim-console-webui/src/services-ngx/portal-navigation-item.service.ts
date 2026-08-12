@@ -35,8 +35,11 @@ export class PortalNavigationItemService {
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
-  public getNavigationItems(portalArea: PortalArea): Observable<PortalNavigationItemsResponse> {
-    return this.http.get<PortalNavigationItemsResponse>(`${this.constants.env.v2BaseURL}/portal-navigation-items?area=${portalArea}`);
+  public getNavigationItems(portalArea: PortalArea, includes?: string[]): Observable<PortalNavigationItemsResponse> {
+    const includesParam = includes?.length ? `&includes=${includes.join(',')}` : '';
+    return this.http.get<PortalNavigationItemsResponse>(
+      `${this.constants.env.v2BaseURL}/portal-navigation-items?area=${portalArea}${includesParam}`,
+    );
   }
 
   public createNavigationItem(newPortalNavigationItem: NewPortalNavigationItem): Observable<PortalNavigationItem> {

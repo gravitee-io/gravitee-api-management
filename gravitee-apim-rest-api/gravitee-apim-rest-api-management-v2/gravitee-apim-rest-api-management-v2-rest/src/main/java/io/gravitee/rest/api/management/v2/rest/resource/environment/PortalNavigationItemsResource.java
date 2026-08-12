@@ -26,7 +26,9 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItems;
+import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemApiSummary;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemsResponseMetadata;
 import io.gravitee.rest.api.management.v2.rest.model.SeedDefaultPagesRequest;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -48,7 +50,9 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import lombok.CustomLog;
 
 /**
@@ -80,7 +84,8 @@ public class PortalNavigationItemsResource extends AbstractResource {
     public PortalNavigationItemsResponse getPortalNavigationItems(
         @QueryParam("area") @DefaultValue("TOP_NAVBAR") String area,
         @QueryParam("parentId") String parentId,
-        @QueryParam("loadChildren") @DefaultValue("true") boolean loadChildren
+        @QueryParam("loadChildren") @DefaultValue("true") boolean loadChildren,
+        @QueryParam("includes") Set<String> includes
     ) {
         final PortalArea portalArea;
         try {
@@ -89,17 +94,28 @@ public class PortalNavigationItemsResource extends AbstractResource {
             throw new BadRequestException("Invalid value '" + area + "' for query parameter 'area'");
         }
 
+        boolean includeApis = includes != null && includes.contains("apis");
+
         var result = listPortalNavigationItemsUseCase.execute(
             new ListPortalNavigationItemsUseCase.Input(
                 GraviteeContext.getCurrentEnvironment(),
+                GraviteeContext.getCurrentOrganization(),
                 portalArea,
                 Optional.ofNullable(parentId).map(PortalNavigationItemId::of),
                 loadChildren,
-                PortalNavigationItemViewerContext.forConsole()
+                PortalNavigationItemViewerContext.forConsole(),
+                includeApis
             )
         );
 
-        return new PortalNavigationItemsResponse().items(mapper.map(result.items()));
+        var response = new PortalNavigationItemsResponse().items(mapper.map(result.items()));
+
+        Map<String, PortalNavigationItemApiSummary> apisMetadata = mapper.mapApisMetadata(result.apis());
+        if (!apisMetadata.isEmpty()) {
+            response.metadata(new PortalNavigationItemsResponseMetadata().apis(apisMetadata));
+        }
+
+        return response;
     }
 
     @POST

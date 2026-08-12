@@ -16,10 +16,13 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.query_service.ApiPortalSearchQueryService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityEvaluator;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityService;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemComparator;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
@@ -29,11 +32,15 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -43,6 +50,7 @@ public class ListPortalNavigationItemsUseCase {
     private final PortalNavigationItemsQueryService queryService;
     private final List<PortalNavigationItemVisibilityService> visibilityServices;
     private final PortalNavigationItemSourceDomainService sourceDomainService;
+    private final ApiPortalSearchQueryService apiPortalSearchQueryService;
     private static final Predicate<PortalNavigationItem> IS_CONTAINER_PREDICATE = i -> i instanceof PortalNavigationItemContainer;
 
     public Output execute(Input input) {
@@ -57,7 +65,7 @@ public class ListPortalNavigationItemsUseCase {
         if (input.parentId().isPresent()) {
             parentItem = findAndValidateParent(input, visibilityEvaluator);
             if (parentItem == null) {
-                return new Output(List.of());
+                return new Output(List.of(), Map.of());
             }
         }
 
@@ -77,7 +85,38 @@ public class ListPortalNavigationItemsUseCase {
 
         allItems.stream().map(PortalNavigationItem::getSource).filter(Objects::nonNull).forEach(sourceDomainService::removeSensitiveData);
 
-        return new Output(sortItems(allItems));
+        return new Output(sortItems(allItems), resolveApis(input, allItems));
+    }
+
+    private Map<PortalNavigationItemId, Api> resolveApis(Input input, List<PortalNavigationItem> allItems) {
+        if (!input.includeApis()) {
+            return Map.of();
+        }
+
+        List<PortalNavigationApi> apiItems = allItems
+            .stream()
+            .filter(PortalNavigationApi.class::isInstance)
+            .map(PortalNavigationApi.class::cast)
+            .toList();
+
+        if (apiItems.isEmpty()) {
+            return Map.of();
+        }
+
+        Set<String> apiIds = apiItems.stream().map(PortalNavigationApi::getApiId).collect(Collectors.toSet());
+        Map<String, Api> apisByApiId = apiPortalSearchQueryService
+            .search(input.environmentId(), input.organizationId(), apiIds)
+            .stream()
+            .collect(Collectors.toMap(Api::getId, api -> api));
+
+        Map<PortalNavigationItemId, Api> apisByNavigationItemId = new HashMap<>();
+        for (PortalNavigationApi navItem : apiItems) {
+            Api api = apisByApiId.get(navItem.getApiId());
+            if (api != null) {
+                apisByNavigationItemId.put(navItem.getId(), api);
+            }
+        }
+        return apisByNavigationItemId;
     }
 
     private PortalNavigationItem findAndValidateParent(Input input, PortalNavigationItemVisibilityEvaluator visibilityEvaluator) {
@@ -170,13 +209,15 @@ public class ListPortalNavigationItemsUseCase {
         return items.stream().sorted(PortalNavigationItemComparator.byNullableParentIdThenNullableOrder()).toList();
     }
 
-    public record Output(List<PortalNavigationItem> items) {}
+    public record Output(List<PortalNavigationItem> items, Map<PortalNavigationItemId, Api> apis) {}
 
     public record Input(
         String environmentId,
+        String organizationId,
         PortalArea portalArea,
         Optional<PortalNavigationItemId> parentId,
         boolean loadChildren,
-        PortalNavigationItemViewerContext viewerContext
+        PortalNavigationItemViewerContext viewerContext,
+        boolean includeApis
     ) {}
 }

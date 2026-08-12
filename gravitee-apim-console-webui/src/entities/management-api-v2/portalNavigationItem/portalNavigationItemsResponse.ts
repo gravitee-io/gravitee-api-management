@@ -15,6 +15,18 @@
  */
 import { PortalNavigationItem } from './portalNavigationItem';
 
+export interface PortalNavigationItemApiSummary {
+  id: string;
+  name: string;
+  apiVersion: string;
+  contextPath?: string;
+}
+
+export interface PortalNavigationItemsResponseMetadata {
+  apis?: Record<string, PortalNavigationItemApiSummary>;
+}
+
 export interface PortalNavigationItemsResponse {
   items: PortalNavigationItem[];
+  metadata?: PortalNavigationItemsResponseMetadata;
 }

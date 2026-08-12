@@ -62,6 +62,18 @@ describe('PortalNavigationItemService', () => {
         .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items?area=TOP_NAVBAR` })
         .flush(fakeResponse);
     });
+
+    it('should add the includes query param when provided', done => {
+      const fakeResponse = fakePortalNavigationItemsResponse();
+      service.getNavigationItems('TOP_NAVBAR', ['apis']).subscribe(response => {
+        expect(response).toMatchObject(fakeResponse);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items?area=TOP_NAVBAR&includes=apis` })
+        .flush(fakeResponse);
+    });
   });
 
   describe('createNavigationItem', () => {
