@@ -18,7 +18,9 @@ import { ADMIN_AUTH_FILE, CONSOLE_BASE_URL } from '@utils/config';
 
 export default defineConfig({
   testDir: './tests',
-  outputDir: '.tmp/playwright/test-results',
+  // Paths are resolved relative to this file, so `../` keeps every artifact under the package's
+  // own `.tmp/` directory — the same place the Cypress job writes and `.gitignore` already covers.
+  outputDir: '../.tmp/playwright/test-results',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   workers: process.env.CI ? 3 : undefined,
@@ -26,12 +28,13 @@ export default defineConfig({
   reporter: process.env.CI
     ? [
         ['list'],
-        ['html', { outputFolder: '.tmp/playwright/html-report', open: 'never' }],
-        ['junit', { outputFile: '.tmp/playwright/junit/results.xml' }],
+        ['html', { outputFolder: '../.tmp/playwright/html-report', open: 'never' }],
+        ['junit', { outputFile: '../.tmp/playwright/junit/results.xml' }],
       ]
-    : [['list'], ['html', { outputFolder: '.tmp/playwright/html-report', open: 'never' }]],
+    : [['list'], ['html', { outputFolder: '../.tmp/playwright/html-report', open: 'never' }]],
   use: {
     baseURL: CONSOLE_BASE_URL,
+    testIdAttribute: 'data-testid',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

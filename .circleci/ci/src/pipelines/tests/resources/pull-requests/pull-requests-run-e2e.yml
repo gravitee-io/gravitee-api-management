@@ -1004,6 +1004,32 @@ jobs:
           path: ./gravitee-apim-distribution/gravitee-apim-distribution-e2e/.tmp/videos
       - store_artifacts:
           path: ./gravitee-apim-distribution/gravitee-apim-distribution-e2e/.logs
+  job-e2e-playwright:
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: false
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-docker-login
+      - cmd-install-yarn
+      - run:
+          name: Running Playwright UI tests
+          command: |-
+            cd gravitee-apim-distribution/gravitee-apim-distribution-e2e
+            APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=apim-1234-run-e2e-784ff35 yarn test:pw
+      - cmd-docker-logout
+      - cmd-notify-on-failure
+      - store_test_results:
+          path: ./gravitee-apim-distribution/gravitee-apim-distribution-e2e/.tmp/playwright/junit
+      - store_artifacts:
+          path: ./gravitee-apim-distribution/gravitee-apim-distribution-e2e/.tmp/playwright/html-report
+      - store_artifacts:
+          path: ./gravitee-apim-distribution/gravitee-apim-distribution-e2e/.tmp/playwright/test-results
+      - store_artifacts:
+          path: ./gravitee-apim-distribution/gravitee-apim-distribution-e2e/.logs
 workflows:
   pull_requests:
     jobs:
@@ -1302,6 +1328,16 @@ workflows:
           context:
             - cicd-orchestrator
           name: Run Cypress UI tests
+          requires:
+            - Lint & Build APIM e2e
+            - Build APIM Management API docker image
+            - Build APIM Gateway docker image
+            - Build APIM Console docker image
+            - Build APIM Portal docker image
+      - job-e2e-playwright:
+          context:
+            - cicd-orchestrator
+          name: Run Playwright UI tests
           requires:
             - Lint & Build APIM e2e
             - Build APIM Management API docker image

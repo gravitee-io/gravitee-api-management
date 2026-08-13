@@ -32,6 +32,7 @@ import {
   DeployOnAzureJob,
   DeployOnNextGenIntegrationJob,
   E2ECypressJob,
+  E2EPlaywrightJob,
   E2EGenerateSDKJob,
   E2ELintBuildJob,
   E2ETestJob,
@@ -616,6 +617,9 @@ export class PullRequestsWorkflow {
     const e2eCypressJob = E2ECypressJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(e2eCypressJob);
 
+    const e2ePlaywrightJob = E2EPlaywrightJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(e2ePlaywrightJob);
+
     return [
       new workflow.WorkflowJob(buildDockerBackendImageJob, {
         context: config.jobContext,
@@ -658,6 +662,17 @@ export class PullRequestsWorkflow {
       new workflow.WorkflowJob(e2eCypressJob, {
         context: config.jobContext,
         name: 'Run Cypress UI tests',
+        requires: [
+          'Lint & Build APIM e2e',
+          'Build APIM Management API docker image',
+          'Build APIM Gateway docker image',
+          'Build APIM Console docker image',
+          'Build APIM Portal docker image',
+        ],
+      }),
+      new workflow.WorkflowJob(e2ePlaywrightJob, {
+        context: config.jobContext,
+        name: 'Run Playwright UI tests',
         requires: [
           'Lint & Build APIM e2e',
           'Build APIM Management API docker image',

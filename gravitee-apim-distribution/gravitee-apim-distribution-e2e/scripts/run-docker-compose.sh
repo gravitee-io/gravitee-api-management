@@ -26,7 +26,7 @@ computeCypressEnvVariables() {
 
 clean() {
 #  For each docker-compose service stop & remove containers & volumes
-  docker-compose -f ./docker/common/docker-compose-base.yml -f ./docker/common/docker-compose-mongo.yml -f ./docker/common/docker-compose-jdbc.yml -f ./docker/common/docker-compose-apis.yml -f ./docker/common/docker-compose-wiremock.yml -f ./docker/common/docker-compose-uis.yml -f ./docker/ui-tests/docker-compose-ui-tests.yml -f ./docker/api-tests/docker-compose-api-tests.yml --project-directory $PWD rm --force --stop -v 2>/dev/null
+  docker-compose -f ./docker/common/docker-compose-base.yml -f ./docker/common/docker-compose-mongo.yml -f ./docker/common/docker-compose-jdbc.yml -f ./docker/common/docker-compose-apis.yml -f ./docker/common/docker-compose-wiremock.yml -f ./docker/common/docker-compose-uis.yml -f ./docker/ui-tests/docker-compose-ui-tests.yml -f ./docker/ui-tests/docker-compose-playwright-tests.yml -f ./docker/api-tests/docker-compose-api-tests.yml --project-directory $PWD rm --force --stop -v 2>/dev/null
 }
 
 if [ -n "$1" ] && [ "$1" = "clean" ]; then
@@ -64,12 +64,15 @@ if [ -n "$1" ] && [ -n "$2" ]; then
   elif [ "$mode" = "ui-test" ]; then
     computeCypressEnvVariables
     DB_PROVIDER=$databaseType docker-compose -f ./docker/common/docker-compose-base.yml -f ./docker/common/docker-compose-$databaseType.yml -f ./docker/common/docker-compose-apis.yml -f ./docker/common/docker-compose-wiremock.yml -f ./docker/common/docker-compose-uis.yml -f ./docker/ui-tests/docker-compose-ui-tests.yml --project-directory $PWD up --no-build --abort-on-container-exit --exit-code-from cypress
+  elif [ "$mode" = "playwright-test" ]; then
+    DB_PROVIDER=$databaseType docker-compose -f ./docker/common/docker-compose-base.yml -f ./docker/common/docker-compose-$databaseType.yml -f ./docker/common/docker-compose-apis.yml -f ./docker/common/docker-compose-wiremock.yml -f ./docker/common/docker-compose-uis.yml -f ./docker/ui-tests/docker-compose-playwright-tests.yml --project-directory $PWD up --no-build --abort-on-container-exit --exit-code-from playwright
   fi
   # Save exit code of docker-compose
   status=$?
 
   # Extract logs from containers if it exists
   docker logs gravitee-apim-e2e-cypress-1 > ./.logs/cypress.log || true
+  docker logs gravitee-apim-e2e-playwright > ./.logs/playwright.log || true
   docker logs gravitee-apim-e2e-gateway > ./.logs/gateway.log || true
   docker logs gravitee-apim-e2e-management_api > ./.logs/management_api.log || true
   docker logs gravitee-apim-e2e-management_ui > ./.logs/management_ui.log || true
@@ -84,5 +87,5 @@ if [ -n "$1" ] && [ -n "$2" ]; then
   exit $status
 
 else
-  echo "Usage: $0 [clean|only-apim|api-test|ui-test] [mongo|jdbc|bridge]"
+  echo "Usage: $0 [clean|only-apim|api-test|ui-test|playwright-test] [mongo|jdbc|bridge]"
 fi

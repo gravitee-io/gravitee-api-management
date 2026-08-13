@@ -31,7 +31,19 @@ function requiredEnv(name: string): string {
   return value;
 }
 
-export const CONSOLE_BASE_URL = requiredEnv('CONSOLE_BASE_URL');
+/**
+ * Playwright resolves `page.goto(path)` as `new URL(path, baseURL)`. Without a trailing slash the
+ * base URL's last segment is treated as a file and dropped, so a path-prefixed deployment such as
+ * `http://nginx/console` would resolve to the origin root — the Portal, not the Console. Page
+ * objects must also pass relative paths (`''`, `'#!/…'`), because a leading `/` resets to the root
+ * regardless of the trailing slash.
+ */
+const consoleBaseUrl = requiredEnv('CONSOLE_BASE_URL');
+export const CONSOLE_BASE_URL = consoleBaseUrl.endsWith('/') ? consoleBaseUrl : `${consoleBaseUrl}/`;
+
 export const MANAGEMENT_BASE_URL = requiredEnv('MANAGEMENT_BASE_URL');
 
-export const ADMIN_AUTH_FILE = path.join(__dirname, '..', 'fixtures', '.auth', 'admin.json');
+const AUTH_DIR = path.join(__dirname, '..', 'fixtures', '.auth');
+
+export const ADMIN_AUTH_FILE = path.join(AUTH_DIR, 'admin.json');
+export const API_PUBLISHER_AUTH_FILE = path.join(AUTH_DIR, 'api-publisher.json');

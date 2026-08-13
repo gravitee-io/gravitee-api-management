@@ -13,8 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './job-e2e-cypress';
-export * from './job-e2e-generate-sdk';
-export * from './job-e2e-lint-build';
-export * from './job-e2e-playwright';
-export * from './job-e2e-test';
+import { Locator } from '@playwright/test';
+import { BasePage } from './base.page';
+
+export class HomePage extends BasePage {
+  get overviewTab(): Locator {
+    return this.byTestId('home-tab-overview');
+  }
+
+  get apiHealthCheckTab(): Locator {
+    return this.byTestId('home-tab-api-health-check');
+  }
+
+  get tasksTab(): Locator {
+    return this.byTestId('home-tab-tasks');
+  }
+
+  get broadcastsTab(): Locator {
+    return this.byTestId('home-tab-broadcasts');
+  }
+
+  get apiEventsHeading(): Locator {
+    return this.page.getByRole('heading', { name: 'API Events' });
+  }
+}
