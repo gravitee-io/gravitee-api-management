@@ -17,7 +17,9 @@ import { SubscriptionConsumerConfiguration } from './subscription-consumer-confi
 
 export interface Subscription {
   id: string;
-  api: string;
+  api?: string;
+  reference_id?: string;
+  reference_type?: SubscriptionReferenceType;
   application: string;
   closed_at?: string;
   created_at?: string;
@@ -32,6 +34,8 @@ export interface Subscription {
   keys?: SubscriptionDataKeys[];
   consumerConfiguration?: SubscriptionConsumerConfiguration;
 }
+
+export type SubscriptionReferenceType = 'API' | 'API_PRODUCT';
 
 export type SubscriptionStatusEnum = 'PENDING' | 'ACCEPTED' | 'CLOSED' | 'REJECTED' | 'PAUSED';
 

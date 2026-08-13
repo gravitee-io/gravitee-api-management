@@ -19,6 +19,7 @@ import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
 import { ApiProduct } from '../entities/api-product/api-product';
+import { PlansResponse } from '../entities/plan/plans-response';
 
 @Injectable({
   providedIn: 'root',
@@ -29,5 +30,9 @@ export class ApiProductsService {
 
   getById(apiProductId: string): Observable<ApiProduct> {
     return this.http.get<ApiProduct>(`${this.configService.baseURL}/api-products/${apiProductId}`);
+  }
+
+  listPlans(apiProductId: string): Observable<PlansResponse> {
+    return this.http.get<PlansResponse>(`${this.configService.baseURL}/api-products/${apiProductId}/plans?size=-1`);
   }
 }

@@ -20,7 +20,11 @@ import { RadioCardComponent } from '../../../../components/radio-card/radio-card
 import { MobileClassDirective } from '../../../../directives/mobile-class.directive';
 import { NarrowClassDirective } from '../../../../directives/narrow-class.directive';
 import { Application } from '../../../../entities/application/application';
-import { ApplicationVM } from '../subscribe-to-api.component';
+
+export interface ApplicationVM extends Application {
+  disabled?: boolean;
+  disabledMessage?: string;
+}
 
 export const APPLICATIONS_PAGE_SIZE_OPTIONS: number[] = [6, 12, 24, 48, 96];
 export const DEFAULT_APPLICATIONS_PAGE_SIZE = 6;
