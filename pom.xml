@@ -48,6 +48,7 @@
         <grpc-java.version>1.65.0</grpc-java.version>
         <!-- While waiting fot the new version of lombok-plugin, we use this workaround
              https://github.com/awhitford/lombok.maven/issues/179 -->
+<<<<<<< HEAD
         <maven-lombok.version>1.18.36</maven-lombok.version>
         <!-- Gravitee dependencies version -->
         <gravitee-bom.version>8.3.61</gravitee-bom.version>
@@ -79,6 +80,43 @@
         <gravitee-secret-api.version>3.0.0</gravitee-secret-api.version>
         <gravitee-service-discovery-api.version>1.1.1</gravitee-service-discovery-api.version>
         <gravitee-spec-gen-api.version>1.1.0</gravitee-spec-gen-api.version>
+=======
+    <maven-lombok.version>1.18.46</maven-lombok.version>
+    <!-- Gravitee dependencies version -->
+    <gravitee-bom.version>9.0.0</gravitee-bom.version>
+    <gravitee-alert-api.version>3.0.0</gravitee-alert-api.version>
+    <gravitee-cockpit-api.version>3.12.0</gravitee-cockpit-api.version>
+    <gravitee-cloud-initializer.version>2.3.1</gravitee-cloud-initializer.version>
+    <logback-ecs-encoder.version>1.7.0</logback-ecs-encoder.version>
+    <gravitee-common.version>5.1.0</gravitee-common.version>
+    <gravitee-common-elasticsearch.version>7.0.1</gravitee-common-elasticsearch.version>
+    <gravitee-common-mcp.version>1.2.0</gravitee-common-mcp.version>
+    <gravitee-connector-api.version>2.0.0</gravitee-connector-api.version>
+    <gravitee-exchange.version>3.0.0</gravitee-exchange.version>
+    <gravitee-expression-language.version>4.4.0</gravitee-expression-language.version>
+    <gravitee-fetcher-api.version>2.1.0</gravitee-fetcher-api.version>
+    <gravitee-gateway-api.version>6.3.0</gravitee-gateway-api.version>
+    <gravitee-integration-api.version>5.1.0</gravitee-integration-api.version>
+    <gravitee-json-validation.version>3.0.2</gravitee-json-validation.version>
+    <gravitee-kubernetes.version>4.0.0</gravitee-kubernetes.version>
+    <gravitee-node.version>9.6.1</gravitee-node.version>
+    <gravitee-notifier-api.version>2.0.0</gravitee-notifier-api.version>
+    <gravitee-platform-repository-api.version>2.0.0</gravitee-platform-repository-api.version>
+    <gravitee-plugin.version>5.1.5</gravitee-plugin.version>
+    <gravitee-plugin-common-configurations.version>1.5.1</gravitee-plugin-common-configurations.version>
+    <gravitee-policy-api.version>1.11.0</gravitee-policy-api.version>
+    <gravitee-reporter-api.version>2.8.0</gravitee-reporter-api.version>
+    <gravitee-resource-api.version>1.1.0</gravitee-resource-api.version>
+    <gravitee-resource-auth-provider-api.version>1.3.0</gravitee-resource-auth-provider-api.version>
+    <gravitee-resource-cache-provider-api.version>2.2.0</gravitee-resource-cache-provider-api.version>
+    <gravitee-resource-content-provider-api.version>1.0.0</gravitee-resource-content-provider-api.version>
+    <gravitee-resource-oauth2-provider-api.version>1.5.1</gravitee-resource-oauth2-provider-api.version>
+    <gravitee-resource-storage-api.version>1.1.0</gravitee-resource-storage-api.version>
+    <gravitee-scoring-api.version>0.7.0</gravitee-scoring-api.version>
+    <gravitee-secret-api.version>3.0.0</gravitee-secret-api.version>
+    <gravitee-service-discovery-api.version>1.1.1</gravitee-service-discovery-api.version>
+    <gravitee-spec-gen-api.version>1.1.0</gravitee-spec-gen-api.version>
+>>>>>>> 79128f150a (fix(analytics): keep measures total consistent with the sum of its facet buckets)
 
         <!-- Other dependencies version -->
         <angus-activation.version>2.0.2</angus-activation.version>
