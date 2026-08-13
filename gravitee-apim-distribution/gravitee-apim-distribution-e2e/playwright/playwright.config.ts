@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { defineConfig, devices } from '@playwright/test';
-import { ADMIN_AUTH_FILE } from './utils/api-context';
+import { ADMIN_AUTH_FILE, CONSOLE_BASE_URL } from './utils/config';
 
 export default defineConfig({
   testDir: './tests',
@@ -31,7 +31,7 @@ export default defineConfig({
       ]
     : [['list'], ['html', { outputFolder: '.tmp/playwright/html-report', open: 'never' }]],
   use: {
-    baseURL: process.env.PW_BASE_URL ?? 'http://localhost:4000',
+    baseURL: CONSOLE_BASE_URL,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

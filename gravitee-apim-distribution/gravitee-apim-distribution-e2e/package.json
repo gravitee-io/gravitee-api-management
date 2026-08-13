@@ -17,7 +17,7 @@
         "pw:ui": "yarn pw --ui",
         "pw:debug": "yarn pw --debug",
         "pw:report": "playwright show-report .tmp/playwright/html-report",
-        "pw:ci": "PW_BASE_URL=http://nginx/console yarn pw",
+        "pw:ci": "CONSOLE_BASE_URL=http://nginx/console MANAGEMENT_BASE_URL=http://nginx/management GATEWAY_BASE_URL=http://nginx/gateway yarn pw",
         "test:api:mongo": "sh ./scripts/run-docker-compose.sh api-test mongo",
         "test:api:bridge": "sh ./scripts/run-docker-compose.sh api-test bridge",
         "test:api:jdbc": "sh ./scripts/run-docker-compose.sh api-test jdbc",

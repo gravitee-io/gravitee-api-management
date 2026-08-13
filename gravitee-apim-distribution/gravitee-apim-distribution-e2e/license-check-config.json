@@ -41,7 +41,8 @@
     "jacoco/lib/**",
     "jacoco/jacoco.exec",
     "jacoco/reports/**",
-    "jacoco/README.md"
+    "jacoco/README.md",
+    "playwright/README.md"
   ],
   "license": "LICENSE_TEMPLATE.txt",
   "licenseFormats": {
