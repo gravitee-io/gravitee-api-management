@@ -41,6 +41,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -50,10 +52,14 @@ import org.springframework.stereotype.Component;
  * don't need to recreate their category taxonomy after an upgrade. Also migrates the classic
  * API-to-category assignments onto the corresponding Portal Next API navigation items.
  *
- * Ships in the same release as the Portal Next category feature, and the per-environment skip in
- * {@link #applyUpgrade()} means it effectively runs once per environment, against that release's
- * schema. It is deliberately not hardened against the domain/service dependencies it calls (e.g.
- * {@link CreatePortalCategoryUseCase}) changing shape in a later release.
+ * {@link #applyUpgrade()} reports failure (see the upgrader framework's persisted "already applied"
+ * marker) whenever any category or assignment couldn't be migrated, so a later node startup retries
+ * automatically; the retry reconciles via {@link #migrateClassicCategory} looking up already-migrated
+ * categories by title instead of recreating them.
+ *
+ * Ships in the same release as the Portal Next category feature. It is deliberately not hardened
+ * against the domain/service dependencies it calls (e.g. {@link CreatePortalCategoryUseCase})
+ * changing shape in a later release.
  *
  * @author GraviteeSource Team
  */
@@ -98,51 +104,74 @@ public class ClassicCategoriesMigrationUpgrader implements Upgrader {
     }
 
     private boolean applyUpgrade() throws TechnicalException {
+        var allSucceeded = true;
         for (final var environment : environmentRepository.findAll()) {
-            // Portal Next categories already exist for this environment: either this upgrader
-            // already ran, or an admin already created Portal Next categories by hand. Either way,
-            // migrating classic categories on top would create duplicates.
-            if (!portalCategoryQueryService.findByEnvironmentId(environment.getId()).isEmpty()) {
-                continue;
-            }
-
             var classicCategories = categoryRepository.findAllByEnvironment(environment.getId());
             if (classicCategories.isEmpty()) {
                 continue;
             }
 
+            // Keyed by title (case-insensitive), not id: a classic category has no persisted link to
+            // the Portal Next category it becomes, so a retry after a previous partial failure (see
+            // the per-item catches below) recognizes already-migrated categories by the one thing that
+            // is both stable and already required to be unique per environment - see
+            // PortalCategoryDomainService#validateTitleUniqueness - the title itself.
+            var existingPortalCategoriesByTitle = portalCategoryQueryService
+                .findByEnvironmentId(environment.getId())
+                .stream()
+                .collect(Collectors.toMap(category -> category.getTitle().toLowerCase(), Function.identity(), (first, second) -> first));
+
             var apiIdsByClassicCategory = findApiIdsByClassicCategory(environment.getId());
             for (final var classicCategory : classicCategories) {
-                migrateClassicCategory(environment.getId(), classicCategory, apiIdsByClassicCategory);
+                var succeeded = migrateClassicCategory(
+                    environment.getId(),
+                    classicCategory,
+                    existingPortalCategoriesByTitle,
+                    apiIdsByClassicCategory
+                );
+                allSucceeded = allSucceeded && succeeded;
             }
         }
-        return true;
+        // Reporting failure here (rather than swallowing it into a logged warning) means the upgrader
+        // framework does not persist its "already applied" marker, so the next node startup retries -
+        // reconciling via the title lookup above instead of recreating what already succeeded.
+        return allSucceeded;
     }
 
-    private void migrateClassicCategory(String environmentId, Category classicCategory, Map<String, Set<String>> apiIdsByClassicCategory) {
-        PortalCategory createdCategory;
-        try {
-            createdCategory = createPortalCategoryUseCase
-                .execute(
-                    new CreatePortalCategoryUseCase.Input(
-                        environmentId,
-                        ClassicCategoryToPortalCategoryMapper.toCreatePortalCategory(classicCategory)
+    private boolean migrateClassicCategory(
+        String environmentId,
+        Category classicCategory,
+        Map<String, PortalCategory> existingPortalCategoriesByTitle,
+        Map<String, Set<String>> apiIdsByClassicCategory
+    ) {
+        var alreadyMigrated = existingPortalCategoriesByTitle.get(classicCategory.getName().toLowerCase());
+        PortalCategory portalCategory;
+        if (alreadyMigrated != null) {
+            portalCategory = alreadyMigrated;
+        } else {
+            try {
+                portalCategory = createPortalCategoryUseCase
+                    .execute(
+                        new CreatePortalCategoryUseCase.Input(
+                            environmentId,
+                            ClassicCategoryToPortalCategoryMapper.toCreatePortalCategory(classicCategory)
+                        )
                     )
-                )
-                .portalCategory();
-        } catch (Exception e) {
-            log.warn("Unable to migrate classic category {} to a Portal Next category", classicCategory.getId(), e);
-            return;
+                    .portalCategory();
+            } catch (Exception e) {
+                log.warn("Unable to migrate classic category {} to a Portal Next category", classicCategory.getId(), e);
+                return false;
+            }
         }
 
         var apiIds = new HashSet<String>();
         apiIds.addAll(apiIdsByClassicCategory.getOrDefault(classicCategory.getId(), Set.of()));
         apiIds.addAll(apiIdsByClassicCategory.getOrDefault(classicCategory.getKey(), Set.of()));
         if (apiIds.isEmpty()) {
-            return;
+            return true;
         }
 
-        assignApisToPortalCategory(environmentId, apiIds, createdCategory.getId());
+        return assignApisToPortalCategory(environmentId, apiIds, portalCategory.getId());
     }
 
     /**
@@ -166,7 +195,7 @@ public class ClassicCategoriesMigrationUpgrader implements Upgrader {
         return apiIdsByCategory;
     }
 
-    private void assignApisToPortalCategory(String environmentId, Set<String> apiIds, PortalCategoryId portalCategoryId) {
+    private boolean assignApisToPortalCategory(String environmentId, Set<String> apiIds, PortalCategoryId portalCategoryId) {
         var navigationApis = portalNavigationItemsQueryService
             .search(
                 PortalNavigationItemQueryCriteria.builder()
@@ -180,16 +209,25 @@ public class ClassicCategoriesMigrationUpgrader implements Upgrader {
             .map(PortalNavigationApi.class::cast)
             .toList();
 
+        var allSucceeded = true;
         for (final var navigationApi : navigationApis) {
             try {
                 assignCategoryToNavigationApi(navigationApi, portalCategoryId);
             } catch (Exception e) {
                 log.warn("Unable to assign portal category {} to navigation item {}", portalCategoryId, navigationApi.getId(), e);
+                allSucceeded = false;
             }
         }
+        return allSucceeded;
     }
 
     private void assignCategoryToNavigationApi(PortalNavigationApi navigationApi, PortalCategoryId portalCategoryId) {
+        // Reachable on a retry: the category may have already been assigned to this item on a prior
+        // run that failed on a different item afterwards.
+        if (navigationApi.getCategoryIds().contains(portalCategoryId)) {
+            return;
+        }
+
         var newCategoryIds = new ArrayList<>(navigationApi.getCategoryIds());
         newCategoryIds.add(portalCategoryId);
 

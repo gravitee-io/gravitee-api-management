@@ -19,8 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +27,7 @@ import inmemory.PortalCategoryCrudServiceInMemory;
 import inmemory.PortalCategoryQueryServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import io.gravitee.apim.core.portal_category.crud_service.PortalCategoryCrudService;
 import io.gravitee.apim.core.portal_category.domain_service.PortalCategoryDomainService;
 import io.gravitee.apim.core.portal_category.model.PortalCategory;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
@@ -47,7 +46,9 @@ import io.gravitee.repository.management.model.Environment;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -162,21 +163,25 @@ class ClassicCategoriesMigrationUpgraderTest {
 
     @Test
     @SneakyThrows
-    void should_skip_environment_that_already_has_portal_categories() {
+    void should_reuse_existing_portal_category_by_title_instead_of_creating_a_duplicate() {
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT, ANOTHER_ENVIRONMENT));
-        when(categoryRepository.findAllByEnvironment(ANOTHER_ENVIRONMENT.getId())).thenReturn(
+        when(categoryRepository.findAllByEnvironment(Environment.DEFAULT.getId())).thenReturn(
             Set.of(Category.builder().id("classic-category-id").name("News").description("News category").build())
         );
-        portalCategoryQueryService.initWith(
-            List.of(PortalCategory.create(Environment.DEFAULT.getId(), "Existing", "Existing category", true))
+        when(categoryRepository.findAllByEnvironment(ANOTHER_ENVIRONMENT.getId())).thenReturn(
+            Set.of(Category.builder().id("another-classic-category-id").name("Finance").description("Finance category").build())
         );
+        // A Portal Next category titled "News" already exists for DEFAULT - either this upgrader
+        // already migrated it on a prior (partially failed) run, or an admin created it by hand.
+        var existingPortalCategory = PortalCategory.create(Environment.DEFAULT.getId(), "News", "Pre-existing description", true);
+        portalCategoryQueryService.initWith(List.of(existingPortalCategory));
+        portalCategoryCrudService.initWith(List.of(existingPortalCategory));
 
         assertThat(upgrader.upgrade()).isTrue();
 
-        verify(categoryRepository, never()).findAllByEnvironment(Environment.DEFAULT.getId());
-        verify(categoryRepository).findAllByEnvironment(ANOTHER_ENVIRONMENT.getId());
-        assertThat(portalCategoryCrudService.storage()).hasSize(1);
-        assertThat(portalCategoryCrudService.storage().get(0).getTitle()).isEqualTo("News");
+        assertThat(portalCategoryCrudService.storage()).hasSize(2);
+        assertThat(portalCategoryCrudService.storage()).extracting(PortalCategory::getId).contains(existingPortalCategory.getId());
+        assertThat(portalCategoryCrudService.storage()).extracting(PortalCategory::getTitle).containsExactlyInAnyOrder("News", "Finance");
     }
 
     @Test
@@ -265,6 +270,85 @@ class ClassicCategoriesMigrationUpgraderTest {
 
             assertThat(portalCategoryCrudService.storage()).hasSize(1);
             assertThat(portalNavigationItemsStorage).isEmpty();
+        }
+    }
+
+    @Nested
+    class PartialFailureRecovery {
+
+        @Test
+        @SneakyThrows
+        void should_return_false_and_let_a_retry_reconcile_without_recreating_already_migrated_categories() {
+            when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
+            var newsCategory = Category.builder()
+                .id("cat-news")
+                .environmentId(Environment.DEFAULT.getId())
+                .name("News")
+                .description("News category")
+                .build();
+            var financeCategory = Category.builder()
+                .id("cat-finance")
+                .environmentId(Environment.DEFAULT.getId())
+                .name("Finance")
+                .description("Finance category")
+                .build();
+            when(categoryRepository.findAllByEnvironment(Environment.DEFAULT.getId())).thenReturn(Set.of(newsCategory, financeCategory));
+
+            // Simulates a technical failure creating exactly one of the two categories, regardless of
+            // iteration order over the Set.
+            var financeCreationShouldFail = new AtomicBoolean(true);
+            PortalCategoryCrudService flakyCrudService = new PortalCategoryCrudService() {
+                @Override
+                public PortalCategory create(PortalCategory portalCategory) {
+                    if (financeCreationShouldFail.get() && portalCategory.getTitle().equals("Finance")) {
+                        throw new IllegalStateException("simulated technical failure");
+                    }
+                    return portalCategoryCrudService.create(portalCategory);
+                }
+
+                @Override
+                public PortalCategory update(PortalCategory portalCategory) {
+                    return portalCategoryCrudService.update(portalCategory);
+                }
+
+                @Override
+                public void delete(PortalCategoryId id) {
+                    portalCategoryCrudService.delete(id);
+                }
+
+                @Override
+                public Optional<PortalCategory> get(PortalCategoryId id) {
+                    return portalCategoryCrudService.get(id);
+                }
+            };
+            var flakyDomainService = new PortalCategoryDomainService(flakyCrudService, portalCategoryQueryService);
+            var flakyCreateUseCase = new CreatePortalCategoryUseCase(flakyDomainService, flakyCrudService);
+            var flakyUpgrader = new ClassicCategoriesMigrationUpgrader(
+                environmentRepository,
+                categoryRepository,
+                apiRepository,
+                portalCategoryQueryService,
+                flakyCreateUseCase,
+                portalNavigationItemsQueryService,
+                portalNavigationItemCrudService
+            );
+
+            assertThat(flakyUpgrader.upgrade()).isFalse();
+            assertThat(portalCategoryCrudService.storage()).hasSize(1);
+            assertThat(portalCategoryCrudService.storage().get(0).getTitle()).isEqualTo("News");
+
+            // Simulates production: PortalCategoryQueryServiceImpl and PortalCategoryCrudServiceImpl
+            // read/write the same repository, so the query side already reflects what got persisted
+            // by the time a retry (e.g. the next node startup) runs.
+            portalCategoryQueryService.initWith(portalCategoryCrudService.storage());
+            financeCreationShouldFail.set(false);
+
+            assertThat(flakyUpgrader.upgrade()).isTrue();
+
+            assertThat(portalCategoryCrudService.storage()).hasSize(2);
+            assertThat(portalCategoryCrudService.storage())
+                .extracting(PortalCategory::getTitle)
+                .containsExactlyInAnyOrder("News", "Finance");
         }
     }
 
