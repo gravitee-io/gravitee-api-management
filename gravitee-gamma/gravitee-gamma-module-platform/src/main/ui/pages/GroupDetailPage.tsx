@@ -16,23 +16,16 @@
 
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Badge, Button, DateCell, Skeleton } from '@gravitee/graphene-core';
-import {
-    ArrowLeftIcon,
-    LockIcon,
-    MailIcon,
-    PencilIcon,
-    SearchIcon,
-    Trash2Icon,
-    TriangleAlertIcon,
-    UsersRoundIcon,
-} from '@gravitee/graphene-core/icons';
+import { ArrowLeftIcon, PencilIcon, Trash2Icon, UsersRoundIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
+import { GroupAssociationSection } from '../features/groups/components/GroupAssociationSection';
 import { GroupDeleteSheet } from '../features/groups/components/GroupDeleteSheet';
-import { GroupMembershipTable } from '../features/groups/components/GroupMembershipTable';
 import { GroupMembersTable } from '../features/groups/components/GroupMembersTable';
+import { GroupSettingsSection } from '../features/groups/components/GroupSettingsSection';
 import { GroupSheet, type GroupFormValues } from '../features/groups/components/GroupSheet';
+import { SectionError } from '../features/groups/components/SectionError';
 import {
     useGroupApis,
     useGroupApplications,
@@ -45,15 +38,6 @@ import { useGroupApiProductRoles, useGroupApiRoles, useGroupApplicationRoles } f
 import { buildEventRules, buildRolesMap, hasEventRule, parseMaxInvitation } from '../features/groups/utils/groupPayload';
 import { ENVIRONMENT_GROUP_DELETE_PERMISSION, ENVIRONMENT_GROUP_UPDATE_PERMISSION } from '../features/groups/utils/groupPermissions';
 import { notify } from '../shared/notify';
-
-function SectionError({ message }: Readonly<{ message: string }>) {
-    return (
-        <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-sm text-destructive">
-            <TriangleAlertIcon className="size-4 shrink-0" aria-hidden />
-            {message}
-        </div>
-    );
-}
 
 export function GroupDetailPage() {
     const { groupId } = useParams<{ groupId: string }>();
@@ -69,10 +53,11 @@ export function GroupDetailPage() {
     const { data: apis = [], isLoading: apisLoading, isError: apisError } = useGroupApis(groupId);
     const { data: applications = [], isLoading: applicationsLoading, isError: applicationsError } = useGroupApplications(groupId);
     const { data: apiProducts = [], isLoading: apiProductsLoading, isError: apiProductsError } = useGroupApiProducts(groupId);
-    // Only needed to populate the Edit sheet's role dropdowns — skip fetching when the user can't open it.
-    const { data: apiRoles = [], isLoading: apiRolesLoading } = useGroupApiRoles({ enabled: canEdit });
-    const { data: applicationRoles = [], isLoading: applicationRolesLoading } = useGroupApplicationRoles({ enabled: canEdit });
-    const { data: apiProductRoles = [], isLoading: apiProductRolesLoading } = useGroupApiProductRoles({ enabled: canEdit });
+    const { data: apiRoles = [], isLoading: apiRolesLoading } = useGroupApiRoles({ enabled: canEdit && editOpen });
+    const { data: applicationRoles = [], isLoading: applicationRolesLoading } = useGroupApplicationRoles({
+        enabled: canEdit && editOpen,
+    });
+    const { data: apiProductRoles = [], isLoading: apiProductRolesLoading } = useGroupApiProductRoles({ enabled: canEdit && editOpen });
 
     const updateMutation = useUpdateGroup();
     const deleteMutation = useDeleteGroup();
@@ -215,63 +200,7 @@ export function GroupDetailPage() {
                     </div>
                 </section>
 
-                <section className="space-y-4 rounded-xl border bg-card p-5">
-                    <div>
-                        <h2 className="text-base font-semibold">Settings</h2>
-                        <p className="text-sm text-muted-foreground">
-                            Default roles, member limits, and invitation methods for this group.
-                        </p>
-                    </div>
-                    <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
-                        <div>
-                            <dt className="text-xs font-medium text-muted-foreground">Default API role</dt>
-                            <dd className="flex items-center gap-1.5 text-sm">
-                                {group.roles?.API ?? '—'}
-                                {group.lock_api_role && <LockIcon className="size-3.5 text-muted-foreground" aria-label="Locked" />}
-                            </dd>
-                        </div>
-                        <div>
-                            <dt className="text-xs font-medium text-muted-foreground">Default API product role</dt>
-                            <dd className="flex items-center gap-1.5 text-sm">
-                                {group.roles?.API_PRODUCT ?? '—'}
-                                {group.lock_api_product_role && <LockIcon className="size-3.5 text-muted-foreground" aria-label="Locked" />}
-                            </dd>
-                        </div>
-                        <div>
-                            <dt className="text-xs font-medium text-muted-foreground">Default application role</dt>
-                            <dd className="flex items-center gap-1.5 text-sm">
-                                {group.roles?.APPLICATION ?? '—'}
-                                {group.lock_application_role && <LockIcon className="size-3.5 text-muted-foreground" aria-label="Locked" />}
-                            </dd>
-                        </div>
-                        <div>
-                            <dt className="text-xs font-medium text-muted-foreground">Max members</dt>
-                            <dd className="text-sm">{typeof group.max_invitation === 'number' ? group.max_invitation : 'Unlimited'}</dd>
-                        </div>
-                        <div>
-                            <dt className="text-xs font-medium text-muted-foreground">Invitation methods</dt>
-                            <dd className="flex flex-wrap items-center gap-1.5 text-sm">
-                                {group.system_invitation && (
-                                    <Badge variant="default" className="gap-1 text-xs font-normal">
-                                        <SearchIcon className="size-3" aria-hidden />
-                                        User search
-                                    </Badge>
-                                )}
-                                {group.email_invitation && (
-                                    <Badge variant="default" className="gap-1 text-xs font-normal">
-                                        <MailIcon className="size-3" aria-hidden />
-                                        Email invitation
-                                    </Badge>
-                                )}
-                                {!group.system_invitation && !group.email_invitation && <span className="text-muted-foreground">None</span>}
-                            </dd>
-                        </div>
-                        <div>
-                            <dt className="text-xs font-medium text-muted-foreground">Notify on new members</dt>
-                            <dd className="text-sm">{group.disable_membership_notifications ? 'No' : 'Yes'}</dd>
-                        </div>
-                    </dl>
-                </section>
+                <GroupSettingsSection group={group} />
 
                 <section className="space-y-4 rounded-xl border bg-card p-5">
                     <div>
@@ -285,51 +214,39 @@ export function GroupDetailPage() {
                     )}
                 </section>
 
-                <section className="space-y-4 rounded-xl border bg-card p-5">
-                    <h2 className="text-base font-semibold">APIs</h2>
-                    {apisError ? (
-                        <SectionError message="Failed to load associated APIs. Please refresh and try again." />
-                    ) : (
-                        <GroupMembershipTable
-                            items={apis}
-                            loading={apisLoading}
-                            ariaLabel="APIs"
-                            searchPlaceholder="Search APIs…"
-                            emptyTitle="No dependent APIs to display"
-                        />
-                    )}
-                </section>
+                <GroupAssociationSection
+                    title="APIs"
+                    error={apisError}
+                    errorMessage="Failed to load associated APIs. Please refresh and try again."
+                    items={apis}
+                    loading={apisLoading}
+                    ariaLabel="APIs"
+                    searchPlaceholder="Search APIs…"
+                    emptyTitle="No dependent APIs to display"
+                />
 
-                <section className="space-y-4 rounded-xl border bg-card p-5">
-                    <h2 className="text-base font-semibold">API Products</h2>
-                    {apiProductsError ? (
-                        <SectionError message="Failed to load associated API Products. Please refresh and try again." />
-                    ) : (
-                        <GroupMembershipTable
-                            items={apiProducts}
-                            loading={apiProductsLoading}
-                            ariaLabel="API Products"
-                            searchPlaceholder="Search API Products…"
-                            emptyTitle="No dependent API Products to display"
-                        />
-                    )}
-                </section>
+                <GroupAssociationSection
+                    title="API Products"
+                    error={apiProductsError}
+                    errorMessage="Failed to load associated API Products. Please refresh and try again."
+                    items={apiProducts}
+                    loading={apiProductsLoading}
+                    ariaLabel="API Products"
+                    searchPlaceholder="Search API Products…"
+                    emptyTitle="No dependent API Products to display"
+                />
 
-                <section className="space-y-4 rounded-xl border bg-card p-5">
-                    <h2 className="text-base font-semibold">Applications</h2>
-                    {applicationsError ? (
-                        <SectionError message="Failed to load associated applications. Please refresh and try again." />
-                    ) : (
-                        <GroupMembershipTable
-                            items={applications}
-                            loading={applicationsLoading}
-                            ariaLabel="Applications"
-                            searchPlaceholder="Search Applications…"
-                            emptyTitle="No dependent applications to display"
-                            showVersionColumn={false}
-                        />
-                    )}
-                </section>
+                <GroupAssociationSection
+                    title="Applications"
+                    error={applicationsError}
+                    errorMessage="Failed to load associated applications. Please refresh and try again."
+                    items={applications}
+                    loading={applicationsLoading}
+                    ariaLabel="Applications"
+                    searchPlaceholder="Search Applications…"
+                    emptyTitle="No dependent applications to display"
+                    showVersionColumn={false}
+                />
             </div>
 
             <GroupSheet
