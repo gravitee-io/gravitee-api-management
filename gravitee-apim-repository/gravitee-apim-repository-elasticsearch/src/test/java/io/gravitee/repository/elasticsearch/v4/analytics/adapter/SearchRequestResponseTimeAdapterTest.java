@@ -211,11 +211,11 @@ class SearchRequestResponseTimeAdapterTest {
         @Test
         void should_return_request_response_time_aggregate() {
             final Aggregation minResponseTimeAggregation = new Aggregation();
-            minResponseTimeAggregation.setValue(20.0f);
+            minResponseTimeAggregation.setValue(20.0d);
             final Aggregation maxResponseTimeAggregation = new Aggregation();
-            maxResponseTimeAggregation.setValue(1200.0f);
+            maxResponseTimeAggregation.setValue(1200.0d);
             final Aggregation avgResponseTimeAggregation = new Aggregation();
-            avgResponseTimeAggregation.setValue(335.23f);
+            avgResponseTimeAggregation.setValue(335.23d);
 
             searchResponse.setAggregations(
                 Map.of(
@@ -239,7 +239,7 @@ class SearchRequestResponseTimeAdapterTest {
                 soft.assertThat(result.getRequestsTotal()).isEqualTo(4);
                 soft.assertThat(result.getResponseMinTime()).isEqualTo(20.0);
                 soft.assertThat(result.getResponseMaxTime()).isEqualTo(1200.0);
-                soft.assertThat(result.getResponseAvgTime()).isEqualTo(335.2300109863281);
+                soft.assertThat(result.getResponseAvgTime()).isEqualTo(335.23);
             });
         }
     }
