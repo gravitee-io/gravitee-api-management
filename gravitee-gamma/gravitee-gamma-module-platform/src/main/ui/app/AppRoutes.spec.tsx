@@ -25,12 +25,14 @@ jest.mock('./PlatformToaster', () => ({
     PlatformToaster: () => <div data-testid="platform-toaster" />,
 }));
 
+const mockUseModuleRouting = jest.fn(() => ({
+    activeNavKey: 'applications',
+    navigateToKey: jest.fn(),
+    rootPath: '/platform',
+}));
+
 jest.mock('@gravitee/gamma-modules-sdk/routing', () => ({
-    useModuleRouting: () => ({
-        activeNavKey: 'applications',
-        navigateToKey: jest.fn(),
-        rootPath: '/platform',
-    }),
+    useModuleRouting: () => mockUseModuleRouting(),
 }));
 
 const mockUseLayoutConfig = jest.fn();
@@ -40,7 +42,8 @@ jest.mock('@gravitee/graphene-core', () => {
     return {
         ...actual,
         useLayoutConfig: (config: unknown, deps: unknown) => mockUseLayoutConfig(config, deps),
-        SidebarNavigation: () => null,
+        ContextSidebar: () => null,
+        ContextToggleButton: () => null,
         buildLinearBreadcrumbs: () => [],
     };
 });
@@ -99,23 +102,48 @@ jest.mock('../pages/ApplicationDetailSubscriptionPage', () => ({
     ApplicationDetailSubscriptionPage: () => null,
 }));
 
-function renderPlatform() {
+function renderPlatform(path = '/applications') {
     render(
-        <MemoryRouter initialEntries={['/applications']}>
+        <MemoryRouter initialEntries={[path]}>
             <AppRoutes />
         </MemoryRouter>,
     );
 }
 
+type LayoutConfig = {
+    navigation?: { props?: { items?: { key: string; title: string }[]; onItemSelect?: (key: string) => void } };
+    contextSidebar?: { props?: { groups?: { items: { key: string }[] }[]; onItemSelect?: (key: string) => void } };
+};
+
+function layoutConfigs(): LayoutConfig[] {
+    return mockUseLayoutConfig.mock.calls.map(call => call[0] as LayoutConfig);
+}
+
+function primaryNav() {
+    return layoutConfigs().findLast(config => config.navigation)?.navigation;
+}
+
+function contextSidebar() {
+    return layoutConfigs().findLast(config => config.contextSidebar)?.contextSidebar;
+}
+
 function visibleNavKeys(): string[] {
-    const config = mockUseLayoutConfig.mock.calls.at(-1)?.[0] as { navigation?: { props?: { groups?: unknown } } } | undefined;
-    const groups = (config?.navigation?.props?.groups ?? []) as { items: { key: string }[] }[];
+    const groups = contextSidebar()?.props?.groups ?? [];
     return groups.flatMap(group => group.items.map(item => item.key));
+}
+
+function primaryNavKeys(): string[] {
+    return primaryNav()?.props?.items?.map(item => item.key) ?? [];
 }
 
 describe('AppRoutes', () => {
     beforeEach(() => {
         mockUseLayoutConfig.mockClear();
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'applications',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
         mockUseHasPermission.mockReset().mockReturnValue(true);
         mockUseEnvironmentDictionaries.mockReturnValue({
             data: [],
@@ -168,16 +196,48 @@ describe('AppRoutes', () => {
         expect(screen.getByTestId('group-detail-page')).not.toBeNull();
     });
 
-    it('shows the Groups nav item when the user has read permission', () => {
+    it('shows Organization, Environment, and Team in the primary sidebar', () => {
         renderPlatform();
+
+        expect(primaryNavKeys()).toEqual(['organization', 'environment', 'team']);
+        expect(primaryNav()?.props?.items?.map(item => item.title)).toEqual(['Organization', 'Environment', 'Team']);
+    });
+
+    it('does not show a General primary nav item', () => {
+        renderPlatform();
+
+        expect(primaryNavKeys()).not.toContain('general');
+    });
+
+    it('shows Applications in the Environment context sidebar', () => {
+        renderPlatform();
+
+        expect(visibleNavKeys()).toContain('applications');
+        expect(visibleNavKeys()).toContain('metadata');
+        expect(visibleNavKeys()).toContain('dictionaries');
+        expect(visibleNavKeys()).not.toContain('users');
+    });
+
+    it('shows the User Groups nav item when the user has read permission', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'user-groups',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        renderPlatform('/user-groups');
 
         expect(visibleNavKeys()).toContain('user-groups');
     });
 
     it('hides the Groups nav item when the user lacks environment-group-r', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'user-groups',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
         mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-group-r'));
 
-        renderPlatform();
+        renderPlatform('/user-groups');
 
         expect(visibleNavKeys()).not.toContain('user-groups');
     });
@@ -246,5 +306,61 @@ describe('AppRoutes', () => {
         );
 
         expect(screen.getByTestId('user-detail-page')).not.toBeNull();
+    });
+
+    it('navigates to the first visible item when a different primary section is selected', () => {
+        const navigateToKey = jest.fn();
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'applications',
+            navigateToKey,
+            rootPath: '/platform',
+        });
+        renderPlatform();
+
+        primaryNav()?.props?.onItemSelect?.('team');
+
+        expect(navigateToKey).toHaveBeenCalledWith('users');
+    });
+
+    it('does not navigate when the already-active primary section is selected', () => {
+        const navigateToKey = jest.fn();
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'applications',
+            navigateToKey,
+            rootPath: '/platform',
+        });
+        renderPlatform();
+
+        primaryNav()?.props?.onItemSelect?.('environment');
+
+        expect(navigateToKey).not.toHaveBeenCalled();
+    });
+
+    it('navigates context sidebar items by their own keys', () => {
+        const navigateToKey = jest.fn();
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'applications',
+            navigateToKey,
+            rootPath: '/platform',
+        });
+        renderPlatform();
+
+        contextSidebar()?.props?.onItemSelect?.('metadata');
+
+        expect(navigateToKey).toHaveBeenCalledWith('metadata');
+    });
+
+    it('does not set a platform context sidebar on application detail pages', () => {
+        renderPlatform('/applications/app-1');
+
+        expect(screen.getByTestId('application-detail-layout')).not.toBeNull();
+        expect(primaryNavKeys()).toEqual(['organization', 'environment', 'team']);
+        expect(contextSidebar()).toBeUndefined();
+    });
+
+    it('routes to the register application page under the platform module', () => {
+        renderPlatform('/applications/new');
+
+        expect(screen.getByTestId('register-application-page')).not.toBeNull();
     });
 });

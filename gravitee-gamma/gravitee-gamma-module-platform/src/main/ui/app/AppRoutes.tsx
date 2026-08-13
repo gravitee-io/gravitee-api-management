@@ -14,15 +14,33 @@
  * limitations under the License.
  */
 import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
-import { buildLinearBreadcrumbs, SidebarNavigation, useLayoutConfig } from '@gravitee/graphene-core';
+import {
+    buildLinearBreadcrumbs,
+    ContextSidebar,
+    ContextToggleButton,
+    type NavItem,
+    SidebarGroup,
+    SidebarGroupContent,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    useLayoutConfig,
+} from '@gravitee/graphene-core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { type ReactElement, useMemo } from 'react';
+import { createContext, type ReactElement, useCallback, useContext, useMemo, useState } from 'react';
 import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 
 import { PlatformToaster } from './PlatformToaster';
 import { APPLICATION_NAV_GROUPS, flattenApplicationDetailNavItems } from '../config/applicationDetailNavigation';
 import { applicationDetailTabElement } from '../config/applicationDetailPages';
-import { NAV_GROUPS } from '../config/navigation';
+import {
+    filterNavSections,
+    findNavSectionKey,
+    firstNavItemKey,
+    NAV_SECTIONS,
+    platformPrimaryNavItems,
+    type PlatformNavSection,
+} from '../config/navigation';
 import { PLATFORM_ROUTE_CONFIG } from '../config/routes';
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
@@ -124,10 +142,60 @@ function EntrypointsGuard() {
     return <EntrypointsAndShardingTagsPage />;
 }
 
+function PlatformPrimaryNavigation({
+    items,
+    activeItemKey,
+    onItemSelect,
+}: Readonly<{ items: NavItem[]; activeItemKey?: string; onItemSelect: (key: string) => void }>) {
+    return (
+        <SidebarGroup>
+            <SidebarGroupContent>
+                <SidebarMenu>
+                    {items.map(item => {
+                        const Icon = item.icon;
+                        return (
+                            <SidebarMenuItem key={item.key}>
+                                <SidebarMenuButton
+                                    isActive={item.key === activeItemKey}
+                                    tooltip={item.title}
+                                    onClick={() => onItemSelect(item.key)}
+                                >
+                                    {Icon ? <Icon /> : null}
+                                    <span>{item.title}</span>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        );
+                    })}
+                </SidebarMenu>
+            </SidebarGroupContent>
+        </SidebarGroup>
+    );
+}
+
+interface PlatformNavContextValue {
+    readonly activeNavKey: string;
+    readonly activeSection: PlatformNavSection | undefined;
+    readonly navigateToKey: (key: string) => void;
+    readonly contextExpanded: boolean;
+    readonly toggleContext: () => void;
+}
+
+const PlatformNavContext = createContext<PlatformNavContextValue | null>(null);
+
+function usePlatformNavContext(): PlatformNavContextValue {
+    const value = useContext(PlatformNavContext);
+    if (!value) {
+        throw new Error('PlatformSectionLayout must render inside ModuleLayout');
+    }
+    return value;
+}
+
 function ModuleLayout() {
     useEnvironmentPermissions();
 
     const permissionsReady = useEnvironmentPermissionsReady();
+    const [contextExpanded, setContextExpanded] = useState(true);
+    const toggleContext = useCallback(() => setContextExpanded(expanded => !expanded), []);
 
     // Only probe the resource once the permission map already says "yes" — that's the only case where a
     // 403 here would disagree with it. Probing unconditionally would hit both list APIs on every platform
@@ -145,29 +213,76 @@ function ModuleLayout() {
     const canReadEntrypoints = useHasPermission({ anyOf: ['environment-entrypoint-r', 'organization-entrypoint-r'] });
     const canReadGroups = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_READ_PERMISSION] });
 
-    const navigate = useNavigate();
     const { activeNavKey, navigateToKey } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
 
-    const visibleNavGroups = useMemo(
+    const visibleNavSections = useMemo(
         () =>
-            NAV_GROUPS.map(group => ({
-                ...group,
-                items: group.items.filter(item =>
-                    isNavItemVisible(
-                        item.key,
-                        permissionsReady,
-                        canReadMetadata,
-                        canReadDictionaries,
-                        canAccessUsers,
-                        canReadGateways,
-                        canReadEntrypoints,
-                        canReadGroups,
-                    ),
+            filterNavSections(NAV_SECTIONS, itemKey =>
+                isNavItemVisible(
+                    itemKey,
+                    permissionsReady,
+                    canReadMetadata,
+                    canReadDictionaries,
+                    canAccessUsers,
+                    canReadGateways,
+                    canReadEntrypoints,
+                    canReadGroups,
                 ),
-            })).filter(group => group.items.length > 0),
+            ),
         [permissionsReady, canReadMetadata, canReadDictionaries, canAccessUsers, canReadGateways, canReadEntrypoints, canReadGroups],
     );
 
+    const activeSectionKey = findNavSectionKey(visibleNavSections, activeNavKey) ?? visibleNavSections[0]?.key;
+    const activeSection = visibleNavSections.find(section => section.key === activeSectionKey);
+
+    const handleSectionSelect = useCallback(
+        (key: string) => {
+            const section = visibleNavSections.find(candidate => candidate.key === key);
+            if (!section) {
+                return;
+            }
+            // Compare against the section that owns the current page, not activeSectionKey.
+            // activeSectionKey falls back to the first visible section, which would no-op a click
+            // onto that section when the current page is not in any visible section.
+            if (findNavSectionKey(visibleNavSections, activeNavKey) === section.key) {
+                return;
+            }
+            const firstKey = firstNavItemKey(section);
+            if (firstKey) {
+                navigateToKey(firstKey);
+            }
+        },
+        [activeNavKey, navigateToKey, visibleNavSections],
+    );
+
+    useLayoutConfig(
+        {
+            navigation: (
+                <PlatformPrimaryNavigation
+                    items={platformPrimaryNavItems(visibleNavSections)}
+                    activeItemKey={activeSectionKey}
+                    onItemSelect={handleSectionSelect}
+                />
+            ),
+        },
+        [activeSectionKey, handleSectionSelect, visibleNavSections],
+    );
+
+    const navContext = useMemo(
+        () => ({ activeNavKey, activeSection, navigateToKey, contextExpanded, toggleContext }),
+        [activeNavKey, activeSection, navigateToKey, contextExpanded, toggleContext],
+    );
+
+    return (
+        <PlatformNavContext.Provider value={navContext}>
+            <Outlet />
+        </PlatformNavContext.Provider>
+    );
+}
+
+function PlatformSectionLayout() {
+    const { activeNavKey, activeSection, navigateToKey, contextExpanded, toggleContext } = usePlatformNavContext();
+    const navigate = useNavigate();
     const breadcrumbs = useMemo(
         () => buildLinearBreadcrumbs(navigate, [{ label: PLATFORM_ROUTE_CONFIG.routes[activeNavKey].label }]),
         [activeNavKey, navigate],
@@ -175,10 +290,15 @@ function ModuleLayout() {
 
     useLayoutConfig(
         {
-            navigation: <SidebarNavigation groups={visibleNavGroups} activeItemKey={activeNavKey} onItemSelect={navigateToKey} />,
+            viewMode: 'context',
+            contextExpanded,
+            contextSidebar: (
+                <ContextSidebar groups={activeSection?.groups ?? []} activeItemKey={activeNavKey} onItemSelect={navigateToKey} />
+            ),
+            leading: <ContextToggleButton expanded={contextExpanded} onToggle={toggleContext} />,
             breadcrumbs,
         },
-        [activeNavKey, breadcrumbs, navigateToKey, visibleNavGroups],
+        [activeNavKey, activeSection, breadcrumbs, contextExpanded, navigateToKey, toggleContext],
     );
 
     return <Outlet />;
@@ -192,114 +312,120 @@ export function AppRoutes() {
                 <PlatformToaster />
                 <Routes>
                     <Route element={<ModuleLayout />}>
-                        <Route index element={<Navigate to="applications" replace />} />
-                        <Route path="applications">
-                            <Route index element={<ApplicationsPage />} />
-                            <Route path="new" element={<RegisterApplicationPage />} />
-                            <Route path=":applicationId" element={<ApplicationDetailLayout />}>
-                                <Route index element={<ApplicationDetailIndexRedirect />} />
-                                {APPLICATION_DETAIL_TABS.map(tab => (
-                                    <Route key={tab.path} path={tab.path} element={applicationDetailTabElement(tab.path, tab.label)} />
-                                ))}
-                                <Route path="subscriptions/:subscriptionId" element={<ApplicationDetailSubscriptionPage />} />
-                                <Route path="*" element={<ApplicationDetailIndexRedirect />} />
+                        <Route element={<PlatformSectionLayout />}>
+                            <Route index element={<Navigate to="applications" replace />} />
+                            <Route path="applications" element={<ApplicationsPage />} />
+                            <Route path="applications/new" element={<RegisterApplicationPage />} />
+                            <Route path="access-management" element={<AccessManagementPage />} />
+                            <Route path="users">
+                                <Route
+                                    index
+                                    element={
+                                        <PermissionPageGuard anyOf={ORGANIZATION_USER_ACCESS_PERMISSIONS}>
+                                            <UsersPage />
+                                        </PermissionPageGuard>
+                                    }
+                                />
+                                <Route
+                                    path=":userId"
+                                    element={
+                                        <PermissionPageGuard anyOf={ORGANIZATION_USER_ACCESS_PERMISSIONS}>
+                                            <UserDetailPage />
+                                        </PermissionPageGuard>
+                                    }
+                                />
                             </Route>
-                        </Route>
-                        <Route path="access-management" element={<AccessManagementPage />} />
-                        <Route path="users">
-                            <Route
-                                index
-                                element={
-                                    <PermissionPageGuard anyOf={ORGANIZATION_USER_ACCESS_PERMISSIONS}>
-                                        <UsersPage />
-                                    </PermissionPageGuard>
-                                }
-                            />
-                            <Route
-                                path=":userId"
-                                element={
-                                    <PermissionPageGuard anyOf={ORGANIZATION_USER_ACCESS_PERMISSIONS}>
-                                        <UserDetailPage />
-                                    </PermissionPageGuard>
-                                }
-                            />
-                        </Route>
-                        <Route path="user-groups">
-                            <Route
-                                index
-                                element={
-                                    <PermissionPageGuard permission={ENVIRONMENT_GROUP_READ_PERMISSION} unauthorizedTo="../applications">
-                                        <GroupsPage />
-                                    </PermissionPageGuard>
-                                }
-                            />
-                            <Route
-                                path=":groupId"
-                                element={
-                                    <PermissionPageGuard permission={ENVIRONMENT_GROUP_READ_PERMISSION} unauthorizedTo="../../applications">
-                                        <GroupDetailPage />
-                                    </PermissionPageGuard>
-                                }
-                            />
-                        </Route>
-                        <Route
-                            path="metadata"
-                            element={
-                                <PermissionPageGuard permission="environment-metadata-r">
-                                    <MetadataPage />
-                                </PermissionPageGuard>
-                            }
-                        />
-                        <Route path="dictionaries">
-                            <Route
-                                index
-                                element={
-                                    <PermissionPageGuard permission="environment-dictionary-r" unauthorizedTo="../applications">
-                                        <DictionariesPage />
-                                    </PermissionPageGuard>
-                                }
-                            />
-                            <Route
-                                path=":dictionaryId"
-                                element={
-                                    <PermissionPageGuard
-                                        anyOf={[
-                                            'environment-dictionary-c',
-                                            'environment-dictionary-r',
-                                            'environment-dictionary-u',
-                                            'environment-dictionary-d',
-                                        ]}
-                                        unauthorizedTo="../../applications"
-                                    >
-                                        <DictionaryDetailPage />
-                                    </PermissionPageGuard>
-                                }
-                            />
-                        </Route>
-                        <Route path="gateways">
-                            <Route
-                                index
-                                element={
-                                    <PermissionPageGuard permission="environment-instance-r" unauthorizedTo="../applications">
-                                        <GatewayInstancesPage />
-                                    </PermissionPageGuard>
-                                }
-                            />
-                            <Route
-                                path=":instanceId"
-                                element={
-                                    <PermissionPageGuard permission="environment-instance-r" unauthorizedTo="../../applications">
-                                        <GatewayInstanceDetailLayout />
-                                    </PermissionPageGuard>
-                                }
-                            >
-                                <Route index element={<Navigate to="environment" replace />} />
-                                <Route path="environment" element={<GatewayInstanceEnvironmentPage />} />
-                                <Route path="monitoring" element={<GatewayInstanceMonitoringPage />} />
+                            <Route path="user-groups">
+                                <Route
+                                    index
+                                    element={
+                                        <PermissionPageGuard
+                                            permission={ENVIRONMENT_GROUP_READ_PERMISSION}
+                                            unauthorizedTo="../applications"
+                                        >
+                                            <GroupsPage />
+                                        </PermissionPageGuard>
+                                    }
+                                />
+                                <Route
+                                    path=":groupId"
+                                    element={
+                                        <PermissionPageGuard
+                                            permission={ENVIRONMENT_GROUP_READ_PERMISSION}
+                                            unauthorizedTo="../../applications"
+                                        >
+                                            <GroupDetailPage />
+                                        </PermissionPageGuard>
+                                    }
+                                />
                             </Route>
+                            <Route
+                                path="metadata"
+                                element={
+                                    <PermissionPageGuard permission="environment-metadata-r">
+                                        <MetadataPage />
+                                    </PermissionPageGuard>
+                                }
+                            />
+                            <Route path="dictionaries">
+                                <Route
+                                    index
+                                    element={
+                                        <PermissionPageGuard permission="environment-dictionary-r" unauthorizedTo="../applications">
+                                            <DictionariesPage />
+                                        </PermissionPageGuard>
+                                    }
+                                />
+                                <Route
+                                    path=":dictionaryId"
+                                    element={
+                                        <PermissionPageGuard
+                                            anyOf={[
+                                                'environment-dictionary-c',
+                                                'environment-dictionary-r',
+                                                'environment-dictionary-u',
+                                                'environment-dictionary-d',
+                                            ]}
+                                            unauthorizedTo="../../applications"
+                                        >
+                                            <DictionaryDetailPage />
+                                        </PermissionPageGuard>
+                                    }
+                                />
+                            </Route>
+                            <Route path="gateways">
+                                <Route
+                                    index
+                                    element={
+                                        <PermissionPageGuard permission="environment-instance-r" unauthorizedTo="../applications">
+                                            <GatewayInstancesPage />
+                                        </PermissionPageGuard>
+                                    }
+                                />
+                                <Route
+                                    path=":instanceId"
+                                    element={
+                                        <PermissionPageGuard permission="environment-instance-r" unauthorizedTo="../../applications">
+                                            <GatewayInstanceDetailLayout />
+                                        </PermissionPageGuard>
+                                    }
+                                >
+                                    <Route index element={<Navigate to="environment" replace />} />
+                                    <Route path="environment" element={<GatewayInstanceEnvironmentPage />} />
+                                    <Route path="monitoring" element={<GatewayInstanceMonitoringPage />} />
+                                </Route>
+                            </Route>
+                            <Route path="entrypoints-and-sharding-tags" element={<EntrypointsGuard />} />
+                            <Route path="security-plan-types" element={<SecurityPlanTypesPage />} />
                         </Route>
-                        <Route path="entrypoints-and-sharding-tags" element={<EntrypointsGuard />} />
-                        <Route path="security-plan-types" element={<SecurityPlanTypesPage />} />
+                        <Route path="applications/:applicationId" element={<ApplicationDetailLayout />}>
+                            <Route index element={<ApplicationDetailIndexRedirect />} />
+                            {APPLICATION_DETAIL_TABS.map(tab => (
+                                <Route key={tab.path} path={tab.path} element={applicationDetailTabElement(tab.path, tab.label)} />
+                            ))}
+                            <Route path="subscriptions/:subscriptionId" element={<ApplicationDetailSubscriptionPage />} />
+                            <Route path="*" element={<ApplicationDetailIndexRedirect />} />
+                        </Route>
                     </Route>
                 </Routes>
             </ConsoleSettingsProvider>
