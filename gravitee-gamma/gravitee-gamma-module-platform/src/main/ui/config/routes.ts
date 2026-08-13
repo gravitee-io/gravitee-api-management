@@ -25,6 +25,7 @@ export const ROUTE_KEYS: readonly string[] = [
     'security-plan-types',
     'gateways',
     'entrypoints-and-sharding-tags',
+    'alerts',
 ];
 export type RouteKey = (typeof ROUTE_KEYS)[number];
 
@@ -40,6 +41,7 @@ export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: s
     dictionaries: { path: 'dictionaries', label: 'Dictionaries' },
     gateways: { path: 'gateways', label: 'Gateways' },
     'entrypoints-and-sharding-tags': { path: 'entrypoints-and-sharding-tags', label: 'Entrypoints & Sharding Tags' },
+    alerts: { path: 'alerts', label: 'Alerts' },
 };
 
 export const PLATFORM_ROUTE_CONFIG: ModuleRouteConfig<RouteKey> = {
