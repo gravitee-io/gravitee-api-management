@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
@@ -26,6 +27,7 @@ import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.mongodb.management.internal.application.ApplicationMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.applications.ClientIdUniqueIndexUpgrader;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -66,8 +68,23 @@ public class MongoApplicationRepository implements ApplicationRepository {
     @Override
     public Application create(Application application) throws TechnicalException {
         ApplicationMongo applicationMongo = mapApplication(application);
-        ApplicationMongo applicationMongoCreated = internalApplicationRepo.insert(applicationMongo);
-        return mapApplication(applicationMongoCreated);
+        try {
+            ApplicationMongo applicationMongoCreated = internalApplicationRepo.insert(applicationMongo);
+            return mapApplication(applicationMongoCreated);
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            if (isClientIdConflict(e)) {
+                throw new DuplicateKeyException(String.format("An error occurred while creating application [%s]", application.getId()), e);
+            }
+            throw e;
+        }
+    }
+
+    /**
+     * Only a violation of the client_id unique index is a duplicate key the callers can act upon, any other conflict
+     * (a reused application id, typically) keeps being reported as it used to be.
+     */
+    private boolean isClientIdConflict(org.springframework.dao.DuplicateKeyException e) {
+        return e.getMessage() != null && e.getMessage().contains(ClientIdUniqueIndexUpgrader.INDEX_NAME);
     }
 
     @Override
@@ -97,8 +114,15 @@ public class MongoApplicationRepository implements ApplicationRepository {
         applicationMongo.setApiKeyMode(application.getApiKeyMode().name());
         applicationMongo.setDisableMembershipNotifications(application.isDisableMembershipNotifications());
 
-        ApplicationMongo applicationMongoUpdated = internalApplicationRepo.save(applicationMongo);
-        return mapApplication(applicationMongoUpdated);
+        try {
+            ApplicationMongo applicationMongoUpdated = internalApplicationRepo.save(applicationMongo);
+            return mapApplication(applicationMongoUpdated);
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            if (isClientIdConflict(e)) {
+                throw new DuplicateKeyException(String.format("An error occurred while updating application [%s]", application.getId()), e);
+            }
+            throw e;
+        }
     }
 
     @Override
