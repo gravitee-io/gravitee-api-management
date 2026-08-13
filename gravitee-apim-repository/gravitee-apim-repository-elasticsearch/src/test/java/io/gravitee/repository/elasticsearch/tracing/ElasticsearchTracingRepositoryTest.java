@@ -375,7 +375,7 @@ class ElasticsearchTracingRepositoryTest {
         assertThat(page.getTotalElements()).isEqualTo(200L);
     }
 
-    private static Aggregation cardinalityAggregation(float value) {
+    private static Aggregation cardinalityAggregation(double value) {
         Aggregation agg = new Aggregation();
         agg.setValue(value);
         return agg;
