@@ -52,6 +52,7 @@ import io.gravitee.gateway.reactive.core.context.ComponentScope;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
+import io.gravitee.gateway.reactive.core.context.diagnostic.UnexpectedErrorReporter;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionHelper;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
@@ -432,11 +433,15 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
     private Completable handleUnexpectedError(final HttpExecutionContext ctx, final Throwable throwable) {
         return Completable.fromRunnable(() -> {
-            ctx.withLogger(log).error("Unexpected error while handling request", throwable);
+            // Reports the failure and answers it, so the status the reports name is the one actually sent.
+            UnexpectedErrorReporter.recordAndAnswer(
+                ctx,
+                HttpResponseStatus.INTERNAL_SERVER_ERROR.code(),
+                HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase(),
+                throwable,
+                log
+            );
             setApiResponseTimeMetric(ctx);
-
-            ctx.response().status(HttpResponseStatus.INTERNAL_SERVER_ERROR.code());
-            ctx.response().reason(HttpResponseStatus.INTERNAL_SERVER_ERROR.reasonPhrase());
         });
     }
 
