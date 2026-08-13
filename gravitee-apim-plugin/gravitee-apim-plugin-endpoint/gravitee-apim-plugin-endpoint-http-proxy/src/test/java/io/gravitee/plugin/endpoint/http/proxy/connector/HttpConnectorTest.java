@@ -73,9 +73,12 @@ import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.observers.TestObserver;
+import io.vertx.core.http.HttpClosedException;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.rxjava3.core.Vertx;
 import java.io.IOException;
+import java.nio.channels.ClosedChannelException;
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterAll;
@@ -89,6 +92,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -109,6 +113,10 @@ class HttpConnectorTest {
     /** Time already spent on the endpoint when the connector takes over, so a measured duration is provably ≥ it. */
     private static final long BACKEND_ELAPSED_NS = TimeUnit.MILLISECONDS.toNanos(100);
     private static final String ERROR_ENDPOINT = "/error";
+    /** Target URI as the connector resolved it, only ever reported in the technical log. */
+    private static final String UPSTREAM_TARGET = "http://backend:8080/team";
+    /** Silence unknown: keeps the message free of any timing claim, for the cases that do not test the timing. */
+    private static final long NO_SILENCE_MEASURED = -1;
     /** Port nothing listens on, to exercise a connection that cannot be acquired. */
     private static final int UNBOUND_PORT = 1;
     /**
@@ -168,6 +176,11 @@ class HttpConnectorTest {
         lenient().when(ctx.response()).thenReturn(response);
         lenient().when(ctx.metrics()).thenReturn(metrics);
         lenient().when(ctx.getTracer()).thenReturn(new Tracer(null, new NoOpTracer()));
+        // withLogger is a default method on the context interface returning the delegate it is given; Mockito stubs
+        // default methods to null, which would NPE any logging path under test.
+        lenient()
+            .when(ctx.withLogger(any(Logger.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
 
         requestHeaders = HttpHeaders.create();
         // request.parameters() can't be null. See https://github.com/gravitee-io/gravitee-common/blob/master/src/main/java/io/gravitee/common/util/URIUtils.java#L74
@@ -217,22 +230,121 @@ class HttpConnectorTest {
     void should_record_backend_connection_reset_on_metrics_when_response_stream_fails() {
         when(metrics.getErrorKey()).thenReturn(null);
 
-        cut.recordBackendResponseStreamFailure(ctx, new IOException("Connection reset by peer"));
+        cut.recordBackendResponseStreamFailure(ctx, UPSTREAM_TARGET, NO_SILENCE_MEASURED, new IOException("Connection reset by peer"));
 
+        // A reset is a genuine backend fault, so it keeps its own key: only a clean close mid-body is re-keyed.
         verify(metrics).setErrorKey("GATEWAY_CLIENT_CONNECTION_RESET");
-        verify(metrics).setErrorMessage("Connection reset by peer");
+        verify(metrics).setErrorMessage("The backend ended the response body before it was complete (Connection reset by peer)");
         // Status was already committed before streaming, so it must not be touched.
         verify(response, never()).status(anyInt());
+        verify(ctx, never()).warnWith(any());
     }
 
     @Test
     void should_not_overwrite_an_already_recorded_error_on_response_stream_failure() {
         when(metrics.getErrorKey()).thenReturn("CLIENT_ABORTED_DURING_RESPONSE_ERROR");
 
-        cut.recordBackendResponseStreamFailure(ctx, new IOException("Connection reset by peer"));
+        cut.recordBackendResponseStreamFailure(ctx, UPSTREAM_TARGET, NO_SILENCE_MEASURED, new IOException("Connection reset by peer"));
 
         verify(metrics, never()).setErrorKey(anyString());
         verify(metrics, never()).setErrorMessage(anyString());
+        verify(ctx, never()).warnWith(any());
+        // Preserving the recorded key must not make the upstream failure disappear from the logs: it is the only
+        // trace left of a body that was cut short.
+        verify(ctx).withLogger(any(Logger.class));
+    }
+
+    @Test
+    void should_report_a_stream_cut_short_under_its_own_key_rather_than_as_a_connection_failure() {
+        when(metrics.getErrorKey()).thenReturn(null);
+
+        cut.recordBackendResponseStreamFailure(ctx, UPSTREAM_TARGET, NO_SILENCE_MEASURED, new HttpClosedException("Connection was closed"));
+
+        // The caller already received status and headers, so this is a truncated response, not a failed request:
+        // reporting it as GATEWAY_CLIENT_CONNECTION_CLOSED is what makes streaming APIs look like they are failing.
+        verify(metrics).setErrorKey("GATEWAY_CLIENT_STREAM_ENDED_EARLY");
+        verify(response, never()).status(anyInt());
+    }
+
+    @Test
+    void should_report_a_stream_cut_short_through_metrics_only_and_not_as_a_second_diagnostic() {
+        when(metrics.getErrorKey()).thenReturn(null);
+
+        cut.recordBackendResponseStreamFailure(ctx, UPSTREAM_TARGET, NO_SILENCE_MEASURED, new HttpClosedException("Connection was closed"));
+
+        // The reporter already turns errorKey/errorMessage into the Diagnostic carried by the metrics, attributed to
+        // the ENDPOINT component. Raising an ExecutionWarn on top would emit a duplicate for the very same event —
+        // and one attributed to "Unknown component", the endpoint scope being closed by the time the body streams.
+        verify(ctx, never()).warnWith(any());
+    }
+
+    @Test
+    void should_blame_the_gateway_idle_timeout_when_the_upstream_silence_matches_it() {
+        when(metrics.getErrorKey()).thenReturn(null);
+        // Vert.x applies idleTimeout truncated to the second, so 12_200 ms actually fires at 12_000 ms.
+        sharedConfiguration.getHttpOptions().setIdleTimeout(12_200);
+        sharedConfiguration.getHttpOptions().setReadTimeout(24_000);
+
+        cut.recordBackendResponseStreamFailure(ctx, UPSTREAM_TARGET, 12_000, new HttpClosedException("Connection was closed"));
+
+        assertThat(errorMessageRecorded())
+            .contains("having received nothing from it for the last 12000 ms")
+            .contains("This matches the endpoint idleTimeout (12200 ms, applied as 12000 ms)")
+            .contains("the gateway itself likely closed this connection")
+            // readTimeout longer than idleTimeout can never fire — the misconfiguration behind the whole symptom.
+            .contains("readTimeout (24000 ms) is not shorter than idleTimeout");
+    }
+
+    @Test
+    void should_blame_the_idle_timeout_on_the_silence_even_when_the_exchange_lasted_much_longer() {
+        when(metrics.getErrorKey()).thenReturn(null);
+        sharedConfiguration.getHttpOptions().setIdleTimeout(12_200);
+        sharedConfiguration.getHttpOptions().setReadTimeout(24_000);
+        // A stream that trickled for ten minutes before going quiet: the idle timer restarts on every byte, so only
+        // the trailing silence can be compared to it. Matching on the total elapsed time would never fire here.
+        when(metrics.timestamp()).thenReturn(Instant.now().minusMillis(600_000));
+
+        cut.recordBackendResponseStreamFailure(ctx, UPSTREAM_TARGET, 12_000, new HttpClosedException("Connection was closed"));
+
+        assertThat(errorMessageRecorded()).contains("This matches the endpoint idleTimeout (12200 ms, applied as 12000 ms)");
+    }
+
+    @Test
+    void should_not_blame_the_idle_timeout_when_the_silence_is_far_from_it() {
+        when(metrics.getErrorKey()).thenReturn(null);
+        sharedConfiguration.getHttpOptions().setIdleTimeout(12_200);
+        sharedConfiguration.getHttpOptions().setReadTimeout(24_000);
+
+        cut.recordBackendResponseStreamFailure(ctx, UPSTREAM_TARGET, 3_000, new HttpClosedException("Connection was closed"));
+
+        // Scattered durations point at the backend: claiming a timeout match here would send operators the wrong way.
+        assertThat(errorMessageRecorded()).doesNotContain("idleTimeout").contains("having received nothing from it for the last 3000 ms");
+    }
+
+    @Test
+    void should_not_suggest_lowering_read_timeout_when_it_is_already_below_the_idle_timeout() {
+        when(metrics.getErrorKey()).thenReturn(null);
+        sharedConfiguration.getHttpOptions().setIdleTimeout(12_200);
+        sharedConfiguration.getHttpOptions().setReadTimeout(8_000);
+
+        cut.recordBackendResponseStreamFailure(ctx, UPSTREAM_TARGET, 12_000, new HttpClosedException("Connection was closed"));
+
+        assertThat(errorMessageRecorded()).contains("This matches the endpoint idleTimeout").doesNotContain("readTimeout");
+    }
+
+    @Test
+    void should_describe_the_failure_by_type_when_the_cause_carries_no_message() {
+        when(metrics.getErrorKey()).thenReturn(null);
+
+        cut.recordBackendResponseStreamFailure(ctx, UPSTREAM_TARGET, NO_SILENCE_MEASURED, new ClosedChannelException());
+
+        assertThat(errorMessageRecorded()).isEqualTo("The backend ended the response body before it was complete (ClosedChannelException)");
+    }
+
+    private String errorMessageRecorded() {
+        final ArgumentCaptor<String> message = ArgumentCaptor.forClass(String.class);
+        verify(metrics).setErrorMessage(message.capture());
+        return message.getValue();
     }
 
     @Test
