@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.ApiKeyMode;
@@ -315,6 +316,23 @@ public class ApplicationService_CreateTest {
         when(newApplication.getSettings()).thenReturn(settings);
 
         when(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, CLIENT_ID, "DEFAULT")).thenReturn(true);
+
+        applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
+    }
+
+    @Test(expected = ClientIdAlreadyExistsException.class)
+    public void shouldNotCreateBecauseClientIdWasTakenConcurrently() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(CLIENT_ID);
+        settings.setApp(clientSettings);
+        when(newApplication.getSettings()).thenReturn(settings);
+        when(newApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
+
+        when(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, CLIENT_ID, "DEFAULT")).thenReturn(false);
+        when(applicationRepository.create(any())).thenThrow(new DuplicateKeyException("client_id already used"));
 
         applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
     }
