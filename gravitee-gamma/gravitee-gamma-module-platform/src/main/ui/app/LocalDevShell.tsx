@@ -27,8 +27,12 @@ export function LocalDevShell({ children }: { readonly children: ReactNode }) {
             defaultSidebarMode="hover-expand"
             defaultTheme="system"
             fullHeight
+            viewMode={slots.viewMode}
+            contextExpanded={slots.contextExpanded}
+            contextSidebar={slots.contextSidebar}
+            contentVariant={slots.contentVariant}
             sidebar={<AppSidebar onLogoClick={() => navigate('/')} renderNavigation={() => slots.navigation} />}
-            subheader={<ContentHeader breadcrumbs={slots.breadcrumbs} />}
+            subheader={<ContentHeader leading={slots.leading} breadcrumbs={slots.breadcrumbs} />}
         >
             {children}
         </AppLayout>

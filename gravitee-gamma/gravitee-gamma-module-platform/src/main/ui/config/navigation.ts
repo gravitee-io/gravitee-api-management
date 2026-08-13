@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { NavGroup } from '@gravitee/graphene-core';
+import type { NavGroup, NavItem } from '@gravitee/graphene-core';
 import {
     AppWindowIcon,
     BookOpenIcon,
+    CloudIcon,
     DatabaseIcon,
+    GlobeIcon,
     GroupIcon,
     KeyIcon,
     RadioIcon,
@@ -25,48 +27,107 @@ import {
     ShieldIcon,
     UsersIcon,
 } from '@gravitee/graphene-core/icons';
+import type { ElementType } from 'react';
 
 import { ROUTES } from './routes';
 
-export const NAV_GROUPS: NavGroup[] = [
+export type PlatformNavSectionKey = 'organization' | 'environment' | 'team';
+
+export interface PlatformNavSection {
+    readonly key: PlatformNavSectionKey;
+    readonly title: string;
+    readonly icon: ElementType;
+    readonly groups: NavGroup[];
+}
+
+export const NAV_SECTIONS: PlatformNavSection[] = [
     {
-        label: 'Overview',
-        items: [{ key: 'applications', title: ROUTES.applications.label, icon: AppWindowIcon }],
-    },
-    {
-        label: 'Identity & Access',
-        items: [
-            { key: 'users', title: ROUTES.users.label, icon: UsersIcon },
-            { key: 'user-groups', title: ROUTES['user-groups'].label, icon: GroupIcon },
-        ],
-    },
-    {
-        label: 'APIs & Assets',
-        items: [
-            { key: 'metadata', title: ROUTES.metadata.label, icon: DatabaseIcon },
-            { key: 'dictionaries', title: ROUTES.dictionaries.label, icon: BookOpenIcon },
-        ],
-    },
-    {
-        label: 'Gateways & Infrastructure',
-        items: [
+        key: 'organization',
+        title: 'Organization',
+        icon: GlobeIcon,
+        groups: [
             {
-                key: 'gateways',
-                title: ROUTES.gateways.label,
-                icon: ServerIcon,
+                label: 'Assets',
+                items: [
+                    {
+                        key: 'entrypoints-and-sharding-tags',
+                        title: ROUTES['entrypoints-and-sharding-tags'].label,
+                        icon: RadioIcon,
+                    },
+                ],
             },
             {
-                key: 'entrypoints-and-sharding-tags',
-                title: ROUTES['entrypoints-and-sharding-tags'].label,
-                icon: RadioIcon,
+                label: 'System & Security',
+                items: [{ key: 'access-management', title: ROUTES['access-management'].label, icon: ShieldIcon }],
             },
         ],
     },
     {
-        label: 'System & Security',
-        items: [
-            { key: 'access-management', title: ROUTES['access-management'].label, icon: ShieldIcon },
-            { key: 'security-plan-types', title: ROUTES['security-plan-types'].label, icon: KeyIcon },
+        key: 'environment',
+        title: 'Environment',
+        icon: CloudIcon,
+        groups: [
+            {
+                label: 'APIs & Assets',
+                items: [
+                    { key: 'applications', title: ROUTES.applications.label, icon: AppWindowIcon },
+                    { key: 'metadata', title: ROUTES.metadata.label, icon: DatabaseIcon },
+                    { key: 'dictionaries', title: ROUTES.dictionaries.label, icon: BookOpenIcon },
+                ],
+            },
+            {
+                label: 'System & Security',
+                items: [
+                    { key: 'gateways', title: ROUTES.gateways.label, icon: ServerIcon },
+                    { key: 'security-plan-types', title: ROUTES['security-plan-types'].label, icon: KeyIcon },
+                ],
+            },
+        ],
+    },
+    {
+        key: 'team',
+        title: 'Team',
+        icon: UsersIcon,
+        groups: [
+            {
+                label: 'Team',
+                items: [
+                    { key: 'users', title: ROUTES.users.label, icon: UsersIcon },
+                    { key: 'user-groups', title: ROUTES['user-groups'].label, icon: GroupIcon },
+                ],
+            },
         ],
     },
 ];
+
+export function platformPrimaryNavItems(sections: readonly PlatformNavSection[]): NavItem[] {
+    return sections.map(section => ({ key: section.key, title: section.title, icon: section.icon }));
+}
+
+export function findNavSectionKey(sections: readonly PlatformNavSection[], itemKey: string): PlatformNavSectionKey | undefined {
+    return sections.find(section => section.groups.some(group => group.items.some(item => item.key === itemKey)))?.key;
+}
+
+export function firstNavItemKey(section: PlatformNavSection): string | undefined {
+    for (const group of section.groups) {
+        const firstItem = group.items[0];
+        if (firstItem) {
+            return firstItem.key;
+        }
+    }
+    return undefined;
+}
+
+export function filterNavSections(sections: readonly PlatformNavSection[], isVisible: (itemKey: string) => boolean): PlatformNavSection[] {
+    return sections
+        .map(section => ({
+            ...section,
+            groups: section.groups
+                .map(group => ({
+                    ...group,
+                    items: group.items.filter(item => isVisible(item.key)),
+                }))
+                .filter(group => group.items.length > 0),
+        }))
+        .filter(section => section.groups.length > 0);
+}
