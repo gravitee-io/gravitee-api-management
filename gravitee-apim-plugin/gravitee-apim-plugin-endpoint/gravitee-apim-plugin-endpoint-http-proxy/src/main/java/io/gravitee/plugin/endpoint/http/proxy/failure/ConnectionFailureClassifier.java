@@ -53,6 +53,13 @@ public final class ConnectionFailureClassifier {
     public static final String TLS_HANDSHAKE_ERROR = "GATEWAY_CLIENT_TLS_HANDSHAKE_ERROR";
     public static final String CONNECTION_RESET = "GATEWAY_CLIENT_CONNECTION_RESET";
     public static final String CONNECTION_CLOSED = "GATEWAY_CLIENT_CONNECTION_CLOSED";
+    /**
+     * The upstream ended the response body before it was complete, <em>after</em> the status and headers had already
+     * been sent downstream. The request is not a failure — the caller received a valid response — but the body it got
+     * is truncated. Reported under its own key so that a streaming API interrupted mid-flight is not counted as a
+     * failed request, which is what {@link #CONNECTION_CLOSED} would suggest.
+     */
+    public static final String STREAM_ENDED_EARLY = "GATEWAY_CLIENT_STREAM_ENDED_EARLY";
     public static final String CONNECT_TIMEOUT = "GATEWAY_CLIENT_CONNECT_TIMEOUT";
     public static final String READ_TIMEOUT = "GATEWAY_CLIENT_READ_TIMEOUT";
     public static final String CONNECTION_POOL_EXHAUSTED = "GATEWAY_CLIENT_CONNECTION_POOL_EXHAUSTED";

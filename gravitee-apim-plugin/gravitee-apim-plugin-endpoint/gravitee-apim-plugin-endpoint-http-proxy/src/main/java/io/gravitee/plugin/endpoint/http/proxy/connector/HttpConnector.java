@@ -69,6 +69,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import lombok.CustomLog;
 
@@ -99,6 +101,13 @@ public class HttpConnector implements ProxyConnector {
         TRAILER,
         UPGRADE
     );
+    /**
+     * How close the upstream silence has to be to the effective idleTimeout before we attribute the closure to the
+     * gateway rather than the backend. A connection cut by the idle timer lands within a few tens of milliseconds of
+     * it; anything looser would start blaming the configuration for genuine backend failures.
+     */
+    private static final long IDLE_TIMEOUT_MATCH_TOLERANCE_MS = 250;
+
     private final String relativeTarget;
     protected final String defaultHost;
     protected final int defaultPort;
@@ -289,10 +298,17 @@ public class HttpConnector implements ProxyConnector {
         HttpResponse response,
         String absoluteUri
     ) {
+        // How long the upstream has been silent when the stream breaks is the one measurement that tells a gateway
+        // idle timeout apart from a backend hanging up: the idle timer restarts on every byte received, so only the
+        // gap since the last one can be compared to it. Starts at the response headers, which is the last thing read
+        // from the connection at that point.
+        final AtomicLong lastUpstreamActivityNs = new AtomicLong(System.nanoTime());
+
         // A backend failure while streaming the response body (after status/headers were committed) is recorded on
         // the metrics below so the truncated response is observable instead of reported as a success.
         return endpointResponse
             .toFlowable()
+            .doOnNext(chunk -> lastUpstreamActivityNs.setPlain(System.nanoTime()))
             .map(Buffer::buffer)
             .doOnComplete(() ->
                 // Write trailers when chunks are completed
@@ -303,12 +319,11 @@ public class HttpConnector implements ProxyConnector {
                     // Means that we have manually reset the stream because the downstream request has been cancelled (see doOnCancel).
                     ctx.withLogger(log).debug("Stream reset to the backend [{}]", absoluteUri);
                 } else {
-                    ctx
-                        .withLogger(log)
-                        .error("Exception occurred while handling response chunk from upstream [{}]", absoluteUri, throwable);
                     // The response status/headers are already committed to the client, so we cannot change them; record
                     // the backend failure on the metrics so the (otherwise silent) truncated response is observable.
-                    recordBackendResponseStreamFailure(ctx, throwable);
+                    // That call also logs the failure, with the timeout context needed to interpret it.
+                    final long silenceMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - lastUpstreamActivityNs.getPlain());
+                    recordBackendResponseStreamFailure(ctx, absoluteUri, silenceMs, throwable);
                 }
                 return Flowable.empty();
             })
@@ -363,18 +378,125 @@ public class HttpConnector implements ProxyConnector {
      * headers were already committed to the client. The committed response is left untouched; only the metrics are
      * enriched (and later translated to a diagnostic) so the truncated response is no longer silently reported as a
      * success. An already-recorded error (e.g. a client abort) is preserved.
+     * <p>
+     * The recorded message is meant to be read on its own, months later, by someone who has the analytics entry and
+     * not the gateway configuration: it names what happened, when, and whether the endpoint's own timeouts are the
+     * likely cause. The log line carries the same information plus the raw configuration and the stack trace, and is
+     * emitted even when the metrics already hold an error, so a truncated body is never silent.
      */
-    void recordBackendResponseStreamFailure(final HttpExecutionContext ctx, final Throwable throwable) {
+    void recordBackendResponseStreamFailure(
+        final HttpExecutionContext ctx,
+        final String absoluteUri,
+        final long silenceMs,
+        final Throwable throwable
+    ) {
         final var metrics = ctx.metrics();
-        // No metrics yet, or an earlier error (e.g. a client abort) already recorded — preserve it.
-        if (metrics == null || metrics.getErrorKey() != null) {
-            return;
+        final long elapsedMs = elapsedMillis(ctx);
+        final String detail = describeStreamFailure(throwable, elapsedMs, silenceMs);
+
+        // An earlier error (e.g. a client abort) already recorded — preserve it: it describes why the exchange ended,
+        // and the upstream failure observed here is only its consequence.
+        final String alreadyRecorded = metrics != null ? metrics.getErrorKey() : null;
+        String errorKey = alreadyRecorded;
+
+        if (metrics != null && alreadyRecorded == null) {
+            ConnectionFailureClassifier.Classification classification = ConnectionFailureClassifier.classify(throwable);
+
+            // The status and headers are already committed downstream, so the caller received a valid response with a
+            // truncated body. Reporting this as a plain connection failure reads as "the backend could not be
+            // reached", which it could — hence a dedicated key for the case where the upstream simply stopped
+            // mid-body. The generic CONNECTION_CLOSED stays in use for the phases where nothing was sent yet.
+            errorKey = ConnectionFailureClassifier.CONNECTION_CLOSED.equals(classification.key())
+                ? ConnectionFailureClassifier.STREAM_ENDED_EARLY
+                : classification.key();
+
+            // Nothing more to record: the reporter turns errorKey/errorMessage into the Diagnostic carried by the
+            // metrics, attributed to the ENDPOINT component on the GATEWAY_CLIENT_ prefix. Raising an ExecutionWarn
+            // on top would emit a second diagnostic for the same event — and a worse one, the endpoint component
+            // scope being already closed by the time the body is streamed ("Unknown component").
+            metrics.setErrorKey(errorKey);
+            metrics.setErrorMessage(detail);
         }
-        ConnectionFailureClassifier.Classification classification = ConnectionFailureClassifier.classify(throwable);
-        metrics.setErrorKey(classification.key());
-        metrics.setErrorMessage(
-            throwable.getMessage() != null ? throwable.getMessage() : "Connection error while streaming the backend response"
-        );
+
+        // Single technical log holding everything needed to tell a backend problem from a gateway misconfiguration,
+        // without having to correlate several sources afterwards. WARN, not ERROR: the caller did get a response.
+        ctx
+            .withLogger(log)
+            .warn(
+                "Upstream ended the response body early [target={}, elapsed={}ms, upstreamSilence={}ms, bytesSent={}, " +
+                    "status={}, readTimeout={}ms, idleTimeout={}ms, effectiveIdleTimeout={}ms, errorKey={}]: {}",
+                absoluteUri,
+                elapsedMs,
+                silenceMs,
+                metrics != null ? metrics.getResponseContentLength() : -1,
+                ctx.response().status(),
+                sharedConfiguration.getHttpOptions().getReadTimeout(),
+                sharedConfiguration.getHttpOptions().getIdleTimeout(),
+                effectiveIdleTimeoutMillis(),
+                errorKey,
+                detail,
+                throwable
+            );
+    }
+
+    private long elapsedMillis(final HttpExecutionContext ctx) {
+        final var metrics = ctx.metrics();
+        if (metrics == null || metrics.timestamp() == null) {
+            return -1L;
+        }
+        return System.currentTimeMillis() - metrics.timestamp().toEpochMilli();
+    }
+
+    /**
+     * Vert.x applies {@code idleTimeout} with a whole-second resolution, so the value that actually fires is the
+     * configured one truncated down to the second — 12_200 ms behaves as 12_000 ms. Comparing against the configured
+     * value alone would miss the match by a few hundred milliseconds.
+     */
+    private long effectiveIdleTimeoutMillis() {
+        return (sharedConfiguration.getHttpOptions().getIdleTimeout() / 1000) * 1000;
+    }
+
+    /**
+     * Build a message that says what happened <em>and</em>, when the evidence points that way, that the gateway's own
+     * configuration is the likely cause. A connection closed on the gateway's {@code idleTimeout} is indistinguishable
+     * from a backend hanging up unless the silence that preceded it is compared against the configured timeouts —
+     * which is exactly the comparison an operator reading the logs cannot make.
+     *
+     * @param silenceMs time since the last byte read from the upstream, the only duration comparable to
+     *   {@code idleTimeout}: the idle timer restarts on every byte, so the total elapsed time of the exchange says
+     *   nothing about it.
+     */
+    private String describeStreamFailure(final Throwable throwable, final long elapsedMs, final long silenceMs) {
+        final String cause = throwable.getMessage() != null ? throwable.getMessage() : throwable.getClass().getSimpleName();
+
+        final StringBuilder message = new StringBuilder("The backend ended the response body before it was complete (" + cause + ")");
+        if (elapsedMs >= 0) {
+            message.append(", after ").append(elapsedMs).append(" ms");
+        }
+        if (silenceMs >= 0) {
+            message.append(", having received nothing from it for the last ").append(silenceMs).append(" ms");
+        }
+
+        final long readTimeout = sharedConfiguration.getHttpOptions().getReadTimeout();
+        final long idleTimeout = sharedConfiguration.getHttpOptions().getIdleTimeout();
+        final long effectiveIdle = effectiveIdleTimeoutMillis();
+
+        if (silenceMs >= 0 && effectiveIdle > 0 && Math.abs(silenceMs - effectiveIdle) <= IDLE_TIMEOUT_MATCH_TOLERANCE_MS) {
+            message
+                .append(". This matches the endpoint idleTimeout (")
+                .append(idleTimeout)
+                .append(" ms, applied as ")
+                .append(effectiveIdle)
+                .append(" ms), so the gateway itself likely closed this connection");
+            if (readTimeout >= idleTimeout) {
+                message
+                    .append(". Note that readTimeout (")
+                    .append(readTimeout)
+                    .append(" ms) is not shorter than idleTimeout, so it can never fire: lowering readTimeout below ")
+                    .append("idleTimeout would surface this as a read timeout instead");
+            }
+        }
+        return message.toString();
     }
 
     protected HttpClientRequest customizeHttpClientRequest(final HttpClientRequest httpClientRequest) {
