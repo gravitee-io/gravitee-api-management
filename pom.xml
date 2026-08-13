@@ -55,7 +55,7 @@
     <gravitee-cockpit-api.version>3.12.0</gravitee-cockpit-api.version>
     <gravitee-cloud-initializer.version>2.3.1</gravitee-cloud-initializer.version>
     <logback-ecs-encoder.version>1.7.0</logback-ecs-encoder.version>
-    <gravitee-common.version>5.0.0</gravitee-common.version>
+    <gravitee-common.version>5.1.0</gravitee-common.version>
     <gravitee-common-elasticsearch.version>7.0.0</gravitee-common-elasticsearch.version>
     <gravitee-common-mcp.version>1.2.0</gravitee-common-mcp.version>
     <gravitee-connector-api.version>2.0.0</gravitee-connector-api.version>
@@ -66,7 +66,7 @@
     <gravitee-integration-api.version>5.1.0</gravitee-integration-api.version>
     <gravitee-json-validation.version>2.2.0</gravitee-json-validation.version>
     <gravitee-kubernetes.version>4.0.0</gravitee-kubernetes.version>
-    <gravitee-node.version>9.4.1</gravitee-node.version>
+    <gravitee-node.version>9.6.1</gravitee-node.version>
     <gravitee-notifier-api.version>2.0.0</gravitee-notifier-api.version>
     <gravitee-platform-repository-api.version>2.0.0</gravitee-platform-repository-api.version>
     <gravitee-plugin.version>5.1.5</gravitee-plugin.version>
