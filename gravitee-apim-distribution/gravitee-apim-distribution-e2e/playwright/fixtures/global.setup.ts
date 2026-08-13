@@ -15,7 +15,10 @@
  */
 import { test as setup } from '@playwright/test';
 import { ADMIN_USER } from '@gravitee/utils/configuration';
-import { ADMIN_AUTH_FILE } from '@utils/config';
+import { ADMIN_AUTH_FILE, MANAGEMENT_BASE_URL } from '@utils/config';
+
+/** Session cookie the Console authenticates with; `storageState` is worthless without it. */
+const AUTH_COOKIE = 'Auth-Graviteeio-APIM';
 
 /**
  * Logs in through the management API so the Console session cookies land in the browser context,
@@ -27,7 +30,7 @@ import { ADMIN_AUTH_FILE } from '@utils/config';
  * authenticates statelessly per request (see README).
  */
 setup('authenticate as admin', async ({ page }) => {
-  const response = await page.request.post(`${process.env.MANAGEMENT_BASE_URL}/organizations/DEFAULT/user/login`, {
+  const response = await page.request.post(`${MANAGEMENT_BASE_URL}/organizations/DEFAULT/user/login`, {
     headers: {
       Authorization: `Basic ${Buffer.from(`${ADMIN_USER.username}:${ADMIN_USER.password}`).toString('base64')}`,
     },
@@ -35,5 +38,14 @@ setup('authenticate as admin', async ({ page }) => {
   if (!response.ok()) {
     throw new Error(`Admin login failed with status ${response.status()}`);
   }
+
+  const cookies = await page.context().cookies();
+  if (!cookies.some((cookie) => cookie.name === AUTH_COOKIE)) {
+    throw new Error(
+      `Admin login returned ${response.status()} but no ${AUTH_COOKIE} cookie was set. ` +
+        `Cookies present: ${cookies.map((cookie) => cookie.name).join(', ') || '(none)'}`,
+    );
+  }
+
   await page.context().storageState({ path: ADMIN_AUTH_FILE });
 });
