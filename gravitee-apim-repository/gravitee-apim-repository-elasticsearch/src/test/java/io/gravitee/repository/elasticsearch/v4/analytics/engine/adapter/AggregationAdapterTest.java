@@ -17,6 +17,7 @@ package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.elasticsearch.model.Aggregation;
@@ -25,6 +26,7 @@ import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
+import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.TimeRange;
 import java.time.Instant;
@@ -134,6 +136,54 @@ class AggregationAdapterTest {
         var buckets = result.get(0).buckets();
         assertThat(buckets).hasSize(1);
         assertThat(buckets.get(0).measures().get(Measure.COUNT).doubleValue()).isEqualTo(42.0);
+    }
+
+    @Test
+    void should_report_the_same_total_for_measures_and_for_the_sum_of_its_facet_buckets() throws Exception {
+        // Counts on a busy API run well past 2^24, where a float can no longer hold every integer.
+        var applicationCounts = Map.of("application-a", 120_800_000L, "application-b", 12_767L);
+        var total = applicationCounts.values().stream().mapToLong(Long::longValue).sum();
+
+        var measuresQuery = new MeasuresQuery(
+            TIME_RANGE,
+            List.of(),
+            List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)))
+        );
+        // Deserialized the way the Elasticsearch client does, so a regression in the aggregation
+        // model is caught here too.
+        var totalAgg = JSON.readValue("{\"value\":" + total + "}", Aggregation.class);
+
+        var measures = AggregationAdapter.toMetricsAndMeasures(Map.of("HTTP_REQUESTS#COUNT", totalAgg), measuresQuery);
+
+        var facetsQuery = new FacetsQuery(
+            TIME_RANGE,
+            List.of(),
+            List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT))),
+            List.of(Facet.APPLICATION)
+        );
+        var applicationAgg = new Aggregation();
+        applicationAgg.setBuckets(
+            applicationCounts
+                .entrySet()
+                .stream()
+                .map(entry -> {
+                    var bucket = JSON.createObjectNode().put("key", entry.getKey()).put("doc_count", entry.getValue());
+                    bucket.putObject("HTTP_REQUESTS#COUNT").put("value", entry.getValue());
+                    return (JsonNode) bucket;
+                })
+                .toList()
+        );
+
+        var facets = AggregationAdapter.toMetricsAndBuckets(Map.of("HTTP_REQUESTS#APPLICATION", applicationAgg), facetsQuery);
+
+        var facetsSum = facets
+            .get(0)
+            .buckets()
+            .stream()
+            .mapToLong(bucket -> bucket.measures().get(Measure.COUNT).longValue())
+            .sum();
+
+        assertThat(measures.get(Metric.HTTP_REQUESTS).get(Measure.COUNT).longValue()).isEqualTo(total).isEqualTo(facetsSum);
     }
 
     private static ObjectNode buildBucketWithFilterAgg(String key, int docCount, String metricName, String measureName, double value) {
