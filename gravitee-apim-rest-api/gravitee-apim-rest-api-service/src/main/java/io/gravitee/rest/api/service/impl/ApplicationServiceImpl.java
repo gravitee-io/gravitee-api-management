@@ -40,6 +40,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.util.KeyStoreUtils;
 import io.gravitee.definition.model.Origin;
 import io.gravitee.definition.model.v4.plan.PlanMode;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
@@ -603,6 +604,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 genericNotificationConfigService.create(notificationConfigEntity);
             }
             return convert(executionContext, createdApplication, userEntity);
+        } catch (DuplicateKeyException ex) {
+            throw new ClientIdAlreadyExistsException(application.getMetadata().get(METADATA_CLIENT_ID));
         } catch (TechnicalException ex) {
             LOGGER.error(
                 "An error occurs while trying to create {} for user {} in environment {}",
@@ -784,7 +787,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             application.setOrigin(applicationToUpdate.getOrigin() != null ? applicationToUpdate.getOrigin() : Origin.MANAGEMENT);
             metadata.forEach((key, value) -> application.getMetadata().put(key, value));
 
-            Application updatedApplication = applicationRepository.update(application);
+            Application updatedApplication = updateApplication(application);
 
             // Audit
             auditService.createApplicationAuditLog(
@@ -1059,7 +1062,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             genericNotificationConfigService.deleteReference(NotificationReferenceType.APPLICATION, applicationId);
             portalNotificationConfigService.deleteReference(NotificationReferenceType.APPLICATION, applicationId);
 
-            Application restoredApplication = applicationRepository.update(application);
+            Application restoredApplication = updateApplication(application);
 
             Collection<SubscriptionEntity> subscriptions = subscriptionService.findByApplicationAndPlan(
                 executionContext,
@@ -1593,6 +1596,18 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     private void checkClientIdIsUniqueForEnv(String clientId, String environmentId) {
         if (applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, clientId, environmentId)) {
             throw new ClientIdAlreadyExistsException(clientId);
+        }
+    }
+
+    /**
+     * The checks above cannot see an application being created or updated concurrently by another node, only the
+     * repository can reject it.
+     */
+    private Application updateApplication(Application application) throws TechnicalException {
+        try {
+            return applicationRepository.update(application);
+        } catch (DuplicateKeyException ex) {
+            throw new ClientIdAlreadyExistsException(application.getMetadata().get(METADATA_CLIENT_ID));
         }
     }
 
