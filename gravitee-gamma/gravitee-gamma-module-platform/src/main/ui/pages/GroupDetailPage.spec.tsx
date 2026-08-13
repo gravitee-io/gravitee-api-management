@@ -139,6 +139,9 @@ describe('GroupDetailPage', () => {
         renderPage();
 
         expect(screen.queryByRole('heading', { name: 'Support Team' })).not.toBeNull();
+        // GroupSettingsSection's own spec covers its rendering in detail — this just confirms the group
+        // data actually reaches it.
+        expect(screen.getByText('Max members').nextElementSibling?.textContent).toBe('Unlimited');
         expect(screen.getByTestId('members-table').textContent).toContain('Anna Schmidt');
         expect(screen.getByTestId('membership-table-APIs').textContent).toContain('Billing API');
         expect(screen.getByTestId('membership-table-Applications').textContent).toContain('Mobile App');
@@ -160,15 +163,24 @@ describe('GroupDetailPage', () => {
     });
 
     describe('role queries', () => {
-        it('fetches role catalogs when the user can edit', () => {
+        it('skips fetching role catalogs on initial load, even when the user can edit — deferred until Edit opens', () => {
             renderPage();
+
+            expect(mockUseGroupApiRoles).toHaveBeenCalledWith({ enabled: false });
+            expect(mockUseGroupApplicationRoles).toHaveBeenCalledWith({ enabled: false });
+            expect(mockUseGroupApiProductRoles).toHaveBeenCalledWith({ enabled: false });
+        });
+
+        it('fetches role catalogs once the user opens the Edit sheet', () => {
+            renderPage();
+            fireEvent.click(screen.getByRole('button', { name: 'Edit group' }));
 
             expect(mockUseGroupApiRoles).toHaveBeenCalledWith({ enabled: true });
             expect(mockUseGroupApplicationRoles).toHaveBeenCalledWith({ enabled: true });
             expect(mockUseGroupApiProductRoles).toHaveBeenCalledWith({ enabled: true });
         });
 
-        it('skips fetching role catalogs when the user cannot edit — the sheet never opens', () => {
+        it('skips fetching role catalogs when the user cannot edit, since the sheet can never open', () => {
             mockUseHasPermission.mockReturnValue(false);
             renderPage();
 
@@ -320,59 +332,6 @@ describe('GroupDetailPage', () => {
 
             expect(screen.getByText('Failed to load associated applications. Please refresh and try again.')).not.toBeNull();
             expect(screen.queryByTestId('membership-table-Applications')).toBeNull();
-        });
-    });
-
-    describe('Settings section', () => {
-        it('shows placeholders when no roles, limit, or invitation methods are configured', () => {
-            renderPage();
-
-            expect(screen.getByText('Max members').nextElementSibling?.textContent).toBe('Unlimited');
-            expect(screen.getByText('Invitation methods').nextElementSibling?.textContent).toBe('None');
-            expect(screen.getByText('Default API role').nextElementSibling?.textContent).toBe('—');
-        });
-
-        it('shows the configured default roles with a lock indicator for locked scopes', () => {
-            mockUseGroupDetail.mockReturnValue({
-                data: {
-                    ...GROUP,
-                    roles: { API: 'OWNER', API_PRODUCT: 'USER', APPLICATION: 'USER' },
-                    lock_api_role: true,
-                },
-                isLoading: false,
-                isError: false,
-            } as ReturnType<typeof useGroupDetail>);
-            renderPage();
-
-            const apiRoleValue = screen.getByText('Default API role').nextElementSibling;
-            expect(apiRoleValue?.textContent).toContain('OWNER');
-            expect(apiRoleValue?.querySelector('[aria-label="Locked"]')).not.toBeNull();
-
-            const applicationRoleValue = screen.getByText('Default application role').nextElementSibling;
-            expect(applicationRoleValue?.querySelector('[aria-label="Locked"]')).toBeNull();
-        });
-
-        it('shows the configured max member limit', () => {
-            mockUseGroupDetail.mockReturnValue({
-                data: { ...GROUP, max_invitation: 25 },
-                isLoading: false,
-                isError: false,
-            } as ReturnType<typeof useGroupDetail>);
-            renderPage();
-
-            expect(screen.getByText('Max members').nextElementSibling?.textContent).toBe('25');
-        });
-
-        it('shows badges for each enabled invitation method', () => {
-            mockUseGroupDetail.mockReturnValue({
-                data: { ...GROUP, system_invitation: true, email_invitation: true },
-                isLoading: false,
-                isError: false,
-            } as ReturnType<typeof useGroupDetail>);
-            renderPage();
-
-            expect(screen.queryByText('User search')).not.toBeNull();
-            expect(screen.queryByText('Email invitation')).not.toBeNull();
         });
     });
 

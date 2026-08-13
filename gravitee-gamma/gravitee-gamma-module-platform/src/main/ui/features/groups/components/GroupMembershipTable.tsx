@@ -87,7 +87,7 @@ export function GroupMembershipTable({
 
     const filtered = useMemo(() => {
         const query = search.trim().toLowerCase();
-        return query ? items.filter(item => item.name.toLowerCase().includes(query)) : items;
+        return query ? items.filter(item => (item.name ?? '').toLowerCase().includes(query)) : items;
     }, [items, search]);
 
     const totalCount = filtered.length;

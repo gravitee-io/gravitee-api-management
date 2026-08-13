@@ -82,4 +82,14 @@ describe('GroupMembershipTable', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Clear search' }));
         expect(screen.getByText('Billing API')).not.toBeNull();
     });
+
+    it('does not crash when searching and an item has no name — backend data can violate the type', () => {
+        const noName = { id: 'api-3', version: '1.0' } as unknown as GroupMembershipItem;
+        renderTable({ items: [BILLING_API, noName] });
+
+        expect(() => {
+            fireEvent.change(screen.getByPlaceholderText('Search APIs…'), { target: { value: 'billing' } });
+        }).not.toThrow();
+        expect(screen.getByText('Billing API')).not.toBeNull();
+    });
 });
