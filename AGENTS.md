@@ -193,27 +193,8 @@ The distribution assembles a **pinned released** engine unless `-Pengine-snapsho
 
 # Modules
 
-Working under `gravitee-apim-common/`? Read `gravitee-apim-common/AGENTS.md` first.
-Working under `gravitee-apim-console-webui/`? Read `gravitee-apim-console-webui/AGENTS.md` first.
-Working under `gravitee-apim-definition/`? Read `gravitee-apim-definition/AGENTS.md` first.
-Working under `gravitee-apim-distribution/`? Read `gravitee-apim-distribution/AGENTS.md` first.
-Working under `gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/`? Read `gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/AGENTS.md` first.
-Working under `gravitee-apim-gateway/`? Read `gravitee-apim-gateway/AGENTS.md` first.
-Working under `gravitee-apim-plugin/`? Read `gravitee-apim-plugin/AGENTS.md` first.
-Working under `gravitee-apim-portal-webui/`? Read `gravitee-apim-portal-webui/AGENTS.md` first.
-Working under `gravitee-apim-portal-webui-next/`? Read `gravitee-apim-portal-webui-next/AGENTS.md` first.
-Working under `gravitee-apim-reporter/`? Read `gravitee-apim-reporter/AGENTS.md` first.
-Working under `gravitee-apim-repository/`? Read `gravitee-apim-repository/AGENTS.md` first.
-Working under `gravitee-apim-rest-api/`? Read `gravitee-apim-rest-api/AGENTS.md` first.
-Working under `gravitee-apim-webui-libs/gravitee-dashboard/`? Read `gravitee-apim-webui-libs/gravitee-dashboard/AGENTS.md` first.
-Working under `gravitee-apim-webui-libs/gravitee-kafka-explorer/`? Read `gravitee-apim-webui-libs/gravitee-kafka-explorer/AGENTS.md` first.
-Working under `gravitee-apim-webui-libs/gravitee-markdown/`? Read `gravitee-apim-webui-libs/gravitee-markdown/AGENTS.md` first.
-Working under `gravitee-gamma/gravitee-gamma-control-plane-webui/`? Read `gravitee-gamma/gravitee-gamma-control-plane-webui/AGENTS.md` first.
-Working under `gravitee-gamma/gravitee-gamma-definition-model/`? Read `gravitee-gamma/gravitee-gamma-definition-model/AGENTS.md` first.
-Working under `gravitee-gamma/gravitee-gamma-module-apim/`? Read `gravitee-gamma/gravitee-gamma-module-apim/AGENTS.md` first.
-Working under `gravitee-gamma/gravitee-gamma-module-platform/`? Read `gravitee-gamma/gravitee-gamma-module-platform/AGENTS.md` first.
-Working under `gravitee-gamma/gravitee-gamma-plugin/`? Read `gravitee-gamma/gravitee-gamma-plugin/AGENTS.md` first.
-Working under `gravitee-gamma/gravitee-gamma-rest-api/`? Read `gravitee-gamma/gravitee-gamma-rest-api/AGENTS.md` first.
-Working under `.ai/`? Read `.ai/AGENTS.md` first.
+Before working on files under any of these directories, read that directory's `AGENTS.md` first: `gravitee-apim-common/`, `gravitee-apim-console-webui/`, `gravitee-apim-definition/`, `gravitee-apim-distribution/`, `gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/`, `gravitee-apim-gateway/`, `gravitee-apim-plugin/`, `gravitee-apim-portal-webui/`, `gravitee-apim-portal-webui-next/`, `gravitee-apim-reporter/`, `gravitee-apim-repository/`, `gravitee-apim-rest-api/`, `gravitee-apim-webui-libs/gravitee-dashboard/`, `gravitee-apim-webui-libs/gravitee-kafka-explorer/`, `gravitee-apim-webui-libs/gravitee-markdown/`, `gravitee-gamma/gravitee-gamma-control-plane-webui/`, `gravitee-gamma/gravitee-gamma-definition-model/`, `gravitee-gamma/gravitee-gamma-module-apim/`, `gravitee-gamma/gravitee-gamma-module-platform/`, `gravitee-gamma/gravitee-gamma-plugin/`, `gravitee-gamma/gravitee-gamma-rest-api/`, `.ai/`.
+
+# Skills
 
 Skills: run `gbuddy setup` to install analyze-test-coverage, debugging, explain-feature, peer-code-review, planning, self-code-review, write-tests under `.claude/skills/` (and `.agents/skills/` for Codex and Gemini CLI).
