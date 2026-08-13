@@ -102,6 +102,10 @@ jest.mock('../pages/ApplicationDetailSubscriptionPage', () => ({
     ApplicationDetailSubscriptionPage: () => null,
 }));
 
+jest.mock('../pages/AlertsPage', () => ({
+    AlertsPage: () => <div data-testid="alerts-page" />,
+}));
+
 function renderPlatform(path = '/applications') {
     render(
         <MemoryRouter initialEntries={[path]}>
@@ -362,5 +366,29 @@ describe('AppRoutes', () => {
         renderPlatform('/applications/new');
 
         expect(screen.getByTestId('register-application-page')).not.toBeNull();
+    });
+
+    it('routes to the Alerts page under the platform module', () => {
+        render(
+            <MemoryRouter initialEntries={['/alerts']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('alerts-page')).not.toBeNull();
+    });
+
+    it('shows the Alerts nav item when the user has read permission', () => {
+        renderPlatform();
+
+        expect(visibleNavKeys()).toContain('alerts');
+    });
+
+    it('hides the Alerts nav item when the user lacks environment-alert-r', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-alert-r'));
+
+        renderPlatform();
+
+        expect(visibleNavKeys()).not.toContain('alerts');
     });
 });

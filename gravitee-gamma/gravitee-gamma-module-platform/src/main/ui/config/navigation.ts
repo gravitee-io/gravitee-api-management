@@ -16,6 +16,7 @@
 import type { NavGroup, NavItem } from '@gravitee/graphene-core';
 import {
     AppWindowIcon,
+    BellIcon,
     BookOpenIcon,
     CloudIcon,
     DatabaseIcon,
@@ -79,6 +80,7 @@ export const NAV_SECTIONS: PlatformNavSection[] = [
                 label: 'System & Security',
                 items: [
                     { key: 'gateways', title: ROUTES.gateways.label, icon: ServerIcon },
+                    { key: 'alerts', title: ROUTES.alerts.label, icon: BellIcon },
                     { key: 'security-plan-types', title: ROUTES['security-plan-types'].label, icon: KeyIcon },
                 ],
             },

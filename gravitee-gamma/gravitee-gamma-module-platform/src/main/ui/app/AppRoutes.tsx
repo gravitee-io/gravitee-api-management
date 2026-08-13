@@ -42,6 +42,7 @@ import {
     type PlatformNavSection,
 } from '../config/navigation';
 import { PLATFORM_ROUTE_CONFIG } from '../config/routes';
+import { ENVIRONMENT_ALERT_READ_PERMISSION } from '../features/alerts/utils/alertPermissions';
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
 import { GatewayInstanceDetailLayout } from '../features/gateway-instances/components/GatewayInstanceDetailLayout';
@@ -50,6 +51,7 @@ import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmen
 import { SecurityPlanTypesPage } from '../features/security-plan-types/SecurityPlanTypesPage';
 import { ORGANIZATION_USER_ACCESS_PERMISSIONS } from '../features/users/utils/userPermissions';
 import { AccessManagementPage } from '../pages/AccessManagementPage';
+import { AlertsPage } from '../pages/AlertsPage';
 import { ApplicationDetailSubscriptionPage } from '../pages/ApplicationDetailSubscriptionPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { DictionariesPage } from '../pages/DictionariesPage';
@@ -112,6 +114,7 @@ function isNavItemVisible(
     canReadGateways: boolean,
     canReadEntrypoints: boolean,
     canReadGroups: boolean,
+    canReadAlerts: boolean,
 ): boolean {
     if (itemKey === 'users') {
         return !permissionsReady || canAccessUsers;
@@ -130,6 +133,9 @@ function isNavItemVisible(
     }
     if (itemKey === 'entrypoints-and-sharding-tags') {
         return !permissionsReady || canReadEntrypoints;
+    }
+    if (itemKey === 'alerts') {
+        return !permissionsReady || canReadAlerts;
     }
     return true;
 }
@@ -212,6 +218,7 @@ function ModuleLayout() {
     const canReadGateways = useHasPermission({ anyOf: ['environment-instance-r'] });
     const canReadEntrypoints = useHasPermission({ anyOf: ['environment-entrypoint-r', 'organization-entrypoint-r'] });
     const canReadGroups = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_READ_PERMISSION] });
+    const canReadAlerts = useHasPermission({ anyOf: [ENVIRONMENT_ALERT_READ_PERMISSION] });
 
     const { activeNavKey, navigateToKey } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
 
@@ -227,9 +234,19 @@ function ModuleLayout() {
                     canReadGateways,
                     canReadEntrypoints,
                     canReadGroups,
+                    canReadAlerts,
                 ),
             ),
-        [permissionsReady, canReadMetadata, canReadDictionaries, canAccessUsers, canReadGateways, canReadEntrypoints, canReadGroups],
+        [
+            permissionsReady,
+            canReadMetadata,
+            canReadDictionaries,
+            canAccessUsers,
+            canReadGateways,
+            canReadEntrypoints,
+            canReadGroups,
+            canReadAlerts,
+        ],
     );
 
     const activeSectionKey = findNavSectionKey(visibleNavSections, activeNavKey) ?? visibleNavSections[0]?.key;
@@ -417,6 +434,14 @@ export function AppRoutes() {
                             </Route>
                             <Route path="entrypoints-and-sharding-tags" element={<EntrypointsGuard />} />
                             <Route path="security-plan-types" element={<SecurityPlanTypesPage />} />
+                            <Route
+                                path="alerts"
+                                element={
+                                    <PermissionPageGuard permission={ENVIRONMENT_ALERT_READ_PERMISSION} unauthorizedTo="../applications">
+                                        <AlertsPage />
+                                    </PermissionPageGuard>
+                                }
+                            />
                         </Route>
                         <Route path="applications/:applicationId" element={<ApplicationDetailLayout />}>
                             <Route index element={<ApplicationDetailIndexRedirect />} />

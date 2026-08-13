@@ -49,8 +49,8 @@ describe('platform navigation config', () => {
         expect(sectionKeys('Environment', 'APIs & Assets')).toEqual(['applications', 'metadata', 'dictionaries']);
     });
 
-    it('places Gateways and Security Plan Types under Environment / System & Security', () => {
-        expect(sectionKeys('Environment', 'System & Security')).toEqual(['gateways', 'security-plan-types']);
+    it('places Gateways, Alerts, and Security Plan Types under Environment / System & Security', () => {
+        expect(sectionKeys('Environment', 'System & Security')).toEqual(['gateways', 'alerts', 'security-plan-types']);
     });
 
     it('places Users and Groups under Team', () => {
