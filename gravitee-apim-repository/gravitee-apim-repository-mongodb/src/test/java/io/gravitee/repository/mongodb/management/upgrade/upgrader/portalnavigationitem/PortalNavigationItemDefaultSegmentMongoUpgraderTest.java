@@ -22,12 +22,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.repository.management.AbstractManagementRepositoryTest;
 import jakarta.inject.Inject;
 import org.bson.Document;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class PortalNavigationItemDefaultSegmentMongoUpgraderTest extends AbstractManagementRepositoryTest {
 
     private static final String COLLECTION_NAME = "portal_navigation_items";
@@ -47,7 +50,7 @@ public class PortalNavigationItemDefaultSegmentMongoUpgraderTest extends Abstrac
         return null;
     }
 
-    @Before
+    @BeforeEach
     public void initUpgrader() {
         upgrader = new PortalNavigationItemDefaultSegmentMongoUpgrader();
         upgrader.setMongoTemplate(mongoTemplate);
@@ -58,7 +61,7 @@ public class PortalNavigationItemDefaultSegmentMongoUpgraderTest extends Abstrac
         mongoTemplate.getCollection(targetCollectionName).deleteMany(new Document());
     }
 
-    @After
+    @AfterEach
     public void cleanUp() {
         mongoTemplate.getCollection(targetCollectionName).deleteMany(new Document());
     }
