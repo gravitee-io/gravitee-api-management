@@ -20,6 +20,7 @@ import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_TRACING_ERROR;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_TRACING_ROOT_SPAN;
 
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.ExecutionMode;
@@ -28,6 +29,8 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestClientAuthConfiguration;
+import io.gravitee.gateway.env.RequestPathConfiguration;
+import io.gravitee.gateway.env.RequestPathHandling;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.http.utils.RequestUtils;
 import io.gravitee.gateway.http.vertx.VertxHttp2ServerRequest;
@@ -47,6 +50,7 @@ import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.http.vertx.ClientCloseClassifier;
 import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest;
 import io.gravitee.gateway.reactive.reactor.handler.HttpAcceptorResolver;
+import io.gravitee.gateway.reactive.reactor.path.RequestPathNormalizer;
 import io.gravitee.gateway.reactive.reactor.processor.DefaultPlatformProcessorChainFactory;
 import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
@@ -95,6 +99,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
     private final TracingContext gatewayTracingContext;
     private final RequestTimeoutConfiguration requestTimeoutConfiguration;
     private final RequestClientAuthConfiguration requestClientAuthConfiguration;
+    private final RequestPathConfiguration requestPathConfiguration;
     private final Vertx vertx;
     private final ComponentProvider globalComponentProvider;
     private final TracingHook tracingHook;
@@ -112,6 +117,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         TracingContext gatewayTracingContext,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         RequestClientAuthConfiguration requestClientAuthConfiguration,
+        RequestPathConfiguration requestPathConfiguration,
         Vertx vertx,
         boolean warningsEnabled
     ) {
@@ -126,6 +132,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         this.gatewayTracingContext = gatewayTracingContext;
         this.requestTimeoutConfiguration = requestTimeoutConfiguration;
         this.requestClientAuthConfiguration = requestClientAuthConfiguration;
+        this.requestPathConfiguration = requestPathConfiguration;
         this.vertx = vertx;
         this.tracingHook = new TracingHook("Processor chain");
         this.warningsEnabled = warningsEnabled;
@@ -144,7 +151,33 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
     public Completable dispatch(HttpServerRequest httpServerRequest, String serverId) {
         log.debug("Dispatching request on host {} and path {}", httpServerRequest.host(), httpServerRequest.path());
 
-        final HttpAcceptor httpAcceptor = httpAcceptorResolver.resolve(httpServerRequest.host(), httpServerRequest.path(), serverId);
+        final String rawPath = httpServerRequest.path();
+        String candidatePath = rawPath;
+
+        if (requestPathConfiguration.isEnabled()) {
+            final String normalized = RequestPathNormalizer.normalize(rawPath);
+            if (normalized != rawPath) {
+                if (requestPathConfiguration.getHandling() == RequestPathHandling.REJECT) {
+                    log.debug("Rejecting request on host {}: path [{}] carries dot segments", httpServerRequest.host(), rawPath);
+                    return httpServerRequest.response().setStatusCode(HttpStatusCode.BAD_REQUEST_400).rxEnd();
+                }
+                candidatePath = normalized;
+            }
+        }
+
+        HttpAcceptor resolvedAcceptor = httpAcceptorResolver.resolve(httpServerRequest.host(), candidatePath, serverId);
+
+        if (candidatePath != rawPath && resolvedAcceptor != null && !(resolvedAcceptor.reactor() instanceof ApiReactor<?>)) {
+            // V3 is out of scope. Its request wrapper exposes the native path and cannot be
+            // rewritten, so a normalized resolution would leave pathInfo derived from the raw path
+            // at the wrong offset. Resolving again on the raw path keeps V3 exactly as it was.
+            log.debug("Path normalization skipped for the V3 handler on host {}", httpServerRequest.host());
+            resolvedAcceptor = httpAcceptorResolver.resolve(httpServerRequest.host(), rawPath, serverId);
+            candidatePath = rawPath;
+        }
+
+        final HttpAcceptor httpAcceptor = resolvedAcceptor;
+        final String resolutionPath = candidatePath;
         Context vertxContext = VertxContext.createNewDuplicatedContext(vertx.getOrCreateContext());
         if (httpAcceptor == null || httpAcceptor.reactor() == null) {
             log.debug(
@@ -191,6 +224,12 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         } else if (httpAcceptor.reactor() instanceof ApiReactor<?> apiReactor) {
             log.debug("Request routed to API reactor on path [{}]", httpAcceptor.path());
             MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest, serverId);
+            if (resolutionPath != rawPath) {
+                // Seed the lazily initialized path so that pathInfo, the flow selectors and the
+                // upstream URI are all derived from the value the acceptor actually matched.
+                // uri() and parameters() keep reading the untouched native request.
+                mutableCtx.request().path(resolutionPath);
+            }
             mutableCtx.request().contextPath(httpAcceptor.path());
             TracingContext tracingContext = apiReactor.tracingContext();
             mutableCtx.tracer(new io.gravitee.gateway.reactive.api.tracing.Tracer(vertxContext, tracingContext.opentelemetryTracer()));
