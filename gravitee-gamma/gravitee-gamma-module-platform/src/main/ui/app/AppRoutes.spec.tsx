@@ -89,6 +89,14 @@ jest.mock('../pages/GroupDetailPage', () => ({
     GroupDetailPage: () => <div data-testid="group-detail-page" />,
 }));
 
+jest.mock('../pages/SharedPolicyGroupsPage', () => ({
+    SharedPolicyGroupsPage: () => <div data-testid="shared-policy-groups-page" />,
+}));
+
+jest.mock('../pages/SharedPolicyGroupDetailPage', () => ({
+    SharedPolicyGroupDetailPage: () => <div data-testid="shared-policy-group-detail-page" />,
+}));
+
 jest.mock('../pages/RegisterApplicationPage', () => ({
     RegisterApplicationPage: () => <div data-testid="register-application-page" />,
 }));
@@ -312,6 +320,52 @@ describe('AppRoutes', () => {
         renderPlatform();
 
         expect(visibleNavKeys()).not.toContain('metadata');
+    });
+
+    it('routes to the Shared Policy Groups page under the platform module', () => {
+        render(
+            <MemoryRouter initialEntries={['/shared-policy-groups']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('shared-policy-groups-page')).not.toBeNull();
+    });
+
+    it('routes to the shared policy group detail page under the platform module', () => {
+        render(
+            <MemoryRouter initialEntries={['/shared-policy-groups/spg-1']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('shared-policy-group-detail-page')).not.toBeNull();
+    });
+
+    it('redirects away from Shared Policy Groups when the user lacks environment-shared_policy_group-r', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-shared_policy_group-r'));
+
+        render(
+            <MemoryRouter initialEntries={['/shared-policy-groups']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('shows the Shared Policy Groups nav item when the user has read permission', () => {
+        renderPlatform();
+
+        expect(visibleNavKeys()).toContain('shared-policy-groups');
+    });
+
+    it('hides the Shared Policy Groups nav item when the user lacks environment-shared_policy_group-r', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-shared_policy_group-r'));
+
+        renderPlatform();
+
+        expect(visibleNavKeys()).not.toContain('shared-policy-groups');
     });
 
     it('routes to the user detail page under the platform module', () => {
