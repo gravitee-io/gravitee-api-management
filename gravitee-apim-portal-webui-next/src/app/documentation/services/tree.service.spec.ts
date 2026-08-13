@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 import { TreeService } from './tree.service';
-import { fakePortalNavigationFolder } from '../../../entities/portal-navigation/portal-navigation-item.fixture';
+import {
+  fakePortalNavigationApiProduct,
+  fakePortalNavigationFolder,
+} from '../../../entities/portal-navigation/portal-navigation-item.fixture';
 import { makeItem, MOCK_ITEMS } from '../../../mocks/portal-navigation-item.mocks';
 
 const parentItem = fakePortalNavigationFolder();
@@ -116,16 +119,38 @@ describe('DocumentationTreeService', () => {
     });
   });
 
-  describe('getAncestorApiId', () => {
-    it('should return apiId when page is under API', () => {
+  describe('getSubscriptionTarget', () => {
+    it('should return an API target when page is under a standalone API', () => {
       const items = [makeItem('api1', 'API', 'API 1', 0), makeItem('p-api1', 'PAGE', 'API doc', 0, 'api1')];
       service.init(parentItem, items);
-      expect(service.getAncestorApiId('p-api1')).toEqual('api-api1');
+      expect(service.getSubscriptionTarget('p-api1')).toEqual({ type: 'API', apiId: 'api-api1' });
     });
 
-    it('should return null when page has no API ancestor', () => {
-      expect(service.getAncestorApiId('p1')).toBeNull();
-      expect(service.getAncestorApiId('p3')).toBeNull();
+    it('should return an API Product target when page is under an API Product folder', () => {
+      const items = [
+        fakePortalNavigationApiProduct({ id: 'product1', apiProductId: 'api-product-1', rootId: 'product1' }),
+        makeItem('product-folder1', 'FOLDER', 'Product documentation', 0, 'product1', 'product1'),
+        makeItem('product-page1', 'PAGE', 'Product overview', 0, 'product-folder1', 'product1'),
+      ];
+      service.init(parentItem, items);
+
+      expect(service.getSubscriptionTarget('product-page1')).toEqual({ type: 'API_PRODUCT', apiProductId: 'api-product-1' });
+    });
+
+    it('should prefer a nested API over its enclosing API Product', () => {
+      const items = [
+        fakePortalNavigationApiProduct({ id: 'product1', apiProductId: 'api-product-1', rootId: 'product1' }),
+        makeItem('api1', 'API', 'API 1', 0, 'product1', 'product1'),
+        makeItem('p-api1', 'PAGE', 'API doc', 0, 'api1', 'product1'),
+      ];
+      service.init(parentItem, items);
+
+      expect(service.getSubscriptionTarget('p-api1')).toEqual({ type: 'API', apiId: 'api-api1' });
+    });
+
+    it('should return null when page has no subscribable ancestor', () => {
+      expect(service.getSubscriptionTarget('p1')).toBeNull();
+      expect(service.getSubscriptionTarget('p3')).toBeNull();
     });
   });
 });

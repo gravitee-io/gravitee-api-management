@@ -27,6 +27,8 @@ export interface TreeNode {
   breadcrumbs?: Breadcrumb[];
 }
 
+export type DocumentationSubscriptionTarget = { type: 'API'; apiId: string } | { type: 'API_PRODUCT'; apiProductId: string };
+
 type ProcessingNode = TreeNode & {
   __order: number;
   __parentId: string | null;
@@ -59,11 +61,14 @@ export class TreeService {
     return this.parentItemBreadcrumb ? [this.parentItemBreadcrumb] : [];
   }
 
-  getAncestorApiId(nodeId: string): string | null {
+  getSubscriptionTarget(nodeId: string): DocumentationSubscriptionTarget | null {
     let node = this.treeNodesById.get(nodeId);
     while (node) {
-      if (node.type === 'API' && node.data?.type === 'API') {
-        return node.data.apiId;
+      if (node.data?.type === 'API') {
+        return { type: 'API', apiId: node.data.apiId };
+      }
+      if (node.data?.type === 'API_PRODUCT') {
+        return { type: 'API_PRODUCT', apiProductId: node.data.apiProductId };
       }
       node = node.__parentId ? this.treeNodesById.get(node.__parentId) : undefined;
     }
