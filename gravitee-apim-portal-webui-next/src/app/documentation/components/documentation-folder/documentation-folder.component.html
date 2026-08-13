@@ -16,12 +16,14 @@
 
 -->
 <app-sidenav-layout [breadcrumbs]="breadcrumbs()" [breadcrumbsLoading]="folderLoading()">
-  @if (apiId()) {
+  @if (subscriptionTarget()) {
     <div breadcrumbActions class="documentation-folder__breadcrumb-actions">
-      @if (apiHasMcp()) {
-        <button mat-stroked-button type="button" (click)="this.mcpDrawerOpen.set(true)" data-testid="mcp-button">
-          <span i18n="@@documentationMcpButton">MCP</span>
-        </button>
+      @if (apiId()) {
+        @if (apiHasMcp()) {
+          <button mat-stroked-button type="button" (click)="this.mcpDrawerOpen.set(true)" data-testid="mcp-button">
+            <span i18n="@@documentationMcpButton">MCP</span>
+          </button>
+        }
       }
       <button mat-stroked-button (click)="onSubscribe()" [disabled]="!currentUser()" data-testid="subscribe-button">
         @if (currentUser()) {

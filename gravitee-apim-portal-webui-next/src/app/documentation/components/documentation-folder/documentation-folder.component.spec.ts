@@ -24,6 +24,7 @@ import { of } from 'rxjs/internal/observable/of';
 import { DocumentationFolderComponent } from './documentation-folder.component';
 import { DocumentationFolderComponentHarness } from './documentation-folder.component.harness';
 import { PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
+import { fakePortalNavigationApiProduct } from '../../../../entities/portal-navigation/portal-navigation-item.fixture';
 import { makeItem, MOCK_ITEMS } from '../../../../mocks/portal-navigation-item.mocks';
 import { ApiService } from '../../../../services/api.service';
 import { CurrentUserService } from '../../../../services/current-user.service';
@@ -34,6 +35,7 @@ describe('DocumentationFolderComponent', () => {
   let fixture: ComponentFixture<DocumentationFolderComponent>;
   let harness: DocumentationFolderComponentHarness;
   let navigationServiceSpy: PortalNavigationItemsService;
+  let apiServiceSpy: { details: jest.Mock };
   let routerSpy: jest.Mocked<Router>;
   let queryParamsSubject: BehaviorSubject<{ selectedId?: string }>;
 
@@ -79,7 +81,7 @@ describe('DocumentationFolderComponent', () => {
     } as unknown as PortalNavigationItemsService;
 
     const apiHasMcp = params.apiHasMcp === true;
-    const apiServiceSpy = {
+    apiServiceSpy = {
       details: jest.fn().mockImplementation((id: string) =>
         of({
           ...baseApiDetails,
@@ -87,7 +89,7 @@ describe('DocumentationFolderComponent', () => {
           ...(apiHasMcp ? { mcp: { mcpPath: '/mcp', tools: [] as { toolDefinition: Record<string, unknown> }[] } } : {}),
         }),
       ),
-    } as unknown as ApiService;
+    };
 
     await TestBed.configureTestingModule({
       animationsEnabled: true,
@@ -418,6 +420,61 @@ describe('DocumentationFolderComponent', () => {
       expect(await contentEmptyState?.getText()).toEqual('No content to show');
     });
 
+    it('should show a subscription action for product documentation and navigate to the product flow', async () => {
+      const apiProduct = fakePortalNavigationApiProduct({
+        id: 'product1',
+        apiProductId: 'api-product-1',
+        title: 'API Product 1',
+        rootId: 'root1',
+      });
+      const productPage = makeItem('product-overview1', 'PAGE', 'Product Overview', 0, 'product1', 'root1');
+
+      await init({ items: [apiProduct, productPage], queryParams: { selectedId: 'product-overview1' }, content: MOCK_CONTENT });
+
+      const subscribeButton = await harness.getSubscribeButton();
+      expect(subscribeButton).not.toBeNull();
+      expect(await subscribeButton!.getText()).toEqual('Subscribe');
+
+      await subscribeButton!.click();
+
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['api-product', 'api-product-1', 'subscribe'], {
+        relativeTo: expect.anything(),
+        queryParamsHandling: 'preserve',
+      });
+    });
+
+    it('should keep the product subscription action disabled for an unauthenticated user', async () => {
+      const apiProduct = fakePortalNavigationApiProduct({ id: 'product1', apiProductId: 'api-product-1', rootId: 'root1' });
+      const productPage = makeItem('product-overview1', 'PAGE', 'Product Overview', 0, 'product1', 'root1');
+
+      await init({
+        items: [apiProduct, productPage],
+        queryParams: { selectedId: 'product-overview1' },
+        content: MOCK_CONTENT,
+        isAuthenticated: false,
+      });
+
+      const subscribeButton = await harness.getSubscribeButton();
+      expect(subscribeButton).not.toBeNull();
+      expect(await subscribeButton!.getText()).toEqual('Sign in to subscribe');
+      expect(await subscribeButton!.isDisabled()).toBe(true);
+    });
+
+    it('should not load API details or show MCP actions for product documentation', async () => {
+      const apiProduct = fakePortalNavigationApiProduct({ id: 'product1', apiProductId: 'api-product-1', rootId: 'root1' });
+      const productPage = makeItem('product-overview1', 'PAGE', 'Product Overview', 0, 'product1', 'root1');
+
+      await init({
+        items: [apiProduct, productPage],
+        queryParams: { selectedId: 'product-overview1' },
+        content: MOCK_CONTENT,
+        apiHasMcp: true,
+      });
+
+      expect(apiServiceSpy.details).not.toHaveBeenCalled();
+      expect(await harness.getMcpButton()).toBeNull();
+    });
+
     it('should preserve API behavior for documentation nested under an API Product', async () => {
       const apiProduct = makeItem('product1', 'API_PRODUCT', 'API Product 1', 0, undefined, 'root1');
       const apiItem = makeItem('api1', 'API', 'API 1', 0, 'product1', 'root1');
@@ -426,10 +483,49 @@ describe('DocumentationFolderComponent', () => {
       await init({ items: [apiProduct, apiItem, apiPage], queryParams: { selectedId: 'p-api1' }, content: MOCK_CONTENT });
 
       expect(routerSpy.navigate).not.toHaveBeenCalled();
-      expect(await harness.getSubscribeButton()).not.toBeNull();
+      const subscribeButton = await harness.getSubscribeButton();
+      expect(subscribeButton).not.toBeNull();
+
+      await subscribeButton!.click();
+
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['api', 'api-api1', 'subscribe'], {
+        relativeTo: expect.anything(),
+        queryParamsHandling: 'preserve',
+      });
 
       const breadcrumbs = await harness.getBreadcrumbs();
       expect(await breadcrumbs?.getText()).toEqual('Test item/API Product 1/API 1/API 1 Documentation');
+    });
+
+    it('should hide the previous API action while product documentation is loading', async () => {
+      const apiProduct = fakePortalNavigationApiProduct({
+        id: 'product1',
+        apiProductId: 'api-product-1',
+        title: 'API Product 1',
+        rootId: 'root1',
+      });
+      const productPage = makeItem('product-overview1', 'PAGE', 'Product Overview', 0, 'product1', 'root1');
+      const apiItem = makeItem('api1', 'API', 'API 1', 1, 'product1', 'root1');
+      const apiPage = makeItem('p-api1', 'PAGE', 'API 1 Documentation', 0, 'api1', 'root1');
+
+      await init({ items: [apiProduct, productPage, apiItem, apiPage], queryParams: { selectedId: 'p-api1' }, content: MOCK_CONTENT });
+      expect(await harness.getSubscribeButton()).not.toBeNull();
+
+      const contentSubject = new Subject<{ content: string; type: string }>();
+      navigationServiceSpy.getNavigationItemContent = jest.fn().mockReturnValue(contentSubject.asObservable());
+
+      const tree = await harness.getTreeHarness();
+      await tree!.clickItemByTitle('Product Overview');
+      await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+      expect(await harness.getSubscribeButton()).toBeNull();
+
+      contentSubject.next({ content: MOCK_CONTENT, type: 'GRAVITEE_MARKDOWN' });
+      contentSubject.complete();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(await harness.getSubscribeButton()).not.toBeNull();
     });
   });
 

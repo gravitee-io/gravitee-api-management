@@ -39,7 +39,7 @@ import { ApiService } from '../../../../services/api.service';
 import { CurrentUserService } from '../../../../services/current-user.service';
 import { PortalNavigationItemsService } from '../../../../services/portal-navigation-items.service';
 import { ApiTabToolsComponent } from '../../../api/api-details/api-tab-tools/api-tab-tools.component';
-import { TreeNode, TreeService } from '../../services/tree.service';
+import { DocumentationSubscriptionTarget, TreeNode, TreeService } from '../../services/tree.service';
 
 interface FolderData {
   children: PortalNavigationItem[];
@@ -85,7 +85,11 @@ export class DocumentationFolderComponent {
   tree = signal<TreeNode[]>([]);
   breadcrumbs = signal<Breadcrumb[]>([]);
 
-  apiId = signal<string | null>(null);
+  subscriptionTarget = signal<DocumentationSubscriptionTarget | null>(null);
+  apiId = computed(() => {
+    const target = this.subscriptionTarget();
+    return target?.type === 'API' ? target.apiId : null;
+  });
   api = rxResource<Api | null, string | null>({
     params: this.apiId,
     stream: ({ params }) => (params ? this.apiService.details(params) : of(null)),
@@ -105,13 +109,16 @@ export class DocumentationFolderComponent {
   }
 
   onSubscribe() {
-    const apiId = this.apiId();
-    if (apiId) {
-      this.router.navigate(['api', apiId, 'subscribe'], {
-        relativeTo: this.activatedRoute,
-        queryParamsHandling: 'preserve',
-      });
+    const target = this.subscriptionTarget();
+    if (!target) {
+      return;
     }
+
+    const route = target.type === 'API' ? ['api', target.apiId, 'subscribe'] : ['api-product', target.apiProductId, 'subscribe'];
+    this.router.navigate(route, {
+      relativeTo: this.activatedRoute,
+      queryParamsHandling: 'preserve',
+    });
   }
 
   private loadFolderData(): Observable<FolderData | undefined> {
@@ -149,10 +156,11 @@ export class DocumentationFolderComponent {
   }
 
   private loadContentOrRedirect(selectedId: string, children = this.folderData()?.children ?? []): Observable<FolderData> {
+    this.subscriptionTarget.set(null);
+
     if (!selectedId) {
       return of({ children, selectedPageContent: null }).pipe(
         tap(() => this.breadcrumbs.set(this.treeService.getBreadcrumbsByDefault())),
-        tap(() => this.apiId.set(null)),
         tap(() => this.navigateToFirstPage()),
       );
     }
@@ -168,9 +176,10 @@ export class DocumentationFolderComponent {
       return of({ children, selectedPageContent: null }).pipe(tap(() => firstPageId && this.navigateToPage(firstPageId)));
     }
 
+    const subscriptionTarget = this.treeService.getSubscriptionTarget(selectedId);
     return this.itemsService.getNavigationItemContent(selectedId).pipe(
       tap(() => this.breadcrumbs.set(this.treeService.getBreadcrumbsByNodeId(selectedId))),
-      tap(() => this.apiId.set(this.treeService.getAncestorApiId(selectedId))),
+      tap(() => this.subscriptionTarget.set(subscriptionTarget)),
       map(selectedPageContent => ({ children, selectedPageContent })),
     );
   }
