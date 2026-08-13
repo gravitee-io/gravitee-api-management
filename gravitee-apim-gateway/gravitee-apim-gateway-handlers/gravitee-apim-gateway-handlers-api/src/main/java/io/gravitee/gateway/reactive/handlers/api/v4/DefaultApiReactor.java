@@ -822,6 +822,9 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
             if (!node.lifecycleState().equals(Lifecycle.State.STARTED)) {
                 log.debug("Current node is not started, API handler will be stopped immediately");
+                // No grace period on this path: whatever is running is cut right away, so the count is read here,
+                // before the teardown empties it.
+                warnAboutRequestsCutShort(pendingRequests.get());
                 stopNow();
             } else {
                 log.debug("Current node is started, API handler will wait for pending requests before stopping");
