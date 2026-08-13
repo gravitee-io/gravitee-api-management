@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { APIResponse, expect } from '@playwright/test';
+import 'dotenv/config';
+import path from 'path';
 
-export function expectOk(response: APIResponse): void {
-  expect(response.status()).toBe(200);
-}
+/**
+ * Playwright-specific configuration only.
+ *
+ * Everything the Jest api-test suite already defines — management/portal/gateway base URLs and
+ * user credentials — is read from `.env` via `@gravitee/utils/configuration`. Do not redeclare it
+ * here: a second copy is exactly how the two suites drift apart.
+ */
+export const CONSOLE_BASE_URL = process.env.CONSOLE_BASE_URL ?? 'http://localhost:4000';
 
-export function expectCreated(response: APIResponse): void {
-  expect(response.status()).toBe(201);
-}
-
-export function expectNoContent(response: APIResponse): void {
-  expect(response.status()).toBe(204);
-}
+export const ADMIN_AUTH_FILE = path.join(__dirname, '..', 'fixtures', '.auth', 'admin.json');

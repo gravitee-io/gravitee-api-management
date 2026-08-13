@@ -14,12 +14,23 @@
  * limitations under the License.
  */
 import { test as setup } from '@playwright/test';
-import { ADMIN_USER } from '@test-data/fakers/users';
-import { ADMIN_AUTH_FILE, basicAuthHeader, DEFAULT_ORG_PATH, MANAGEMENT_API_URL } from '@utils/api-context';
+import { ADMIN_USER } from '@gravitee/utils/configuration';
+import { ADMIN_AUTH_FILE } from '@utils/config';
 
+/**
+ * Logs in through the management API so the Console session cookies land in the browser context,
+ * then saves them for every other project to reuse via `storageState`.
+ *
+ * This runs in a browser context on purpose: the Console authenticates with the
+ * `Auth-Graviteeio-APIM` cookie, which `page.request` stores and `storageState()` can capture.
+ * API-only setup/teardown must not go through here — it uses the generated SDK, which
+ * authenticates statelessly per request (see README).
+ */
 setup('authenticate as admin', async ({ page }) => {
-  const response = await page.request.post(`${MANAGEMENT_API_URL}${DEFAULT_ORG_PATH}/user/login`, {
-    headers: basicAuthHeader(ADMIN_USER),
+  const response = await page.request.post(`${process.env.MANAGEMENT_BASE_URL}/organizations/DEFAULT/user/login`, {
+    headers: {
+      Authorization: `Basic ${Buffer.from(`${ADMIN_USER.username}:${ADMIN_USER.password}`).toString('base64')}`,
+    },
   });
   if (!response.ok()) {
     throw new Error(`Admin login failed with status ${response.status()}`);

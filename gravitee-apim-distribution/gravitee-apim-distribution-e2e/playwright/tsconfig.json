@@ -2,11 +2,9 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "types": ["node", "@playwright/test"],
+    "types": ["../types", "node", "node-fetch", "@playwright/test"],
     "paths": {
-      "@model/*": ["model/*"],
-      "@utils/*": ["utils/*"],
-      "@test-data/*": ["test-data/*"]
+      "@utils/*": ["utils/*"]
     }
   },
   "include": ["**/*.ts"],
