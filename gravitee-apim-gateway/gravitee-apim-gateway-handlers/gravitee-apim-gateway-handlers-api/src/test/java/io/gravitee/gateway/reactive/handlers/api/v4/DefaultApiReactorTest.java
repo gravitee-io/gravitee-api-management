@@ -40,6 +40,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import appender.MemoryAppender;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
@@ -128,6 +132,7 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.NOPLogger;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -1057,6 +1062,93 @@ class DefaultApiReactorTest {
         verify(resourceLifecycleManager).stop();
         verify(policyManager).stop();
         verify(apiService).stop();
+        RxJavaPlugins.reset();
+    }
+
+    @Test
+    void should_warn_about_the_requests_it_cuts_short_when_it_stops() throws Exception {
+        final MemoryAppender memoryAppender = new MemoryAppender();
+        final Logger logger = (Logger) LoggerFactory.getLogger(AbstractApiReactor.class);
+        memoryAppender.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
+        logger.setLevel(Level.WARN);
+        logger.addAppender(memoryAppender);
+        memoryAppender.start();
+
+        RxJavaPlugins.setIoSchedulerHandler(scheduler -> testScheduler);
+        when(node.lifecycleState()).thenReturn(Lifecycle.State.STARTED);
+        ReflectionTestUtils.setField(cut, "pendingRequests", new AtomicLong(3));
+
+        cut.doStop();
+        testScheduler.advanceTimeBy(10_000L, TimeUnit.MILLISECONDS);
+        testScheduler.triggerActions();
+
+        // Stopping closes the endpoints and policies from under those 3 requests: they end as errors, and without
+        // this line nothing in the logs ties the resulting spike to the redeploy that caused it.
+        assertThat(memoryAppender.getLoggedEvents()).hasSize(1);
+        assertThat(memoryAppender.getLoggedEvents().get(0).getFormattedMessage())
+            .contains("3 request(s) are still being handled")
+            .contains("api.pending_requests_timeout");
+
+        logger.detachAppender(memoryAppender);
+        RxJavaPlugins.reset();
+    }
+
+    @Test
+    void should_still_report_the_cut_requests_when_the_counter_empties_during_teardown() throws Exception {
+        final MemoryAppender memoryAppender = new MemoryAppender();
+        final Logger logger = (Logger) LoggerFactory.getLogger(AbstractApiReactor.class);
+        memoryAppender.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
+        logger.setLevel(Level.WARN);
+        logger.addAppender(memoryAppender);
+        memoryAppender.start();
+
+        RxJavaPlugins.setIoSchedulerHandler(scheduler -> testScheduler);
+        when(node.lifecycleState()).thenReturn(Lifecycle.State.STARTED);
+        final AtomicLong pendingRequests = new AtomicLong(2);
+        ReflectionTestUtils.setField(cut, "pendingRequests", pendingRequests);
+        // The counter empties while the teardown runs. Pins the invariant the reporting depends on: what is reported
+        // is what the wait loop observed, not what the counter happens to hold once the teardown is under way. On a
+        // live gateway the counter was already back to zero by then, and nothing was reported at all even though
+        // requests were demonstrably being cut short.
+        doAnswer(invocation -> {
+            pendingRequests.set(0);
+            return null;
+        })
+            .when(endpointManager)
+            .stop();
+
+        cut.doStop();
+        testScheduler.advanceTimeBy(10_000L, TimeUnit.MILLISECONDS);
+        testScheduler.triggerActions();
+
+        verify(endpointManager).stop();
+        assertThat(memoryAppender.getLoggedEvents()).hasSize(1);
+        assertThat(memoryAppender.getLoggedEvents().get(0).getFormattedMessage()).contains("2 request(s) are still being handled");
+
+        logger.detachAppender(memoryAppender);
+        RxJavaPlugins.reset();
+    }
+
+    @Test
+    void should_not_warn_when_it_stops_with_no_request_left() throws Exception {
+        final MemoryAppender memoryAppender = new MemoryAppender();
+        final Logger logger = (Logger) LoggerFactory.getLogger(AbstractApiReactor.class);
+        memoryAppender.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
+        logger.setLevel(Level.WARN);
+        logger.addAppender(memoryAppender);
+        memoryAppender.start();
+
+        RxJavaPlugins.setIoSchedulerHandler(scheduler -> testScheduler);
+        when(node.lifecycleState()).thenReturn(Lifecycle.State.STARTED);
+
+        cut.doStop();
+        testScheduler.advanceTimeBy(10_000L, TimeUnit.MILLISECONDS);
+        testScheduler.triggerActions();
+
+        // A clean shutdown is the common case: warning there would train operators to ignore the line.
+        assertThat(memoryAppender.getLoggedEvents()).isEmpty();
+
+        logger.detachAppender(memoryAppender);
         RxJavaPlugins.reset();
     }
 

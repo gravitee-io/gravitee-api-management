@@ -522,6 +522,9 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
     protected void doStop() throws Exception {
         if (!node.lifecycleState().equals(Lifecycle.State.STARTED)) {
             log.debug("Current node is not started, API handler will be stopped immediately");
+            // No grace period on this path: whatever is running is cut right away, so the count is read here, before
+            // the teardown empties it.
+            warnAboutRequestsCutShort(pendingRequests.get());
             stopNow();
         } else {
             log.debug("Current node is started, API handler will wait for pending requests before stopping");
@@ -539,14 +542,53 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         log.debug("API reactor is now stopped: {}", this);
     }
 
+    /**
+     * Warn when the reactor is torn down while requests are still running. Stopping closes the endpoint connections,
+     * the policies and the resources from under them, so those requests end with an upstream error — an outcome that
+     * looks like a runtime fault in analytics but is really the reactor going away (an API redeploy, a node shutdown,
+     * a scale down).
+     * <p>
+     * Without this line there is nothing in the logs tying the two together, and the error rate simply appears to
+     * spike for no reason at the same instant as every deployment.
+     *
+     * @param stillRunning how many requests were running when the decision to stop anyway was taken. It has to be
+     *   captured at that point and passed in: by the time the teardown actually runs, the counter no longer reflects
+     *   the requests about to be cut.
+     */
+    private void warnAboutRequestsCutShort(final int stillRunning) {
+        if (stillRunning > 0) {
+            log.warn(
+                "API reactor is stopping while {} request(s) are still being handled: they will be cut short and " +
+                    "reported as errors. Waited up to {} ms for them ({}). [{}]",
+                stillRunning,
+                pendingRequestsTimeout,
+                PENDING_REQUESTS_TIMEOUT_PROPERTY,
+                this
+            );
+        }
+    }
+
     protected Observable<Timed<Long>> stopUntil(long timeout) {
         long period = 100;
+        // Remembers what the loop last saw, because that is the only place the count is meaningful: the predicate
+        // returns false either because the requests are gone (0) or because the grace period expired while they were
+        // still running (> 0) — and only the second case is worth a warning. Reading the counter after the loop, in
+        // the teardown itself, always yields 0.
+        final AtomicInteger lastSeenPendingRequests = new AtomicInteger();
+
         return interval(period, TimeUnit.MILLISECONDS)
             .timestamp()
             .observeOn(Schedulers.io())
-            .takeWhile(t -> pendingRequests.get() > 0 && (t.value() + 1) * period < timeout)
+            .takeWhile(t -> {
+                final int stillRunning = pendingRequests.get();
+                lastSeenPendingRequests.set(stillRunning);
+                return stillRunning > 0 && (t.value() + 1) * period < timeout;
+            })
             .onErrorComplete()
-            .doFinally(this::stopNow);
+            .doFinally(() -> {
+                warnAboutRequestsCutShort(lastSeenPendingRequests.get());
+                stopNow();
+            });
     }
 
     @Override
