@@ -22,6 +22,7 @@ export const ROUTE_KEYS: readonly string[] = [
     'access-management',
     'metadata',
     'dictionaries',
+    'shared-policy-groups',
     'security-plan-types',
     'gateways',
     'entrypoints-and-sharding-tags',
@@ -38,6 +39,7 @@ export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: s
     'security-plan-types': { path: 'security-plan-types', label: 'Security Plan Types' },
     metadata: { path: 'metadata', label: 'Metadata' },
     dictionaries: { path: 'dictionaries', label: 'Dictionaries' },
+    'shared-policy-groups': { path: 'shared-policy-groups', label: 'Shared Policy Groups' },
     gateways: { path: 'gateways', label: 'Gateways' },
     'entrypoints-and-sharding-tags': { path: 'entrypoints-and-sharding-tags', label: 'Entrypoints & Sharding Tags' },
 };
