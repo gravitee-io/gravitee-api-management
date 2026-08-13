@@ -1,0 +1,30 @@
+{
+  "id": "DEFAULT",
+  "hrids": ["default"],
+  "name": "Reject dot segments",
+  "description": "Platform flow rejecting any request whose path carries dot segments, encoded or not.",
+  "flowMode": "DEFAULT",
+  "flows": [
+    {
+      "name": "reject-dot-segments",
+      "path-operator": {
+        "path": "/",
+        "operator": "STARTS_WITH"
+      },
+      "condition": "",
+      "pre": [
+        {
+          "name": "Reject dot segments",
+          "description": "Interrupts the request before its plan is enforced and before the backend is invoked.",
+          "enabled": true,
+          "policy": "groovy",
+          "configuration": {
+            "script": "import io.gravitee.policy.groovy.PolicyResult.State\nString path = request.path.toLowerCase()\nif (path.contains('..') || path.contains('%2e')) {\n    result.state = State.FAILURE\n    result.code = 400\n    result.error = 'Request path contains dot segments'\n}\n"
+          }
+        }
+      ],
+      "post": [],
+      "enabled": true
+    }
+  ]
+}
