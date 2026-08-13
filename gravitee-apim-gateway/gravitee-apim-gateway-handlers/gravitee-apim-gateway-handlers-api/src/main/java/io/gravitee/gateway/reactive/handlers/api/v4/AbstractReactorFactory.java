@@ -171,8 +171,13 @@ public abstract class AbstractReactorFactory<T extends ReactableApi<? extends Ab
         return templateVariableProviders;
     }
 
+    /**
+     * Builds a resource manager over {@code reactable}'s declared resources. Protected rather than private because a
+     * reactor may own resources beyond its own API's: an agent workflow runs sub-agents that declare their own, and
+     * has to instantiate them itself since another API's deployment is out of reach.
+     */
     @SuppressWarnings("unchecked")
-    private ResourceLifecycleManager resourceLifecycleManager(
+    protected ResourceLifecycleManager resourceLifecycleManager(
         Reactable reactable,
         ResourceClassLoaderFactory resourceClassLoaderFactory,
         ResourceConfigurationFactory resourceConfigurationFactory,
