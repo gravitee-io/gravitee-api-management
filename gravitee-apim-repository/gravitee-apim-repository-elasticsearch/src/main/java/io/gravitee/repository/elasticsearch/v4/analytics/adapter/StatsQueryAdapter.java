@@ -114,10 +114,12 @@ public class StatsQueryAdapter {
 
         float count = agg.getCount().longValue();
 
-        float sum = agg.getSum();
-        float avg = agg.getAvg();
-        float min = agg.getMin();
-        float max = agg.getMax();
+        // StatsAggregate is part of the repository API and still exposes floats; narrowing here
+        // keeps this adapter unchanged rather than rippling a type change through its consumers.
+        float sum = agg.getSum().floatValue();
+        float avg = agg.getAvg().floatValue();
+        float min = agg.getMin().floatValue();
+        float max = agg.getMax().floatValue();
 
         float rps = count / this.seconds;
         float rpm = rps * 60L;
