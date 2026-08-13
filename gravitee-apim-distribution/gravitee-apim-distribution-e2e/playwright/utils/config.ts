@@ -23,6 +23,15 @@ import path from 'path';
  * user credentials — is read from `.env` via `@gravitee/utils/configuration`. Do not redeclare it
  * here: a second copy is exactly how the two suites drift apart.
  */
-export const CONSOLE_BASE_URL = process.env.CONSOLE_BASE_URL ?? 'http://localhost:4000';
+function requiredEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`Missing environment variable ${name}. Is .env present in the package root?`);
+  }
+  return value;
+}
+
+export const CONSOLE_BASE_URL = requiredEnv('CONSOLE_BASE_URL');
+export const MANAGEMENT_BASE_URL = requiredEnv('MANAGEMENT_BASE_URL');
 
 export const ADMIN_AUTH_FILE = path.join(__dirname, '..', 'fixtures', '.auth', 'admin.json');

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { defineConfig, devices } from '@playwright/test';
-import { ADMIN_AUTH_FILE, CONSOLE_BASE_URL } from './utils/config';
+import { ADMIN_AUTH_FILE, CONSOLE_BASE_URL } from '@utils/config';
 
 export default defineConfig({
   testDir: './tests',
