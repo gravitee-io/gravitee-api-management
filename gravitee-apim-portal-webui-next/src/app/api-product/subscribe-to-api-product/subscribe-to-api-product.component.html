@@ -1,0 +1,185 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+@if (createdSubscription(); as subscription) {
+  <app-banner class="subscribe-to-api-product__confirmation" aria-live="polite" data-testid="subscription-confirmation">
+    <div class="next-gen-h5" i18n="@@subscribeToApiProductConfirmationTitle">Subscription created</div>
+    @if (subscription.status === 'PENDING') {
+      <p class="next-gen-body" i18n="@@subscribeToApiProductPendingConfirmation">
+        Your subscription request has been sent and is awaiting approval.
+      </p>
+    } @else {
+      <p class="next-gen-body" i18n="@@subscribeToApiProductAcceptedConfirmation">
+        Your application is now subscribed to this API Product.
+      </p>
+    }
+  </app-banner>
+  @if (cancelFn()) {
+    <div class="subscribe-to-api-product__confirmation-actions">
+      <button mat-flat-button color="primary" (click)="cancelFn()!()" i18n="@@subscribeToApiProductReturnToDocumentation">
+        Return to documentation
+      </button>
+    </div>
+  }
+} @else {
+  <mat-card class="subscribe-to-api-product" appearance="outlined">
+    @if (currentStep() === SubscribeStep.PLAN_SELECTION) {
+      <app-subscribe-to-api-step-header [stepNumber]="stepNumberOf(SubscribeStep.PLAN_SELECTION)">
+        <div class="next-gen-h5" i18n="@@subscribeToApiProductChoosePlan">Choose a plan</div>
+        <div class="next-gen-body" i18n="@@subscribeToApiProductChoosePlanDescription">
+          Choose how your application will access the APIs in this product.
+        </div>
+      </app-subscribe-to-api-step-header>
+      <mat-card-content>
+        @if (plansResource.isLoading()) {
+          <app-loader />
+        } @else if (plansResource.error()) {
+          <app-banner type="error" role="alert" data-testid="plans-error">
+            <p class="next-gen-body" i18n="@@subscribeToApiProductPlansError">The available plans could not be loaded.</p>
+            <button mat-stroked-button color="primary" (click)="retryPlans()" i18n="@@subscribeToApiProductRetryPlans">Try again</button>
+          </app-banner>
+        } @else if (plans().length) {
+          <div
+            class="subscribe-to-api-product__plan-list"
+            [appIsNarrow]="'subscribe-to-api-product__plan-list--narrow'"
+            [appIsMobile]="'subscribe-to-api-product__plan-list--mobile'"
+          >
+            @for (plan of plans(); track plan.id) {
+              <app-plan-card [id]="plan.id" [plan]="plan" [selected]="currentPlan()?.id === plan.id" (selectPlan)="selectPlan($event)" />
+            }
+          </div>
+        } @else {
+          <app-banner data-testid="no-plans">
+            <p class="next-gen-body" i18n="@@subscribeToApiProductNoPlans">No subscription plan is currently available.</p>
+          </app-banner>
+        }
+      </mat-card-content>
+    } @else if (currentStep() === SubscribeStep.APP_SELECTION) {
+      <app-subscribe-to-api-step-header [stepNumber]="stepNumberOf(SubscribeStep.APP_SELECTION)">
+        <div class="next-gen-h5" i18n="@@subscribeToApiProductChooseApplication">Choose an application</div>
+        <div class="next-gen-body" i18n="@@subscribeToApiProductChooseApplicationDescription">
+          Select the application that will use this API Product.
+        </div>
+      </app-subscribe-to-api-step-header>
+      <mat-card-content>
+        @if (isApplicationStepLoading()) {
+          <app-loader />
+        } @else if (hasApplicationStepError()) {
+          <app-banner type="error" role="alert" data-testid="applications-error">
+            <p class="next-gen-body" i18n="@@subscribeToApiProductApplicationsError">Eligible applications could not be loaded.</p>
+            <button mat-stroked-button color="primary" (click)="retryApplications()" i18n="@@subscribeToApiProductRetryApplications">
+              Try again
+            </button>
+          </app-banner>
+        } @else {
+          <app-subscribe-to-api-choose-application
+            [applications]="applicationsData().applications"
+            [selectedApplication]="currentApplication()"
+            [pagination]="applicationsData().pagination"
+            (selectApplication)="selectApplication($event)"
+            (pageChange)="onApplicationPageChange($event)"
+            (pageSizeChange)="onApplicationPageSizeChange($event)"
+          />
+        }
+      </mat-card-content>
+    } @else if (currentStep() === SubscribeStep.PUSH_DETAILS) {
+      <app-subscribe-to-api-step-header [stepNumber]="stepNumberOf(SubscribeStep.PUSH_DETAILS)">
+        <div class="next-gen-h5" i18n="@@subscribeToApiProductConfigureConsumer">Configure consumer</div>
+      </app-subscribe-to-api-step-header>
+      <mat-card-content>
+        <app-consumer-configuration
+          [consumerConfigurationFormValues]="consumerConfigurationFormData().value"
+          (consumerConfigurationFormDataChange)="consumerConfigurationFormChanges($event)"
+        />
+      </mat-card-content>
+    } @else if (currentStep() === SubscribeStep.REVIEW) {
+      <app-subscribe-to-api-step-header [stepNumber]="stepNumberOf(SubscribeStep.REVIEW)">
+        <div class="next-gen-h5" i18n="@@subscribeToApiProductReview">Review</div>
+        @if (currentPlan()?.security === 'KEY_LESS') {
+          <div class="next-gen-body" i18n="@@subscribeToApiProductKeylessDescription">
+            This plan does not require a subscription to consume the API Product.
+          </div>
+        }
+      </app-subscribe-to-api-step-header>
+      <mat-card-content class="subscribe-to-api-product__review">
+        <dl class="subscribe-to-api-product__summary next-gen-body">
+          <dt class="next-gen-body-strong" i18n="@@subscribeToApiProductProductLabel">API Product</dt>
+          <dd>{{ apiProduct().name }}</dd>
+          <dt class="next-gen-body-strong" i18n="@@subscribeToApiProductPlanLabel">Plan</dt>
+          <dd>{{ currentPlan()?.name }}</dd>
+          @if (currentApplication(); as application) {
+            <dt class="next-gen-body-strong" i18n="@@subscribeToApiProductApplicationLabel">Application</dt>
+            <dd>{{ application.name }}</dd>
+          }
+        </dl>
+        @if (hasSubscriptionError()) {
+          <app-banner type="error" role="alert" data-testid="subscription-error">
+            <p class="next-gen-body" i18n="@@subscribeToApiProductSubmissionError">
+              The subscription could not be created. Try again, and if the issue persists, contact your Portal administrator.
+            </p>
+          </app-banner>
+        }
+      </mat-card-content>
+    }
+  </mat-card>
+
+  <mat-card-actions class="subscribe-to-api-product__actions">
+    <div>
+      @if (activeSteps().indexOf(currentStep()) > 0) {
+        <button
+          mat-stroked-button
+          color="primary"
+          (click)="goToPreviousStep()"
+          [disabled]="isSubmitting()"
+          i18n="@@subscribeToApiProductPrevious"
+        >
+          Previous
+        </button>
+      } @else if (cancelFn()) {
+        <button mat-stroked-button color="primary" (click)="cancelFn()!()" i18n="@@subscribeToApiProductCancel">Cancel</button>
+      }
+    </div>
+    <div>
+      @if (currentStep() !== SubscribeStep.REVIEW) {
+        <div class="subscribe-to-api-product__next-actions">
+          @if (currentApplication(); as application) {
+            <div class="next-gen-body subscribe-to-api-product__selected-application">
+              <span i18n="@@subscribeToApiProductSelectedApplication">Selected application:</span>
+              <mat-chip (removed)="currentApplication.set(undefined)">
+                {{ application.name }}
+                <button matChipRemove i18n-aria-label="@@subscribeToApiProductClearApplication" aria-label="Clear selected application">
+                  <mat-icon aria-hidden="true">cancel</mat-icon>
+                </button>
+              </mat-chip>
+            </div>
+          }
+          <button mat-flat-button color="primary" (click)="goToNextStep()" [disabled]="stepIsInvalid()" i18n="@@subscribeToApiProductNext">
+            Next
+          </button>
+        </div>
+      } @else if (currentPlan()?.security !== 'KEY_LESS') {
+        <button mat-flat-button color="primary" (click)="subscribe()" [disabled]="stepIsInvalid() || isSubmitting()">
+          @if (isSubmitting()) {
+            <span i18n="@@subscribeToApiProductSubscribing">Subscribing...</span>
+          } @else {
+            <span i18n="@@subscribeToApiProductSubscribe">Subscribe</span>
+          }
+        </button>
+      }
+    </div>
+  </mat-card-actions>
+}

@@ -136,7 +136,7 @@ export default class SubscriptionsComponent {
 
     return response.data.map(sub => ({
       id: sub.id,
-      api: this.retrieveMetadataName(sub.api, response.metadata),
+      api: sub.api ? this.retrieveMetadataName(sub.api, response.metadata) : '',
       plan: this.retrieveMetadataName(sub.plan, response.metadata),
       application: this.retrieveMetadataName(sub.application, response.metadata),
       created_at: sub.created_at ?? '',

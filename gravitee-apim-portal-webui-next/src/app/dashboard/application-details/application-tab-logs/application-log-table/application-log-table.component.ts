@@ -207,7 +207,7 @@ export class ApplicationLogTableComponent implements OnInit {
       .list({ applicationIds: [this.application.id], size: -1, statuses: ['ACCEPTED', 'PAUSED'] })
       .pipe(
         map(response => {
-          const apiIds = [...new Set(response.data.map(s => s.api))];
+          const apiIds = [...new Set(response.data.map(s => s.api).filter((apiId): apiId is string => apiId !== undefined))];
           return apiIds.map(apiId => ({
             id: apiId,
             name: response.metadata[apiId]?.name ?? '',

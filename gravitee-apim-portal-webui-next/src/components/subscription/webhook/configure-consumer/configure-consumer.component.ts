@@ -58,12 +58,17 @@ export class ConfigureConsumerComponent implements OnInit {
     this.subscriptionService
       .get(this.subscriptionId)
       .pipe(
-        switchMap(subscription => combineLatest([this.planService.list(subscription.api), of(subscription)])),
+        switchMap(subscription => this.loadPlansWithSubscription(subscription)),
         tap(([plans, subscription]) => {
           this.subscription = subscription;
           this.consumerConfigurationFormValues = this.toConsumerConfigurationFormValues();
           this.plan = plans.data?.find(p => p.id === subscription.plan);
           this.isLoadingSubscription = false;
+        }),
+        catchError(() => {
+          this.error = true;
+          this.isLoadingSubscription = false;
+          return of(null);
         }),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -93,7 +98,7 @@ export class ConfigureConsumerComponent implements OnInit {
         switchMap(() => {
           return this.subscriptionService.get(this.subscriptionId);
         }),
-        switchMap(subscription => combineLatest([this.planService.list(subscription.api), of(subscription)])),
+        switchMap(subscription => this.loadPlansWithSubscription(subscription)),
         tap(([plans, subscription]) => {
           this.subscription = subscription;
           this.consumerConfigurationFormValues = this.toConsumerConfigurationFormValues();
@@ -102,11 +107,20 @@ export class ConfigureConsumerComponent implements OnInit {
         }),
         catchError(() => {
           this.error = true;
+          this.isLoadingSubscription = false;
           return of(null);
         }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
+  }
+
+  private loadPlansWithSubscription(subscription: Subscription) {
+    if (!subscription.api) {
+      throw new Error('Consumer configuration is only supported for API subscriptions');
+    }
+
+    return combineLatest([this.planService.list(subscription.api), of(subscription)]);
   }
 
   private toUpdateSubscription(updatedValues: ConsumerConfigurationValues): UpdateSubscription {

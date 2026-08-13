@@ -18,6 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { ApiProductsService } from './api-products.service';
 import { fakeApiProduct } from '../entities/api-product/api-product.fixture';
+import { fakePlan } from '../entities/plan/plan.fixture';
 import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
 
 describe('ApiProductsService', () => {
@@ -78,6 +79,22 @@ describe('ApiProductsService', () => {
 
       const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/api-products/${apiProductId}`);
       req.flush({ message: 'API Product not found' }, { status: 404, statusText: 'Not Found' });
+    });
+  });
+
+  describe('listPlans', () => {
+    it('should list all available API Product plans', done => {
+      const apiProductId = '4f6597ca-74b8-4e68-a597-ca74b83e6824';
+      const plansResponse = { data: [fakePlan()] };
+
+      service.listPlans(apiProductId).subscribe(response => {
+        expect(response).toEqual(plansResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/api-products/${apiProductId}/plans?size=-1`);
+      expect(req.request.method).toEqual('GET');
+      req.flush(plansResponse);
     });
   });
 });

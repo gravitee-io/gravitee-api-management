@@ -51,6 +51,21 @@ describe('SubscriptionService', () => {
     req.flush(subscriptionResponse);
   });
 
+  it('should filter subscriptions by API Product IDs', done => {
+    const subscriptionResponse: SubscriptionsResponse = fakeSubscriptionResponse();
+
+    service.list({ apiProductIds: ['api-product-id'], statuses: ['PENDING', 'ACCEPTED', 'PAUSED'], size: -1 }).subscribe(response => {
+      expect(response).toEqual(subscriptionResponse);
+      done();
+    });
+
+    const req = httpTestingController.expectOne(
+      `${TESTING_BASE_URL}/subscriptions?apiProductIds=api-product-id&statuses=PENDING&statuses=ACCEPTED&statuses=PAUSED&size=-1`,
+    );
+    expect(req.request.method).toEqual('GET');
+    req.flush(subscriptionResponse);
+  });
+
   it('should close subscription', done => {
     service.close('subscriptionId').subscribe(() => {
       done();

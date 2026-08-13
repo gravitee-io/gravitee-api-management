@@ -34,6 +34,7 @@ import {
 } from './components/terms-and-conditions-dialog/terms-and-conditions-dialog.component';
 import { SubscribeToApiCheckoutComponent } from './subscribe-to-api-checkout/subscribe-to-api-checkout.component';
 import {
+  ApplicationVM,
   ApplicationsPagination,
   DEFAULT_APPLICATIONS_PAGE_SIZE,
   SubscribeToApiChooseApplicationComponent,
@@ -62,11 +63,6 @@ export enum SubscribeStep {
   APP_SELECTION = 'APP_SELECTION',
   PUSH_DETAILS = 'PUSH_DETAILS',
   REVIEW = 'REVIEW',
-}
-
-export interface ApplicationVM extends Application {
-  disabled?: boolean;
-  disabledMessage?: string;
 }
 
 interface ApplicationsData {

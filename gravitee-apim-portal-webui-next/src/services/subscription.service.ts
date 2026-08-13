@@ -37,6 +37,7 @@ export class SubscriptionService {
 
   list(queryParams: {
     apiIds?: string[];
+    apiProductIds?: string[];
     applicationIds?: string[];
     statuses: SubscriptionStatusEnum[] | null;
     size?: number;
@@ -44,6 +45,7 @@ export class SubscriptionService {
   }): Observable<SubscriptionsResponse> {
     const params = {
       ...(queryParams.apiIds?.length ? { apiIds: queryParams.apiIds } : {}),
+      ...(queryParams.apiProductIds?.length ? { apiProductIds: queryParams.apiProductIds } : {}),
       ...(queryParams.applicationIds?.length ? { applicationIds: queryParams.applicationIds } : {}),
       ...(queryParams.statuses?.length ? { statuses: queryParams.statuses } : {}),
       ...(queryParams.size != null ? { size: queryParams.size } : {}),

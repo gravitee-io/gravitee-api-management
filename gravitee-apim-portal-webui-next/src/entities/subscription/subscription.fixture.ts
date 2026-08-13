@@ -31,6 +31,8 @@ export function fakeSubscription(modifier?: Partial<Subscription> | ((baseSubscr
     status: 'REJECTED',
     consumerStatus: SubscriptionConsumerStatusEnum.STARTED,
     api: 'api-id',
+    reference_id: 'api-id',
+    reference_type: 'API',
     keys: [
       {
         id: '12f73b0a-59e6-4d23-b73b-0a59e62d2369',

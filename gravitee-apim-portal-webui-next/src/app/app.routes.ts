@@ -38,6 +38,7 @@ import { ApplicationTabLogsComponent } from './dashboard/application-details/app
 import { ApplicationTabMembersComponent } from './dashboard/application-details/application-tab-members/application-tab-members.component';
 import { ApplicationTabSettingsComponent } from './dashboard/application-details/application-tab-settings/application-tab-settings.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { DocumentationApiProductSubscribeComponent } from './documentation/components/documentation-api-product-subscribe/documentation-api-product-subscribe.component';
 import { DocumentationSubscribeComponent } from './documentation/components/documentation-subscribe/documentation-subscribe.component';
 import { InvitationConfirmationComponent } from './registration/invitation-confirmation/invitation-confirmation.component';
 import { RegistrationConfirmationComponent } from './registration/registration-confirmation/registration-confirmation.component';
@@ -46,6 +47,7 @@ import { NavigationPageFullWidthComponent } from '../components/navigation-page-
 import { analyticsEnabledGuard } from '../guards/analytics-enabled.guard';
 import { applicationInvitationsEnabledGuard, applicationMembershipEnabledGuard } from '../guards/application-membership-enabled.guard';
 import { redirectGuard } from '../guards/redirect.guard';
+import { apiProductResolver } from '../resolvers/api-product.resolver';
 import { apiResolver } from '../resolvers/api.resolver';
 import { applicationPermissionResolver, applicationResolver, applicationTypeResolver } from '../resolvers/application.resolver';
 import { homepageContentResolver } from '../resolvers/homepage-content.resolver';
@@ -270,6 +272,11 @@ export const routes: Routes = [
             path: 'api/:apiId/subscribe',
             resolve: { api: apiResolver },
             component: DocumentationSubscribeComponent,
+          },
+          {
+            path: 'api-product/:apiProductId/subscribe',
+            resolve: { apiProduct: apiProductResolver },
+            component: DocumentationApiProductSubscribeComponent,
           },
         ],
       },

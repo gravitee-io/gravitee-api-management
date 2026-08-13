@@ -107,6 +107,21 @@ describe('ConfigureConsumerComponent', () => {
       initComponent(subscription);
     });
 
+    it('should reject consumer configuration for an API Product subscription', async () => {
+      const subscription = fakeSubscription({
+        api: undefined,
+        reference_id: 'api-product-id',
+        reference_type: 'API_PRODUCT',
+        consumerConfiguration: fakeSubscriptionConsumerConfiguration(),
+      });
+
+      expectSubscription(subscription);
+      fixture.detectChanges();
+
+      httpTestingController.expectNone(request => request.url.includes('/apis/'));
+      expect(fixture.nativeElement.textContent).toContain('The consumer configuration update has failed');
+    });
+
     it('should reset the form', async () => {
       const consumerConfiguration = fakeSubscriptionConsumerConfiguration();
       const subscription = fakeSubscription({ status: 'ACCEPTED', api: API_ID, plan: PLAN_ID, consumerConfiguration });
