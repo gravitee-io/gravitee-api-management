@@ -855,6 +855,12 @@ services:
 #  notfound:
 #    analytics:
 #      enabled: false
+#  rejected:
+#    Reporting of the requests refused by http.pathHandling: REJECT. Enabled by default, so that a
+#    platform being probed with traversal paths leaves a trace, and deliberately independent from
+#    the notfound flag above, which is disabled by default.
+#    analytics:
+#      enabled: true
 
 # Referenced properties
 ds:
