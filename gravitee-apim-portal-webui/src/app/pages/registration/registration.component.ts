@@ -17,6 +17,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { RegisterUserInput, UsersService, CustomUserFields } from '../../../../projects/portal-webclient-sdk/src/lib';
+import { ConfigurationService } from '../../services/configuration.service';
 import { ReCaptchaService } from '../../services/recaptcha.service';
 
 type RegistrationFormType = FormGroup<{
@@ -39,14 +40,20 @@ export class RegistrationComponent implements OnInit {
   // boolean used to display the form only once the FormGroup is completed using the CustomUserFields.
   canDisplayForm = false;
 
+  // without automatic validation, the activation email is only sent once an administrator has approved the request.
+  isApprovalRequired = false;
+
   constructor(
     private usersService: UsersService,
     private reCaptchaService: ReCaptchaService,
+    private configurationService: ConfigurationService,
   ) {
     this.isSubmitted = false;
   }
 
   ngOnInit() {
+    this.isApprovalRequired = this.configurationService.get('portal.userCreation.automaticValidation.enabled', true) === false;
+
     const formDescriptor: FormGroup = new FormGroup({
       firstname: new FormControl('', Validators.required),
       lastname: new FormControl('', Validators.required),
