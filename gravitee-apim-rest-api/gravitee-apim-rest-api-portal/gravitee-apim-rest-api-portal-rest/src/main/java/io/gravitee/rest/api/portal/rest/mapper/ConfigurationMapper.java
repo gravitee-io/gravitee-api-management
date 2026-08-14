@@ -143,7 +143,7 @@ public class ConfigurationMapper {
         configuration.setUploadMedia(convert(portal.getUploadMedia()));
         configuration.setRating(convert(portal.getRating()));
         configuration.setSupport(convert(portal.getSupport()));
-        configuration.setUserCreation(convert(portal.getUserCreation().getEnabled()));
+        configuration.setUserCreation(convert(portal.getUserCreation()));
         configuration.setHomepageTitle(portal.getHomepageTitle());
 
         PortalApplicationSettings.ApplicationTypes types = application.getTypes();
@@ -160,6 +160,15 @@ public class ConfigurationMapper {
             configuration.setApplicationCreation(convert(true));
         }
 
+        return configuration;
+    }
+
+    private ConfigurationPortalUserCreation convert(Portal.PortalUserCreation userCreation) {
+        ConfigurationPortalUserCreation configuration = new ConfigurationPortalUserCreation();
+        configuration.setEnabled(userCreation.getEnabled());
+        if (!Objects.isNull(userCreation.getAutomaticValidation())) {
+            configuration.setAutomaticValidation(convert(userCreation.getAutomaticValidation()));
+        }
         return configuration;
     }
 
