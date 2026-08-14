@@ -35,6 +35,7 @@ import static org.mockito.Mockito.when;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
+import io.gravitee.apim.core.user.domain_service.AssignUserDefaultRolesDomainService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.User;
@@ -44,10 +45,8 @@ import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.NewExternalUserEntity;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.RegisterUserEntity;
-import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EmailNotification;
 import io.gravitee.rest.api.service.EmailService;
@@ -138,6 +137,9 @@ class UserServiceRegistrationApprovalTest {
 
     @Mock
     private RoleService roleService;
+
+    @Mock
+    private AssignUserDefaultRolesDomainService assignUserDefaultRolesDomainService;
 
     @Mock
     private InstallationAccessQueryService installationAccessQueryService;
@@ -333,9 +335,6 @@ class UserServiceRegistrationApprovalTest {
         when(organizationService.findById(ORGANIZATION)).thenReturn(new OrganizationEntity());
         when(userRepository.findBySource("gravitee", EMAIL, ORGANIZATION)).thenReturn(Optional.empty());
         when(userRepository.create(any(User.class))).thenAnswer(returnsFirstArg());
-        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT)).thenReturn(
-            List.of(RoleEntity.builder().scope(RoleScope.ORGANIZATION).name("USER").build())
-        );
     }
 
     private void givenPendingUser(String password) throws TechnicalException {
