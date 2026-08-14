@@ -21,7 +21,6 @@ import io.gravitee.rest.api.idp.repository.authentication.spring.RepositoryAuthe
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,6 +28,7 @@ import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
@@ -92,7 +92,8 @@ public class RepositoryAuthenticationProvider
                     );
                 }
                 if (user.getStatus().toUpperCase().equals("PENDING")) {
-                    throw new UnauthorizedAccessException();
+                    log.warn("Authentication failed: registration of user '{}' is still awaiting approval", username);
+                    throw new DisabledException("User account is awaiting approval");
                 }
                 return mapUserEntityToUserDetails(user);
             } else {
@@ -100,6 +101,8 @@ public class RepositoryAuthenticationProvider
             }
         } catch (UserNotFoundException notFound) {
             throw new UsernameNotFoundException(String.format("User '%s' not found", username), notFound);
+        } catch (AuthenticationException authenticationFailure) {
+            throw authenticationFailure;
         } catch (Exception repositoryProblem) {
             log.error("Failed to retrieveUser : {}", username, repositoryProblem);
             throw new InternalAuthenticationServiceException(repositoryProblem.getMessage(), repositoryProblem);
