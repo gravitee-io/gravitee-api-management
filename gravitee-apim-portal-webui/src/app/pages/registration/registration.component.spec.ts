@@ -15,7 +15,7 @@
  */
 import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
 import { RouterTestingModule } from '@angular/router/testing';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
@@ -43,5 +43,36 @@ describe('RegistrationComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('once the registration request has been sent', () => {
+    const displaySubmittedView = (automaticValidation: boolean) => {
+      spectator.inject(ConfigurationService).get.mockReturnValue(automaticValidation);
+      component.ngOnInit();
+      component.registrationForm = new FormGroup({
+        firstname: new FormControl('John'),
+        lastname: new FormControl('Doe'),
+        email: new FormControl('john@doe.com'),
+      });
+      component.isSubmitted = true;
+      component.canDisplayForm = true;
+      spectator.detectChanges();
+    };
+
+    it('should tell the user the request awaits approval when automatic validation is disabled', () => {
+      displaySubmittedView(false);
+
+      expect(component.isApprovalRequired).toBe(true);
+      expect(spectator.query('.page__box-title').textContent).toContain('registration.pendingApproval.title');
+      expect(spectator.query('.form__message').textContent).toContain('registration.pendingApproval.message');
+    });
+
+    it('should keep the sent email message when registrations are automatically validated', () => {
+      displaySubmittedView(true);
+
+      expect(component.isApprovalRequired).toBe(false);
+      expect(spectator.query('.page__box-title').textContent).toContain('registration.success.title');
+      expect(spectator.query('.form__message').textContent).toContain('registration.success.message');
+    });
   });
 });

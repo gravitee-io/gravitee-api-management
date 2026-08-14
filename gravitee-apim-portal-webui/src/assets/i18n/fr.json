@@ -816,6 +816,9 @@
     "user": {
       "exists": "Il existe déjà un utilisateur avec l'email : {user}",
       "finalized": "Le compte a déjà été finalisé",
+      "registration": {
+        "pendingApproval": "La demande d'inscription est en attente d'approbation par un administrateur. Vous recevrez un email dès qu'elle aura été traitée."
+      },
       "resetpassword": "Une demande a déjà été prise en compte, merci de vérifier vos emails avant de refaire une demande dans quelques minutes"
     }
   },
@@ -1031,6 +1034,10 @@
     "email": "Adresse email",
     "firstname": "Prénom",
     "lastname": "Nom",
+    "pendingApproval": {
+      "message": "Votre demande d'inscription pour {email} est en attente d'approbation par un administrateur. Vous recevrez un email contenant un lien d'activation dès qu'elle aura été approuvée.",
+      "title": "Demande d'inscription envoyée"
+    },
     "success": {
       "message": "Un email a été envoyé à : {email}",
       "title": "Enregistrement confirmé !"
