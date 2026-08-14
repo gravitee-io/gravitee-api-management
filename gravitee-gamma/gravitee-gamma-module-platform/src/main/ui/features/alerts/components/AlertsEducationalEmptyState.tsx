@@ -25,11 +25,7 @@ import {
 } from '@gravitee/graphene-core/icons';
 import type { ComponentType } from 'react';
 
-const RULE_CATEGORIES = [
-    'Node lifecycle — when a gateway node starts, stops, or its health status changes',
-    'Node heartbeat metrics — CPU, memory, and other node metrics rising above a threshold',
-    'Health-check status — when an endpoint health check transitions between UP and DOWN',
-] as const;
+import { ALERT_RULES } from '../constants/alertRules';
 
 const CAPABILITIES = [
     'Send notifications via email, Slack, or webhook',
@@ -64,7 +60,7 @@ export function AlertsEducationalEmptyState() {
                 </p>
             </div>
 
-            <div className="rounded-xl p-5 bg-primary/10" style={{ border: '2px solid hsl(var(--primary))' }}>
+            <div className="rounded-xl border-2 border-primary bg-primary/10 p-5">
                 <p className="mb-4 text-xs font-semibold text-primary">How it works</p>
                 <div className="flex items-center justify-center gap-3">
                     <FlowNode icon={ActivityIcon} label="Platform events" />
@@ -90,12 +86,14 @@ export function AlertsEducationalEmptyState() {
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="space-y-3">
-                    <p className="text-xs font-semibold">What you can alert on</p>
+                    <p className="text-xs font-semibold">Available alert rules</p>
                     <ul className="space-y-2.5">
-                        {RULE_CATEGORIES.map(category => (
-                            <li key={category} className="flex items-start gap-2">
+                        {ALERT_RULES.map(rule => (
+                            <li key={rule.id} className="flex items-start gap-2">
                                 <BellIcon className="mt-0.5 size-3.5 shrink-0 text-primary" aria-hidden="true" />
-                                <span className="text-xs text-muted-foreground">{category}</span>
+                                <span className="text-xs text-muted-foreground">
+                                    {rule.description} <span className="text-muted-foreground/60">({rule.category})</span>
+                                </span>
                             </li>
                         ))}
                     </ul>
