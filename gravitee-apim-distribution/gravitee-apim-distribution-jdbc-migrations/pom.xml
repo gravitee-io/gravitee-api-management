@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright © 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.gravitee.apim.distribution</groupId>
+        <artifactId>gravitee-apim-distribution</artifactId>
+        <version>${revision}${sha1}${changelist}</version>
+    </parent>
+
+    <artifactId>gravitee-apim-distribution-jdbc-migrations</artifactId>
+    <packaging>pom</packaging>
+    <name>Gravitee.io APIM - Distribution - JDBC Migrations</name>
+    <description>Liquibase changesets of APIM and of the bundled Gamma modules, in one archive. JDBC only.</description>
+
+    <properties>
+        <!--
+            The umbrella turns deployment off for the assembly poms; this module is an exception, like
+            es-index-mappings — the archive it produces is the deliverable, and it is meant to reach the download
+            website so that installations running with management.jdbc.liquibase=false have somewhere to get the
+            changesets from.
+        -->
+        <maven.deploy.skip>false</maven.deploy.skip>
+
+        <!-- Property used by the publication job in CI-->
+        <publish-folder-path>graviteeio-apim/jdbc-migrations</publish-folder-path>
+
+    </properties>
+
+    <!--
+        Published so that an installation running with management.jdbc.liquibase=false has one place to get every
+        changelog it needs, instead of opening each installed plugin.
+
+        The dependencies are the ordinary plugin zips, the same ones the standalone distribution bundles, at the
+        same versions. Each carries its changelogs at its root under liquibase/, and unpack-dependencies keeps only
+        that. A component with no schema contributes nothing and needs no declaration of its own — which is what
+        keeps these lists stable while modules adopt JDBC one at a time.
+
+        The trees are disjoint by construction: APIM owns liquibase/master.yml and liquibase/changelogs/, each
+        module owns liquibase/<module id>/. A module taking liquibase/changelogs/ for itself would silently
+        overwrite APIM's files here; that path is reserved.
+
+        Only the open-source repository plugin is declared here. The Gamma modules are enterprise artefacts,
+        resolvable from the private Artifactory only, so they live in the bundle-default profile as they do in the
+        standalone distribution — see the rule at gravitee-apim-distribution-standalone/pom.xml:47-50. Declaring
+        them here would break any build without credentials, job-community-build-backend first.
+    -->
+    <dependencies>
+        <dependency>
+            <groupId>io.gravitee.apim.repository</groupId>
+            <artifactId>gravitee-apim-repository-jdbc</artifactId>
+            <version>${apim.server.version}</version>
+            <type>zip</type>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--
+                Both directories accumulate: nothing here overwrites a file that no longer has a source. Bump a
+                module version and rebuild without clean, and the previous jar stays in plugin-jars, its changelogs
+                stay in migrations, and the archive ships changesets that no master.yml references. The build stays
+                green, and the assertions below stay green too, because the files they expect do exist.
+
+                The markers directory has to go with them. unpack-dependencies records what it has already
+                extracted, so leaving the markers behind while deleting plugin-jars would make the unpack a no-op
+                and produce an empty archive instead of a mixed one.
+
+                Declared first: within a phase, plugins run in the order they appear here.
+
+                The configuration sits on the execution, not on the plugin: plugin-level configuration also reaches
+                default-clean, and excludeDefaultDirectories there stops `mvn clean` from removing target/ at all.
+            -->
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>reset-collection-directories</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                        <configuration>
+                            <excludeDefaultDirectories>true</excludeDefaultDirectories>
+                            <filesets>
+                                <fileset>
+                                    <directory>${project.build.directory}/plugin-jars</directory>
+                                </fileset>
+                                <fileset>
+                                    <directory>${project.build.directory}/${project.artifactId}</directory>
+                                </fileset>
+                                <fileset>
+                                    <directory>${project.build.directory}/reservation-check</directory>
+                                </fileset>
+                                <fileset>
+                                    <directory>${project.build.directory}/dependency-maven-plugin-markers</directory>
+                                </fileset>
+                            </filesets>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!--
+                The changelogs live inside each plugin's jar, which lives inside the plugin zip, so collecting them
+                takes two stages. Maven does the first, Ant the second.
+
+                Only the jar at the root of each zip is taken — deliberately "*.jar" and not "**/*.jar". The jars
+                under lib/ include liquibase-core, whose own Java package is also called liquibase: unpacking it
+                would pour 1426 class files into an archive meant for a DBA, and the changelog assertion below would
+                still pass. Keeping lib/ out is what makes that impossible rather than merely filtered.
+            -->
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>extract-plugin-jars</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>unpack-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includes>*.jar</includes>
+                            <outputDirectory>${project.build.directory}/plugin-jars</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>collect-changelogs</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <!--
+                                    Every jar expands into the same directory and Ant overwrites, so the paths
+                                    reserved for APIM above are an invariant nothing enforced: a module shipping
+                                    liquibase/master.yml would replace APIM's, and the assertion below would still
+                                    pass because a file of that name exists. Extract the reserved paths from the
+                                    module jars alone first, and fail if that finds anything.
+                                -->
+                                <unzip dest="${project.build.directory}/reservation-check">
+                                    <fileset dir="${project.build.directory}/plugin-jars" includes="*.jar" excludes="gravitee-apim-repository-jdbc-*.jar" erroronmissingdir="false" />
+                                    <patternset>
+                                        <include name="liquibase/master.yml" />
+                                        <include name="liquibase/changelogs/**" />
+                                    </patternset>
+                                </unzip>
+                                <fail message="A module ships files under a path reserved for APIM (liquibase/master.yml or liquibase/changelogs/). Collecting them into one tree would silently overwrite APIM's own changelogs.">
+                                    <condition>
+                                        <resourcecount when="greater" count="0">
+                                            <fileset dir="${project.build.directory}/reservation-check" includes="**/*.yml" erroronmissingdir="false" />
+                                        </resourcecount>
+                                    </condition>
+                                </fail>
+
+                                <unzip dest="${project.build.directory}/${project.artifactId}">
+                                    <fileset dir="${project.build.directory}/plugin-jars" includes="*.jar" erroronmissingdir="false" />
+                                    <patternset>
+                                        <include name="liquibase/**" />
+                                    </patternset>
+                                </unzip>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!--
+                An empty collection is a silent failure: the assembly happily produces a valid, empty zip. That
+                happens if the include pattern stops matching, or if a component stops shipping its changelogs at
+                the zip root. APIM's own changelog is always expected, so assert it and fail loudly instead.
+
+                This assertion covers the repository plugin only, which is the one dependency whose absence would be
+                unmissable anyway. The modules are asserted in the bundle-default profile, where they are declared.
+            -->
+            <plugin>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>changelogs-were-collected</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireFilesExist>
+                                    <files>
+                                        <file>${project.build.directory}/${project.artifactId}/liquibase/master.yml</file>
+                                    </files>
+                                </requireFilesExist>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!--
+        Same activation as the standalone distribution's own bundle-default: the property, not the profile id, so
+        that -Dbundle reaches it from the parent reactor.
+
+        The assembly lives here too, not only the module dependencies. The archive is APIM plus the bundled
+        modules; an APIM-only zip built without -Dbundle would be a valid, incomplete archive that nothing
+        distinguishes from the real one, and whose README tells the reader that a module absent from the listing
+        "has nothing to migrate". Without the profile the collection above still runs, so a build without
+        credentials still exercises it, but no zip comes out.
+
+        The enforcer execution asserts the modules known to own a schema, one entry each. A module adopting JDBC
+        has to be added to both lists, which is the point.
+    -->
+    <profiles>
+        <profile>
+            <id>bundle-default</id>
+            <activation>
+                <property>
+                    <name>bundle</name>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.graviteesource.gamma.module</groupId>
+                    <artifactId>gravitee-gamma-module-aim</artifactId>
+                    <version>${gravitee-gamma-module-aim.version}</version>
+                    <type>zip</type>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.gamma.module</groupId>
+                    <artifactId>gravitee-gamma-module-authz</artifactId>
+                    <version>${gravitee-gamma-module-authz.version}</version>
+                    <type>zip</type>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.gamma.module</groupId>
+                    <artifactId>gravitee-gamma-module-edge</artifactId>
+                    <version>${gravitee-gamma-module-edge.version}</version>
+                    <type>zip</type>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.gamma.module</groupId>
+                    <artifactId>gravitee-gamma-module-esm</artifactId>
+                    <version>${gravitee-gamma-module-esm.version}</version>
+                    <type>zip</type>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>module-changelogs-were-collected</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>enforce</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <requireFilesExist>
+                                            <files>
+                                                <file>${project.build.directory}/${project.artifactId}/liquibase/aim/master.yml</file>
+                                            </files>
+                                        </requireFilesExist>
+                                    </rules>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>make-migrations-assembly</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                                <configuration>
+                                    <appendAssemblyId>false</appendAssemblyId>
+                                    <finalName>${project.artifactId}-${apim.server.version}</finalName>
+                                    <descriptors>
+                                        <descriptor>src/main/assembly/migrations-assembly.xml</descriptor>
+                                    </descriptors>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>
