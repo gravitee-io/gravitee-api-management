@@ -69,6 +69,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import lombok.CustomLog;
 
@@ -99,6 +100,20 @@ public class HttpConnector implements ProxyConnector {
         TRAILER,
         UPGRADE
     );
+
+    /**
+     * RFC 9110 section 9.2.2 — "PUT, DELETE, and safe request methods are idempotent". An allowlist rather than a
+     * POST/PATCH denylist: an unrecognised verb resolves to OTHER, which must not be re-sent either.
+     */
+    private static final Set<io.gravitee.common.http.HttpMethod> IDEMPOTENT_METHODS = Set.of(
+        io.gravitee.common.http.HttpMethod.GET,
+        io.gravitee.common.http.HttpMethod.HEAD,
+        io.gravitee.common.http.HttpMethod.OPTIONS,
+        io.gravitee.common.http.HttpMethod.TRACE,
+        io.gravitee.common.http.HttpMethod.PUT,
+        io.gravitee.common.http.HttpMethod.DELETE
+    );
+
     private final String relativeTarget;
     protected final String defaultHost;
     protected final int defaultPort;
@@ -156,7 +171,8 @@ public class HttpConnector implements ProxyConnector {
             // timeout fires. From the response head onward, cancellation is handled by the response chunks'
             // doOnCancel (see getEndpointResponseChunks).
             final AtomicReference<HttpClientRequest> pendingUpstreamRequest = new AtomicReference<>();
-            return acquireUpstreamRequest(ctx, options, pendingUpstreamRequest, absoluteUri)
+            final AtomicBoolean cancelled = new AtomicBoolean(false);
+            final Single<HttpClientResponse> endpointExchange = acquireUpstreamRequest(ctx, options, pendingUpstreamRequest, absoluteUri)
                 // The upstream request resolves once a connection/stream is acquired from the pool: from here on, a
                 // request-level timeout is a backend read timeout, not a connection-acquisition timeout (APIM-12769).
                 .doOnSuccess(acquiredRequest -> ctx.setInternalAttribute(ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED, Boolean.TRUE))
@@ -164,7 +180,9 @@ public class HttpConnector implements ProxyConnector {
                 .flatMap(httpClientRequest -> {
                     observableHttpClientRequest.httpClientRequest(httpClientRequest.getDelegate());
                     return sendEndpointRequestChunks(httpClientRequest, request);
-                })
+                });
+
+            return retryOnceOnConnectionClosedByPeer(ctx, absoluteUri, request, endpointExchange, cancelled)
                 .doOnSuccess(endpointResponse -> {
                     // The response chunks' doOnCancel owns cancellation from here; reset() being a no-op on a
                     // completed stream makes the race with a concurrent disposal benign.
@@ -190,10 +208,77 @@ public class HttpConnector implements ProxyConnector {
                 })
                 .doOnError(throwable -> ctx.getTracer().endOnError(httpRequestSpan, throwable))
                 .ignoreElement()
-                .doOnDispose(() -> resetPendingUpstreamRequest(ctx, pendingUpstreamRequest, absoluteUri));
+                .doOnDispose(() -> {
+                    // Set before the reset below so the retry predicate can tell this self-inflicted stream reset
+                    // (our own cancellation — e.g. a request timeout — tearing down the in-flight request) apart from
+                    // a genuine peer-initiated close/reset; otherwise disposal can race an onError into the still-live
+                    // retry() and send an unwanted extra request on a chain that's already being torn down.
+                    cancelled.set(true);
+                    resetPendingUpstreamRequest(ctx, pendingUpstreamRequest, absoluteUri);
+                });
         } catch (Exception e) {
             return Completable.error(e);
         }
+    }
+
+    /**
+     * Sends the exchange once more, over a connection newly taken from the pool, when the peer tore down the pooled
+     * keep-alive connection before answering (APIM-14873) — whether that surfaces as a clean close or a reset depends
+     * on OS/timing, not on how safe the retry is, so both are treated the same. Such a connection is only discovered
+     * to be dead by writing to it — the backend's keep-alive timeout being shorter than the pool's, or an intermediary
+     * dropping idle connections — and the client is answered with a 502 for a request the backend never handled.
+     * Retrying relies on the pool evicting the connection it just saw fail; the single attempt caps a pool that would
+     * not, degrading to the 502 raised today.
+     * <p>
+     * Two conditions must both hold for the resend. The gateway must not have written a body: once body chunks have
+     * been written they have reached the backend, which may already have acted on them. And the method must be
+     * idempotent (RFC 9110 section 9.2.2 — "PUT, DELETE, and safe request methods are idempotent"): even with no body,
+     * the request head alone may have been received and acted on before the peer tore the connection down, so
+     * re-sending a POST, a PATCH or an unrecognised verb could apply the caller's operation twice. A failure that
+     * fails either condition keeps surfacing as it does today.
+     */
+    private Single<HttpClientResponse> retryOnceOnConnectionClosedByPeer(
+        final HttpExecutionContext ctx,
+        final String absoluteUri,
+        final HttpRequest request,
+        final Single<HttpClientResponse> endpointExchange,
+        final AtomicBoolean cancelled
+    ) {
+        if (sendsRequestBody(request)) {
+            return endpointExchange;
+        }
+        // The chunks are consumed even though no body is forwarded, to release their resources and update the metrics.
+        // Consuming them here rather than inside the exchange is what makes the exchange safe to subscribe to twice:
+        // the retry never reads the client request again.
+        final Completable requestBodyDrained = request.chunks().ignoreElements();
+        if (!isIdempotentMethod(request)) {
+            return requestBodyDrained.andThen(endpointExchange);
+        }
+        return requestBodyDrained.andThen(
+            endpointExchange.retry((attempt, throwable) -> {
+                if (attempt > 1) {
+                    return false;
+                }
+                if (cancelled.get()) {
+                    return false;
+                }
+                if (!isConnectionClosedOrResetByPeer(throwable)) {
+                    return false;
+                }
+                // Attempt 1's acquired flag must not survive into attempt 2's failure classification (the same
+                // hazard APIM-12769 addressed at the outer retry boundary).
+                ctx.removeInternalAttribute(ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED);
+                ctx
+                    .withLogger(log)
+                    .warn("Pooled connection to [{}] was closed or reset by the peer, retrying once on a fresh connection", absoluteUri);
+                return true;
+            })
+        );
+    }
+
+    private static boolean isConnectionClosedOrResetByPeer(final Throwable throwable) {
+        final String key = ConnectionFailureClassifier.classify(throwable).key();
+        return ConnectionFailureClassifier.CONNECTION_CLOSED.equals(key) || ConnectionFailureClassifier.CONNECTION_RESET.equals(key);
     }
 
     /**
@@ -266,16 +351,26 @@ public class HttpConnector implements ProxyConnector {
                     return httpClientRequest.rxSend(new io.vertx.rxjava3.core.buffer.Buffer(BufferImpl.buffer(body.getNativeBuffer())));
                 });
         }
-        if (hasBodyHeaders(request) || request.version() == io.gravitee.common.http.HttpVersion.HTTP_2) {
-            // For HTTP1.1, the presence of a message body in a request is signaled by a Content-Length or Transfer-Encoding header (https://www.rfc-editor.org/rfc/rfc9112#section-6-4).
-            // For HTTP2, Data frames are used (https://www.rfc-editor.org/rfc/rfc9113#section-8.1-7).
+        if (sendsRequestBody(request)) {
             return httpClientRequest.rxSend(
                 request.chunks().map(buffer -> new io.vertx.rxjava3.core.buffer.Buffer(BufferImpl.buffer(buffer.getNativeBuffer())))
             );
-        } else {
-            // Always consume the request body, even when empty, to ensure resources are released and metrics are updated correctly.
-            return request.chunks().ignoreElements().andThen(httpClientRequest.rxSend());
         }
+        // The request body has already been consumed by the caller, which owns it so that the send stays replayable.
+        return httpClientRequest.rxSend();
+    }
+
+    /**
+     * For HTTP1.1, the presence of a message body in a request is signaled by a Content-Length or Transfer-Encoding
+     * header (https://www.rfc-editor.org/rfc/rfc9112#section-6-4). For HTTP2, Data frames are used
+     * (https://www.rfc-editor.org/rfc/rfc9113#section-8.1-7).
+     */
+    private static boolean sendsRequestBody(final HttpRequest request) {
+        return hasBodyHeaders(request) || request.version() == io.gravitee.common.http.HttpVersion.HTTP_2;
+    }
+
+    private static boolean isIdempotentMethod(final HttpRequest request) {
+        return IDEMPOTENT_METHODS.contains(request.method());
     }
 
     private @NonNull Flowable<Buffer> getEndpointResponseChunks(
