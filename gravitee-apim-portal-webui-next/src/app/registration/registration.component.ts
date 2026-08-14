@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -26,6 +26,7 @@ import { catchError, EMPTY, tap } from 'rxjs';
 
 import { MobileClassDirective } from '../../directives/mobile-class.directive';
 import { CustomUserField } from '../../entities/user/custom-user-field';
+import { ConfigService } from '../../services/config.service';
 import { UsersService } from '../../services/users.service';
 
 interface UserRegistrationFormValue {
@@ -51,8 +52,15 @@ interface UserRegistrationFormValue {
   styleUrl: './registration.component.scss',
 })
 export class RegistrationComponent implements OnInit {
+  private readonly configService = inject(ConfigService);
+
   submitted = signal(false);
   sentToEmail = signal('');
+
+  /**
+   * Without automatic validation, the activation email is only sent once an administrator has approved the request.
+   */
+  isApprovalRequired = this.configService.configuration.portal?.userCreation?.automaticValidation?.enabled === false;
 
   customUserFields = signal<CustomUserField[]>([]);
 
