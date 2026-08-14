@@ -27,21 +27,11 @@ import {
     SheetTitle,
 } from '@gravitee/graphene-core';
 import { InfoIcon } from '@gravitee/graphene-core/icons';
-import { useEffect, useMemo, useState } from 'react';
 
-import { GroupRoleSelect } from './GroupRoleSelect';
+import { GroupScopedRoleSelects } from './GroupScopedRoleSelects';
 import { MemberSuccessorCombobox } from './MemberSuccessorCombobox';
-import type { GroupMember, GroupMembershipPayload, GroupMembershipRole, GroupRole } from '../types/group';
-import { OWNER_ROLE, PRIMARY_OWNER_ROLE } from '../types/group';
-import { buildMembershipRoles, getMemberRoleLockFlags, sortedSuccessorCandidates } from '../utils/memberRoles';
-
-function membershipFromMember(member: GroupMember, overrides: Record<string, string>): GroupMembershipPayload {
-    const merged = { ...(member.roles ?? {}), ...overrides };
-    const roles: GroupMembershipRole[] = Object.entries(merged)
-        .filter((entry): entry is [string, string] => Boolean(entry[1]))
-        .map(([scope, name]) => ({ scope: scope as GroupMembershipRole['scope'], name }));
-    return { id: member.id, roles };
-}
+import { useGroupEditMemberForm } from '../hooks/useGroupEditMemberForm';
+import type { GroupMember, GroupMembershipPayload, GroupRole } from '../types/group';
 
 export function GroupEditMemberSheet({
     open,
@@ -80,120 +70,18 @@ export function GroupEditMemberSheet({
     onSubmit: (memberships: GroupMembershipPayload[]) => void;
     isSaving: boolean;
 }>) {
-    const [apiRole, setApiRole] = useState('');
-    const [apiProductRole, setApiProductRole] = useState('');
-    const [applicationRole, setApplicationRole] = useState('');
-    const [integrationRole, setIntegrationRole] = useState('');
-    const [clusterRole, setClusterRole] = useState('');
-    const [groupAdmin, setGroupAdmin] = useState(false);
-    const [selectedSuccessorId, setSelectedSuccessorId] = useState<string | null>(null);
-
-    useEffect(() => {
-        if (open && member) {
-            setApiRole(member.roles?.API ?? '');
-            setApiProductRole(member.roles?.API_PRODUCT ?? '');
-            setApplicationRole(member.roles?.APPLICATION ?? '');
-            setIntegrationRole(member.roles?.INTEGRATION ?? '');
-            setClusterRole(member.roles?.CLUSTER ?? '');
-            setGroupAdmin(member.roles?.GROUP === 'ADMIN');
-            setSelectedSuccessorId(null);
-        }
-    }, [open, member]);
-
-    useEffect(() => {
-        setSelectedSuccessorId(null);
-    }, [apiRole, apiProductRole]);
-
-    const successorCandidates = useMemo(() => sortedSuccessorCandidates(members, member?.id), [members, member]);
+    const form = useGroupEditMemberForm({
+        open,
+        member,
+        members,
+        lockApiRole,
+        lockApiProductRole,
+        lockApplicationRole,
+        canOverrideLocks,
+        onSubmit,
+    });
 
     if (!member) return null;
-
-    const roleLocks = getMemberRoleLockFlags({ lockApiRole, lockApiProductRole, lockApplicationRole }, canOverrideLocks);
-
-    const isApiPrimaryOwner = member.roles?.API === PRIMARY_OWNER_ROLE;
-    const isApiProductPrimaryOwner = member.roles?.API_PRODUCT === PRIMARY_OWNER_ROLE;
-
-    const isApiUpgrade = apiRole === PRIMARY_OWNER_ROLE && !isApiPrimaryOwner;
-    const isApiProductUpgrade = apiProductRole === PRIMARY_OWNER_ROLE && !isApiProductPrimaryOwner;
-    const existingApiOwner = isApiUpgrade ? members.find(m => m.id !== member.id && m.roles?.API === PRIMARY_OWNER_ROLE) : undefined;
-    const existingApiProductOwner = isApiProductUpgrade
-        ? members.find(m => m.id !== member.id && m.roles?.API_PRODUCT === PRIMARY_OWNER_ROLE)
-        : undefined;
-    const sameOutgoingOwner = Boolean(existingApiOwner && existingApiProductOwner && existingApiOwner.id === existingApiProductOwner.id);
-
-    const isApiDowngrade = isApiPrimaryOwner && apiRole !== PRIMARY_OWNER_ROLE;
-    const isApiProductDowngrade = isApiProductPrimaryOwner && apiProductRole !== PRIMARY_OWNER_ROLE;
-    const needsSuccessor = isApiDowngrade || isApiProductDowngrade;
-
-    const selectedSuccessor = selectedSuccessorId ? (successorCandidates.find(m => m.id === selectedSuccessorId) ?? null) : null;
-
-    function buildUpgradeMessage(): string | null {
-        if (sameOutgoingOwner) {
-            return `${existingApiOwner!.displayName} is the API and API Product primary owner. Primary ownership will be transferred to ${member!.displayName} and ${existingApiOwner!.displayName} will be updated as owner.`;
-        }
-        const parts: string[] = [];
-        if (existingApiOwner) {
-            parts.push(
-                `${existingApiOwner.displayName} is the API primary owner. The API primary ownership will be transferred to ${member!.displayName} and ${existingApiOwner.displayName} will be updated as owner.`,
-            );
-        }
-        if (existingApiProductOwner) {
-            parts.push(
-                `${existingApiProductOwner.displayName} is the API Product primary owner. The API Product primary ownership will be transferred to ${member!.displayName} and ${existingApiProductOwner.displayName} will be updated as owner.`,
-            );
-        }
-        return parts.length > 0 ? parts.join(' ') : null;
-    }
-
-    function buildDowngradeMessage(): string | null {
-        if (!selectedSuccessor) return null;
-        if (isApiDowngrade && isApiProductDowngrade) {
-            return `${member!.displayName} is the API and API Product primary owner. Primary ownership will be transferred to ${selectedSuccessor.displayName} and ${member!.displayName} will be updated as owner.`;
-        }
-        if (isApiDowngrade) {
-            return `${member!.displayName} is the API primary owner. The API primary ownership will be transferred to ${selectedSuccessor.displayName} and ${member!.displayName} will be updated as owner.`;
-        }
-        if (isApiProductDowngrade) {
-            return `${member!.displayName} is the API Product primary owner. The API Product primary ownership will be transferred to ${selectedSuccessor.displayName} and ${member!.displayName} will be updated as owner.`;
-        }
-        return null;
-    }
-
-    const transferMessage = [buildDowngradeMessage(), buildUpgradeMessage()].filter(Boolean).join(' ') || null;
-    const canSubmit = !needsSuccessor || Boolean(selectedSuccessor);
-
-    function handleSubmit() {
-        if (!member) return;
-
-        const otherOverrides = new Map<string, { member: GroupMember; overrides: Record<string, string> }>();
-        function addOverride(target: GroupMember | undefined, scope: string, role: string) {
-            if (!target) return;
-            const entry = otherOverrides.get(target.id) ?? { member: target, overrides: {} };
-            entry.overrides[scope] = role;
-            otherOverrides.set(target.id, entry);
-        }
-        addOverride(existingApiOwner, 'API', OWNER_ROLE);
-        addOverride(existingApiProductOwner, 'API_PRODUCT', OWNER_ROLE);
-        if (isApiDowngrade) addOverride(selectedSuccessor ?? undefined, 'API', PRIMARY_OWNER_ROLE);
-        if (isApiProductDowngrade) addOverride(selectedSuccessor ?? undefined, 'API_PRODUCT', PRIMARY_OWNER_ROLE);
-
-        const otherMemberships = Array.from(otherOverrides.values()).map(({ member: m, overrides }) => membershipFromMember(m, overrides));
-
-        onSubmit([
-            ...otherMemberships,
-            {
-                id: member.id,
-                roles: buildMembershipRoles({
-                    apiRole,
-                    apiProductRole,
-                    applicationRole,
-                    integrationRole,
-                    clusterRole,
-                    groupAdmin,
-                }),
-            },
-        ]);
-    }
 
     return (
         <Sheet open={open} onOpenChange={isOpen => !isOpen && onClose()}>
@@ -206,37 +94,18 @@ export function GroupEditMemberSheet({
                 </SheetHeader>
 
                 <div className="space-y-6 px-4 pb-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <GroupRoleSelect label="API" roles={apiRoles} value={apiRole} onChange={setApiRole} disabled={roleLocks.api} />
-                        <GroupRoleSelect
-                            label="API product"
-                            roles={apiProductRoles}
-                            value={apiProductRole}
-                            onChange={setApiProductRole}
-                            disabled={roleLocks.apiProduct}
-                        />
-                        <GroupRoleSelect
-                            label="Application"
-                            roles={applicationRoles}
-                            value={applicationRole}
-                            onChange={setApplicationRole}
-                            disabled={roleLocks.application}
-                        />
-                        <GroupRoleSelect
-                            label="Integration"
-                            roles={integrationRoles}
-                            value={integrationRole}
-                            onChange={setIntegrationRole}
-                            disabled={roleLocks.integration}
-                        />
-                        <GroupRoleSelect
-                            label="Cluster"
-                            roles={clusterRoles}
-                            value={clusterRole}
-                            onChange={setClusterRole}
-                            disabled={roleLocks.cluster}
-                        />
-                    </div>
+                    <GroupScopedRoleSelects
+                        roles={{
+                            api: apiRoles,
+                            apiProduct: apiProductRoles,
+                            application: applicationRoles,
+                            integration: integrationRoles,
+                            cluster: clusterRoles,
+                        }}
+                        values={form.roleValues}
+                        onChange={form.handleRoleChange}
+                        locks={form.roleLocks}
+                    />
 
                     <div className="space-y-1.5">
                         <label
@@ -246,9 +115,9 @@ export function GroupEditMemberSheet({
                         >
                             <Checkbox
                                 id="edit-member-group-admin"
-                                checked={groupAdmin}
+                                checked={form.groupAdmin}
                                 disabled={!groupAllowsGroupAdmin}
-                                onCheckedChange={checked => setGroupAdmin(checked === true)}
+                                onCheckedChange={checked => form.setGroupAdmin(checked === true)}
                             />
                             <span className="text-sm select-none">Group admin</span>
                         </label>
@@ -259,20 +128,20 @@ export function GroupEditMemberSheet({
                         </p>
                     </div>
 
-                    {needsSuccessor && (
+                    {form.transfer?.needsSuccessor && (
                         <MemberSuccessorCombobox
                             id="edit-member-successor"
-                            candidates={successorCandidates}
-                            value={selectedSuccessor}
-                            onChange={picked => setSelectedSuccessorId(picked?.id ?? null)}
+                            candidates={form.successorCandidates}
+                            value={form.selectedSuccessor}
+                            onChange={picked => form.setSelectedSuccessorId(picked?.id ?? null)}
                             hint="Select a member to transfer primary ownership."
                         />
                     )}
 
-                    {transferMessage && (
+                    {form.transferMessage && (
                         <Alert variant="default">
                             <InfoIcon className="size-4" aria-hidden />
-                            <AlertDescription>{transferMessage}</AlertDescription>
+                            <AlertDescription>{form.transferMessage}</AlertDescription>
                         </Alert>
                     )}
                 </div>
@@ -281,7 +150,7 @@ export function GroupEditMemberSheet({
                     <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>
                         Cancel
                     </Button>
-                    <Button type="button" onClick={handleSubmit} disabled={isSaving || !canSubmit}>
+                    <Button type="button" onClick={form.handleSubmit} disabled={isSaving || !form.canSubmit}>
                         {isSaving ? 'Saving…' : 'Save'}
                     </Button>
                 </SheetFooter>

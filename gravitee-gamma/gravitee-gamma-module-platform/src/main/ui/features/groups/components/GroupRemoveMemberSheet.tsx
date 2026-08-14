@@ -30,36 +30,10 @@ import { InfoIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useMemo, useState } from 'react';
 
 import { MemberSuccessorCombobox } from './MemberSuccessorCombobox';
-import type { GroupMember, GroupMembershipPayload, GroupMembershipRole, GroupMemberRoleScope } from '../types/group';
+import type { GroupMember, GroupMembershipPayload } from '../types/group';
 import { PRIMARY_OWNER_ROLE } from '../types/group';
 import { sortedSuccessorCandidates } from '../utils/memberRoles';
-
-const PRIMARY_OWNER_SCOPES: GroupMemberRoleScope[] = ['API', 'APPLICATION', 'API_PRODUCT', 'INTEGRATION', 'CLUSTER'];
-
-const SCOPE_LABELS: Readonly<Record<string, string>> = {
-    API: 'API',
-    APPLICATION: 'Application',
-    API_PRODUCT: 'API Product',
-    INTEGRATION: 'Integration',
-    CLUSTER: 'Cluster',
-};
-
-function joinScopeLabels(scopes: string[]): string {
-    const labels = scopes.map(scope => SCOPE_LABELS[scope]);
-    if (labels.length <= 1) return labels.join('');
-    return `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`;
-}
-
-function buildTransferMembership(successor: GroupMember, scopes: string[]): GroupMembershipPayload {
-    const merged: Record<string, string> = { ...(successor.roles ?? {}) };
-    scopes.forEach(scope => {
-        merged[scope] = PRIMARY_OWNER_ROLE;
-    });
-    const roles: GroupMembershipRole[] = Object.entries(merged)
-        .filter((entry): entry is [string, string] => Boolean(entry[1]))
-        .map(([scope, name]) => ({ scope: scope as GroupMembershipRole['scope'], name }));
-    return { id: successor.id, roles };
-}
+import { joinScopeLabels, membershipFromMember, primaryOwnerScopesOf } from '../utils/primaryOwnership';
 
 export function GroupRemoveMemberSheet({
     open,
@@ -86,9 +60,8 @@ export function GroupRemoveMemberSheet({
         }
     }, [open, member]);
 
-    const primaryOwnerScopes = useMemo(() => PRIMARY_OWNER_SCOPES.filter(scope => member?.roles?.[scope] === PRIMARY_OWNER_ROLE), [member]);
+    const primaryOwnerScopes = useMemo(() => primaryOwnerScopesOf(member), [member]);
     const isPrimaryOwner = primaryOwnerScopes.length > 0;
-
     const candidates = useMemo(() => sortedSuccessorCandidates(members, member?.id), [members, member]);
 
     if (!member) return null;
@@ -101,7 +74,12 @@ export function GroupRemoveMemberSheet({
     const canConfirm = !isPrimaryOwner || Boolean(successor);
 
     function handleConfirm() {
-        onConfirm(successor ? buildTransferMembership(successor, primaryOwnerScopes) : undefined);
+        if (!successor) {
+            onConfirm(undefined);
+            return;
+        }
+        const overrides = Object.fromEntries(primaryOwnerScopes.map(scope => [scope, PRIMARY_OWNER_ROLE]));
+        onConfirm(membershipFromMember(successor, overrides));
     }
 
     return (

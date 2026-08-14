@@ -20,7 +20,7 @@ import { useEffect, useState } from 'react';
 import { GroupRoleSelect } from './GroupRoleSelect';
 import type { GroupMember, GroupRole } from '../types/group';
 import { PRIMARY_OWNER_ROLE } from '../types/group';
-import { isRoleLocked } from '../utils/groupPermissions';
+import { getMemberRoleLockFlags } from '../utils/memberRoles';
 
 export function GroupInviteMemberSheet({
     open,
@@ -62,8 +62,7 @@ export function GroupInviteMemberSheet({
     }, [open, groupRoles]);
 
     const apiPrimaryOwnerExists = members.some(m => m.roles?.API === PRIMARY_OWNER_ROLE);
-    const apiRoleDisabled = isRoleLocked(lockApiRole, canOverrideLocks);
-    const applicationRoleDisabled = isRoleLocked(lockApplicationRole, canOverrideLocks);
+    const roleLocks = getMemberRoleLockFlags({ lockApiRole, lockApiProductRole: false, lockApplicationRole }, canOverrideLocks);
 
     const canSubmit = email.trim().length > 0;
 
@@ -94,7 +93,7 @@ export function GroupInviteMemberSheet({
                         roles={apiRoles}
                         value={apiRole}
                         onChange={setApiRole}
-                        disabled={apiRoleDisabled}
+                        disabled={roleLocks.api}
                         disabledOptionNames={apiPrimaryOwnerExists ? new Set([PRIMARY_OWNER_ROLE]) : undefined}
                     />
 
@@ -103,7 +102,7 @@ export function GroupInviteMemberSheet({
                         roles={applicationRoles}
                         value={applicationRole}
                         onChange={setApplicationRole}
-                        disabled={applicationRoleDisabled}
+                        disabled={roleLocks.application}
                     />
                 </div>
 
