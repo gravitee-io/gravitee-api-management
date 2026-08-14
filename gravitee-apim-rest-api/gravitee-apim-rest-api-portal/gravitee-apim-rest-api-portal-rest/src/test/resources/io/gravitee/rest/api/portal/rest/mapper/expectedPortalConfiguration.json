@@ -9,7 +9,10 @@
       "enabled" : true
     },
     "userCreation" : {
-      "enabled" : true
+      "enabled" : true,
+      "automaticValidation" : {
+        "enabled" : false
+      }
     },
     "apis" : {
       "tilesMode" : {
