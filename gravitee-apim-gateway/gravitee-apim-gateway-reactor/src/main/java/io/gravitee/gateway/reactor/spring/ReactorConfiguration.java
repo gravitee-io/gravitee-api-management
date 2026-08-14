@@ -255,6 +255,7 @@ public class ReactorConfiguration {
         ReporterService reporterService,
         @Value("${handlers.notfound.analytics.enabled:false}") boolean notFoundAnalyticsEnabled,
         @Deprecated @Value("${handlers.notfound.log.enabled:false}") boolean notFoundLogEnabled,
+        @Value("${handlers.rejected.analytics.enabled:true}") boolean rejectedAnalyticsEnabled,
         GatewayConfiguration gatewayConfiguration
     ) {
         return new NotFoundProcessorChainFactory(
@@ -262,6 +263,7 @@ public class ReactorConfiguration {
             environment,
             reporterService,
             notFoundAnalyticsEnabled || notFoundLogEnabled,
+            rejectedAnalyticsEnabled,
             gatewayConfiguration
         );
     }
