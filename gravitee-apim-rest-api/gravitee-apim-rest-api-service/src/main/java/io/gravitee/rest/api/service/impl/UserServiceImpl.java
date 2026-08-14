@@ -1038,15 +1038,20 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         UserEntity userToProcess = findById(executionContext, userId);
         UserEntity processedUser = this.changeUserStatus(executionContext, userId, accepted ? UserStatus.ACTIVE : UserStatus.REJECTED);
         final Map<String, Object> params = new NotificationParamsBuilder().user(processedUser).build();
-        emailService.sendAsyncEmailNotification(
-            executionContext,
-            new EmailNotificationBuilder()
-                .to(userToProcess.getEmail())
-                .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_REGISTRATION_REQUEST_PROCESSED)
-                .params(params)
-                .param("registrationStatus", accepted ? "accepted" : "rejected")
-                .build()
-        );
+        // An accepted user still having to choose a password gets the registration email instead: telling them they can
+        // sign in would be misleading, and the registration email is the one carrying the activation link.
+        final boolean registrationEmailToSend = accepted && !processedUser.isHasPassword();
+        if (!registrationEmailToSend) {
+            emailService.sendAsyncEmailNotification(
+                executionContext,
+                new EmailNotificationBuilder()
+                    .to(userToProcess.getEmail())
+                    .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_REGISTRATION_REQUEST_PROCESSED)
+                    .params(params)
+                    .param("registrationStatus", accepted ? "accepted" : "rejected")
+                    .build()
+            );
+        }
         auditService.createAuditLog(
             executionContext,
             AuditService.AuditLogData.builder()
@@ -1058,7 +1063,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 .build()
         );
 
-        if (accepted && !processedUser.isHasPassword()) {
+        if (registrationEmailToSend) {
             sendRegistrationEmail(
                 executionContext,
                 processedUser,
