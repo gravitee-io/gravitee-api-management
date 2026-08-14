@@ -88,6 +88,11 @@
           </div>
           @if (error() === 400) {
             <mat-error i18n="@@registrationConfirmationBadPassword">Invalid password</mat-error>
+          } @else if (error() === 409) {
+            <mat-error i18n="@@registrationConfirmationPendingApproval"
+              >Your registration request is awaiting approval by an administrator. You will receive an email once it has been
+              reviewed.</mat-error
+            >
           }
           <div class="registration-confirmation__form__buttons">
             <button

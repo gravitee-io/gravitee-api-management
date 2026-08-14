@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, DestroyRef, effect, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
@@ -46,6 +47,12 @@ interface RegistrationConfirmationFormValue {
   password: string;
   customFields?: { [key: string]: string };
 }
+
+const PENDING_APPROVAL_ERROR_CODE = 'errors.user.registration.pendingApproval';
+
+// A registration can also conflict for other reasons, only the pending approval one has a dedicated message.
+const isPendingApproval = (error: HttpErrorResponse): boolean =>
+  error.status === 409 && error.error?.errors?.[0]?.code === PENDING_APPROVAL_ERROR_CODE;
 
 @Component({
   selector: 'app-registration-confirmation',
@@ -113,8 +120,8 @@ export class RegistrationConfirmationComponent {
         })
         .pipe(
           tap(_ => this.submitted.set(true)),
-          catchError(_ => {
-            this.error.set(400);
+          catchError((error: HttpErrorResponse) => {
+            this.error.set(isPendingApproval(error) ? 409 : 400);
             return EMPTY;
           }),
           takeUntilDestroyed(this.destroyRef),
