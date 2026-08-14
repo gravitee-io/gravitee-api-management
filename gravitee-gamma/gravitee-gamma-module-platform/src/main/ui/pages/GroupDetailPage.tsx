@@ -235,21 +235,25 @@ export function GroupDetailPage() {
 
     async function handleRemoveMember(transferMembership?: GroupMembershipPayload) {
         if (!groupId || !removingMember) return;
+
+        // Transfer ownership before removing — removing the primary owner first would leave the group
+        // ownerless for the window between the two calls, and if the transfer then failed, there'd be no
+        // way back. Doing it in this order means a failed transfer just aborts with nothing removed yet.
+        if (transferMembership) {
+            try {
+                await addMembersMutation.mutateAsync({ groupId, memberships: [transferMembership] });
+            } catch (error) {
+                notify.error(error, 'Primary ownership could not be transferred');
+                setRemovingMember(null);
+                return;
+            }
+        }
+
         try {
             await removeMemberMutation.mutateAsync({ groupId, memberId: removingMember.id });
         } catch (error) {
             notify.error(error, 'Failed to remove member');
             return;
-        }
-
-        if (transferMembership) {
-            try {
-                await addMembersMutation.mutateAsync({ groupId, memberships: [transferMembership] });
-            } catch (error) {
-                notify.error(error, `${removingMember.displayName} was removed, but primary ownership could not be transferred`);
-                setRemovingMember(null);
-                return;
-            }
         }
 
         notify.success(`${removingMember.displayName} removed from the group`);
