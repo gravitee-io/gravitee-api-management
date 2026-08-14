@@ -213,12 +213,22 @@ class UserServiceRegistrationApprovalTest {
     }
 
     @Test
+    void should_only_send_the_registration_email_once_the_request_is_approved() throws TechnicalException {
+        givenPendingUser(null);
+        when(installationAccessQueryService.getPortalUrl(ENVIRONMENT)).thenReturn(PORTAL_URL);
+
+        userService.processRegistration(CONSOLE_CONTEXT, USER_ID, true);
+
+        assertThat(capturedEmails()).hasSize(1).noneMatch(this::isRequestProcessedEmail);
+    }
+
+    @Test
     void should_not_send_the_registration_email_when_the_approved_user_already_has_a_password() throws TechnicalException {
         givenPendingUser("$2a$10$encoded");
 
         userService.processRegistration(CONSOLE_CONTEXT, USER_ID, true);
 
-        assertThat(capturedEmails()).noneMatch(this::isRegistrationEmail);
+        assertThat(capturedEmails()).noneMatch(this::isRegistrationEmail).anyMatch(this::isRequestProcessedEmail);
     }
 
     @Test
@@ -227,7 +237,7 @@ class UserServiceRegistrationApprovalTest {
 
         userService.processRegistration(CONSOLE_CONTEXT, USER_ID, false);
 
-        assertThat(capturedEmails()).noneMatch(this::isRegistrationEmail);
+        assertThat(capturedEmails()).noneMatch(this::isRegistrationEmail).anyMatch(this::isRequestProcessedEmail);
     }
 
     @Test
@@ -366,6 +376,12 @@ class UserServiceRegistrationApprovalTest {
             .withClaim(JWTHelper.Claims.ACTION, USER_REGISTRATION.name())
             .withExpiresAt(new Date(System.currentTimeMillis() + 3600_000))
             .sign(Algorithm.HMAC256(JWT_SECRET));
+    }
+
+    private boolean isRequestProcessedEmail(EmailNotification email) {
+        return EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_REGISTRATION_REQUEST_PROCESSED.getLinkedHook()
+            .getTemplate()
+            .equals(email.getTemplate());
     }
 
     private boolean isRegistrationEmail(EmailNotification email) {
