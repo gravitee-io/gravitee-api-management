@@ -824,6 +824,9 @@
     "user": {
       "exists": "Esiste già un utente con l'e-mail: {user}",
       "finalized": "L'account è già stato finalizzato",
+      "registration": {
+        "pendingApproval": "La richiesta di registrazione è in attesa di approvazione da parte di un amministratore. Riceverai un'e-mail non appena sarà stata esaminata."
+      },
       "resetpassword": "Ripristino della password già richiesto; controlla la tua e-mail e attendi qualche minuto prima di un nuovo tentativo."
     }
   },
@@ -1039,6 +1042,10 @@
     "email": "E-mail",
     "firstname": "Nome",
     "lastname": "Cognome",
+    "pendingApproval": {
+      "message": "La tua richiesta di registrazione per {email} è in attesa di approvazione da parte di un amministratore. Riceverai un'e-mail con un link di attivazione non appena sarà stata approvata.",
+      "title": "Richiesta di registrazione inviata"
+    },
     "success": {
       "message": "È stata inviata un'e-mail a: {email}",
       "title": "Registrazione confermata!"
