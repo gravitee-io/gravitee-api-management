@@ -18,16 +18,17 @@ import { render, screen } from '@testing-library/react';
 import { AlertsEducationalEmptyState } from './AlertsEducationalEmptyState';
 
 describe('AlertsEducationalEmptyState', () => {
-    it('renders the why/how-it-works/capabilities content', () => {
+    it('renders the why/how-it-works/capabilities content with classic env rules', () => {
         render(<AlertsEducationalEmptyState />);
 
         expect(screen.getByText('Why configure alerts?')).not.toBeNull();
         expect(screen.getByText('How it works')).not.toBeNull();
         expect(screen.getByText('Alert rule')).not.toBeNull();
         expect(screen.getByText('Email · Slack · Webhook')).not.toBeNull();
-        expect(screen.getByText('What you can alert on')).not.toBeNull();
+        expect(screen.getByText('Available alert rules')).not.toBeNull();
         expect(screen.getByText('Key capabilities')).not.toBeNull();
-        expect(screen.getByText(/Node lifecycle/)).not.toBeNull();
+        expect(screen.getByText(/Alert when the lifecycle status of a node has changed/)).not.toBeNull();
         expect(screen.getByText('Send notifications via email, Slack, or webhook')).not.toBeNull();
+        expect(screen.getByText('How it works').closest('div')?.className).toMatch(/border-primary/);
     });
 });
