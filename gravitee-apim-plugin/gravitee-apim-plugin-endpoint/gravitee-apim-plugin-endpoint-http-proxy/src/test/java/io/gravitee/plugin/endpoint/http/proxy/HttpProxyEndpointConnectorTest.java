@@ -23,7 +23,10 @@ import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.
 import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.REQUEST_TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
@@ -60,6 +63,8 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.vertx.core.Future;
+import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.http.HttpClosedException;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.core.impl.NoStackTraceTimeoutException;
@@ -81,6 +86,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -545,6 +551,49 @@ class HttpProxyEndpointConnectorTest {
                 .assertComplete();
             verify(spyHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
             verify(spyGrpcHttpClientFactory, never()).getOrBuildHttpClient(any(), any(), any());
+        }
+
+        @Test
+        void should_report_a_connect_timeout_when_the_retried_attempt_times_out_before_acquiring_a_connection() {
+            givenContextStoringInternalAttributes();
+            when(ctx.withLogger(any())).thenReturn(mock(Logger.class));
+
+            final HttpClientRequest pooledUpstreamRequest = mock(HttpClientRequest.class);
+            when(pooledUpstreamRequest.send()).thenReturn(Future.failedFuture(new HttpClosedException("Connection was closed")));
+            // First attempt takes a pooled connection the peer then closes without answering, which is what makes the
+            // connector retry; the retried attempt never gets a connection of its own before the timeout fires.
+            when(mockDelegateHttpClient.request(any(RequestOptions.class)))
+                .thenReturn(Future.succeededFuture(pooledUpstreamRequest))
+                .thenReturn(
+                    Future.failedFuture(
+                        new NoStackTraceTimeoutException("The timeout period of 10000ms has been exceeded while executing GET /team")
+                    )
+                );
+
+            cut.connect(ctx).test().assertComplete();
+
+            verify(ctx).interruptWith(failureCaptor.capture());
+            final ExecutionFailure capturedFailure = failureCaptor.getValue();
+            assertThat(capturedFailure.statusCode()).isEqualTo(HttpStatusCode.GATEWAY_TIMEOUT_504);
+            assertThat(capturedFailure.key()).isEqualTo(ConnectionFailureClassifier.CONNECT_TIMEOUT);
+            assertThat(capturedFailure.parameters()).containsEntry(ConnectionFailureClassifier.PARENT_ERROR_KEY_PARAMETER, REQUEST_TIMEOUT);
+        }
+
+        private void givenContextStoringInternalAttributes() {
+            final Map<String, Object> internalAttributes = new ConcurrentHashMap<>();
+            when(ctx.getInternalAttribute(anyString())).thenAnswer(invocation -> internalAttributes.get(invocation.getArgument(0)));
+            doAnswer(invocation -> {
+                internalAttributes.put(invocation.getArgument(0), invocation.getArgument(1));
+                return null;
+            })
+                .when(ctx)
+                .setInternalAttribute(anyString(), any());
+            doAnswer(invocation -> {
+                internalAttributes.remove(invocation.getArgument(0));
+                return null;
+            })
+                .when(ctx)
+                .removeInternalAttribute(anyString());
         }
     }
 }
