@@ -62,17 +62,10 @@ import {
     useGroupApplications,
     useGroupApiProducts,
     useGroupDetail,
-    useGroupInvitations,
     useGroupMembers,
 } from '../features/groups/hooks/useGroupDetail';
-import {
-    useAddGroupMembers,
-    useDeleteGroup,
-    useDeleteGroupInvitation,
-    useInviteGroupMember,
-    useRemoveGroupMember,
-    useUpdateGroup,
-} from '../features/groups/hooks/useGroupMutations';
+import { useGroupMemberActions } from '../features/groups/hooks/useGroupMemberActions';
+import { useDeleteGroup, useUpdateGroup } from '../features/groups/hooks/useGroupMutations';
 import {
     useGroupApiProductRoles,
     useGroupApiRoles,
@@ -80,7 +73,6 @@ import {
     useGroupClusterRoles,
     useGroupIntegrationRoles,
 } from '../features/groups/hooks/useGroupRoles';
-import type { GroupInvitation, GroupMember, GroupMembershipPayload } from '../features/groups/types/group';
 import { buildEventRules, buildRolesMap, hasEventRule, parseMaxInvitation } from '../features/groups/utils/groupPayload';
 import {
     canInviteToGroup,
@@ -90,8 +82,6 @@ import {
 import { ConfirmDialog } from '../shared/components/ConfirmDialog';
 import { notify } from '../shared/notify';
 
-type MemberSheetState = 'closed' | 'search' | 'invite';
-
 export function GroupDetailPage() {
     const { groupId } = useParams<{ groupId: string }>();
     const navigate = useNavigate();
@@ -100,24 +90,42 @@ export function GroupDetailPage() {
 
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
-    const [memberSheet, setMemberSheet] = useState<MemberSheetState>('closed');
-    const [editingMember, setEditingMember] = useState<GroupMember | null>(null);
-    const [removingMember, setRemovingMember] = useState<GroupMember | null>(null);
-    const [tooManyUsersEmail, setTooManyUsersEmail] = useState<string | null>(null);
-    const [deletingInvitation, setDeletingInvitation] = useState<GroupInvitation | null>(null);
-    const [memberTab, setMemberTab] = useState<'members' | 'invitations'>('members');
 
     const { data: group, isLoading, isError } = useGroupDetail(groupId);
     const { data: members = [], isLoading: membersLoading, isError: membersError } = useGroupMembers(groupId);
-    // Invitations only render inside the Invitations tab — skip the fetch until it's actually opened.
-    const {
-        data: invitations = [],
-        isLoading: invitationsLoading,
-        isError: invitationsError,
-    } = useGroupInvitations(memberTab === 'invitations' ? groupId : undefined);
     const { data: apis = [], isLoading: apisLoading, isError: apisError } = useGroupApis(groupId);
     const { data: applications = [], isLoading: applicationsLoading, isError: applicationsError } = useGroupApplications(groupId);
     const { data: apiProducts = [], isLoading: apiProductsLoading, isError: apiProductsError } = useGroupApiProducts(groupId);
+
+    const {
+        memberTab,
+        setMemberTab,
+        memberSheet,
+        setMemberSheet,
+        closeMemberSheet,
+        editingMember,
+        setEditingMember,
+        removingMember,
+        setRemovingMember,
+        tooManyUsersEmail,
+        setTooManyUsersEmail,
+        deletingInvitation,
+        setDeletingInvitation,
+        invitations,
+        invitationsLoading,
+        invitationsError,
+        addMembersMutation,
+        inviteMemberMutation,
+        removeMemberMutation,
+        deleteInvitationMutation,
+        handleAddMembers,
+        handleInviteMember,
+        handleTooManyUsersContinue,
+        handleEditMemberRoles,
+        handleRemoveMember,
+        handleDeleteInvitation,
+    } = useGroupMemberActions(groupId);
+
     // Roles feed both the Edit Group sheet and the Add/Invite/Edit member sheets — deferred until
     // whichever of those is actually open, not just canEdit, since member management doesn't require it.
     const rolesNeeded = editOpen || memberSheet !== 'closed' || editingMember !== null;
@@ -130,10 +138,6 @@ export function GroupDetailPage() {
 
     const updateMutation = useUpdateGroup();
     const deleteMutation = useDeleteGroup();
-    const addMembersMutation = useAddGroupMembers();
-    const inviteMemberMutation = useInviteGroupMember();
-    const removeMemberMutation = useRemoveGroupMember();
-    const deleteInvitationMutation = useDeleteGroupInvitation();
 
     async function handleUpdate(values: GroupFormValues) {
         if (!group) return;
@@ -173,101 +177,6 @@ export function GroupDetailPage() {
             navigate('..');
         } catch (error) {
             notify.error(error, 'Failed to delete group');
-        }
-    }
-
-    function closeMemberSheet() {
-        setMemberSheet('closed');
-    }
-
-    async function handleAddMembers(memberships: GroupMembershipPayload[]) {
-        if (!groupId) return;
-        try {
-            await addMembersMutation.mutateAsync({ groupId, memberships });
-            notify.success(memberships.length > 1 ? `${memberships.length} members added successfully` : 'Member added successfully');
-            closeMemberSheet();
-        } catch (error) {
-            notify.error(error, 'Failed to add members');
-        }
-    }
-
-    async function handleInviteMember(values: { email: string; apiRole: string; applicationRole: string }) {
-        if (!groupId) return;
-        try {
-            const result = await inviteMemberMutation.mutateAsync({
-                groupId,
-                data: {
-                    reference_id: groupId,
-                    email: values.email,
-                    api_role: values.apiRole || undefined,
-                    application_role: values.applicationRole || undefined,
-                },
-            });
-            if (result.ambiguous) {
-                closeMemberSheet();
-                setTooManyUsersEmail(values.email);
-                return;
-            }
-            notify.success(`Invitation sent to ${values.email}`);
-            closeMemberSheet();
-        } catch (error) {
-            notify.error(error, 'Failed to send invitation');
-        }
-    }
-
-    function handleTooManyUsersContinue() {
-        setTooManyUsersEmail(null);
-        setMemberSheet('search');
-    }
-
-    async function handleEditMemberRoles(memberships: GroupMembershipPayload[]) {
-        if (!groupId) return;
-        try {
-            await addMembersMutation.mutateAsync({ groupId, memberships });
-            notify.success(
-                memberships.length > 1 ? 'Member roles updated and primary ownership transferred' : 'Member roles updated successfully',
-            );
-            setEditingMember(null);
-        } catch (error) {
-            notify.error(error, 'Failed to update member roles');
-        }
-    }
-
-    async function handleRemoveMember(transferMembership?: GroupMembershipPayload) {
-        if (!groupId || !removingMember) return;
-
-        // Transfer ownership before removing — removing the primary owner first would leave the group
-        // ownerless for the window between the two calls, and if the transfer then failed, there'd be no
-        // way back. Doing it in this order means a failed transfer just aborts with nothing removed yet.
-        if (transferMembership) {
-            try {
-                await addMembersMutation.mutateAsync({ groupId, memberships: [transferMembership] });
-            } catch (error) {
-                notify.error(error, 'Primary ownership could not be transferred');
-                setRemovingMember(null);
-                return;
-            }
-        }
-
-        try {
-            await removeMemberMutation.mutateAsync({ groupId, memberId: removingMember.id });
-        } catch (error) {
-            notify.error(error, 'Failed to remove member');
-            return;
-        }
-
-        notify.success(`${removingMember.displayName} removed from the group`);
-        setRemovingMember(null);
-    }
-
-    async function handleDeleteInvitation() {
-        if (!groupId || !deletingInvitation) return;
-        try {
-            await deleteInvitationMutation.mutateAsync({ groupId, invitationId: deletingInvitation.id });
-            notify.success('Successfully deleted the invitation.');
-            setDeletingInvitation(null);
-        } catch (error) {
-            notify.error(error, 'Error occurred while deleting the invitation.');
         }
     }
 
