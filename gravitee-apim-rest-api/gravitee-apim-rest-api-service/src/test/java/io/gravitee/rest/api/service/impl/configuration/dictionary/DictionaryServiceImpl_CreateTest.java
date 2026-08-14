@@ -74,6 +74,7 @@ public class DictionaryServiceImpl_CreateTest {
         newDictionary.setType(DictionaryType.MANUAL);
         newDictionary.setProperties(Map.of("foo", "bar"));
 
+        when(dictionaryRepository.findById("my-key")).thenReturn(Optional.empty());
         when(dictionaryRepository.findByKeyAndEnvironment("my-key", ENVIRONMENT_ID)).thenReturn(Optional.empty());
         when(dictionaryRepository.create(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -99,6 +100,7 @@ public class DictionaryServiceImpl_CreateTest {
         Dictionary existingById = new Dictionary();
         existingById.setId("my-key");
         existingById.setEnvironmentId("OTHER_ENV");
+        when(dictionaryRepository.findById("my-key")).thenReturn(Optional.of(existingById));
         when(dictionaryRepository.findByKeyAndEnvironment("my-key", ENVIRONMENT_ID)).thenReturn(Optional.empty());
         when(dictionaryRepository.create(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -136,6 +138,7 @@ public class DictionaryServiceImpl_CreateTest {
 
         Dictionary existing = new Dictionary();
         existing.setEnvironmentId(ENVIRONMENT_ID);
+        when(dictionaryRepository.findById("my-key")).thenReturn(Optional.empty());
         when(dictionaryRepository.findByKeyAndEnvironment("my-key", ENVIRONMENT_ID)).thenReturn(Optional.of(existing));
 
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
@@ -145,21 +148,24 @@ public class DictionaryServiceImpl_CreateTest {
     }
 
     @Test
-    public void shouldNotCreateWhenIdAlreadyExistsInSameEnvironment() throws TechnicalException {
+    public void shouldNotCreateWhenExplicitKeyMatchesExistingIdInSameEnvironment() throws TechnicalException {
         NewDictionaryEntity newDictionary = new NewDictionaryEntity();
-        newDictionary.setKey("my-key");
-        newDictionary.setName("My Dictionary");
+        newDictionary.setKey("idp-server-details");
+        newDictionary.setName("tf_idp-server-details");
         newDictionary.setType(DictionaryType.MANUAL);
 
         Dictionary existingById = new Dictionary();
-        existingById.setKey("my-key");
+        existingById.setId("idp-server-details");
+        existingById.setName("idp-server-details");
         existingById.setEnvironmentId(ENVIRONMENT_ID);
-        when(dictionaryRepository.findByKeyAndEnvironment("my-key", ENVIRONMENT_ID)).thenReturn(Optional.of(existingById));
+        when(dictionaryRepository.findById("idp-server-details")).thenReturn(Optional.of(existingById));
 
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        assertThatThrownBy(() -> dictionaryService.create(executionContext, newDictionary)).isInstanceOf(
-            DictionaryAlreadyExistsException.class
-        );
+        assertThatThrownBy(() -> dictionaryService.create(executionContext, newDictionary))
+            .isInstanceOf(DictionaryKeyCollidesWithIdException.class)
+            .hasMessage(
+                "A dictionary with key [idp-server-details] cannot be created because dictionary [idp-server-details] already uses that value as its id in this environment."
+            );
     }
 
     @Test
@@ -169,6 +175,7 @@ public class DictionaryServiceImpl_CreateTest {
         newDictionary.setName("My Dictionary");
         newDictionary.setType(DictionaryType.DYNAMIC);
 
+        when(dictionaryRepository.findById("my-key")).thenReturn(Optional.empty());
         when(dictionaryRepository.findByKeyAndEnvironment("my-key", ENVIRONMENT_ID)).thenReturn(Optional.empty());
         when(dictionaryRepository.create(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
 

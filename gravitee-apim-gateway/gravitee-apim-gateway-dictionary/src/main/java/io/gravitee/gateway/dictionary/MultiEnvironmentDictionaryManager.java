@@ -19,6 +19,7 @@ import io.gravitee.gateway.dictionary.model.Dictionary;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import lombok.CustomLog;
 
 /**
@@ -34,13 +35,24 @@ public class MultiEnvironmentDictionaryManager implements DictionaryManager {
     @Override
     public void deploy(Dictionary dictionary) {
         String environmentId = dictionary.getEnvironmentId();
-        //fallback on legacy events
-        String key = dictionary.getKey() == null ? dictionary.getId() : dictionary.getKey();
+        String key = runtimeKey(dictionary);
 
         dictionaries.putIfAbsent(environmentId, new HashMap<>());
         values.putIfAbsent(environmentId, new HashMap<>());
 
         Dictionary existing = dictionaries.get(environmentId).get(key);
+        if (existing != null && !Objects.equals(existing.getId(), dictionary.getId())) {
+            log.error(
+                "Dictionary {} (name={}) collides on runtime key '{}' in environment {} with existing dictionary {} (name={}). Incoming deploy is rejected; occupant is kept",
+                dictionary.getId(),
+                dictionary.getName(),
+                key,
+                environmentId,
+                existing.getId(),
+                existing.getName()
+            );
+            return;
+        }
         if (existing == null || dictionary.getDeployedAt().after(existing.getDeployedAt())) {
             if (dictionary.getProperties() == null) {
                 dictionary.setProperties(Collections.emptyMap());
@@ -55,28 +67,47 @@ public class MultiEnvironmentDictionaryManager implements DictionaryManager {
     @Override
     public void undeploy(Dictionary dictionary) {
         String environmentId = dictionary.getEnvironmentId();
-        //fallback on legacy events
-        String key = dictionary.getKey() == null ? dictionary.getId() : dictionary.getKey();
+        String key = runtimeKey(dictionary);
         Map<String, Dictionary> envDictionaries = dictionaries.get(environmentId);
         if (envDictionaries != null) {
-            Dictionary removed = envDictionaries.remove(key);
+            Dictionary occupant = envDictionaries.get(key);
+            if (occupant == null) {
+                return;
+            }
+            if (!Objects.equals(occupant.getId(), dictionary.getId())) {
+                log.debug(
+                    "Dictionary {} was requested for undeploy but runtime key '{}' is occupied by dictionary {} — ignoring",
+                    dictionary.getId(),
+                    key,
+                    occupant.getId()
+                );
+                return;
+            }
 
+            envDictionaries.remove(key);
             if (envDictionaries.isEmpty()) {
                 dictionaries.remove(environmentId);
             }
 
-            if (removed != null) {
-                Map<String, Map<String, String>> envValues = values.get(environmentId);
-                if (envValues != null) {
-                    envValues.remove(key);
-                    if (envValues.isEmpty()) {
-                        values.remove(environmentId);
-                    }
+            Map<String, Map<String, String>> envValues = values.get(environmentId);
+            if (envValues != null) {
+                envValues.remove(key);
+                if (envValues.isEmpty()) {
+                    values.remove(environmentId);
                 }
-
-                log.info("A dictionary has been undeployed: {}", removed);
             }
+
+            log.info("A dictionary has been undeployed: {}", dictionary);
         }
+    }
+
+    /**
+     * Runtime map key: prefer the dictionary {@code key} when present, otherwise fall back to {@code id}
+     * for legacy events that predate the key field.
+     */
+    private static String runtimeKey(Dictionary dictionary) {
+        String key = dictionary.getKey();
+        return key == null || key.isBlank() ? dictionary.getId() : key;
     }
 
     @Override

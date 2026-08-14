@@ -239,30 +239,13 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             final Dictionary dictionary;
             if (newDictionaryEntity.getKey() == null) {
                 String key = IdGenerator.generate(newDictionaryEntity.getName());
-
-                // Make sure the derived key does not already exist in the same environment
-                // That would mean that a legacy dictionary (prior to multi tenant management) was created with the same name.
                 Optional<Dictionary> idDictionary = dictionaryRepository.findById(key);
-                if (
-                    idDictionary.isPresent() && idDictionary.get().getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId())
-                ) {
-                    throw new DictionaryAlreadyExistsException(newDictionaryEntity.getName());
-                }
-                // Make sure the derived key does not already exist in any environment using the key field which is how it is checked
-                // uniqueness after the multi tenant management is implemented.
-                Optional<Dictionary> optDictionary = dictionaryRepository.findByKeyAndEnvironment(key, executionContext.getEnvironmentId());
-                if (optDictionary.isPresent()) {
-                    throw new DictionaryAlreadyExistsException(newDictionaryEntity.getName());
-                }
+                ensureRuntimeKeyIsAvailable(executionContext, key, newDictionaryEntity.getName(), idDictionary, false);
                 dictionary = convert(newDictionaryEntity, key, idDictionary.isEmpty());
             } else {
                 String key = newDictionaryEntity.getKey();
-                // We shouldn't be here if the caller checked the key uniqueness
-                // But for to respect the contract, we check again
-                Optional<Dictionary> optDictionary = dictionaryRepository.findByKeyAndEnvironment(key, executionContext.getEnvironmentId());
-                if (optDictionary.isPresent()) {
-                    throw new DictionaryAlreadyExistsException(newDictionaryEntity.getName());
-                }
+                Optional<Dictionary> idDictionary = dictionaryRepository.findById(key);
+                ensureRuntimeKeyIsAvailable(executionContext, key, newDictionaryEntity.getName(), idDictionary, true);
                 dictionary = convert(newDictionaryEntity, key, false);
                 // if ID is already set, let's use it
                 if (newDictionaryEntity.getId() != null) {
@@ -471,6 +454,30 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         }
 
         return dictionaryEntityBuilder.build();
+    }
+
+    /**
+     * Console dictionaries store a null key, so the gateway indexes them by id. Reject create when
+     * {@code key} is already used in this environment as an id or as a key.
+     */
+    private void ensureRuntimeKeyIsAvailable(
+        ExecutionContext executionContext,
+        String key,
+        String dictionaryName,
+        Optional<Dictionary> dictionaryById,
+        boolean explicitKey
+    ) throws TechnicalException {
+        dictionaryById
+            .filter(d -> d.getEnvironmentId() != null && d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
+            .ifPresent(existing -> {
+                if (explicitKey) {
+                    throw new DictionaryKeyCollidesWithIdException(key, existing.getId(), existing.getName());
+                }
+                throw new DictionaryAlreadyExistsException(dictionaryName);
+            });
+        if (dictionaryRepository.findByKeyAndEnvironment(key, executionContext.getEnvironmentId()).isPresent()) {
+            throw new DictionaryAlreadyExistsException(dictionaryName);
+        }
     }
 
     private Dictionary convert(UpdateDictionaryEntity updateDictionaryEntity) {
