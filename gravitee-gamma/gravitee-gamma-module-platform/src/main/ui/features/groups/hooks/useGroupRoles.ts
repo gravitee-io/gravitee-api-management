@@ -16,41 +16,35 @@
 
 import { useQuery } from '@tanstack/react-query';
 
-import {
-    listGroupApiProductRoles,
-    listGroupApiRoles,
-    listGroupApplicationRoles,
-    listGroupClusterRoles,
-    listGroupIntegrationRoles,
-} from '../services/groups';
+import { listGroupRolesByScope, type GroupRoleScope } from '../services/groups';
 import type { GroupRole } from '../types/group';
 import { groupKeys } from '../utils/queryKeys';
 
-function useGroupRolesQuery(queryKey: readonly unknown[], queryFn: () => Promise<GroupRole[]>, enabled: boolean) {
-    return useQuery({
+function useGroupRolesQuery(queryKey: readonly unknown[], scope: GroupRoleScope, enabled: boolean) {
+    return useQuery<GroupRole[]>({
         queryKey,
-        queryFn,
+        queryFn: () => listGroupRolesByScope(scope),
         staleTime: 5 * 60_000,
         enabled,
     });
 }
 
 export function useGroupApiRoles({ enabled = true }: { enabled?: boolean } = {}) {
-    return useGroupRolesQuery(groupKeys.apiRoles(), listGroupApiRoles, enabled);
+    return useGroupRolesQuery(groupKeys.apiRoles(), 'API', enabled);
 }
 
 export function useGroupApplicationRoles({ enabled = true }: { enabled?: boolean } = {}) {
-    return useGroupRolesQuery(groupKeys.applicationRoles(), listGroupApplicationRoles, enabled);
+    return useGroupRolesQuery(groupKeys.applicationRoles(), 'APPLICATION', enabled);
 }
 
 export function useGroupApiProductRoles({ enabled = true }: { enabled?: boolean } = {}) {
-    return useGroupRolesQuery(groupKeys.apiProductRoles(), listGroupApiProductRoles, enabled);
+    return useGroupRolesQuery(groupKeys.apiProductRoles(), 'API_PRODUCT', enabled);
 }
 
 export function useGroupIntegrationRoles() {
-    return useGroupRolesQuery(groupKeys.integrationRoles(), listGroupIntegrationRoles, true);
+    return useGroupRolesQuery(groupKeys.integrationRoles(), 'INTEGRATION', true);
 }
 
 export function useGroupClusterRoles() {
-    return useGroupRolesQuery(groupKeys.clusterRoles(), listGroupClusterRoles, true);
+    return useGroupRolesQuery(groupKeys.clusterRoles(), 'CLUSTER', true);
 }

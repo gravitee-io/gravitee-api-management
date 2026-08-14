@@ -180,6 +180,11 @@ export function GroupDetailPage() {
         }
     }
 
+    function handleDeleteInvitationDialogOpenChange(isOpen: boolean) {
+        if (isOpen || deleteInvitationMutation.isPending) return;
+        setDeletingInvitation(null);
+    }
+
     if (isLoading) {
         return (
             <div className="space-y-4">
@@ -482,7 +487,7 @@ export function GroupDetailPage() {
 
             <ConfirmDialog
                 open={deletingInvitation !== null}
-                onOpenChange={isOpen => !isOpen && !deleteInvitationMutation.isPending && setDeletingInvitation(null)}
+                onOpenChange={handleDeleteInvitationDialogOpenChange}
                 title="Delete Invitation"
                 description={`You are trying to delete an invitation sent to ${deletingInvitation?.email}. Do you want to continue?`}
                 confirmLabel="Continue"
