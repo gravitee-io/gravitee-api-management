@@ -239,13 +239,8 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                 LOGGER.debug("Updating existing promotion: {}", promotion.getId());
                 createdOrUpdatedPromotion = promotionRepository.update(promotion);
             } else {
-<<<<<<< HEAD
                 LOGGER.debug("Creating promotion: {}", promotion.getId());
-                createdOrUpdatedPromotion = promotionRepository.create(promotion);
-=======
-                log.debug("Creating promotion: {}", promotion.getId());
                 createdOrUpdatedPromotion = createOrUpdateOnConflict(promotion);
->>>>>>> e42548eb72 (fix: make promotion createOrUpdate tolerate a concurrent insert (#18828))
             }
 
             return convert(createdOrUpdatedPromotion);
@@ -271,7 +266,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
             if (promotionRepository.findById(promotion.getId()).isEmpty()) {
                 throw e;
             }
-            log.debug("Promotion {} was created concurrently, updating it instead", promotion.getId());
+            LOGGER.debug("Promotion {} was created concurrently, updating it instead", promotion.getId());
             return promotionRepository.update(promotion);
         }
     }
