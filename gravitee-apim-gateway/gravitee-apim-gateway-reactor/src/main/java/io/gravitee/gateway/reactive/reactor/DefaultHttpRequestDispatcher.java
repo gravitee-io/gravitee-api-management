@@ -166,11 +166,19 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         final String rawPath = httpServerRequest.path();
         log.debug("Dispatching request on host {} and path {}", host, rawPath);
 
-        final String normalizedPath = requestPathConfiguration.isEnabled() ? RequestPathNormalizer.normalize(rawPath) : rawPath;
+        // One scan answers what both active modes ask. REJECT needs nothing more: a path that is
+        // not in the form it claims to be is refused without ever being rewritten. NORMALIZE only
+        // pays for the resolution when there is something to resolve.
+        final boolean needsNormalization = requestPathConfiguration.isEnabled() && RequestPathNormalizer.needsNormalization(rawPath);
 
-        // A malformed percent sequence has no normalized form at all, so there is nothing to decide
-        // on and it is refused whatever the mode.
-        if (normalizedPath == null || (normalizedPath != rawPath && requestPathConfiguration.getHandling() == RequestPathHandling.REJECT)) {
+        if (needsNormalization && requestPathConfiguration.getHandling() == RequestPathHandling.REJECT) {
+            return handleRejectedPath(httpServerRequest, serverId);
+        }
+
+        final String normalizedPath = needsNormalization ? RequestPathNormalizer.normalize(rawPath) : rawPath;
+
+        // No normalized form at all: the path carries a malformed percent sequence.
+        if (normalizedPath == null) {
             return handleRejectedPath(httpServerRequest, serverId);
         }
 
