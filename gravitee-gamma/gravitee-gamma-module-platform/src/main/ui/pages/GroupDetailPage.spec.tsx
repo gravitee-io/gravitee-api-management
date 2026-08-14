@@ -131,11 +131,14 @@ jest.mock('../features/groups/components/GroupEditMemberSheet', () => ({
         ) : null,
 }));
 jest.mock('../features/groups/components/GroupRemoveMemberSheet', () => ({
-    GroupRemoveMemberSheet: ({ open, onConfirm }: { open: boolean; onConfirm: () => void }) =>
+    GroupRemoveMemberSheet: ({ open, onConfirm }: { open: boolean; onConfirm: (transferMembership?: GroupMembershipPayload) => void }) =>
         open ? (
             <div data-testid="remove-member-sheet">
-                <button type="button" onClick={onConfirm}>
+                <button type="button" onClick={() => onConfirm()}>
                     Submit remove
+                </button>
+                <button type="button" onClick={() => onConfirm({ id: 'member-2', roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }] })}>
+                    Submit remove with successor
                 </button>
             </div>
         ) : null,
@@ -629,6 +632,44 @@ describe('GroupDetailPage', () => {
             fireEvent.click(screen.getByRole('button', { name: 'Submit remove' }));
 
             await waitFor(() => expect(notify.error).toHaveBeenCalledWith(error, 'Failed to remove member'));
+        });
+
+        it('transfers primary ownership to the successor before removing the member, so the group is never left ownerless', async () => {
+            const callOrder: string[] = [];
+            const removeMutateAsync = jest.fn().mockImplementation(async () => {
+                callOrder.push('remove');
+            });
+            const addMutateAsync = jest.fn().mockImplementation(async () => {
+                callOrder.push('transfer');
+            });
+            mockUseRemoveGroupMember.mockReturnValue(makeMutation(removeMutateAsync));
+            mockUseAddGroupMembers.mockReturnValue(makeMutation(addMutateAsync));
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Trigger remove' }));
+            fireEvent.click(screen.getByRole('button', { name: 'Submit remove with successor' }));
+
+            await waitFor(() => expect(removeMutateAsync).toHaveBeenCalled());
+            expect(addMutateAsync).toHaveBeenCalledWith({
+                groupId: 'group-1',
+                memberships: [{ id: 'member-2', roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }] }],
+            });
+            expect(callOrder).toEqual(['transfer', 'remove']);
+            expect(notify.success).toHaveBeenCalledWith('Anna Schmidt removed from the group');
+        });
+
+        it('does not remove the member if the ownership transfer fails first', async () => {
+            const error = new Error('transfer failed');
+            const removeMutateAsync = jest.fn().mockResolvedValue(undefined);
+            mockUseRemoveGroupMember.mockReturnValue(makeMutation(removeMutateAsync));
+            mockUseAddGroupMembers.mockReturnValue(makeMutation(jest.fn().mockRejectedValue(error)));
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Trigger remove' }));
+            fireEvent.click(screen.getByRole('button', { name: 'Submit remove with successor' }));
+
+            await waitFor(() => expect(notify.error).toHaveBeenCalledWith(error, 'Primary ownership could not be transferred'));
+            expect(removeMutateAsync).not.toHaveBeenCalled();
         });
     });
 
