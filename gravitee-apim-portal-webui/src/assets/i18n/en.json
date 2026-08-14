@@ -824,6 +824,9 @@
     "user": {
       "exists": "There is already a user with the email: {user}",
       "finalized": "The account has already been finalized",
+      "registration": {
+        "pendingApproval": "The registration request is awaiting approval by an administrator. You will receive an email once it has been reviewed."
+      },
       "resetpassword": "Reset password already requested, please check your emails and wait a few minutes before a new attempt."
     }
   },
@@ -1039,6 +1042,10 @@
     "email": "Email",
     "firstname": "First name",
     "lastname": "Last name",
+    "pendingApproval": {
+      "message": "Your registration request for {email} is awaiting approval by an administrator. You will receive an email with an activation link once it has been approved.",
+      "title": "Registration request sent"
+    },
     "success": {
       "message": "An email has been sent to: {email}",
       "title": "Registration confirmed!"
