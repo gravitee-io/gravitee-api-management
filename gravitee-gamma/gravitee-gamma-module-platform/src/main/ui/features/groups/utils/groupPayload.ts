@@ -21,7 +21,6 @@ export function hasEventRule(group: Group, event: GroupEventName): boolean {
     return (group.event_rules ?? []).some(rule => rule.event === event);
 }
 
-/** Rebuilds the full event-rules list from the three toggles the UI manages. */
 export function buildEventRules(events: { apiCreate: boolean; applicationCreate: boolean; apiProductCreate: boolean }): GroupEventRule[] {
     const rules: GroupEventRule[] = [];
     if (events.apiCreate) rules.push({ event: 'API_CREATE' });
@@ -30,12 +29,6 @@ export function buildEventRules(events: { apiCreate: boolean; applicationCreate:
     return rules;
 }
 
-/**
- * Keeps any other role scope untouched — only sets/clears API, APPLICATION, and API_PRODUCT.
- * Always returns a map (possibly `{}`), never `undefined`: the v1 API treats an absent `roles`
- * field on the PUT body as "no change", so clearing every role to "None" must still send `{}`
- * to actually clear them — omitting the field would silently leave the old roles in place.
- */
 export function buildRolesMap(
     existingRoles: Record<string, string> | undefined,
     apiRole: string,
@@ -61,7 +54,6 @@ export function buildRolesMap(
     return roles;
 }
 
-/** Parses the "Maximum members" text input — blank, non-positive, or non-numeric all mean unlimited (`null`). */
 export function parseMaxInvitation(value: string): number | null {
     const trimmed = value.trim();
     if (!trimmed) return null;

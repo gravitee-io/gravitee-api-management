@@ -13,6 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type { ConsoleSettings } from './types';
-export { ConsoleSettingsProvider, useConsoleSettings, useConsoleSettingsReady, useSetConsoleSettings } from './ConsoleSettingsProvider';
-export { isUserGroupRequired } from './isUserGroupRequired';
+import { useQuery } from '@tanstack/react-query';
+
+import { fetchCurrentUser } from '../../applications/services/currentUser';
+import { currentUserKeys } from '../../applications/utils/queryKeys';
+import type { GroupMember } from '../types/group';
+
+export function useCurrentUserIsGroupAdmin(members: GroupMember[]): boolean {
+    const { data } = useQuery({
+        queryKey: currentUserKeys.detail(),
+        queryFn: fetchCurrentUser,
+        staleTime: 300_000,
+    });
+
+    if (!data?.id) return false;
+    return members.some(member => member.id === data.id && member.roles?.GROUP === 'ADMIN');
+}

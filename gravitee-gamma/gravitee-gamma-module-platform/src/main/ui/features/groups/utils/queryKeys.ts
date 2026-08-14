@@ -21,10 +21,15 @@ export const groupKeys = {
     list: (envId: string, query: string, page: number, size: number) => [...groupKeys.all, 'list', envId, query, page, size] as const,
     detail: (envId: string, groupId: string) => [...groupKeys.all, 'detail', envId, groupId] as const,
     members: (envId: string, groupId: string) => [...groupKeys.all, 'members', envId, groupId] as const,
+    invitations: (envId: string, groupId: string) => [...groupKeys.all, 'invitations', envId, groupId] as const,
     memberships: (envId: string, groupId: string, type: GroupMembershipType) =>
         [...groupKeys.all, 'memberships', envId, groupId, type] as const,
-    roles: (scope: 'API' | 'APPLICATION' | 'API_PRODUCT') => [...groupKeys.all, 'roles', scope] as const,
+    roles: (scope: 'API' | 'APPLICATION' | 'API_PRODUCT' | 'INTEGRATION' | 'CLUSTER') => [...groupKeys.all, 'roles', scope] as const,
     apiRoles: () => groupKeys.roles('API'),
     applicationRoles: () => groupKeys.roles('APPLICATION'),
     apiProductRoles: () => groupKeys.roles('API_PRODUCT'),
+    integrationRoles: () => groupKeys.roles('INTEGRATION'),
+    clusterRoles: () => groupKeys.roles('CLUSTER'),
+    userSearch: (query: string) => [...groupKeys.all, 'userSearch', query] as const,
+    organizationGroups: () => [...groupKeys.all, 'organization'] as const,
 } as const;

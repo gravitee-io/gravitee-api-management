@@ -15,29 +15,82 @@
  */
 
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { Badge, Button, DateCell, Skeleton } from '@gravitee/graphene-core';
-import { ArrowLeftIcon, PencilIcon, Trash2Icon, UsersRoundIcon } from '@gravitee/graphene-core/icons';
+import {
+    Alert,
+    AlertDescription,
+    Badge,
+    Button,
+    DateCell,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+    Skeleton,
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from '@gravitee/graphene-core';
+import {
+    ArrowLeftIcon,
+    InfoIcon,
+    MailIcon,
+    PencilIcon,
+    PlusIcon,
+    SearchIcon,
+    Trash2Icon,
+    UsersRoundIcon,
+} from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
+import { GroupAddMembersSheet } from '../features/groups/components/GroupAddMembersSheet';
 import { GroupAssociationSection } from '../features/groups/components/GroupAssociationSection';
 import { GroupDeleteSheet } from '../features/groups/components/GroupDeleteSheet';
+import { GroupEditMemberSheet } from '../features/groups/components/GroupEditMemberSheet';
+import { GroupInvitationsTable } from '../features/groups/components/GroupInvitationsTable';
+import { GroupInviteMemberSheet } from '../features/groups/components/GroupInviteMemberSheet';
 import { GroupMembersTable } from '../features/groups/components/GroupMembersTable';
+import { GroupRemoveMemberSheet } from '../features/groups/components/GroupRemoveMemberSheet';
 import { GroupSettingsSection } from '../features/groups/components/GroupSettingsSection';
 import { GroupSheet, type GroupFormValues } from '../features/groups/components/GroupSheet';
+import { GroupTooManyUsersDialog } from '../features/groups/components/GroupTooManyUsersDialog';
 import { SectionError } from '../features/groups/components/SectionError';
+import { useCurrentUserIsGroupAdmin } from '../features/groups/hooks/useCurrentUserGroupAdmin';
 import {
     useGroupApis,
     useGroupApplications,
     useGroupApiProducts,
     useGroupDetail,
+    useGroupInvitations,
     useGroupMembers,
 } from '../features/groups/hooks/useGroupDetail';
-import { useDeleteGroup, useUpdateGroup } from '../features/groups/hooks/useGroupMutations';
-import { useGroupApiProductRoles, useGroupApiRoles, useGroupApplicationRoles } from '../features/groups/hooks/useGroupRoles';
+import {
+    useAddGroupMembers,
+    useDeleteGroup,
+    useDeleteGroupInvitation,
+    useInviteGroupMember,
+    useRemoveGroupMember,
+    useUpdateGroup,
+} from '../features/groups/hooks/useGroupMutations';
+import {
+    useGroupApiProductRoles,
+    useGroupApiRoles,
+    useGroupApplicationRoles,
+    useGroupClusterRoles,
+    useGroupIntegrationRoles,
+} from '../features/groups/hooks/useGroupRoles';
+import type { GroupInvitation, GroupMember, GroupMembershipPayload } from '../features/groups/types/group';
 import { buildEventRules, buildRolesMap, hasEventRule, parseMaxInvitation } from '../features/groups/utils/groupPayload';
-import { ENVIRONMENT_GROUP_DELETE_PERMISSION, ENVIRONMENT_GROUP_UPDATE_PERMISSION } from '../features/groups/utils/groupPermissions';
+import {
+    canInviteToGroup,
+    ENVIRONMENT_GROUP_DELETE_PERMISSION,
+    ENVIRONMENT_GROUP_UPDATE_PERMISSION,
+} from '../features/groups/utils/groupPermissions';
+import { ConfirmDialog } from '../shared/components/ConfirmDialog';
 import { notify } from '../shared/notify';
+
+type MemberSheetState = 'closed' | 'search' | 'invite';
 
 export function GroupDetailPage() {
     const { groupId } = useParams<{ groupId: string }>();
@@ -47,20 +100,34 @@ export function GroupDetailPage() {
 
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
+    const [memberSheet, setMemberSheet] = useState<MemberSheetState>('closed');
+    const [editingMember, setEditingMember] = useState<GroupMember | null>(null);
+    const [removingMember, setRemovingMember] = useState<GroupMember | null>(null);
+    const [tooManyUsersEmail, setTooManyUsersEmail] = useState<string | null>(null);
+    const [deletingInvitation, setDeletingInvitation] = useState<GroupInvitation | null>(null);
 
     const { data: group, isLoading, isError } = useGroupDetail(groupId);
     const { data: members = [], isLoading: membersLoading, isError: membersError } = useGroupMembers(groupId);
+    const { data: invitations = [], isLoading: invitationsLoading, isError: invitationsError } = useGroupInvitations(groupId);
     const { data: apis = [], isLoading: apisLoading, isError: apisError } = useGroupApis(groupId);
     const { data: applications = [], isLoading: applicationsLoading, isError: applicationsError } = useGroupApplications(groupId);
     const { data: apiProducts = [], isLoading: apiProductsLoading, isError: apiProductsError } = useGroupApiProducts(groupId);
-    const { data: apiRoles = [], isLoading: apiRolesLoading } = useGroupApiRoles({ enabled: canEdit && editOpen });
-    const { data: applicationRoles = [], isLoading: applicationRolesLoading } = useGroupApplicationRoles({
-        enabled: canEdit && editOpen,
-    });
-    const { data: apiProductRoles = [], isLoading: apiProductRolesLoading } = useGroupApiProductRoles({ enabled: canEdit && editOpen });
+    // Roles feed both the Edit Group sheet and the Add/Invite/Edit member sheets — deferred until
+    // whichever of those is actually open, not just canEdit, since member management doesn't require it.
+    const rolesNeeded = editOpen || memberSheet !== 'closed' || editingMember !== null;
+    const { data: apiRoles = [], isLoading: apiRolesLoading } = useGroupApiRoles({ enabled: rolesNeeded });
+    const { data: applicationRoles = [], isLoading: applicationRolesLoading } = useGroupApplicationRoles({ enabled: rolesNeeded });
+    const { data: apiProductRoles = [], isLoading: apiProductRolesLoading } = useGroupApiProductRoles({ enabled: rolesNeeded });
+    const { data: integrationRoles = [] } = useGroupIntegrationRoles();
+    const { data: clusterRoles = [] } = useGroupClusterRoles();
+    const isCurrentUserGroupAdmin = useCurrentUserIsGroupAdmin(members);
 
     const updateMutation = useUpdateGroup();
     const deleteMutation = useDeleteGroup();
+    const addMembersMutation = useAddGroupMembers();
+    const inviteMemberMutation = useInviteGroupMember();
+    const removeMemberMutation = useRemoveGroupMember();
+    const deleteInvitationMutation = useDeleteGroupInvitation();
 
     async function handleUpdate(values: GroupFormValues) {
         if (!group) return;
@@ -103,6 +170,97 @@ export function GroupDetailPage() {
         }
     }
 
+    function closeMemberSheet() {
+        setMemberSheet('closed');
+    }
+
+    async function handleAddMembers(memberships: GroupMembershipPayload[]) {
+        if (!groupId) return;
+        try {
+            await addMembersMutation.mutateAsync({ groupId, memberships });
+            notify.success(memberships.length > 1 ? `${memberships.length} members added successfully` : 'Member added successfully');
+            closeMemberSheet();
+        } catch (error) {
+            notify.error(error, 'Failed to add members');
+        }
+    }
+
+    async function handleInviteMember(values: { email: string; apiRole: string; applicationRole: string }) {
+        if (!groupId) return;
+        try {
+            const result = await inviteMemberMutation.mutateAsync({
+                groupId,
+                data: {
+                    reference_id: groupId,
+                    email: values.email,
+                    api_role: values.apiRole || undefined,
+                    application_role: values.applicationRole || undefined,
+                },
+            });
+            if (result.ambiguous) {
+                closeMemberSheet();
+                setTooManyUsersEmail(values.email);
+                return;
+            }
+            notify.success(`Invitation sent to ${values.email}`);
+            closeMemberSheet();
+        } catch (error) {
+            notify.error(error, 'Failed to send invitation');
+        }
+    }
+
+    function handleTooManyUsersContinue() {
+        setTooManyUsersEmail(null);
+        setMemberSheet('search');
+    }
+
+    async function handleEditMemberRoles(memberships: GroupMembershipPayload[]) {
+        if (!groupId) return;
+        try {
+            await addMembersMutation.mutateAsync({ groupId, memberships });
+            notify.success(
+                memberships.length > 1 ? 'Member roles updated and primary ownership transferred' : 'Member roles updated successfully',
+            );
+            setEditingMember(null);
+        } catch (error) {
+            notify.error(error, 'Failed to update member roles');
+        }
+    }
+
+    async function handleRemoveMember(transferMembership?: GroupMembershipPayload) {
+        if (!groupId || !removingMember) return;
+        try {
+            await removeMemberMutation.mutateAsync({ groupId, memberId: removingMember.id });
+        } catch (error) {
+            notify.error(error, 'Failed to remove member');
+            return;
+        }
+
+        if (transferMembership) {
+            try {
+                await addMembersMutation.mutateAsync({ groupId, memberships: [transferMembership] });
+            } catch (error) {
+                notify.error(error, `${removingMember.displayName} was removed, but primary ownership could not be transferred`);
+                setRemovingMember(null);
+                return;
+            }
+        }
+
+        notify.success(`${removingMember.displayName} removed from the group`);
+        setRemovingMember(null);
+    }
+
+    async function handleDeleteInvitation() {
+        if (!groupId || !deletingInvitation) return;
+        try {
+            await deleteInvitationMutation.mutateAsync({ groupId, invitationId: deletingInvitation.id });
+            notify.success('Successfully deleted the invitation.');
+            setDeletingInvitation(null);
+        } catch (error) {
+            notify.error(error, 'Error occurred while deleting the invitation.');
+        }
+    }
+
     if (isLoading) {
         return (
             <div className="space-y-4">
@@ -126,6 +284,10 @@ export function GroupDetailPage() {
             </div>
         );
     }
+
+    const maxInvitationsLimitReached = typeof group.max_invitation === 'number' && group.max_invitation <= members.length;
+    const canAddMembers = (canEdit || canInviteToGroup(group)) && !maxInvitationsLimitReached;
+    const canManageMemberActions = canEdit || isCurrentUserGroupAdmin;
 
     return (
         <>
@@ -203,15 +365,72 @@ export function GroupDetailPage() {
                 <GroupSettingsSection group={group} />
 
                 <section className="space-y-4 rounded-xl border bg-card p-5">
-                    <div>
-                        <h2 className="text-base font-semibold">Members</h2>
-                        <p className="text-sm text-muted-foreground">Direct members of this group and their scoped roles.</p>
+                    <div className="flex items-start justify-between gap-4">
+                        <div>
+                            <h2 className="text-base font-semibold">Members</h2>
+                            <p className="text-sm text-muted-foreground">Direct members of this group and their scoped roles.</p>
+                        </div>
+                        {canAddMembers && (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button type="button" className="shrink-0 gap-1.5">
+                                        <PlusIcon className="size-4" aria-hidden />
+                                        Add members
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onSelect={() => setMemberSheet('search')} disabled={!group.system_invitation}>
+                                        <SearchIcon className="size-4 mr-2" aria-hidden />
+                                        User search
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => setMemberSheet('invite')} disabled={!group.email_invitation}>
+                                        <MailIcon className="size-4 mr-2" aria-hidden />
+                                        Email invitation
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        )}
                     </div>
-                    {membersError ? (
-                        <SectionError message="Failed to load members. Please refresh and try again." />
-                    ) : (
-                        <GroupMembersTable members={members} loading={membersLoading} />
+                    {maxInvitationsLimitReached && (
+                        <Alert variant="default">
+                            <InfoIcon className="size-4" aria-hidden />
+                            <AlertDescription>
+                                The number of members in this group has reached maximum allowed. Adding users via search and email
+                                invitation have been disabled.
+                            </AlertDescription>
+                        </Alert>
                     )}
+                    <Tabs defaultValue="members">
+                        <TabsList variant="line">
+                            <TabsTrigger value="members">Members</TabsTrigger>
+                            <TabsTrigger value="invitations">Invitations</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="members">
+                            {membersError ? (
+                                <SectionError message="Failed to load members. Please refresh and try again." />
+                            ) : (
+                                <GroupMembersTable
+                                    members={members}
+                                    loading={membersLoading}
+                                    canManageMembers={canManageMemberActions}
+                                    onEditRoles={setEditingMember}
+                                    onRemove={setRemovingMember}
+                                />
+                            )}
+                        </TabsContent>
+                        <TabsContent value="invitations">
+                            {invitationsError ? (
+                                <SectionError message="Failed to load invitations. Please refresh and try again." />
+                            ) : (
+                                <GroupInvitationsTable
+                                    invitations={invitations}
+                                    loading={invitationsLoading}
+                                    canManageMembers={canManageMemberActions}
+                                    onDelete={setDeletingInvitation}
+                                />
+                            )}
+                        </TabsContent>
+                    </Tabs>
                 </section>
 
                 <GroupAssociationSection
@@ -268,6 +487,89 @@ export function GroupDetailPage() {
                 onClose={() => setDeleteOpen(false)}
                 onConfirm={handleDelete}
                 isDeleting={deleteMutation.isPending}
+            />
+
+            <GroupAddMembersSheet
+                open={memberSheet === 'search'}
+                groupName={group.name}
+                groupRoles={group.roles}
+                members={members}
+                apiRoles={apiRoles}
+                applicationRoles={applicationRoles}
+                apiProductRoles={apiProductRoles}
+                integrationRoles={integrationRoles}
+                clusterRoles={clusterRoles}
+                lockApiRole={Boolean(group.lock_api_role)}
+                lockApiProductRole={Boolean(group.lock_api_product_role)}
+                lockApplicationRole={Boolean(group.lock_application_role)}
+                canOverrideLocks={canEdit}
+                maxInvitation={group.max_invitation ?? null}
+                onClose={closeMemberSheet}
+                onSubmit={handleAddMembers}
+                isSaving={addMembersMutation.isPending}
+            />
+
+            <GroupInviteMemberSheet
+                open={memberSheet === 'invite'}
+                groupName={group.name}
+                groupRoles={group.roles}
+                members={members}
+                apiRoles={apiRoles}
+                applicationRoles={applicationRoles}
+                lockApiRole={Boolean(group.lock_api_role)}
+                lockApplicationRole={Boolean(group.lock_application_role)}
+                canOverrideLocks={canEdit}
+                onClose={closeMemberSheet}
+                onSubmit={handleInviteMember}
+                isSaving={inviteMemberMutation.isPending}
+            />
+
+            <GroupEditMemberSheet
+                open={editingMember !== null}
+                groupName={group.name}
+                member={editingMember ?? undefined}
+                members={members}
+                apiRoles={apiRoles}
+                applicationRoles={applicationRoles}
+                apiProductRoles={apiProductRoles}
+                integrationRoles={integrationRoles}
+                clusterRoles={clusterRoles}
+                lockApiRole={Boolean(group.lock_api_role)}
+                lockApiProductRole={Boolean(group.lock_api_product_role)}
+                lockApplicationRole={Boolean(group.lock_application_role)}
+                canOverrideLocks={canEdit}
+                groupAllowsGroupAdmin={Boolean(group.system_invitation)}
+                onClose={() => setEditingMember(null)}
+                onSubmit={handleEditMemberRoles}
+                isSaving={addMembersMutation.isPending}
+            />
+
+            <GroupRemoveMemberSheet
+                open={removingMember !== null}
+                member={removingMember ?? undefined}
+                members={members}
+                groupName={group.name}
+                onClose={() => setRemovingMember(null)}
+                onConfirm={handleRemoveMember}
+                isRemoving={removeMemberMutation.isPending}
+            />
+
+            <GroupTooManyUsersDialog
+                open={tooManyUsersEmail !== null}
+                email={tooManyUsersEmail}
+                onClose={() => setTooManyUsersEmail(null)}
+                onContinue={handleTooManyUsersContinue}
+            />
+
+            <ConfirmDialog
+                open={deletingInvitation !== null}
+                onOpenChange={isOpen => !isOpen && !deleteInvitationMutation.isPending && setDeletingInvitation(null)}
+                title="Delete Invitation"
+                description={`You are trying to delete an invitation sent to ${deletingInvitation?.email}. Do you want to continue?`}
+                confirmLabel="Continue"
+                pendingLabel="Deleting…"
+                isPending={deleteInvitationMutation.isPending}
+                onConfirm={handleDeleteInvitation}
             />
         </>
     );

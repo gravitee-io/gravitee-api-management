@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-/** Mirrors classic `GroupEventRuleEntity` — `API_CREATE` is "default group for new APIs". */
 export type GroupEventName = 'API_CREATE' | 'APPLICATION_CREATE' | 'API_PRODUCT_CREATE';
 
 export interface GroupEventRule {
     event: GroupEventName;
 }
 
-/** v1 `GroupEntity` (GET .../configuration/groups...). */
 export interface Group {
     id: string;
     name: string;
@@ -37,17 +35,8 @@ export interface Group {
     system_invitation?: boolean;
     email_invitation?: boolean;
     disable_membership_notifications?: boolean;
-    /**
-     * True when this group is a primary owner for at least one API — either via a group-level
-     * default API primary owner (`apiPrimaryOwner`) or an actual API-scope PRIMARY_OWNER
-     * membership role. Not about the current user, and doesn't cover API Product primary
-     * ownership — check `apiProductPrimaryOwner` separately (mirrors classic Console's
-     * `apiPrimaryOwner || apiProductPrimaryOwner` badge/delete-guard condition).
-     */
     primary_owner?: boolean;
-    /** Group-level default primary owner (user ID) forced onto new APIs created within this group. */
     apiPrimaryOwner?: string;
-    /** Group-level default primary owner (user ID) forced onto new API Products created within this group. */
     apiProductPrimaryOwner?: string;
 }
 
@@ -59,14 +48,12 @@ export interface GroupsPageMeta {
     total_elements: number;
 }
 
-/** v1 `PagedResult<GroupEntity>` (GET .../configuration/groups/_paged). */
 export interface GroupsPagedResponse {
     data: Group[];
     metadata?: Record<string, Record<string, unknown>>;
     page: GroupsPageMeta;
 }
 
-/** v1 `NewGroupEntity` (POST .../configuration/groups). No `roles` — set via a follow-up update. */
 export interface NewGroupPayload {
     name: string;
     lock_api_role: boolean;
@@ -79,7 +66,6 @@ export interface NewGroupPayload {
     disable_membership_notifications: boolean;
 }
 
-/** v1 `UpdateGroupEntity` (PUT .../configuration/groups/{id}). */
 export interface UpdateGroupPayload {
     name: string;
     lock_api_role: boolean;
@@ -93,13 +79,15 @@ export interface UpdateGroupPayload {
     disable_membership_notifications: boolean;
 }
 
-/** v1 role (GET .../configuration/rolescopes/{scope}/roles). */
 export interface GroupRole {
     name: string;
     scope: string;
     system?: boolean;
     default?: boolean;
 }
+
+export const PRIMARY_OWNER_ROLE = 'PRIMARY_OWNER';
+export const OWNER_ROLE = 'OWNER';
 
 /** v1 `GroupMemberEntity` (GET .../configuration/groups/{id}/members...). */
 export interface GroupMember {
@@ -118,4 +106,42 @@ export interface GroupMembershipItem {
     id: string;
     name: string;
     version?: string;
+}
+
+export type GroupMemberRoleScope = 'API' | 'APPLICATION' | 'API_PRODUCT' | 'INTEGRATION' | 'CLUSTER' | 'GROUP';
+
+export interface SearchableUser {
+    id?: string | null;
+    reference: string;
+    displayName: string;
+    email?: string;
+}
+
+export interface GroupMembershipRole {
+    scope: GroupMemberRoleScope;
+    name: string;
+}
+
+export interface GroupMembershipPayload {
+    id: string;
+    reference?: string;
+    roles: GroupMembershipRole[];
+}
+
+export interface GroupInvitationPayload {
+    reference_type?: string;
+    reference_id: string;
+    email: string;
+    api_role?: string;
+    application_role?: string;
+}
+
+export interface GroupInvitation {
+    id: string;
+    reference_type?: string;
+    reference_id: string;
+    email: string;
+    api_role?: string;
+    application_role?: string;
+    created_at?: number;
 }

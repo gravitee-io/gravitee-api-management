@@ -16,17 +16,23 @@
 
 import type { Group } from '../types/group';
 
-/** Mirrors classic settings-routing.module.ts groups route guard + groups.component.ts permission checks. */
 export const ENVIRONMENT_GROUP_READ_PERMISSION = 'environment-group-r' as const;
 export const ENVIRONMENT_GROUP_CREATE_PERMISSION = 'environment-group-c' as const;
 export const ENVIRONMENT_GROUP_UPDATE_PERMISSION = 'environment-group-u' as const;
 export const ENVIRONMENT_GROUP_DELETE_PERMISSION = 'environment-group-d' as const;
 
-/**
- * Mirrors classic Console's `apiPrimaryOwner || apiProductPrimaryOwner` badge/delete-guard condition
- * (groups.component.html / groups.component.ts) — `primary_owner` alone misses groups that are only
- * an API Product primary owner, since the backend only sets `primary_owner` from API-scope PO state.
- */
+export const ORGANIZATION_SETTINGS_READ_PERMISSION = 'organization-settings-r' as const;
+
 export function isPrimaryOwnerGroup(group: Pick<Group, 'primary_owner' | 'apiPrimaryOwner' | 'apiProductPrimaryOwner'>): boolean {
     return Boolean(group.primary_owner || group.apiPrimaryOwner || group.apiProductPrimaryOwner);
+}
+
+export function canInviteToGroup(group: Pick<Group, 'manageable' | 'system_invitation' | 'email_invitation'>): boolean {
+    return Boolean(group.manageable) && Boolean(group.system_invitation || group.email_invitation);
+}
+
+/** Shared by the Add/Edit/Invite member dialogs' disableDefaultXRole()-style gating: a locked scope
+ *  stays editable for an operator who can override locks (environment-group-u). */
+export function isRoleLocked(locked: boolean, canOverrideLocks: boolean): boolean {
+    return locked && !canOverrideLocks;
 }
