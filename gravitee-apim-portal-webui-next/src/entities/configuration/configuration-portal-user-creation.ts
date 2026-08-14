@@ -13,10 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ConfigurationPortalUserCreation } from './configuration-portal-user-creation';
+import { Enabled } from './enabled';
 
-export class ConfigurationPortal {
-  apikeyHeader?: string;
-  kafkaSaslMechanisms?: string[];
-  userCreation?: ConfigurationPortalUserCreation;
+export interface ConfigurationPortalUserCreation {
+  /**
+   * true, if users can register themselves
+   */
+  enabled?: boolean;
+  /**
+   * when disabled, a registration request has to be approved by an administrator
+   */
+  automaticValidation?: Enabled;
 }
