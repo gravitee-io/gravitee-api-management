@@ -28,6 +28,7 @@
 
   &__filters {
     display: flex;
+    flex-wrap: wrap;
     max-width: 50rem;
     align-items: center;
     margin-bottom: 24px;
@@ -36,6 +37,15 @@
 
   &__filter {
     flex: 1 1 200px;
+  }
+
+  &__count {
+    margin: 0 0 16px;
+  }
+
+  &__error {
+    padding: 24px 0;
+    color: app-theme.$error-main-color;
   }
 
   &__empty-state,

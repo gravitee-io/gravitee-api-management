@@ -16,18 +16,19 @@
 
 -->
 <div class="subscriptions">
-  @if (hasSubscriptions()) {
-    <!-- Filters -->
+  @if (shouldShowSubscriptionsContent()) {
     <div class="subscriptions__filters">
+      <app-search-bar class="subscriptions__filter" [searchParam]="filters().query" (searchTerm)="onSearchTermChange($event)" />
+
       <app-dropdown-search
         class="subscriptions__filter"
-        i18n-label="@@subscriptionFilterApi"
-        label="API"
-        i18n-placeholder="@@subscriptionFilterApiPlaceholder"
-        placeholder="Search APIs..."
-        [resultsLoader]="apiResultsLoader"
-        [formControl]="apiFilter"
-        id="subscriptions-api-filter"
+        i18n-label="@@subscriptionFilterType"
+        label="Type"
+        i18n-placeholder="@@subscriptionFilterTypePlaceholder"
+        placeholder="Search types..."
+        [options]="typeOptions"
+        [formControl]="typeFilter"
+        id="subscriptions-type-filter"
       />
 
       <app-dropdown-search
@@ -57,13 +58,18 @@
 
     @if (isLoadingSubscriptions()) {
       <app-loader />
+    } @else if (subscriptionsResource.error()) {
+      <div class="subscriptions__error next-gen-body" role="alert" i18n="@@subscriptionsLoadError">
+        An error occurred while loading subscriptions. Try again later or contact your Portal administrator.
+      </div>
     } @else if (rows().length === 0) {
       <div class="subscriptions__empty-filtered">
         <span class="material-icons icon-with-background m3-headline-large" aria-hidden="true">filter_list_off</span>
         <h2 class="m3-title-large" i18n="@@subscriptionsNoResultsTitle">No subscriptions found</h2>
-        <p i18n="@@subscriptionsNoResultsDescription">Try adjusting your filters to find subscriptions.</p>
+        <p i18n="@@subscriptionsNoResultsDescription">Try adjusting your search or filters to find subscriptions.</p>
       </div>
     } @else {
+      <p class="subscriptions__count next-gen-small-bold" aria-live="polite">{{ subscriptionCountLabel() }}</p>
       <app-paginated-table
         [columns]="tableColumns"
         [rows]="rows()"
@@ -72,13 +78,19 @@
         [pageSize]="pageSize()"
         (pageChange)="onPageChange($event)"
         (pageSizeChange)="onPageSizeChange($event)"
-      />
+      >
+        <ng-template appTableCell="targetType" let-row>
+          <app-badge [label]="row.targetType" />
+        </ng-template>
+      </app-paginated-table>
     }
   } @else {
     <div class="subscriptions__empty-state">
       <span class="material-icons icon-with-background m3-headline-large" aria-hidden="true">search</span>
-      <h2 class="m3-title-large" i18n="@@subscriptionsEmptyTitle">No API subscriptions yet</h2>
-      <p i18n="@@subscriptionsEmptyDescription">Browse the catalog to discover available APIs and subscribe with an application.</p>
+      <h2 class="m3-title-large" i18n="@@subscriptionsEmptyTitle">No subscriptions yet</h2>
+      <p i18n="@@subscriptionsEmptyDescription">
+        Browse the catalog to discover available APIs and API Products and subscribe with an application.
+      </p>
     </div>
   }
 </div>

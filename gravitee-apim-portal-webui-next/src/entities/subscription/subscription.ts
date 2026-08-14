@@ -23,6 +23,8 @@ export interface Subscription {
   application: string;
   closed_at?: string;
   created_at?: string;
+  start_at?: string;
+  end_at?: string;
   updated_at?: string;
   plan: string;
   reason?: string;

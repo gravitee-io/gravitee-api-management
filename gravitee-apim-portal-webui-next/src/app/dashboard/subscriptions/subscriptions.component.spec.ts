@@ -16,6 +16,7 @@
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ActivatedRoute, provideRouter, Router } from '@angular/router';
@@ -29,10 +30,12 @@ import { fakeApplication, fakeApplicationsResponse } from '../../../entities/app
 import { SubscriptionConsumerStatusEnum, SubscriptionStatusEnum } from '../../../entities/subscription';
 import { fakeSubscriptionResponse } from '../../../entities/subscription/subscription.fixture';
 import { SubscriptionsResponse } from '../../../entities/subscription/subscriptions-response';
-import { ApiService } from '../../../services/api.service';
 import { BreadcrumbService } from '../../../services/breadcrumb.service';
 
 const emptySubscriptions = { data: [], links: { self: '' }, metadata: {} };
+
+@Component({ template: '' })
+class SubscriptionDetailsRouteStubComponent {}
 
 describe('SubscriptionsComponent', () => {
   let fixture: ComponentFixture<SubscriptionsComponent>;
@@ -42,7 +45,12 @@ describe('SubscriptionsComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [SubscriptionsComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideNoopAnimations(), provideRouter([])],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideNoopAnimations(),
+        provideRouter([{ path: ':subscriptionId', component: SubscriptionDetailsRouteStubComponent }]),
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(SubscriptionsComponent);
@@ -110,10 +118,14 @@ describe('SubscriptionsComponent', () => {
         {
           id: 'sub-1',
           api: 'api-1',
+          reference_id: 'api-1',
+          reference_type: 'API',
           application: 'app-1',
           plan: 'plan-1',
           status: 'ACCEPTED',
           created_at: '2026-02-03T23:00:00Z',
+          start_at: '2026-02-04T23:00:00Z',
+          end_at: '2027-02-04T23:00:00Z',
           consumerStatus: SubscriptionConsumerStatusEnum.STARTED,
         },
       ],
@@ -129,12 +141,130 @@ describe('SubscriptionsComponent', () => {
     expect(fixture.componentInstance.rows().length).toBe(1);
     expect(fixture.componentInstance.rows()[0]).toEqual({
       id: 'sub-1',
-      api: 'API One',
+      targetName: 'API One',
+      targetType: 'API',
       plan: 'Plan One',
       application: 'App One',
-      created_at: '2026-02-03T23:00:00Z',
+      startAt: '2026-02-04T23:00:00Z',
+      endAt: '2027-02-04T23:00:00Z',
       status: 'Accepted',
     });
+  });
+
+  it('should map API and API Product subscriptions using their reference identity', async () => {
+    const response: SubscriptionsResponse = {
+      data: [
+        {
+          id: 'api-subscription',
+          api: 'legacy-api-id',
+          reference_id: 'api-id',
+          reference_type: 'API',
+          application: 'app-id',
+          plan: 'api-plan-id',
+          status: 'ACCEPTED',
+          start_at: '2026-02-01T00:00:00Z',
+          consumerStatus: SubscriptionConsumerStatusEnum.STARTED,
+        },
+        {
+          id: 'product-subscription',
+          reference_id: 'product-id',
+          reference_type: 'API_PRODUCT',
+          application: 'app-id',
+          plan: 'product-plan-id',
+          status: 'PENDING',
+          end_at: '2027-02-01T00:00:00Z',
+          consumerStatus: SubscriptionConsumerStatusEnum.STARTED,
+        },
+      ],
+      metadata: {
+        'api-id': { name: 'Payments API' },
+        'product-id': { name: 'Payments Product' },
+        'app-id': { name: 'Consumer App' },
+        'api-plan-id': { name: 'API Plan' },
+        'product-plan-id': { name: 'Product Plan' },
+        paginateMetaData: { totalElements: 2 },
+      },
+      links: { self: '' },
+    };
+
+    await setup(response);
+
+    expect(fixture.componentInstance.rows()).toEqual([
+      expect.objectContaining({ targetName: 'Payments API', targetType: 'API' }),
+      expect.objectContaining({ targetName: 'Payments Product', targetType: 'API Product' }),
+    ]);
+    expect(fixture.componentInstance.totalElements()).toBe(2);
+  });
+
+  it('should show a safe fallback when subscription target metadata is unavailable', async () => {
+    await setup(
+      fakeSubscriptionResponse({
+        data: [
+          {
+            id: 'product-subscription',
+            reference_id: 'deleted-product-id',
+            reference_type: 'API_PRODUCT',
+            application: 'app-id',
+            plan: 'plan-id',
+            status: 'CLOSED',
+            consumerStatus: SubscriptionConsumerStatusEnum.STOPPED,
+          },
+        ],
+        metadata: {},
+      }),
+    );
+
+    expect(fixture.componentInstance.rows()[0].targetName).toBe('Unavailable API Product');
+  });
+
+  it('should display the backend subscription count', async () => {
+    await setup(
+      fakeSubscriptionResponse({
+        metadata: {
+          paginateMetaData: { totalElements: 37 },
+        },
+      }),
+    );
+    fixture.detectChanges();
+    await getHarness();
+
+    expect(await harness.getCountText()).toBe('37 subscriptions');
+  });
+
+  it('should display an accessible error when subscriptions cannot be loaded', async () => {
+    fixture.detectChanges();
+    http.expectOne(req => req.url.includes('/applications')).flush({ data: [] });
+    http.expectOne(req => req.url.includes('/subscriptions')).flush('error', { status: 500, statusText: 'Server Error' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    await getHarness();
+
+    expect(await harness.isErrorDisplayed()).toBe(true);
+  });
+
+  it('should navigate an API Product subscription row through the existing subscription details route', async () => {
+    await setup(
+      fakeSubscriptionResponse({
+        data: [
+          {
+            id: 'product-subscription',
+            reference_id: 'product-id',
+            reference_type: 'API_PRODUCT',
+            application: 'app-id',
+            plan: 'plan-id',
+            status: 'ACCEPTED',
+            consumerStatus: SubscriptionConsumerStatusEnum.STARTED,
+          },
+        ],
+        metadata: { 'product-id': { name: 'Payments Product' } },
+      }),
+    );
+    fixture.detectChanges();
+    await getHarness();
+
+    await harness.clickTableRow(0);
+
+    expect(TestBed.inject(Router).url).toBe('/product-subscription');
   });
 
   it('should have default filters and pagination', async () => {
@@ -142,9 +272,20 @@ describe('SubscriptionsComponent', () => {
 
     expect(fixture.componentInstance.currentPage()).toBe(1);
     expect(fixture.componentInstance.pageSize()).toBe(10);
-    expect(fixture.componentInstance.apiFilter.value).toBeNull();
+    expect(fixture.componentInstance.filters().query).toBe('');
+    expect(fixture.componentInstance.typeFilter.value).toEqual([]);
     expect(fixture.componentInstance.applicationFilter.value).toBeNull();
     expect(fixture.componentInstance.statusFilter.value).toEqual([]);
+  });
+
+  it('should explicitly request API and API Product subscriptions by default', async () => {
+    fixture.detectChanges();
+    http.expectOne(req => req.url.includes('/applications')).flush({ data: [] });
+    const request = http.expectOne(req => req.url.includes('/subscriptions'));
+
+    expect(request.request.params.getAll('referenceTypes')).toEqual(['API', 'API_PRODUCT']);
+    request.flush(emptySubscriptions);
+    await fixture.whenStable();
   });
 
   it('should clear filters and reset page', async () => {
@@ -152,7 +293,13 @@ describe('SubscriptionsComponent', () => {
     await getHarness();
 
     await TestBed.inject(Router).navigate([], {
-      queryParams: { apiIds: ['api-1'], applicationIds: ['app-1'], statuses: SubscriptionStatusEnum.ACCEPTED, page: 3 },
+      queryParams: {
+        query: 'payments',
+        referenceTypes: ['API_PRODUCT'],
+        applicationIds: ['app-1'],
+        statuses: SubscriptionStatusEnum.ACCEPTED,
+        page: 3,
+      },
       queryParamsHandling: 'merge',
     });
     await fixture.whenStable();
@@ -162,14 +309,15 @@ describe('SubscriptionsComponent', () => {
     await fixture.whenStable();
     flushSubscriptions(emptySubscriptions as SubscriptionsResponse);
 
-    expect(fixture.componentInstance.apiFilter.value).toBeNull();
+    expect(fixture.componentInstance.filters().query).toBe('');
+    expect(fixture.componentInstance.typeFilter.value).toEqual([]);
     expect(fixture.componentInstance.applicationFilter.value).toBeNull();
     expect(fixture.componentInstance.statusFilter.value).toEqual([]);
     expect(fixture.componentInstance.currentPage()).toBe(1);
   });
 
   it('should init filters from URL query params', async () => {
-    const params = { apiIds: ['api-1'], statuses: 'ACCEPTED', page: '2', size: '20' };
+    const params = { query: 'payment', referenceTypes: ['API_PRODUCT'], statuses: 'ACCEPTED', page: '2', size: '20' };
     TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [SubscriptionsComponent],
@@ -188,7 +336,8 @@ describe('SubscriptionsComponent', () => {
     c.expectOne(req => req.url.includes('/applications')).flush({ data: [] });
     c.expectOne(req => req.url.includes('/subscriptions')).flush(emptySubscriptions);
 
-    expect(f.componentInstance.apiFilter.value).toEqual(['api-1']);
+    expect(f.componentInstance.filters().query).toBe('payment');
+    expect(f.componentInstance.typeFilter.value).toEqual(['API_PRODUCT']);
     expect(f.componentInstance.statusFilter.value).toEqual(['ACCEPTED']);
     expect(f.componentInstance.currentPage()).toBe(2);
     expect(f.componentInstance.pageSize()).toBe(20);
@@ -212,16 +361,16 @@ describe('SubscriptionsComponent', () => {
     expect(fixture.componentInstance.currentPage()).toBe(1);
   });
 
-  it('should expose API, Application, Status filter dropdowns via harness', async () => {
+  it('should expose Type, Application, and Status filter dropdowns via harness', async () => {
     await setup(fakeSubscriptionResponse());
     await getHarness();
-    const api = await harness.getApiFilter();
+    const type = await harness.getTypeFilter();
     const app = await harness.getApplicationFilter();
     const status = await harness.getStatusFilter();
-    expect(api).toBeTruthy();
+    expect(type).toBeTruthy();
     expect(app).toBeTruthy();
     expect(status).toBeTruthy();
-    expect(await api.getTriggerText()).toBeTruthy();
+    expect(await type.getTriggerText()).toBeTruthy();
   });
 
   it('should update status filter when selecting via harness', async () => {
@@ -241,39 +390,14 @@ describe('SubscriptionsComponent', () => {
     expect(fixture.componentInstance.applicationFilter.value).toContain('app-1');
   });
 
-  it('should update API filter when selecting via harness', async () => {
-    TestBed.resetTestingModule();
-    await TestBed.configureTestingModule({
-      imports: [SubscriptionsComponent],
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        provideNoopAnimations(),
-        provideRouter([]),
-        {
-          provide: ApiService,
-          useValue: {
-            search: () =>
-              of({
-                data: [{ id: 'api-1', name: 'API One' }],
-                metadata: { pagination: { current_page: 1, total_pages: 1 } },
-              }),
-          },
-        },
-      ],
-    }).compileComponents();
-    const f = TestBed.createComponent(SubscriptionsComponent);
-    const c = TestBed.inject(HttpTestingController);
-    f.detectChanges();
-    c.expectOne(req => req.url.includes('/applications')).flush({ data: [] });
-    c.expectOne(req => req.url.includes('/subscriptions')).flush(fakeSubscriptionResponse());
-    await f.whenStable();
+  it('should update target type filter when selecting via harness', async () => {
+    await setup(fakeSubscriptionResponse());
+    await getHarness();
 
-    const h = await TestbedHarnessEnvironment.harnessForFixture(f, SubscriptionsComponentHarness);
-    await withFlush(h.selectApiFilter(0), c);
-    f.detectChanges();
-    expect(f.componentInstance.apiFilter.value).toContain('api-1');
-    c.verify();
+    await withFlush(harness.selectTypeFilter(['API Product']));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.typeFilter.value).toEqual(['API_PRODUCT']);
   });
 
   it('should not navigate when form values match URL filters', async () => {
@@ -291,7 +415,7 @@ describe('SubscriptionsComponent', () => {
     const router = TestBed.inject(Router);
     const navigateSpy = jest.spyOn(router, 'navigate');
 
-    fixture.componentInstance.apiFilter.setValue(['api-1'], { emitEvent: false });
+    fixture.componentInstance.typeFilter.setValue(['API_PRODUCT'], { emitEvent: false });
     fixture.componentInstance.applicationFilter.setValue(['app-1'], { emitEvent: false });
     fixture.componentInstance.statusFilter.setValue([SubscriptionStatusEnum.ACCEPTED], { emitEvent: false });
     (fixture.componentInstance as unknown as { syncUrlToForm: () => void }).syncUrlToForm();
@@ -299,12 +423,28 @@ describe('SubscriptionsComponent', () => {
     expect(navigateSpy).toHaveBeenCalledWith([], {
       relativeTo: TestBed.inject(ActivatedRoute),
       queryParams: {
-        apiIds: ['api-1'],
+        query: null,
+        referenceTypes: ['API_PRODUCT'],
         applicationIds: ['app-1'],
         statuses: [SubscriptionStatusEnum.ACCEPTED],
         page: 1,
         size: 10,
       },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  });
+
+  it('should reset pagination when search changes', async () => {
+    await setup(fakeSubscriptionResponse());
+    const router = TestBed.inject(Router);
+    const navigateSpy = jest.spyOn(router, 'navigate');
+
+    fixture.componentInstance.onSearchTermChange('payment');
+
+    expect(navigateSpy).toHaveBeenCalledWith([], {
+      relativeTo: TestBed.inject(ActivatedRoute),
+      queryParams: { query: 'payment', page: 1 },
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
@@ -334,14 +474,28 @@ describe('SubscriptionsComponent', () => {
     c.verify();
   });
 
-  it('should send view=documentation when loading API filter options', async () => {
-    await setup();
+  it('should ignore invalid reference types from URL query params', async () => {
+    const params = { referenceTypes: ['API_PRODUCT', 'UNKNOWN'], page: '1', size: '10' };
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [SubscriptionsComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideNoopAnimations(),
+        provideRouter([]),
+        { provide: ActivatedRoute, useValue: { snapshot: { queryParams: params }, queryParams: of(params) } },
+      ],
+    }).compileComponents();
 
-    fixture.componentInstance.apiResultsLoader({ searchTerm: 'payment', page: 1 }).subscribe();
+    const f = TestBed.createComponent(SubscriptionsComponent);
+    const c = TestBed.inject(HttpTestingController);
+    f.detectChanges();
+    c.expectOne(req => req.url.includes('/applications')).flush({ data: [] });
+    c.expectOne(req => req.url.includes('/subscriptions')).flush(emptySubscriptions);
 
-    const req = http.expectOne(req => req.url.includes('/apis/_search'));
-    expect(req.request.params.get('view')).toBe('documentation');
-    req.flush({ data: [], metadata: {} });
+    expect(f.componentInstance.typeFilter.value).toEqual(['API_PRODUCT']);
+    c.verify();
   });
 
   it('hasSubscriptions is false when no data and no filters', async () => {

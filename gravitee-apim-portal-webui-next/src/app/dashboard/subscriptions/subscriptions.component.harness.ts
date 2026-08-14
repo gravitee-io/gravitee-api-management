@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
 import { DropdownSearchComponentHarness } from '../../../components/dropdown-search/dropdown-search.component.harness';
@@ -26,6 +27,9 @@ export class SubscriptionsComponentHarness extends ComponentHarness {
   private getEmptyFiltered = this.locatorForOptional(DivHarness.with({ selector: '.subscriptions__empty-filtered' }));
   private getTable = this.locatorForOptional(MatTableHarness);
   private getAllDropdownFilters = this.locatorForAll(DropdownSearchComponentHarness);
+  private getSearchInput = this.locatorFor(MatInputHarness);
+  private getCount = this.locatorForOptional('.subscriptions__count');
+  private getError = this.locatorForOptional('.subscriptions__error');
 
   public async isEmptyStateDisplayed(): Promise<boolean> {
     return (await this.getEmptyState()) !== null;
@@ -55,8 +59,8 @@ export class SubscriptionsComponentHarness extends ComponentHarness {
     return Promise.all(cells.map(cell => cell.getText()));
   }
 
-  /** API filter dropdown (first app-dropdown-search). */
-  public async getApiFilter(): Promise<DropdownSearchComponentHarness> {
+  /** Type filter dropdown (first app-dropdown-search). */
+  public async getTypeFilter(): Promise<DropdownSearchComponentHarness> {
     const dropdowns = await this.getAllDropdownFilters();
     return dropdowns[0];
   }
@@ -73,11 +77,11 @@ export class SubscriptionsComponentHarness extends ComponentHarness {
     return dropdowns[2];
   }
 
-  /** Opens the API filter and selects the option at the given index. */
-  public async selectApiFilter(index: number): Promise<void> {
-    const filter = await this.getApiFilter();
+  /** Opens the Type filter and selects the options whose labels match the given values. */
+  public async selectTypeFilter(labels: string[]): Promise<void> {
+    const filter = await this.getTypeFilter();
     const overlay = await filter.getOverlayHarness();
-    await overlay.selectOptionByIndex(index);
+    await overlay.selectOptionsByLabels(labels);
   }
 
   /** Opens the Application filter and selects the option at the given index. */
@@ -92,5 +96,32 @@ export class SubscriptionsComponentHarness extends ComponentHarness {
     const filter = await this.getStatusFilter();
     const overlay = await filter.getOverlayHarness();
     await overlay.selectOptionsByLabels(labels);
+  }
+
+  public async setSearchTerm(value: string): Promise<void> {
+    const input = await this.getSearchInput();
+    await input.setValue(value);
+  }
+
+  public async getCountText(): Promise<string | null> {
+    return (await this.getCount())?.text() ?? null;
+  }
+
+  public async isErrorDisplayed(): Promise<boolean> {
+    return (await this.getError()) !== null;
+  }
+
+  public async clickTableRow(index: number): Promise<void> {
+    const table = await this.getTable();
+    if (!table) {
+      throw new Error('Subscriptions table is not displayed');
+    }
+    const rows = await table.getRows();
+    const row = rows[index];
+    if (!row) {
+      throw new Error(`Subscription table row ${index} is not displayed`);
+    }
+    const host = await row.host();
+    await host.click();
   }
 }

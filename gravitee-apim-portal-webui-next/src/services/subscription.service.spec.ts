@@ -66,6 +66,43 @@ describe('SubscriptionService', () => {
     req.flush(subscriptionResponse);
   });
 
+  it('should search API and API Product subscriptions in one backend page', done => {
+    const subscriptionResponse: SubscriptionsResponse = fakeSubscriptionResponse();
+
+    service
+      .list({
+        referenceTypes: ['API', 'API_PRODUCT'],
+        query: 'payment',
+        applicationIds: ['application-id'],
+        statuses: ['ACCEPTED'],
+        page: 2,
+        size: 20,
+      })
+      .subscribe(response => {
+        expect(response).toEqual(subscriptionResponse);
+        done();
+      });
+
+    const req = httpTestingController.expectOne(
+      `${TESTING_BASE_URL}/subscriptions?referenceTypes=API&referenceTypes=API_PRODUCT&query=payment&applicationIds=application-id&statuses=ACCEPTED&size=20&page=2`,
+    );
+    expect(req.request.method).toEqual('GET');
+    req.flush(subscriptionResponse);
+  });
+
+  it('should omit a blank subscription target query', done => {
+    const subscriptionResponse: SubscriptionsResponse = fakeSubscriptionResponse();
+
+    service.list({ referenceTypes: ['API', 'API_PRODUCT'], query: '   ', statuses: null }).subscribe(response => {
+      expect(response).toEqual(subscriptionResponse);
+      done();
+    });
+
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/subscriptions?referenceTypes=API&referenceTypes=API_PRODUCT`);
+    expect(req.request.method).toEqual('GET');
+    req.flush(subscriptionResponse);
+  });
+
   it('should close subscription', done => {
     service.close('subscriptionId').subscribe(() => {
       done();
