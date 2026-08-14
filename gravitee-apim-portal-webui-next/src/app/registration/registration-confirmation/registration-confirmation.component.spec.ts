@@ -15,12 +15,14 @@
  */
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { HttpErrorResponse } from '@angular/common/http';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
 import { MatErrorHarness } from '@angular/material/form-field/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
+import { throwError } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { RegistrationConfirmationComponent } from './registration-confirmation.component';
@@ -36,7 +38,11 @@ describe('RegistrationConfirmationComponent', () => {
 
   let httpTestingController: HttpTestingController;
 
-  const init = async (params?: { token?: string; parsedToken?: { firstname: string; lastname: string; email: string } | null }) => {
+  const init = async (params?: {
+    token?: string;
+    parsedToken?: { firstname: string; lastname: string; email: string } | null;
+    finalizeRegistrationError?: HttpErrorResponse;
+  }) => {
     const token = params?.token ?? 'token-123';
 
     const defaultParsed = { firstname: 'John', lastname: 'Doe', email: 'john@doe.com' };
@@ -47,7 +53,9 @@ describe('RegistrationConfirmationComponent', () => {
     };
 
     const usersServiceMock = {
-      finalizeRegistration: jest.fn().mockReturnValue(of({})),
+      finalizeRegistration: jest
+        .fn()
+        .mockReturnValue(params?.finalizeRegistrationError ? throwError(() => params.finalizeRegistrationError) : of({})),
     };
 
     await TestBed.configureTestingModule({
@@ -139,5 +147,50 @@ describe('RegistrationConfirmationComponent', () => {
     const cardText = await card.getText();
     expect(cardText).toContain('Your account has been successfully activated.');
     expect(cardText).toContain('Back to login');
+  });
+
+  const submitRegistration = async () => {
+    const passwordInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="password"]' }));
+    const confirmInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="confirmedPassword"]' }));
+
+    await passwordInput.setValue('P@ssw0rd!');
+    await confirmInput.setValue('P@ssw0rd!');
+
+    const submitBtn = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Complete registration' }));
+    await submitBtn.click();
+
+    fixture.detectChanges();
+  };
+
+  it('should tell the user the registration is awaiting approval when finalization is refused', async () => {
+    await init({
+      token: 'token-123',
+      parsedToken: defaultParsed,
+      finalizeRegistrationError: new HttpErrorResponse({
+        status: 409,
+        error: { errors: [{ code: 'errors.user.registration.pendingApproval' }] },
+      }),
+    });
+
+    await submitRegistration();
+
+    const errorEl = await harnessLoader.getHarness(MatErrorHarness);
+    expect(await errorEl.getText()).toContain('awaiting approval by an administrator');
+  });
+
+  it('should report any other conflict as an invalid password', async () => {
+    await init({
+      token: 'token-123',
+      parsedToken: defaultParsed,
+      finalizeRegistrationError: new HttpErrorResponse({
+        status: 409,
+        error: { errors: [{ code: 'errors.user.state.conflict' }] },
+      }),
+    });
+
+    await submitRegistration();
+
+    const errorEl = await harnessLoader.getHarness(MatErrorHarness);
+    expect(await errorEl.getText()).toContain('Invalid password');
   });
 });
