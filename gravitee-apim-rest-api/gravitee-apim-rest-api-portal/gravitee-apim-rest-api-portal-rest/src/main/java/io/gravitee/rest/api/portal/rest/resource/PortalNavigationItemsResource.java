@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.rest.api.service.common.GraviteeContext.getExecutionContext;
 
+import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
@@ -106,7 +107,7 @@ public class PortalNavigationItemsResource extends AbstractResource {
         @BeanParam PaginationParam paginationParam
     ) {
         if ("catalog".equalsIgnoreCase(type)) {
-            return searchPortalCatalog(query, include, paginationParam);
+            return searchPortalCatalog(query, include, categoryId, paginationParam);
         }
         if (!"api".equalsIgnoreCase(type)) {
             return Response.status(Response.Status.BAD_REQUEST).entity(new ErrorResponse()).build();
@@ -143,7 +144,7 @@ public class PortalNavigationItemsResource extends AbstractResource {
         return Response.ok(responseBody).build();
     }
 
-    private Response searchPortalCatalog(String query, Set<String> include, PaginationParam paginationParam) {
+    private Response searchPortalCatalog(String query, Set<String> include, String categoryId, PaginationParam paginationParam) {
         Set<io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude> coreIncludes = parseIncludes(include);
         var executionContext = getExecutionContext();
         var output = getVisiblePortalCatalogItemsUseCase.execute(
@@ -153,7 +154,8 @@ public class PortalNavigationItemsResource extends AbstractResource {
                 PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull()),
                 new PageableImpl(paginationParam.getPage(), paginationParam.getSize()),
                 Optional.ofNullable(query),
-                coreIncludes
+                coreIncludes,
+                Optional.ofNullable(categoryId).map(PortalCategoryId::of)
             )
         );
 

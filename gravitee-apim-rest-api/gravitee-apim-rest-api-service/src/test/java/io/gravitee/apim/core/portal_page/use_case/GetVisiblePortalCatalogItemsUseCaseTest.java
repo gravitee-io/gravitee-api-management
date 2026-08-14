@@ -28,6 +28,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
+import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.domain_service.CheckTypoToleranceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalCatalogNavigationVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
@@ -60,6 +61,8 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
 
     private static final String ENV_ID = "env-id";
     private static final String ORG_ID = "org-id";
+    private static final String CATEGORY_ID_1 = "11111111-1111-1111-1111-111111111111";
+    private static final String UNKNOWN_CATEGORY_ID = "99999999-9999-9999-9999-999999999999";
 
     private GetVisiblePortalCatalogItemsUseCase useCase;
     private CountingPortalNavigationItemsQueryService navigationItemsQueryService;
@@ -320,11 +323,86 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
         assertThat(output.items().getContent()).isEmpty();
     }
 
+    @Test
+    void should_filter_catalog_apis_by_category_id() {
+        var folder = folder("folder-id", "Catalog", null);
+        var apiInCategory = apiItem(
+            "api-item-in-category-id",
+            "api-in-category-id",
+            folder.getId(),
+            PortalVisibility.PUBLIC,
+            List.of(PortalCategoryId.of(CATEGORY_ID_1))
+        );
+        var apiOutsideCategory = apiItem(
+            "api-item-outside-category-id",
+            "api-outside-category-id",
+            folder.getId(),
+            PortalVisibility.PUBLIC
+        );
+        navigationItemsQueryService.initWith(List.of(folder, apiInCategory, apiOutsideCategory));
+        initApis(
+            List.of(api("api-in-category-id", "In Category API", "1.0.0"), api("api-outside-category-id", "Outside Category API", "1.0.0"))
+        );
+
+        var output = useCase.execute(input(Optional.empty(), Set.of(), 1, 10, Optional.of(CATEGORY_ID_1)));
+
+        assertThat(output.items().getContent()).containsExactly(apiInCategory);
+    }
+
+    @Test
+    void should_exclude_api_products_from_catalog_when_category_id_is_present() {
+        var folder = folder("folder-id", "Catalog", null);
+        var apiInCategory = apiItem(
+            "api-item-in-category-id",
+            "api-in-category-id",
+            folder.getId(),
+            PortalVisibility.PUBLIC,
+            List.of(PortalCategoryId.of(CATEGORY_ID_1))
+        );
+        var apiProductItem = apiProductItem("product-item-id", "product-id", null, PortalVisibility.PUBLIC);
+        navigationItemsQueryService.initWith(List.of(folder, apiInCategory, apiProductItem));
+        initApis(List.of(api("api-in-category-id", "In Category API", "1.0.0")));
+        apiProductQueryService.initWith(List.of(apiProduct("product-id", "Product", Set.of())));
+
+        var output = useCase.execute(input(Optional.empty(), Set.of(), 1, 10, Optional.of(CATEGORY_ID_1)));
+
+        assertThat(output.items().getContent()).containsExactly(apiInCategory);
+        assertThat(output.includedApiProducts()).isEmpty();
+    }
+
+    @Test
+    void should_return_empty_catalog_results_when_category_id_does_not_match() {
+        var folder = folder("folder-id", "Catalog", null);
+        var apiInCategory = apiItem(
+            "api-item-in-category-id",
+            "api-in-category-id",
+            folder.getId(),
+            PortalVisibility.PUBLIC,
+            List.of(PortalCategoryId.of(CATEGORY_ID_1))
+        );
+        navigationItemsQueryService.initWith(List.of(folder, apiInCategory));
+        initApis(List.of(api("api-in-category-id", "In Category API", "1.0.0")));
+
+        var output = useCase.execute(input(Optional.empty(), Set.of(), 1, 10, Optional.of(UNKNOWN_CATEGORY_ID)));
+
+        assertThat(output.items().getContent()).isEmpty();
+    }
+
     private GetVisiblePortalCatalogItemsUseCase.Input input(
         Optional<String> query,
         Set<PortalNavigationSearchInclude> includes,
         int page,
         int size
+    ) {
+        return input(query, includes, page, size, Optional.empty());
+    }
+
+    private GetVisiblePortalCatalogItemsUseCase.Input input(
+        Optional<String> query,
+        Set<PortalNavigationSearchInclude> includes,
+        int page,
+        int size,
+        Optional<String> categoryId
     ) {
         return new GetVisiblePortalCatalogItemsUseCase.Input(
             ENV_ID,
@@ -332,7 +410,8 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
             PortalNavigationItemViewerContext.forPortal((String) null),
             new PageableImpl(page, size),
             query,
-            includes
+            includes,
+            categoryId.map(PortalCategoryId::of)
         );
     }
 
@@ -372,6 +451,16 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
     }
 
     private PortalNavigationApi apiItem(String id, String apiId, PortalNavigationItemId parentId, PortalVisibility visibility) {
+        return apiItem(id, apiId, parentId, visibility, List.of());
+    }
+
+    private PortalNavigationApi apiItem(
+        String id,
+        String apiId,
+        PortalNavigationItemId parentId,
+        PortalVisibility visibility,
+        List<PortalCategoryId> categoryIds
+    ) {
         return PortalNavigationApi.builder()
             .id(navigationItemId(id))
             .organizationId(ORG_ID)
@@ -384,6 +473,7 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
             .apiId(apiId)
             .published(true)
             .visibility(visibility)
+            .categoryIds(categoryIds)
             .build();
     }
 
