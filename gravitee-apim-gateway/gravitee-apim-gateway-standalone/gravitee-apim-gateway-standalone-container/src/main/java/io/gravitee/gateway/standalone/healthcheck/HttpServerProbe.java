@@ -42,6 +42,8 @@ public class HttpServerProbe implements Probe {
     @Autowired
     private Vertx vertx;
 
+    private NetClient client;
+
     @Override
     public String id() {
         return "http-server";
@@ -51,21 +53,29 @@ public class HttpServerProbe implements Probe {
     public CompletionStage<Result> check() {
         Promise<Result> promise = Promise.promise();
 
-        NetClientOptions options = new NetClientOptions().setConnectTimeout(500);
-        NetClient client = vertx.createNetClient(options);
-
-        client
+        netClient()
             .connect(port, host)
             .onComplete(res -> {
                 if (res.succeeded()) {
                     promise.complete(Result.healthy());
+                    res.result().close();
                 } else {
                     promise.complete(Result.unhealthy(res.cause()));
                 }
-
-                client.close();
             });
 
         return promise.future().toCompletionStage();
+    }
+
+    /**
+     * Vert.x holds on to every client it creates until the owner it was created from is closed, so a client per
+     * check would accumulate for as long as the node runs. A single client serves them all and is released when
+     * Vert.x itself stops.
+     */
+    private synchronized NetClient netClient() {
+        if (client == null) {
+            client = vertx.createNetClient(new NetClientOptions().setConnectTimeout(500));
+        }
+        return client;
     }
 }
