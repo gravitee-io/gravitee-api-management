@@ -27,8 +27,9 @@ import { of } from 'rxjs/internal/observable/of';
 import { RegistrationComponent } from './registration.component';
 import { CustomUserField } from '../../entities/user/custom-user-field';
 import { User } from '../../entities/user/user';
+import { ConfigService } from '../../services/config.service';
 import { UsersService } from '../../services/users.service';
-import { AppTestingModule } from '../../testing/app-testing.module';
+import { AppTestingModule, ConfigServiceStub } from '../../testing/app-testing.module';
 
 describe('RegistrationComponent', () => {
   let fixture: ComponentFixture<RegistrationComponent>;
@@ -39,7 +40,7 @@ describe('RegistrationComponent', () => {
     registerNewUser: jest.Mock;
   };
 
-  const init = async (opts?: { customUserFields?: CustomUserField[]; register$?: Observable<User> }) => {
+  const init = async (opts?: { customUserFields?: CustomUserField[]; register$?: Observable<User>; automaticValidation?: boolean }) => {
     usersServiceMock = {
       listCustomUserFields: jest.fn().mockReturnValue(of(opts?.customUserFields ?? [])),
       registerNewUser: jest.fn().mockReturnValue(opts?.register$ ?? of({})),
@@ -47,7 +48,22 @@ describe('RegistrationComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [RegistrationComponent, AppTestingModule],
-      providers: [{ provide: UsersService, useValue: usersServiceMock }],
+      providers: [
+        { provide: UsersService, useValue: usersServiceMock },
+        {
+          provide: ConfigService,
+          useFactory: () => {
+            const stub = new ConfigServiceStub();
+            if (opts?.automaticValidation !== undefined) {
+              stub.configuration = {
+                ...stub.configuration,
+                portal: { userCreation: { enabled: true, automaticValidation: { enabled: opts.automaticValidation } } },
+              };
+            }
+            return stub;
+          },
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(RegistrationComponent);
@@ -150,5 +166,49 @@ describe('RegistrationComponent', () => {
     expect(cardText).toContain("We've sent you a confirmation link to:");
     expect(cardText).toContain('john@doe.com');
     expect(cardText).toContain('Please follow the link to activate your account.');
+  });
+
+  it('register() should tell the user the request awaits approval when automatic validation is disabled', async () => {
+    await init({ customUserFields: [], register$: of({}), automaticValidation: false });
+
+    const firstnameInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="firstname"]' }));
+    const lastnameInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="lastname"]' }));
+    const emailInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="email"]' }));
+    const signUp = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Sign up' }));
+
+    await firstnameInput.setValue('John');
+    await lastnameInput.setValue('Doe');
+    await emailInput.setValue('john@doe.com');
+    await signUp.click();
+
+    fixture.detectChanges();
+
+    const successCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: 'mat-card.registration__form__container' }));
+    expect(await successCard.getTitleText()).toContain('Registration request sent');
+
+    const cardText = await successCard.getText();
+    expect(cardText).toContain('Your registration request is awaiting approval by an administrator for:');
+    expect(cardText).toContain('john@doe.com');
+    expect(cardText).toContain('You will receive an email with an activation link once it has been approved.');
+    expect(cardText).not.toContain("We've sent you a confirmation link to:");
+  });
+
+  it('register() should keep the "check your email" message when registrations are automatically validated', async () => {
+    await init({ customUserFields: [], register$: of({}), automaticValidation: true });
+
+    const firstnameInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="firstname"]' }));
+    const lastnameInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="lastname"]' }));
+    const emailInput = await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="email"]' }));
+    const signUp = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Sign up' }));
+
+    await firstnameInput.setValue('John');
+    await lastnameInput.setValue('Doe');
+    await emailInput.setValue('john@doe.com');
+    await signUp.click();
+
+    fixture.detectChanges();
+
+    const successCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: 'mat-card.registration__form__container' }));
+    expect(await successCard.getTitleText()).toContain('Check your email');
   });
 });
