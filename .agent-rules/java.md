@@ -79,6 +79,8 @@ mvn -f gravitee-apim-repository/pom.xml test -pl gravitee-apim-repository-elasti
 
 Or build the full reactor; running `mvn test` on a child alone can fail with "cannot find symbol" for types from sibling modules.
 
+After a `clean install` fails or is interrupted (especially with `-T`, parallel reactor builds), a later scoped `mvn test`/`mvn -pl <module> test` **without `clean`** silently compiles against stale `target/classes` left by modules that never finished rebuilding — producing "cannot find symbol"/"constructor cannot be applied" errors that look like a broken annotation processor (e.g. Lombok) but aren't. Re-run a full `clean install` covering every changed reactor module before trusting a scoped test run.
+
 ### Formatting Before Tests
 
 Run the Maven Prettier plugin on modified modules before tests — the build fails on formatting checks:
