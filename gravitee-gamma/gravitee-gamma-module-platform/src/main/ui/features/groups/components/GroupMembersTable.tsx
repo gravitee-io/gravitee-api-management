@@ -20,17 +20,23 @@ import {
     DataTable,
     DataTableColumnHeader,
     DataTableEmptyState,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
     InputGroup,
     InputGroupAddon,
     InputGroupInput,
     type DataTableProps,
 } from '@gravitee/graphene-core';
-import { SearchIcon } from '@gravitee/graphene-core/icons';
+import { MoreHorizontalIcon, PencilIcon, SearchIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 import { useEffect, useMemo, useState } from 'react';
 
 import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
 import type { GroupMember } from '../types/group';
+import { PRIMARY_OWNER_ROLE } from '../types/group';
 
 const PAGE_SIZE = 10;
 
@@ -39,8 +45,26 @@ function roleCell(member: GroupMember, scope: 'API' | 'APPLICATION' | 'API_PRODU
     return <span className="text-sm text-muted-foreground">{role ?? '—'}</span>;
 }
 
-function buildColumns(): DataTableProps<GroupMember>['columns'] {
-    return [
+function isPrimaryOwnerMember(member: GroupMember): boolean {
+    return member.roles?.API === PRIMARY_OWNER_ROLE || member.roles?.API_PRODUCT === PRIMARY_OWNER_ROLE;
+}
+
+function isRemoveDisabled(member: GroupMember, totalMemberCount: number): boolean {
+    return totalMemberCount === 1 && isPrimaryOwnerMember(member);
+}
+
+function buildColumns({
+    canManageMembers,
+    totalMemberCount,
+    onEditRoles,
+    onRemove,
+}: {
+    canManageMembers: boolean;
+    totalMemberCount: number;
+    onEditRoles: (member: GroupMember) => void;
+    onRemove: (member: GroupMember) => void;
+}): DataTableProps<GroupMember>['columns'] {
+    const columns: DataTableProps<GroupMember>['columns'] = [
         {
             id: 'member',
             accessorKey: 'displayName',
@@ -87,6 +111,43 @@ function buildColumns(): DataTableProps<GroupMember>['columns'] {
             cell: ({ row }: ColCell<GroupMember>) => roleCell(row.original, 'CLUSTER'),
         },
     ];
+
+    if (canManageMembers) {
+        columns.push({
+            id: 'actions',
+            header: () => <span className="sr-only">Actions</span>,
+            size: 56,
+            enableSorting: false,
+            enableHiding: false,
+            cell: ({ row }: ColCell<GroupMember>) => {
+                const removeDisabled = isRemoveDisabled(row.original, totalMemberCount);
+                return (
+                    <div className="flex justify-end">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="size-8" aria-label="Member actions">
+                                    <MoreHorizontalIcon className="size-4" aria-hidden />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onSelect={() => onEditRoles(row.original)}>
+                                    <PencilIcon className="size-4 mr-2" aria-hidden />
+                                    Edit roles
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem variant="destructive" disabled={removeDisabled} onSelect={() => onRemove(row.original)}>
+                                    <Trash2Icon className="size-4 mr-2" aria-hidden />
+                                    Remove member
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                );
+            },
+        });
+    }
+
+    return columns;
 }
 
 function paginate(items: GroupMember[], page: number, pageSize: number): GroupMember[] {
@@ -97,11 +158,12 @@ function paginate(items: GroupMember[], page: number, pageSize: number): GroupMe
 interface GroupMembersTableProps {
     readonly members: GroupMember[];
     readonly loading: boolean;
+    readonly canManageMembers: boolean;
+    readonly onEditRoles: (member: GroupMember) => void;
+    readonly onRemove: (member: GroupMember) => void;
 }
 
-// Member management (add/invite/edit roles/remove) is added on top of this read-only view in a
-// follow-up PR (FOUND-106/FOUND-107) — this component intentionally has no action column yet.
-export function GroupMembersTable({ members, loading }: GroupMembersTableProps) {
+export function GroupMembersTable({ members, loading, canManageMembers, onEditRoles, onRemove }: GroupMembersTableProps) {
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(PAGE_SIZE);
@@ -114,7 +176,10 @@ export function GroupMembersTable({ members, loading }: GroupMembersTableProps) 
     const totalCount = filtered.length;
     const totalPages = pageSize > 0 ? Math.max(1, Math.ceil(totalCount / pageSize)) : 1;
     const pageData = useMemo(() => paginate(filtered, page, pageSize), [filtered, page, pageSize]);
-    const columns = useMemo(() => buildColumns(), []);
+    const columns = useMemo(
+        () => buildColumns({ canManageMembers, totalMemberCount: members.length, onEditRoles, onRemove }),
+        [canManageMembers, members.length, onEditRoles, onRemove],
+    );
 
     useEffect(() => {
         if (page > totalPages) setPage(totalPages);
