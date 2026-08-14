@@ -5613,7 +5613,7 @@ components:
                 applicationCreation:
                     $ref: "#/components/schemas/Enabled"
                 userCreation:
-                    $ref: "#/components/schemas/Enabled"
+                    $ref: "#/components/schemas/ConfigurationPortalUserCreation"
                 apis:
                     $ref: "#/components/schemas/ConfigurationPortalApis"
                 analytics:
@@ -5625,6 +5625,15 @@ components:
                 homepageTitle:
                     description: Main phrase to display on the homepage.
                     type: string
+        ConfigurationPortalUserCreation:
+            type: object
+            description: Configuration of the user registration
+            properties:
+                enabled:
+                    description: User registration is enabled
+                    type: boolean
+                automaticValidation:
+                    $ref: "#/components/schemas/Enabled"
         ConfigurationPortalNext:
             properties:
                 siteTitle:
