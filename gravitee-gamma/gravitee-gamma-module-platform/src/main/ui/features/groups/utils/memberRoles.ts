@@ -15,7 +15,7 @@
  */
 
 import { isRoleLocked } from './groupPermissions';
-import type { GroupMembershipRole } from '../types/group';
+import type { GroupMember, GroupMembershipRole } from '../types/group';
 
 export type MemberRoleSelections = {
     apiRole: string;
@@ -24,9 +24,10 @@ export type MemberRoleSelections = {
     integrationRole: string;
     clusterRole: string;
     explorerRole: string;
+    groupAdmin?: boolean;
 };
 
-export type RoleField = keyof MemberRoleSelections;
+export type RoleField = Exclude<keyof MemberRoleSelections, 'groupAdmin'>;
 
 export type MemberRoleLockFlags = {
     api: boolean;
@@ -63,5 +64,10 @@ export function buildMembershipRoles(selections: MemberRoleSelections): GroupMem
     if (selections.integrationRole) roles.push({ scope: 'INTEGRATION', name: selections.integrationRole });
     if (selections.clusterRole) roles.push({ scope: 'CLUSTER', name: selections.clusterRole });
     if (selections.explorerRole) roles.push({ scope: 'EXPLORER', name: selections.explorerRole });
+    if (selections.groupAdmin) roles.push({ scope: 'GROUP', name: 'ADMIN' });
     return roles;
+}
+
+export function sortedSuccessorCandidates(members: GroupMember[], excludeMemberId: string | undefined): GroupMember[] {
+    return members.filter(m => m.id !== excludeMemberId).sort((a, b) => a.displayName.localeCompare(b.displayName));
 }

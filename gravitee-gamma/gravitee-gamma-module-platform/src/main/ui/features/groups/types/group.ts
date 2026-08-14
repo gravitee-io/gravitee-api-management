@@ -102,6 +102,7 @@ export interface GroupRole {
 }
 
 export const PRIMARY_OWNER_ROLE = 'PRIMARY_OWNER';
+export const OWNER_ROLE = 'OWNER';
 
 /** v1 `GroupMemberEntity` (GET .../configuration/groups/{id}/members...). */
 export interface GroupMember {
@@ -133,4 +134,22 @@ export interface GroupMembershipPayload {
     id?: string;
     reference?: string;
     roles: GroupMembershipRole[];
+}
+
+export interface GroupInvitationPayload {
+    reference_type?: string;
+    reference_id: string;
+    email: string;
+    api_role?: string;
+    application_role?: string;
+}
+
+export interface GroupInvitation {
+    id: string;
+    reference_type?: string;
+    reference_id: string;
+    email: string;
+    api_role?: string;
+    application_role?: string;
+    created_at?: number;
 }

@@ -17,6 +17,8 @@
 import { apimFetchJsonOrg, apimFetchJsonV1Env } from '../../../shared/api/apimClient';
 import type {
     Group,
+    GroupInvitation,
+    GroupInvitationPayload,
     GroupMember,
     GroupMembershipItem,
     GroupMembershipPayload,
@@ -64,6 +66,14 @@ export async function listGroupMemberships(
     return items ?? [];
 }
 
+export async function removeGroupMember(environmentId: string, groupId: string, memberId: string): Promise<void> {
+    return apimFetchJsonV1Env<void>(
+        environmentId,
+        `/configuration/groups/${encodeURIComponent(groupId)}/members/${encodeURIComponent(memberId)}`,
+        { method: 'DELETE' },
+    );
+}
+
 export async function createGroup(environmentId: string, data: NewGroupPayload): Promise<Group> {
     return apimFetchJsonV1Env<Group>(environmentId, '/configuration/groups', {
         method: 'POST',
@@ -106,4 +116,28 @@ export async function addGroupMembers(environmentId: string, groupId: string, me
         method: 'POST',
         body: JSON.stringify(memberships),
     });
+}
+
+export async function inviteGroupMember(
+    environmentId: string,
+    groupId: string,
+    data: GroupInvitationPayload,
+): Promise<{ ambiguous: boolean }> {
+    const result = await apimFetchJsonV1Env<unknown>(environmentId, `/configuration/groups/${encodeURIComponent(groupId)}/invitations`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return { ambiguous: Array.isArray(result) };
+}
+
+export async function listGroupInvitations(environmentId: string, groupId: string): Promise<GroupInvitation[]> {
+    return apimFetchJsonV1Env<GroupInvitation[]>(environmentId, `/configuration/groups/${encodeURIComponent(groupId)}/invitations`);
+}
+
+export async function deleteGroupInvitation(environmentId: string, groupId: string, invitationId: string): Promise<void> {
+    return apimFetchJsonV1Env<void>(
+        environmentId,
+        `/configuration/groups/${encodeURIComponent(groupId)}/invitations/${encodeURIComponent(invitationId)}`,
+        { method: 'DELETE' },
+    );
 }

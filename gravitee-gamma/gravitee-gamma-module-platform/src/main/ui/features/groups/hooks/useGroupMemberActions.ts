@@ -16,16 +16,32 @@
 
 import { useState } from 'react';
 
-import { useAddGroupMembers } from './useGroupMutations';
+import { useGroupInvitations } from './useGroupDetail';
+import { useAddGroupMembers, useDeleteGroupInvitation, useInviteGroupMember, useRemoveGroupMember } from './useGroupMutations';
 import { notify } from '../../../shared/notify';
-import type { GroupMembershipPayload } from '../types/group';
+import type { GroupInvitation, GroupMember, GroupMembershipPayload } from '../types/group';
 
-type MemberSheetState = 'closed' | 'search';
+type MemberSheetState = 'closed' | 'search' | 'invite';
+type MemberTab = 'members' | 'invitations';
 
 export function useGroupMemberActions(groupId: string | undefined) {
+    const [memberTab, setMemberTab] = useState<MemberTab>('members');
     const [memberSheet, setMemberSheet] = useState<MemberSheetState>('closed');
+    const [editingMember, setEditingMember] = useState<GroupMember | null>(null);
+    const [removingMember, setRemovingMember] = useState<GroupMember | null>(null);
+    const [tooManyUsersEmail, setTooManyUsersEmail] = useState<string | null>(null);
+    const [deletingInvitation, setDeletingInvitation] = useState<GroupInvitation | null>(null);
+
+    const {
+        data: invitations = [],
+        isLoading: invitationsLoading,
+        isError: invitationsError,
+    } = useGroupInvitations(memberTab === 'invitations' ? groupId : undefined);
 
     const addMembersMutation = useAddGroupMembers();
+    const inviteMemberMutation = useInviteGroupMember();
+    const removeMemberMutation = useRemoveGroupMember();
+    const deleteInvitationMutation = useDeleteGroupInvitation();
 
     function closeMemberSheet() {
         setMemberSheet('closed');
@@ -42,11 +58,110 @@ export function useGroupMemberActions(groupId: string | undefined) {
         }
     }
 
+    async function handleInviteMember(values: { email: string; apiRole: string; applicationRole: string }) {
+        if (!groupId) return;
+        try {
+            const result = await inviteMemberMutation.mutateAsync({
+                groupId,
+                data: {
+                    reference_id: groupId,
+                    email: values.email,
+                    api_role: values.apiRole || undefined,
+                    application_role: values.applicationRole || undefined,
+                },
+            });
+            if (result.ambiguous) {
+                closeMemberSheet();
+                setTooManyUsersEmail(values.email);
+                return;
+            }
+            notify.success(`Invitation sent to ${values.email}`);
+            closeMemberSheet();
+        } catch (error) {
+            notify.error(error, 'Failed to send invitation');
+        }
+    }
+
+    function handleTooManyUsersContinue() {
+        setTooManyUsersEmail(null);
+        setMemberSheet('search');
+    }
+
+    async function handleEditMemberRoles(memberships: GroupMembershipPayload[]) {
+        if (!groupId) return;
+        try {
+            await addMembersMutation.mutateAsync({ groupId, memberships });
+            notify.success(
+                memberships.length > 1 ? 'Member roles updated and primary ownership transferred' : 'Member roles updated successfully',
+            );
+            setEditingMember(null);
+        } catch (error) {
+            notify.error(error, 'Failed to update member roles');
+        }
+    }
+
+    async function handleRemoveMember(transferMembership?: GroupMembershipPayload) {
+        if (!groupId || !removingMember) return;
+
+        // Transfer first so a failed transfer aborts before anything is removed.
+        if (transferMembership) {
+            try {
+                await addMembersMutation.mutateAsync({ groupId, memberships: [transferMembership] });
+            } catch (error) {
+                notify.error(error, 'Primary ownership could not be transferred');
+                setRemovingMember(null);
+                return;
+            }
+        }
+
+        try {
+            await removeMemberMutation.mutateAsync({ groupId, memberId: removingMember.id });
+        } catch (error) {
+            notify.error(error, 'Failed to remove member');
+            return;
+        }
+
+        notify.success(`${removingMember.displayName} removed from the group`);
+        setRemovingMember(null);
+    }
+
+    async function handleDeleteInvitation() {
+        if (!groupId || !deletingInvitation) return;
+        try {
+            await deleteInvitationMutation.mutateAsync({ groupId, invitationId: deletingInvitation.id });
+            notify.success('Successfully deleted the invitation.');
+            setDeletingInvitation(null);
+        } catch (error) {
+            notify.error(error, 'Error occurred while deleting the invitation.');
+        }
+    }
+
     return {
+        memberTab,
+        setMemberTab,
         memberSheet,
         setMemberSheet,
         closeMemberSheet,
+        editingMember,
+        setEditingMember,
+        removingMember,
+        setRemovingMember,
+        tooManyUsersEmail,
+        setTooManyUsersEmail,
+        deletingInvitation,
+        setDeletingInvitation,
+        invitations,
+        invitationsLoading,
+        invitationsError,
         addMembersMutation,
+        inviteMemberMutation,
+        removeMemberMutation,
+        deleteInvitationMutation,
         handleAddMembers,
+        handleInviteMember,
+        handleTooManyUsersContinue,
+        handleEditMemberRoles,
+        handleRemoveMember,
+        handleDeleteInvitation,
     };
 }

@@ -33,6 +33,10 @@ export function isPrimaryOwnerGroup(group: Pick<Group, 'primary_owner' | 'apiPri
     return Boolean(group.primary_owner || group.apiPrimaryOwner || group.apiProductPrimaryOwner);
 }
 
+export function canInviteToGroup(group: Pick<Group, 'manageable' | 'system_invitation' | 'email_invitation'>): boolean {
+    return Boolean(group.manageable) && Boolean(group.system_invitation || group.email_invitation);
+}
+
 export function isRoleLocked(locked: boolean, canOverrideLocks: boolean): boolean {
     return locked && !canOverrideLocks;
 }

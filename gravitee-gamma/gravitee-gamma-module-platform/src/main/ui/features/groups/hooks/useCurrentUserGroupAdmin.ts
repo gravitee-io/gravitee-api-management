@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { UserRole } from '@gravitee/gamma-modules-sdk/types';
+import { useQuery } from '@tanstack/react-query';
 
-import { apimFetchJsonOrg } from '../../../shared/api/apimClient';
+import { fetchCurrentUser } from '../../applications/services/currentUser';
+import { currentUserKeys } from '../../applications/utils/queryKeys';
+import type { GroupMember } from '../types/group';
 
-export interface CurrentUser {
-    id?: string;
-    displayName?: string;
-    roles?: UserRole[];
-}
+export function useCurrentUserIsGroupAdmin(members: GroupMember[]): boolean {
+    const { data } = useQuery({
+        queryKey: currentUserKeys.detail(),
+        queryFn: fetchCurrentUser,
+        staleTime: 300_000,
+    });
 
-/** GET /organizations/{orgId}/user — same resource as the control-plane auth store. */
-export async function fetchCurrentUser(): Promise<CurrentUser> {
-    return apimFetchJsonOrg<CurrentUser>('/user');
-}
-
-export function hasOrganizationAdminRole(roles: UserRole[] | undefined): boolean {
-    return roles?.some(role => role.scope === 'ORGANIZATION' && role.name === 'ADMIN') ?? false;
+    if (!data?.id) return false;
+    return members.some(member => member.id === data.id && member.roles?.GROUP === 'ADMIN');
 }
