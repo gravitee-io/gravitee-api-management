@@ -17,7 +17,7 @@ package io.gravitee.gateway.reactive.reactor.path.benchmark;
 
 import io.gravitee.gateway.env.RequestPathHandling;
 import io.gravitee.gateway.reactive.reactor.path.RequestPathNormalizer;
-import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -36,22 +36,14 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 /**
- * What each value of {@code http.pathHandling} costs per request, by shape of path.
+ * What {@code http.pathHandling} costs on a traffic profile rather than on a single path.
  *
- * <p>The measured method mirrors the decision {@code DefaultHttpRequestDispatcher} takes on every
- * request, before the acceptor is resolved: under {@code RAW} the path is handed over untouched,
- * under {@code REJECT} it is normalized and compared, under {@code NORMALIZE} the normalized value
- * is the one carried forward. Everything after that decision — acceptor resolution, plans, flows —
- * is identical in all three and is deliberately out of the measurement.
+ * <p>A benchmark that hands the same string over and over lets the branch predictor learn it and
+ * reports a number no production gateway will ever see. This one cycles a thousand distinct paths,
+ * mixed at 95% ordinary and 5% carrying dot segments, which is generous towards the attack: real
+ * traffic carrying five percent of traversals would be an incident in itself.
  *
- * <p>{@code RAW} is the baseline: it never calls the normalizer, so its numbers are the cost of the
- * feature switched off, and the floor of this harness.
- *
- * <p>Throughput, in operations per second, is what translates into capacity for an operator, and it
- * is the only figure reported: for a deterministic single-threaded call, average time is its
- * inverse and measuring both would double the run for nothing. A single constant string per shape
- * is easy on the branch predictor, which is why {@link RequestPathHandlingCorpusBenchmark} exists
- * next to this one.
+ * <p>This is the figure to quote when someone asks what the setting costs.
  *
  * @author GraviteeSource Team
  */
@@ -61,42 +53,52 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 @Fork(value = 2)
 @Warmup(iterations = 3, time = 1)
 @Measurement(iterations = 5, time = 1)
-public class RequestPathHandlingBenchmark {
+public class RequestPathHandlingCorpusBenchmark {
 
-    private static final Map<String, String> PATHS = Map.of(
-        "ordinary",
-        "/v1/orders/list",
-        "ordinary_deep",
-        "/api/v2/customers/8f3a/orders/2026/08/13/items/447/details",
-        "ordinary_with_dot",
-        "/v1/orders/12345.json",
-        "ordinary_encoded",
-        "/v1/orders/a%20b/details",
-        "dot_segments",
-        "/alpha/api/../../beta/api/echo",
-        "encoded_dot_segments",
-        "/alpha/api/%2e%2e/%2e%2e/beta/api/echo"
-    );
+    private static final int CORPUS_SIZE = 1_000;
+    private static final int TRAVERSAL_PERCENTAGE = 5;
+    private static final long SEED = 20260814L;
 
     @Param({ "RAW", "REJECT", "NORMALIZE" })
     public String mode;
 
-    @Param({ "ordinary", "ordinary_deep", "ordinary_with_dot", "ordinary_encoded", "dot_segments", "encoded_dot_segments" })
-    public String shape;
-
     private RequestPathHandling handling;
-    private String rawPath;
+    private String[] corpus;
+    private int cursor;
 
     // Run directly from the IDE.
     public static void main(String[] args) throws RunnerException {
-        Options opt = new OptionsBuilder().include(RequestPathHandlingBenchmark.class.getSimpleName()).build();
+        Options opt = new OptionsBuilder().include(RequestPathHandlingCorpusBenchmark.class.getSimpleName()).build();
         new Runner(opt).run();
     }
 
     @Setup
     public void setup() {
         handling = RequestPathHandling.valueOf(mode);
-        rawPath = PATHS.get(shape);
+        corpus = buildCorpus();
+        cursor = 0;
+    }
+
+    /**
+     * Fixed seed: the corpus is the same on every run, so two runs remain comparable.
+     */
+    private String[] buildCorpus() {
+        final Random random = new Random(SEED);
+        final String[] paths = new String[CORPUS_SIZE];
+
+        for (int i = 0; i < CORPUS_SIZE; i++) {
+            final String customer = Integer.toHexString(random.nextInt(0xFFFF));
+            final int order = random.nextInt(100_000);
+
+            if (random.nextInt(100) < TRAVERSAL_PERCENTAGE) {
+                paths[i] = random.nextBoolean()
+                    ? "/v1/customers/" + customer + "/../../../admin/orders/" + order
+                    : "/v1/customers/" + customer + "/%2e%2e/%2e%2e/admin/orders/" + order;
+            } else {
+                paths[i] = "/v1/customers/" + customer + "/orders/" + order + "/details";
+            }
+        }
+        return paths;
     }
 
     /**
@@ -104,6 +106,16 @@ public class RequestPathHandlingBenchmark {
      */
     @Benchmark
     public String path_handling_decision() {
+        // Wrapped by hand rather than with a modulo: RAW runs at over a billion operations a
+        // second, so a monotonic counter overflows int within a single iteration and the modulo of
+        // a negative is negative.
+        int next = cursor + 1;
+        if (next == CORPUS_SIZE) {
+            next = 0;
+        }
+        cursor = next;
+        final String rawPath = corpus[next];
+
         if (handling == RequestPathHandling.RAW) {
             return rawPath;
         }
