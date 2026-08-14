@@ -193,6 +193,50 @@ jobs:
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*
             - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target/distribution
             - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution
+  job-test-gamma:
+    docker:
+      - image: cimg/openjdk:25.0.3
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-gamma
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: Run Gamma tests
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dgamma-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -Dskip.ui.build=true -nsu -T 8
+      - run:
+          name: Save test results
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-test-gamma
+      - store_test_results:
+          path: ~/test-results
+  job-test-gamma-ui:
+    docker:
+      - image: cimg/node:24.18.0
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - run:
+          name: Run Prettier and ESLint
+          command: yarn nx run-many --target=lint --projects=gravitee-gamma-module-apim,gravitee-gamma-module-platform
+      - run:
+          name: Run unit tests
+          command: yarn nx run-many --target=test --projects=gravitee-gamma-module-apim,gravitee-gamma-module-platform --maxWorkers=2
+      - cmd-notify-on-failure
   job-nx-format-check:
     docker:
       - image: cimg/node:24.18.0
@@ -306,6 +350,18 @@ workflows:
             - cicd-orchestrator
           requires:
             - Validate backend
+      - job-test-gamma:
+          name: Test gamma
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build backend
+      - job-test-gamma-ui:
+          name: Test gamma UI
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build backend
       - job-nx-format-check:
           name: Check prettier formatting for nx projects
           context:
@@ -326,6 +382,8 @@ workflows:
           name: Validate workflow status
           requires:
             - Build backend
+            - Test gamma
+            - Test gamma UI
             - Check prettier formatting for nx projects
             - Lint & test Gamma Console
             - Build Gamma Console

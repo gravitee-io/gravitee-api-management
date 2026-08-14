@@ -127,6 +127,21 @@ commands:
             - ~/.cache/temurin
           when: on_success
     description: Install the JDK on machine executors, which ship an older one
+  cmd-workspace-install:
+    steps:
+      - restore_cache:
+          name: Restore Yarn workspace cache
+          keys:
+            - gravitee-api-management-v14-workspace-{{ .Branch }}-{{ checksum "yarn.lock" }}
+            - gravitee-api-management-v14-workspace-{{ .Branch }}
+      - run:
+          name: Install workspace dependencies
+          command: yarn install --frozen-lockfile
+      - save_cache:
+          name: Save Yarn workspace cache
+          key: gravitee-api-management-v14-workspace-{{ .Branch }}-{{ checksum "yarn.lock" }}
+          paths:
+            - ./node_modules
 jobs:
   job-danger-js:
     docker:
@@ -249,10 +264,9 @@ jobs:
       - restore_cache:
           keys:
             - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
-      - cmd-install-yarn
       - run:
           name: Run Rest API tests
-          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Drest-api-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Drest-api-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -nsu -T 8
       - run:
           name: Save test results
           command: |-
@@ -305,6 +319,50 @@ jobs:
             - /opt/sonar-scanner/.sonar/cache
           key: gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
           when: always
+  job-test-gamma:
+    docker:
+      - image: cimg/openjdk:25.0.3
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-gamma
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: Run Gamma tests
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dgamma-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -Dskip.ui.build=true -nsu -T 8
+      - run:
+          name: Save test results
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-test-gamma
+      - store_test_results:
+          path: ~/test-results
+  job-test-gamma-ui:
+    docker:
+      - image: cimg/node:24.18.0
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - run:
+          name: Run Prettier and ESLint
+          command: yarn nx run-many --target=lint --projects=gravitee-gamma-module-apim,gravitee-gamma-module-platform
+      - run:
+          name: Run unit tests
+          command: yarn nx run-many --target=test --projects=gravitee-gamma-module-apim,gravitee-gamma-module-platform --maxWorkers=2
+      - cmd-notify-on-failure
   job-validate-workflow-status:
     docker:
       - image: cimg/base:stable
@@ -350,11 +408,25 @@ workflows:
             - Test rest-api
           working_directory: gravitee-apim-rest-api
           cache_type: backend
+      - job-test-gamma:
+          name: Test gamma
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build backend
+      - job-test-gamma-ui:
+          name: Test gamma UI
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build backend
       - job-validate-workflow-status:
           name: Validate workflow status
           requires:
             - Build backend
             - Test rest-api
+            - Test gamma
+            - Test gamma UI
 orbs:
   keeper: gravitee-io/keeper@0.7.1
   slack: circleci/slack@4.12.5

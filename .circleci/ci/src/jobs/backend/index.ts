@@ -19,6 +19,8 @@ export * from './job-community-build-backend';
 export * from './job-nexus-staging';
 export * from './job-publish';
 export * from './job-test-definition';
+export * from './job-test-gamma';
+export * from './job-test-gamma-ui';
 export * from './job-test-gateway';
 export * from './job-test-integration';
 export * from './job-test-plugin';

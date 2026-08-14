@@ -15,28 +15,32 @@
  */
 import { commands, Config } from '../../circleci-config';
 import { config } from '../../config';
-import { UbuntuExecutor } from '../../executors';
+import { OpenJdkExecutor } from '../../executors';
 import { AbstractTestJob } from './abstract-job-test';
 import { CircleCIEnvironment } from '../../pipelines';
 import { mavenParallelism } from '../../utils';
 
-export class TestRestApiJob extends AbstractTestJob {
+export class TestGammaJob extends AbstractTestJob {
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
     return super.create(
       dynamicConfig,
       environment,
-      'job-test-rest-api',
+      'job-test-gamma',
       [
         new commands.Run({
-          // standalone-container depends on two Gamma artifacts this reactor no longer builds, so they
-          // come from the local repository. -nsu keeps a published snapshot from taking the place of the
-          // one `Build backend` just installed. Yarn went with Gamma: nothing here needs it.
-          name: `Run Rest API tests`,
-          command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -Drest-api-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -nsu ${mavenParallelism('large')}`,
+          // The Gamma modules depend on the rest-api ones, which this reactor does not build: they come
+          // from the local repository, restored from the cache that `Build backend` fills. -nsu keeps a
+          // published snapshot from taking the place of the one this pipeline just built.
+          //
+          // -Dskip.ui.build skips the workspace install and the Nx builds. Their output is only read by
+          // the plugin assembly, bound to `package`, and this job stops at `test`; `Build backend` runs
+          // them for real. The UI is covered by the Gamma UI test job instead.
+          name: `Run Gamma tests`,
+          command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -Dgamma-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -Dskip.ui.build=true -nsu ${mavenParallelism('large')}`,
         }),
       ],
-      UbuntuExecutor.create('large'),
-      ['gravitee-apim-rest-api/gravitee-apim-rest-api-coverage/target/site/jacoco-aggregate/'],
+      OpenJdkExecutor.create('large'),
+      [],
     );
   }
 }

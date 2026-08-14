@@ -158,6 +158,13 @@ export function shouldTestPlugin(changedFiles: string[]): boolean {
   );
 }
 
+// Gamma builds against the rest-api modules, so anything that wakes up the rest-api tests wakes up
+// these too. The narrowing works the other way round: a change confined to gravitee-gamma no longer
+// drags in the rest-api suites, and — until this predicate existed — ran no test at all.
+export function shouldTestGamma(changedFiles: string[]): boolean {
+  return shouldTestRestApi(changedFiles) || changedFiles.some((file) => file.includes('gravitee-gamma'));
+}
+
 export function shouldTestRestApi(changedFiles: string[]): boolean {
   const mavenProjectsIdentifiers = ['gravitee-apim-definition', 'gravitee-apim-repository', 'gravitee-apim-rest-api'];
   return (

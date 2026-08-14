@@ -19,6 +19,8 @@ import {
   SetupJob,
   SonarCloudAnalysisJob,
   TestDefinitionJob,
+  TestGammaJob,
+  TestGammaUiJob,
   TestGatewayJob,
   TestIntegrationJob,
   TestPluginJob,
@@ -32,6 +34,7 @@ import { config } from '../../config';
 import {
   shouldBuildBackend,
   shouldTestDefinition,
+  shouldTestGamma,
   shouldTestGateway,
   shouldTestIntegrationTests,
   shouldTestPlugin,
@@ -153,6 +156,28 @@ export function backendJobs(
       }),
     );
     requires.push('Test rest-api');
+  }
+
+  if (!filterJobs || shouldTestGamma(environment.changedFiles)) {
+    const testGammaJob = TestGammaJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(testGammaJob);
+
+    const testGammaUiJob = TestGammaUiJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(testGammaUiJob);
+
+    jobs.push(
+      new workflow.WorkflowJob(testGammaJob, {
+        name: 'Test gamma',
+        context: config.jobContext,
+        requires: ['Build backend'],
+      }),
+      new workflow.WorkflowJob(testGammaUiJob, {
+        name: 'Test gamma UI',
+        context: config.jobContext,
+        requires: ['Build backend'],
+      }),
+    );
+    requires.push('Test gamma', 'Test gamma UI');
   }
 
   if (!filterJobs || shouldTestIntegrationTests(environment.changedFiles)) {
