@@ -95,28 +95,10 @@ export async function deleteGroup(environmentId: string, groupId: string): Promi
     });
 }
 
-async function listGroupRolesByScope(scope: 'API' | 'APPLICATION' | 'API_PRODUCT' | 'INTEGRATION' | 'CLUSTER'): Promise<GroupRole[]> {
+export type GroupRoleScope = 'API' | 'APPLICATION' | 'API_PRODUCT' | 'INTEGRATION' | 'CLUSTER';
+
+export async function listGroupRolesByScope(scope: GroupRoleScope): Promise<GroupRole[]> {
     return apimFetchJsonOrg<GroupRole[]>(`/configuration/rolescopes/${scope}/roles`);
-}
-
-export async function listGroupApiRoles(): Promise<GroupRole[]> {
-    return listGroupRolesByScope('API');
-}
-
-export async function listGroupApplicationRoles(): Promise<GroupRole[]> {
-    return listGroupRolesByScope('APPLICATION');
-}
-
-export async function listGroupApiProductRoles(): Promise<GroupRole[]> {
-    return listGroupRolesByScope('API_PRODUCT');
-}
-
-export async function listGroupIntegrationRoles(): Promise<GroupRole[]> {
-    return listGroupRolesByScope('INTEGRATION');
-}
-
-export async function listGroupClusterRoles(): Promise<GroupRole[]> {
-    return listGroupRolesByScope('CLUSTER');
 }
 
 export async function searchUsers(query: string): Promise<SearchableUser[]> {

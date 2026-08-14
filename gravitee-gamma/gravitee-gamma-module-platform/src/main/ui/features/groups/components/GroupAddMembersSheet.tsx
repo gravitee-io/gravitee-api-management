@@ -128,7 +128,13 @@ export function GroupAddMembersSheet({
     );
 
     function toggle(user: SearchableUser) {
-        setSelected(prev => (prev.some(u => isSameUser(u, user)) ? prev.filter(u => !isSameUser(u, user)) : [...prev, user]));
+        setSelected(prev => {
+            const isAlreadySelected = prev.some(u => isSameUser(u, user));
+            if (isAlreadySelected) {
+                return prev.filter(u => !isSameUser(u, user));
+            }
+            return [...prev, user];
+        });
     }
 
     function handleClose() {
