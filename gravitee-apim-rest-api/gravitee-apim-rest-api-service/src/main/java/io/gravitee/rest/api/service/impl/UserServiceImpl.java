@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService.DEFAULT_CONSOLE_URL;
+import static io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService.DEFAULT_PORTAL_URL;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.USER;
 import static io.gravitee.repository.management.model.User.AuditEvent.PASSWORD_CHANGED;
 import static io.gravitee.repository.management.model.User.AuditEvent.PASSWORD_RESET;
@@ -141,6 +142,7 @@ import io.gravitee.rest.api.service.exceptions.UserAlreadyFinalizedException;
 import io.gravitee.rest.api.service.exceptions.UserNotActiveException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UserNotInternallyManagedException;
+import io.gravitee.rest.api.service.exceptions.UserRegistrationPendingApprovalException;
 import io.gravitee.rest.api.service.exceptions.UserRegistrationUnavailableException;
 import io.gravitee.rest.api.service.exceptions.UserStateConflictException;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
@@ -201,6 +203,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     private static final String TEMPLATE_ENGINE_ACCESSTOKEN_ATTRIBUTE = "accessToken";
     private static final String TEMPLATE_ENGINE_IDTOKEN_ATTRIBUTE = "idToken";
     private static final ObjectMapper CLAIMS_MAPPER = new ObjectMapper();
+    private static final String PORTAL_REGISTRATION_CONFIRMATION_PATH = "/user/registration/confirm";
 
     // Dirty hack: only used to force class loading
     static {
@@ -575,6 +578,12 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 user = userRepository.findById(username).orElseThrow(() -> new UserNotFoundException(username));
                 if (StringUtils.isNotBlank(user.getPassword())) {
                     throw new UserAlreadyFinalizedException(executionContext.getOrganizationId());
+                }
+                if (UserStatus.PENDING == user.getStatus()) {
+                    throw new UserRegistrationPendingApprovalException(username);
+                }
+                if (UserStatus.REJECTED == user.getStatus() || UserStatus.ARCHIVED == user.getStatus()) {
+                    throw new UserStateConflictException("Registration of user " + username + " cannot be finalized anymore");
                 }
             }
 
@@ -960,17 +969,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                     action,
                     confirmationPageUrl
                 );
-                emailService.sendAsyncEmailNotification(
-                    executionContext,
-                    new EmailNotificationBuilder()
-                        .to(userEntity.getEmail())
-                        .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_REGISTRATION)
-                        .params(params)
-                        .param("registrationAction", USER_REGISTRATION.equals(action) ? "registration" : "creation")
-                        .build()
-                );
-
                 if (autoRegistrationEnabled) {
+                    sendRegistrationEmail(executionContext, userEntity, action, params);
                     notifierService.trigger(
                         executionContext,
                         ACTION.USER_REGISTRATION.equals(action) ? PortalHook.USER_REGISTERED : PortalHook.USER_CREATED,
@@ -987,6 +987,55 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         }
 
         return userEntity;
+    }
+
+    private void sendRegistrationEmail(
+        ExecutionContext executionContext,
+        final UserEntity userEntity,
+        final ACTION action,
+        final Map<String, Object> params
+    ) {
+        emailService.sendAsyncEmailNotification(
+            executionContext,
+            new EmailNotificationBuilder()
+                .to(userEntity.getEmail())
+                .template(EmailNotificationBuilder.EmailTemplate.TEMPLATES_FOR_ACTION_USER_REGISTRATION)
+                .params(params)
+                .param("registrationAction", USER_REGISTRATION.equals(action) ? "registration" : "creation")
+                .build()
+        );
+    }
+
+    private String registrationEnvironmentId(ExecutionContext executionContext, String userId) {
+        // The approval request is organization scoped, but the user got a membership on the environment they registered on.
+        Set<String> environmentIds = membershipService.getReferenceIdsByMemberAndReference(
+            MembershipMemberType.USER,
+            userId,
+            MembershipReferenceType.ENVIRONMENT
+        );
+        if (environmentIds != null && environmentIds.size() == 1) {
+            return environmentIds.iterator().next();
+        }
+        return executionContext.hasEnvironmentId() ? executionContext.getEnvironmentId() : GraviteeContext.getDefaultEnvironment();
+    }
+
+    private String portalRegistrationConfirmationUrl(ExecutionContext executionContext, String userId) {
+        // The URL given at registration time is not kept, so the confirmation page is rebuilt from the environment.
+        final String environmentId = registrationEnvironmentId(executionContext, userId);
+        String portalUrl = installationAccessQueryService.getPortalUrl(environmentId);
+        // Registrations can also be requested from the console, and the 'Portal URL' may not be configured for this
+        // environment: without an explicit one, the email falls back to the console registration link.
+        if (isEmpty(portalUrl) || DEFAULT_PORTAL_URL.equals(portalUrl)) {
+            log.warn(
+                "No 'Portal URL' configured for environment {}, the registration email will link to the console. You may want to change this default configuration in the Settings.",
+                environmentId
+            );
+            return null;
+        }
+        if (portalUrl.endsWith("/")) {
+            portalUrl = portalUrl.substring(0, portalUrl.length() - 1);
+        }
+        return portalUrl + PORTAL_REGISTRATION_CONFIRMATION_PATH;
     }
 
     @Override
@@ -1013,6 +1062,21 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 .newValue(processedUser)
                 .build()
         );
+
+        if (accepted && !processedUser.isHasPassword()) {
+            sendRegistrationEmail(
+                executionContext,
+                processedUser,
+                USER_REGISTRATION,
+                getTokenRegistrationParams(
+                    executionContext,
+                    processedUser,
+                    REGISTRATION_PATH,
+                    USER_REGISTRATION,
+                    portalRegistrationConfirmationUrl(executionContext, userId)
+                )
+            );
+        }
 
         return processedUser;
     }
