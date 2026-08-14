@@ -23,6 +23,7 @@ import io.gravitee.apim.core.api.query_service.ApiPortalSearchQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
+import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.domain_service.CheckTypoToleranceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalCatalogNavigationVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
@@ -75,6 +76,7 @@ public class GetVisiblePortalCatalogItemsUseCase {
     private final CheckTypoToleranceDomainService checkTypoToleranceDomainService;
 
     public Output execute(Input input) {
+        String categoryId = input.categoryId().map(PortalCategoryId::toString).orElse(null);
         List<PortalNavigationItem> navigationItems = portalNavigationItemsQueryService.search(
             PortalNavigationItemQueryCriteria.builder().environmentId(input.environmentId()).build()
         );
@@ -84,8 +86,8 @@ public class GetVisiblePortalCatalogItemsUseCase {
         List<PortalNavigationApi> accessibleApis = input
             .viewerContext()
             .userId()
-            .map(userId -> apiVisibilityDomainService.resolveVisibleItems(input.environmentId(), userId))
-            .orElseGet(() -> apiVisibilityDomainService.resolveVisibleItems(input.environmentId()));
+            .map(userId -> apiVisibilityDomainService.resolveVisibleItems(input.environmentId(), userId, categoryId))
+            .orElseGet(() -> apiVisibilityDomainService.resolveVisiblePublicItems(input.environmentId(), categoryId));
         Set<PortalNavigationItemId> accessibleApiNavigationItemIds = accessibleApis
             .stream()
             .map(PortalNavigationItem::getId)
@@ -106,13 +108,10 @@ public class GetVisiblePortalCatalogItemsUseCase {
             visibleApis,
             navigationItemsById
         );
-        List<PortalNavigationApiProduct> visibleApiProducts = findVisibleApiProducts(
-            navigationItems,
-            input,
-            navigationItemsById,
-            accessibleApiNavigationItemIds,
-            accessibleApiProductIds
-        );
+        // API products carry no category association, so a category-filtered catalog search never matches any of them.
+        List<PortalNavigationApiProduct> visibleApiProducts = input.categoryId().isPresent()
+            ? List.of()
+            : findVisibleApiProducts(navigationItems, input, navigationItemsById, accessibleApiNavigationItemIds, accessibleApiProductIds);
 
         Optional<String> query = input
             .query()
@@ -326,7 +325,8 @@ public class GetVisiblePortalCatalogItemsUseCase {
         PortalNavigationItemViewerContext viewerContext,
         Pageable pageable,
         Optional<String> query,
-        Set<PortalNavigationSearchInclude> includes
+        Set<PortalNavigationSearchInclude> includes,
+        Optional<PortalCategoryId> categoryId
     ) {}
 
     public record Output(

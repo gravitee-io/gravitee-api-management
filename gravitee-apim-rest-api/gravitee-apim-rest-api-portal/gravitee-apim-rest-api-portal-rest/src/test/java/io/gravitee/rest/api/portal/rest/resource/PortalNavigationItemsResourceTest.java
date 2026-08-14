@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 
 import inmemory.ApiPortalSearchQueryServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.ApiQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
@@ -66,6 +67,9 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     @Autowired
     private ApiProductQueryServiceInMemory apiProductQueryService;
 
+    @Autowired
+    private ApiQueryServiceInMemory apiQueryService;
+
     @Override
     protected String contextPath() {
         return "portal-navigation-items";
@@ -85,6 +89,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         portalNavigationItemsQueryService.reset();
         apiPortalSearchQueryService.reset();
         apiProductQueryService.reset();
+        apiQueryService.reset();
     }
 
     @Test
@@ -532,6 +537,106 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
                 assertThat(apiProduct).containsEntry("navigationItemId", navigationItemId.json());
                 assertThat(apiProduct).containsEntry("apis", List.of());
             });
+    }
+
+    @Test
+    void should_filter_catalog_api_items_by_known_category_id() {
+        var itemInCategory = PortalNavigationApi.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId("org")
+            .environmentId(ENV_ID)
+            .title("Auth API")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(1)
+            .apiId("api-uuid-1")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .segment(PortalNavigationItem.slugify("Auth API").value())
+            .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID_1)))
+            .build();
+        var itemOutsideCategory = PortalNavigationApi.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId("org")
+            .environmentId(ENV_ID)
+            .title("Other API")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(2)
+            .apiId("api-uuid-2")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .segment(PortalNavigationItem.slugify("Other API").value())
+            .build();
+        portalNavigationItemsQueryService.initWith(List.of(itemInCategory, itemOutsideCategory));
+        var apis = List.of(
+            Api.builder().id("api-uuid-1").name("Auth API").environmentId(ENV_ID).build(),
+            Api.builder().id("api-uuid-2").name("Other API").environmentId(ENV_ID).build()
+        );
+        apiPortalSearchQueryService.initWith(apis);
+        apiQueryService.initWith(apis);
+
+        Response response = target("/_search").queryParam("type", "catalog").queryParam("categoryId", CATEGORY_ID_1).request().get();
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
+        @SuppressWarnings("unchecked")
+        var data = (List<Map<String, Object>>) result.get("data");
+        assertThat(data).hasSize(1);
+        assertThat(data.getFirst()).containsEntry("id", itemInCategory.getId().toString());
+    }
+
+    @Test
+    void should_exclude_api_products_from_catalog_search_when_category_id_is_present() {
+        var apiItem = PortalNavigationApi.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId("org")
+            .environmentId(ENV_ID)
+            .title("Auth API")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(1)
+            .apiId("api-uuid-1")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .segment(PortalNavigationItem.slugify("Auth API").value())
+            .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID_1)))
+            .build();
+        var apiProductId = UUID.randomUUID();
+        var apiProductItem = PortalNavigationFixtures.apiProduct(
+            PortalNavigationFixtures.randomNavigationId(),
+            "Payments Product",
+            PortalArea.TOP_NAVBAR,
+            apiProductId
+        );
+        apiProductItem.setEnvironmentId(ENV_ID);
+        portalNavigationItemsQueryService.initWith(List.of(apiItem, apiProductItem));
+        var apis = List.of(Api.builder().id("api-uuid-1").name("Auth API").environmentId(ENV_ID).build());
+        apiPortalSearchQueryService.initWith(apis);
+        apiQueryService.initWith(apis);
+        apiProductQueryService.initWith(
+            List.of(
+                ApiProduct.builder()
+                    .id(apiProductId.toString())
+                    .environmentId(ENV_ID)
+                    .name("Payments Product")
+                    .version("1.0.0")
+                    .apiIds(Set.of())
+                    .build()
+            )
+        );
+
+        Response response = target("/_search")
+            .queryParam("type", "catalog")
+            .queryParam("include", "api_product")
+            .queryParam("categoryId", CATEGORY_ID_1)
+            .request()
+            .get();
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
+        @SuppressWarnings("unchecked")
+        var data = (List<Map<String, Object>>) result.get("data");
+        assertThat(data).hasSize(1);
+        assertThat(data.getFirst()).containsEntry("id", apiItem.getId().toString());
+        assertThat(result.get("apiProducts")).isNull();
     }
 
     @Test
