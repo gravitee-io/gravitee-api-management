@@ -49,6 +49,16 @@
       gap: 8px;
     }
 
+    &-label-text {
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    &-value {
+      color: app-theme.$primary-main-color;
+      white-space: nowrap;
+    }
+
     &-count {
       display: inline-flex;
       min-width: 24px;

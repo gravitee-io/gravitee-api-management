@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { Component, Signal, computed, effect, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
@@ -30,7 +31,7 @@ import { BadgeComponent } from '../../components/badge/badge.component';
 import { ButtonToggleGroupComponent } from '../../components/button-toggle-group/button-toggle-group.component';
 import { ButtonToggleOptionComponent } from '../../components/button-toggle-group/button-toggle-option.component';
 import { CardsGridComponent } from '../../components/cards-grid/cards-grid.component';
-import { CategorySelectComponent } from '../../components/category-select/category-select.component';
+import { DropdownSearchComponent } from '../../components/dropdown-search/dropdown-search.component';
 import { LoaderComponent } from '../../components/loader/loader.component';
 import { OverflowLabelsComponent } from '../../components/overflow-labels/overflow-labels.component';
 import { PaginationComponent } from '../../components/pagination/pagination.component';
@@ -86,11 +87,12 @@ interface CategoriesState {
     ButtonToggleGroupComponent,
     ButtonToggleOptionComponent,
     CardsGridComponent,
-    CategorySelectComponent,
+    DropdownSearchComponent,
     LoaderComponent,
     MobileClassDirective,
     OverflowLabelsComponent,
     PaginationComponent,
+    ReactiveFormsModule,
     SearchBarComponent,
     MatChipsModule,
     MatIconModule,
@@ -126,6 +128,8 @@ export class CatalogComponent {
     { initialValue: { categories: [] as PortalCategory[], status: 'loading' as const } },
   );
   protected readonly categories = computed(() => this.categoriesState().categories);
+  protected readonly categoryOptions = computed(() => this.categories().map(category => ({ value: category.id, label: category.title })));
+  protected readonly categoryFilter = new FormControl<string[] | null>(null);
   protected readonly unknownCategory = computed(() => {
     const categoryId = this.categoryId();
     const { categories, status } = this.categoriesState();
@@ -145,6 +149,15 @@ export class CatalogComponent {
       this.categoryId();
       this.categoriesState();
       this.page$.next(1);
+    });
+
+    effect(() => {
+      const categoryId = this.categoryId();
+      this.categoryFilter.setValue(categoryId ? [categoryId] : [], { emitEvent: false });
+    });
+
+    this.categoryFilter.valueChanges.pipe(takeUntilDestroyed()).subscribe(values => {
+      this.onCategorySelect(values?.[0] ?? null);
     });
   }
 

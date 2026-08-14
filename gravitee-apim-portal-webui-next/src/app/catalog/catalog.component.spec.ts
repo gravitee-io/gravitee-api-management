@@ -24,7 +24,7 @@ import { CatalogComponent } from './catalog.component';
 import { CatalogHarness } from './catalog.component.harness';
 import { ApiCardHarness } from '../../components/api-card/api-card.harness';
 import { ApiProductCardHarness } from '../../components/api-product-card/api-product-card.harness';
-import { CategorySelectHarness } from '../../components/category-select/category-select.component.harness';
+import { DropdownSearchComponentHarness } from '../../components/dropdown-search/dropdown-search.component.harness';
 import { PaginationHarness } from '../../components/pagination/pagination.harness';
 import { fakeApi } from '../../entities/api/api.fixtures';
 import { PortalCategory } from '../../entities/categories/portal-category';
@@ -287,8 +287,8 @@ describe('CatalogComponent', () => {
       expectCatalogRequest(1, 20, 'cat-1').flush(createCatalogResponse({ data: [], apis: [], apiProducts: [] }));
       fixture.detectChanges();
 
-      const categorySelect = await harnessLoader.getHarness(CategorySelectHarness);
-      expect(await categorySelect.getSelectedText()).toEqual('Category One');
+      const categorySelect = await harnessLoader.getHarness(DropdownSearchComponentHarness);
+      expect(await categorySelect.getTriggerText()).toContain('Category One');
     });
 
     it('should show a generic error state for an unknown or hidden category id, without calling search', async () => {

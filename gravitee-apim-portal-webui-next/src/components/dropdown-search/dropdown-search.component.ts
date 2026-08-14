@@ -54,6 +54,8 @@ type ResultsState = ResultsLoaderOutput & {
   isLoading: boolean;
 };
 
+const SINGLE_SELECT_EMPTY_LABEL = $localize`:@@dropdownSearchSingleSelectEmptyLabel:All`;
+
 @Component({
   selector: 'app-dropdown-search',
   standalone: true,
@@ -81,9 +83,15 @@ export class DropdownSearchComponent implements ControlValueAccessor, OnDestroy 
     return of({ data, hasNextPage: false });
   });
 
+  multiple = input<boolean>(true);
+
   protected isOpen = signal(false);
-  protected selectedCount = signal(0);
-  protected multiple = true;
+  protected readonly selectedValues = signal<string[]>([]);
+  protected readonly selectedCount = computed(() => this.selectedValues().length);
+  protected readonly selectedOptionLabel = computed(() => {
+    const [selected] = this.selectedValues();
+    return this.options().find(option => option.value === selected)?.label ?? SINGLE_SELECT_EMPTY_LABEL;
+  });
 
   protected _value: string[] = [];
   protected isDisabled = false;
@@ -125,7 +133,7 @@ export class DropdownSearchComponent implements ControlValueAccessor, OnDestroy 
 
   writeValue(value: string[]): void {
     this._value = value || [];
-    this.selectedCount.set(this._value.length);
+    this.selectedValues.set(this._value);
   }
 
   registerOnChange(fn: (value: string[]) => void): void {
@@ -186,6 +194,9 @@ export class DropdownSearchComponent implements ControlValueAccessor, OnDestroy 
     componentRef.instance.selectionChange.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((selectedValue: string) => {
       this.onSelectionChange(selectedValue);
       componentRef.instance.selectedValues = [...this._value];
+      if (!this.multiple()) {
+        this.closeOverlay();
+      }
     });
 
     componentRef.instance.clearSelectionChange.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
@@ -214,6 +225,7 @@ export class DropdownSearchComponent implements ControlValueAccessor, OnDestroy 
     componentRef.instance.placeholder = this.placeholder();
     componentRef.instance.isLoading = this.resultsState()?.isLoading ?? false;
     componentRef.instance.hasNextPage = this.resultsState()?.hasNextPage ?? false;
+    componentRef.instance.multiple = this.multiple();
   }
 
   private closeOverlay() {
@@ -225,6 +237,11 @@ export class DropdownSearchComponent implements ControlValueAccessor, OnDestroy 
   }
 
   private onSelectionChange(selectedValue: string) {
+    if (!this.multiple()) {
+      this.updateValue([selectedValue]);
+      return;
+    }
+
     const currentValues = this._value ? [...this._value] : [];
     const index = currentValues.indexOf(selectedValue);
     const newValues = index > -1 ? currentValues.filter((_, i) => i !== index) : [...currentValues, selectedValue];
@@ -233,7 +250,7 @@ export class DropdownSearchComponent implements ControlValueAccessor, OnDestroy 
 
   private updateValue(value: string[]) {
     this._value = value || [];
-    this.selectedCount.set(this._value.length);
+    this.selectedValues.set(this._value);
     this.onChange(this._value);
     this.onTouched();
   }

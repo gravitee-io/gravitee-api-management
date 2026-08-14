@@ -41,6 +41,7 @@ describe('DropdownSearchComponent', () => {
         [formControl]="control"
         [resultsLoader]="resultsLoader"
         [placeholder]="placeholder"
+        [multiple]="multiple"
       />
     `,
   })
@@ -49,6 +50,7 @@ describe('DropdownSearchComponent', () => {
     options: SelectOption[] = mockOptions;
     control = new FormControl<string[]>([]);
     placeholder = 'Search...';
+    multiple = true;
     resultsLoader: (params: { searchTerm: string; page: number }) => Observable<ResultsLoaderOutput>;
 
     constructor() {
@@ -236,6 +238,48 @@ describe('DropdownSearchComponent', () => {
       expect(await harness.isOpen()).toBe(true);
       await harness.close();
       expect(await harness.isOpen()).toBe(false);
+    });
+  });
+
+  describe('Single select (multiple=false)', () => {
+    beforeEach(() => {
+      component.multiple = false;
+      fixture.detectChanges();
+    });
+
+    it('should replace the selection rather than adding to it', async () => {
+      await harness.toggleOption('Option 1');
+      expect(component.control.value).toEqual(['opt1']);
+
+      await harness.toggleOption('Option 2');
+      expect(component.control.value).toEqual(['opt2']);
+    });
+
+    it('should close the overlay after a selection is made', async () => {
+      await harness.open();
+      expect(await harness.isOpen()).toBe(true);
+
+      await harness.toggleOption('Option 1');
+      expect(await harness.isOpen()).toBe(false);
+    });
+
+    it('should show the label and "All" in the trigger when nothing is selected', async () => {
+      const triggerText = await harness.getTriggerText();
+      expect(triggerText).toContain('Test Label');
+      expect(triggerText).toContain('All');
+    });
+
+    it('should show the selected option label in the trigger instead of a count', async () => {
+      await harness.toggleOption('Option 1');
+      const triggerText = await harness.getTriggerText();
+      expect(triggerText).toContain('Option 1');
+      expect(triggerText).not.toContain('All');
+      expect(fixture.nativeElement.querySelector('.portal-dropdown-search__trigger-count')).toBeNull();
+    });
+
+    it('should not render checkboxes for the options', async () => {
+      await harness.open();
+      expect(document.querySelectorAll('mat-checkbox').length).toBe(0);
     });
   });
 });

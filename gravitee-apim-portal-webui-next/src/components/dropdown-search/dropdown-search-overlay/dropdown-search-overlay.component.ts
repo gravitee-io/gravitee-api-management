@@ -42,6 +42,7 @@ export class DropdownSearchOverlayComponent implements OnInit, AfterViewInit {
   placeholder = 'Search...';
   isLoading = false;
   hasNextPage = false;
+  multiple = true;
 
   searchControl = new FormControl('');
 
