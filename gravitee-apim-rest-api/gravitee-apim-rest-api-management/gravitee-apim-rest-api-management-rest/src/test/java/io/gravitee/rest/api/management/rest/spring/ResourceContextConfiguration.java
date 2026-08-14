@@ -172,6 +172,7 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.core.subscription.domain_service.SubscriptionCRDDomainService;
 import io.gravitee.apim.core.subscription.domain_service.ValidateSubscriptionCRDDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionSearchQueryService;
+import io.gravitee.apim.core.subscription.query_service.SubscriptionTargetSearchQueryService;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
@@ -589,6 +590,11 @@ public class ResourceContextConfiguration {
     @Bean
     public SubscriptionSearchQueryService subscriptionSearchQueryService() {
         return new SubscriptionSearchQueryServiceInMemory();
+    }
+
+    @Bean
+    public SubscriptionTargetSearchQueryService subscriptionTargetSearchQueryService() {
+        return mock(SubscriptionTargetSearchQueryService.class);
     }
 
     @Bean

@@ -478,7 +478,11 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
 
         started = addStringsWhereClause(criteria.getPlans(), "s." + escapeReservedWord("plan"), argsList, builder, started);
         started = addStringsWhereClause(criteria.getApplications(), "s.application", argsList, builder, started);
-        if (criteria.getReferenceType() != null) {
+        if (!isEmpty(criteria.getReferenceTypes())) {
+            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
+            appendReferenceTypesFilter(criteria, builder, argsList);
+            started = true;
+        } else if (criteria.getReferenceType() != null) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
             if (
                 isEmpty(criteria.getReferenceIds()) &&
@@ -617,6 +621,44 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
         argsList.add(io.gravitee.repository.management.model.SubscriptionReferenceType.API.name());
         argsList.addAll(referenceIds); // for reference_id IN
         argsList.addAll(referenceIds); // for api IN
+    }
+
+    private void appendReferenceTypesFilter(SubscriptionCriteria criteria, StringBuilder builder, List<Object> argsList) {
+        boolean filterByReferenceIds = !isEmpty(criteria.getApis()) || !isEmpty(criteria.getApiProducts());
+        builder.append("(");
+        boolean appended = false;
+
+        if (criteria.getReferenceTypes().contains(SubscriptionReferenceType.API)) {
+            if (!filterByReferenceIds || !isEmpty(criteria.getApis())) {
+                if (filterByReferenceIds) {
+                    appendApiReferenceIdsFilter(criteria.getApis(), builder, argsList);
+                } else {
+                    builder.append("( s.reference_type = ? OR s.reference_type IS NULL )");
+                    argsList.add(SubscriptionReferenceType.API.name());
+                }
+                appended = true;
+            }
+        }
+
+        if (criteria.getReferenceTypes().contains(SubscriptionReferenceType.API_PRODUCT)) {
+            if (!filterByReferenceIds || !isEmpty(criteria.getApiProducts())) {
+                if (appended) {
+                    builder.append(" OR ");
+                }
+                builder.append("( s.reference_type = ?");
+                argsList.add(SubscriptionReferenceType.API_PRODUCT.name());
+                if (filterByReferenceIds) {
+                    builder.append(" AND s.reference_id IN (").append(getOrm().buildInClause(criteria.getApiProducts())).append(")");
+                    argsList.addAll(criteria.getApiProducts());
+                }
+                builder.append(" )");
+                appended = true;
+            }
+        }
+        if (!appended) {
+            builder.append("1 = 0");
+        }
+        builder.append(")");
     }
 
     private void storeMetadata(Subscription subscription, boolean deleteFirst) {

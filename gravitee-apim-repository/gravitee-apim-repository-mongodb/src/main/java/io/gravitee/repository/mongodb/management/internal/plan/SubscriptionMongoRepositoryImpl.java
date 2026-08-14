@@ -86,10 +86,11 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
         List<Bson> dataPipeline = new ArrayList<>(filterPipeline);
         // set sortable
         if (sortable != null) {
+            String sortableField = "id".equals(sortable.field()) ? "_id" : FieldUtils.toCamelCase(sortable.field());
             if (sortable.order().equals(Order.ASC)) {
-                dataPipeline.add(sort(Sorts.ascending(FieldUtils.toCamelCase(sortable.field()))));
+                dataPipeline.add(sort(Sorts.ascending(sortableField)));
             } else {
-                dataPipeline.add(sort(Sorts.descending(FieldUtils.toCamelCase(sortable.field()))));
+                dataPipeline.add(sort(Sorts.descending(sortableField)));
             }
         } else {
             dataPipeline.add(sort(Sorts.descending("createdAt")));
@@ -139,7 +140,9 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             }
         }
 
-        if (criteria.getReferenceType() != null) {
+        if (!CollectionUtils.isEmpty(criteria.getReferenceTypes())) {
+            addReferenceTypesFilter(dataPipeline, criteria);
+        } else if (criteria.getReferenceType() != null) {
             if (criteria.getReferenceIds() == null || criteria.getReferenceIds().isEmpty()) {
                 // Filter by type only (e.g. Portal API-only): include legacy subscriptions with null referenceType
                 if (criteria.getReferenceType() == SubscriptionReferenceType.API) {
@@ -370,6 +373,42 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
         Bson migratedFilter = and(eq("referenceType", SubscriptionReferenceType.API.name()), referenceIdFilter);
         Bson legacyFilter = and(or(eq("referenceType", null), exists("referenceType", false)), apiFilter);
         dataPipeline.add(match(or(migratedFilter, legacyFilter)));
+    }
+
+    private void addReferenceTypesFilter(List<Bson> dataPipeline, SubscriptionCriteria criteria) {
+        boolean filterByReferenceIds = !CollectionUtils.isEmpty(criteria.getApis()) || !CollectionUtils.isEmpty(criteria.getApiProducts());
+        List<Bson> referenceFilters = new ArrayList<>();
+
+        if (criteria.getReferenceTypes().contains(SubscriptionReferenceType.API)) {
+            if (!filterByReferenceIds || !CollectionUtils.isEmpty(criteria.getApis())) {
+                Bson referenceTypeFilter = or(
+                    eq("referenceType", SubscriptionReferenceType.API.name()),
+                    eq("referenceType", null),
+                    exists("referenceType", false)
+                );
+                if (filterByReferenceIds) {
+                    Bson migratedFilter = and(
+                        eq("referenceType", SubscriptionReferenceType.API.name()),
+                        in("referenceId", criteria.getApis())
+                    );
+                    Bson legacyFilter = and(or(eq("referenceType", null), exists("referenceType", false)), in("api", criteria.getApis()));
+                    referenceTypeFilter = or(migratedFilter, legacyFilter);
+                }
+                referenceFilters.add(referenceTypeFilter);
+            }
+        }
+
+        if (criteria.getReferenceTypes().contains(SubscriptionReferenceType.API_PRODUCT)) {
+            if (!filterByReferenceIds || !CollectionUtils.isEmpty(criteria.getApiProducts())) {
+                Bson referenceTypeFilter = eq("referenceType", SubscriptionReferenceType.API_PRODUCT.name());
+                if (filterByReferenceIds) {
+                    referenceTypeFilter = and(referenceTypeFilter, in("referenceId", criteria.getApiProducts()));
+                }
+                referenceFilters.add(referenceTypeFilter);
+            }
+        }
+
+        dataPipeline.add(match(referenceFilters.isEmpty() ? exists("_id", false) : or(referenceFilters)));
     }
 
     private Page<SubscriptionMongo> buildSubscriptionsPage(Pageable pageable, AggregateIterable<Document> dataAggregate, Long totalCount) {

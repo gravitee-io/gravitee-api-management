@@ -619,6 +619,72 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     }
 
     @Test
+    public void should_search_api_and_api_product_subscriptions_by_reference_types() throws TechnicalException {
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder()
+                .referenceTypes(Set.of(SubscriptionReferenceType.API, SubscriptionReferenceType.API_PRODUCT))
+                .build()
+        );
+
+        Set<String> ids = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
+
+        assertTrue(ids.contains("sub1"), "Should include API subscriptions");
+        assertTrue(ids.contains("sub-legacy-push"), "Should include legacy API subscriptions");
+        assertTrue(ids.contains("sub-api-product-1"), "Should include API Product subscriptions");
+        assertTrue(ids.contains("sub-api-product-2"), "Should include API Product subscriptions");
+    }
+
+    @Test
+    public void should_search_api_and_api_product_subscriptions_by_typed_reference_ids() throws TechnicalException {
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            SubscriptionCriteria.builder()
+                .referenceTypes(Set.of(SubscriptionReferenceType.API, SubscriptionReferenceType.API_PRODUCT))
+                .apis(Set.of("api1"))
+                .apiProducts(Set.of("c45b8e66-4d2a-47ad-9b8e-664d2a97ad88"))
+                .build()
+        );
+
+        Set<String> ids = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
+
+        assertTrue(ids.contains("sub1"), "Should include migrated API subscriptions");
+        assertTrue(ids.contains("sub-legacy-push"), "Should include legacy API subscriptions");
+        assertTrue(ids.contains("sub-api-product-1"), "Should include API Product subscriptions");
+        assertTrue(ids.contains("sub-api-product-2"), "Should include API Product subscriptions");
+    }
+
+    @Test
+    public void should_page_api_and_api_product_subscriptions_with_an_accurate_total() throws TechnicalException {
+        SubscriptionCriteria criteria = SubscriptionCriteria.builder()
+            .referenceTypes(Set.of(SubscriptionReferenceType.API, SubscriptionReferenceType.API_PRODUCT))
+            .applications(Set.of("app4"))
+            .build();
+        var sortable = new SortableBuilder().field("id").order(Order.ASC).build();
+
+        Page<Subscription> firstPage = subscriptionRepository.search(
+            criteria,
+            sortable,
+            new PageableBuilder().pageNumber(0).pageSize(2).build()
+        );
+        Page<Subscription> secondPage = subscriptionRepository.search(
+            criteria,
+            sortable,
+            new PageableBuilder().pageNumber(1).pageSize(2).build()
+        );
+
+        assertEquals(2, firstPage.getContent().size());
+        assertEquals(firstPage.getTotalElements(), secondPage.getTotalElements());
+        assertTrue(firstPage.getTotalElements() > firstPage.getContent().size());
+        assertTrue(
+            firstPage
+                .getContent()
+                .stream()
+                .map(Subscription::getId)
+                .noneMatch(secondPage.getContent().stream().map(Subscription::getId).toList()::contains),
+            "Pages must not overlap"
+        );
+    }
+
+    @Test
     public void shouldSearchByReferenceIdsAndType() throws TechnicalException {
         // Criteria with referenceIds/referenceType for API subscriptions
         // Expects both the migrated subscription (referenceId/referenceType set) and the legacy one (only api field set)

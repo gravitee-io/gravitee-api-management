@@ -41,9 +41,13 @@ public class SubscriptionCriteria {
 
     private final Collection<String> apis;
 
+    private final Collection<String> apiProducts;
+
     private final Collection<String> referenceIds;
 
     private final SubscriptionReferenceType referenceType;
+
+    private final Set<SubscriptionReferenceType> referenceTypes;
 
     private final Collection<String> plans;
 

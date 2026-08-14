@@ -16,13 +16,13 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.apim.core.portal_page.domain_service.PortalApiProductAccessDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.subscription.model.SubscriptionConfiguration;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
+import io.gravitee.apim.core.subscription.use_case.SearchPortalSubscriptionsUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -36,7 +36,6 @@ import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
-import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.mapper.KeyMapper;
@@ -69,9 +68,8 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
-import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
@@ -87,6 +85,9 @@ public class SubscriptionsResource extends AbstractResource {
 
     @Inject
     private CreateSubscriptionUseCase createSubscriptionUseCase;
+
+    @Inject
+    private SearchPortalSubscriptionsUseCase searchPortalSubscriptionsUseCase;
 
     @Inject
     private PlanSearchService planSearchService;
@@ -208,6 +209,8 @@ public class SubscriptionsResource extends AbstractResource {
         @Deprecated @QueryParam("applicationId") String applicationId,
         @QueryParam("apiIds") List<String> apiIds,
         @QueryParam("apiProductIds") List<String> apiProductIds,
+        @QueryParam("referenceTypes") List<String> referenceTypes,
+        @QueryParam("query") String targetNameQuery,
         @QueryParam("applicationIds") List<String> applicationIds,
         @QueryParam("statuses") List<SubscriptionStatus> statuses,
         @BeanParam PaginationParam paginationParam
@@ -221,16 +224,7 @@ public class SubscriptionsResource extends AbstractResource {
             throw new BadRequestException("API and API Product filters cannot be used together.");
         }
 
-        final SubscriptionQuery query = new SubscriptionQuery();
-        if (hasApiProductFilter) {
-            query.setApiProducts(apiProductIds);
-        } else {
-            if (hasApiFilter) {
-                query.setApis(effectiveApiIds);
-            }
-            query.setReferenceType(GenericPlanEntity.ReferenceType.API);
-        }
-        query.setStatuses(statuses);
+        Set<SubscriptionReferenceType> effectiveReferenceTypes = resolveReferenceTypes(referenceTypes, hasApiFilter, hasApiProductFilter);
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (effectiveApplicationIds == null || effectiveApplicationIds.isEmpty()) {
@@ -238,17 +232,28 @@ public class SubscriptionsResource extends AbstractResource {
             if (applications == null || applications.isEmpty()) {
                 return createListResponse(executionContext, emptyList(), paginationParam, paginationParam.hasPagination());
             }
-            query.setApplications(applications.stream().map(ApplicationListItem::getId).collect(toSet()));
+            effectiveApplicationIds = applications.stream().map(ApplicationListItem::getId).toList();
         } else {
             for (String appId : effectiveApplicationIds) {
                 if (!hasPermission(executionContext, RolePermission.APPLICATION_SUBSCRIPTION, appId, RolePermissionAction.READ)) {
                     throw new ForbiddenAccessException();
                 }
             }
-            query.setApplications(effectiveApplicationIds);
         }
 
-        final Page<SubscriptionEntity> pagedResult = fetchSubscriptions(paginationParam, query);
+        var output = searchPortalSubscriptionsUseCase.execute(
+            new SearchPortalSubscriptionsUseCase.Input(
+                executionContext,
+                Set.copyOf(effectiveApplicationIds),
+                statuses == null ? null : Set.copyOf(statuses),
+                effectiveReferenceTypes,
+                hasApiFilter ? Set.copyOf(effectiveApiIds) : null,
+                hasApiProductFilter ? Set.copyOf(apiProductIds) : null,
+                targetNameQuery,
+                paginationParam.hasPagination() ? new PageableImpl(paginationParam.getPage(), paginationParam.getSize()) : null
+            )
+        );
+        final Page<SubscriptionEntity> pagedResult = output.page();
         List<SubscriptionEntity> subscriptions = pagedResult.getContent();
         long totalElements = pagedResult.getTotalElements();
 
@@ -317,19 +322,29 @@ public class SubscriptionsResource extends AbstractResource {
         return emptyList();
     }
 
-    private Page<SubscriptionEntity> fetchSubscriptions(PaginationParam paginationParam, SubscriptionQuery query) {
-        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        if (!paginationParam.hasPagination()) {
-            Collection<SubscriptionEntity> resp = subscriptionService.search(executionContext, query);
-            return new Page<>(resp.stream().toList(), 0, resp.size(), resp.size());
+    private static Set<SubscriptionReferenceType> resolveReferenceTypes(
+        List<String> referenceTypes,
+        boolean hasApiFilter,
+        boolean hasApiProductFilter
+    ) {
+        if (referenceTypes == null || referenceTypes.isEmpty()) {
+            return Set.of(hasApiProductFilter ? SubscriptionReferenceType.API_PRODUCT : SubscriptionReferenceType.API);
         }
 
-        Page<SubscriptionEntity> pagedSubscriptions = subscriptionService.search(
-            executionContext,
-            query,
-            new PageableImpl(paginationParam.getPage(), paginationParam.getSize())
-        );
-        return Objects.requireNonNullElseGet(pagedSubscriptions, () -> new Page<>(emptyList(), 0, 0, 0));
+        Set<SubscriptionReferenceType> types = new LinkedHashSet<>();
+        try {
+            referenceTypes.forEach(value -> types.add(SubscriptionReferenceType.valueOf(value.trim())));
+        } catch (IllegalArgumentException | NullPointerException exception) {
+            throw new BadRequestException("Unsupported subscription reference type.");
+        }
+
+        if (hasApiFilter && !types.equals(Set.of(SubscriptionReferenceType.API))) {
+            throw new BadRequestException("The API ID filter can only be used with the API reference type.");
+        }
+        if (hasApiProductFilter && !types.equals(Set.of(SubscriptionReferenceType.API_PRODUCT))) {
+            throw new BadRequestException("The API Product ID filter can only be used with the API_PRODUCT reference type.");
+        }
+        return Set.copyOf(types);
     }
 
     @Path("{subscriptionId}")

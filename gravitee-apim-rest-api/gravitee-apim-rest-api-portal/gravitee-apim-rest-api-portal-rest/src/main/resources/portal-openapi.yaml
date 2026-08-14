@@ -2501,13 +2501,16 @@ paths:
                 - $ref: "#/components/parameters/applicationIdQueryParam"
                 - $ref: "#/components/parameters/apiIdsQueryParam"
                 - $ref: "#/components/parameters/apiProductIdsQueryParam"
+                - $ref: "#/components/parameters/subscriptionReferenceTypesQueryParam"
+                - $ref: "#/components/parameters/subscriptionQueryParam"
                 - $ref: "#/components/parameters/applicationIdsQueryParam"
                 - $ref: "#/components/parameters/subscriptionStatusesQueryParam"
                 - $ref: "#/components/parameters/pageNumberParam"
                 - $ref: "#/components/parameters/pageSizeParam"
             description: |
-                List all ACCEPTED, PAUSED & PENDING subscriptions, filtered by API, API Product and/or application.
-                API and API Product filters cannot be used together. When neither is provided, only API subscriptions are returned.
+                List subscriptions filtered by target type, target name, API, API Product and/or application.
+                API and API Product ID filters cannot be used together. When no target type or target ID filter is provided,
+                only API subscriptions are returned for backward compatibility.
 
                 User must have the APPLICATION_SUBSCRIPTION[READ] permission to list subscription with application query param.\
                 User must have the API_SUBSCRIPTION[READ] permission to list subscription with api query param.
@@ -4323,6 +4326,27 @@ components:
                 type: array
                 items:
                     type: string
+        subscriptionReferenceTypesQueryParam:
+            name: referenceTypes
+            in: query
+            required: false
+            description: |
+                Subscription target types to include. Repeat the parameter to return API and API Product subscriptions in one page.
+                When omitted, API subscriptions are returned unless apiProductIds is specified.
+            schema:
+                type: array
+                items:
+                    type: string
+                    enum:
+                        - API
+                        - API_PRODUCT
+        subscriptionQueryParam:
+            name: query
+            in: query
+            required: false
+            description: Case-insensitive search applied to API and API Product names before subscription pagination.
+            schema:
+                type: string
         applicationIdsQueryParam:
             name: applicationIds
             in: query

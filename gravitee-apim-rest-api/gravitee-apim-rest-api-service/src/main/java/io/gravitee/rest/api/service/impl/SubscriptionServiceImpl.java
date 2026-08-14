@@ -1875,7 +1875,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             }
             builder.ids(subscriptionsIds);
 
-            Stream<SubscriptionEntity> subscriptionsStream = subscriptionRepository.search(builder.build()).stream().map(this::convert);
+            var criteria = builder.build();
+            var subscriptions = query.getSortable() == null
+                ? subscriptionRepository.search(criteria)
+                : subscriptionRepository.search(criteria, convert(query.getSortable()));
+            Stream<SubscriptionEntity> subscriptionsStream = subscriptions.stream().map(this::convert);
 
             return subscriptionsStream.collect(toList());
         } catch (TechnicalException ex) {
@@ -1923,7 +1927,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 var pageSubscription = subscriptionRepository
                     .search(
                         builder.build(),
-                        null,
+                        convert(query.getSortable()),
                         new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build()
                     )
                     .map(this::convert);
@@ -1989,7 +1993,17 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             .includeWithoutEnd(query.isIncludeWithoutEnd())
             .excludedApis(query.getExcludedApis());
 
-        if (query.getReferenceId() != null && query.getReferenceType() != null) {
+        if (query.getReferenceTypes() != null && !query.getReferenceTypes().isEmpty()) {
+            builder.referenceTypes(
+                query
+                    .getReferenceTypes()
+                    .stream()
+                    .map(type -> SubscriptionReferenceType.valueOf(type.name()))
+                    .collect(toSet())
+            );
+            builder.apis(query.getApis());
+            builder.apiProducts(query.getApiProducts());
+        } else if (query.getReferenceId() != null && query.getReferenceType() != null) {
             builder.referenceIds(Collections.singleton(query.getReferenceId()));
             builder.referenceType(SubscriptionReferenceType.valueOf(query.getReferenceType().name()));
             if (query.getReferenceType() == GenericPlanEntity.ReferenceType.API) {

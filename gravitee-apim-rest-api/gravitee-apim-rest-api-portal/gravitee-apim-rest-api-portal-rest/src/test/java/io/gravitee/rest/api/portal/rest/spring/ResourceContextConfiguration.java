@@ -196,6 +196,7 @@ import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.DeleteSubscriptionSpecUseCase;
 import io.gravitee.apim.core.subscription.use_case.GetSubscriptionsUseCase;
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionCRDUseCase;
+import io.gravitee.apim.core.subscription.use_case.SearchPortalSubscriptionsUseCase;
 import io.gravitee.apim.core.subscription.use_case.UpdateSubscriptionUseCase;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSchemaGenerator;
 import io.gravitee.apim.core.user.domain_service.CreateUserDomainService;
@@ -1492,6 +1493,11 @@ public class ResourceContextConfiguration {
     @Bean
     public CreateSubscriptionUseCase createSubscriptionUseCase() {
         return mock(CreateSubscriptionUseCase.class);
+    }
+
+    @Bean
+    public SearchPortalSubscriptionsUseCase searchPortalSubscriptionsUseCase() {
+        return mock(SearchPortalSubscriptionsUseCase.class);
     }
 
     @Bean

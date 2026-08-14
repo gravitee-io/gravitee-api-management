@@ -21,11 +21,13 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -56,6 +58,32 @@ public class SubscriptionSearchQueryServiceImpl implements SubscriptionSearchQue
             .apiKey(apiKey)
             .build();
 
+        return subscriptionService.search(executionContext, query, pageable, false, false);
+    }
+
+    @Override
+    public Page<SubscriptionEntity> search(ExecutionContext executionContext, Criteria criteria, Pageable pageable) {
+        SubscriptionQuery query = SubscriptionQuery.builder()
+            .referenceTypes(
+                criteria
+                    .referenceTypes()
+                    .stream()
+                    .map(type -> GenericPlanEntity.ReferenceType.valueOf(type.name()))
+                    .collect(Collectors.toSet())
+            )
+            .apis(criteria.apiIds())
+            .apiProducts(criteria.apiProductIds())
+            .applications(criteria.applicationIds())
+            .plans(criteria.planIds())
+            .statuses(criteria.statuses())
+            .apiKey(criteria.apiKey())
+            .sortable(criteria.referenceTypes().size() > 1 ? new SortableImpl("id", true) : null)
+            .build();
+
+        if (pageable == null) {
+            var subscriptions = subscriptionService.search(executionContext, query);
+            return new Page<>(subscriptions.stream().toList(), 0, subscriptions.size(), subscriptions.size());
+        }
         return subscriptionService.search(executionContext, query, pageable, false, false);
     }
 }

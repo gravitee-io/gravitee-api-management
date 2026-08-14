@@ -32,6 +32,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.subscription.use_case.SearchPortalSubscriptionsUseCase;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
@@ -98,6 +100,12 @@ class SubscriptionResourceTest extends AbstractResourceTest {
 
         when(keyMapper.convert(any(ApiKeyEntity.class))).thenReturn(new Key());
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+    }
+
+    private void mockSubscriptionSearch(List<SubscriptionEntity> subscriptions) {
+        doReturn(new SearchPortalSubscriptionsUseCase.Output(new Page<>(subscriptions, 0, subscriptions.size(), subscriptions.size())))
+            .when(searchPortalSubscriptionsUseCase)
+            .execute(any(SearchPortalSubscriptionsUseCase.Input.class));
     }
 
     @Nested
@@ -513,7 +521,7 @@ class SubscriptionResourceTest extends AbstractResourceTest {
         @Test
         public void shouldReturnEmptyWhenNoSubscriptions() {
             doReturn(true).when(permissionService).hasPermission(any(), any(), any(), any());
-            doReturn(Collections.emptyList()).when(subscriptionService).search(any(), any());
+            mockSubscriptionSearch(Collections.emptyList());
 
             final Response response = target().queryParam("apiId", API).queryParam("applicationId", APPLICATION).request().get();
 
@@ -527,7 +535,7 @@ class SubscriptionResourceTest extends AbstractResourceTest {
             SubscriptionEntity subscription = new SubscriptionEntity();
             subscription.setId("sub-id");
             subscription.setStatus(SubscriptionStatus.ACCEPTED);
-            doReturn(Collections.singletonList(subscription)).when(subscriptionService).search(any(), any());
+            mockSubscriptionSearch(Collections.singletonList(subscription));
             doReturn(new Metadata()).when(subscriptionService).getMetadata(any(), any());
 
             final Response response = target().queryParam("apiId", API).queryParam("applicationId", APPLICATION).request().get();
@@ -541,7 +549,7 @@ class SubscriptionResourceTest extends AbstractResourceTest {
             SubscriptionEntity subscription = new SubscriptionEntity();
             subscription.setId("sub-id");
             subscription.setStatus(SubscriptionStatus.ACCEPTED);
-            doReturn(Collections.singletonList(subscription)).when(subscriptionService).search(any(), any());
+            mockSubscriptionSearch(Collections.singletonList(subscription));
             doReturn(new Metadata()).when(subscriptionService).getMetadata(any(), any());
 
             final Response response = target()

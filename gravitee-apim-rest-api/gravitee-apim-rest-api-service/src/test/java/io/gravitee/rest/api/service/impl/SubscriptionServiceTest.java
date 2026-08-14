@@ -61,6 +61,8 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.ApiProduct;
@@ -95,6 +97,7 @@ import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.model.application.TlsSettings;
 import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.subscription.ReferenceDisplayInfo;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
@@ -3044,6 +3047,29 @@ public class SubscriptionServiceTest {
                     criteria.getReferenceIds().contains("c45b8e66-4d2a-47ad-9b8e-664d2a97ad88") &&
                     criteria.getReferenceType() == SubscriptionReferenceType.API_PRODUCT
             )
+        );
+    }
+
+    @Test
+    public void should_search_with_multiple_reference_types_and_typed_reference_ids() throws Exception {
+        SubscriptionQuery query = SubscriptionQuery.builder()
+            .referenceTypes(Set.of(GenericPlanEntity.ReferenceType.API, GenericPlanEntity.ReferenceType.API_PRODUCT))
+            .apis(Set.of(API_ID))
+            .apiProducts(Set.of("api-product-id"))
+            .sortable(new SortableImpl("id", true))
+            .build();
+        when(subscriptionRepository.search(any(SubscriptionCriteria.class), any(Sortable.class))).thenReturn(List.of());
+
+        subscriptionService.search(GraviteeContext.getExecutionContext(), query);
+
+        verify(subscriptionRepository).search(
+            argThat(
+                criteria ->
+                    criteria.getReferenceTypes().equals(Set.of(SubscriptionReferenceType.API, SubscriptionReferenceType.API_PRODUCT)) &&
+                    criteria.getApis().equals(Set.of(API_ID)) &&
+                    criteria.getApiProducts().equals(Set.of("api-product-id"))
+            ),
+            argThat(sortable -> sortable.field().equals("id") && sortable.order() == Order.ASC)
         );
     }
 
