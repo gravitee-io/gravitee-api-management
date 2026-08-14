@@ -21,6 +21,7 @@ import { ConfigService } from './config.service';
 import {
   CreateSubscription,
   Subscription,
+  SubscriptionReferenceType,
   SubscriptionsResponse,
   SubscriptionStatusEnum,
   UpdateSubscription,
@@ -38,6 +39,8 @@ export class SubscriptionService {
   list(queryParams: {
     apiIds?: string[];
     apiProductIds?: string[];
+    referenceTypes?: SubscriptionReferenceType[];
+    query?: string;
     applicationIds?: string[];
     statuses: SubscriptionStatusEnum[] | null;
     size?: number;
@@ -46,6 +49,8 @@ export class SubscriptionService {
     const params = {
       ...(queryParams.apiIds?.length ? { apiIds: queryParams.apiIds } : {}),
       ...(queryParams.apiProductIds?.length ? { apiProductIds: queryParams.apiProductIds } : {}),
+      ...(queryParams.referenceTypes?.length ? { referenceTypes: queryParams.referenceTypes } : {}),
+      ...(queryParams.query?.trim() ? { query: queryParams.query.trim() } : {}),
       ...(queryParams.applicationIds?.length ? { applicationIds: queryParams.applicationIds } : {}),
       ...(queryParams.statuses?.length ? { statuses: queryParams.statuses } : {}),
       ...(queryParams.size != null ? { size: queryParams.size } : {}),

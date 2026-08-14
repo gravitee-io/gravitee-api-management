@@ -19,35 +19,54 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { ActivatedRoute, Router } from '@angular/router';
 import { merge } from 'rxjs';
-import { debounceTime, map } from 'rxjs/operators';
+import { debounceTime } from 'rxjs/operators';
 
 import { subscriptionListBreadcrumb } from './subscription-breadcrumbs';
-import {
-  DropdownSearchComponent,
-  ResultsLoaderInput,
-  ResultsLoaderOutput,
-} from '../../../components/dropdown-search/dropdown-search.component';
+import { BadgeComponent } from '../../../components/badge/badge.component';
+import { DropdownSearchComponent } from '../../../components/dropdown-search/dropdown-search.component';
 import { LoaderComponent } from '../../../components/loader/loader.component';
 import { PaginatedTableComponent, TableColumn } from '../../../components/paginated-table/paginated-table.component';
-import { SubscriptionMetadata, SubscriptionStatusEnum } from '../../../entities/subscription';
-import { ApiService } from '../../../services/api.service';
+import { TableCellDirective } from '../../../components/paginated-table/table-cell.directive';
+import { SearchBarComponent } from '../../../components/search-bar/search-bar.component';
+import { Subscription, SubscriptionMetadata, SubscriptionReferenceType, SubscriptionStatusEnum } from '../../../entities/subscription';
 import { ApplicationService } from '../../../services/application.service';
 import { BreadcrumbService } from '../../../services/breadcrumb.service';
 import { SubscriptionService } from '../../../services/subscription.service';
 import { areFiltersEqual, parseArrayParam, parsePageParam, parseSizeParam, toTitleCase } from '../../../utils/common.utils';
 
 type SubscriptionFilters = {
-  apiIds: string[] | undefined;
+  query: string;
+  referenceTypes: SubscriptionReferenceType[] | null;
   applicationIds: string[] | undefined;
   statuses: SubscriptionStatusEnum[] | null;
   page: number;
   size: number;
 };
 
+interface SubscriptionTableRow {
+  id: string;
+  targetName: string;
+  targetType: string;
+  plan: string;
+  application: string;
+  startAt: string | null;
+  endAt: string | null;
+  status: string;
+}
+
 @Component({
   selector: 'app-subscriptions',
   standalone: true,
-  imports: [MatButton, ReactiveFormsModule, LoaderComponent, PaginatedTableComponent, DropdownSearchComponent],
+  imports: [
+    BadgeComponent,
+    DropdownSearchComponent,
+    LoaderComponent,
+    MatButton,
+    PaginatedTableComponent,
+    ReactiveFormsModule,
+    SearchBarComponent,
+    TableCellDirective,
+  ],
   templateUrl: './subscriptions.component.html',
   styleUrl: './subscriptions.component.scss',
 })
@@ -55,93 +74,102 @@ export default class SubscriptionsComponent {
   private static readonly DEFAULT_PAGE_SIZE = 10;
   private static readonly DEFAULT_PAGE = 1;
   private static readonly MAX_PAGE_SIZE = 100;
+  private static readonly ALL_REFERENCE_TYPES: SubscriptionReferenceType[] = ['API', 'API_PRODUCT'];
 
-  private subscriptionService = inject(SubscriptionService);
-  private applicationService = inject(ApplicationService);
-  private apiService = inject(ApiService);
-  private router = inject(Router);
-  private activatedRoute = inject(ActivatedRoute);
-  private destroyRef = inject(DestroyRef);
+  private readonly subscriptionService = inject(SubscriptionService);
+  private readonly applicationService = inject(ApplicationService);
+  private readonly router = inject(Router);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly breadcrumbService = inject(BreadcrumbService);
 
-  subscriptionStatusesList = Object.values(SubscriptionStatusEnum);
-  statusOptions = this.subscriptionStatusesList.map(status => ({
+  readonly subscriptionStatusesList = Object.values(SubscriptionStatusEnum);
+  readonly statusOptions = this.subscriptionStatusesList.map(status => ({
     value: status,
     label: toTitleCase(status),
   }));
-  tableColumns: TableColumn[] = [
-    { id: 'api', label: 'Subscribed API' },
-    { id: 'plan', label: 'Plan' },
-    { id: 'application', label: 'Application' },
-    { id: 'created_at', label: 'Created', type: 'date' },
-    { id: 'status', label: 'Status' },
+  readonly typeOptions = [
+    { value: 'API', label: $localize`:@@subscriptionTypeApi:API` },
+    { value: 'API_PRODUCT', label: $localize`:@@subscriptionTypeApiProduct:API Product` },
+  ];
+  readonly tableColumns: TableColumn[] = [
+    { id: 'targetName', label: $localize`:@@subscriptionTargetColumn:Subscription target` },
+    { id: 'targetType', label: $localize`:@@subscriptionTypeColumn:Type` },
+    { id: 'plan', label: $localize`:@@subscriptionPlanColumn:Plan` },
+    { id: 'application', label: $localize`:@@subscriptionApplicationColumn:Application` },
+    { id: 'startAt', label: $localize`:@@subscriptionStartDateColumn:Start date`, type: 'date' },
+    { id: 'endAt', label: $localize`:@@subscriptionEndDateColumn:End date`, type: 'date' },
+    { id: 'status', label: $localize`:@@subscriptionStatusColumn:Status` },
   ];
 
   // Form controls for filters (UI view of URL state)
-  apiFilter = new FormControl<string[] | null>(null);
-  applicationFilter = new FormControl<string[] | null>(null);
-  statusFilter = new FormControl<SubscriptionStatusEnum[] | null>([]);
+  readonly typeFilter = new FormControl<SubscriptionReferenceType[] | null>([]);
+  readonly applicationFilter = new FormControl<string[] | null>(null);
+  readonly statusFilter = new FormControl<SubscriptionStatusEnum[] | null>([]);
 
-  private queryParams = toSignal(this.activatedRoute.queryParams, { initialValue: {} as Record<string, unknown> });
+  private readonly queryParams = toSignal(this.activatedRoute.queryParams, { initialValue: {} as Record<string, unknown> });
 
-  filters = computed(() => this.parseParamsToFilters(this.queryParams()));
+  readonly filters = computed(() => this.parseParamsToFilters(this.queryParams()));
 
-  pageSize = computed(() => this.filters().size);
-  currentPage = computed(() => this.filters().page);
+  readonly pageSize = computed(() => this.filters().size);
+  readonly currentPage = computed(() => this.filters().page);
 
   // Available options for filters
-  private availableApplicationsResource = rxResource({
+  private readonly availableApplicationsResource = rxResource({
     stream: () => this.applicationService.list(1, -1),
   });
-  availableApplications = computed(() => this.availableApplicationsResource.value()?.data ?? []);
-  applicationOptions = computed(() =>
+  readonly availableApplications = computed(() => this.availableApplicationsResource.value()?.data ?? []);
+  readonly applicationOptions = computed(() =>
     (this.availableApplications() ?? []).map(app => ({
       value: app.id,
       label: app.name,
     })),
   );
 
-  isLoadingSubscriptions = computed(() => this.subscriptionsResource.isLoading());
+  readonly isLoadingSubscriptions = computed(() => this.subscriptionsResource.isLoading());
 
-  subscriptionsResource = rxResource({
+  readonly subscriptionsResource = rxResource({
     params: () => this.filters(),
-    stream: ({ params }) => this.subscriptionService.list(params),
+    stream: ({ params }) =>
+      this.subscriptionService.list({
+        ...params,
+        referenceTypes: params.referenceTypes ?? SubscriptionsComponent.ALL_REFERENCE_TYPES,
+      }),
   });
 
-  totalElements = computed(() => {
+  readonly totalElements = computed(() => {
     const response = this.subscriptionsResource.value();
     return response?.metadata?.['paginateMetaData']?.totalElements ?? response?.data?.length ?? 0;
   });
 
-  hasSubscriptions = computed(() => {
-    const response = this.subscriptionsResource.value();
-    const { apiIds, applicationIds, statuses } = this.filters();
-    const isFiltered = (apiIds?.length ?? 0) > 0 || (applicationIds?.length ?? 0) > 0 || (statuses?.length ?? 0) > 0;
-
-    if (this.isLoadingSubscriptions()) {
-      return true;
-    }
-
-    if (!isFiltered) {
-      return (response?.data?.length ?? 0) > 0 || this.totalElements() > 0;
-    }
-    return true;
+  readonly subscriptionCountLabel = computed(() => {
+    const count = this.totalElements();
+    return count === 1
+      ? $localize`:@@subscriptionsSingleResult:1 subscription`
+      : $localize`:@@subscriptionsResultCount:${count}:count: subscriptions`;
   });
 
-  rows = computed(() => {
+  readonly isFiltered = computed(() => {
+    const { query, referenceTypes, applicationIds, statuses } = this.filters();
+    return query.length > 0 || (referenceTypes?.length ?? 0) > 0 || (applicationIds?.length ?? 0) > 0 || (statuses?.length ?? 0) > 0;
+  });
+
+  readonly hasSubscriptions = computed(() => {
+    const response = this.subscriptionsResource.value();
+    return (response?.data?.length ?? 0) > 0 || this.totalElements() > 0;
+  });
+
+  readonly shouldShowSubscriptionsContent = computed(
+    () => this.isLoadingSubscriptions() || !!this.subscriptionsResource.error() || this.hasSubscriptions() || this.isFiltered(),
+  );
+
+  readonly rows = computed<SubscriptionTableRow[]>(() => {
     const response = this.subscriptionsResource.value();
     if (!response?.data) {
       return [];
     }
 
-    return response.data.map(sub => ({
-      id: sub.id,
-      api: sub.api ? this.retrieveMetadataName(sub.api, response.metadata) : '',
-      plan: this.retrieveMetadataName(sub.plan, response.metadata),
-      application: this.retrieveMetadataName(sub.application, response.metadata),
-      created_at: sub.created_at ?? '',
-      status: toTitleCase(sub.status),
-    }));
+    return response.data.map(subscription => this.mapSubscriptionRow(subscription, response.metadata));
   });
 
   constructor() {
@@ -149,18 +177,15 @@ export default class SubscriptionsComponent {
     this.setupUrlSync();
   }
 
-  apiResultsLoader = ({ searchTerm, page }: ResultsLoaderInput) =>
-    this.apiService.search(page, 'all', searchTerm ?? '', 10).pipe(
-      map(
-        (response): ResultsLoaderOutput => ({
-          data: (response.data ?? []).map(api => ({ value: api.id, label: api.name })),
-          hasNextPage: (response.metadata?.pagination?.current_page ?? 1) < (response.metadata?.pagination?.total_pages ?? 1),
-        }),
-      ),
-    );
-
   retrieveMetadataName(id: string, metadata?: SubscriptionMetadata): string {
     return metadata?.[id]?.name ?? id;
+  }
+
+  onSearchTermChange(query: string): void {
+    const normalizedQuery = query.trim();
+    if (normalizedQuery !== this.filters().query) {
+      this.updateQueryParams({ query: normalizedQuery || null, page: 1 }, true);
+    }
   }
 
   onPageChange(page: number): void {
@@ -173,7 +198,8 @@ export default class SubscriptionsComponent {
 
   clearFilters(): void {
     this.updateQueryParams({
-      apiIds: null,
+      query: null,
+      referenceTypes: null,
       applicationIds: null,
       statuses: null,
       page: 1,
@@ -185,28 +211,29 @@ export default class SubscriptionsComponent {
       this.applyFiltersToForm(this.filters());
     });
 
-    merge(this.apiFilter.valueChanges, this.applicationFilter.valueChanges, this.statusFilter.valueChanges)
+    merge(this.typeFilter.valueChanges, this.applicationFilter.valueChanges, this.statusFilter.valueChanges)
       .pipe(debounceTime(0), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.syncUrlToForm());
   }
 
   private applyFiltersToForm(filters: SubscriptionFilters) {
-    this.apiFilter.setValue(filters.apiIds ?? null, { emitEvent: false });
+    this.typeFilter.setValue(filters.referenceTypes ?? [], { emitEvent: false });
     this.applicationFilter.setValue(filters.applicationIds ?? null, { emitEvent: false });
     this.statusFilter.setValue(filters.statuses ?? [], { emitEvent: false });
   }
 
   private syncUrlToForm() {
     const currentFilters = this.filters();
-    const apiIds = this.apiFilter.value ?? [];
+    const referenceTypes = this.typeFilter.value ?? [];
     const applicationIds = this.applicationFilter.value ?? [];
     const statuses = this.statusFilter.value ?? [];
 
     const nextFilters: SubscriptionFilters = {
-      apiIds: apiIds.length ? apiIds : undefined,
+      query: currentFilters.query,
+      referenceTypes: referenceTypes.length ? referenceTypes : null,
       applicationIds: applicationIds.length ? applicationIds : undefined,
       statuses: statuses.length ? statuses : null,
-      page: currentFilters.page,
+      page: 1,
       size: currentFilters.size,
     };
 
@@ -225,12 +252,14 @@ export default class SubscriptionsComponent {
   }
 
   private parseParamsToFilters(params: Record<string, unknown>): SubscriptionFilters {
-    const apiIds = parseArrayParam(params['apiIds']);
+    const query = typeof params['query'] === 'string' ? params['query'].trim() : '';
+    const referenceTypes = this.parseReferenceTypeParam(params['referenceTypes']);
     const applicationIds = parseArrayParam(params['applicationIds']);
     const statuses = this.parseStatusParam(params['statuses']);
 
     return {
-      apiIds: apiIds.length ? apiIds : undefined,
+      query,
+      referenceTypes: referenceTypes.length ? referenceTypes : null,
       applicationIds: applicationIds.length ? applicationIds : undefined,
       statuses: statuses.length ? statuses : null,
       page: parsePageParam(params['page'], SubscriptionsComponent.DEFAULT_PAGE),
@@ -240,7 +269,8 @@ export default class SubscriptionsComponent {
 
   private toRouterQueryParams(filters: SubscriptionFilters): Record<string, unknown> {
     return {
-      apiIds: filters.apiIds ?? null,
+      query: filters.query || null,
+      referenceTypes: filters.referenceTypes ?? null,
       applicationIds: filters.applicationIds ?? null,
       statuses: filters.statuses ?? null,
       page: filters.page,
@@ -251,5 +281,52 @@ export default class SubscriptionsComponent {
   private parseStatusParam(param: unknown): SubscriptionStatusEnum[] {
     const values = parseArrayParam(param);
     return values.filter((v): v is SubscriptionStatusEnum => Object.values(SubscriptionStatusEnum).includes(v as SubscriptionStatusEnum));
+  }
+
+  private parseReferenceTypeParam(param: unknown): SubscriptionReferenceType[] {
+    const values = parseArrayParam(param);
+    return values.filter((value): value is SubscriptionReferenceType =>
+      SubscriptionsComponent.ALL_REFERENCE_TYPES.includes(value as SubscriptionReferenceType),
+    );
+  }
+
+  private mapSubscriptionRow(subscription: Subscription, metadata?: SubscriptionMetadata): SubscriptionTableRow {
+    return {
+      id: subscription.id,
+      targetName: this.resolveTargetName(subscription, metadata),
+      targetType: this.resolveTargetTypeLabel(subscription.reference_type),
+      plan: this.retrieveMetadataName(subscription.plan, metadata),
+      application: this.retrieveMetadataName(subscription.application, metadata),
+      startAt: subscription.start_at ?? null,
+      endAt: subscription.end_at ?? null,
+      status: toTitleCase(subscription.status),
+    };
+  }
+
+  private resolveTargetName(subscription: Subscription, metadata?: SubscriptionMetadata): string {
+    const targetName = subscription.reference_id ? metadata?.[subscription.reference_id]?.name : undefined;
+    if (targetName) {
+      return targetName;
+    }
+
+    switch (subscription.reference_type) {
+      case 'API':
+        return $localize`:@@unavailableApiSubscriptionTarget:Unavailable API`;
+      case 'API_PRODUCT':
+        return $localize`:@@unavailableApiProductSubscriptionTarget:Unavailable API Product`;
+      default:
+        return $localize`:@@unavailableSubscriptionTarget:Unavailable subscription target`;
+    }
+  }
+
+  private resolveTargetTypeLabel(referenceType?: SubscriptionReferenceType): string {
+    switch (referenceType) {
+      case 'API':
+        return $localize`:@@subscriptionTypeApi:API`;
+      case 'API_PRODUCT':
+        return $localize`:@@subscriptionTypeApiProduct:API Product`;
+      default:
+        return $localize`:@@subscriptionTypeUnknown:Unknown`;
+    }
   }
 }
