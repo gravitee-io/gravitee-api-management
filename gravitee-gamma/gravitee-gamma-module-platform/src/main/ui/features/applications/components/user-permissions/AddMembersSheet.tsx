@@ -36,9 +36,10 @@ import { useQuery } from '@tanstack/react-query';
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 
 import { MemberAvatar } from './MemberAvatar';
-import { isSameUser } from './memberHelpers';
-import { searchUsers } from '../../services/applicationMembers';
-import type { ApplicationUiMember, SearchableUser } from '../../types/applicationMembers.types';
+import { searchUsers } from '../../../../shared/services/userSearch';
+import type { SearchableUser } from '../../../../shared/types/userSearch';
+import { isSameUser } from '../../../../shared/utils/userSearch';
+import type { ApplicationUiMember } from '../../types/applicationMembers.types';
 import { applicationMemberKeys } from '../../utils/queryKeys';
 
 export function AddMembersSheet({

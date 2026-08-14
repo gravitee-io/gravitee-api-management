@@ -65,11 +65,11 @@ import type {
     ApplicationTransferOwnershipPayload,
     ApplicationUiMember,
     EditState,
-    SearchableUser,
 } from '../features/applications/types/applicationMembers.types';
 import { toApplicationMemberEntity } from '../features/applications/utils/applicationMemberMapper';
 import { applicationDetailKeys, applicationMemberKeys } from '../features/applications/utils/queryKeys';
 import { notify } from '../shared/notify';
+import type { SearchableUser } from '../shared/types/userSearch';
 
 class AddMembersMutationError extends Error {
     public readonly succeededCount: number;

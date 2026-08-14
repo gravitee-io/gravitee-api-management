@@ -31,6 +31,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
 import type { GroupMember } from '../types/group';
+import { paginate, totalPagesFor } from '../utils/clientPagination';
 
 const PAGE_SIZE = 10;
 
@@ -89,19 +90,13 @@ function buildColumns(): DataTableProps<GroupMember>['columns'] {
     ];
 }
 
-function paginate(items: GroupMember[], page: number, pageSize: number): GroupMember[] {
-    const start = (page - 1) * pageSize;
-    return items.slice(start, start + pageSize);
-}
-
 interface GroupMembersTableProps {
     readonly members: GroupMember[];
     readonly loading: boolean;
+    readonly canAddMembers: boolean;
 }
 
-// Member management (add/invite/edit roles/remove) is added on top of this read-only view in a
-// follow-up PR (FOUND-106/FOUND-107) — this component intentionally has no action column yet.
-export function GroupMembersTable({ members, loading }: GroupMembersTableProps) {
+export function GroupMembersTable({ members, loading, canAddMembers }: GroupMembersTableProps) {
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(PAGE_SIZE);
@@ -112,7 +107,7 @@ export function GroupMembersTable({ members, loading }: GroupMembersTableProps) 
     }, [members, search]);
 
     const totalCount = filtered.length;
-    const totalPages = pageSize > 0 ? Math.max(1, Math.ceil(totalCount / pageSize)) : 1;
+    const totalPages = totalPagesFor(totalCount, pageSize);
     const pageData = useMemo(() => paginate(filtered, page, pageSize), [filtered, page, pageSize]);
     const columns = useMemo(() => buildColumns(), []);
 
@@ -168,7 +163,11 @@ export function GroupMembersTable({ members, loading }: GroupMembersTableProps) 
                         }
                     />
                 ) : (
-                    <DataTableEmptyState variant="first-use" title="No members available to display" description="" />
+                    <DataTableEmptyState
+                        variant="first-use"
+                        title="No members available to display"
+                        description={canAddMembers ? 'Use Add members above to search for users.' : ''}
+                    />
                 )
             }
             toolbar={

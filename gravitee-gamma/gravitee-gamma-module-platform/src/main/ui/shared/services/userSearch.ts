@@ -13,6 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type { ConsoleSettings } from './types';
-export { ConsoleSettingsProvider, useConsoleSettings, useConsoleSettingsReady, useSetConsoleSettings } from './ConsoleSettingsProvider';
-export { isUserGroupRequired } from './isUserGroupRequired';
+
+import { apimFetchJsonOrg } from '../api/apimClient';
+import type { SearchableUser } from '../types/userSearch';
+
+export async function searchUsers(query: string): Promise<SearchableUser[]> {
+    return apimFetchJsonOrg<SearchableUser[]>(`/search/users?q=${encodeURIComponent(query)}`);
+}

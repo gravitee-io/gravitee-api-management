@@ -13,6 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type { ConsoleSettings } from './types';
-export { ConsoleSettingsProvider, useConsoleSettings, useConsoleSettingsReady, useSetConsoleSettings } from './ConsoleSettingsProvider';
-export { isUserGroupRequired } from './isUserGroupRequired';
+
+import type { SearchableUser } from '../types/userSearch';
+
+function hasId(id: string | null | undefined): id is string {
+    return id !== null && id !== undefined;
+}
+
+export function isSameUser(userA: SearchableUser, userB: SearchableUser): boolean {
+    if (!hasId(userA.id) || !hasId(userB.id)) {
+        return userA.reference === userB.reference;
+    }
+    return userA.id === userB.id;
+}

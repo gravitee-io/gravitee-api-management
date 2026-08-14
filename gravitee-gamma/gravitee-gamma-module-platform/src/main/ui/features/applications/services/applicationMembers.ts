@@ -24,7 +24,6 @@ import type {
     EnvironmentGroup,
     GroupMember,
     GroupsPagedResponse,
-    SearchableUser,
 } from '../types/applicationMembers.types';
 import { mapApplicationMemberToUiMember } from '../utils/applicationMemberMapper';
 
@@ -125,10 +124,6 @@ export async function getGroupMembers(environmentId: string, groupId: string): P
         displayName: m.displayName ?? '',
         roles: Object.fromEntries((m.roles ?? []).map(r => [r.scope ?? '', r.name ?? ''])),
     }));
-}
-
-export async function searchUsers(query: string): Promise<SearchableUser[]> {
-    return apimFetchJsonOrg<SearchableUser[]>(`/search/users?q=${encodeURIComponent(query)}`);
 }
 
 export async function updateApplicationGroups(

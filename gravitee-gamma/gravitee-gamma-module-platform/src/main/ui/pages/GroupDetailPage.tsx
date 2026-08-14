@@ -15,11 +15,12 @@
  */
 
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { Badge, Button, DateCell, Skeleton } from '@gravitee/graphene-core';
-import { ArrowLeftIcon, PencilIcon, Trash2Icon, UsersRoundIcon } from '@gravitee/graphene-core/icons';
+import { Alert, AlertDescription, Badge, Button, DateCell, Skeleton } from '@gravitee/graphene-core';
+import { ArrowLeftIcon, InfoIcon, PencilIcon, PlusIcon, Trash2Icon, UsersRoundIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
+import { GroupAddMembersSheet } from '../features/groups/components/GroupAddMembersSheet';
 import { GroupAssociationSection } from '../features/groups/components/GroupAssociationSection';
 import { GroupDeleteSheet } from '../features/groups/components/GroupDeleteSheet';
 import { GroupMembersTable } from '../features/groups/components/GroupMembersTable';
@@ -27,14 +28,23 @@ import { GroupSettingsSection } from '../features/groups/components/GroupSetting
 import { GroupSheet, type GroupFormValues } from '../features/groups/components/GroupSheet';
 import { SectionError } from '../features/groups/components/SectionError';
 import {
+    useEnvironmentSettings,
     useGroupApis,
     useGroupApplications,
     useGroupApiProducts,
     useGroupDetail,
     useGroupMembers,
 } from '../features/groups/hooks/useGroupDetail';
+import { useGroupMemberActions } from '../features/groups/hooks/useGroupMemberActions';
 import { useDeleteGroup, useUpdateGroup } from '../features/groups/hooks/useGroupMutations';
-import { useGroupApiProductRoles, useGroupApiRoles, useGroupApplicationRoles } from '../features/groups/hooks/useGroupRoles';
+import {
+    useGroupApiProductRoles,
+    useGroupApiRoles,
+    useGroupApplicationRoles,
+    useGroupClusterRoles,
+    useGroupExplorerRoles,
+    useGroupIntegrationRoles,
+} from '../features/groups/hooks/useGroupRoles';
 import { buildEventRules, buildRolesMap, hasEventRule, parseMaxInvitation } from '../features/groups/utils/groupPayload';
 import { ENVIRONMENT_GROUP_DELETE_PERMISSION, ENVIRONMENT_GROUP_UPDATE_PERMISSION } from '../features/groups/utils/groupPermissions';
 import { notify } from '../shared/notify';
@@ -53,11 +63,28 @@ export function GroupDetailPage() {
     const { data: apis = [], isLoading: apisLoading, isError: apisError } = useGroupApis(groupId);
     const { data: applications = [], isLoading: applicationsLoading, isError: applicationsError } = useGroupApplications(groupId);
     const { data: apiProducts = [], isLoading: apiProductsLoading, isError: apiProductsError } = useGroupApiProducts(groupId);
-    const { data: apiRoles = [], isLoading: apiRolesLoading } = useGroupApiRoles({ enabled: canEdit && editOpen });
+
+    const { memberSheet, setMemberSheet, closeMemberSheet, addMembersMutation, handleAddMembers } = useGroupMemberActions(groupId);
+
+    // Edit Group only needs API / application / API product catalogs. Add members needs all six.
+    const addMemberRolesNeeded = memberSheet !== 'closed';
+    const defaultGroupRolesNeeded = editOpen || addMemberRolesNeeded;
+    const { data: apiRoles = [], isLoading: apiRolesLoading } = useGroupApiRoles({ enabled: defaultGroupRolesNeeded });
     const { data: applicationRoles = [], isLoading: applicationRolesLoading } = useGroupApplicationRoles({
-        enabled: canEdit && editOpen,
+        enabled: defaultGroupRolesNeeded,
     });
-    const { data: apiProductRoles = [], isLoading: apiProductRolesLoading } = useGroupApiProductRoles({ enabled: canEdit && editOpen });
+    const { data: apiProductRoles = [], isLoading: apiProductRolesLoading } = useGroupApiProductRoles({
+        enabled: defaultGroupRolesNeeded,
+    });
+    const { data: integrationRoles = [] } = useGroupIntegrationRoles({ enabled: addMemberRolesNeeded });
+    const { data: clusterRoles = [] } = useGroupClusterRoles({ enabled: addMemberRolesNeeded });
+    const { data: explorerRoles = [] } = useGroupExplorerRoles({ enabled: addMemberRolesNeeded });
+
+    const maxInvitationsLimitReached = typeof group?.max_invitation === 'number' && group.max_invitation <= members.length;
+    const canAddMembers =
+        group !== undefined && Boolean(group.system_invitation) && (canEdit || Boolean(group.manageable)) && !maxInvitationsLimitReached;
+    // Portal settings only matter for add-members PRIMARY_OWNER gating; skip when the user cannot open the sheet.
+    const { data: environmentSettings } = useEnvironmentSettings({ enabled: canAddMembers });
 
     const updateMutation = useUpdateGroup();
     const deleteMutation = useDeleteGroup();
@@ -203,14 +230,30 @@ export function GroupDetailPage() {
                 <GroupSettingsSection group={group} />
 
                 <section className="space-y-4 rounded-xl border bg-card p-5">
-                    <div>
-                        <h2 className="text-base font-semibold">Members</h2>
-                        <p className="text-sm text-muted-foreground">Direct members of this group and their scoped roles.</p>
+                    <div className="flex items-start justify-between gap-4">
+                        <div>
+                            <h2 className="text-base font-semibold">Members</h2>
+                            <p className="text-sm text-muted-foreground">Direct members of this group and their scoped roles.</p>
+                        </div>
+                        {canAddMembers && (
+                            <Button type="button" className="shrink-0 gap-1.5" onClick={() => setMemberSheet('search')}>
+                                <PlusIcon className="size-4" aria-hidden />
+                                Add members
+                            </Button>
+                        )}
                     </div>
+                    {maxInvitationsLimitReached && (
+                        <Alert variant="default">
+                            <InfoIcon className="size-4" aria-hidden />
+                            <AlertDescription>
+                                The number of members in this group has reached maximum allowed. Adding users has been disabled.
+                            </AlertDescription>
+                        </Alert>
+                    )}
                     {membersError ? (
                         <SectionError message="Failed to load members. Please refresh and try again." />
                     ) : (
-                        <GroupMembersTable members={members} loading={membersLoading} />
+                        <GroupMembersTable members={members} loading={membersLoading} canAddMembers={canAddMembers} />
                     )}
                 </section>
 
@@ -268,6 +311,29 @@ export function GroupDetailPage() {
                 onClose={() => setDeleteOpen(false)}
                 onConfirm={handleDelete}
                 isDeleting={deleteMutation.isPending}
+            />
+
+            <GroupAddMembersSheet
+                open={memberSheet === 'search'}
+                groupName={group.name}
+                groupRoles={group.roles}
+                members={members}
+                apiRoles={apiRoles}
+                applicationRoles={applicationRoles}
+                apiProductRoles={apiProductRoles}
+                integrationRoles={integrationRoles}
+                clusterRoles={clusterRoles}
+                explorerRoles={explorerRoles}
+                lockApiRole={Boolean(group.lock_api_role)}
+                lockApiProductRole={Boolean(group.lock_api_product_role)}
+                lockApplicationRole={Boolean(group.lock_application_role)}
+                canOverrideLocks={canEdit}
+                maxInvitation={group.max_invitation ?? null}
+                apiPrimaryOwnerMode={environmentSettings?.api?.primaryOwnerMode}
+                apiProductPrimaryOwnerMode={environmentSettings?.apiProduct?.primaryOwnerMode}
+                onClose={closeMemberSheet}
+                onSubmit={handleAddMembers}
+                isSaving={addMembersMutation.isPending}
             />
         </>
     );

@@ -23,8 +23,15 @@ export const groupKeys = {
     members: (envId: string, groupId: string) => [...groupKeys.all, 'members', envId, groupId] as const,
     memberships: (envId: string, groupId: string, type: GroupMembershipType) =>
         [...groupKeys.all, 'memberships', envId, groupId, type] as const,
-    roles: (scope: 'API' | 'APPLICATION' | 'API_PRODUCT') => [...groupKeys.all, 'roles', scope] as const,
+    roles: (scope: 'API' | 'APPLICATION' | 'API_PRODUCT' | 'INTEGRATION' | 'CLUSTER' | 'EXPLORER') => ['org-roles', scope] as const,
     apiRoles: () => groupKeys.roles('API'),
     applicationRoles: () => groupKeys.roles('APPLICATION'),
     apiProductRoles: () => groupKeys.roles('API_PRODUCT'),
+    integrationRoles: () => groupKeys.roles('INTEGRATION'),
+    clusterRoles: () => groupKeys.roles('CLUSTER'),
+    explorerRoles: () => groupKeys.roles('EXPLORER'),
+    /** Org-scoped user search — not under `all`, so group mutations do not invalidate it. */
+    userSearch: (query: string) => ['org-user-search', query] as const,
+    /** Env portal config (primaryOwnerMode) — not under `all` and not group-scoped. */
+    settings: (envId: string) => ['environment-portal', envId] as const,
 } as const;

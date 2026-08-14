@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ApplicationUiMember, SearchableUser } from '../../types/applicationMembers.types';
+import type { SearchableUser } from '../../../../shared/types/userSearch';
+import type { ApplicationUiMember } from '../../types/applicationMembers.types';
 
 const APPLICATION_SCOPE = 'APPLICATION';
 
@@ -30,11 +31,6 @@ export function getApplicationRole(member: ApplicationUiMember): string {
 
 export function isMemberPrimaryOwner(member: ApplicationUiMember): boolean {
     return member.roles?.some(role => role.name === 'PRIMARY_OWNER') ?? false;
-}
-
-export function isSameUser(userA: SearchableUser, userB: SearchableUser): boolean {
-    if (userA.id !== null && userA.id !== undefined && userB.id !== null && userB.id !== undefined) return userA.id === userB.id;
-    return userA.reference === userB.reference;
 }
 
 /** Group members carry roles keyed by scope (typically GROUP). */

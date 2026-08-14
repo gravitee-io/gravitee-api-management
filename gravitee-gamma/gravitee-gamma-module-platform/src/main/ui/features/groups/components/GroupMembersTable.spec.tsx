@@ -31,7 +31,7 @@ const MIA: GroupMember = {
 };
 
 function renderTable(overrides: Partial<React.ComponentProps<typeof GroupMembersTable>> = {}) {
-    return render(<GroupMembersTable members={[RAVI, MIA]} loading={false} {...overrides} />);
+    return render(<GroupMembersTable members={[RAVI, MIA]} loading={false} canAddMembers {...overrides} />);
 }
 
 describe('GroupMembersTable', () => {
@@ -62,6 +62,13 @@ describe('GroupMembersTable', () => {
     it('shows a first-use empty state with no members', () => {
         renderTable({ members: [] });
         expect(screen.queryByText('No members available to display')).not.toBeNull();
+        expect(screen.queryByText('Use Add members above to search for users.')).not.toBeNull();
+    });
+
+    it('shows neutral empty-state copy when the user cannot add members', () => {
+        renderTable({ members: [], canAddMembers: false });
+        expect(screen.queryByText('No members available to display')).not.toBeNull();
+        expect(screen.queryByText('Use Add members above to search for users.')).toBeNull();
     });
 
     it('shows a no-results empty state when the search matches nothing', () => {
