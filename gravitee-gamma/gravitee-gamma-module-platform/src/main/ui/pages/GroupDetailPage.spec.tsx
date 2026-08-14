@@ -633,6 +633,21 @@ describe('GroupDetailPage', () => {
     });
 
     describe('Invitations tab', () => {
+        it('skips fetching invitations on initial load, before the Invitations tab is opened', () => {
+            renderPage();
+
+            expect(mockUseGroupInvitations).toHaveBeenCalledWith(undefined);
+        });
+
+        it('fetches invitations once the Invitations tab is opened', async () => {
+            const user = userEvent.setup();
+            renderPage();
+
+            await user.click(screen.getByRole('tab', { name: 'Invitations' }));
+
+            expect(mockUseGroupInvitations).toHaveBeenCalledWith('group-1');
+        });
+
         it('switches to the Invitations tab and lists pending invitations', async () => {
             const user = userEvent.setup();
             mockUseGroupInvitations.mockReturnValue({

@@ -105,10 +105,16 @@ export function GroupDetailPage() {
     const [removingMember, setRemovingMember] = useState<GroupMember | null>(null);
     const [tooManyUsersEmail, setTooManyUsersEmail] = useState<string | null>(null);
     const [deletingInvitation, setDeletingInvitation] = useState<GroupInvitation | null>(null);
+    const [memberTab, setMemberTab] = useState<'members' | 'invitations'>('members');
 
     const { data: group, isLoading, isError } = useGroupDetail(groupId);
     const { data: members = [], isLoading: membersLoading, isError: membersError } = useGroupMembers(groupId);
-    const { data: invitations = [], isLoading: invitationsLoading, isError: invitationsError } = useGroupInvitations(groupId);
+    // Invitations only render inside the Invitations tab — skip the fetch until it's actually opened.
+    const {
+        data: invitations = [],
+        isLoading: invitationsLoading,
+        isError: invitationsError,
+    } = useGroupInvitations(memberTab === 'invitations' ? groupId : undefined);
     const { data: apis = [], isLoading: apisLoading, isError: apisError } = useGroupApis(groupId);
     const { data: applications = [], isLoading: applicationsLoading, isError: applicationsError } = useGroupApplications(groupId);
     const { data: apiProducts = [], isLoading: apiProductsLoading, isError: apiProductsError } = useGroupApiProducts(groupId);
@@ -400,7 +406,7 @@ export function GroupDetailPage() {
                             </AlertDescription>
                         </Alert>
                     )}
-                    <Tabs defaultValue="members">
+                    <Tabs value={memberTab} onValueChange={value => setMemberTab(value as 'members' | 'invitations')}>
                         <TabsList variant="line">
                             <TabsTrigger value="members">Members</TabsTrigger>
                             <TabsTrigger value="invitations">Invitations</TabsTrigger>
