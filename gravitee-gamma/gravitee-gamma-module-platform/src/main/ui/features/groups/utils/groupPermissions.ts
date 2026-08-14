@@ -31,8 +31,6 @@ export function canInviteToGroup(group: Pick<Group, 'manageable' | 'system_invit
     return Boolean(group.manageable) && Boolean(group.system_invitation || group.email_invitation);
 }
 
-/** Shared by the Add/Edit/Invite member dialogs' disableDefaultXRole()-style gating: a locked scope
- *  stays editable for an operator who can override locks (environment-group-u). */
 export function isRoleLocked(locked: boolean, canOverrideLocks: boolean): boolean {
     return locked && !canOverrideLocks;
 }

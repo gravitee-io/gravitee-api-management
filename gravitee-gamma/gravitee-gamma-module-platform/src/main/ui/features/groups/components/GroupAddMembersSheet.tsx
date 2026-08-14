@@ -35,9 +35,9 @@ import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { GroupRoleSelect } from './GroupRoleSelect';
 import { MemberAvatar } from '../../../shared/components/MemberAvatar';
 import { searchUsers } from '../services/groups';
-import type { GroupMember, GroupMembershipPayload, GroupMembershipRole, GroupRole, SearchableUser } from '../types/group';
+import type { GroupMember, GroupMembershipPayload, GroupRole, SearchableUser } from '../types/group';
 import { PRIMARY_OWNER_ROLE } from '../types/group';
-import { isRoleLocked } from '../utils/groupPermissions';
+import { buildMembershipRoles, getMemberRoleLockFlags } from '../utils/memberRoles';
 import { groupKeys } from '../utils/queryKeys';
 
 function isSameUser(a: SearchableUser, b: SearchableUser): boolean {
@@ -104,12 +104,7 @@ export function GroupAddMembersSheet({
 
     const apiPrimaryOwnerExists = members.some(m => m.roles?.API === PRIMARY_OWNER_ROLE);
     const apiProductPrimaryOwnerExists = members.some(m => m.roles?.API_PRODUCT === PRIMARY_OWNER_ROLE);
-
-    const apiRoleDisabled = isRoleLocked(lockApiRole, canOverrideLocks);
-    const apiProductRoleDisabled = isRoleLocked(lockApiProductRole, canOverrideLocks);
-    const applicationRoleDisabled = isRoleLocked(lockApplicationRole, canOverrideLocks);
-    const integrationRoleDisabled = !canOverrideLocks;
-    const clusterRoleDisabled = !canOverrideLocks;
+    const roleLocks = getMemberRoleLockFlags({ lockApiRole, lockApiProductRole, lockApplicationRole }, canOverrideLocks);
 
     const invitationLimitReached = typeof maxInvitation === 'number' && maxInvitation <= members.length + selected.length;
 
@@ -121,9 +116,9 @@ export function GroupAddMembersSheet({
         staleTime: 30_000,
     });
 
-    const existingMemberIds = useMemo(() => members.map(m => m.id), [members]);
+    const existingMemberIds = useMemo(() => new Set(members.map(m => m.id)), [members]);
     const candidates = useMemo(
-        () => (results ?? []).filter(u => !existingMemberIds.includes(u.id ?? u.reference)),
+        () => (results ?? []).filter(u => !existingMemberIds.has(u.id ?? u.reference)),
         [results, existingMemberIds],
     );
 
@@ -137,22 +132,8 @@ export function GroupAddMembersSheet({
         });
     }
 
-    function handleClose() {
-        onClose();
-    }
-
-    function buildRoles(): GroupMembershipRole[] {
-        const roles: GroupMembershipRole[] = [];
-        if (apiRole) roles.push({ scope: 'API', name: apiRole });
-        if (apiProductRole) roles.push({ scope: 'API_PRODUCT', name: apiProductRole });
-        if (applicationRole) roles.push({ scope: 'APPLICATION', name: applicationRole });
-        if (integrationRole) roles.push({ scope: 'INTEGRATION', name: integrationRole });
-        if (clusterRole) roles.push({ scope: 'CLUSTER', name: clusterRole });
-        return roles;
-    }
-
     function handleSubmit() {
-        const roles = buildRoles();
+        const roles = buildMembershipRoles({ apiRole, apiProductRole, applicationRole, integrationRole, clusterRole });
         onSubmit(selected.map(user => ({ id: user.id ?? user.reference, reference: user.reference, roles })));
     }
 
@@ -160,7 +141,7 @@ export function GroupAddMembersSheet({
     const submitLabel = selected.length > 1 ? `Add ${selected.length} members` : 'Add member';
 
     return (
-        <Sheet open={open} onOpenChange={isOpen => !isOpen && handleClose()}>
+        <Sheet open={open} onOpenChange={isOpen => !isOpen && onClose()}>
             <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: '480px' }}>
                 <SheetHeader>
                     <SheetTitle>Add members</SheetTitle>
@@ -177,7 +158,7 @@ export function GroupAddMembersSheet({
                                     roles={apiRoles}
                                     value={apiRole}
                                     onChange={setApiRole}
-                                    disabled={apiRoleDisabled}
+                                    disabled={roleLocks.api}
                                     disabledOptionNames={apiPrimaryOwnerExists ? new Set([PRIMARY_OWNER_ROLE]) : undefined}
                                 />
                                 <GroupRoleSelect
@@ -185,7 +166,7 @@ export function GroupAddMembersSheet({
                                     roles={apiProductRoles}
                                     value={apiProductRole}
                                     onChange={setApiProductRole}
-                                    disabled={apiProductRoleDisabled}
+                                    disabled={roleLocks.apiProduct}
                                     disabledOptionNames={apiProductPrimaryOwnerExists ? new Set([PRIMARY_OWNER_ROLE]) : undefined}
                                 />
                                 <GroupRoleSelect
@@ -193,21 +174,21 @@ export function GroupAddMembersSheet({
                                     roles={applicationRoles}
                                     value={applicationRole}
                                     onChange={setApplicationRole}
-                                    disabled={applicationRoleDisabled}
+                                    disabled={roleLocks.application}
                                 />
                                 <GroupRoleSelect
                                     label="Integration"
                                     roles={integrationRoles}
                                     value={integrationRole}
                                     onChange={setIntegrationRole}
-                                    disabled={integrationRoleDisabled}
+                                    disabled={roleLocks.integration}
                                 />
                                 <GroupRoleSelect
                                     label="Cluster"
                                     roles={clusterRoles}
                                     value={clusterRole}
                                     onChange={setClusterRole}
-                                    disabled={clusterRoleDisabled}
+                                    disabled={roleLocks.cluster}
                                 />
                             </div>
                         </div>
@@ -273,7 +254,7 @@ export function GroupAddMembersSheet({
                 </ScrollArea>
 
                 <SheetFooter className="shrink-0 flex-row justify-end border-t">
-                    <Button type="button" variant="outline" onClick={handleClose} disabled={isSaving}>
+                    <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>
                         Cancel
                     </Button>
                     <Button type="button" onClick={handleSubmit} disabled={!canSubmit || isSaving}>

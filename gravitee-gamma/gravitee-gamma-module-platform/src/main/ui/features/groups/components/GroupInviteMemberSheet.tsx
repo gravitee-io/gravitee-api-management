@@ -61,10 +61,6 @@ export function GroupInviteMemberSheet({
         }
     }, [open, groupRoles]);
 
-    function handleClose() {
-        onClose();
-    }
-
     const apiPrimaryOwnerExists = members.some(m => m.roles?.API === PRIMARY_OWNER_ROLE);
     const apiRoleDisabled = isRoleLocked(lockApiRole, canOverrideLocks);
     const applicationRoleDisabled = isRoleLocked(lockApplicationRole, canOverrideLocks);
@@ -72,7 +68,7 @@ export function GroupInviteMemberSheet({
     const canSubmit = email.trim().length > 0;
 
     return (
-        <Sheet open={open} onOpenChange={isOpen => !isOpen && handleClose()}>
+        <Sheet open={open} onOpenChange={isOpen => !isOpen && onClose()}>
             <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: '480px' }}>
                 <SheetHeader>
                     <SheetTitle>Email invitation</SheetTitle>
@@ -112,7 +108,7 @@ export function GroupInviteMemberSheet({
                 </div>
 
                 <SheetFooter className="shrink-0 flex-row justify-end border-t">
-                    <Button type="button" variant="outline" onClick={handleClose} disabled={isSaving}>
+                    <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>
                         Cancel
                     </Button>
                     <Button

@@ -33,7 +33,7 @@ import { GroupRoleSelect } from './GroupRoleSelect';
 import { MemberSuccessorCombobox } from './MemberSuccessorCombobox';
 import type { GroupMember, GroupMembershipPayload, GroupMembershipRole, GroupRole } from '../types/group';
 import { OWNER_ROLE, PRIMARY_OWNER_ROLE } from '../types/group';
-import { isRoleLocked } from '../utils/groupPermissions';
+import { buildMembershipRoles, getMemberRoleLockFlags, sortedSuccessorCandidates } from '../utils/memberRoles';
 
 function membershipFromMember(member: GroupMember, overrides: Record<string, string>): GroupMembershipPayload {
     const merged = { ...(member.roles ?? {}), ...overrides };
@@ -104,18 +104,11 @@ export function GroupEditMemberSheet({
         setSelectedSuccessorId(null);
     }, [apiRole, apiProductRole]);
 
-    const successorCandidates = useMemo(
-        () => members.filter(m => m.id !== member?.id).sort((a, b) => a.displayName.localeCompare(b.displayName)),
-        [members, member],
-    );
+    const successorCandidates = useMemo(() => sortedSuccessorCandidates(members, member?.id), [members, member]);
 
     if (!member) return null;
 
-    const apiRoleDisabled = isRoleLocked(lockApiRole, canOverrideLocks);
-    const apiProductRoleDisabled = isRoleLocked(lockApiProductRole, canOverrideLocks);
-    const applicationRoleDisabled = isRoleLocked(lockApplicationRole, canOverrideLocks);
-    const integrationRoleDisabled = !canOverrideLocks;
-    const clusterRoleDisabled = !canOverrideLocks;
+    const roleLocks = getMemberRoleLockFlags({ lockApiRole, lockApiProductRole, lockApplicationRole }, canOverrideLocks);
 
     const isApiPrimaryOwner = member.roles?.API === PRIMARY_OWNER_ROLE;
     const isApiProductPrimaryOwner = member.roles?.API_PRODUCT === PRIMARY_OWNER_ROLE;
@@ -169,17 +162,6 @@ export function GroupEditMemberSheet({
     const transferMessage = [buildDowngradeMessage(), buildUpgradeMessage()].filter(Boolean).join(' ') || null;
     const canSubmit = !needsSuccessor || Boolean(selectedSuccessor);
 
-    function buildRoles(): GroupMembershipRole[] {
-        const roles: GroupMembershipRole[] = [];
-        if (apiRole) roles.push({ scope: 'API', name: apiRole });
-        if (apiProductRole) roles.push({ scope: 'API_PRODUCT', name: apiProductRole });
-        if (applicationRole) roles.push({ scope: 'APPLICATION', name: applicationRole });
-        if (integrationRole) roles.push({ scope: 'INTEGRATION', name: integrationRole });
-        if (clusterRole) roles.push({ scope: 'CLUSTER', name: clusterRole });
-        if (groupAdmin) roles.push({ scope: 'GROUP', name: 'ADMIN' });
-        return roles;
-    }
-
     function handleSubmit() {
         if (!member) return;
 
@@ -197,15 +179,24 @@ export function GroupEditMemberSheet({
 
         const otherMemberships = Array.from(otherOverrides.values()).map(({ member: m, overrides }) => membershipFromMember(m, overrides));
 
-        onSubmit([...otherMemberships, { id: member.id, roles: buildRoles() }]);
-    }
-
-    function handleClose() {
-        onClose();
+        onSubmit([
+            ...otherMemberships,
+            {
+                id: member.id,
+                roles: buildMembershipRoles({
+                    apiRole,
+                    apiProductRole,
+                    applicationRole,
+                    integrationRole,
+                    clusterRole,
+                    groupAdmin,
+                }),
+            },
+        ]);
     }
 
     return (
-        <Sheet open={open} onOpenChange={isOpen => !isOpen && handleClose()}>
+        <Sheet open={open} onOpenChange={isOpen => !isOpen && onClose()}>
             <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: '480px' }}>
                 <SheetHeader>
                     <SheetTitle>Edit roles</SheetTitle>
@@ -216,34 +207,34 @@ export function GroupEditMemberSheet({
 
                 <div className="space-y-6 px-4 pb-4">
                     <div className="grid grid-cols-2 gap-4">
-                        <GroupRoleSelect label="API" roles={apiRoles} value={apiRole} onChange={setApiRole} disabled={apiRoleDisabled} />
+                        <GroupRoleSelect label="API" roles={apiRoles} value={apiRole} onChange={setApiRole} disabled={roleLocks.api} />
                         <GroupRoleSelect
                             label="API product"
                             roles={apiProductRoles}
                             value={apiProductRole}
                             onChange={setApiProductRole}
-                            disabled={apiProductRoleDisabled}
+                            disabled={roleLocks.apiProduct}
                         />
                         <GroupRoleSelect
                             label="Application"
                             roles={applicationRoles}
                             value={applicationRole}
                             onChange={setApplicationRole}
-                            disabled={applicationRoleDisabled}
+                            disabled={roleLocks.application}
                         />
                         <GroupRoleSelect
                             label="Integration"
                             roles={integrationRoles}
                             value={integrationRole}
                             onChange={setIntegrationRole}
-                            disabled={integrationRoleDisabled}
+                            disabled={roleLocks.integration}
                         />
                         <GroupRoleSelect
                             label="Cluster"
                             roles={clusterRoles}
                             value={clusterRole}
                             onChange={setClusterRole}
-                            disabled={clusterRoleDisabled}
+                            disabled={roleLocks.cluster}
                         />
                     </div>
 
@@ -287,7 +278,7 @@ export function GroupEditMemberSheet({
                 </div>
 
                 <SheetFooter className="shrink-0 flex-row justify-end border-t">
-                    <Button type="button" variant="outline" onClick={handleClose} disabled={isSaving}>
+                    <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>
                         Cancel
                     </Button>
                     <Button type="button" onClick={handleSubmit} disabled={isSaving || !canSubmit}>

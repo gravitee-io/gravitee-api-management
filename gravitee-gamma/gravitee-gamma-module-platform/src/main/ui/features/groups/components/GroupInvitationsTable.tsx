@@ -31,6 +31,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
 import type { GroupInvitation } from '../types/group';
+import { paginate, totalPagesFor } from '../utils/clientPagination';
 
 const PAGE_SIZE = 10;
 
@@ -103,11 +104,6 @@ function buildColumns({
     return columns;
 }
 
-function paginate(items: GroupInvitation[], page: number, pageSize: number): GroupInvitation[] {
-    const start = (page - 1) * pageSize;
-    return items.slice(start, start + pageSize);
-}
-
 interface GroupInvitationsTableProps {
     readonly invitations: GroupInvitation[];
     readonly loading: boolean;
@@ -126,7 +122,7 @@ export function GroupInvitationsTable({ invitations, loading, canManageMembers, 
     }, [invitations, search]);
 
     const totalCount = filtered.length;
-    const totalPages = pageSize > 0 ? Math.max(1, Math.ceil(totalCount / pageSize)) : 1;
+    const totalPages = totalPagesFor(totalCount, pageSize);
     const pageData = useMemo(() => paginate(filtered, page, pageSize), [filtered, page, pageSize]);
     const columns = useMemo(() => buildColumns({ canManageMembers, onDelete }), [canManageMembers, onDelete]);
 

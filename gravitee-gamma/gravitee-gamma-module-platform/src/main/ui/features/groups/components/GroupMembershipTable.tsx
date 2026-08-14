@@ -30,6 +30,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
 import type { GroupMembershipItem } from '../types/group';
+import { paginate, totalPagesFor } from '../utils/clientPagination';
 
 const PAGE_SIZE = 10;
 
@@ -42,7 +43,6 @@ function buildColumns(showVersionColumn: boolean): DataTableProps<GroupMembershi
             cell: ({ row }: ColCell<GroupMembershipItem>) => <span className="text-sm font-medium">{row.original.name}</span>,
         },
     ];
-    // Applications don't have a version — showing an always-"—" column there is just noise.
     if (showVersionColumn) {
         columns.push({
             id: 'version',
@@ -56,20 +56,12 @@ function buildColumns(showVersionColumn: boolean): DataTableProps<GroupMembershi
     return columns;
 }
 
-function paginate(items: GroupMembershipItem[], page: number, pageSize: number): GroupMembershipItem[] {
-    const start = (page - 1) * pageSize;
-    return items.slice(start, start + pageSize);
-}
-
 interface GroupMembershipTableProps {
     readonly items: GroupMembershipItem[];
     readonly loading: boolean;
     readonly ariaLabel: string;
     readonly searchPlaceholder: string;
-    /** Shown when there are no items at all (never associated) — distinct from the search "no results"
-     *  state below, mirroring GroupMembersTable's branching. */
     readonly emptyTitle: string;
-    /** Applications have no version — omit the column entirely rather than showing an always-"—" one. */
     readonly showVersionColumn?: boolean;
 }
 
@@ -91,7 +83,7 @@ export function GroupMembershipTable({
     }, [items, search]);
 
     const totalCount = filtered.length;
-    const totalPages = pageSize > 0 ? Math.max(1, Math.ceil(totalCount / pageSize)) : 1;
+    const totalPages = totalPagesFor(totalCount, pageSize);
     const pageData = useMemo(() => paginate(filtered, page, pageSize), [filtered, page, pageSize]);
     const columns = useMemo(() => buildColumns(showVersionColumn), [showVersionColumn]);
 
@@ -116,9 +108,6 @@ export function GroupMembershipTable({
             data={pageData}
             loading={loading}
             skeletonCount={pageSize}
-            // Pagination is actually client-side (paginate() above already slices `data` down to the
-            // current page) — `serverSide` here just tells DataTable not to re-paginate what we hand it,
-            // since the `pagination` prop below drives the page controls off our own state instead.
             serverSide
             pagination={{
                 page,

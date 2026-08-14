@@ -32,6 +32,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { MemberSuccessorCombobox } from './MemberSuccessorCombobox';
 import type { GroupMember, GroupMembershipPayload, GroupMembershipRole, GroupMemberRoleScope } from '../types/group';
 import { PRIMARY_OWNER_ROLE } from '../types/group';
+import { sortedSuccessorCandidates } from '../utils/memberRoles';
 
 const PRIMARY_OWNER_SCOPES: GroupMemberRoleScope[] = ['API', 'APPLICATION', 'API_PRODUCT', 'INTEGRATION', 'CLUSTER'];
 
@@ -88,10 +89,7 @@ export function GroupRemoveMemberSheet({
     const primaryOwnerScopes = useMemo(() => PRIMARY_OWNER_SCOPES.filter(scope => member?.roles?.[scope] === PRIMARY_OWNER_ROLE), [member]);
     const isPrimaryOwner = primaryOwnerScopes.length > 0;
 
-    const candidates = useMemo(
-        () => (member ? members.filter(m => m.id !== member.id).sort((a, b) => a.displayName.localeCompare(b.displayName)) : []),
-        [members, member],
-    );
+    const candidates = useMemo(() => sortedSuccessorCandidates(members, member?.id), [members, member]);
 
     if (!member) return null;
 

@@ -37,6 +37,7 @@ import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
 import type { GroupMember } from '../types/group';
 import { PRIMARY_OWNER_ROLE } from '../types/group';
+import { paginate, totalPagesFor } from '../utils/clientPagination';
 
 const PAGE_SIZE = 10;
 
@@ -150,20 +151,16 @@ function buildColumns({
     return columns;
 }
 
-function paginate(items: GroupMember[], page: number, pageSize: number): GroupMember[] {
-    const start = (page - 1) * pageSize;
-    return items.slice(start, start + pageSize);
-}
-
 interface GroupMembersTableProps {
     readonly members: GroupMember[];
     readonly loading: boolean;
     readonly canManageMembers: boolean;
+    readonly canAddMembers: boolean;
     readonly onEditRoles: (member: GroupMember) => void;
     readonly onRemove: (member: GroupMember) => void;
 }
 
-export function GroupMembersTable({ members, loading, canManageMembers, onEditRoles, onRemove }: GroupMembersTableProps) {
+export function GroupMembersTable({ members, loading, canManageMembers, canAddMembers, onEditRoles, onRemove }: GroupMembersTableProps) {
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(PAGE_SIZE);
@@ -174,7 +171,7 @@ export function GroupMembersTable({ members, loading, canManageMembers, onEditRo
     }, [members, search]);
 
     const totalCount = filtered.length;
-    const totalPages = pageSize > 0 ? Math.max(1, Math.ceil(totalCount / pageSize)) : 1;
+    const totalPages = totalPagesFor(totalCount, pageSize);
     const pageData = useMemo(() => paginate(filtered, page, pageSize), [filtered, page, pageSize]);
     const columns = useMemo(
         () => buildColumns({ canManageMembers, totalMemberCount: members.length, onEditRoles, onRemove }),
@@ -202,9 +199,6 @@ export function GroupMembersTable({ members, loading, canManageMembers, onEditRo
             data={pageData}
             loading={loading}
             skeletonCount={pageSize}
-            // Pagination is actually client-side (paginate() above already slices `data` down to the
-            // current page) — `serverSide` here just tells DataTable not to re-paginate what we hand it,
-            // since the `pagination` prop below drives the page controls off our own state instead.
             serverSide
             pagination={{
                 page,
@@ -233,7 +227,11 @@ export function GroupMembersTable({ members, loading, canManageMembers, onEditRo
                         }
                     />
                 ) : (
-                    <DataTableEmptyState variant="first-use" title="No members available to display" description="" />
+                    <DataTableEmptyState
+                        variant="first-use"
+                        title="No members available to display"
+                        description={canAddMembers ? 'Use Add members above to search or invite users.' : ''}
+                    />
                 )
             }
             toolbar={

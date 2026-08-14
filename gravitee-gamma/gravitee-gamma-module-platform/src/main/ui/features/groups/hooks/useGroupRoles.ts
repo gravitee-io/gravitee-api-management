@@ -41,10 +41,10 @@ export function useGroupApiProductRoles({ enabled = true }: { enabled?: boolean 
     return useGroupRolesQuery(groupKeys.apiProductRoles(), 'API_PRODUCT', enabled);
 }
 
-export function useGroupIntegrationRoles() {
-    return useGroupRolesQuery(groupKeys.integrationRoles(), 'INTEGRATION', true);
+export function useGroupIntegrationRoles({ enabled = true }: { enabled?: boolean } = {}) {
+    return useGroupRolesQuery(groupKeys.integrationRoles(), 'INTEGRATION', enabled);
 }
 
-export function useGroupClusterRoles() {
-    return useGroupRolesQuery(groupKeys.clusterRoles(), 'CLUSTER', true);
+export function useGroupClusterRoles({ enabled = true }: { enabled?: boolean } = {}) {
+    return useGroupRolesQuery(groupKeys.clusterRoles(), 'CLUSTER', enabled);
 }

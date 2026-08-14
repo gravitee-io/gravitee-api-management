@@ -24,9 +24,6 @@ import type { GroupInvitation, GroupMember, GroupMembershipPayload } from '../ty
 type MemberSheetState = 'closed' | 'search' | 'invite';
 type MemberTab = 'members' | 'invitations';
 
-/** Owns the add/invite/edit/remove-member and delete-invitation workflows for GroupDetailPage: their
- *  sheet-open state, mutations, and success/error notifications. Keeps that orchestration out of the
- *  page component, which only wires the returned state and handlers into its JSX. */
 export function useGroupMemberActions(groupId: string | undefined) {
     const [memberTab, setMemberTab] = useState<MemberTab>('members');
     const [memberSheet, setMemberSheet] = useState<MemberSheetState>('closed');
@@ -35,7 +32,6 @@ export function useGroupMemberActions(groupId: string | undefined) {
     const [tooManyUsersEmail, setTooManyUsersEmail] = useState<string | null>(null);
     const [deletingInvitation, setDeletingInvitation] = useState<GroupInvitation | null>(null);
 
-    // Invitations only render inside the Invitations tab — skip the fetch until it's actually opened.
     const {
         data: invitations = [],
         isLoading: invitationsLoading,
@@ -107,9 +103,7 @@ export function useGroupMemberActions(groupId: string | undefined) {
     async function handleRemoveMember(transferMembership?: GroupMembershipPayload) {
         if (!groupId || !removingMember) return;
 
-        // Transfer ownership before removing — removing the primary owner first would leave the group
-        // ownerless for the window between the two calls, and if the transfer then failed, there'd be no
-        // way back. Doing it in this order means a failed transfer just aborts with nothing removed yet.
+        // Transfer first so a failed transfer aborts before anything is removed.
         if (transferMembership) {
             try {
                 await addMembersMutation.mutateAsync({ groupId, memberships: [transferMembership] });

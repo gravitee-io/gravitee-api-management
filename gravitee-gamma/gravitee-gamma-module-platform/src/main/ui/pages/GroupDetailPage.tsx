@@ -126,14 +126,13 @@ export function GroupDetailPage() {
         handleDeleteInvitation,
     } = useGroupMemberActions(groupId);
 
-    // Roles feed both the Edit Group sheet and the Add/Invite/Edit member sheets — deferred until
-    // whichever of those is actually open, not just canEdit, since member management doesn't require it.
+    // Role catalogs are only needed when Edit Group or a member sheet is open.
     const rolesNeeded = editOpen || memberSheet !== 'closed' || editingMember !== null;
     const { data: apiRoles = [], isLoading: apiRolesLoading } = useGroupApiRoles({ enabled: rolesNeeded });
     const { data: applicationRoles = [], isLoading: applicationRolesLoading } = useGroupApplicationRoles({ enabled: rolesNeeded });
     const { data: apiProductRoles = [], isLoading: apiProductRolesLoading } = useGroupApiProductRoles({ enabled: rolesNeeded });
-    const { data: integrationRoles = [] } = useGroupIntegrationRoles();
-    const { data: clusterRoles = [] } = useGroupClusterRoles();
+    const { data: integrationRoles = [] } = useGroupIntegrationRoles({ enabled: rolesNeeded });
+    const { data: clusterRoles = [] } = useGroupClusterRoles({ enabled: rolesNeeded });
     const isCurrentUserGroupAdmin = useCurrentUserIsGroupAdmin(members);
 
     const updateMutation = useUpdateGroup();
@@ -337,6 +336,7 @@ export function GroupDetailPage() {
                                     members={members}
                                     loading={membersLoading}
                                     canManageMembers={canManageMemberActions}
+                                    canAddMembers={canAddMembers}
                                     onEditRoles={setEditingMember}
                                     onRemove={setRemovingMember}
                                 />

@@ -281,6 +281,8 @@ describe('GroupDetailPage', () => {
             expect(mockUseGroupApiRoles).toHaveBeenCalledWith({ enabled: false });
             expect(mockUseGroupApplicationRoles).toHaveBeenCalledWith({ enabled: false });
             expect(mockUseGroupApiProductRoles).toHaveBeenCalledWith({ enabled: false });
+            expect(mockUseGroupIntegrationRoles).toHaveBeenCalledWith({ enabled: false });
+            expect(mockUseGroupClusterRoles).toHaveBeenCalledWith({ enabled: false });
         });
 
         it('fetches role catalogs once the user opens the Edit sheet', () => {
@@ -290,6 +292,8 @@ describe('GroupDetailPage', () => {
             expect(mockUseGroupApiRoles).toHaveBeenCalledWith({ enabled: true });
             expect(mockUseGroupApplicationRoles).toHaveBeenCalledWith({ enabled: true });
             expect(mockUseGroupApiProductRoles).toHaveBeenCalledWith({ enabled: true });
+            expect(mockUseGroupIntegrationRoles).toHaveBeenCalledWith({ enabled: true });
+            expect(mockUseGroupClusterRoles).toHaveBeenCalledWith({ enabled: true });
         });
 
         it('skips fetching role catalogs when the user cannot edit, since the sheet can never open', () => {
@@ -299,6 +303,8 @@ describe('GroupDetailPage', () => {
             expect(mockUseGroupApiRoles).toHaveBeenCalledWith({ enabled: false });
             expect(mockUseGroupApplicationRoles).toHaveBeenCalledWith({ enabled: false });
             expect(mockUseGroupApiProductRoles).toHaveBeenCalledWith({ enabled: false });
+            expect(mockUseGroupIntegrationRoles).toHaveBeenCalledWith({ enabled: false });
+            expect(mockUseGroupClusterRoles).toHaveBeenCalledWith({ enabled: false });
         });
     });
 

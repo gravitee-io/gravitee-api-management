@@ -37,6 +37,7 @@ function renderTable(overrides: Partial<React.ComponentProps<typeof GroupMembers
             members={[RAVI, MIA]}
             loading={false}
             canManageMembers
+            canAddMembers
             onEditRoles={jest.fn()}
             onRemove={jest.fn()}
             {...overrides}
@@ -125,6 +126,13 @@ describe('GroupMembersTable', () => {
     it('shows a first-use empty state with no members', () => {
         renderTable({ members: [] });
         expect(screen.queryByText('No members available to display')).not.toBeNull();
+        expect(screen.queryByText('Use Add members above to search or invite users.')).not.toBeNull();
+    });
+
+    it('shows neutral empty-state copy when the user cannot add members', () => {
+        renderTable({ members: [], canAddMembers: false });
+        expect(screen.queryByText('No members available to display')).not.toBeNull();
+        expect(screen.queryByText('Use Add members above to search or invite users.')).toBeNull();
     });
 
     it('shows a no-results empty state when the search matches nothing', () => {
