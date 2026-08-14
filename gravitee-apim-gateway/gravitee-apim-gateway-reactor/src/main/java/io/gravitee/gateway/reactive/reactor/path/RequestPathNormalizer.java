@@ -51,6 +51,103 @@ public final class RequestPathNormalizer {
     private RequestPathNormalizer() {}
 
     /**
+     * Answers, in a single pass and without allocating, whether normalizing this path would change
+     * anything. It is the cheap question that both modes actually ask.
+     *
+     * <p>{@code REJECT} needs nothing else: a path that needs normalizing is not in the form it
+     * claims to be, and is refused without ever being rewritten. {@code NORMALIZE} uses it as its
+     * fast path, so an ordinary request pays one scan instead of a full resolution.
+     *
+     * <p>A path needs normalizing when any of these holds:
+     *
+     * <ul>
+     *   <li>it is empty, or does not start with {@code /} — {@link #normalize(String)} forces both
+     *   <li>it contains two consecutive separators, which are merged
+     *   <li>one of its segments is exactly {@code .} or {@code ..}
+     *   <li>it carries a percent sequence that decodes to an <b>unreserved</b> character, which is
+     *       decoded. This is what catches {@code %2e} and its variants wherever they sit, so the
+     *       segment test above only has to look at plain dots
+     *   <li>it carries a percent sequence that is truncated or not hexadecimal, which has no
+     *       normalized form at all
+     * </ul>
+     *
+     * <p>And, deliberately, a path does <b>not</b> need normalizing merely because it contains a
+     * dot inside a segment, {@code /v1/orders/12345.json}, or a percent sequence that decodes to a
+     * <b>reserved</b> character, {@code /a/b%2Fc}. Both are extremely common and both are already
+     * canonical; treating them as suspect would send the most ordinary traffic down the slow path,
+     * and would make {@code REJECT} refuse requests that are perfectly well formed.
+     *
+     * <p><b>This method and {@link #normalize(String)} must agree.</b> Two implementations of the
+     * same rules drift the moment one is touched alone, and the drift is silent: a false negative
+     * here is a path that is quietly left unnormalized. That agreement is not maintained by review
+     * but asserted, over a generated corpus, by the property {@code needsNormalization(p) ==
+     * !p.equals(normalize(p))} in {@code RequestPathNormalizerTest}.
+     *
+     * @param path the raw request path
+     * @return {@code true} when normalizing would change the path, or when it cannot be normalized
+     */
+    public static boolean needsNormalization(final String path) {
+        if (path == null || path.isEmpty() || path.charAt(0) != SEGMENT_SEPARATOR) {
+            return true;
+        }
+
+        final int length = path.length();
+        int i = 0;
+
+        while (i < length) {
+            final char c = path.charAt(i);
+
+            if (c == SEGMENT_SEPARATOR) {
+                final int segmentStart = i + 1;
+                if (segmentStart < length && path.charAt(segmentStart) == SEGMENT_SEPARATOR) {
+                    return true;
+                }
+                if (isDotSegment(path, segmentStart, length)) {
+                    return true;
+                }
+                i = segmentStart;
+            } else if (c == '%') {
+                if (i + 2 >= length) {
+                    return true;
+                }
+                final int decoded = hexValue(path.charAt(i + 1), path.charAt(i + 2));
+                if (decoded < 0 || isUnreserved(decoded)) {
+                    return true;
+                }
+                i += 3;
+            } else {
+                i++;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @return whether the segment starting at {@code start} is exactly {@code .} or {@code ..}.
+     *     Encoded spellings are not looked for here: they are already caught by the unreserved
+     *     decoding rule, whatever their position.
+     */
+    private static boolean isDotSegment(final String path, final int start, final int length) {
+        if (start >= length || path.charAt(start) != '.') {
+            return false;
+        }
+        int end = start + 1;
+        if (end < length && path.charAt(end) == '.') {
+            end++;
+        }
+        return end == length || path.charAt(end) == SEGMENT_SEPARATOR;
+    }
+
+    /**
+     * @return the octet the two characters spell, or {@code -1} when they are not hexadecimal
+     */
+    private static int hexValue(final char high, final char low) {
+        final int h = Character.digit(high, 16);
+        final int l = Character.digit(low, 16);
+        return h < 0 || l < 0 ? -1 : (h << 4) + l;
+    }
+
+    /**
      * @param path the raw request path
      * @return the normalized path, the very same instance when there is nothing to resolve so
      *     callers can rely on {@code ==}, or {@code null} when the path carries a malformed percent
