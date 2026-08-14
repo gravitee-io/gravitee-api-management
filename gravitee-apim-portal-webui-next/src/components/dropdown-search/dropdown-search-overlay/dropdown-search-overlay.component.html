@@ -40,13 +40,15 @@
         (keydown.enter)="toggleOption(option)"
         (keydown.space)="$event.preventDefault(); toggleOption(option)"
       >
-        <mat-checkbox
-          [checked]="selectedValues.includes(option.value)"
-          [disabled]="option.disabled"
-          [value]="option.value"
-          class="portal-dropdown-search-overlay__option-checkbox"
-          color="primary"
-        />
+        @if (multiple) {
+          <mat-checkbox
+            [checked]="selectedValues.includes(option.value)"
+            [disabled]="option.disabled"
+            [value]="option.value"
+            class="portal-dropdown-search-overlay__option-checkbox"
+            color="primary"
+          />
+        }
         <span class="portal-dropdown-search-overlay__option-label next-gen-small">
           {{ option.label }}
           @if (option.context) {

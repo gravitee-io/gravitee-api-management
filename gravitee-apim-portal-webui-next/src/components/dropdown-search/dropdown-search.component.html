@@ -25,15 +25,20 @@
   (keydown.space)="$event.preventDefault(); toggleOverlay($event)"
   tabindex="-1"
   role="listbox"
-  [attr.aria-multiselectable]="multiple"
+  [attr.aria-multiselectable]="multiple()"
   [attr.aria-expanded]="isOpen()"
   [attr.aria-haspopup]="true"
   [attr.aria-label]="label()"
 >
   <span class="portal-dropdown-search__trigger-label next-gen-small">
-    {{ label() }}
-    @if (selectedCount() > 0) {
-      <span class="portal-dropdown-search__trigger-count">{{ selectedCount() }}</span>
+    @if (multiple()) {
+      {{ label() }}
+      @if (selectedCount() > 0) {
+        <span class="portal-dropdown-search__trigger-count">{{ selectedCount() }}</span>
+      }
+    } @else {
+      <span class="portal-dropdown-search__trigger-label-text">{{ label() }}:</span>
+      <span class="portal-dropdown-search__trigger-value">{{ selectedOptionLabel() }}</span>
     }
   </span>
   <mat-icon class="portal-dropdown-search__trigger-icon" [class.portal-dropdown-search__trigger-icon--opened]="isOpen()">

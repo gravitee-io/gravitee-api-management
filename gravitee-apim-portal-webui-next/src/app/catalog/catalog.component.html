@@ -19,7 +19,14 @@
   <div class="api-list__header" [appIsMobile]="'api-list__header--mobile'">
     <div class="next-gen-h1" i18n="@@catalogTitle">Catalog</div>
     <div class="api-list__header__controls">
-      <app-category-select [categories]="categories()" [value]="categoryId()" (valueChange)="onCategorySelect($event)" />
+      <app-dropdown-search
+        class="api-list__category-filter"
+        label="Category"
+        i18n-label="@@catalogCategorySelectLabel"
+        [multiple]="false"
+        [options]="categoryOptions()"
+        [formControl]="categoryFilter"
+      />
       <app-button-toggle-group [(value)]="viewMode">
         <app-button-toggle-option value="grid" icon="grid_view" i18n-label label="Cards" />
         <app-button-toggle-option value="list" icon="view_list" i18n-label label="List" />
