@@ -13,6 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type { ConsoleSettings } from './types';
-export { ConsoleSettingsProvider, useConsoleSettings, useConsoleSettingsReady, useSetConsoleSettings } from './ConsoleSettingsProvider';
-export { isUserGroupRequired } from './isUserGroupRequired';
+
+export interface SearchableUser {
+    id?: string | null;
+    reference: string;
+    displayName: string;
+    email?: string;
+}

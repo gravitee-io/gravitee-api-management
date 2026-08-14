@@ -19,7 +19,6 @@ import {
     getApplicationRole,
     getGroupMemberRole,
     isMemberPrimaryOwner,
-    isSameUser,
 } from './memberHelpers';
 import type { ApplicationUiMember } from '../../types/applicationMembers.types';
 
@@ -73,17 +72,6 @@ describe('memberHelpers', () => {
                     roles: [{ name: 'USER', scope: 'APPLICATION' }],
                 }),
             ).toBe(false);
-        });
-    });
-
-    describe('isSameUser', () => {
-        it('matches by id when both ids are set', () => {
-            expect(isSameUser({ id: 'a', reference: 'ref-a' }, { id: 'a', reference: 'ref-b' })).toBe(true);
-            expect(isSameUser({ id: 'a', reference: 'ref-a' }, { id: 'b', reference: 'ref-a' })).toBe(false);
-        });
-
-        it('falls back to reference when ids are missing', () => {
-            expect(isSameUser({ id: null, reference: 'ref-1' }, { id: undefined, reference: 'ref-1' })).toBe(true);
         });
     });
 

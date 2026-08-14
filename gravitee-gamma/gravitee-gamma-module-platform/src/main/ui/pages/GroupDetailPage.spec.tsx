@@ -19,15 +19,23 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { GroupDetailPage } from './GroupDetailPage';
 import {
+    useEnvironmentSettings,
     useGroupApis,
     useGroupApplications,
     useGroupApiProducts,
     useGroupDetail,
     useGroupMembers,
 } from '../features/groups/hooks/useGroupDetail';
-import { useDeleteGroup, useUpdateGroup } from '../features/groups/hooks/useGroupMutations';
-import { useGroupApiProductRoles, useGroupApiRoles, useGroupApplicationRoles } from '../features/groups/hooks/useGroupRoles';
-import type { Group, GroupMembershipItem } from '../features/groups/types/group';
+import { useAddGroupMembers, useDeleteGroup, useUpdateGroup } from '../features/groups/hooks/useGroupMutations';
+import {
+    useGroupApiProductRoles,
+    useGroupApiRoles,
+    useGroupApplicationRoles,
+    useGroupClusterRoles,
+    useGroupExplorerRoles,
+    useGroupIntegrationRoles,
+} from '../features/groups/hooks/useGroupRoles';
+import type { Group, GroupMembershipItem, GroupMembershipPayload } from '../features/groups/types/group';
 import { notify } from '../shared/notify';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
@@ -53,6 +61,18 @@ jest.mock('../features/groups/components/GroupMembershipTable', () => ({
         <div data-testid={`membership-table-${ariaLabel}`}>{items.map(i => i.name).join(', ')}</div>
     ),
 }));
+// GroupAddMembersSheet has its own spec covering its internals (search, role selects, selection);
+// here we only need to verify the page wires it to the add-members mutation.
+jest.mock('../features/groups/components/GroupAddMembersSheet', () => ({
+    GroupAddMembersSheet: ({ open, onSubmit }: { open: boolean; onSubmit: (m: GroupMembershipPayload[]) => void }) =>
+        open ? (
+            <div data-testid="add-members-sheet">
+                <button type="button" onClick={() => onSubmit([{ id: 'user-1', roles: [{ scope: 'API', name: 'USER' }] }])}>
+                    Submit add members
+                </button>
+            </div>
+        ) : null,
+}));
 
 // Radix Switch (rendered inside the real GroupSheet, mounted unconditionally so Edit can open it) measures
 // its thumb via ResizeObserver, which jsdom lacks.
@@ -67,16 +87,21 @@ beforeAll(() => {
 const mockUseHasPermission = jest.mocked(useHasPermission);
 const mockUseGroupDetail = jest.mocked(useGroupDetail);
 const mockUseGroupMembers = jest.mocked(useGroupMembers);
+const mockUseEnvironmentSettings = jest.mocked(useEnvironmentSettings);
 const mockUseGroupApis = jest.mocked(useGroupApis);
 const mockUseGroupApplications = jest.mocked(useGroupApplications);
 const mockUseGroupApiProducts = jest.mocked(useGroupApiProducts);
 const mockUseGroupApiRoles = jest.mocked(useGroupApiRoles);
 const mockUseGroupApplicationRoles = jest.mocked(useGroupApplicationRoles);
 const mockUseGroupApiProductRoles = jest.mocked(useGroupApiProductRoles);
+const mockUseGroupIntegrationRoles = jest.mocked(useGroupIntegrationRoles);
+const mockUseGroupClusterRoles = jest.mocked(useGroupClusterRoles);
+const mockUseGroupExplorerRoles = jest.mocked(useGroupExplorerRoles);
 const mockUseUpdateGroup = jest.mocked(useUpdateGroup);
 const mockUseDeleteGroup = jest.mocked(useDeleteGroup);
+const mockUseAddGroupMembers = jest.mocked(useAddGroupMembers);
 
-const GROUP: Group = { id: 'group-1', name: 'Support Team', event_rules: [{ event: 'API_CREATE' }] };
+const GROUP: Group = { id: 'group-1', name: 'Support Team', event_rules: [{ event: 'API_CREATE' }], system_invitation: true };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function makeMutation(mutateAsync = jest.fn()): any {
@@ -105,6 +130,7 @@ describe('GroupDetailPage', () => {
             isLoading: false,
             isError: false,
         } as ReturnType<typeof useGroupMembers>);
+        mockUseEnvironmentSettings.mockReturnValue({ data: undefined } as ReturnType<typeof useEnvironmentSettings>);
         mockUseGroupApis.mockReturnValue({
             data: [{ id: 'api-1', name: 'Billing API', version: '1.0' }],
             isLoading: false,
@@ -127,8 +153,15 @@ describe('GroupDetailPage', () => {
             data: [{ name: 'USER', scope: 'API_PRODUCT', default: true }],
             isLoading: false,
         } as ReturnType<typeof useGroupApiProductRoles>);
+        mockUseGroupIntegrationRoles.mockReturnValue({ data: [], isLoading: false } as ReturnType<typeof useGroupIntegrationRoles>);
+        mockUseGroupClusterRoles.mockReturnValue({ data: [], isLoading: false } as ReturnType<typeof useGroupClusterRoles>);
+        mockUseGroupExplorerRoles.mockReturnValue({
+            data: [],
+            isLoading: false,
+        } as unknown as ReturnType<typeof useGroupExplorerRoles>);
         mockUseUpdateGroup.mockReturnValue(makeMutation());
         mockUseDeleteGroup.mockReturnValue(makeMutation());
+        mockUseAddGroupMembers.mockReturnValue(makeMutation());
     });
 
     afterEach(() => {
@@ -169,24 +202,45 @@ describe('GroupDetailPage', () => {
             expect(mockUseGroupApiRoles).toHaveBeenCalledWith({ enabled: false });
             expect(mockUseGroupApplicationRoles).toHaveBeenCalledWith({ enabled: false });
             expect(mockUseGroupApiProductRoles).toHaveBeenCalledWith({ enabled: false });
+            expect(mockUseGroupIntegrationRoles).toHaveBeenCalledWith({ enabled: false });
+            expect(mockUseGroupClusterRoles).toHaveBeenCalledWith({ enabled: false });
+            expect(mockUseGroupExplorerRoles).toHaveBeenCalledWith({ enabled: false });
         });
 
-        it('fetches role catalogs once the user opens the Edit sheet', () => {
+        it('fetches only default-group role catalogs once the user opens the Edit sheet', () => {
             renderPage();
             fireEvent.click(screen.getByRole('button', { name: 'Edit group' }));
 
             expect(mockUseGroupApiRoles).toHaveBeenCalledWith({ enabled: true });
             expect(mockUseGroupApplicationRoles).toHaveBeenCalledWith({ enabled: true });
             expect(mockUseGroupApiProductRoles).toHaveBeenCalledWith({ enabled: true });
+            expect(mockUseGroupIntegrationRoles).toHaveBeenCalledWith({ enabled: false });
+            expect(mockUseGroupClusterRoles).toHaveBeenCalledWith({ enabled: false });
+            expect(mockUseGroupExplorerRoles).toHaveBeenCalledWith({ enabled: false });
         });
 
-        it('skips fetching role catalogs when the user cannot edit, since the sheet can never open', () => {
+        it('fetches all six role catalogs once the Add members sheet is open', () => {
+            renderPage();
+            fireEvent.click(screen.getByRole('button', { name: /Add members/i }));
+
+            expect(mockUseGroupApiRoles).toHaveBeenCalledWith({ enabled: true });
+            expect(mockUseGroupApplicationRoles).toHaveBeenCalledWith({ enabled: true });
+            expect(mockUseGroupApiProductRoles).toHaveBeenCalledWith({ enabled: true });
+            expect(mockUseGroupIntegrationRoles).toHaveBeenCalledWith({ enabled: true });
+            expect(mockUseGroupClusterRoles).toHaveBeenCalledWith({ enabled: true });
+            expect(mockUseGroupExplorerRoles).toHaveBeenCalledWith({ enabled: true });
+        });
+
+        it('skips fetching role catalogs when the user cannot edit or add members, since no sheet can open', () => {
             mockUseHasPermission.mockReturnValue(false);
             renderPage();
 
             expect(mockUseGroupApiRoles).toHaveBeenCalledWith({ enabled: false });
             expect(mockUseGroupApplicationRoles).toHaveBeenCalledWith({ enabled: false });
             expect(mockUseGroupApiProductRoles).toHaveBeenCalledWith({ enabled: false });
+            expect(mockUseGroupIntegrationRoles).toHaveBeenCalledWith({ enabled: false });
+            expect(mockUseGroupClusterRoles).toHaveBeenCalledWith({ enabled: false });
+            expect(mockUseGroupExplorerRoles).toHaveBeenCalledWith({ enabled: false });
         });
     });
 
@@ -367,6 +421,132 @@ describe('GroupDetailPage', () => {
             expect(screen.queryByText('Auto APIs')).not.toBeNull();
             expect(screen.queryByText('Auto API Products')).not.toBeNull();
             expect(screen.queryByText('Auto Applications')).not.toBeNull();
+        });
+    });
+
+    describe('Add members', () => {
+        it('hides Add members without permission', () => {
+            mockUseHasPermission.mockReturnValue(false);
+            renderPage();
+
+            expect(screen.queryByRole('button', { name: /Add members/i })).toBeNull();
+            expect(mockUseEnvironmentSettings).toHaveBeenCalledWith({ enabled: false });
+        });
+
+        it('hides Add members when the group does not allow adding users via search, even with update permission', () => {
+            mockUseGroupDetail.mockReturnValue({
+                data: { ...GROUP, system_invitation: false },
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupDetail>);
+            renderPage();
+
+            expect(screen.queryByRole('button', { name: /Add members/i })).toBeNull();
+            expect(mockUseEnvironmentSettings).toHaveBeenCalledWith({ enabled: false });
+        });
+
+        it('opens the Add members sheet, submits, and shows a success toast', async () => {
+            const addMutateAsync = jest.fn().mockResolvedValue(undefined);
+            mockUseAddGroupMembers.mockReturnValue(makeMutation(addMutateAsync));
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: /Add members/i }));
+            expect(screen.getByTestId('add-members-sheet')).not.toBeNull();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Submit add members' }));
+
+            await waitFor(() =>
+                expect(addMutateAsync).toHaveBeenCalledWith({
+                    groupId: 'group-1',
+                    memberships: [{ id: 'user-1', roles: [{ scope: 'API', name: 'USER' }] }],
+                }),
+            );
+            expect(notify.success).toHaveBeenCalledWith('Member added successfully');
+            await waitFor(() => expect(screen.queryByTestId('add-members-sheet')).toBeNull());
+        });
+
+        it('shows an error toast and keeps the sheet open when adding members fails', async () => {
+            const error = new Error('failed');
+            mockUseAddGroupMembers.mockReturnValue(makeMutation(jest.fn().mockRejectedValue(error)));
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: /Add members/i }));
+            fireEvent.click(screen.getByRole('button', { name: 'Submit add members' }));
+
+            await waitFor(() => expect(notify.error).toHaveBeenCalledWith(error, 'Failed to add members'));
+            expect(screen.queryByTestId('add-members-sheet')).not.toBeNull();
+        });
+    });
+
+    describe('self-service group admin (manageable)', () => {
+        it('shows Add members via manageable + system_invitation even without environment-group-u', () => {
+            mockUseHasPermission.mockReturnValue(false);
+            mockUseGroupDetail.mockReturnValue({
+                data: { ...GROUP, manageable: true, system_invitation: true },
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupDetail>);
+            renderPage();
+
+            expect(screen.queryByRole('button', { name: /Add members/i })).not.toBeNull();
+            expect(mockUseEnvironmentSettings).toHaveBeenCalledWith({ enabled: true });
+        });
+
+        it('hides Add members when manageable but system invitation is disabled', () => {
+            mockUseHasPermission.mockReturnValue(false);
+            mockUseGroupDetail.mockReturnValue({
+                data: { ...GROUP, manageable: true, system_invitation: false, email_invitation: false },
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupDetail>);
+            renderPage();
+
+            expect(screen.queryByRole('button', { name: /Add members/i })).toBeNull();
+        });
+
+        it('hides Add members when not manageable and lacking environment-group-u', () => {
+            mockUseHasPermission.mockReturnValue(false);
+            mockUseGroupDetail.mockReturnValue({
+                data: { ...GROUP, manageable: false },
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupDetail>);
+            renderPage();
+
+            expect(screen.queryByRole('button', { name: /Add members/i })).toBeNull();
+        });
+    });
+
+    describe('member limit', () => {
+        it('shows an info banner and hides Add members once the group has reached max_invitation', () => {
+            mockUseGroupDetail.mockReturnValue({
+                data: { ...GROUP, max_invitation: 1 },
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupDetail>);
+            mockUseGroupMembers.mockReturnValue({
+                data: [{ id: 'member-1', displayName: 'Anna Schmidt', roles: {} }],
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupMembers>);
+            renderPage();
+
+            expect(
+                screen.getByText('The number of members in this group has reached maximum allowed. Adding users has been disabled.'),
+            ).not.toBeNull();
+            expect(screen.queryByRole('button', { name: /Add members/i })).toBeNull();
+        });
+
+        it('does not show the banner below the limit', () => {
+            mockUseGroupDetail.mockReturnValue({
+                data: { ...GROUP, max_invitation: 5 },
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupDetail>);
+            renderPage();
+
+            expect(screen.queryByText(/reached maximum allowed/)).toBeNull();
+            expect(screen.queryByRole('button', { name: /Add members/i })).not.toBeNull();
         });
     });
 });

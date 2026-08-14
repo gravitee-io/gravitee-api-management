@@ -17,7 +17,8 @@ import { useQuery } from '@tanstack/react-query';
 import { fireEvent, render, screen } from '@testing-library/react';
 
 import { TransferOwnershipSheet } from './TransferOwnershipSheet';
-import type { ApplicationUiMember, SearchableUser } from '../../types/applicationMembers.types';
+import type { SearchableUser } from '../../../../shared/types/userSearch';
+import type { ApplicationUiMember } from '../../types/applicationMembers.types';
 import { querySheetHeading } from '../test/sheetSpecHelpers';
 
 jest.mock('@tanstack/react-query', () => ({

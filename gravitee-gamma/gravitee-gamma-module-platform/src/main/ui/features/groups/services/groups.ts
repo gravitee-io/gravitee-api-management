@@ -19,6 +19,7 @@ import type {
     Group,
     GroupMember,
     GroupMembershipItem,
+    GroupMembershipPayload,
     GroupMembershipType,
     GroupRole,
     GroupsPagedResponse,
@@ -83,18 +84,26 @@ export async function deleteGroup(environmentId: string, groupId: string): Promi
     });
 }
 
-async function listGroupRolesByScope(scope: 'API' | 'APPLICATION' | 'API_PRODUCT'): Promise<GroupRole[]> {
+export type GroupRoleScope = 'API' | 'APPLICATION' | 'API_PRODUCT' | 'INTEGRATION' | 'CLUSTER' | 'EXPLORER';
+
+export async function listGroupRolesByScope(scope: GroupRoleScope): Promise<GroupRole[]> {
     return apimFetchJsonOrg<GroupRole[]>(`/configuration/rolescopes/${scope}/roles`);
 }
 
-export async function listGroupApiRoles(): Promise<GroupRole[]> {
-    return listGroupRolesByScope('API');
+/** Subset of GET /environments/{envId}/portal needed to gate PRIMARY_OWNER in add-members.
+ *  Classic loads the same unguarded `/portal` resource (any authenticated user), not `/settings`. */
+export interface EnvironmentPrimaryOwnerSettings {
+    api?: { primaryOwnerMode?: string };
+    apiProduct?: { primaryOwnerMode?: string };
 }
 
-export async function listGroupApplicationRoles(): Promise<GroupRole[]> {
-    return listGroupRolesByScope('APPLICATION');
+export async function getEnvironmentSettings(environmentId: string): Promise<EnvironmentPrimaryOwnerSettings> {
+    return apimFetchJsonV1Env<EnvironmentPrimaryOwnerSettings>(environmentId, '/portal');
 }
 
-export async function listGroupApiProductRoles(): Promise<GroupRole[]> {
-    return listGroupRolesByScope('API_PRODUCT');
+export async function addGroupMembers(environmentId: string, groupId: string, memberships: GroupMembershipPayload[]): Promise<void> {
+    return apimFetchJsonV1Env<void>(environmentId, `/configuration/groups/${encodeURIComponent(groupId)}/members`, {
+        method: 'POST',
+        body: JSON.stringify(memberships),
+    });
 }
