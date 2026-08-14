@@ -34,4 +34,16 @@ public interface SubscriptionSearchQueryService {
         String apiKey,
         Pageable pageable
     );
+
+    Page<SubscriptionEntity> search(ExecutionContext executionContext, Criteria criteria, Pageable pageable);
+
+    record Criteria(
+        Set<SubscriptionReferenceType> referenceTypes,
+        Set<String> apiIds,
+        Set<String> apiProductIds,
+        Set<String> applicationIds,
+        Set<String> planIds,
+        Set<SubscriptionStatus> statuses,
+        String apiKey
+    ) {}
 }

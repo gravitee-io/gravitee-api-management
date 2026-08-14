@@ -42,4 +42,11 @@ public class SubscriptionSearchQueryServiceInMemory implements SubscriptionSearc
         int pageSize = pageable != null ? pageable.getPageSize() : 10;
         return new Page<>(Collections.emptyList(), pageNumber + 1, pageSize, 0);
     }
+
+    @Override
+    public Page<SubscriptionEntity> search(ExecutionContext executionContext, Criteria criteria, Pageable pageable) {
+        int pageNumber = pageable != null ? pageable.getPageNumber() : 0;
+        int pageSize = pageable != null ? pageable.getPageSize() : 10;
+        return new Page<>(Collections.emptyList(), pageNumber, pageSize, 0);
+    }
 }

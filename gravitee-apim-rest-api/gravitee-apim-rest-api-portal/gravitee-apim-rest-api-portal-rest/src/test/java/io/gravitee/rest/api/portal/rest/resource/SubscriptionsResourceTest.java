@@ -41,6 +41,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
+import io.gravitee.apim.core.subscription.use_case.SearchPortalSubscriptionsUseCase;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormValidationException;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
@@ -53,7 +54,6 @@ import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
-import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.portal.rest.model.ApiKeyModeEnum;
 import io.gravitee.rest.api.portal.rest.model.Key;
@@ -69,6 +69,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.junit.jupiter.api.AfterEach;
@@ -123,6 +124,9 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         );
         doReturn(subscriptionPage.getContent()).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
         doReturn(subscriptionPage).when(subscriptionService).search(any(), any(), any());
+        doReturn(new SearchPortalSubscriptionsUseCase.Output(subscriptionPage))
+            .when(searchPortalSubscriptionsUseCase)
+            .execute(any(SearchPortalSubscriptionsUseCase.Input.class));
 
         // Core subscription entity returned by UseCase
         SubscriptionEntity coreSubscriptionEntity = SubscriptionEntity.builder().id(SUBSCRIPTION).build();
@@ -172,6 +176,10 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetNoSubscription() {
+        doReturn(new SearchPortalSubscriptionsUseCase.Output(new Page<>(emptyList(), 10, 0, 0)))
+            .when(searchPortalSubscriptionsUseCase)
+            .execute(any(SearchPortalSubscriptionsUseCase.Input.class));
+
         final Response response = target().queryParam("page", 10).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -182,7 +190,9 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
     @Test
     public void shouldGetNoPublishedApiAndNoLink() {
         final Page<io.gravitee.rest.api.model.SubscriptionEntity> subscriptionPage = new Page<>(emptyList(), 0, 1, 2);
-        doReturn(subscriptionPage).when(subscriptionService).search(any(), any(), any());
+        doReturn(new SearchPortalSubscriptionsUseCase.Output(subscriptionPage))
+            .when(searchPortalSubscriptionsUseCase)
+            .execute(any(SearchPortalSubscriptionsUseCase.Input.class));
 
         //Test with default limit
         final Response response = target().queryParam("apiId", API).request().get();
@@ -306,11 +316,16 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
 
         assertEquals(OK_200, response.getStatus());
 
-        ArgumentCaptor<SubscriptionQuery> queryCaptor = ArgumentCaptor.forClass(SubscriptionQuery.class);
-        verify(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), queryCaptor.capture(), any());
-        assertEquals(List.of(API_PRODUCT, ANOTHER_API_PRODUCT), queryCaptor.getValue().getApiProducts());
-        assertNull(queryCaptor.getValue().getApis());
-        assertNull(queryCaptor.getValue().getReferenceType());
+        ArgumentCaptor<SearchPortalSubscriptionsUseCase.Input> queryCaptor = ArgumentCaptor.forClass(
+            SearchPortalSubscriptionsUseCase.Input.class
+        );
+        verify(searchPortalSubscriptionsUseCase).execute(queryCaptor.capture());
+        assertEquals(Set.of(API_PRODUCT, ANOTHER_API_PRODUCT), queryCaptor.getValue().apiProductIds());
+        assertNull(queryCaptor.getValue().apiIds());
+        assertEquals(
+            Set.of(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT),
+            queryCaptor.getValue().referenceTypes()
+        );
 
         ArgumentCaptor<SubscriptionMetadataQuery> metadataQueryCaptor = ArgumentCaptor.forClass(SubscriptionMetadataQuery.class);
         verify(subscriptionService).getMetadata(eq(GraviteeContext.getExecutionContext()), metadataQueryCaptor.capture());
@@ -329,6 +344,64 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         Response response = target().queryParam("apiId", API).queryParam("apiProductIds", API_PRODUCT).request().get();
 
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    void shouldDefaultToApiSubscriptionsForBackwardCompatibility() {
+        mockCurrentUserApplication();
+        Metadata metadata = new Metadata();
+        doReturn(metadata).when(subscriptionService).getMetadata(eq(GraviteeContext.getExecutionContext()), any());
+
+        Response response = target().request().get();
+
+        assertEquals(OK_200, response.getStatus());
+        ArgumentCaptor<SearchPortalSubscriptionsUseCase.Input> inputCaptor = ArgumentCaptor.forClass(
+            SearchPortalSubscriptionsUseCase.Input.class
+        );
+        verify(searchPortalSubscriptionsUseCase).execute(inputCaptor.capture());
+        assertEquals(
+            Set.of(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API),
+            inputCaptor.getValue().referenceTypes()
+        );
+    }
+
+    @Test
+    void shouldSearchApiAndApiProductSubscriptionsByTargetName() {
+        mockCurrentUserApplication();
+        Metadata metadata = new Metadata();
+        doReturn(metadata).when(subscriptionService).getMetadata(eq(GraviteeContext.getExecutionContext()), any());
+
+        Response response = target()
+            .queryParam("referenceTypes", "API", "API_PRODUCT")
+            .queryParam("query", "payment")
+            .queryParam("page", 1)
+            .queryParam("size", 10)
+            .request()
+            .get();
+
+        assertEquals(OK_200, response.getStatus());
+        ArgumentCaptor<SearchPortalSubscriptionsUseCase.Input> inputCaptor = ArgumentCaptor.forClass(
+            SearchPortalSubscriptionsUseCase.Input.class
+        );
+        verify(searchPortalSubscriptionsUseCase).execute(inputCaptor.capture());
+        assertEquals(
+            Set.of(
+                io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API,
+                io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API_PRODUCT
+            ),
+            inputCaptor.getValue().referenceTypes()
+        );
+        assertEquals("payment", inputCaptor.getValue().query());
+        assertEquals(1, inputCaptor.getValue().pageable().getPageNumber());
+        assertEquals(10, inputCaptor.getValue().pageable().getPageSize());
+    }
+
+    @Test
+    void shouldRejectAnUnsupportedReferenceType() {
+        Response response = target().queryParam("referenceTypes", "UNKNOWN").request().get();
+
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        verify(searchPortalSubscriptionsUseCase, never()).execute(any());
     }
 
     @Test

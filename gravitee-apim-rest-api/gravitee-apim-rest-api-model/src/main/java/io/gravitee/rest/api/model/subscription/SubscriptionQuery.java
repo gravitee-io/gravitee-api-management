@@ -16,9 +16,11 @@
 package io.gravitee.rest.api.model.subscription;
 
 import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Set;
 import lombok.*;
 
 /**
@@ -58,6 +60,16 @@ public class SubscriptionQuery {
      * Reference type (API or API_PRODUCT) for generic filtering.
      */
     private GenericPlanEntity.ReferenceType referenceType;
+
+    /**
+     * Reference types used by searches that return multiple target types in one result page.
+     */
+    private Set<GenericPlanEntity.ReferenceType> referenceTypes;
+
+    /**
+     * Optional repository sort used by callers that require stable pagination.
+     */
+    private Sortable sortable;
 
     private long from = -1;
     private long to = -1;
