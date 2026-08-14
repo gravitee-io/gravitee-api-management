@@ -424,6 +424,7 @@
     <modules>
         <module>gravitee-apim-distribution-standalone</module>
         <module>gravitee-apim-distribution-es-index-mappings</module>
+        <module>gravitee-apim-distribution-jdbc-migrations</module>
     </modules>
 
     <profiles>
