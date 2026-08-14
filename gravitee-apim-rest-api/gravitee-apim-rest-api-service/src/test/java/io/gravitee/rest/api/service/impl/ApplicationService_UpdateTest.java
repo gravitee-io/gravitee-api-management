@@ -254,6 +254,68 @@ public class ApplicationService_UpdateTest {
     }
 
     @Test
+    public void shouldSetHridToApplicationIdOnUpdateWhenStoredHridIsNull() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(CLIENT_ID);
+        settings.setApp(clientSettings);
+
+        Application existing = new Application();
+        existing.setId(APPLICATION_ID);
+        existing.setName(APPLICATION_NAME);
+        existing.setStatus(ApplicationStatus.ACTIVE);
+        existing.setType(ApplicationType.SIMPLE);
+        existing.setApiKeyMode(ApiKeyMode.UNSPECIFIED);
+        existing.setHrid(null);
+
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existing));
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(getConsoleConfigEntity(false));
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(getPrimaryOwner()));
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(updateApplication.getDescription()).thenReturn("My description");
+        when(updateApplication.getGroups()).thenReturn(Set.of());
+        when(applicationRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        verify(applicationRepository).update(argThat(application -> APPLICATION_ID.equals(application.getHrid())));
+    }
+
+    @Test
+    public void shouldPreserveStoredHridOnUpdate() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(CLIENT_ID);
+        settings.setApp(clientSettings);
+
+        Application existing = new Application();
+        existing.setId(APPLICATION_ID);
+        existing.setName(APPLICATION_NAME);
+        existing.setStatus(ApplicationStatus.ACTIVE);
+        existing.setType(ApplicationType.SIMPLE);
+        existing.setApiKeyMode(ApiKeyMode.UNSPECIFIED);
+        existing.setHrid("gitops-hrid");
+
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existing));
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(getConsoleConfigEntity(false));
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(getPrimaryOwner()));
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(updateApplication.getDescription()).thenReturn("My description");
+        when(updateApplication.getGroups()).thenReturn(Set.of());
+        when(applicationRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        verify(applicationRepository).update(argThat(application -> "gitops-hrid".equals(application.getHrid())));
+    }
+
+    @Test
     public void shouldThrowExceptionWhenUserGroupsRequiredButNotPresent() {
         ApplicationSettings settings = new ApplicationSettings();
         ConsoleConfigEntity config = getConsoleConfigEntity(true);

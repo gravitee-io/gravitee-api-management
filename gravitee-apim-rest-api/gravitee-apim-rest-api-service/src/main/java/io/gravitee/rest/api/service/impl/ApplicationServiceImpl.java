@@ -471,6 +471,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         } else {
             application.setId(UuidString.generateRandom());
         }
+        if (isBlank(application.getHrid())) {
+            application.setHrid(application.getId());
+        }
         application.setStatus(ApplicationStatus.ACTIVE);
         metadata.forEach((key, value) -> application.getMetadata().put(key, value));
 
@@ -678,7 +681,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             Application application = applicationConverter.toApplication(updateApplicationEntity);
             application.setId(applicationId);
-            application.setHrid(applicationToUpdate.getHrid());
+            application.setHrid(isBlank(applicationToUpdate.getHrid()) ? applicationToUpdate.getId() : applicationToUpdate.getHrid());
             application.setEnvironmentId(applicationToUpdate.getEnvironmentId());
             application.setStatus(ApplicationStatus.ACTIVE);
             application.setType(applicationToUpdate.getType());

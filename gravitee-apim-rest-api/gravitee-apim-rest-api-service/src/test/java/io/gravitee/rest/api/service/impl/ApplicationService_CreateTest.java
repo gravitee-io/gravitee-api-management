@@ -179,6 +179,121 @@ public class ApplicationService_CreateTest {
     }
 
     @Test
+    public void shouldSetHridToApplicationIdWhenNotProvided() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(CLIENT_ID);
+        settings.setApp(clientSettings);
+        when(newApplication.getSettings()).thenReturn(settings);
+        when(newApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(newApplication.getDescription()).thenReturn("My description");
+        when(newApplication.getHrid()).thenReturn(null);
+        when(newApplication.getId()).thenReturn(null);
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(UserEntity.class));
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
+        when(applicationRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ApplicationEntity applicationEntity = applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
+
+        assertNotNull(applicationEntity.getId());
+        assertEquals(applicationEntity.getId(), applicationEntity.getHrid());
+        verify(applicationRepository).create(argThat(app -> app.getId().equals(app.getHrid())));
+    }
+
+    @Test
+    public void shouldSetHridToApplicationIdWhenHridIsEmpty() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(CLIENT_ID);
+        settings.setApp(clientSettings);
+        when(newApplication.getSettings()).thenReturn(settings);
+        when(newApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(newApplication.getDescription()).thenReturn("My description");
+        when(newApplication.getHrid()).thenReturn("");
+        when(newApplication.getId()).thenReturn(null);
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(UserEntity.class));
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
+        when(applicationRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ApplicationEntity applicationEntity = applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
+
+        assertNotNull(applicationEntity.getId());
+        assertEquals(applicationEntity.getId(), applicationEntity.getHrid());
+        verify(applicationRepository).create(argThat(app -> app.getId().equals(app.getHrid())));
+    }
+
+    @Test
+    public void shouldSetHridToApplicationIdWhenHridIsWhitespace() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(CLIENT_ID);
+        settings.setApp(clientSettings);
+        when(newApplication.getSettings()).thenReturn(settings);
+        when(newApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(newApplication.getDescription()).thenReturn("My description");
+        when(newApplication.getHrid()).thenReturn(" ");
+        when(newApplication.getId()).thenReturn(null);
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(UserEntity.class));
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
+        when(applicationRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ApplicationEntity applicationEntity = applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
+
+        assertNotNull(applicationEntity.getId());
+        assertEquals(applicationEntity.getId(), applicationEntity.getHrid());
+        verify(applicationRepository).create(argThat(app -> app.getId().equals(app.getHrid())));
+    }
+
+    @Test
+    public void shouldPreserveProvidedHrid() throws TechnicalException {
+        String hrid = "my-application-hrid";
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(CLIENT_ID);
+        settings.setApp(clientSettings);
+        when(newApplication.getSettings()).thenReturn(settings);
+        when(newApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(newApplication.getDescription()).thenReturn("My description");
+        when(newApplication.getHrid()).thenReturn(hrid);
+        when(newApplication.getId()).thenReturn(null);
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(UserEntity.class));
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
+        when(applicationRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ApplicationEntity applicationEntity = applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
+
+        assertEquals(hrid, applicationEntity.getHrid());
+        verify(applicationRepository).create(argThat(app -> hrid.equals(app.getHrid())));
+    }
+
+    @Test
+    public void shouldSetHridToExplicitIdWhenNotProvided() throws TechnicalException {
+        String explicitId = "explicit-application-id";
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(CLIENT_ID);
+        settings.setApp(clientSettings);
+        when(newApplication.getSettings()).thenReturn(settings);
+        when(newApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(newApplication.getDescription()).thenReturn("My description");
+        when(newApplication.getHrid()).thenReturn(null);
+        when(newApplication.getId()).thenReturn(explicitId);
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(UserEntity.class));
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
+        when(applicationRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ApplicationEntity applicationEntity = applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
+
+        assertEquals(explicitId, applicationEntity.getId());
+        assertEquals(explicitId, applicationEntity.getHrid());
+    }
+
+    @Test
     public void shouldCreateAppWithDefaultGroup() throws TechnicalException {
         ApplicationSettings settings = new ApplicationSettings();
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
