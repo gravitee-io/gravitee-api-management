@@ -18,16 +18,23 @@ package io.gravitee.rest.api.service.testing;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 // Auto-registered via META-INF/services/org.junit.jupiter.api.extension.Extension
 // together with junit-platform.properties enabling autodetection. Guards against
 // ThreadLocal pollution leaking from one test class to the next when forks share
 // a JVM (forkCount>1, reuseForks=true). Cleanup happens after the entire class
 // so @BeforeAll setups inside a class keep working.
+//
+// SecurityContextHolder is the second such ThreadLocal: AbstractService reads the
+// caller's roles from it, so a class that leaves an authentication behind decides
+// which branch the next class takes. Whether it is authenticated is not something
+// a test should inherit from whoever ran before it.
 public class GraviteeContextCleanupExtension implements AfterAllCallback {
 
     @Override
     public void afterAll(ExtensionContext context) {
         GraviteeContext.cleanContext();
+        SecurityContextHolder.clearContext();
     }
 }
