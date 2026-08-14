@@ -48,9 +48,9 @@ export function useGroupApiProductRoles({ enabled = true }: { enabled?: boolean 
 }
 
 export function useGroupIntegrationRoles() {
-    return useGroupRolesQuery(groupKeys.integrationRoles(), listGroupIntegrationRoles);
+    return useGroupRolesQuery(groupKeys.integrationRoles(), listGroupIntegrationRoles, true);
 }
 
 export function useGroupClusterRoles() {
-    return useGroupRolesQuery(groupKeys.clusterRoles(), listGroupClusterRoles);
+    return useGroupRolesQuery(groupKeys.clusterRoles(), listGroupClusterRoles, true);
 }
