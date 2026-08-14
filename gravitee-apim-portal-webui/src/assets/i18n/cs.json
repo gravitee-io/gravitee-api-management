@@ -816,6 +816,9 @@
     "user": {
       "exists": "E-mail již existuje uživatel: {user}",
       "finalized": "Účet již byl dokončen",
+      "registration": {
+        "pendingApproval": "Žádost o registraci čeká na schválení správcem. Jakmile bude posouzena, obdržíte e-mail."
+      },
       "resetpassword": "Obnovte již požadované heslo, zkontrolujte e-maily a před novým pokusem počkejte několik minut."
     }
   },
@@ -1031,6 +1034,10 @@
     "email": "Email",
     "firstname": "Křestní jméno",
     "lastname": "Přijmení",
+    "pendingApproval": {
+      "message": "Vaše žádost o registraci pro {email} čeká na schválení správcem. Jakmile bude schválena, obdržíte e-mail s aktivačním odkazem.",
+      "title": "Žádost o registraci odeslána"
+    },
     "success": {
       "message": "E-mail byl odeslán na adresu: {email}",
       "title": "Registrace potvrzena!"
