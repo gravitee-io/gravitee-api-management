@@ -60,7 +60,11 @@
     <gravitee-common-mcp.version>1.2.0</gravitee-common-mcp.version>
     <gravitee-connector-api.version>2.0.0</gravitee-connector-api.version>
     <gravitee-exchange.version>3.0.0</gravitee-exchange.version>
-    <gravitee-expression-language.version>4.4.0</gravitee-expression-language.version>
+    <!-- TEMPORARY — prerelease of gravitee-expression-language#153, to be reverted.
+         4.4.0 leaves JsonPathFunction permanently uninitialised in any JVM where another
+         component compiled a JSON path first, which is what breaks UserServiceTest here
+         once the test job stops recompiling and surefire redistributes the classes. -->
+    <gravitee-expression-language.version>4.4.1-fix-jsonpath-cache-already-configured-SNAPSHOT</gravitee-expression-language.version>
     <gravitee-fetcher-api.version>2.1.0</gravitee-fetcher-api.version>
     <gravitee-gateway-api.version>6.3.0</gravitee-gateway-api.version>
     <gravitee-integration-api.version>5.1.0</gravitee-integration-api.version>
