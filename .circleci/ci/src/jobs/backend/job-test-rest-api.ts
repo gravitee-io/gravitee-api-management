@@ -28,11 +28,27 @@ export class TestRestApiJob extends AbstractTestJob {
       'job-test-rest-api',
       [
         new commands.Run({
+          // Goals, not a lifecycle phase. `Build backend` has already compiled these modules and
+          // generated their models, and the workspace carries the result: running `test` here would
+          // rewrite the generated sources and recompile all of it for nothing.
+          //
+          // surefire needs two of them first — dependency:properties resolves the mockito agent path
+          // and jacoco:prepare-agent fills argLine — or it hands `@{argLine}` to the JVM verbatim.
+          //
           // standalone-container depends on two Gamma artifacts this reactor no longer builds, so they
           // come from the local repository. -nsu keeps a published snapshot from taking the place of the
-          // one `Build backend` just installed. Yarn went with Gamma: nothing here needs it.
+          // one `Build backend` just installed.
+          //
+          // -pl '!.' drops the aggregator from the reactor. It is the one pom with no gravitee-apim-parent
+          // above it, so the jacoco prefix does not resolve there and Maven would either fail outright or
+          // reach for the latest release instead of the version the build pins.
           name: `Run Rest API tests`,
-          command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -Drest-api-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -nsu ${mavenParallelism('large')}`,
+          command: `mvn --fail-fast -s ${config.maven.settingsFile} dependency:properties jacoco:prepare-agent surefire:test --no-transfer-progress -Drest-api-modules -pl '!.' -nsu ${mavenParallelism('large')}`,
+        }),
+        new commands.Run({
+          // report-aggregate is bound to the test phase, which no longer runs.
+          name: `Aggregate coverage`,
+          command: `mvn -s ${config.maven.settingsFile} -pl gravitee-apim-rest-api/gravitee-apim-rest-api-coverage org.jacoco:jacoco-maven-plugin:report-aggregate --no-transfer-progress -Drest-api-modules -nsu`,
         }),
       ],
       UbuntuExecutor.create('large'),

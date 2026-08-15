@@ -247,6 +247,10 @@ jobs:
           root: ./
           paths:
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*
+            - ./gravitee-apim-rest-api/*/target/classes
+            - ./gravitee-apim-rest-api/*/target/test-classes
+            - ./gravitee-apim-rest-api/*/*/target/classes
+            - ./gravitee-apim-rest-api/*/*/target/test-classes
             - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target/distribution
             - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution
   job-test-definition:
@@ -365,7 +369,10 @@ jobs:
             - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run Rest API tests
-          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Drest-api-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -nsu -T 8
+          command: mvn --fail-fast -s .gravitee.settings.xml dependency:properties jacoco:prepare-agent surefire:test --no-transfer-progress -Drest-api-modules -pl '!.' -nsu -T 8
+      - run:
+          name: Aggregate coverage
+          command: mvn -s .gravitee.settings.xml -pl gravitee-apim-rest-api/gravitee-apim-rest-api-coverage org.jacoco:jacoco-maven-plugin:report-aggregate --no-transfer-progress -Drest-api-modules -nsu
       - run:
           name: Save test results
           command: |-

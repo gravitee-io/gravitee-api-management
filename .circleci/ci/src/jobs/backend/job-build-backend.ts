@@ -67,6 +67,13 @@ export class BuildBackendJob {
         root: './',
         paths: [
           './gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*',
+          // The rest-api test job runs surefire against these instead of compiling and generating
+          // again. -DskipTests above compiles the tests without running them, so test-classes are
+          // already here. Two levels of glob because the modules nest one deep in places.
+          './gravitee-apim-rest-api/*/target/classes',
+          './gravitee-apim-rest-api/*/target/test-classes',
+          './gravitee-apim-rest-api/*/*/target/classes',
+          './gravitee-apim-rest-api/*/*/target/test-classes',
           './gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target/distribution',
           './gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution',
         ],
