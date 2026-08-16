@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.GroupRepository;
@@ -29,6 +30,7 @@ import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.Metadata;
@@ -74,6 +76,9 @@ class AuditMetadataQueryServiceImplTest {
     @Mock
     UserRepository userRepository;
 
+    @Mock
+    ApiProductsRepository apiProductRepository;
+
     AuditMetadataQueryServiceImpl service;
 
     @BeforeEach
@@ -87,7 +92,8 @@ class AuditMetadataQueryServiceImplTest {
             metadataRepository,
             pageRepository,
             planRepository,
-            userRepository
+            userRepository,
+            apiProductRepository
         );
     }
 
@@ -527,6 +533,44 @@ class AuditMetadataQueryServiceImplTest {
 
                 // Then
                 Assertions.assertThat(result).isEqualTo(PLAN_ID);
+            }
+        }
+
+        @Nested
+        class ApiProductProperty {
+
+            public static final String API_PRODUCT_ID = "product-id";
+
+            @Test
+            @SneakyThrows
+            void should_return_api_product_name() {
+                when(apiProductRepository.findById(API_PRODUCT_ID)).thenReturn(
+                    Optional.of(ApiProduct.builder().id(API_PRODUCT_ID).name("Finance Team").build())
+                );
+
+                var result = service.fetchPropertyMetadata(AUDIT, AuditProperties.API_PRODUCT.name(), API_PRODUCT_ID);
+
+                Assertions.assertThat(result).isEqualTo("Finance Team");
+            }
+
+            @Test
+            @SneakyThrows
+            void should_return_api_product_id_when_no_product_is_found() {
+                when(apiProductRepository.findById(any())).thenReturn(Optional.empty());
+
+                var result = service.fetchPropertyMetadata(AUDIT, AuditProperties.API_PRODUCT.name(), API_PRODUCT_ID);
+
+                Assertions.assertThat(result).isEqualTo(API_PRODUCT_ID);
+            }
+
+            @Test
+            @SneakyThrows
+            void should_return_api_product_id_when_technical_exception_occurs() {
+                when(apiProductRepository.findById(any())).thenThrow(new TechnicalException());
+
+                var result = service.fetchPropertyMetadata(AUDIT, AuditProperties.API_PRODUCT.name(), API_PRODUCT_ID);
+
+                Assertions.assertThat(result).isEqualTo(API_PRODUCT_ID);
             }
         }
 

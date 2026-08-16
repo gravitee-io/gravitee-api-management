@@ -21,6 +21,7 @@ import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.infra.adapter.UserAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.GroupRepository;
@@ -29,6 +30,7 @@ import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Group;
@@ -51,6 +53,7 @@ public class AuditMetadataQueryServiceImpl implements AuditMetadataQueryService 
     private final PageRepository pageRepository;
     private final PlanRepository planRepository;
     private final UserRepository userRepository;
+    private final ApiProductsRepository apiProductRepository;
 
     public AuditMetadataQueryServiceImpl(
         @Lazy ApiRepository apiRepository,
@@ -59,7 +62,8 @@ public class AuditMetadataQueryServiceImpl implements AuditMetadataQueryService 
         @Lazy MetadataRepository metadataRepository,
         @Lazy PageRepository pageRepository,
         @Lazy PlanRepository planRepository,
-        @Lazy UserRepository userRepository
+        @Lazy UserRepository userRepository,
+        @Lazy ApiProductsRepository apiProductRepository
     ) {
         this.apiRepository = apiRepository;
         this.applicationRepository = applicationRepository;
@@ -68,6 +72,7 @@ public class AuditMetadataQueryServiceImpl implements AuditMetadataQueryService 
         this.pageRepository = pageRepository;
         this.planRepository = planRepository;
         this.userRepository = userRepository;
+        this.apiProductRepository = apiProductRepository;
     }
 
     @Override
@@ -113,6 +118,8 @@ public class AuditMetadataQueryServiceImpl implements AuditMetadataQueryService 
                     return pageRepository.findById(propertyValue).map(Page::getName).orElse(propertyValue);
                 case PLAN:
                     return planRepository.findById(propertyValue).map(Plan::getName).orElse(propertyValue);
+                case API_PRODUCT:
+                    return apiProductRepository.findById(propertyValue).map(ApiProduct::getName).orElse(propertyValue);
                 case USER:
                     return userRepository
                         .findById(propertyValue)
