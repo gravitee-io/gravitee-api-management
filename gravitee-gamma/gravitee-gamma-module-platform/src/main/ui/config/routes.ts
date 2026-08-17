@@ -30,6 +30,9 @@ export const ROUTE_KEYS: readonly string[] = [
     'alerts',
     'organization-audit',
     'environment-audit',
+    'management-and-schedulers',
+    'cors',
+    'smtp',
 ];
 export type RouteKey = (typeof ROUTE_KEYS)[number];
 
@@ -50,6 +53,9 @@ export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: s
     alerts: { path: 'alerts', label: 'Alerts' },
     'organization-audit': { path: 'organization-audit', label: 'Audit' },
     'environment-audit': { path: 'environment-audit', label: 'Audit' },
+    'management-and-schedulers': { path: 'management-and-schedulers', label: 'Management & Schedulers' },
+    cors: { path: 'cors', label: 'CORS' },
+    smtp: { path: 'smtp', label: 'SMTP' },
 };
 
 export const PLATFORM_ROUTE_CONFIG: ModuleRouteConfig<RouteKey> = {
