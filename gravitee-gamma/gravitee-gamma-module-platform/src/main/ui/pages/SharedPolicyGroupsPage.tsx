@@ -25,10 +25,15 @@ import {
     SharedPolicyGroupCreateSheet,
     type SharedPolicyGroupCreateFormValues,
 } from '../features/shared-policy-groups/components/SharedPolicyGroupCreateSheet';
+import {
+    SharedPolicyGroupEditSheet,
+    type SharedPolicyGroupEditFormValues,
+} from '../features/shared-policy-groups/components/SharedPolicyGroupEditSheet';
 import { SharedPolicyGroupsTable } from '../features/shared-policy-groups/components/SharedPolicyGroupsTable';
 import {
     useCreateSharedPolicyGroup,
     useDeleteSharedPolicyGroup,
+    useUpdateSharedPolicyGroup,
 } from '../features/shared-policy-groups/hooks/useSharedPolicyGroupMutations';
 import { useSharedPolicyGroupsPaged } from '../features/shared-policy-groups/hooks/useSharedPolicyGroups';
 import type { SharedPolicyGroup } from '../features/shared-policy-groups/types/sharedPolicyGroup';
@@ -36,21 +41,28 @@ import {
     DEFAULT_SHARED_POLICY_GROUP_LIST_PAGE_SIZE,
     SHARED_POLICY_GROUP_SEARCH_DEBOUNCE_MS,
 } from '../features/shared-policy-groups/utils/paginationConstants';
+import { toUpdateSharedPolicyGroupPayload } from '../features/shared-policy-groups/utils/sharedPolicyGroupPayload';
 import {
     ENVIRONMENT_SHARED_POLICY_GROUP_CREATE_PERMISSION,
     ENVIRONMENT_SHARED_POLICY_GROUP_DELETE_PERMISSION,
     ENVIRONMENT_SHARED_POLICY_GROUP_PERMISSION_PREFIX,
+    ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION,
 } from '../features/shared-policy-groups/utils/sharedPolicyGroupPermissions';
 import { ConfirmDialog } from '../shared/components/ConfirmDialog';
 import { useForbiddenResourceRedirect } from '../shared/hooks/useForbiddenResourceRedirect';
 import { notify } from '../shared/notify';
 import { isForbiddenApiError } from '../shared/utils/apiErrors';
 
-type SheetState = { type: 'closed' } | { type: 'create' } | { type: 'delete'; sharedPolicyGroup: SharedPolicyGroup };
+type SheetState =
+    | { type: 'closed' }
+    | { type: 'create' }
+    | { type: 'edit'; sharedPolicyGroup: SharedPolicyGroup }
+    | { type: 'delete'; sharedPolicyGroup: SharedPolicyGroup };
 
 export function SharedPolicyGroupsPage() {
     const navigate = useNavigate();
     const canCreate = useHasPermission({ anyOf: [ENVIRONMENT_SHARED_POLICY_GROUP_CREATE_PERMISSION] });
+    const canEdit = useHasPermission({ anyOf: [ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION] });
     const canDelete = useHasPermission({ anyOf: [ENVIRONMENT_SHARED_POLICY_GROUP_DELETE_PERMISSION] });
 
     const [search, setSearch] = useState('');
@@ -87,6 +99,7 @@ export function SharedPolicyGroupsPage() {
     });
 
     const createMutation = useCreateSharedPolicyGroup();
+    const updateMutation = useUpdateSharedPolicyGroup();
     const deleteMutation = useDeleteSharedPolicyGroup();
 
     const sharedPolicyGroups = data?.data ?? [];
@@ -100,6 +113,10 @@ export function SharedPolicyGroupsPage() {
 
     function closeSheet() {
         setSheet({ type: 'closed' });
+    }
+
+    function handleOpenEdit(sharedPolicyGroup: SharedPolicyGroup) {
+        setSheet({ type: 'edit', sharedPolicyGroup });
     }
 
     async function handleCreate(values: SharedPolicyGroupCreateFormValues) {
@@ -117,6 +134,20 @@ export function SharedPolicyGroupsPage() {
             navigate(created.id);
         } catch (error) {
             notify.error(error, 'Error during Shared Policy Group creation!');
+        }
+    }
+
+    async function handleEdit(values: SharedPolicyGroupEditFormValues) {
+        if (sheet.type !== 'edit') return;
+        try {
+            await updateMutation.mutateAsync({
+                id: sheet.sharedPolicyGroup.id,
+                payload: toUpdateSharedPolicyGroupPayload(values),
+            });
+            notify.success('Shared Policy Group updated');
+            closeSheet();
+        } catch (error) {
+            notify.error(error, 'Error during Shared Policy Group update!');
         }
     }
 
@@ -169,18 +200,28 @@ export function SharedPolicyGroupsPage() {
                 page={page}
                 pageSize={pageSize}
                 sorting={sorting}
+                canEdit={canEdit}
                 canDelete={canDelete}
                 onSearchChange={handleSearchChange}
                 onPageChange={setPage}
                 onPageSizeChange={setPageSize}
                 onSortingChange={handleSortingChange}
                 onView={sharedPolicyGroup => navigate(sharedPolicyGroup.id)}
+                onEdit={handleOpenEdit}
                 onDelete={sharedPolicyGroup => setSheet({ type: 'delete', sharedPolicyGroup })}
                 onCreateSharedPolicyGroup={canCreate ? () => setSheet({ type: 'create' }) : undefined}
             />
 
-            {sheet.type === 'create' ? (
-                <SharedPolicyGroupCreateSheet open onClose={closeSheet} onSubmit={handleCreate} isSaving={createMutation.isPending} />
+            {sheet.type === 'create' ? <SharedPolicyGroupCreateSheet open onClose={closeSheet} onSubmit={handleCreate} /> : null}
+
+            {sheet.type === 'edit' ? (
+                <SharedPolicyGroupEditSheet
+                    key={sheet.sharedPolicyGroup.id}
+                    open
+                    sharedPolicyGroup={sheet.sharedPolicyGroup}
+                    onClose={closeSheet}
+                    onSubmit={handleEdit}
+                />
             ) : null}
 
             <ConfirmDialog

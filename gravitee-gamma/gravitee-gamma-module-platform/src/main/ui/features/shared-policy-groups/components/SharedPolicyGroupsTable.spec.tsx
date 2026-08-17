@@ -44,12 +44,14 @@ function renderTable(overrides: Partial<React.ComponentProps<typeof SharedPolicy
                 page={1}
                 pageSize={25}
                 sorting={[]}
+                canEdit={false}
                 canDelete={false}
                 onSearchChange={jest.fn()}
                 onPageChange={jest.fn()}
                 onPageSizeChange={jest.fn()}
                 onSortingChange={jest.fn()}
                 onView={jest.fn()}
+                onEdit={jest.fn()}
                 onDelete={jest.fn()}
                 {...overrides}
             />
@@ -126,17 +128,25 @@ describe('SharedPolicyGroupsTable', () => {
             return user;
         }
 
-        it('shows a View action because editing is not available on the detail page', async () => {
-            renderTable();
+        it('shows only View when the user cannot update metadata', async () => {
+            renderTable({ canEdit: false });
             await openRowMenu();
             expect(await screen.findByRole('menuitem', { name: 'View' })).not.toBeNull();
             expect(screen.queryByRole('menuitem', { name: 'Edit' })).toBeNull();
         });
 
-        it('shows View for a Kubernetes-origin row', async () => {
-            renderTable({ sharedPolicyGroups: [{ ...SPG, originContext: { origin: 'KUBERNETES' } }] });
+        it('shows View and Edit when the user can update', async () => {
+            renderTable({ canEdit: true });
             await openRowMenu();
             expect(await screen.findByRole('menuitem', { name: 'View' })).not.toBeNull();
+            expect(screen.queryByRole('menuitem', { name: 'Edit' })).not.toBeNull();
+        });
+
+        it('shows only View — never Edit — for a Kubernetes-origin row, even with update permission', async () => {
+            renderTable({ canEdit: true, sharedPolicyGroups: [{ ...SPG, originContext: { origin: 'KUBERNETES' } }] });
+            await openRowMenu();
+            expect(await screen.findByRole('menuitem', { name: 'View' })).not.toBeNull();
+            expect(screen.queryByRole('menuitem', { name: 'Edit' })).toBeNull();
         });
 
         it('hides Delete without delete permission', async () => {
@@ -174,6 +184,14 @@ describe('SharedPolicyGroupsTable', () => {
             const user = await openRowMenu();
             await user.click(await screen.findByRole('menuitem', { name: 'View' }));
             expect(onView).toHaveBeenCalledWith(SPG);
+        });
+
+        it('calls onEdit when Edit is clicked', async () => {
+            const onEdit = jest.fn();
+            renderTable({ canEdit: true, onEdit });
+            const user = await openRowMenu();
+            await user.click(await screen.findByRole('menuitem', { name: 'Edit' }));
+            expect(onEdit).toHaveBeenCalledWith(SPG);
         });
 
         it('explains that Kubernetes-origin groups are externally managed', async () => {

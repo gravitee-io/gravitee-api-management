@@ -15,7 +15,12 @@
  */
 
 import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
-import type { CreateSharedPolicyGroupPayload, SharedPolicyGroup, SharedPolicyGroupsPagedResponse } from '../types/sharedPolicyGroup';
+import type {
+    CreateSharedPolicyGroupPayload,
+    SharedPolicyGroup,
+    SharedPolicyGroupsPagedResponse,
+    UpdateSharedPolicyGroupPayload,
+} from '../types/sharedPolicyGroup';
 
 export async function listSharedPolicyGroupsPaged(
     environmentId: string,
@@ -41,6 +46,17 @@ export async function getSharedPolicyGroup(environmentId: string, sharedPolicyGr
 export async function createSharedPolicyGroup(environmentId: string, data: CreateSharedPolicyGroupPayload): Promise<SharedPolicyGroup> {
     return apimFetchJsonV2<SharedPolicyGroup>(environmentId, '/shared-policy-groups', {
         method: 'POST',
+        body: JSON.stringify(data),
+    });
+}
+
+export async function updateSharedPolicyGroup(
+    environmentId: string,
+    sharedPolicyGroupId: string,
+    data: UpdateSharedPolicyGroupPayload,
+): Promise<SharedPolicyGroup> {
+    return apimFetchJsonV2<SharedPolicyGroup>(environmentId, `/shared-policy-groups/${encodeURIComponent(sharedPolicyGroupId)}`, {
+        method: 'PUT',
         body: JSON.stringify(data),
     });
 }

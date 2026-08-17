@@ -14,9 +14,15 @@
  * limitations under the License.
  */
 
-import { createSharedPolicyGroup, deleteSharedPolicyGroup, getSharedPolicyGroup, listSharedPolicyGroupsPaged } from './sharedPolicyGroups';
+import {
+    createSharedPolicyGroup,
+    deleteSharedPolicyGroup,
+    getSharedPolicyGroup,
+    listSharedPolicyGroupsPaged,
+    updateSharedPolicyGroup,
+} from './sharedPolicyGroups';
 import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
-import type { CreateSharedPolicyGroupPayload } from '../types/sharedPolicyGroup';
+import type { CreateSharedPolicyGroupPayload, UpdateSharedPolicyGroupPayload } from '../types/sharedPolicyGroup';
 
 jest.mock('../../../shared/api/apimClient', () => ({
     apimFetchJsonV2: jest.fn(),
@@ -56,6 +62,22 @@ describe('shared policy groups service', () => {
 
         expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', '/shared-policy-groups', {
             method: 'POST',
+            body: JSON.stringify(payload),
+        });
+    });
+
+    it('updates the encoded group resource with the serialized Management API v2 payload', async () => {
+        const payload: UpdateSharedPolicyGroupPayload = {
+            name: 'Authentication',
+            description: '',
+            prerequisiteMessage: '',
+            steps: [{ name: 'jwt' }],
+        };
+
+        await updateSharedPolicyGroup('env-1', 'group/1', payload);
+
+        expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', '/shared-policy-groups/group%2F1', {
+            method: 'PUT',
             body: JSON.stringify(payload),
         });
     });

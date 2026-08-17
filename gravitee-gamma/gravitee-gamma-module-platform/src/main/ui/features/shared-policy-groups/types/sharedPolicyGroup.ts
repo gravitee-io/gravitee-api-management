@@ -58,6 +58,8 @@ export interface OriginContext {
     origin: 'MANAGEMENT' | 'KUBERNETES' | 'INTEGRATION';
 }
 
+export type SharedPolicyGroupStep = Record<string, unknown>;
+
 /** v2 `SharedPolicyGroup` (GET/POST .../v2/environments/{envId}/shared-policy-groups...). */
 export interface SharedPolicyGroup {
     id: string;
@@ -68,6 +70,7 @@ export interface SharedPolicyGroup {
     lifecycleState?: 'DEPLOYED' | 'UNDEPLOYED' | 'PENDING';
     apiType: ApiType;
     phase: FlowPhase;
+    steps?: SharedPolicyGroupStep[];
     deployedAt?: string;
     createdAt?: string;
     updatedAt?: string;
@@ -81,6 +84,13 @@ export interface CreateSharedPolicyGroupPayload {
     prerequisiteMessage?: string;
     apiType: ApiType;
     phase: FlowPhase;
+}
+
+export interface UpdateSharedPolicyGroupPayload {
+    name: string;
+    description?: string;
+    prerequisiteMessage?: string;
+    steps?: SharedPolicyGroupStep[];
 }
 
 interface SharedPolicyGroupsPagination {
