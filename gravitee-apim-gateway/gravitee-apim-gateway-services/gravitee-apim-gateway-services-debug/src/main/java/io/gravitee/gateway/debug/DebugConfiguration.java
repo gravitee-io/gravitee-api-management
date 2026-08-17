@@ -34,6 +34,7 @@ import io.gravitee.gateway.debug.vertx.VertxDebugService;
 import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestClientAuthConfiguration;
+import io.gravitee.gateway.env.RequestPathConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.flow.FlowPolicyResolverFactory;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
@@ -321,6 +322,7 @@ public class DebugConfiguration {
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         RequestClientAuthConfiguration requestClientAuthConfiguration,
+        RequestPathConfiguration requestPathConfiguration,
         Vertx vertx,
         @Value("${reporters.warnings.enabled:true}") boolean warningsEnabled
     ) {
@@ -335,6 +337,7 @@ public class DebugConfiguration {
             notFoundProcessorChainFactory,
             requestTimeoutConfiguration,
             requestClientAuthConfiguration,
+            requestPathConfiguration,
             vertx,
             warningsEnabled
         );
