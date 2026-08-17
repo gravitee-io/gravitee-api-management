@@ -2585,7 +2585,7 @@ paths:
             description: |
                 Get a subscription.
 
-                User must have API_SUBSCRIPTION[CREATE] or APPLICATION_SUBSCRIPTION[CREATE] permission.
+                User must have API_SUBSCRIPTION[READ] or APPLICATION_SUBSCRIPTION[READ] permission.
             operationId: getSubscriptionById
             responses:
                 200:
@@ -4719,6 +4719,7 @@ components:
                     enum:
                         - keys
                         - consumerConfiguration
+                        - apiProduct
         subscriptionConsumerStatusParam:
             name: status
             in: query
@@ -6264,6 +6265,124 @@ components:
                         $ref: "#/components/schemas/Key"
                 consumerConfiguration:
                     $ref: "#/components/schemas/SubscriptionConsumerConfiguration"
+                apiProduct:
+                    description: |
+                        Consumer-safe API Product details. Present only when reference_type is API_PRODUCT
+                        and the include query parameter contains 'apiProduct'.
+                        The base subscription fields remain authoritative for the target, application, plan, status, and validity.
+                    $ref: "#/components/schemas/ApiProductSubscriptionDetails"
+
+        ApiProductSubscriptionDetails:
+            type: object
+            description: API Product context attached to an API Product subscription.
+            required:
+                - id
+                - availability
+                - apis
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                    description: Identifier of the subscribed API Product.
+                name:
+                    type: string
+                    description: Current name of the API Product, when available.
+                version:
+                    type: string
+                    description: Current version of the API Product, when available.
+                availability:
+                    $ref: "#/components/schemas/ApiProductSubscriptionAvailability"
+                plan:
+                    $ref: "#/components/schemas/ApiProductSubscriptionPlan"
+                apis:
+                    type: array
+                    description: Current APIs included in the API Product.
+                    items:
+                        $ref: "#/components/schemas/ApiProductSubscriptionApi"
+
+        ApiProductSubscriptionAvailability:
+            type: string
+            description: Whether the current API Product data can still be resolved.
+            enum:
+                - AVAILABLE
+                - UNAVAILABLE
+
+        ApiProductSubscriptionPlan:
+            type: object
+            description: Consumer-safe details of the selected API Product plan.
+            required:
+                - id
+            properties:
+                id:
+                    type: string
+                    description: Identifier of the selected plan.
+                name:
+                    type: string
+                    description: Current plan name, when available.
+                security:
+                    type: string
+                    description: Security used by the plan, when available.
+                    enum:
+                        - API_KEY
+                        - KEY_LESS
+                        - JWT
+                        - OAUTH2
+                        - MTLS
+                mode:
+                    $ref: "#/components/schemas/PlanMode"
+
+        ApiProductSubscriptionApi:
+            type: object
+            description: Consumer-safe details of an API included in the subscribed API Product.
+            required:
+                - id
+                - availability
+                - entrypoints
+            properties:
+                id:
+                    type: string
+                    description: Identifier of the included API.
+                name:
+                    type: string
+                    description: Current API name, when available.
+                version:
+                    type: string
+                    description: Current API version, when available.
+                type:
+                    $ref: "#/components/schemas/ApiType"
+                availability:
+                    $ref: "#/components/schemas/ApiProductSubscriptionApiAvailability"
+                entrypoints:
+                    type: array
+                    description: Consumer-accessible entrypoint URLs for this API.
+                    items:
+                        type: string
+                documentation:
+                    $ref: "#/components/schemas/PortalDocumentationTarget"
+
+        ApiProductSubscriptionApiAvailability:
+            type: string
+            description: Current availability of an API included in the subscribed API Product.
+            enum:
+                - AVAILABLE
+                - UNPUBLISHED
+                - UNAVAILABLE
+
+        PortalDocumentationTarget:
+            type: object
+            description: Target used by Portal Next to navigate to accessible API documentation.
+            required:
+                - rootId
+                - navigationItemId
+            properties:
+                rootId:
+                    type: string
+                    format: uuid
+                    description: Identifier of the root documentation navigation item.
+                navigationItemId:
+                    type: string
+                    format: uuid
+                    description: Identifier of the API navigation item to select.
 
         Ticket:
             properties:

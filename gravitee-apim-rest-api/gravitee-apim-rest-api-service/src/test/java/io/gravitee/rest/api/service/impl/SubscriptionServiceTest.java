@@ -331,10 +331,12 @@ public class SubscriptionServiceTest {
     @Test
     public void shouldFindById() throws TechnicalException {
         when(subscription.getStatus()).thenReturn(ACCEPTED);
+        when(subscription.getEnvironmentId()).thenReturn(GraviteeContext.getDefaultEnvironment());
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
 
         final SubscriptionEntity subscriptionEntity = subscriptionService.findById(SUBSCRIPTION_ID);
         assertNotNull(subscriptionEntity);
+        assertEquals(GraviteeContext.getDefaultEnvironment(), subscriptionEntity.getEnvironmentId());
     }
 
     @Test
