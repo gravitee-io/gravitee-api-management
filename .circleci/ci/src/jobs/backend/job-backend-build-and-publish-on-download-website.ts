@@ -82,18 +82,20 @@ sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" gravitee-apim-
 
       steps.push(
         /**
-         * In order to upload repositories, endpoints and entrypoints embedded in APIM mono-repository, we browse for all ZIP files in the project and check if they have a "publish folder path" property in pom.xml.
-         * Because we don't want to publish EVERY plugins (we don't want, apim-services or rest-api-idp-memory for instance), we only rely on this publish-folder-path maven property to determine if a ZIP has to be published or not.
-         * Each plugins is uploaded into a folder based on its name.
+         * We browse the distribution reactor for ZIP files and check if they have a "publish folder path" property in
+         * pom.xml. Because we don't want to publish every artefact, we only rely on that maven property to determine
+         * whether a ZIP has to be published. Each artefact is uploaded into a folder based on its name.
          * Example:
-         *   gravitee-apim-repository-mongodb-x.x.x.zip is published into graviteeio-apim/plugins/repositories/gravitee-apim-repository-mongodb
+         *   gravitee-apim-jdbc-migrations-x.x.x.zip is published into graviteeio-apim/resources/gravitee-apim-jdbc-migrations
          *
-         *
+         * The search is scoped to gravitee-apim-distribution on purpose. Repositories, reporters, endpoints and
+         * entrypoints also carry publish-folder-path, and have not been published since 4.8 — widening the search
+         * here would silently resume publishing thirteen more artefacts, which is a product decision of its own.
          */
         new commands.Run({
           name: 'Prepare plugin zip to upload',
           command: `workingDir=$(pwd)
-for pathToArtefactFile in $(find . -path '*target/gravitee-apim*.zip'); do
+for pathToArtefactFile in $(find ./gravitee-apim-distribution -path '*target/gravitee-apim*.zip'); do
   # Extract folder of the artefact to publish
   # e.g. ./gravitee-apim-repository/gravitee-apim-repository-mongodb/target/gravitee-apim-repository-mongodb-4.4.21.zip => ./gravitee-apim-repository/gravitee-apim-repository-mongodb
   artefactFolder=\${pathToArtefactFile%/target*}
@@ -126,6 +128,9 @@ for pathToArtefactFile in $(find . -path '*target/gravitee-apim*.zip'); do
     cd $workingDir
   fi
 done`,
+        }),
+        new reusable.ReusedCommand(syncFolderToS3Cmd, {
+          'folder-to-sync': 'folder_to_sync',
         }),
       );
     }
