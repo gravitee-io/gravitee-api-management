@@ -185,30 +185,54 @@ secrets:
 #  # Routing Host Mode
 #  routingHostMode:
 #    brokerPrefix: broker-          # default is broker-
-#    domainSeparator: -             # Used to separate broker's name from api & defaultDomain. Default is '-'
+#    domainSeparator: "-"           # Used to separate broker's name from api & domain. Default is '-'
 #
-#    # The default domain where the Kafka APIs are exposed. ex: `myapi` will be exposed as `myapi.mycompany.org`
-#    defaultDomain: mycompany.org   # Should set according to the public wildcard DNS/Certificate. Default is empty
+#    # The domains where the Kafka APIs are exposed. ex: `myapi` will be exposed as `myapi.mycompany.org` and `myapi.mycompany.com`
+#    # Each domain should be set according to a public wildcard DNS/Certificate.
+#    # Must be a list, even for a single domain: a scalar value is rejected at startup.
+#    domains:
+#      - mycompany.org
+#      - mycompany.com
+#
+#    # For a single domain, `defaultDomain` is still accepted but deprecated. It is ignored -- with a
+#    # warning -- as soon as `domains` is set, so enable one or the other, never both:
+#    #   defaultDomain: mycompany.org
+#
 #    defaultPort:   9092            # Default public port for Kafka APIs. Default is 9092
 #
-#    # With the upper default configuration, the Gravitee Kafka gateway yields bootstrap and broker domains to be as follows:
-#    bootstrapDomainPattern: {apiHost}.mycompany.org
-#    brokerDomainPattern: broker-{brokerId}-{apiHost}.mycompany.org
+#    # The patterns below are the built-in behaviour, written out explicitly. Each is evaluated once per configured domain:
+#    bootstrapDomainPattern: "{apiHost}.{domain}"
+#    brokerDomainPattern: "{brokerPrefix}{brokerId}{domainSeparator}{apiHost}.{domain}"
+#    # {domain} requires a gateway bundling native Kafka reactor 7.0.2 or later (APIM 4.12.14+). On an
+#    # earlier gateway it is left unsubstituted and the API fails to deploy with a PatternSyntaxException;
+#    # use {defaultDomain} there, which resolves to the same value.
 #    # Where:
-#    # {apiHost}  is a placeholder that will be replaced when the API is deployed, by the API Host Prefix.
-#    # {brokerId} is a placeholder that stands for the broker id
+#    # {apiHost}         is a placeholder that will be replaced when the API is deployed, by the API Host Prefix.
+#    # {brokerId}        is a placeholder that stands for the broker id
+#    # {brokerPrefix}    is a placeholder for the 'brokerPrefix' property above
+#    # {domainSeparator} is a placeholder for the 'domainSeparator' property above
+#    # {domain}          is a placeholder for the domain being evaluated: the patterns are applied once per
+#    #                   entry of `domains`, or once to `defaultDomain` when `domains` is not set.
+#    #                   An entry that itself contains {apiHost} becomes the bootstrap pattern, and both
+#    #                   patterns configured here are then ignored.
+#    #                   Writing a domain literally here instead of using {domain} makes every entry resolve
+#    #                   to that same hostname, leaving the other domains unroutable. The gateway logs a
+#    #                   warning when it detects it. `{defaultDomain}` is still accepted as a deprecated
+#    #                   alias of `{domain}`.
+#    # The built-in defaults, used for whichever pattern is left unset, are "{apiHost}.{defaultDomain}" and
+#    # "{brokerPrefix}{brokerId}{domainSeparator}{apiHost}.{defaultDomain}".
 #
 #    # It can be overridden to fit your DNS configuration.
-#    # Doing so requires BOTH patterns to be set, as well as 'defaultPort'. Please note that 'defaultDomain', 'brokerPrefix' and 'domainSeparator' are not used in that case, hence optional.
+#    # Each pattern falls back to its own default independently, so overriding only one of them is fine, and 'defaultPort' defaults to 9092. Please note that 'brokerPrefix' and 'domainSeparator' are substituted only if the patterns reference them as {brokerPrefix} / {domainSeparator}, hence optional.
 #    # Example:
 #    #   defaultPort: 9092
-#    #   bootstrapDomainPattern: bootstrap-{apiHost}.mycompany.org
-#    #   brokerDomainPattern: {apiHost}-broker{brokerId}.mycompany.org
+#    #   bootstrapDomainPattern: "bootstrap-{apiHost}.{domain}"
+#    #   brokerDomainPattern: "{apiHost}-broker{brokerId}.{domain}"
 #    #
-#    #   This configuration yields domains that must target the Gravitee Kafka gateway:
-#    #      bootstrap-myapi.mycompany.org
-#    #      myapi-broker0.mycompany.org
-#    #      myapi-broker1.mycompany.org
+#    #   With the two domains above, this configuration yields domains that must target the Gravitee Kafka gateway:
+#    #      bootstrap-myapi.mycompany.org      bootstrap-myapi.mycompany.com
+#    #      myapi-broker0.mycompany.org        myapi-broker0.mycompany.com
+#    #      myapi-broker1.mycompany.org        myapi-broker1.mycompany.com
 #    #      ...
 #
 #  # Kafka probe
