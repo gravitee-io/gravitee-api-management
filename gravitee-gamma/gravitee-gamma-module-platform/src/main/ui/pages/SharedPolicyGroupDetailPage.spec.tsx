@@ -16,14 +16,11 @@
 
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Outlet, Route, Routes } from 'react-router-dom';
 
 import { SharedPolicyGroupDetailPage } from './SharedPolicyGroupDetailPage';
 import { useUpdateSharedPolicyGroup } from '../features/shared-policy-groups/hooks/useSharedPolicyGroupMutations';
-import { useSharedPolicyGroupDetail } from '../features/shared-policy-groups/hooks/useSharedPolicyGroups';
 import type { SharedPolicyGroup } from '../features/shared-policy-groups/types/sharedPolicyGroup';
-import { ApimApiError } from '../shared/api/apimClient';
-import { useForbiddenResourceRedirect } from '../shared/hooks/useForbiddenResourceRedirect';
 import { notify } from '../shared/notify';
 import { installFormActionTestEnvironment } from '../shared/testing/formAction';
 
@@ -32,16 +29,12 @@ let restoreTestEnvironment: () => void;
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     useHasPermission: jest.fn(),
 }));
-jest.mock('../features/shared-policy-groups/hooks/useSharedPolicyGroups');
-jest.mock('../shared/hooks/useForbiddenResourceRedirect');
 jest.mock('../features/shared-policy-groups/hooks/useSharedPolicyGroupMutations');
 jest.mock('../shared/notify', () => ({
     notify: { success: jest.fn(), error: jest.fn(), warning: jest.fn() },
 }));
 
 const mockUseHasPermission = jest.mocked(useHasPermission);
-const mockUseSharedPolicyGroupDetail = jest.mocked(useSharedPolicyGroupDetail);
-const mockUseForbiddenResourceRedirect = jest.mocked(useForbiddenResourceRedirect);
 const mockUseUpdateSharedPolicyGroup = jest.mocked(useUpdateSharedPolicyGroup);
 
 const SPG: SharedPolicyGroup = {
@@ -61,11 +54,13 @@ function makeMutation(mutateAsync = jest.fn()) {
     return { mutateAsync } as unknown as ReturnType<typeof useUpdateSharedPolicyGroup>;
 }
 
-function renderPage() {
+function renderPage(sharedPolicyGroup: SharedPolicyGroup = SPG) {
     return render(
-        <MemoryRouter initialEntries={['/spg-1']}>
+        <MemoryRouter initialEntries={['/spg-1/overview']}>
             <Routes>
-                <Route path=":sharedPolicyGroupId" element={<SharedPolicyGroupDetailPage />} />
+                <Route path=":sharedPolicyGroupId" element={<Outlet context={sharedPolicyGroup} />}>
+                    <Route path="overview" element={<SharedPolicyGroupDetailPage />} />
+                </Route>
             </Routes>
         </MemoryRouter>,
     );
@@ -89,86 +84,18 @@ describe('SharedPolicyGroupDetailPage', () => {
         jest.clearAllMocks();
     });
 
-    it('renders name, status, description, API type, and phase', () => {
-        mockUseSharedPolicyGroupDetail.mockReturnValue({
-            data: SPG,
-            isLoading: false,
-            isError: false,
-        } as ReturnType<typeof useSharedPolicyGroupDetail>);
-
+    it('renders overview details: API type, phase, and prerequisite', () => {
         renderPage();
 
-        expect(screen.queryByRole('heading', { name: 'Auth Bundle' })).not.toBeNull();
-        expect(screen.queryByText('Deployed')).not.toBeNull();
-        expect(screen.queryByText('Reusable auth policies')).not.toBeNull();
-        expect(screen.queryByText('Proxy')).not.toBeNull();
-        expect(screen.queryByText('Request')).not.toBeNull();
-        expect(screen.queryByText('Requires the "auth-cache" resource')).not.toBeNull();
-    });
-
-    it('shows a not-found message when the shared policy group fails to load', () => {
-        mockUseSharedPolicyGroupDetail.mockReturnValue({
-            data: undefined,
-            isLoading: false,
-            isError: true,
-            error: new Error('load failed'),
-        } as ReturnType<typeof useSharedPolicyGroupDetail>);
-
-        renderPage();
-
-        expect(screen.queryByText('Shared Policy Group not found or failed to load.')).not.toBeNull();
-    });
-
-    it('redirects and removes stale permissions when the detail request is forbidden', () => {
-        mockUseSharedPolicyGroupDetail.mockReturnValue({
-            data: undefined,
-            isLoading: false,
-            isError: true,
-            error: new ApimApiError(403, 'Forbidden'),
-        } as unknown as ReturnType<typeof useSharedPolicyGroupDetail>);
-
-        renderPage();
-
-        expect(mockUseForbiddenResourceRedirect).toHaveBeenCalledWith({
-            isForbidden: true,
-            permissionPrefix: 'environment-shared_policy_group-',
-            redirectTo: '../../applications',
-        });
-        expect(screen.queryByText('Shared Policy Group not found or failed to load.')).toBeNull();
-    });
-
-    it('shows a loading skeleton while fetching', () => {
-        mockUseSharedPolicyGroupDetail.mockReturnValue({
-            data: undefined,
-            isLoading: true,
-            isError: false,
-        } as ReturnType<typeof useSharedPolicyGroupDetail>);
-
-        renderPage();
-
-        expect(screen.queryByRole('heading', { name: 'Auth Bundle' })).toBeNull();
-    });
-
-    it('renders a back link to the list', () => {
-        mockUseSharedPolicyGroupDetail.mockReturnValue({
-            data: SPG,
-            isLoading: false,
-            isError: false,
-        } as ReturnType<typeof useSharedPolicyGroupDetail>);
-
-        renderPage();
-
-        expect(screen.getByRole('link', { name: /Back to Shared Policy Groups/ }).getAttribute('href')).toBe('/');
+        expect(screen.getByTestId('shared-policy-group-overview')).not.toBeNull();
+        expect(screen.getByText('Proxy')).not.toBeNull();
+        expect(screen.getByText('Request')).not.toBeNull();
+        expect(screen.getByText('Requires the "auth-cache" resource')).not.toBeNull();
     });
 
     it('shows Edit when the user can update and opens the edit sheet', async () => {
         const updateMutateAsync = jest.fn().mockResolvedValue(SPG);
         mockUseUpdateSharedPolicyGroup.mockReturnValue(makeMutation(updateMutateAsync));
-        mockUseSharedPolicyGroupDetail.mockReturnValue({
-            data: SPG,
-            isLoading: false,
-            isError: false,
-        } as ReturnType<typeof useSharedPolicyGroupDetail>);
 
         renderPage();
         fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
@@ -209,24 +136,13 @@ describe('SharedPolicyGroupDetailPage', () => {
 
     it('hides Edit when the user lacks update permission', () => {
         mockUseHasPermission.mockReturnValue(false);
-        mockUseSharedPolicyGroupDetail.mockReturnValue({
-            data: SPG,
-            isLoading: false,
-            isError: false,
-        } as ReturnType<typeof useSharedPolicyGroupDetail>);
 
         renderPage();
         expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull();
     });
 
     it('hides Edit for a Kubernetes-origin shared policy group', () => {
-        mockUseSharedPolicyGroupDetail.mockReturnValue({
-            data: { ...SPG, originContext: { origin: 'KUBERNETES' } },
-            isLoading: false,
-            isError: false,
-        } as ReturnType<typeof useSharedPolicyGroupDetail>);
-
-        renderPage();
+        renderPage({ ...SPG, originContext: { origin: 'KUBERNETES' } });
         expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull();
     });
 });

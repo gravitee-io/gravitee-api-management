@@ -41,6 +41,7 @@ import {
     DEFAULT_SHARED_POLICY_GROUP_LIST_PAGE_SIZE,
     SHARED_POLICY_GROUP_SEARCH_DEBOUNCE_MS,
 } from '../features/shared-policy-groups/utils/paginationConstants';
+import { sharedPolicyGroupDetailHref } from '../features/shared-policy-groups/utils/sharedPolicyGroupDetailNavigation';
 import { toUpdateSharedPolicyGroupPayload } from '../features/shared-policy-groups/utils/sharedPolicyGroupPayload';
 import {
     ENVIRONMENT_SHARED_POLICY_GROUP_CREATE_PERMISSION,
@@ -131,7 +132,8 @@ export function SharedPolicyGroupsPage() {
             });
             notify.success('Shared Policy Group created');
             closeSheet();
-            navigate(created.id);
+            // Classic Console opens the studio tab after create.
+            navigate(sharedPolicyGroupDetailHref(created.id));
         } catch (error) {
             notify.error(error, 'Error during Shared Policy Group creation!');
         }
@@ -206,7 +208,7 @@ export function SharedPolicyGroupsPage() {
                 onPageChange={setPage}
                 onPageSizeChange={setPageSize}
                 onSortingChange={handleSortingChange}
-                onView={sharedPolicyGroup => navigate(sharedPolicyGroup.id)}
+                onView={sharedPolicyGroup => navigate(sharedPolicyGroupDetailHref(sharedPolicyGroup.id))}
                 onEdit={handleOpenEdit}
                 onDelete={sharedPolicyGroup => setSheet({ type: 'delete', sharedPolicyGroup })}
                 onCreateSharedPolicyGroup={canCreate ? () => setSheet({ type: 'create' }) : undefined}
