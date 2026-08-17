@@ -17,12 +17,23 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { SharedPolicyGroupCreateSheet } from './SharedPolicyGroupCreateSheet';
+import { installFormActionTestEnvironment } from '../../../shared/testing/formAction';
+
+let restoreTestEnvironment: () => void;
 
 function renderSheet(overrides: Partial<React.ComponentProps<typeof SharedPolicyGroupCreateSheet>> = {}) {
     return render(<SharedPolicyGroupCreateSheet open onClose={jest.fn()} onSubmit={jest.fn()} {...overrides} />);
 }
 
 describe('SharedPolicyGroupCreateSheet', () => {
+    beforeAll(() => {
+        restoreTestEnvironment = installFormActionTestEnvironment();
+    });
+
+    afterAll(() => {
+        restoreTestEnvironment();
+    });
+
     afterEach(() => {
         jest.clearAllMocks();
     });
@@ -45,7 +56,7 @@ describe('SharedPolicyGroupCreateSheet', () => {
         renderSheet();
         expect(screen.getByPlaceholderText('e.g. Default authentication')).not.toBeNull();
         expect(screen.getByPlaceholderText('Describe what this policy group is used for')).not.toBeNull();
-        expect(screen.getAllByText('300 characters max.')).toHaveLength(2);
+        expect(screen.getAllByText('1024 characters max.')).toHaveLength(2);
     });
 
     it('defaults to Proxy, offering only the phases valid for a Proxy API', () => {
@@ -94,16 +105,27 @@ describe('SharedPolicyGroupCreateSheet', () => {
         );
     });
 
-    it('prevents duplicate submissions while creation is pending', async () => {
-        const onSubmit = jest.fn();
-        const { rerender } = renderSheet({ onSubmit });
+    it('prevents duplicate submissions and closing while creation is pending', async () => {
+        let resolveSubmit: (() => void) | undefined;
+        const onSubmit = jest.fn(
+            () =>
+                new Promise<void>(resolve => {
+                    resolveSubmit = resolve;
+                }),
+        );
+        const onClose = jest.fn();
+        renderSheet({ onSubmit, onClose });
 
         fireEvent.change(screen.getByLabelText(/Name/i), { target: { value: 'My SPG' } });
         fireEvent.click(screen.getByRole('button', { name: 'Create' }));
 
-        rerender(<SharedPolicyGroupCreateSheet open onClose={jest.fn()} onSubmit={onSubmit} isSaving />);
-        fireEvent.click(screen.getByRole('button', { name: 'Creating…' }));
+        expect(await screen.findByRole('button', { name: 'Creating…' })).toHaveProperty('disabled', true);
+        fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
         expect(onSubmit).toHaveBeenCalledTimes(1);
+        expect(onClose).not.toHaveBeenCalled();
+
+        resolveSubmit?.();
+        await waitFor(() => expect(screen.getByRole('button', { name: 'Create' })).toHaveProperty('disabled', false));
     });
 
     it('calls onClose when Cancel is clicked', () => {

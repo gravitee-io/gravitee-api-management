@@ -34,7 +34,7 @@ import {
     TooltipTrigger,
     type DataTableProps,
 } from '@gravitee/graphene-core';
-import { EyeIcon, KubernetesIcon, LayersIcon, MoreVerticalIcon, SearchIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
+import { EyeIcon, KubernetesIcon, LayersIcon, MoreVerticalIcon, PencilIcon, SearchIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 import { Link } from 'react-router-dom';
 
 import { SharedPolicyGroupStatusBadge } from './SharedPolicyGroupStatusBadge';
@@ -45,12 +45,16 @@ import { toReadableApiType, toReadableFlowPhase, type SharedPolicyGroup } from '
 import { isKubernetesOrigin } from '../utils/sharedPolicyGroupPermissions';
 
 function buildColumns({
+    canEdit,
     canDelete,
     onView,
+    onEdit,
     onDelete,
 }: {
+    canEdit: boolean;
     canDelete: boolean;
     onView: (sharedPolicyGroup: SharedPolicyGroup) => void;
+    onEdit: (sharedPolicyGroup: SharedPolicyGroup) => void;
     onDelete: (sharedPolicyGroup: SharedPolicyGroup) => void;
 }): DataTableProps<SharedPolicyGroup>['columns'] {
     return [
@@ -116,10 +120,12 @@ function buildColumns({
             enableHiding: false,
             cell: ({ row }: ColCell<SharedPolicyGroup>) => {
                 const sharedPolicyGroup = row.original;
-                const showDelete = canDelete && !isKubernetesOrigin(sharedPolicyGroup);
+                const kubernetesOrigin = isKubernetesOrigin(sharedPolicyGroup);
+                const showEdit = canEdit && !kubernetesOrigin;
+                const showDelete = canDelete && !kubernetesOrigin;
                 return (
                     <div className="flex items-center justify-end gap-1">
-                        {isKubernetesOrigin(sharedPolicyGroup) && (
+                        {kubernetesOrigin && (
                             <TooltipProvider delayDuration={200}>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
@@ -142,6 +148,12 @@ function buildColumns({
                                     <EyeIcon className="size-4 mr-2" aria-hidden />
                                     View
                                 </DropdownMenuItem>
+                                {showEdit && (
+                                    <DropdownMenuItem onSelect={() => onEdit(sharedPolicyGroup)}>
+                                        <PencilIcon className="size-4 mr-2" aria-hidden />
+                                        Edit
+                                    </DropdownMenuItem>
+                                )}
                                 {showDelete && (
                                     <>
                                         <DropdownMenuSeparator />
@@ -169,12 +181,14 @@ interface SharedPolicyGroupsTableProps {
     readonly page: number;
     readonly pageSize: number;
     readonly sorting: TableSortingState;
+    readonly canEdit: boolean;
     readonly canDelete: boolean;
     readonly onSearchChange: (value: string) => void;
     readonly onPageChange: (page: number) => void;
     readonly onPageSizeChange: (size: number) => void;
     readonly onSortingChange: (updater: TableSortingState | ((previous: TableSortingState) => TableSortingState)) => void;
     readonly onView: (sharedPolicyGroup: SharedPolicyGroup) => void;
+    readonly onEdit: (sharedPolicyGroup: SharedPolicyGroup) => void;
     readonly onDelete: (sharedPolicyGroup: SharedPolicyGroup) => void;
     readonly onCreateSharedPolicyGroup?: () => void;
 }
@@ -188,16 +202,18 @@ export function SharedPolicyGroupsTable({
     page,
     pageSize,
     sorting,
+    canEdit,
     canDelete,
     onSearchChange,
     onPageChange,
     onPageSizeChange,
     onSortingChange,
     onView,
+    onEdit,
     onDelete,
     onCreateSharedPolicyGroup,
 }: SharedPolicyGroupsTableProps) {
-    const columns = buildColumns({ canDelete, onView, onDelete });
+    const columns = buildColumns({ canEdit, canDelete, onView, onEdit, onDelete });
 
     if (isFirstUse) {
         return (

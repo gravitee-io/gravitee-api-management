@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { ApiType, FlowPhase } from '../types/sharedPolicyGroup';
+import type { ApiType, FlowPhase, UpdateSharedPolicyGroupPayload } from '../types/sharedPolicyGroup';
 
 /** Mirrors classic Console's `PHASE_BY_API_TYPE` (shared-policy-groups-add-edit-dialog.component.ts). */
 export const PHASE_BY_API_TYPE: Record<ApiType, FlowPhase[]> = {
@@ -25,3 +25,22 @@ export const PHASE_BY_API_TYPE: Record<ApiType, FlowPhase[]> = {
     MESSAGE: ['REQUEST', 'RESPONSE', 'PUBLISH', 'SUBSCRIBE'],
     NATIVE: ['PUBLISH', 'SUBSCRIBE', 'ENTRYPOINT_CONNECT', 'INTERACT'],
 };
+
+export const DESCRIPTION_MAX_LENGTH = 1024;
+export const PREREQUISITE_MESSAGE_MAX_LENGTH = 1024;
+export const PREREQUISITE_MESSAGE_PLACEHOLDER =
+    'Message displayed when using SPG in Policy Studio, for example: The resource cache "my-cache" is required.';
+
+export interface SharedPolicyGroupBasicFormValues {
+    name: string;
+    description: string;
+    prerequisiteMessage: string;
+}
+
+export function toUpdateSharedPolicyGroupPayload(values: SharedPolicyGroupBasicFormValues): UpdateSharedPolicyGroupPayload {
+    return {
+        name: values.name,
+        description: values.description,
+        prerequisiteMessage: values.prerequisiteMessage,
+    };
+}

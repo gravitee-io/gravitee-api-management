@@ -22,12 +22,17 @@ import { SharedPolicyGroupsPage } from './SharedPolicyGroupsPage';
 import {
     useCreateSharedPolicyGroup,
     useDeleteSharedPolicyGroup,
+    useUpdateSharedPolicyGroup,
 } from '../features/shared-policy-groups/hooks/useSharedPolicyGroupMutations';
 import { useSharedPolicyGroupsPaged } from '../features/shared-policy-groups/hooks/useSharedPolicyGroups';
 import type { SharedPolicyGroup } from '../features/shared-policy-groups/types/sharedPolicyGroup';
+import { ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION } from '../features/shared-policy-groups/utils/sharedPolicyGroupPermissions';
 import { ApimApiError } from '../shared/api/apimClient';
 import { useForbiddenResourceRedirect } from '../shared/hooks/useForbiddenResourceRedirect';
 import { notify } from '../shared/notify';
+import { installFormActionTestEnvironment } from '../shared/testing/formAction';
+
+let restoreTestEnvironment: () => void;
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     useHasPermission: jest.fn(),
@@ -49,16 +54,20 @@ jest.mock('../features/shared-policy-groups/components/SharedPolicyGroupsTable',
     SharedPolicyGroupsTable: ({
         sharedPolicyGroups,
         isFirstUse,
+        canEdit,
         canDelete,
         onView,
+        onEdit,
         onDelete,
         onCreateSharedPolicyGroup,
         onSortingChange,
     }: {
         sharedPolicyGroups: SharedPolicyGroup[];
         isFirstUse: boolean;
+        canEdit: boolean;
         canDelete: boolean;
         onView: (s: SharedPolicyGroup) => void;
+        onEdit: (s: SharedPolicyGroup) => void;
         onDelete: (s: SharedPolicyGroup) => void;
         onCreateSharedPolicyGroup?: () => void;
         onSortingChange: (sorting: { id: string; desc: boolean }[]) => void;
@@ -83,6 +92,11 @@ jest.mock('../features/shared-policy-groups/components/SharedPolicyGroupsTable',
                         <button type="button" onClick={() => onView(s)}>
                             View {s.name}
                         </button>
+                        {canEdit && (
+                            <button type="button" onClick={() => onEdit(s)}>
+                                Edit {s.name}
+                            </button>
+                        )}
                         {canDelete && (
                             <button type="button" onClick={() => onDelete(s)}>
                                 Delete {s.name}
@@ -97,6 +111,7 @@ const mockUseHasPermission = jest.mocked(useHasPermission);
 const mockUseNavigate = jest.mocked(useNavigate);
 const mockUseSharedPolicyGroupsPaged = jest.mocked(useSharedPolicyGroupsPaged);
 const mockUseCreateSharedPolicyGroup = jest.mocked(useCreateSharedPolicyGroup);
+const mockUseUpdateSharedPolicyGroup = jest.mocked(useUpdateSharedPolicyGroup);
 const mockUseDeleteSharedPolicyGroup = jest.mocked(useDeleteSharedPolicyGroup);
 const mockUseForbiddenResourceRedirect = jest.mocked(useForbiddenResourceRedirect);
 
@@ -106,11 +121,15 @@ const SAMPLE_SPGS: SharedPolicyGroup[] = [
 ];
 
 function makeCreateMutation(mutateAsync = jest.fn()) {
-    return { mutateAsync, isPending: false } as unknown as ReturnType<typeof useCreateSharedPolicyGroup>;
+    return { mutateAsync } as unknown as ReturnType<typeof useCreateSharedPolicyGroup>;
 }
 
 function makeDeleteMutation(mutateAsync = jest.fn()) {
     return { mutateAsync, isPending: false } as unknown as ReturnType<typeof useDeleteSharedPolicyGroup>;
+}
+
+function makeUpdateMutation(mutateAsync = jest.fn()) {
+    return { mutateAsync } as unknown as ReturnType<typeof useUpdateSharedPolicyGroup>;
 }
 
 function makeSpgsResult(data: SharedPolicyGroup[] = SAMPLE_SPGS, totalCount = data.length) {
@@ -126,11 +145,20 @@ function renderPage() {
 }
 
 describe('SharedPolicyGroupsPage', () => {
+    beforeAll(() => {
+        restoreTestEnvironment = installFormActionTestEnvironment();
+    });
+
+    afterAll(() => {
+        restoreTestEnvironment();
+    });
+
     beforeEach(() => {
         mockUseHasPermission.mockReturnValue(true);
         mockUseNavigate.mockReturnValue(jest.fn());
         mockUseSharedPolicyGroupsPaged.mockReturnValue(makeSpgsResult());
         mockUseCreateSharedPolicyGroup.mockReturnValue(makeCreateMutation());
+        mockUseUpdateSharedPolicyGroup.mockReturnValue(makeUpdateMutation());
         mockUseDeleteSharedPolicyGroup.mockReturnValue(makeDeleteMutation());
     });
 
@@ -313,6 +341,52 @@ describe('SharedPolicyGroupsPage', () => {
             await waitFor(() =>
                 expect(notify.error).toHaveBeenCalledWith(error, 'An error occurred while removing the Shared Policy Group'),
             );
+        });
+    });
+
+    describe('edit flow', () => {
+        it('hides Edit when the user lacks update permission', () => {
+            mockUseHasPermission.mockImplementation(({ anyOf }) => !anyOf.includes(ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION));
+            renderPage();
+
+            expect(screen.queryByRole('button', { name: 'Edit Auth Bundle' })).toBeNull();
+        });
+
+        it('updates metadata without sending policy steps and shows a success toast', async () => {
+            const updateMutateAsync = jest.fn().mockResolvedValue({ id: 'spg-1', name: 'Updated Auth' });
+            mockUseUpdateSharedPolicyGroup.mockReturnValue(makeUpdateMutation(updateMutateAsync));
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Edit Auth Bundle' }));
+
+            expect(await screen.findByRole('heading', { name: 'Edit Shared Policy Group' })).not.toBeNull();
+
+            fireEvent.change(screen.getByLabelText(/Name/i), { target: { value: 'Updated Auth' } });
+            fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+            await waitFor(() => {
+                expect(updateMutateAsync).toHaveBeenCalledWith({
+                    id: 'spg-1',
+                    payload: {
+                        name: 'Updated Auth',
+                        description: '',
+                        prerequisiteMessage: '',
+                    },
+                });
+            });
+            expect(notify.success).toHaveBeenCalledWith('Shared Policy Group updated');
+        });
+
+        it('shows an error toast when update fails', async () => {
+            const error = new Error('update failed');
+            mockUseUpdateSharedPolicyGroup.mockReturnValue(makeUpdateMutation(jest.fn().mockRejectedValue(error)));
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Edit Auth Bundle' }));
+            await screen.findByRole('heading', { name: 'Edit Shared Policy Group' });
+            fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+            await waitFor(() => expect(notify.error).toHaveBeenCalledWith(error, 'Error during Shared Policy Group update!'));
         });
     });
 
