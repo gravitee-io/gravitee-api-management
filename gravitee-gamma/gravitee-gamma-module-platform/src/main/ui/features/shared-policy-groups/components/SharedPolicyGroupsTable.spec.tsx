@@ -51,6 +51,7 @@ function renderTable(overrides: Partial<React.ComponentProps<typeof SharedPolicy
                 onPageSizeChange={jest.fn()}
                 onSortingChange={jest.fn()}
                 onView={jest.fn()}
+                onEdit={jest.fn()}
                 onDelete={jest.fn()}
                 {...overrides}
             />
@@ -117,11 +118,11 @@ describe('SharedPolicyGroupsTable', () => {
             expect(screen.queryByRole('menuitem', { name: 'Edit' })).toBeNull();
         });
 
-        it('shows Edit (not View) when the user can update', async () => {
+        it('shows View and Edit when the user can update', async () => {
             renderTable({ canEdit: true });
             await openRowMenu();
-            expect(await screen.findByRole('menuitem', { name: 'Edit' })).not.toBeNull();
-            expect(screen.queryByRole('menuitem', { name: 'View' })).toBeNull();
+            expect(await screen.findByRole('menuitem', { name: 'View' })).not.toBeNull();
+            expect(screen.queryByRole('menuitem', { name: 'Edit' })).not.toBeNull();
         });
 
         it('shows only View — never Edit — for a Kubernetes-origin row, even with update permission', async () => {
@@ -153,12 +154,20 @@ describe('SharedPolicyGroupsTable', () => {
             expect(onDelete).toHaveBeenCalledWith(SPG);
         });
 
-        it('calls onView when Edit is clicked', async () => {
+        it('calls onView when View is clicked', async () => {
             const onView = jest.fn();
             renderTable({ canEdit: true, onView });
             const user = await openRowMenu();
-            await user.click(await screen.findByRole('menuitem', { name: 'Edit' }));
+            await user.click(await screen.findByRole('menuitem', { name: 'View' }));
             expect(onView).toHaveBeenCalledWith(SPG);
+        });
+
+        it('calls onEdit when Edit is clicked', async () => {
+            const onEdit = jest.fn();
+            renderTable({ canEdit: true, onEdit });
+            const user = await openRowMenu();
+            await user.click(await screen.findByRole('menuitem', { name: 'Edit' }));
+            expect(onEdit).toHaveBeenCalledWith(SPG);
         });
     });
 
