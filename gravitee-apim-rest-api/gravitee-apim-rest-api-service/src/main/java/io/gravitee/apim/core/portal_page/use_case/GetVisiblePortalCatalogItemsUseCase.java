@@ -39,6 +39,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -54,6 +55,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class GetVisiblePortalCatalogItemsUseCase {
 
+    private static final int MIN_FUZZY_TOKEN_LENGTH = 4;
+    private static final int MAX_FREE_TEXT_CHARS_FOR_FUZZY = 512;
+    private static final String WORD_SEPARATOR_PATTERN = "[^\\p{L}\\p{N}]+";
     private static final Comparator<String> NULL_SAFE_STRING_COMPARATOR = Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER);
     private static final Comparator<CatalogEntry> CATALOG_ENTRY_COMPARATOR = Comparator.comparing(
         CatalogEntry::name,
@@ -117,7 +121,11 @@ public class GetVisiblePortalCatalogItemsUseCase {
             .query()
             .filter(value -> !value.isBlank())
             .map(String::trim);
-        Map<String, Api> matchingApisById = findMatchingApis(input, catalogApiCandidates, query)
+        boolean typoToleranceEnabled =
+            query.isPresent() &&
+            (!catalogApiCandidates.isEmpty() || !visibleApiProducts.isEmpty()) &&
+            checkTypoToleranceDomainService.isEnabled(input.environmentId(), input.organizationId());
+        Map<String, Api> matchingApisById = findMatchingApis(input, catalogApiCandidates, query, typoToleranceEnabled)
             .stream()
             .collect(Collectors.toMap(Api::getId, Function.identity(), (first, ignored) -> first));
         Map<String, ApiProduct> visibleApiProductsById = loadApiProducts(input.environmentId(), visibleApiProducts);
@@ -127,7 +135,8 @@ public class GetVisiblePortalCatalogItemsUseCase {
             visibleApiProducts,
             matchingApisById,
             visibleApiProductsById,
-            query
+            query,
+            typoToleranceEnabled
         )
             .stream()
             .sorted(CATALOG_ENTRY_COMPARATOR)
@@ -169,7 +178,12 @@ public class GetVisiblePortalCatalogItemsUseCase {
         );
     }
 
-    private List<Api> findMatchingApis(Input input, List<PortalNavigationApi> visibleApis, Optional<String> query) {
+    private List<Api> findMatchingApis(
+        Input input,
+        List<PortalNavigationApi> visibleApis,
+        Optional<String> query,
+        boolean typoToleranceEnabled
+    ) {
         Set<String> visibleApiIds = visibleApis.stream().map(PortalNavigationApi::getApiId).collect(Collectors.toSet());
         if (visibleApiIds.isEmpty()) {
             return List.of();
@@ -180,7 +194,7 @@ public class GetVisiblePortalCatalogItemsUseCase {
                 input.organizationId(),
                 query.get(),
                 visibleApiIds,
-                checkTypoToleranceDomainService.isEnabled(input.environmentId(), input.organizationId())
+                typoToleranceEnabled
             );
         }
         return loadApis(input.environmentId(), visibleApiIds);
@@ -202,7 +216,8 @@ public class GetVisiblePortalCatalogItemsUseCase {
         List<PortalNavigationApiProduct> visibleApiProducts,
         Map<String, Api> matchingApisById,
         Map<String, ApiProduct> visibleApiProductsById,
-        Optional<String> query
+        Optional<String> query,
+        boolean typoToleranceEnabled
     ) {
         List<CatalogEntry> apiEntries = visibleApis
             .stream()
@@ -212,15 +227,92 @@ public class GetVisiblePortalCatalogItemsUseCase {
         List<CatalogEntry> productEntries = visibleApiProducts
             .stream()
             .filter(item -> visibleApiProductsById.containsKey(item.getApiProductId()))
-            .filter(item -> matchesQuery(visibleApiProductsById.get(item.getApiProductId()).getName(), query))
+            .filter(item -> matchesQuery(visibleApiProductsById.get(item.getApiProductId()).getName(), query, typoToleranceEnabled))
             .map(item -> new CatalogEntry(item, visibleApiProductsById.get(item.getApiProductId()).getName()))
             .toList();
 
         return java.util.stream.Stream.concat(apiEntries.stream(), productEntries.stream()).toList();
     }
 
-    private boolean matchesQuery(String name, Optional<String> query) {
-        return query.isEmpty() || (name != null && name.toLowerCase(Locale.ROOT).contains(query.get().toLowerCase(Locale.ROOT)));
+    private boolean matchesQuery(String name, Optional<String> query, boolean typoToleranceEnabled) {
+        if (query.isEmpty()) {
+            return true;
+        }
+        if (name == null) {
+            return false;
+        }
+
+        String normalizedName = name.toLowerCase(Locale.ROOT);
+        String normalizedQuery = query.get().toLowerCase(Locale.ROOT);
+        if (normalizedName.contains(normalizedQuery)) {
+            return true;
+        }
+        if (!typoToleranceEnabled || normalizedQuery.length() > MAX_FREE_TEXT_CHARS_FOR_FUZZY) {
+            return false;
+        }
+
+        List<String> nameTokens = tokenize(normalizedName);
+        List<String> queryTokens = tokenize(normalizedQuery);
+        return (
+            !queryTokens.isEmpty() &&
+            queryTokens
+                .stream()
+                .allMatch(queryToken ->
+                    nameTokens
+                        .stream()
+                        .anyMatch(nameToken -> nameToken.equals(queryToken) || matchesWithTypoTolerance(queryToken, nameToken))
+                )
+        );
+    }
+
+    private List<String> tokenize(String value) {
+        return Arrays.stream(value.split(WORD_SEPARATOR_PATTERN))
+            .filter(token -> !token.isBlank())
+            .toList();
+    }
+
+    private boolean matchesWithTypoTolerance(String queryToken, String nameToken) {
+        if (queryToken.length() < MIN_FUZZY_TOKEN_LENGTH || nameToken.isEmpty() || queryToken.charAt(0) != nameToken.charAt(0)) {
+            return false;
+        }
+        int maxEdits = queryToken.length() >= 8 ? 2 : 1;
+        return isWithinEditDistance(queryToken, nameToken, maxEdits);
+    }
+
+    private boolean isWithinEditDistance(String left, String right, int maxEdits) {
+        if (Math.abs(left.length() - right.length()) > maxEdits) {
+            return false;
+        }
+        if (left.equals(right)) {
+            return true;
+        }
+
+        int[] previous = new int[right.length() + 1];
+        int[] current = new int[right.length() + 1];
+        Arrays.fill(previous, maxEdits + 1);
+        for (int column = 0; column <= Math.min(right.length(), maxEdits); column++) {
+            previous[column] = column;
+        }
+
+        for (int row = 1; row <= left.length(); row++) {
+            Arrays.fill(current, maxEdits + 1);
+            if (row <= maxEdits) {
+                current[0] = row;
+            }
+            int firstColumn = Math.max(1, row - maxEdits);
+            int lastColumn = Math.min(right.length(), row + maxEdits);
+            for (int column = firstColumn; column <= lastColumn; column++) {
+                int substitution = previous[column - 1] + (left.charAt(row - 1) == right.charAt(column - 1) ? 0 : 1);
+                int insertion = current[column - 1] + 1;
+                int deletion = previous[column] + 1;
+                current[column] = Math.min(substitution, Math.min(insertion, deletion));
+            }
+            int[] swap = previous;
+            previous = current;
+            current = swap;
+        }
+
+        return previous[right.length()] <= maxEdits;
     }
 
     private List<CatalogEntry> paginate(List<CatalogEntry> entries, Pageable pageable) {

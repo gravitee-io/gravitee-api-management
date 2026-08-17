@@ -45,7 +45,10 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
+import io.gravitee.repository.management.model.Parameter;
+import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.model.parameters.Key;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
@@ -69,6 +72,7 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
     private ApiPortalSearchQueryServiceInMemory apiPortalSearchQueryService;
     private ApiQueryServiceInMemory apiQueryService;
     private ApiProductQueryServiceInMemory apiProductQueryService;
+    private ParametersQueryServiceInMemory parametersQueryService;
 
     @BeforeEach
     void set_up() {
@@ -76,6 +80,7 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
         apiPortalSearchQueryService = new ApiPortalSearchQueryServiceInMemory();
         apiQueryService = new ApiQueryServiceInMemory();
         apiProductQueryService = new ApiProductQueryServiceInMemory();
+        parametersQueryService = new ParametersQueryServiceInMemory();
         var membershipQueryService = new MembershipQueryServiceInMemory();
         var apiMembershipDomainService = new ApiPortalMembershipDomainService(
             membershipQueryService,
@@ -101,7 +106,7 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
             apiPortalSearchQueryService,
             apiQueryService,
             apiProductQueryService,
-            new CheckTypoToleranceDomainService(new ParametersQueryServiceInMemory())
+            new CheckTypoToleranceDomainService(parametersQueryService)
         );
     }
 
@@ -223,6 +228,53 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
         assertThat(output.items().getContent())
             .extracting(PortalNavigationItem::getType)
             .containsExactly(PortalNavigationItemType.API, PortalNavigationItemType.API_PRODUCT);
+    }
+
+    @Test
+    void should_match_api_product_name_with_a_typo_when_typo_tolerance_is_enabled() {
+        enableTypoTolerance();
+        var apiProductItem = apiProductItem("product-item-id", "product-id", null, PortalVisibility.PUBLIC);
+        navigationItemsQueryService.initWith(List.of(apiProductItem));
+        apiProductQueryService.initWith(List.of(apiProduct("product-id", "acr-product", Set.of())));
+
+        var output = useCase.execute(input(Optional.of("aacr"), Set.of(), 1, 10));
+
+        assertThat(output.items().getContent()).containsExactly(apiProductItem);
+    }
+
+    @Test
+    void should_not_match_api_product_name_with_a_typo_when_typo_tolerance_is_disabled() {
+        var apiProductItem = apiProductItem("product-item-id", "product-id", null, PortalVisibility.PUBLIC);
+        navigationItemsQueryService.initWith(List.of(apiProductItem));
+        apiProductQueryService.initWith(List.of(apiProduct("product-id", "acr-product", Set.of())));
+
+        var output = useCase.execute(input(Optional.of("aacr"), Set.of(), 1, 10));
+
+        assertThat(output.items().getContent()).isEmpty();
+    }
+
+    @Test
+    void should_not_match_an_unrelated_api_product_when_typo_tolerance_is_enabled() {
+        enableTypoTolerance();
+        var apiProductItem = apiProductItem("product-item-id", "product-id", null, PortalVisibility.PUBLIC);
+        navigationItemsQueryService.initWith(List.of(apiProductItem));
+        apiProductQueryService.initWith(List.of(apiProduct("product-id", "acr-product", Set.of())));
+
+        var output = useCase.execute(input(Optional.of("axxx"), Set.of(), 1, 10));
+
+        assertThat(output.items().getContent()).isEmpty();
+    }
+
+    @Test
+    void should_not_apply_typo_tolerance_to_queries_longer_than_the_supported_limit() {
+        enableTypoTolerance();
+        var apiProductItem = apiProductItem("product-item-id", "product-id", null, PortalVisibility.PUBLIC);
+        navigationItemsQueryService.initWith(List.of(apiProductItem));
+        apiProductQueryService.initWith(List.of(apiProduct("product-id", "a".repeat(512), Set.of())));
+
+        var output = useCase.execute(input(Optional.of("a".repeat(513)), Set.of(), 1, 10));
+
+        assertThat(output.items().getContent()).isEmpty();
     }
 
     @Test
@@ -418,6 +470,12 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
     private void initApis(List<Api> apis) {
         apiPortalSearchQueryService.initWith(apis);
         apiQueryService.initWith(apis);
+    }
+
+    private void enableTypoTolerance() {
+        parametersQueryService.define(
+            new Parameter(Key.PORTAL_NEXT_SEARCH_FUZZY.key(), ENV_ID, ParameterReferenceType.ENVIRONMENT, Boolean.TRUE.toString())
+        );
     }
 
     private Api api(String id, String name, String version) {
