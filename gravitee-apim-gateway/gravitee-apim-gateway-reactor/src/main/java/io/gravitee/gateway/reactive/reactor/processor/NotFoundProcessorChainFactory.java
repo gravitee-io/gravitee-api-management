@@ -22,6 +22,7 @@ import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.reactor.processor.metrics.MetricsProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.notfound.NotFoundProcessor;
+import io.gravitee.gateway.reactive.reactor.processor.rejected.RejectedPathProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.reporter.ReporterProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.responsetime.ResponseTimeProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessorFactory;
@@ -43,6 +44,7 @@ public class NotFoundProcessorChainFactory {
     private final GatewayConfiguration gatewayConfiguration;
     private final List<ProcessorHook> processorHooks = new ArrayList<>();
     private ProcessorChain processorChain;
+    private ProcessorChain rejectedPathProcessorChain;
 
     public NotFoundProcessorChainFactory(
         final TransactionPreProcessorFactory transactionHandlerFactory,
@@ -63,6 +65,25 @@ public class NotFoundProcessorChainFactory {
             initProcessorChain();
         }
         return processorChain;
+    }
+
+    /**
+     * The same chain as {@link #processorChain()}, answering 400 instead of 404. A request refused
+     * on its path is refused before any API is selected, exactly like an unmatched context path, so
+     * it needs the same treatment to be counted and reported at all.
+     */
+    public ProcessorChain rejectedPathProcessorChain() {
+        if (rejectedPathProcessorChain == null) {
+            List<Processor> processorList = new ArrayList<>();
+            processorList.add(transactionHandlerFactory.create());
+            processorList.add(new MetricsProcessor(gatewayConfiguration, notFoundAnalyticsEnabled));
+            processorList.add(new RejectedPathProcessor(environment));
+            processorList.add(new ResponseTimeProcessor());
+            processorList.add(new ReporterProcessor(reporterService));
+            rejectedPathProcessorChain = new ProcessorChain("rejected-path", processorList);
+            rejectedPathProcessorChain.addHooks(processorHooks);
+        }
+        return rejectedPathProcessorChain;
     }
 
     void initProcessorChain() {

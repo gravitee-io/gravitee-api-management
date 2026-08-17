@@ -27,7 +27,11 @@ import io.vertx.core.http.HttpServerRequest;
 public class VertxGrpcServerRequest extends VertxHttp2ServerRequest {
 
     public VertxGrpcServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator) {
-        super(httpServerRequest, idGenerator);
+        this(httpServerRequest, idGenerator, null);
+    }
+
+    public VertxGrpcServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator, String path) {
+        super(httpServerRequest, idGenerator, path);
     }
 
     @Override

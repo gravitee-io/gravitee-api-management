@@ -41,6 +41,8 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.processor.provider.ProcessorProviderChain;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestClientAuthConfiguration;
+import io.gravitee.gateway.env.RequestPathConfiguration;
+import io.gravitee.gateway.env.RequestPathHandling;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
@@ -223,6 +225,7 @@ class DefaultHttpRequestDispatcherTest {
             tracingContext,
             requestTimeoutConfiguration,
             requestClientAuthConfiguration,
+            new RequestPathConfiguration(RequestPathHandling.RAW),
             vertx,
             true
         );
