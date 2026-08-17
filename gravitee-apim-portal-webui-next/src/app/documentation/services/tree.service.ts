@@ -29,6 +29,11 @@ export interface TreeNode {
 
 export type DocumentationSubscriptionTarget = { type: 'API'; apiId: string } | { type: 'API_PRODUCT'; apiProductId: string };
 
+export interface DocumentationActionContext {
+  apiId: string | null;
+  subscriptionTarget: DocumentationSubscriptionTarget | null;
+}
+
 type ProcessingNode = TreeNode & {
   __order: number;
   __parentId: string | null;
@@ -61,18 +66,25 @@ export class TreeService {
     return this.parentItemBreadcrumb ? [this.parentItemBreadcrumb] : [];
   }
 
-  getSubscriptionTarget(nodeId: string): DocumentationSubscriptionTarget | null {
+  getDocumentationActionContext(nodeId: string): DocumentationActionContext {
+    let apiId: string | null = null;
     let node = this.treeNodesById.get(nodeId);
     while (node) {
       if (node.data?.type === 'API') {
-        return { type: 'API', apiId: node.data.apiId };
+        apiId ??= node.data.apiId;
       }
       if (node.data?.type === 'API_PRODUCT') {
-        return { type: 'API_PRODUCT', apiProductId: node.data.apiProductId };
+        return {
+          apiId,
+          subscriptionTarget: apiId ? null : { type: 'API_PRODUCT', apiProductId: node.data.apiProductId },
+        };
       }
       node = node.__parentId ? this.treeNodesById.get(node.__parentId) : undefined;
     }
-    return null;
+    return {
+      apiId,
+      subscriptionTarget: apiId ? { type: 'API', apiId } : null,
+    };
   }
 
   findFirstPageId(): string | null {

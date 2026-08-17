@@ -119,14 +119,17 @@ describe('DocumentationTreeService', () => {
     });
   });
 
-  describe('getSubscriptionTarget', () => {
-    it('should return an API target when page is under a standalone API', () => {
+  describe('getDocumentationActionContext', () => {
+    it('should return an API context and subscription target when page is under a standalone API', () => {
       const items = [makeItem('api1', 'API', 'API 1', 0), makeItem('p-api1', 'PAGE', 'API doc', 0, 'api1')];
       service.init(parentItem, items);
-      expect(service.getSubscriptionTarget('p-api1')).toEqual({ type: 'API', apiId: 'api-api1' });
+      expect(service.getDocumentationActionContext('p-api1')).toEqual({
+        apiId: 'api-api1',
+        subscriptionTarget: { type: 'API', apiId: 'api-api1' },
+      });
     });
 
-    it('should return an API Product target when page is under an API Product folder', () => {
+    it('should return an API Product subscription target when page is under an API Product folder', () => {
       const items = [
         fakePortalNavigationApiProduct({ id: 'product1', apiProductId: 'api-product-1', rootId: 'product1' }),
         makeItem('product-folder1', 'FOLDER', 'Product documentation', 0, 'product1', 'product1'),
@@ -134,10 +137,13 @@ describe('DocumentationTreeService', () => {
       ];
       service.init(parentItem, items);
 
-      expect(service.getSubscriptionTarget('product-page1')).toEqual({ type: 'API_PRODUCT', apiProductId: 'api-product-1' });
+      expect(service.getDocumentationActionContext('product-page1')).toEqual({
+        apiId: null,
+        subscriptionTarget: { type: 'API_PRODUCT', apiProductId: 'api-product-1' },
+      });
     });
 
-    it('should prefer a nested API over its enclosing API Product', () => {
+    it('should preserve API context without a subscription target when API is nested under an API Product', () => {
       const items = [
         fakePortalNavigationApiProduct({ id: 'product1', apiProductId: 'api-product-1', rootId: 'product1' }),
         makeItem('api1', 'API', 'API 1', 0, 'product1', 'product1'),
@@ -145,12 +151,15 @@ describe('DocumentationTreeService', () => {
       ];
       service.init(parentItem, items);
 
-      expect(service.getSubscriptionTarget('p-api1')).toEqual({ type: 'API', apiId: 'api-api1' });
+      expect(service.getDocumentationActionContext('p-api1')).toEqual({
+        apiId: 'api-api1',
+        subscriptionTarget: null,
+      });
     });
 
-    it('should return null when page has no subscribable ancestor', () => {
-      expect(service.getSubscriptionTarget('p1')).toBeNull();
-      expect(service.getSubscriptionTarget('p3')).toBeNull();
+    it('should return an empty context when page has no API or API Product ancestor', () => {
+      expect(service.getDocumentationActionContext('p1')).toEqual({ apiId: null, subscriptionTarget: null });
+      expect(service.getDocumentationActionContext('p3')).toEqual({ apiId: null, subscriptionTarget: null });
     });
   });
 });

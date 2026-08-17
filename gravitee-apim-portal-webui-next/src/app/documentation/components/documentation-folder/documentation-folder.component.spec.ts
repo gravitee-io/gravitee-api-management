@@ -475,23 +475,22 @@ describe('DocumentationFolderComponent', () => {
       expect(await harness.getMcpButton()).toBeNull();
     });
 
-    it('should preserve API behavior for documentation nested under an API Product', async () => {
+    it('should hide Subscribe and preserve API tooling for documentation nested under an API Product', async () => {
       const apiProduct = makeItem('product1', 'API_PRODUCT', 'API Product 1', 0, undefined, 'root1');
       const apiItem = makeItem('api1', 'API', 'API 1', 0, 'product1', 'root1');
       const apiPage = makeItem('p-api1', 'PAGE', 'API 1 Documentation', 0, 'api1', 'root1');
 
-      await init({ items: [apiProduct, apiItem, apiPage], queryParams: { selectedId: 'p-api1' }, content: MOCK_CONTENT });
+      await init({
+        items: [apiProduct, apiItem, apiPage],
+        queryParams: { selectedId: 'p-api1' },
+        content: MOCK_CONTENT,
+        apiHasMcp: true,
+      });
 
       expect(routerSpy.navigate).not.toHaveBeenCalled();
-      const subscribeButton = await harness.getSubscribeButton();
-      expect(subscribeButton).not.toBeNull();
-
-      await subscribeButton!.click();
-
-      expect(routerSpy.navigate).toHaveBeenCalledWith(['api', 'api-api1', 'subscribe'], {
-        relativeTo: expect.anything(),
-        queryParamsHandling: 'preserve',
-      });
+      expect(await harness.getSubscribeButton()).toBeNull();
+      expect(apiServiceSpy.details).toHaveBeenCalledWith('api-api1');
+      expect(await harness.getMcpButton()).not.toBeNull();
 
       const breadcrumbs = await harness.getBreadcrumbs();
       expect(await breadcrumbs?.getText()).toEqual('Test item/API Product 1/API 1/API 1 Documentation');
@@ -505,7 +504,7 @@ describe('DocumentationFolderComponent', () => {
         rootId: 'root1',
       });
       const productPage = makeItem('product-overview1', 'PAGE', 'Product Overview', 0, 'product1', 'root1');
-      const apiItem = makeItem('api1', 'API', 'API 1', 1, 'product1', 'root1');
+      const apiItem = makeItem('api1', 'API', 'API 1', 1, undefined, 'root1');
       const apiPage = makeItem('p-api1', 'PAGE', 'API 1 Documentation', 0, 'api1', 'root1');
 
       await init({ items: [apiProduct, productPage, apiItem, apiPage], queryParams: { selectedId: 'p-api1' }, content: MOCK_CONTENT });
