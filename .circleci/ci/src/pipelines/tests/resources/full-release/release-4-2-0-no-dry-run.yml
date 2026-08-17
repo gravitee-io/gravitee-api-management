@@ -510,7 +510,7 @@ jobs:
           name: Prepare plugin zip to upload
           command: |-
             workingDir=$(pwd)
-            for pathToArtefactFile in $(find . -path '*target/gravitee-apim*.zip'); do
+            for pathToArtefactFile in $(find ./gravitee-apim-distribution -path '*target/gravitee-apim*.zip'); do
               # Extract folder of the artefact to publish
               # e.g. ./gravitee-apim-repository/gravitee-apim-repository-mongodb/target/gravitee-apim-repository-mongodb-4.4.21.zip => ./gravitee-apim-repository/gravitee-apim-repository-mongodb
               artefactFolder=${pathToArtefactFile%/target*}
@@ -543,6 +543,8 @@ jobs:
                 cd $workingDir
               fi
             done
+      - cmd-sync-folder-to-s3:
+          folder-to-sync: folder_to_sync
       - persist_to_workspace:
           root: .
           paths:
