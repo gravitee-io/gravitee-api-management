@@ -20,6 +20,7 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.debug.vertx.VertxHttpServerRequestDebugDecorator;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestClientAuthConfiguration;
+import io.gravitee.gateway.env.RequestPathConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
@@ -54,6 +55,7 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         RequestClientAuthConfiguration requestClientAuthConfiguration,
+        RequestPathConfiguration requestPathConfiguration,
         Vertx vertx,
         boolean warningsEnabled
     ) {
@@ -69,6 +71,7 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
             TracingContext.noop(),
             requestTimeoutConfiguration,
             requestClientAuthConfiguration,
+            requestPathConfiguration,
             vertx,
             warningsEnabled
         );
@@ -82,9 +85,10 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
     @Override
     protected io.gravitee.gateway.http.vertx.VertxHttpServerRequest createV3Request(
         final HttpServerRequest httpServerRequest,
-        final IdGenerator idGenerator
+        final IdGenerator idGenerator,
+        final String path
     ) {
-        io.gravitee.gateway.http.vertx.VertxHttpServerRequest v3Request = super.createV3Request(httpServerRequest, idGenerator);
+        io.gravitee.gateway.http.vertx.VertxHttpServerRequest v3Request = super.createV3Request(httpServerRequest, idGenerator, path);
         return new VertxHttpServerRequestDebugDecorator(v3Request, idGenerator);
     }
 }
