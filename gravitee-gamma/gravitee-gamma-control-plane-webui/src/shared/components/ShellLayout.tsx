@@ -92,8 +92,7 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
     const logout = useLogout();
     const navigate = useNavigate();
     const envHrid = useEnvHrid();
-    const location = useLocation();
-    const pathname = location.pathname;
+    const { pathname } = useLocation();
     const { slots } = useLayoutSlots();
 
     const environments = useEnvironmentStore(s => s.environments);
@@ -117,12 +116,13 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
         [envHrid, navigate],
     );
 
+    // `search` and `hash` are dropped along with the sub-path -- they carry filters and tabs that
+    // are just as environment-scoped. EnvironmentGuard owns adopting the new environment.
     const handleEnvironmentChange = useCallback(
         (newEnvHrid: string) => {
-            const newPathname = buildPathnameAfterEnvironmentChange(pathname, envHrid, newEnvHrid);
-            navigate({ pathname: newPathname, search: location.search, hash: location.hash });
+            navigate({ pathname: buildPathnameAfterEnvironmentChange(pathname, envHrid, newEnvHrid) });
         },
-        [envHrid, location.hash, location.search, navigate, pathname],
+        [envHrid, navigate, pathname],
     );
 
     const handleSignOut = useCallback(() => {
