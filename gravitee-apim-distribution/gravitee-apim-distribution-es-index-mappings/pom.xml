@@ -48,7 +48,7 @@
         <maven.deploy.skip>false</maven.deploy.skip>
 
         <!-- Property used by the publication job in CI-->
-        <publish-folder-path>graviteeio-apim/es-index-mappings</publish-folder-path>
+        <publish-folder-path>graviteeio-apim/resources</publish-folder-path>
     </properties>
 
     <dependencies>
