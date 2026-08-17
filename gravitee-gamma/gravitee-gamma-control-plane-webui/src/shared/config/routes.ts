@@ -71,14 +71,17 @@ export function pathSegmentsAfterEnvironment(pathname: string, envHrid: string):
 }
 
 /**
- * New pathname when changing the environment segment while keeping the same page
- * (host area, module path, or nested route). If there is no path under the current
- * environment, returns /environments/{new}/home.
+ * New pathname when changing the environment segment. Only the first segment after the
+ * environment is kept -- the module id, or a host area such as `home`/`tasks`.
+ *
+ * Modules are registered per organization, so every environment exposes the same ones and that
+ * root always resolves. Everything below it addresses environment-scoped data (an api id, a task
+ * id), which carries no meaning in the target environment. Falls back to home when the pathname
+ * holds no such segment.
  */
 export function buildPathnameAfterEnvironmentChange(pathname: string, currentEnvHrid: string, newEnvHrid: string): string {
-    const rest = pathSegmentsAfterEnvironment(pathname, currentEnvHrid);
-    const base = `/environments/${newEnvHrid}`;
-    return rest.length > 0 ? `${base}/${rest.join('/')}` : `${base}/home`;
+    const [root] = pathSegmentsAfterEnvironment(pathname, currentEnvHrid);
+    return `/environments/${newEnvHrid}/${root ?? HOME_NAV_KEY}`;
 }
 
 function extractSubPath(pathname: string, envHrid: string): string | null {
