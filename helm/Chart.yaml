@@ -29,4 +29,31 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
+<<<<<<< HEAD
   artifacthub.io/changes: 
+=======
+  artifacthub.io/changes: |
+    - kind: added
+      description: "`gateway.kafka.routingHostMode.virtualClusterBrokerDomainPattern` sets a broker domain pattern for Kafka APIs backed by a Virtual Cluster only, leaving the other Kafka APIs' domains untouched"
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/19201
+    - kind: added
+      description: "Support multiple custom domains for native Kafka APIs with `gateway.kafka.routingHostMode.domains` (list)"
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/17691
+    - kind: deprecated
+      description: "`gateway.kafka.routingHostMode.defaultDomain` is deprecated in favor of `domains` and ignored when `domains` is set"
+    - kind: changed
+      description: "`gateway.kafka.routingHostMode` pattern examples now use the `{domain}` placeholder, substituted with each configured domain in turn; hardcoding a domain there collapses every entry onto the same hostname (`{defaultDomain}` remains a supported alias)"
+    - kind: added
+      description: "Document `gateway.services.metrics.kafka.durations.principalName` to add the principal_name tag to Kafka duration metrics (disabled by default)"
+    - kind: added
+      description: 'Render config/hazelcast.xml for gateway Hazelcast clustering (gateway.cluster.type=hazelcast) with Kubernetes discovery. Cluster name defaults to release-sharding_tags for Redis distributed-event isolation; require gateway.cluster when gateway.distributedSync is enabled'
+    - kind: fixed
+      description: 'Allow Hazelcast cluster and Redis distributed sync'
+      links:
+        - name: Github Issue
+          url: https://github.com/gravitee-io/issues/issues/11583
+>>>>>>> 9e13626 (docs(helm): declare the Virtual Cluster broker domain pattern in the chart changelog)
