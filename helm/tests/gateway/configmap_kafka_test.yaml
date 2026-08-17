@@ -68,6 +68,7 @@ tests:
             defaultPort: 42
             bootstrapDomainPattern: "{apiHost}.mycompany.org"
             brokerDomainPattern: "broker-{brokerId}-{apiHost}.mycompany.org"
+            virtualClusterBrokerDomainPattern: "broker{realBrokerId}-c{clusterIndex}-{apiHost}.mycompany.org"
           apiKey:
             securityMechanisms: SCRAM-SHA-512
           port: 9042
@@ -90,6 +91,7 @@ tests:
                 defaultPort: 42
                 bootstrapDomainPattern: "{apiHost}.mycompany.org"
                 brokerDomainPattern: "broker-{brokerId}-{apiHost}.mycompany.org"
+                virtualClusterBrokerDomainPattern: "broker{realBrokerId}-c{clusterIndex}-{apiHost}.mycompany.org"
               api-key:
                 securityMechanisms: SCRAM-SHA-512
               port: 9042
