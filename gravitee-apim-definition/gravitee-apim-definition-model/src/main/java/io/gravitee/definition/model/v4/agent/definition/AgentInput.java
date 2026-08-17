@@ -18,6 +18,7 @@ package io.gravitee.definition.model.v4.agent.definition;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -63,8 +64,28 @@ public class AgentInput {
      */
     private String binding;
 
-    /** Optional declared type for coercion / schema generation (e.g. {@code string}, {@code number}). */
+    /**
+     * Where the value comes from when the agent is <b>called</b> — root contract only, ignored on inner nodes, which
+     * read the scope. See {@link AgentInputSource} for why this is not {@link #binding}.
+     */
+    private AgentInputSource source;
+
+    /**
+     * Optional declared type: {@code string} | {@code number} | {@code boolean} | {@code enum}.
+     *
+     * <p>Same vocabulary as {@code Clause.valueType}, deliberately — a workflow guard already compares a scope value
+     * as one of {@code number}/{@code string}/{@code boolean}, so a typed input makes those comparisons exact instead
+     * of parsing whatever text a model produced. Absent ⇒ the value is passed through as it arrives.</p>
+     */
     private String type;
+
+    /** Allowed values, for {@code type: enum}. */
+    private List<Object> values;
+
+    /** Bounds for {@code type: number}. Absent ⇒ unbounded on that side. */
+    private Double min;
+
+    private Double max;
 
     /** Whether the entrypoint must receive this input (root contract only). */
     private Boolean required;
