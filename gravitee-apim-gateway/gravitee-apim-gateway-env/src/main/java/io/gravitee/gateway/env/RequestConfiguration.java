@@ -51,4 +51,24 @@ public class RequestConfiguration {
     ) {
         return new RequestClientAuthConfiguration(headerName);
     }
+
+    @Bean
+    public RequestPathConfiguration httpRequestPathConfiguration(@Value("${http.pathHandling:RAW}") String pathHandling) {
+        RequestPathHandling handling;
+        try {
+            handling = RequestPathHandling.valueOf(pathHandling.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            log.warn(
+                "Unknown value [{}] for http.pathHandling, falling back to {}. Expected one of {}.",
+                pathHandling,
+                RequestPathHandling.RAW,
+                java.util.Arrays.toString(RequestPathHandling.values())
+            );
+            handling = RequestPathHandling.RAW;
+        }
+        if (handling != RequestPathHandling.RAW) {
+            log.info("Request path handling is set to {}: dot segments are resolved before the listener is resolved.", handling);
+        }
+        return new RequestPathConfiguration(handling);
+    }
 }

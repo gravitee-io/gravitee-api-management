@@ -46,6 +46,7 @@ public class VertxHttpServerRequest implements Request {
     private final long timestamp;
 
     protected final HttpServerRequest serverRequest;
+    private String path;
 
     private MultiValueMap<String, String> queryParameters = null;
 
@@ -58,6 +59,17 @@ public class VertxHttpServerRequest implements Request {
     private Handler<Long> timeoutHandler;
 
     public VertxHttpServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator) {
+        this(httpServerRequest, idGenerator, null);
+    }
+
+    /**
+     * @param path the path this request reports, so that everything derived from it — starting with
+     *     the {@code pathInfo} a contextualized request computes — matches the path the gateway
+     *     resolved rather than the one received. {@code null} reports the native path, which is the
+     *     historical behaviour. {@link #uri()} reports the untouched native value either way.
+     */
+    public VertxHttpServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator, String path) {
+        this.path = path;
         this.serverRequest = httpServerRequest;
         this.timestamp = System.currentTimeMillis();
         this.id = idGenerator.randomString();
@@ -89,7 +101,10 @@ public class VertxHttpServerRequest implements Request {
 
     @Override
     public String path() {
-        return serverRequest.path();
+        if (path == null) {
+            path = serverRequest.path();
+        }
+        return path;
     }
 
     @Override
