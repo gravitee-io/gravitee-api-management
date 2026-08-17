@@ -57,9 +57,9 @@ function makeMutation(mutateAsync = jest.fn()): any {
 
 function renderPage() {
     return render(
-        <MemoryRouter initialEntries={['/spg-1']}>
+        <MemoryRouter initialEntries={['/spg-1/overview']}>
             <Routes>
-                <Route path=":sharedPolicyGroupId" element={<SharedPolicyGroupDetailPage />} />
+                <Route path=":sharedPolicyGroupId/overview" element={<SharedPolicyGroupDetailPage />} />
             </Routes>
         </MemoryRouter>,
     );
@@ -75,7 +75,7 @@ describe('SharedPolicyGroupDetailPage', () => {
         jest.clearAllMocks();
     });
 
-    it('renders name, status, description, API type, and phase', () => {
+    it('renders overview details: API type, phase, and prerequisite', () => {
         mockUseSharedPolicyGroupDetail.mockReturnValue({
             data: SPG,
             isLoading: false,
@@ -84,27 +84,13 @@ describe('SharedPolicyGroupDetailPage', () => {
 
         renderPage();
 
-        expect(screen.queryByRole('heading', { name: 'Auth Bundle' })).not.toBeNull();
-        expect(screen.queryByText('Deployed')).not.toBeNull();
-        expect(screen.queryByText('Reusable auth policies')).not.toBeNull();
-        expect(screen.queryByText('Proxy')).not.toBeNull();
-        expect(screen.queryByText('Request')).not.toBeNull();
-        expect(screen.queryByText('Requires the "auth-cache" resource')).not.toBeNull();
+        expect(screen.getByTestId('shared-policy-group-overview')).not.toBeNull();
+        expect(screen.getByText('Proxy')).not.toBeNull();
+        expect(screen.getByText('Request')).not.toBeNull();
+        expect(screen.getByText('Requires the "auth-cache" resource')).not.toBeNull();
     });
 
-    it('shows a not-found message when the shared policy group fails to load', () => {
-        mockUseSharedPolicyGroupDetail.mockReturnValue({
-            data: undefined,
-            isLoading: false,
-            isError: true,
-        } as ReturnType<typeof useSharedPolicyGroupDetail>);
-
-        renderPage();
-
-        expect(screen.queryByText('Shared Policy Group not found or failed to load.')).not.toBeNull();
-    });
-
-    it('shows a loading skeleton while fetching', () => {
+    it('renders nothing while loading (layout owns the skeleton)', () => {
         mockUseSharedPolicyGroupDetail.mockReturnValue({
             data: undefined,
             isLoading: true,
@@ -112,20 +98,7 @@ describe('SharedPolicyGroupDetailPage', () => {
         } as ReturnType<typeof useSharedPolicyGroupDetail>);
 
         renderPage();
-
-        expect(screen.queryByRole('heading', { name: 'Auth Bundle' })).toBeNull();
-    });
-
-    it('renders a back link to the list', () => {
-        mockUseSharedPolicyGroupDetail.mockReturnValue({
-            data: SPG,
-            isLoading: false,
-            isError: false,
-        } as ReturnType<typeof useSharedPolicyGroupDetail>);
-
-        renderPage();
-
-        expect(screen.getByRole('link', { name: /Back to Shared Policy Groups/ }).getAttribute('href')).toBe('/');
+        expect(screen.queryByTestId('shared-policy-group-overview')).toBeNull();
     });
 
     it('shows Edit when the user can update and opens the edit sheet', async () => {
