@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
+import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Button } from '@gravitee/graphene-core';
 import { PlusIcon } from '@gravitee/graphene-core/icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -26,28 +27,42 @@ import {
     type SharedPolicyGroupCreateFormValues,
 } from '../features/shared-policy-groups/components/SharedPolicyGroupCreateSheet';
 import { SharedPolicyGroupDeleteSheet } from '../features/shared-policy-groups/components/SharedPolicyGroupDeleteSheet';
+import {
+    SharedPolicyGroupEditSheet,
+    type SharedPolicyGroupEditFormValues,
+} from '../features/shared-policy-groups/components/SharedPolicyGroupEditSheet';
 import { SharedPolicyGroupsTable } from '../features/shared-policy-groups/components/SharedPolicyGroupsTable';
 import {
     useCreateSharedPolicyGroup,
     useDeleteSharedPolicyGroup,
+    useUpdateSharedPolicyGroup,
 } from '../features/shared-policy-groups/hooks/useSharedPolicyGroupMutations';
 import { useSharedPolicyGroupsPaged } from '../features/shared-policy-groups/hooks/useSharedPolicyGroups';
+import { getSharedPolicyGroup } from '../features/shared-policy-groups/services/sharedPolicyGroups';
 import type { SharedPolicyGroup } from '../features/shared-policy-groups/types/sharedPolicyGroup';
 import {
     DEFAULT_SHARED_POLICY_GROUP_LIST_PAGE_SIZE,
     SHARED_POLICY_GROUP_SEARCH_DEBOUNCE_MS,
 } from '../features/shared-policy-groups/utils/paginationConstants';
+import { sharedPolicyGroupKeys } from '../features/shared-policy-groups/utils/queryKeys';
 import {
     ENVIRONMENT_SHARED_POLICY_GROUP_CREATE_PERMISSION,
     ENVIRONMENT_SHARED_POLICY_GROUP_DELETE_PERMISSION,
     ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION,
 } from '../features/shared-policy-groups/utils/sharedPolicyGroupPermissions';
+import { toUpdateSharedPolicyGroupPayload } from '../features/shared-policy-groups/utils/sharedPolicyGroupPayload';
 import { notify } from '../shared/notify';
 
-type SheetState = { type: 'closed' } | { type: 'create' } | { type: 'delete'; sharedPolicyGroup: SharedPolicyGroup };
+type SheetState =
+    | { type: 'closed' }
+    | { type: 'create' }
+    | { type: 'edit'; sharedPolicyGroup: SharedPolicyGroup }
+    | { type: 'delete'; sharedPolicyGroup: SharedPolicyGroup };
 
 export function SharedPolicyGroupsPage() {
     const navigate = useNavigate();
+    const env = useEnvironment();
+    const queryClient = useQueryClient();
     const canCreate = useHasPermission({ anyOf: [ENVIRONMENT_SHARED_POLICY_GROUP_CREATE_PERMISSION] });
     const canEdit = useHasPermission({ anyOf: [ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION] });
     const canDelete = useHasPermission({ anyOf: [ENVIRONMENT_SHARED_POLICY_GROUP_DELETE_PERMISSION] });
@@ -74,6 +89,7 @@ export function SharedPolicyGroupsPage() {
     const { data, isLoading, isError } = useSharedPolicyGroupsPaged({ query: debouncedSearch, page, perPage: pageSize, sortBy });
 
     const createMutation = useCreateSharedPolicyGroup();
+    const updateMutation = useUpdateSharedPolicyGroup();
     const deleteMutation = useDeleteSharedPolicyGroup();
 
     const sharedPolicyGroups = data?.data ?? [];
@@ -87,6 +103,23 @@ export function SharedPolicyGroupsPage() {
 
     function closeSheet() {
         setSheet({ type: 'closed' });
+    }
+
+    async function handleOpenEdit(sharedPolicyGroup: SharedPolicyGroup) {
+        if (!env?.id) {
+            notify.error(new Error('No active environment'), 'Error during Shared Policy Group update!');
+            return;
+        }
+        try {
+            // List rows may omit steps — fetch via React Query so detail cache stays warm and the table is not re-skeletoned.
+            const full = await queryClient.fetchQuery({
+                queryKey: sharedPolicyGroupKeys.detail(env.id, sharedPolicyGroup.id),
+                queryFn: () => getSharedPolicyGroup(env.id, sharedPolicyGroup.id),
+            });
+            setSheet({ type: 'edit', sharedPolicyGroup: full });
+        } catch (error) {
+            notify.error(error, 'Error during Shared Policy Group update!');
+        }
     }
 
     async function handleCreate(values: SharedPolicyGroupCreateFormValues) {
@@ -104,6 +137,20 @@ export function SharedPolicyGroupsPage() {
             navigate(created.id);
         } catch (error) {
             notify.error(error, 'Error during Shared Policy Group creation!');
+        }
+    }
+
+    async function handleEdit(values: SharedPolicyGroupEditFormValues) {
+        if (sheet.type !== 'edit') return;
+        try {
+            await updateMutation.mutateAsync({
+                id: sheet.sharedPolicyGroup.id,
+                payload: toUpdateSharedPolicyGroupPayload(sheet.sharedPolicyGroup, values),
+            });
+            notify.success('Shared Policy Group updated');
+            closeSheet();
+        } catch (error) {
+            notify.error(error, 'Error during Shared Policy Group update!');
         }
     }
 
@@ -159,6 +206,7 @@ export function SharedPolicyGroupsPage() {
                 onPageSizeChange={setPageSize}
                 onSortingChange={handleSortingChange}
                 onView={sharedPolicyGroup => navigate(sharedPolicyGroup.id)}
+                onEdit={handleOpenEdit}
                 onDelete={sharedPolicyGroup => setSheet({ type: 'delete', sharedPolicyGroup })}
                 onCreateSharedPolicyGroup={canCreate ? () => setSheet({ type: 'create' }) : undefined}
             />
@@ -168,6 +216,14 @@ export function SharedPolicyGroupsPage() {
                 onClose={closeSheet}
                 onSubmit={handleCreate}
                 isSaving={createMutation.isPending}
+            />
+
+            <SharedPolicyGroupEditSheet
+                open={sheet.type === 'edit'}
+                sharedPolicyGroup={sheet.type === 'edit' ? sheet.sharedPolicyGroup : null}
+                onClose={closeSheet}
+                onSubmit={handleEdit}
+                isSaving={updateMutation.isPending}
             />
 
             <SharedPolicyGroupDeleteSheet

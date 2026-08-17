@@ -45,11 +45,13 @@ function buildColumns({
     canEdit,
     canDelete,
     onView,
+    onEdit,
     onDelete,
 }: {
     canEdit: boolean;
     canDelete: boolean;
     onView: (sharedPolicyGroup: SharedPolicyGroup) => void;
+    onEdit: (sharedPolicyGroup: SharedPolicyGroup) => void;
     onDelete: (sharedPolicyGroup: SharedPolicyGroup) => void;
 }): DataTableProps<SharedPolicyGroup>['columns'] {
     return [
@@ -134,10 +136,16 @@ function buildColumns({
                                         View
                                     </DropdownMenuItem>
                                 ) : (
-                                    <DropdownMenuItem onSelect={() => onView(sharedPolicyGroup)}>
-                                        <PencilIcon className="size-4 mr-2" aria-hidden />
-                                        Edit
-                                    </DropdownMenuItem>
+                                    <>
+                                        <DropdownMenuItem onSelect={() => onView(sharedPolicyGroup)}>
+                                            <EyeIcon className="size-4 mr-2" aria-hidden />
+                                            View
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => onEdit(sharedPolicyGroup)}>
+                                            <PencilIcon className="size-4 mr-2" aria-hidden />
+                                            Edit
+                                        </DropdownMenuItem>
+                                    </>
                                 )}
                                 {showDelete && (
                                     <>
@@ -173,6 +181,7 @@ interface SharedPolicyGroupsTableProps {
     readonly onPageSizeChange: (size: number) => void;
     readonly onSortingChange: (updater: TableSortingState | ((previous: TableSortingState) => TableSortingState)) => void;
     readonly onView: (sharedPolicyGroup: SharedPolicyGroup) => void;
+    readonly onEdit: (sharedPolicyGroup: SharedPolicyGroup) => void;
     readonly onDelete: (sharedPolicyGroup: SharedPolicyGroup) => void;
     readonly onCreateSharedPolicyGroup?: () => void;
 }
@@ -193,10 +202,14 @@ export function SharedPolicyGroupsTable({
     onPageSizeChange,
     onSortingChange,
     onView,
+    onEdit,
     onDelete,
     onCreateSharedPolicyGroup,
 }: SharedPolicyGroupsTableProps) {
-    const columns = useMemo(() => buildColumns({ canEdit, canDelete, onView, onDelete }), [canEdit, canDelete, onView, onDelete]);
+    const columns = useMemo(
+        () => buildColumns({ canEdit, canDelete, onView, onEdit, onDelete }),
+        [canEdit, canDelete, onView, onEdit, onDelete],
+    );
 
     if (isFirstUse) {
         return (

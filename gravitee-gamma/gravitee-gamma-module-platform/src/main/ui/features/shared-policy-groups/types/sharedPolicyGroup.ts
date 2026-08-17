@@ -58,6 +58,12 @@ export interface OriginContext {
     origin: 'MANAGEMENT' | 'KUBERNETES' | 'INTEGRATION';
 }
 
+/**
+ * Policy steps on a shared policy group.
+ * Opaque until Policy Studio (FOUND-19); passed through unchanged on metadata update.
+ */
+export type SharedPolicyGroupStep = Record<string, unknown>;
+
 /** v2 `SharedPolicyGroup` (GET/POST .../v2/environments/{envId}/shared-policy-groups...). */
 export interface SharedPolicyGroup {
     id: string;
@@ -68,6 +74,7 @@ export interface SharedPolicyGroup {
     lifecycleState?: 'DEPLOYED' | 'UNDEPLOYED' | 'PENDING';
     apiType: ApiType;
     phase: FlowPhase;
+    steps?: SharedPolicyGroupStep[];
     deployedAt?: string;
     createdAt?: string;
     updatedAt?: string;
@@ -81,6 +88,15 @@ export interface CreateSharedPolicyGroupPayload {
     prerequisiteMessage?: string;
     apiType: ApiType;
     phase: FlowPhase;
+}
+
+/** v2 `UpdateSharedPolicyGroup` (PUT .../shared-policy-groups/{id}). */
+export interface UpdateSharedPolicyGroupPayload {
+    name: string;
+    description?: string;
+    prerequisiteMessage?: string;
+    /** Must be sent to avoid clearing policies — mirrors classic Console metadata edit. */
+    steps: SharedPolicyGroupStep[];
 }
 
 interface SharedPolicyGroupsPagination {

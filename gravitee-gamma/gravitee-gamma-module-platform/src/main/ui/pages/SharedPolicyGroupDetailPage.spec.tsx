@@ -14,16 +14,28 @@
  * limitations under the License.
  */
 
-import { render, screen } from '@testing-library/react';
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { SharedPolicyGroupDetailPage } from './SharedPolicyGroupDetailPage';
+import { useUpdateSharedPolicyGroup } from '../features/shared-policy-groups/hooks/useSharedPolicyGroupMutations';
 import { useSharedPolicyGroupDetail } from '../features/shared-policy-groups/hooks/useSharedPolicyGroups';
 import type { SharedPolicyGroup } from '../features/shared-policy-groups/types/sharedPolicyGroup';
+import { notify } from '../shared/notify';
 
+jest.mock('@gravitee/gamma-modules-sdk', () => ({
+    useHasPermission: jest.fn(),
+}));
 jest.mock('../features/shared-policy-groups/hooks/useSharedPolicyGroups');
+jest.mock('../features/shared-policy-groups/hooks/useSharedPolicyGroupMutations');
+jest.mock('../shared/notify', () => ({
+    notify: { success: jest.fn(), error: jest.fn(), warning: jest.fn() },
+}));
 
+const mockUseHasPermission = jest.mocked(useHasPermission);
 const mockUseSharedPolicyGroupDetail = jest.mocked(useSharedPolicyGroupDetail);
+const mockUseUpdateSharedPolicyGroup = jest.mocked(useUpdateSharedPolicyGroup);
 
 const SPG: SharedPolicyGroup = {
     id: 'spg-1',
@@ -33,9 +45,15 @@ const SPG: SharedPolicyGroup = {
     lifecycleState: 'DEPLOYED',
     apiType: 'PROXY',
     phase: 'REQUEST',
+    steps: [{ name: 'jwt' }],
     updatedAt: '2024-01-01T00:00:00.000Z',
     deployedAt: '2024-01-02T00:00:00.000Z',
 };
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function makeMutation(mutateAsync = jest.fn()): any {
+    return { mutateAsync, isPending: false };
+}
 
 function renderPage() {
     return render(
@@ -48,6 +66,11 @@ function renderPage() {
 }
 
 describe('SharedPolicyGroupDetailPage', () => {
+    beforeEach(() => {
+        mockUseHasPermission.mockReturnValue(true);
+        mockUseUpdateSharedPolicyGroup.mockReturnValue(makeMutation());
+    });
+
     afterEach(() => {
         jest.clearAllMocks();
     });
@@ -103,5 +126,58 @@ describe('SharedPolicyGroupDetailPage', () => {
         renderPage();
 
         expect(screen.getByRole('link', { name: /Back to Shared Policy Groups/ }).getAttribute('href')).toBe('/');
+    });
+
+    it('shows Edit when the user can update and opens the edit sheet', async () => {
+        const updateMutateAsync = jest.fn().mockResolvedValue(SPG);
+        mockUseUpdateSharedPolicyGroup.mockReturnValue(makeMutation(updateMutateAsync));
+        mockUseSharedPolicyGroupDetail.mockReturnValue({
+            data: SPG,
+            isLoading: false,
+            isError: false,
+        } as ReturnType<typeof useSharedPolicyGroupDetail>);
+
+        renderPage();
+        fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+        expect(await screen.findByRole('heading', { name: 'Edit Policy Group' })).not.toBeNull();
+
+        fireEvent.change(screen.getByLabelText(/Name/i), { target: { value: 'Renamed Bundle' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+        await waitFor(() => {
+            expect(updateMutateAsync).toHaveBeenCalledWith({
+                id: 'spg-1',
+                payload: {
+                    name: 'Renamed Bundle',
+                    description: 'Reusable auth policies',
+                    prerequisiteMessage: 'Requires the "auth-cache" resource',
+                    steps: [{ name: 'jwt' }],
+                },
+            });
+        });
+        expect(notify.success).toHaveBeenCalledWith('Shared Policy Group updated');
+    });
+
+    it('hides Edit when the user lacks update permission', () => {
+        mockUseHasPermission.mockReturnValue(false);
+        mockUseSharedPolicyGroupDetail.mockReturnValue({
+            data: SPG,
+            isLoading: false,
+            isError: false,
+        } as ReturnType<typeof useSharedPolicyGroupDetail>);
+
+        renderPage();
+        expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull();
+    });
+
+    it('hides Edit for a Kubernetes-origin shared policy group', () => {
+        mockUseSharedPolicyGroupDetail.mockReturnValue({
+            data: { ...SPG, originContext: { origin: 'KUBERNETES' } },
+            isLoading: false,
+            isError: false,
+        } as ReturnType<typeof useSharedPolicyGroupDetail>);
+
+        renderPage();
+        expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull();
     });
 });
