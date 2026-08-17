@@ -15,6 +15,7 @@
  */
 
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { useNavigate } from 'react-router-dom';
 
@@ -128,7 +129,14 @@ function makeSpgsResult(data: SharedPolicyGroup[] = SAMPLE_SPGS, totalCount = da
 }
 
 function renderPage() {
-    return render(<SharedPolicyGroupsPage />);
+    const queryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false } },
+    });
+    return render(
+        <QueryClientProvider client={queryClient}>
+            <SharedPolicyGroupsPage />
+        </QueryClientProvider>,
+    );
 }
 
 describe('SharedPolicyGroupsPage', () => {

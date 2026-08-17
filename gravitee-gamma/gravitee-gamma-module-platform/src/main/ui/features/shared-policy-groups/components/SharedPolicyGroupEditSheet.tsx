@@ -16,9 +16,6 @@
 
 import {
     Button,
-    Field,
-    FieldLabel,
-    Input,
     ScrollArea,
     Sheet,
     SheetContent,
@@ -26,27 +23,15 @@ import {
     SheetFooter,
     SheetHeader,
     SheetTitle,
-    Textarea,
 } from '@gravitee/graphene-core';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 
+import { SharedPolicyGroupBasicFields } from './SharedPolicyGroupBasicFields';
 import { STANDARD_SHEET_WIDTH } from '../../applications/components/sheetLayout';
-import {
-    toReadableApiType,
-    toReadableFlowPhase,
-    type SharedPolicyGroup,
-} from '../types/sharedPolicyGroup';
+import { toReadableApiType, toReadableFlowPhase, type SharedPolicyGroup } from '../types/sharedPolicyGroup';
+import type { SharedPolicyGroupBasicFormValues } from '../utils/sharedPolicyGroupPayload';
 
-const DESCRIPTION_MAX_LENGTH = 300;
-const PREREQUISITE_MESSAGE_MAX_LENGTH = 300;
-const PREREQUISITE_MESSAGE_PLACEHOLDER =
-    'Message displayed when using SPG in Policy Studio. e.g.: "The resource cache "my-cache" is required"....';
-
-export interface SharedPolicyGroupEditFormValues {
-    name: string;
-    description: string;
-    prerequisiteMessage: string;
-}
+export type SharedPolicyGroupEditFormValues = SharedPolicyGroupBasicFormValues;
 
 function toFormValues(sharedPolicyGroup: SharedPolicyGroup): SharedPolicyGroupEditFormValues {
     return {
@@ -109,51 +94,12 @@ export function SharedPolicyGroupEditSheet({
 
                 <ScrollArea className="flex-1 min-h-0">
                     <form id="shared-policy-group-edit-form" onSubmit={handleSubmit} className="flex flex-col gap-5 px-4 py-4">
-                        <h3 className="text-sm font-semibold">Basic information</h3>
-
-                        <Field orientation="vertical" className="gap-1.5">
-                            <FieldLabel htmlFor="spg-edit-name">
-                                Name{' '}
-                                <span className="text-destructive" aria-hidden>
-                                    *
-                                </span>
-                            </FieldLabel>
-                            <Input
-                                id="spg-edit-name"
-                                value={form.name}
-                                onChange={e => setField('name', e.target.value)}
-                                placeholder="e.g. Default authentication"
-                                maxLength={512}
-                                disabled={isSaving}
-                                required
-                            />
-                        </Field>
-
-                        <Field orientation="vertical" className="gap-1.5">
-                            <FieldLabel htmlFor="spg-edit-description">Describe the purpose of this policy group</FieldLabel>
-                            <p className="text-xs text-muted-foreground">{DESCRIPTION_MAX_LENGTH} characters max.</p>
-                            <Textarea
-                                id="spg-edit-description"
-                                value={form.description}
-                                onChange={e => setField('description', e.target.value)}
-                                placeholder="Describe what this policy group is used for"
-                                maxLength={DESCRIPTION_MAX_LENGTH}
-                                disabled={isSaving}
-                            />
-                        </Field>
-
-                        <Field orientation="vertical" className="gap-1.5">
-                            <FieldLabel htmlFor="spg-edit-prerequisite-message">Prerequisite message</FieldLabel>
-                            <p className="text-xs text-muted-foreground">{PREREQUISITE_MESSAGE_MAX_LENGTH} characters max.</p>
-                            <Textarea
-                                id="spg-edit-prerequisite-message"
-                                value={form.prerequisiteMessage}
-                                onChange={e => setField('prerequisiteMessage', e.target.value)}
-                                placeholder={PREREQUISITE_MESSAGE_PLACEHOLDER}
-                                maxLength={PREREQUISITE_MESSAGE_MAX_LENGTH}
-                                disabled={isSaving}
-                            />
-                        </Field>
+                        <SharedPolicyGroupBasicFields
+                            idPrefix="spg-edit"
+                            values={form}
+                            disabled={isSaving}
+                            onChange={(key, value) => setField(key, value)}
+                        />
 
                         {sharedPolicyGroup && (
                             <dl className="grid grid-cols-2 gap-4 rounded-lg border bg-muted/30 p-3">

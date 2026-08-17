@@ -18,7 +18,6 @@ import {
     Button,
     Field,
     FieldLabel,
-    Input,
     ScrollArea,
     Separator,
     Sheet,
@@ -27,27 +26,20 @@ import {
     SheetFooter,
     SheetHeader,
     SheetTitle,
-    Textarea,
     ToggleGroup,
     ToggleGroupItem,
 } from '@gravitee/graphene-core';
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 
+import { SharedPolicyGroupBasicFields } from './SharedPolicyGroupBasicFields';
 import { STANDARD_SHEET_WIDTH } from '../../applications/components/sheetLayout';
 import { toReadableApiType, toReadableFlowPhase, type ApiType, type FlowPhase } from '../types/sharedPolicyGroup';
-import { PHASE_BY_API_TYPE } from '../utils/sharedPolicyGroupPayload';
+import { PHASE_BY_API_TYPE, type SharedPolicyGroupBasicFormValues } from '../utils/sharedPolicyGroupPayload';
 
 const CREATABLE_API_TYPES: readonly ApiType[] = ['PROXY', 'MESSAGE'];
 const DEFAULT_API_TYPE: ApiType = 'PROXY';
-const DESCRIPTION_MAX_LENGTH = 300;
-const PREREQUISITE_MESSAGE_MAX_LENGTH = 300;
-const PREREQUISITE_MESSAGE_PLACEHOLDER =
-    'Message displayed when using SPG in Policy Studio. e.g.: "The resource cache "my-cache" is required"....';
 
-export interface SharedPolicyGroupCreateFormValues {
-    name: string;
-    description: string;
-    prerequisiteMessage: string;
+export interface SharedPolicyGroupCreateFormValues extends SharedPolicyGroupBasicFormValues {
     apiType: ApiType;
     phase: FlowPhase;
 }
@@ -116,63 +108,19 @@ export function SharedPolicyGroupCreateSheet({
 
                 <ScrollArea className="flex-1 min-h-0">
                     <form id="shared-policy-group-create-form" onSubmit={handleSubmit} className="flex flex-col gap-5 px-4 py-4">
-                        <h3 className="text-sm font-semibold">Basic information</h3>
-
-                        <Field orientation="vertical" className="gap-1.5">
-                            <FieldLabel htmlFor="spg-name">
-                                Name{' '}
-                                <span className="text-destructive" aria-hidden>
-                                    *
-                                </span>
-                            </FieldLabel>
-                            <Input
-                                id="spg-name"
-                                value={form.name}
-                                onChange={e => setField('name', e.target.value)}
-                                placeholder="e.g. Default authentication"
-                                maxLength={512}
-                                disabled={isSaving}
-                                required
-                            />
-                        </Field>
-
-                        <Field orientation="vertical" className="gap-1.5">
-                            <FieldLabel htmlFor="spg-description">Describe the purpose of this policy group</FieldLabel>
-                            <p className="text-xs text-muted-foreground">{DESCRIPTION_MAX_LENGTH} characters max.</p>
-                            <Textarea
-                                id="spg-description"
-                                value={form.description}
-                                onChange={e => setField('description', e.target.value)}
-                                placeholder="Describe what this policy group is used for"
-                                maxLength={DESCRIPTION_MAX_LENGTH}
-                                disabled={isSaving}
-                            />
-                        </Field>
-
-                        <Field orientation="vertical" className="gap-1.5">
-                            <FieldLabel htmlFor="spg-prerequisite-message">Prerequisite message</FieldLabel>
-                            <p className="text-xs text-muted-foreground">{PREREQUISITE_MESSAGE_MAX_LENGTH} characters max.</p>
-                            <Textarea
-                                id="spg-prerequisite-message"
-                                value={form.prerequisiteMessage}
-                                onChange={e => setField('prerequisiteMessage', e.target.value)}
-                                placeholder={PREREQUISITE_MESSAGE_PLACEHOLDER}
-                                maxLength={PREREQUISITE_MESSAGE_MAX_LENGTH}
-                                disabled={isSaving}
-                            />
-                        </Field>
+                        <SharedPolicyGroupBasicFields
+                            idPrefix="spg"
+                            values={form}
+                            disabled={isSaving}
+                            onChange={(key, value) => setField(key, value)}
+                        />
 
                         <Separator />
 
                         <h3 className="text-sm font-semibold">Scope</h3>
 
                         <Field orientation="vertical" className="gap-1.5">
-                            <FieldLabel>
-                                API Type{' '}
-                                <span className="text-destructive" aria-hidden>
-                                    *
-                                </span>
-                            </FieldLabel>
+                            <FieldLabel required>API Type</FieldLabel>
                             <ToggleGroup
                                 type="single"
                                 value={form.apiType}
@@ -190,12 +138,7 @@ export function SharedPolicyGroupCreateSheet({
                         </Field>
 
                         <Field orientation="vertical" className="gap-1.5">
-                            <FieldLabel>
-                                Phase{' '}
-                                <span className="text-destructive" aria-hidden>
-                                    *
-                                </span>
-                            </FieldLabel>
+                            <FieldLabel required>Phase</FieldLabel>
                             <ToggleGroup
                                 type="single"
                                 value={form.phase}

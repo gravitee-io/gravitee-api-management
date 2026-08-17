@@ -17,6 +17,7 @@
 import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Button } from '@gravitee/graphene-core';
 import { PlusIcon } from '@gravitee/graphene-core/icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -43,11 +44,13 @@ import {
     DEFAULT_SHARED_POLICY_GROUP_LIST_PAGE_SIZE,
     SHARED_POLICY_GROUP_SEARCH_DEBOUNCE_MS,
 } from '../features/shared-policy-groups/utils/paginationConstants';
+import { sharedPolicyGroupKeys } from '../features/shared-policy-groups/utils/queryKeys';
 import {
     ENVIRONMENT_SHARED_POLICY_GROUP_CREATE_PERMISSION,
     ENVIRONMENT_SHARED_POLICY_GROUP_DELETE_PERMISSION,
     ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION,
 } from '../features/shared-policy-groups/utils/sharedPolicyGroupPermissions';
+import { toUpdateSharedPolicyGroupPayload } from '../features/shared-policy-groups/utils/sharedPolicyGroupPayload';
 import { notify } from '../shared/notify';
 
 type SheetState =
@@ -59,6 +62,7 @@ type SheetState =
 export function SharedPolicyGroupsPage() {
     const navigate = useNavigate();
     const env = useEnvironment();
+    const queryClient = useQueryClient();
     const canCreate = useHasPermission({ anyOf: [ENVIRONMENT_SHARED_POLICY_GROUP_CREATE_PERMISSION] });
     const canEdit = useHasPermission({ anyOf: [ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION] });
     const canDelete = useHasPermission({ anyOf: [ENVIRONMENT_SHARED_POLICY_GROUP_DELETE_PERMISSION] });
@@ -69,7 +73,6 @@ export function SharedPolicyGroupsPage() {
     const [pageSize, setPageSize] = useState(DEFAULT_SHARED_POLICY_GROUP_LIST_PAGE_SIZE);
     const [sorting, setSorting] = useState<TableSortingState>([]);
     const [sheet, setSheet] = useState<SheetState>({ type: 'closed' });
-    const [isLoadingEdit, setIsLoadingEdit] = useState(false);
 
     useEffect(() => {
         const timer = setTimeout(() => setDebouncedSearch(search), SHARED_POLICY_GROUP_SEARCH_DEBOUNCE_MS);
@@ -107,15 +110,15 @@ export function SharedPolicyGroupsPage() {
             notify.error(new Error('No active environment'), 'Error during Shared Policy Group update!');
             return;
         }
-        setIsLoadingEdit(true);
         try {
-            // List rows may omit steps — fetch full entity so PUT preserves policies (classic Console).
-            const full = await getSharedPolicyGroup(env.id, sharedPolicyGroup.id);
+            // List rows may omit steps — fetch via React Query so detail cache stays warm and the table is not re-skeletoned.
+            const full = await queryClient.fetchQuery({
+                queryKey: sharedPolicyGroupKeys.detail(env.id, sharedPolicyGroup.id),
+                queryFn: () => getSharedPolicyGroup(env.id, sharedPolicyGroup.id),
+            });
             setSheet({ type: 'edit', sharedPolicyGroup: full });
         } catch (error) {
             notify.error(error, 'Error during Shared Policy Group update!');
-        } finally {
-            setIsLoadingEdit(false);
         }
     }
 
@@ -142,12 +145,7 @@ export function SharedPolicyGroupsPage() {
         try {
             await updateMutation.mutateAsync({
                 id: sheet.sharedPolicyGroup.id,
-                payload: {
-                    name: values.name,
-                    description: values.description || undefined,
-                    prerequisiteMessage: values.prerequisiteMessage || undefined,
-                    steps: sheet.sharedPolicyGroup.steps ?? [],
-                },
+                payload: toUpdateSharedPolicyGroupPayload(sheet.sharedPolicyGroup, values),
             });
             notify.success('Shared Policy Group updated');
             closeSheet();
@@ -195,7 +193,7 @@ export function SharedPolicyGroupsPage() {
             <SharedPolicyGroupsTable
                 sharedPolicyGroups={sharedPolicyGroups}
                 totalCount={totalCount}
-                loading={isLoading || isLoadingEdit}
+                loading={isLoading}
                 isFirstUse={isFirstUse}
                 search={search}
                 page={page}

@@ -32,6 +32,7 @@ import {
     ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION,
     isKubernetesOrigin,
 } from '../features/shared-policy-groups/utils/sharedPolicyGroupPermissions';
+import { toUpdateSharedPolicyGroupPayload } from '../features/shared-policy-groups/utils/sharedPolicyGroupPayload';
 import { notify } from '../shared/notify';
 
 function DetailField({ label, value }: Readonly<{ label: string; value: React.ReactNode }>) {
@@ -57,12 +58,7 @@ export function SharedPolicyGroupDetailPage() {
         try {
             await updateMutation.mutateAsync({
                 id: sharedPolicyGroup.id,
-                payload: {
-                    name: values.name,
-                    description: values.description || undefined,
-                    prerequisiteMessage: values.prerequisiteMessage || undefined,
-                    steps: sharedPolicyGroup.steps ?? [],
-                },
+                payload: toUpdateSharedPolicyGroupPayload(sharedPolicyGroup, values),
             });
             notify.success('Shared Policy Group updated');
             setEditOpen(false);
