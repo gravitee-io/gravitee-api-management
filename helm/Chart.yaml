@@ -31,6 +31,11 @@ annotations:
   ###########
   artifacthub.io/changes: |
     - kind: added
+      description: "`gateway.kafka.routingHostMode.virtualClusterBrokerDomainPattern` sets a broker domain pattern for Kafka APIs backed by a Virtual Cluster only, leaving the other Kafka APIs' domains untouched"
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/19201
+    - kind: added
       description: "Support multiple custom domains for native Kafka APIs with `gateway.kafka.routingHostMode.domains` (list)"
       links:
         - name: Github PR
