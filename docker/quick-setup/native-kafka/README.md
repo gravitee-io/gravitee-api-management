@@ -44,7 +44,7 @@ The gateway runs in HOST routing mode (the default) and resolves API hostnames v
 1. Console: `http://localhost:8084/` (`admin` / `admin`).
 2. Organization → Entrypoints & Sharding Tags → Entrypoint Configuration → **Default Kafka Domain** = `kafka.local`.
 
-The gateway is already configured with `gravitee_kafka_routingHostMode_defaultDomain=kafka.local`; the console value above mirrors that to the management plane.
+The gateway is already configured with `gravitee_kafka_routingHostMode_domains_0=kafka.local`; the console value above mirrors that to the management plane.
 
 ## 2. Create a Native Kafka API
 

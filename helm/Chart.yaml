@@ -37,6 +37,8 @@ annotations:
           url: https://github.com/gravitee-io/gravitee-api-management/pull/17691
     - kind: deprecated
       description: "`gateway.kafka.routingHostMode.defaultDomain` is deprecated in favor of `domains` and ignored when `domains` is set"
+    - kind: changed
+      description: "`gateway.kafka.routingHostMode` pattern examples now use the `{domain}` placeholder, substituted with each configured domain in turn; hardcoding a domain there collapses every entry onto the same hostname (`{defaultDomain}` remains a supported alias)"
     - kind: added
       description: "Document `gateway.services.metrics.kafka.durations.principalName` to add the principal_name tag to Kafka duration metrics (disabled by default)"
     - kind: added
