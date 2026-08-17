@@ -14,29 +14,11 @@
  * limitations under the License.
  */
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { Button, Card, CardContent, CardHeader, CardTitle, DateCell, Skeleton } from '@gravitee/graphene-core';
-import { ArrowLeftIcon, LayersIcon, PencilIcon } from '@gravitee/graphene-core/icons';
-import { type ReactNode, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle, DateCell } from '@gravitee/graphene-core';
+import type { ReactNode } from 'react';
+import { useOutletContext } from 'react-router-dom';
 
-import {
-    SharedPolicyGroupEditSheet,
-    type SharedPolicyGroupEditFormValues,
-} from '../features/shared-policy-groups/components/SharedPolicyGroupEditSheet';
-import { SharedPolicyGroupStatusBadge } from '../features/shared-policy-groups/components/SharedPolicyGroupStatusBadge';
-import { useUpdateSharedPolicyGroup } from '../features/shared-policy-groups/hooks/useSharedPolicyGroupMutations';
-import { useSharedPolicyGroupDetail } from '../features/shared-policy-groups/hooks/useSharedPolicyGroups';
-import { toReadableApiType, toReadableFlowPhase } from '../features/shared-policy-groups/types/sharedPolicyGroup';
-import { toUpdateSharedPolicyGroupPayload } from '../features/shared-policy-groups/utils/sharedPolicyGroupPayload';
-import {
-    ENVIRONMENT_SHARED_POLICY_GROUP_PERMISSION_PREFIX,
-    ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION,
-    isKubernetesOrigin,
-} from '../features/shared-policy-groups/utils/sharedPolicyGroupPermissions';
-import { useForbiddenResourceRedirect } from '../shared/hooks/useForbiddenResourceRedirect';
-import { notify } from '../shared/notify';
-import { isForbiddenApiError } from '../shared/utils/apiErrors';
+import { type SharedPolicyGroup, toReadableApiType, toReadableFlowPhase } from '../features/shared-policy-groups/types/sharedPolicyGroup';
 
 function DetailField({ label, value }: Readonly<{ label: string; value: ReactNode }>) {
     return (
@@ -47,105 +29,12 @@ function DetailField({ label, value }: Readonly<{ label: string; value: ReactNod
     );
 }
 
+/** Overview tab — metadata details (header/tabs live on SharedPolicyGroupDetailLayout). */
 export function SharedPolicyGroupDetailPage() {
-    const { sharedPolicyGroupId } = useParams<{ sharedPolicyGroupId: string }>();
-    const { data: sharedPolicyGroup, isLoading, isError, error } = useSharedPolicyGroupDetail(sharedPolicyGroupId);
-    const isForbidden = isForbiddenApiError(isError, error);
-    const canEdit = useHasPermission({ anyOf: [ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION] });
-    const updateMutation = useUpdateSharedPolicyGroup();
-    const [editOpen, setEditOpen] = useState(false);
-
-    useForbiddenResourceRedirect({
-        isForbidden,
-        permissionPrefix: ENVIRONMENT_SHARED_POLICY_GROUP_PERMISSION_PREFIX,
-        redirectTo: '../../applications',
-    });
-
-    const showEdit = Boolean(sharedPolicyGroup && canEdit && !isKubernetesOrigin(sharedPolicyGroup));
-
-    async function handleEdit(values: SharedPolicyGroupEditFormValues) {
-        if (!sharedPolicyGroup) return;
-        try {
-            await updateMutation.mutateAsync({
-                id: sharedPolicyGroup.id,
-                payload: toUpdateSharedPolicyGroupPayload(values),
-            });
-            notify.success('Shared Policy Group updated');
-            setEditOpen(false);
-        } catch (updateError) {
-            notify.error(updateError, 'Error during Shared Policy Group update!');
-        }
-    }
-
-    if (isForbidden) {
-        return null;
-    }
-
-    if (isLoading) {
-        return (
-            <div className="space-y-4">
-                <Skeleton className="h-8 w-32" />
-                <Skeleton className="h-32 w-full rounded-xl" />
-            </div>
-        );
-    }
-
-    if (isError || !sharedPolicyGroup) {
-        return (
-            <div className="space-y-4">
-                <Button type="button" variant="ghost" className="gap-1.5 px-0" asChild>
-                    <Link to="..">
-                        <ArrowLeftIcon className="size-4" aria-hidden />
-                        Back to Shared Policy Groups
-                    </Link>
-                </Button>
-                <p className="text-sm text-muted-foreground">Shared Policy Group not found or failed to load.</p>
-            </div>
-        );
-    }
+    const sharedPolicyGroup = useOutletContext<SharedPolicyGroup>();
 
     return (
-        <div className="space-y-6">
-            <Button type="button" variant="ghost" className="gap-1.5 px-0 text-muted-foreground" asChild>
-                <Link to="..">
-                    <ArrowLeftIcon className="size-4" aria-hidden />
-                    Back to Shared Policy Groups
-                </Link>
-            </Button>
-
-            <Card>
-                <CardContent className="p-5">
-                    <div className="flex items-start justify-between gap-3">
-                        <div className="flex min-w-0 items-start gap-3">
-                            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-highlight text-highlight-foreground">
-                                <LayersIcon className="size-5" aria-hidden />
-                            </div>
-                            <div className="min-w-0 space-y-1">
-                                <div className="flex flex-wrap items-center gap-2">
-                                    <h1 className="text-xl font-semibold tracking-tight">{sharedPolicyGroup.name}</h1>
-                                    <SharedPolicyGroupStatusBadge lifecycleState={sharedPolicyGroup.lifecycleState} />
-                                </div>
-                                {sharedPolicyGroup.description && (
-                                    <p className="text-sm text-muted-foreground">{sharedPolicyGroup.description}</p>
-                                )}
-                            </div>
-                        </div>
-                        {showEdit ? (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                className="shrink-0 gap-1.5"
-                                onClick={() => setEditOpen(true)}
-                            >
-                                <PencilIcon className="size-4" aria-hidden />
-                                Edit
-                            </Button>
-                        ) : null}
-                    </div>
-                </CardContent>
-            </Card>
-
+        <div className="space-y-6" data-testid="shared-policy-group-overview">
             <Card>
                 <CardHeader>
                     <CardTitle className="text-base">Details</CardTitle>
@@ -180,16 +69,6 @@ export function SharedPolicyGroupDetailPage() {
                     )}
                 </CardContent>
             </Card>
-
-            {editOpen ? (
-                <SharedPolicyGroupEditSheet
-                    key={sharedPolicyGroup.id}
-                    open
-                    sharedPolicyGroup={sharedPolicyGroup}
-                    onClose={() => setEditOpen(false)}
-                    onSubmit={handleEdit}
-                />
-            ) : null}
         </div>
     );
 }

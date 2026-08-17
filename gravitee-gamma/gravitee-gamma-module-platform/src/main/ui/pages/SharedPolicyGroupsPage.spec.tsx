@@ -240,6 +240,24 @@ describe('SharedPolicyGroupsPage', () => {
             expect(screen.getAllByRole('button', { name: 'Add Shared Policy Group' })).toHaveLength(1);
         });
 
+        it('opens the create sheet from the first-use empty state', () => {
+            mockUseSharedPolicyGroupsPaged.mockReturnValue(makeSpgsResult([], 0));
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Add Shared Policy Group' }));
+
+            expect(screen.queryByRole('heading', { name: 'Add Shared Policy Group' })).not.toBeNull();
+        });
+
+        it('hides the first-use create action for a user without create permission', () => {
+            mockUseHasPermission.mockReturnValue(false);
+            mockUseSharedPolicyGroupsPaged.mockReturnValue(makeSpgsResult([], 0));
+            renderPage();
+
+            expect(screen.queryByText('No Shared Policy Groups')).not.toBeNull();
+            expect(screen.queryByRole('button', { name: 'Add Shared Policy Group' })).toBeNull();
+        });
+
         it('re-fetches with the classic Console sortBy value and resets to page 1 when sorting changes', () => {
             renderPage();
             mockUseSharedPolicyGroupsPaged.mockClear();
@@ -251,7 +269,7 @@ describe('SharedPolicyGroupsPage', () => {
     });
 
     describe('create flow', () => {
-        it('creates a Proxy shared policy group (the default API type), shows a success toast, and navigates to its detail page', async () => {
+        it('creates a Proxy shared policy group (the default API type), shows a success toast, and navigates to its studio tab', async () => {
             const createMutateAsync = jest.fn().mockResolvedValue({ id: 'new-spg-id', name: 'My SPG' });
             const navigate = jest.fn();
             mockUseNavigate.mockReturnValue(navigate);
@@ -274,7 +292,7 @@ describe('SharedPolicyGroupsPage', () => {
                 });
             });
             expect(notify.success).toHaveBeenCalledWith('Shared Policy Group created');
-            expect(navigate).toHaveBeenCalledWith('new-spg-id');
+            expect(navigate).toHaveBeenCalledWith('new-spg-id/studio');
         });
 
         it('switches to Message-specific phases when the Message API type is selected in the sheet', () => {
@@ -391,13 +409,13 @@ describe('SharedPolicyGroupsPage', () => {
     });
 
     describe('view navigation', () => {
-        it('navigates to the shared policy group detail page', () => {
+        it('navigates to the shared policy group studio tab', () => {
             const navigate = jest.fn();
             mockUseNavigate.mockReturnValue(navigate);
             renderPage();
 
             fireEvent.click(screen.getByRole('button', { name: 'View Auth Bundle' }));
-            expect(navigate).toHaveBeenCalledWith('spg-1');
+            expect(navigate).toHaveBeenCalledWith('spg-1/studio');
         });
     });
 });

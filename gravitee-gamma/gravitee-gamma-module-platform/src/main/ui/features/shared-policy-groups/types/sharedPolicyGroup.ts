@@ -58,7 +58,16 @@ export interface OriginContext {
     origin: 'MANAGEMENT' | 'KUBERNETES' | 'INTEGRATION';
 }
 
-export type SharedPolicyGroupStep = Record<string, unknown>;
+export interface SharedPolicyGroupStep {
+    condition?: string;
+    configuration?: unknown;
+    deployed?: boolean;
+    description?: string;
+    enabled?: boolean;
+    messageCondition?: string;
+    name?: string;
+    policy?: string;
+}
 
 /** v2 `SharedPolicyGroup` (GET/POST .../v2/environments/{envId}/shared-policy-groups...). */
 export interface SharedPolicyGroup {

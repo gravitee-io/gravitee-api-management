@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-export const sharedPolicyGroupKeys = {
-    all: ['environment-shared-policy-groups'] as const,
-    list: (envId: string, query: string, page: number, perPage: number, sortBy: string | undefined) =>
-        [...sharedPolicyGroupKeys.all, 'list', envId, query, page, perPage, sortBy] as const,
-    detail: (envId: string, sharedPolicyGroupId: string) => [...sharedPolicyGroupKeys.all, 'detail', envId, sharedPolicyGroupId] as const,
-    policies: () => [...sharedPolicyGroupKeys.all, 'policies'] as const,
-} as const;
+import { render, screen } from '@testing-library/react';
+
+import { SharedPolicyGroupHistoryPage } from './SharedPolicyGroupHistoryPage';
+
+describe('SharedPolicyGroupHistoryPage', () => {
+    it('renders the history tab placeholder', () => {
+        render(<SharedPolicyGroupHistoryPage />);
+        expect(screen.getByTestId('shared-policy-group-history-empty')).not.toBeNull();
+        expect(screen.getByText('Version history is not available yet')).not.toBeNull();
+        expect(screen.getByText('Version history, comparison, and restore are not available in this view.')).not.toBeNull();
+    });
+});

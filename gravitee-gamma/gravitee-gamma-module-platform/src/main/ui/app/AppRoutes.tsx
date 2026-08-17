@@ -53,6 +53,7 @@ import { GatewayInstanceDetailLayout } from '../features/gateway-instances/compo
 import { ENVIRONMENT_GROUP_READ_PERMISSION, ORGANIZATION_TAG_READ_PERMISSION } from '../features/groups/utils/groupPermissions';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
 import { SecurityPlanTypesPage } from '../features/security-plan-types/SecurityPlanTypesPage';
+import { SharedPolicyGroupDetailLayout } from '../features/shared-policy-groups/components/SharedPolicyGroupDetailLayout';
 import { ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION } from '../features/shared-policy-groups/utils/sharedPolicyGroupPermissions';
 import { ORGANIZATION_USER_ACCESS_PERMISSIONS } from '../features/users/utils/userPermissions';
 import { AccessManagementPage } from '../pages/AccessManagementPage';
@@ -78,7 +79,9 @@ import { OrganizationGroupsPage } from '../pages/OrganizationGroupsPage';
 import { OrgAuditLogsPage } from '../pages/OrgAuditLogsPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
 import { SharedPolicyGroupDetailPage } from '../pages/SharedPolicyGroupDetailPage';
+import { SharedPolicyGroupHistoryPage } from '../pages/SharedPolicyGroupHistoryPage';
 import { SharedPolicyGroupsPage } from '../pages/SharedPolicyGroupsPage';
+import { SharedPolicyGroupStudioPage } from '../pages/SharedPolicyGroupStudioPage';
 import { SmtpSettingsPage } from '../pages/SmtpSettingsPage';
 import { TenantsPage } from '../pages/TenantsPage';
 import { UserDetailPage } from '../pages/UserDetailPage';
@@ -563,10 +566,16 @@ export function AppRoutes() {
                                             permission={ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION}
                                             unauthorizedTo="../../applications"
                                         >
-                                            <SharedPolicyGroupDetailPage />
+                                            <SharedPolicyGroupDetailLayout />
                                         </PermissionPageGuard>
                                     }
-                                />
+                                >
+                                    <Route index element={<Navigate to="studio" replace />} />
+                                    <Route path="overview" element={<SharedPolicyGroupDetailPage />} />
+                                    <Route path="studio" element={<SharedPolicyGroupStudioPage />} />
+                                    <Route path="history" element={<SharedPolicyGroupHistoryPage />} />
+                                    <Route path="*" element={<Navigate to="../studio" replace />} />
+                                </Route>
                             </Route>
                             <Route path="gateways">
                                 <Route
