@@ -46,17 +46,35 @@ describe('pathSegmentsAfterEnvironment', () => {
 });
 
 describe('buildPathnameAfterEnvironmentChange', () => {
-    it('should keep path after the environment when switching to another', () => {
+    it('should drop the module sub-path and land on the module root', () => {
         expect(buildPathnameAfterEnvironmentChange('/environments/env-1/some-module/apis/list', 'env-1', 'env-2')).toBe(
-            '/environments/env-2/some-module/apis/list',
+            '/environments/env-2/some-module',
         );
+    });
+
+    it('should keep the module root for any module id, including unknown ones', () => {
+        expect(buildPathnameAfterEnvironmentChange('/environments/env-1/aim/catalog/models/m-1', 'env-1', 'env-2')).toBe(
+            '/environments/env-2/aim',
+        );
+    });
+
+    it('should drop the sub-path of host areas too', () => {
+        expect(buildPathnameAfterEnvironmentChange('/environments/a/tasks/task-1', 'a', 'b')).toBe('/environments/b/tasks');
     });
 
     it('should use home when the URL is only the environment base', () => {
         expect(buildPathnameAfterEnvironmentChange('/environments/env-1', 'env-1', 'env-2')).toBe('/environments/env-2/home');
     });
 
+    it('should use home when the pathname is not under the current environment', () => {
+        expect(buildPathnameAfterEnvironmentChange('/environments/other/apim/apis', 'env-1', 'env-2')).toBe('/environments/env-2/home');
+    });
+
     it('should keep host home when switching', () => {
         expect(buildPathnameAfterEnvironmentChange('/environments/a/home', 'a', 'b')).toBe('/environments/b/home');
+    });
+
+    it('should keep the module root when already on it', () => {
+        expect(buildPathnameAfterEnvironmentChange('/environments/a/apim', 'a', 'b')).toBe('/environments/b/apim');
     });
 });

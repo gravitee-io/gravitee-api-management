@@ -18,6 +18,19 @@ import { act } from '@testing-library/react';
 import { resetAllStores, seedBootstrap } from './testing/helpers';
 import { server } from './testing/server';
 
+// jsdom ships no matchMedia; graphene's AppLayout needs it to resolve the "system" theme.
+window.matchMedia ??= (query: string): MediaQueryList =>
+    ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        addListener: () => undefined,
+        removeListener: () => undefined,
+        dispatchEvent: () => false,
+    }) as MediaQueryList;
+
 beforeAll(() => {
     server.listen({ onUnhandledRequest: 'error' });
 });

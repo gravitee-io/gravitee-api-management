@@ -16,6 +16,7 @@
 import { loadRemote } from '@module-federation/runtime';
 import { lazy, type LazyExoticComponent, type ComponentType } from 'react';
 
+import { useEnvironmentStore } from '../../environment/environment.store';
 import type { GammaModule } from '../modules.types';
 
 const lazyComponentCache = new Map<string, LazyExoticComponent<ComponentType>>();
@@ -34,7 +35,21 @@ export function getOrCreateLazyModule(remoteName: string, exposedModule: string)
     return cached;
 }
 
+/**
+ * Mounts a federated module, keyed by environment so that switching environments remounts it.
+ *
+ * Everything a module holds below the SDK -- component state, stores, caches -- is scoped to the
+ * environment it was loaded for. Remounting drops it without asking module authors for teardown
+ * logic, which matters because modules ship from their own repositories. The technical id is the
+ * key rather than the URL segment, so canonicalizing an id to its hrid does not remount.
+ * The lazy component itself is cached, so this re-renders the remote without re-fetching it.
+ *
+ * EnvironmentGuard only renders this once the store environment matches the URL, so the key is
+ * always the environment the URL addresses.
+ */
 export function RemoteModuleRoute({ module }: { readonly module: GammaModule }) {
+    const environmentId = useEnvironmentStore(s => s.environmentId);
     const LazyModule = getOrCreateLazyModule(module.remoteName, module.exposedModule);
-    return <LazyModule />;
+
+    return <LazyModule key={environmentId} />;
 }

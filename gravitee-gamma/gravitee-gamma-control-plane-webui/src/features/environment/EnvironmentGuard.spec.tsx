@@ -18,18 +18,23 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { useEnvironmentStore } from './environment.store';
 import { EnvironmentGuard } from './EnvironmentGuard';
+import { EnvironmentRenderProbe } from '../../testing/EnvironmentRenderProbe';
 import { buildEnvironment, TEST_ENVIRONMENTS } from '../../testing/factories';
 import { resetAllStores, seedBootstrap, seedEnvironments } from '../../testing/helpers';
 import { PathnameProbe } from '../../testing/PathnameProbe';
 
 describe('EnvironmentGuard', () => {
     let lastPath = '';
+    const realSetCurrentEnvironment = useEnvironmentStore.getState().setCurrentEnvironment;
 
     beforeEach(() => {
         resetAllStores();
         seedBootstrap();
         lastPath = '';
     });
+
+    // `reset()` restores state, not actions, so a stubbed action would leak into the next test.
+    afterEach(() => useEnvironmentStore.setState({ setCurrentEnvironment: realSetCurrentEnvironment }));
 
     function renderGuard(initialPath: string) {
         return render(
@@ -123,6 +128,43 @@ describe('EnvironmentGuard', () => {
         await waitFor(() => {
             expect(lastPath).toBe('/environments/env-1/home');
         });
+    });
+
+    it('should never render children while the URL environment and the store disagree', async () => {
+        seedEnvironments();
+        const seen: string[] = [];
+
+        render(
+            <MemoryRouter initialEntries={['/environments/env-2/home']}>
+                <Routes>
+                    <Route path="/environments/:envHrid" element={<EnvironmentGuard />}>
+                        <Route
+                            path="home"
+                            element={
+                                <EnvironmentRenderProbe onRender={(_, environmentId) => seen.push(environmentId)}>
+                                    <div>Child</div>
+                                </EnvironmentRenderProbe>
+                            }
+                        />
+                    </Route>
+                </Routes>
+            </MemoryRouter>,
+        );
+
+        await waitFor(() => expect(screen.getByText('Child')).toBeTruthy());
+        expect(seen).not.toHaveLength(0);
+        expect(seen.filter(id => id !== 'env-2-id')).toEqual([]);
+    });
+
+    it('should show the loading skeleton, not a blank area, while the store has not caught up', () => {
+        seedEnvironments();
+        // Freezes the pending state the browser paints before the sync effect heals it.
+        useEnvironmentStore.setState({ setCurrentEnvironment: () => undefined });
+
+        renderGuard('/environments/env-2/home');
+
+        expect(screen.getByLabelText('Loading content')).toBeTruthy();
+        expect(screen.queryByText('Child')).toBeNull();
     });
 
     it('should render nothing when environments list is empty', () => {
