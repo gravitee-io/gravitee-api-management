@@ -48,6 +48,7 @@ import { GatewayInstanceDetailLayout } from '../features/gateway-instances/compo
 import { ENVIRONMENT_GROUP_READ_PERMISSION } from '../features/groups/utils/groupPermissions';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
 import { SecurityPlanTypesPage } from '../features/security-plan-types/SecurityPlanTypesPage';
+import { ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION } from '../features/shared-policy-groups/utils/sharedPolicyGroupPermissions';
 import { ORGANIZATION_USER_ACCESS_PERMISSIONS } from '../features/users/utils/userPermissions';
 import { AccessManagementPage } from '../pages/AccessManagementPage';
 import { ApplicationDetailSubscriptionPage } from '../pages/ApplicationDetailSubscriptionPage';
@@ -62,6 +63,8 @@ import { GroupDetailPage } from '../pages/GroupDetailPage';
 import { GroupsPage } from '../pages/GroupsPage';
 import { MetadataPage } from '../pages/MetadataPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
+import { SharedPolicyGroupDetailPage } from '../pages/SharedPolicyGroupDetailPage';
+import { SharedPolicyGroupsPage } from '../pages/SharedPolicyGroupsPage';
 import { UserDetailPage } from '../pages/UserDetailPage';
 import { UsersPage } from '../pages/UsersPage';
 import { retryTransientRequest } from '../shared/api/queryRetry';
@@ -112,6 +115,7 @@ function isNavItemVisible(
     canReadGateways: boolean,
     canReadEntrypoints: boolean,
     canReadGroups: boolean,
+    canReadSharedPolicyGroups: boolean,
 ): boolean {
     if (itemKey === 'users') {
         return !permissionsReady || canAccessUsers;
@@ -124,6 +128,9 @@ function isNavItemVisible(
     }
     if (itemKey === 'dictionaries') {
         return !permissionsReady || canReadDictionaries;
+    }
+    if (itemKey === 'shared-policy-groups') {
+        return !permissionsReady || canReadSharedPolicyGroups;
     }
     if (itemKey === 'gateways') {
         return !permissionsReady || canReadGateways;
@@ -212,6 +219,7 @@ function ModuleLayout() {
     const canReadGateways = useHasPermission({ anyOf: ['environment-instance-r'] });
     const canReadEntrypoints = useHasPermission({ anyOf: ['environment-entrypoint-r', 'organization-entrypoint-r'] });
     const canReadGroups = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_READ_PERMISSION] });
+    const canReadSharedPolicyGroups = useHasPermission({ anyOf: [ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION] });
 
     const { activeNavKey, navigateToKey } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
 
@@ -227,9 +235,19 @@ function ModuleLayout() {
                     canReadGateways,
                     canReadEntrypoints,
                     canReadGroups,
+                    canReadSharedPolicyGroups,
                 ),
             ),
-        [permissionsReady, canReadMetadata, canReadDictionaries, canAccessUsers, canReadGateways, canReadEntrypoints, canReadGroups],
+        [
+            permissionsReady,
+            canReadMetadata,
+            canReadDictionaries,
+            canAccessUsers,
+            canReadGateways,
+            canReadEntrypoints,
+            canReadGroups,
+            canReadSharedPolicyGroups,
+        ],
     );
 
     const activeSectionKey = findNavSectionKey(visibleNavSections, activeNavKey) ?? visibleNavSections[0]?.key;
@@ -389,6 +407,30 @@ export function AppRoutes() {
                                             unauthorizedTo="../../applications"
                                         >
                                             <DictionaryDetailPage />
+                                        </PermissionPageGuard>
+                                    }
+                                />
+                            </Route>
+                            <Route path="shared-policy-groups">
+                                <Route
+                                    index
+                                    element={
+                                        <PermissionPageGuard
+                                            permission={ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION}
+                                            unauthorizedTo="../applications"
+                                        >
+                                            <SharedPolicyGroupsPage />
+                                        </PermissionPageGuard>
+                                    }
+                                />
+                                <Route
+                                    path=":sharedPolicyGroupId"
+                                    element={
+                                        <PermissionPageGuard
+                                            permission={ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION}
+                                            unauthorizedTo="../../applications"
+                                        >
+                                            <SharedPolicyGroupDetailPage />
                                         </PermissionPageGuard>
                                     }
                                 />

@@ -22,6 +22,7 @@ import {
     GlobeIcon,
     GroupIcon,
     KeyIcon,
+    LayersIcon,
     RadioIcon,
     ServerIcon,
     ShieldIcon,
@@ -73,6 +74,7 @@ export const NAV_SECTIONS: PlatformNavSection[] = [
                     { key: 'applications', title: ROUTES.applications.label, icon: AppWindowIcon },
                     { key: 'metadata', title: ROUTES.metadata.label, icon: DatabaseIcon },
                     { key: 'dictionaries', title: ROUTES.dictionaries.label, icon: BookOpenIcon },
+                    { key: 'shared-policy-groups', title: ROUTES['shared-policy-groups'].label, icon: LayersIcon },
                 ],
             },
             {

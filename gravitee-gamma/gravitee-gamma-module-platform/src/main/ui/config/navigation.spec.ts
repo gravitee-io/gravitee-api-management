@@ -45,8 +45,8 @@ describe('platform navigation config', () => {
         expect(sectionKeys('Organization', 'System & Security')).toEqual(['access-management']);
     });
 
-    it('places Applications, Metadata, and Dictionaries under Environment / APIs & Assets', () => {
-        expect(sectionKeys('Environment', 'APIs & Assets')).toEqual(['applications', 'metadata', 'dictionaries']);
+    it('places Applications, Metadata, Dictionaries, and Shared Policy Groups under Environment / APIs & Assets', () => {
+        expect(sectionKeys('Environment', 'APIs & Assets')).toEqual(['applications', 'metadata', 'dictionaries', 'shared-policy-groups']);
     });
 
     it('places Gateways and Security Plan Types under Environment / System & Security', () => {
@@ -102,5 +102,10 @@ describe('platform navigation config', () => {
     it('declares the user-groups route in platform routing config', () => {
         expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('user-groups');
         expect(ROUTES['user-groups']).toEqual({ path: 'user-groups', label: 'Groups' });
+    });
+
+    it('declares the shared-policy-groups route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('shared-policy-groups');
+        expect(ROUTES['shared-policy-groups']).toEqual({ path: 'shared-policy-groups', label: 'Shared Policy Groups' });
     });
 });
