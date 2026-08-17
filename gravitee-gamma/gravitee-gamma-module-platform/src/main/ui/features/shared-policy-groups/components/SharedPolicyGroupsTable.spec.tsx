@@ -96,13 +96,21 @@ describe('SharedPolicyGroupsTable', () => {
         expect(screen.queryByText('Request')).not.toBeNull();
     });
 
+    it('does not render timestamp columns', () => {
+        renderTable();
+        expect(screen.queryByRole('columnheader', { name: 'Last updated' })).toBeNull();
+        expect(screen.queryByRole('columnheader', { name: 'Last deployed' })).toBeNull();
+    });
+
     describe('sorting', () => {
-        it("sorts by Name, Phase, Last updated, and Last deployed — matching classic Console's sortBy support", () => {
+        it('sorts by Name and Phase', () => {
             const onSortingChange = jest.fn();
             renderTable({ onSortingChange });
 
             fireEvent.click(screen.getByRole('button', { name: 'Name' }));
-            expect(onSortingChange).toHaveBeenCalled();
+            fireEvent.click(screen.getByRole('button', { name: 'Phase' }));
+
+            expect(onSortingChange).toHaveBeenCalledTimes(2);
         });
 
         it('sorts by API type — matching classic Console and the Management API sortBy contract', () => {
@@ -219,17 +227,40 @@ describe('SharedPolicyGroupsTable', () => {
     });
 
     describe('empty state', () => {
-        it('shows the Create CTA on first use', () => {
+        it('shows the Create CTA on first use, replacing the table and its search box', () => {
             const onCreateSharedPolicyGroup = jest.fn();
             renderTable({ isFirstUse: true, sharedPolicyGroups: [], totalCount: 0, onCreateSharedPolicyGroup });
+
             expect(screen.queryByText('No Shared Policy Groups')).not.toBeNull();
+            expect(screen.queryByRole('table')).toBeNull();
+            expect(screen.queryByRole('textbox', { name: 'Search Shared Policy Groups' })).toBeNull();
+
             fireEvent.click(screen.getByRole('button', { name: 'Add Shared Policy Group' }));
             expect(onCreateSharedPolicyGroup).toHaveBeenCalled();
         });
 
         it('hides the Create CTA on first use when the callback is not provided (read-only user)', () => {
             renderTable({ isFirstUse: true, sharedPolicyGroups: [], totalCount: 0, onCreateSharedPolicyGroup: undefined });
+
+            expect(screen.queryByText('No Shared Policy Groups')).not.toBeNull();
             expect(screen.queryByRole('button', { name: 'Add Shared Policy Group' })).toBeNull();
+        });
+
+        it('does not blame the search when the page is empty and nothing was searched', () => {
+            renderTable({ sharedPolicyGroups: [], totalCount: 26, search: '' });
+
+            expect(screen.queryByText('No Shared Policy Groups to display.')).not.toBeNull();
+            expect(screen.queryByRole('button', { name: 'Clear search' })).toBeNull();
+        });
+
+        it('keeps the searchable table with a clear-search action when a search returns nothing', () => {
+            const onSearchChange = jest.fn();
+            renderTable({ search: 'nothing', sharedPolicyGroups: [], totalCount: 0, onSearchChange });
+
+            expect(screen.queryByText('No Shared Policy Group matches your search')).not.toBeNull();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Clear search' }));
+            expect(onSearchChange).toHaveBeenCalledWith('');
         });
     });
 });

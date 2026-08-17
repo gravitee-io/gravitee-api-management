@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { render, screen } from '@testing-library/react';
+import type { ComponentType } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
 import { AppRoutes } from './AppRoutes';
@@ -97,8 +98,27 @@ jest.mock('../pages/SharedPolicyGroupsPage', () => ({
     SharedPolicyGroupsPage: () => <div data-testid="shared-policy-groups-page" />,
 }));
 
+jest.mock('../features/shared-policy-groups/components/SharedPolicyGroupDetailLayout', () => {
+    const { Outlet } = jest.requireActual<{ Outlet: ComponentType }>('react-router-dom');
+    return {
+        SharedPolicyGroupDetailLayout: () => (
+            <div data-testid="shared-policy-group-detail-layout">
+                <Outlet />
+            </div>
+        ),
+    };
+});
+
 jest.mock('../pages/SharedPolicyGroupDetailPage', () => ({
-    SharedPolicyGroupDetailPage: () => <div data-testid="shared-policy-group-detail-page" />,
+    SharedPolicyGroupDetailPage: () => <div data-testid="shared-policy-group-overview-page" />,
+}));
+
+jest.mock('../pages/SharedPolicyGroupStudioPage', () => ({
+    SharedPolicyGroupStudioPage: () => <div data-testid="shared-policy-group-studio-page" />,
+}));
+
+jest.mock('../pages/SharedPolicyGroupHistoryPage', () => ({
+    SharedPolicyGroupHistoryPage: () => <div data-testid="shared-policy-group-history-page" />,
 }));
 
 jest.mock('../pages/AccessManagementPage', () => ({
@@ -416,14 +436,38 @@ describe('AppRoutes', () => {
         expect(screen.getByTestId('shared-policy-groups-page')).not.toBeNull();
     });
 
-    it('routes to the shared policy group detail page under the platform module', () => {
+    it('routes to the shared policy group studio tab by default under the platform module', () => {
         render(
             <MemoryRouter initialEntries={['/shared-policy-groups/spg-1']}>
                 <AppRoutes />
             </MemoryRouter>,
         );
 
-        expect(screen.getByTestId('shared-policy-group-detail-page')).not.toBeNull();
+        expect(screen.getByTestId('shared-policy-group-detail-layout')).not.toBeNull();
+        expect(screen.getByTestId('shared-policy-group-studio-page')).not.toBeNull();
+    });
+
+    it.each([
+        ['overview', 'shared-policy-group-overview-page'],
+        ['history', 'shared-policy-group-history-page'],
+    ])('routes to the shared policy group %s tab', (tab, testId) => {
+        render(
+            <MemoryRouter initialEntries={[`/shared-policy-groups/spg-1/${tab}`]}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId(testId)).not.toBeNull();
+    });
+
+    it('redirects unknown shared policy group detail routes to the studio tab', () => {
+        render(
+            <MemoryRouter initialEntries={['/shared-policy-groups/spg-1/unknown']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('shared-policy-group-studio-page')).not.toBeNull();
     });
 
     it('redirects away from Shared Policy Groups when the user lacks environment-shared_policy_group-r', () => {

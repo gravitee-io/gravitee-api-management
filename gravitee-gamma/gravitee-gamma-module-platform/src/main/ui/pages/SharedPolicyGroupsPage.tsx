@@ -41,6 +41,7 @@ import {
     DEFAULT_SHARED_POLICY_GROUP_LIST_PAGE_SIZE,
     SHARED_POLICY_GROUP_SEARCH_DEBOUNCE_MS,
 } from '../features/shared-policy-groups/utils/paginationConstants';
+import { sharedPolicyGroupDetailHref } from '../features/shared-policy-groups/utils/sharedPolicyGroupDetailNavigation';
 import { toUpdateSharedPolicyGroupPayload } from '../features/shared-policy-groups/utils/sharedPolicyGroupPayload';
 import {
     ENVIRONMENT_SHARED_POLICY_GROUP_CREATE_PERMISSION,
@@ -115,6 +116,10 @@ export function SharedPolicyGroupsPage() {
         setSheet({ type: 'closed' });
     }
 
+    function openCreateSheet() {
+        setSheet({ type: 'create' });
+    }
+
     function handleOpenEdit(sharedPolicyGroup: SharedPolicyGroup) {
         setSheet({ type: 'edit', sharedPolicyGroup });
     }
@@ -131,7 +136,7 @@ export function SharedPolicyGroupsPage() {
             });
             notify.success('Shared Policy Group created');
             closeSheet();
-            navigate(created.id);
+            navigate(sharedPolicyGroupDetailHref(created.id));
         } catch (error) {
             notify.error(error, 'Error during Shared Policy Group creation!');
         }
@@ -184,7 +189,7 @@ export function SharedPolicyGroupsPage() {
                     </p>
                 </div>
                 {canCreate && !isLoading && !isFirstUse ? (
-                    <Button className="shrink-0" size="sm" onClick={() => setSheet({ type: 'create' })}>
+                    <Button className="shrink-0" size="sm" onClick={openCreateSheet}>
                         <PlusIcon className="size-4" aria-hidden />
                         Add Shared Policy Group
                     </Button>
@@ -206,10 +211,10 @@ export function SharedPolicyGroupsPage() {
                 onPageChange={setPage}
                 onPageSizeChange={setPageSize}
                 onSortingChange={handleSortingChange}
-                onView={sharedPolicyGroup => navigate(sharedPolicyGroup.id)}
+                onView={sharedPolicyGroup => navigate(sharedPolicyGroupDetailHref(sharedPolicyGroup.id))}
                 onEdit={handleOpenEdit}
                 onDelete={sharedPolicyGroup => setSheet({ type: 'delete', sharedPolicyGroup })}
-                onCreateSharedPolicyGroup={canCreate ? () => setSheet({ type: 'create' }) : undefined}
+                onCreateSharedPolicyGroup={canCreate ? openCreateSheet : undefined}
             />
 
             {sheet.type === 'create' ? <SharedPolicyGroupCreateSheet open onClose={closeSheet} onSubmit={handleCreate} /> : null}

@@ -19,7 +19,6 @@ import {
     DataTable,
     DataTableColumnHeader,
     DataTableEmptyState,
-    DateCell,
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -89,28 +88,6 @@ function buildColumns({
             accessorKey: 'phase',
             header: ({ column }: ColHeader<SharedPolicyGroup>) => <DataTableColumnHeader column={column} title="Phase" />,
             cell: ({ row }: ColCell<SharedPolicyGroup>) => <span className="text-sm">{toReadableFlowPhase(row.original.phase)}</span>,
-        },
-        {
-            id: 'updatedAt',
-            accessorFn: (row: SharedPolicyGroup) => row.updatedAt ?? '',
-            header: ({ column }: ColHeader<SharedPolicyGroup>) => <DataTableColumnHeader column={column} title="Last updated" />,
-            cell: ({ row }: ColCell<SharedPolicyGroup>) =>
-                row.original.updatedAt ? (
-                    <DateCell value={new Date(row.original.updatedAt)} format="absolute" />
-                ) : (
-                    <span className="text-sm text-muted-foreground">—</span>
-                ),
-        },
-        {
-            id: 'deployedAt',
-            accessorFn: (row: SharedPolicyGroup) => row.deployedAt ?? '',
-            header: ({ column }: ColHeader<SharedPolicyGroup>) => <DataTableColumnHeader column={column} title="Last deployed" />,
-            cell: ({ row }: ColCell<SharedPolicyGroup>) =>
-                row.original.deployedAt ? (
-                    <DateCell value={new Date(row.original.deployedAt)} format="absolute" />
-                ) : (
-                    <span className="text-sm text-muted-foreground">—</span>
-                ),
         },
         {
             id: 'actions',
@@ -253,24 +230,33 @@ export function SharedPolicyGroupsTable({
                 },
             }}
             emptyMessage={
-                <DataTableEmptyState
-                    variant="no-results"
-                    icon={<SearchIcon className="size-8" aria-hidden />}
-                    title="No Shared Policy Group matches your search"
-                    description="Try adjusting your search terms."
-                    action={
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                                onSearchChange('');
-                                onPageChange(1);
-                            }}
-                        >
-                            Clear search
-                        </Button>
-                    }
-                />
+                search.trim() ? (
+                    <DataTableEmptyState
+                        variant="no-results"
+                        icon={<SearchIcon className="size-8" aria-hidden />}
+                        title="No Shared Policy Group matches your search"
+                        description="Try adjusting your search terms."
+                        action={
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                    onSearchChange('');
+                                    onPageChange(1);
+                                }}
+                            >
+                                Clear search
+                            </Button>
+                        }
+                    />
+                ) : (
+                    <DataTableEmptyState
+                        variant="no-results"
+                        icon={<LayersIcon className="size-8" aria-hidden />}
+                        title="No Shared Policy Groups"
+                        description="No Shared Policy Groups to display."
+                    />
+                )
             }
             toolbar={
                 <div className="w-64">
