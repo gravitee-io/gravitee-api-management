@@ -229,6 +229,9 @@ data:
         {{- if hasKey .Values.gateway.kafka.routingHostMode "brokerDomainPattern" }}
         brokerDomainPattern: {{ .Values.gateway.kafka.routingHostMode.brokerDomainPattern | quote }}
         {{- end}}
+        {{- if hasKey .Values.gateway.kafka.routingHostMode "virtualClusterBrokerDomainPattern" }}
+        virtualClusterBrokerDomainPattern: {{ .Values.gateway.kafka.routingHostMode.virtualClusterBrokerDomainPattern | quote }}
+        {{- end}}
       {{- end}}
       {{- if hasKey .Values.gateway.kafka "apiKey" }}
       api-key:
