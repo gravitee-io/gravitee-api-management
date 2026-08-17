@@ -34,7 +34,11 @@ jest.mock('@gravitee/gamma-modules-sdk', () => ({
 
 const mockUseEnvironment = jest.mocked(useEnvironment);
 
-function renderWithClient(isForbidden: boolean, seedPermissions: string[]) {
+function renderWithClient(
+    isForbidden: boolean,
+    seedPermissions: string[],
+    permissionPrefix: string | readonly string[] = 'environment-dictionary-',
+) {
     const queryClient = new QueryClient();
     queryClient.setQueryData(['environment-permissions', 'env-1'], seedPermissions);
     const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
@@ -49,7 +53,7 @@ function renderWithClient(isForbidden: boolean, seedPermissions: string[]) {
         () =>
             useForbiddenResourceRedirect({
                 isForbidden,
-                permissionPrefix: 'environment-dictionary-',
+                permissionPrefix,
                 redirectTo: '../applications',
             }),
         { wrapper },
@@ -91,5 +95,23 @@ describe('useForbiddenResourceRedirect', () => {
         renderWithClient(true, []);
 
         await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('../applications', { replace: true }));
+    });
+
+    it('strips multiple permission prefixes in one redirect', async () => {
+        const { queryClient } = renderWithClient(
+            true,
+            ['organization-tenant-r', 'environment-tenant-c', 'environment-metadata-r'],
+            ['organization-tenant-', 'environment-tenant-'],
+        );
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+        expect(queryClient.getQueryData(['environment-permissions', 'env-1'])).toEqual(['environment-metadata-r']);
+    });
+
+    it('keeps every permission when no prefix is given, rather than stripping them all', async () => {
+        const { queryClient } = renderWithClient(true, ['organization-tenant-r', 'environment-metadata-r'], []);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+        expect(queryClient.getQueryData(['environment-permissions', 'env-1'])).toEqual(['organization-tenant-r', 'environment-metadata-r']);
     });
 });

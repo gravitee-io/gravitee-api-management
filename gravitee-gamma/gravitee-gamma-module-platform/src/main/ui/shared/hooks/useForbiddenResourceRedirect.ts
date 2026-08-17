@@ -31,21 +31,25 @@ export function useForbiddenResourceRedirect({
     redirectTo,
 }: {
     isForbidden: boolean;
-    permissionPrefix: string;
+    permissionPrefix: string | readonly string[];
     redirectTo: string;
 }): void {
     const env = useEnvironment();
     const queryClient = useQueryClient();
     const navigate = useNavigate();
+    const prefixes = (typeof permissionPrefix === 'string' ? [permissionPrefix] : permissionPrefix).filter(prefix => prefix !== '');
+    const prefixKey = prefixes.join('\0');
 
     useEffect(() => {
         if (!isForbidden) return;
+        // An empty prefix would match every permission via startsWith, so an empty list strips nothing.
+        const prefixesToStrip = prefixKey === '' ? [] : prefixKey.split('\0');
         if (env?.id) {
             const permissionsKey = environmentPermissionKeys.detail(env.id);
             queryClient.setQueryData<string[]>(permissionsKey, previous =>
-                (previous ?? []).filter(permission => !permission.startsWith(permissionPrefix)),
+                (previous ?? []).filter(permission => !prefixesToStrip.some(prefix => permission.startsWith(prefix))),
             );
         }
         navigate(redirectTo, { replace: true });
-    }, [isForbidden, permissionPrefix, redirectTo, env?.id, queryClient, navigate]);
+    }, [isForbidden, prefixKey, redirectTo, env?.id, queryClient, navigate]);
 }

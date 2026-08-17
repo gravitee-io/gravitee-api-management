@@ -18,6 +18,7 @@ import {
     AppWindowIcon,
     BellIcon,
     BookOpenIcon,
+    BoxesIcon,
     CloudIcon,
     DatabaseIcon,
     GlobeIcon,
@@ -50,6 +51,11 @@ export const NAV_SECTIONS: PlatformNavSection[] = [
             {
                 label: 'Assets',
                 items: [
+                    {
+                        key: 'tenants',
+                        title: ROUTES.tenants.label,
+                        icon: BoxesIcon,
+                    },
                     {
                         key: 'entrypoints-and-sharding-tags',
                         title: ROUTES['entrypoints-and-sharding-tags'].label,

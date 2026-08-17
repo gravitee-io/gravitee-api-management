@@ -93,6 +93,10 @@ jest.mock('../pages/RegisterApplicationPage', () => ({
     RegisterApplicationPage: () => <div data-testid="register-application-page" />,
 }));
 
+jest.mock('../pages/TenantsPage', () => ({
+    TenantsPage: () => <div data-testid="tenants-page" />,
+}));
+
 jest.mock('../features/applications/components/detail', () => ({
     ApplicationDetailLayout: () => <div data-testid="application-detail-layout" />,
     ApplicationDetailIndexRedirect: () => null,
@@ -390,5 +394,54 @@ describe('AppRoutes', () => {
         renderPlatform();
 
         expect(visibleNavKeys()).not.toContain('alerts');
+    });
+
+    it('routes to the Tenants page under the platform module', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'tenants',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        renderPlatform('/tenants');
+
+        expect(screen.getByTestId('tenants-page')).not.toBeNull();
+    });
+
+    it('shows the Tenants nav item when the user has read permission', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'tenants',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        renderPlatform('/tenants');
+
+        expect(visibleNavKeys()).toContain('tenants');
+        expect(visibleNavKeys()).toContain('entrypoints-and-sharding-tags');
+    });
+
+    it('hides the Tenants nav item when the user lacks tenant read permission', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'tenants',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        mockUseHasPermission.mockImplementation(
+            ({ anyOf }: { anyOf: string[] }) => !anyOf.includes('organization-tenant-r') && !anyOf.includes('environment-tenant-r'),
+        );
+
+        renderPlatform('/tenants');
+
+        expect(visibleNavKeys()).not.toContain('tenants');
+    });
+
+    it('redirects away from Tenants when the user lacks tenant read permission', () => {
+        mockUseHasPermission.mockImplementation(
+            ({ anyOf }: { anyOf: string[] }) => !anyOf.includes('organization-tenant-r') && !anyOf.includes('environment-tenant-r'),
+        );
+
+        renderPlatform('/tenants');
+
+        expect(screen.queryByTestId('tenants-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
     });
 });

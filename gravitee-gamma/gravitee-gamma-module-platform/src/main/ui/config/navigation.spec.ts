@@ -37,8 +37,8 @@ describe('platform navigation config', () => {
         expect(NAV_SECTIONS.some(section => section.key === 'general' || section.title === 'General')).toBe(false);
     });
 
-    it('places Entrypoints & Sharding Tags under Organization / Assets', () => {
-        expect(sectionKeys('Organization', 'Assets')).toEqual(['entrypoints-and-sharding-tags']);
+    it('places Tenants then Entrypoints & Sharding Tags under Organization / Assets', () => {
+        expect(sectionKeys('Organization', 'Assets')).toEqual(['tenants', 'entrypoints-and-sharding-tags']);
     });
 
     it('places Access Management under Organization / System & Security', () => {
@@ -73,13 +73,14 @@ describe('platform navigation config', () => {
         expect(findNavSectionKey(NAV_SECTIONS, 'applications')).toBe('environment');
         expect(findNavSectionKey(NAV_SECTIONS, 'users')).toBe('team');
         expect(findNavSectionKey(NAV_SECTIONS, 'access-management')).toBe('organization');
+        expect(findNavSectionKey(NAV_SECTIONS, 'tenants')).toBe('organization');
         expect(findNavSectionKey(NAV_SECTIONS, 'missing')).toBeUndefined();
     });
 
     it('returns the first visible item in a section', () => {
         const organization = NAV_SECTIONS.find(section => section.key === 'organization');
         expect(organization).toBeDefined();
-        expect(firstNavItemKey(organization!)).toBe('entrypoints-and-sharding-tags');
+        expect(firstNavItemKey(organization!)).toBe('tenants');
     });
 
     it('filters hidden items and drops empty groups and sections', () => {
@@ -102,5 +103,10 @@ describe('platform navigation config', () => {
     it('declares the user-groups route in platform routing config', () => {
         expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('user-groups');
         expect(ROUTES['user-groups']).toEqual({ path: 'user-groups', label: 'Groups' });
+    });
+
+    it('declares the tenants route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('tenants');
+        expect(ROUTES.tenants).toEqual({ path: 'tenants', label: 'Tenants' });
     });
 });
