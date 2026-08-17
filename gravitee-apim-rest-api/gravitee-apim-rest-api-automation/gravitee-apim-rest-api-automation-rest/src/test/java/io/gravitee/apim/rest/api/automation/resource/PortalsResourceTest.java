@@ -222,26 +222,16 @@ class PortalsResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_prefer_structure_over_legacy_navigation_when_both_present() {
-            var persisted = Portal.of(PortalId.of("00000000-0000-0000-0000-0000000000a1"), ENVIRONMENT, ORGANIZATION, "Default Portal");
-            when(createOrUpdatePortalUseCase.execute(any())).thenAnswer(inv -> {
-                var input = (CreateOrUpdatePortalUseCase.Input) inv.getArgument(0);
-                return new CreateOrUpdatePortalUseCase.Output(persisted, input.structure(), List.of());
-            });
-
+        void should_reject_when_both_structure_and_navigation_are_present() {
             try (
                 var response = rootTarget()
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
                     .put(Entity.json(readJSON("portal-with-both-structure-and-navigation.json")))
             ) {
-                assertThat(response.getStatus()).isEqualTo(200);
-
-                var inputCaptor = ArgumentCaptor.forClass(CreateOrUpdatePortalUseCase.Input.class);
-                verify(createOrUpdatePortalUseCase).execute(inputCaptor.capture());
-                assertThat(inputCaptor.getValue().structure().forArea(PortalArea.TOP_NAVBAR))
-                    .extracting(NavigationPath::path)
-                    .containsExactly("/from-structure");
+                assertThat(response.getStatus()).isEqualTo(400);
+                verifyNoInteractions(createOrUpdatePortalUseCase);
+                verifyNoInteractions(validatePortalUseCase);
             }
         }
 
