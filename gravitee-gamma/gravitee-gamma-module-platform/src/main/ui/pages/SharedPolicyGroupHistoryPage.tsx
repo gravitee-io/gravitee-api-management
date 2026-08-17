@@ -14,21 +14,37 @@
  * limitations under the License.
  */
 
-import { DataTableEmptyState } from '@gravitee/graphene-core';
-import { ClockIcon } from '@gravitee/graphene-core/icons';
+import { useParams } from 'react-router-dom';
 
-/**
- * Classic Console "Version History" tab shell.
- * Deploy / histories APIs (FOUND-20) land in a follow-up.
- */
+import { SharedPolicyGroupHistoriesTable } from '../features/shared-policy-groups/components/SharedPolicyGroupHistoriesTable';
+import { useSharedPolicyGroupHistoryList } from '../features/shared-policy-groups/hooks/useSharedPolicyGroupHistoryList';
+
+
 export function SharedPolicyGroupHistoryPage() {
+    const { sharedPolicyGroupId } = useParams<{ sharedPolicyGroupId: string }>();
+    const { page, pageSize, sorting, setPage, setPageSize, setSorting, histories, totalCount, isLoading, isError } =
+        useSharedPolicyGroupHistoryList(sharedPolicyGroupId);
+
+    if (isError) {
+        return (
+            <p className="text-sm text-muted-foreground" data-testid="shared-policy-group-history-error">
+                Failed to load version history.
+            </p>
+        );
+    }
+
     return (
-        <div className="rounded-lg border" data-testid="shared-policy-group-history-empty">
-            <DataTableEmptyState
-                variant="first-use"
-                icon={<ClockIcon className="size-8" aria-hidden />}
-                title="No version history yet"
-                description="Deploy this Shared Policy Group to start recording versions. History, compare, and restore land in a follow-up."
+        <div className="space-y-4" data-testid="shared-policy-group-history">
+            <SharedPolicyGroupHistoriesTable
+                histories={histories}
+                totalCount={totalCount}
+                loading={isLoading}
+                page={page}
+                pageSize={pageSize}
+                sorting={sorting}
+                onPageChange={setPage}
+                onPageSizeChange={setPageSize}
+                onSortingChange={setSorting}
             />
         </div>
     );
