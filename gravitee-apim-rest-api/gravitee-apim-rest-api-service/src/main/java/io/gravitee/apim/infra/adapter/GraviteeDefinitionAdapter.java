@@ -39,6 +39,7 @@ import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -217,7 +218,16 @@ public interface GraviteeDefinitionAdapter {
     NewApiMetadata mapMetadata(Metadata source);
 
     default Map<String, Object> map(Collection<NewApiMetadata> sources) {
-        return stream(sources).collect(Collectors.toMap(NewApiMetadata::getName, NewApiMetadata::getValue));
+        // Collectors.toMap() rejects null values, but an API-level metadata may have no value at all
+        // (it then inherits the environment one), so collect with a null-tolerant accumulator.
+        return stream(sources).collect(
+            HashMap::new,
+            (map, metadata) -> {
+                Object value = metadata.getValue() != null ? metadata.getValue() : metadata.getDefaultValue();
+                map.put(metadata.getName(), value);
+            },
+            HashMap::putAll
+        );
     }
 
     default Instant map(ZonedDateTime src) {
