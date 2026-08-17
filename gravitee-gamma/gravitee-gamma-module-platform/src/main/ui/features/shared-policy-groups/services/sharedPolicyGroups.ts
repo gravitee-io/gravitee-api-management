@@ -66,3 +66,21 @@ export async function deleteSharedPolicyGroup(environmentId: string, sharedPolic
         method: 'DELETE',
     });
 }
+
+export async function deploySharedPolicyGroup(environmentId: string, sharedPolicyGroupId: string): Promise<SharedPolicyGroup> {
+    return apimFetchJsonV2<SharedPolicyGroup>(environmentId, `/shared-policy-groups/${encodeURIComponent(sharedPolicyGroupId)}/_deploy`, {
+        method: 'POST',
+        body: JSON.stringify({}),
+    });
+}
+
+export async function undeploySharedPolicyGroup(environmentId: string, sharedPolicyGroupId: string): Promise<SharedPolicyGroup> {
+    return apimFetchJsonV2<SharedPolicyGroup>(
+        environmentId,
+        `/shared-policy-groups/${encodeURIComponent(sharedPolicyGroupId)}/_undeploy`,
+        {
+            method: 'POST',
+            body: JSON.stringify({}),
+        },
+    );
+}
