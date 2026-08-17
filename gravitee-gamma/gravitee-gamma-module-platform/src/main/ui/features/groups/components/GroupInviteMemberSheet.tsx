@@ -89,6 +89,7 @@ export function GroupInviteMemberSheet({
                     </div>
 
                     <GroupRoleSelect
+                        id="invite-api-role"
                         label="Default API role"
                         roles={apiRoles}
                         value={apiRole}
@@ -98,6 +99,7 @@ export function GroupInviteMemberSheet({
                     />
 
                     <GroupRoleSelect
+                        id="invite-application-role"
                         label="Default application role"
                         roles={applicationRoles}
                         value={applicationRole}
