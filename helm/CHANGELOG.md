@@ -5,7 +5,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 
 ### 4.12.0
 - Render `config/hazelcast.xml` for gateway Hazelcast clustering (`gateway.cluster.type=hazelcast`) with Kubernetes discovery via the `-hz` Service. Cluster name defaults to `<release>-<sharding_tags>` so Redis distributed-event namespace (clusterId) changes when sharding tags change; override with `gateway.cluster.hazelcast.clusterName`. Require `gateway.cluster` when `gateway.distributedSync` is enabled; auto-enable `services.sync.repository` and `services.sync.distributed`.
-- Support multiple custom domains for native Kafka APIs with `gateway.kafka.routingHostMode.domains` (list). `defaultDomain` is deprecated and ignored when `domains` is set.
+- Support multiple custom domains for native Kafka APIs with `gateway.kafka.routingHostMode.domains` (list). `defaultDomain` is deprecated and ignored when `domains` is set. The `bootstrapDomainPattern` / `brokerDomainPattern` examples now use the `{domain}` placeholder, which is substituted with each configured domain in turn; hardcoding a domain there collapses every entry onto the same hostname (`{defaultDomain}` remains a supported alias).
 - Document `gateway.services.metrics.kafka.durations.principalName` to add the `principal_name` tag to Kafka duration metrics (disabled by default).
 - Add support for Kubernetes Gateway API HTTPRoute for all components (API, Gateway, User Interface, Portal).
     - HTTPRoute is compatible alongside Nginx Ingress.
