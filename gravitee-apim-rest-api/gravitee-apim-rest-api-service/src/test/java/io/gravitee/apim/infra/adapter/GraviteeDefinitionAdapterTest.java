@@ -116,6 +116,54 @@ class GraviteeDefinitionAdapterTest {
     }
 
     @Test
+    void mapV4_should_export_metadata_even_without_value() {
+        // APIM-14929: an API-level metadata entry stored without a value must not break the export
+        var v4Definition = new io.gravitee.definition.model.v4.Api();
+        v4Definition.setDefinitionVersion(DefinitionVersion.V4);
+        v4Definition.setType(ApiType.PROXY);
+        v4Definition.setApiVersion("1.0.0");
+        v4Definition.setName("my-api");
+
+        Api coreApi = Api.builder()
+            .id("api-id")
+            .environmentId("env-id")
+            .version("1.0.0")
+            .definitionVersion(DefinitionVersion.V4)
+            .type(ApiType.PROXY)
+            .apiDefinitionHttpV4(v4Definition)
+            .build();
+
+        var primaryOwner = PrimaryOwnerEntity.builder()
+            .id("po-id")
+            .email("po@acme.test")
+            .displayName("PO")
+            .type(PrimaryOwnerEntity.Type.USER)
+            .build();
+
+        var metadata = List.of(
+            NewApiMetadata.builder().key("overridden").name("overridden").value("api-value").defaultValue("env-value").build(),
+            NewApiMetadata.builder().key("inherited").name("inherited").defaultValue("env-value").build(),
+            NewApiMetadata.builder().key("no-value").name("no-value").build()
+        );
+
+        ApiDescriptor.ApiDescriptorV4 descriptor = GraviteeDefinitionAdapter.INSTANCE.mapV4(
+            coreApi,
+            primaryOwner,
+            WorkflowState.REVIEW_OK,
+            Set.of("group-1"),
+            metadata,
+            List.of(new Flow()),
+            false
+        );
+
+        assertThat(descriptor.metadata())
+            .containsEntry("overridden", "api-value")
+            .containsEntry("inherited", "env-value")
+            .containsEntry("no-value", null)
+            .hasSize(3);
+    }
+
+    @Test
     void mapV4_should_leave_allowedInApiProducts_null_for_non_proxy_api() {
         var v4Definition = new io.gravitee.definition.model.v4.Api();
         v4Definition.setDefinitionVersion(DefinitionVersion.V4);
