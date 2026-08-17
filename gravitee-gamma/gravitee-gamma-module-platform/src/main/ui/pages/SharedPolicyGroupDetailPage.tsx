@@ -15,16 +15,15 @@
  */
 
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { Button, DateCell, Skeleton } from '@gravitee/graphene-core';
-import { ArrowLeftIcon, LayersIcon, PencilIcon } from '@gravitee/graphene-core/icons';
+import { Button, DateCell } from '@gravitee/graphene-core';
+import { PencilIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import {
     SharedPolicyGroupEditSheet,
     type SharedPolicyGroupEditFormValues,
 } from '../features/shared-policy-groups/components/SharedPolicyGroupEditSheet';
-import { SharedPolicyGroupStatusBadge } from '../features/shared-policy-groups/components/SharedPolicyGroupStatusBadge';
 import { useUpdateSharedPolicyGroup } from '../features/shared-policy-groups/hooks/useSharedPolicyGroupMutations';
 import { useSharedPolicyGroupDetail } from '../features/shared-policy-groups/hooks/useSharedPolicyGroups';
 import { toReadableApiType, toReadableFlowPhase } from '../features/shared-policy-groups/types/sharedPolicyGroup';
@@ -44,6 +43,7 @@ function DetailField({ label, value }: Readonly<{ label: string; value: React.Re
     );
 }
 
+/** Overview tab — metadata details (header/tabs live on SharedPolicyGroupDetailLayout). */
 export function SharedPolicyGroupDetailPage() {
     const { sharedPolicyGroupId } = useParams<{ sharedPolicyGroupId: string }>();
     const { data: sharedPolicyGroup, isLoading, isError } = useSharedPolicyGroupDetail(sharedPolicyGroupId);
@@ -67,54 +67,16 @@ export function SharedPolicyGroupDetailPage() {
         }
     }
 
-    if (isLoading) {
-        return (
-            <div className="space-y-4">
-                <Skeleton className="h-8 w-32" />
-                <Skeleton className="h-32 w-full rounded-xl" />
-            </div>
-        );
-    }
-
-    if (isError || !sharedPolicyGroup) {
-        return (
-            <div className="space-y-4">
-                <Button type="button" variant="ghost" className="gap-1.5 px-0" asChild>
-                    <Link to="..">
-                        <ArrowLeftIcon className="size-4" aria-hidden />
-                        Back to Shared Policy Groups
-                    </Link>
-                </Button>
-                <p className="text-sm text-muted-foreground">Shared Policy Group not found or failed to load.</p>
-            </div>
-        );
+    // Layout already handles loading / not-found for the shell; keep a light fallback for the tab outlet.
+    if (isLoading || isError || !sharedPolicyGroup) {
+        return null;
     }
 
     return (
-        <div className="space-y-6">
-            <Button type="button" variant="ghost" className="gap-1.5 px-0 text-muted-foreground" asChild>
-                <Link to="..">
-                    <ArrowLeftIcon className="size-4" aria-hidden />
-                    Back to Shared Policy Groups
-                </Link>
-            </Button>
-
-            <section className="rounded-xl border bg-card p-5">
-                <div className="flex items-start justify-between gap-3">
-                    <div className="flex min-w-0 items-start gap-3">
-                        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-orange-100 text-orange-700">
-                            <LayersIcon className="size-5" aria-hidden />
-                        </div>
-                        <div className="min-w-0 space-y-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                                <h1 className="text-xl font-semibold tracking-tight">{sharedPolicyGroup.name}</h1>
-                                <SharedPolicyGroupStatusBadge lifecycleState={sharedPolicyGroup.lifecycleState} />
-                            </div>
-                            {sharedPolicyGroup.description && (
-                                <p className="text-sm text-muted-foreground">{sharedPolicyGroup.description}</p>
-                            )}
-                        </div>
-                    </div>
+        <div className="space-y-6" data-testid="shared-policy-group-overview">
+            <section className="space-y-4 rounded-xl border bg-card p-5">
+                <div className="flex items-center justify-between gap-3">
+                    <h2 className="text-base font-semibold">Details</h2>
                     {showEdit && (
                         <Button type="button" variant="outline" size="sm" className="shrink-0 gap-1.5" onClick={() => setEditOpen(true)}>
                             <PencilIcon className="size-4" aria-hidden />
@@ -122,10 +84,6 @@ export function SharedPolicyGroupDetailPage() {
                         </Button>
                     )}
                 </div>
-            </section>
-
-            <section className="space-y-4 rounded-xl border bg-card p-5">
-                <h2 className="text-base font-semibold">Details</h2>
                 <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                     <DetailField label="API type" value={toReadableApiType(sharedPolicyGroup.apiType)} />
                     <DetailField label="Phase" value={toReadableFlowPhase(sharedPolicyGroup.phase)} />
