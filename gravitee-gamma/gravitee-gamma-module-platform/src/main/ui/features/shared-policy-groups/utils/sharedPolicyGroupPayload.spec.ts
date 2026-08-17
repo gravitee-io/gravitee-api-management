@@ -45,10 +45,7 @@ describe('toUpdateSharedPolicyGroupPayload', () => {
 
     it('omits empty optional strings and defaults missing steps to an empty array', () => {
         expect(
-            toUpdateSharedPolicyGroupPayload(
-                { ...SPG, steps: undefined },
-                { name: 'Updated', description: '', prerequisiteMessage: '' },
-            ),
+            toUpdateSharedPolicyGroupPayload({ ...SPG, steps: undefined }, { name: 'Updated', description: '', prerequisiteMessage: '' }),
         ).toEqual({
             name: 'Updated',
             description: undefined,

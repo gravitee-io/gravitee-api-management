@@ -14,16 +14,7 @@
  * limitations under the License.
  */
 
-import {
-    Button,
-    ScrollArea,
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle,
-} from '@gravitee/graphene-core';
+import { Button, ScrollArea, Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@gravitee/graphene-core';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 
 import { SharedPolicyGroupBasicFields } from './SharedPolicyGroupBasicFields';
