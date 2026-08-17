@@ -29,9 +29,12 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.subscription.model.PortalApiProductSubscriptionDetails;
+import io.gravitee.apim.core.subscription.use_case.GetPortalApiProductSubscriptionDetailsUseCase;
 import io.gravitee.apim.core.subscription.use_case.SearchPortalSubscriptionsUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpStatusCode;
@@ -55,6 +58,7 @@ import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import jakarta.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,6 +67,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -78,19 +83,26 @@ class SubscriptionResourceTest extends AbstractResourceTest {
     private static final String SUBSCRIPTION = "my-subscription";
     private static final String UNKNOWN_SUBSCRIPTION = "unknown-subscription";
     private static final String API = "my-api";
+    private static final String API_PRODUCT = "00000000-0000-0000-0000-000000000100";
     private static final String APPLICATION = "my-application";
     private static final String PLAN = "my-plan";
+
+    @Autowired
+    private GetPortalApiProductSubscriptionDetailsUseCase getPortalApiProductSubscriptionDetailsUseCase;
+
     private SubscriptionEntity subscriptionEntity;
 
     @BeforeEach
     void init() {
         resetAllMocks();
+        reset(getPortalApiProductSubscriptionDetailsUseCase);
 
         subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setId(SUBSCRIPTION);
         subscriptionEntity.setApi(API);
         subscriptionEntity.setApplication(APPLICATION);
         subscriptionEntity.setPlan(PLAN);
+        subscriptionEntity.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
         subscriptionEntity.setStatus(SubscriptionStatus.ACCEPTED);
 
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
@@ -119,6 +131,114 @@ class SubscriptionResourceTest extends AbstractResourceTest {
             Subscription subscription = response.readEntity(Subscription.class);
             assertNotNull(subscription);
             assertNull(subscription.getKeys());
+            assertNull(subscription.getApiProduct());
+            verifyNoInteractions(getPortalApiProductSubscriptionDetailsUseCase);
+        }
+
+        @Test
+        void should_return_api_product_subscription_details_with_requested_includes() {
+            subscriptionEntity.setApi(null);
+            subscriptionEntity.setReferenceId(API_PRODUCT);
+            subscriptionEntity.setReferenceType("API_PRODUCT");
+            reset(permissionService);
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.APPLICATION_SUBSCRIPTION,
+                    APPLICATION,
+                    RolePermissionAction.READ
+                )
+            ).thenReturn(true);
+            var details = new PortalApiProductSubscriptionDetails(
+                API_PRODUCT,
+                "API Product",
+                "1.0",
+                PortalApiProductSubscriptionDetails.Availability.AVAILABLE,
+                new PortalApiProductSubscriptionDetails.PlanSummary(PLAN, "Product plan", "key-less", "STANDARD"),
+                List.of(
+                    new PortalApiProductSubscriptionDetails.ApiSummary(
+                        API,
+                        "API",
+                        "2.0",
+                        "PROXY",
+                        PortalApiProductSubscriptionDetails.ApiAvailability.AVAILABLE,
+                        List.of("https://gateway.example.com/api"),
+                        new PortalApiProductSubscriptionDetails.DocumentationTarget(
+                            "00000000-0000-0000-0000-000000000101",
+                            "00000000-0000-0000-0000-000000000102"
+                        )
+                    )
+                )
+            );
+            when(getPortalApiProductSubscriptionDetailsUseCase.execute(any())).thenReturn(
+                new GetPortalApiProductSubscriptionDetailsUseCase.Output(details)
+            );
+
+            var response = target(SUBSCRIPTION).queryParam("include", "keys", "apiProduct").request().get();
+
+            assertEquals(HttpStatusCode.OK_200, response.getStatus());
+            var subscription = response.readEntity(Subscription.class);
+            assertNotNull(subscription.getKeys());
+            assertNotNull(subscription.getApiProduct());
+            assertEquals(UUID.fromString(API_PRODUCT), subscription.getApiProduct().getId());
+            assertEquals("API Product", subscription.getApiProduct().getName());
+            assertEquals("Product plan", subscription.getApiProduct().getPlan().getName());
+            assertEquals("https://gateway.example.com/api", subscription.getApiProduct().getApis().getFirst().getEntrypoints().getFirst());
+            verify(getPortalApiProductSubscriptionDetailsUseCase).execute(
+                argThat(
+                    input ->
+                        GraviteeContext.getCurrentOrganization().equals(input.organizationId()) &&
+                        GraviteeContext.getCurrentEnvironment().equals(input.environmentId()) &&
+                        API_PRODUCT.equals(input.apiProductId()) &&
+                        PLAN.equals(input.planId())
+                )
+            );
+        }
+
+        @Test
+        void should_not_resolve_api_product_subscription_details_without_include() {
+            subscriptionEntity.setApi(null);
+            subscriptionEntity.setReferenceId(API_PRODUCT);
+            subscriptionEntity.setReferenceType("API_PRODUCT");
+
+            var response = target(SUBSCRIPTION).request().get();
+
+            assertEquals(HttpStatusCode.OK_200, response.getStatus());
+            assertNull(response.readEntity(Subscription.class).getApiProduct());
+            verifyNoInteractions(getPortalApiProductSubscriptionDetailsUseCase);
+        }
+
+        @Test
+        void should_require_application_permission_for_api_product_subscription() {
+            subscriptionEntity.setApi(null);
+            subscriptionEntity.setReferenceId(API_PRODUCT);
+            subscriptionEntity.setReferenceType("API_PRODUCT");
+            reset(permissionService);
+            when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
+
+            var response = target(SUBSCRIPTION).request().get();
+
+            assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
+            verifyNoInteractions(getPortalApiProductSubscriptionDetailsUseCase);
+            verify(permissionService, times(1)).hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.APPLICATION_SUBSCRIPTION,
+                APPLICATION,
+                RolePermissionAction.READ
+            );
+        }
+
+        @Test
+        void should_not_return_api_product_subscription_from_another_environment() {
+            subscriptionEntity.setApi(null);
+            subscriptionEntity.setReferenceId(API_PRODUCT);
+            subscriptionEntity.setReferenceType("API_PRODUCT");
+            subscriptionEntity.setEnvironmentId("other-environment");
+
+            var response = target(SUBSCRIPTION).request().get();
+
+            assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+            verifyNoInteractions(getPortalApiProductSubscriptionDetailsUseCase);
         }
 
         @Test

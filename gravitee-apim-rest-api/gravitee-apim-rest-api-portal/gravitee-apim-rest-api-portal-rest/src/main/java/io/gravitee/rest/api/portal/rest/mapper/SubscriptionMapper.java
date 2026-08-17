@@ -37,6 +37,7 @@ public interface SubscriptionMapper {
     Logger log = NodeLoggerFactory.getLogger(SubscriptionMapper.class);
 
     @Mapping(target = "keys", ignore = true)
+    @Mapping(target = "apiProduct", ignore = true)
     @Mapping(target = "endAt", source = "endingAt")
     @Mapping(target = "startAt", source = "startingAt")
     Subscription map(SubscriptionEntity subscriptionEntity);
