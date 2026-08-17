@@ -97,12 +97,28 @@ jest.mock('../pages/SharedPolicyGroupDetailPage', () => ({
     SharedPolicyGroupDetailPage: () => <div data-testid="shared-policy-group-detail-page" />,
 }));
 
+jest.mock('../pages/AccessManagementPage', () => ({
+    AccessManagementPage: () => <div data-testid="access-management-page" />,
+}));
+
 jest.mock('../pages/RegisterApplicationPage', () => ({
     RegisterApplicationPage: () => <div data-testid="register-application-page" />,
 }));
 
 jest.mock('../pages/TenantsPage', () => ({
     TenantsPage: () => <div data-testid="tenants-page" />,
+}));
+
+jest.mock('../pages/ManagementAndSchedulersPage', () => ({
+    ManagementAndSchedulersPage: () => <div data-testid="management-and-schedulers-page" />,
+}));
+
+jest.mock('../pages/CorsSettingsPage', () => ({
+    CorsSettingsPage: () => <div data-testid="cors-settings-page" />,
+}));
+
+jest.mock('../pages/SmtpSettingsPage', () => ({
+    SmtpSettingsPage: () => <div data-testid="smtp-settings-page" />,
 }));
 
 jest.mock('../features/applications/components/detail', () => ({
@@ -639,5 +655,42 @@ describe('AppRoutes', () => {
 
         expect(screen.queryByTestId('env-audit-logs-page')).toBeNull();
         expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('routes to organization console settings pages', () => {
+        renderPlatform('/management-and-schedulers');
+        expect(screen.getByTestId('management-and-schedulers-page')).not.toBeNull();
+        renderPlatform('/cors');
+        expect(screen.getByTestId('cors-settings-page')).not.toBeNull();
+        renderPlatform('/smtp');
+        expect(screen.getByTestId('smtp-settings-page')).not.toBeNull();
+    });
+
+    it('shows Management & Schedulers, CORS, and SMTP when the user can read org settings', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'management-and-schedulers',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        renderPlatform('/management-and-schedulers');
+
+        expect(visibleNavKeys()).toEqual(expect.arrayContaining(['access-management', 'management-and-schedulers', 'cors', 'smtp']));
+        expect(visibleNavKeys()).not.toContain('authentication');
+        expect(visibleNavKeys()).not.toContain('templates');
+    });
+
+    it('hides organization console settings nav items without organization-settings-r', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'access-management',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('organization-settings-r'));
+        renderPlatform('/access-management');
+
+        expect(visibleNavKeys()).not.toContain('management-and-schedulers');
+        expect(visibleNavKeys()).not.toContain('cors');
+        expect(visibleNavKeys()).not.toContain('smtp');
+        expect(visibleNavKeys()).toContain('access-management');
     });
 });

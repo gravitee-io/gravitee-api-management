@@ -43,6 +43,18 @@ describe('platform navigation config', () => {
 
     it('places Access Management then Audit under Organization / System & Security', () => {
         expect(sectionKeys('Organization', 'System & Security')).toEqual(['access-management', 'organization-audit']);
+    it('places Access Management, Management & Schedulers, CORS, and SMTP under Organization / System & Security', () => {
+        expect(sectionKeys('Organization', 'System & Security')).toEqual([
+            'access-management',
+            'management-and-schedulers',
+            'cors',
+            'smtp',
+        ]);
+    });
+
+    it('does not add Authentication or Templates nav items', () => {
+        expect(sectionKeys('Organization', 'System & Security')).not.toContain('authentication');
+        expect(sectionKeys('Organization', 'System & Security')).not.toContain('templates');
     });
 
     it('places Applications, Metadata, Dictionaries, and Shared Policy Groups under Environment / APIs & Assets', () => {
@@ -125,5 +137,12 @@ describe('platform navigation config', () => {
     it('declares the shared-policy-groups route in platform routing config', () => {
         expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('shared-policy-groups');
         expect(ROUTES['shared-policy-groups']).toEqual({ path: 'shared-policy-groups', label: 'Shared Policy Groups' });
+    });
+
+    it('declares organization console settings routes', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toEqual(expect.arrayContaining(['management-and-schedulers', 'cors', 'smtp']));
+        expect(ROUTES['management-and-schedulers']).toEqual({ path: 'management-and-schedulers', label: 'Management & Schedulers' });
+        expect(ROUTES.cors).toEqual({ path: 'cors', label: 'CORS' });
+        expect(ROUTES.smtp).toEqual({ path: 'smtp', label: 'SMTP' });
     });
 });

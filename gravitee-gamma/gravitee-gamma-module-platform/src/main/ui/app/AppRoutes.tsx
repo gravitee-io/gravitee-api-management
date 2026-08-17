@@ -68,6 +68,9 @@ import { GroupDetailPage } from '../pages/GroupDetailPage';
 import { GroupsPage } from '../pages/GroupsPage';
 import { MetadataPage } from '../pages/MetadataPage';
 import { OrgAuditLogsPage } from '../pages/OrgAuditLogsPage';
+import { ManagementAndSchedulersPage } from '../pages/ManagementAndSchedulersPage';
+import { CorsSettingsPage } from '../pages/CorsSettingsPage';
+import { SmtpSettingsPage } from '../pages/SmtpSettingsPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
 import { SharedPolicyGroupDetailPage } from '../pages/SharedPolicyGroupDetailPage';
 import { SharedPolicyGroupsPage } from '../pages/SharedPolicyGroupsPage';
@@ -127,6 +130,7 @@ function isNavItemVisible(
     canReadTenants: boolean,
     canReadOrgAudit: boolean,
     canReadEnvAudit: boolean,
+    canReadOrgSettings: boolean,
 ): boolean {
     if (itemKey === 'users') {
         return !permissionsReady || canAccessUsers;
@@ -160,6 +164,9 @@ function isNavItemVisible(
     }
     if (itemKey === 'environment-audit') {
         return !permissionsReady || canReadEnvAudit;
+    }
+    if (itemKey === 'management-and-schedulers' || itemKey === 'cors' || itemKey === 'smtp') {
+        return !permissionsReady || canReadOrgSettings;
     }
     return true;
 }
@@ -247,6 +254,7 @@ function ModuleLayout() {
     const canReadTenants = useHasPermission({ anyOf: ['organization-tenant-r', 'environment-tenant-r'] });
     const canReadOrgAudit = useHasPermission({ anyOf: [...ORGANIZATION_AUDIT_READ_PERMISSIONS] });
     const canReadEnvAudit = useHasPermission({ anyOf: [...ENVIRONMENT_AUDIT_READ_PERMISSIONS] });
+    const canReadOrgSettings = useHasPermission({ anyOf: ['organization-settings-r'] });
 
     const { activeNavKey, navigateToKey } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
 
@@ -267,6 +275,7 @@ function ModuleLayout() {
                     canReadTenants,
                     canReadOrgAudit,
                     canReadEnvAudit,
+                    canReadOrgSettings,
                 ),
             ),
         [
@@ -282,6 +291,7 @@ function ModuleLayout() {
             canReadTenants,
             canReadOrgAudit,
             canReadEnvAudit,
+            canReadOrgSettings,
         ],
     );
 
@@ -370,6 +380,30 @@ export function AppRoutes() {
                             <Route path="applications" element={<ApplicationsPage />} />
                             <Route path="applications/new" element={<RegisterApplicationPage />} />
                             <Route path="access-management" element={<AccessManagementPage />} />
+                            <Route
+                                path="management-and-schedulers"
+                                element={
+                                    <PermissionPageGuard permission="organization-settings-r" unauthorizedTo="../applications">
+                                        <ManagementAndSchedulersPage />
+                                    </PermissionPageGuard>
+                                }
+                            />
+                            <Route
+                                path="cors"
+                                element={
+                                    <PermissionPageGuard permission="organization-settings-r" unauthorizedTo="../applications">
+                                        <CorsSettingsPage />
+                                    </PermissionPageGuard>
+                                }
+                            />
+                            <Route
+                                path="smtp"
+                                element={
+                                    <PermissionPageGuard permission="organization-settings-r" unauthorizedTo="../applications">
+                                        <SmtpSettingsPage />
+                                    </PermissionPageGuard>
+                                }
+                            />
                             <Route path="users">
                                 <Route
                                     index

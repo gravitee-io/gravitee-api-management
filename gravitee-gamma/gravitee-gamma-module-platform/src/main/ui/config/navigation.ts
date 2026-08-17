@@ -25,9 +25,11 @@ import {
     GroupIcon,
     KeyIcon,
     LayersIcon,
+    MailIcon,
     RadioIcon,
     ScrollTextIcon,
     ServerIcon,
+    SettingsIcon,
     ShieldIcon,
     UsersIcon,
 } from '@gravitee/graphene-core/icons';
@@ -70,6 +72,9 @@ export const NAV_SECTIONS: PlatformNavSection[] = [
                 items: [
                     { key: 'access-management', title: ROUTES['access-management'].label, icon: ShieldIcon },
                     { key: 'organization-audit', title: ROUTES['organization-audit'].label, icon: ScrollTextIcon },
+                    { key: 'management-and-schedulers', title: ROUTES['management-and-schedulers'].label, icon: SettingsIcon },
+                    { key: 'cors', title: ROUTES.cors.label, icon: GlobeIcon },
+                    { key: 'smtp', title: ROUTES.smtp.label, icon: MailIcon },
                 ],
             },
         ],
