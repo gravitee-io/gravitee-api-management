@@ -18,6 +18,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { SharedPolicyGroupDetailLayout } from './SharedPolicyGroupDetailLayout';
+import { useSharedPolicyGroupDeployActions } from '../hooks/useSharedPolicyGroupDeployActions';
 import { useSharedPolicyGroupDetail } from '../hooks/useSharedPolicyGroups';
 import type { SharedPolicyGroup } from '../types/sharedPolicyGroup';
 
@@ -29,8 +30,10 @@ jest.mock('react-router-dom', () => ({
 }));
 
 jest.mock('../hooks/useSharedPolicyGroups');
+jest.mock('../hooks/useSharedPolicyGroupDeployActions');
 
 const mockUseDetail = jest.mocked(useSharedPolicyGroupDetail);
+const mockUseDeployActions = jest.mocked(useSharedPolicyGroupDeployActions);
 
 const SPG: SharedPolicyGroup = {
     id: 'spg-1',
@@ -39,6 +42,16 @@ const SPG: SharedPolicyGroup = {
     lifecycleState: 'DEPLOYED',
     apiType: 'PROXY',
     phase: 'REQUEST',
+};
+
+const defaultDeployActions = {
+    visible: true,
+    deployDisabled: true,
+    undeployDisabled: false,
+    isDeploying: false,
+    isUndeploying: false,
+    onDeploy: jest.fn(),
+    onUndeploy: jest.fn(),
 };
 
 function renderLayout(path = '/shared-policy-groups/spg-1/studio') {
@@ -56,6 +69,10 @@ function renderLayout(path = '/shared-policy-groups/spg-1/studio') {
 }
 
 describe('SharedPolicyGroupDetailLayout', () => {
+    beforeEach(() => {
+        mockUseDeployActions.mockReturnValue(defaultDeployActions);
+    });
+
     afterEach(() => {
         jest.clearAllMocks();
     });
@@ -73,6 +90,14 @@ describe('SharedPolicyGroupDetailLayout', () => {
         expect(screen.getByTestId('shared-policy-group-tab-studio')).not.toBeNull();
         expect(screen.getByTestId('shared-policy-group-tab-history')).not.toBeNull();
         expect(screen.getByText('Studio content')).not.toBeNull();
+        expect(screen.getByTestId('shared-policy-group-deploy-actions')).not.toBeNull();
+    });
+
+    it('hides deploy actions when the deploy hook reports not visible', () => {
+        mockUseDeployActions.mockReturnValue({ ...defaultDeployActions, visible: false });
+        mockUseDetail.mockReturnValue({ data: SPG, isLoading: false, isError: false } as never);
+        renderLayout();
+        expect(screen.queryByTestId('shared-policy-group-deploy-actions')).toBeNull();
     });
 
     it('navigates back to the shared policy groups list', () => {

@@ -18,6 +18,7 @@ import { Button, Skeleton, cn } from '@gravitee/graphene-core';
 import { ArrowLeftIcon, LayersIcon } from '@gravitee/graphene-core/icons';
 import { NavLink, Outlet, useNavigate, useParams } from 'react-router-dom';
 
+import { SharedPolicyGroupDeployActions } from './SharedPolicyGroupDeployActions';
 import { SharedPolicyGroupStatusBadge } from './SharedPolicyGroupStatusBadge';
 import { resolveListHrefFromDetailBasePath, useDetailBasePath } from '../../shared/hooks/useDetailBasePath';
 import { useSharedPolicyGroupDetail } from '../hooks/useSharedPolicyGroups';
@@ -67,22 +68,25 @@ export function SharedPolicyGroupDetailLayout() {
                 Back to Shared Policy Groups
             </Button>
 
-            <div className="flex items-start gap-3">
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-orange-100 text-orange-700">
-                    <LayersIcon className="size-5" aria-hidden />
-                </div>
-                <div className="min-w-0 space-y-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <h1 className="truncate text-2xl font-semibold tracking-tight">{sharedPolicyGroup.name}</h1>
-                        <SharedPolicyGroupStatusBadge lifecycleState={sharedPolicyGroup.lifecycleState} />
+            <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="flex min-w-0 items-start gap-3">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-orange-100 text-orange-700">
+                        <LayersIcon className="size-5" aria-hidden />
                     </div>
-                    {sharedPolicyGroup.description ? (
-                        <p className="text-sm text-muted-foreground">{sharedPolicyGroup.description}</p>
-                    ) : null}
-                    <p className="text-sm text-muted-foreground">
-                        {toReadableApiType(sharedPolicyGroup.apiType)} · {toReadableFlowPhase(sharedPolicyGroup.phase)}
-                    </p>
+                    <div className="min-w-0 space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <h1 className="truncate text-2xl font-semibold tracking-tight">{sharedPolicyGroup.name}</h1>
+                            <SharedPolicyGroupStatusBadge lifecycleState={sharedPolicyGroup.lifecycleState} />
+                        </div>
+                        {sharedPolicyGroup.description ? (
+                            <p className="text-sm text-muted-foreground">{sharedPolicyGroup.description}</p>
+                        ) : null}
+                        <p className="text-sm text-muted-foreground">
+                            {toReadableApiType(sharedPolicyGroup.apiType)} · {toReadableFlowPhase(sharedPolicyGroup.phase)}
+                        </p>
+                    </div>
                 </div>
+                <SharedPolicyGroupDeployActions sharedPolicyGroup={sharedPolicyGroup} />
             </div>
 
             <div className="border-b">
