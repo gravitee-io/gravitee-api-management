@@ -15,13 +15,79 @@
  */
 
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { SharedPolicyGroupHistoryPage } from './SharedPolicyGroupHistoryPage';
+import { useSharedPolicyGroupHistoryList } from '../features/shared-policy-groups/hooks/useSharedPolicyGroupHistoryList';
+import type { SharedPolicyGroup } from '../features/shared-policy-groups/types/sharedPolicyGroup';
+
+jest.mock('../features/shared-policy-groups/hooks/useSharedPolicyGroupHistoryList');
+
+const mockUseSharedPolicyGroupHistoryList = jest.mocked(useSharedPolicyGroupHistoryList);
+
+const HISTORY: SharedPolicyGroup = {
+    id: 'spg-1',
+    name: 'Auth Bundle',
+    description: 'Reusable auth policies',
+    lifecycleState: 'DEPLOYED',
+    version: 2,
+    apiType: 'PROXY',
+    phase: 'REQUEST',
+    updatedAt: '2024-01-01T00:00:00.000Z',
+    deployedAt: '2024-01-02T00:00:00.000Z',
+};
+
+function listState(overrides: Partial<ReturnType<typeof useSharedPolicyGroupHistoryList>> = {}) {
+    return {
+        page: 1,
+        pageSize: 25,
+        sorting: [],
+        setPage: jest.fn(),
+        setPageSize: jest.fn(),
+        setSorting: jest.fn(),
+        histories: [HISTORY],
+        totalCount: 1,
+        isLoading: false,
+        isError: false,
+        ...overrides,
+    };
+}
+
+function renderPage() {
+    return render(
+        <MemoryRouter initialEntries={['/spg-1/history']}>
+            <Routes>
+                <Route path=":sharedPolicyGroupId/history" element={<SharedPolicyGroupHistoryPage />} />
+            </Routes>
+        </MemoryRouter>,
+    );
+}
 
 describe('SharedPolicyGroupHistoryPage', () => {
-    it('renders the history tab placeholder', () => {
-        render(<SharedPolicyGroupHistoryPage />);
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('loads histories for the route sharedPolicyGroupId', () => {
+        mockUseSharedPolicyGroupHistoryList.mockReturnValue(listState());
+        renderPage();
+        expect(mockUseSharedPolicyGroupHistoryList).toHaveBeenCalledWith('spg-1');
+        expect(screen.getByTestId('shared-policy-group-history')).not.toBeNull();
+        expect(screen.queryByText('Auth Bundle')).not.toBeNull();
+        expect(screen.queryByText('2')).not.toBeNull();
+    });
+
+    it('shows the empty state when there are no history entries', () => {
+        mockUseSharedPolicyGroupHistoryList.mockReturnValue(listState({ histories: [], totalCount: 0 }));
+        renderPage();
         expect(screen.getByTestId('shared-policy-group-history-empty')).not.toBeNull();
         expect(screen.getByText('No version history yet')).not.toBeNull();
+    });
+
+    it('shows an error message when the histories request fails', () => {
+        mockUseSharedPolicyGroupHistoryList.mockReturnValue(listState({ isError: true, histories: [], totalCount: 0 }));
+        renderPage();
+        expect(screen.getByTestId('shared-policy-group-history-error')).not.toBeNull();
+        expect(screen.getByText('Failed to load version history.')).not.toBeNull();
     });
 });

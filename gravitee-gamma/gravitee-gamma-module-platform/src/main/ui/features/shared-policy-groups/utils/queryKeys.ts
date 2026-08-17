@@ -19,4 +19,6 @@ export const sharedPolicyGroupKeys = {
     list: (envId: string, query: string, page: number, perPage: number, sortBy: string | undefined) =>
         [...sharedPolicyGroupKeys.all, 'list', envId, query, page, perPage, sortBy] as const,
     detail: (envId: string, sharedPolicyGroupId: string) => [...sharedPolicyGroupKeys.all, 'detail', envId, sharedPolicyGroupId] as const,
+    histories: (envId: string, sharedPolicyGroupId: string, page: number, perPage: number, sortBy: string | undefined) =>
+        [...sharedPolicyGroupKeys.all, 'histories', envId, sharedPolicyGroupId, page, perPage, sortBy] as const,
 } as const;

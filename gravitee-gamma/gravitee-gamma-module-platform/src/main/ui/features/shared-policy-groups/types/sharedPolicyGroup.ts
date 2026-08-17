@@ -72,6 +72,8 @@ export interface SharedPolicyGroup {
     description?: string;
     prerequisiteMessage?: string;
     lifecycleState?: 'DEPLOYED' | 'UNDEPLOYED' | 'PENDING';
+    /** Present on history snapshots (`GET .../{id}/histories`). */
+    version?: number;
     apiType: ApiType;
     phase: FlowPhase;
     steps?: SharedPolicyGroupStep[];
@@ -80,6 +82,18 @@ export interface SharedPolicyGroup {
     updatedAt?: string;
     originContext?: OriginContext;
 }
+
+/**
+ * Classic Console `SharedPolicyGroupHistoriesSortByParam`.
+ * @see shared-policy-groups.service.ts `listHistories`
+ */
+export type SharedPolicyGroupHistoriesSortByParam =
+    | 'version'
+    | '-version'
+    | 'updatedAt'
+    | '-updatedAt'
+    | 'deployedAt'
+    | '-deployedAt';
 
 /** v2 `CreateSharedPolicyGroup` (POST .../shared-policy-groups). */
 export interface CreateSharedPolicyGroupPayload {

@@ -18,6 +18,7 @@ import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
 import type {
     CreateSharedPolicyGroupPayload,
     SharedPolicyGroup,
+    SharedPolicyGroupHistoriesSortByParam,
     SharedPolicyGroupsPagedResponse,
     UpdateSharedPolicyGroupPayload,
 } from '../types/sharedPolicyGroup';
@@ -65,4 +66,22 @@ export async function deleteSharedPolicyGroup(environmentId: string, sharedPolic
     return apimFetchJsonV2<void>(environmentId, `/shared-policy-groups/${encodeURIComponent(sharedPolicyGroupId)}`, {
         method: 'DELETE',
     });
+}
+
+/** Mirrors classic Console `SharedPolicyGroupsService.listHistories`. */
+export async function listSharedPolicyGroupHistories(
+    environmentId: string,
+    sharedPolicyGroupId: string,
+    params: { page: number; perPage: number; sortBy?: SharedPolicyGroupHistoriesSortByParam },
+): Promise<SharedPolicyGroupsPagedResponse> {
+    const searchParams = new URLSearchParams();
+    searchParams.set('page', String(params.page));
+    searchParams.set('perPage', String(params.perPage));
+    if (params.sortBy) {
+        searchParams.set('sortBy', params.sortBy);
+    }
+    return apimFetchJsonV2<SharedPolicyGroupsPagedResponse>(
+        environmentId,
+        `/shared-policy-groups/${encodeURIComponent(sharedPolicyGroupId)}/histories?${searchParams.toString()}`,
+    );
 }
