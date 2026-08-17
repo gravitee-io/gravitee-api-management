@@ -3302,8 +3302,8 @@ components:
           type: array
           deprecated: true
           description: |
-            Deprecated. Use `structure.topNavbar` instead. When `structure` is set,
-            `navigation` is ignored; otherwise `navigation` is mapped to `structure.topNavbar` for backward compatibility.
+            Deprecated. Use `structure.topNavbar` instead. `navigation` and `structure` cannot be set at the same time;
+            when only `navigation` is provided, it is mapped to `structure.topNavbar` for backward compatibility.
           items:
             $ref: "#/components/schemas/PortalNavigationPath"
       required:

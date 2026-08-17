@@ -18,6 +18,7 @@ package io.gravitee.apim.rest.api.automation.resource;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.use_case.CreateOrUpdatePortalUseCase;
@@ -65,6 +66,9 @@ public class PortalsResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = { CREATE, UPDATE }) })
     public Response createOrUpdate(@Valid @NotNull PortalSpec spec, @QueryParam("dryRun") boolean dryRun) {
+        if (spec.getStructure() != null && spec.getNavigation() != null && !spec.getNavigation().isEmpty()) {
+            throw new ValidationDomainException("navigation and structure cannot be used at the same time");
+        }
         var auditInfo = getAuditInfo();
         var portal = Portal.of(
             PortalId.of(HRIDToUUID.portal().context(auditInfo).hrid(spec.getHrid()).id()),
