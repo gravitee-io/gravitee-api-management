@@ -64,6 +64,7 @@ import { GroupDetailPage } from '../pages/GroupDetailPage';
 import { GroupsPage } from '../pages/GroupsPage';
 import { MetadataPage } from '../pages/MetadataPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
+import { TenantsPage } from '../pages/TenantsPage';
 import { UserDetailPage } from '../pages/UserDetailPage';
 import { UsersPage } from '../pages/UsersPage';
 import { retryTransientRequest } from '../shared/api/queryRetry';
@@ -115,6 +116,7 @@ function isNavItemVisible(
     canReadEntrypoints: boolean,
     canReadGroups: boolean,
     canReadAlerts: boolean,
+    canReadTenants: boolean,
 ): boolean {
     if (itemKey === 'users') {
         return !permissionsReady || canAccessUsers;
@@ -136,6 +138,9 @@ function isNavItemVisible(
     }
     if (itemKey === 'alerts') {
         return !permissionsReady || canReadAlerts;
+    }
+    if (itemKey === 'tenants') {
+        return !permissionsReady || canReadTenants;
     }
     return true;
 }
@@ -219,6 +224,7 @@ function ModuleLayout() {
     const canReadEntrypoints = useHasPermission({ anyOf: ['environment-entrypoint-r', 'organization-entrypoint-r'] });
     const canReadGroups = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_READ_PERMISSION] });
     const canReadAlerts = useHasPermission({ anyOf: [ENVIRONMENT_ALERT_READ_PERMISSION] });
+    const canReadTenants = useHasPermission({ anyOf: ['organization-tenant-r', 'environment-tenant-r'] });
 
     const { activeNavKey, navigateToKey } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
 
@@ -235,6 +241,7 @@ function ModuleLayout() {
                     canReadEntrypoints,
                     canReadGroups,
                     canReadAlerts,
+                    canReadTenants,
                 ),
             ),
         [
@@ -246,6 +253,7 @@ function ModuleLayout() {
             canReadEntrypoints,
             canReadGroups,
             canReadAlerts,
+            canReadTenants,
         ],
     );
 
@@ -432,6 +440,17 @@ export function AppRoutes() {
                                     <Route path="monitoring" element={<GatewayInstanceMonitoringPage />} />
                                 </Route>
                             </Route>
+                            <Route
+                                path="tenants"
+                                element={
+                                    <PermissionPageGuard
+                                        anyOf={['organization-tenant-r', 'environment-tenant-r']}
+                                        unauthorizedTo="../applications"
+                                    >
+                                        <TenantsPage />
+                                    </PermissionPageGuard>
+                                }
+                            />
                             <Route path="entrypoints-and-sharding-tags" element={<EntrypointsGuard />} />
                             <Route path="security-plan-types" element={<SecurityPlanTypesPage />} />
                             <Route
