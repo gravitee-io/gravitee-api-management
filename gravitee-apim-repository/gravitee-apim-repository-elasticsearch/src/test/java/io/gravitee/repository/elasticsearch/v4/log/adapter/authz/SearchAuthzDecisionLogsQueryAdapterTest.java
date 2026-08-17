@@ -109,6 +109,30 @@ class SearchAuthzDecisionLogsQueryAdapterTest {
     }
 
     @Test
+    void narrows_on_the_requested_decisions() {
+        var query = AuthzDecisionLogQuery.builder().apiIds(Set.of("api-1")).decisions(Set.of("FORBID")).build();
+
+        var result = SearchAuthzDecisionLogsQueryAdapter.adapt(query);
+
+        assertThatJson(result)
+            .inPath("$.query.bool.filter[2].terms.decision")
+            .isEqualTo(
+                """
+                [ "FORBID" ]
+                """
+            );
+    }
+
+    @Test
+    void omits_the_decision_clause_when_none_is_requested() {
+        var query = AuthzDecisionLogQuery.builder().apiIds(Set.of("api-1")).build();
+
+        var result = SearchAuthzDecisionLogsQueryAdapter.adapt(query);
+
+        assertThatJson(result).inPath("$.query.bool.filter").isArray().hasSize(2);
+    }
+
+    @Test
     void rejects_a_query_that_would_read_across_every_api() {
         var query = AuthzDecisionLogQuery.builder().apiIds(Set.of()).build();
 

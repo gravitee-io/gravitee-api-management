@@ -63,7 +63,9 @@ public enum StaticFilters {
     TENANT("Tenant", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.GATEWAY_TYPES),
     ZONE("Zone", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.GATEWAY_TYPES),
 
-    ENTRYPOINT("Entrypoint", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, ApiType.ALL),
+    // Every API kind but not the decision scope: a decision document carries no entrypoint, so the
+    // decision search cannot apply this and would refuse it.
+    ENTRYPOINT("Entrypoint", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, ApiType.API_KINDS),
 
     // --- HTTP -----------------------------------------------------------------------------------
     HTTP_METHOD("HTTP Method", FilterType.ENUM, Defs.EQ_IN, Defs.HTTP_METHODS, null, Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
@@ -111,6 +113,9 @@ public enum StaticFilters {
     REQUEST_ID("Request ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A_NATIVE),
     TRANSACTION_ID("Transaction ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A_NATIVE),
     PAYLOAD("Payload content", FilterType.STRING, Defs.CONTAINS_ONLY, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A),
+
+    // --- Authz decisions ------------------------------------------------------------------------
+    DECISION("Decision", FilterType.ENUM, Defs.EQ_IN, Defs.DECISIONS, null, Defs.LOGS, Defs.DECISION_RECORDS),
 
     // --- LLM ------------------------------------------------------------------------------------
     LLM_PROXY_MODEL("LLM Model", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.LLM)),
@@ -229,6 +234,7 @@ public enum StaticFilters {
             ApiType.NATIVE
         );
         private static final Set<ApiType> GATEWAY_TYPES = Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.A2A, ApiType.EDGE);
+        private static final Set<ApiType> DECISION_RECORDS = Set.of(ApiType.AUTHZ_DECISION);
 
         private static final List<EnumValue> HTTP_METHODS = List.of(
             self("CONNECT"),
@@ -267,6 +273,12 @@ public enum StaticFilters {
             new EnumValue("CONNECTION_ERROR", "Connection error"),
             new EnumValue("SESSION_ERROR", "Session error"),
             new EnumValue("INTERNAL_ERROR", "Internal error")
+        );
+
+        private static final List<EnumValue> DECISIONS = List.of(
+            new EnumValue("PERMIT", "Permit"),
+            new EnumValue("FORBID", "Forbid"),
+            new EnumValue("NOT_APPLICABLE", "Not applicable")
         );
 
         /** Enum value whose display label is identical to its wire value. */

@@ -69,6 +69,12 @@ public class ObservabilityFilterValidator {
             if (!spec.operators().contains(condition.operator())) {
                 throw UnsupportedObservabilityFilterException.unsupportedOperator(condition.name(), condition.operator().name());
             }
+            // No value narrows nothing, and every translator downstream skips a clause it cannot
+            // build: the caller would get the unfiltered set back under an active filter chip. Holds
+            // for every type, since every advertised operator takes at least one value.
+            if (condition.values() == null || condition.values().isEmpty()) {
+                throw UnsupportedObservabilityFilterException.blankValue(condition.name());
+            }
             if (spec.type() == FilterType.STRING && hasOnlyBlankValues(condition)) {
                 throw UnsupportedObservabilityFilterException.blankValue(condition.name());
             }
@@ -86,7 +92,7 @@ public class ObservabilityFilterValidator {
             return;
         }
         var allowed = spec.enumValues().stream().map(FilterSpec.EnumValue::value).collect(Collectors.toSet());
-        for (String value : condition.values() != null ? condition.values() : List.<String>of()) {
+        for (String value : condition.values()) {
             if (!allowed.contains(value)) {
                 throw UnsupportedObservabilityFilterException.unknownEnumValue(condition.name(), value);
             }

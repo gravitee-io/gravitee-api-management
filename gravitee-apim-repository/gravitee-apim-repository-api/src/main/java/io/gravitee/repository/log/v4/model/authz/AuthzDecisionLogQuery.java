@@ -32,6 +32,7 @@ public class AuthzDecisionLogQuery {
     private Set<String> apiIds;
     private Long from;
     private Long to;
+    private Set<String> decisions;
 
     @Builder.Default
     private int size = 20;

@@ -16,10 +16,10 @@
 package io.gravitee.apim.core.log.crud_service;
 
 import io.gravitee.apim.core.log.model.AuthzDecisionLog;
+import io.gravitee.apim.core.log.model.AuthzDecisionLogFilters;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.Set;
 
 /**
  * Reads authorization outcomes from the event-metrics data stream. Separate from
@@ -31,9 +31,7 @@ import java.util.Set;
 public interface AuthzDecisionLogsCrudService {
     SearchLogsResponse<AuthzDecisionLog> searchDecisionLogs(
         ExecutionContext executionContext,
-        Set<String> apiIds,
-        Long from,
-        Long to,
+        AuthzDecisionLogFilters filters,
         Pageable pageable
     );
 }

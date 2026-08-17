@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.core.observability.filter.model;
 
+import java.util.EnumSet;
 import java.util.Set;
 
 /**
@@ -39,7 +40,12 @@ public enum ApiType {
     A2A("A2A"),
     NATIVE("Kafka (native)"),
     EDGE("Edge"),
-    AUTHZ("Authz decision");
+    AUTHZ("Authz decision"),
+    // Not an API kind: the observability library matches a filter's apiTypes against the value of the
+    // field named by its scopeFilterField, which on the decisions screen is RECORD_TYPE. A filter is
+    // only offered there if this token is among its apiTypes, so carrying it is how a filter opts in
+    // to that screen. Declare {@link #API_KINDS} instead of {@link #ALL} to stay out of it.
+    AUTHZ_DECISION("Authz decision record");
 
     private final String label;
 
@@ -53,9 +59,17 @@ public enum ApiType {
     }
 
     /**
-     * Every API kind. Use for truly cross-cutting filters (e.g. {@code API}, {@code API_TYPE}) so
-     * they automatically apply to API kinds added later, while a filter declaring an explicit
-     * subset (e.g. {@code {LLM, MCP}}) never widens on its own.
+     * Every token, API kinds and the decision scope alike. Use for filters that apply everywhere a
+     * row can be listed, including the decisions screen (e.g. {@code API}), so they automatically
+     * cover kinds added later, while a filter declaring an explicit subset (e.g. {@code {LLM, MCP}})
+     * never widens on its own.
      */
     public static final Set<ApiType> ALL = Set.of(values());
+
+    /**
+     * Every real API kind, i.e. {@link #ALL} minus {@link #AUTHZ_DECISION}. Use for anything that
+     * only makes sense against an API: the values a user may pick in the {@code API_TYPE} filter, and
+     * filters carried solely by request documents.
+     */
+    public static final Set<ApiType> API_KINDS = Set.copyOf(EnumSet.complementOf(EnumSet.of(AUTHZ_DECISION)));
 }
