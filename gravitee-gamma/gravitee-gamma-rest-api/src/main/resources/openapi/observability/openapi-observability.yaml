@@ -543,9 +543,10 @@ paths:
                 than resolved to one of them. Decision rows carry the `authz` object and omit the
                 request-shaped fields; request rows carry neither.
 
-                The decision search is scoped by API and time range only. Any other condition sent
-                alongside `RECORD_TYPE=AUTHZ_DECISION` is rejected with 400 rather than accepted and
-                ignored, so an applied filter is never indistinguishable from an unfiltered result.
+                The decision search accepts `API`, `API_TYPE`, `DECISION` and the time range. Any
+                other condition sent alongside `RECORD_TYPE=AUTHZ_DECISION` is rejected with 400
+                rather than accepted and ignored, so an applied filter is never indistinguishable
+                from an unfiltered result.
 
                 **Default entrypoint scoping**: when no explicit `ENTRYPOINT` filter is supplied,
                 the server injects the canonical HTTP entrypoints (`http-get`, `http-post`,
@@ -1522,8 +1523,10 @@ components:
 
         ApiType:
             type: string
-            description: API kind a filter is relevant to.
-            enum: [HTTP_PROXY, LLM, MESSAGE, MCP, NATIVE, EDGE]
+            description: |
+                API kind a filter is relevant to. `AUTHZ_DECISION` is not an API kind: it is the
+                scope token of the decisions screen, and a filter carrying it is offered there.
+            enum: [HTTP_PROXY, LLM, MESSAGE, MCP, A2A, NATIVE, EDGE, AUTHZ, AUTHZ_DECISION]
 
         FilterType:
             type: string

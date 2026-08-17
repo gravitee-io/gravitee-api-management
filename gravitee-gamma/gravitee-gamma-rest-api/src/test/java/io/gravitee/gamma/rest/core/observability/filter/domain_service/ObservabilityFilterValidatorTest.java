@@ -167,4 +167,33 @@ class ObservabilityFilterValidatorTest {
             .isInstanceOf(UnsupportedObservabilityFilterException.class)
             .hasMessageContaining("non-blank");
     }
+
+    @Test
+    void should_reject_an_enum_condition_carrying_no_value() {
+        var conditions = List.of(new FilterCondition("FAILURE_ORIGIN", FilterOperator.IN, List.of()));
+
+        assertThatThrownBy(() -> validator.validate(conditions, Signal.LOGS))
+            .isInstanceOf(UnsupportedObservabilityFilterException.class)
+            .hasMessageContaining("FAILURE_ORIGIN");
+    }
+
+    @Test
+    void should_reject_a_keyword_condition_carrying_no_value() {
+        // Not enum-specific: an empty list narrows nothing, so the caller would get every accessible
+        // api back while the filter chip stays on screen.
+        var conditions = List.of(new FilterCondition("GATEWAY", FilterOperator.IN, List.of()));
+
+        assertThatThrownBy(() -> validator.validate(conditions, Signal.ANALYTICS))
+            .isInstanceOf(UnsupportedObservabilityFilterException.class)
+            .hasMessageContaining("GATEWAY");
+    }
+
+    @Test
+    void should_reject_a_condition_whose_values_are_null() {
+        var conditions = List.of(new FilterCondition("GATEWAY", FilterOperator.EQ, null));
+
+        assertThatThrownBy(() -> validator.validate(conditions, Signal.ANALYTICS))
+            .isInstanceOf(UnsupportedObservabilityFilterException.class)
+            .hasMessageContaining("GATEWAY");
+    }
 }
