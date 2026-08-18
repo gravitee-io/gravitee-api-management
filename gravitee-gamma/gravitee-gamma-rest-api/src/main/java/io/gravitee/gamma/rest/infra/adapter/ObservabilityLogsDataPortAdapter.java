@@ -423,6 +423,10 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .from(query.from())
             .to(query.to())
             .decisions(valuesOf(query.conditions(), StaticFilters.DECISION.filterName()))
+            .subjectIds(valuesOf(query.conditions(), StaticFilters.SUBJECT.filterName()))
+            .actions(valuesOf(query.conditions(), StaticFilters.ACTION.filterName()))
+            .resourceIds(valuesOf(query.conditions(), StaticFilters.RESOURCE.filterName()))
+            .callers(valuesOf(query.conditions(), StaticFilters.CALLER_KIND.filterName()))
             .build();
         var result = authzDecisionLogsCrudService.searchDecisionLogs(executionContext, filters, pageable);
         var entries = result

@@ -33,6 +33,10 @@ public class AuthzDecisionLogQuery {
     private Long from;
     private Long to;
     private Set<String> decisions;
+    private Set<String> subjectIds;
+    private Set<String> actions;
+    private Set<String> resourceIds;
+    private Set<String> callers;
 
     @Builder.Default
     private int size = 20;

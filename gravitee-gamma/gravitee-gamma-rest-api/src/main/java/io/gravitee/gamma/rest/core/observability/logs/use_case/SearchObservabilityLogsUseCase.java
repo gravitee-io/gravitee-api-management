@@ -181,7 +181,13 @@ public class SearchObservabilityLogsUseCase {
     }
 
     /** Predicates the decision search can express, on top of the api scope and the time range. */
-    private static final Set<String> DECISION_SUPPORTED_FILTERS = Set.of(StaticFilters.DECISION.filterName());
+    private static final Set<String> DECISION_SUPPORTED_FILTERS = Set.of(
+        StaticFilters.DECISION.filterName(),
+        StaticFilters.SUBJECT.filterName(),
+        StaticFilters.ACTION.filterName(),
+        StaticFilters.RESOURCE.filterName(),
+        StaticFilters.CALLER_KIND.filterName()
+    );
 
     /**
      * Anything the decision search cannot express would be accepted and then dropped —
@@ -199,7 +205,7 @@ public class SearchObservabilityLogsUseCase {
             throw new ValidationDomainException(
                 "Filters " +
                     unsupported +
-                    " do not apply to RECORD_TYPE=AUTHZ_DECISION. Supported: API, API_TYPE, DECISION and the time range."
+                    " do not apply to RECORD_TYPE=AUTHZ_DECISION. Supported: API, API_TYPE, DECISION, SUBJECT, ACTION, RESOURCE, CALLER_KIND and the time range."
             );
         }
     }
