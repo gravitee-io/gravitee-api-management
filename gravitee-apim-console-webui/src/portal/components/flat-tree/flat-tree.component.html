@@ -108,6 +108,15 @@
       {{ node.label }}
     </span>
 
+    @if (isSourced(node)) {
+      <mat-icon
+        class="tree__icon tree__icon__status"
+        svgIcon="gio:link"
+        matTooltip="Content from external source"
+        [attr.data-test-icon]="'source'"
+      ></mat-icon>
+    }
+
     @if (isUnpublished(node)) {
       <mat-icon class="tree__icon tree__icon__status" svgIcon="gio:eye-off" aria-hidden="true" [attr.data-test-icon]="'eye-off'"></mat-icon>
     }
@@ -196,6 +205,13 @@
       <button mat-menu-item (click)="onUnpublish(node)" data-testid="unpublish-node-button">
         <mat-icon svgIcon="gio:eye-off"></mat-icon>
         Unpublish
+      </button>
+    }
+
+    @if (canFetchAll(node)) {
+      <button mat-menu-item [disabled]="fetchInProgress()" (click)="onFetchAll(node)" data-testid="fetch-all-button">
+        <mat-icon svgIcon="gio:refresh-cw"></mat-icon>
+        Fetch All
       </button>
     }
   }

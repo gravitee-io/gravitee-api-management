@@ -171,6 +171,11 @@ $outline-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80)
       height: 16px;
       flex-shrink: 0;
     }
+
+    &__fetch {
+      margin-left: auto;
+      flex-shrink: 0;
+    }
   }
 
   .source-banner {

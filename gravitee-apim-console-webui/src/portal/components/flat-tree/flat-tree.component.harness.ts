@@ -158,6 +158,24 @@ export class FlatTreeComponentHarness extends ComponentHarness {
     return this.getMenuItemByTestId('publish-node-button');
   }
 
+  async hasSourceIndicatorByTitle(title: string): Promise<boolean> {
+    const node = await this.getNodeHarnessByTitle(title);
+    return (await node.getHarnessOrNull(MatIconHarness.with({ selector: '[data-test-icon="source"]' }))) !== null;
+  }
+
+  async openMoreActionsMenuById(id: string): Promise<void> {
+    const moreActionsButton = await this.getMoreActionsButtonById(id)();
+    return moreActionsButton.click();
+  }
+
+  async selectFetchAllById(id: string): Promise<void> {
+    await this.openMoreActionsMenuById(id);
+    const fetchAllButton = await this._documentRootLocator.locatorFor(
+      MatMenuItemHarness.with({ selector: '[data-testid="fetch-all-button"]' }),
+    )();
+    return fetchAllButton.click();
+  }
+
   async getMenuItemByText(text: string): Promise<MatMenuItemHarness | null> {
     return this._documentRootLocator.locatorForOptional(MatMenuItemHarness.with({ text }))();
   }

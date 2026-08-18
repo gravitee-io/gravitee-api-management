@@ -31,6 +31,7 @@ import {
   fakeNewLinkPortalNavigationItem,
   fakeNewApiPortalNavigationItem,
   fakeNewApiProductPortalNavigationItem,
+  fakePortalNavigationItemsFetchSummary,
   fakeUpdateFolderPortalNavigationItem,
 } from '../entities/management-api-v2';
 
@@ -221,6 +222,42 @@ describe('PortalNavigationItemService', () => {
       });
       expect(req.request.body).toEqual({ ids });
       req.flush(null);
+    });
+  });
+
+  describe('fetchNavigationItem', () => {
+    it('should return the fetched item for a sourced page', done => {
+      const fetchedPage = fakePortalNavigationPage({ id: 'page-1' });
+
+      service.fetchNavigationItem('page-1').subscribe(response => {
+        expect(response.item).toEqual(fetchedPage);
+        expect(response.summary).toBeUndefined();
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/page-1/_fetch`,
+      });
+      expect(req.request.body).toBeNull();
+      req.flush({ item: fetchedPage });
+    });
+
+    it('should return the fetch summary for a container', done => {
+      const summary = fakePortalNavigationItemsFetchSummary({ succeeded: 2, failed: 1 });
+
+      service.fetchNavigationItem('folder-1').subscribe(response => {
+        expect(response.summary).toEqual(summary);
+        expect(response.item).toBeUndefined();
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'POST',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/folder-1/_fetch`,
+        })
+        .flush({ summary });
     });
   });
 
