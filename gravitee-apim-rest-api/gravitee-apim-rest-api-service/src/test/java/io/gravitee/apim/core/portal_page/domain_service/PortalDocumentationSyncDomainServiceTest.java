@@ -16,20 +16,25 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
+import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
+import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
@@ -221,6 +226,31 @@ class PortalDocumentationSyncDomainServiceTest {
     }
 
     @Test
+    void materialize_rejects_second_automation_owned_homepage_for_same_portal() {
+        var syncWithRealValidator = new PortalDocumentationSyncDomainService(
+            navItemCrud,
+            navItemQuery,
+            new HomepageReconciler(navItemQuery, navItemCrud, pageContentCrud),
+            new PortalNavigationItemValidatorService(
+                navItemQuery,
+                new PortalPageContentQueryServiceInMemory(pageContentCrud.storage()),
+                new ApiProductQueryServiceInMemory(),
+                new PortalNavigationItemSourceDomainServiceInMemory()
+            )
+        );
+        var existing = automationOwnedHomepagePage();
+        navItemCrud.create(existing);
+        pageContentCrud.create(staleContent(existing));
+
+        assertThatThrownBy(() ->
+            syncWithRealValidator.materialize(AUDIT_INFO, homepageDoc("Home", "/homepage"), PortalArea.HOMEPAGE)
+        ).isInstanceOf(HomepageAlreadyExistsException.class);
+
+        assertThat(navItemCrud.storage()).hasSize(1);
+        assertThat(navItemCrud.storage().get(0).getId()).isEqualTo(existing.getId());
+    }
+
+    @Test
     void materialize_does_not_touch_homepage_of_a_different_portal() {
         var otherPortalId = "00000000-0000-0000-0000-0000000000ff";
         var otherHomepage = PortalNavigationPage.builder()
@@ -272,6 +302,31 @@ class PortalDocumentationSyncDomainServiceTest {
             .portalPageContentId(PortalPageContentId.of("00000000-0000-0000-0000-00000000c0de"))
             .published(true)
             .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC)
+            .build();
+    }
+
+    private static PortalNavigationPage automationOwnedHomepagePage() {
+        return PortalNavigationPage.builder()
+            .id(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000c0d3"))
+            .organizationId(AUDIT_INFO.organizationId())
+            .environmentId(AUDIT_INFO.environmentId())
+            .reference(new NavigationItemReference.PortalReference(PortalId.of(PORTAL_ID.toString())))
+            .title("Existing")
+            .segment("existing")
+            .area(PortalArea.HOMEPAGE)
+            .order(0)
+            .portalPageContentId(PortalPageContentId.of("00000000-0000-0000-0000-00000000c0da"))
+            .published(true)
+            .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC)
+            .automationMetadata(
+                new AutomationMetadata(
+                    AutomationMetadata.ReferenceType.PORTAL,
+                    PORTAL_ID.toString(),
+                    null,
+                    Optional.empty(),
+                    Optional.empty()
+                )
+            )
             .build();
     }
 
