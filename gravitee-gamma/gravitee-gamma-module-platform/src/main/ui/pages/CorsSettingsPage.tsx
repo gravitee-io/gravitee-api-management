@@ -17,7 +17,7 @@
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useEffect, useMemo, useState } from 'react';
 
-import { CorsSection, type CorsFormState } from '../features/organization-settings/components/CorsSection';
+import { CorsSection, type CorsFieldReadonly, type CorsFormState } from '../features/organization-settings/components/CorsSection';
 import { OrgSettingsFormShell } from '../features/organization-settings/components/OrgSettingsFormShell';
 import { useOrgConsoleSettings } from '../features/organization-settings/hooks/useOrgConsoleSettings';
 import { useSaveOrgConsoleSettings } from '../features/organization-settings/hooks/useSaveOrgConsoleSettings';
@@ -55,13 +55,14 @@ export function CorsSettingsPage() {
         setSavedState(next);
     }, [settings]);
 
-    const corsLocked = useMemo(
-        () =>
-            isConsoleSettingReadonly(settings, 'http.api.management.cors.allow-origin') ||
-            isConsoleSettingReadonly(settings, 'http.api.management.cors.allow-methods') ||
-            isConsoleSettingReadonly(settings, 'http.api.management.cors.allow-headers') ||
-            isConsoleSettingReadonly(settings, 'http.api.management.cors.exposed-headers') ||
-            isConsoleSettingReadonly(settings, 'http.api.management.cors.max-age'),
+    const readonly = useMemo<CorsFieldReadonly>(
+        () => ({
+            allowOrigin: isConsoleSettingReadonly(settings, 'http.api.management.cors.allow-origin'),
+            allowMethods: isConsoleSettingReadonly(settings, 'http.api.management.cors.allow-methods'),
+            allowHeaders: isConsoleSettingReadonly(settings, 'http.api.management.cors.allow-headers'),
+            exposedHeaders: isConsoleSettingReadonly(settings, 'http.api.management.cors.exposed-headers'),
+            maxAge: isConsoleSettingReadonly(settings, 'http.api.management.cors.max-age'),
+        }),
         [settings],
     );
 
@@ -96,7 +97,7 @@ export function CorsSettingsPage() {
             onSave={handleSave}
             onDiscard={() => setLocalState(savedState)}
         >
-            <CorsSection value={localState} disabled={!canEdit || corsLocked} onChange={setLocalState} />
+            <CorsSection value={localState} disabled={!canEdit} readonly={readonly} onChange={setLocalState} />
         </OrgSettingsFormShell>
     );
 }

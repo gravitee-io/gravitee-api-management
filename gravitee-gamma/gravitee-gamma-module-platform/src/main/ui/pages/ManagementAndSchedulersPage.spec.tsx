@@ -111,4 +111,52 @@ describe('ManagementAndSchedulersPage', () => {
         expect((screen.getByLabelText('Title') as HTMLInputElement).disabled).toBe(true);
         expect(screen.queryByRole('button', { name: /Save changes/i })).toBeNull();
     });
+
+    it('warns that a local configuration file may override these values', () => {
+        renderPage();
+        expect(
+            screen.getByText(/Depending on your architecture, this configuration may be overridden by a local configuration file/),
+        ).not.toBeNull();
+    });
+
+    it('saves scheduler values of 0 instead of blocking the form', () => {
+        const mutate = jest.fn();
+        mockUseSaveOrgConsoleSettings.mockReturnValue({
+            mutate,
+            isPending: false,
+        } as unknown as ReturnType<typeof useSaveOrgConsoleSettings>);
+        mockUseOrgConsoleSettings.mockReturnValue({
+            data: { ...SETTINGS, scheduler: { tasks: 0, notifications: 0 } },
+            isLoading: false,
+            isError: false,
+        } as ReturnType<typeof useOrgConsoleSettings>);
+
+        renderPage();
+        fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Acme Console' } });
+        fireEvent.click(screen.getByRole('button', { name: /Save changes/i }));
+
+        expect(mutate).toHaveBeenCalledWith(
+            expect.objectContaining({
+                management: expect.objectContaining({ title: 'Acme Console' }),
+                scheduler: { tasks: 0, notifications: 0 },
+            }),
+            expect.any(Object),
+        );
+    });
+
+    it('marks system-provided title and URL for the Classic tooltip', () => {
+        mockUseOrgConsoleSettings.mockReturnValue({
+            data: {
+                ...SETTINGS,
+                metadata: { readonly: ['management.title', 'management.url'] },
+            },
+            isLoading: false,
+            isError: false,
+        } as ReturnType<typeof useOrgConsoleSettings>);
+
+        renderPage();
+        expect(screen.getByLabelText('Title').closest('[data-system-readonly="true"]')).not.toBeNull();
+        expect(screen.getByLabelText('Management URL').closest('[data-system-readonly="true"]')).not.toBeNull();
+        expect(screen.getByLabelText('Tasks (in seconds)').closest('[data-system-readonly="true"]')).toBeNull();
+    });
 });

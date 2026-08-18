@@ -15,17 +15,16 @@
  */
 
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { Input, Switch, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@gravitee/graphene-core';
+import { Input, Switch } from '@gravitee/graphene-core';
 import { useEffect, useMemo, useState } from 'react';
 
 import { OrgSettingsFormShell } from '../features/organization-settings/components/OrgSettingsFormShell';
+import { SystemReadonlyHint } from '../features/organization-settings/components/SystemReadonlyHint';
 import { useOrgConsoleSettings } from '../features/organization-settings/hooks/useOrgConsoleSettings';
 import { useSaveOrgConsoleSettings } from '../features/organization-settings/hooks/useSaveOrgConsoleSettings';
 import type { ConsoleSettings } from '../features/organization-settings/types/consoleSettings';
 import { buildConsoleSettingsSavePayload } from '../features/organization-settings/utils/buildConsoleSettingsSavePayload';
 import { isConsoleSettingReadonly } from '../features/organization-settings/utils/isConsoleSettingReadonly';
-
-const SYSTEM_READONLY_TOOLTIP = 'Configuration provided by the system';
 
 interface ManagementFormState {
     title: string;
@@ -49,10 +48,10 @@ function buildState(settings: ConsoleSettings | undefined): ManagementFormState 
     };
 }
 
-function parsePositiveInt(value: string): number | null {
+function parseNonNegativeInt(value: string): number | null {
     if (!/^\d+$/.test(value.trim())) return null;
     const parsed = Number(value);
-    return parsed >= 1 ? parsed : null;
+    return parsed >= 0 ? parsed : null;
 }
 
 function ToggleRow({
@@ -76,16 +75,9 @@ function ToggleRow({
             <label htmlFor={id} className={`text-sm font-medium ${disabled ? 'cursor-default' : 'cursor-pointer'}`}>
                 {label}
             </label>
-            {systemReadonly ? (
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <span className="inline-flex">{control}</span>
-                    </TooltipTrigger>
-                    <TooltipContent>{SYSTEM_READONLY_TOOLTIP}</TooltipContent>
-                </Tooltip>
-            ) : (
-                control
-            )}
+            <SystemReadonlyHint locked={systemReadonly} className="inline-flex">
+                {control}
+            </SystemReadonlyHint>
         </div>
     );
 }
@@ -119,8 +111,8 @@ export function ManagementAndSchedulersPage() {
     );
 
     const isDirty = JSON.stringify(localState) !== JSON.stringify(savedState);
-    const tasksValue = parsePositiveInt(localState.tasks);
-    const notificationsValue = parsePositiveInt(localState.notifications);
+    const tasksValue = parseNonNegativeInt(localState.tasks);
+    const notificationsValue = parseNonNegativeInt(localState.notifications);
     const isValid = tasksValue !== null && notificationsValue !== null;
 
     function handleSave() {
@@ -151,93 +143,99 @@ export function ManagementAndSchedulersPage() {
             onSave={handleSave}
             onDiscard={() => setLocalState(savedState)}
         >
-            <TooltipProvider delayDuration={200}>
-                <div className="space-y-6">
-                    <section className="rounded-lg border p-4 space-y-4">
-                        <h2 className="text-base font-semibold">Management</h2>
-                        <div className="space-y-1.5">
-                            <label htmlFor="management-title" className="text-sm font-medium">
-                                Title
-                            </label>
+            <div className="space-y-6">
+                <section className="rounded-lg border p-4 space-y-4">
+                    <h2 className="text-base font-semibold">Management</h2>
+                    <div className="space-y-1.5">
+                        <label htmlFor="management-title" className="text-sm font-medium">
+                            Title
+                        </label>
+                        <SystemReadonlyHint locked={readonly.title}>
                             <Input
                                 id="management-title"
                                 value={localState.title}
                                 onChange={e => setLocalState(prev => ({ ...prev, title: e.target.value }))}
                                 disabled={!canEdit || readonly.title}
                             />
-                        </div>
-                        <div className="space-y-1.5">
-                            <label htmlFor="management-url" className="text-sm font-medium">
-                                Management URL
-                            </label>
+                        </SystemReadonlyHint>
+                    </div>
+                    <div className="space-y-1.5">
+                        <label htmlFor="management-url" className="text-sm font-medium">
+                            Management URL
+                        </label>
+                        <SystemReadonlyHint locked={readonly.url}>
                             <Input
                                 id="management-url"
                                 value={localState.url}
                                 onChange={e => setLocalState(prev => ({ ...prev, url: e.target.value }))}
                                 disabled={!canEdit || readonly.url}
                             />
-                        </div>
+                        </SystemReadonlyHint>
+                    </div>
+                    <ToggleRow
+                        id="management-support"
+                        label="Activate Support"
+                        checked={localState.supportEnabled}
+                        disabled={!canEdit || readonly.support}
+                        systemReadonly={readonly.support}
+                        onToggle={checked => setLocalState(prev => ({ ...prev, supportEnabled: checked }))}
+                    />
+                    <ToggleRow
+                        id="management-user-creation"
+                        label="Allow User Registration"
+                        checked={localState.userCreationEnabled}
+                        disabled={!canEdit || readonly.userCreation}
+                        systemReadonly={readonly.userCreation}
+                        onToggle={checked => setLocalState(prev => ({ ...prev, userCreationEnabled: checked }))}
+                    />
+                    {localState.userCreationEnabled ? (
                         <ToggleRow
-                            id="management-support"
-                            label="Activate Support"
-                            checked={localState.supportEnabled}
-                            disabled={!canEdit || readonly.support}
-                            systemReadonly={readonly.support}
-                            onToggle={checked => setLocalState(prev => ({ ...prev, supportEnabled: checked }))}
+                            id="management-automatic-validation"
+                            label="Enable automatic validation of registration requests"
+                            checked={localState.automaticValidationEnabled}
+                            disabled={!canEdit || readonly.automaticValidation}
+                            systemReadonly={readonly.automaticValidation}
+                            onToggle={checked => setLocalState(prev => ({ ...prev, automaticValidationEnabled: checked }))}
                         />
-                        <ToggleRow
-                            id="management-user-creation"
-                            label="Allow User Registration"
-                            checked={localState.userCreationEnabled}
-                            disabled={!canEdit || readonly.userCreation}
-                            systemReadonly={readonly.userCreation}
-                            onToggle={checked => setLocalState(prev => ({ ...prev, userCreationEnabled: checked }))}
-                        />
-                        {localState.userCreationEnabled ? (
-                            <ToggleRow
-                                id="management-automatic-validation"
-                                label="Enable automatic validation of registration requests"
-                                checked={localState.automaticValidationEnabled}
-                                disabled={!canEdit || readonly.automaticValidation}
-                                systemReadonly={readonly.automaticValidation}
-                                onToggle={checked => setLocalState(prev => ({ ...prev, automaticValidationEnabled: checked }))}
-                            />
-                        ) : null}
-                    </section>
+                    ) : null}
+                </section>
 
-                    <section className="rounded-lg border p-4 space-y-4">
-                        <h2 className="text-base font-semibold">Schedulers</h2>
-                        <div className="space-y-1.5">
-                            <label htmlFor="scheduler-tasks" className="text-sm font-medium">
-                                Tasks (in seconds)
-                            </label>
+                <section className="rounded-lg border p-4 space-y-4">
+                    <h2 className="text-base font-semibold">Schedulers</h2>
+                    <div className="space-y-1.5">
+                        <label htmlFor="scheduler-tasks" className="text-sm font-medium">
+                            Tasks (in seconds)
+                        </label>
+                        <SystemReadonlyHint locked={readonly.tasks}>
                             <Input
                                 id="scheduler-tasks"
                                 type="number"
-                                min={1}
+                                min={0}
                                 value={localState.tasks}
                                 onChange={e => setLocalState(prev => ({ ...prev, tasks: e.target.value }))}
                                 disabled={!canEdit || readonly.tasks}
                                 aria-invalid={tasksValue === null}
                             />
-                        </div>
-                        <div className="space-y-1.5">
-                            <label htmlFor="scheduler-notifications" className="text-sm font-medium">
-                                Notifications (in seconds)
-                            </label>
+                        </SystemReadonlyHint>
+                    </div>
+                    <div className="space-y-1.5">
+                        <label htmlFor="scheduler-notifications" className="text-sm font-medium">
+                            Notifications (in seconds)
+                        </label>
+                        <SystemReadonlyHint locked={readonly.notifications}>
                             <Input
                                 id="scheduler-notifications"
                                 type="number"
-                                min={1}
+                                min={0}
                                 value={localState.notifications}
                                 onChange={e => setLocalState(prev => ({ ...prev, notifications: e.target.value }))}
                                 disabled={!canEdit || readonly.notifications}
                                 aria-invalid={notificationsValue === null}
                             />
-                        </div>
-                    </section>
-                </div>
-            </TooltipProvider>
+                        </SystemReadonlyHint>
+                    </div>
+                </section>
+            </div>
         </OrgSettingsFormShell>
     );
 }
