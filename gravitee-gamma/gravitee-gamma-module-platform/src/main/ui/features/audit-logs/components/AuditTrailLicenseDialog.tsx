@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FeatureLicenseDialog } from '../../../shared/components/FeatureLicenseDialog';
-import { SHARDING_TAGS_UPGRADE } from '../license/shardingTagsLicense';
 
-export function ShardingTagsLicenseDialog({
+import { FeatureLicenseDialog } from '../../../shared/components/FeatureLicenseDialog';
+import { AUDIT_TRAIL_UPGRADE } from '../license/auditTrailLicense';
+
+export function AuditTrailLicenseDialog({
     open,
     onOpenChange,
 }: Readonly<{
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }>) {
-    return <FeatureLicenseDialog upgrade={SHARDING_TAGS_UPGRADE} open={open} onOpenChange={onOpenChange} />;
+    return <FeatureLicenseDialog upgrade={AUDIT_TRAIL_UPGRADE} open={open} onOpenChange={onOpenChange} />;
 }
