@@ -81,31 +81,30 @@ class ApiDocumentationSyncDomainServiceTest {
     }
 
     @Test
-    void should_create_one_page_per_nav_api_row_for_the_api() {
-        var navApiA = seedNavApi(PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
-        var navApiB = seedNavApi(PortalNavigationItemId.of("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"));
+    void should_create_one_page_for_the_api_however_many_nav_api_rows_exist() {
+        seedNavApi(PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
+        seedNavApi(PortalNavigationItemId.of("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"));
 
         syncService.materialize(AUDIT_INFO, aDocumentation());
 
-        var pageIdA = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, navApiA.getId(), DOC_ID);
-        var pageIdB = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, navApiB.getId(), DOC_ID);
+        var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
         assertThat(
             navItemCrud.storage().stream().filter(PortalNavigationPage.class::isInstance).map(PortalNavigationItem::getId)
-        ).containsExactlyInAnyOrder(pageIdA, pageIdB);
+        ).containsExactly(pageId);
 
-        var pageA = (PortalNavigationPage) navItemCrud
+        var page = (PortalNavigationPage) navItemCrud
             .storage()
             .stream()
-            .filter(item -> item.getId().equals(pageIdA))
+            .filter(item -> item.getId().equals(pageId))
             .findFirst()
             .orElseThrow();
-        assertThat(pageA.getAutomationMetadata()).isNotNull();
-        assertThat(pageA.getAutomationMetadata().referenceType()).isEqualTo(AutomationMetadata.ReferenceType.API);
-        assertThat(pageA.getAutomationMetadata().referenceId()).isEqualTo(API_ID);
-        assertThat(pageA.getAutomationMetadata().location()).isEqualTo(Optional.of("/getting-started"));
+        assertThat(page.getAutomationMetadata()).isNotNull();
+        assertThat(page.getAutomationMetadata().referenceType()).isEqualTo(AutomationMetadata.ReferenceType.API);
+        assertThat(page.getAutomationMetadata().referenceId()).isEqualTo(API_ID);
+        assertThat(page.getAutomationMetadata().location()).isEqualTo(Optional.of("/getting-started"));
         // trimmed: name/order already live natively on the nav item as title/order
-        assertThat(pageA.getAutomationMetadata().name()).isNull();
-        assertThat(pageA.getAutomationMetadata().order()).isEmpty();
+        assertThat(page.getAutomationMetadata().name()).isNull();
+        assertThat(page.getAutomationMetadata().order()).isEmpty();
     }
 
     @Test
@@ -115,8 +114,8 @@ class ApiDocumentationSyncDomainServiceTest {
 
         syncService.materialize(AUDIT_INFO, aDocumentation());
 
-        var pageIdOurs = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, ours.getId(), DOC_ID);
-        var pageIdTheirs = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, theirs.getId(), DOC_ID);
+        var pageIdOurs = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
+        var pageIdTheirs = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, "another-api-id", DOC_ID);
         assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).contains(pageIdOurs).doesNotContain(pageIdTheirs);
     }
 
@@ -152,12 +151,12 @@ class ApiDocumentationSyncDomainServiceTest {
 
     @Test
     void should_remove_pages_on_dematerialize() {
-        var navApi = seedNavApi(PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
+        seedNavApi(PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
         syncService.materialize(AUDIT_INFO, aDocumentation());
 
         syncService.dematerialize(AUDIT_INFO, API_ID, DOC_ID);
 
-        var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, navApi.getId(), DOC_ID);
+        var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
         assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).doesNotContain(pageId);
     }
 
@@ -199,7 +198,7 @@ class ApiDocumentationSyncDomainServiceTest {
     }
 
     @Test
-    void cleanupNavApi_removes_single_nav_api_and_its_pages() {
+    void cleanupNavApi_removes_the_nav_api_row_and_the_api_page_it_still_owns() {
         var keptNavApiId = PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
         var removedNavApiId = PortalNavigationItemId.of("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
         seedNavApi(keptNavApiId);
@@ -210,12 +209,11 @@ class ApiDocumentationSyncDomainServiceTest {
 
         syncService.cleanupNavApi(AUDIT_INFO, removedNavApiId);
 
-        var keptPageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, keptNavApiId, DOC_ID);
-        var removedPageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, removedNavApiId, DOC_ID);
+        var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
         assertThat(navItemCrud.storage())
             .extracting(PortalNavigationItem::getId)
-            .containsExactlyInAnyOrder(keptNavApiId, keptPageId)
-            .doesNotContain(removedNavApiId, removedPageId);
+            .containsExactly(keptNavApiId)
+            .doesNotContain(removedNavApiId, pageId);
     }
 
     private PortalNavigationApi seedNavApi(PortalNavigationItemId id) {

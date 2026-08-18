@@ -20,7 +20,6 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_listing.crud_service.PortalListingCrudService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
@@ -61,11 +60,11 @@ public class AutomationManagedNavigationItemsQueryService {
             .collect(Collectors.toSet());
     }
 
-    public Set<PortalNavigationItemId> automationManagedApiDocPages(AuditInfo auditInfo, PortalNavigationApi navApi, String apiId) {
+    public Set<PortalNavigationItemId> automationManagedApiDocPages(AuditInfo auditInfo, String apiId) {
         return portalPageContentQueryService
             .findByReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.API, apiId)
             .stream()
-            .map(pc -> PortalNavigationItemId.forApiDocumentation(auditInfo, navApi.getId(), pc.getId()))
+            .map(pc -> PortalNavigationItemId.forApiDocumentation(auditInfo, apiId, pc.getId()))
             .collect(Collectors.toSet());
     }
 
