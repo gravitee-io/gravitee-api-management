@@ -29,14 +29,14 @@ echo(chalk.blue(`# Clone ${docRepository} repository`));
 await $`git clone --depth 1  ${docRepositoryURL} --single-branch --branch=main`;
 cd(docRepository);
 
-const jiraVersions = await getJiraVersions(releasingVersion);
-if (jiraVersions.length === 0) {
+const jiraProjectKeys = await getJiraVersions(releasingVersion);
+if (jiraProjectKeys.length === 0) {
   echo(chalk.blue(`No Jira release found for: ${releasingVersion} in any project, nothing to do.`));
   process.exit(0);
 }
-echo(chalk.blue(`# Jira projects releasing ${releasingVersion}: ${jiraVersions.map((jiraVersion) => jiraVersion.projectKey).join(', ')}`));
+echo(chalk.blue(`# Jira projects releasing ${releasingVersion}: ${jiraProjectKeys.join(', ')}`));
 
-const issues = await getJiraIssuesOfVersions(jiraVersions);
+const issues = await getJiraIssuesOfVersions(jiraProjectKeys, releasingVersion);
 
 let changelogPatchTemplate = `
 ## Gravitee API Management ${releasingVersion} - ${new Date().toLocaleDateString('en-US', dateOptions)}

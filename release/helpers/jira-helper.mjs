@@ -5,10 +5,12 @@
  * their own, and a ticket fixed in one of them belongs in the same changelog as the APIM ones. Override
  * with JIRA_PROJECTS (comma separated) to add a board without a code change.
  */
-export const JiraProjects = (process.env.JIRA_PROJECTS ?? 'APIM,ESM,AIAM,PORTAL,OBS,AUTHZ')
-  .split(',')
-  .map((key) => key.trim())
-  .filter(Boolean);
+function jiraProjects() {
+  return (process.env.JIRA_PROJECTS ?? 'APIM,ESM,AIAM,PORTAL,OBS,AUTHZ,FOUND,BX')
+    .split(',')
+    .map((key) => key.trim())
+    .filter(Boolean);
+}
 
 function jiraHeaders() {
   return {
@@ -18,17 +20,18 @@ function jiraHeaders() {
 }
 
 /**
- * The projects that have a version named `versionName`.
+ * The keys of the projects that have a version named `versionName`.
  *
  * <p>A project that does not release this version simply has none. That is normal rather than an error —
  * only a version found nowhere means there is nothing to write.
  *
  * @param versionName {string} The version name
- * @returns {Promise<Array<{projectKey: string, name: string}>>}
+ * @param projectKeys {Array<string>} The projects to check; defaults to JIRA_PROJECTS
+ * @returns {Promise<Array<string>>}
  */
-export async function getJiraVersions(versionName) {
+export async function getJiraVersions(versionName, projectKeys = jiraProjects()) {
   const found = await Promise.all(
-    JiraProjects.map(async (projectKey) => {
+    projectKeys.map(async (projectKey) => {
       try {
         const versions = await fetch(`https://gravitee.atlassian.net/rest/api/3/project/${projectKey}/versions`, {
           method: 'GET',
@@ -42,8 +45,7 @@ export async function getJiraVersions(versionName) {
           return undefined;
         }
 
-        const version = versions.find((candidate) => candidate.name === versionName);
-        return version === undefined ? undefined : { projectKey, name: version.name };
+        return versions.some((candidate) => candidate.name === versionName) ? projectKey : undefined;
       } catch (error) {
         console.warn(`⚠️  Could not read versions of project ${projectKey}: ${error.message}`);
         return undefined;
@@ -55,23 +57,24 @@ export async function getJiraVersions(versionName) {
 }
 
 /**
- * Every public ticket fixed in the given versions, across the projects they belong to.
+ * Every public ticket fixed in the given version, across the given projects.
  *
  * <p>Matched on the version name, scoped to those projects: an issue in a project can only ever carry that
  * project's own version, so `project IN (...) AND fixVersion = "name"` cannot cross-match another board's
  * version even when both share the name. The results are paged through to the end: the search endpoint
  * returns a page at a time, and a release spanning several boards passes that page size easily.
  *
- * @param versions {Array<{projectKey: string, name: string}>}
- * @returns {Promise<Array<{key: string, project: string, githubIssue: string, summary: string, components: Array<object>, type: string}>>}
+ * @param projectKeys {Array<string>}
+ * @param versionName {string}
+ * @returns {Promise<Array<{key: string, githubIssue: string, summary: string, components: Array<object>, type: string}>>}
  */
-export async function getJiraIssuesOfVersions(versions) {
-  if (versions.length === 0) {
+export async function getJiraIssuesOfVersions(projectKeys, versionName) {
+  if (projectKeys.length === 0) {
     return [];
   }
 
-  const projects = [...new Set(versions.map((version) => version.projectKey))].join(', ');
-  const jql = `project IN (${projects}) AND fixVersion = "${versions[0].name}"`;
+  const projects = projectKeys.map((key) => `"${key.replace(/"/g, '\\"')}"`).join(', ');
+  const jql = `project IN (${projects}) AND fixVersion = "${versionName}"`;
 
   const issuesFromJira = [];
   let nextPageToken;
@@ -82,16 +85,21 @@ export async function getJiraIssuesOfVersions(versions) {
       body: JSON.stringify({
         jql,
         maxResults: 100,
-        fields: ['issuetype', 'summary', 'components', 'project', 'customfield_10115'],
+        fields: ['issuetype', 'summary', 'components', 'customfield_10115'],
         ...(nextPageToken ? { nextPageToken } : {}),
       }),
     }).then((response) => response.json());
 
-    issuesFromJira.push(...(page.issues ?? []));
+    if (!Array.isArray(page.issues)) {
+      // An error-shaped response must not read as "zero issues": that would write and commit an empty
+      // changelog as if the release genuinely shipped nothing public.
+      throw new Error(`Jira search failed: ${(page.errorMessages ?? ['unknown error']).join(', ')}`);
+    }
+
+    issuesFromJira.push(...page.issues);
     nextPageToken = page.nextPageToken;
   } while (nextPageToken);
 
-  // Filter out issues that are not public bugs or public security issues
   const issues = issuesFromJira
     .filter(
       (issue) =>
@@ -101,28 +109,35 @@ export async function getJiraIssuesOfVersions(versions) {
     )
     .map((issue) => ({
       key: issue.key,
-      project: issue.fields.project?.key ?? issue.key.split('-')[0],
       githubIssue: issue.fields.customfield_10115,
       summary: issue.fields.summary,
       components: issue.fields.components ?? [],
       type: issue.fields.issuetype.name,
     }));
 
-  // For each issue with empty githubIssue field, get the remote link and extract the GitHub issue number
-  for (const issue of issues.filter((issue) => !issue.githubIssue)) {
-    const remoteLinks = await fetch(`https://gravitee.atlassian.net/rest/api/3/issue/${issue.key}/remotelink`, {
-      method: 'GET',
-      headers: jiraHeaders(),
-    }).then((response) => response.json());
+  // Boards other than APIM never fill in the GitHub issue field, so this fallback runs for most of a
+  // non-APIM batch rather than the odd straggler — fetched concurrently so it no longer costs one
+  // round-trip per ticket in series.
+  await Promise.all(
+    issues
+      .filter((issue) => !issue.githubIssue)
+      .map(async (issue) => {
+        const remoteLinks = await fetch(`https://gravitee.atlassian.net/rest/api/3/issue/${issue.key}/remotelink`, {
+          method: 'GET',
+          headers: jiraHeaders(),
+        }).then((response) => response.json());
 
-    if (!Array.isArray(remoteLinks)) {
-      continue;
-    }
-    const githubIssue = remoteLinks.find((remoteLink) => remoteLink.object.url.includes('https://github.com/gravitee-io/issues/issues/'));
-    if (githubIssue) {
-      issue.githubIssue = githubIssue.object.url.replace('https://github.com/gravitee-io/issues/issues/', '');
-    }
-  }
+        if (!Array.isArray(remoteLinks)) {
+          return;
+        }
+        const githubIssue = remoteLinks.find((remoteLink) =>
+          remoteLink.object.url.includes('https://github.com/gravitee-io/issues/issues/'),
+        );
+        if (githubIssue) {
+          issue.githubIssue = githubIssue.object.url.replace('https://github.com/gravitee-io/issues/issues/', '');
+        }
+      }),
+  );
 
   return issues;
 }
