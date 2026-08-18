@@ -64,6 +64,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.observers.TestObserver;
+import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
@@ -284,6 +285,17 @@ class DefaultHttpRequestDispatcherTest {
         }
 
         @Test
+        void shouldUseStableRouteAsTracingSpanNameOnV4EmulationRequest() {
+            when(apiReactor.handle(any(MutableExecutionContext.class))).thenReturn(Completable.complete());
+            ArgumentCaptor<Context> vertxContextCaptor = ArgumentCaptor.forClass(Context.class);
+
+            cut.dispatch(rxRequest, SERVER_ID).test().assertComplete();
+
+            verify(spyNoopTracer).startRootSpanFrom(vertxContextCaptor.capture(), any());
+            assertThat(vertxContextCaptor.getValue().<String>getLocal("VertxRoute")).isEqualTo(PATH);
+        }
+
+        @Test
         void shouldEndTracingSpanInErrorWhenExceptionOnV4EmulationRequest() {
             when(
                 apiReactor.handle(
@@ -313,6 +325,7 @@ class DefaultHttpRequestDispatcherTest {
         @BeforeEach
         public void prepareV2ApiReactor() {
             when(httpAcceptorResolver.resolve(HOST, PATH, SERVER_ID)).thenReturn(handlerEntrypoint);
+            when(handlerEntrypoint.path()).thenReturn(PATH);
             when(handlerEntrypoint.reactor()).thenReturn(apiReactor);
             when(apiReactor.tracingContext()).thenReturn(tracingContext);
             mockConnectionCreationTimestamp();
@@ -464,6 +477,25 @@ class DefaultHttpRequestDispatcherTest {
             cut.dispatch(rxRequest, SERVER_ID).test().assertComplete();
             verify(spyNoopTracer).startRootSpanFrom(any(), any());
             verify(spyNoopTracer, timeout(1000)).endWithResponse(any(), any(), any());
+        }
+
+        @Test
+        void shouldUseStableRouteAsTracingSpanNameOnV3Request() {
+            when(response.ended()).thenReturn(true);
+
+            doAnswer(i -> {
+                simulateEndHandlerCall(i);
+                return null;
+            })
+                .when(apiReactor)
+                .handle(any(ExecutionContext.class), any(Handler.class));
+
+            ArgumentCaptor<Context> vertxContextCaptor = ArgumentCaptor.forClass(Context.class);
+
+            cut.dispatch(rxRequest, SERVER_ID).test().assertComplete();
+
+            verify(spyNoopTracer).startRootSpanFrom(vertxContextCaptor.capture(), any());
+            assertThat(vertxContextCaptor.getValue().<String>getLocal("VertxRoute")).isEqualTo(PATH);
         }
 
         @Test

@@ -83,6 +83,8 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
 
     private static final String ATTR_INTERNAL_VERTX_TIMER_ID = ContextAttributes.ATTR_PREFIX + "vertx-timer-id";
     public static final String ATTR_ENTRYPOINT = ContextAttributes.ATTR_PREFIX + "entrypoint";
+    // Key checked by gravitee-node's RouteGetter (OTel span naming) before falling back to the raw request URI.
+    private static final String TRACING_ROUTE_CONTEXT_KEY = "VertxRoute";
     private final GatewayConfiguration gatewayConfiguration;
     private final HttpAcceptorResolver httpAcceptorResolver;
     private final IdGenerator idGenerator;
@@ -190,6 +192,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
             log.debug("Request routed to API reactor on path [{}]", httpAcceptor.path());
             MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest);
             mutableCtx.request().contextPath(httpAcceptor.path());
+            markTracingRoute(vertxContext, httpAcceptor.path());
             TracingContext tracingContext = apiReactor.tracingContext();
             mutableCtx.tracer(new io.gravitee.gateway.reactive.api.tracing.Tracer(vertxContext, tracingContext.opentelemetryTracer()));
             mutableCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, apiReactor.api());
@@ -250,6 +253,10 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         return handleV3Request(httpServerRequest, httpAcceptor, vertxContext);
     }
 
+    private void markTracingRoute(final Context vertxContext, final String route) {
+        vertxContext.putLocal(TRACING_ROUTE_CONTEXT_KEY, route);
+    }
+
     private MutableExecutionContext prepareExecutionContext(final HttpServerRequest httpServerRequest) {
         VertxHttpServerRequest request = new VertxHttpServerRequest(
             httpServerRequest,
@@ -288,6 +295,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         final Context vertxContext
     ) {
         final ReactorHandler reactorHandler = handlerEntrypoint.reactor();
+        markTracingRoute(vertxContext, handlerEntrypoint.path());
 
         io.gravitee.gateway.http.vertx.VertxHttpServerRequest request = createV3Request(httpServerRequest, idGenerator);
 
