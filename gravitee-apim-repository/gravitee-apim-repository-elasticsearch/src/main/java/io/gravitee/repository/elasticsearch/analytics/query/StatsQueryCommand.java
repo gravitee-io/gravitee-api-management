@@ -57,12 +57,18 @@ public class StatsQueryCommand extends AbstractElasticsearchQueryCommand<StatsRe
         final StatsResponse statsResponse = new StatsResponse();
         if (response.getAggregations() != null && !response.getAggregations().isEmpty()) {
             final Aggregation aggregation = response.getAggregations().entrySet().iterator().next().getValue();
-            statsResponse.setAvg(aggregation.getAvg());
-            statsResponse.setCount(aggregation.getCount());
-            statsResponse.setMax(aggregation.getMax());
-            statsResponse.setMin(aggregation.getMin());
-            statsResponse.setSum(aggregation.getSum());
+            statsResponse.setAvg(toFloat(aggregation.getAvg()));
+            statsResponse.setCount(toFloat(aggregation.getCount()));
+            statsResponse.setMax(toFloat(aggregation.getMax()));
+            statsResponse.setMin(toFloat(aggregation.getMin()));
+            statsResponse.setSum(toFloat(aggregation.getSum()));
         }
         return statsResponse;
+    }
+
+    // StatsResponse is part of the repository API and still exposes floats; narrowing here keeps
+    // this legacy command unchanged rather than rippling a type change through its consumers.
+    private static Float toFloat(final Double value) {
+        return value == null ? null : value.floatValue();
     }
 }
