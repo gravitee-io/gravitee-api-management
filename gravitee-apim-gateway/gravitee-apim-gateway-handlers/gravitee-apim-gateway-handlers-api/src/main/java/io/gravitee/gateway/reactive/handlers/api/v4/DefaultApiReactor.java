@@ -30,9 +30,11 @@ import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.core.component.ComponentProvider;
@@ -643,6 +645,9 @@ public class DefaultApiReactor extends AbstractApiReactor {
         resourceLifecycleManager.start();
         policyManager.start();
 
+        // Warm up policies (e.g. pre-fetch XSD schemas) before the API is marked ready.
+        warmupPolicies();
+
         // Create and start ApiProductPlanPolicyManager when API Product support is enabled
         if (apiProductPlanPolicyManagerFactory != null) {
             apiProductPlanPolicyManager = apiProductPlanPolicyManagerFactory.create(api);
@@ -692,6 +697,39 @@ public class DefaultApiReactor extends AbstractApiReactor {
         log.debug("API reactor started in {} ms", (endTime - startTime));
 
         dumpAcceptors();
+    }
+
+    /**
+     * Pre-creates the API and plan flow policy chains so that policies implementing
+     * {@code WarmablePolicy} are warmed up (e.g. XSD schemas fetched and compiled) before the API
+     * is marked ready. This runs after resources have been started, on the deployment thread.
+     */
+    private void warmupPolicies() {
+        final List<Flow> apiFlows = new ArrayList<>();
+        final List<Flow> planFlows = new ArrayList<>();
+        collectFlows(apiFlows, planFlows);
+
+        if (!planFlows.isEmpty()) {
+            apiPlanFlowChain.warmupPolicies(deploymentContext, planFlows);
+        }
+        if (!apiFlows.isEmpty()) {
+            apiFlowChain.warmupPolicies(deploymentContext, apiFlows);
+        }
+    }
+
+    private void collectFlows(final List<Flow> apiFlows, final List<Flow> planFlows) {
+        final io.gravitee.definition.model.v4.Api definition = api.getDefinition();
+
+        if (definition.getPlans() != null) {
+            for (Plan plan : definition.getPlans()) {
+                if (plan.getFlows() != null) {
+                    planFlows.addAll(plan.getFlows());
+                }
+            }
+        }
+        if (definition.getFlows() != null) {
+            apiFlows.addAll(definition.getFlows());
+        }
     }
 
     /**
