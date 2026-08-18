@@ -89,7 +89,9 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
             // Register in parent context so sibling plugin contexts can reuse it.
             DefaultListableBeanFactory beanFactory =
                 (DefaultListableBeanFactory) ((ConfigurableApplicationContext) applicationContext.getParent()).getBeanFactory();
-            beanFactory.registerSingleton("managementMongoTemplate", template);
+            if (!beanFactory.containsSingleton("managementMongoTemplate")) {
+                beanFactory.registerSingleton("managementMongoTemplate", template);
+            }
             return template;
         } catch (Exception e) {
             throw new IllegalStateException(e);

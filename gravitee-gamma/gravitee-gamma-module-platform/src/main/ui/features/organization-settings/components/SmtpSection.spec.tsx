@@ -55,6 +55,23 @@ describe('SmtpSection', () => {
         expect(screen.getByLabelText('Enable Emailing')).not.toBeNull();
     });
 
+    it('keeps branded senders visible but disabled when emailing is off', () => {
+        render(
+            <Harness
+                initial={{
+                    ...ENABLED,
+                    enabled: false,
+                    brandedSenders: [
+                        { domains: ['partners.example.com'], from: 'Partners <partners@example.com>', subject: '[Partners] %s' },
+                    ],
+                }}
+            />,
+        );
+        expect(screen.getByText('Branded notification email')).not.toBeNull();
+        expect(screen.queryByRole('button', { name: /Add rule/i })).toBeNull();
+        expect((screen.getByLabelText('From *') as HTMLInputElement).disabled).toBe(true);
+    });
+
     it('shows host, port, password sentinel, and mail properties when enabled', () => {
         render(<Harness />);
         expect((screen.getByLabelText('Host') as HTMLInputElement).value).toBe('smtp.example.com');

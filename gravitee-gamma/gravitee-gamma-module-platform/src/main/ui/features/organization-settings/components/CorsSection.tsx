@@ -30,17 +30,31 @@ export interface CorsFormState {
     maxAge: string;
 }
 
+export interface CorsFieldReadonly {
+    allowOrigin?: boolean;
+    allowMethods?: boolean;
+    allowHeaders?: boolean;
+    exposedHeaders?: boolean;
+    maxAge?: boolean;
+}
+
 export function CorsSection({
     value,
     disabled,
+    readonly = {},
     onChange,
 }: Readonly<{
     value: CorsFormState;
     disabled: boolean;
+    readonly?: CorsFieldReadonly;
     onChange: (next: CorsFormState) => void;
 }>) {
     const [pendingWildcard, setPendingWildcard] = useState(false);
     const invalidOrigins = getInvalidAllowOrigins(value.allowOrigin);
+
+    function isFieldDisabled(key: keyof CorsFieldReadonly): boolean {
+        return disabled || Boolean(readonly[key]);
+    }
 
     function handleOriginsChange(next: string[]) {
         if (next.includes('*') && !value.allowOrigin.includes('*')) {
@@ -66,7 +80,7 @@ export function CorsSection({
                     values={value.allowOrigin}
                     onChange={handleOriginsChange}
                     placeholder="*, https://mydomain.com, (http|https).*.mydomain.com, ..."
-                    disabled={disabled}
+                    disabled={isFieldDisabled('allowOrigin')}
                 />
                 <p className="text-xs text-muted-foreground">
                     The origin parameter specifies a URI that may access the resource. Scheme, domain and port are part of the same-origin
@@ -97,7 +111,7 @@ export function CorsSection({
                             <Checkbox
                                 checked={value.allowMethods.includes(method)}
                                 onCheckedChange={checked => toggleMethod(method, checked === true)}
-                                disabled={disabled}
+                                disabled={isFieldDisabled('allowMethods')}
                                 aria-label={method}
                             />
                             <span className="font-mono text-xs">{method}</span>
@@ -118,7 +132,7 @@ export function CorsSection({
                     values={value.allowHeaders}
                     onChange={allowHeaders => onChange({ ...value, allowHeaders })}
                     placeholder="Content-Type, ..."
-                    disabled={disabled}
+                    disabled={isFieldDisabled('allowHeaders')}
                     addOnComma
                 />
                 <p className="text-xs text-muted-foreground">
@@ -135,7 +149,7 @@ export function CorsSection({
                     values={value.exposedHeaders}
                     onChange={exposedHeaders => onChange({ ...value, exposedHeaders })}
                     placeholder="Content-Type, ..."
-                    disabled={disabled}
+                    disabled={isFieldDisabled('exposedHeaders')}
                     addOnComma
                 />
                 <p className="text-xs text-muted-foreground">
@@ -153,7 +167,7 @@ export function CorsSection({
                     min={0}
                     value={value.maxAge}
                     onChange={e => onChange({ ...value, maxAge: e.target.value })}
-                    disabled={disabled}
+                    disabled={isFieldDisabled('maxAge')}
                 />
                 <p className="text-xs text-muted-foreground">
                     How long the response from a pre-flight request can be cached by clients (seconds).

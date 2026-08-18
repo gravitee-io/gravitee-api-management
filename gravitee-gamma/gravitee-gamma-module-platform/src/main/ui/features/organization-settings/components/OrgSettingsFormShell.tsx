@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Alert, AlertDescription, Button, Skeleton } from '@gravitee/graphene-core';
+import { Alert, AlertDescription, Button, Skeleton, TooltipProvider } from '@gravitee/graphene-core';
 import { CheckIcon, InfoIcon } from '@gravitee/graphene-core/icons';
 import type { ReactNode } from 'react';
 
@@ -67,35 +67,45 @@ export function OrgSettingsFormShell({
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-start justify-between gap-4">
-                <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-                    <p className="text-sm text-muted-foreground">{description}</p>
-                </div>
-                {isDirty && canEdit ? (
-                    <div className="flex shrink-0 items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={onDiscard} disabled={isSaving}>
-                            Discard
-                        </Button>
-                        <Button size="sm" onClick={onSave} disabled={isSaving || !isValid}>
-                            <CheckIcon className="size-4" aria-hidden />
-                            {isSaving ? 'Saving…' : 'Save changes'}
-                        </Button>
+        <TooltipProvider delayDuration={200}>
+            <div className="space-y-6">
+                <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1">
+                        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+                        <p className="text-sm text-muted-foreground">{description}</p>
                     </div>
-                ) : null}
-            </div>
+                    {isDirty && canEdit ? (
+                        <div className="flex shrink-0 items-center gap-2">
+                            <Button variant="outline" size="sm" onClick={onDiscard} disabled={isSaving}>
+                                Discard
+                            </Button>
+                            <Button size="sm" onClick={onSave} disabled={isSaving || !isValid}>
+                                <CheckIcon className="size-4" aria-hidden />
+                                {isSaving ? 'Saving…' : 'Save changes'}
+                            </Button>
+                        </div>
+                    ) : null}
+                </div>
 
-            {!canEdit ? (
                 <Alert>
                     <InfoIcon className="size-4" />
                     <AlertDescription>
-                        You do not have permission to modify these settings. Contact your administrator for access.
+                        Depending on your architecture, this configuration may be overridden by a local configuration file. See
+                        documentation for more information.
                     </AlertDescription>
                 </Alert>
-            ) : null}
 
-            {children}
-        </div>
+                {!canEdit ? (
+                    <Alert>
+                        <InfoIcon className="size-4" />
+                        <AlertDescription>
+                            You do not have permission to modify these settings. Contact your administrator for access.
+                        </AlertDescription>
+                    </Alert>
+                ) : null}
+
+                {children}
+            </div>
+        </TooltipProvider>
     );
 }

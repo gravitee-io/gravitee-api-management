@@ -201,17 +201,15 @@ export function SmtpSection({
                 </section>
             ) : null}
 
-            {value.enabled ? (
-                <section className="rounded-lg border p-4">
-                    <BrandedSendersSection
-                        defaultFrom={value.from}
-                        defaultSubject={value.subject}
-                        senders={value.brandedSenders}
-                        disabled={isFieldDisabled('brandedSenders')}
-                        onChange={brandedSenders => onChange({ ...value, brandedSenders })}
-                    />
-                </section>
-            ) : null}
+            <section className="rounded-lg border p-4">
+                <BrandedSendersSection
+                    defaultFrom={value.from}
+                    defaultSubject={value.subject}
+                    senders={value.brandedSenders}
+                    disabled={disabled || !value.enabled || Boolean(readonly.brandedSenders)}
+                    onChange={brandedSenders => onChange({ ...value, brandedSenders })}
+                />
+            </section>
         </div>
     );
 }

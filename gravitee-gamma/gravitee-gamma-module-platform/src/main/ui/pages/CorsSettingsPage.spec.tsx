@@ -97,4 +97,20 @@ describe('CorsSettingsPage', () => {
             expect.any(Object),
         );
     });
+
+    it('keeps other CORS fields editable when only Allow-Origin is system-provided', () => {
+        mockUseOrgConsoleSettings.mockReturnValue({
+            data: {
+                ...SETTINGS,
+                metadata: { readonly: ['http.api.management.cors.allow-origin'] },
+            },
+            isLoading: false,
+            isError: false,
+        } as ReturnType<typeof useOrgConsoleSettings>);
+
+        renderPage();
+        expect((screen.getByPlaceholderText(/https:\/\/mydomain.com/) as HTMLInputElement).disabled).toBe(true);
+        expect((screen.getByLabelText('Max age') as HTMLInputElement).disabled).toBe(false);
+        expect((screen.getByLabelText('GET') as HTMLButtonElement).disabled).toBe(false);
+    });
 });

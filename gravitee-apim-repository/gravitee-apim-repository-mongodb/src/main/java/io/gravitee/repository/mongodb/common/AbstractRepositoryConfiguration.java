@@ -58,7 +58,9 @@ public abstract class AbstractRepositoryConfiguration extends AbstractMongoClien
     @Override
     public void afterPropertiesSet() {
         final ConfigurableListableBeanFactory beanFactory = getConfigurableApplicationContext(applicationContext).getBeanFactory();
-        beanFactory.registerSingleton("graviteeTransactionManager", new NoTransactionManager());
+        if (!beanFactory.containsSingleton("graviteeTransactionManager")) {
+            beanFactory.registerSingleton("graviteeTransactionManager", new NoTransactionManager());
+        }
     }
 
     private ConfigurableApplicationContext getConfigurableApplicationContext(ApplicationContext applicationContext) {
