@@ -145,7 +145,7 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
             .assertNoErrors();
 
         Set<String> expectedOperationNames = Set.of(
-            "POST /test",
+            "POST /test/",
             "Request phase",
             "REQUEST Processor (processor-metrics)",
             "REQUEST Processor (pre-processor-transaction)",
@@ -178,7 +178,7 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
                 assertThat(response.statusCode()).isEqualTo(200);
                 JsonObject body = response.bodyAsJsonObject();
                 assertData(body, expectedOperationNames);
-                assertExactlyOneSpanWithKind(body, "POST /test", "server");
+                assertExactlyOneSpanWithKind(body, "POST /test/", "server");
             });
     }
 
@@ -205,7 +205,7 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
         httpClient.close().blockingAwait();
 
         Set<String> expectedOperationNames = Set.of(
-            "GET /test",
+            "GET /test/",
             "REQUEST Processor (processor-metrics)",
             "REQUEST Processor (pre-processor-transaction)",
             "REQUEST Processor (processor-x-forward-for)",
@@ -239,7 +239,7 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
                 assertThat(response.statusCode()).isEqualTo(200);
                 JsonObject body = response.bodyAsJsonObject();
                 assertData(body, expectedOperationNames);
-                assertExactlyOneSpanWithKind(body, "GET /test", "server");
+                assertExactlyOneSpanWithKind(body, "GET /test/", "server");
             });
     }
 
