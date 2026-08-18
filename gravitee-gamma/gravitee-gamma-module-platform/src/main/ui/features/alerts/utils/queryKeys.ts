@@ -17,4 +17,5 @@
 export const platformAlertKeys = {
     all: ['platform-alerts'] as const,
     list: (envId: string) => [...platformAlertKeys.all, 'list', envId] as const,
+    history: (envId: string, alertId: string) => [...platformAlertKeys.all, 'history', envId, alertId] as const,
 } as const;

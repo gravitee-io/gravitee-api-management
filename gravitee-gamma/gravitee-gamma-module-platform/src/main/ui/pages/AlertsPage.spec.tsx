@@ -20,7 +20,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useNavigate } from 'react-router-dom';
 
 import { AlertsPage } from './AlertsPage';
-import { listPlatformAlerts, updatePlatformAlert } from '../features/alerts/services/alerts';
+import { deletePlatformAlert, listPlatformAlerts, updatePlatformAlert } from '../features/alerts/services/alerts';
 import type { AlertTrigger } from '../features/alerts/types/alert';
 import { notify } from '../shared/notify';
 
@@ -37,6 +37,7 @@ jest.mock('react-router-dom', () => ({
 jest.mock('../features/alerts/services/alerts', () => ({
     listPlatformAlerts: jest.fn(),
     updatePlatformAlert: jest.fn(),
+    deletePlatformAlert: jest.fn(),
 }));
 
 jest.mock('../features/alerts/components/AlertsEducationalEmptyState', () => ({
@@ -53,6 +54,7 @@ const mockUseNavigate = jest.mocked(useNavigate);
 const mockNavigate = jest.fn();
 const mockListPlatformAlerts = jest.mocked(listPlatformAlerts);
 const mockUpdatePlatformAlert = jest.mocked(updatePlatformAlert);
+const mockDeletePlatformAlert = jest.mocked(deletePlatformAlert);
 
 const ALERT: AlertTrigger = {
     id: 'alert-1',
@@ -86,6 +88,7 @@ describe('AlertsPage', () => {
         mockUseHasPermission.mockReturnValue(true);
         mockListPlatformAlerts.mockResolvedValue([]);
         mockUpdatePlatformAlert.mockResolvedValue(ALERT);
+        mockDeletePlatformAlert.mockResolvedValue(undefined);
     });
 
     it('renders the page header', async () => {
@@ -135,19 +138,32 @@ describe('AlertsPage', () => {
         expect(screen.queryByText('When a gateway node stops')).toBeNull();
     });
 
-    it('shows Edit and Delete as disabled actions', async () => {
+    it('navigates to the alert id when Edit is clicked', async () => {
         const user = userEvent.setup();
         mockListPlatformAlerts.mockResolvedValue([ALERT]);
         renderPage();
 
         await waitFor(() => expect(screen.getByText('Node stopped')).not.toBeNull());
         await user.click(screen.getByRole('button', { name: 'Actions for Node stopped' }));
+        await user.click(await screen.findByRole('menuitem', { name: 'Edit' }));
 
-        const editItem = await screen.findByRole('menuitem', { name: 'Edit' });
-        const deleteItem = screen.getByRole('menuitem', { name: 'Delete alert' });
-        expect(editItem.getAttribute('aria-disabled') ?? editItem.getAttribute('data-disabled')).toBeTruthy();
-        expect(deleteItem.getAttribute('aria-disabled') ?? deleteItem.getAttribute('data-disabled')).toBeTruthy();
-        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith('alert-1');
+    });
+
+    it('deletes an alert after ConfirmDialog confirmation', async () => {
+        const user = userEvent.setup();
+        mockListPlatformAlerts.mockResolvedValue([ALERT]);
+        renderPage();
+
+        await waitFor(() => expect(screen.getByText('Node stopped')).not.toBeNull());
+        await user.click(screen.getByRole('button', { name: 'Actions for Node stopped' }));
+        await user.click(await screen.findByRole('menuitem', { name: 'Delete alert' }));
+
+        expect(screen.getByRole('heading', { name: 'Delete alert' })).not.toBeNull();
+        await user.click(screen.getByRole('button', { name: /^Delete$/i }));
+
+        await waitFor(() => expect(mockDeletePlatformAlert).toHaveBeenCalledWith('env-1', 'alert-1'));
+        await waitFor(() => expect(notify.success).toHaveBeenCalledWith('Alert "Node stopped" deleted.'));
     });
 
     it('shows an error message when the list request fails', async () => {

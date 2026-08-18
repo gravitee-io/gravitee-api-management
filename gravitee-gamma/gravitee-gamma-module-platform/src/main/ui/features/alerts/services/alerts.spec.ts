@@ -13,9 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { listPlatformAlerts, updatePlatformAlert } from './alerts';
+import {
+    createPlatformAlert,
+    deletePlatformAlert,
+    formConditionToApi,
+    listPlatformAlertEvents,
+    listPlatformAlerts,
+    updatePlatformAlert,
+    updatePlatformAlertFromForm,
+} from './alerts';
 import { apimFetchJsonV1Env } from '../../../shared/api/apimClient';
-import type { AlertTrigger } from '../types/alert';
+import type { AlertFormCondition, AlertTrigger } from '../types/alert';
 
 jest.mock('../../../shared/api/apimClient', () => ({
     apimFetchJsonV1Env: jest.fn(),
@@ -38,6 +46,20 @@ const ALERT: AlertTrigger = {
     dampening: { mode: 'STRICT_COUNT', trueEvaluations: 1 },
 };
 
+const FORM_DATA = {
+    name: 'High CPU',
+    description: 'Node CPU',
+    severity: 'WARNING' as const,
+    enabled: true,
+    source: 'NODE_HEARTBEAT',
+    type: 'METRICS_SIMPLE_CONDITION',
+    conditions: [{ type: 'THRESHOLD' as const, property: 'os.cpu.percent', operator: 'GT' as const, threshold: 80 }],
+    filters: [],
+    notifications: [],
+    timeframes: [],
+    dampening: { mode: 'STRICT_COUNT' as const, trueEvaluations: 1 },
+};
+
 describe('platform alerts service', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -49,6 +71,43 @@ describe('platform alerts service', () => {
             await listPlatformAlerts('env-1');
 
             expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('env-1', '/platform/alerts?event_counts=true');
+        });
+    });
+
+    describe('createPlatformAlert', () => {
+        it('POSTs to /platform/alerts with ENVIRONMENT reference', async () => {
+            mockApimFetchJsonV1Env.mockResolvedValue({ ...ALERT, id: 'created' });
+            await createPlatformAlert('env-1', FORM_DATA);
+
+            expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith(
+                'env-1',
+                '/platform/alerts',
+                expect.objectContaining({
+                    method: 'POST',
+                    body: expect.stringContaining('"reference_type":"ENVIRONMENT"'),
+                }),
+            );
+            const body = JSON.parse((mockApimFetchJsonV1Env.mock.calls[0][2] as { body: string }).body);
+            expect(body.reference_id).toBe('env-1');
+            expect(body.name).toBe('High CPU');
+            expect(body.template).toBe(false);
+        });
+
+        it('maps timeframe start/end as seconds since midnight (classic beginHour/endHour)', async () => {
+            mockApimFetchJsonV1Env.mockResolvedValue({ ...ALERT, id: 'created' });
+            await createPlatformAlert('env-1', {
+                ...FORM_DATA,
+                timeframes: [{ days: [1, 2, 3, 4, 5], startHour: 9 * 3600, endHour: 18 * 3600 }],
+            });
+
+            const body = JSON.parse((mockApimFetchJsonV1Env.mock.calls[0][2] as { body: string }).body);
+            expect(body.notificationPeriods[0]).toEqual(
+                expect.objectContaining({
+                    days: [1, 2, 3, 4, 5],
+                    beginHour: 32400,
+                    endHour: 64800,
+                }),
+            );
         });
     });
 
@@ -67,6 +126,95 @@ describe('platform alerts service', () => {
             await updatePlatformAlert('env-1', { ...ALERT, id: 'a/b' });
 
             expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('env-1', '/platform/alerts/a%2Fb', expect.any(Object));
+        });
+    });
+
+    describe('updatePlatformAlertFromForm', () => {
+        it('PUTs converted form data to /platform/alerts/{id}', async () => {
+            await updatePlatformAlertFromForm('env-1', 'alert-1', FORM_DATA);
+
+            expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith(
+                'env-1',
+                '/platform/alerts/alert-1',
+                expect.objectContaining({ method: 'PUT' }),
+            );
+            const body = JSON.parse((mockApimFetchJsonV1Env.mock.calls[0][2] as { body: string }).body);
+            expect(body.id).toBe('alert-1');
+            expect(body.name).toBe('High CPU');
+        });
+    });
+
+    describe('deletePlatformAlert', () => {
+        it('DELETEs /platform/alerts/{id}', async () => {
+            await deletePlatformAlert('env-1', 'alert-1');
+
+            expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('env-1', '/platform/alerts/alert-1', { method: 'DELETE' });
+        });
+    });
+
+    describe('listPlatformAlertEvents', () => {
+        it('GETs /platform/alerts/{id}/events with pagination', async () => {
+            mockApimFetchJsonV1Env.mockResolvedValue({ content: [], totalElements: 0 });
+            await listPlatformAlertEvents('env-1', 'alert-1', 2, 20);
+
+            expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('env-1', '/platform/alerts/alert-1/events?page=2&size=20');
+        });
+    });
+
+    describe('formConditionToApi', () => {
+        it('maps RATE conditions with nested comparison', () => {
+            const condition: AlertFormCondition = {
+                type: 'RATE',
+                property: 'os.cpu.percent',
+                operator: 'GT',
+                threshold: 50,
+                rateOperator: 'GTE',
+                rateThreshold: 10,
+                duration: 5,
+                timeUnit: 'MINUTES',
+            };
+            expect(formConditionToApi(condition)).toEqual({
+                type: 'RATE',
+                operator: 'GTE',
+                threshold: 10,
+                comparison: { type: 'THRESHOLD', property: 'os.cpu.percent', operator: 'GT', threshold: 50 },
+                duration: 5,
+                timeUnit: 'MINUTES',
+            });
+        });
+
+        it('defaults THRESHOLD operator to GT when missing (classic requires operator)', () => {
+            expect(
+                formConditionToApi({
+                    type: 'THRESHOLD',
+                    property: 'response.response_time',
+                    threshold: 10,
+                }),
+            ).toEqual({
+                type: 'THRESHOLD',
+                property: 'response.response_time',
+                operator: 'GT',
+                threshold: 10,
+            });
+        });
+
+        it('maps THRESHOLD_RANGE with classic BETWEEN operator', () => {
+            expect(
+                formConditionToApi({
+                    type: 'THRESHOLD_RANGE',
+                    property: 'response.response_time',
+                    thresholdLow: 200,
+                    thresholdHigh: 488,
+                }),
+            ).toEqual({
+                type: 'THRESHOLD_RANGE',
+                property: 'response.response_time',
+                operator: 'BETWEEN',
+                operatorLow: 'INCLUSIVE',
+                thresholdLow: 200,
+                operatorHigh: 'INCLUSIVE',
+                thresholdHigh: 488,
+            });
         });
     });
 });
