@@ -26,5 +26,5 @@ export type GroupByField =
   | 'status'
   | 'application-id'
   | 'plan-id'
-  | 'path-info.keyword'
+  | 'uri'
   | 'additional-metrics.long_mcp-proxy_response-error-code';

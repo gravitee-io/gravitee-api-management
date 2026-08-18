@@ -230,16 +230,50 @@ export class ApiAnalyticsWidgetService {
     groupByResponse: GroupByResponse,
     widgetConfig: ApiAnalyticsDashboardWidgetConfig,
   ): ApiAnalyticsWidgetConfig {
+    const normalizedGroupByResponse = this.normalizeGroupByResponse(groupByResponse, widgetConfig);
+
     if (widgetConfig.type === 'pie') {
-      return this.transformGroupByResponseToPieConfig(groupByResponse, widgetConfig);
+      return this.transformGroupByResponseToPieConfig(normalizedGroupByResponse, widgetConfig);
     }
 
     if (widgetConfig.type === 'table') {
-      return this.transformGroupByResponseToTableConfig(groupByResponse, widgetConfig);
+      return this.transformGroupByResponseToTableConfig(normalizedGroupByResponse, widgetConfig);
     }
 
     // Default fallback for unsupported widget types
     return this.createErrorConfig(widgetConfig, 'Unsupported widget type for GROUP_BY analytics');
+  }
+
+  private normalizeGroupByResponse(groupByResponse: GroupByResponse, widgetConfig: ApiAnalyticsDashboardWidgetConfig): GroupByResponse {
+    // Opt-in per widget so a future uri-based widget can still show raw per-URI buckets.
+    if (!widgetConfig.mergeGroupByUriPath) {
+      return groupByResponse;
+    }
+
+    const values: Record<string, number> = {};
+
+    Object.entries(groupByResponse.values).forEach(([uri, count]) => {
+      const path = this.pathWithoutQueryString(uri);
+      values[path] = (values[path] ?? 0) + count;
+    });
+
+    const metadata = Object.entries(values)
+      .sort(([, countA], [, countB]) => countB - countA)
+      .reduce<GroupByResponse['metadata']>((acc, [path], index) => {
+        acc[path] = { name: path, order: index };
+        return acc;
+      }, {});
+
+    return {
+      ...groupByResponse,
+      values,
+      metadata,
+    };
+  }
+
+  private pathWithoutQueryString(uri: string): string {
+    const queryIndex = uri.indexOf('?');
+    return queryIndex === -1 ? uri : uri.slice(0, queryIndex);
   }
 
   private transformGroupByResponseToPieConfig(
