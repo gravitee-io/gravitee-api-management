@@ -40,6 +40,51 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(portal).isPresent();
         assertThat(portal.get().getName()).isEqualTo("Default Portal");
         assertThat(portal.get().getOrganizationId()).isEqualTo("organization1");
+        assertThat(portal.get().getActiveThemeId()).isNull();
+    }
+
+    @Test
+    public void should_read_active_theme_id_from_fixture() throws Exception {
+        Optional<Portal> portal = portalRepository.findByIdAndEnvironmentId("portal2", "environment1");
+
+        assertThat(portal).isPresent();
+        assertThat(portal.get().getActiveThemeId()).isEqualTo("theme-portal2");
+    }
+
+    @Test
+    public void should_round_trip_active_theme_id_on_create() throws Exception {
+        Portal toCreate = Portal.builder()
+            .id("themed-portal")
+            .environmentId("environment1")
+            .organizationId("organization1")
+            .name("Themed Portal")
+            .activeThemeId("theme-xyz")
+            .build();
+
+        Portal created = portalRepository.create(toCreate);
+
+        assertThat(created.getActiveThemeId()).isEqualTo("theme-xyz");
+        assertThat(portalRepository.findById("themed-portal")).hasValueSatisfying(found ->
+            assertThat(found.getActiveThemeId()).isEqualTo("theme-xyz")
+        );
+    }
+
+    @Test
+    public void should_round_trip_active_theme_id_on_update() throws Exception {
+        Portal toUpdate = Portal.builder()
+            .id("portal1")
+            .environmentId("environment1")
+            .organizationId("organization1")
+            .name("Default Portal")
+            .activeThemeId("theme-abc")
+            .build();
+
+        Portal updated = portalRepository.update(toUpdate);
+
+        assertThat(updated.getActiveThemeId()).isEqualTo("theme-abc");
+        assertThat(portalRepository.findById("portal1")).hasValueSatisfying(found ->
+            assertThat(found.getActiveThemeId()).isEqualTo("theme-abc")
+        );
     }
 
     @Test

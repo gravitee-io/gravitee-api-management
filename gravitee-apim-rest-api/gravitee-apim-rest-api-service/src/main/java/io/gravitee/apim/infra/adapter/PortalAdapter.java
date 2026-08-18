@@ -43,7 +43,7 @@ public interface PortalAdapter {
             portal.getOrganizationId(),
             portal.getName(),
             deserializePortalNavigation(portal.getPortalNavigation())
-        );
+        ).withActiveThemeId(portal.getActiveThemeId());
     }
 
     default io.gravitee.repository.management.model.Portal toRepository(Portal portal) {
@@ -56,6 +56,7 @@ public interface PortalAdapter {
             .organizationId(portal.getOrganizationId())
             .name(portal.getName())
             .portalNavigation(serializePortalNavigation(portal.getNavigationStructure()))
+            .activeThemeId(portal.getActiveThemeId())
             .build();
     }
 
