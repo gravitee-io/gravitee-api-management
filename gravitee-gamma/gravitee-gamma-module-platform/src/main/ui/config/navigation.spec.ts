@@ -41,16 +41,16 @@ describe('platform navigation config', () => {
         expect(sectionKeys('Organization', 'Assets')).toEqual(['tenants', 'entrypoints-and-sharding-tags']);
     });
 
-    it('places Access Management under Organization / System & Security', () => {
-        expect(sectionKeys('Organization', 'System & Security')).toEqual(['access-management']);
+    it('places Access Management then Audit under Organization / System & Security', () => {
+        expect(sectionKeys('Organization', 'System & Security')).toEqual(['access-management', 'organization-audit']);
     });
 
     it('places Applications, Metadata, and Dictionaries under Environment / APIs & Assets', () => {
         expect(sectionKeys('Environment', 'APIs & Assets')).toEqual(['applications', 'metadata', 'dictionaries']);
     });
 
-    it('places Gateways, Alerts, and Security Plan Types under Environment / System & Security', () => {
-        expect(sectionKeys('Environment', 'System & Security')).toEqual(['gateways', 'alerts', 'security-plan-types']);
+    it('places Gateways, Alerts, Security Plan Types, and Audit under Environment / System & Security', () => {
+        expect(sectionKeys('Environment', 'System & Security')).toEqual(['gateways', 'alerts', 'security-plan-types', 'environment-audit']);
     });
 
     it('places Users and Groups under Team', () => {
@@ -74,6 +74,8 @@ describe('platform navigation config', () => {
         expect(findNavSectionKey(NAV_SECTIONS, 'users')).toBe('team');
         expect(findNavSectionKey(NAV_SECTIONS, 'access-management')).toBe('organization');
         expect(findNavSectionKey(NAV_SECTIONS, 'tenants')).toBe('organization');
+        expect(findNavSectionKey(NAV_SECTIONS, 'organization-audit')).toBe('organization');
+        expect(findNavSectionKey(NAV_SECTIONS, 'environment-audit')).toBe('environment');
         expect(findNavSectionKey(NAV_SECTIONS, 'missing')).toBeUndefined();
     });
 
@@ -108,5 +110,15 @@ describe('platform navigation config', () => {
     it('declares the tenants route in platform routing config', () => {
         expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('tenants');
         expect(ROUTES.tenants).toEqual({ path: 'tenants', label: 'Tenants' });
+    });
+
+    it('declares the organization-audit route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('organization-audit');
+        expect(ROUTES['organization-audit']).toEqual({ path: 'organization-audit', label: 'Audit' });
+    });
+
+    it('declares the environment-audit route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('environment-audit');
+        expect(ROUTES['environment-audit']).toEqual({ path: 'environment-audit', label: 'Audit' });
     });
 });

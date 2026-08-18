@@ -44,6 +44,7 @@ import {
 import { PLATFORM_ROUTE_CONFIG } from '../config/routes';
 import { ENVIRONMENT_ALERT_READ_PERMISSION } from '../features/alerts/utils/alertPermissions';
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
+import { ENVIRONMENT_AUDIT_READ_PERMISSIONS, ORGANIZATION_AUDIT_READ_PERMISSIONS } from '../features/audit-logs/utils/auditPermissions';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
 import { GatewayInstanceDetailLayout } from '../features/gateway-instances/components/GatewayInstanceDetailLayout';
 import { ENVIRONMENT_GROUP_READ_PERMISSION } from '../features/groups/utils/groupPermissions';
@@ -57,12 +58,14 @@ import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { DictionariesPage } from '../pages/DictionariesPage';
 import { DictionaryDetailPage } from '../pages/DictionaryDetailPage';
 import { EntrypointsAndShardingTagsPage } from '../pages/EntrypointsAndShardingTagsPage';
+import { EnvAuditLogsPage } from '../pages/EnvAuditLogsPage';
 import { GatewayInstanceEnvironmentPage } from '../pages/GatewayInstanceEnvironmentPage';
 import { GatewayInstanceMonitoringPage } from '../pages/GatewayInstanceMonitoringPage';
 import { GatewayInstancesPage } from '../pages/GatewayInstancesPage';
 import { GroupDetailPage } from '../pages/GroupDetailPage';
 import { GroupsPage } from '../pages/GroupsPage';
 import { MetadataPage } from '../pages/MetadataPage';
+import { OrgAuditLogsPage } from '../pages/OrgAuditLogsPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
 import { TenantsPage } from '../pages/TenantsPage';
 import { UserDetailPage } from '../pages/UserDetailPage';
@@ -117,6 +120,8 @@ function isNavItemVisible(
     canReadGroups: boolean,
     canReadAlerts: boolean,
     canReadTenants: boolean,
+    canReadOrgAudit: boolean,
+    canReadEnvAudit: boolean,
 ): boolean {
     if (itemKey === 'users') {
         return !permissionsReady || canAccessUsers;
@@ -141,6 +146,12 @@ function isNavItemVisible(
     }
     if (itemKey === 'tenants') {
         return !permissionsReady || canReadTenants;
+    }
+    if (itemKey === 'organization-audit') {
+        return !permissionsReady || canReadOrgAudit;
+    }
+    if (itemKey === 'environment-audit') {
+        return !permissionsReady || canReadEnvAudit;
     }
     return true;
 }
@@ -225,6 +236,8 @@ function ModuleLayout() {
     const canReadGroups = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_READ_PERMISSION] });
     const canReadAlerts = useHasPermission({ anyOf: [ENVIRONMENT_ALERT_READ_PERMISSION] });
     const canReadTenants = useHasPermission({ anyOf: ['organization-tenant-r', 'environment-tenant-r'] });
+    const canReadOrgAudit = useHasPermission({ anyOf: [...ORGANIZATION_AUDIT_READ_PERMISSIONS] });
+    const canReadEnvAudit = useHasPermission({ anyOf: [...ENVIRONMENT_AUDIT_READ_PERMISSIONS] });
 
     const { activeNavKey, navigateToKey } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
 
@@ -242,6 +255,8 @@ function ModuleLayout() {
                     canReadGroups,
                     canReadAlerts,
                     canReadTenants,
+                    canReadOrgAudit,
+                    canReadEnvAudit,
                 ),
             ),
         [
@@ -254,6 +269,8 @@ function ModuleLayout() {
             canReadGroups,
             canReadAlerts,
             canReadTenants,
+            canReadOrgAudit,
+            canReadEnvAudit,
         ],
     );
 
@@ -458,6 +475,22 @@ export function AppRoutes() {
                                 element={
                                     <PermissionPageGuard permission={ENVIRONMENT_ALERT_READ_PERMISSION} unauthorizedTo="../applications">
                                         <AlertsPage />
+                                    </PermissionPageGuard>
+                                }
+                            />
+                            <Route
+                                path="organization-audit"
+                                element={
+                                    <PermissionPageGuard anyOf={[...ORGANIZATION_AUDIT_READ_PERMISSIONS]} unauthorizedTo="../applications">
+                                        <OrgAuditLogsPage />
+                                    </PermissionPageGuard>
+                                }
+                            />
+                            <Route
+                                path="environment-audit"
+                                element={
+                                    <PermissionPageGuard anyOf={[...ENVIRONMENT_AUDIT_READ_PERMISSIONS]} unauthorizedTo="../applications">
+                                        <EnvAuditLogsPage />
                                     </PermissionPageGuard>
                                 }
                             />

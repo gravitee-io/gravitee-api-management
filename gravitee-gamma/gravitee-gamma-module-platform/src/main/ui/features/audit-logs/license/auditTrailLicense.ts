@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FeatureLicenseDialog } from '../../../shared/components/FeatureLicenseDialog';
-import { SHARDING_TAGS_UPGRADE } from '../license/shardingTagsLicense';
 
-export function ShardingTagsLicenseDialog({
-    open,
-    onOpenChange,
-}: Readonly<{
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-}>) {
-    return <FeatureLicenseDialog upgrade={SHARDING_TAGS_UPGRADE} open={open} onOpenChange={onOpenChange} />;
-}
+export const APIM_AUDIT_TRAIL_FEATURE = 'apim-audit-trail';
+
+export const AUDIT_TRAIL_UPGRADE = {
+    title: 'Audit',
+    description:
+        'Audit is part of Gravitee Enterprise. Audit gives you a complete understanding of events and their context to strengthen your security posture.',
+    features: [
+        'Search organization and environment configuration changes',
+        'Inspect JSON Patch diffs for every audited event',
+        'Export filtered audit trails for compliance archives',
+    ],
+} as const;

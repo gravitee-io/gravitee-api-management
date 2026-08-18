@@ -27,6 +27,8 @@ export const ROUTE_KEYS: readonly string[] = [
     'tenants',
     'entrypoints-and-sharding-tags',
     'alerts',
+    'organization-audit',
+    'environment-audit',
 ];
 export type RouteKey = (typeof ROUTE_KEYS)[number];
 
@@ -44,6 +46,8 @@ export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: s
     tenants: { path: 'tenants', label: 'Tenants' },
     'entrypoints-and-sharding-tags': { path: 'entrypoints-and-sharding-tags', label: 'Entrypoints & Sharding Tags' },
     alerts: { path: 'alerts', label: 'Alerts' },
+    'organization-audit': { path: 'organization-audit', label: 'Audit' },
+    'environment-audit': { path: 'environment-audit', label: 'Audit' },
 };
 
 export const PLATFORM_ROUTE_CONFIG: ModuleRouteConfig<RouteKey> = {

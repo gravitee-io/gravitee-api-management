@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FeatureLicenseDialog } from '../../../shared/components/FeatureLicenseDialog';
-import { SHARDING_TAGS_UPGRADE } from '../license/shardingTagsLicense';
 
-export function ShardingTagsLicenseDialog({
-    open,
-    onOpenChange,
-}: Readonly<{
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-}>) {
-    return <FeatureLicenseDialog upgrade={SHARDING_TAGS_UPGRADE} open={open} onOpenChange={onOpenChange} />;
+/** Triggers a browser download of `blob` as `fileName`. */
+export function downloadBlob(blob: Blob, fileName: string): void {
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.download = fileName;
+    anchor.href = url;
+    anchor.click();
+    URL.revokeObjectURL(url);
+}
+
+/** Builds a `Blob` from text content and downloads it as `fileName`. */
+export function downloadTextFile(content: string, fileName: string, mimeType: string): void {
+    downloadBlob(new Blob([content], { type: mimeType }), fileName);
 }
