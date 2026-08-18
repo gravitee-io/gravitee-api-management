@@ -61,4 +61,12 @@ describe('TenantDeleteDialog', () => {
         expect((screen.getByRole('button', { name: 'Cancel' }) as HTMLButtonElement).disabled).toBe(true);
         expect((screen.getByRole('button', { name: 'Deleting…' }) as HTMLButtonElement).disabled).toBe(true);
     });
+
+    it('does not close on Escape while delete is in progress', () => {
+        const onClose = jest.fn();
+        render(<TenantDeleteDialog open tenant={TENANT} onClose={onClose} onConfirm={jest.fn()} isDeleting />);
+
+        fireEvent.keyDown(document, { key: 'Escape' });
+        expect(onClose).not.toHaveBeenCalled();
+    });
 });

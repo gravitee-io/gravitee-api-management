@@ -37,7 +37,7 @@ import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationCons
 import type { TableSortingState } from '../../applications/utils/tableSort';
 import { clampPage, paginateClientSideTableItems } from '../../users/utils/clientSideTableUtils';
 import type { Tenant } from '../types/tenant';
-import { filterTenants } from '../utils/tenantFormValidation';
+import { filterTenants } from '../utils/tenantTableUtils';
 
 const DEFAULT_PAGE_SIZE = 10;
 const SORTABLE_IDS = new Set(['key', 'name', 'description']);

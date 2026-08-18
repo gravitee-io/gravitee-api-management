@@ -18,6 +18,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { TenantFormSheet } from './TenantFormSheet';
 import { ApimApiError } from '../../../shared/api/apimClient';
+import { STANDARD_SHEET_WIDTH } from '../../applications/components/sheetLayout';
 import { querySheetHeading } from '../../applications/components/test/sheetSpecHelpers';
 import type { Tenant } from '../types/tenant';
 
@@ -238,7 +239,7 @@ describe('TenantFormSheet', () => {
         expect((screen.getByRole('button', { name: 'Create tenant' }) as HTMLButtonElement).disabled).toBe(true);
     });
 
-    it('scopes the form and field ids per mode so both sheets can be mounted at once', () => {
+    it('scopes the form and field ids per mode', () => {
         const { unmount } = render(
             <TenantFormSheet
                 open
@@ -270,5 +271,18 @@ describe('TenantFormSheet', () => {
         renderCreateSheet();
         expect(screen.getAllByText('0/40')).toHaveLength(2);
         expect(screen.getByText('0/160')).not.toBeNull();
+    });
+
+    it('renders at the standard sheet width', () => {
+        renderCreateSheet();
+        const content = document.querySelector('[data-slot="sheet-content"]') as HTMLElement | null;
+        expect(content).not.toBeNull();
+        expect(content?.style.maxWidth).toBe(STANDARD_SHEET_WIDTH);
+    });
+
+    it('does not close on Escape while save is in progress', () => {
+        const { onClose } = renderCreateSheet({ isSaving: true });
+        fireEvent.keyDown(document, { key: 'Escape' });
+        expect(onClose).not.toHaveBeenCalled();
     });
 });

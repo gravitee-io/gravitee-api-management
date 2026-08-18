@@ -33,6 +33,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 
 import { ApimApiError } from '../../../shared/api/apimClient';
 import { extractErrorMessage } from '../../../shared/notify/extractErrorMessage';
+import { STANDARD_SHEET_WIDTH } from '../../applications/components/sheetLayout';
 import type { NewTenantPayload, Tenant, UpdateTenantPayload } from '../types/tenant';
 import {
     findDuplicateTenantKey,
@@ -150,9 +151,9 @@ export function TenantFormSheet({
 
     const handleOpenChange = useCallback(
         (isOpen: boolean) => {
-            if (!isOpen) onClose();
+            if (!isOpen && !isSaving) onClose();
         },
-        [onClose],
+        [onClose, isSaving],
     );
 
     const nameError = getTenantNameError(form.name);
@@ -167,7 +168,7 @@ export function TenantFormSheet({
         isTenantDescriptionValid(form.description) &&
         duplicateKeyError === null;
     const keyFieldInvalid = mode === 'create' && (duplicateKeyError !== null || !isKeyValid);
-    /** Scopes element ids per mode: the page keeps the create and edit sheets mounted at the same time. */
+    /** Scopes element ids per mode so create and edit field ids stay unique. */
     const idPrefix = mode === 'create' ? 'tenant-create' : 'tenant-edit';
     const formId = `${idPrefix}-form`;
 
@@ -241,7 +242,12 @@ export function TenantFormSheet({
 
     return (
         <Sheet open={open} onOpenChange={handleOpenChange}>
-            <SheetContent side="right" showCloseButton={false} className="flex max-h-full flex-col" style={{ maxWidth: '480px' }}>
+            <SheetContent
+                side="right"
+                showCloseButton={false}
+                className="flex max-h-full flex-col"
+                style={{ maxWidth: STANDARD_SHEET_WIDTH }}
+            >
                 <SheetHeader className="flex-row items-start justify-between gap-3 space-y-0">
                     <div className="space-y-1.5 text-left">
                         <SheetTitle>{title}</SheetTitle>

@@ -16,7 +16,6 @@
 
 import {
     findDuplicateTenantKey,
-    filterTenants,
     getTenantDescriptionError,
     getTenantNameError,
     isTenantDescriptionValid,
@@ -120,14 +119,6 @@ describe('tenantFormValidation', () => {
             expect(findDuplicateTenantKey(STUB_TENANTS, 'us-east')?.id).toBe('t-1');
             expect(findDuplicateTenantKey(STUB_TENANTS, 'us-east', 't-1')).toBeUndefined();
             expect(findDuplicateTenantKey(STUB_TENANTS, '')).toBeUndefined();
-        });
-    });
-
-    describe('filterTenants', () => {
-        it('filters by key, name, or description', () => {
-            expect(filterTenants(STUB_TENANTS, 'east').map(row => row.key)).toEqual(['us-east']);
-            expect(filterTenants(STUB_TENANTS, 'frankfurt').map(row => row.key)).toEqual(['eu-west']);
-            expect(filterTenants(STUB_TENANTS, '  ').map(row => row.key)).toEqual(['us-east', 'eu-west']);
         });
     });
 });

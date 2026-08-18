@@ -85,14 +85,3 @@ export function findDuplicateTenantKey(rows: Tenant[], key: string, excludeId?: 
     if (!key) return undefined;
     return rows.find(row => row.id !== excludeId && row.key === key);
 }
-
-export function filterTenants(rows: Tenant[], query: string): Tenant[] {
-    const normalized = query.trim().toLowerCase();
-    if (!normalized) return rows;
-    return rows.filter(
-        row =>
-            row.key.toLowerCase().includes(normalized) ||
-            row.name.toLowerCase().includes(normalized) ||
-            (row.description ?? '').toLowerCase().includes(normalized),
-    );
-}
