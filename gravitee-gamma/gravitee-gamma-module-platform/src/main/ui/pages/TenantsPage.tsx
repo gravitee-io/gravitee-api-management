@@ -149,24 +149,28 @@ export function TenantsPage() {
 
             {renderContent()}
 
-            <TenantFormSheet
-                open={sheet.type === 'create'}
-                mode="create"
-                existingTenants={tenants}
-                onClose={closeSheet}
-                onSubmit={handleCreate}
-                isSaving={createMutation.isPending}
-            />
+            {sheet.type === 'create' ? (
+                <TenantFormSheet
+                    open
+                    mode="create"
+                    existingTenants={tenants}
+                    onClose={closeSheet}
+                    onSubmit={handleCreate}
+                    isSaving={createMutation.isPending}
+                />
+            ) : null}
 
-            <TenantFormSheet
-                open={sheet.type === 'edit'}
-                mode="edit"
-                tenant={sheet.type === 'edit' ? sheet.tenant : undefined}
-                existingTenants={tenants}
-                onClose={closeSheet}
-                onSubmit={handleUpdate}
-                isSaving={updateMutation.isPending}
-            />
+            {sheet.type === 'edit' ? (
+                <TenantFormSheet
+                    open
+                    mode="edit"
+                    tenant={sheet.tenant}
+                    existingTenants={tenants}
+                    onClose={closeSheet}
+                    onSubmit={handleUpdate}
+                    isSaving={updateMutation.isPending}
+                />
+            ) : null}
 
             <TenantDeleteDialog
                 open={sheet.type === 'delete'}

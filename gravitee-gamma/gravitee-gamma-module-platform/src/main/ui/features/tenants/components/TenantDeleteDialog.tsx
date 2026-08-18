@@ -34,7 +34,12 @@ export function TenantDeleteDialog({
     const displayName = tenant?.name || tenant?.key;
 
     return (
-        <Dialog open={open} onOpenChange={isOpen => !isOpen && onClose()}>
+        <Dialog
+            open={open}
+            onOpenChange={isOpen => {
+                if (!isOpen && !isDeleting) onClose();
+            }}
+        >
             <DialogContent className="max-w-sm">
                 <DialogHeader>
                     <DialogTitle>Delete a tenant</DialogTitle>
