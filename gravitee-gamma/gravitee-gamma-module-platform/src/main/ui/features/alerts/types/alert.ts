@@ -16,8 +16,56 @@
 
 export type AlertSeverity = 'INFO' | 'WARNING' | 'CRITICAL';
 
-export type AlertDampeningMode = 'STRICT_COUNT' | 'RELAXED_COUNT' | 'RELAXED_TIME' | 'STRICT_TIME';
+export type AlertRuleId =
+    | 'REQUEST@METRICS_SIMPLE_CONDITION'
+    | 'REQUEST@MISSING_DATA'
+    | 'REQUEST@METRICS_AGGREGATION'
+    | 'REQUEST@METRICS_RATE'
+    | 'ENDPOINT_HEALTH_CHECK@API_HC_ENDPOINT_STATUS_CHANGED'
+    | 'NODE_LIFECYCLE@NODE_LIFECYCLE_CHANGED'
+    | 'NODE_HEARTBEAT@METRICS_SIMPLE_CONDITION'
+    | 'NODE_HEARTBEAT@METRICS_AGGREGATION'
+    | 'NODE_HEARTBEAT@METRICS_RATE'
+    | 'NODE_HEALTHCHECK@NODE_HEALTHCHECK';
+
+export type AlertConditionType = 'STRING' | 'THRESHOLD' | 'THRESHOLD_RANGE' | 'COMPARE' | 'AGGREGATION' | 'RATE' | 'MISSING_DATA';
+
+export type AlertOperator = 'LT' | 'LTE' | 'GTE' | 'GT';
+export type AlertStringOperator = 'EQUALS' | 'NOT_EQUALS' | 'STARTS_WITH' | 'ENDS_WITH' | 'CONTAINS' | 'MATCHES';
+export type AlertAggregationFunction = 'COUNT' | 'AVG' | 'MIN' | 'MAX' | 'P50' | 'P90' | 'P95' | 'P99';
 export type AlertTimeUnit = 'SECONDS' | 'MINUTES' | 'HOURS';
+export type AlertDampeningMode = 'STRICT_COUNT' | 'RELAXED_COUNT' | 'RELAXED_TIME' | 'STRICT_TIME';
+export type AlertNotificationChannel = 'email-notifier' | 'slack-notifier' | 'default-email' | 'webhook-notifier';
+
+export interface AlertFormCondition {
+    type: AlertConditionType;
+    property?: string;
+    operator?: AlertOperator | AlertStringOperator;
+    threshold?: number;
+    thresholdLow?: number;
+    thresholdHigh?: number;
+    pattern?: string;
+    property2?: string;
+    multiplier?: number;
+    duration?: number;
+    timeUnit?: AlertTimeUnit;
+    aggregationFunction?: AlertAggregationFunction;
+    rateOperator?: AlertOperator;
+    rateThreshold?: number;
+}
+
+export interface AlertFormNotification {
+    channel: AlertNotificationChannel;
+    target: string;
+}
+
+export interface AlertFormTimeframe {
+    days: number[];
+    /** Seconds since midnight — classic API `beginHour`. */
+    startHour: number;
+    /** Seconds since midnight — classic API `endHour`. */
+    endHour: number;
+}
 
 export interface AlertDampening {
     mode: AlertDampeningMode;
@@ -27,8 +75,24 @@ export interface AlertDampening {
     timeUnit?: AlertTimeUnit;
 }
 
-/** Condition shape returned by the management API (opaque to the list page). */
-export type AlertApiCondition = Record<string, unknown>;
+export interface AlertApiCondition {
+    type: AlertConditionType;
+    property?: string;
+    /** THRESHOLD / STRING / AGGREGATION / RATE; THRESHOLD_RANGE uses classic `BETWEEN`. */
+    operator?: AlertOperator | AlertStringOperator | 'BETWEEN';
+    threshold?: number;
+    thresholdLow?: number;
+    thresholdHigh?: number;
+    operatorLow?: 'INCLUSIVE' | 'EXCLUSIVE';
+    operatorHigh?: 'INCLUSIVE' | 'EXCLUSIVE';
+    pattern?: string;
+    property2?: string;
+    multiplier?: number;
+    duration?: number;
+    timeUnit?: AlertTimeUnit;
+    function?: AlertAggregationFunction;
+    comparison?: AlertApiCondition;
+}
 
 export interface AlertApiNotification {
     type: string;
@@ -42,7 +106,6 @@ export interface AlertApiPeriod {
     zoneId?: string;
 }
 
-/** Platform / environment alert trigger entity from `/platform/alerts`. */
 export interface AlertTrigger {
     id?: string;
     name: string;
@@ -66,4 +129,15 @@ export interface AlertTrigger {
     last_alert_message?: string | null;
     created_at?: string;
     updated_at?: string;
+}
+
+export interface AlertHistoryEvent {
+    id: string;
+    message: string;
+    createdAt: string;
+}
+
+export interface AlertHistoryPage {
+    content: AlertHistoryEvent[];
+    totalElements: number;
 }

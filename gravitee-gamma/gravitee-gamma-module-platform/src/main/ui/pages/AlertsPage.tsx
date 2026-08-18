@@ -38,12 +38,13 @@ import {
 } from '@gravitee/graphene-core';
 import { MoreHorizontalIcon, PlusIcon } from '@gravitee/graphene-core/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { AlertsEducationalEmptyState } from '../features/alerts/components/AlertsEducationalEmptyState';
 import { SeverityBadge } from '../features/alerts/components/SeverityBadge';
 import { getAlertRuleLabel } from '../features/alerts/constants/alertRules';
-import { listPlatformAlerts, updatePlatformAlert } from '../features/alerts/services/alerts';
+import { deletePlatformAlert, listPlatformAlerts, updatePlatformAlert } from '../features/alerts/services/alerts';
 import type { AlertTrigger } from '../features/alerts/types/alert';
 import {
     formatAlertCounters,
@@ -57,6 +58,7 @@ import {
     ENVIRONMENT_ALERT_UPDATE_PERMISSION,
 } from '../features/alerts/utils/alertPermissions';
 import { platformAlertKeys } from '../features/alerts/utils/queryKeys';
+import { ConfirmDialog } from '../shared/components/ConfirmDialog';
 import { notify } from '../shared/notify';
 
 /** Classic `md-tooltip` on the counters cell: `N during the last 5 minutes / …`. */
@@ -79,12 +81,10 @@ function AlertCountersCell({ counters }: { counters: AlertTrigger['counters'] })
 }
 
 /**
- * Environment-level Alerts landing page (APIM-14911).
+ * Environment-level Alerts landing page (APIM-14911 / APIM-14912).
  *
  * Loads `/platform/alerts`, shows the educational empty state when none exist,
- * and otherwise lists alerts with enable/disable.
- * Edit / delete stay in the actions menu but disabled until follow-up tickets
- * (create/edit form + delete confirm modal).
+ * and otherwise lists alerts with enable/disable, edit, and delete.
  */
 export function AlertsPage() {
     const navigate = useNavigate();
@@ -96,6 +96,8 @@ export function AlertsPage() {
     const canUpdate = useHasPermission({ anyOf: [ENVIRONMENT_ALERT_UPDATE_PERMISSION] });
     const canDelete = useHasPermission({ anyOf: [ENVIRONMENT_ALERT_DELETE_PERMISSION] });
     const showActions = canUpdate || canDelete;
+
+    const [alertToDelete, setAlertToDelete] = useState<AlertTrigger | null>(null);
 
     const {
         data: alerts,
@@ -118,7 +120,20 @@ export function AlertsPage() {
         },
     });
 
+    const deleteMutation = useMutation({
+        mutationFn: (alert: AlertTrigger) => deletePlatformAlert(environmentId, alert.id!),
+        onSuccess: (_void, alert) => {
+            queryClient.invalidateQueries({ queryKey: platformAlertKeys.list(environmentId) });
+            notify.success(`Alert "${alert.name}" deleted.`);
+            setAlertToDelete(null);
+        },
+        onError: error => {
+            notify.error(error, 'Failed to delete alert.');
+        },
+    });
+
     const handleAdd = () => navigate('new');
+    const handleEdit = (alertId: string) => navigate(alertId);
 
     return (
         <div className="space-y-6">
@@ -221,10 +236,15 @@ export function AlertsPage() {
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
-                                                        {canUpdate && <DropdownMenuItem disabled>Edit</DropdownMenuItem>}
+                                                        {canUpdate && alert.id && (
+                                                            <DropdownMenuItem onClick={() => handleEdit(alert.id!)}>Edit</DropdownMenuItem>
+                                                        )}
                                                         {canUpdate && canDelete && <DropdownMenuSeparator />}
                                                         {canDelete && (
-                                                            <DropdownMenuItem disabled className="text-destructive focus:text-destructive">
+                                                            <DropdownMenuItem
+                                                                className="text-destructive focus:text-destructive"
+                                                                onClick={() => setAlertToDelete(alert)}
+                                                            >
                                                                 Delete alert
                                                             </DropdownMenuItem>
                                                         )}
@@ -239,6 +259,24 @@ export function AlertsPage() {
                     </TooltipProvider>
                 </div>
             )}
+
+            {alertToDelete ? (
+                <ConfirmDialog
+                    open
+                    onOpenChange={open => !open && !deleteMutation.isPending && setAlertToDelete(null)}
+                    title="Delete alert"
+                    description={
+                        <>
+                            Are you sure you want to delete the alert <strong>{alertToDelete.name}</strong>?
+                        </>
+                    }
+                    confirmLabel="Delete"
+                    pendingLabel="Deleting…"
+                    destructive
+                    isPending={deleteMutation.isPending}
+                    onConfirm={() => deleteMutation.mutate(alertToDelete)}
+                />
+            ) : null}
         </div>
     );
 }

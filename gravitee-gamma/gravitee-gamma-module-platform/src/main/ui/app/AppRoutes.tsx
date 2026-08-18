@@ -42,6 +42,7 @@ import {
     type PlatformNavSection,
 } from '../config/navigation';
 import { PLATFORM_ROUTE_CONFIG } from '../config/routes';
+import { AlertFormPage } from '../features/alerts/pages/AlertFormPage';
 import { ENVIRONMENT_ALERT_READ_PERMISSION } from '../features/alerts/utils/alertPermissions';
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
 import { ENVIRONMENT_AUDIT_READ_PERMISSIONS, ORGANIZATION_AUDIT_READ_PERMISSIONS } from '../features/audit-logs/utils/auditPermissions';
@@ -474,10 +475,14 @@ export function AppRoutes() {
                                 path="alerts"
                                 element={
                                     <PermissionPageGuard permission={ENVIRONMENT_ALERT_READ_PERMISSION} unauthorizedTo="../applications">
-                                        <AlertsPage />
+                                        <Outlet />
                                     </PermissionPageGuard>
                                 }
-                            />
+                            >
+                                <Route index element={<AlertsPage />} />
+                                <Route path="new" element={<AlertFormPage />} />
+                                <Route path=":alertId" element={<AlertFormPage />} />
+                            </Route>
                             <Route
                                 path="organization-audit"
                                 element={
