@@ -16,6 +16,7 @@
 import { isFunction } from 'lodash';
 
 import {
+  PortalNavigationItemsFetchSummary,
   PortalNavigationPage,
   PortalNavigationFolder,
   PortalNavigationLink,
@@ -157,6 +158,25 @@ export function fakePortalNavigationApiProduct(overrides?: Partial<PortalNavigat
 export function fakePortalNavigationItemsResponse(overrides?: Partial<PortalNavigationItemsResponse>): PortalNavigationItemsResponse {
   const base: PortalNavigationItemsResponse = {
     items: [fakePortalNavigationPage()],
+  };
+
+  if (isFunction(overrides)) {
+    return overrides(base);
+  }
+
+  return {
+    ...base,
+    ...overrides,
+  };
+}
+
+export function fakePortalNavigationItemsFetchSummary(
+  overrides?: Partial<PortalNavigationItemsFetchSummary>,
+): PortalNavigationItemsFetchSummary {
+  const base: PortalNavigationItemsFetchSummary = {
+    succeeded: 1,
+    failed: 0,
+    results: [{ navigationItemId: 'nav-item-1', title: 'Home', success: true }],
   };
 
   if (isFunction(overrides)) {

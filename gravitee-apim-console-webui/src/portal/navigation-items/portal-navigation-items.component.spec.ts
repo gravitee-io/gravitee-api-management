@@ -47,12 +47,14 @@ import {
   fakePortalNavigationApi,
   fakePortalNavigationApiProduct,
   fakePortalNavigationFolder,
+  fakePortalNavigationItemsFetchSummary,
   fakePortalNavigationItemsResponse,
   fakePortalNavigationLink,
   fakePortalNavigationPage,
   fakeUpdateApiPortalNavigationItem,
   fakeUpdateApiProductPortalNavigationItem,
   fakeUpdatePagePortalNavigationItem,
+  FetchPortalNavigationItemResponse,
   NewPortalNavigationItem,
   NewPagePortalNavigationItem,
   PortalNavigationItem,
@@ -70,7 +72,7 @@ import {
   OpenApiViewer,
   OpenApiViewerConfiguration,
 } from '../../entities/management-api-v2/portalPageContent/openApiViewerConfiguration';
-import { SectionNode } from '../components/flat-tree/flat-tree.component';
+import { NodeMenuActionEvent, SectionNode } from '../components/flat-tree/flat-tree.component';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { PortalPageContentService } from '../../services-ngx/portal-page-content.service';
 import { PortalNavigationItemService } from '../../services-ngx/portal-navigation-item.service';
@@ -4253,6 +4255,15 @@ describe('PortalNavigationItemsComponent', () => {
       return rootLoader.getHarness(SectionEditorDialogHarness);
     }
 
+    function expectFetchNavigationItem(id: string, response: FetchPortalNavigationItemResponse) {
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${id}/_fetch`,
+      });
+      req.flush(response);
+      fixture.detectChanges();
+    }
+
     function expectPutNavigationItemAndCaptureBody(id: string, response: PortalNavigationItem): UpdatePortalNavigationItem {
       const req = httpTestingController.expectOne({
         method: 'PUT',
@@ -4638,6 +4649,38 @@ describe('PortalNavigationItemsComponent', () => {
         expect(await harness.getFolderManagedBySourceBannerText()).toContain('Folder content from GitHub — read only');
       });
 
+      it('disables Fetch now on a sourced folder with no sourced page below it', async () => {
+        const folder = fakePortalNavigationFolder({ id: 'folder-1', title: 'My Folder', area: 'TOP_NAVBAR', source: githubSource });
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder] }));
+
+        expect(await harness.isFetchNowButtonDisabled()).toBe(true);
+      });
+
+      it('shows a Fetch now button for a sourced folder and reports the fetch summary', async () => {
+        const snackBarSuccessSpy = jest.spyOn(TestBed.inject(SnackBarService), 'success');
+        const folder = fakePortalNavigationFolder({ id: 'folder-1', title: 'My Folder', area: 'TOP_NAVBAR', source: githubSource });
+        const sourcedChild = fakePortalNavigationPage({
+          id: 'page-1',
+          title: 'Child Page',
+          area: 'TOP_NAVBAR',
+          parentId: 'folder-1',
+          portalPageContentId: 'content-1',
+          source: githubSource,
+        });
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, sourcedChild] }));
+        expectGetPageContent('content-1', 'Child content');
+        await harness.selectNavigationItemByTitle('My Folder');
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        expect(await harness.isFetchNowButtonDisabled()).toBe(false);
+        await harness.clickFetchNowButton();
+        expectFetchNavigationItem('folder-1', { summary: fakePortalNavigationItemsFetchSummary({ succeeded: 2, failed: 0 }) });
+
+        expect(snackBarSuccessSpy).toHaveBeenCalledWith(expect.stringContaining('2 pages'));
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, sourcedChild] }));
+      });
+
       it('adds a source on the folder from the Edit dialog', async () => {
         const folder = fakePortalNavigationFolder({ id: 'folder-1', title: 'My Folder', area: 'TOP_NAVBAR' });
         await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder] }));
@@ -4667,6 +4710,192 @@ describe('PortalNavigationItemsComponent', () => {
         await expectGetNavigationItems(
           fakePortalNavigationItemsResponse({ items: [fakePortalNavigationFolder({ ...folder, source: githubSource })] }),
         );
+      });
+    });
+
+    describe('fetch actions', () => {
+      let snackBarSuccessSpy: jest.SpyInstance;
+
+      beforeEach(() => {
+        snackBarErrorSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+        snackBarSuccessSpy = jest.spyOn(TestBed.inject(SnackBarService), 'success');
+      });
+
+      describe('Fetch Now on a sourced page', () => {
+        const sourcedPage = fakePortalNavigationPage({
+          id: 'page-1',
+          title: 'Page 1',
+          area: 'TOP_NAVBAR',
+          portalPageContentId: 'content-1',
+          source: githubSource,
+        });
+
+        beforeEach(async () => {
+          await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [sourcedPage] }));
+          expectGetPageContent('content-1', 'Fetched content');
+        });
+
+        it('fetches and refreshes the displayed content on success', async () => {
+          await harness.clickFetchNowButton();
+          expectFetchNavigationItem('page-1', { item: sourcedPage });
+
+          expect(snackBarSuccessSpy).toHaveBeenCalledWith(expect.stringContaining('fetched'));
+          await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [sourcedPage] }));
+          expectGetPageContent('content-1', 'Updated content');
+          expect(await harness.getEditorContentText()).toContain('Updated content');
+        });
+
+        it('shows the fetch error when the fetch fails', async () => {
+          const failedPage = fakePortalNavigationPage({
+            ...sourcedPage,
+            source: { ...githubSource, lastFetchError: 'Repository not found' },
+          });
+
+          await harness.clickFetchNowButton();
+          expectFetchNavigationItem('page-1', { item: failedPage });
+
+          expect(snackBarErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Repository not found'));
+          await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [failedPage] }));
+          expectGetPageContent('content-1', 'Fetched content');
+          expect(await harness.getContentFetchErrorBannerText()).toContain('Repository not found');
+        });
+
+        it('re-enables the button after the server rejects the fetch with a 400', async () => {
+          await harness.clickFetchNowButton();
+          httpTestingController
+            .expectOne({
+              method: 'POST',
+              url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/page-1/_fetch`,
+            })
+            .flush({ message: 'No page below this item carries a source' }, { status: 400, statusText: 'Bad Request' });
+          fixture.detectChanges();
+
+          expect(snackBarErrorSpy).not.toHaveBeenCalled();
+          expect(await harness.isFetchNowButtonDisabled()).toBe(false);
+        });
+
+        it('does not show a generic snackbar when the fetch fails with an HTTP error (interceptor handles it)', async () => {
+          await harness.clickFetchNowButton();
+          httpTestingController
+            .expectOne({
+              method: 'POST',
+              url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/page-1/_fetch`,
+            })
+            .flush({ message: 'Internal error' }, { status: 500, statusText: 'Server Error' });
+          fixture.detectChanges();
+
+          expect(snackBarErrorSpy).not.toHaveBeenCalled();
+        });
+      });
+
+      describe('page without source', () => {
+        it('does not show the Fetch now button', async () => {
+          const page = fakePortalNavigationPage({ id: 'page-1', title: 'Page 1', area: 'TOP_NAVBAR', portalPageContentId: 'content-1' });
+          await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [page] }));
+          expectGetPageContent('content-1', 'Some content');
+
+          expect(await harness.isFetchNowButtonVisible()).toBe(false);
+        });
+      });
+
+      describe('Fetch All from the tree context menu', () => {
+        const sourcedFolder = fakePortalNavigationFolder({
+          id: 'folder-1',
+          title: 'Docs Folder',
+          area: 'TOP_NAVBAR',
+          source: githubSource,
+        });
+        const sourcedChildPage = fakePortalNavigationPage({
+          id: 'page-1',
+          title: 'Child Page',
+          area: 'TOP_NAVBAR',
+          parentId: 'folder-1',
+          portalPageContentId: 'content-1',
+          source: githubSource,
+        });
+
+        beforeEach(async () => {
+          await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [sourcedFolder, sourcedChildPage] }));
+          expectGetPageContent('content-1', 'Child content');
+        });
+
+        it('fetches all sourced descendants and shows a success summary', async () => {
+          await harness.fetchAllNodeById('folder-1');
+          expectFetchNavigationItem('folder-1', {
+            summary: fakePortalNavigationItemsFetchSummary({
+              succeeded: 1,
+              failed: 0,
+              results: [{ navigationItemId: 'page-1', title: 'Child Page', success: true }],
+            }),
+          });
+
+          expect(snackBarSuccessSpy).toHaveBeenCalledWith(expect.stringContaining('1 page'));
+          await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [sourcedFolder, sourcedChildPage] }));
+          expectGetPageContent('content-1', 'Child content');
+        });
+
+        it('shows a failure summary when some fetches fail', async () => {
+          await harness.fetchAllNodeById('folder-1');
+          expectFetchNavigationItem('folder-1', {
+            summary: fakePortalNavigationItemsFetchSummary({
+              succeeded: 1,
+              failed: 1,
+              results: [
+                { navigationItemId: 'page-1', title: 'Child Page', success: true },
+                { navigationItemId: 'page-2', title: 'Other Page', success: false, error: 'Repository not found' },
+              ],
+            }),
+          });
+
+          expect(snackBarErrorSpy).toHaveBeenCalledWith(expect.stringContaining('1 of 2'));
+          expect(snackBarErrorSpy).toHaveBeenCalledWith(expect.stringContaining('"Other Page"'));
+          await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [sourcedFolder, sourcedChildPage] }));
+          expectGetPageContent('content-1', 'Child content');
+        });
+
+        it('warns without issuing a request when a Fetch All is triggered while a fetch is already in flight', async () => {
+          await harness.fetchAllNodeById('folder-1');
+          component.onNodeMenuAction({
+            action: 'fetchAll',
+            itemType: 'FOLDER',
+            node: fakeSectionNode({ id: 'folder-1', label: 'Docs Folder', type: 'FOLDER' }),
+          } as NodeMenuActionEvent);
+
+          expect(snackBarErrorSpy).toHaveBeenCalledWith(expect.stringContaining('already in progress'));
+
+          // expectOne fails if the second trigger issued a request too
+          const req = httpTestingController.expectOne({
+            method: 'POST',
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/folder-1/_fetch`,
+          });
+          req.flush({ summary: fakePortalNavigationItemsFetchSummary({ succeeded: 1, failed: 0 }) });
+          fixture.detectChanges();
+
+          await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [sourcedFolder, sourcedChildPage] }));
+          expectGetPageContent('content-1', 'Child content');
+        });
+
+        it('does not claim success when the summary contains no pages', async () => {
+          await harness.fetchAllNodeById('folder-1');
+          expectFetchNavigationItem('folder-1', {
+            summary: fakePortalNavigationItemsFetchSummary({ succeeded: 0, failed: 0, results: [] }),
+          });
+
+          expect(snackBarSuccessSpy).not.toHaveBeenCalled();
+          expect(snackBarErrorSpy).toHaveBeenCalledWith(expect.stringContaining('No pages'));
+          await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [sourcedFolder, sourcedChildPage] }));
+          expectGetPageContent('content-1', 'Child content');
+        });
+
+        it('reports an error when the fetch response carries neither item nor summary', async () => {
+          await harness.fetchAllNodeById('folder-1');
+          expectFetchNavigationItem('folder-1', {});
+
+          expect(snackBarSuccessSpy).not.toHaveBeenCalled();
+          expect(snackBarErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Unexpected'));
+          await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [sourcedFolder, sourcedChildPage] }));
+          expectGetPageContent('content-1', 'Child content');
+        });
       });
     });
   });

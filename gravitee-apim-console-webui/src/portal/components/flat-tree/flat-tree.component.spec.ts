@@ -407,6 +407,86 @@ describe('FlatTreeComponent', () => {
     );
   });
 
+  describe('sourced items', () => {
+    const source = { type: 'github-fetcher', configuration: {} };
+
+    it('should show a source indicator on sourced items only', async () => {
+      fixture.componentRef.setInput('links', [
+        fakePortalNavigationFolder({ id: 'f1', title: 'Folder 1', order: 0, source }),
+        fakePortalNavigationPage({ id: 'p1', title: 'Sourced Page', order: 0, parentId: 'f1', source }),
+        fakePortalNavigationPage({ id: 'p2', title: 'Plain Page', order: 1 }),
+      ]);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expandTree();
+
+      expect(await harness.hasSourceIndicatorByTitle('Folder 1')).toBe(true);
+      expect(await harness.hasSourceIndicatorByTitle('Sourced Page')).toBe(true);
+      expect(await harness.hasSourceIndicatorByTitle('Plain Page')).toBe(false);
+    });
+
+    it('should disable Fetch All while a fetch is in progress', async () => {
+      fixture.componentRef.setInput('links', [
+        fakePortalNavigationFolder({ id: 'f1', title: 'Folder 1', order: 0 }),
+        fakePortalNavigationPage({ id: 'p1', title: 'Sourced Page', order: 0, parentId: 'f1', source }),
+      ]);
+      fixture.componentRef.setInput('fetchInProgress', true);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      await harness.openMoreActionsMenuById('f1');
+      const fetchAllButton = await harness.getMenuItemByTestId('fetch-all-button');
+
+      expect(await fetchAllButton!.isDisabled()).toBe(true);
+    });
+
+    it('should emit fetchAll for a container with a nested sourced page', async () => {
+      const actionSpy = jest.fn();
+      component.nodeMenuAction.subscribe(actionSpy);
+
+      fixture.componentRef.setInput('links', [
+        fakePortalNavigationFolder({ id: 'f1', title: 'Folder 1', order: 0 }),
+        fakePortalNavigationFolder({ id: 'f2', title: 'Nested Folder', order: 0, parentId: 'f1' }),
+        fakePortalNavigationPage({ id: 'p1', title: 'Sourced Page', order: 0, parentId: 'f2', source }),
+      ]);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      await harness.selectFetchAllById('f1');
+      await fixture.whenStable();
+
+      expect(actionSpy).toHaveBeenCalledTimes(1);
+      expect(actionSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'fetchAll',
+          itemType: 'FOLDER',
+          node: expect.objectContaining({ id: 'f1' }),
+        }),
+      );
+    });
+
+    it('should not show Fetch All for a container without sourced page descendants', async () => {
+      fixture.componentRef.setInput('links', [
+        fakePortalNavigationFolder({ id: 'f1', title: 'Folder 1', order: 0 }),
+        fakePortalNavigationPage({ id: 'p1', title: 'Plain Page', order: 0, parentId: 'f1' }),
+      ]);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      await harness.openMoreActionsMenuById('f1');
+      expect(await harness.getMenuItemByTestId('fetch-all-button')).toBeNull();
+    });
+
+    it('should not show Fetch All for a sourced page itself', async () => {
+      fixture.componentRef.setInput('links', [fakePortalNavigationPage({ id: 'p1', title: 'Sourced Page', order: 0, source })]);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      await harness.openMoreActionsMenuById('p1');
+      expect(await harness.getMenuItemByTestId('fetch-all-button')).toBeNull();
+    });
+  });
+
   describe('publish disabled state', () => {
     const findNode = (id: string, nodes: SectionNode[] = component.tree()): SectionNode | undefined => {
       for (const node of nodes) {

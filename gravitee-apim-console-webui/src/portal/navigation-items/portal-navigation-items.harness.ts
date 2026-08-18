@@ -56,6 +56,7 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
       message: 'Failed to load page content.',
     }),
   );
+  private readonly getFetchNowButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="fetch-now-button"]' }));
   private readonly getContentManagedBySourceBanner = this.locatorForOptional('[data-testid="content-managed-by-source-banner"]');
   private readonly getContentManagedByParentBanner = this.locatorForOptional('[data-testid="content-managed-by-parent-banner"]');
   private readonly getContentFetchErrorBanner = this.locatorForOptional('[data-testid="content-fetch-error-banner"]');
@@ -285,6 +286,31 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
   async isPageNotFoundDisplayed(): Promise<boolean> {
     const emptyState = await this.getPageNotFoundEmptyState();
     return emptyState !== null;
+  }
+
+  async isFetchNowButtonVisible(): Promise<boolean> {
+    return (await this.getFetchNowButton()) !== null;
+  }
+
+  async isFetchNowButtonDisabled(): Promise<boolean> {
+    const button = await this.getFetchNowButton();
+    if (!button) {
+      throw new Error('Fetch now button not found');
+    }
+    return button.isDisabled();
+  }
+
+  async clickFetchNowButton(): Promise<void> {
+    const button = await this.getFetchNowButton();
+    if (!button) {
+      throw new Error('Fetch now button not found');
+    }
+    return button.click();
+  }
+
+  async fetchAllNodeById(id: string): Promise<void> {
+    const tree = await this.getTree();
+    return tree.selectFetchAllById(id);
   }
 
   async isContentManagedBySourceBannerDisplayed(): Promise<boolean> {
