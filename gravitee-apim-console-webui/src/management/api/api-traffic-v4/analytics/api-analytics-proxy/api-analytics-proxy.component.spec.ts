@@ -84,6 +84,20 @@ describe('ApiAnalyticsProxyComponent', () => {
     });
   });
 
+  describe('Top Paths widget', () => {
+    it('should group Top Paths on the request uri', async () => {
+      await initComponent();
+
+      const groupByRequests = httpTestingController.match(req => req.url.includes('type=GROUP_BY'));
+      const topPathsRequest = groupByRequests.find(req => new URL(req.request.urlWithParams).searchParams.get('field') === 'uri');
+      groupByRequests.forEach(req => req.flush(fakeGroupByResponse()));
+      handleAllRequests();
+
+      expect(topPathsRequest).toBeDefined();
+      expect(new URL(topPathsRequest!.request.urlWithParams).searchParams.get('order')).toBe('-count:_count');
+    });
+  });
+
   describe('Query parameters', () => {
     const plan1 = fakePlanV4({ id: '1', name: 'plan 1' });
     const plan2 = fakePlanV4({ id: '2', name: 'plan 2' });

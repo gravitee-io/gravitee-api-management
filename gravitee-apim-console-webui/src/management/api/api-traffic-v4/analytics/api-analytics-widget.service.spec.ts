@@ -637,6 +637,58 @@ describe('ApiAnalyticsWidgetService', () => {
           expectGroupByRequest('application-id', mockGroupByResponse);
         });
 
+        it('should merge uri buckets that differ only by query string and rank by merged count', done => {
+          const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
+            type: 'table',
+            apiId: API_ID,
+            title: 'Top Paths',
+            tooltip: 'Most frequently hit API paths',
+            analyticsType: 'GROUP_BY',
+            groupByField: 'uri',
+            mergeGroupByUriPath: true,
+            shouldSortBuckets: false,
+            orderBy: '-count:_count',
+            tableData: {
+              columns: [
+                { label: 'Path', dataType: 'string' },
+                { label: 'Hits', dataType: 'number' },
+              ],
+            },
+          };
+
+          const mockGroupByResponse: GroupByResponse = fakeGroupByResponse({
+            values: {
+              '/health': 50,
+              '/orders?id=1': 40,
+              '/orders?id=2': 39,
+              '/orders?id=3': 221,
+            },
+            metadata: {
+              '/health': { name: '/health', order: 0 },
+              '/orders?id=1': { name: '/orders?id=1', order: 1 },
+              '/orders?id=2': { name: '/orders?id=2', order: 2 },
+              '/orders?id=3': { name: '/orders?id=3', order: 3 },
+            },
+          });
+
+          service.getApiAnalyticsWidgetConfig$(widgetConfig).subscribe(result => {
+            if (result.state === 'loading') {
+              return;
+            }
+
+            expect(result.state).toBe('success');
+            expect(result.widgetType).toBe('table');
+            if (result.widgetType === 'table') {
+              expect(result.widgetData.data).toHaveLength(2);
+              expect(result.widgetData.data[0]).toEqual(expect.objectContaining({ 'col-0': '/orders', 'col-1': 300, __key: '/orders' }));
+              expect(result.widgetData.data[1]).toEqual(expect.objectContaining({ 'col-0': '/health', 'col-1': 50, __key: '/health' }));
+            }
+            done();
+          });
+
+          expectGroupByRequest('uri', mockGroupByResponse, { order: '-count:_count' });
+        });
+
         it('should use default column names when no columns are provided for table widget', done => {
           const widgetConfig: ApiAnalyticsDashboardWidgetConfig = {
             type: 'table',
