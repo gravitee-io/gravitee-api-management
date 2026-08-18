@@ -118,13 +118,15 @@ export class AikidoScanDockerImagesJob {
     environment: CircleCIEnvironment,
     isProd: boolean,
     nameSuffix: string,
-    withChainguardVariants: boolean,
+    // The chainguard variants this workflow builds, and therefore scans. A workflow scans what it
+    // builds: the images to pull and the jobs to wait for are both derived from this list, so the
+    // two cannot drift apart.
+    chainguardVariants: Variant[],
   ): workflow.WorkflowJob[] {
     if (isProd && environment.isDryRun) {
       return [];
     }
 
-    const chainguardVariants: Variant[] = withChainguardVariants ? ['chainguard', 'chainguard-fips'] : [];
     const components = [
       { label: 'APIM Portal', image: config.components.portal.image, variants: [undefined, ...chainguardVariants] },
       { label: 'APIM Console', image: config.components.console.image, variants: [undefined, ...chainguardVariants] },
@@ -151,9 +153,7 @@ export class AikidoScanDockerImagesJob {
         name: `Scan docker images with Aikido${nameSuffix}`,
         requires: components.flatMap(({ label }) => [
           `Build ${label} docker image${nameSuffix}`,
-          ...(withChainguardVariants
-            ? [`Build ${label} chainguard docker image${nameSuffix}`, `Build ${label} chainguard-fips docker image${nameSuffix}`]
-            : []),
+          ...chainguardVariants.map((variant) => `Build ${label} ${variant} docker image${nameSuffix}`),
         ]),
       }),
     ];
