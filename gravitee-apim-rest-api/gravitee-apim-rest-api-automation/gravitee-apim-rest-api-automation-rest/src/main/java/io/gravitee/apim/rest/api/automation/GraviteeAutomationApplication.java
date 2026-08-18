@@ -37,6 +37,7 @@ import io.gravitee.rest.api.management.v2.rest.exceptionmapper.ConstraintValidat
 import io.gravitee.rest.api.management.v2.rest.exceptionmapper.JsonMappingExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionmapper.ManagementExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionmapper.NotAllowedExceptionMapper;
+import io.gravitee.rest.api.management.v2.rest.exceptionmapper.domain.ConflictDomainExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.provider.ObjectMapperResolver;
 import jakarta.inject.Inject;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -67,6 +68,7 @@ public class GraviteeAutomationApplication extends ResourceConfig {
         register(PortalResource.class);
 
         register(ValidationDomainMapper.class);
+        register(ConflictDomainExceptionMapper.class);
         register(HRIDNotFoundMapper.class);
         register(ManagementExceptionMapper.class);
         register(ConstraintValidationExceptionMapper.class);
