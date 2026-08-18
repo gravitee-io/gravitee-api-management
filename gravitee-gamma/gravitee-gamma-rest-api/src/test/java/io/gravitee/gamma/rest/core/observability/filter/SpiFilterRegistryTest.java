@@ -98,7 +98,7 @@ class SpiFilterRegistryTest {
 
         assertThat(result)
             .extracting(FilterSpec::name)
-            .containsExactlyInAnyOrder("API", "DECISION")
+            .containsExactlyInAnyOrder("API", "DECISION", "SUBJECT", "ACTION", "RESOURCE", "CALLER_KIND")
             .doesNotContain("API_TYPE", "RECORD_TYPE", "ENTRYPOINT", "REQUEST_ID", "HTTP_STATUS", "PAYLOAD");
     }
 

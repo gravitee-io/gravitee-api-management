@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.repository.log.v4.model.authz.AuthzDecisionLogQuery;
+import java.util.Set;
 
 /**
  * @author GraviteeSource Team
@@ -48,6 +49,16 @@ public final class SearchAuthzDecisionLogsQueryAdapter {
 
     private SearchAuthzDecisionLogsQueryAdapter() {}
 
+    /** Omitted entirely when nothing is selected: an empty terms clause matches no document. */
+    private static void addTermsIfAny(ArrayNode filters, String field, Set<String> values) {
+        if (values == null || values.isEmpty()) {
+            return;
+        }
+        ArrayNode node = MAPPER.createArrayNode();
+        values.forEach(node::add);
+        filters.add(MAPPER.createObjectNode().set(TERMS, MAPPER.createObjectNode().set(field, node)));
+    }
+
     public static String adapt(AuthzDecisionLogQuery query) {
         ArrayNode filters = MAPPER.createArrayNode();
         // The event-metrics data stream is shared by every BaseEventMetrics subtype (api, application,
@@ -58,11 +69,12 @@ public final class SearchAuthzDecisionLogsQueryAdapter {
         query.getApiIds().forEach(apiIds::add);
         filters.add(MAPPER.createObjectNode().set(TERMS, MAPPER.createObjectNode().set(AuthzDecisionLogFields.API_ID, apiIds)));
 
-        if (query.getDecisions() != null && !query.getDecisions().isEmpty()) {
-            ArrayNode decisions = MAPPER.createArrayNode();
-            query.getDecisions().forEach(decisions::add);
-            filters.add(MAPPER.createObjectNode().set(TERMS, MAPPER.createObjectNode().set(AuthzDecisionLogFields.DECISION, decisions)));
-        }
+        // Every one of these is a keyword field, so an exact terms clause is the whole translation.
+        addTermsIfAny(filters, AuthzDecisionLogFields.DECISION, query.getDecisions());
+        addTermsIfAny(filters, AuthzDecisionLogFields.SUBJECT_ID, query.getSubjectIds());
+        addTermsIfAny(filters, AuthzDecisionLogFields.ACTION, query.getActions());
+        addTermsIfAny(filters, AuthzDecisionLogFields.RESOURCE_ID, query.getResourceIds());
+        addTermsIfAny(filters, AuthzDecisionLogFields.CALLER, query.getCallers());
 
         if (query.getFrom() != null || query.getTo() != null) {
             ObjectNode bounds = MAPPER.createObjectNode();
