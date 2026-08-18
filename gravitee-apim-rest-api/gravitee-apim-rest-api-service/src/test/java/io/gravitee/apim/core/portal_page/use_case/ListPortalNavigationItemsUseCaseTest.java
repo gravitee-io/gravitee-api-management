@@ -36,9 +36,15 @@ import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -871,5 +877,236 @@ class ListPortalNavigationItemsUseCaseTest {
 
         // Then
         assertThat(result.apis()).containsExactly(java.util.Map.entry(apiNavItem.getId(), api));
+    }
+
+    private PortalNavigationItemId navApiRowA;
+    private PortalNavigationItemId navApiRowB;
+    private PortalNavigationItemId apiPageId;
+    private PortalNavigationItemId apiLinkId;
+
+    /**
+     * Simulates two portals listing the same API: two nav-api rows, and the API's own subtree —
+     * materialized once, as a root, keyed on the API by reference — that both rows should render.
+     * The link has no location (Part 1 left it unrendered on purpose; the splice is what closes it).
+     */
+    private void seedApiSubtreeListedByTwoPortals() {
+        var apiId = "spliced-api-id";
+        navApiRowA = PortalNavigationItemId.random();
+        navApiRowB = PortalNavigationItemId.random();
+        apiPageId = PortalNavigationItemId.random();
+        apiLinkId = PortalNavigationItemId.random();
+
+        var rowA = PortalNavigationItemFixtures.anApi(navApiRowA.toString(), "API (portal A)", null, apiId);
+        var rowB = PortalNavigationItemFixtures.anApi(navApiRowB.toString(), "API (portal B)", null, apiId);
+        var apiPage = PortalNavigationPage.builder()
+            .id(apiPageId)
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .title("API Overview")
+            .segment("api-overview")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .portalPageContentId(PortalPageContentId.random())
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .reference(new NavigationItemReference.ApiReference(apiId))
+            .build();
+        var apiLink = PortalNavigationLink.builder()
+            .id(apiLinkId)
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .title("External Docs")
+            .segment("external-docs")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(1)
+            .url("https://docs.example.com")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .reference(new NavigationItemReference.ApiReference(apiId))
+            .build();
+
+        queryService.initWith(List.of(rowA, rowB, apiPage, apiLink));
+    }
+
+    @Test
+    void renders_the_api_subtree_under_every_portal_row_that_lists_the_api() {
+        seedApiSubtreeListedByTwoPortals();
+
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                ORG_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.empty(),
+                true,
+                PortalNavigationItemViewerContext.forConsole(),
+                false
+            )
+        );
+
+        assertThat(result.items())
+            .filteredOn(i -> i.getId().equals(apiPageId))
+            .hasSize(2);
+        assertThat(result.items()).extracting(PortalNavigationItem::getParentId).contains(navApiRowA, navApiRowB);
+    }
+
+    @Test
+    void does_not_expose_api_subtree_roots_at_the_portal_top_level() {
+        seedApiSubtreeListedByTwoPortals();
+
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                ORG_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.empty(),
+                true,
+                PortalNavigationItemViewerContext.forConsole(),
+                false
+            )
+        );
+
+        assertThat(result.items())
+            .filteredOn(PortalNavigationItem::isRoot)
+            .noneMatch(i -> i.getReference() instanceof NavigationItemReference.ApiReference);
+    }
+
+    @Test
+    void returns_the_api_subtree_when_children_are_requested_lazily_for_the_nav_api_row() {
+        seedApiSubtreeListedByTwoPortals();
+
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                ORG_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.of(navApiRowA),
+                false,
+                PortalNavigationItemViewerContext.forConsole(),
+                false
+            )
+        );
+
+        assertThat(result.items()).extracting(PortalNavigationItem::getId).contains(apiPageId);
+    }
+
+    @Test
+    void the_rewritten_parent_id_is_not_persisted() {
+        seedApiSubtreeListedByTwoPortals();
+
+        useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                ORG_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.empty(),
+                true,
+                PortalNavigationItemViewerContext.forConsole(),
+                false
+            )
+        );
+
+        assertThat(queryService.storage())
+            .filteredOn(i -> i.getId().equals(apiPageId))
+            .allMatch(PortalNavigationItem::isRoot);
+    }
+
+    @Test
+    void renders_an_api_attached_link_under_every_portal_that_lists_the_api() {
+        seedApiSubtreeListedByTwoPortals();
+
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                ORG_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.empty(),
+                true,
+                PortalNavigationItemViewerContext.forConsole(),
+                false
+            )
+        );
+
+        assertThat(result.items())
+            .filteredOn(i -> i.getId().equals(apiLinkId))
+            .hasSize(2)
+            .extracting(PortalNavigationItem::getParentId)
+            .containsExactlyInAnyOrder(navApiRowA, navApiRowB);
+    }
+
+    @Test
+    void renders_an_api_attached_link_that_has_no_location() {
+        seedApiSubtreeListedByTwoPortals();
+
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                ORG_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.empty(),
+                true,
+                PortalNavigationItemViewerContext.forConsole(),
+                false
+            )
+        );
+
+        assertThat(result.items()).extracting(PortalNavigationItem::getId).contains(apiLinkId);
+    }
+
+    @Test
+    void a_hidden_portal_folder_hides_the_api_subtree_spliced_under_its_nav_api_row() {
+        var apiId = "hidden-folder-api-id";
+        var hiddenFolder = PortalNavigationFolder.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .title("Hidden Folder")
+            .segment("hidden-folder")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .published(false)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+        hiddenFolder.markAsRoot();
+
+        var navApiRow = PortalNavigationItemFixtures.anApi(
+            PortalNavigationItemId.random().toString(),
+            "API under hidden folder",
+            hiddenFolder.getId(),
+            apiId
+        );
+
+        var apiPage = PortalNavigationPage.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .title("Spliced Doc")
+            .segment("spliced-doc")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .portalPageContentId(PortalPageContentId.random())
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .reference(new NavigationItemReference.ApiReference(apiId))
+            .build();
+        apiPage.markAsRoot();
+
+        queryService.initWith(List.of(hiddenFolder, navApiRow, apiPage));
+
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                ORG_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.empty(),
+                true,
+                PortalNavigationItemViewerContext.forPortal(false),
+                false
+            )
+        );
+
+        assertThat(result.items())
+            .extracting(PortalNavigationItem::getId)
+            .doesNotContain(hiddenFolder.getId(), navApiRow.getId(), apiPage.getId());
     }
 }

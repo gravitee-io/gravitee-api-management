@@ -30,7 +30,6 @@ import io.gravitee.apim.core.portal_listing.model.PortalListingApiEntry;
 import io.gravitee.apim.core.portal_listing.model.PortalListingId;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
@@ -137,11 +136,9 @@ class AutomationManagedNavigationItemsQueryServiceTest {
             HRIDToUUID.apiDocumentation().context(AUDIT_INFO).api("pets-api").hrid("getting-started").id()
         );
         pageContentQuery.initWith(List.of(apiDoc(contentId, apiId)));
-        var navApi = navApiRow(PortalNavigationItemId.forListingApi(AUDIT_INFO, PORTAL_ID.toString(), apiId), apiId);
+        var result = queryService.automationManagedApiDocPages(AUDIT_INFO, apiId);
 
-        var result = queryService.automationManagedApiDocPages(AUDIT_INFO, navApi, apiId);
-
-        assertThat(result).containsExactly(PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, navApi.getId(), contentId));
+        assertThat(result).containsExactly(PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, apiId, contentId));
     }
 
     @Test
@@ -220,20 +217,5 @@ class AutomationManagedNavigationItemsQueryServiceTest {
 
     private static AutomationMetadata automationMetadata(AutomationMetadata.ReferenceType type, String refId) {
         return new AutomationMetadata(type, refId, "name", Optional.of("/x"), Optional.of(0));
-    }
-
-    private static PortalNavigationApi navApiRow(PortalNavigationItemId id, String apiId) {
-        return PortalNavigationApi.builder()
-            .id(id)
-            .organizationId(AUDIT_INFO.organizationId())
-            .environmentId(AUDIT_INFO.environmentId())
-            .title("api")
-            .segment("api")
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .apiId(apiId)
-            .published(true)
-            .visibility(PortalVisibility.PUBLIC)
-            .build();
     }
 }

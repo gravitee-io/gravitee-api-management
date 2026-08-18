@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.domain_service;
 
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
@@ -27,8 +28,10 @@ import java.util.function.Predicate;
 public class PortalNavigationItemVisibilityEvaluator {
 
     private final String environmentId;
+    private final PortalNavigationItemViewerContext viewerContext;
     private final PortalNavigationItemsQueryService queryService;
     private final List<PreparedVisibilityService> visibilityServices;
+    private final PortalNavigationApiVisibilityDomainService apiVisibilityDomainService;
 
     public PortalNavigationItemVisibilityEvaluator(
         String environmentId,
@@ -37,11 +40,18 @@ public class PortalNavigationItemVisibilityEvaluator {
         List<PortalNavigationItemVisibilityService> visibilityServices
     ) {
         this.environmentId = environmentId;
+        this.viewerContext = viewerContext;
         this.queryService = queryService;
         this.visibilityServices = visibilityServices
             .stream()
             .map(service -> new PreparedVisibilityService(service, service.prepareVisibilityPredicate(environmentId, viewerContext)))
             .toList();
+        this.apiVisibilityDomainService = visibilityServices
+            .stream()
+            .filter(PortalNavigationApiVisibilityDomainService.class::isInstance)
+            .map(PortalNavigationApiVisibilityDomainService.class::cast)
+            .findFirst()
+            .orElse(null);
     }
 
     public boolean isVisible(PortalNavigationItem item) {
@@ -62,7 +72,22 @@ public class PortalNavigationItemVisibilityEvaluator {
                 return true;
             }
         }
+        if (current != null && current.isRoot() && current.getReference() instanceof NavigationItemReference.ApiReference apiReference) {
+            return isEnclosingApiHidden(apiReference.apiId());
+        }
         return false;
+    }
+
+    /**
+     * PortalNavigationApiVisibilityDomainService judges an API by API + viewer only, independent of
+     * which portal is rendering it, so it is safe to call here without knowing the current portal.
+     * If that assumption changes (API visibility becomes portal-dependent), this decision must be revisited.
+     */
+    private boolean isEnclosingApiHidden(String apiId) {
+        if (apiVisibilityDomainService == null) {
+            return false;
+        }
+        return !apiVisibilityDomainService.isApiVisibleToUser(environmentId, apiId, viewerContext.userId().orElse(null));
     }
 
     private record PreparedVisibilityService(
