@@ -23,15 +23,9 @@ import type { GroupMember, GroupMembershipPayload } from '../types/group';
 import { PRIMARY_OWNER_ROLE } from '../types/group';
 import { buildMembershipRoles, getMemberRoleLockFlags, type RoleField } from '../utils/memberRoles';
 import { GROUP_SEARCH_DEBOUNCE_MS } from '../utils/paginationConstants';
+import { isPrimaryOwnerUnavailable } from '../utils/primaryOwnership';
 import { groupKeys } from '../utils/queryKeys';
 import { nextSearchableUserSelection } from '../utils/searchableUsers';
-
-const PRIMARY_OWNER_MODE_USER = 'USER';
-
-/** Fail closed: until the mode is known and is not USER, PRIMARY_OWNER must stay unavailable. */
-function isPrimaryOwnerUnavailable(mode: string | undefined): boolean {
-    return mode === undefined || mode.toUpperCase() === PRIMARY_OWNER_MODE_USER;
-}
 
 const DEFAULT_USER_ROLES: Record<RoleField, string> = {
     apiRole: 'USER',

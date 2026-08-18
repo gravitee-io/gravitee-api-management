@@ -68,7 +68,7 @@ export function GroupRemoveMemberSheet({
 
     const scopesLabel = joinScopeLabels(primaryOwnerScopes);
     const transferMessage = successor
-        ? `${member.displayName} is the ${scopesLabel} primary owner. Primary ownership of the group will be transferred from ${member.displayName} to ${successor.displayName}.`
+        ? `${member.displayName} is the ${scopesLabel} primary owner. ${scopesLabel} primary ownership will be transferred from ${member.displayName} to ${successor.displayName}.`
         : null;
 
     const canConfirm = !isPrimaryOwner || Boolean(successor);
@@ -83,7 +83,7 @@ export function GroupRemoveMemberSheet({
     }
 
     return (
-        <Dialog open={open} onOpenChange={isOpen => !isOpen && onClose()}>
+        <Dialog open={open} onOpenChange={isOpen => !isOpen && !isRemoving && onClose()}>
             <DialogContent className="max-w-sm" showCloseButton={false}>
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
@@ -104,6 +104,7 @@ export function GroupRemoveMemberSheet({
                             value={successor}
                             onChange={setSuccessor}
                             hint="Select a member to transfer primary ownership."
+                            disabled={isRemoving}
                         />
                         {transferMessage && (
                             <Alert variant="default">

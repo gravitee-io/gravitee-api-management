@@ -113,40 +113,42 @@ function buildColumns({
         },
     ];
 
-    if (canManageMembers) {
-        columns.push({
-            id: 'actions',
-            header: () => <span className="sr-only">Actions</span>,
-            size: 56,
-            enableSorting: false,
-            enableHiding: false,
-            cell: ({ row }: ColCell<GroupMember>) => {
-                const removeDisabled = isRemoveDisabled(row.original, totalMemberCount);
-                return (
-                    <div className="flex justify-end">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="size-8" aria-label="Member actions">
-                                    <MoreHorizontalIcon className="size-4" aria-hidden />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onSelect={() => onEditRoles(row.original)}>
-                                    <PencilIcon className="size-4 mr-2" aria-hidden />
-                                    Edit roles
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem variant="destructive" disabled={removeDisabled} onSelect={() => onRemove(row.original)}>
-                                    <Trash2Icon className="size-4 mr-2" aria-hidden />
-                                    Remove member
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                );
-            },
-        });
+    if (!canManageMembers) {
+        return columns;
     }
+
+    columns.push({
+        id: 'actions',
+        header: () => <span className="sr-only">Actions</span>,
+        size: 56,
+        enableSorting: false,
+        enableHiding: false,
+        cell: ({ row }: ColCell<GroupMember>) => {
+            const removeDisabled = isRemoveDisabled(row.original, totalMemberCount);
+            return (
+                <div className="flex justify-end">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="size-8" aria-label="Member actions">
+                                <MoreHorizontalIcon className="size-4" aria-hidden />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onSelect={() => onEditRoles(row.original)}>
+                                <PencilIcon className="size-4 mr-2" aria-hidden />
+                                Edit roles
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem variant="destructive" disabled={removeDisabled} onSelect={() => onRemove(row.original)}>
+                                <Trash2Icon className="size-4 mr-2" aria-hidden />
+                                Remove member
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            );
+        },
+    });
 
     return columns;
 }

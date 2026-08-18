@@ -46,11 +46,14 @@ function renderSheet(overrides: Partial<React.ComponentProps<typeof GroupEditMem
             apiProductRoles={[{ name: 'USER', scope: 'API_PRODUCT' }]}
             integrationRoles={[{ name: 'USER', scope: 'INTEGRATION' }]}
             clusterRoles={[{ name: 'USER', scope: 'CLUSTER' }]}
+            explorerRoles={[{ name: 'USER', scope: 'EXPLORER' }]}
             lockApiRole={false}
             lockApiProductRole={false}
             lockApplicationRole={false}
             canOverrideLocks
             groupAllowsGroupAdmin
+            apiPrimaryOwnerMode="HYBRID"
+            apiProductPrimaryOwnerMode="HYBRID"
             onClose={onClose}
             onSubmit={onSubmit}
             isSaving={false}
@@ -78,6 +81,7 @@ describe('GroupEditMemberSheet', () => {
                 apiProductRoles={[]}
                 integrationRoles={[]}
                 clusterRoles={[]}
+                explorerRoles={[]}
                 groupAllowsGroupAdmin
                 onClose={jest.fn()}
                 onSubmit={jest.fn()}
@@ -161,6 +165,26 @@ describe('GroupEditMemberSheet', () => {
         const { onClose } = renderSheet();
         fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
         expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('locks role fields while saving', () => {
+        renderSheet({ isSaving: true });
+        expect(screen.getAllByRole('combobox')[0]).toHaveProperty('disabled', true);
+        expect(screen.getByRole('checkbox', { name: /Group admin/i })).toHaveProperty('disabled', true);
+        expect(screen.getByRole('button', { name: 'Saving…' })).toHaveProperty('disabled', true);
+        expect(screen.getByRole('button', { name: 'Cancel' })).toHaveProperty('disabled', true);
+    });
+
+    it('disables PRIMARY_OWNER when API primary-owner mode is USER', () => {
+        renderSheet({ apiPrimaryOwnerMode: 'USER' });
+        fireEvent.click(screen.getAllByRole('combobox')[0]);
+        expect(screen.getByRole('option', { name: 'PRIMARY_OWNER' }).getAttribute('aria-disabled')).toBe('true');
+    });
+
+    it('disables PRIMARY_OWNER until primary-owner mode settings have loaded', () => {
+        renderSheet({ apiPrimaryOwnerMode: undefined });
+        fireEvent.click(screen.getAllByRole('combobox')[0]);
+        expect(screen.getByRole('option', { name: 'PRIMARY_OWNER' }).getAttribute('aria-disabled')).toBe('true');
     });
 
     describe('primary ownership transfer', () => {
@@ -310,6 +334,30 @@ describe('GroupEditMemberSheet', () => {
                 ),
             ).not.toBeNull();
             expect(screen.getByRole('button', { name: 'Save' })).toHaveProperty('disabled', false);
+        });
+
+        it('names the selected non-owner role in the downgrade transfer message', async () => {
+            const user = userEvent.setup();
+            renderSheet({
+                member: primaryOwnerMember,
+                members: [primaryOwnerMember, otherMember],
+                apiRoles: [
+                    { name: 'USER', scope: 'API' },
+                    { name: 'OWNER', scope: 'API' },
+                    { name: 'PRIMARY_OWNER', scope: 'API', system: true },
+                ],
+            });
+
+            fireEvent.click(screen.getAllByRole('combobox')[0]);
+            fireEvent.click(screen.getByRole('option', { name: 'USER' }));
+            await user.click(screen.getByLabelText('Search members'));
+            await user.click(screen.getByRole('option', { name: 'Ravi Patel' }));
+
+            expect(
+                screen.getByText(
+                    'Anna Schmidt is the API primary owner. The API primary ownership will be transferred to Ravi Patel and Anna Schmidt will be updated as user.',
+                ),
+            ).not.toBeNull();
         });
 
         it('submits the promoted successor before the demoted member', async () => {

@@ -21,6 +21,7 @@ import { GroupRoleSelect } from './GroupRoleSelect';
 import type { GroupMember, GroupRole } from '../types/group';
 import { PRIMARY_OWNER_ROLE } from '../types/group';
 import { getMemberRoleLockFlags } from '../utils/memberRoles';
+import { isPrimaryOwnerUnavailable } from '../utils/primaryOwnership';
 
 export function GroupInviteMemberSheet({
     open,
@@ -32,6 +33,7 @@ export function GroupInviteMemberSheet({
     lockApiRole,
     lockApplicationRole,
     canOverrideLocks,
+    apiPrimaryOwnerMode,
     onClose,
     onSubmit,
     isSaving,
@@ -45,6 +47,7 @@ export function GroupInviteMemberSheet({
     lockApiRole: boolean;
     lockApplicationRole: boolean;
     canOverrideLocks: boolean;
+    apiPrimaryOwnerMode?: string;
     onClose: () => void;
     onSubmit: (values: { email: string; apiRole: string; applicationRole: string }) => void;
     isSaving: boolean;
@@ -61,13 +64,14 @@ export function GroupInviteMemberSheet({
         }
     }, [open, groupRoles]);
 
-    const apiPrimaryOwnerExists = members.some(m => m.roles?.API === PRIMARY_OWNER_ROLE);
+    const apiPrimaryOwnerDisabled =
+        isPrimaryOwnerUnavailable(apiPrimaryOwnerMode) || members.some(m => m.roles?.API === PRIMARY_OWNER_ROLE);
     const roleLocks = getMemberRoleLockFlags({ lockApiRole, lockApiProductRole: false, lockApplicationRole }, canOverrideLocks);
 
     const canSubmit = email.trim().length > 0;
 
     return (
-        <Sheet open={open} onOpenChange={isOpen => !isOpen && onClose()}>
+        <Sheet open={open} onOpenChange={isOpen => !isOpen && !isSaving && onClose()}>
             <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: '480px' }}>
                 <SheetHeader>
                     <SheetTitle>Email invitation</SheetTitle>
@@ -85,6 +89,7 @@ export function GroupInviteMemberSheet({
                             placeholder="user@example.com"
                             value={email}
                             onChange={e => setEmail(e.target.value)}
+                            disabled={isSaving}
                         />
                     </div>
 
@@ -94,8 +99,9 @@ export function GroupInviteMemberSheet({
                         roles={apiRoles}
                         value={apiRole}
                         onChange={setApiRole}
-                        disabled={roleLocks.api}
-                        disabledOptionNames={apiPrimaryOwnerExists ? new Set([PRIMARY_OWNER_ROLE]) : undefined}
+                        disabled={roleLocks.api || isSaving}
+                        disabledOptionNames={apiPrimaryOwnerDisabled ? new Set([PRIMARY_OWNER_ROLE]) : undefined}
+                        disableSystemRoles="except-primary-owner"
                     />
 
                     <GroupRoleSelect
@@ -104,7 +110,8 @@ export function GroupInviteMemberSheet({
                         roles={applicationRoles}
                         value={applicationRole}
                         onChange={setApplicationRole}
-                        disabled={roleLocks.application}
+                        disabled={roleLocks.application || isSaving}
+                        disableSystemRoles="all"
                     />
                 </div>
 

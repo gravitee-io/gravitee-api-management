@@ -91,7 +91,7 @@ describe('GroupRemoveMemberSheet', () => {
 
             expect(
                 screen.getByText(
-                    'Anna Schmidt is the API primary owner. Primary ownership of the group will be transferred from Anna Schmidt to Ravi Patel.',
+                    'Anna Schmidt is the API primary owner. API primary ownership will be transferred from Anna Schmidt to Ravi Patel.',
                 ),
             ).not.toBeNull();
 
@@ -125,7 +125,7 @@ describe('GroupRemoveMemberSheet', () => {
 
             expect(
                 screen.getByText(
-                    'Anna Schmidt is the API, API Product and Cluster primary owner. Primary ownership of the group will be transferred from Anna Schmidt to Ravi Patel.',
+                    'Anna Schmidt is the API, API Product and Cluster primary owner. API, API Product and Cluster primary ownership will be transferred from Anna Schmidt to Ravi Patel.',
                 ),
             ).not.toBeNull();
         });

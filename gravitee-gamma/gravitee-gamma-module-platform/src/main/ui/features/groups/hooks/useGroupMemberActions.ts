@@ -109,7 +109,7 @@ export function useGroupMemberActions(groupId: string | undefined) {
                 await addMembersMutation.mutateAsync({ groupId, memberships: [transferMembership] });
             } catch (error) {
                 notify.error(error, 'Primary ownership could not be transferred');
-                setRemovingMember(null);
+                // Keep the dialog open so the operator can retry or pick another successor.
                 return;
             }
         }

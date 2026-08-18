@@ -26,7 +26,18 @@ const SCOPE_LABELS: Readonly<Record<string, string>> = {
     CLUSTER: 'Cluster',
 };
 
+const PRIMARY_OWNER_MODE_USER = 'USER';
+
 export const PRIMARY_OWNER_SCOPES: GroupMemberRoleScope[] = ['API', 'APPLICATION', 'API_PRODUCT', 'INTEGRATION', 'CLUSTER'];
+
+/** Fail closed: until the mode is known and is not USER, PRIMARY_OWNER must stay unavailable. */
+export function isPrimaryOwnerUnavailable(mode: string | undefined): boolean {
+    return mode === undefined || mode.toUpperCase() === PRIMARY_OWNER_MODE_USER;
+}
+
+function roleUpdatePhrase(role: string | undefined): string {
+    return role ? ` as ${role.toLowerCase().replace(/_/g, ' ')}` : '';
+}
 
 export function membershipFromMember(member: GroupMember, overrides: Record<string, string> = {}): GroupMembershipPayload {
     const merged = { ...(member.roles ?? {}), ...overrides };
@@ -87,21 +98,28 @@ export function buildEditOwnershipTransferMessage(
     member: GroupMember,
     transfer: EditOwnershipTransfer,
     selectedSuccessor: GroupMember | null,
+    selections?: Pick<MemberRoleSelections, 'apiRole' | 'apiProductRole'>,
 ): string | null {
     const parts: string[] = [];
 
     if (selectedSuccessor) {
         if (transfer.isApiDowngrade && transfer.isApiProductDowngrade) {
+            const apiDesc = roleUpdatePhrase(selections?.apiRole);
+            const apiProductDesc = roleUpdatePhrase(selections?.apiProductRole);
+            const roleDesc =
+                selections?.apiRole && selections?.apiProductRole && selections.apiRole === selections.apiProductRole
+                    ? apiDesc
+                    : `${apiDesc} (API) and${apiProductDesc} (API Product)`;
             parts.push(
-                `${member.displayName} is the API and API Product primary owner. Primary ownership will be transferred to ${selectedSuccessor.displayName} and ${member.displayName} will be updated as owner.`,
+                `${member.displayName} is the API and API Product primary owner. Primary ownership will be transferred to ${selectedSuccessor.displayName} and ${member.displayName} will be updated${roleDesc}.`,
             );
         } else if (transfer.isApiDowngrade) {
             parts.push(
-                `${member.displayName} is the API primary owner. The API primary ownership will be transferred to ${selectedSuccessor.displayName} and ${member.displayName} will be updated as owner.`,
+                `${member.displayName} is the API primary owner. The API primary ownership will be transferred to ${selectedSuccessor.displayName} and ${member.displayName} will be updated${roleUpdatePhrase(selections?.apiRole)}.`,
             );
         } else if (transfer.isApiProductDowngrade) {
             parts.push(
-                `${member.displayName} is the API Product primary owner. The API Product primary ownership will be transferred to ${selectedSuccessor.displayName} and ${member.displayName} will be updated as owner.`,
+                `${member.displayName} is the API Product primary owner. The API Product primary ownership will be transferred to ${selectedSuccessor.displayName} and ${member.displayName} will be updated${roleUpdatePhrase(selections?.apiProductRole)}.`,
             );
         }
     }
@@ -126,6 +144,7 @@ export function buildEditOwnershipTransferMessage(
     return parts.length > 0 ? parts.join(' ') : null;
 }
 
+/** Builds membership payloads for a member edit that involves primary-ownership changes. */
 export function buildEditMembershipPayloads(
     member: GroupMember,
     selections: MemberRoleSelections,

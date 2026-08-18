@@ -43,11 +43,14 @@ export function GroupEditMemberSheet({
     apiProductRoles,
     integrationRoles,
     clusterRoles,
+    explorerRoles,
     lockApiRole,
     lockApiProductRole,
     lockApplicationRole,
     canOverrideLocks,
     groupAllowsGroupAdmin,
+    apiPrimaryOwnerMode,
+    apiProductPrimaryOwnerMode,
     onClose,
     onSubmit,
     isSaving,
@@ -61,11 +64,14 @@ export function GroupEditMemberSheet({
     apiProductRoles: GroupRole[];
     integrationRoles: GroupRole[];
     clusterRoles: GroupRole[];
+    explorerRoles: GroupRole[];
     lockApiRole: boolean;
     lockApiProductRole: boolean;
     lockApplicationRole: boolean;
     canOverrideLocks: boolean;
     groupAllowsGroupAdmin: boolean;
+    apiPrimaryOwnerMode?: string;
+    apiProductPrimaryOwnerMode?: string;
     onClose: () => void;
     onSubmit: (memberships: GroupMembershipPayload[]) => void;
     isSaving: boolean;
@@ -78,13 +84,15 @@ export function GroupEditMemberSheet({
         lockApiProductRole,
         lockApplicationRole,
         canOverrideLocks,
+        apiPrimaryOwnerMode,
+        apiProductPrimaryOwnerMode,
         onSubmit,
     });
 
     if (!member) return null;
 
     return (
-        <Sheet open={open} onOpenChange={isOpen => !isOpen && onClose()}>
+        <Sheet open={open} onOpenChange={isOpen => !isOpen && !isSaving && onClose()}>
             <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: '480px' }}>
                 <SheetHeader>
                     <SheetTitle>Edit roles</SheetTitle>
@@ -95,28 +103,32 @@ export function GroupEditMemberSheet({
 
                 <div className="space-y-6 px-4 pb-4">
                     <GroupScopedRoleSelects
+                        idPrefix="edit-member-role"
                         roles={{
                             api: apiRoles,
                             apiProduct: apiProductRoles,
                             application: applicationRoles,
                             integration: integrationRoles,
                             cluster: clusterRoles,
+                            explorer: explorerRoles,
                         }}
                         values={form.roleValues}
                         onChange={form.handleRoleChange}
                         locks={form.roleLocks}
+                        disabled={isSaving}
+                        disabledOptionNames={form.disabledOptionNames}
                     />
 
                     <div className="space-y-1.5">
                         <label
                             htmlFor="edit-member-group-admin"
                             className="flex items-center gap-2.5 cursor-pointer aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
-                            aria-disabled={!groupAllowsGroupAdmin}
+                            aria-disabled={!groupAllowsGroupAdmin || isSaving}
                         >
                             <Checkbox
                                 id="edit-member-group-admin"
                                 checked={form.groupAdmin}
-                                disabled={!groupAllowsGroupAdmin}
+                                disabled={!groupAllowsGroupAdmin || isSaving}
                                 onCheckedChange={checked => form.setGroupAdmin(checked === true)}
                             />
                             <span className="text-sm select-none">Group admin</span>
@@ -135,6 +147,7 @@ export function GroupEditMemberSheet({
                             value={form.selectedSuccessor}
                             onChange={picked => form.setSelectedSuccessorId(picked?.id ?? null)}
                             hint="Select a member to transfer primary ownership."
+                            disabled={isSaving}
                         />
                     )}
 

@@ -17,8 +17,14 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import type { GroupMember, GroupMembershipPayload } from '../types/group';
+import { PRIMARY_OWNER_ROLE } from '../types/group';
 import { getMemberRoleLockFlags, sortedSuccessorCandidates, type MemberRoleSelections, type RoleField } from '../utils/memberRoles';
-import { analyzeEditOwnershipTransfer, buildEditMembershipPayloads, buildEditOwnershipTransferMessage } from '../utils/primaryOwnership';
+import {
+    analyzeEditOwnershipTransfer,
+    buildEditMembershipPayloads,
+    buildEditOwnershipTransferMessage,
+    isPrimaryOwnerUnavailable,
+} from '../utils/primaryOwnership';
 
 export function useGroupEditMemberForm({
     open,
@@ -28,6 +34,8 @@ export function useGroupEditMemberForm({
     lockApiProductRole,
     lockApplicationRole,
     canOverrideLocks,
+    apiPrimaryOwnerMode,
+    apiProductPrimaryOwnerMode,
     onSubmit,
 }: {
     open: boolean;
@@ -37,6 +45,8 @@ export function useGroupEditMemberForm({
     lockApiProductRole: boolean;
     lockApplicationRole: boolean;
     canOverrideLocks: boolean;
+    apiPrimaryOwnerMode: string | undefined;
+    apiProductPrimaryOwnerMode: string | undefined;
     onSubmit: (memberships: GroupMembershipPayload[]) => void;
 }) {
     const [roleValues, setRoleValues] = useState<Record<RoleField, string>>({
@@ -45,6 +55,7 @@ export function useGroupEditMemberForm({
         applicationRole: '',
         integrationRole: '',
         clusterRole: '',
+        explorerRole: '',
     });
     const [groupAdmin, setGroupAdmin] = useState(false);
     const [selectedSuccessorId, setSelectedSuccessorId] = useState<string | null>(null);
@@ -57,6 +68,7 @@ export function useGroupEditMemberForm({
             applicationRole: member.roles?.APPLICATION ?? '',
             integrationRole: member.roles?.INTEGRATION ?? '',
             clusterRole: member.roles?.CLUSTER ?? '',
+            explorerRole: member.roles?.EXPLORER ?? '',
         });
         setGroupAdmin(member.roles?.GROUP === 'ADMIN');
         setSelectedSuccessorId(null);
@@ -71,11 +83,19 @@ export function useGroupEditMemberForm({
 
     const transfer = member ? analyzeEditOwnershipTransfer(member, members, roleValues) : null;
     const selectedSuccessor = selectedSuccessorId ? (successorCandidates.find(m => m.id === selectedSuccessorId) ?? null) : null;
-    const transferMessage = member && transfer ? buildEditOwnershipTransferMessage(member, transfer, selectedSuccessor) : null;
+    const transferMessage = member && transfer ? buildEditOwnershipTransferMessage(member, transfer, selectedSuccessor, roleValues) : null;
+
+    // Classic edit disables PRIMARY_OWNER only in USER mode (fail closed until settings load). Existing PO
+    // stays selectable so upgrades can transfer ownership from another member.
+    const disabledOptionNames = {
+        api: isPrimaryOwnerUnavailable(apiPrimaryOwnerMode) ? new Set([PRIMARY_OWNER_ROLE]) : undefined,
+        apiProduct: isPrimaryOwnerUnavailable(apiProductPrimaryOwnerMode) ? new Set([PRIMARY_OWNER_ROLE]) : undefined,
+    };
 
     return {
         roleValues,
         roleLocks,
+        disabledOptionNames,
         groupAdmin,
         setGroupAdmin,
         successorCandidates,

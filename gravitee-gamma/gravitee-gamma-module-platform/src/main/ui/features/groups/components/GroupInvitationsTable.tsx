@@ -78,28 +78,30 @@ function buildColumns({
         },
     ];
 
-    if (canManageMembers) {
-        columns.push({
-            id: 'actions',
-            header: () => <span className="sr-only">Actions</span>,
-            size: 56,
-            enableSorting: false,
-            enableHiding: false,
-            cell: ({ row }: ColCell<GroupInvitation>) => (
-                <div className="flex justify-end">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-8"
-                        aria-label={`Delete invitation sent to ${row.original.email}`}
-                        onClick={() => onDelete(row.original)}
-                    >
-                        <Trash2Icon className="size-4" aria-hidden />
-                    </Button>
-                </div>
-            ),
-        });
+    if (!canManageMembers) {
+        return columns;
     }
+
+    columns.push({
+        id: 'actions',
+        header: () => <span className="sr-only">Actions</span>,
+        size: 56,
+        enableSorting: false,
+        enableHiding: false,
+        cell: ({ row }: ColCell<GroupInvitation>) => (
+            <div className="flex justify-end">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-8"
+                    aria-label={`Delete invitation sent to ${row.original.email}`}
+                    onClick={() => onDelete(row.original)}
+                >
+                    <Trash2Icon className="size-4" aria-hidden />
+                </Button>
+            </div>
+        ),
+    });
 
     return columns;
 }

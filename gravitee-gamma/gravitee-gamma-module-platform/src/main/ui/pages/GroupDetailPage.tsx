@@ -128,8 +128,6 @@ export function GroupDetailPage() {
         handleDeleteInvitation,
     } = useGroupMemberActions(groupId);
 
-    // Edit Group only needs API / application / API product catalogs. Search add-members needs all six;
-    // edit-member also needs integration / cluster. Invite only uses API / application.
     const addMemberRolesNeeded = memberSheet === 'search';
     const extraMemberRolesNeeded = addMemberRolesNeeded || editingMember !== null;
     const defaultGroupRolesNeeded = editOpen || memberSheet !== 'closed' || editingMember !== null;
@@ -142,14 +140,20 @@ export function GroupDetailPage() {
     });
     const { data: integrationRoles = [] } = useGroupIntegrationRoles({ enabled: extraMemberRolesNeeded });
     const { data: clusterRoles = [] } = useGroupClusterRoles({ enabled: extraMemberRolesNeeded });
-    const { data: explorerRoles = [] } = useGroupExplorerRoles({ enabled: addMemberRolesNeeded });
+    const { data: explorerRoles = [] } = useGroupExplorerRoles({ enabled: extraMemberRolesNeeded });
     const isCurrentUserGroupAdmin = useCurrentUserIsGroupAdmin(members);
 
     const maxInvitationsLimitReached = typeof group?.max_invitation === 'number' && group.max_invitation <= members.length;
-    const canAddMembers = group !== undefined && (canEdit || canInviteToGroup(group)) && !maxInvitationsLimitReached;
+    const canAddMembers =
+        group !== undefined &&
+        (canEdit || canInviteToGroup(group)) &&
+        !maxInvitationsLimitReached &&
+        Boolean(group.system_invitation || group.email_invitation);
     const canManageMemberActions = canEdit || isCurrentUserGroupAdmin;
-    // Portal settings only matter for add-members PRIMARY_OWNER gating; skip when the user cannot open the sheet.
-    const { data: environmentSettings } = useEnvironmentSettings({ enabled: canAddMembers });
+    // Portal primaryOwnerMode gates API / API Product PRIMARY_OWNER on add, invite, and edit sheets.
+    const { data: environmentSettings } = useEnvironmentSettings({
+        enabled: canAddMembers || memberSheet === 'invite' || editingMember !== null,
+    });
 
     const updateMutation = useUpdateGroup();
     const deleteMutation = useDeleteGroup();
@@ -458,6 +462,7 @@ export function GroupDetailPage() {
                 lockApiRole={Boolean(group.lock_api_role)}
                 lockApplicationRole={Boolean(group.lock_application_role)}
                 canOverrideLocks={canEdit}
+                apiPrimaryOwnerMode={environmentSettings?.api?.primaryOwnerMode}
                 onClose={closeMemberSheet}
                 onSubmit={handleInviteMember}
                 isSaving={inviteMemberMutation.isPending}
@@ -473,11 +478,14 @@ export function GroupDetailPage() {
                 apiProductRoles={apiProductRoles}
                 integrationRoles={integrationRoles}
                 clusterRoles={clusterRoles}
+                explorerRoles={explorerRoles}
                 lockApiRole={Boolean(group.lock_api_role)}
                 lockApiProductRole={Boolean(group.lock_api_product_role)}
                 lockApplicationRole={Boolean(group.lock_application_role)}
                 canOverrideLocks={canEdit}
                 groupAllowsGroupAdmin={Boolean(group.system_invitation)}
+                apiPrimaryOwnerMode={environmentSettings?.api?.primaryOwnerMode}
+                apiProductPrimaryOwnerMode={environmentSettings?.apiProduct?.primaryOwnerMode}
                 onClose={() => setEditingMember(null)}
                 onSubmit={handleEditMemberRoles}
                 isSaving={addMembersMutation.isPending}
@@ -490,7 +498,7 @@ export function GroupDetailPage() {
                 groupName={group.name}
                 onClose={() => setRemovingMember(null)}
                 onConfirm={handleRemoveMember}
-                isRemoving={removeMemberMutation.isPending}
+                isRemoving={removeMemberMutation.isPending || addMembersMutation.isPending}
             />
 
             <GroupTooManyUsersDialog

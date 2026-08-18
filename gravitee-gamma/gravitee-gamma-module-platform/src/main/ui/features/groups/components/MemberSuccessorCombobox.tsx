@@ -25,6 +25,7 @@ export function MemberSuccessorCombobox({
     candidates,
     value,
     onChange,
+    disabled = false,
 }: Readonly<{
     id: string;
     label?: string;
@@ -32,14 +33,21 @@ export function MemberSuccessorCombobox({
     candidates: GroupMember[];
     value: GroupMember | null;
     onChange: (member: GroupMember | null) => void;
+    disabled?: boolean;
 }>) {
     return (
         <div className="space-y-1.5">
             <Label htmlFor={id} className="text-sm text-muted-foreground">
                 {label}
             </Label>
-            <Combobox items={candidates} value={value} onValueChange={onChange} itemToStringLabel={(m: GroupMember) => m.displayName}>
-                <ComboboxInput id={id} aria-label={label} placeholder="Search members…" showClear />
+            <Combobox
+                items={candidates}
+                value={value}
+                onValueChange={onChange}
+                itemToStringLabel={(m: GroupMember) => m.displayName}
+                disabled={disabled}
+            >
+                <ComboboxInput id={id} aria-label={label} placeholder="Search members…" showClear disabled={disabled} />
                 <ComboboxContent>
                     <ComboboxEmpty>No members found</ComboboxEmpty>
                     <ComboboxList>

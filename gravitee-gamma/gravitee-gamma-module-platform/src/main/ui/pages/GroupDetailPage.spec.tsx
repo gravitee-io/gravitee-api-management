@@ -705,6 +705,8 @@ describe('GroupDetailPage', () => {
 
             await waitFor(() => expect(notify.error).toHaveBeenCalledWith(error, 'Primary ownership could not be transferred'));
             expect(removeMutateAsync).not.toHaveBeenCalled();
+            // Keep the dialog open so the operator can retry or pick another successor.
+            expect(screen.getByTestId('remove-member-sheet')).not.toBeNull();
         });
     });
 

@@ -40,6 +40,7 @@ function renderSheet(overrides: Partial<React.ComponentProps<typeof GroupInviteM
             lockApiRole={false}
             lockApplicationRole={false}
             canOverrideLocks
+            apiPrimaryOwnerMode="HYBRID"
             onClose={onClose}
             onSubmit={onSubmit}
             isSaving={false}
@@ -111,6 +112,32 @@ describe('GroupInviteMemberSheet', () => {
         renderSheet();
         fireEvent.click(screen.getAllByRole('combobox')[0]);
         expect(screen.getByRole('option', { name: 'PRIMARY_OWNER' }).getAttribute('aria-disabled')).not.toBe('true');
+    });
+
+    it('disables PRIMARY_OWNER when API primary-owner mode is USER', () => {
+        renderSheet({ apiPrimaryOwnerMode: 'USER' });
+        fireEvent.click(screen.getAllByRole('combobox')[0]);
+        expect(screen.getByRole('option', { name: 'PRIMARY_OWNER' }).getAttribute('aria-disabled')).toBe('true');
+    });
+
+    it('disables non-PRIMARY_OWNER system roles on the API select', () => {
+        renderSheet({
+            apiRoles: [
+                { name: 'USER', scope: 'API' },
+                { name: 'ADMIN', scope: 'API', system: true },
+                { name: 'PRIMARY_OWNER', scope: 'API', system: true },
+            ],
+        });
+        fireEvent.click(screen.getAllByRole('combobox')[0]);
+        expect(screen.getByRole('option', { name: 'ADMIN' }).getAttribute('aria-disabled')).toBe('true');
+        expect(screen.getByRole('option', { name: 'PRIMARY_OWNER' }).getAttribute('aria-disabled')).not.toBe('true');
+    });
+
+    it('locks fields while saving', () => {
+        renderSheet({ isSaving: true });
+        expect(screen.getByRole('textbox', { name: /Email/i })).toHaveProperty('disabled', true);
+        expect(screen.getAllByRole('combobox')[0]).toHaveProperty('disabled', true);
+        expect(screen.getByRole('button', { name: 'Cancel' })).toHaveProperty('disabled', true);
     });
 
     describe('lock flags', () => {
