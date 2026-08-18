@@ -63,6 +63,18 @@ export function publishAndDeployJobs(dynamicConfig: Config, environment: CircleC
     'Build APIM Portal docker image',
   ];
 
+  // What the cluster actually pulls. The deployment is a rollout restart: it never names a tag,
+  // so it cannot fail on an image that was not pushed yet — the pods come back up on whatever
+  // the tag pointed at before. The standard variants are absent on purpose: they are built for
+  // the end-to-end suites and the SaaS trigger, not for this environment.
+  const environmentImages = [
+    'Build APIM Management API chainguard docker image',
+    'Build APIM Gateway chainguard docker image',
+    'Build APIM Console chainguard docker image',
+    'Build APIM Portal chainguard docker image',
+    'Build Gamma Console chainguard docker image',
+  ];
+
   return [
     new workflow.WorkflowJob(runTriggerSaasDockerImagesJob, {
       context: [...config.jobContext, 'keeper-orb-publishing'],
@@ -87,7 +99,7 @@ export function publishAndDeployJobs(dynamicConfig: Config, environment: CircleC
     new workflow.WorkflowJob(deployOnAzureJob, {
       name: 'Deploy on Azure cluster',
       context: config.jobContext,
-      requires: productImages,
+      requires: environmentImages,
     }),
     ...(isMasterBranch(environment.branch)
       ? [
@@ -99,9 +111,8 @@ export function publishAndDeployJobs(dynamicConfig: Config, environment: CircleC
         ]
       : []),
 
-    // Aikido scans the images this path actually pushes. The chainguard variants are built by
-    // their own manually triggered workflows, so asking for them here would leave the scan
-    // waiting on jobs that are not in this workflow.
-    ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, false, '', false),
+    // Everything this path pushes. The chainguard-fips variants are not among them: the
+    // environment does not run them, so the scheduled build both builds and scans those.
+    ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, false, '', ['chainguard']),
   ];
 }

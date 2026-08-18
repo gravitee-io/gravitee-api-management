@@ -19,7 +19,6 @@ import { CircleCIEnvironment } from '../pipelines';
 import { config } from '../config';
 import { devEnvironmentJobs } from './groups/dev-environment-jobs';
 import { e2eJobs } from './groups/e2e-jobs';
-import { chainguardImageJobs } from './groups/chainguard-image-jobs';
 import { chainguardFipsImageJobs } from './groups/chainguard-fips-image-jobs';
 
 /**
@@ -42,10 +41,8 @@ export class NightlyWorkflow {
     return new Workflow('nightly', [
       ...devEnvironmentJobs(dynamicConfig, environment),
 
-      // The chainguard variants are shipped but the environment does not run them, so a branch
-      // push has no reason to build them. They are built here instead, which is also what gives
-      // the Aikido scan below something to look at every night rather than only at release time.
-      ...chainguardImageJobs(dynamicConfig, environment),
+      // Only the FIPS variants. The chainguard images are built — and scanned — by every branch
+      // push, since the environment runs them.
       ...chainguardFipsImageJobs(dynamicConfig, environment),
 
       new workflow.WorkflowJob(testIntegrationJob, {
@@ -68,9 +65,10 @@ export class NightlyWorkflow {
         requires: ['Integration tests', 'Run Cypress UI tests'],
       }),
 
-      // Every variant, standard and chainguard alike. This is the only place they are scanned
-      // between two releases.
-      ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, false, '', true),
+      // What this workflow builds: the standard images and the FIPS variants. FIPS is scanned
+      // nowhere else between two releases; the chainguard variants are scanned on the branch
+      // push that builds them.
+      ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, false, '', ['chainguard-fips']),
     ]);
   }
 }

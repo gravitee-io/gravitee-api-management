@@ -20,8 +20,9 @@ import { config } from '../../config';
 
 /**
  * The chainguard component images, published to Docker Hub alongside the alpine and debian
- * variants. The development environment does not run them, so they are not part of refreshing
- * it — but they are shipped, so something has to build and scan them regularly.
+ * variants. The development environment runs them, so refreshing it means building them: the
+ * deployment is a rollout restart, which cannot report a missing image — the pods simply come
+ * back up on the tag's previous content.
  */
 export function chainguardImageJobs(dynamicConfig: Config, environment: CircleCIEnvironment): workflow.WorkflowJob[] {
   const buildDockerChainguardImageJob = BuildDockerChainguardImageJob.create(dynamicConfig, environment, false);
