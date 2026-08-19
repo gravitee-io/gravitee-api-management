@@ -21,7 +21,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { WebhookLogsMoreFiltersComponent } from './webhook-logs-more-filters.component';
 import { WebhookLogsMoreFiltersHarness } from './webhook-logs-more-filters.harness';
 
-import { DEFAULT_PERIOD } from '../../../runtime-logs/models';
+import { NONE_PERIOD } from '../../../runtime-logs/models';
 
 describe('WebhookLogsMoreFiltersComponent', () => {
   let fixture: ComponentFixture<WebhookLogsMoreFiltersComponent>;
@@ -37,7 +37,7 @@ describe('WebhookLogsMoreFiltersComponent', () => {
     fixture = TestBed.createComponent(WebhookLogsMoreFiltersComponent);
     fixture.componentRef.setInput('showMoreFilters', true);
     fixture.componentRef.setInput('callbackUrls', callbackUrls);
-    fixture.componentRef.setInput('formValues', { period: DEFAULT_PERIOD, from: null, to: null, callbackUrls: [] });
+    fixture.componentRef.setInput('formValues', { period: NONE_PERIOD, from: null, to: null, callbackUrls: [] });
     fixture.detectChanges();
 
     harness = await TestbedHarnessEnvironment.harnessForFixture<WebhookLogsMoreFiltersHarness>(fixture, WebhookLogsMoreFiltersHarness);
@@ -53,7 +53,7 @@ describe('WebhookLogsMoreFiltersComponent', () => {
     await harness.clickApply();
 
     expect(applySpy).toHaveBeenCalledWith(
-      expect.objectContaining({ callbackUrls: [callbackUrls[0]], period: DEFAULT_PERIOD, from: null, to: null }),
+      expect.objectContaining({ callbackUrls: [callbackUrls[0]], period: NONE_PERIOD, from: null, to: null }),
     );
     expect(closeSpy).toHaveBeenCalled();
   });
@@ -66,7 +66,7 @@ describe('WebhookLogsMoreFiltersComponent', () => {
     await harness.clickClearAll();
 
     expect(applySpy).toHaveBeenCalledWith({
-      period: DEFAULT_PERIOD,
+      period: NONE_PERIOD,
       from: null,
       to: null,
       callbackUrls: [],

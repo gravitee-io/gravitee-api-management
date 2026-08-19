@@ -46,7 +46,7 @@ import { ApiLogsV2Service } from '../../../../services-ngx/api-logs-v2.service';
 import { ApiSubscriptionV2Service } from '../../../../services-ngx/api-subscription-v2.service';
 import { ApplicationService } from '../../../../services-ngx/application.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-import { DEFAULT_PERIOD, MultiFilter, PERIODS, SimpleFilter } from '../runtime-logs/models';
+import { NONE_PERIOD, MultiFilter, PERIODS, SimpleFilter } from '../runtime-logs/models';
 import { GioTableWrapperPagination } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 
 @Component({
@@ -130,7 +130,7 @@ export class WebhookLogsComponent implements OnInit {
     const initialFilters: WebhookLogsQuickFilters = {
       statuses: initialStatuses.length ? initialStatuses : undefined,
       applications: initialApplications?.length ? initialApplications : undefined,
-      period: initialPeriod.value !== DEFAULT_PERIOD.value ? initialPeriod : undefined,
+      period: initialPeriod.value !== NONE_PERIOD.value ? initialPeriod : undefined,
       from: initialFrom,
       to: initialTo,
       callbackUrls: initialCallbackUrls.length ? initialCallbackUrls : undefined,
@@ -435,11 +435,11 @@ export class WebhookLogsComponent implements OnInit {
       return undefined;
     }
     const match = this.periods.find(available => available.value === period.value);
-    return match && match.value !== DEFAULT_PERIOD.value ? match : undefined;
+    return match && match.value !== NONE_PERIOD.value ? match : undefined;
   }
 
   private preparePeriodRange(period: SimpleFilter): { from: number; to: number } | undefined {
-    if (!period || period.value === DEFAULT_PERIOD.value) {
+    if (!period || period.value === NONE_PERIOD.value) {
       return undefined;
     }
 
@@ -512,9 +512,9 @@ export class WebhookLogsComponent implements OnInit {
 
   private buildInitialPeriod(periodValue?: string): SimpleFilter {
     if (!periodValue) {
-      return DEFAULT_PERIOD;
+      return NONE_PERIOD;
     }
-    return this.periods.find(period => period.value === periodValue) ?? DEFAULT_PERIOD;
+    return this.periods.find(period => period.value === periodValue) ?? NONE_PERIOD;
   }
 
   /**

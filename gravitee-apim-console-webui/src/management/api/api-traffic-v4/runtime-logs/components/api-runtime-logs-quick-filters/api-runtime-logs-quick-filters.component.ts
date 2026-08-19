@@ -23,13 +23,13 @@ import { KeyValue } from '@angular/common';
 
 import {
   DEFAULT_FILTERS,
-  DEFAULT_PERIOD,
   LogFilters,
   LogFiltersForm,
   LogFiltersInitialValues,
   MoreFiltersForm,
   MultiFilter,
   PERIODS,
+  resolveInitialLogPeriod,
 } from '../../models';
 import { QuickFiltersStoreService } from '../../services';
 import { ApiType, Plan } from '../../../../../../entities/management-api-v2';
@@ -130,8 +130,9 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
   constructor(private readonly quickFilterStore: QuickFiltersStoreService) {}
 
   ngOnInit(): void {
+    const initialPeriod = resolveInitialLogPeriod(this.initialValues.period, this.initialValues.from, this.initialValues.to);
     this.moreFiltersValues = {
-      period: this.initialValues.period ?? DEFAULT_PERIOD,
+      period: initialPeriod,
       from: this.initialValues.from,
       to: this.initialValues.to,
       statuses: this.initialValues.statuses,
@@ -139,7 +140,7 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
       errorKeys: this.initialValues.errorKeys,
     };
     this.quickFiltersForm = new UntypedFormGroup({
-      period: new UntypedFormControl({ value: this.initialValues.period ?? DEFAULT_PERIOD, disabled: true }),
+      period: new UntypedFormControl({ value: initialPeriod, disabled: true }),
       entrypoints: new UntypedFormControl({ value: this.initialValues.entrypoints, disabled: true }),
       plans: new UntypedFormControl({
         value: this.initialValues.plans?.map(plan => plan.value) ?? DEFAULT_FILTERS.plans,
@@ -157,6 +158,20 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
   }
 
   removeFilter(removedFilter: KeyValue<string, LogFilters>) {
+    if (removedFilter.key === 'period') {
+      this.applyMoreFilters({ ...this.moreFiltersValues, period: DEFAULT_FILTERS.period, from: null, to: null });
+      return;
+    }
+
+    if (removedFilter.key === 'from' || removedFilter.key === 'to') {
+      const nextMoreFilters = { ...this.moreFiltersValues, [removedFilter.key]: null };
+      if (!nextMoreFilters.from && !nextMoreFilters.to) {
+        nextMoreFilters.period = DEFAULT_FILTERS.period;
+      }
+      this.applyMoreFilters(nextMoreFilters);
+      return;
+    }
+
     const defaultValue = DEFAULT_FILTERS[removedFilter.key];
     if (this.moreFiltersValues[removedFilter.key]) {
       this.applyMoreFilters({ ...this.moreFiltersValues, [removedFilter.key]: defaultValue });
@@ -201,7 +216,7 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
 
   private onQuickFiltersFormChanges() {
     this.quickFiltersForm.valueChanges.pipe(distinctUntilChanged(isEqual), takeUntil(this.unsubscribe$)).subscribe(values => {
-      if (values.period && values.period === DEFAULT_PERIOD) {
+      if (values.period && values.period.value === '0') {
         this.moreFiltersValues = { ...this.moreFiltersValues, period: values.period };
       } else {
         this.moreFiltersValues = { ...this.moreFiltersValues, period: values.period, from: null, to: null };
