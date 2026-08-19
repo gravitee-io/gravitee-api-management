@@ -25,8 +25,13 @@ import {
     TableHead,
     TableHeader,
     TableRow,
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
 } from '@gravitee/graphene-core';
 
+import { formatAbsoluteDateTime, formatRelativeDateTime } from '../../../../../shared/time';
 import type { AlertHistoryPage } from '../../../types';
 
 export interface HistoryTabProps {
@@ -43,24 +48,33 @@ export function HistoryTab({ historyPage }: HistoryTabProps) {
                 </CardHeader>
                 <CardContent>
                     {historyPage && historyPage.content.length > 0 ? (
-                        <div className="rounded-lg border">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead>Message</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {historyPage.content.map((evt, i) => (
-                                        <TableRow key={`${evt.created_at}-${i}`}>
-                                            <TableCell className="text-sm">{new Date(evt.created_at).toLocaleString()}</TableCell>
-                                            <TableCell className="text-sm text-muted-foreground">{evt.message}</TableCell>
+                        <TooltipProvider delayDuration={200}>
+                            <div className="rounded-lg border">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Date</TableHead>
+                                            <TableHead>Message</TableHead>
                                         </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {historyPage.content.map((evt, i) => (
+                                            <TableRow key={`${evt.created_at}-${i}`}>
+                                                <TableCell className="text-sm">
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <span>{formatRelativeDateTime(evt.created_at)}</span>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>{formatAbsoluteDateTime(evt.created_at)}</TooltipContent>
+                                                    </Tooltip>
+                                                </TableCell>
+                                                <TableCell className="text-sm text-muted-foreground">{evt.message}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </TooltipProvider>
                     ) : (
                         <div className="py-8 text-center text-sm text-muted-foreground">No data to display.</div>
                     )}

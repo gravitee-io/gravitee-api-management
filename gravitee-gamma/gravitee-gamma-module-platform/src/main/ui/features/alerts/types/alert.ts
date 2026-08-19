@@ -141,3 +141,16 @@ export interface AlertHistoryPage {
     content: AlertHistoryEvent[];
     totalElements: number;
 }
+
+export interface AlertTriggerAnalytics {
+    id: string;
+    name: string;
+    severity: AlertSeverity;
+    type: string;
+    events_count: number;
+}
+
+export interface AlertAnalytics {
+    bySeverity: Partial<Record<AlertSeverity, number>>;
+    alerts: AlertTriggerAnalytics[];
+}

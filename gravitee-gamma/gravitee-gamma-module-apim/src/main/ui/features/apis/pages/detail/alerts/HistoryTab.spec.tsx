@@ -14,13 +14,26 @@
  * limitations under the License.
  */
 import { render, screen } from '@testing-library/react';
+import type { ReactNode } from 'react';
 
 import { HistoryTab } from './HistoryTab';
+import { formatAbsoluteDateTime } from '../../../../../shared/time';
 
 jest.mock('@gravitee/graphene-core/icons', () => new Proxy({}, { get: () => () => null }));
 
+jest.mock('@gravitee/graphene-core', () => {
+    const actual = jest.requireActual('@gravitee/graphene-core');
+    return {
+        ...actual,
+        Tooltip: ({ children }: { children: ReactNode }) => children,
+        TooltipProvider: ({ children }: { children: ReactNode }) => children,
+        TooltipTrigger: ({ children }: { children: ReactNode }) => children,
+        TooltipContent: ({ children }: { children: ReactNode }) => <span>{children}</span>,
+    };
+});
+
 describe('HistoryTab', () => {
-    it('renders a date from created_at epoch millis, not Invalid Date', () => {
+    it('renders relative time from created_at epoch millis, not Invalid Date', () => {
         const createdAt = Date.now() - 3 * 60_000;
         render(
             <HistoryTab
@@ -32,7 +45,23 @@ describe('HistoryTab', () => {
         );
 
         expect(screen.queryByText('Invalid Date')).toBeNull();
+        expect(screen.getByText(/minutes ago/)).not.toBeNull();
         expect(screen.getByText(/response.response_time: 304/)).not.toBeNull();
+    });
+
+    it('shows an absolute timestamp in a tooltip', () => {
+        const createdAt = Date.now() - 3 * 60_000;
+        render(
+            <HistoryTab
+                historyPage={{
+                    content: [{ message: 'Health check failed', created_at: createdAt }],
+                    totalElements: 1,
+                }}
+            />,
+        );
+
+        expect(screen.getByText(/minutes ago/)).not.toBeNull();
+        expect(screen.getByText(formatAbsoluteDateTime(createdAt))).not.toBeNull();
     });
 
     it('renders two events that share a message', () => {

@@ -21,6 +21,7 @@ import {
     formNotifToApi,
     listPlatformAlertEvents,
     listPlatformAlerts,
+    getPlatformAlertAnalytics,
     parseNotificationConfiguration,
     updatePlatformAlert,
     updatePlatformAlertFromForm,
@@ -190,11 +191,27 @@ describe('platform alerts service', () => {
     });
 
     describe('listPlatformAlertEvents', () => {
+        it('GETs /platform/alerts/{id}/events with 0-based page like classic console', async () => {
+            mockApimFetchJsonV1Env.mockResolvedValue({ content: [], totalElements: 0 });
+            await listPlatformAlertEvents('env-1', 'alert-1');
+
+            expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('env-1', '/platform/alerts/alert-1/events?page=0&size=10');
+        });
+
         it('GETs /platform/alerts/{id}/events with pagination', async () => {
             mockApimFetchJsonV1Env.mockResolvedValue({ content: [], totalElements: 0 });
             await listPlatformAlertEvents('env-1', 'alert-1', 2, 20);
 
             expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('env-1', '/platform/alerts/alert-1/events?page=2&size=20');
+        });
+    });
+
+    describe('getPlatformAlertAnalytics', () => {
+        it('GETs /platform/alerts/analytics with from and to timestamps', async () => {
+            mockApimFetchJsonV1Env.mockResolvedValue({ bySeverity: {}, alerts: [] });
+            await getPlatformAlertAnalytics('env-1', 1000, 2000);
+
+            expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('env-1', '/platform/alerts/analytics?from=1000&to=2000');
         });
     });
 

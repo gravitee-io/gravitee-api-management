@@ -238,7 +238,7 @@ export async function getAlertHistory(
     environmentId: string,
     apiId: string,
     alertId: string,
-    page = 1,
+    page = 0,
     size = 10,
 ): Promise<AlertHistoryPage> {
     return apimFetchJsonV1Env<AlertHistoryPage>(
