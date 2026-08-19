@@ -68,6 +68,10 @@ class NativeApiLogsMapperTest {
         assertThat(detail.getErrorMessage()).isEqualTo(MESSAGE);
         assertThat(detail.getConnectionStatus()).isEqualTo(NativeApiLog.ConnectionStatusEnum.CONNECTION_ERROR);
         assertThat(detail.getClientId()).isEqualTo(CLIENT_ID);
+        assertThat(detail.getClientSoftwareName()).isEqualTo(CLIENT_SOFTWARE_NAME);
+        assertThat(detail.getClientSoftwareVersion()).isEqualTo(CLIENT_SOFTWARE_VERSION);
+        assertThat(detail.getSecurityType()).isEqualTo(SECURITY_TYPE);
+        assertThat(detail.getSecurityToken()).isEqualTo(SECURITY_TOKEN);
         assertThat(detail.getBrokerId()).isEqualTo(BROKER_ID);
         assertThat(detail.getConnectionDurationMs()).isEqualTo(CONNECTION_DURATION_MS);
     }

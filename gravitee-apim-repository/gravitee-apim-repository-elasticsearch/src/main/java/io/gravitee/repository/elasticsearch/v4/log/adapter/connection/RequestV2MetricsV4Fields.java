@@ -45,6 +45,8 @@ public class RequestV2MetricsV4Fields {
     public static final String LOCAL_ADDRESS = "local-address";
     public static final String HOST = "host";
     public static final String TENANT = "tenant";
+    public static final String SECURITY_TYPE = "security-type";
+    public static final String SECURITY_TOKEN = "security-token";
 
     // Fields with different names in each index
     public static final Field MESSAGE = new Field("message", "error-message");

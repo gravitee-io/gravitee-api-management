@@ -34,6 +34,10 @@ export interface NativeApiLog {
   errorMessage?: string;
   connectionStatus?: NativeConnectionStatus;
   clientId?: string;
+  clientSoftwareName?: string;
+  clientSoftwareVersion?: string;
+  securityType?: string;
+  securityToken?: string;
   brokerId?: string;
   connectionDurationMs?: number;
 }

@@ -46,6 +46,10 @@ public final class NativeApiLogFixtures {
     public static final String STATUS_CONNECTION_ERROR = "CONNECTION_ERROR";
 
     public static final String CLIENT_ID = "consumer-app-1-A";
+    public static final String CLIENT_SOFTWARE_NAME = "librdkafka";
+    public static final String CLIENT_SOFTWARE_VERSION = "2.6.1";
+    public static final String SECURITY_TYPE = "JWT";
+    public static final String SECURITY_TOKEN = "oauth-client-1";
     public static final String BROKER_ID = "broker-1";
     public static final long CONNECTION_DURATION_MS = 1_800_000L;
 
@@ -62,6 +66,10 @@ public final class NativeApiLogFixtures {
     public static final Map<String, Object> RAW_ADDITIONAL_METRICS = Map.of(
         NativeApiMetricKeys.CLIENT_ID,
         CLIENT_ID,
+        NativeApiMetricKeys.CLIENT_SOFTWARE_NAME,
+        CLIENT_SOFTWARE_NAME,
+        NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION,
+        CLIENT_SOFTWARE_VERSION,
         NativeApiMetricKeys.BROKER_ID,
         BROKER_ID,
         NativeApiMetricKeys.CONNECTION_STATUS,
@@ -100,6 +108,10 @@ public final class NativeApiLogFixtures {
             .errorKey(ERROR_KEY)
             .message(MESSAGE)
             .clientId(CLIENT_ID)
+            .clientSoftwareName(CLIENT_SOFTWARE_NAME)
+            .clientSoftwareVersion(CLIENT_SOFTWARE_VERSION)
+            .securityType(SECURITY_TYPE)
+            .securityToken(SECURITY_TOKEN)
             .brokerId(BROKER_ID)
             .build();
     }
@@ -122,6 +134,9 @@ public final class NativeApiLogFixtures {
             .host(HOST)
             .errorKey(ERROR_KEY)
             .message(MESSAGE)
+            // Top-level document fields, unlike the native-kafka keywords in RAW_ADDITIONAL_METRICS.
+            .securityType(SECURITY_TYPE)
+            .securityToken(SECURITY_TOKEN)
             .additionalMetrics(RAW_ADDITIONAL_METRICS)
             .build();
     }

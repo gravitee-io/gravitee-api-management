@@ -103,6 +103,11 @@ class NativeApiLogCrudServiceImpl implements NativeApiLogCrudService {
             .message(metrics.getMessage())
             .connectionStatus(parseConnectionStatus(additional))
             .clientId(asString(additional, NativeApiMetricKeys.CLIENT_ID))
+            .clientSoftwareName(asString(additional, NativeApiMetricKeys.CLIENT_SOFTWARE_NAME))
+            .clientSoftwareVersion(asString(additional, NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION))
+            // Top-level document fields, unlike the native-kafka keywords above.
+            .securityType(metrics.getSecurityType())
+            .securityToken(metrics.getSecurityToken())
             .brokerId(asString(additional, NativeApiMetricKeys.BROKER_ID))
             .connectionDurationMs(asLong(additional, NativeApiMetricKeys.CONNECTION_DURATION_MS))
             .build();

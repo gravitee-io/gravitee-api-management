@@ -17,6 +17,8 @@ package io.gravitee.repository.elasticsearch.v4.log.adapter.nativeapi;
 
 import static io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys.BROKER_ID;
 import static io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys.CLIENT_ID;
+import static io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys.CLIENT_SOFTWARE_NAME;
+import static io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION;
 import static io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys.CONNECTION_DURATION_MS;
 import static io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys.CONNECTION_STATUS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -117,9 +119,30 @@ class NativeApiMetricsFindResponseAdapterTest extends AbstractAdapterTest {
 
             assertThat(metrics.getAdditionalMetrics())
                 .containsEntry(CLIENT_ID, "consumer-app-1-A")
+                .containsEntry(CLIENT_SOFTWARE_NAME, "librdkafka")
+                .containsEntry(CLIENT_SOFTWARE_VERSION, "2.6.1")
                 .containsEntry(BROKER_ID, "broker-1")
                 .containsEntry(CONNECTION_STATUS, "CONNECTED")
                 .doesNotContainKey(CONNECTION_DURATION_MS);
+        }
+
+        @Test
+        void adapt_security_credential_for_successful_connection() {
+            // Top-level document fields, written by the gateway alongside the HTTP request documents in the
+            // same index — not additional metrics, so the source mapper has to read them explicitly.
+            var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-connected.json")).orElseThrow();
+
+            assertThat(metrics.getSecurityType()).isEqualTo("JWT");
+            assertThat(metrics.getSecurityToken()).isEqualTo("oauth-client-1");
+        }
+
+        @Test
+        void adapt_security_credential_as_null_when_the_connection_is_anonymous() {
+            // A key-less plan writes neither field; the document simply omits them.
+            var metrics = NativeApiMetricsFindResponseAdapter.adapt(buildSearchHit("native-connection-error.json")).orElseThrow();
+
+            assertThat(metrics.getSecurityType()).isNull();
+            assertThat(metrics.getSecurityToken()).isNull();
         }
     }
 

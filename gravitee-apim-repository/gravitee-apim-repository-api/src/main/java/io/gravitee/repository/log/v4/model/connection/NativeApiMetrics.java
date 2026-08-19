@@ -45,5 +45,9 @@ public class NativeApiMetrics {
     private String host;
     private String errorKey;
     private String message;
+    /** Credential type the connection authenticated with. Top-level in the document, not an additional metric. */
+    private String securityType;
+    /** Non-PII token identifying the credential; the application's OAuth client id for OAuth2/JWT plans. */
+    private String securityToken;
     private Map<String, Object> additionalMetrics;
 }

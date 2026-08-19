@@ -43,6 +43,8 @@ final class NativeApiMetricsSourceMapper {
             .host(asTextOrNull(source.get(RequestV2MetricsV4Fields.HOST)))
             .errorKey(asTextOrNull(source.get(RequestV2MetricsV4Fields.ERROR_KEY)))
             .message(asTextOrNull(source.get(RequestV2MetricsV4Fields.MESSAGE.v4Metrics())))
+            .securityType(asTextOrNull(source.get(RequestV2MetricsV4Fields.SECURITY_TYPE)))
+            .securityToken(asTextOrNull(source.get(RequestV2MetricsV4Fields.SECURITY_TOKEN)))
             .additionalMetrics(asMapOrNull(source.get(RequestV2MetricsV4Fields.ADDITIONAL_METRICS)))
             .build();
     }

@@ -47,6 +47,10 @@ public class NativeApiLog {
     private String message;
     private NativeConnectionStatus connectionStatus;
     private String clientId;
+    private String clientSoftwareName;
+    private String clientSoftwareVersion;
+    private String securityType;
+    private String securityToken;
     private String brokerId;
     private Long connectionDurationMs;
 }
