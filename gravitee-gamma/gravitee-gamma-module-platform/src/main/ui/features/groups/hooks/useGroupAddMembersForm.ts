@@ -47,6 +47,7 @@ export function useGroupAddMembersForm({
     maxInvitation,
     apiPrimaryOwnerMode,
     apiProductPrimaryOwnerMode,
+    initialSearch,
     onSubmit,
 }: {
     open: boolean;
@@ -59,6 +60,7 @@ export function useGroupAddMembersForm({
     maxInvitation: number | null;
     apiPrimaryOwnerMode: string | undefined;
     apiProductPrimaryOwnerMode: string | undefined;
+    initialSearch?: string;
     onSubmit: (memberships: GroupMembershipPayload[]) => void;
 }) {
     const [search, setSearch] = useState('');
@@ -68,7 +70,7 @@ export function useGroupAddMembersForm({
 
     useEffect(() => {
         if (!open) return;
-        setSearch('');
+        setSearch(initialSearch?.trim() ?? '');
         setDebouncedQuery('');
         setSelected([]);
         setRoleValues({

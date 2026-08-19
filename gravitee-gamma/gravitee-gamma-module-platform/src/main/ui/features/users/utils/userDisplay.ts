@@ -15,8 +15,6 @@
  */
 import type { OrganizationUser } from '../types/user';
 
-export { isValidEmail } from '../../../shared/utils/email';
-
 /** Strips HTML tags from user-provided name fields before submit. */
 export function sanitizeTextInput(value: string): string {
     return value.replace(/<[^>]*>/g, '').trim();

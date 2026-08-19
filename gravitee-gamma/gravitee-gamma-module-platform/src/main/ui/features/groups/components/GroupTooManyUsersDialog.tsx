@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 
-import { Alert, AlertDescription, Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@gravitee/graphene-core';
+import {
+    Alert,
+    AlertDescription,
+    Button,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@gravitee/graphene-core';
 import { InfoIcon } from '@gravitee/graphene-core/icons';
 
 export function GroupTooManyUsersDialog({
@@ -33,16 +43,16 @@ export function GroupTooManyUsersDialog({
             <DialogContent className="max-w-sm">
                 <DialogHeader>
                     <DialogTitle>Many Users Found</DialogTitle>
+                    <DialogDescription>Do you want to continue?</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-3 px-6">
                     <Alert variant="default">
                         <InfoIcon className="size-4" aria-hidden />
                         <AlertDescription>
-                            More than one user already exist with the email id {email} in the organization. You can select and add a
-                            specific user using add member function.
+                            More than one user already exists with the email {email} in the organization. You can select and add a specific
+                            user using the add member function.
                         </AlertDescription>
                     </Alert>
-                    <p className="text-sm">Do you want to continue?</p>
                 </div>
                 <DialogFooter className="border-t px-6 py-4 gap-2">
                     <Button type="button" variant="outline" onClick={onClose}>

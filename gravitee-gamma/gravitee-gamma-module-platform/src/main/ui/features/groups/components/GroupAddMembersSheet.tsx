@@ -28,6 +28,7 @@ import {
 
 import { GroupScopedRoleSelects } from './GroupScopedRoleSelects';
 import { GroupUserSearchPicker } from './GroupUserSearchPicker';
+import { STANDARD_SHEET_WIDTH } from '../../../shared/layout/sheetLayout';
 import { useGroupAddMembersForm } from '../hooks/useGroupAddMembersForm';
 import type { GroupMember, GroupMembershipPayload, GroupRole } from '../types/group';
 
@@ -49,6 +50,7 @@ export function GroupAddMembersSheet({
     maxInvitation,
     apiPrimaryOwnerMode,
     apiProductPrimaryOwnerMode,
+    initialSearch,
     onClose,
     onSubmit,
     isSaving,
@@ -70,6 +72,7 @@ export function GroupAddMembersSheet({
     maxInvitation: number | null;
     apiPrimaryOwnerMode?: string;
     apiProductPrimaryOwnerMode?: string;
+    initialSearch?: string;
     onClose: () => void;
     onSubmit: (memberships: GroupMembershipPayload[]) => void;
     isSaving: boolean;
@@ -85,12 +88,13 @@ export function GroupAddMembersSheet({
         maxInvitation,
         apiPrimaryOwnerMode,
         apiProductPrimaryOwnerMode,
+        initialSearch,
         onSubmit,
     });
 
     return (
         <Sheet open={open} onOpenChange={isOpen => !isOpen && !isSaving && onClose()}>
-            <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: '480px' }}>
+            <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: STANDARD_SHEET_WIDTH }}>
                 <SheetHeader>
                     <SheetTitle>Add members</SheetTitle>
                     <SheetDescription>Search platform users and assign roles for membership in {groupName}.</SheetDescription>

@@ -13,21 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { UserRole } from '@gravitee/gamma-modules-sdk/types';
 
-import { apimFetchJsonOrg } from '../../../shared/api/apimClient';
+/** Default right sheet width (30rem / 480px). */
+export const STANDARD_SHEET_WIDTH = '480px';
 
-export interface CurrentUser {
-    id?: string;
-    displayName?: string;
-    roles?: UserRole[];
-}
-
-/** GET /organizations/{orgId}/user — same resource as the control-plane auth store. */
-export async function fetchCurrentUser(): Promise<CurrentUser> {
-    return apimFetchJsonOrg<CurrentUser>('/user');
-}
-
-export function hasOrganizationAdminRole(roles: UserRole[] | undefined): boolean {
-    return roles?.some(role => role.scope === 'ORGANIZATION' && role.name === 'ADMIN') ?? false;
-}
+/** Wider sheet for multi-column forms or category sections (48rem / 768px). */
+export const WIDE_SHEET_WIDTH = '48rem';

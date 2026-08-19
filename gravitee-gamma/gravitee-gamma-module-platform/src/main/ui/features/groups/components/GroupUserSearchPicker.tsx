@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Badge, Button, Checkbox, Input, Label, Skeleton } from '@gravitee/graphene-core';
+import { Badge, Button, Checkbox, InputGroup, InputGroupAddon, InputGroupInput, Label, Skeleton } from '@gravitee/graphene-core';
 import { SearchIcon, XIcon } from '@gravitee/graphene-core/icons';
 
 import type { SearchableUser } from '../../../shared/types/userSearch';
@@ -54,17 +54,18 @@ export function GroupUserSearchPicker({
             <Label htmlFor={SEARCH_INPUT_ID} className="text-sm font-medium">
                 Search users
             </Label>
-            <div className="relative">
-                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-                <Input
+            <InputGroup>
+                <InputGroupAddon align="inline-start">
+                    <SearchIcon className="size-3.5 text-muted-foreground" aria-hidden />
+                </InputGroupAddon>
+                <InputGroupInput
                     id={SEARCH_INPUT_ID}
-                    className="pl-10"
                     placeholder="Search by name or email…"
                     value={search}
                     onChange={e => onSearchChange(e.target.value)}
                     disabled={searchDisabled}
                 />
-            </div>
+            </InputGroup>
 
             {selected.length > 0 && (
                 <div className="flex flex-wrap gap-1.5" aria-label="Selected users">

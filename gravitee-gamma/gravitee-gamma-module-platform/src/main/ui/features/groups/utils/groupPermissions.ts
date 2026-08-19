@@ -24,11 +24,6 @@ export const ENVIRONMENT_GROUP_DELETE_PERMISSION = 'environment-group-d' as cons
 export const ORGANIZATION_SETTINGS_READ_PERMISSION = 'organization-settings-r' as const;
 export const ORGANIZATION_SETTINGS_UPDATE_PERMISSION = 'organization-settings-u' as const;
 
-/**
- * Mirrors classic Console's `apiPrimaryOwner || apiProductPrimaryOwner` badge/delete-guard condition
- * (groups.component.html / groups.component.ts) — `primary_owner` alone misses groups that are only
- * an API Product primary owner, since the backend only sets `primary_owner` from API-scope PO state.
- */
 export function isPrimaryOwnerGroup(group: Pick<Group, 'primary_owner' | 'apiPrimaryOwner' | 'apiProductPrimaryOwner'>): boolean {
     return Boolean(group.primary_owner || group.apiPrimaryOwner || group.apiProductPrimaryOwner);
 }

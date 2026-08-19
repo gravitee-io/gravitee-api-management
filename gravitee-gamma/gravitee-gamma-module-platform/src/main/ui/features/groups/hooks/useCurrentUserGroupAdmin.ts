@@ -15,8 +15,8 @@
  */
 import { useQuery } from '@tanstack/react-query';
 
-import { fetchCurrentUser } from '../../applications/services/currentUser';
-import { currentUserKeys } from '../../applications/utils/queryKeys';
+import { fetchCurrentUser } from '../../../shared/services/currentUser';
+import { currentUserKeys } from '../../../shared/utils/queryKeys';
 import type { GroupMember } from '../types/group';
 
 export function useCurrentUserIsGroupAdmin(members: GroupMember[]): boolean {

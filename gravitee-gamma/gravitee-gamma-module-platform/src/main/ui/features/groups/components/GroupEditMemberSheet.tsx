@@ -30,6 +30,7 @@ import { InfoIcon } from '@gravitee/graphene-core/icons';
 
 import { GroupScopedRoleSelects } from './GroupScopedRoleSelects';
 import { MemberSuccessorCombobox } from './MemberSuccessorCombobox';
+import { STANDARD_SHEET_WIDTH } from '../../../shared/layout/sheetLayout';
 import { useGroupEditMemberForm } from '../hooks/useGroupEditMemberForm';
 import type { GroupMember, GroupMembershipPayload, GroupRole } from '../types/group';
 
@@ -93,7 +94,7 @@ export function GroupEditMemberSheet({
 
     return (
         <Sheet open={open} onOpenChange={isOpen => !isOpen && !isSaving && onClose()}>
-            <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: '480px' }}>
+            <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: STANDARD_SHEET_WIDTH }}>
                 <SheetHeader>
                     <SheetTitle>Edit roles</SheetTitle>
                     <SheetDescription>

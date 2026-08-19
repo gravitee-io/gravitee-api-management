@@ -81,7 +81,7 @@ describe('GroupsTable', () => {
             expect(screen.queryByRole('menuitem', { name: /^Delete$/ })).not.toBeNull();
         });
 
-        it('still shows Delete for a primary-owner group — GroupDeleteSheet explains why it is blocked, not this menu', async () => {
+        it('still shows Delete for a primary-owner group — GroupDeleteDialog explains why it is blocked, not this menu', async () => {
             const user = userEvent.setup();
             renderTable({ groups: [{ ...GROUP, primary_owner: true }], canEdit: true, canDelete: true });
             await user.click(screen.getByRole('button', { name: 'Group actions' }));

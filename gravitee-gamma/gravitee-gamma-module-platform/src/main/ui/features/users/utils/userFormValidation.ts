@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { isValidEmail } from './userDisplay';
+import { isValidEmail } from '../../../shared/utils/email';
 import type { UserType } from '../types/user';
 import { GRAVITEE_IDP } from '../types/user';
 
@@ -62,7 +62,6 @@ export function resolvePreRegisterUserSource(
     return selectedSource;
 }
 
-/** Resets identity-provider fields when switching to service account (classic console parity). */
 export function applyUserTypeChange(form: AddUserFormValues, nextType: UserType): AddUserFormValues {
     if (nextType === form.type) {
         return form;

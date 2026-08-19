@@ -448,6 +448,51 @@ describe('GroupEditMemberSheet', () => {
             expect(screen.queryByLabelText('Search members')).toBeNull();
             expect(screen.getByRole('button', { name: 'Save' })).toHaveProperty('disabled', false);
         });
+
+        it('requires a successor when demoting an Application primary owner', async () => {
+            const user = userEvent.setup();
+            const applicationOwner: GroupMember = {
+                id: 'user-1',
+                displayName: 'Anna Schmidt',
+                roles: { API: 'USER', APPLICATION: 'PRIMARY_OWNER' },
+            };
+            const other: GroupMember = { id: 'user-2', displayName: 'Ravi Patel', roles: { APPLICATION: 'USER' } };
+            const { onSubmit } = renderSheet({
+                member: applicationOwner,
+                members: [applicationOwner, other],
+                applicationRoles: [
+                    { name: 'USER', scope: 'APPLICATION' },
+                    { name: 'OWNER', scope: 'APPLICATION' },
+                    { name: 'PRIMARY_OWNER', scope: 'APPLICATION', system: true },
+                ],
+            });
+
+            fireEvent.click(screen.getAllByRole('combobox')[2]);
+            fireEvent.click(screen.getByRole('option', { name: 'OWNER' }));
+            expect(screen.getByRole('button', { name: 'Save' })).toHaveProperty('disabled', true);
+
+            await user.click(screen.getByLabelText('Search members'));
+            await user.click(screen.getByRole('option', { name: 'Ravi Patel' }));
+
+            expect(
+                screen.getByText(
+                    'Anna Schmidt is the Application primary owner. The Application primary ownership will be transferred to Ravi Patel and Anna Schmidt will be updated as owner.',
+                ),
+            ).not.toBeNull();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+            expect(onSubmit).toHaveBeenCalledWith([
+                { id: 'user-2', roles: [{ scope: 'APPLICATION', name: 'PRIMARY_OWNER' }] },
+                {
+                    id: 'user-1',
+                    roles: [
+                        { scope: 'API', name: 'USER' },
+                        { scope: 'APPLICATION', name: 'OWNER' },
+                    ],
+                },
+            ]);
+        });
     });
 
     describe('lock flags', () => {

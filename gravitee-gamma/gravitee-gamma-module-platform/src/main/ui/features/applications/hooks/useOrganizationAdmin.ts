@@ -15,8 +15,8 @@
  */
 import { useQuery } from '@tanstack/react-query';
 
-import { fetchCurrentUser, hasOrganizationAdminRole } from '../services/currentUser';
-import { currentUserKeys } from '../utils/queryKeys';
+import { fetchCurrentUser, hasOrganizationAdminRole } from '../../../shared/services/currentUser';
+import { currentUserKeys } from '../../../shared/utils/queryKeys';
 
 /**
  * Whether the current user has the organization ADMIN role (required to list archived apps and restore).

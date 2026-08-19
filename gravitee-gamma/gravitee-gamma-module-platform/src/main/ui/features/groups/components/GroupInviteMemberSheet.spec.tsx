@@ -66,12 +66,21 @@ describe('GroupInviteMemberSheet', () => {
         expect(screen.getByRole('button', { name: 'Send invitation' })).toHaveProperty('disabled', true);
     });
 
-    it('keeps Send invitation disabled for a malformed email', () => {
+    it('keeps Send invitation disabled for a malformed email and describes the error', () => {
         renderSheet();
 
         fireEvent.change(screen.getByRole('textbox', { name: /Email/i }), { target: { value: 'not-an-email' } });
 
         expect(screen.getByRole('button', { name: 'Send invitation' })).toHaveProperty('disabled', true);
+        expect(screen.getByRole('textbox', { name: /Email/i }).getAttribute('aria-invalid')).toBe('true');
+        expect(screen.getByRole('textbox', { name: /Email/i }).getAttribute('aria-describedby')).toBe('invite-email-error');
+        expect(screen.getByText('Enter a valid email')).not.toBeNull();
+    });
+
+    it('does not show an email error while the field is empty', () => {
+        renderSheet();
+        expect(screen.getByRole('textbox', { name: /Email/i }).getAttribute('aria-invalid')).not.toBe('true');
+        expect(screen.queryByText('Enter a valid email')).toBeNull();
     });
 
     it('submits the email with the USER fallback default roles when the group has no configured defaults', () => {

@@ -35,7 +35,7 @@ import { PRIMARY_OWNER_ROLE } from '../types/group';
 import { sortedSuccessorCandidates } from '../utils/memberRoles';
 import { joinScopeLabels, membershipFromMember, primaryOwnerScopesOf } from '../utils/primaryOwnership';
 
-export function GroupRemoveMemberSheet({
+export function GroupRemoveMemberDialog({
     open,
     member,
     members,

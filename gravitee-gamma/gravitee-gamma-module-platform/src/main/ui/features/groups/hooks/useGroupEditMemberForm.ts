@@ -76,7 +76,7 @@ export function useGroupEditMemberForm({
 
     useEffect(() => {
         setSelectedSuccessorId(null);
-    }, [roleValues.apiRole, roleValues.apiProductRole]);
+    }, [roleValues.apiRole, roleValues.apiProductRole, roleValues.applicationRole, roleValues.integrationRole, roleValues.clusterRole]);
 
     const successorCandidates = useMemo(() => sortedSuccessorCandidates(members, member?.id), [members, member]);
     const roleLocks = getMemberRoleLockFlags({ lockApiRole, lockApiProductRole, lockApplicationRole }, canOverrideLocks);
@@ -85,8 +85,6 @@ export function useGroupEditMemberForm({
     const selectedSuccessor = selectedSuccessorId ? (successorCandidates.find(m => m.id === selectedSuccessorId) ?? null) : null;
     const transferMessage = member && transfer ? buildEditOwnershipTransferMessage(member, transfer, selectedSuccessor, roleValues) : null;
 
-    // Classic edit disables PRIMARY_OWNER only in USER mode (fail closed until settings load). Existing PO
-    // stays selectable so upgrades can transfer ownership from another member.
     const disabledOptionNames = {
         api: isPrimaryOwnerUnavailable(apiPrimaryOwnerMode) ? new Set([PRIMARY_OWNER_ROLE]) : undefined,
         apiProduct: isPrimaryOwnerUnavailable(apiProductPrimaryOwnerMode) ? new Set([PRIMARY_OWNER_ROLE]) : undefined,

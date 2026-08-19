@@ -50,9 +50,9 @@ describe('useGroupAddMembersForm', () => {
         return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
     }
 
-    function renderForm(open: boolean) {
+    function renderForm(open: boolean, initialSearch?: string) {
         return renderHook(
-            ({ isOpen }) =>
+            ({ isOpen, seed }) =>
                 useGroupAddMembersForm({
                     open: isOpen,
                     groupRoles: undefined,
@@ -64,9 +64,10 @@ describe('useGroupAddMembersForm', () => {
                     maxInvitation: null,
                     apiPrimaryOwnerMode: 'GROUP',
                     apiProductPrimaryOwnerMode: 'GROUP',
+                    initialSearch: seed,
                     onSubmit: jest.fn(),
                 }),
-            { initialProps: { isOpen: open }, wrapper },
+            { initialProps: { isOpen: open, seed: initialSearch }, wrapper },
         );
     }
 
@@ -105,5 +106,18 @@ describe('useGroupAddMembersForm', () => {
 
         expect(result.current.debouncedQuery).toBe('');
         expect(mockSearchUsers).not.toHaveBeenCalled();
+    });
+
+    it('seeds search from initialSearch when the sheet opens', async () => {
+        const { result } = renderForm(true, 'anna@lufthansa.com');
+
+        expect(result.current.search).toBe('anna@lufthansa.com');
+
+        await act(async () => {
+            jest.advanceTimersByTime(GROUP_SEARCH_DEBOUNCE_MS);
+            await Promise.resolve();
+        });
+
+        expect(mockSearchUsers).toHaveBeenCalledWith('anna@lufthansa.com');
     });
 });

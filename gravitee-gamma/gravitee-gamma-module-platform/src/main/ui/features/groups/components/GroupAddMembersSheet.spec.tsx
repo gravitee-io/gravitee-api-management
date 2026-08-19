@@ -109,6 +109,11 @@ describe('GroupAddMembersSheet', () => {
         expect(screen.getByText('Explorer')).not.toBeNull();
     });
 
+    it('seeds the search field from initialSearch', () => {
+        renderSheet({ initialSearch: 'anna@lufthansa.com' });
+        expect(screen.getByPlaceholderText('Search by name or email…')).toHaveProperty('value', 'anna@lufthansa.com');
+    });
+
     it('has no "make selected users group admins" option — that only applies when editing an existing member', () => {
         renderSheet();
         expect(screen.queryByText(/group admin/i)).toBeNull();

@@ -16,16 +16,16 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { GroupRemoveMemberSheet } from './GroupRemoveMemberSheet';
+import { GroupRemoveMemberDialog } from './GroupRemoveMemberDialog';
 import type { GroupMember } from '../types/group';
 
 const MEMBER: GroupMember = { id: 'user-1', displayName: 'Anna Schmidt', roles: {} };
 
-function renderSheet(overrides: Partial<React.ComponentProps<typeof GroupRemoveMemberSheet>> = {}) {
+function renderSheet(overrides: Partial<React.ComponentProps<typeof GroupRemoveMemberDialog>> = {}) {
     const onClose = jest.fn();
     const onConfirm = jest.fn();
     render(
-        <GroupRemoveMemberSheet
+        <GroupRemoveMemberDialog
             open
             member={MEMBER}
             members={[MEMBER]}
@@ -39,7 +39,7 @@ function renderSheet(overrides: Partial<React.ComponentProps<typeof GroupRemoveM
     return { onClose, onConfirm };
 }
 
-describe('GroupRemoveMemberSheet', () => {
+describe('GroupRemoveMemberDialog', () => {
     it('does not render dialog content when closed', () => {
         renderSheet({ open: false });
         expect(screen.queryByRole('heading', { name: 'Remove member?' })).toBeNull();

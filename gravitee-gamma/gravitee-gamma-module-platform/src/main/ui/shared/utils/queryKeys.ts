@@ -18,3 +18,9 @@ export const environmentPermissionKeys = {
     all: ['environment-permissions'] as const,
     detail: (envId: string) => [...environmentPermissionKeys.all, envId] as const,
 } as const;
+
+/** Keep the same key shape so Applications and Groups share the React Query cache. */
+export const currentUserKeys = {
+    all: ['current-user'] as const,
+    detail: () => [...currentUserKeys.all, 'detail'] as const,
+} as const;

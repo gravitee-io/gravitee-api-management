@@ -15,6 +15,8 @@
  */
 import type { ApplicationSubscriptionsFilters } from '../types/applicationSubscription';
 
+export { currentUserKeys } from '../../../shared/utils/queryKeys';
+
 interface ApplicationCountFilter {
     status?: string;
     query?: string;
@@ -34,11 +36,6 @@ export const applicationDetailKeys = {
 export const applicationPermissionKeys = {
     all: ['application-permissions'] as const,
     detail: (envId: string, applicationId: string) => [...applicationPermissionKeys.all, envId, applicationId] as const,
-} as const;
-
-export const currentUserKeys = {
-    all: ['current-user'] as const,
-    detail: () => [...currentUserKeys.all, 'detail'] as const,
 } as const;
 
 export const applicationListKeys = {

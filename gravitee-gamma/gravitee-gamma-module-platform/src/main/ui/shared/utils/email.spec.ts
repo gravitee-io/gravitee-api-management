@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-import { Alert, AlertDescription } from '@gravitee/graphene-core';
-import { TriangleAlertIcon } from '@gravitee/graphene-core/icons';
+import { isValidEmail } from './email';
 
-export function SectionError({ message }: Readonly<{ message: string }>) {
-    return (
-        <Alert variant="destructive">
-            <TriangleAlertIcon className="size-4" aria-hidden />
-            <AlertDescription>{message}</AlertDescription>
-        </Alert>
-    );
-}
+describe('isValidEmail', () => {
+    it('accepts well-formed emails and rejects malformed ones', () => {
+        expect(isValidEmail('jane@company.com')).toBe(true);
+        expect(isValidEmail('jane@company')).toBe(false);
+    });
+});

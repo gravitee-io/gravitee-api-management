@@ -46,12 +46,16 @@ function renderTable(overrides: Partial<React.ComponentProps<typeof GroupMembers
 }
 
 describe('GroupMembersTable', () => {
-    it('renders each member’s roles across the API, API product, Application, Integration, and Cluster columns', () => {
-        renderTable();
+    it('renders each member’s roles across the API, API product, Application, Integration, Cluster, and Explorer columns', () => {
+        renderTable({
+            members: [{ ...RAVI, roles: { ...RAVI.roles, EXPLORER: 'USER' } }, MIA],
+        });
 
+        expect(screen.getByText('Explorer')).not.toBeNull();
         const raviRow = screen.getByText('Ravi Patel').closest('tr')!;
         expect(raviRow.textContent).toContain('PRIMARY_OWNER');
         expect(raviRow.textContent).toContain('OWNER');
+        expect(raviRow.textContent).toContain('USER');
 
         const miaRow = screen.getByText('Mia Chen').closest('tr')!;
         expect(miaRow.textContent).toContain('USER');
@@ -108,6 +112,22 @@ describe('GroupMembersTable', () => {
     it('disables Remove member when the primary owner is the group’s sole member — mirrors classic disableDeleteMember()', async () => {
         const user = userEvent.setup();
         renderTable({ members: [RAVI] });
+
+        const raviActions = screen.getByText('Ravi Patel').closest('tr')!.querySelector('button[aria-label="Member actions"]')!;
+        await user.click(raviActions);
+
+        const removeItem = await screen.findByRole('menuitem', { name: 'Remove member' });
+        expect(removeItem.getAttribute('aria-disabled')).toBe('true');
+    });
+
+    it('disables Remove member when the sole member is an Application primary owner', async () => {
+        const user = userEvent.setup();
+        const applicationOwner: GroupMember = {
+            id: 'user-1',
+            displayName: 'Ravi Patel',
+            roles: { APPLICATION: 'PRIMARY_OWNER' },
+        };
+        renderTable({ members: [applicationOwner] });
 
         const raviActions = screen.getByText('Ravi Patel').closest('tr')!.querySelector('button[aria-label="Member actions"]')!;
         await user.click(raviActions);

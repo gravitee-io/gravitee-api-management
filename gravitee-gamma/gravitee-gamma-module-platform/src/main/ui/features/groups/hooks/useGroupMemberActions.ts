@@ -30,6 +30,7 @@ export function useGroupMemberActions(groupId: string | undefined) {
     const [editingMember, setEditingMember] = useState<GroupMember | null>(null);
     const [removingMember, setRemovingMember] = useState<GroupMember | null>(null);
     const [tooManyUsersEmail, setTooManyUsersEmail] = useState<string | null>(null);
+    const [searchSeed, setSearchSeed] = useState<string | null>(null);
     const [deletingInvitation, setDeletingInvitation] = useState<GroupInvitation | null>(null);
 
     const {
@@ -45,6 +46,7 @@ export function useGroupMemberActions(groupId: string | undefined) {
 
     function closeMemberSheet() {
         setMemberSheet('closed');
+        setSearchSeed(null);
     }
 
     async function handleAddMembers(memberships: GroupMembershipPayload[]) {
@@ -83,6 +85,7 @@ export function useGroupMemberActions(groupId: string | undefined) {
     }
 
     function handleTooManyUsersContinue() {
+        setSearchSeed(tooManyUsersEmail);
         setTooManyUsersEmail(null);
         setMemberSheet('search');
     }
@@ -148,6 +151,7 @@ export function useGroupMemberActions(groupId: string | undefined) {
         setRemovingMember,
         tooManyUsersEmail,
         setTooManyUsersEmail,
+        searchSeed,
         deletingInvitation,
         setDeletingInvitation,
         invitations,

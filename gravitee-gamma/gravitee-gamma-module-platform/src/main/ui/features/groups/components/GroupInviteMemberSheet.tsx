@@ -18,11 +18,12 @@ import { Button, Input, Label, Sheet, SheetContent, SheetDescription, SheetFoote
 import { useEffect, useState } from 'react';
 
 import { GroupRoleSelect } from './GroupRoleSelect';
+import { STANDARD_SHEET_WIDTH } from '../../../shared/layout/sheetLayout';
+import { isValidEmail } from '../../../shared/utils/email';
 import type { GroupMember, GroupRole } from '../types/group';
 import { PRIMARY_OWNER_ROLE } from '../types/group';
 import { getMemberRoleLockFlags } from '../utils/memberRoles';
 import { isPrimaryOwnerUnavailable } from '../utils/primaryOwnership';
-import { isValidEmail } from '../../../shared/utils/email';
 
 export function GroupInviteMemberSheet({
     open,
@@ -70,10 +71,11 @@ export function GroupInviteMemberSheet({
     const roleLocks = getMemberRoleLockFlags({ lockApiRole, lockApiProductRole: false, lockApplicationRole }, canOverrideLocks);
 
     const canSubmit = isValidEmail(email);
+    const emailInvalid = email.trim().length > 0 && !canSubmit;
 
     return (
         <Sheet open={open} onOpenChange={isOpen => !isOpen && !isSaving && onClose()}>
-            <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: '480px' }}>
+            <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: STANDARD_SHEET_WIDTH }}>
                 <SheetHeader>
                     <SheetTitle>Email invitation</SheetTitle>
                     <SheetDescription>Invite a new user to {groupName} and assign their default roles.</SheetDescription>
@@ -91,7 +93,14 @@ export function GroupInviteMemberSheet({
                             value={email}
                             onChange={e => setEmail(e.target.value)}
                             disabled={isSaving}
+                            aria-invalid={emailInvalid}
+                            aria-describedby={emailInvalid ? 'invite-email-error' : undefined}
                         />
+                        {emailInvalid && (
+                            <p id="invite-email-error" className="text-sm text-destructive">
+                                Enter a valid email
+                            </p>
+                        )}
                     </div>
 
                     <GroupRoleSelect

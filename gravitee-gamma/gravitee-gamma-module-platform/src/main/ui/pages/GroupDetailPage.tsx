@@ -46,12 +46,12 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { GroupAddMembersSheet } from '../features/groups/components/GroupAddMembersSheet';
 import { GroupAssociationSection } from '../features/groups/components/GroupAssociationSection';
-import { GroupDeleteSheet } from '../features/groups/components/GroupDeleteSheet';
+import { GroupDeleteDialog } from '../features/groups/components/GroupDeleteDialog';
 import { GroupEditMemberSheet } from '../features/groups/components/GroupEditMemberSheet';
 import { GroupInvitationsTable } from '../features/groups/components/GroupInvitationsTable';
 import { GroupInviteMemberSheet } from '../features/groups/components/GroupInviteMemberSheet';
 import { GroupMembersTable } from '../features/groups/components/GroupMembersTable';
-import { GroupRemoveMemberSheet } from '../features/groups/components/GroupRemoveMemberSheet';
+import { GroupRemoveMemberDialog } from '../features/groups/components/GroupRemoveMemberDialog';
 import { GroupSettingsSection } from '../features/groups/components/GroupSettingsSection';
 import { GroupSheet, type GroupFormValues } from '../features/groups/components/GroupSheet';
 import { GroupTooManyUsersDialog } from '../features/groups/components/GroupTooManyUsersDialog';
@@ -67,14 +67,7 @@ import {
 } from '../features/groups/hooks/useGroupDetail';
 import { useGroupMemberActions } from '../features/groups/hooks/useGroupMemberActions';
 import { useDeleteGroup, useUpdateGroup } from '../features/groups/hooks/useGroupMutations';
-import {
-    useGroupApiProductRoles,
-    useGroupApiRoles,
-    useGroupApplicationRoles,
-    useGroupClusterRoles,
-    useGroupExplorerRoles,
-    useGroupIntegrationRoles,
-} from '../features/groups/hooks/useGroupRoles';
+import { useGroupRoles } from '../features/groups/hooks/useGroupRoles';
 import { buildEventRules, buildRolesMap, hasEventRule, parseMaxInvitation } from '../features/groups/utils/groupPayload';
 import {
     canInviteToGroup,
@@ -111,6 +104,7 @@ export function GroupDetailPage() {
         setRemovingMember,
         tooManyUsersEmail,
         setTooManyUsersEmail,
+        searchSeed,
         deletingInvitation,
         setDeletingInvitation,
         invitations,
@@ -131,16 +125,20 @@ export function GroupDetailPage() {
     const addMemberRolesNeeded = memberSheet === 'search';
     const extraMemberRolesNeeded = addMemberRolesNeeded || editingMember !== null;
     const defaultGroupRolesNeeded = editOpen || memberSheet !== 'closed' || editingMember !== null;
-    const { data: apiRoles = [], isLoading: apiRolesLoading } = useGroupApiRoles({ enabled: defaultGroupRolesNeeded });
-    const { data: applicationRoles = [], isLoading: applicationRolesLoading } = useGroupApplicationRoles({
-        enabled: defaultGroupRolesNeeded,
+    const {
+        apiRoles,
+        apiRolesLoading,
+        applicationRoles,
+        applicationRolesLoading,
+        apiProductRoles,
+        apiProductRolesLoading,
+        integrationRoles,
+        clusterRoles,
+        explorerRoles,
+    } = useGroupRoles({
+        core: defaultGroupRolesNeeded,
+        extra: extraMemberRolesNeeded,
     });
-    const { data: apiProductRoles = [], isLoading: apiProductRolesLoading } = useGroupApiProductRoles({
-        enabled: defaultGroupRolesNeeded,
-    });
-    const { data: integrationRoles = [] } = useGroupIntegrationRoles({ enabled: extraMemberRolesNeeded });
-    const { data: clusterRoles = [] } = useGroupClusterRoles({ enabled: extraMemberRolesNeeded });
-    const { data: explorerRoles = [] } = useGroupExplorerRoles({ enabled: extraMemberRolesNeeded });
     const isCurrentUserGroupAdmin = useCurrentUserIsGroupAdmin(members);
 
     const maxInvitationsLimitReached = typeof group?.max_invitation === 'number' && group.max_invitation <= members.length;
@@ -421,7 +419,7 @@ export function GroupDetailPage() {
                 isSaving={updateMutation.isPending}
             />
 
-            <GroupDeleteSheet
+            <GroupDeleteDialog
                 open={deleteOpen}
                 group={group}
                 onClose={() => setDeleteOpen(false)}
@@ -447,6 +445,7 @@ export function GroupDetailPage() {
                 maxInvitation={group.max_invitation ?? null}
                 apiPrimaryOwnerMode={environmentSettings?.api?.primaryOwnerMode}
                 apiProductPrimaryOwnerMode={environmentSettings?.apiProduct?.primaryOwnerMode}
+                initialSearch={searchSeed ?? undefined}
                 onClose={closeMemberSheet}
                 onSubmit={handleAddMembers}
                 isSaving={addMembersMutation.isPending}
@@ -491,7 +490,7 @@ export function GroupDetailPage() {
                 isSaving={addMembersMutation.isPending}
             />
 
-            <GroupRemoveMemberSheet
+            <GroupRemoveMemberDialog
                 open={removingMember !== null}
                 member={removingMember ?? undefined}
                 members={members}

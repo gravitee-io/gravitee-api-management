@@ -33,25 +33,21 @@ import {
 import { MoreHorizontalIcon, PencilIcon, SearchIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 import { useEffect, useMemo, useState } from 'react';
 
-import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes';
-import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
+import { paginate, totalPagesFor } from '../../../shared/utils/clientPagination';
+import type { ColCell, ColHeader } from '../../../shared/utils/dataTableTypes';
+import { TABLE_PAGE_SIZE_OPTIONS } from '../../../shared/utils/paginationConstants';
 import type { GroupMember } from '../types/group';
-import { PRIMARY_OWNER_ROLE } from '../types/group';
-import { paginate, totalPagesFor } from '../utils/clientPagination';
+import { primaryOwnerScopesOf } from '../utils/primaryOwnership';
 
 const PAGE_SIZE = 10;
 
-function roleCell(member: GroupMember, scope: 'API' | 'APPLICATION' | 'API_PRODUCT' | 'INTEGRATION' | 'CLUSTER') {
+function roleCell(member: GroupMember, scope: 'API' | 'APPLICATION' | 'API_PRODUCT' | 'INTEGRATION' | 'CLUSTER' | 'EXPLORER') {
     const role = member.roles?.[scope];
     return <span className="text-sm text-muted-foreground">{role ?? '—'}</span>;
 }
 
-function isPrimaryOwnerMember(member: GroupMember): boolean {
-    return member.roles?.API === PRIMARY_OWNER_ROLE || member.roles?.API_PRODUCT === PRIMARY_OWNER_ROLE;
-}
-
 function isRemoveDisabled(member: GroupMember, totalMemberCount: number): boolean {
-    return totalMemberCount === 1 && isPrimaryOwnerMember(member);
+    return totalMemberCount === 1 && primaryOwnerScopesOf(member).length > 0;
 }
 
 function buildColumns({
@@ -110,6 +106,12 @@ function buildColumns({
             header: 'Cluster',
             enableSorting: false,
             cell: ({ row }: ColCell<GroupMember>) => roleCell(row.original, 'CLUSTER'),
+        },
+        {
+            id: 'explorer',
+            header: 'Explorer',
+            enableSorting: false,
+            cell: ({ row }: ColCell<GroupMember>) => roleCell(row.original, 'EXPLORER'),
         },
     ];
 

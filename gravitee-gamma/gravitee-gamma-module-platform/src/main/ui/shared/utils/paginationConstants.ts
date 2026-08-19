@@ -14,14 +14,5 @@
  * limitations under the License.
  */
 
-import { Alert, AlertDescription } from '@gravitee/graphene-core';
-import { TriangleAlertIcon } from '@gravitee/graphene-core/icons';
-
-export function SectionError({ message }: Readonly<{ message: string }>) {
-    return (
-        <Alert variant="destructive">
-            <TriangleAlertIcon className="size-4" aria-hidden />
-            <AlertDescription>{message}</AlertDescription>
-        </Alert>
-    );
-}
+/** Shared page-size options for DataTable pagination (UI-COMP-12). */
+export const TABLE_PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;

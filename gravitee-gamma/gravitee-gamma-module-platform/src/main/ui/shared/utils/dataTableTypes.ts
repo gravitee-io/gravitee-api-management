@@ -13,15 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { DataTableColumnHeaderProps } from '@gravitee/graphene-core';
 
-import { Alert, AlertDescription } from '@gravitee/graphene-core';
-import { TriangleAlertIcon } from '@gravitee/graphene-core/icons';
+/** Column header render props for Graphene `DataTable` column definitions. */
+export type ColHeader<T> = { column: DataTableColumnHeaderProps<T, unknown>['column'] };
 
-export function SectionError({ message }: Readonly<{ message: string }>) {
-    return (
-        <Alert variant="destructive">
-            <TriangleAlertIcon className="size-4" aria-hidden />
-            <AlertDescription>{message}</AlertDescription>
-        </Alert>
-    );
-}
+/** Column cell render props for Graphene `DataTable` column definitions. */
+export type ColCell<T> = { row: { original: T } };

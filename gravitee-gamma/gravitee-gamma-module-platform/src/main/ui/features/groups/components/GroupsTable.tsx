@@ -35,8 +35,8 @@ import { MoreHorizontalIcon, PencilIcon, SearchIcon, Trash2Icon, UsersRoundIcon 
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
-import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes';
-import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
+import type { ColCell, ColHeader } from '../../../shared/utils/dataTableTypes';
+import { TABLE_PAGE_SIZE_OPTIONS } from '../../../shared/utils/paginationConstants';
 import type { Group } from '../types/group';
 import { hasEventRule } from '../utils/groupPayload';
 import { isPrimaryOwnerGroup } from '../utils/groupPermissions';
@@ -108,12 +108,6 @@ function buildColumns({
             enableSorting: false,
             enableHiding: false,
             cell: ({ row }: ColCell<Group>) => {
-                // Intentional, not a regression: `manageable`/primary-owner gating was verified against
-                // classic Console's actual group.component.ts (canInviteMember() is the only place
-                // `manageable` is read there — it never gates edit/delete), so it's deliberately not
-                // checked here either. Delete stays visible even for a primary-owner group for the same
-                // reason — classic doesn't hide it — and GroupDeleteSheet checks isPrimaryOwnerGroup
-                // itself, showing why deletion is blocked instead of a confirm button that would 400.
                 const canEditRow = canEdit;
                 const canDeleteRow = canDelete;
                 if (!canEditRow && !canDeleteRow) return null;

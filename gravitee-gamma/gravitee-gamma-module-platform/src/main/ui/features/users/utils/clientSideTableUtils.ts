@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
+import { paginate, totalPagesFor } from '../../../shared/utils/clientPagination';
+
 export const CLIENT_SIDE_TABLE_DEFAULT_PAGE_SIZE = 10;
 
 export function clampPage(page: number, totalCount: number, pageSize: number): number {
-    const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-    return Math.min(Math.max(page, 1), totalPages);
+    return Math.min(Math.max(page, 1), totalPagesFor(totalCount, pageSize));
 }
 
 export function filterClientSideTableItems<T extends object>(items: readonly T[], search: string, ignoreKeys: readonly string[] = []): T[] {
@@ -39,7 +40,4 @@ export function filterClientSideTableItems<T extends object>(items: readonly T[]
     );
 }
 
-export function paginateClientSideTableItems<T>(items: readonly T[], page: number, pageSize: number): T[] {
-    const start = (page - 1) * pageSize;
-    return items.slice(start, start + pageSize);
-}
+export const paginateClientSideTableItems = paginate;
