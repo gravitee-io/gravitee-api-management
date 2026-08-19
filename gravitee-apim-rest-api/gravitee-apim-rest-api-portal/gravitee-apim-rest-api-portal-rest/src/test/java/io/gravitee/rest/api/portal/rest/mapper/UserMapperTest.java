@@ -27,11 +27,15 @@ import io.gravitee.rest.api.portal.rest.model.FinalizeRegistrationInput;
 import io.gravitee.rest.api.portal.rest.model.RegisterUserInput;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.portal.rest.model.UserLinks;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -59,8 +63,16 @@ public class UserMapperTest {
     private static final String SEARCHABLE_USER_DISPLAY_NAME = "my-searchable-user-display-name";
     private static final String SEARCHABLE_USER_REFERENCE = "my-searchable-user-reference";
 
+    private static final String ENVIRONMENT_DEV = "dev";
+    private static final String ENVIRONMENT_TEST = "test";
+
     @InjectMocks
     private UserMapper userMapper;
+
+    @After
+    public void tearDown() {
+        GraviteeContext.cleanContext();
+    }
 
     @Test
     public void testConvertUserEntity() {
@@ -124,11 +136,14 @@ public class UserMapperTest {
         userEntity.setLastname(USER_LASTNAME);
         userEntity.setPassword(USER_PASSWORD);
         userEntity.setPicture(USER_PICTURE);
-        userEntity.setRoles(new HashSet<>(Arrays.asList(userRoleEntityOrganization, userRoleEntityEnvironment)));
+        userEntity.setRoles(new HashSet<>(Arrays.asList(userRoleEntityOrganization)));
+        userEntity.setEnvRoles(Map.of(ENVIRONMENT_DEV, Set.of(userRoleEntityEnvironment)));
         userEntity.setSource(USER_SOURCE);
         userEntity.setSourceId(USER_SOURCE_ID);
         userEntity.setStatus(USER_STATUS);
         userEntity.setUpdatedAt(nowDate);
+
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT_DEV);
 
         // Test
         User responseUser = userMapper.convert(userEntity);
@@ -139,6 +154,65 @@ public class UserMapperTest {
         assertEquals(USER_LASTNAME, responseUser.getLastName());
         assertEquals(USER_FIRSTNAME + ' ' + USER_LASTNAME, responseUser.getDisplayName());
         assertTrue(responseUser.getPermissions().getAPPLICATION().containsAll(Arrays.asList("C")));
+        assertTrue(responseUser.getPermissions().getUSER().containsAll(Arrays.asList("C", "R", "U", "D")));
+    }
+
+    @Test
+    public void shouldOnlyConvertEnvironmentPermissionsOfCurrentEnvironment() {
+        // init
+        UserRoleEntity devRole = new UserRoleEntity();
+        devRole.setId("dev-role-id");
+        devRole.setScope(RoleScope.ENVIRONMENT);
+        devRole.setPermissions(Map.of("APPLICATION", new char[] { 'C', 'R', 'U', 'D' }));
+
+        UserRoleEntity testRole = new UserRoleEntity();
+        testRole.setId("test-role-id");
+        testRole.setScope(RoleScope.ENVIRONMENT);
+        testRole.setPermissions(Map.of("APPLICATION", new char[] { 'R' }));
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(USER_ID);
+        userEntity.setRoles(new HashSet<>());
+        userEntity.setEnvRoles(Map.of(ENVIRONMENT_DEV, Set.of(devRole), ENVIRONMENT_TEST, Set.of(testRole)));
+
+        // Test on 'test' environment: only the read-only role must be taken into account
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT_TEST);
+        User responseUser = userMapper.convert(userEntity);
+        assertNotNull(responseUser);
+        assertEquals(Arrays.asList("R"), responseUser.getPermissions().getAPPLICATION());
+
+        // Test on 'dev' environment: only the full role must be taken into account
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT_DEV);
+        responseUser = userMapper.convert(userEntity);
+        assertNotNull(responseUser);
+        assertEquals(Arrays.asList("C", "R", "U", "D"), responseUser.getPermissions().getAPPLICATION());
+    }
+
+    @Test
+    public void shouldUnionPermissionsOfRolesSharingTheSameKey() {
+        // init
+        UserRoleEntity organizationRole = new UserRoleEntity();
+        organizationRole.setId("org-role-id");
+        organizationRole.setScope(RoleScope.ORGANIZATION);
+        organizationRole.setPermissions(Map.of("APPLICATION", new char[] { 'R' }));
+
+        UserRoleEntity environmentRole = new UserRoleEntity();
+        environmentRole.setId("env-role-id");
+        environmentRole.setScope(RoleScope.ENVIRONMENT);
+        environmentRole.setPermissions(Map.of("APPLICATION", new char[] { 'C', 'R' }));
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(USER_ID);
+        userEntity.setRoles(new HashSet<>(Arrays.asList(organizationRole)));
+        userEntity.setEnvRoles(Map.of(ENVIRONMENT_DEV, Set.of(environmentRole)));
+
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT_DEV);
+
+        // Test
+        User responseUser = userMapper.convert(userEntity);
+        assertNotNull(responseUser);
+        assertEquals(2, responseUser.getPermissions().getAPPLICATION().size());
+        assertTrue(responseUser.getPermissions().getAPPLICATION().containsAll(Arrays.asList("C", "R")));
     }
 
     @Test
