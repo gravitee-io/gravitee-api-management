@@ -45,6 +45,35 @@ GET  /gamma/modules/{id}/assets/{path}            → serve frontend assets
 *    /gamma/modules/environments/{envId}/{id}/...  → module backend (env-scoped)
 ```
 
+### Automation API
+
+A module can expose resources on the Automation API — the surface GKO and Terraform drive — by
+implementing `io.gravitee.apim.plugin.gamma.api.automation.GammaAutomationPort` as a Spring bean of its
+plugin context. The module handler copies the bean into the host context and the Automation API mounts
+it by module id:
+
+```
+PUT     /automation/organizations/{orgId}/environments/{envId}/{module}/{kind}          → create or update (hrid in the body, ?dryRun=true to preview)
+GET     /automation/organizations/{orgId}/environments/{envId}/{module}/{kind}/{hrid}   → read
+DELETE  /automation/organizations/{orgId}/environments/{envId}/{module}/{kind}/{hrid}   → delete
+```
+
+The Automation API owns the conventions and enforces them before a call reaches the port: the license
+feature and the kind's environment-scoped permission are checked, `spec.hrid` is validated, the resource
+id is derived deterministically from organization, module, kind, HRID and environment, dry-run answers
+200 with a preview, a failed apply answers 400 with the findings, and `hrid`, `id`, `environmentId`,
+`organizationId` and `errors` are stamped onto the returned state (a module never stores the HRID).
+Payloads are JSON so the port stays neutral to the module's shape; a returned view must never carry a
+credential value.
+
+The module owns the typed contract: it publishes its own OpenAPI fragment (`openApiFragment()`),
+self-contained and with module-prefixed component names, which the Automation API merges into the
+document served at `/automation/open-api.yaml`.
+
+Answers when the module cannot serve: no loaded module on the segment → `404 gamma.module.unavailable`
+(not installed, `gamma.enabled=false`, or not deployed for lack of license); module loaded but nothing at
+the path → `404 gamma.resource.kind.notFound`; license lacks the module's feature → `403 feature.missing`.
+
 ### Spring Context & Dependency Injection
 
 Each module plugin gets its own child ApplicationContext. The plugin's

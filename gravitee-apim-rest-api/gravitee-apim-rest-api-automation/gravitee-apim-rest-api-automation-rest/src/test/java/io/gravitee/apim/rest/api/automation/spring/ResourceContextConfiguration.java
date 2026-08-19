@@ -231,6 +231,7 @@ import io.gravitee.apim.infra.domain_service.subscription.SubscriptionCRDDomainS
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
+import io.gravitee.apim.plugin.gamma.api.automation.GammaAutomationPort;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -1457,5 +1458,15 @@ public class ResourceContextConfiguration {
     @Bean
     public ValidateApiDocumentationUseCase validateApiDocumentationUseCase() {
         return mock(ValidateApiDocumentationUseCase.class);
+    }
+
+    @Bean
+    public GammaAutomationPorts gammaAutomationPorts() {
+        return mock(GammaAutomationPorts.class);
+    }
+
+    @Bean
+    public GammaAutomationPort gammaAutomationPort() {
+        return mock(GammaAutomationPort.class);
     }
 }

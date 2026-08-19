@@ -57,4 +57,13 @@ public class EnvironmentResource {
     public PortalsResource getPortalsResource() {
         return resourceContext.getResource(PortalsResource.class);
     }
+
+    /**
+     * Gamma modules, addressed by their plugin id (e.g. {@code /aim}). Literal siblings above always win the
+     * match; an unknown segment answers 404 with the module named.
+     */
+    @Path("/{module}")
+    public GammaModuleAutomationResource getModuleAutomationResource() {
+        return resourceContext.getResource(GammaModuleAutomationResource.class);
+    }
 }

@@ -1,0 +1,8 @@
+{
+  "hrid": "GitHub MCP!",
+  "entityId": "mcp-server.github",
+  "connection": {
+    "endpoint": "https://api.githubcopilot.com/mcp/",
+    "transport": "HTTP"
+  }
+}

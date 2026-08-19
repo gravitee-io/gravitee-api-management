@@ -62,6 +62,15 @@
             <artifactId>gravitee-apim-rest-api-service</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- Contract Gamma modules implement to expose resources on the Automation API. Provided: the host
+             container already carries it and the plugin classloaders resolve it parent-first, so there must be
+             a single copy for the port types to keep one class identity. -->
+        <dependency>
+            <groupId>io.gravitee.gamma.plugin.module</groupId>
+            <artifactId>gravitee-gamma-plugin-module-api</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
 
         <!-- Gravitee dependencies -->
         <dependency>

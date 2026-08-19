@@ -14,7 +14,15 @@
 openapi: 3.1.0
 info:
   title: Gravitee.io - Automation API
-  description: The APIM automation API.
+  description: |
+    The APIM automation API.
+
+    Gamma modules expose their own resources on this API, mounted by module id under
+    `/organizations/{orgId}/environments/{envId}/{module}/{kind}` with the same conventions as every other resource:
+    `PUT` on the collection with the `hrid` carried in the body (`?dryRun=true` to preview), `GET` and `DELETE` on
+    `{kind}/{hrid}`, and a state made of the spec plus the `BaseStatus` envelope. Each module publishes its own
+    OpenAPI fragment describing those resources; a running instance merges the fragments of the modules it has
+    loaded into the document served at `/open-api.yaml`.
   contact:
     name: DevX team
     email: team-gko@graviteesource.com
