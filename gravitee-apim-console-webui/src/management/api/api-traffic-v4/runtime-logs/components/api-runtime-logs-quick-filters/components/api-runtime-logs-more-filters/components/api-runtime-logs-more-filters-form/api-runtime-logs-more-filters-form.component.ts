@@ -20,7 +20,7 @@ import { takeUntil, tap } from 'rxjs/operators';
 import { Moment } from 'moment';
 import { MatChipInputEvent } from '@angular/material/chips';
 
-import { DEFAULT_FILTERS, DEFAULT_PERIOD, MoreFiltersForm, MultiFilter, PERIODS } from '../../../../../../models';
+import { DEFAULT_FILTERS, MoreFiltersForm, MultiFilter, NONE_PERIOD, PERIODS } from '../../../../../../models';
 
 @Component({
   selector: 'api-runtime-logs-more-filters-form',
@@ -85,7 +85,7 @@ export class ApiRuntimeLogsMoreFiltersFormComponent implements OnInit, OnDestroy
       .valueChanges.pipe(
         tap(from => {
           this.minDate = from;
-          this.datesForm.get('period').setValue(DEFAULT_PERIOD, { emitEvent: false, onlySelf: true });
+          this.datesForm.get('period').setValue(NONE_PERIOD, { emitEvent: false, onlySelf: true });
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -94,7 +94,7 @@ export class ApiRuntimeLogsMoreFiltersFormComponent implements OnInit, OnDestroy
     this.datesForm
       .get('to')
       .valueChanges.pipe(
-        tap(() => this.datesForm.get('period').setValue(DEFAULT_PERIOD, { emitEvent: false, onlySelf: true })),
+        tap(() => this.datesForm.get('period').setValue(NONE_PERIOD, { emitEvent: false, onlySelf: true })),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.emitValues());
