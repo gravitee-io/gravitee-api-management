@@ -60,6 +60,7 @@ export class SonarCloudAnalysisJob {
         name: 'Run Sonarcloud Analysis',
         command: `sonar-scanner -Dsonar.projectVersion=${apimVersion}`,
         working_directory: '<< parameters.working_directory >>',
+        no_output_timeout: '30m',
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new commands.cache.Save({
