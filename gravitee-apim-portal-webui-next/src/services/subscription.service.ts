@@ -63,7 +63,7 @@ export class SubscriptionService {
 
   get(subscriptionId: string): Observable<Subscription> {
     return this.http.get<Subscription>(
-      `${this.configService.baseURL}/subscriptions/${subscriptionId}?include=keys&include=consumerConfiguration`,
+      `${this.configService.baseURL}/subscriptions/${subscriptionId}?include=keys&include=consumerConfiguration&include=apiProduct`,
     );
   }
 

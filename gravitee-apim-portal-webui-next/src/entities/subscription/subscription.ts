@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ApiProductSubscriptionDetails } from './api-product-subscription-details';
 import { SubscriptionConsumerConfiguration } from './subscription-consumer-configuration';
 
 export interface Subscription {
@@ -35,6 +36,7 @@ export interface Subscription {
   subscribed_by?: string;
   keys?: SubscriptionDataKeys[];
   consumerConfiguration?: SubscriptionConsumerConfiguration;
+  apiProduct?: ApiProductSubscriptionDetails;
 }
 
 export type SubscriptionReferenceType = 'API' | 'API_PRODUCT';

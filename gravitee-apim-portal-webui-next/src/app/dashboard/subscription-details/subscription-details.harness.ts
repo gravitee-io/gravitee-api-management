@@ -19,8 +19,18 @@ export class SubscriptionDetailsHarness extends ComponentHarness {
   static hostSelector = 'app-subscription-details';
 
   private getSubscriptionsDetails = this.locatorForOptional('app-subscriptions-details');
+  private getApiProductSubscriptionDetails = this.locatorForOptional('app-api-product-subscription-details');
+  private getError = this.locatorForOptional('[role="alert"]');
 
   async hasSubscriptionsDetails(): Promise<boolean> {
     return !!(await this.getSubscriptionsDetails());
+  }
+
+  async hasApiProductSubscriptionDetails(): Promise<boolean> {
+    return !!(await this.getApiProductSubscriptionDetails());
+  }
+
+  async getErrorText(): Promise<string | undefined> {
+    return (await this.getError())?.text();
   }
 }

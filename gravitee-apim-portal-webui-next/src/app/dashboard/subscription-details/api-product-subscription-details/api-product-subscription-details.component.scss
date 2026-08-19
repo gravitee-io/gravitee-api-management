@@ -1,0 +1,64 @@
+/*
+ * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../../../scss/layout' as layout;
+@use '../../../../scss/theme' as app-theme;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: layout.$container-content-padding-horizontal;
+  width: 100%;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: minmax(140px, auto) 1fr;
+  gap: layout.$container-padding-horizontal;
+  padding-top: layout.$container-padding-horizontal;
+
+  &__label {
+    color: app-theme.$paragraph-color;
+  }
+}
+
+.credentials,
+.message {
+  padding-top: layout.$container-padding-horizontal;
+}
+
+.included-apis {
+  display: flex;
+  flex-direction: column;
+  gap: layout.$container-padding-horizontal;
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: layout.$container-padding-horizontal;
+  }
+}
+
+@media (max-width: 600px) {
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+}

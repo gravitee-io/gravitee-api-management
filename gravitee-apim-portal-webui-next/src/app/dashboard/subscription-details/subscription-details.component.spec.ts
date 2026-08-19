@@ -17,10 +17,12 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { provideHttpClient } from '@angular/common/http';
 import { Component, Input } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
+import { ApiProductSubscriptionDetailsComponent } from './api-product-subscription-details/api-product-subscription-details.component';
 import SubscriptionDetailsComponent from './subscription-details.component';
 import { SubscriptionDetailsHarness } from './subscription-details.harness';
+import { fakeApiProductSubscriptionDetails, fakeSubscription } from '../../../entities/subscription';
 import { Subscription } from '../../../entities/subscription/subscription';
 import { BreadcrumbService } from '../../../services/breadcrumb.service';
 import { SubscriptionService } from '../../../services/subscription.service';
@@ -38,6 +40,15 @@ class MockSubscriptionsDetailsComponent {
   @Input() subscriptionId!: string;
 }
 
+@Component({
+  selector: 'app-api-product-subscription-details',
+  template: '',
+  providers: [{ provide: ApiProductSubscriptionDetailsComponent, useExisting: MockApiProductSubscriptionDetailsComponent }],
+})
+class MockApiProductSubscriptionDetailsComponent {
+  @Input() subscription!: Subscription;
+}
+
 describe('SubscriptionDetailsComponent', () => {
   let fixture: ComponentFixture<SubscriptionDetailsComponent>;
   let subscriptionServiceMock: Partial<SubscriptionService>;
@@ -52,8 +63,8 @@ describe('SubscriptionDetailsComponent', () => {
       providers: [{ provide: SubscriptionService, useValue: subscriptionServiceMock }, provideHttpClient()],
     })
       .overrideComponent(SubscriptionDetailsComponent, {
-        remove: { imports: [SubscriptionsDetailsComponent] },
-        add: { imports: [MockSubscriptionsDetailsComponent] },
+        remove: { imports: [ApiProductSubscriptionDetailsComponent, SubscriptionsDetailsComponent] },
+        add: { imports: [MockApiProductSubscriptionDetailsComponent, MockSubscriptionsDetailsComponent] },
       })
       .compileComponents();
 
@@ -64,6 +75,42 @@ describe('SubscriptionDetailsComponent', () => {
   it('should show subscriptions details when apiId is retrieved', async () => {
     const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, SubscriptionDetailsHarness);
     expect(await harness.hasSubscriptionsDetails()).toBeTruthy();
+  });
+
+  it('should show API Product subscription details for an API Product reference', async () => {
+    jest.mocked(subscriptionServiceMock.get!).mockReturnValue(
+      of(
+        fakeSubscription({
+          api: undefined,
+          reference_id: 'api-product-id',
+          reference_type: 'API_PRODUCT',
+          apiProduct: fakeApiProductSubscriptionDetails({ id: 'api-product-id' }),
+        }),
+      ),
+    );
+
+    const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, SubscriptionDetailsHarness);
+
+    expect(await harness.hasApiProductSubscriptionDetails()).toBeTruthy();
+    expect(await harness.hasSubscriptionsDetails()).toBeFalsy();
+  });
+
+  it('should use the API reference ID when the legacy api field is absent', async () => {
+    jest
+      .mocked(subscriptionServiceMock.get!)
+      .mockReturnValue(of(fakeSubscription({ api: undefined, reference_id: 'referenced-api-id', reference_type: 'API' })));
+
+    const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, SubscriptionDetailsHarness);
+
+    expect(await harness.hasSubscriptionsDetails()).toBeTruthy();
+  });
+
+  it('should show an error when the subscription cannot be loaded', async () => {
+    jest.mocked(subscriptionServiceMock.get!).mockReturnValue(throwError(() => new Error('load error')));
+
+    const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, SubscriptionDetailsHarness);
+
+    expect(await harness.getErrorText()).toContain('An error occurred while loading the subscription');
   });
 
   it('should set breadcrumbs for subscription details', () => {

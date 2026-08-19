@@ -15,6 +15,7 @@
  */
 import { isFunction } from 'rxjs/internal/util/isFunction';
 
+import { ApiProductSubscriptionDetails } from './api-product-subscription-details';
 import { Subscription, SubscriptionConsumerStatusEnum } from './subscription';
 import { SubscriptionsResponse } from './subscriptions-response';
 
@@ -71,6 +72,46 @@ export function fakeSubscriptionResponse(
         name: 'testApplication',
       },
     },
+  };
+
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
+
+  return {
+    ...base,
+    ...modifier,
+  };
+}
+
+export function fakeApiProductSubscriptionDetails(
+  modifier?: Partial<ApiProductSubscriptionDetails> | ((baseDetails: ApiProductSubscriptionDetails) => ApiProductSubscriptionDetails),
+): ApiProductSubscriptionDetails {
+  const base: ApiProductSubscriptionDetails = {
+    id: 'f3302847-3e06-42d1-b028-473e0672d14a',
+    name: 'Commerce Product',
+    version: '1.0',
+    availability: 'AVAILABLE',
+    plan: {
+      id: 'aee23b1e-34b1-4551-a23b-1e34b165516a',
+      name: 'Gold',
+      security: 'API_KEY',
+      mode: 'STANDARD',
+    },
+    apis: [
+      {
+        id: 'c071c6e0-67d6-4a71-b1c6-e067d6fa7165',
+        name: 'Orders API',
+        version: '1.0',
+        type: 'PROXY',
+        availability: 'AVAILABLE',
+        entrypoints: ['https://api.example.com/orders'],
+        documentation: {
+          rootId: 'b23bff93-892a-425c-bbff-93892ae25c4f',
+          navigationItemId: 'd7627c9c-7afb-4cb7-a27c-9c7afbbcb761',
+        },
+      },
+    ],
   };
 
   if (isFunction(modifier)) {

@@ -24,6 +24,7 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { filter, tap } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
+import { formatCurlCommandLine } from './api-access.utils';
 import { ApiKeyFeedback, ApiKeysListComponent } from './api-keys-list/api-keys-list.component';
 import { NativeKafkaApiAccessComponent } from './native-kafka-api-access/native-kafka-api-access.component';
 import { ApiType } from '../../entities/api/api';
@@ -180,7 +181,14 @@ export class ApiAccessComponent {
     return selectedEntrypointUrl && entrypointUrls.includes(selectedEntrypointUrl) ? selectedEntrypointUrl : (entrypointUrls[0] ?? '');
   });
 
-  curlCmd = computed(() => this.formatCurlCommandLine(this.selectedEntrypointUrlValue(), this.planSecurityInput(), this.primaryApiKey()));
+  curlCmd = computed(() =>
+    formatCurlCommandLine(
+      this.selectedEntrypointUrlValue(),
+      this.planSecurityInput(),
+      this.configService.configuration.portal?.apikeyHeader,
+      this.primaryApiKey(),
+    ),
+  );
 
   protected revokeApiKeyRow(apiKey: SubscriptionDataKeys): void {
     const key = apiKey.key;
@@ -299,25 +307,5 @@ export class ApiAccessComponent {
           });
         },
       });
-  }
-
-  private formatCurlCommandLine(entrypointUrl: string, planSecurity: PlanSecurityEnum | undefined, apiKey?: string): string {
-    if (!entrypointUrl) {
-      return '';
-    }
-    let curlHeader = '';
-    switch (planSecurity) {
-      case 'JWT':
-      case 'OAUTH2':
-        curlHeader = '--header "Authorization: Bearer {{ ACCESS_TOKEN }}" ';
-        break;
-      case 'API_KEY':
-        if (this.configService.configuration.portal?.apikeyHeader) {
-          curlHeader = `--header "${this.configService.configuration.portal.apikeyHeader}: ${apiKey || '{{ API_KEY }}'}" `;
-        }
-        break;
-    }
-
-    return `curl ${curlHeader}${entrypointUrl}`;
   }
 }

@@ -352,7 +352,7 @@ describe('ConfigureConsumerComponent', () => {
 
   function expectSubscription(subscriptionResponse: Subscription = fakeSubscription()) {
     httpTestingController
-      .expectOne(`${TESTING_BASE_URL}/subscriptions/${SUBSCRIPTION_ID}?include=keys&include=consumerConfiguration`)
+      .expectOne(`${TESTING_BASE_URL}/subscriptions/${SUBSCRIPTION_ID}?include=keys&include=consumerConfiguration&include=apiProduct`)
       .flush(subscriptionResponse);
   }
 
