@@ -36,9 +36,9 @@ describe('Nightly', () => {
     expect(result.stringify()).toStrictEqual(expected);
   });
 
-  // The nightly spells out its own analyses, so nothing stops the two lists from drifting: a
-  // seventh module added to the pull-request groups would never be analysed on the reference
-  // branch, and the snapshot above would accept it.
+  // Both sides now derive from `analysed-projects.ts`, so this guards the derivation rather
+  // than the lists: the nightly takes them unfiltered, and a filter creeping in — or a project
+  // added to one consumer only — shows up here rather than in a missing baseline weeks later.
   it('should analyse exactly the projects a pull request analyses', () => {
     const environment = {
       baseBranch: 'master',

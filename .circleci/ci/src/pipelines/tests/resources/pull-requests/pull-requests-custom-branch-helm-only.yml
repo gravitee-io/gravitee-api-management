@@ -42,6 +42,35 @@ commands:
           branch_pattern: master,[0-9]+\.[0-9]+\.x
           event: fail
           template: basic_fail_1
+  cmd-restore-maven-job-cache:
+    parameters:
+      jobName:
+        type: string
+        default: ""
+        description: The job name
+    steps:
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}
+            - gravitee-api-management-v14-<< parameters.jobName >>-master
+    description: Restore Maven cache for a dedicated job
+  cmd-save-maven-job-cache:
+    parameters:
+      jobName:
+        type: string
+        default: ""
+        description: The job name
+    steps:
+      - run:
+          name: Exclude all APIM artefacts from cache.
+          command: rm -rf ~/.m2/repository/io/gravitee/apim
+      - save_cache:
+          key: gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+          paths:
+            - ~/.m2
+          when: always
+    description: Save Maven cache for a dedicated job
 jobs:
   job-danger-js:
     docker:
@@ -90,6 +119,44 @@ jobs:
       - store_test_results:
           path: apim-result.xml
       - cmd-notify-on-failure
+  job-sonarcloud-analysis:
+    parameters:
+      working_directory:
+        type: string
+        default: gravitee-apim-rest-api
+        description: Directory where the Sonarcloud analysis will be run
+      cache_type:
+        type: enum
+        default: backend
+        description: Type of cache to use
+        enum:
+          - backend
+          - frontend
+    docker:
+      - image: sonarsource/sonar-scanner-cli:11.2
+    resource_class: large
+    steps:
+      - checkout:
+          method: full
+      - attach_workspace:
+          at: .
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
+      - keeper/env-export:
+          secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
+          var-name: SONAR_TOKEN
+      - run:
+          name: Run Sonarcloud Analysis
+          command: sonar-scanner -Dsonar.projectVersion=4.2.0
+          working_directory: << parameters.working_directory >>
+          no_output_timeout: 30m
+      - cmd-notify-on-failure
+      - save_cache:
+          paths:
+            - /opt/sonar-scanner/.sonar/cache
+          key: gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
+          when: always
   job-validate-workflow-status:
     docker:
       - image: cimg/base:stable
