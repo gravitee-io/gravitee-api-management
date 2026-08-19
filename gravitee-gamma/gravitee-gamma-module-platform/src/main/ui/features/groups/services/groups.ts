@@ -17,6 +17,8 @@
 import { apimFetchJsonOrg, apimFetchJsonV1Env } from '../../../shared/api/apimClient';
 import type {
     Group,
+    GroupInvitation,
+    GroupInvitationPayload,
     GroupMember,
     GroupMembershipItem,
     GroupMembershipPayload,
@@ -45,9 +47,6 @@ export async function getGroup(environmentId: string, groupId: string): Promise<
     return apimFetchJsonV1Env<Group>(environmentId, `/configuration/groups/${encodeURIComponent(groupId)}`);
 }
 
-/** Unpaged, like classic Console's own group.component.ts — the `_paged` endpoint has no server-side
- *  search param to filter by, so search/pagination happens client-side. This means very large groups
- *  fetch their full member list in one call; accepted as a known scale limitation for classic parity. */
 export async function listGroupMembers(environmentId: string, groupId: string): Promise<GroupMember[]> {
     return apimFetchJsonV1Env<GroupMember[]>(environmentId, `/configuration/groups/${encodeURIComponent(groupId)}/members`);
 }
@@ -90,8 +89,6 @@ export async function listGroupRolesByScope(scope: GroupRoleScope): Promise<Grou
     return apimFetchJsonOrg<GroupRole[]>(`/configuration/rolescopes/${scope}/roles`);
 }
 
-/** Subset of GET /environments/{envId}/portal needed to gate PRIMARY_OWNER in add-members.
- *  Classic loads the same unguarded `/portal` resource (any authenticated user), not `/settings`. */
 export interface EnvironmentPrimaryOwnerSettings {
     api?: { primaryOwnerMode?: string };
     apiProduct?: { primaryOwnerMode?: string };
@@ -106,4 +103,28 @@ export async function addGroupMembers(environmentId: string, groupId: string, me
         method: 'POST',
         body: JSON.stringify(memberships),
     });
+}
+
+export async function inviteGroupMember(
+    environmentId: string,
+    groupId: string,
+    data: GroupInvitationPayload,
+): Promise<{ ambiguous: boolean }> {
+    const result = await apimFetchJsonV1Env<unknown>(environmentId, `/configuration/groups/${encodeURIComponent(groupId)}/invitations`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return { ambiguous: Array.isArray(result) };
+}
+
+export async function listGroupInvitations(environmentId: string, groupId: string): Promise<GroupInvitation[]> {
+    return apimFetchJsonV1Env<GroupInvitation[]>(environmentId, `/configuration/groups/${encodeURIComponent(groupId)}/invitations`);
+}
+
+export async function deleteGroupInvitation(environmentId: string, groupId: string, invitationId: string): Promise<void> {
+    return apimFetchJsonV1Env<void>(
+        environmentId,
+        `/configuration/groups/${encodeURIComponent(groupId)}/invitations/${encodeURIComponent(invitationId)}`,
+        { method: 'DELETE' },
+    );
 }

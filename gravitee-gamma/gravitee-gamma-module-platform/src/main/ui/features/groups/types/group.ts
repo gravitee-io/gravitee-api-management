@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-/** Mirrors classic `GroupEventRuleEntity` — `API_CREATE` is "default group for new APIs". */
 export type GroupEventName = 'API_CREATE' | 'APPLICATION_CREATE' | 'API_PRODUCT_CREATE';
 
 export interface GroupEventRule {
@@ -37,13 +36,6 @@ export interface Group {
     system_invitation?: boolean;
     email_invitation?: boolean;
     disable_membership_notifications?: boolean;
-    /**
-     * True when this group is a primary owner for at least one API — either via a group-level
-     * default API primary owner (`apiPrimaryOwner`) or an actual API-scope PRIMARY_OWNER
-     * membership role. Not about the current user, and doesn't cover API Product primary
-     * ownership — check `apiProductPrimaryOwner` separately (mirrors classic Console's
-     * `apiPrimaryOwner || apiProductPrimaryOwner` badge/delete-guard condition).
-     */
     primary_owner?: boolean;
     /** Group-level default primary owner (user ID) forced onto new APIs created within this group. */
     apiPrimaryOwner?: string;
@@ -133,4 +125,22 @@ export interface GroupMembershipPayload {
     id?: string;
     reference?: string;
     roles: GroupMembershipRole[];
+}
+
+export interface GroupInvitationPayload {
+    reference_type: 'GROUP';
+    reference_id: string;
+    email: string;
+    api_role?: string;
+    application_role?: string;
+}
+
+export interface GroupInvitation {
+    id: string;
+    reference_type?: string;
+    reference_id: string;
+    email: string;
+    api_role?: string;
+    application_role?: string;
+    created_at?: number;
 }

@@ -15,6 +15,7 @@
  */
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { GroupDetailPage } from './GroupDetailPage';
@@ -24,9 +25,16 @@ import {
     useGroupApplications,
     useGroupApiProducts,
     useGroupDetail,
+    useGroupInvitations,
     useGroupMembers,
 } from '../features/groups/hooks/useGroupDetail';
-import { useAddGroupMembers, useDeleteGroup, useUpdateGroup } from '../features/groups/hooks/useGroupMutations';
+import {
+    useAddGroupMembers,
+    useDeleteGroup,
+    useDeleteGroupInvitation,
+    useInviteGroupMember,
+    useUpdateGroup,
+} from '../features/groups/hooks/useGroupMutations';
 import {
     useGroupApiProductRoles,
     useGroupApiRoles,
@@ -35,7 +43,7 @@ import {
     useGroupExplorerRoles,
     useGroupIntegrationRoles,
 } from '../features/groups/hooks/useGroupRoles';
-import type { Group, GroupMembershipItem, GroupMembershipPayload } from '../features/groups/types/group';
+import type { Group, GroupInvitation, GroupMembershipItem, GroupMembershipPayload } from '../features/groups/types/group';
 import { notify } from '../shared/notify';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
@@ -56,6 +64,23 @@ jest.mock('../features/groups/components/GroupMembersTable', () => ({
         <div data-testid="members-table">{members.map(m => m.displayName).join(', ')}</div>
     ),
 }));
+jest.mock('../features/groups/components/GroupInvitationsTable', () => ({
+    GroupInvitationsTable: ({
+        invitations,
+        onDelete,
+    }: {
+        invitations: GroupInvitation[];
+        onDelete: (invitation: GroupInvitation) => void;
+    }) => (
+        <div data-testid="invitations-table">
+            {invitations.map(invitation => (
+                <button type="button" key={invitation.id} onClick={() => onDelete(invitation)}>
+                    {invitation.email}
+                </button>
+            ))}
+        </div>
+    ),
+}));
 jest.mock('../features/groups/components/GroupMembershipTable', () => ({
     GroupMembershipTable: ({ items, ariaLabel }: { items: GroupMembershipItem[]; ariaLabel: string }) => (
         <div data-testid={`membership-table-${ariaLabel}`}>{items.map(i => i.name).join(', ')}</div>
@@ -64,11 +89,36 @@ jest.mock('../features/groups/components/GroupMembershipTable', () => ({
 // GroupAddMembersSheet has its own spec covering its internals (search, role selects, selection);
 // here we only need to verify the page wires it to the add-members mutation.
 jest.mock('../features/groups/components/GroupAddMembersSheet', () => ({
-    GroupAddMembersSheet: ({ open, onSubmit }: { open: boolean; onSubmit: (m: GroupMembershipPayload[]) => void }) =>
+    GroupAddMembersSheet: ({
+        open,
+        initialSearch,
+        onSubmit,
+    }: {
+        open: boolean;
+        initialSearch?: string;
+        onSubmit: (m: GroupMembershipPayload[]) => void;
+    }) =>
         open ? (
             <div data-testid="add-members-sheet">
+                {initialSearch ? <span>{initialSearch}</span> : null}
                 <button type="button" onClick={() => onSubmit([{ id: 'user-1', roles: [{ scope: 'API', name: 'USER' }] }])}>
                     Submit add members
+                </button>
+            </div>
+        ) : null,
+}));
+jest.mock('../features/groups/components/GroupInviteMemberSheet', () => ({
+    GroupInviteMemberSheet: ({
+        open,
+        onSubmit,
+    }: {
+        open: boolean;
+        onSubmit: (values: { email: string; apiRole: string; applicationRole: string }) => void;
+    }) =>
+        open ? (
+            <div data-testid="invite-member-sheet">
+                <button type="button" onClick={() => onSubmit({ email: 'user@example.com', apiRole: 'USER', applicationRole: 'USER' })}>
+                    Submit invitation
                 </button>
             </div>
         ) : null,
@@ -87,6 +137,7 @@ beforeAll(() => {
 const mockUseHasPermission = jest.mocked(useHasPermission);
 const mockUseGroupDetail = jest.mocked(useGroupDetail);
 const mockUseGroupMembers = jest.mocked(useGroupMembers);
+const mockUseGroupInvitations = jest.mocked(useGroupInvitations);
 const mockUseEnvironmentSettings = jest.mocked(useEnvironmentSettings);
 const mockUseGroupApis = jest.mocked(useGroupApis);
 const mockUseGroupApplications = jest.mocked(useGroupApplications);
@@ -100,6 +151,8 @@ const mockUseGroupExplorerRoles = jest.mocked(useGroupExplorerRoles);
 const mockUseUpdateGroup = jest.mocked(useUpdateGroup);
 const mockUseDeleteGroup = jest.mocked(useDeleteGroup);
 const mockUseAddGroupMembers = jest.mocked(useAddGroupMembers);
+const mockUseInviteGroupMember = jest.mocked(useInviteGroupMember);
+const mockUseDeleteGroupInvitation = jest.mocked(useDeleteGroupInvitation);
 
 const GROUP: Group = { id: 'group-1', name: 'Support Team', event_rules: [{ event: 'API_CREATE' }], system_invitation: true };
 
@@ -121,6 +174,18 @@ function renderPage(initialGroupId = 'group-1') {
     );
 }
 
+async function openAddMembersViaSearch() {
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: /Add members/i }));
+    await user.click(await screen.findByRole('menuitem', { name: 'User search' }));
+}
+
+async function openEmailInvitation() {
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: /Add members/i }));
+    await user.click(await screen.findByRole('menuitem', { name: 'Email invitation' }));
+}
+
 describe('GroupDetailPage', () => {
     beforeEach(() => {
         mockUseHasPermission.mockReturnValue(true);
@@ -130,6 +195,11 @@ describe('GroupDetailPage', () => {
             isLoading: false,
             isError: false,
         } as ReturnType<typeof useGroupMembers>);
+        mockUseGroupInvitations.mockReturnValue({
+            data: [],
+            isLoading: false,
+            isError: false,
+        } as unknown as ReturnType<typeof useGroupInvitations>);
         mockUseEnvironmentSettings.mockReturnValue({ data: undefined } as ReturnType<typeof useEnvironmentSettings>);
         mockUseGroupApis.mockReturnValue({
             data: [{ id: 'api-1', name: 'Billing API', version: '1.0' }],
@@ -141,7 +211,11 @@ describe('GroupDetailPage', () => {
             isLoading: false,
             isError: false,
         } as ReturnType<typeof useGroupApplications>);
-        mockUseGroupApiProducts.mockReturnValue({ data: [], isLoading: false, isError: false } as ReturnType<typeof useGroupApiProducts>);
+        mockUseGroupApiProducts.mockReturnValue({
+            data: [],
+            isLoading: false,
+            isError: false,
+        } as unknown as ReturnType<typeof useGroupApiProducts>);
         mockUseGroupApiRoles.mockReturnValue({ data: [{ name: 'USER', scope: 'API', default: true }], isLoading: false } as ReturnType<
             typeof useGroupApiRoles
         >);
@@ -153,8 +227,14 @@ describe('GroupDetailPage', () => {
             data: [{ name: 'USER', scope: 'API_PRODUCT', default: true }],
             isLoading: false,
         } as ReturnType<typeof useGroupApiProductRoles>);
-        mockUseGroupIntegrationRoles.mockReturnValue({ data: [], isLoading: false } as ReturnType<typeof useGroupIntegrationRoles>);
-        mockUseGroupClusterRoles.mockReturnValue({ data: [], isLoading: false } as ReturnType<typeof useGroupClusterRoles>);
+        mockUseGroupIntegrationRoles.mockReturnValue({
+            data: [],
+            isLoading: false,
+        } as unknown as ReturnType<typeof useGroupIntegrationRoles>);
+        mockUseGroupClusterRoles.mockReturnValue({
+            data: [],
+            isLoading: false,
+        } as unknown as ReturnType<typeof useGroupClusterRoles>);
         mockUseGroupExplorerRoles.mockReturnValue({
             data: [],
             isLoading: false,
@@ -162,6 +242,8 @@ describe('GroupDetailPage', () => {
         mockUseUpdateGroup.mockReturnValue(makeMutation());
         mockUseDeleteGroup.mockReturnValue(makeMutation());
         mockUseAddGroupMembers.mockReturnValue(makeMutation());
+        mockUseInviteGroupMember.mockReturnValue(makeMutation());
+        mockUseDeleteGroupInvitation.mockReturnValue(makeMutation());
     });
 
     afterEach(() => {
@@ -219,9 +301,9 @@ describe('GroupDetailPage', () => {
             expect(mockUseGroupExplorerRoles).toHaveBeenCalledWith({ enabled: false });
         });
 
-        it('fetches all six role catalogs once the Add members sheet is open', () => {
+        it('fetches all six role catalogs once the Add members sheet is open', async () => {
             renderPage();
-            fireEvent.click(screen.getByRole('button', { name: /Add members/i }));
+            await openAddMembersViaSearch();
 
             expect(mockUseGroupApiRoles).toHaveBeenCalledWith({ enabled: true });
             expect(mockUseGroupApplicationRoles).toHaveBeenCalledWith({ enabled: true });
@@ -229,6 +311,23 @@ describe('GroupDetailPage', () => {
             expect(mockUseGroupIntegrationRoles).toHaveBeenCalledWith({ enabled: true });
             expect(mockUseGroupClusterRoles).toHaveBeenCalledWith({ enabled: true });
             expect(mockUseGroupExplorerRoles).toHaveBeenCalledWith({ enabled: true });
+        });
+
+        it('fetches only API and application roles once the Email invitation sheet is open', async () => {
+            mockUseGroupDetail.mockReturnValue({
+                data: { ...GROUP, email_invitation: true },
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupDetail>);
+            renderPage();
+            await openEmailInvitation();
+
+            expect(mockUseGroupApiRoles).toHaveBeenCalledWith({ enabled: true });
+            expect(mockUseGroupApplicationRoles).toHaveBeenCalledWith({ enabled: true });
+            expect(mockUseGroupApiProductRoles).toHaveBeenCalledWith({ enabled: false });
+            expect(mockUseGroupIntegrationRoles).toHaveBeenCalledWith({ enabled: false });
+            expect(mockUseGroupClusterRoles).toHaveBeenCalledWith({ enabled: false });
+            expect(mockUseGroupExplorerRoles).toHaveBeenCalledWith({ enabled: false });
         });
 
         it('skips fetching role catalogs when the user cannot edit or add members, since no sheet can open', () => {
@@ -353,7 +452,11 @@ describe('GroupDetailPage', () => {
 
     describe('per-section errors', () => {
         it('shows a section error instead of the members table when members fail to load', () => {
-            mockUseGroupMembers.mockReturnValue({ data: [], isLoading: false, isError: true } as ReturnType<typeof useGroupMembers>);
+            mockUseGroupMembers.mockReturnValue({
+                data: [],
+                isLoading: false,
+                isError: true,
+            } as unknown as ReturnType<typeof useGroupMembers>);
             renderPage();
 
             expect(screen.getByText('Failed to load members. Please refresh and try again.')).not.toBeNull();
@@ -361,7 +464,11 @@ describe('GroupDetailPage', () => {
         });
 
         it('shows a section error instead of the APIs table when APIs fail to load', () => {
-            mockUseGroupApis.mockReturnValue({ data: [], isLoading: false, isError: true } as ReturnType<typeof useGroupApis>);
+            mockUseGroupApis.mockReturnValue({
+                data: [],
+                isLoading: false,
+                isError: true,
+            } as unknown as ReturnType<typeof useGroupApis>);
             renderPage();
 
             expect(screen.getByText('Failed to load associated APIs. Please refresh and try again.')).not.toBeNull();
@@ -369,7 +476,7 @@ describe('GroupDetailPage', () => {
         });
 
         it('shows a section error instead of the API Products table when API Products fail to load', () => {
-            mockUseGroupApiProducts.mockReturnValue({ data: [], isLoading: false, isError: true } as ReturnType<
+            mockUseGroupApiProducts.mockReturnValue({ data: [], isLoading: false, isError: true } as unknown as ReturnType<
                 typeof useGroupApiProducts
             >);
             renderPage();
@@ -379,7 +486,7 @@ describe('GroupDetailPage', () => {
         });
 
         it('shows a section error instead of the Applications table when Applications fail to load', () => {
-            mockUseGroupApplications.mockReturnValue({ data: [], isLoading: false, isError: true } as ReturnType<
+            mockUseGroupApplications.mockReturnValue({ data: [], isLoading: false, isError: true } as unknown as ReturnType<
                 typeof useGroupApplications
             >);
             renderPage();
@@ -450,7 +557,7 @@ describe('GroupDetailPage', () => {
             mockUseAddGroupMembers.mockReturnValue(makeMutation(addMutateAsync));
             renderPage();
 
-            fireEvent.click(screen.getByRole('button', { name: /Add members/i }));
+            await openAddMembersViaSearch();
             expect(screen.getByTestId('add-members-sheet')).not.toBeNull();
 
             fireEvent.click(screen.getByRole('button', { name: 'Submit add members' }));
@@ -470,11 +577,97 @@ describe('GroupDetailPage', () => {
             mockUseAddGroupMembers.mockReturnValue(makeMutation(jest.fn().mockRejectedValue(error)));
             renderPage();
 
-            fireEvent.click(screen.getByRole('button', { name: /Add members/i }));
+            await openAddMembersViaSearch();
             fireEvent.click(screen.getByRole('button', { name: 'Submit add members' }));
 
             await waitFor(() => expect(notify.error).toHaveBeenCalledWith(error, 'Failed to add members'));
             expect(screen.queryByTestId('add-members-sheet')).not.toBeNull();
+        });
+    });
+
+    describe('Email invitations', () => {
+        beforeEach(() => {
+            mockUseGroupDetail.mockReturnValue({
+                data: { ...GROUP, email_invitation: true },
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupDetail>);
+        });
+
+        it('submits an email invitation and switches to the invitations tab', async () => {
+            const inviteMutateAsync = jest.fn().mockResolvedValue({ ambiguous: false });
+            mockUseInviteGroupMember.mockReturnValue(makeMutation(inviteMutateAsync));
+            renderPage();
+
+            await openEmailInvitation();
+            fireEvent.click(screen.getByRole('button', { name: 'Submit invitation' }));
+
+            await waitFor(() =>
+                expect(inviteMutateAsync).toHaveBeenCalledWith({
+                    groupId: 'group-1',
+                    data: {
+                        reference_type: 'GROUP',
+                        reference_id: 'group-1',
+                        email: 'user@example.com',
+                        api_role: 'USER',
+                        application_role: 'USER',
+                    },
+                }),
+            );
+            expect(notify.success).toHaveBeenCalledWith('Member invited successfully');
+            await waitFor(() => expect(screen.getByRole('tab', { name: 'Invitations' }).getAttribute('data-state')).toBe('active'));
+        });
+
+        it('continues an ambiguous email response in user search with the email prefilled', async () => {
+            mockUseInviteGroupMember.mockReturnValue(makeMutation(jest.fn().mockResolvedValue({ ambiguous: true })));
+            renderPage();
+
+            await openEmailInvitation();
+            fireEvent.click(screen.getByRole('button', { name: 'Submit invitation' }));
+
+            expect(await screen.findByRole('heading', { name: 'Many Users Found' })).not.toBeNull();
+            fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+
+            expect(screen.getByTestId('add-members-sheet').textContent).toContain('user@example.com');
+        });
+
+        it('loads invitations only after the invitations tab is selected', async () => {
+            renderPage();
+
+            expect(mockUseGroupInvitations).toHaveBeenLastCalledWith(undefined);
+            await userEvent.setup().click(screen.getByRole('tab', { name: 'Invitations' }));
+
+            expect(mockUseGroupInvitations).toHaveBeenLastCalledWith('group-1');
+        });
+
+        it('confirms and deletes an invitation', async () => {
+            const user = userEvent.setup();
+            const invitation: GroupInvitation = {
+                id: 'invitation-1',
+                reference_id: 'group-1',
+                email: 'user@example.com',
+            };
+            const deleteMutateAsync = jest.fn().mockResolvedValue(undefined);
+            mockUseGroupInvitations.mockReturnValue({
+                data: [invitation],
+                isLoading: false,
+                isError: false,
+            } as unknown as ReturnType<typeof useGroupInvitations>);
+            mockUseDeleteGroupInvitation.mockReturnValue(makeMutation(deleteMutateAsync));
+            renderPage();
+
+            await user.click(screen.getByRole('tab', { name: 'Invitations' }));
+            await user.click(screen.getByRole('button', { name: 'user@example.com' }));
+            expect(screen.getByRole('heading', { name: 'Delete Invitation' })).not.toBeNull();
+            await user.click(screen.getByRole('button', { name: 'Continue' }));
+
+            await waitFor(() =>
+                expect(deleteMutateAsync).toHaveBeenCalledWith({
+                    groupId: 'group-1',
+                    invitationId: 'invitation-1',
+                }),
+            );
+            expect(notify.success).toHaveBeenCalledWith('Invitation deleted successfully');
         });
     });
 
@@ -489,7 +682,7 @@ describe('GroupDetailPage', () => {
             renderPage();
 
             expect(screen.queryByRole('button', { name: /Add members/i })).not.toBeNull();
-            expect(mockUseEnvironmentSettings).toHaveBeenCalledWith({ enabled: true });
+            expect(mockUseEnvironmentSettings).toHaveBeenCalledWith({ enabled: false });
         });
 
         it('hides Add members when manageable but system invitation is disabled', () => {
@@ -532,7 +725,9 @@ describe('GroupDetailPage', () => {
             renderPage();
 
             expect(
-                screen.getByText('The number of members in this group has reached maximum allowed. Adding users has been disabled.'),
+                screen.getByText(
+                    'The number of members in this group has reached maximum allowed. Adding users via search and email invitation have been disabled.',
+                ),
             ).not.toBeNull();
             expect(screen.queryByRole('button', { name: /Add members/i })).toBeNull();
         });

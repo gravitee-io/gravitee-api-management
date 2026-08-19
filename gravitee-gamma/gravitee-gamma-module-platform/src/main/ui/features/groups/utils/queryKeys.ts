@@ -21,6 +21,7 @@ export const groupKeys = {
     list: (envId: string, query: string, page: number, size: number) => [...groupKeys.all, 'list', envId, query, page, size] as const,
     detail: (envId: string, groupId: string) => [...groupKeys.all, 'detail', envId, groupId] as const,
     members: (envId: string, groupId: string) => [...groupKeys.all, 'members', envId, groupId] as const,
+    invitations: (envId: string, groupId: string) => [...groupKeys.all, 'invitations', envId, groupId] as const,
     memberships: (envId: string, groupId: string, type: GroupMembershipType) =>
         [...groupKeys.all, 'memberships', envId, groupId, type] as const,
     roles: (scope: 'API' | 'APPLICATION' | 'API_PRODUCT' | 'INTEGRATION' | 'CLUSTER' | 'EXPLORER') => ['org-roles', scope] as const,

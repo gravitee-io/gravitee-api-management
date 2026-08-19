@@ -17,11 +17,16 @@
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { addGroupMembers, createGroup, deleteGroup, updateGroup } from '../services/groups';
-import type { Group, GroupMembershipPayload, NewGroupPayload, UpdateGroupPayload } from '../types/group';
+import { addGroupMembers, createGroup, deleteGroup, deleteGroupInvitation, inviteGroupMember, updateGroup } from '../services/groups';
+import type { Group, GroupInvitationPayload, GroupMembershipPayload, NewGroupPayload, UpdateGroupPayload } from '../types/group';
 import { groupKeys } from '../utils/queryKeys';
 
-function useGroupMutation<TData, TResult>(mutationFn: (envId: string, data: TData) => Promise<TResult>) {
+type InvalidationKeys<TData, TResult> = (environmentId: string, data: TData, result: TResult) => readonly (readonly unknown[])[];
+
+function useGroupMutation<TData, TResult>(
+    mutationFn: (envId: string, data: TData) => Promise<TResult>,
+    invalidationKeys: InvalidationKeys<TData, TResult> = () => [groupKeys.all],
+) {
     const env = useEnvironment();
     const queryClient = useQueryClient();
 
@@ -32,9 +37,11 @@ function useGroupMutation<TData, TResult>(mutationFn: (envId: string, data: TDat
             }
             return mutationFn(env.id, data);
         },
-        onSuccess: () => {
+        onSuccess: (result, data) => {
             if (env?.id) {
-                void queryClient.invalidateQueries({ queryKey: groupKeys.all });
+                invalidationKeys(env.id, data, result).forEach(queryKey => {
+                    void queryClient.invalidateQueries({ queryKey });
+                });
             }
         },
     });
@@ -55,7 +62,23 @@ export function useDeleteGroup() {
 }
 
 export function useAddGroupMembers() {
-    return useGroupMutation<{ groupId: string; memberships: GroupMembershipPayload[] }, void>((envId, { groupId, memberships }) =>
-        addGroupMembers(envId, groupId, memberships),
+    return useGroupMutation<{ groupId: string; memberships: GroupMembershipPayload[] }, void>(
+        (envId, { groupId, memberships }) => addGroupMembers(envId, groupId, memberships),
+        (envId, { groupId }) => [groupKeys.members(envId, groupId)],
+    );
+}
+
+export function useInviteGroupMember() {
+    return useGroupMutation<{ groupId: string; data: GroupInvitationPayload }, { ambiguous: boolean }>(
+        (envId, { groupId, data }) => inviteGroupMember(envId, groupId, data),
+        (envId, { groupId }, result) =>
+            result.ambiguous ? [] : [groupKeys.members(envId, groupId), groupKeys.invitations(envId, groupId)],
+    );
+}
+
+export function useDeleteGroupInvitation() {
+    return useGroupMutation<{ groupId: string; invitationId: string }, void>(
+        (envId, { groupId, invitationId }) => deleteGroupInvitation(envId, groupId, invitationId),
+        (envId, { groupId }) => [groupKeys.invitations(envId, groupId)],
     );
 }
