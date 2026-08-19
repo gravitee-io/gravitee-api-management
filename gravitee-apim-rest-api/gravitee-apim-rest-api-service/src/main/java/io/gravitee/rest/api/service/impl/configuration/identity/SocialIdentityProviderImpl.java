@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.identity;
 
+import io.gravitee.rest.api.model.configuration.identity.ClientAuthenticationMethod;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
@@ -55,6 +56,7 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
 
     private static final String CLIENT_ID = "clientId";
     private static final String CLIENT_SECRET = "clientSecret";
+    private static final String TOKEN_ENDPOINT_AUTH_METHOD = "tokenEndpointAuthMethod";
 
     @Autowired
     private IdentityProviderService identityProviderService;
@@ -175,6 +177,12 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
             provider.setDescription(identityProvider.getDescription());
             provider.setClientId((String) identityProvider.getConfiguration().get(CLIENT_ID));
             provider.setClientSecret((String) identityProvider.getConfiguration().get(CLIENT_SECRET));
+            provider.setTokenEndpointAuthMethod(
+                clientAuthenticationMethod(
+                    (String) identityProvider.getConfiguration().get(TOKEN_ENDPOINT_AUTH_METHOD),
+                    identityProvider.getId()
+                )
+            );
             provider.setGroupMappings(identityProvider.getGroupMappings());
             provider.setRoleMappings(identityProvider.getRoleMappings());
             provider.setEmailRequired(identityProvider.isEmailRequired());
@@ -184,5 +192,24 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
         }
 
         return null;
+    }
+
+    /**
+     * An unrecognised value is reported rather than rejected: failing here would break every login for the provider,
+     * whereas falling back leaves authentication working while the warning names the typo.
+     */
+    private ClientAuthenticationMethod clientAuthenticationMethod(String configured, String identityProviderId) {
+        ClientAuthenticationMethod method = ClientAuthenticationMethod.fromValue(configured);
+        if (method == null && configured != null && !configured.isBlank()) {
+            log.warn(
+                "Identity provider {} declares an unknown {} '{}'. Expected {} or {}. Falling back to the default of each endpoint.",
+                identityProviderId,
+                TOKEN_ENDPOINT_AUTH_METHOD,
+                configured,
+                ClientAuthenticationMethod.CLIENT_SECRET_BASIC.getValue(),
+                ClientAuthenticationMethod.CLIENT_SECRET_POST.getValue()
+            );
+        }
+        return method;
     }
 }
