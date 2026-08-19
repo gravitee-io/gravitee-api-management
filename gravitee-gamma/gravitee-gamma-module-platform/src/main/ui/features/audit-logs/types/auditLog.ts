@@ -21,7 +21,8 @@ export type AuditScope = 'organization' | 'environment';
 export interface AuditEntity {
     id: string;
     referenceId: string;
-    referenceType: string;
+    // The API tolerates audits with no reference type (AuditServiceImpl skips metadata resolution for them).
+    referenceType: string | null;
     user: string;
     createdAt: number | string;
     event: string;

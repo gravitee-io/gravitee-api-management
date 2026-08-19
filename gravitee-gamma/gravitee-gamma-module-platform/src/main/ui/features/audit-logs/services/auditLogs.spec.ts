@@ -120,8 +120,8 @@ describe('auditLogs service', () => {
             { id: 'api-1', name: 'Pets' },
             { id: 'api-2', name: 'Orders' },
         ]);
-        expect(mockApimFetchJsonV2).toHaveBeenNthCalledWith(1, 'env-1', '/apis?page=1&perPage=200');
-        expect(mockApimFetchJsonV2).toHaveBeenNthCalledWith(2, 'env-1', '/apis?page=2&perPage=200');
+        expect(mockApimFetchJsonV2).toHaveBeenNthCalledWith(1, 'env-1', '/apis?page=1&perPage=9999');
+        expect(mockApimFetchJsonV2).toHaveBeenNthCalledWith(2, 'env-1', '/apis?page=2&perPage=9999');
     });
 
     it('groups org application lookups by environment name and drops empty environments', async () => {

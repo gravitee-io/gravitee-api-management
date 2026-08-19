@@ -29,8 +29,9 @@ export function buildAuditExportFileName(format: AuditExportFormat, now = new Da
 // with one of these is executed as a formula by Excel/Sheets, so prefix it with a quote to neutralise it.
 const CSV_FORMULA_PREFIXES = ['=', '+', '-', '@', '\t', '\r'];
 
-export function csvEscape(value: string): string {
-    const safe = CSV_FORMULA_PREFIXES.some(prefix => value.startsWith(prefix)) ? `'${value}` : value;
+export function csvEscape(value: string | null | undefined): string {
+    const text = value ?? '';
+    const safe = CSV_FORMULA_PREFIXES.some(prefix => text.startsWith(prefix)) ? `'${text}` : text;
     if (/[",\n\r]/.test(safe)) {
         return `"${safe.replace(/"/g, '""')}"`;
     }
