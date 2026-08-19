@@ -29,7 +29,7 @@ import { isEqual } from 'lodash';
 
 import { WebhookLogsApplicationsFilterComponent } from './components/webhook-logs-applications-filter/webhook-logs-applications-filter.component';
 
-import { DEFAULT_PERIOD, MultiFilter, PERIODS, SimpleFilter } from '../../../runtime-logs/models';
+import { MultiFilter, NONE_PERIOD, PERIODS, SimpleFilter } from '../../../runtime-logs/models';
 import {
   DEFAULT_WEBHOOK_LOGS_FILTERS,
   WebhookLogsQuickFilters,
@@ -48,7 +48,7 @@ type QuickFiltersFormValue = {
 const DEFAULT_FORM_VALUE: QuickFiltersFormValue = {
   statuses: [],
   applications: [],
-  period: DEFAULT_PERIOD,
+  period: NONE_PERIOD,
 };
 
 @Component({
@@ -119,7 +119,7 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
     const toValue = initialTo != null && !isNumber(initialTo) ? initialTo : null;
 
     return {
-      period: this.initialValues?.period ?? DEFAULT_PERIOD,
+      period: this.initialValues?.period ?? NONE_PERIOD,
       from: fromValue,
       to: toValue,
       callbackUrls: this.initialValues?.callbackUrls ?? [],
@@ -137,13 +137,13 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
     return new FormGroup({
       statuses: new FormControl<string[]>(initialStatuses, { nonNullable: true }),
       applications: new FormControl<string[]>(initialApplications, { nonNullable: true }),
-      period: new FormControl<SimpleFilter>(this.initialValues?.period ?? DEFAULT_PERIOD, { nonNullable: true }),
+      period: new FormControl<SimpleFilter>(this.initialValues?.period ?? NONE_PERIOD, { nonNullable: true }),
     });
   }
 
   resetAllFilters() {
     this.quickFiltersForm.reset(DEFAULT_FORM_VALUE, { emitEvent: false });
-    this.applyMoreFilters({ period: DEFAULT_PERIOD, from: null, to: null, callbackUrls: [] });
+    this.applyMoreFilters({ period: NONE_PERIOD, from: null, to: null, callbackUrls: [] });
   }
 
   openMoreFilters(): void {
@@ -172,7 +172,7 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
   }
 
   removePeriod(): void {
-    this.applyMoreFilters({ ...this.moreFiltersValues, period: DEFAULT_PERIOD });
+    this.applyMoreFilters({ ...this.moreFiltersValues, period: NONE_PERIOD });
   }
 
   removeDateRange(): void {
@@ -216,7 +216,7 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
   private onQuickFiltersFormChanges() {
     this.quickFiltersForm.valueChanges.pipe(distinctUntilChanged(isEqual), takeUntilDestroyed(this.destroyRef)).subscribe((values) => {
       const formValues: QuickFiltersFormValue = values;
-      if (formValues.period && formValues.period === DEFAULT_PERIOD) {
+      if (formValues.period && formValues.period.value === '0') {
         this.moreFiltersValues = { ...this.moreFiltersValues, period: formValues.period };
       } else {
         this.moreFiltersValues = { ...this.moreFiltersValues, period: formValues.period, from: null, to: null };
@@ -248,7 +248,7 @@ export class WebhookLogsQuickFiltersComponent implements OnInit {
     return {
       statuses: statuses?.length > 0 ? statuses.map((status) => Number(status)).filter((num) => !Number.isNaN(num)) : undefined,
       applications: this.applicationsFromValues(applications),
-      period: period && period.value !== DEFAULT_PERIOD.value ? period : undefined,
+      period: period && period.value !== '0' ? period : undefined,
     };
   }
 

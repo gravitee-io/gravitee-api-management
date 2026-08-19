@@ -19,7 +19,7 @@ import moment from 'moment';
 
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
-import { DEFAULT_FILTERS, DEFAULT_PERIOD, LogFilters, SimpleFilter } from '../models';
+import { DEFAULT_FILTERS, LogFilters, SimpleFilter } from '../models';
 
 @Injectable()
 export class QuickFiltersStoreService {
@@ -37,14 +37,21 @@ export class QuickFiltersStoreService {
     this._filters$.next(values);
   }
 
-  public toLogFilterQueryParam(logFilters: LogFilters, page: number, perPage: number) {
-    const { from, to } = this.preparePeriodFilter(logFilters.period);
+  public toLogFilterQueryParam(
+    logFilters: LogFilters,
+    page: number,
+    perPage: number,
+    frozenTimeRange?: { from?: number | null; to?: number | null } | null,
+  ) {
+    const { from, to } = frozenTimeRange
+      ? { from: frozenTimeRange.from ?? null, to: frozenTimeRange.to ?? null }
+      : this.periodTimeRange(logFilters);
     return {
       page,
       perPage,
-      period: logFilters.period?.value !== DEFAULT_PERIOD.value ? logFilters.period?.value : null,
-      from: logFilters.from ? logFilters.from : from,
-      to: logFilters.to ? logFilters.to : to,
+      period: logFilters.period?.value ?? null,
+      from,
+      to,
       entrypointIds: logFilters.entrypoints?.length > 0 ? logFilters.entrypoints.join(',') : null,
       applicationIds: logFilters.applications?.length > 0 ? logFilters.applications?.map((app) => app.value).join(',') : null,
       planIds: logFilters.plans?.length > 0 ? logFilters.plans?.map((plan) => plan.value).join(',') : null,
@@ -54,8 +61,16 @@ export class QuickFiltersStoreService {
     };
   }
 
+  private periodTimeRange(logFilters: LogFilters): { from: number | null; to: number | null } {
+    const computed = this.preparePeriodFilter(logFilters.period);
+    return {
+      from: logFilters.from ?? computed.from,
+      to: logFilters.to ?? computed.to,
+    };
+  }
+
   private preparePeriodFilter(period: SimpleFilter): { from: number; to: number } {
-    if (period.value === '0') {
+    if (!period || period.value === '0') {
       return { from: null, to: null };
     }
     const now = moment();
