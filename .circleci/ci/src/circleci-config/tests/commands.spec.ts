@@ -22,7 +22,7 @@ describe('Run', () => {
     });
   });
 
-  it('emits environment, working_directory and when when provided', () => {
+  it('emits environment, working_directory, when and no_output_timeout when provided', () => {
     expect(
       new Run({
         name: 'Run',
@@ -30,6 +30,7 @@ describe('Run', () => {
         working_directory: 'gravitee-apim-rest-api',
         environment: { BUILD_ID: '1234' },
         when: 'always',
+        no_output_timeout: '30m',
       }).generate(),
     ).toStrictEqual({
       run: {
@@ -38,6 +39,7 @@ describe('Run', () => {
         working_directory: 'gravitee-apim-rest-api',
         environment: { BUILD_ID: '1234' },
         when: 'always',
+        no_output_timeout: '30m',
       },
     });
   });
