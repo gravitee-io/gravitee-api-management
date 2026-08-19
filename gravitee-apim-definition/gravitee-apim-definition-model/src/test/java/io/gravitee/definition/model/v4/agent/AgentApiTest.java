@@ -23,6 +23,7 @@ import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.agent.definition.AgentInput;
+import io.gravitee.definition.model.v4.agent.definition.AgentOutput;
 import io.gravitee.definition.model.v4.agent.workflow.AgentRefItem;
 import io.gravitee.definition.model.v4.agent.workflow.ConditionalItem;
 import io.gravitee.definition.model.v4.agent.workflow.ExternalAgentItem;
@@ -56,7 +57,7 @@ class AgentApiTest {
           ],
           "standalone": {
             "role": "Analyst.", "goal": "Notes.", "instructions": "Research {{topic}}.",
-            "inputs": [ { "name": "topic" } ], "output": "notes",
+            "inputs": [ { "name": "topic" } ], "outputs": [ { "name": "notes" } ],
             "model": { "type": "openai", "configuration": { "model": "gpt-5-mini" } },
             "tools":  [ { "name": "web-search", "type": "mcp", "configuration": { "url": "x" } } ],
             "skills": [ { "name": "cite", "type": "inline", "configuration": { "content": "Cite." } } ],
@@ -78,7 +79,7 @@ class AgentApiTest {
             "model": { "type": "openai", "configuration": { "model": "gpt-5-mini" } },
             "goal": "Turn the notes into a reviewed report.",
             "instructions": "Draft a report from {{notes}} in a {{tone}} tone.",
-            "inputs": [ { "name": "notes" }, { "name": "tone" } ], "output": "report",
+            "inputs": [ { "name": "notes" }, { "name": "tone" } ], "outputs": [ { "name": "report" } ],
             "items": [ { "type": "agent", "refId": "drafter" }, { "type": "agent", "refId": "reviewer" } ]
           },
           "plans": []
@@ -102,14 +103,14 @@ class AgentApiTest {
           "workflow": {
             "type": "sequence",
             "inputs": [ { "name": "topic", "type": "string", "required": true }, { "name": "tone", "default": "neutral" } ],
-            "output": "report",
+            "outputs": [ { "name": "report" } ],
             "items": [
               { "type": "agent", "refId": "researcher" },
               { "type": "external-agent", "name": "Web searcher", "configuration": { "url": "https://x" } },
               { "type": "agent", "refId": "writing-team" },
               { "type": "human", "name": "Review",
                 "when": { "combine": "all", "clauses": [ { "variable": "report", "op": "isPresent" } ] },
-                "ask": "Approve:\\n{{report}}", "inputs": [ { "name": "report" } ], "output": "report" }
+                "ask": "Approve:\\n{{report}}", "inputs": [ { "name": "report" } ], "outputs": [ { "name": "report" } ] }
             ]
           }
         }
@@ -123,7 +124,7 @@ class AgentApiTest {
           "apiVersion": "1.0.0", "kind": "workflow", "composable": true,
           "listeners": [],
           "workflow": {
-            "type": "sequence", "output": "out",
+            "type": "sequence", "outputs": [ { "name": "out" } ],
             "items": [
               { "type": "loop", "max": 3, "testExitAtEnd": true,
                 "until": { "combine": "all", "clauses": [ { "variable": "x", "op": "isPresent" } ] },
@@ -228,7 +229,7 @@ class AgentApiTest {
         assertThat(human.getWhen().getClauses().get(0).getOp()).isEqualTo("isPresent");
 
         // root contract — a defaulted input
-        assertThat(root.getOutput()).isEqualTo("report");
+        assertThat(root.getOutputs()).extracting(AgentOutput::getName).containsExactly("report");
         assertThat(root.getInputs()).anySatisfy(i -> {
             assertThat(i.getName()).isEqualTo("tone");
             assertThat(i.getDefaultValue()).isEqualTo("neutral");
@@ -262,8 +263,7 @@ class AgentApiTest {
     void should_round_trip_an_input_binding_and_omit_it_when_absent() throws Exception {
         // `binding` names the scope key an input reads from; `name` stays what the agent calls it.
         // language=JSON
-        String json =
-            """
+        String json = """
             { "definitionVersion": "V4", "type": "agent", "id": "x", "name": "x", "apiVersion": "1.0.0", "kind": "workflow",
               "workflow": { "type": "sequence", "items": [
                 { "type": "agent", "refId": "writer",

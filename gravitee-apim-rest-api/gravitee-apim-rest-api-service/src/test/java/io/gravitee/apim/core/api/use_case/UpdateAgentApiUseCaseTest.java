@@ -70,6 +70,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import io.gravitee.definition.model.v4.agent.definition.AgentOutput;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class UpdateAgentApiUseCaseTest {
@@ -185,7 +186,7 @@ class UpdateAgentApiUseCaseTest {
             soft.assertThat(updated.getType()).isEqualTo(ApiType.AGENT);
             // The full agent body is replaced
             soft.assertThat(updated.getApiDefinitionAgent().getName()).isEqualTo("Updated Agent");
-            soft.assertThat(updated.getApiDefinitionAgent().getStandalone().getOutput()).isEqualTo("new-output");
+            soft.assertThat(updated.getApiDefinitionAgent().getStandalone().getOutputs()).extracting("name").containsExactly("new-output");
             soft.assertThat(updated.getApiDefinitionAgent().getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
         });
     }
@@ -284,7 +285,7 @@ class UpdateAgentApiUseCaseTest {
                     .definitionVersion(DefinitionVersion.V4)
                     .kind("standalone")
                     .standalone(
-                        StandaloneAgentDefinition.builder().model(AgentModel.builder().type("openai").build()).output("old-output").build()
+                        StandaloneAgentDefinition.builder().model(AgentModel.builder().type("openai").build()).outputs(List.of(AgentOutput.builder().name("old-output").build())).build()
                     )
                     .build()
             )
@@ -298,7 +299,7 @@ class UpdateAgentApiUseCaseTest {
             .type(ApiType.AGENT)
             .kind("standalone")
             .listeners(List.of(HttpListener.builder().paths(List.of()).build()))
-            .standalone(StandaloneAgentDefinition.builder().model(AgentModel.builder().type("openai").build()).output("new-output").build())
+            .standalone(StandaloneAgentDefinition.builder().model(AgentModel.builder().type("openai").build()).outputs(List.of(AgentOutput.builder().name("new-output").build())).build())
             .build();
     }
 }
