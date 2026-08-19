@@ -15,11 +15,20 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
+import io.gravitee.apim.plugin.gamma.api.automation.GammaAutomationPort;
+import io.gravitee.apim.rest.api.automation.openapi.OpenApiFragmentMerger;
+import io.gravitee.apim.rest.api.automation.spring.GammaAutomationPorts;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -28,10 +37,30 @@ import jakarta.ws.rs.core.Response;
 @Path("/")
 public class OpenAPIResource {
 
+    private static final String OPEN_API_DOCUMENT = "open-api.yaml";
+
+    @Inject
+    private GammaAutomationPorts gammaAutomationPorts;
+
     @GET
-    @Path("/open-api.yaml")
+    @Path("/" + OPEN_API_DOCUMENT)
     @Produces("application/yaml")
     public Response getOpenApi() {
-        return Response.ok(this.getClass().getClassLoader().getResourceAsStream("open-api.yaml")).build();
+        Map<String, String> fragments = new LinkedHashMap<>();
+        for (GammaAutomationPort port : gammaAutomationPorts.all()) {
+            port.openApiFragment().ifPresent(fragment -> fragments.put(port.module(), fragment));
+        }
+        if (fragments.isEmpty()) {
+            return Response.ok(document()).build();
+        }
+        try (var base = document()) {
+            return Response.ok(OpenApiFragmentMerger.merge(base, fragments)).build();
+        } catch (IOException e) {
+            throw new UncheckedIOException("Cannot merge Gamma module fragments into the automation OpenAPI document", e);
+        }
+    }
+
+    private InputStream document() {
+        return this.getClass().getClassLoader().getResourceAsStream(OPEN_API_DOCUMENT);
     }
 }

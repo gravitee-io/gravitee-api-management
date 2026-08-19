@@ -349,6 +349,61 @@ class HRIDToUUIDTest {
     }
 
     @Nested
+    class Gamma {
+
+        @Test
+        void should_generate_same_id_for_same_inputs() {
+            assertThat(HRIDToUUID.gamma().context(AUDIT).module("aim").kind("catalog/mcp-servers").hrid("github").id()).isEqualTo(
+                HRIDToUUID.gamma().context(AUDIT).module("aim").kind("catalog/mcp-servers").hrid("github").id()
+            );
+        }
+
+        @Test
+        void should_generate_different_id_for_different_hrid() {
+            assertThat(HRIDToUUID.gamma().context(AUDIT).module("aim").kind("catalog/mcp-servers").hrid("github").id()).isNotEqualTo(
+                HRIDToUUID.gamma().context(AUDIT).module("aim").kind("catalog/mcp-servers").hrid("jira").id()
+            );
+        }
+
+        @Test
+        void should_generate_different_id_for_different_kind() {
+            assertThat(HRIDToUUID.gamma().context(AUDIT).module("aim").kind("catalog/mcp-servers").hrid("x").id()).isNotEqualTo(
+                HRIDToUUID.gamma().context(AUDIT).module("aim").kind("catalog/sources").hrid("x").id()
+            );
+        }
+
+        @Test
+        void should_generate_different_id_for_different_module() {
+            assertThat(HRIDToUUID.gamma().context(AUDIT).module("aim").kind("policies").hrid("x").id()).isNotEqualTo(
+                HRIDToUUID.gamma().context(AUDIT).module("authz").kind("policies").hrid("x").id()
+            );
+        }
+
+        @Test
+        void should_generate_different_id_for_different_environment() {
+            var otherEnv = AuditInfo.builder().organizationId("org").environmentId("other-env").build();
+            assertThat(HRIDToUUID.gamma().context(AUDIT).module("aim").kind("catalog/mcp-servers").hrid("x").id()).isNotEqualTo(
+                HRIDToUUID.gamma().context(otherEnv).module("aim").kind("catalog/mcp-servers").hrid("x").id()
+            );
+        }
+
+        @Test
+        void should_not_collide_with_top_level_id() {
+            // The literal "gamma" discriminant keeps module resources apart from APIM top-level ids sharing the hrid grammar.
+            String apiId = HRIDToUUID.api().context(AUDIT).hrid("x").id();
+            String moduleResourceId = HRIDToUUID.gamma().context(AUDIT).module("aim").kind("catalog/mcp-servers").hrid("x").id();
+            assertThat(moduleResourceId).isNotEqualTo(apiId);
+        }
+
+        @Test
+        void should_produce_same_result_from_audit_info_and_execution_context() {
+            assertThat(HRIDToUUID.gamma().context(AUDIT).module("aim").kind("catalog/mcp-servers").hrid("x").id()).isEqualTo(
+                HRIDToUUID.gamma().context(EXEC_CTX).module("aim").kind("catalog/mcp-servers").hrid("x").id()
+            );
+        }
+    }
+
+    @Nested
     class CrossResourceConsistency {
 
         @Test

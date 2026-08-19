@@ -1,0 +1,14 @@
+{
+  "hrid": "github-mcp",
+  "entityId": "mcp-server.github",
+  "sourceHrid": "smithery",
+  "connection": {
+    "endpoint": "https://api.githubcopilot.com/mcp/",
+    "transport": "HTTP",
+    "auth": {
+      "type": "HEADER",
+      "name": "Authorization",
+      "value": "Bearer secret://kubernetes/github-token"
+    }
+  }
+}

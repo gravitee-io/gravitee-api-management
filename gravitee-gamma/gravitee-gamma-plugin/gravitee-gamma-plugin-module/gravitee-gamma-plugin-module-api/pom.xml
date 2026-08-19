@@ -51,6 +51,14 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Automation port contract carries JSON payloads (ObjectNode). Provided — the host rest-api and every
+             module load Jackson from the parent classloader, so the port types keep a single class identity. -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>

@@ -24,6 +24,7 @@ import io.gravitee.apim.rest.api.automation.resource.DictionariesResource;
 import io.gravitee.apim.rest.api.automation.resource.DictionaryResource;
 import io.gravitee.apim.rest.api.automation.resource.EnvironmentResource;
 import io.gravitee.apim.rest.api.automation.resource.EnvironmentsResource;
+import io.gravitee.apim.rest.api.automation.resource.GammaModuleAutomationResource;
 import io.gravitee.apim.rest.api.automation.resource.GroupResource;
 import io.gravitee.apim.rest.api.automation.resource.GroupsResource;
 import io.gravitee.apim.rest.api.automation.resource.OpenAPIResource;
@@ -66,6 +67,7 @@ public class GraviteeAutomationApplication extends ResourceConfig {
         register(DictionaryResource.class);
         register(PortalsResource.class);
         register(PortalResource.class);
+        register(GammaModuleAutomationResource.class);
 
         register(ValidationDomainMapper.class);
         register(ConflictDomainExceptionMapper.class);

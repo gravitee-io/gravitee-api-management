@@ -28,6 +28,9 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
  * API sub-resources (API Documentation) are scoped to a parent API (literal {@code "api"} discriminant in the
  * cross-id prevents collisions with top-level api ids and other api sub-resources sharing the same hrid grammar)
  * and only produce {@code id()}.
+ * Gamma module resources are scoped to a module and a resource kind (literal {@code "gamma"} discriminant plus
+ * the module id and the kind path keep them apart from APIM top-level ids and from each other) and produce
+ * both {@code id()} and {@code crossId()}.
  * <p>
  * Examples:
  * <pre>
@@ -37,6 +40,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
  * HRIDToUUID.portalDocumentation().context(audit).portal("my-portal").hrid("my-doc").id()
  * HRIDToUUID.portalLink().context(audit).portal("my-portal").hrid("my-link").id()
  * HRIDToUUID.apiDocumentation().context(audit).api("my-api").hrid("my-doc").id()
+ * HRIDToUUID.gamma().context(audit).module("aim").kind("catalog/mcp-servers").hrid("github").id()
  * </pre>
  *
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
@@ -100,6 +104,10 @@ public final class HRIDToUUID {
 
     public static ApiSubResourceBuilder apiDocumentation() {
         return new ApiSubResourceBuilder();
+    }
+
+    public static GammaBuilder gamma() {
+        return new GammaBuilder();
     }
 
     public static class TopLevelBuilder {
@@ -278,6 +286,45 @@ public final class HRIDToUUID {
     public record ApiSubResourceResult(String apiCrossId, String environmentId, String hrid) {
         public String id() {
             return UuidString.generateFrom(apiCrossId, environmentId, hrid);
+        }
+    }
+
+    public static class GammaBuilder {
+
+        public GammaWithContext context(AuditInfo audit) {
+            return new GammaWithContext(audit.organizationId(), audit.environmentId());
+        }
+
+        public GammaWithContext context(ExecutionContext ctx) {
+            return new GammaWithContext(ctx.getOrganizationId(), ctx.getEnvironmentId());
+        }
+    }
+
+    public record GammaWithContext(String organizationId, String environmentId) {
+        public GammaWithModule module(String module) {
+            return new GammaWithModule(organizationId, environmentId, module);
+        }
+    }
+
+    public record GammaWithModule(String organizationId, String environmentId, String module) {
+        public GammaWithKind kind(String kind) {
+            return new GammaWithKind(organizationId, environmentId, module, kind);
+        }
+    }
+
+    public record GammaWithKind(String organizationId, String environmentId, String module, String kind) {
+        public GammaResult hrid(String hrid) {
+            return new GammaResult(organizationId, environmentId, module, kind, hrid);
+        }
+    }
+
+    public record GammaResult(String organizationId, String environmentId, String module, String kind, String hrid) {
+        public String crossId() {
+            return UuidString.generateFrom("gamma", organizationId, module, kind, hrid);
+        }
+
+        public String id() {
+            return UuidString.generateFrom(crossId(), environmentId);
         }
     }
 }
