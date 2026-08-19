@@ -23,6 +23,8 @@ export function computeSlackChannelToUse(action: string | undefined) {
       return config.slack.channels.apimCiNotificationsBridgeCompatibilityTests;
     case 'helm_tests':
       return config.slack.channels.apimCiNotificationsHelmTests;
+    case 'nightly':
+      return config.slack.channels.apimCiNotificationsNightly;
   }
   return config.slack.channels.apiManagementTeamNotifications;
 }

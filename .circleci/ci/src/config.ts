@@ -154,6 +154,7 @@ const slack = {
     apiManagementTeamNotifications: 'C02JENTV2AX',
     apimCiNotificationsBridgeCompatibilityTests: 'C08H9K43WSV',
     apimCiNotificationsHelmTests: 'C08GWL40VB7',
+    apimCiNotificationsNightly: 'C0BR8DK75N2',
     apimCiNotificationsRepositoriesTests: 'C08HMNYPHA4',
     graviteeReleaseAlerts: 'C02NGT20S4W',
   },
