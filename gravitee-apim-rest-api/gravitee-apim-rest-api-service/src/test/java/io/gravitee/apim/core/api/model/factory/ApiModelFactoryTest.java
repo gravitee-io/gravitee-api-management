@@ -35,6 +35,7 @@ import java.util.Map;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import io.gravitee.definition.model.v4.agent.definition.AgentOutput;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiModelFactoryTest {
@@ -49,7 +50,7 @@ class ApiModelFactoryTest {
             .type(ApiType.AGENT)
             .kind("standalone")
             .listeners(List.of(HttpListener.builder().paths(List.of()).build()))
-            .standalone(io.gravitee.definition.model.v4.agent.StandaloneAgentDefinition.builder().output("answer").build())
+            .standalone(io.gravitee.definition.model.v4.agent.StandaloneAgentDefinition.builder().outputs(List.of(AgentOutput.builder().name("answer").build())).build())
             .build();
 
         Api api = ApiModelFactory.fromNewAgentApi(newAgentApi, ENVIRONMENT_ID);

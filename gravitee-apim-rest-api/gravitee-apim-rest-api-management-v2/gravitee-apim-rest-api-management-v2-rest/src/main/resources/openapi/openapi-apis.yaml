@@ -4048,8 +4048,10 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/AgentInput"
-                output:
-                    type: string
+                outputs:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AgentOutput"
         AgentModel:
             type: object
             properties:
@@ -4089,12 +4091,67 @@ components:
             properties:
                 name:
                     type: string
+                binding:
+                    type: string
+                    description: The scope key this input reads from, when it differs from its name.
+                source:
+                    $ref: "#/components/schemas/AgentInputSource"
                 type:
                     type: string
+                    description: string | number | boolean | enum.
+                values:
+                    type: array
+                    description: Allowed values, for type enum.
+                    items:
+                        type: object
+                min:
+                    type: number
+                    format: double
+                max:
+                    type: number
+                    format: double
                 required:
                     type: boolean
                 defaultValue:
                     type: object
+                description:
+                    type: string
+        AgentInputSource:
+            type: object
+            description: Where an input's value comes from when the agent is called. Root contract only.
+            properties:
+                kind:
+                    type: string
+                    description: query | value | attribute.
+                value:
+                    type: object
+                    description: The fixed value, for kind value.
+                attribute:
+                    type: string
+                    description: The attribute read from a JSON call, for kind attribute. Absent means the input's own name.
+        AgentOutput:
+            type: object
+            description: A named value the agent produces. One untyped output behaves as a plain answer; two or more hold the model to a JSON object.
+            properties:
+                name:
+                    type: string
+                binding:
+                    type: string
+                    description: The scope key this value is written to, when it differs from its name. Honoured on workflow leaf items.
+                type:
+                    type: string
+                    description: string | number | boolean | enum.
+                values:
+                    type: array
+                    description: Allowed values, for type enum.
+                    items:
+                        type: object
+                min:
+                    type: number
+                    format: double
+                max:
+                    type: number
+                    format: double
                 description:
                     type: string
 

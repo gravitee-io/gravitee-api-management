@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.agent.definition.AgentInput;
 import io.gravitee.definition.model.v4.agent.definition.AgentModel;
+import io.gravitee.definition.model.v4.agent.definition.AgentOutput;
 import io.gravitee.definition.model.v4.agent.definition.AgentSkill;
 import io.gravitee.definition.model.v4.agent.definition.AgentTool;
 import io.gravitee.definition.model.v4.agent.definition.WorkingMemory;
@@ -35,7 +36,7 @@ import lombok.ToString;
 /**
  * The body of a {@code kind:standalone} agent — a single task agent: a {@code model}, a {@code role}/{@code goal}/
  * {@code instructions} prompt, capabilities ({@code tools}/{@code skills}/{@code workingMemory}) and the
- * {@code inputs}/{@code output} contract. Capabilities are inline plugin references ({@code tools}/{@code skills})
+ * {@code inputs}/{@code outputs} contract. Capabilities are inline plugin references ({@code tools}/{@code skills})
  * except memory, whose {@code workingMemory} references an independently-deployed chat-memory store resource.
  */
 @NoArgsConstructor
@@ -56,7 +57,9 @@ public class StandaloneAgentDefinition {
     private List<AgentSkill> skills;
     private WorkingMemory workingMemory;
     private List<AgentInput> inputs;
-    private String output;
+
+    /** What this agent produces. See {@link AgentOutput} for what the list's length means. */
+    private List<AgentOutput> outputs;
 
     /** The capability plugins this agent references — its model, tools and skills. */
     public List<Plugin> collectPlugins() {
