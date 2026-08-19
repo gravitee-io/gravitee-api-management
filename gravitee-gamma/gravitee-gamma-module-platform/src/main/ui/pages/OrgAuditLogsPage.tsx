@@ -42,9 +42,11 @@ export function OrgAuditLogsPage() {
 
     const logsQuery = useAuditLogs('organization', state.params, undefined, hasLicense);
     const eventsQuery = useAuditEvents('organization', undefined, hasLicense);
-    const environmentsQuery = useAuditEnvironments(hasLicense && referenceType === 'ENVIRONMENT');
-    const applicationsQuery = useOrgAuditApplications(hasLicense && referenceType === 'APPLICATION');
-    const apisQuery = useOrgAuditApis(hasLicense && referenceType === 'API');
+    const environmentsQuery = useAuditEnvironments(
+        hasLicense && (referenceType === 'ENVIRONMENT' || referenceType === 'APPLICATION' || referenceType === 'API'),
+    );
+    const applicationsQuery = useOrgAuditApplications(environmentsQuery.data, hasLicense && referenceType === 'APPLICATION');
+    const apisQuery = useOrgAuditApis(environmentsQuery.data, hasLicense && referenceType === 'API');
 
     const isForbidden = isForbiddenApiError(Boolean(logsQuery.isError), logsQuery.error);
     useForbiddenResourceRedirect({

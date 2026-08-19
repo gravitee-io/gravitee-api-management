@@ -28,6 +28,7 @@ import type {
     AuditSearchParams,
 } from '../types/auditLog';
 import { auditLogsToCsv, auditLogsToJson, buildAuditExportFileName, downloadAuditExport } from '../utils/auditExport';
+import { hasActiveAuditFilters } from '../utils/auditFilters';
 import { toAuditLogRow } from '../utils/auditListFormat';
 
 type ExportAudits = (params: Omit<AuditSearchParams, 'page' | 'size'>) => Promise<AuditMetadataPage>;
@@ -46,12 +47,16 @@ export function useAuditLogsPageState(exportAudits: ExportAudits) {
     const [applicationId, setApplicationId] = useState('');
     const [apiId, setApiId] = useState('');
     const [datePreset, setDatePreset] = useState<AuditDatePreset>('');
+    // The instant relative presets resolve against, captured when the preset is chosen. It has to be
+    // state, not a memo: a value re-derived during render would move the from/to window and with it
+    // the React Query key. The trade-off is that "Last 24 hours" is frozen until the user reselects it.
+    const [dateAnchor, setDateAnchor] = useState(() => Date.now());
     const [customRange, setCustomRange] = useState<DateRange | undefined>();
     const [selected, setSelected] = useState<AuditLogRow | null>(null);
     const [exportOpen, setExportOpen] = useState(false);
     const [exporting, setExporting] = useState(false);
 
-    const dateRange = useResolvedAuditDateRange(datePreset, customRange);
+    const dateRange = useResolvedAuditDateRange(datePreset, customRange, dateAnchor);
     // `environment` is only ever set on the organization page; the environment page has no such
     // picker, so it stays undefined there and `buildAuditQuery` drops it.
     const params: AuditSearchParams = useMemo(
@@ -74,6 +79,10 @@ export function useAuditLogsPageState(exportAudits: ExportAudits) {
         setPage(1);
     }, []);
 
+    // A larger or smaller page invalidates the current offset, so the reset lives here rather than
+    // being repeated by every layer that renders the pagination control.
+    const handlePageSizeChange = useCallback((size: number) => resetPage(() => setPageSize(size)), [resetPage]);
+
     const handleReset = useCallback(() => {
         setEvent('');
         setReferenceType('');
@@ -81,6 +90,7 @@ export function useAuditLogsPageState(exportAudits: ExportAudits) {
         setApplicationId('');
         setApiId('');
         setDatePreset('');
+        setDateAnchor(Date.now());
         setCustomRange(undefined);
         setPage(1);
     }, []);
@@ -133,6 +143,7 @@ export function useAuditLogsPageState(exportAudits: ExportAudits) {
         (value: AuditDatePreset) =>
             resetPage(() => {
                 setDatePreset(value);
+                setDateAnchor(Date.now());
                 if (value !== 'custom') {
                     setCustomRange(undefined);
                 }
@@ -159,6 +170,7 @@ export function useAuditLogsPageState(exportAudits: ExportAudits) {
         setPage,
         pageSize,
         setPageSize,
+        onPageSizeChange: handlePageSizeChange,
         event,
         onEventChange: useCallback((value: string) => resetPage(() => setEvent(value)), [resetPage]),
         referenceType,
@@ -180,5 +192,6 @@ export function useAuditLogsPageState(exportAudits: ExportAudits) {
         exporting,
         handleReset,
         handleExport,
+        hasActiveFilters: hasActiveAuditFilters({ event, referenceType, environmentId, applicationId, apiId, datePreset, customRange }),
     };
 }
