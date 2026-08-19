@@ -1533,6 +1533,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     .findByIntegrationId(referenceId)
                     .orElseThrow(() -> new ApplicationNotFoundException(referenceId))
                     .getGroups();
+                case ENVIRONMENT -> membershipRepository
+                    .findByReferenceIdAndReferenceType(referenceId, convert(referenceType))
+                    .stream()
+                    .filter(m -> io.gravitee.repository.management.model.MembershipMemberType.GROUP.equals(m.getMemberType()))
+                    .map(io.gravitee.repository.management.model.Membership::getMemberId)
+                    .collect(Collectors.toSet());
                 default -> Set.of();
             };
 
