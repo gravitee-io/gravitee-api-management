@@ -67,11 +67,22 @@ export type LogFiltersInitialValues = {
   errorKeys?: string[];
 };
 
-export const DEFAULT_PERIOD = { label: 'None', value: '0' };
+export const NONE_PERIOD = { label: 'None', value: '0' };
+export const DEFAULT_PERIOD = { label: 'Last 5 Minutes', value: '-5m' };
+
+export function resolveInitialLogPeriod(period?: SimpleFilter, from?: Moment | number | null, to?: Moment | number | null): SimpleFilter {
+  if (period) {
+    return period;
+  }
+  if (from || to) {
+    return NONE_PERIOD;
+  }
+  return DEFAULT_PERIOD;
+}
 
 export const PERIODS = [
+  NONE_PERIOD,
   DEFAULT_PERIOD,
-  { label: 'Last 5 Minutes', value: '-5m' },
   { label: 'Last 30 Minutes', value: '-30m' },
   { label: 'Last 1 Hour', value: '-1h' },
   { label: 'Last 3 Hours', value: '-3h' },

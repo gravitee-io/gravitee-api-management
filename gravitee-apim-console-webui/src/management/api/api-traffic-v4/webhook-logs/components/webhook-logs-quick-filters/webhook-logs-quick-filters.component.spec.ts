@@ -22,7 +22,7 @@ import { WebhookLogsQuickFiltersComponent } from './webhook-logs-quick-filters.c
 
 import { Constants } from '../../../../../../entities/Constants';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../../shared/testing';
-import { DEFAULT_PERIOD } from '../../../runtime-logs/models';
+import { NONE_PERIOD } from '../../../runtime-logs/models';
 
 describe('WebhookLogsQuickFiltersComponent', () => {
   let fixture: ComponentFixture<WebhookLogsQuickFiltersComponent>;
@@ -73,7 +73,7 @@ describe('WebhookLogsQuickFiltersComponent', () => {
     component.quickFiltersForm.setValue({
       statuses: ['200', '500'],
       applications: ['app-1'],
-      period: DEFAULT_PERIOD,
+      period: NONE_PERIOD,
     });
 
     expect(filtersSpy).toHaveBeenCalledWith({
@@ -84,7 +84,7 @@ describe('WebhookLogsQuickFiltersComponent', () => {
 
   it('should emit active period when selection changes', () => {
     const filtersSpy = jest.spyOn(component.filtersChanged, 'emit');
-    const nonDefaultPeriod = component.periods.find(period => period.value !== DEFAULT_PERIOD.value)!;
+    const nonDefaultPeriod = component.periods.find(period => period.value !== NONE_PERIOD.value)!;
     component.quickFiltersForm.setValue({
       statuses: [],
       applications: [],
@@ -113,7 +113,7 @@ describe('WebhookLogsQuickFiltersComponent', () => {
 
     const from = moment('2025-01-01T00:00:00Z');
     const to = moment('2025-01-02T00:00:00Z');
-    component.applyMoreFilters({ period: DEFAULT_PERIOD, from, to, callbackUrls: [] });
+    component.applyMoreFilters({ period: NONE_PERIOD, from, to, callbackUrls: [] });
 
     expect(filtersSpy).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -128,7 +128,7 @@ describe('WebhookLogsQuickFiltersComponent', () => {
     component.quickFiltersForm.setValue({
       statuses: ['200'],
       applications: ['app-1'],
-      period: DEFAULT_PERIOD,
+      period: NONE_PERIOD,
     });
     component.onApplicationCache([{ value: 'app-1', label: 'Acme App' }]);
     filtersSpy.mockClear();
@@ -141,7 +141,7 @@ describe('WebhookLogsQuickFiltersComponent', () => {
     expect(component.quickFiltersForm.value).toEqual({
       statuses: [],
       applications: [],
-      period: DEFAULT_PERIOD,
+      period: NONE_PERIOD,
     });
     expect(filtersSpy).toHaveBeenCalledWith({
       statuses: undefined,
