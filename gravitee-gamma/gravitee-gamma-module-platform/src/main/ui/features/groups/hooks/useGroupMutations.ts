@@ -18,7 +18,14 @@ import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { addGroupMembers, createGroup, deleteGroup, deleteGroupInvitation, inviteGroupMember, updateGroup } from '../services/groups';
-import type { Group, GroupInvitationPayload, GroupMembershipPayload, NewGroupPayload, UpdateGroupPayload } from '../types/group';
+import type {
+    Group,
+    GroupInvitationPayload,
+    GroupMembershipPayload,
+    InviteGroupMemberResult,
+    NewGroupPayload,
+    UpdateGroupPayload,
+} from '../types/group';
 import { groupKeys } from '../utils/queryKeys';
 
 type InvalidationKeys<TData, TResult> = (environmentId: string, data: TData, result: TResult) => readonly (readonly unknown[])[];
@@ -69,10 +76,18 @@ export function useAddGroupMembers() {
 }
 
 export function useInviteGroupMember() {
-    return useGroupMutation<{ groupId: string; data: GroupInvitationPayload }, { ambiguous: boolean }>(
+    return useGroupMutation<{ groupId: string; data: GroupInvitationPayload }, InviteGroupMemberResult>(
         (envId, { groupId, data }) => inviteGroupMember(envId, groupId, data),
-        (envId, { groupId }, result) =>
-            result.ambiguous ? [] : [groupKeys.members(envId, groupId), groupKeys.invitations(envId, groupId)],
+        (envId, { groupId }, result) => {
+            switch (result.outcome) {
+                case 'ambiguous':
+                    return [];
+                case 'member-added':
+                    return [groupKeys.members(envId, groupId)];
+                case 'invitation-created':
+                    return [groupKeys.invitations(envId, groupId)];
+            }
+        },
     );
 }
 

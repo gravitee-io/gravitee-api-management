@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 import type { OrganizationUser } from '../types/user';
+export { isValidEmail } from '../../../shared/utils/email';
 
 /** Strips HTML tags from user-provided name fields before submit. */
 export function sanitizeTextInput(value: string): string {
     return value.replace(/<[^>]*>/g, '').trim();
-}
-
-const EMAIL_REGEX =
-    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-
-export function isValidEmail(value: string): boolean {
-    return EMAIL_REGEX.test(value.trim());
 }
 
 function roleDisplayNames(

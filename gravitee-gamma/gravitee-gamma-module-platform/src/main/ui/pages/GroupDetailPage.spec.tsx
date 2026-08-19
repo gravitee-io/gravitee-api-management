@@ -96,7 +96,7 @@ jest.mock('../features/groups/components/GroupAddMembersSheet', () => ({
     }: {
         open: boolean;
         initialSearch?: string;
-        onSubmit: (m: GroupMembershipPayload[]) => void;
+        onSubmit: (m: GroupMembershipPayload[]) => Promise<void>;
     }) =>
         open ? (
             <div data-testid="add-members-sheet">
@@ -113,7 +113,7 @@ jest.mock('../features/groups/components/GroupInviteMemberSheet', () => ({
         onSubmit,
     }: {
         open: boolean;
-        onSubmit: (values: { email: string; apiRole: string; applicationRole: string }) => void;
+        onSubmit: (values: { email: string; apiRole: string; applicationRole: string }) => Promise<void>;
     }) =>
         open ? (
             <div data-testid="invite-member-sheet">
@@ -540,9 +540,9 @@ describe('GroupDetailPage', () => {
             expect(mockUseEnvironmentSettings).toHaveBeenCalledWith({ enabled: false });
         });
 
-        it('hides Add members when the group does not allow adding users via search, even with update permission', () => {
+        it('hides Add members when both invitation methods are disabled, even with update permission', () => {
             mockUseGroupDetail.mockReturnValue({
-                data: { ...GROUP, system_invitation: false },
+                data: { ...GROUP, system_invitation: false, email_invitation: false },
                 isLoading: false,
                 isError: false,
             } as ReturnType<typeof useGroupDetail>);
@@ -550,6 +550,34 @@ describe('GroupDetailPage', () => {
 
             expect(screen.queryByRole('button', { name: /Add members/i })).toBeNull();
             expect(mockUseEnvironmentSettings).toHaveBeenCalledWith({ enabled: false });
+        });
+
+        it('shows Add members when only email invitations are enabled', () => {
+            mockUseGroupDetail.mockReturnValue({
+                data: { ...GROUP, system_invitation: false, email_invitation: true },
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupDetail>);
+
+            renderPage();
+
+            expect(screen.queryByRole('button', { name: /Add members/i })).not.toBeNull();
+        });
+
+        it.each([
+            ['User search', { system_invitation: false, email_invitation: true }],
+            ['Email invitation', { system_invitation: true, email_invitation: false }],
+        ] as const)('disables %s when its group setting is disabled', async (menuItemName, invitationSettings) => {
+            mockUseGroupDetail.mockReturnValue({
+                data: { ...GROUP, ...invitationSettings },
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupDetail>);
+            renderPage();
+
+            await userEvent.setup().click(screen.getByRole('button', { name: /Add members/i }));
+
+            expect((await screen.findByRole('menuitem', { name: menuItemName })).getAttribute('aria-disabled')).toBe('true');
         });
 
         it('opens the Add members sheet, submits, and shows a success toast', async () => {
@@ -594,8 +622,8 @@ describe('GroupDetailPage', () => {
             } as ReturnType<typeof useGroupDetail>);
         });
 
-        it('submits an email invitation and switches to the invitations tab', async () => {
-            const inviteMutateAsync = jest.fn().mockResolvedValue({ ambiguous: false });
+        it('switches to Invitations after creating a pending invitation', async () => {
+            const inviteMutateAsync = jest.fn().mockResolvedValue({ outcome: 'invitation-created' });
             mockUseInviteGroupMember.mockReturnValue(makeMutation(inviteMutateAsync));
             renderPage();
 
@@ -614,12 +642,24 @@ describe('GroupDetailPage', () => {
                     },
                 }),
             );
-            expect(notify.success).toHaveBeenCalledWith('Member invited successfully');
+            expect(notify.success).toHaveBeenCalledWith('Successfully invited user to the group.');
             await waitFor(() => expect(screen.getByRole('tab', { name: 'Invitations' }).getAttribute('data-state')).toBe('active'));
         });
 
+        it('switches to Members when the email belongs to one existing user', async () => {
+            mockUseInviteGroupMember.mockReturnValue(makeMutation(jest.fn().mockResolvedValue({ outcome: 'member-added' })));
+            renderPage();
+            await userEvent.setup().click(screen.getByRole('tab', { name: 'Invitations' }));
+
+            await openEmailInvitation();
+            fireEvent.click(screen.getByRole('button', { name: 'Submit invitation' }));
+
+            await waitFor(() => expect(notify.success).toHaveBeenCalledWith('Member added successfully'));
+            expect(screen.getByRole('tab', { name: 'Members' }).getAttribute('data-state')).toBe('active');
+        });
+
         it('continues an ambiguous email response in user search with the email prefilled', async () => {
-            mockUseInviteGroupMember.mockReturnValue(makeMutation(jest.fn().mockResolvedValue({ ambiguous: true })));
+            mockUseInviteGroupMember.mockReturnValue(makeMutation(jest.fn().mockResolvedValue({ outcome: 'ambiguous' })));
             renderPage();
 
             await openEmailInvitation();

@@ -78,7 +78,7 @@ describe('GroupInvitationsTable', () => {
 
     it('filters invitations by email client-side', async () => {
         renderTable();
-        fireEvent.change(screen.getByPlaceholderText('Search invitations…'), { target: { value: 'anna' } });
+        fireEvent.change(screen.getByLabelText('Search invitations'), { target: { value: 'anna' } });
         await waitFor(() => expect(screen.queryByText('ben@lufthansa.com')).toBeNull());
         expect(screen.getByText('anna@lufthansa.com')).not.toBeNull();
     });
@@ -91,7 +91,7 @@ describe('GroupInvitationsTable', () => {
 
     it('shows a no-results empty state when the search matches nothing', async () => {
         renderTable();
-        fireEvent.change(screen.getByPlaceholderText('Search invitations…'), { target: { value: 'nobody' } });
+        fireEvent.change(screen.getByLabelText('Search invitations'), { target: { value: 'nobody' } });
         expect(await screen.findByText('No invitations match your search')).not.toBeNull();
     });
 });

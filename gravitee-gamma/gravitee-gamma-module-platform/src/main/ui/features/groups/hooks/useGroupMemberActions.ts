@@ -70,12 +70,19 @@ export function useGroupMemberActions(groupId: string | undefined) {
                 },
             });
             closeMemberSheet();
-            if (result.ambiguous) {
-                setTooManyUsersEmail(values.email);
-                return;
+            switch (result.outcome) {
+                case 'ambiguous':
+                    setTooManyUsersEmail(values.email);
+                    return;
+                case 'member-added':
+                    notify.success('Member added successfully');
+                    setMemberTab('members');
+                    return;
+                case 'invitation-created':
+                    notify.success('Successfully invited user to the group.');
+                    setMemberTab('invitations');
+                    return;
             }
-            notify.success('Member invited successfully');
-            setMemberTab('invitations');
         } catch (error) {
             notify.error(error, 'Failed to invite member');
         }

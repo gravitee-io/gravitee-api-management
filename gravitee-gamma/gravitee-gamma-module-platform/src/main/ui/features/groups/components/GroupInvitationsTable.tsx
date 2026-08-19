@@ -14,20 +14,11 @@
  * limitations under the License.
  */
 
-import {
-    Button,
-    cn,
-    DataTable,
-    DataTableEmptyState,
-    DateCell,
-    InputGroup,
-    InputGroupAddon,
-    InputGroupInput,
-    type DataTableProps,
-} from '@gravitee/graphene-core';
+import { Button, cn, DataTable, DataTableEmptyState, DateCell, type DataTableProps } from '@gravitee/graphene-core';
 import { MailIcon, SearchIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 import { useDeferredValue, useMemo, useState } from 'react';
 
+import { ClientSideTableSearchField } from '../../../shared/components/ClientSideTableSearchField';
 import { paginate, totalPagesFor } from '../../../shared/utils/clientPagination';
 import type { ColCell } from '../../../shared/utils/dataTableTypes';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../../shared/utils/paginationConstants';
@@ -191,18 +182,13 @@ export function GroupInvitationsTable({ invitations, loading, canManageMembers, 
                     />
                 }
                 toolbar={
-                    <div className="w-64">
-                        <InputGroup>
-                            <InputGroupAddon align="inline-start">
-                                <SearchIcon className="size-3.5 text-muted-foreground" aria-hidden />
-                            </InputGroupAddon>
-                            <InputGroupInput
-                                placeholder="Search invitations…"
-                                value={search}
-                                onChange={e => handleSearchChange(e.target.value)}
-                            />
-                        </InputGroup>
-                    </div>
+                    <ClientSideTableSearchField
+                        id="group-invitations-search"
+                        label="Search invitations"
+                        placeholder="Search invitations…"
+                        value={search}
+                        onChange={handleSearchChange}
+                    />
                 }
             />
         </div>

@@ -37,20 +37,32 @@ describe('groups invitation service', () => {
         jest.clearAllMocks();
     });
 
-    it('posts the invitation and treats an invitation response as unambiguous', async () => {
+    it('returns invitation-created when the backend persists an invitation', async () => {
         mockApimFetchJsonV1Env.mockResolvedValue({ id: 'invitation-1' });
 
-        await expect(inviteGroupMember('DEFAULT', 'group/1', INVITATION)).resolves.toEqual({ ambiguous: false });
+        await expect(inviteGroupMember('DEFAULT', 'group/1', INVITATION)).resolves.toEqual({ outcome: 'invitation-created' });
         expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('DEFAULT', '/configuration/groups/group%2F1/invitations', {
             method: 'POST',
             body: JSON.stringify(INVITATION),
         });
     });
 
+    it.each([null, undefined])('returns member-added when the backend response body is %s', async responseBody => {
+        mockApimFetchJsonV1Env.mockResolvedValue(responseBody);
+
+        await expect(inviteGroupMember('DEFAULT', 'group-1', INVITATION)).resolves.toEqual({ outcome: 'member-added' });
+    });
+
     it('treats the backend user list response as an ambiguous email match', async () => {
         mockApimFetchJsonV1Env.mockResolvedValue([{ id: 'user-1' }, { id: 'user-2' }]);
 
-        await expect(inviteGroupMember('DEFAULT', 'group-1', INVITATION)).resolves.toEqual({ ambiguous: true });
+        await expect(inviteGroupMember('DEFAULT', 'group-1', INVITATION)).resolves.toEqual({ outcome: 'ambiguous' });
+    });
+
+    it('rejects an unexpected invitation response shape', async () => {
+        mockApimFetchJsonV1Env.mockResolvedValue({});
+
+        await expect(inviteGroupMember('DEFAULT', 'group-1', INVITATION)).rejects.toThrow('Unexpected group invitation response');
     });
 
     it('lists group invitations', async () => {

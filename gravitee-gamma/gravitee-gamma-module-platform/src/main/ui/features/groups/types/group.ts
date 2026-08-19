@@ -135,6 +135,8 @@ export interface GroupInvitationPayload {
     application_role?: string;
 }
 
+export type InviteGroupMemberResult = { outcome: 'ambiguous' } | { outcome: 'invitation-created' } | { outcome: 'member-added' };
+
 export interface GroupInvitation {
     id: string;
     reference_type?: string;

@@ -55,7 +55,7 @@ describe('group mutation invalidation', () => {
         invalidateQueries = jest.spyOn(queryClient, 'invalidateQueries').mockResolvedValue(undefined);
         mockUseEnvironment.mockReturnValue({ id: 'DEFAULT' } as ReturnType<typeof useEnvironment>);
         mockAddGroupMembers.mockResolvedValue(undefined);
-        mockInviteGroupMember.mockResolvedValue({ ambiguous: false });
+        mockInviteGroupMember.mockResolvedValue({ outcome: 'invitation-created' });
         mockDeleteGroupInvitation.mockResolvedValue(undefined);
     });
 
@@ -82,7 +82,7 @@ describe('group mutation invalidation', () => {
         expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: groupKeys.members('DEFAULT', 'group-1') });
     });
 
-    it('invalidates members and invitations after inviting a member', async () => {
+    it('invalidates only invitations after creating a pending invitation', async () => {
         const { result } = renderHook(() => useInviteGroupMember(), { wrapper });
 
         await act(() =>
@@ -92,13 +92,27 @@ describe('group mutation invalidation', () => {
             }),
         );
 
-        expect(invalidateQueries).toHaveBeenCalledTimes(2);
-        expect(invalidateQueries).toHaveBeenNthCalledWith(1, { queryKey: groupKeys.members('DEFAULT', 'group-1') });
-        expect(invalidateQueries).toHaveBeenNthCalledWith(2, { queryKey: groupKeys.invitations('DEFAULT', 'group-1') });
+        expect(invalidateQueries).toHaveBeenCalledTimes(1);
+        expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: groupKeys.invitations('DEFAULT', 'group-1') });
+    });
+
+    it('invalidates only members when an existing user is added directly', async () => {
+        mockInviteGroupMember.mockResolvedValue({ outcome: 'member-added' });
+        const { result } = renderHook(() => useInviteGroupMember(), { wrapper });
+
+        await act(() =>
+            result.current.mutateAsync({
+                groupId: 'group-1',
+                data: INVITATION_DATA,
+            }),
+        );
+
+        expect(invalidateQueries).toHaveBeenCalledTimes(1);
+        expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: groupKeys.members('DEFAULT', 'group-1') });
     });
 
     it('does not invalidate group data when the invitation only returns ambiguous user matches', async () => {
-        mockInviteGroupMember.mockResolvedValue({ ambiguous: true });
+        mockInviteGroupMember.mockResolvedValue({ outcome: 'ambiguous' });
         const { result } = renderHook(() => useInviteGroupMember(), { wrapper });
 
         await act(() =>

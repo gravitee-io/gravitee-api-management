@@ -25,6 +25,7 @@ import type {
     GroupMembershipType,
     GroupRole,
     GroupsPagedResponse,
+    InviteGroupMemberResult,
     NewGroupPayload,
     UpdateGroupPayload,
 } from '../types/group';
@@ -109,12 +110,21 @@ export async function inviteGroupMember(
     environmentId: string,
     groupId: string,
     data: GroupInvitationPayload,
-): Promise<{ ambiguous: boolean }> {
+): Promise<InviteGroupMemberResult> {
     const result = await apimFetchJsonV1Env<unknown>(environmentId, `/configuration/groups/${encodeURIComponent(groupId)}/invitations`, {
         method: 'POST',
         body: JSON.stringify(data),
     });
-    return { ambiguous: Array.isArray(result) };
+    if (Array.isArray(result)) {
+        return { outcome: 'ambiguous' };
+    }
+    if (result === null || result === undefined) {
+        return { outcome: 'member-added' };
+    }
+    if (typeof result === 'object' && 'id' in result && typeof result.id === 'string') {
+        return { outcome: 'invitation-created' };
+    }
+    throw new Error('Unexpected group invitation response');
 }
 
 export async function listGroupInvitations(environmentId: string, groupId: string): Promise<GroupInvitation[]> {
