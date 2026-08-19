@@ -27,7 +27,7 @@ import { OWL_DATE_TIME_FORMATS, OwlDateTimeModule } from '@danielmoncada/angular
 import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
-import { DEFAULT_PERIOD, PERIODS, SimpleFilter } from '../../../runtime-logs/models';
+import { NONE_PERIOD, PERIODS, SimpleFilter } from '../../../runtime-logs/models';
 import { DATE_TIME_FORMATS } from '../../../../../../shared/utils/timeFrameRanges';
 import { WebhookMoreFiltersForm } from '../../models/webhook-logs.models';
 
@@ -55,7 +55,7 @@ export class WebhookLogsMoreFiltersComponent implements OnInit {
   @Output() closeMoreFiltersEvent = new EventEmitter<void>();
   @Output() applyMoreFiltersEvent = new EventEmitter<WebhookMoreFiltersForm>();
   showMoreFilters = input(false);
-  formValues = input<WebhookMoreFiltersForm>({ period: DEFAULT_PERIOD, from: null, to: null, callbackUrls: [] });
+  formValues = input<WebhookMoreFiltersForm>({ period: NONE_PERIOD, from: null, to: null, callbackUrls: [] });
   @Input() callbackUrls: string[] = [];
 
   form: FormGroup<{
@@ -74,7 +74,7 @@ export class WebhookLogsMoreFiltersComponent implements OnInit {
     private readonly destroyRef: DestroyRef,
   ) {
     this.form = this.fb.group({
-      period: this.fb.control<SimpleFilter | null>(DEFAULT_PERIOD),
+      period: this.fb.control<SimpleFilter | null>(NONE_PERIOD),
       from: this.fb.control<Moment | null>(null),
       to: this.fb.control<Moment | null>(null),
       callbackUrls: this.fb.control<string[]>([], { nonNullable: true }),
@@ -101,25 +101,25 @@ export class WebhookLogsMoreFiltersComponent implements OnInit {
     this.form.controls.from.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((from) => {
       this.minDate = from ?? null;
       this.minDateDisplay = from ? from.toDate() : null;
-      this.form.controls.period.setValue(DEFAULT_PERIOD, { emitEvent: false, onlySelf: true });
+      this.form.controls.period.setValue(NONE_PERIOD, { emitEvent: false, onlySelf: true });
     });
 
     this.form.controls.to.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.form.controls.period.setValue(DEFAULT_PERIOD, { emitEvent: false, onlySelf: true });
+      this.form.controls.period.setValue(NONE_PERIOD, { emitEvent: false, onlySelf: true });
     });
   }
 
   private updateFormFromInput(formValues: WebhookMoreFiltersForm): void {
     if (this.form) {
       const values: WebhookMoreFiltersForm = {
-        period: formValues?.period ?? DEFAULT_PERIOD,
+        period: formValues?.period ?? NONE_PERIOD,
         from: formValues?.from ?? null,
         to: formValues?.to ?? null,
         callbackUrls: formValues?.callbackUrls ?? [],
       };
       this.form.patchValue(
         {
-          period: values.period ?? DEFAULT_PERIOD,
+          period: values.period ?? NONE_PERIOD,
           from: values.from ?? null,
           to: values.to ?? null,
           callbackUrls: values.callbackUrls ?? [],
@@ -133,7 +133,7 @@ export class WebhookLogsMoreFiltersComponent implements OnInit {
   }
 
   resetMoreFilters(): void {
-    this.form.patchValue({ period: DEFAULT_PERIOD, from: null, to: null, callbackUrls: [] });
+    this.form.patchValue({ period: NONE_PERIOD, from: null, to: null, callbackUrls: [] });
     this.minDate = null;
     this.minDateDisplay = null;
     this.apply();

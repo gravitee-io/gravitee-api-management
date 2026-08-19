@@ -53,6 +53,8 @@ type ComponentInitData = {
   plans?: PlanV4[] | undefined;
   areLogsEnabled?: boolean;
   apiModifier?: Partial<ApiV4>;
+  from?: number;
+  to?: number;
 };
 
 const ENTRYPOINT_LIST: ConnectorPlugin[] = [
@@ -91,6 +93,12 @@ describe('ApiRuntimeLogsComponent', () => {
   const fromDateTime = new Date(fromDate).getTime();
   const toDate = '2023-10-24 15:21:00';
   const toDateTime = new Date(toDate).getTime();
+  const FAKE_NOW_MS = new Date('2023-10-05T00:00:00.000Z').getTime();
+  const DEFAULT_FROM_MS = FAKE_NOW_MS - 5 * 60 * 1000;
+  const DEFAULT_LOGS_TIME = { from: DEFAULT_FROM_MS, to: FAKE_NOW_MS };
+  const DEFAULT_QUERY_TIME = { period: '-5m', ...DEFAULT_LOGS_TIME };
+  let dateNowSpy: jest.SpyInstance;
+  let momentNowSpy: jest.SpyInstance;
 
   const initComponent = async () => {
     TestBed.configureTestingModule({
@@ -119,17 +127,39 @@ describe('ApiRuntimeLogsComponent', () => {
     fixture.detectChanges();
   };
 
-  const initComponentWithLogs = async ({ hasLogs, total, perPage, plans, apiModifier, areLogsEnabled = true }: ComponentInitData) => {
+  const initComponentWithLogs = async ({
+    hasLogs,
+    total,
+    perPage,
+    plans,
+    apiModifier,
+    areLogsEnabled = true,
+    from,
+    to,
+  }: ComponentInitData) => {
     await initComponent();
     expectPlanList(plans);
     expectEntrypointListGet();
-    hasLogs ? expectApiWithLogs(total) : expectApiWithNoLog();
+    hasLogs
+      ? expectApiWithLogs(total, {
+          page: 1,
+          perPage: perPage ?? 10,
+          from: from ?? DEFAULT_FROM_MS,
+          to: to ?? FAKE_NOW_MS,
+        })
+      : expectApiWithNoLog();
     areLogsEnabled ? expectApiWithLogEnabled(apiModifier) : expectApiWithLogDisabled();
-    expectRouterUrlChange(1, { page: 1, perPage: perPage ?? 10 });
+    expectRouterUrlChange(1, { page: 1, perPage: perPage ?? 10, ...DEFAULT_QUERY_TIME });
   };
+
+  beforeEach(() => {
+    dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(FAKE_NOW_MS);
+    momentNowSpy = jest.spyOn(moment, 'now').mockReturnValue(FAKE_NOW_MS);
+  });
 
   afterEach(() => {
     httpTestingController.verify();
+    jest.restoreAllMocks();
   });
 
   describe('GIVEN there are no logs', () => {
@@ -237,17 +267,21 @@ describe('ApiRuntimeLogsComponent', () => {
         expect(await paginator.getPageSize()).toBe(perPage);
         expect(await paginator.getRangeLabel()).toBe(`1 – 10 of 50`);
 
+        const laterNow = FAKE_NOW_MS + 60_000;
+        dateNowSpy.mockReturnValue(laterNow);
+        momentNowSpy.mockReturnValue(laterNow);
+
         await paginator.goToNextPage();
         tick(1000);
         expect(await paginator.getRangeLabel()).toBe(`11 – 20 of 50`);
-        expectApiWithLogs(total, { page: 2, perPage });
-        expectRouterUrlChange(2, { page: 2, perPage });
+        expectApiWithLogs(total, { page: 2, perPage, ...DEFAULT_LOGS_TIME });
+        expectRouterUrlChange(2, { page: 2, perPage, ...DEFAULT_QUERY_TIME });
 
         await paginator.setPageSize(25);
         tick(1000);
         expect(await paginator.getRangeLabel()).toBe(`1 – 25 of 50`);
-        expectApiWithLogs(total, { page: 1, perPage: 25 });
-        expectRouterUrlChange(3, { page: 1, perPage: 25 });
+        expectApiWithLogs(total, { page: 1, perPage: 25, ...DEFAULT_LOGS_TIME });
+        expectRouterUrlChange(3, { page: 1, perPage: 25, ...DEFAULT_QUERY_TIME });
         discardPeriodicTasks();
       }));
     });
@@ -268,19 +302,15 @@ describe('ApiRuntimeLogsComponent', () => {
         expect(await logsListHarness.countRows()).toStrictEqual(total);
         const periodSelectInput = await componentHarness.selectPeriodQuickFilter();
         expect(await periodSelectInput.isDisabled()).toEqual(false);
-        expect(await periodSelectInput.getValueText()).toEqual('None');
+        expect(await periodSelectInput.getValueText()).toEqual('Last 5 Minutes');
       });
     });
 
     describe('when there is more than one page and we apply a period filter', () => {
-      const fakeNow = moment('2023-10-05T00:00:00.000Z');
-      const last5Min = 'Last 5 Minutes';
+      const last30Min = 'Last 30 Minutes';
 
       beforeEach(async () => {
-        await initComponentWithLogs({ hasLogs: true, total });
-
-        // moment() is relying on Date.now, so fix it to be able to assert on from and to filters
-        jest.spyOn(Date, 'now').mockReturnValue(new Date('2023-10-05T00:00:00.000Z').getTime());
+        await initComponentWithLogs({ hasLogs: true, total, from: DEFAULT_FROM_MS, to: FAKE_NOW_MS });
       });
 
       it('should display the 1st page with default filter', async () => {
@@ -293,45 +323,57 @@ describe('ApiRuntimeLogsComponent', () => {
 
         const periodSelectInput = await componentHarness.selectPeriodQuickFilter();
         expect(await periodSelectInput.isDisabled()).toEqual(false);
-        expect(await periodSelectInput.getValueText()).toEqual('None');
+        expect(await periodSelectInput.getValueText()).toEqual('Last 5 Minutes');
       });
 
-      it('should navigate filter on last 5 minutes and remove it', async () => {
+      it('should navigate filter on last 30 minutes and remove it', async () => {
         const periodSelectInput = await componentHarness.selectPeriodQuickFilter();
         expect(await periodSelectInput.isDisabled()).toEqual(false);
-        expect(await periodSelectInput.getValueText()).toEqual('None');
-        await periodSelectInput.clickOptions({ text: last5Min });
-        expect(await periodSelectInput.getValueText()).toEqual(last5Min);
+        expect(await periodSelectInput.getValueText()).toEqual('Last 5 Minutes');
+        await periodSelectInput.clickOptions({ text: last30Min });
+        expect(await periodSelectInput.getValueText()).toEqual(last30Min);
 
-        const expectedTo = fakeNow.valueOf();
-        const expectedFrom = expectedTo - 5 * 60 * 1000;
-
-        expectApiWithLogs(total, { perPage, page: 1, from: expectedFrom, to: expectedTo });
+        expectApiWithLogs(total, { perPage, page: 1, from: FAKE_NOW_MS - 30 * 60 * 1000, to: FAKE_NOW_MS });
 
         // First time, add filters to URL
-        expectRouterUrlChange(2, { page: 1, perPage: 10, period: '-5m', from: expectedFrom, to: expectedTo });
+        expectRouterUrlChange(2, { page: 1, perPage: 10, period: '-30m', from: FAKE_NOW_MS - 30 * 60 * 1000, to: FAKE_NOW_MS });
 
         await componentHarness.removePeriodChip();
-        expectApiWithLogs(total, { perPage, page: 1 });
+        expectApiWithLogs(total, { perPage, page: 1, from: DEFAULT_FROM_MS, to: FAKE_NOW_MS });
 
         // Second time, we removed the filter from URL
-        expectRouterUrlChange(3, { page: 1, perPage: 10 });
+        expectRouterUrlChange(3, { page: 1, perPage: 10, period: '-5m', from: DEFAULT_FROM_MS, to: FAKE_NOW_MS });
 
         expect(await periodSelectInput.isDisabled()).toEqual(false);
-        expect(await periodSelectInput.getValueText()).toEqual('None');
+        expect(await periodSelectInput.getValueText()).toEqual('Last 5 Minutes');
         // We do not expect any chip since there is no filter
+        expect(await componentHarness.getQuickFiltersChips()).toBeNull();
+      });
+
+      it('should persist period None in the url and omit from and to', async () => {
+        const periodSelectInput = await componentHarness.selectPeriodQuickFilter();
+        await periodSelectInput.clickOptions({ text: 'None' });
+        expect(await periodSelectInput.getValueText()).toEqual('None');
+
+        expectApiWithLogs(total, { perPage, page: 1 });
+        expectRouterUrlChange(2, { page: 1, perPage: 10, period: '0' });
+        expect(await componentHarness.getPeriodChipText()).toStrictEqual('period: None');
+
+        await componentHarness.removePeriodChip();
+        expectApiWithLogs(total, { perPage, page: 1, from: DEFAULT_FROM_MS, to: FAKE_NOW_MS });
+        expect(await periodSelectInput.getValueText()).toEqual('Last 5 Minutes');
         expect(await componentHarness.getQuickFiltersChips()).toBeNull();
       });
 
       it('should sync period filters from quick filters and more filters', async () => {
         const quickFiltersPeriod = await componentHarness.selectPeriodQuickFilter();
-        await quickFiltersPeriod.clickOptions({ text: last5Min });
-        expect(await quickFiltersPeriod.getValueText()).toEqual(last5Min);
-        expectApiWithLogs(total, { perPage, page: 1, from: fakeNow.valueOf() - 5 * 60 * 1000, to: fakeNow.valueOf() });
+        await quickFiltersPeriod.clickOptions({ text: last30Min });
+        expect(await quickFiltersPeriod.getValueText()).toEqual(last30Min);
+        expectApiWithLogs(total, { perPage, page: 1, from: FAKE_NOW_MS - 30 * 60 * 1000, to: FAKE_NOW_MS });
 
         await componentHarness.moreFiltersButtonClick();
         const moreFiltersPeriod = await componentHarness.selectPeriodFromMoreFilters();
-        expect(await moreFiltersPeriod.getValueText()).toEqual(last5Min);
+        expect(await moreFiltersPeriod.getValueText()).toEqual(last30Min);
       });
     });
 
@@ -356,8 +398,8 @@ describe('ApiRuntimeLogsComponent', () => {
         await componentHarness.moreFiltersApply();
 
         expectApplicationList(); // call happening after selecting an option
-        expectApiWithLogs(total, { perPage, page: 1, applicationIds: application.id });
-        expectRouterUrlChange(2, { page: 1, perPage: 10, applicationIds: application.id });
+        expectApiWithLogs(total, { perPage, page: 1, ...DEFAULT_LOGS_TIME, applicationIds: application.id });
+        expectRouterUrlChange(2, { page: 1, perPage: 10, ...DEFAULT_QUERY_TIME, applicationIds: application.id });
       }));
 
       it('should remove application filter', async () => {
@@ -371,13 +413,13 @@ describe('ApiRuntimeLogsComponent', () => {
         await componentHarness.selectedApplication('a ( owner )');
         await componentHarness.moreFiltersApply();
         expectApplicationList(); // call happening after selecting an option
-        expectApiWithLogs(total, { perPage, page: 1, applicationIds: application.id });
-        expectRouterUrlChange(2, { page: 1, perPage: 10, applicationIds: application.id });
+        expectApiWithLogs(total, { perPage, page: 1, ...DEFAULT_LOGS_TIME, applicationIds: application.id });
+        expectRouterUrlChange(2, { page: 1, perPage: 10, ...DEFAULT_QUERY_TIME, applicationIds: application.id });
 
         await componentHarness.removeApplicationsChip();
         expect(await componentHarness.getQuickFiltersChips()).toBeNull();
-        expectApiWithLogs(total, { perPage, page: 1 });
-        expectRouterUrlChange(3, { page: 1, perPage: 10 });
+        expectApiWithLogs(total, { perPage, page: 1, ...DEFAULT_LOGS_TIME });
+        expectRouterUrlChange(3, { page: 1, perPage: 10, ...DEFAULT_QUERY_TIME });
 
         await componentHarness.moreFiltersButtonClick();
         expect(await componentHarness.getApplicationsTags()).toHaveLength(0);
@@ -394,25 +436,25 @@ describe('ApiRuntimeLogsComponent', () => {
 
         await componentHarness.selectPlan(plan1.name);
         expect(await componentHarness.getSelectedPlans()).toEqual(plan1.name);
-        expectApiWithLogs(total, { perPage, page: 1, planIds: plan1.id });
-        expectRouterUrlChange(2, { page: 1, perPage: 10, planIds: plan1.id });
+        expectApiWithLogs(total, { perPage, page: 1, ...DEFAULT_LOGS_TIME, planIds: plan1.id });
+        expectRouterUrlChange(2, { page: 1, perPage: 10, ...DEFAULT_QUERY_TIME, planIds: plan1.id });
 
         await componentHarness.selectPlan(plan2.name);
         expect(await componentHarness.getSelectedPlans()).toEqual(`${plan1.name}, ${plan2.name}`);
-        expectApiWithLogs(total, { perPage, page: 1, planIds: `${plan1.id},${plan2.id}` });
-        expectRouterUrlChange(3, { page: 1, perPage: 10, planIds: `${plan1.id},${plan2.id}` });
+        expectApiWithLogs(total, { perPage, page: 1, ...DEFAULT_LOGS_TIME, planIds: `${plan1.id},${plan2.id}` });
+        expectRouterUrlChange(3, { page: 1, perPage: 10, ...DEFAULT_QUERY_TIME, planIds: `${plan1.id},${plan2.id}` });
       }));
 
       it('should remove plan filter', async () => {
         await componentHarness.selectPlan(plan1.name);
         expect(await componentHarness.getSelectedPlans()).toEqual(plan1.name);
-        expectApiWithLogs(total, { perPage, page: 1, planIds: plan1.id });
-        expectRouterUrlChange(2, { page: 1, perPage: 10, planIds: plan1.id });
+        expectApiWithLogs(total, { perPage, page: 1, ...DEFAULT_LOGS_TIME, planIds: plan1.id });
+        expectRouterUrlChange(2, { page: 1, perPage: 10, ...DEFAULT_QUERY_TIME, planIds: plan1.id });
 
         await componentHarness.removePlanChip();
         expect(await componentHarness.getQuickFiltersChips()).toBeNull();
-        expectApiWithLogs(total, { perPage, page: 1 });
-        expectRouterUrlChange(3, { page: 1, perPage: 10 });
+        expectApiWithLogs(total, { perPage, page: 1, ...DEFAULT_LOGS_TIME });
+        expectRouterUrlChange(3, { page: 1, perPage: 10, ...DEFAULT_QUERY_TIME });
       });
     });
 
@@ -426,46 +468,38 @@ describe('ApiRuntimeLogsComponent', () => {
 
         await componentHarness.selectMethod('GET');
         expect(await componentHarness.getSelectedMethods()).toEqual('GET');
-        expectApiWithLogs(total, { perPage, page: 1, methods: 'GET' });
-        expectRouterUrlChange(2, { page: 1, perPage: 10, methods: 'GET' });
+        expectApiWithLogs(total, { perPage, page: 1, ...DEFAULT_LOGS_TIME, methods: 'GET' });
+        expectRouterUrlChange(2, { page: 1, perPage: 10, ...DEFAULT_QUERY_TIME, methods: 'GET' });
 
         await componentHarness.selectMethod('POST');
         expect(await componentHarness.getSelectedMethods()).toEqual('GET, POST');
-        expectApiWithLogs(total, { perPage, page: 1, methods: 'GET,POST' });
-        expectRouterUrlChange(3, { page: 1, perPage: 10, methods: 'GET,POST' });
+        expectApiWithLogs(total, { perPage, page: 1, ...DEFAULT_LOGS_TIME, methods: 'GET,POST' });
+        expectRouterUrlChange(3, { page: 1, perPage: 10, ...DEFAULT_QUERY_TIME, methods: 'GET,POST' });
       });
 
       it('should remove methods filter', async () => {
         await componentHarness.selectMethod('GET');
         expect(await componentHarness.getSelectedMethods()).toEqual('GET');
-        expectApiWithLogs(total, { perPage, page: 1, methods: 'GET' });
-        expectRouterUrlChange(2, { page: 1, perPage: 10, methods: 'GET' });
+        expectApiWithLogs(total, { perPage, page: 1, ...DEFAULT_LOGS_TIME, methods: 'GET' });
+        expectRouterUrlChange(2, { page: 1, perPage: 10, ...DEFAULT_QUERY_TIME, methods: 'GET' });
         expect(await componentHarness.getMethodsChipText()).toStrictEqual('methods: GET');
 
         await componentHarness.removeMethodsChip();
         expect(await componentHarness.getQuickFiltersChips()).toBeNull();
-        expectApiWithLogs(total, { perPage, page: 1 });
-        expectRouterUrlChange(3, { page: 1, perPage: 10 });
+        expectApiWithLogs(total, { perPage, page: 1, ...DEFAULT_LOGS_TIME });
+        expectRouterUrlChange(3, { page: 1, perPage: 10, ...DEFAULT_QUERY_TIME });
       });
     });
 
     describe('when we click on more filters button', () => {
-      const fakeNow = moment('2023-10-25T00:00:00.000Z');
-
       beforeEach(async () => {
         await initComponentWithLogs({ hasLogs: true });
-        jest.spyOn(Date, 'now').mockReturnValue(new Date('2023-10-25T00:00:00.000Z').getTime());
       });
 
       it('should display more filters panel', async () => {
-        expect.assertions(2);
-        try {
-          await componentHarness.moreFiltersHarness();
-        } catch (e) {
-          expect(e.message).toMatch(/Failed to find element/);
-        }
+        expect(await componentHarness.getMoreFiltersForm()).toBeNull();
         await componentHarness.moreFiltersButtonClick();
-        expect(await componentHarness.moreFiltersHarness()).toBeTruthy();
+        expect(await componentHarness.getMoreFiltersForm()).toBeTruthy();
       });
 
       it('should clear all existing filters', async () => {
@@ -476,7 +510,7 @@ describe('ApiRuntimeLogsComponent', () => {
         expectApiWithLogs(total, { perPage, page: 1, from: fromDateTime });
 
         await componentHarness.moreFiltersClearAll();
-        expectApiWithLogs(total, { perPage, page: 1 });
+        expectApiWithLogs(total, { perPage, page: 1, ...DEFAULT_LOGS_TIME });
 
         await componentHarness.moreFiltersButtonClick();
         expect(await componentHarness.getFromDate()).toStrictEqual('');
@@ -495,12 +529,13 @@ describe('ApiRuntimeLogsComponent', () => {
         await componentHarness.moreFiltersApply();
 
         expectApiWithLogs(total, { perPage, page: 1, from: fromDateTime, to: toDateTime });
-        expectRouterUrlChange(2, { page: 1, perPage: 10, from: fromDateTime, to: toDateTime });
+        expectRouterUrlChange(2, { page: 1, perPage: 10, period: '0', from: fromDateTime, to: toDateTime });
         expect(await componentHarness.getFromChipText()).toEqual(`from:${fromDate}`);
         expect(await componentHarness.getToChipText()).toEqual(`to:${toDate}`);
+        expect(await componentHarness.getPeriodChipText()).toStrictEqual('period: None');
 
         await componentHarness.moreFiltersClearAll();
-        expectApiWithLogs(total, { perPage, page: 1 });
+        expectApiWithLogs(total, { perPage, page: 1, ...DEFAULT_LOGS_TIME });
 
         await componentHarness.moreFiltersButtonClick();
 
@@ -508,18 +543,18 @@ describe('ApiRuntimeLogsComponent', () => {
         await select.clickOptions({ text: 'Last 5 Minutes' });
         await componentHarness.moreFiltersApply();
         expect(await componentHarness.selectPeriodQuickFilter().then((select) => select.getValueText())).toEqual('Last 5 Minutes');
-        expectApiWithLogs(total, { perPage, page: 1, from: fakeNow.valueOf() - 5 * 60 * 1000, to: fakeNow.valueOf() });
+        expectApiWithLogs(total, { perPage, page: 1, from: DEFAULT_FROM_MS, to: FAKE_NOW_MS });
       });
 
       it('should close more filters panel without applying filter values', async () => {
         await componentHarness.moreFiltersButtonClick();
 
-        await componentHarness.selectPeriodInMoreFilters('Last 5 Minutes');
-        expect(await componentHarness.moreFiltersPeriodText()).toEqual('Last 5 Minutes');
+        await componentHarness.selectPeriodInMoreFilters('Last 30 Minutes');
+        expect(await componentHarness.moreFiltersPeriodText()).toEqual('Last 30 Minutes');
 
         await componentHarness.closeMoreFilters();
         await componentHarness.moreFiltersButtonClick();
-        expect(await componentHarness.moreFiltersPeriodText()).toEqual('None');
+        expect(await componentHarness.moreFiltersPeriodText()).toEqual('Last 5 Minutes');
       });
 
       it('should reset period when from or two is modified and vice versa', async () => {
@@ -547,16 +582,16 @@ describe('ApiRuntimeLogsComponent', () => {
       it('should reset filters when clicking on dedicated chip', async () => {
         await componentHarness.moreFiltersButtonClick();
 
-        await componentHarness.selectPeriodInMoreFilters('Last 5 Minutes');
+        await componentHarness.selectPeriodInMoreFilters('Last 30 Minutes');
         await componentHarness.moreFiltersApply();
-        expectApiWithLogs(total, { perPage, page: 1, from: fakeNow.valueOf() - 5 * 60 * 1000, to: fakeNow.valueOf() });
-        expect(await componentHarness.getPeriodChipText()).toStrictEqual('period: Last 5 Minutes');
+        expectApiWithLogs(total, { perPage, page: 1, from: FAKE_NOW_MS - 30 * 60 * 1000, to: FAKE_NOW_MS });
+        expect(await componentHarness.getPeriodChipText()).toStrictEqual('period: Last 30 Minutes');
 
         await componentHarness.removePeriodChip();
-        expectApiWithLogs(total, { perPage, page: 1 });
+        expectApiWithLogs(total, { perPage, page: 1, from: DEFAULT_FROM_MS, to: FAKE_NOW_MS });
 
         await componentHarness.moreFiltersButtonClick();
-        expect(await componentHarness.moreFiltersPeriodText()).toStrictEqual('None');
+        expect(await componentHarness.moreFiltersPeriodText()).toStrictEqual('Last 5 Minutes');
 
         await componentHarness.setFromDate(fromDate);
         await componentHarness.moreFiltersApply();
@@ -564,7 +599,7 @@ describe('ApiRuntimeLogsComponent', () => {
         expect(await componentHarness.getFromChipText()).toEqual(`from:${fromDate}`);
 
         await componentHarness.removeFromChip();
-        expectApiWithLogs(total, { perPage, page: 1 });
+        expectApiWithLogs(total, { perPage, page: 1, from: DEFAULT_FROM_MS, to: FAKE_NOW_MS });
 
         await componentHarness.moreFiltersButtonClick();
         expect(await componentHarness.getFromDate()).toStrictEqual('');
@@ -575,10 +610,22 @@ describe('ApiRuntimeLogsComponent', () => {
         expect(await componentHarness.getToChipText()).toEqual(`to:${toDate}`);
 
         await componentHarness.removeToChip();
-        expectApiWithLogs(total, { perPage, page: 1 });
+        expectApiWithLogs(total, { perPage, page: 1, from: DEFAULT_FROM_MS, to: FAKE_NOW_MS });
 
         await componentHarness.moreFiltersButtonClick();
         expect(await componentHarness.getToDate()).toStrictEqual('');
+      });
+
+      it('should keep the remaining custom date when removing one bound', async () => {
+        await componentHarness.moreFiltersButtonClick();
+        await componentHarness.setFromDate(fromDate);
+        await componentHarness.setToDate(toDate);
+        await componentHarness.moreFiltersApply();
+        expectApiWithLogs(total, { perPage, page: 1, from: fromDateTime, to: toDateTime });
+
+        await componentHarness.removeFromChip();
+        expectApiWithLogs(total, { perPage, page: 1, to: toDateTime });
+        expect(await componentHarness.getToChipText()).toEqual(`to:${toDate}`);
       });
 
       it('should filter on http request status', async () => {
@@ -590,8 +637,8 @@ describe('ApiRuntimeLogsComponent', () => {
 
         await componentHarness.moreFiltersApply();
         expect(await componentHarness.getStatusChip()).toStrictEqual('statuses: 200');
-        expectApiWithLogs(total, { perPage, page: 1, statuses: '200' });
-        expectRouterUrlChange(2, { page: 1, perPage: 10, statuses: '200' });
+        expectApiWithLogs(total, { perPage, page: 1, ...DEFAULT_LOGS_TIME, statuses: '200' });
+        expectRouterUrlChange(2, { page: 1, perPage: 10, ...DEFAULT_QUERY_TIME, statuses: '200' });
 
         await componentHarness.moreFiltersButtonClick();
         await componentHarness.addInputStatusesChip('202');
@@ -599,8 +646,8 @@ describe('ApiRuntimeLogsComponent', () => {
 
         await componentHarness.moreFiltersApply();
         expect(await componentHarness.getStatusChip()).toStrictEqual('statuses: 200, 202');
-        expectApiWithLogs(total, { perPage, page: 1, statuses: '200,202' });
-        expectRouterUrlChange(3, { page: 1, perPage: 10, statuses: '200,202' });
+        expectApiWithLogs(total, { perPage, page: 1, ...DEFAULT_LOGS_TIME, statuses: '200,202' });
+        expectRouterUrlChange(3, { page: 1, perPage: 10, ...DEFAULT_QUERY_TIME, statuses: '200,202' });
 
         await componentHarness.moreFiltersButtonClick();
         await componentHarness.removeInputStatusChip('200');
@@ -608,8 +655,8 @@ describe('ApiRuntimeLogsComponent', () => {
 
         await componentHarness.moreFiltersApply();
         expect(await componentHarness.getStatusChip()).toStrictEqual('statuses: 202');
-        expectApiWithLogs(total, { perPage, page: 1, statuses: '202' });
-        expectRouterUrlChange(4, { page: 1, perPage: 10, statuses: '202' });
+        expectApiWithLogs(total, { perPage, page: 1, ...DEFAULT_LOGS_TIME, statuses: '202' });
+        expectRouterUrlChange(4, { page: 1, perPage: 10, ...DEFAULT_QUERY_TIME, statuses: '202' });
       });
 
       it('should remove status filter', async () => {
@@ -617,12 +664,12 @@ describe('ApiRuntimeLogsComponent', () => {
         await componentHarness.addInputStatusesChip('404');
         await componentHarness.moreFiltersApply();
 
-        expectApiWithLogs(total, { perPage, page: 1, statuses: '404' });
-        expectRouterUrlChange(2, { page: 1, perPage: 10, statuses: '404' });
+        expectApiWithLogs(total, { perPage, page: 1, ...DEFAULT_LOGS_TIME, statuses: '404' });
+        expectRouterUrlChange(2, { page: 1, perPage: 10, ...DEFAULT_QUERY_TIME, statuses: '404' });
 
         await componentHarness.removeStatusChip();
-        expectApiWithLogs(total, { perPage, page: 1 });
-        expectRouterUrlChange(3, { page: 1, perPage: 10 });
+        expectApiWithLogs(total, { perPage, page: 1, ...DEFAULT_LOGS_TIME });
+        expectRouterUrlChange(3, { page: 1, perPage: 10, ...DEFAULT_QUERY_TIME });
       });
     });
   });
@@ -647,7 +694,7 @@ describe('ApiRuntimeLogsComponent', () => {
         await initComponent();
         expectPlanList([plan1, plan2]);
         expectApplicationFindByIds([application, anotherApplication]);
-        expectApiWithLogs(10, { page: 1, perPage: 10, applicationIds: '1,2', planIds: '1,2' });
+        expectApiWithLogs(10, { page: 1, perPage: 10, ...DEFAULT_LOGS_TIME, applicationIds: '1,2', planIds: '1,2' });
         expectEntrypointListGet();
         expectApiWithLogEnabled();
       });
@@ -670,7 +717,7 @@ describe('ApiRuntimeLogsComponent', () => {
         await componentHarness.removePlanChip();
         // removing a chip should not impact on the application chip computed from the cache
         expect(await componentHarness.getApplicationsChipText()).toStrictEqual(expectedApplicationChip);
-        expectApiWithLogs(10, { page: 1, perPage: 10, applicationIds: '1,2' });
+        expectApiWithLogs(10, { page: 1, perPage: 10, ...DEFAULT_LOGS_TIME, applicationIds: '1,2' });
       });
 
       it("should reset all filters when clicking on 'reset filters'", async () => {
@@ -685,7 +732,7 @@ describe('ApiRuntimeLogsComponent', () => {
 
         await componentHarness.quickFiltersHarness().then((harness) => harness.clickResetFilters());
         expect(await componentHarness.getSelectedPlans()).toEqual('');
-        expectApiWithLogs(10, { page: 1, perPage: 10 });
+        expectApiWithLogs(10, { page: 1, perPage: 10, ...DEFAULT_LOGS_TIME });
 
         await componentHarness.moreFiltersButtonClick();
         expect(await componentHarness.getApplicationsTags()).toHaveLength(0);
@@ -696,7 +743,7 @@ describe('ApiRuntimeLogsComponent', () => {
         expectApiWithLogs(10, { page: 1, perPage: 10, from: fromDateTime, to: toDateTime });
 
         await componentHarness.quickFiltersHarness().then((harness) => harness.clickResetFilters());
-        expectApiWithLogs(10, { page: 1, perPage: 10 });
+        expectApiWithLogs(10, { page: 1, perPage: 10, ...DEFAULT_LOGS_TIME });
 
         await componentHarness.moreFiltersButtonClick();
         expect(await componentHarness.getFromDate()).toStrictEqual('');
@@ -732,6 +779,33 @@ describe('ApiRuntimeLogsComponent', () => {
         expect(await componentHarness.getFromChipText()).toEqual(`from:${fromDate}`);
         expect(await componentHarness.getToInputValue()).toEqual(toDate);
         expect(await componentHarness.getToChipText()).toEqual(`to:${toDate}`);
+        expect(await componentHarness.getPeriodChipText()).toStrictEqual('period: None');
+      });
+    });
+
+    describe('there is period None in the url', () => {
+      it('should init with None and omit from and to', async () => {
+        await TestBed.overrideProvider(ActivatedRoute, {
+          useValue: {
+            snapshot: {
+              params: { apiId: API_ID },
+              queryParams: {
+                ...queryParams,
+                period: '0',
+              },
+            },
+          },
+        }).compileComponents();
+
+        await initComponent();
+        expectPlanList();
+        expectApiWithLogs(10, { page: 1, perPage: 10 });
+        expectEntrypointListGet();
+        expectApiWithLogEnabled();
+
+        const periodSelectInput = await componentHarness.selectPeriodQuickFilter();
+        expect(await periodSelectInput.getValueText()).toEqual('None');
+        expect(await componentHarness.getPeriodChipText()).toStrictEqual('period: None');
       });
     });
 
@@ -751,7 +825,7 @@ describe('ApiRuntimeLogsComponent', () => {
 
         await initComponent();
         expectPlanList();
-        expectApiWithLogs(10, { page: 1, perPage: 10, methods: 'POST' });
+        expectApiWithLogs(10, { page: 1, perPage: 10, ...DEFAULT_LOGS_TIME, methods: 'POST' });
         expectEntrypointListGet();
         expectApiWithLogEnabled();
 
@@ -778,10 +852,10 @@ describe('ApiRuntimeLogsComponent', () => {
       });
 
       it('should init the form with filters preselected', async () => {
-        expectApiWithLogs(10, { page: 2, perPage: 10 });
+        expectApiWithLogs(10, { page: 2, perPage: 10, ...DEFAULT_LOGS_TIME });
         expectEntrypointListGet();
         expectApiWithLogEnabled();
-        expectRouterUrlChange(1, { page: 2, perPage: 10 });
+        expectRouterUrlChange(1, { page: 2, perPage: 10, ...DEFAULT_QUERY_TIME });
       });
     });
 
@@ -801,7 +875,7 @@ describe('ApiRuntimeLogsComponent', () => {
 
         await initComponent();
         expectPlanList();
-        expectApiWithLogs(10, { page: 1, perPage: 10, statuses: '200,202' });
+        expectApiWithLogs(10, { page: 1, perPage: 10, ...DEFAULT_LOGS_TIME, statuses: '200,202' });
         expectEntrypointListGet();
         expectApiWithLogEnabled();
 
@@ -813,12 +887,8 @@ describe('ApiRuntimeLogsComponent', () => {
     });
 
     describe('there is a period filter in the url', () => {
-      const fakeNow = moment('2023-10-05T00:00:00.000Z');
-
-      it('should init the form with period preselected and restore it on back navigation', async () => {
-        jest.spyOn(Date, 'now').mockReturnValue(new Date('2023-10-05T00:00:00.000Z').getTime());
-
-        const expectedTo = fakeNow.valueOf();
+      it('should init the form with period preselected', async () => {
+        const expectedTo = FAKE_NOW_MS;
         const expectedFrom = expectedTo - 60 * 60 * 1000; // Last 1 Hour
 
         await TestBed.overrideProvider(ActivatedRoute, {
@@ -828,8 +898,6 @@ describe('ApiRuntimeLogsComponent', () => {
               queryParams: {
                 ...queryParams,
                 period: '-1h',
-                from: expectedFrom,
-                to: expectedTo,
               },
             },
           },
@@ -875,7 +943,7 @@ describe('ApiRuntimeLogsComponent', () => {
   function expectApiWithNoLog() {
     httpTestingController
       .expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs?page=1&perPage=10`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs?page=1&perPage=10&from=${DEFAULT_FROM_MS}&to=${FAKE_NOW_MS}`,
         method: 'GET',
       })
       .flush(fakeEmptyApiLogsResponse());
@@ -883,19 +951,22 @@ describe('ApiRuntimeLogsComponent', () => {
   }
 
   function expectApiWithLogs(total: number, param: ApiLogsParam = { perPage: 10, page: 1 }) {
-    const itemsInPage = total < param.perPage ? total : param.perPage;
-
+    const page = param.page ?? 1;
+    const perPage = param.perPage ?? 10;
+    const itemsInPage = total < perPage ? total : perPage;
     const data: ConnectionLog[] = [];
     for (let i = 0; i < itemsInPage; i++) {
       data.push(fakeConnectionLog());
     }
 
-    let expectedURL = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs?page=${param.page ?? 1}&perPage=${param.perPage ?? 10}`;
-    if (param.from) expectedURL = expectedURL.concat(`&from=${param.from}`);
-    if (param.to) expectedURL = expectedURL.concat(`&to=${param.to}`);
+    let expectedURL = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs?page=${page}&perPage=${perPage}`;
+    if (param.from != null) expectedURL = expectedURL.concat(`&from=${param.from}`);
+    if (param.to != null) expectedURL = expectedURL.concat(`&to=${param.to}`);
+    if (param.entrypointIds) expectedURL = expectedURL.concat(`&entrypointIds=${param.entrypointIds}`);
     if (param.applicationIds) expectedURL = expectedURL.concat(`&applicationIds=${param.applicationIds}`);
     if (param.planIds) expectedURL = expectedURL.concat(`&planIds=${param.planIds}`);
     if (param.methods) expectedURL = expectedURL.concat(`&methods=${param.methods}`);
+    if (param.mcpMethods) expectedURL = expectedURL.concat(`&mcpMethods=${param.mcpMethods}`);
     if (param.statuses) expectedURL = expectedURL.concat(`&statuses=${param.statuses}`);
 
     httpTestingController
@@ -908,9 +979,9 @@ describe('ApiRuntimeLogsComponent', () => {
           data,
           pagination: {
             totalCount: total,
-            page: param.page,
-            perPage: param.perPage,
-            pageCount: Math.ceil(total / param.perPage),
+            page,
+            perPage,
+            pageCount: Math.ceil(total / perPage),
             pageItemsCount: itemsInPage,
           },
         }),
@@ -978,7 +1049,7 @@ describe('ApiRuntimeLogsComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectRouterUrlChange(nthCall: number, queryParams) {
+  function expectRouterUrlChange(nthCall: number, queryParams: Record<string, unknown> = {}) {
     expect(routerNavigateSpy).toHaveBeenNthCalledWith(nthCall, ['.'], {
       relativeTo: expect.anything(),
       queryParams: {
