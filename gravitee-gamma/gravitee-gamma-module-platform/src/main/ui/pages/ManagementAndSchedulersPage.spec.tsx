@@ -144,6 +144,29 @@ describe('ManagementAndSchedulersPage', () => {
         );
     });
 
+    it('keeps automatic validation when user registration is turned off', () => {
+        const mutate = jest.fn();
+        mockUseSaveOrgConsoleSettings.mockReturnValue({
+            mutate,
+            isPending: false,
+        } as unknown as ReturnType<typeof useSaveOrgConsoleSettings>);
+        renderPage();
+
+        fireEvent.click(screen.getByLabelText('Allow User Registration'));
+        expect(screen.queryByLabelText('Enable automatic validation of registration requests')).toBeNull();
+        fireEvent.click(screen.getByRole('button', { name: /Save changes/i }));
+
+        expect(mutate).toHaveBeenCalledWith(
+            expect.objectContaining({
+                management: expect.objectContaining({
+                    userCreation: { enabled: false },
+                    automaticValidation: { enabled: true },
+                }),
+            }),
+            expect.any(Object),
+        );
+    });
+
     it('marks system-provided title and URL for the Classic tooltip', () => {
         mockUseOrgConsoleSettings.mockReturnValue({
             data: {

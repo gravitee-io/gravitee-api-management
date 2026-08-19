@@ -17,6 +17,7 @@
 import { Input, Switch } from '@gravitee/graphene-core';
 
 import { BrandedSendersSection } from './BrandedSendersSection';
+import { SystemReadonlyHint } from './SystemReadonlyHint';
 import type { BrandedSender } from '../types/consoleSettings';
 
 export interface SmtpFormState {
@@ -46,7 +47,7 @@ export function isSmtpFromValid(from: string): boolean {
 export function parseSmtpPort(port: string): number | null {
     if (!/^\d+$/.test(port.trim())) return null;
     const parsed = Number(port);
-    return parsed >= 1 && parsed <= 65535 ? parsed : null;
+    return parsed >= 0 && parsed <= 65535 ? parsed : null;
 }
 
 export function isSmtpFormValid(state: SmtpFormState): boolean {
@@ -93,13 +94,15 @@ export function SmtpSection({
                     <label htmlFor="smtp-enabled" className="text-sm font-medium">
                         Enable Emailing
                     </label>
-                    <Switch
-                        id="smtp-enabled"
-                        checked={value.enabled}
-                        onCheckedChange={checked => onChange({ ...value, enabled: checked === true })}
-                        disabled={disabled || Boolean(readonly.enabled)}
-                        aria-label="Enable Emailing"
-                    />
+                    <SystemReadonlyHint locked={Boolean(readonly.enabled)} className="inline-flex">
+                        <Switch
+                            id="smtp-enabled"
+                            checked={value.enabled}
+                            onCheckedChange={checked => onChange({ ...value, enabled: checked === true })}
+                            disabled={disabled || Boolean(readonly.enabled)}
+                            aria-label="Enable Emailing"
+                        />
+                    </SystemReadonlyHint>
                 </div>
 
                 {value.enabled ? (
@@ -109,14 +112,17 @@ export function SmtpSection({
                             label="Host"
                             value={value.host}
                             disabled={isFieldDisabled('host')}
+                            systemReadonly={Boolean(readonly.host)}
                             onChange={host => onChange({ ...value, host })}
                         />
                         <Field
                             id="smtp-port"
                             label="Port"
                             type="number"
+                            min={0}
                             value={value.port}
                             disabled={isFieldDisabled('port')}
+                            systemReadonly={Boolean(readonly.port)}
                             onChange={port => onChange({ ...value, port })}
                         />
                         <Field
@@ -124,6 +130,7 @@ export function SmtpSection({
                             label="Username"
                             value={value.username}
                             disabled={isFieldDisabled('username')}
+                            systemReadonly={Boolean(readonly.username)}
                             onChange={username => onChange({ ...value, username })}
                         />
                         <Field
@@ -132,6 +139,7 @@ export function SmtpSection({
                             type="password"
                             value={value.password}
                             disabled={isFieldDisabled('password')}
+                            systemReadonly={Boolean(readonly.password)}
                             onChange={password => onChange({ ...value, password })}
                         />
                         <Field
@@ -139,25 +147,29 @@ export function SmtpSection({
                             label="Protocol"
                             value={value.protocol}
                             disabled={isFieldDisabled('protocol')}
+                            systemReadonly={Boolean(readonly.protocol)}
                             onChange={protocol => onChange({ ...value, protocol })}
                         />
                         <div className="space-y-1.5">
                             <label htmlFor="smtp-subject" className="text-sm font-medium">
                                 Subject
                             </label>
-                            <Input
-                                id="smtp-subject"
-                                value={value.subject}
-                                onChange={e => onChange({ ...value, subject: e.target.value })}
-                                disabled={isFieldDisabled('subject')}
-                            />
-                            <p className="text-xs text-muted-foreground">%s is replaced with the email's subject.</p>
+                            <SystemReadonlyHint locked={Boolean(readonly.subject)}>
+                                <Input
+                                    id="smtp-subject"
+                                    value={value.subject}
+                                    onChange={e => onChange({ ...value, subject: e.target.value })}
+                                    disabled={isFieldDisabled('subject')}
+                                />
+                            </SystemReadonlyHint>
+                            <p className="text-xs text-muted-foreground">{"%s is replaced with the email's subject."}</p>
                         </div>
                         <Field
                             id="smtp-from"
                             label="From"
                             value={value.from}
                             disabled={isFieldDisabled('from')}
+                            systemReadonly={Boolean(readonly.from)}
                             onChange={from => onChange({ ...value, from })}
                         />
                     </>
@@ -171,44 +183,51 @@ export function SmtpSection({
                         <label htmlFor="smtp-auth" className="text-sm font-medium">
                             Enable Auth
                         </label>
-                        <Switch
-                            id="smtp-auth"
-                            checked={value.auth}
-                            onCheckedChange={checked => onChange({ ...value, auth: checked === true })}
-                            disabled={isFieldDisabled('auth')}
-                            aria-label="Enable Auth"
-                        />
+                        <SystemReadonlyHint locked={Boolean(readonly.auth)} className="inline-flex">
+                            <Switch
+                                id="smtp-auth"
+                                checked={value.auth}
+                                onCheckedChange={checked => onChange({ ...value, auth: checked === true })}
+                                disabled={isFieldDisabled('auth')}
+                                aria-label="Enable Auth"
+                            />
+                        </SystemReadonlyHint>
                     </div>
                     <div className="flex items-center justify-between gap-4">
                         <label htmlFor="smtp-starttls" className="text-sm font-medium">
                             Enable Start TLS
                         </label>
-                        <Switch
-                            id="smtp-starttls"
-                            checked={value.startTlsEnable}
-                            onCheckedChange={checked => onChange({ ...value, startTlsEnable: checked === true })}
-                            disabled={isFieldDisabled('startTlsEnable')}
-                            aria-label="Enable Start TLS"
-                        />
+                        <SystemReadonlyHint locked={Boolean(readonly.startTlsEnable)} className="inline-flex">
+                            <Switch
+                                id="smtp-starttls"
+                                checked={value.startTlsEnable}
+                                onCheckedChange={checked => onChange({ ...value, startTlsEnable: checked === true })}
+                                disabled={isFieldDisabled('startTlsEnable')}
+                                aria-label="Enable Start TLS"
+                            />
+                        </SystemReadonlyHint>
                     </div>
                     <Field
                         id="smtp-ssl-trust"
                         label="SSL Trust"
                         value={value.sslTrust}
                         disabled={isFieldDisabled('sslTrust')}
+                        systemReadonly={Boolean(readonly.sslTrust)}
                         onChange={sslTrust => onChange({ ...value, sslTrust })}
                     />
                 </section>
             ) : null}
 
             <section className="rounded-lg border p-4">
-                <BrandedSendersSection
-                    defaultFrom={value.from}
-                    defaultSubject={value.subject}
-                    senders={value.brandedSenders}
-                    disabled={disabled || !value.enabled || Boolean(readonly.brandedSenders)}
-                    onChange={brandedSenders => onChange({ ...value, brandedSenders })}
-                />
+                <SystemReadonlyHint locked={Boolean(readonly.brandedSenders)}>
+                    <BrandedSendersSection
+                        defaultFrom={value.from}
+                        defaultSubject={value.subject}
+                        senders={value.brandedSenders}
+                        disabled={disabled || !value.enabled || Boolean(readonly.brandedSenders)}
+                        onChange={brandedSenders => onChange({ ...value, brandedSenders })}
+                    />
+                </SystemReadonlyHint>
             </section>
         </div>
     );
@@ -219,22 +238,28 @@ function Field({
     label,
     value,
     disabled,
+    systemReadonly = false,
     onChange,
     type = 'text',
+    min,
 }: Readonly<{
     id: string;
     label: string;
     value: string;
     disabled: boolean;
+    systemReadonly?: boolean;
     onChange: (value: string) => void;
     type?: string;
+    min?: number;
 }>) {
     return (
         <div className="space-y-1.5">
             <label htmlFor={id} className="text-sm font-medium">
                 {label}
             </label>
-            <Input id={id} type={type} value={value} onChange={e => onChange(e.target.value)} disabled={disabled} />
+            <SystemReadonlyHint locked={systemReadonly}>
+                <Input id={id} type={type} min={min} value={value} onChange={e => onChange(e.target.value)} disabled={disabled} />
+            </SystemReadonlyHint>
         </div>
     );
 }

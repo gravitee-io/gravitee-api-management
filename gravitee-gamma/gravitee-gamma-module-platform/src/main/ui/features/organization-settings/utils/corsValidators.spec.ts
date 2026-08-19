@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { CORS_HTTP_METHODS, DEFAULT_CORS_MAX_AGE, getInvalidAllowOrigins } from './corsValidators';
+import { CORS_DEFAULT_HTTP_HEADERS, CORS_HTTP_METHODS, DEFAULT_CORS_MAX_AGE, getInvalidAllowOrigins } from './corsValidators';
 
 describe('corsValidators', () => {
     it('exposes Classic HTTP methods in order', () => {
@@ -23,6 +23,12 @@ describe('corsValidators', () => {
 
     it('defaults max age to Classic 1728000 seconds', () => {
         expect(DEFAULT_CORS_MAX_AGE).toBe(1728000);
+    });
+
+    it('exposes Classic default HTTP headers for CORS autocomplete', () => {
+        expect(CORS_DEFAULT_HTTP_HEADERS).toEqual(
+            expect.arrayContaining(['*', 'Accept', 'Authorization', 'Content-Type', 'Origin', 'X-Forwarded-For']),
+        );
     });
 
     it('accepts *, plain origins, and valid regular expressions', () => {

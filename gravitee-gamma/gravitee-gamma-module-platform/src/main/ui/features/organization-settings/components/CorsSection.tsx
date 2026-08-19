@@ -18,9 +18,9 @@ import { Alert, AlertDescription, Checkbox, Input } from '@gravitee/graphene-cor
 import { InfoIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
 
-import { ChipInput } from '../../shared/components/ChipInput';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
-import { CORS_HTTP_METHODS, getInvalidAllowOrigins, type CorsHttpMethod } from '../utils/corsValidators';
+import { ChipInput } from '../../shared/components/ChipInput';
+import { CORS_DEFAULT_HTTP_HEADERS, CORS_HTTP_METHODS, getInvalidAllowOrigins, type CorsHttpMethod } from '../utils/corsValidators';
 
 export interface CorsFormState {
     allowOrigin: string[];
@@ -89,7 +89,7 @@ export function CorsSection({
                 </p>
                 {invalidOrigins.length > 0 ? (
                     <p className="text-sm text-destructive" role="alert">
-                        "{invalidOrigins.join('", "')}" Regex is invalid
+                        {`"${invalidOrigins.join('", "')}" Regex is invalid`}
                     </p>
                 ) : null}
                 {value.allowOrigin.includes('*') ? (
@@ -134,6 +134,7 @@ export function CorsSection({
                     placeholder="Content-Type, ..."
                     disabled={isFieldDisabled('allowHeaders')}
                     addOnComma
+                    suggestions={CORS_DEFAULT_HTTP_HEADERS}
                 />
                 <p className="text-xs text-muted-foreground">
                     Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
@@ -151,6 +152,7 @@ export function CorsSection({
                     placeholder="Content-Type, ..."
                     disabled={isFieldDisabled('exposedHeaders')}
                     addOnComma
+                    suggestions={CORS_DEFAULT_HTTP_HEADERS}
                 />
                 <p className="text-xs text-muted-foreground">
                     Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
