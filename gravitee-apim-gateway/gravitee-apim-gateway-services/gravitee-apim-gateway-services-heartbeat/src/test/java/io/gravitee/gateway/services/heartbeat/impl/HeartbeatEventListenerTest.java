@@ -34,6 +34,8 @@ import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,18 +63,30 @@ class HeartbeatEventListenerTest {
     @Mock
     private Member member;
 
+    private ExecutorService heartbeatExecutor;
+
     private HeartbeatEventListener cut;
 
     @BeforeEach
     public void beforeEach() {
         when(member.primary()).thenReturn(true);
         when(clusterManager.self()).thenReturn(member);
-        cut = new HeartbeatEventListener(clusterManager, eventRepository);
+        heartbeatExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "gio-heartbeat-listener"));
+        cut = new HeartbeatEventListener(clusterManager, eventRepository, heartbeatExecutor);
     }
 
     @AfterEach
     public void afterEach() {
         cut.shutdownNow();
+    }
+
+    /**
+     * The listener releases the flag guarding the processing in a finally block, once the repository call has returned.
+     * As events are processed on a single thread, waiting for an extra task submitted to that same executor guarantees
+     * the previous event has been fully processed, flag release included.
+     */
+    private void awaitEventProcessed() throws Exception {
+        heartbeatExecutor.submit(() -> {}).get(5, TimeUnit.SECONDS);
     }
 
     @Test
@@ -121,7 +135,7 @@ class HeartbeatEventListenerTest {
     }
 
     @Test
-    void should_discard_heartbeat_event_when_another_is_already_being_processed() throws InterruptedException, TechnicalException {
+    void should_discard_heartbeat_event_when_another_is_already_being_processed() throws Exception {
         when(member.primary()).thenReturn(true);
 
         // Create a latch that will block the first event processing
@@ -151,16 +165,17 @@ class HeartbeatEventListenerTest {
         secondEvent.setType(EventType.GATEWAY_STARTED);
         cut.onMessage(new Message<>("topic", secondEvent));
 
+        // Release the first event to complete
+        processingLatch.countDown();
+        awaitEventProcessed();
+
         // Verify that only the first event was processed
         verify(eventRepository, times(1)).createOrPatch(firstEvent);
         verify(eventRepository, times(1)).createOrPatch(any());
-
-        // Release the first event to complete
-        processingLatch.countDown();
     }
 
     @Test
-    void should_process_new_event_after_previous_one_completes() throws TechnicalException, InterruptedException {
+    void should_process_new_event_after_previous_one_completes() throws Exception {
         when(member.primary()).thenReturn(true);
 
         // First event
@@ -168,28 +183,16 @@ class HeartbeatEventListenerTest {
         firstEvent.setId("1");
         firstEvent.setType(EventType.GATEWAY_STARTED);
 
-        CountDownLatch firstLatch = new CountDownLatch(1);
-        when(eventRepository.createOrPatch(firstEvent)).thenAnswer(invocation -> {
-            firstLatch.countDown();
-            return null;
-        });
-
         cut.onMessage(new Message<>("topic", firstEvent));
-        assertThat(firstLatch.await(5, TimeUnit.SECONDS)).isTrue();
+        awaitEventProcessed();
 
-        // Second event - should be processed after first completes
+        // Second event - should be processed as the first one is completed
         Event secondEvent = new Event();
         secondEvent.setId("2");
         secondEvent.setType(EventType.GATEWAY_STARTED);
 
-        CountDownLatch secondLatch = new CountDownLatch(1);
-        when(eventRepository.createOrPatch(secondEvent)).thenAnswer(invocation -> {
-            secondLatch.countDown();
-            return null;
-        });
-
         cut.onMessage(new Message<>("topic", secondEvent));
-        assertThat(secondLatch.await(5, TimeUnit.SECONDS)).isTrue();
+        awaitEventProcessed();
 
         // Verify both events were processed
         verify(eventRepository).createOrPatch(firstEvent);
@@ -198,7 +201,7 @@ class HeartbeatEventListenerTest {
     }
 
     @Test
-    void should_discard_multiple_events_when_one_is_being_processed() throws InterruptedException, TechnicalException {
+    void should_discard_multiple_events_when_one_is_being_processed() throws Exception {
         when(member.primary()).thenReturn(true);
 
         // Create a latch that will block the first event processing
@@ -238,11 +241,12 @@ class HeartbeatEventListenerTest {
         fourthEvent.setType(EventType.GATEWAY_STARTED);
         cut.onMessage(new Message<>("topic", fourthEvent));
 
+        // Release the first event to complete
+        processingLatch.countDown();
+        awaitEventProcessed();
+
         // Verify that only the first event was processed
         verify(eventRepository, times(1)).createOrPatch(firstEvent);
         verify(eventRepository, times(1)).createOrPatch(any());
-
-        // Release the first event to complete
-        processingLatch.countDown();
     }
 }
