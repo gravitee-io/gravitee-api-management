@@ -66,6 +66,14 @@ describe('GroupInviteMemberSheet', () => {
         expect(screen.getByRole('button', { name: 'Send invitation' })).toHaveProperty('disabled', true);
     });
 
+    it('keeps Send invitation disabled for a malformed email', () => {
+        renderSheet();
+
+        fireEvent.change(screen.getByRole('textbox', { name: /Email/i }), { target: { value: 'not-an-email' } });
+
+        expect(screen.getByRole('button', { name: 'Send invitation' })).toHaveProperty('disabled', true);
+    });
+
     it('submits the email with the USER fallback default roles when the group has no configured defaults', () => {
         const { onSubmit } = renderSheet();
 

@@ -22,6 +22,7 @@ import type { GroupMember, GroupRole } from '../types/group';
 import { PRIMARY_OWNER_ROLE } from '../types/group';
 import { getMemberRoleLockFlags } from '../utils/memberRoles';
 import { isPrimaryOwnerUnavailable } from '../utils/primaryOwnership';
+import { isValidEmail } from '../../../shared/utils/email';
 
 export function GroupInviteMemberSheet({
     open,
@@ -68,7 +69,7 @@ export function GroupInviteMemberSheet({
         isPrimaryOwnerUnavailable(apiPrimaryOwnerMode) || members.some(m => m.roles?.API === PRIMARY_OWNER_ROLE);
     const roleLocks = getMemberRoleLockFlags({ lockApiRole, lockApiProductRole: false, lockApplicationRole }, canOverrideLocks);
 
-    const canSubmit = email.trim().length > 0;
+    const canSubmit = isValidEmail(email);
 
     return (
         <Sheet open={open} onOpenChange={isOpen => !isOpen && !isSaving && onClose()}>
