@@ -21,7 +21,6 @@ import {
     isDuplicateUserError,
     isOrganizationServiceAccount,
     isStillPrimaryOwnerError,
-    isValidEmail,
     sanitizeTextInput,
     statusBadgeVariant,
 } from './userDisplay';
@@ -29,11 +28,6 @@ import {
 describe('userDisplay utilities', () => {
     it('sanitizes HTML from text inputs', () => {
         expect(sanitizeTextInput('<b>Jane</b>')).toBe('Jane');
-    });
-
-    it('accepts well-formed emails and rejects malformed ones', () => {
-        expect(isValidEmail('jane@company.com')).toBe(true);
-        expect(isValidEmail('jane@company')).toBe(false);
     });
 
     it('labels the archived status as deletion in progress', () => {

@@ -21,17 +21,10 @@ import { searchUsers } from '../../../shared/services/userSearch';
 import type { SearchableUser } from '../../../shared/types/userSearch';
 import type { GroupMember, GroupMembershipPayload } from '../types/group';
 import { PRIMARY_OWNER_ROLE } from '../types/group';
-import { buildMembershipRoles, getMemberRoleLockFlags, type RoleField } from '../utils/memberRoles';
+import { buildMembershipRoles, getMemberRoleLockFlags, isPrimaryOwnerUnavailable, type RoleField } from '../utils/memberRoles';
 import { GROUP_SEARCH_DEBOUNCE_MS } from '../utils/paginationConstants';
 import { groupKeys } from '../utils/queryKeys';
 import { nextSearchableUserSelection } from '../utils/searchableUsers';
-
-const PRIMARY_OWNER_MODE_USER = 'USER';
-
-/** Fail closed: until the mode is known and is not USER, PRIMARY_OWNER must stay unavailable. */
-function isPrimaryOwnerUnavailable(mode: string | undefined): boolean {
-    return mode === undefined || mode.toUpperCase() === PRIMARY_OWNER_MODE_USER;
-}
 
 const DEFAULT_USER_ROLES: Record<RoleField, string> = {
     apiRole: 'USER',
@@ -53,6 +46,7 @@ export function useGroupAddMembersForm({
     maxInvitation,
     apiPrimaryOwnerMode,
     apiProductPrimaryOwnerMode,
+    initialSearch,
     onSubmit,
 }: {
     open: boolean;
@@ -65,28 +59,18 @@ export function useGroupAddMembersForm({
     maxInvitation: number | null;
     apiPrimaryOwnerMode: string | undefined;
     apiProductPrimaryOwnerMode: string | undefined;
-    onSubmit: (memberships: GroupMembershipPayload[]) => void;
+    initialSearch?: string;
+    onSubmit: (memberships: GroupMembershipPayload[]) => Promise<void>;
 }) {
-    const [search, setSearch] = useState('');
+    const [search, setSearch] = useState(() => initialSearch?.trim() ?? '');
     const [debouncedQuery, setDebouncedQuery] = useState('');
     const [selected, setSelected] = useState<SearchableUser[]>([]);
-    const [roleValues, setRoleValues] = useState(DEFAULT_USER_ROLES);
-
-    useEffect(() => {
-        if (!open) return;
-        setSearch('');
-        setDebouncedQuery('');
-        setSelected([]);
-        setRoleValues({
-            apiRole: groupRoles?.API ?? 'USER',
-            apiProductRole: groupRoles?.API_PRODUCT ?? 'USER',
-            applicationRole: groupRoles?.APPLICATION ?? 'USER',
-            integrationRole: 'USER',
-            clusterRole: 'USER',
-            explorerRole: 'USER',
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally keyed on the open transition only
-    }, [open]);
+    const [roleValues, setRoleValues] = useState<Record<RoleField, string>>(() => ({
+        ...DEFAULT_USER_ROLES,
+        apiRole: groupRoles?.API ?? 'USER',
+        apiProductRole: groupRoles?.API_PRODUCT ?? 'USER',
+        applicationRole: groupRoles?.APPLICATION ?? 'USER',
+    }));
 
     useEffect(() => {
         if (!open) return;
@@ -143,7 +127,7 @@ export function useGroupAddMembersForm({
         handleToggle: (user: SearchableUser) => setSelected(prev => nextSearchableUserSelection(prev, user, primaryOwnerSelected)),
         handleSubmit: () => {
             const roles = buildMembershipRoles(roleValues);
-            onSubmit(
+            return onSubmit(
                 selected.map(user => ({
                     ...(user.id ? { id: user.id } : {}),
                     reference: user.reference,

@@ -17,12 +17,15 @@
 import { apimFetchJsonOrg, apimFetchJsonV1Env } from '../../../shared/api/apimClient';
 import type {
     Group,
+    GroupInvitation,
+    GroupInvitationPayload,
     GroupMember,
     GroupMembershipItem,
     GroupMembershipPayload,
     GroupMembershipType,
     GroupRole,
     GroupsPagedResponse,
+    InviteGroupMemberResult,
     NewGroupPayload,
     UpdateGroupPayload,
 } from '../types/group';
@@ -106,4 +109,37 @@ export async function addGroupMembers(environmentId: string, groupId: string, me
         method: 'POST',
         body: JSON.stringify(memberships),
     });
+}
+
+export async function inviteGroupMember(
+    environmentId: string,
+    groupId: string,
+    data: GroupInvitationPayload,
+): Promise<InviteGroupMemberResult> {
+    const result = await apimFetchJsonV1Env<unknown>(environmentId, `/configuration/groups/${encodeURIComponent(groupId)}/invitations`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    if (Array.isArray(result)) {
+        return { outcome: 'ambiguous' };
+    }
+    if (result === null || result === undefined) {
+        return { outcome: 'member-added' };
+    }
+    if (typeof result === 'object' && 'id' in result && typeof result.id === 'string') {
+        return { outcome: 'invitation-created' };
+    }
+    throw new Error('Unexpected group invitation response');
+}
+
+export async function listGroupInvitations(environmentId: string, groupId: string): Promise<GroupInvitation[]> {
+    return apimFetchJsonV1Env<GroupInvitation[]>(environmentId, `/configuration/groups/${encodeURIComponent(groupId)}/invitations`);
+}
+
+export async function deleteGroupInvitation(environmentId: string, groupId: string, invitationId: string): Promise<void> {
+    return apimFetchJsonV1Env<void>(
+        environmentId,
+        `/configuration/groups/${encodeURIComponent(groupId)}/invitations/${encodeURIComponent(invitationId)}`,
+        { method: 'DELETE' },
+    );
 }

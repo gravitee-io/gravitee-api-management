@@ -134,3 +134,23 @@ export interface GroupMembershipPayload {
     reference?: string;
     roles: GroupMembershipRole[];
 }
+
+export interface GroupInvitationPayload {
+    reference_type: 'GROUP';
+    reference_id: string;
+    email: string;
+    api_role?: string;
+    application_role?: string;
+}
+
+export type InviteGroupMemberResult = { outcome: 'ambiguous' } | { outcome: 'invitation-created' } | { outcome: 'member-added' };
+
+export interface GroupInvitation {
+    id: string;
+    reference_type?: string;
+    reference_id: string;
+    email: string;
+    api_role?: string;
+    application_role?: string;
+    created_at?: number;
+}

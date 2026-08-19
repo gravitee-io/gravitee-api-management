@@ -14,4 +14,23 @@
  * limitations under the License.
  */
 
-export { paginate, totalPagesFor } from '../../../shared/utils/clientPagination';
+import { Button } from '@gravitee/graphene-core';
+import { useFormStatus } from 'react-dom';
+
+export function FormActionSubmitButton({
+    disabled,
+    label,
+    pendingLabel,
+}: Readonly<{
+    disabled: boolean;
+    label: string;
+    pendingLabel: string;
+}>) {
+    const { pending } = useFormStatus();
+
+    return (
+        <Button type="submit" disabled={disabled || pending}>
+            {pending ? pendingLabel : label}
+        </Button>
+    );
+}

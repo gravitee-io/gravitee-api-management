@@ -14,4 +14,20 @@
  * limitations under the License.
  */
 
-export { paginate, totalPagesFor } from '../../../shared/utils/clientPagination';
+import { useRef } from 'react';
+
+/**
+ * React key that bumps only when `open` goes false → true (and when `identity` changes).
+ * Use for sheet content remount-on-open without remounting during the close animation.
+ */
+export function useOpenRemountKey(open: boolean, identity: string): string {
+    const wasOpenRef = useRef(false);
+    const openEpochRef = useRef(0);
+
+    if (open && !wasOpenRef.current) {
+        openEpochRef.current += 1;
+    }
+    wasOpenRef.current = open;
+
+    return `${openEpochRef.current}-${identity}`;
+}

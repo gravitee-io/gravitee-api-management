@@ -14,4 +14,5 @@
  * limitations under the License.
  */
 
-export { paginate, totalPagesFor } from '../../../shared/utils/clientPagination';
+/** Shared page-size options for DataTable pagination (UI-COMP-12). */
+export const TABLE_PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;

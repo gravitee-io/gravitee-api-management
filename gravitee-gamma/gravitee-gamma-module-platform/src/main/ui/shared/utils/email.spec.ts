@@ -14,4 +14,11 @@
  * limitations under the License.
  */
 
-export { paginate, totalPagesFor } from '../../../shared/utils/clientPagination';
+import { isValidEmail } from './email';
+
+describe('isValidEmail', () => {
+    it('accepts well-formed emails and rejects malformed ones', () => {
+        expect(isValidEmail('jane@company.com')).toBe(true);
+        expect(isValidEmail('jane@company')).toBe(false);
+    });
+});

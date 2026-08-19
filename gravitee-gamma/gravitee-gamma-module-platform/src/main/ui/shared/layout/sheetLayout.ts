@@ -14,4 +14,8 @@
  * limitations under the License.
  */
 
-export { paginate, totalPagesFor } from '../../../shared/utils/clientPagination';
+/** Default right sheet width (30rem / 480px). */
+export const STANDARD_SHEET_WIDTH = '480px';
+
+/** Wider sheet for multi-column forms or category sections (48rem / 768px). */
+export const WIDE_SHEET_WIDTH = '48rem';

@@ -13,9 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/** Default right sheet width (30rem / 480px). */
-export const STANDARD_SHEET_WIDTH = '480px';
-
-/** Wider sheet for multi-column forms or category sections (48rem / 768px). */
-export const WIDE_SHEET_WIDTH = '48rem';
+export { STANDARD_SHEET_WIDTH, WIDE_SHEET_WIDTH } from '../../../shared/layout/sheetLayout';
