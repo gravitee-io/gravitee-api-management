@@ -56,20 +56,42 @@ export function AuditLogsPageView({
     applications,
     apis,
 }: AuditLogsPageViewProps) {
-    if (isError) {
-        return <AuditPageHeading description="Failed to load audit logs. Please refresh and try again." />;
-    }
+    const filters = (
+        <AuditLogsFilters
+            scope={scope}
+            eventTypes={eventTypes}
+            event={state.event}
+            onEventChange={state.onEventChange}
+            referenceType={state.referenceType}
+            onReferenceTypeChange={state.onReferenceTypeChange}
+            environments={environments}
+            environmentId={state.environmentId}
+            onEnvironmentIdChange={state.onEnvironmentIdChange}
+            applications={applications}
+            applicationId={state.applicationId}
+            onApplicationIdChange={state.onApplicationIdChange}
+            apis={apis}
+            apiId={state.apiId}
+            onApiIdChange={state.onApiIdChange}
+            datePreset={state.datePreset}
+            onDatePresetChange={state.onDatePresetChange}
+            customRange={state.customRange}
+            onCustomRangeChange={state.onCustomRangeChange}
+            onReset={state.handleReset}
+            onExport={() => state.setExportOpen(true)}
+        />
+    );
 
     return (
         <div className="space-y-4">
             <AuditPageHeading description={description} />
-
+            {isError ? <p className="text-sm text-destructive">Failed to load audit logs. Please try again.</p> : null}
             <AuditLogsTable
-                rows={rows}
-                loading={loading}
+                rows={isError ? [] : rows}
+                loading={!isError && loading}
                 page={state.page}
                 pageSize={state.pageSize}
-                totalCount={totalCount}
+                totalCount={isError ? 0 : totalCount}
                 onPageChange={state.setPage}
                 onPageSizeChange={size => {
                     state.setPageSize(size);
@@ -78,31 +100,7 @@ export function AuditLogsPageView({
                 selected={state.selected}
                 onSelectRow={state.setSelected}
                 onCloseDetail={() => state.setSelected(null)}
-                toolbar={
-                    <AuditLogsFilters
-                        scope={scope}
-                        eventTypes={eventTypes}
-                        event={state.event}
-                        onEventChange={state.onEventChange}
-                        referenceType={state.referenceType}
-                        onReferenceTypeChange={state.onReferenceTypeChange}
-                        environments={environments}
-                        environmentId={state.environmentId}
-                        onEnvironmentIdChange={state.onEnvironmentIdChange}
-                        applications={applications}
-                        applicationId={state.applicationId}
-                        onApplicationIdChange={state.onApplicationIdChange}
-                        apis={apis}
-                        apiId={state.apiId}
-                        onApiIdChange={state.onApiIdChange}
-                        datePreset={state.datePreset}
-                        onDatePresetChange={state.onDatePresetChange}
-                        customRange={state.customRange}
-                        onCustomRangeChange={state.onCustomRangeChange}
-                        onReset={state.handleReset}
-                        onExport={() => state.setExportOpen(true)}
-                    />
-                }
+                toolbar={filters}
             />
             <AuditExportDialog
                 open={state.exportOpen}

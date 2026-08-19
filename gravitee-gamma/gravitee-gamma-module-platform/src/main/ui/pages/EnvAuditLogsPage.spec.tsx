@@ -16,12 +16,13 @@
 
 import { useEnvironment, useHasFeature } from '@gravitee/gamma-modules-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 import { EnvAuditLogsPage } from './EnvAuditLogsPage';
 import { useAuditApis, useAuditApplications, useAuditEvents, useAuditLogs } from '../features/audit-logs/hooks/useAuditLogs';
 import type { AuditEntity, AuditMetadataPage } from '../features/audit-logs/types/auditLog';
+import { ApimApiError } from '../shared/api/apimClient';
 
 const mockNavigate = jest.fn();
 
@@ -66,16 +67,17 @@ const PAGE: AuditMetadataPage = {
     metadata: { 'USER:user-1:name': 'Grace Hopper', 'APPLICATION:app-1:name': 'Portal' },
 };
 
-function renderPage() {
+function renderPage(permissions: string[] = ['environment-audit-r']) {
     const queryClient = new QueryClient();
-    queryClient.setQueryData(['environment-permissions', 'prod'], ['environment-audit-r']);
-    return render(
+    queryClient.setQueryData(['environment-permissions', 'prod'], permissions);
+    const view = render(
         <QueryClientProvider client={queryClient}>
             <MemoryRouter initialEntries={['/environment-audit']}>
                 <EnvAuditLogsPage />
             </MemoryRouter>
         </QueryClientProvider>,
     );
+    return { ...view, queryClient };
 }
 
 describe('EnvAuditLogsPage', () => {
@@ -102,5 +104,19 @@ describe('EnvAuditLogsPage', () => {
         renderPage();
         expect(screen.getByText(/part of Gravitee Enterprise/i)).not.toBeNull();
         expect(mockUseAuditLogs).toHaveBeenCalledWith('environment', expect.anything(), 'prod', false);
+    });
+
+    it('on 403 strips only environment-audit permissions so Organization Audit stays available', async () => {
+        mockUseAuditLogs.mockReturnValue({
+            data: undefined,
+            isLoading: false,
+            isError: true,
+            error: new ApimApiError(403, 'Forbidden'),
+        } as ReturnType<typeof useAuditLogs>);
+
+        const { queryClient } = renderPage(['organization-audit-r', 'environment-audit-r']);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('../applications', { replace: true }));
+        expect(queryClient.getQueryData(['environment-permissions', 'prod'])).toEqual(['organization-audit-r']);
     });
 });

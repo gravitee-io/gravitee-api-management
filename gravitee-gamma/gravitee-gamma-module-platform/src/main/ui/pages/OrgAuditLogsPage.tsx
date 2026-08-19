@@ -31,7 +31,6 @@ import { useAuditLogsPageState } from '../features/audit-logs/hooks/useAuditLogs
 import { APIM_AUDIT_TRAIL_FEATURE } from '../features/audit-logs/license/auditTrailLicense';
 import { exportOrgAudits } from '../features/audit-logs/services/auditLogs';
 import { toAuditLogRow } from '../features/audit-logs/utils/auditListFormat';
-import { AUDIT_PERMISSION_PREFIXES } from '../features/audit-logs/utils/auditPermissions';
 import { useForbiddenResourceRedirect } from '../shared/hooks/useForbiddenResourceRedirect';
 import { isForbiddenApiError } from '../shared/utils/apiErrors';
 
@@ -50,7 +49,7 @@ export function OrgAuditLogsPage() {
     const isForbidden = isForbiddenApiError(Boolean(logsQuery.isError), logsQuery.error);
     useForbiddenResourceRedirect({
         isForbidden,
-        permissionPrefix: AUDIT_PERMISSION_PREFIXES,
+        permissionPrefix: 'organization-audit-',
         redirectTo: '../applications',
     });
 
