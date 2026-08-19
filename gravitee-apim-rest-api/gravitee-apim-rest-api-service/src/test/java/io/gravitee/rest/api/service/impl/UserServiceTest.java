@@ -1813,14 +1813,35 @@ public class UserServiceTest {
     }
 
     @Test
-    public void shouldNotPersistClaimsWhenNoWhitelistConfigured() throws IOException, TechnicalException {
+    public void shouldPurgePersistedClaimsWhenWhitelistCleared() throws IOException, TechnicalException {
         reset(identityProvider, userRepository);
         mockDefaultEnvironment();
 
         User user = mockUser();
-        // Pre-set a sentinel so the assertion actually pins the no-op: if the whitelist guard were removed, the code
-        // would overwrite this with an empty map. mockUser() leaves idpClaims null, which would make assertNull vacuous.
-        user.setIdpClaims(Map.of("pre_existing", "value"));
+        user.setIdpClaims(Map.of("org_id", "org-42"));
+        when(userRepository.findBySource(null, user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
+        when(identityProvider.getPersistedClaimsWhitelist()).thenReturn(Collections.emptyList());
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+
+        // Nothing whitelisted means nothing retained, so an administrator who clears the whitelist to stop capturing a
+        // sensitive claim also gets the already-captured value removed (APIM-14840)
+        assertNull(user.getIdpClaims());
+    }
+
+    @Test
+    public void shouldPurgePersistedClaimsWhenWhitelistNotConfigured() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository);
+        mockDefaultEnvironment();
+
+        User user = mockUser();
+        user.setIdpClaims(Map.of("org_id", "org-42"));
         when(userRepository.findBySource(null, user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
         when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
@@ -1831,8 +1852,28 @@ public class UserServiceTest {
 
         userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
 
-        // No whitelist configured → the persistence path is a no-op and leaves the existing claims untouched
-        assertEquals(Map.of("pre_existing", "value"), user.getIdpClaims());
+        assertNull(user.getIdpClaims());
+    }
+
+    @Test
+    public void shouldNotUpdateUserWhenThereAreNoClaimsToPurge() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository);
+        mockDefaultEnvironment();
+
+        User user = mockUser();
+        when(userRepository.findBySource(null, user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+
+        // The common case is no whitelist and no stored claims: purging must not cost an extra write on every login,
+        // so the only update is the one the profile refresh already performs
+        verify(userRepository, times(1)).update(any(User.class));
     }
 
     @Test

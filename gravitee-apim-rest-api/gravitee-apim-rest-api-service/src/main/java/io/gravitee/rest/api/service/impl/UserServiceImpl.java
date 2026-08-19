@@ -1891,7 +1891,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     /**
      * Persists the IdP claims whitelisted on the social identity provider onto the user record, refreshing them on
-     * every login. When no whitelist is configured the feature is inactive and the user record is left untouched.
+     * every login. An absent or empty whitelist means nothing may be retained, so previously captured claims are
+     * removed instead of being left behind (APIM-14840).
      */
     private void persistWhitelistedClaims(
         List<String> whitelist,
@@ -1900,16 +1901,21 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         String accessTokenPayload,
         String idTokenPayload
     ) {
-        if (whitelist == null || whitelist.isEmpty()) {
-            return;
-        }
-        Map<String, String> idpClaims = extractWhitelistedClaims(whitelist, userInfo, accessTokenPayload, idTokenPayload);
+        // Null rather than an empty map: both backends serialize an empty map verbatim, which would leave the stored
+        // claims populated with "{}" instead of cleared.
+        Map<String, String> idpClaims = whitelist == null || whitelist.isEmpty()
+            ? null
+            : extractWhitelistedClaims(whitelist, userInfo, accessTokenPayload, idTokenPayload);
         try {
             Optional<User> optionalUser = userRepository.findById(userId);
             if (optionalUser.isPresent()) {
                 User user = optionalUser.get();
-                user.setIdpClaims(idpClaims);
-                userRepository.update(user);
+                // Every login reaches this point and most deployments configure no whitelist at all, so without this
+                // guard the common case would add a redundant write to each login.
+                if (!Objects.equals(user.getIdpClaims(), idpClaims)) {
+                    user.setIdpClaims(idpClaims);
+                    userRepository.update(user);
+                }
             }
         } catch (TechnicalException e) {
             log.warn("Unable to persist IdP claims for user {}", userId, e);
