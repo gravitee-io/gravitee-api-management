@@ -29,6 +29,7 @@ import {
 } from '../features/audit-logs/hooks/useAuditLogs';
 import { exportOrgAudits } from '../features/audit-logs/services/auditLogs';
 import type { AuditEntity, AuditMetadataPage } from '../features/audit-logs/types/auditLog';
+import { ApimApiError } from '../shared/api/apimClient';
 import { notify } from '../shared/notify';
 
 const mockNavigate = jest.fn();
@@ -83,16 +84,17 @@ const PAGE: AuditMetadataPage = {
     metadata: { 'USER:user-1:name': 'Ada Lovelace', 'API:api-1:name': 'Pets' },
 };
 
-function renderPage() {
+function renderPage(permissions: string[] = ['organization-audit-r']) {
     const queryClient = new QueryClient();
-    queryClient.setQueryData(['environment-permissions', 'env-1'], ['organization-audit-r']);
-    return render(
+    queryClient.setQueryData(['environment-permissions', 'env-1'], permissions);
+    const view = render(
         <QueryClientProvider client={queryClient}>
             <MemoryRouter initialEntries={['/organization-audit']}>
                 <OrgAuditLogsPage />
             </MemoryRouter>
         </QueryClientProvider>,
     );
+    return { ...view, queryClient };
 }
 
 describe('OrgAuditLogsPage', () => {
@@ -136,6 +138,21 @@ describe('OrgAuditLogsPage', () => {
         expect(notify.success).toHaveBeenCalledWith('Audit logs exported.');
     });
 
+    it('keeps filters on screen when the audit search fails', () => {
+        mockUseAuditLogs.mockReturnValue({
+            data: undefined,
+            isLoading: false,
+            isError: true,
+            error: new Error('network'),
+        } as ReturnType<typeof useAuditLogs>);
+
+        renderPage();
+
+        expect(screen.getByText('Failed to load audit logs. Please try again.')).not.toBeNull();
+        expect(screen.getByLabelText('Filter by event type')).not.toBeNull();
+        expect(screen.getByLabelText('Filter by time period')).not.toBeNull();
+    });
+
     it('does not change relative time bounds on rerender after a date filter is selected', () => {
         let now = 1_800_000_000_000;
         jest.spyOn(Date, 'now').mockImplementation(() => {
@@ -167,5 +184,19 @@ describe('OrgAuditLogsPage', () => {
         const afterRerender = mockUseAuditLogs.mock.calls.at(-1)?.[1] as { from?: number; to?: number };
         expect(afterRerender.from).toBe(afterSelect.from);
         expect(afterRerender.to).toBe(afterSelect.to);
+    });
+
+    it('on 403 strips only organization-audit permissions so Environment Audit stays available', async () => {
+        mockUseAuditLogs.mockReturnValue({
+            data: undefined,
+            isLoading: false,
+            isError: true,
+            error: new ApimApiError(403, 'Forbidden'),
+        } as ReturnType<typeof useAuditLogs>);
+
+        const { queryClient } = renderPage(['organization-audit-r', 'environment-audit-r']);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('../applications', { replace: true }));
+        expect(queryClient.getQueryData(['environment-permissions', 'env-1'])).toEqual(['environment-audit-r']);
     });
 });

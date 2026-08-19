@@ -21,6 +21,3 @@ export const ENVIRONMENT_AUDIT_READ_PERMISSION = 'environment-audit-r' as const;
 // `environment-audit-r` gates the Environment one. Granting only one must not surface the other.
 export const ORGANIZATION_AUDIT_READ_PERMISSIONS = [ORGANIZATION_AUDIT_READ_PERMISSION] as const;
 export const ENVIRONMENT_AUDIT_READ_PERMISSIONS = [ENVIRONMENT_AUDIT_READ_PERMISSION] as const;
-
-// The 403 redirect strips both prefixes: either grant can be the one the backend just revoked.
-export const AUDIT_PERMISSION_PREFIXES = ['organization-audit-', 'environment-audit-'] as const;

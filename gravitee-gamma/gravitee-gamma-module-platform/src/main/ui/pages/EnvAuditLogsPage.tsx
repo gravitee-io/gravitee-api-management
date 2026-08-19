@@ -26,7 +26,6 @@ import { APIM_AUDIT_TRAIL_FEATURE } from '../features/audit-logs/license/auditTr
 import { exportEnvAudits } from '../features/audit-logs/services/auditLogs';
 import type { AuditSearchParams } from '../features/audit-logs/types/auditLog';
 import { toAuditLogRow } from '../features/audit-logs/utils/auditListFormat';
-import { AUDIT_PERMISSION_PREFIXES } from '../features/audit-logs/utils/auditPermissions';
 import { useForbiddenResourceRedirect } from '../shared/hooks/useForbiddenResourceRedirect';
 import { isForbiddenApiError } from '../shared/utils/apiErrors';
 
@@ -51,7 +50,7 @@ export function EnvAuditLogsPage() {
     const isForbidden = isForbiddenApiError(Boolean(logsQuery.isError), logsQuery.error);
     useForbiddenResourceRedirect({
         isForbidden,
-        permissionPrefix: AUDIT_PERMISSION_PREFIXES,
+        permissionPrefix: 'environment-audit-',
         redirectTo: '../applications',
     });
 
