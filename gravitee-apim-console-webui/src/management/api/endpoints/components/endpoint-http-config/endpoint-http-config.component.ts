@@ -169,7 +169,12 @@ export class EndpointHttpConfigComponent implements OnDestroy, OnChanges {
   }
 
   public static getHttpConfigValue(httpConfigFormGroup: UntypedFormGroup): EndpointHttpConfigValue {
-    return httpConfigFormGroup.getRawValue();
+    const value = httpConfigFormGroup.getRawValue();
+    if (value.httpClientOptions?.version === 'HTTP_1_1') {
+      // h2c cleartext upgrade is an HTTP/2-only mechanism; it must never be submitted as true for HTTP/1.1 (APIM-14964).
+      value.httpClientOptions.clearTextUpgrade = false;
+    }
+    return value;
   }
 
   @Input()
