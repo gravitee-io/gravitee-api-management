@@ -16,14 +16,19 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.portal_page.exception.PortalPageContentTooLargeException;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
 @RequiredArgsConstructor
 public class PortalPageContentValidatorService {
+
+    private static final int MAX_CONTENT_SIZE_IN_MEGA_BYTES = 10;
+    private static final int MAX_CONTENT_SIZE_IN_BYTES = MAX_CONTENT_SIZE_IN_MEGA_BYTES * 1024 * 1024;
 
     private final List<PortalPageContentValidator> validators;
 
@@ -32,5 +37,15 @@ public class PortalPageContentValidatorService {
             .stream()
             .filter(validator -> validator.appliesTo(existingContent))
             .forEach(validator -> validator.validate(existingContent, updateContent));
+    }
+
+    /**
+     * Deliberately not part of {@link #validateForUpdate}: the cap constrains the Management API update
+     * endpoint (file import) only, so Automation API flows keep accepting existing definitions unchanged.
+     */
+    public void validateContentSize(String content) {
+        if (content != null && content.getBytes(StandardCharsets.UTF_8).length > MAX_CONTENT_SIZE_IN_BYTES) {
+            throw new PortalPageContentTooLargeException(MAX_CONTENT_SIZE_IN_MEGA_BYTES);
+        }
     }
 }

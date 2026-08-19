@@ -64,6 +64,7 @@ public class UpdatePortalPageContentUseCase {
 
         PortalPageContent<?> targetContent = withRequestedType(existingContent, input.updatePortalPageContent());
 
+        validatorService.validateContentSize(input.updatePortalPageContent().getContent());
         validatorService.validateForUpdate(targetContent, input.updatePortalPageContent());
 
         targetContent.update(input.updatePortalPageContent());

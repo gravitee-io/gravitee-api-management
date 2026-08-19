@@ -39,6 +39,7 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationEnclosin
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
+import io.gravitee.apim.core.portal_page.exception.PortalPageContentTooLargeException;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
@@ -147,6 +148,21 @@ class UpdatePortalPageContentUseCaseTest {
         final var updatedContent = (GraviteeMarkdownPageContent) output.portalPageContent();
         assertThat(updatedContent.getContent().value()).isEqualTo("Updated content");
         assertThat(updatedContent.getId()).isEqualTo(PortalPageContentId.of(CONTENT_ID));
+    }
+
+    @Test
+    void should_reject_update_when_content_exceeds_the_max_size() {
+        // Given
+        final var updateContent = UpdatePortalPageContent.builder().content("a".repeat(10 * 1024 * 1024 + 1)).build();
+        final var input = UpdatePortalPageContentUseCase.Input.builder()
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .portalPageContentId(CONTENT_ID)
+            .updatePortalPageContent(updateContent)
+            .build();
+
+        // When & Then
+        assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(PortalPageContentTooLargeException.class);
     }
 
     @Test

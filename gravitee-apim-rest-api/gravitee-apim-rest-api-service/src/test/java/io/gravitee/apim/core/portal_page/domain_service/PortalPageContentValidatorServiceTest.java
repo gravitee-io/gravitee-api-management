@@ -15,12 +15,15 @@
  */
 package io.gravitee.apim.core.portal_page.domain_service;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.portal_page.exception.PortalPageContentTooLargeException;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
@@ -54,6 +57,32 @@ class PortalPageContentValidatorServiceTest {
 
         // Then
         verify(mockValidator).appliesTo(existingContent);
+        verify(mockValidator).validate(existingContent, updateContent);
+    }
+
+    @Test
+    void should_throw_when_content_exceeds_the_max_size() {
+        assertThatThrownBy(() -> service.validateContentSize("a".repeat(10 * 1024 * 1024 + 1)))
+            .isInstanceOf(PortalPageContentTooLargeException.class)
+            .hasMessage("Content must not exceed 10 MB");
+    }
+
+    @Test
+    void should_accept_content_at_the_max_size() {
+        assertThatCode(() -> service.validateContentSize("a".repeat(10 * 1024 * 1024))).doesNotThrowAnyException();
+    }
+
+    @Test
+    void should_not_check_the_size_on_update_validation() {
+        // Automation API flows go through validateForUpdate: the cap must not apply to them
+        PortalPageContent existingContent = GraviteeMarkdownPageContent.create("org", "env", "old");
+        UpdatePortalPageContent updateContent = UpdatePortalPageContent.builder().content("a".repeat(10 * 1024 * 1024 + 1)).build();
+        when(mockValidator.appliesTo(existingContent)).thenReturn(true);
+
+        // When
+        service.validateForUpdate(existingContent, updateContent);
+
+        // Then
         verify(mockValidator).validate(existingContent, updateContent);
     }
 
