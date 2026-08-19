@@ -16,7 +16,7 @@
 import { Header } from '@gravitee/ui-particles-angular';
 import { FormControl } from '@angular/forms';
 
-import { toGioFormHeader, toDictionary, uniqueKeysValidator } from './gio-form-header.util';
+import { toGioFormHeader, toDictionary, uniqueKeysValidator, nonBlankEntriesValidator } from './gio-form-header.util';
 
 describe('toGioFormHeader', () => {
   it('should return an empty array when the input is undefined', () => {
@@ -70,6 +70,32 @@ describe('toDictionary', () => {
     };
     const result = toDictionary(input);
     expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe('nonBlankEntriesValidator', () => {
+  it('should return null when there are no entries', () => {
+    expect(nonBlankEntriesValidator()(new FormControl([]))).toBeNull();
+  });
+
+  it('should return null when every entry has both sides filled', () => {
+    const headers: Header[] = [{ key: 'org_id', value: 'metadata.organization' }];
+    expect(nonBlankEntriesValidator()(new FormControl(headers))).toBeNull();
+  });
+
+  it('should reject an entry with no key', () => {
+    const headers: Header[] = [{ key: '', value: 'metadata.organization' }];
+    expect(nonBlankEntriesValidator()(new FormControl(headers))).toEqual({ blankEntries: true });
+  });
+
+  it('should reject an entry with no value', () => {
+    const headers: Header[] = [{ key: 'org_id', value: '' }];
+    expect(nonBlankEntriesValidator()(new FormControl(headers))).toEqual({ blankEntries: true });
+  });
+
+  it('should reject an entry that only holds whitespace', () => {
+    const headers: Header[] = [{ key: '  ', value: 'metadata.organization' }];
+    expect(nonBlankEntriesValidator()(new FormControl(headers))).toEqual({ blankEntries: true });
   });
 });
 

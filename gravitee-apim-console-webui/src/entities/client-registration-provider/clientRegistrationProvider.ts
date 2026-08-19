@@ -31,6 +31,7 @@ export class ClientRegistrationProvider {
   public renew_client_secret_method: string;
   public software_id: string;
   public updated_at: number;
+  public claimMappings?: Record<string, string>;
   public trust_store?: Exclude<TrustStore, PEMTrustStore>;
   public key_store?: Exclude<KeyStore, PEMKeyStore>;
 }

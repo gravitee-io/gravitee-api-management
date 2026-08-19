@@ -26,4 +26,5 @@ export interface NewIdentityProvider {
   userProfileMapping?: IdentityProviderUserProfileMapping;
   emailRequired?: boolean;
   syncMappings?: boolean;
+  persistedClaimsWhitelist?: string[];
 }

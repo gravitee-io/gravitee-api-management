@@ -101,6 +101,7 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
       description: new UntypedFormControl(),
       emailRequired: new UntypedFormControl(true),
       syncMappings: new UntypedFormControl(false),
+      persistedClaimsWhitelist: new UntypedFormControl([]),
     });
 
     this.identityProviderFormGroup

@@ -83,6 +83,7 @@ export interface IdentityProvider {
   userProfileMapping?: IdentityProviderUserProfileMapping;
   emailRequired?: boolean;
   syncMappings?: boolean;
+  persistedClaimsWhitelist?: string[];
   requiredUrlParams?: string[];
   optionalUrlParams?: string[];
   // @deprecated
