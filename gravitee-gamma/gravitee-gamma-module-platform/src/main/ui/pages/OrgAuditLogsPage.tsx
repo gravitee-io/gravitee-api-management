@@ -73,7 +73,7 @@ export function OrgAuditLogsPage() {
             state={state}
             rows={rows}
             totalCount={logsQuery.data?.totalElements ?? 0}
-            loading={logsQuery.isLoading}
+            loading={logsQuery.isFetching}
             isError={Boolean(logsQuery.isError)}
             eventTypes={eventsQuery.data ?? []}
             environments={environmentsQuery.data ?? []}

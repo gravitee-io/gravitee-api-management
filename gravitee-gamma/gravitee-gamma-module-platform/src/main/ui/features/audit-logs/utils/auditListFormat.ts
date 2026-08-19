@@ -42,12 +42,13 @@ export function formatAuditTargetText(targets: Array<{ key: string; value: strin
 }
 
 export function toAuditLogRow(audit: AuditEntity, metadata: Record<string, unknown>): AuditLogRow {
+    const referenceType = audit.referenceType ?? '';
     return {
         id: audit.id,
         createdAt: auditTimestamp(audit.createdAt),
         user: metadataName(metadata, `USER:${audit.user}:name`) ?? audit.user,
-        referenceType: audit.referenceType,
-        reference: metadataName(metadata, `${audit.referenceType}:${audit.referenceId}:name`) ?? audit.referenceId,
+        referenceType,
+        reference: metadataName(metadata, `${referenceType}:${audit.referenceId}:name`) ?? audit.referenceId,
         event: audit.event,
         targets: formatAuditTargets(audit.properties, metadata),
         patch: audit.patch ?? '',

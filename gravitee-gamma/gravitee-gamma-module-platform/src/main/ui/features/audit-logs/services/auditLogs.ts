@@ -19,7 +19,9 @@ import type { AuditGroupedRefs, AuditMetadataPage, AuditNamedRef, AuditSearchPar
 
 export const AUDIT_EXPORT_MAX_ROWS = 10_000;
 export const AUDIT_EXPORT_PAGE_SIZE = 1_000;
-const API_LIST_PAGE_SIZE = 200;
+// Large page size on purpose: this only fills a filter dropdown, and on the org page it runs once per
+// environment, so a small page size multiplies into hundreds of round-trips.
+const API_LIST_PAGE_SIZE = 9_999;
 
 export class AuditExportLimitError extends Error {
     constructor(readonly totalElements: number) {

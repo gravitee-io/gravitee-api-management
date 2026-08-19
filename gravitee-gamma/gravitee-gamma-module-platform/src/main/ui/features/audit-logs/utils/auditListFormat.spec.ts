@@ -65,6 +65,12 @@ describe('auditListFormat', () => {
         expect(metadataName({}, 'USER:user-1:name')).toBeUndefined();
     });
 
+    it('normalises a null referenceType, which the API emits for unresolved audits', () => {
+        const row = toAuditLogRow({ ...audit, referenceType: null }, metadata);
+        expect(row.referenceType).toBe('');
+        expect(row.reference).toBe('env-1');
+    });
+
     it('maps date presets to from/to epoch milliseconds', () => {
         const now = 1_800_000_000_000;
         expect(resolveAuditDateRange('24h', undefined, now)).toEqual({ from: now - 24 * 60 * 60 * 1000, to: now });

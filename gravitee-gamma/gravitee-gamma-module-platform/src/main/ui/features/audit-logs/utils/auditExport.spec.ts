@@ -69,6 +69,12 @@ describe('auditExport', () => {
         expect(csv).not.toContain("'Ada");
     });
 
+    it('exports rows whose referenceType the API left unset', () => {
+        const row = { ...ROW, referenceType: null as unknown as string };
+        expect(auditLogsToCsv([row])).toContain('Ada Lovelace,,Pets');
+        expect(JSON.parse(auditLogsToJson([row]))).toEqual([expect.objectContaining({ reference: 'Pets' })]);
+    });
+
     it('serializes table columns to JSON', () => {
         const parsed = JSON.parse(auditLogsToJson([ROW])) as Array<{ event: string; target: string }>;
         expect(parsed).toEqual([

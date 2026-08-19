@@ -19,7 +19,6 @@ import type { DateRange } from 'react-day-picker';
 
 import { useResolvedAuditDateRange } from './useResolvedAuditDateRange';
 import { notify } from '../../../shared/notify';
-import { AuditExportLimitError } from '../services/auditLogs';
 import type {
     AuditDatePreset,
     AuditExportFormat,
@@ -109,7 +108,9 @@ export function useAuditLogsPageState(exportAudits: ExportAudits) {
                 notify.success('Audit logs exported.');
                 setExportOpen(false);
             } catch (error) {
-                notify.error(error, error instanceof AuditExportLimitError ? error.message : 'Failed to export audit logs.');
+                // `notify.error` surfaces `error.message` for any Error, so AuditExportLimitError's own
+                // message reaches the user; the fallback only covers non-Error throws.
+                notify.error(error, 'Failed to export audit logs.');
             } finally {
                 setExporting(false);
             }
