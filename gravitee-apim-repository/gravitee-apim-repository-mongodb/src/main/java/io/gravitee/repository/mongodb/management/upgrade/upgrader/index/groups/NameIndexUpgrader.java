@@ -33,4 +33,14 @@ public class NameIndexUpgrader extends IndexUpgrader {
             .key("name", ascending())
             .build();
     }
+
+    /**
+     * Run after the collation index name_collation_1 (GroupsEnvironmentIdCollationIndexUpgrader) on the same key pattern. On Amazon DocumentDB
+     * only one index per key pattern can exist: the collation one must be created first because it is the one used by
+     * the case-insensitive queries, this one is then skipped (see IndexUpgrader).
+     */
+    @Override
+    public int getOrder() {
+        return 1;
+    }
 }
