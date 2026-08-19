@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.heartbeat.impl;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.node.api.cluster.messaging.Message;
 import io.gravitee.node.api.cluster.messaging.MessageListener;
@@ -44,9 +45,10 @@ public class HeartbeatEventListener implements MessageListener<Event> {
     }
 
     /**
-     * Visible for testing: lets the test provide the executor the events are processed on, so it can wait for a
-     * submitted task to be fully completed instead of relying on timings.
+     * Lets the test provide the executor the events are processed on, so it can wait for a submitted task to be fully
+     * completed instead of relying on timings.
      */
+    @VisibleForTesting
     HeartbeatEventListener(
         final ClusterManager clusterManager,
         final EventRepository eventRepository,
