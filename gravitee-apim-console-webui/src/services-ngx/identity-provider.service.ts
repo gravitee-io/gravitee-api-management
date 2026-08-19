@@ -55,6 +55,7 @@ export class IdentityProviderService {
         userProfileMapping: identityProvider.userProfileMapping,
         emailRequired: identityProvider.emailRequired,
         syncMappings: identityProvider.syncMappings,
+        persistedClaimsWhitelist: identityProvider.persistedClaimsWhitelist,
       })
       .pipe(
         map(identityProvider => ({

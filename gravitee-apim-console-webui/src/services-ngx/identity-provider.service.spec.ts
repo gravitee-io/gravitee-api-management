@@ -114,6 +114,7 @@ describe('IdentityProviderService', () => {
         enabled: identityProviderToUpdate.enabled,
         groupMappings: identityProviderToUpdate.groupMappings,
         name: identityProviderToUpdate.name,
+        persistedClaimsWhitelist: identityProviderToUpdate.persistedClaimsWhitelist,
         roleMappings: identityProviderToUpdate.roleMappings,
         syncMappings: identityProviderToUpdate.syncMappings,
         userProfileMapping: identityProviderToUpdate.userProfileMapping,

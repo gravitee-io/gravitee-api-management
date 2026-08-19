@@ -314,6 +314,32 @@
     </mat-card-content>
   </mat-card>
 
+  <mat-card class="client-registration-provider__card">
+    <mat-card-content class="client-registration-provider__card__content">
+      <h2>Claim Mappings</h2>
+
+      <p class="client-registration-provider__card__content__description">
+        Inject claims persisted from the user's identity provider into the dynamic client registration request, so the provider receives
+        tenant or user context. Each mapping takes a claim name and the field of the registration request to write it to. A claim the user
+        does not have is skipped.
+      </p>
+
+      <gio-form-headers formControlName="claimMappings" [autocompleteDisabled]="true">
+        <gio-form-headers-label>Claim name (key) and registration request field (value)</gio-form-headers-label>
+      </gio-form-headers>
+      @if (providerForm.get('claimMappings')?.hasError('nonUniqueKeys')) {
+        <mat-error>Claim names must be unique</mat-error>
+      }
+      @if (providerForm.get('claimMappings')?.hasError('blankEntries')) {
+        <mat-error>Every mapping needs both a claim name and a registration request field</mat-error>
+      }
+      <p class="client-registration-provider__card__content__description">
+        Only extension fields can be written, using dot notation for nested ones such as <code>metadata.organization</code>. Standard
+        registration fields defined by the specification, <code>client_name</code> among them, are rejected.
+      </p>
+    </mat-card-content>
+  </mat-card>
+
   <gio-save-bar
     *gioPermission="{ anyOf: ['environment-client_registration_provider-c', 'environment-client_registration_provider-u'] }"
     [creationMode]="!updateMode"

@@ -21,6 +21,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute } from '@angular/router';
 import { UntypedFormGroup } from '@angular/forms';
+import { GioFormHeadersHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
 import { ClientRegistrationProviderComponent } from './client-registration-provider.component';
 
@@ -84,6 +85,7 @@ describe('ClientRegistrationProvider', () => {
       expect(loader).toBeTruthy();
       const newProvider = {
         ...fakeNewClientRegistrationProvider(),
+        claimMappings: [{ key: 'org_id', value: 'metadata.organization' }],
         trust_store: {
           type: 'NONE',
           pathOrContent: 'PATH',
@@ -114,6 +116,7 @@ describe('ClientRegistrationProvider', () => {
         method: 'POST',
         url: `${CONSTANTS_TESTING.env.baseURL}/configuration/applications/registration/providers`,
       });
+      expect(req.request.body.claimMappings).toStrictEqual({ org_id: 'metadata.organization' });
       req.flush(PROVIDER);
     });
 
@@ -178,6 +181,70 @@ describe('ClientRegistrationProvider', () => {
     });
   });
 
+  describe('claim mappings', () => {
+    const providerWithClaimMappings = fakeClientRegistrationProvider({
+      claimMappings: { org_id: 'metadata.organization' },
+    });
+
+    async function initWith(provider: typeof providerWithClaimMappings) {
+      initComponent(provider.id);
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.env.baseURL}/configuration/applications/registration/providers/${provider.id}`,
+        })
+        .flush(provider);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+    }
+
+    it('should show the configured mappings and save an added one as a dictionary', async () => {
+      await initWith(providerWithClaimMappings);
+
+      const claimMappings = await loader.getHarness(GioFormHeadersHarness);
+      expect(await claimMappings.getValue()).toStrictEqual([{ key: 'org_id', value: 'metadata.organization' }]);
+
+      await claimMappings.addHeader({ key: 'department', value: 'metadata.department' });
+
+      fixture.componentInstance.onSubmit();
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.baseURL}/configuration/applications/registration/providers/${providerWithClaimMappings.id}`,
+      });
+      expect(req.request.body.claimMappings).toStrictEqual({
+        org_id: 'metadata.organization',
+        department: 'metadata.department',
+      });
+      req.flush(providerWithClaimMappings);
+    });
+
+    it('should not allow saving a mapping whose claim name is missing', async () => {
+      await initWith(providerWithClaimMappings);
+
+      const claimMappings = await loader.getHarness(GioFormHeadersHarness);
+      await claimMappings.addHeader({ key: '', value: 'metadata.department' });
+
+      // A blank claim name would otherwise be sent as the empty key of the dictionary
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(true);
+    });
+
+    it('should send an empty dictionary when no mapping is configured', async () => {
+      await initWith(fakeClientRegistrationProvider({ claimMappings: {} }));
+
+      fixture.componentInstance.onSubmit();
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.baseURL}/configuration/applications/registration/providers/${PROVIDER.id}`,
+      });
+      expect(req.request.body.claimMappings).toStrictEqual({});
+      req.flush(PROVIDER);
+    });
+  });
+
   describe('should update', () => {
     beforeEach(() => {
       initComponent(PROVIDER.id);
@@ -199,6 +266,7 @@ describe('ClientRegistrationProvider', () => {
       const base = fakeNewClientRegistrationProvider();
       const updateProvider = {
         ...base,
+        claimMappings: [{ key: 'org_id', value: 'metadata.organization' }],
         trust_store: {
           type: 'NONE',
           pathOrContent: 'PATH',

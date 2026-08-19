@@ -147,6 +147,30 @@
       ></org-settings-identity-provider-graviteeio-am>
     </ng-container>
 
+    @if (identityProviderType) {
+      <mat-card class="identity-provider__card">
+        <mat-card-content>
+          <h2 gioTableOfContents>Persisted Claims</h2>
+
+          <p class="identity-provider__card__description">
+            Claims listed here are read at each login, from the ID token, the access token or the user info endpoint, and stored on the user
+            profile, where a client registration provider can inject them into dynamic client registration requests. Only list the claims
+            you need: everything stored here is personal data. Emptying the list stops the capture and removes the claims already stored, on
+            the user's next login.
+          </p>
+
+          <mat-form-field class="identity-provider__card__form-field">
+            <mat-label>Claims to persist</mat-label>
+            <gio-form-tags-input
+              placeholder="Add a claim name and press Enter"
+              formControlName="persistedClaimsWhitelist"
+            ></gio-form-tags-input>
+            <mat-hint>Claim names exactly as the provider issues them, for example <code>org_id</code> or a namespaced claim.</mat-hint>
+          </mat-form-field>
+        </mat-card-content>
+      </mat-card>
+    }
+
     <mat-card *ngIf="mode === 'edit'" class="identity-provider__card" formArrayName="groupMappings">
       <mat-card-content>
         <h2 gioTableOfContents>Groups Mapping</h2>
