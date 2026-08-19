@@ -115,6 +115,10 @@ export class ApiRuntimeLogsHarness extends ComponentHarness {
       .then(btn => btn.click());
   }
 
+  async getMoreFiltersForm() {
+    return this.moreFiltersHarness().then(moreFilters => moreFilters.getFormOptional());
+  }
+
   async selectPeriodFromMoreFilters() {
     return this.moreFiltersHarness().then(quickFilters => quickFilters.getPeriodSelectInput());
   }

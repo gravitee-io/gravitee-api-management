@@ -25,6 +25,7 @@ export class ApiRuntimeLogsMoreFiltersHarness extends ComponentHarness {
   public getApplyButton = this.locatorFor(MatButtonHarness.with({ text: 'Show results' }));
   public getCloseButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Close"]' }));
   public getForm = this.locatorFor(ApiRuntimeLogsMoreFiltersFormHarness);
+  public getFormOptional = this.locatorForOptional(ApiRuntimeLogsMoreFiltersFormHarness);
 
   async getPeriodSelectInput() {
     return this.getForm().then(form => form.getPeriodSelectInput());
