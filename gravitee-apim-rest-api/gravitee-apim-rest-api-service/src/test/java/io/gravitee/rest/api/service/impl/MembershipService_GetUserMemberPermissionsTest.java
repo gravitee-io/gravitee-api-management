@@ -23,13 +23,19 @@ import static org.mockito.Mockito.verify;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.node.api.Node;
 import io.gravitee.repository.management.api.CommandRepository;
+import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -134,5 +140,105 @@ public class MembershipService_GetUserMemberPermissionsTest {
 
         verify(membershipService, times(2)).getUserMember(EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
         verify(commandRepository).create(any());
+    }
+
+    /**
+     * Regression test for cross-environment permission bleed.
+     *
+     * <p>Bug: A user assigned to PORTAL_GROUP (which carries LE_GROUP/PORTAL_APP_CREATOR with
+     * APPLICATION CREATE in DEV environment) also belongs to PORTAL_GROUP in TEST environment
+     * with UE_GROUP/PORTAL_APP_READER (APPLICATION READ only). When {@code getUserMember} is
+     * called for ENVIRONMENT "DEV", the returned permissions must include APPLICATION CREATE.
+     *
+     * <p>Root-cause: in {@code getUserMember()} the switch-statement for {@code entityGroups}
+     * falls through to {@code default -> Set.of()} for ENVIRONMENT reference type, so the
+     * group-membership block (which would bring in LE_GROUP's CREATE permission) is never
+     * entered. As a result only the direct ENVIRONMENT "DEV" membership – which in this
+     * scenario carries the READ-only UE_GROUP role that bled in from the TEST context –
+     * contributes to the returned permissions, and APPLICATION CREATE is absent.
+     */
+    @Test
+    public void should_return_correct_permissions_when_user_has_different_roles_in_different_environments() throws Exception {
+        // ---- local mocks (created via mock() so strict-stubbing rules from @Mock don't apply) ----
+        MembershipRepository localMembershipRepo = mock(MembershipRepository.class);
+        RoleService localRoleService = mock(RoleService.class);
+        UserService localUserService = mock(UserService.class);
+
+        // Constructor order: identityService, userService, applicationRepository, eventManager,
+        // primaryOwnerService, emailService, membershipRepository, roleService,
+        // applicationService, applicationAlertService, apiSearchService, apiGroupService,
+        // apiRepository, groupService, auditService, parameterService,
+        // integrationRepository, node, objectMapper, commandRepository,
+        // apiMetadataService, searchEngineService
+        MembershipServiceImpl localService = new MembershipServiceImpl(
+            null,
+            localUserService,
+            null,
+            null,
+            null,
+            null,
+            localMembershipRepo,
+            localRoleService,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+
+        String userId = "test-user-id";
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+
+        // --- Direct membership in ENVIRONMENT "DEV" carries only UE_GROUP (READ-only) ---
+        // This simulates the TEST-environment role that has bled into the DEV context due to the bug:
+        // the user's PORTAL_GROUP membership in TEST (UE_GROUP, APPLICATION READ) incorrectly
+        // surfaces as their direct ENVIRONMENT "DEV" permission instead of LE_GROUP (CREATE).
+        io.gravitee.repository.management.model.Membership directMembership = mock(
+            io.gravitee.repository.management.model.Membership.class
+        );
+        when(directMembership.getRoleId()).thenReturn("UE_GROUP_ROLE_ID");
+
+        when(
+            localMembershipRepo.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                userId,
+                io.gravitee.repository.management.model.MembershipMemberType.USER,
+                io.gravitee.repository.management.model.MembershipReferenceType.ENVIRONMENT,
+                "DEV"
+            )
+        ).thenReturn(Set.of(directMembership));
+
+        // UE_GROUP: APPLICATION READ only – the TEST-environment role
+        RoleEntity ueGroupRole = mock(RoleEntity.class);
+        when(ueGroupRole.getPermissions()).thenReturn(Map.of("APPLICATION", new char[] { 'R' }));
+        when(localRoleService.findByIds(Set.of("UE_GROUP_ROLE_ID"))).thenReturn(Map.of("UE_GROUP_ROLE_ID", ueGroupRole));
+
+        // User entity (field values can be null for this test)
+        UserEntity userEntity = mock(UserEntity.class);
+        when(localUserService.findById(executionContext, userId)).thenReturn(userEntity);
+
+        // ---- Act ----
+        MemberEntity result = localService.getUserMember(executionContext, MembershipReferenceType.ENVIRONMENT, "DEV", userId);
+
+        // ---- Assert ----
+        // The user belongs to PORTAL_GROUP whose LE_GROUP role in ENVIRONMENT "DEV"
+        // grants APPLICATION CREATE.  That group-based CREATE must appear in the result.
+        //
+        // FAILS with the current buggy code because:
+        //   * For ENVIRONMENT reference type, entityGroups = Set.of() (switch default branch)
+        //   * The group-membership block is therefore never entered
+        //   * Only the direct membership (UE_GROUP, APPLICATION READ) contributes
+        //   * Result permissions: APPLICATION -> ['R'], missing 'C' (CREATE)
+        assertThat(result).isNotNull();
+        assertThat(result.getPermissions()).containsKey("APPLICATION");
+        assertThat(result.getPermissions().get("APPLICATION")).contains('C');
     }
 }
