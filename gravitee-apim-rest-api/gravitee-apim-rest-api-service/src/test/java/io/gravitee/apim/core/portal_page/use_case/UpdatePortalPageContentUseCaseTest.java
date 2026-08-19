@@ -42,6 +42,7 @@ import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.SwaggerUiConfiguration;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
@@ -229,6 +230,80 @@ class UpdatePortalPageContentUseCaseTest {
         assertThatThrownBy(() -> useCase.execute(input))
             .isInstanceOf(PageContentNotFoundException.class)
             .hasMessage("Page content not found");
+    }
+
+    @Test
+    void should_replace_content_type_when_requested_type_differs() {
+        // Given: CONTENT_ID holds a GRAVITEE_MARKDOWN content
+        final var updateContent = UpdatePortalPageContent.builder()
+            .content("openapi: 3.0.3\ninfo:\n  title: Imported")
+            .type(PortalPageContentType.OPENAPI)
+            .build();
+        final var input = UpdatePortalPageContentUseCase.Input.builder()
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .portalPageContentId(CONTENT_ID)
+            .updatePortalPageContent(updateContent)
+            .build();
+
+        // When
+        final var output = useCase.execute(input);
+
+        // Then
+        assertThat(output.portalPageContent()).isInstanceOf(OpenApiPageContent.class);
+        assertThat(output.portalPageContent().getId()).isEqualTo(PortalPageContentId.of(CONTENT_ID));
+        final var updatedContent = (OpenApiPageContent) output.portalPageContent();
+        assertThat(updatedContent.getContent().value()).contains("title: Imported");
+    }
+
+    @Test
+    void should_keep_existing_type_when_requested_type_matches() {
+        // Given
+        final var updateContent = UpdatePortalPageContent.builder()
+            .content("Updated content")
+            .type(PortalPageContentType.GRAVITEE_MARKDOWN)
+            .build();
+        final var input = UpdatePortalPageContentUseCase.Input.builder()
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .portalPageContentId(CONTENT_ID)
+            .updatePortalPageContent(updateContent)
+            .build();
+
+        // When
+        final var output = useCase.execute(input);
+
+        // Then
+        assertThat(output.portalPageContent()).isInstanceOf(GraviteeMarkdownPageContent.class);
+        assertThat(((GraviteeMarkdownPageContent) output.portalPageContent()).getContent().value()).isEqualTo("Updated content");
+    }
+
+    @Test
+    void should_validate_against_the_requested_type_when_type_changes() {
+        // Given: an OPENAPI content updated towards GRAVITEE_MARKDOWN with empty content
+        final var contentId = PortalPageContentId.of("00000000-0000-0000-0000-000000000003");
+        final var openApiContent = PortalPageContentFixtures.anOpenApiPageContent(
+            contentId,
+            ORGANIZATION_ID,
+            ENVIRONMENT_ID,
+            "openapi: 3.0.3\ninfo:\n  title: Initial",
+            aSwaggerUiConfiguration()
+        );
+        queryService.initWith(List.of(openApiContent));
+        crudService.initWith(List.of(openApiContent));
+
+        final var updateContent = UpdatePortalPageContent.builder().content("").type(PortalPageContentType.GRAVITEE_MARKDOWN).build();
+        final var input = UpdatePortalPageContentUseCase.Input.builder()
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .portalPageContentId(contentId.toString())
+            .updatePortalPageContent(updateContent)
+            .build();
+
+        // When & Then
+        assertThatThrownBy(() -> useCase.execute(input))
+            .isInstanceOf(GraviteeMarkdownContentEmptyException.class)
+            .hasMessage("Content must not be null or empty");
     }
 
     @Test

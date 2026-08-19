@@ -181,6 +181,30 @@ class PortalPageContentMapperTest {
     }
 
     @Test
+    void should_map_update_portal_page_content_type_to_core_type() {
+        // Given
+        var content = new UpdatePortalPageContent().content("openapi: 3.0.0").type(PortalPageContentType.OPENAPI);
+
+        // When
+        var result = mapper.map(content);
+
+        // Then
+        assertThat(result.getType()).isEqualTo(io.gravitee.apim.core.portal_page.model.PortalPageContentType.OPENAPI);
+    }
+
+    @Test
+    void should_keep_core_type_null_when_update_has_no_type() {
+        // Given
+        var content = new UpdatePortalPageContent().content("# Hello");
+
+        // When
+        var result = mapper.map(content);
+
+        // Then
+        assertThat(result.getType()).isNull();
+    }
+
+    @Test
     void should_map_update_portal_page_content_configuration_to_core_configuration() {
         // Given
         var content = new UpdatePortalPageContent()

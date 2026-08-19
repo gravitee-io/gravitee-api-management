@@ -3075,6 +3075,12 @@ components:
           description: The updated content for the page
         configuration:
           $ref: "#/components/schemas/PortalPageOpenApiConfiguration"
+        type:
+          allOf:
+            - $ref: "#/components/schemas/PortalPageContentType"
+          description: >
+            When set and different from the current content type, the content is converted to this type.
+            Used by the file import, where the type is derived from the uploaded file extension.
       required: [ content ]
 
     # Subscription Forms

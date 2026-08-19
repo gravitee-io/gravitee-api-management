@@ -103,7 +103,7 @@ public class CreateOrUpdateApiDocumentationUseCase {
                 portalPageContentCrudService.delete(current.getId());
                 saved = portalPageContentCrudService.create(buildNew(sanitized, meta));
             } else {
-                var updateContent = new UpdatePortalPageContent(sanitized.content(), null);
+                var updateContent = UpdatePortalPageContent.builder().content(sanitized.content()).build();
                 pageContentValidatorService.validateForUpdate(current, updateContent);
                 current.update(updateContent, meta);
                 saved = portalPageContentCrudService.update(current);

@@ -15,12 +15,43 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
+import io.gravitee.apim.core.async_api.AsyncApi;
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.open_api.OpenApi;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import lombok.Getter;
 
 @Getter
 public abstract sealed class PortalPageContent<T> permits GraviteeMarkdownPageContent, OpenApiPageContent, AsyncApiPageContent {
+
+    public static PortalPageContent<?> of(
+        @Nonnull PortalPageContentType type,
+        @Nonnull PortalPageContentId id,
+        @Nonnull String organizationId,
+        @Nonnull String environmentId,
+        @Nonnull String content,
+        @Nullable AutomationMetadata automationMetadata
+    ) {
+        return switch (type) {
+            case GRAVITEE_MARKDOWN -> new GraviteeMarkdownPageContent(
+                id,
+                organizationId,
+                environmentId,
+                GraviteeMarkdown.of(content),
+                automationMetadata
+            );
+            case OPENAPI -> new OpenApiPageContent(
+                id,
+                organizationId,
+                environmentId,
+                OpenApi.of(content),
+                new RedocConfiguration(),
+                automationMetadata
+            );
+            case ASYNCAPI -> new AsyncApiPageContent(id, organizationId, environmentId, AsyncApi.of(content), automationMetadata);
+        };
+    }
 
     @Nonnull
     private final PortalPageContentId id;
