@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.node.api.Node;
@@ -59,8 +61,12 @@ public class PermissionIsolationRegressionTest {
     private static final String USER_ID = "user-1";
     private static final String GROUP_ID = "le-group";
     private static final String TEST_GROUP_ID = "le-group-test";
+    private static final String GROUP_A_ID = "le-group-a";
+    private static final String GROUP_B_ID = "le-group-b";
     private static final String ROLE_ADMIN_ID = "role-admin";
     private static final String ROLE_READER_ID = "role-reader";
+    private static final String ROLE_API_CREATOR_ID = "role-api-creator";
+    private static final String ROLE_API_READER_ID = "role-api-reader";
     private static final ExecutionContext EXECUTION_CONTEXT = GraviteeContext.getExecutionContext();
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -209,6 +215,106 @@ public class PermissionIsolationRegressionTest {
         assertThat(testPermissions.get("ENVIRONMENT")).containsExactly('R');
     }
 
+    @SneakyThrows
+    @Test
+    public void should_use_environment_scoped_cache_key_so_dev_and_test_are_independent() {
+        givenGroupMembershipOnEnvironment(DEV_ENV_ID, GROUP_ID, ROLE_ADMIN_ID);
+        givenGroupMembershipOnEnvironment(TEST_ENV_ID, TEST_GROUP_ID, ROLE_READER_ID);
+        givenRoles(adminRole(), readerRole());
+
+        Map<String, char[]> devPermissions = membershipService.getUserMemberPermissions(
+            EXECUTION_CONTEXT,
+            MembershipReferenceType.ENVIRONMENT,
+            DEV_ENV_ID,
+            USER_ID
+        );
+        Map<String, char[]> testPermissions = membershipService.getUserMemberPermissions(
+            EXECUTION_CONTEXT,
+            MembershipReferenceType.ENVIRONMENT,
+            TEST_ENV_ID,
+            USER_ID
+        );
+
+        // Each environment is cached under its own key (ENVIRONMENT#dev#user-1 and ENVIRONMENT#test#user-1)
+        assertThat(devPermissions).isNotSameAs(testPermissions);
+        assertThat(devPermissions.get("ENVIRONMENT")).contains('C');
+        assertThat(testPermissions.get("ENVIRONMENT")).containsExactly('R');
+
+        // And a second lookup hits the cache entry of the requested environment only
+        assertThat(
+            membershipService.getUserMemberPermissions(EXECUTION_CONTEXT, MembershipReferenceType.ENVIRONMENT, DEV_ENV_ID, USER_ID)
+        ).isSameAs(devPermissions);
+        assertThat(
+            membershipService.getUserMemberPermissions(EXECUTION_CONTEXT, MembershipReferenceType.ENVIRONMENT, TEST_ENV_ID, USER_ID)
+        ).isSameAs(testPermissions);
+    }
+
+    @SneakyThrows
+    @Test
+    public void should_invalidate_only_target_environment_permissions_not_others() {
+        givenGroupMembershipOnEnvironment(DEV_ENV_ID, GROUP_ID, ROLE_ADMIN_ID);
+        givenGroupMembershipOnEnvironment(TEST_ENV_ID, TEST_GROUP_ID, ROLE_READER_ID);
+        givenRoles(adminRole(), readerRole());
+
+        // Warm up both environment caches
+        membershipService.getUserMemberPermissions(EXECUTION_CONTEXT, MembershipReferenceType.ENVIRONMENT, DEV_ENV_ID, USER_ID);
+        Map<String, char[]> testPermissions = membershipService.getUserMemberPermissions(
+            EXECUTION_CONTEXT,
+            MembershipReferenceType.ENVIRONMENT,
+            TEST_ENV_ID,
+            USER_ID
+        );
+
+        membershipService.invalidateEnvironmentPermissions(USER_ID, DEV_ENV_ID);
+
+        Map<String, char[]> devPermissionsAfterInvalidation = membershipService.getUserMemberPermissions(
+            EXECUTION_CONTEXT,
+            MembershipReferenceType.ENVIRONMENT,
+            DEV_ENV_ID,
+            USER_ID
+        );
+        Map<String, char[]> testPermissionsAfterInvalidation = membershipService.getUserMemberPermissions(
+            EXECUTION_CONTEXT,
+            MembershipReferenceType.ENVIRONMENT,
+            TEST_ENV_ID,
+            USER_ID
+        );
+
+        // DEV has been recomputed
+        verify(membershipRepository, times(2)).findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+            USER_ID,
+            io.gravitee.repository.management.model.MembershipMemberType.USER,
+            io.gravitee.repository.management.model.MembershipReferenceType.ENVIRONMENT,
+            DEV_ENV_ID
+        );
+        assertThat(devPermissionsAfterInvalidation.get("ENVIRONMENT")).contains('C');
+
+        // ... while TEST is still served from the cache
+        verify(membershipRepository, times(1)).findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+            USER_ID,
+            io.gravitee.repository.management.model.MembershipMemberType.USER,
+            io.gravitee.repository.management.model.MembershipReferenceType.ENVIRONMENT,
+            TEST_ENV_ID
+        );
+        assertThat(testPermissionsAfterInvalidation).isSameAs(testPermissions);
+    }
+
+    @SneakyThrows
+    @Test
+    public void should_combine_permissions_from_multiple_groups_in_same_environment_using_or_semantics() {
+        givenTwoGroupMembershipsOnEnvironment(DEV_ENV_ID, GROUP_A_ID, ROLE_API_CREATOR_ID, GROUP_B_ID, ROLE_API_READER_ID);
+
+        Map<String, char[]> devPermissions = membershipService.getUserMemberPermissions(
+            EXECUTION_CONTEXT,
+            MembershipReferenceType.ENVIRONMENT,
+            DEV_ENV_ID,
+            USER_ID
+        );
+
+        assertThat(devPermissions).containsKey("API");
+        assertThat(devPermissions.get("API")).containsExactlyInAnyOrder('C', 'R');
+    }
+
     /**
      * The user has no direct membership on the given environment, but belongs to a group which holds an
      * ENVIRONMENT scoped role on it.
@@ -278,6 +384,81 @@ public class PermissionIsolationRegressionTest {
             );
     }
 
+    /**
+     * The user has no direct membership on the given environment, but belongs to two groups, each of them holding a
+     * different ENVIRONMENT scoped role on it.
+     */
+    @SneakyThrows
+    private void givenTwoGroupMembershipsOnEnvironment(
+        String environmentId,
+        String firstGroupId,
+        String firstRoleId,
+        String secondGroupId,
+        String secondRoleId
+    ) {
+        lenient()
+            .when(
+                membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                    USER_ID,
+                    io.gravitee.repository.management.model.MembershipMemberType.USER,
+                    io.gravitee.repository.management.model.MembershipReferenceType.ENVIRONMENT,
+                    environmentId
+                )
+            )
+            .thenReturn(Set.of());
+
+        lenient()
+            .when(
+                membershipRepository.findByReferenceIdAndReferenceType(
+                    environmentId,
+                    io.gravitee.repository.management.model.MembershipReferenceType.ENVIRONMENT
+                )
+            )
+            .thenReturn(
+                List.of(
+                    environmentGroupMembership(environmentId, firstGroupId, firstRoleId),
+                    environmentGroupMembership(environmentId, secondGroupId, secondRoleId)
+                )
+            );
+
+        lenient()
+            .when(
+                membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIds(
+                    USER_ID,
+                    io.gravitee.repository.management.model.MembershipMemberType.USER,
+                    io.gravitee.repository.management.model.MembershipReferenceType.GROUP,
+                    Set.of(firstGroupId, secondGroupId)
+                )
+            )
+            .thenReturn(Set.of(userGroupMembership(firstGroupId, firstRoleId), userGroupMembership(secondGroupId, secondRoleId)));
+
+        lenient()
+            .when(roleService.findByIds(Set.of(firstRoleId, secondRoleId)))
+            .thenReturn(Map.of(firstRoleId, apiCreatorRole(), secondRoleId, apiReaderRole()));
+    }
+
+    private static Membership environmentGroupMembership(String environmentId, String groupId, String roleId) {
+        return Membership.builder()
+            .id("membership-" + environmentId + "-" + groupId)
+            .memberId(groupId)
+            .memberType(io.gravitee.repository.management.model.MembershipMemberType.GROUP)
+            .referenceId(environmentId)
+            .referenceType(io.gravitee.repository.management.model.MembershipReferenceType.ENVIRONMENT)
+            .roleId(roleId)
+            .build();
+    }
+
+    private static Membership userGroupMembership(String groupId, String roleId) {
+        return Membership.builder()
+            .id("group-membership-" + groupId)
+            .memberId(USER_ID)
+            .memberType(io.gravitee.repository.management.model.MembershipMemberType.USER)
+            .referenceId(groupId)
+            .referenceType(io.gravitee.repository.management.model.MembershipReferenceType.GROUP)
+            .roleId(roleId)
+            .build();
+    }
+
     private void givenRoles(RoleEntity... roles) {
         for (RoleEntity role : roles) {
             lenient().when(roleService.findByIds(Set.of(role.getId()))).thenReturn(Map.of(role.getId(), role));
@@ -299,6 +480,24 @@ public class PermissionIsolationRegressionTest {
             .name("READER")
             .scope(RoleScope.ENVIRONMENT)
             .permissions(Map.of("ENVIRONMENT", new char[] { 'R' }))
+            .build();
+    }
+
+    private static RoleEntity apiCreatorRole() {
+        return RoleEntity.builder()
+            .id(ROLE_API_CREATOR_ID)
+            .name("API_CREATOR")
+            .scope(RoleScope.ENVIRONMENT)
+            .permissions(Map.of("API", new char[] { 'C' }))
+            .build();
+    }
+
+    private static RoleEntity apiReaderRole() {
+        return RoleEntity.builder()
+            .id(ROLE_API_READER_ID)
+            .name("API_READER")
+            .scope(RoleScope.ENVIRONMENT)
+            .permissions(Map.of("API", new char[] { 'R' }))
             .build();
     }
 

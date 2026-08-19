@@ -286,6 +286,15 @@ public interface MembershipService {
     void invalidateRoleCache(String referenceType, String referenceId, String memberType, String memberId);
 
     /**
+     * Invalidates the cached permissions of a user for a single environment, leaving the permissions cached for the
+     * other environments untouched.
+     *
+     * @param userId the ID of the user whose environment permissions should be invalidated
+     * @param environmentId the ID of the environment to invalidate
+     */
+    void invalidateEnvironmentPermissions(String userId, String environmentId);
+
+    /**
      * Invalidates the cached permissions for all members with the given role.
      * This should be called when a role's permissions are updated.
      *

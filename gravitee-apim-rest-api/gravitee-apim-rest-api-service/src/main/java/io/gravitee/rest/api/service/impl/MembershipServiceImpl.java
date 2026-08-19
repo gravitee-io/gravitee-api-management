@@ -2220,6 +2220,12 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         }
     }
 
+    @Override
+    public void invalidateEnvironmentPermissions(String userId, String environmentId) {
+        String permissionsCacheKey = computeUserPermissionsCacheKey(MembershipReferenceType.ENVIRONMENT.name(), environmentId, userId);
+        cachedPermissions.invalidate(permissionsCacheKey);
+    }
+
     private static String computeCachedRoleKey(String referenceType, String referenceId, String memberType, String memberId) {
         String cachedRoleKey;
         if (memberType.equals("USER")) {
