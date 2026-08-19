@@ -86,6 +86,10 @@ class NativeApiLogCrudServiceImplTest {
             assertThat(found.getTimestamp()).isEqualTo(TIMESTAMP_ISO);
             assertThat(found.getConnectionStatus()).isEqualTo(NativeConnectionStatus.CONNECTION_ERROR);
             assertThat(found.getClientId()).isEqualTo(CLIENT_ID);
+            assertThat(found.getClientSoftwareName()).isEqualTo(CLIENT_SOFTWARE_NAME);
+            assertThat(found.getClientSoftwareVersion()).isEqualTo(CLIENT_SOFTWARE_VERSION);
+            assertThat(found.getSecurityType()).isEqualTo(SECURITY_TYPE);
+            assertThat(found.getSecurityToken()).isEqualTo(SECURITY_TOKEN);
             assertThat(found.getBrokerId()).isEqualTo(BROKER_ID);
             assertThat(found.getConnectionDurationMs()).isEqualTo(CONNECTION_DURATION_MS);
         }

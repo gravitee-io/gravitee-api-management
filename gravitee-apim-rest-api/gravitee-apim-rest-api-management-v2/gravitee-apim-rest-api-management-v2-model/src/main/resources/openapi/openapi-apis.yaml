@@ -7959,6 +7959,21 @@ components:
                 clientId:
                     type: string
                     description: The native protocol client id (e.g. Kafka client.id) reported by the connection. Visible in detail view only.
+                clientSoftwareName:
+                    type: string
+                    description: The client library advertised at the connection handshake (e.g. apache-kafka-java, librdkafka). 'unknown' when the client does not advertise one. Visible in detail view only.
+                    example: librdkafka
+                clientSoftwareVersion:
+                    type: string
+                    description: The version of the client library advertised at the connection handshake. 'unknown' when the client does not advertise one. Visible in detail view only.
+                    example: 2.6.1
+                securityType:
+                    type: string
+                    description: The type of credential the connection authenticated with. Absent for an anonymous connection. Visible in detail view only.
+                    example: JWT
+                securityToken:
+                    type: string
+                    description: The token identifying the authenticated credential, i.e. the application OAuth client id. Never a raw API key. Visible in detail view only.
                 brokerId:
                     type: string
                     description: The id of the native protocol broker the connection is targeting (e.g. Kafka broker id). Visible in detail view only.
