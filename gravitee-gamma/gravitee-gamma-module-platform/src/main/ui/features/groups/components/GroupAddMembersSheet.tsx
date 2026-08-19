@@ -25,34 +25,17 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@gravitee/graphene-core';
+import { useActionState } from 'react';
 
 import { GroupScopedRoleSelects } from './GroupScopedRoleSelects';
 import { GroupUserSearchPicker } from './GroupUserSearchPicker';
+import { FormActionSubmitButton } from '../../../shared/components/FormActionSubmitButton';
+import { useOpenRemountKey } from '../../../shared/hooks/useOpenRemountKey';
+import { STANDARD_SHEET_WIDTH } from '../../../shared/layout/sheetLayout';
 import { useGroupAddMembersForm } from '../hooks/useGroupAddMembersForm';
 import type { GroupMember, GroupMembershipPayload, GroupRole } from '../types/group';
 
-export function GroupAddMembersSheet({
-    open,
-    groupName,
-    groupRoles,
-    members,
-    apiRoles,
-    applicationRoles,
-    apiProductRoles,
-    integrationRoles,
-    clusterRoles,
-    explorerRoles,
-    lockApiRole,
-    lockApiProductRole,
-    lockApplicationRole,
-    canOverrideLocks,
-    maxInvitation,
-    apiPrimaryOwnerMode,
-    apiProductPrimaryOwnerMode,
-    onClose,
-    onSubmit,
-    isSaving,
-}: Readonly<{
+type GroupAddMembersSheetProps = Readonly<{
     open: boolean;
     groupName: string;
     groupRoles: Record<string, string> | undefined;
@@ -70,10 +53,38 @@ export function GroupAddMembersSheet({
     maxInvitation: number | null;
     apiPrimaryOwnerMode?: string;
     apiProductPrimaryOwnerMode?: string;
+    initialSearch?: string;
     onClose: () => void;
-    onSubmit: (memberships: GroupMembershipPayload[]) => void;
-    isSaving: boolean;
-}>) {
+    onSubmit: (memberships: GroupMembershipPayload[]) => Promise<void>;
+}>;
+
+export function GroupAddMembersSheet(props: GroupAddMembersSheetProps) {
+    const resetKey = useOpenRemountKey(props.open, `${props.groupName}-${props.initialSearch ?? ''}`);
+    return <GroupAddMembersSheetContent key={resetKey} {...props} />;
+}
+
+function GroupAddMembersSheetContent({
+    open,
+    groupName,
+    groupRoles,
+    members,
+    apiRoles,
+    applicationRoles,
+    apiProductRoles,
+    integrationRoles,
+    clusterRoles,
+    explorerRoles,
+    lockApiRole,
+    lockApiProductRole,
+    lockApplicationRole,
+    canOverrideLocks,
+    maxInvitation,
+    apiPrimaryOwnerMode,
+    apiProductPrimaryOwnerMode,
+    initialSearch,
+    onClose,
+    onSubmit,
+}: GroupAddMembersSheetProps) {
     const form = useGroupAddMembersForm({
         open,
         groupRoles,
@@ -85,72 +96,80 @@ export function GroupAddMembersSheet({
         maxInvitation,
         apiPrimaryOwnerMode,
         apiProductPrimaryOwnerMode,
+        initialSearch,
         onSubmit,
     });
+    const [, submitMembers, isPending] = useActionState<null, FormData>(async () => {
+        if (!form.canSubmit) return null;
+        await form.handleSubmit();
+        return null;
+    }, null);
 
     return (
-        <Sheet open={open} onOpenChange={isOpen => !isOpen && !isSaving && onClose()}>
-            <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: '480px' }}>
+        <Sheet open={open} onOpenChange={isOpen => !isOpen && !isPending && onClose()}>
+            <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: STANDARD_SHEET_WIDTH }}>
                 <SheetHeader>
                     <SheetTitle>Add members</SheetTitle>
                     <SheetDescription>Search platform users and assign roles for membership in {groupName}.</SheetDescription>
                 </SheetHeader>
 
-                <ScrollArea className="min-h-0 flex-1">
-                    <div className="space-y-6 px-4 pb-4">
-                        <div className="space-y-3">
-                            <Label className="text-sm font-medium">Default roles for selected users</Label>
-                            <GroupScopedRoleSelects
-                                idPrefix="add-members-role"
-                                roles={{
-                                    api: apiRoles,
-                                    apiProduct: apiProductRoles,
-                                    application: applicationRoles,
-                                    integration: integrationRoles,
-                                    cluster: clusterRoles,
-                                    explorer: explorerRoles,
-                                }}
-                                values={form.roleValues}
-                                onChange={form.handleRoleChange}
-                                locks={form.roleLocks}
-                                disabled={isSaving}
-                                disabledOptionNames={form.disabledOptionNames}
+                <form action={submitMembers} className="flex min-h-0 flex-1 flex-col">
+                    <ScrollArea className="min-h-0 flex-1">
+                        <div className="space-y-6 px-4 pb-4">
+                            <div className="space-y-3">
+                                <Label className="text-sm font-medium">Default roles for selected users</Label>
+                                <GroupScopedRoleSelects
+                                    idPrefix="add-members-role"
+                                    roles={{
+                                        api: apiRoles,
+                                        apiProduct: apiProductRoles,
+                                        application: applicationRoles,
+                                        integration: integrationRoles,
+                                        cluster: clusterRoles,
+                                        explorer: explorerRoles,
+                                    }}
+                                    values={form.roleValues}
+                                    onChange={form.handleRoleChange}
+                                    locks={form.roleLocks}
+                                    disabled={isPending}
+                                    disabledOptionNames={form.disabledOptionNames}
+                                />
+                            </div>
+
+                            {form.primaryOwnerSelected && (
+                                <p className="text-xs text-muted-foreground">
+                                    The primary owner role can be granted to a single member only.
+                                </p>
+                            )}
+
+                            <GroupUserSearchPicker
+                                search={form.search}
+                                onSearchChange={form.setSearch}
+                                debouncedQuery={form.debouncedQuery}
+                                isFetching={form.isFetching}
+                                candidates={form.candidates}
+                                selected={form.selected}
+                                onToggle={form.handleToggle}
+                                invitationLimitReached={form.invitationLimitReached}
+                                groupMemberCapReached={form.groupMemberCapReached}
+                                disabled={isPending}
                             />
+
+                            {form.selected.length > 0 && (
+                                <p className="text-xs text-muted-foreground">
+                                    {form.selected.length} user{form.selected.length !== 1 ? 's' : ''} selected
+                                </p>
+                            )}
                         </div>
+                    </ScrollArea>
 
-                        {form.primaryOwnerSelected && (
-                            <p className="text-xs text-muted-foreground">The primary owner role can be granted to a single member only.</p>
-                        )}
-
-                        <GroupUserSearchPicker
-                            search={form.search}
-                            onSearchChange={form.setSearch}
-                            debouncedQuery={form.debouncedQuery}
-                            isFetching={form.isFetching}
-                            candidates={form.candidates}
-                            selected={form.selected}
-                            onToggle={form.handleToggle}
-                            invitationLimitReached={form.invitationLimitReached}
-                            groupMemberCapReached={form.groupMemberCapReached}
-                            disabled={isSaving}
-                        />
-
-                        {form.selected.length > 0 && (
-                            <p className="text-xs text-muted-foreground">
-                                {form.selected.length} user{form.selected.length !== 1 ? 's' : ''} selected
-                            </p>
-                        )}
-                    </div>
-                </ScrollArea>
-
-                <SheetFooter className="shrink-0 flex-row justify-end border-t">
-                    <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>
-                        Cancel
-                    </Button>
-                    <Button type="button" onClick={form.handleSubmit} disabled={!form.canSubmit || isSaving}>
-                        {isSaving ? 'Adding…' : form.submitLabel}
-                    </Button>
-                </SheetFooter>
+                    <SheetFooter className="shrink-0 flex-row justify-end border-t">
+                        <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>
+                            Cancel
+                        </Button>
+                        <FormActionSubmitButton disabled={!form.canSubmit} label={form.submitLabel} pendingLabel="Adding…" />
+                    </SheetFooter>
+                </form>
             </SheetContent>
         </Sheet>
     );

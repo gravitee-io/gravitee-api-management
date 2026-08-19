@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-/** Shared page-size options for application tables (UI-COMP-12). */
-export const TABLE_PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
+export { TABLE_PAGE_SIZE_OPTIONS } from '../../../shared/utils/paginationConstants';
 
 export const DEFAULT_APPLICATION_LIST_PAGE_SIZE = 25;
 

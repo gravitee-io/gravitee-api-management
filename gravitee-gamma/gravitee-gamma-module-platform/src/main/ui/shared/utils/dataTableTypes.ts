@@ -13,5 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { DataTableColumnHeaderProps } from '@gravitee/graphene-core';
 
-export { paginate, totalPagesFor } from '../../../shared/utils/clientPagination';
+/** Column header render props for Graphene `DataTable` column definitions. */
+export type ColHeader<T> = { column: DataTableColumnHeaderProps<T, unknown>['column'] };
+
+/** Column cell render props for Graphene `DataTable` column definitions. */
+export type ColCell<T> = { row: { original: T } };

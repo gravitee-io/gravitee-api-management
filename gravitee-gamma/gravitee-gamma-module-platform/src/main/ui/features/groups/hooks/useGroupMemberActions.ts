@@ -16,19 +16,33 @@
 
 import { useState } from 'react';
 
-import { useAddGroupMembers } from './useGroupMutations';
+import { useGroupInvitations } from './useGroupDetail';
+import { useAddGroupMembers, useDeleteGroupInvitation, useInviteGroupMember } from './useGroupMutations';
 import { notify } from '../../../shared/notify';
-import type { GroupMembershipPayload } from '../types/group';
+import type { GroupInvitation, GroupMembershipPayload } from '../types/group';
 
-type MemberSheetState = 'closed' | 'search';
+type MemberSheetState = 'closed' | 'search' | 'invite';
+type MemberTab = 'members' | 'invitations';
 
 export function useGroupMemberActions(groupId: string | undefined) {
+    const [memberTab, setMemberTab] = useState<MemberTab>('members');
     const [memberSheet, setMemberSheet] = useState<MemberSheetState>('closed');
+    const [tooManyUsersEmail, setTooManyUsersEmail] = useState<string | null>(null);
+    const [searchSeed, setSearchSeed] = useState<string | null>(null);
+    const [deletingInvitation, setDeletingInvitation] = useState<GroupInvitation | null>(null);
 
     const addMembersMutation = useAddGroupMembers();
+    const inviteMemberMutation = useInviteGroupMember();
+    const deleteInvitationMutation = useDeleteGroupInvitation();
+    const {
+        data: invitations = [],
+        isLoading: invitationsLoading,
+        isError: invitationsError,
+    } = useGroupInvitations(memberTab === 'invitations' ? groupId : undefined);
 
     function closeMemberSheet() {
         setMemberSheet('closed');
+        setSearchSeed(null);
     }
 
     async function handleAddMembers(memberships: GroupMembershipPayload[]) {
@@ -42,11 +56,73 @@ export function useGroupMemberActions(groupId: string | undefined) {
         }
     }
 
+    async function handleInviteMember(values: { email: string; apiRole: string; applicationRole: string }) {
+        if (!groupId) return;
+        try {
+            const result = await inviteMemberMutation.mutateAsync({
+                groupId,
+                data: {
+                    reference_type: 'GROUP',
+                    reference_id: groupId,
+                    email: values.email,
+                    api_role: values.apiRole,
+                    application_role: values.applicationRole,
+                },
+            });
+            closeMemberSheet();
+            switch (result.outcome) {
+                case 'ambiguous':
+                    setTooManyUsersEmail(values.email);
+                    return;
+                case 'member-added':
+                    notify.success('Member added successfully');
+                    setMemberTab('members');
+                    return;
+                case 'invitation-created':
+                    notify.success('Successfully invited user to the group.');
+                    setMemberTab('invitations');
+                    return;
+            }
+        } catch (error) {
+            notify.error(error, 'Failed to invite member');
+        }
+    }
+
+    function handleTooManyUsersContinue() {
+        setSearchSeed(tooManyUsersEmail);
+        setTooManyUsersEmail(null);
+        setMemberSheet('search');
+    }
+
+    async function handleDeleteInvitation() {
+        if (!groupId || !deletingInvitation) return;
+        try {
+            await deleteInvitationMutation.mutateAsync({ groupId, invitationId: deletingInvitation.id });
+            notify.success('Invitation deleted successfully');
+            setDeletingInvitation(null);
+        } catch (error) {
+            notify.error(error, 'Failed to delete invitation');
+        }
+    }
+
     return {
+        memberTab,
+        setMemberTab,
         memberSheet,
         setMemberSheet,
         closeMemberSheet,
-        addMembersMutation,
+        tooManyUsersEmail,
+        setTooManyUsersEmail,
+        searchSeed,
+        deletingInvitation,
+        setDeletingInvitation,
+        invitations,
+        invitationsLoading,
+        invitationsError,
+        deleteInvitationMutation,
         handleAddMembers,
+        handleInviteMember,
+        handleTooManyUsersContinue,
+        handleDeleteInvitation,
     };
 }

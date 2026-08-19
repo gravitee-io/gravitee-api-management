@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 import { useQuery } from '@tanstack/react-query';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { GroupAddMembersSheet } from './GroupAddMembersSheet';
+import { installFormActionTestEnvironment } from '../../../shared/testing/formAction';
 import type { SearchableUser } from '../../../shared/types/userSearch';
 import type { GroupMember } from '../types/group';
 import { GROUP_SEARCH_DEBOUNCE_MS } from '../utils/paginationConstants';
@@ -26,8 +27,15 @@ jest.mock('@tanstack/react-query', () => ({
     useQuery: jest.fn(),
 }));
 
+let restoreTestEnvironment: () => void;
+
 beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
+    restoreTestEnvironment = installFormActionTestEnvironment();
+});
+
+afterAll(() => {
+    restoreTestEnvironment();
 });
 
 const mockUseQuery = jest.mocked(useQuery);
@@ -42,6 +50,13 @@ function typeSearch(value: string) {
     fireEvent.change(screen.getByPlaceholderText('Search by name or email…'), { target: { value } });
     act(() => {
         jest.advanceTimersByTime(GROUP_SEARCH_DEBOUNCE_MS);
+    });
+}
+
+async function submitMembers() {
+    await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'Add member' }));
+        await Promise.resolve();
     });
 }
 
@@ -70,7 +85,6 @@ function renderSheet(overrides: Partial<React.ComponentProps<typeof GroupAddMemb
             maxInvitation={null}
             onClose={onClose}
             onSubmit={onSubmit}
-            isSaving={false}
             {...overrides}
         />,
     );
@@ -109,6 +123,11 @@ describe('GroupAddMembersSheet', () => {
         expect(screen.getByText('Explorer')).not.toBeNull();
     });
 
+    it('seeds the search field from initialSearch', () => {
+        renderSheet({ initialSearch: 'anna@lufthansa.com' });
+        expect(screen.getByPlaceholderText('Search by name or email…')).toHaveProperty('value', 'anna@lufthansa.com');
+    });
+
     it('has no "make selected users group admins" option — that only applies when editing an existing member', () => {
         renderSheet();
         expect(screen.queryByText(/group admin/i)).toBeNull();
@@ -134,13 +153,13 @@ describe('GroupAddMembersSheet', () => {
         expect(screen.getByRole('button', { name: 'Add member' })).toHaveProperty('disabled', true);
     });
 
-    it('submits selected users with all classic group-member role scopes', () => {
+    it('submits selected users with all classic group-member role scopes', async () => {
         const { onSubmit } = renderSheet();
 
         typeSearch('an');
         fireEvent.click(screen.getByText('Anna Schmidt'));
 
-        fireEvent.click(screen.getByRole('button', { name: 'Add member' }));
+        await submitMembers();
 
         expect(onSubmit).toHaveBeenCalledWith([
             {
@@ -158,12 +177,12 @@ describe('GroupAddMembersSheet', () => {
         ]);
     });
 
-    it('omits id for LDAP users so the backend resolves via reference', () => {
+    it('omits id for LDAP users so the backend resolves via reference', async () => {
         const { onSubmit } = renderSheet();
 
         typeSearch('ld');
         fireEvent.click(screen.getByText('LDAP Anna'));
-        fireEvent.click(screen.getByRole('button', { name: 'Add member' }));
+        await submitMembers();
 
         expect(onSubmit).toHaveBeenCalledWith([
             {
@@ -181,12 +200,12 @@ describe('GroupAddMembersSheet', () => {
     });
 
     describe('default role pre-fill', () => {
-        it('pre-fills API/API product/Application from the group’s configured default roles', () => {
+        it('pre-fills API/API product/Application from the group’s configured default roles', async () => {
             const { onSubmit } = renderSheet({ groupRoles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'USER' } });
 
             typeSearch('an');
             fireEvent.click(screen.getByText('Anna Schmidt'));
-            fireEvent.click(screen.getByRole('button', { name: 'Add member' }));
+            await submitMembers();
 
             expect(onSubmit).toHaveBeenCalledWith([
                 {
@@ -204,12 +223,12 @@ describe('GroupAddMembersSheet', () => {
             ]);
         });
 
-        it('falls back to USER for any scope missing from the group’s configured roles', () => {
+        it('falls back to USER for any scope missing from the group’s configured roles', async () => {
             const { onSubmit } = renderSheet({ groupRoles: { API: 'OWNER' } });
 
             typeSearch('an');
             fireEvent.click(screen.getByText('Anna Schmidt'));
-            fireEvent.click(screen.getByRole('button', { name: 'Add member' }));
+            await submitMembers();
 
             expect(onSubmit).toHaveBeenCalledWith([
                 {
@@ -227,12 +246,12 @@ describe('GroupAddMembersSheet', () => {
             ]);
         });
 
-        it('always defaults Integration/Cluster/Explorer to USER — classic hardcodes these regardless of group config', () => {
+        it('always defaults Integration/Cluster/Explorer to USER — classic hardcodes these regardless of group config', async () => {
             const { onSubmit } = renderSheet();
 
             typeSearch('an');
             fireEvent.click(screen.getByText('Anna Schmidt'));
-            fireEvent.click(screen.getByRole('button', { name: 'Add member' }));
+            await submitMembers();
 
             expect(onSubmit).toHaveBeenCalledWith([
                 expect.objectContaining({
@@ -288,12 +307,29 @@ describe('GroupAddMembersSheet', () => {
         expect(screen.getByRole('option', { name: 'USER' }).getAttribute('aria-disabled')).not.toBe('true');
     });
 
-    it('locks role selects and search while the add-members mutation is in flight', () => {
-        renderSheet({ isSaving: true });
+    it('locks role selects and search while the React action is pending', async () => {
+        let resolveMembers: (() => void) | undefined;
+        const onSubmit = jest.fn(
+            () =>
+                new Promise<void>(resolve => {
+                    resolveMembers = resolve;
+                }),
+        );
+        renderSheet({ onSubmit });
+        typeSearch('an');
+        fireEvent.click(screen.getByText('Anna Schmidt'));
+        fireEvent.click(screen.getByRole('button', { name: 'Add member' }));
 
         expect(screen.getAllByRole('combobox')[0]).toHaveProperty('disabled', true);
         expect(screen.getByLabelText('Search users')).toHaveProperty('disabled', true);
         expect(screen.getByRole('button', { name: 'Cancel' })).toHaveProperty('disabled', true);
+        expect(screen.getByRole('button', { name: 'Adding…' })).toHaveProperty('disabled', true);
+
+        await act(async () => {
+            resolveMembers?.();
+            await Promise.resolve();
+        });
+        await waitFor(() => expect(screen.getByRole('button', { name: 'Add member' })).not.toBeNull());
     });
 
     it('associates the search label with the search input', () => {
@@ -389,7 +425,7 @@ describe('GroupAddMembersSheet', () => {
             expect(screen.getByRole('option', { name: 'OWNER' }).getAttribute('aria-disabled')).not.toBe('true');
         });
 
-        it('keeps only a single selected user once PRIMARY_OWNER is chosen', () => {
+        it('keeps only a single selected user once PRIMARY_OWNER is chosen', async () => {
             const { onSubmit } = renderSheet({
                 apiPrimaryOwnerMode: 'GROUP',
                 apiProductPrimaryOwnerMode: 'GROUP',
@@ -405,7 +441,7 @@ describe('GroupAddMembersSheet', () => {
 
             expect(screen.getByText('1 user selected')).not.toBeNull();
 
-            fireEvent.click(screen.getByRole('button', { name: 'Add member' }));
+            await submitMembers();
 
             expect(onSubmit).toHaveBeenCalledWith([
                 {

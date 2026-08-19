@@ -17,6 +17,8 @@
 import { isRoleLocked } from './groupPermissions';
 import type { GroupMembershipRole } from '../types/group';
 
+const PRIMARY_OWNER_MODE_USER = 'USER';
+
 export type MemberRoleSelections = {
     apiRole: string;
     apiProductRole: string;
@@ -36,6 +38,11 @@ export type MemberRoleLockFlags = {
     cluster: boolean;
     explorer: boolean;
 };
+
+/** Fail closed: until the mode is known and is not USER, PRIMARY_OWNER must stay unavailable. */
+export function isPrimaryOwnerUnavailable(mode: string | undefined): boolean {
+    return mode === undefined || mode.toUpperCase() === PRIMARY_OWNER_MODE_USER;
+}
 
 export function getMemberRoleLockFlags(
     locks: {

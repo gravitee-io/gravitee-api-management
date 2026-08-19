@@ -13,29 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@gravitee/graphene-core';
-import { SearchIcon } from '@gravitee/graphene-core/icons';
-
-interface ClientSideTableSearchFieldProps {
-    readonly id: string;
-    readonly label: string;
-    readonly value: string;
-    readonly onChange: (value: string) => void;
-    readonly placeholder?: string;
-}
-
-export function ClientSideTableSearchField({ id, label, value, onChange, placeholder = 'Search' }: ClientSideTableSearchFieldProps) {
-    return (
-        <div className="w-64">
-            <label htmlFor={id} className="sr-only">
-                {label}
-            </label>
-            <InputGroup>
-                <InputGroupAddon align="inline-start">
-                    <SearchIcon className="size-3.5 text-muted-foreground" aria-hidden />
-                </InputGroupAddon>
-                <InputGroupInput id={id} placeholder={placeholder} value={value} onChange={event => onChange(event.target.value)} />
-            </InputGroup>
-        </div>
-    );
-}
+export { ClientSideTableSearchField } from '../../../shared/components/ClientSideTableSearchField';

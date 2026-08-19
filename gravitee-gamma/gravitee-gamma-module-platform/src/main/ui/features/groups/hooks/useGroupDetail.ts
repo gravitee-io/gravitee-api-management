@@ -17,7 +17,7 @@
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useQuery } from '@tanstack/react-query';
 
-import { getEnvironmentSettings, getGroup, listGroupMembers, listGroupMemberships } from '../services/groups';
+import { getEnvironmentSettings, getGroup, listGroupInvitations, listGroupMembers, listGroupMemberships } from '../services/groups';
 import type { GroupMembershipType } from '../types/group';
 import { groupKeys } from '../utils/queryKeys';
 
@@ -37,6 +37,16 @@ export function useGroupMembers(groupId: string | undefined) {
     return useQuery({
         queryKey: groupKeys.members(env?.id ?? '', groupId ?? ''),
         queryFn: () => listGroupMembers(env!.id, groupId!),
+        enabled: Boolean(env && groupId),
+    });
+}
+
+export function useGroupInvitations(groupId: string | undefined) {
+    const env = useEnvironment();
+
+    return useQuery({
+        queryKey: groupKeys.invitations(env?.id ?? '', groupId ?? ''),
+        queryFn: () => listGroupInvitations(env!.id, groupId!),
         enabled: Boolean(env && groupId),
     });
 }
