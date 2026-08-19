@@ -262,6 +262,7 @@ jobs:
           name: Run Sonarcloud Analysis
           command: sonar-scanner -Dsonar.projectVersion=4.2.0
           working_directory: << parameters.working_directory >>
+          no_output_timeout: 30m
       - cmd-notify-on-failure
       - save_cache:
           paths:
