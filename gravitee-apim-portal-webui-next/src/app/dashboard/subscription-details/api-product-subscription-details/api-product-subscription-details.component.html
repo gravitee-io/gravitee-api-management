@@ -1,0 +1,170 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<h1 class="next-gen-h3" i18n="@@apiProductSubscriptionDetailsTitle">Subscription Details</h1>
+
+@if (product(); as productDetails) {
+  <mat-card appearance="outlined">
+    <mat-card-header>
+      <mat-card-title class="next-gen-h4" i18n="@@apiProductSubscriptionSummaryTitle">Subscription information</mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="details-grid" data-testid="product-subscription-summary">
+      <span class="details-grid__label" i18n="@@apiProductSubscriptionStatus">Status</span>
+      <span>{{ subscription().status | capitalizeFirst }}</span>
+
+      <span class="details-grid__label" i18n="@@apiProductSubscriptionProduct">API Product</span>
+      <span
+        >{{ productDetails.name || productDetails.id }}
+        @if (productDetails.version) {
+          ({{ productDetails.version }})
+        }
+      </span>
+
+      <span class="details-grid__label" i18n="@@apiProductSubscriptionApplication">Application</span>
+      @if (applicationResource.value(); as application) {
+        <a [routerLink]="['/dashboard/applications', application.id]">{{ application.name }}</a>
+      } @else if (applicationResource.isLoading()) {
+        <span i18n="@@apiProductSubscriptionApplicationLoading">Loading application...</span>
+      } @else {
+        <span>{{ subscription().application }}</span>
+      }
+
+      <span class="details-grid__label" i18n="@@apiProductSubscriptionId">Subscription ID</span>
+      <span>{{ subscription().id }}</span>
+
+      <span class="details-grid__label" i18n="@@apiProductSubscriptionPlan">Plan</span>
+      <span>{{ productDetails.plan?.name || productDetails.plan?.id || subscription().plan }}</span>
+
+      @if (planSecurityLabel()) {
+        <span class="details-grid__label" i18n="@@apiProductSubscriptionAuthentication">Authentication</span>
+        <span>{{ planSecurityLabel() }}</span>
+      }
+
+      @if (subscription().created_at; as createdAt) {
+        <span class="details-grid__label" i18n="@@apiProductSubscriptionCreatedAt">Created at</span>
+        <span>{{ createdAt | date: 'medium' }}</span>
+      }
+      @if (subscription().start_at; as startAt) {
+        <span class="details-grid__label" i18n="@@apiProductSubscriptionStartsAt">Starts at</span>
+        <span>{{ startAt | date: 'medium' }}</span>
+      }
+      @if (subscription().end_at; as endAt) {
+        <span class="details-grid__label" i18n="@@apiProductSubscriptionEndsAt">Ends at</span>
+        <span>{{ endAt | date: 'medium' }}</span>
+      }
+
+      @if (productDetails.plan?.usageConfiguration?.quota?.limit; as quotaLimit) {
+        <span class="details-grid__label" i18n="@@apiProductSubscriptionQuota">Quota</span>
+        <span>
+          <span i18n="@@apiProductSubscriptionUpTo">up to</span> {{ quotaLimit }} <span i18n="@@apiProductSubscriptionHits">hits</span> /
+          {{ productDetails.plan?.usageConfiguration?.quota ?? {} | toPeriodTimeUnitLabelPipe }}
+        </span>
+      }
+      @if (productDetails.plan?.usageConfiguration?.rate_limit?.limit; as rateLimit) {
+        <span class="details-grid__label" i18n="@@apiProductSubscriptionRateLimit">Rate limit</span>
+        <span>
+          <span i18n="@@apiProductSubscriptionUpTo">up to</span> {{ rateLimit }} <span i18n="@@apiProductSubscriptionHits">hits</span> /
+          {{ productDetails.plan?.usageConfiguration?.rate_limit ?? {} | toPeriodTimeUnitLabelPipe }}
+        </span>
+      }
+    </mat-card-content>
+  </mat-card>
+
+  @if (productDetails.availability === 'UNAVAILABLE') {
+    <mat-card appearance="outlined">
+      <mat-card-content class="message" i18n="@@apiProductSubscriptionProductUnavailable">
+        This API Product is no longer available in the Developer Portal.
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <mat-card appearance="outlined" data-testid="product-subscription-credentials">
+    <mat-card-header>
+      <mat-card-title class="next-gen-h4" i18n="@@apiProductSubscriptionCredentialsTitle">API access</mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="credentials">
+      @if (subscription().status !== 'ACCEPTED') {
+        @switch (subscription().status) {
+          @case ('PENDING') {
+            <p i18n="@@apiProductSubscriptionPending">Your subscription request is being reviewed.</p>
+          }
+          @case ('REJECTED') {
+            <p i18n="@@apiProductSubscriptionRejected">This subscription request was rejected.</p>
+          }
+          @case ('PAUSED') {
+            <p i18n="@@apiProductSubscriptionPaused">This subscription is paused.</p>
+          }
+          @case ('CLOSED') {
+            <p i18n="@@apiProductSubscriptionClosed">This subscription is closed.</p>
+          }
+        }
+      } @else {
+        @if (productDetails.plan?.security === 'OAUTH2' || productDetails.plan?.security === 'JWT') {
+          @if (applicationResource.isLoading()) {
+            <app-loader />
+          } @else if (clientId()) {
+            <app-copy-code title="Client ID" i18n-title="@@apiProductSubscriptionClientId" [text]="clientId() ?? ''" />
+            @if (clientSecret()) {
+              <app-copy-code
+                title="Client Secret"
+                i18n-title="@@apiProductSubscriptionClientSecret"
+                [text]="clientSecret() ?? ''"
+                mode="PASSWORD"
+              />
+            }
+          } @else {
+            <p role="status" i18n="@@apiProductSubscriptionCredentialsUnavailable">Application credentials are not available.</p>
+          }
+        } @else {
+          @switch (productDetails.plan?.security) {
+            @case ('API_KEY') {
+              <app-api-keys-list [apiKeys]="subscription().keys ?? []" [canManageApiKey]="false" />
+            }
+            @case ('KEY_LESS') {
+              <p i18n="@@apiProductSubscriptionKeyless">No credentials are required for this plan.</p>
+            }
+            @default {
+              <p role="status" i18n="@@apiProductSubscriptionCredentialsUnavailable">Application credentials are not available.</p>
+            }
+          }
+        }
+      }
+    </mat-card-content>
+  </mat-card>
+
+  <section class="included-apis" aria-labelledby="included-apis-title">
+    <h2 id="included-apis-title" class="next-gen-h4" i18n="@@apiProductSubscriptionIncludedApis">Included APIs</h2>
+    @if (productDetails.apis.length > 0) {
+      <div class="included-apis__grid">
+        @for (api of productDetails.apis; track api.id) {
+          <app-api-product-subscription-api-access
+            [api]="api"
+            [planSecurity]="productDetails.plan?.security"
+            [apiKey]="activeApiKey()"
+            [accessEnabled]="apiAccessEnabled()"
+          />
+        }
+      </div>
+    } @else {
+      <p i18n="@@apiProductSubscriptionNoIncludedApis">No APIs are available for this subscription.</p>
+    }
+  </section>
+} @else {
+  <div role="alert" class="message" i18n="@@apiProductSubscriptionDetailsUnavailable">
+    API Product subscription details are not available.
+  </div>
+}

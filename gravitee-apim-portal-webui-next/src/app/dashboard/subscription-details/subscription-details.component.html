@@ -15,6 +15,20 @@
     limitations under the License.
 
 -->
-@if (apiId.value(); as _apiId) {
-  <app-subscriptions-details [apiId]="_apiId" [subscriptionId]="subscriptionId()" />
+@if (subscriptionResource.isLoading()) {
+  <app-loader />
+} @else if (subscriptionResource.error()) {
+  <div role="alert" class="subscription-details__error" i18n="@@subscriptionDetailsLoadError">
+    An error occurred while loading the subscription. Try again later.
+  </div>
+} @else if (subscriptionResource.value(); as subscription) {
+  @if (subscription.reference_type === 'API_PRODUCT') {
+    <app-api-product-subscription-details [subscription]="subscription" />
+  } @else if (apiId(); as resolvedApiId) {
+    <app-subscriptions-details [apiId]="resolvedApiId" [subscriptionId]="subscriptionId()" />
+  } @else {
+    <div role="alert" class="subscription-details__error" i18n="@@subscriptionDetailsTargetUnavailable">
+      Subscription details are not available.
+    </div>
+  }
 }

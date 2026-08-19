@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, effect, inject, input } from '@angular/core';
+import { Component, computed, effect, inject, input } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
 
+import { ApiProductSubscriptionDetailsComponent } from './api-product-subscription-details/api-product-subscription-details.component';
+import { LoaderComponent } from '../../../components/loader/loader.component';
 import { BreadcrumbService } from '../../../services/breadcrumb.service';
 import { SubscriptionService } from '../../../services/subscription.service';
 import { SubscriptionsDetailsComponent } from '../../api/api-details/api-tab-subscriptions/subscriptions-details/subscriptions-details.component';
@@ -24,17 +25,23 @@ import { subscriptionListBreadcrumb } from '../subscriptions/subscription-breadc
 
 @Component({
   selector: 'app-subscription-details',
-  imports: [SubscriptionsDetailsComponent],
+  imports: [ApiProductSubscriptionDetailsComponent, LoaderComponent, SubscriptionsDetailsComponent],
   templateUrl: './subscription-details.component.html',
   styleUrl: './subscription-details.component.scss',
 })
 export default class SubscriptionDetailsComponent {
   private readonly subscriptionService = inject(SubscriptionService);
   private readonly breadcrumbService = inject(BreadcrumbService);
-  subscriptionId = input.required<string>();
-  apiId = rxResource({
+
+  readonly subscriptionId = input.required<string>();
+
+  protected readonly subscriptionResource = rxResource({
     params: this.subscriptionId,
-    stream: ({ params }) => this.subscriptionService.get(params).pipe(map(subscription => subscription.api)),
+    stream: ({ params }) => this.subscriptionService.get(params),
+  });
+  protected readonly apiId = computed(() => {
+    const subscription = this.subscriptionResource.value();
+    return subscription?.api ?? (subscription?.reference_type === 'API' ? subscription.reference_id : undefined);
   });
 
   constructor() {

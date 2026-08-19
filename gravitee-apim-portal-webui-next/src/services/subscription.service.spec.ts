@@ -17,7 +17,13 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { SubscriptionService } from './subscription.service';
-import { fakeSubscriptionResponse, SubscriptionsResponse, SubscriptionStatusEnum } from '../entities/subscription';
+import {
+  fakeApiProductSubscriptionDetails,
+  fakeSubscription,
+  fakeSubscriptionResponse,
+  SubscriptionsResponse,
+  SubscriptionStatusEnum,
+} from '../entities/subscription';
 import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
 
 describe('SubscriptionService', () => {
@@ -101,6 +107,25 @@ describe('SubscriptionService', () => {
     const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/subscriptions?referenceTypes=API&referenceTypes=API_PRODUCT`);
     expect(req.request.method).toEqual('GET');
     req.flush(subscriptionResponse);
+  });
+
+  it('should return API Product subscription details', done => {
+    const subscription = fakeSubscription({
+      reference_type: 'API_PRODUCT',
+      reference_id: 'api-product-id',
+      apiProduct: fakeApiProductSubscriptionDetails({ id: 'api-product-id' }),
+    });
+
+    service.get(subscription.id).subscribe(response => {
+      expect(response.apiProduct).toEqual(subscription.apiProduct);
+      done();
+    });
+
+    const req = httpTestingController.expectOne(
+      `${TESTING_BASE_URL}/subscriptions/${subscription.id}?include=keys&include=consumerConfiguration&include=apiProduct`,
+    );
+    expect(req.request.method).toEqual('GET');
+    req.flush(subscription);
   });
 
   it('should close subscription', done => {

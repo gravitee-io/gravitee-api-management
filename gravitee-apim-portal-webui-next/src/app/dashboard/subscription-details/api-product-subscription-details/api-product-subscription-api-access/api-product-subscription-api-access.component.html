@@ -1,0 +1,76 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<mat-card appearance="outlined" class="api-card" [attr.data-api-id]="api().id">
+  <mat-card-header>
+    <mat-card-title class="next-gen-h5">{{ api().name || api().id }}</mat-card-title>
+    @if (api().version) {
+      <mat-card-subtitle><span i18n="@@apiProductSubscriptionApiVersion">Version</span> {{ api().version }}</mat-card-subtitle>
+    }
+    @if (api().type) {
+      <mat-card-subtitle><span i18n="@@apiProductSubscriptionApiType">Type</span> {{ api().type }}</mat-card-subtitle>
+    }
+  </mat-card-header>
+
+  <mat-card-content class="api-card__content">
+    @if (available()) {
+      @if (accessEnabled()) {
+        @if (entrypoints().length === 1) {
+          <app-copy-code title="Base URL" i18n-title="@@apiProductSubscriptionBaseUrl" [text]="entrypoints()[0]" />
+        } @else if (entrypoints().length > 1) {
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label i18n="@@apiProductSubscriptionBaseUrls">Base URLs</mat-label>
+            <mat-select
+              [value]="selectedEntrypointValue()"
+              (selectionChange)="selectedEntrypoint.set($event.value)"
+              data-testid="entrypoint-select"
+            >
+              @for (entrypoint of entrypoints(); track entrypoint) {
+                <mat-option [value]="entrypoint">{{ entrypoint }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        } @else {
+          <p class="next-gen-body" role="status" i18n="@@apiProductSubscriptionNoEntrypoints">No API entrypoint is available.</p>
+        }
+
+        @if (curlCommand()) {
+          <app-copy-code title="cURL" i18n-title="@@apiProductSubscriptionCurl" [text]="curlCommand()" />
+        }
+      } @else {
+        <p class="next-gen-body" role="status" i18n="@@apiProductSubscriptionApiAccessPending">
+          API access is not available for the current subscription status.
+        </p>
+      }
+
+      @if (api().documentation; as documentation) {
+        <a
+          [routerLink]="['/documentation', documentation.rootId]"
+          [queryParams]="{ selectedId: documentation.navigationItemId }"
+          i18n="@@apiProductSubscriptionViewDocumentation"
+          >View documentation</a
+        >
+      } @else {
+        <p class="next-gen-body" i18n="@@apiProductSubscriptionNoDocumentation">Documentation is not available.</p>
+      }
+    } @else if (api().availability === 'UNPUBLISHED') {
+      <p class="next-gen-body" i18n="@@apiProductSubscriptionApiUnpublished">This API is no longer published.</p>
+    } @else {
+      <p class="next-gen-body" i18n="@@apiProductSubscriptionApiUnavailable">This API is no longer available.</p>
+    }
+  </mat-card-content>
+</mat-card>
