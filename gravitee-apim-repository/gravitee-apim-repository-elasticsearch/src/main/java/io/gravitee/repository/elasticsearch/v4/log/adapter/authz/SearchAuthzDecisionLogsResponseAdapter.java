@@ -19,6 +19,7 @@ import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.authz.AuthzDecisionLog;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author GraviteeSource Team
@@ -26,6 +27,15 @@ import java.util.List;
 public final class SearchAuthzDecisionLogsResponseAdapter {
 
     private SearchAuthzDecisionLogsResponseAdapter() {}
+
+    /** First hit of a by-id lookup; empty when no decision matches within the caller's api scope. */
+    public static Optional<AuthzDecisionLog> adaptFirst(SearchResponse response) {
+        var hits = response.getSearchHits();
+        if (hits == null || hits.getHits() == null || hits.getHits().isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(AuthzDecisionLogSourceMapper.from(hits.getHits().getFirst().getSource()));
+    }
 
     public static LogResponse<AuthzDecisionLog> adapt(SearchResponse response) {
         var hits = response.getSearchHits();

@@ -62,4 +62,9 @@ public class NoOpMetricsRepository implements MetricsRepository {
     public LogResponse<AuthzDecisionLog> searchAuthzDecisionLogs(QueryContext queryContext, AuthzDecisionLogQuery query) {
         return new LogResponse<>(0, List.of());
     }
+
+    @Override
+    public Optional<AuthzDecisionLog> findAuthzDecisionLog(QueryContext queryContext, String apiId, String eventId) {
+        return Optional.empty();
+    }
 }

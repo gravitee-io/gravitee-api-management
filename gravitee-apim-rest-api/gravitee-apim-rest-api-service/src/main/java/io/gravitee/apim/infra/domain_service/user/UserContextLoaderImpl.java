@@ -81,6 +81,26 @@ public class UserContextLoaderImpl implements UserContextLoader {
         return context.withApis(apis).withApiNamesById(apiIdsToNames);
     }
 
+    @Override
+    public UserContext loadApi(UserContext context, String apiId) {
+        var organizationId = context.auditInfo().organizationId();
+        var environmentId = context.auditInfo().environmentId();
+        var userId = context.auditInfo().actor().userId();
+
+        if (!isAdmin()) {
+            ExecutionContext executionContext = new ExecutionContext(organizationId, environmentId);
+            Set<String> userApiIds = apiAuthorizationService.findApiIdsByUserId(executionContext, userId, null, true);
+            if (!userApiIds.contains(apiId)) {
+                return context.withApis(Collections.emptyList()).withApiNamesById(Collections.emptyMap());
+            }
+        }
+
+        var criteria = new ApiCriteria.Builder().environmentId(environmentId).ids(Set.of(apiId)).build();
+        var apis = ApiMapper.INSTANCE.map(apiRepository.search(criteria, ApiFieldFilter.defaultFields()));
+
+        return context.withApis(apis).withApiNamesById(mapApiIdsToNames(apis));
+    }
+
     private static Map<String, String> mapApiIdsToNames(Collection<Api> apis) {
         return apis.stream().collect(Collectors.toMap(Api::getId, Api::getName));
     }

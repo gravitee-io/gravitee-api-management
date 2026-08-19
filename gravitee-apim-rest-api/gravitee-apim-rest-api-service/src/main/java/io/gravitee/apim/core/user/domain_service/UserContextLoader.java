@@ -22,4 +22,11 @@ import io.gravitee.apim.core.user.model.UserContext;
  */
 public interface UserContextLoader {
     UserContext loadApis(UserContext context);
+
+    /**
+     * Same scoping as {@link #loadApis}, narrowed to one api. A caller that needs a single api by id
+     * should not pay for the whole environment: this keeps the membership check and fetches one row.
+     * Yields no api when the caller cannot see it, which is indistinguishable from it not existing.
+     */
+    UserContext loadApi(UserContext context, String apiId);
 }

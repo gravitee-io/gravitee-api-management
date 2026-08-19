@@ -48,4 +48,10 @@ public interface MetricsRepository {
     LogResponse<NativeApiMetrics> searchNativeApiMetrics(QueryContext queryContext, NativeApiMetricsQuery query) throws AnalyticsException;
 
     LogResponse<AuthzDecisionLog> searchAuthzDecisionLogs(QueryContext queryContext, AuthzDecisionLogQuery query) throws AnalyticsException;
+
+    /**
+     * Reads one decision by its event id, scoped to an api. A batch stamps every decision with the
+     * same request id, so the event id is the only key that identifies a single one.
+     */
+    Optional<AuthzDecisionLog> findAuthzDecisionLog(QueryContext queryContext, String apiId, String eventId) throws AnalyticsException;
 }

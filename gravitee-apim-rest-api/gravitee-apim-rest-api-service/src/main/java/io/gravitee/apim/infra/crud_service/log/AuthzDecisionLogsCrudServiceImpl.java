@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
@@ -74,6 +75,22 @@ class AuthzDecisionLogsCrudServiceImpl implements AuthzDecisionLogsCrudService {
         } catch (AnalyticsException e) {
             log.error("An error occurs while trying to search authz decision logs [apiIds={}]", apiIds, e);
             throw new TechnicalManagementException("Unable to search authz decision logs", e);
+        }
+    }
+
+    @Override
+    public Optional<AuthzDecisionLog> findDecisionLog(ExecutionContext executionContext, String apiId, String eventId) {
+        try {
+            return metricsRepository
+                .findAuthzDecisionLog(
+                    new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
+                    apiId,
+                    eventId
+                )
+                .map(AuthzDecisionLogsCrudServiceImpl::toDomain);
+        } catch (AnalyticsException e) {
+            log.error("An error occurs while trying to find authz decision [apiId={}, eventId={}]", apiId, eventId, e);
+            throw new TechnicalManagementException("Unable to find authz decision " + eventId, e);
         }
     }
 

@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest.core.observability.logs.port.service_provider;
 
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogDetail;
+import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsPage;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
 import java.util.List;
@@ -43,6 +44,13 @@ public interface ObservabilityLogsDataPort {
     List<AccessibleApi> loadAccessibleApis(String organizationId, String environmentId);
 
     /**
+     * Same scoping as {@link #loadAccessibleApis} for a single api. Empty when the caller cannot read
+     * it, so a by-id read collapses into the same "not found" as a missing record. Separate from the
+     * list form because resolving one api should not cost a fetch of the whole environment.
+     */
+    Optional<AccessibleApi> loadAccessibleApi(String organizationId, String environmentId, String apiId);
+
+    /**
      * Searches the {@code v4-metrics} index with the pre-scoped query and returns enriched log
      * entries (plan/application/gateway/apiProduct names resolved). Only V4 definition versions are
      * queried.
@@ -55,4 +63,11 @@ public interface ObservabilityLogsDataPort {
      * {@code v4-log} index. Returns empty when neither index contains a matching document.
      */
     Optional<LogDetail> getLogDetail(String organizationId, String environmentId, String apiId, String requestId);
+
+    /**
+     * Fetches one authorization decision by its event id. Separate from {@link #getLogDetail}
+     * because a decision is not an HTTP exchange, and its key is not the request id — a batch stamps
+     * every decision it contains with the same one.
+     */
+    Optional<LogEntry> getDecision(String organizationId, String environmentId, String apiId, String eventId);
 }

@@ -18,11 +18,14 @@ package io.gravitee.gamma.rest.infra.adapter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -33,7 +36,9 @@ import io.gravitee.apim.core.log.model.AuthzDecisionLog;
 import io.gravitee.apim.core.log.model.AuthzDecisionLogFilters;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
+import io.gravitee.apim.core.user.model.UserContext;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
@@ -47,6 +52,7 @@ import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -732,6 +738,62 @@ class ObservabilityLogsDataPortAdapterTest {
             var captor = ArgumentCaptor.forClass(AuthzDecisionLogFilters.class);
             verify(authzDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
             assertThat(captor.getValue().decisions()).isEmpty();
+        }
+
+        @Test
+        void should_not_read_a_decision_for_an_api_the_caller_cannot_access() {
+            when(userContextLoader.loadApi(any(), eq("api-1"))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            var decision = adapter.getDecision(ORG, ENV, "api-1", "evt-1");
+
+            assertThat(decision).isEmpty();
+            // The scoping has to happen before the store is touched, otherwise the guard is decorative.
+            verifyNoInteractions(authzDecisionLogsCrudService);
+        }
+
+        @Test
+        void should_resolve_the_api_by_id_rather_than_loading_the_whole_environment() {
+            grantAccessToApi1();
+            when(authzDecisionLogsCrudService.findDecisionLog(any(), eq("api-1"), eq("evt-1"))).thenReturn(
+                Optional.of(AuthzDecisionLog.builder().eventId("evt-1").apiId("api-1").build())
+            );
+
+            adapter.getDecision(ORG, ENV, "api-1", "evt-1");
+
+            // Opening one decision must not pay for every api in the environment.
+            verify(userContextLoader).loadApi(any(), eq("api-1"));
+            verify(userContextLoader, never()).loadApis(any());
+        }
+
+        @Test
+        void should_read_the_decision_of_an_accessible_api_and_enrich_it_with_the_api_identity() {
+            grantAccessToApi1();
+            when(authzDecisionLogsCrudService.findDecisionLog(any(), eq("api-1"), eq("evt-1"))).thenReturn(
+                Optional.of(AuthzDecisionLog.builder().eventId("evt-1").apiId("api-1").requestId("req-1").decision("PERMIT").build())
+            );
+
+            var decision = adapter.getDecision(ORG, ENV, "api-1", "evt-1");
+
+            assertThat(decision).isPresent();
+            assertThat(decision.get().requestId()).isEqualTo("req-1");
+            assertThat(decision.get().apiName()).isEqualTo("API 1");
+            assertThat(decision.get().apiType()).isEqualTo("AUTHZ");
+        }
+
+        @Test
+        void should_report_no_decision_when_the_accessible_api_has_no_such_event() {
+            grantAccessToApi1();
+            when(authzDecisionLogsCrudService.findDecisionLog(any(), eq("api-1"), eq("gone"))).thenReturn(Optional.empty());
+
+            assertThat(adapter.getDecision(ORG, ENV, "api-1", "gone")).isEmpty();
+        }
+
+        private void grantAccessToApi1() {
+            when(userContextLoader.loadApi(any(), eq("api-1"))).thenAnswer(invocation ->
+                ((UserContext) invocation.getArgument(0)).withApis(
+                    List.of(Api.builder().id("api-1").name("API 1").type(ApiType.AUTHZ).build())
+                )
+            );
         }
 
         private LogsSearchQuery decisionQuery() {
