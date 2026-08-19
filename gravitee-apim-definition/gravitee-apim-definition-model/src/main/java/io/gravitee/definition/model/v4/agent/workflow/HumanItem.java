@@ -27,7 +27,7 @@ import lombok.ToString;
 
 /**
  * {@code human} — a human-in-the-loop gate: renders {@code ask} from the scope ({@code {{key}}}), reads the reply
- * and writes it to {@code output} (inherited). {@code channel} describes how the human is reached. It implements
+ * and writes it to {@code outputs} (inherited). {@code channel} describes how the human is reached. It implements
  * {@link Workflow} so a workflow may be a single human gate.
  */
 @NoArgsConstructor
