@@ -19,6 +19,7 @@ import type {
     AlertApiCondition,
     AlertApiNotification,
     AlertApiPeriod,
+    AlertAnalytics,
     AlertFormCondition,
     AlertFormNotification,
     AlertFormTimeframe,
@@ -314,9 +315,13 @@ export async function deletePlatformAlert(environmentId: string, alertId: string
     });
 }
 
-export async function listPlatformAlertEvents(environmentId: string, alertId: string, page = 1, size = 10): Promise<AlertHistoryPage> {
+export async function listPlatformAlertEvents(environmentId: string, alertId: string, page = 0, size = 10): Promise<AlertHistoryPage> {
     return apimFetchJsonV1Env<AlertHistoryPage>(
         environmentId,
         `/platform/alerts/${encodeURIComponent(alertId)}/events?page=${page}&size=${size}`,
     );
+}
+
+export async function getPlatformAlertAnalytics(environmentId: string, from: number, to: number): Promise<AlertAnalytics> {
+    return apimFetchJsonV1Env<AlertAnalytics>(environmentId, `/platform/alerts/analytics?from=${from}&to=${to}`);
 }

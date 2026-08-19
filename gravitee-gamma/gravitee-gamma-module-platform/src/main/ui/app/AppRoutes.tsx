@@ -42,7 +42,9 @@ import {
     type PlatformNavSection,
 } from '../config/navigation';
 import { PLATFORM_ROUTE_CONFIG } from '../config/routes';
+import { AlertsLayout } from '../features/alerts/components/AlertsLayout';
 import { AlertFormPage } from '../features/alerts/pages/AlertFormPage';
+import { AlertsActivityPage } from '../features/alerts/pages/AlertsActivityPage';
 import { ENVIRONMENT_ALERT_READ_PERMISSION } from '../features/alerts/utils/alertPermissions';
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
 import { ENVIRONMENT_AUDIT_READ_PERMISSIONS, ORGANIZATION_AUDIT_READ_PERMISSIONS } from '../features/audit-logs/utils/auditPermissions';
@@ -513,7 +515,10 @@ export function AppRoutes() {
                                     </PermissionPageGuard>
                                 }
                             >
-                                <Route index element={<AlertsPage />} />
+                                <Route element={<AlertsLayout />}>
+                                    <Route index element={<AlertsPage />} />
+                                    <Route path="activity" element={<AlertsActivityPage />} />
+                                </Route>
                                 <Route path="new" element={<AlertFormPage />} />
                                 <Route path=":alertId" element={<AlertFormPage />} />
                             </Route>

@@ -14,11 +14,4 @@
  * limitations under the License.
  */
 
-export const platformAlertKeys = {
-    all: ['platform-alerts'] as const,
-    list: (envId: string) => [...platformAlertKeys.all, 'list', envId] as const,
-    history: (envId: string, alertId: string) => [...platformAlertKeys.all, 'history', envId, alertId] as const,
-    notifiers: (envId: string) => [...platformAlertKeys.all, 'notifiers', envId] as const,
-    notifierSchema: (envId: string, notifierId: string) => [...platformAlertKeys.all, 'notifier-schema', envId, notifierId] as const,
-    analytics: (envId: string, rangeId: string) => [...platformAlertKeys.all, 'analytics', envId, rangeId] as const,
-} as const;
+export { formatAbsoluteDateTime, formatRelativeDateTime } from './formatRelativeDateTime';

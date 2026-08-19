@@ -126,6 +126,14 @@ jest.mock('../pages/EnvAuditLogsPage', () => ({
     EnvAuditLogsPage: () => <div data-testid="env-audit-logs-page" />,
 }));
 
+jest.mock('../features/alerts/pages/AlertsActivityPage', () => ({
+    AlertsActivityPage: () => <div data-testid="alerts-activity-page" />,
+}));
+
+jest.mock('../features/alerts/pages/AlertFormPage', () => ({
+    AlertFormPage: () => <div data-testid="alert-form-page" />,
+}));
+
 function renderPlatform(path = '/applications') {
     render(
         <MemoryRouter initialEntries={[path]}>
@@ -442,6 +450,31 @@ describe('AppRoutes', () => {
         );
 
         expect(screen.getByTestId('alerts-page')).not.toBeNull();
+        expect(screen.getByRole('link', { name: 'My alerts' })).not.toBeNull();
+        expect(screen.getByRole('link', { name: 'Activity' })).not.toBeNull();
+    });
+
+    it('routes to the Alerts activity page', () => {
+        render(
+            <MemoryRouter initialEntries={['/alerts/activity']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('alerts-activity-page')).not.toBeNull();
+        expect(screen.getByRole('link', { name: 'Activity' })).not.toBeNull();
+    });
+
+    it('does not show My alerts / Activity tabs on the alert form', () => {
+        render(
+            <MemoryRouter initialEntries={['/alerts/new']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('alert-form-page')).not.toBeNull();
+        expect(screen.queryByRole('link', { name: 'My alerts' })).toBeNull();
+        expect(screen.queryByRole('link', { name: 'Activity' })).toBeNull();
     });
 
     it('shows the Alerts nav item when the user has read permission', () => {
