@@ -22,7 +22,6 @@ import { DocumentationService } from '../../services/documentation.service';
 import FetcherService from '../../services/fetcher.service';
 import CategoryService from '../../services/category.service';
 import { GroupService } from '../../services-ngx/group.service';
-import { ApiService } from '../../services/api.service';
 
 @Component({
   template: '',
@@ -41,7 +40,6 @@ export class DocumentationEditPageComponent extends UpgradeComponent {
     @Inject('ajsDocumentationService') private readonly ajsDocumentationService: DocumentationService,
     @Inject('ajsFetcherService') private readonly ajsFetcherService: FetcherService,
     @Inject('ajsCategoryService') private readonly ajsCategoryService: CategoryService,
-    @Inject('ajsApiService') private readonly ajsApiService: ApiService,
   ) {
     super('documentationEditPageAjs', elementRef, injector);
   }
@@ -97,9 +95,7 @@ export class DocumentationEditPageComponent extends UpgradeComponent {
       type === 'MARKDOWN' || type === 'ASCIIDOC' || type === 'ASYNCAPI'
         ? this.ajsDocumentationService.getMedia(pageId, apiId).then(response => response.data)
         : Promise.resolve(null),
-      apiId !== undefined
-        ? this.ajsApiService.get(apiId).then(res => res.data?.definition_context?.origin === 'kubernetes')
-        : Promise.resolve(null),
+      Promise.resolve(false),
     ]).then(
       ([
         resolvedFetchers,

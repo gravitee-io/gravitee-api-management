@@ -155,7 +155,7 @@ export class DocumentationNewPageComponent implements OnInit {
 
     this.sourceConfiguration = new FormControl<undefined | unknown>({});
 
-    this.isReadOnly = this.api.originContext?.origin === 'KUBERNETES';
+    this.isReadOnly = false;
 
     if (this.isReadOnly) {
       this.form.disable({ emitEvent: false });

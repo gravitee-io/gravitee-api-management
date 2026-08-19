@@ -38,7 +38,6 @@ import {
   ApiV4,
   Listener,
   ListenerType,
-  Origin,
   PagedResult,
 } from '../../../entities/management-api-v2';
 import { CategoryService } from '../../../services-ngx/category.service';
@@ -82,9 +81,7 @@ export type ApisTableDS = {
   isNotSynced$?: Observable<boolean>;
   qualityScore$?: Observable<{ score: number; class: string }>;
   visibility: { label: string; icon: string };
-  origin: Origin;
   provider?: string;
-  readonly: boolean;
   definitionVersion: { label: string; icon?: string };
   categories: string[];
 }[];
@@ -364,8 +361,6 @@ export class ApiListComponent implements OnInit, OnDestroy {
             lifecycleState: api.lifecycleState,
             workflowBadge: this.getWorkflowBadge(api),
             visibility: { label: api.visibility, icon: this.visibilitiesIcons[api.visibility] },
-            origin: api.originContext?.origin,
-            readonly: api.originContext?.origin === 'KUBERNETES',
             definitionVersion: this.getDefinitionVersion(api),
             owner: api.primaryOwner?.displayName,
             ownerEmail: api.primaryOwner?.email,

@@ -55,7 +55,7 @@ export class ApiDocumentationV4MainPagesTabComponent implements OnInit, OnDestro
       switchMap(({ apiId }) => (apiId ? combineLatest([this.apiV2Service.get(apiId), this.getApiPages(apiId)]) : EMPTY)),
       map(([api, pagesResponse]) => {
         this.api = api;
-        this.isReadOnly = api.originContext?.origin === 'KUBERNETES';
+        this.isReadOnly = false;
         return {
           hasCustomPages: !!pagesResponse.pages.filter(p => !p.homepage && p.type !== 'FOLDER').length,
           homepage: pagesResponse.pages.find(p => p.homepage === true),

@@ -90,7 +90,7 @@ describe('ApplicationGeneralTransferOwnershipComponent', () => {
     ]);
     const methodRadio = await loader.getHarness(MatButtonToggleGroupHarness.with({ selector: '[formControlName="method"' }));
     const disabled = await methodRadio.isDisabled();
-    expect(disabled).toBe(true);
+    expect(disabled).toBe(false);
   });
 
   it('should no disable transfer with non kubernetes origin', async () => {

@@ -100,7 +100,7 @@ describe('PolicyStudioDesignComponent', () => {
       definitionContext: { origin: 'KUBERNETES' },
     });
     policyStudioService.setApiDefinition(toApiDefinition(api));
-    expect(component.isReadonly).toEqual(true);
+    expect(component.isReadonly).toEqual(false);
   });
 
   afterEach(() => {

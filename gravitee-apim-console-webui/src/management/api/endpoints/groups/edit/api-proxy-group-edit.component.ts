@@ -71,7 +71,7 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
         onlyApiV2Filter(this.snackBarService),
         switchMap(api => {
           this.api = api;
-          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
+          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']);
           return this.serviceDiscoveryService.list();
         }),
         map((serviceDiscoveryItems: ResourceListItem[]) => {

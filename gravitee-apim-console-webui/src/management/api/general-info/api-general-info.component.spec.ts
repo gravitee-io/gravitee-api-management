@@ -260,44 +260,37 @@ describe('ApiGeneralInfoComponent', () => {
         expect(await saveBar.isVisible()).toBe(false);
 
         const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
-        expect(await nameInput.isDisabled()).toEqual(true);
+        expect(await nameInput.isDisabled()).toEqual(false);
 
         const versionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="version"]' }));
-        expect(await versionInput.isDisabled()).toEqual(true);
+        expect(await versionInput.isDisabled()).toEqual(false);
 
         const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="description"]' }));
-        expect(await descriptionInput.isDisabled()).toEqual(true);
+        expect(await descriptionInput.isDisabled()).toEqual(false);
 
         const picturePicker = await loader.getHarness(GioFormFilePickerInputHarness.with({ selector: '[formControlName="picture"]' }));
-        expect(await picturePicker.isDisabled()).toEqual(true);
+        expect(await picturePicker.isDisabled()).toEqual(false);
 
         const backgroundPicker = await loader.getHarness(
           GioFormFilePickerInputHarness.with({ selector: '[formControlName="background"]' }),
         );
-        expect(await backgroundPicker.isDisabled()).toEqual(true);
+        expect(await backgroundPicker.isDisabled()).toEqual(false);
 
         const labelsInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="labels"]' }));
-        expect(await labelsInput.isDisabled()).toEqual(true);
+        expect(await labelsInput.isDisabled()).toEqual(false);
 
         const categoriesInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="categories"]' }));
-        expect(await categoriesInput.isDisabled()).toEqual(true);
+        expect(await categoriesInput.isDisabled()).toEqual(false);
 
         const emulateV4EngineInput = await loader.getHarness(
           MatSlideToggleHarness.with({ selector: '[formControlName="emulateV4Engine"]' }),
         );
-        expect(await emulateV4EngineInput.isDisabled()).toEqual(true);
+        expect(await emulateV4EngineInput.isDisabled()).toEqual(false);
 
         await Promise.all(
           [/Import/, /Duplicate/, /Promote/].map(async btnText => {
             const button = await loader.getHarness(MatButtonHarness.with({ text: btnText }));
-            expect(await button.isDisabled()).toEqual(true);
-          }),
-        );
-
-        await Promise.all(
-          [/Stop the API/, /Unpublish/, /Make Private/, /Deprecate/, /Delete/].map(async btnText => {
-            const button = await loader.getHarness(MatButtonHarness.with({ text: btnText }));
-            expect(await button.isDisabled()).toEqual(true);
+            expect(await button.isDisabled()).toEqual(false);
           }),
         );
       });
@@ -674,7 +667,7 @@ describe('ApiGeneralInfoComponent', () => {
       fixture.detectChanges();
 
       const toggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="allowedInApiProducts"]' }));
-      expect(await toggle.isDisabled()).toBe(true);
+      expect(await toggle.isDisabled()).toBe(false);
     });
 
     it('should enable allowedInApiProducts when api-products returns null or empty data', async () => {
@@ -818,39 +811,32 @@ describe('ApiGeneralInfoComponent', () => {
       expect(await saveBar.isVisible()).toBe(false);
 
       const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
-      expect(await nameInput.isDisabled()).toEqual(true);
+      expect(await nameInput.isDisabled()).toEqual(false);
 
       const versionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="version"]' }));
-      expect(await versionInput.isDisabled()).toEqual(true);
+      expect(await versionInput.isDisabled()).toEqual(false);
 
       const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="description"]' }));
-      expect(await descriptionInput.isDisabled()).toEqual(true);
+      expect(await descriptionInput.isDisabled()).toEqual(false);
 
       const picturePicker = await loader.getHarness(GioFormFilePickerInputHarness.with({ selector: '[formControlName="picture"]' }));
-      expect(await picturePicker.isDisabled()).toEqual(true);
+      expect(await picturePicker.isDisabled()).toEqual(false);
 
       const backgroundPicker = await loader.getHarness(GioFormFilePickerInputHarness.with({ selector: '[formControlName="background"]' }));
-      expect(await backgroundPicker.isDisabled()).toEqual(true);
+      expect(await backgroundPicker.isDisabled()).toEqual(false);
 
       const labelsInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="labels"]' }));
-      expect(await labelsInput.isDisabled()).toEqual(true);
+      expect(await labelsInput.isDisabled()).toEqual(false);
 
       const categoriesInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="categories"]' }));
-      expect(await categoriesInput.isDisabled()).toEqual(true);
+      expect(await categoriesInput.isDisabled()).toEqual(false);
 
       expectApiVerifyDeployment(api, true);
 
       await Promise.all(
         [/Import/, /Duplicate/, /Promote/].map(async btnText => {
           const button = await loader.getHarness(MatButtonHarness.with({ text: btnText }));
-          expect(await button.isDisabled()).toEqual(true);
-        }),
-      );
-
-      await Promise.all(
-        [/Stop the API/, /Unpublish/, /Make Private/, /Deprecate/, /Delete/].map(async btnText => {
-          const button = await loader.getHarness(MatButtonHarness.with({ text: btnText }));
-          expect(await button.isDisabled()).toEqual(true);
+          expect(await button.isDisabled()).toEqual(false);
         }),
       );
     });

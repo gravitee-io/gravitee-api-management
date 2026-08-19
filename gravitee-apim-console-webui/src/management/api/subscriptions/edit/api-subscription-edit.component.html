@@ -25,81 +25,62 @@
     <mat-card-header>
       <mat-card-title>Subscription details</mat-card-title>
     </mat-card-header>
-
     <ng-container *ngIf="subscription">
-      <ng-container *ngIf="subscription?.origin === 'KUBERNETES'">
-        <div class="subscription___kubernetes-origin-message">
-          <mat-icon matTooltip="Kubernetes Origin" class="matt-icon__origin" svgIcon="gio:kubernetes"></mat-icon>
-          <p>This subscription was created by the Kubernetes Operator and cannot be managed through the console.</p>
-        </div>
-      </ng-container>
       <mat-card-content>
         <dl class="gio-description-list">
           <dt>ID</dt>
           <dd gioClipboardCopyWrapper [contentToCopy]="subscription.id" data-testId="subscription-id">
             {{ subscription.id || '-' }}
           </dd>
-
           <dt>Plan</dt>
           <dd gioClipboardCopyWrapper [contentToCopy]="subscription.plan.label" data-testId="subscription-plan">
             {{ subscription.plan.label || '-' }}
           </dd>
-
           <dt>Status</dt>
           <dd gioClipboardCopyWrapper [contentToCopy]="subscription.status" data-testId="subscription-status">
             {{ subscription.status || '-' }}
           </dd>
-
           <ng-container *ngIf="subscription.consumerStatus">
             <dt>Consumer status</dt>
             <dd gioClipboardCopyWrapper [contentToCopy]="subscription.consumerStatus" data-testId="subscription-consumer-status">
               {{ subscription.consumerStatus }}
             </dd>
           </ng-container>
-
           <ng-container *ngIf="subscription.failureCause">
             <dt>Failure Cause</dt>
             <dd gioClipboardCopyWrapper [contentToCopy]="subscription.failureCause" data-testId="subscription-failure-cause">
               {{ subscription.failureCause }}
             </dd>
           </ng-container>
-
           <dt>Subscribed by</dt>
           <dd gioClipboardCopyWrapper [contentToCopy]="subscription.subscribedBy" data-testId="subscription-subscribed-by">
             {{ subscription.subscribedBy || '-' }}
           </dd>
-
           <dt>Application</dt>
           <dd data-testId="subscription-application">
             <div class="subtitle-2">{{ subscription.application.label || '-' }}</div>
             <div class="mat-body-2">{{ subscription.application.description }}</div>
           </dd>
-
           <dt>Publisher message to subscriber</dt>
           <dd data-testId="subscription-publisher-message">
             {{ subscription.publisherMessage || '-' }}
           </dd>
-
           <dt>Subscriber message to publisher</dt>
           <dd data-testId="subscription-subscriber-message">
             {{ subscription.subscriberMessage || '-' }}
           </dd>
-
           <dt>Created at</dt>
           <dd data-testId="subscription-created-at">
             {{ (subscription.createdAt | date: 'medium') || '-' }}
           </dd>
-
           <dt>Updated at</dt>
           <dd data-testId="subscription-updated-at">
             {{ (subscription.updatedAt | date: 'medium') || '-' }}
           </dd>
-
           <dt>Processed at</dt>
           <dd data-testId="subscription-processed-at">
             {{ (subscription.processedAt | date: 'medium') || '-' }}
           </dd>
-
           <ng-container *ngIf="subscription.status !== 'REJECTED'">
             <dt>Starting at</dt>
             <dd data-testId="subscription-starting-at">
@@ -114,17 +95,14 @@
               {{ (subscription.endingAt | date: 'medium') || '-' }}
             </dd>
           </ng-container>
-
           <dt>Closed at</dt>
           <dd data-testId="subscription-closed-at">
             {{ (subscription.closedAt | date: 'medium') || '-' }}
           </dd>
-
           <dt>Domain</dt>
           <dd data-testId="subscription-domain">
             {{ subscription.domain || '-' }}
           </dd>
-
           <dt>Metadata</dt>
           <dd class="subscription__metadata-cell" data-testId="subscription-metadata">
             <subscription-metadata-viewer [metadata]="subscription.metadata" />
@@ -133,10 +111,7 @@
       </mat-card-content>
       <mat-card-actions>
         <ng-container
-          *ngIf="
-            (subscription?.status === 'PAUSED' || subscription?.status === 'ACCEPTED' || subscription?.status === 'PENDING') &&
-            subscription?.origin !== 'KUBERNETES'
-          "
+          *ngIf="subscription?.status === 'PAUSED' || subscription?.status === 'ACCEPTED' || subscription?.status === 'PENDING'"
         >
           <div class="subscription__footer" *gioPermission="{ anyOf: ['api-subscription-u'] }">
             <ng-container *ngIf="subscription.status === 'PAUSED' || subscription.status === 'ACCEPTED'; else pendingSubscription">
@@ -160,7 +135,7 @@
                 <mat-icon svgIcon="gio:play-circle"></mat-icon>
                 Resume from failure
               </button>
-              <button mat-raised-button color="warn" (click)="closeSubscription()" [disabled]="subscription.origin === 'KUBERNETES'">
+              <button mat-raised-button color="warn" (click)="closeSubscription()">
                 <mat-icon svgIcon="gio:x-circle"></mat-icon>
                 Close subscription
               </button>
@@ -267,7 +242,6 @@
           </ng-container>
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-
           <!-- Row shown when there is no data -->
           <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
             <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">No API keys!</td>
@@ -286,7 +260,6 @@
       </mat-card-actions>
     </ng-container>
   </mat-card>
-
   @if (subscription?.plan?.mode === 'PUSH' && !!subscription?.consumerConfiguration) {
     <subscription-edit-push-config
       [updatePermission]="'api-subscription-u'"

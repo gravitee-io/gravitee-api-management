@@ -32,8 +32,6 @@ import { fakeMetadata } from '../../../../entities/metadata/metadata.fixture';
 import { Metadata } from '../../../../entities/metadata/metadata';
 import { GioMetadataDialogHarness } from '../../../../components/gio-metadata/dialog/gio-metadata-dialog.harness';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { Application } from '../../../../entities/application/Application';
-import { fakeApplication } from '../../../../entities/application/Application.fixture';
 
 describe('ApplicationMetadataComponent', () => {
   let fixture: ComponentFixture<ApplicationMetadataComponent>;
@@ -77,7 +75,6 @@ describe('ApplicationMetadataComponent', () => {
   });
 
   it('should load metadata list', async () => {
-    expectGetApplication(fakeApplication());
     expectMetadataList();
 
     const gioMetadata = await loader.getHarness(GioMetadataHarness);
@@ -91,7 +88,6 @@ describe('ApplicationMetadataComponent', () => {
   });
 
   it('should create and reload metadata list', async () => {
-    expectGetApplication(fakeApplication());
     expectMetadataList();
 
     const gioMetadata = await loader.getHarness(GioMetadataHarness);
@@ -122,7 +118,6 @@ describe('ApplicationMetadataComponent', () => {
   });
 
   it('should update metadata and reload metadata list', async () => {
-    expectGetApplication(fakeApplication());
     expectMetadataList();
 
     const gioMetadata = await loader.getHarness(GioMetadataHarness);
@@ -154,7 +149,6 @@ describe('ApplicationMetadataComponent', () => {
   });
 
   it('should delete metadata and reload metadata list', async () => {
-    expectGetApplication(fakeApplication());
     expectMetadataList();
 
     const gioMetadata = await loader.getHarness(GioMetadataHarness);
@@ -174,8 +168,7 @@ describe('ApplicationMetadataComponent', () => {
     expectMetadataList([fakeMetadata({ key: 'key2' })]);
   });
 
-  it('should display readonly metadata list with kubernetes origin', async () => {
-    expectGetApplication(fakeApplication({ origin: 'KUBERNETES' }));
+  it('should allow deleting metadata for a kubernetes-origin application', async () => {
     expectMetadataList();
 
     const gioMetadata = await loader.getHarness(GioMetadataHarness);
@@ -184,14 +177,8 @@ describe('ApplicationMetadataComponent', () => {
     const firstRow = await gioMetadata.getRowByIndex(0);
     const firstRowDeleteBtn = firstRow.deleteButton;
 
-    expect(await firstRowDeleteBtn.isDisabled()).toBe(true);
+    expect(await firstRowDeleteBtn.isDisabled()).toBe(false);
   });
-
-  function expectGetApplication(application: Application) {
-    httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/applications/${APPLICATION_ID}`, method: 'GET' })
-      .flush(application);
-  }
 
   function expectMetadataList(list: Metadata[] = [fakeMetadata({ key: 'key1' }), fakeMetadata({ key: 'key2' })]) {
     httpTestingController

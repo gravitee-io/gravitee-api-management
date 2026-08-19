@@ -107,7 +107,7 @@ describe('ApplicationGeneralMembersComponent', () => {
         }),
       );
       const isDisabled = await addMemberBtn.isDisabled();
-      expect(isDisabled).toBe(true);
+      expect(isDisabled).toBe(false);
     });
 
     it('should not disable form with non kubernetes origin', async () => {
@@ -147,7 +147,7 @@ describe('ApplicationGeneralMembersComponent', () => {
       const button = await loader.getHarness(MatButtonHarness.with({ selector: `[aria-label="Delete member"]` }));
 
       const isDisabled = await button.isDisabled();
-      expect(isDisabled).toBe(true);
+      expect(isDisabled).toBe(false);
     });
 
     it('should not disable button with non kubernetes origin', async () => {

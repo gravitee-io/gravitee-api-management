@@ -56,8 +56,7 @@ export class ApiResponseTemplatesListComponent implements OnInit, OnDestroy {
           this.apiId = api.id;
           this.responseTemplateTableData = toResponseTemplates(api.responseTemplates);
 
-          this.isReadOnly =
-            !this.permissionService.hasAnyMatching(['api-response_templates-u']) || api.definitionContext?.origin === 'KUBERNETES';
+          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-response_templates-u']);
         }),
         takeUntil(this.unsubscribe$),
       )

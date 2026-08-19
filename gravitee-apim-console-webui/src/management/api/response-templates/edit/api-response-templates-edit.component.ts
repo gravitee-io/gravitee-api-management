@@ -70,8 +70,7 @@ export class ApiResponseTemplatesEditComponent implements OnInit, OnDestroy {
           this.responseTemplateToEdit = responseTemplates.find(rt => rt.id === this.activatedRoute.snapshot.params.responseTemplateId);
           this.mode = !isNil(this.responseTemplateToEdit) ? 'edit' : 'new';
 
-          this.isReadOnly =
-            !this.permissionService.hasAnyMatching(['api-response_templates-u']) || api.definitionContext?.origin === 'KUBERNETES';
+          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-response_templates-u']);
 
           this.responseTemplatesForm = new UntypedFormGroup({
             key: new UntypedFormControl(

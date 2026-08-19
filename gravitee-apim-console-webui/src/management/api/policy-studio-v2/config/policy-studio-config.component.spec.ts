@@ -123,7 +123,7 @@ describe('PolicyStudioConfigComponent', () => {
     policyStudioService.setApiDefinition(toApiDefinition(api));
 
     const activateSupportSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'emulateV4Engine' }));
-    expect(await activateSupportSlideToggle.isDisabled()).toEqual(true);
+    expect(await activateSupportSlideToggle.isDisabled()).toEqual(false);
   });
 
   afterEach(() => {

@@ -52,8 +52,7 @@ export class ApiHealthCheckComponent implements OnInit, OnDestroy {
       .pipe(
         onlyApiV2Filter(this.snackBarService),
         tap(api => {
-          const isReadOnly =
-            !this.permissionService.hasAnyMatching(['api-health-c', 'api-health-u']) || api.definitionContext?.origin === 'KUBERNETES';
+          const isReadOnly = !this.permissionService.hasAnyMatching(['api-health-c', 'api-health-u']);
 
           this.healthCheckForm = ApiHealthCheckFormComponent.NewHealthCheckFormGroup(api.services.healthCheck, isReadOnly);
         }),

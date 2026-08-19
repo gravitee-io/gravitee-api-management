@@ -95,7 +95,7 @@ export class ApplicationGeneralMembersComponent {
     ])
       .pipe(
         tap(([application, members, roles]) => {
-          this.isReadOnly = application.origin === 'KUBERNETES';
+          this.isReadOnly = false;
           this.members = members;
           this.application = application;
           this.roles = roles.map(r => r.name) ?? [];

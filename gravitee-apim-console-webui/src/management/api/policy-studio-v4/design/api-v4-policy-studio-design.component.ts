@@ -270,7 +270,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
         this.selectedFlowIndexes.planIndex = Number(params['planIndex'] ?? 0);
         this.selectedFlowIndexes.flowIndex = Number(params['flowIndex'] ?? 0);
         this.checkAndAdjustIndexes();
-        this.isReadOnly = !this.permissionsService.hasAnyMatching(['api-definition-u']) || api.definitionContext.origin === 'KUBERNETES';
+        this.isReadOnly = !this.permissionsService.hasAnyMatching(['api-definition-u']);
         this.isLoading = false;
         this.changeDetectorRef.detectChanges();
       }),

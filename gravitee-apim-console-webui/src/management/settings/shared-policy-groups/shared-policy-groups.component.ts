@@ -129,7 +129,6 @@ export class SharedPolicyGroupsComponent implements OnInit {
             phase: toReadableFlowPhase(sharedPolicyGroup.phase),
             updatedAt: sharedPolicyGroup.updatedAt,
             deployedAt: sharedPolicyGroup.deployedAt,
-            isKubernetesOrigin: sharedPolicyGroup.originContext?.origin === 'KUBERNETES',
           }));
 
           this.pageTableVM$.next({

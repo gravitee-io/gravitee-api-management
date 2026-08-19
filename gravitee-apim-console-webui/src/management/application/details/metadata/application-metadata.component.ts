@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { map, takeUntil, tap } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { map } from 'rxjs/operators';
 
 import { ApplicationMetadataService } from '../../../../services-ngx/application-metadata.service';
 import { MetadataSaveServices } from '../../../../components/gio-metadata/gio-metadata.component';
-import { ApplicationService } from '../../../../services-ngx/application.service';
 
 @Component({
   selector: 'application-metadata',
@@ -28,17 +26,12 @@ import { ApplicationService } from '../../../../services-ngx/application.service
   styleUrls: ['./application-metadata.component.scss'],
   standalone: false,
 })
-export class ApplicationMetadataComponent implements OnInit, OnDestroy {
+export class ApplicationMetadataComponent implements OnInit {
   metadataSaveServices: MetadataSaveServices;
   description: string;
-  isReadonly = false;
-
-  private unsubscribe$: Subject<void> = new Subject<void>();
 
   constructor(
-    private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
-    private readonly applicationService: ApplicationService,
     private readonly applicationMetadataService: ApplicationMetadataService,
   ) {}
 
@@ -55,17 +48,5 @@ export class ApplicationMetadataComponent implements OnInit, OnDestroy {
       delete: metadataKey => this.applicationMetadataService.deleteMetadata(applicationId, metadataKey),
     };
     this.description = `Create notification template of application metadata to retrieve custom information about your API`;
-
-    this.applicationService
-      .getById(applicationId)
-      .pipe(
-        tap(application => (this.isReadonly = application.origin === 'KUBERNETES')),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe();
-  }
-
-  ngOnDestroy() {
-    this.unsubscribe$.unsubscribe();
   }
 }

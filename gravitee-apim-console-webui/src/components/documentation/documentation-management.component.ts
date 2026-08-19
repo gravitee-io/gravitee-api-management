@@ -22,7 +22,6 @@ import { distinctUntilChanged, switchMap, takeUntil, tap } from 'rxjs/operators'
 import { combineLatest, from, Subject } from 'rxjs';
 
 import { DocumentationService, Page } from '../../services/documentation.service';
-import { ApiService } from '../../services/api.service';
 
 @Component({
   template: '',
@@ -48,7 +47,6 @@ export class DocumentationManagementComponent extends UpgradeComponent {
     injector: Injector,
     private readonly activatedRoute: ActivatedRoute,
     @Inject('ajsDocumentationService') private readonly ajsDocumentationService: DocumentationService,
-    @Inject('ajsApiService') private readonly ajsApiService: ApiService,
   ) {
     super('documentationManagementAjs', elementRef, injector);
   }
@@ -57,13 +55,6 @@ export class DocumentationManagementComponent extends UpgradeComponent {
     this.activatedRoute.params
       .pipe(
         distinctUntilChanged(isEqual),
-        tap(params => {
-          if (params.apiId) {
-            this.ajsApiService.get(params.apiId).then(res => {
-              this.readOnly = res.data?.definition_context?.origin === 'kubernetes';
-            });
-          }
-        }),
         switchMap(params => {
           this.firstChange = true;
           this.apiId = params.apiId;

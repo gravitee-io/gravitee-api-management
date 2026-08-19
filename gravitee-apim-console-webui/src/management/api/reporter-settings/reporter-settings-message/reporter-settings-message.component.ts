@@ -160,7 +160,7 @@ export class ReporterSettingsMessageComponent implements OnInit {
     const api = this.api();
     const analyticsEnabled = api.analytics?.enabled;
     const loggingModeDisabled = !(api?.analytics?.logging?.mode?.entrypoint || api?.analytics?.logging?.mode?.endpoint);
-    const isReadOnly = api.definitionContext?.origin === 'KUBERNETES';
+    const isReadOnly = false;
 
     this.form = new UntypedFormGroup({
       enabled: new UntypedFormControl({

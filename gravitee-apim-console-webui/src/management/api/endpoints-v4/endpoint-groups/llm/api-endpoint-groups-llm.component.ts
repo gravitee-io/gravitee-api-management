@@ -62,11 +62,7 @@ export class ApiEndpointGroupsLlmComponent {
   public shouldUpgrade$ = combineLatest([this.plugins$, toObservable(this.providersTableData)]).pipe(
     map(([plugins, providers]): boolean => providers.length > 0 && !plugins.get('llm-proxy')?.deployed),
   );
-  public isReadOnly = computed(() => {
-    const canUpdate = this.permissionService.hasAnyMatching(['api-definition-u']);
-    const api = this.api();
-    return api?.definitionContext?.origin === 'KUBERNETES' || !canUpdate;
-  });
+  public isReadOnly = computed(() => !this.permissionService.hasAnyMatching(['api-definition-u']));
   public llmProxyDisplayedColumns = ['model', 'costInput', 'costOutput', 'aliases'];
   private readonly messageLicenseOptions = {
     feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,

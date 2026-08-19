@@ -83,7 +83,7 @@ export class ApplicationGeneralComponent implements OnInit {
       )
       .subscribe(() => {
         this.isLoadingData = false;
-        this.isReadOnly = this.initialApplication.status === 'ARCHIVED' || this.initialApplication.origin === 'KUBERNETES';
+        this.isReadOnly = this.initialApplication.status === 'ARCHIVED';
 
         this.applicationForm = new UntypedFormGroup({
           details: new UntypedFormGroup({

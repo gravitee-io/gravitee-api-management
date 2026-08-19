@@ -86,7 +86,7 @@ export class ApiSubscriptionListComponent implements OnInit, OnDestroy {
 
   public isLoadingData = true;
   public canUpdate = false;
-  private isKubernetesOrigin = false;
+
   constructor(
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
@@ -126,8 +126,8 @@ export class ApiSubscriptionListComponent implements OnInit, OnDestroy {
       .pipe(
         tap(api => {
           this.api = api;
-          this.isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
-          this.canUpdate = this.permissionService.hasAnyMatching(['api-subscription-u']) && !this.isKubernetesOrigin;
+
+          this.canUpdate = this.permissionService.hasAnyMatching(['api-subscription-u']);
         }),
         switchMap(() =>
           this.apiPlanService.list(

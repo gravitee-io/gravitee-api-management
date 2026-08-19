@@ -155,11 +155,8 @@ describe('ApiProxyFailoverComponent', () => {
     const saveBar = await loader.getHarness(GioSaveBarHarness);
     expect(await saveBar.isVisible()).toBe(false);
 
-    const maxAttemptsInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="maxAttempts"]' }));
-    expect(await maxAttemptsInput.isDisabled()).toBe(true);
-
-    const retryTimeoutInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="retryTimeout"]' }));
-    expect(await retryTimeoutInput.isDisabled()).toBe(true);
+    const enabledToggle = await loader.getHarness(MatSlideToggleHarness);
+    expect(await enabledToggle.isDisabled()).toBe(false);
   });
 
   function expectApiGetRequest(api: ApiV2) {

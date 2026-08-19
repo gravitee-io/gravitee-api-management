@@ -93,7 +93,7 @@ export class ApiEndpointGroupsStandardComponent implements OnInit, OnDestroy {
           this.groupsTableData = toEndpoints(apiV4, tenants);
 
           const canUpdate = this.permissionService.hasAnyMatching(['api-definition-u']);
-          this.isReadOnly = this.api.definitionContext?.origin === 'KUBERNETES' || !canUpdate;
+          this.isReadOnly = !canUpdate;
           this.plugins = new Map(
             plugins.map(plugin => [
               plugin.id,

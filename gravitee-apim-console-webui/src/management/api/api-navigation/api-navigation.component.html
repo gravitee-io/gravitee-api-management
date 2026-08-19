@@ -26,7 +26,6 @@
         [apiState]="currentApi.state"
         [apiLifecycleState]="currentApi.lifecycleState"
         [apiDeploymentState]="currentApi.deploymentState"
-        [apiOrigin]="currentApi.originContext.origin"
         [definitionVersion]="currentApi.definitionVersion"
       ></api-navigation-title>
       <div class="api-navigation__menu-items-scroll">
@@ -141,7 +140,6 @@
           [apiState]="currentApi.state"
           [apiLifecycleState]="currentApi.lifecycleState"
           [apiDeploymentState]="currentApi.deploymentState"
-          [apiOrigin]="currentApi.originContext.origin"
           *gioBreadcrumbItem
         ></api-navigation-title>
         <ng-template ngFor let-item [ngForOf]="computeBreadcrumbItems()">

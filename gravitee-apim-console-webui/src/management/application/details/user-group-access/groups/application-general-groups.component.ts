@@ -73,7 +73,6 @@ export class ApplicationGeneralGroupsComponent implements OnInit, OnDestroy {
       .pipe(
         tap(application => {
           this.application = application;
-          this.isReadonly = application.origin === 'KUBERNETES';
         }),
         switchMap(() => this.loadInitialGroups()),
         takeUntil(this.unsubscribe$),

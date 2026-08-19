@@ -63,7 +63,7 @@ export class PolicyStudioConfigComponent implements OnInit, OnDestroy {
         tap(([definition, flowConfigurationSchema]) => {
           this.apiDefinition = definition;
 
-          this.isReadonly = definition.origin === 'kubernetes';
+          this.isReadonly = false;
 
           this.configForm = new UntypedFormGroup({
             emulateV4Engine: new UntypedFormControl({

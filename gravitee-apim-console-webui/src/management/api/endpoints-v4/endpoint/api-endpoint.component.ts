@@ -93,9 +93,8 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
           this.isHttpProxyApi = api.type === 'PROXY' && !(api.listeners.find(listener => listener.type === 'TCP') != null);
           this.isNativeKafkaApi = api.type === 'NATIVE' && api.listeners.some(listener => listener.type === 'KAFKA');
 
-          const isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
           const canUpdate = this.permissionService.hasAnyMatching(['api-definition-u']);
-          this.isReadOnly = isKubernetesOrigin || !canUpdate;
+          this.isReadOnly = !canUpdate;
           this.endpointGroup = api.endpointGroups[this.groupIndex];
 
           if (!this.endpointGroup) {

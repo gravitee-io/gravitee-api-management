@@ -121,9 +121,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
       .subscribe(([restrictedDomains, api, availableEntrypoints]) => {
         this.domainRestrictions = restrictedDomains.map(value => value.domain) || [];
 
-        this.isReadOnly =
-          api.definitionContext?.origin === 'KUBERNETES' ||
-          !this.permissionService.hasAllMatching(['api-definition-u', 'api-gateway_definition-u']);
+        this.isReadOnly = !this.permissionService.hasAllMatching(['api-definition-u', 'api-gateway_definition-u']);
         if (api.definitionVersion === 'V4') {
           this.allEntrypoints = availableEntrypoints.filter(({ supportedApiType }) => supportedApiType === api.type);
           this.initForm(api);

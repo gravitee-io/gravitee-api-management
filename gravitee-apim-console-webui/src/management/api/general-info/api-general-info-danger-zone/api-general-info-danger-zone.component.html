@@ -22,18 +22,12 @@
       <ng-container *gioPermission="{ anyOf: ['api-definition-u'] }">
         <div *ngIf="dangerActions.canAskForReview" class="danger-card__actions__action">
           <span>Ask for a review before to be able to publish / start your {{ subject }}.</span>
-          <button mat-button color="warn" [disabled]="isReadOnly" (click)="askForReview()">Ask for a review</button>
+          <button mat-button color="warn" (click)="askForReview()">Ask for a review</button>
         </div>
 
         <div *ngIf="dangerActions.canStopApi" class="danger-card__actions__action">
           <span> Stop the {{ subject }}. It will no longer be available on all gateways. </span>
-          <button
-            mat-button
-            color="warn"
-            [disabled]="isReadOnly"
-            data-testid="api_info_dangerzone_stop_api"
-            (click)="changeLifecycle('STOP')"
-          >
+          <button mat-button color="warn" data-testid="api_info_dangerzone_stop_api" (click)="changeLifecycle('STOP')">
             Stop the {{ subject }}
           </button>
         </div>
@@ -43,7 +37,7 @@
           <button
             mat-button
             color="warn"
-            [disabled]="isReadOnly || shouldUpgrade"
+            [disabled]="shouldUpgrade"
             data-testid="api_info_dangerzone_start_api"
             (click)="changeLifecycle('START')"
           >
@@ -67,26 +61,14 @@
         <div *ngIf="dangerActions.canChangeApiLifecycle" class="danger-card__actions__action">
           <ng-container *ngIf="dangerActions.canPublish">
             <span> Publish the {{ subject }}. It will be available on portal (depending on visibility/rights). </span>
-            <button
-              mat-button
-              color="warn"
-              [disabled]="isReadOnly"
-              data-testid="api_info_dangerzone_publish_api"
-              (click)="changeApiLifecycle('PUBLISHED')"
-            >
+            <button mat-button color="warn" data-testid="api_info_dangerzone_publish_api" (click)="changeApiLifecycle('PUBLISHED')">
               Publish the {{ subject }}
             </button>
           </ng-container>
           <ng-container *ngIf="dangerActions.canUnpublish">
             <span> Unpublish the {{ subject }}. It will no longer be available on portal. </span>
 
-            <button
-              mat-button
-              color="warn"
-              [disabled]="isReadOnly"
-              data-testid="api_info_dangerzone_unpublish_api"
-              (click)="changeApiLifecycle('UNPUBLISHED')"
-            >
+            <button mat-button color="warn" data-testid="api_info_dangerzone_unpublish_api" (click)="changeApiLifecycle('UNPUBLISHED')">
               Unpublish the {{ subject }}
             </button>
           </ng-container>
@@ -94,26 +76,14 @@
 
         <div *ngIf="dangerActions.canChangeVisibilityToPrivate" class="danger-card__actions__action">
           <span> Make this {{ subject }} private. Only members will see it. </span>
-          <button
-            mat-button
-            color="warn"
-            [disabled]="isReadOnly"
-            data-testid="api_info_dangerzone_make_private"
-            (click)="changeVisibility('PRIVATE')"
-          >
+          <button mat-button color="warn" data-testid="api_info_dangerzone_make_private" (click)="changeVisibility('PRIVATE')">
             Make Private
           </button>
         </div>
 
         <div *ngIf="dangerActions.canChangeVisibilityToPublic" class="danger-card__actions__action">
           <span>Make this {{ subject }} public. Everyone can see it.</span>
-          <button
-            mat-button
-            color="warn"
-            [disabled]="isReadOnly"
-            data-testid="api_info_dangerzone_make_public"
-            (click)="changeVisibility('PUBLIC')"
-          >
+          <button mat-button color="warn" data-testid="api_info_dangerzone_make_public" (click)="changeVisibility('PUBLIC')">
             Make Public
           </button>
         </div>
@@ -122,13 +92,7 @@
       <ng-container *gioPermission="{ anyOf: ['api-definition-d'] }">
         <div *ngIf="dangerActions.canDeprecate" class="danger-card__actions__action">
           <span>Deprecate this {{ subject }}. It will no longer be published on portal.</span>
-          <button
-            mat-button
-            color="warn"
-            [disabled]="isReadOnly"
-            data-testid="api_info_dangerzone_deprecate_api"
-            (click)="changeApiLifecycle('DEPRECATED')"
-          >
+          <button mat-button color="warn" data-testid="api_info_dangerzone_deprecate_api" (click)="changeApiLifecycle('DEPRECATED')">
             Deprecate
           </button>
         </div>
@@ -138,21 +102,8 @@
             Delete this {{ subject }}.
             <span *ngIf="!dangerActions.canDelete">A running or published {{ subject }} cannot be deleted</span>
           </span>
-          <button
-            mat-button
-            color="warn"
-            data-testid="api_dangerzone_delete_api"
-            [disabled]="!dangerActions.canDelete || isReadOnly"
-            (click)="delete()"
-          >
+          <button mat-button color="warn" data-testid="api_dangerzone_delete_api" [disabled]="!dangerActions.canDelete" (click)="delete()">
             Delete
-          </button>
-        </div>
-
-        <div *ngIf="canDetach" class="danger-card__actions__action">
-          <span>Detach from automation source. This will make the {{ subject }} editable again in the console.</span>
-          <button mat-button color="warn" data-testid="api_info_dangerzone_make_editable" (click)="detach()">
-            Detach the {{ subject }}
           </button>
         </div>
       </ng-container>

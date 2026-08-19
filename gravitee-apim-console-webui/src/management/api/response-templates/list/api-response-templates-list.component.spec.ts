@@ -170,11 +170,10 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
       const [_1, _2, _3, rtTableFirstRowActionsCell] = await rtTableRows[0].getCells();
 
       const allActionsBtn = await rtTableFirstRowActionsCell.getAllHarnesses(MatButtonHarness);
-      expect(allActionsBtn.length).toBe(1);
+      expect(allActionsBtn.length).toBe(2);
 
-      // expect open detail btn
-      const opentDetailBtn = allActionsBtn[0];
-      expect(await (await opentDetailBtn.host()).getAttribute('aria-label')).toBe('Button to open Response Template detail');
+      expect(await (await allActionsBtn[0].host()).getAttribute('aria-label')).toBe('Button to edit a Response Template');
+      expect(await (await allActionsBtn[1].host()).getAttribute('aria-label')).toBe('Button to delete a Response Template');
     });
   });
 

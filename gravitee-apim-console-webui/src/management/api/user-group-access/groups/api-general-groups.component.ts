@@ -24,7 +24,6 @@ import { isGroupAssociatedWithApi } from '../group-data.utils';
 export interface ApiGroupsDialogData {
   api: Api;
   groups: Group[];
-  isKubernetesOrigin?: boolean;
 }
 export interface ApiGroupsDialogResult {
   groups: string[];
@@ -42,7 +41,6 @@ export class ApiGeneralGroupsComponent implements OnInit {
   public api: Api;
   public groups: Group[];
   public readOnlyGroupList: string;
-  public isKubernetesOrigin = false;
 
   constructor(
     private readonly permissionService: GioPermissionService,
@@ -53,11 +51,10 @@ export class ApiGeneralGroupsComponent implements OnInit {
   ) {
     this.api = dialogData.api;
     this.groups = dialogData.groups;
-    this.isKubernetesOrigin = dialogData.isKubernetesOrigin;
   }
 
   ngOnInit() {
-    this.isReadOnly = this.isKubernetesOrigin || !this.permissionService.hasAnyMatching(['api-member-u']);
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-member-u']);
 
     const userGroupList: Group[] = this.groups.filter(group => isGroupAssociatedWithApi(this.api.groups, group));
     this.form = this.formBuilder.group({

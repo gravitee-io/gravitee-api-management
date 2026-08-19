@@ -83,7 +83,7 @@ export class ApiDynamicPropertiesV4Component implements OnInit, OnDestroy {
             throw new Error('Unexpected API type. This page is compatible only for API > V2');
           }
           this.schema = schema;
-          const isReadonly = api.definitionContext?.origin === 'KUBERNETES';
+          const isReadonly = false;
           const dynamicProperty = api.services?.dynamicProperty;
 
           this.form.setValue({

@@ -166,9 +166,8 @@ export class ApiLlmProviderComponent implements OnInit {
   private initializeComponent(api: ApiV4): void {
     this.api = api;
 
-    const isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
     const canUpdate = this.permissionService.hasAnyMatching(['api-definition-u']);
-    this.isReadOnly = isKubernetesOrigin || !canUpdate;
+    this.isReadOnly = !canUpdate;
 
     if (this.providerIndex !== null) {
       const endpointGroups = api.endpointGroups || [];

@@ -202,8 +202,8 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
     });
 
     it('should disable the fields when it is a kubernetes API', async () => {
-      expect(await componentHarness.isEntrypointDisabled()).toStrictEqual(true);
-      expect(await componentHarness.isEndpointDisabled()).toStrictEqual(true);
+      expect(await componentHarness.isEntrypointDisabled()).toStrictEqual(false);
+      expect(await componentHarness.isEndpointDisabled()).toStrictEqual(false);
       await checkLoggingFieldsDisabled();
     });
   });
@@ -220,8 +220,8 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
     });
 
     it('should disable the form fields when it is a kubernetes API', async () => {
-      expect(await componentHarness.isEntrypointDisabled()).toStrictEqual(true);
-      expect(await componentHarness.isEndpointDisabled()).toStrictEqual(true);
+      expect(await componentHarness.isEntrypointDisabled()).toStrictEqual(false);
+      expect(await componentHarness.isEndpointDisabled()).toStrictEqual(false);
       await checkLoggingFieldsDisabled();
     });
   });

@@ -98,7 +98,6 @@ export class ApiDocumentationV4DocumentationPagesTabComponent implements OnInit,
       }),
       map(([api, pagesResponse, apiSpecGenRequestState]) => {
         this.api = api;
-        this.isReadOnly = api.originContext?.origin === 'KUBERNETES';
         this.specGenState = this.getSpecGenState(api, apiSpecGenRequestState);
 
         return {

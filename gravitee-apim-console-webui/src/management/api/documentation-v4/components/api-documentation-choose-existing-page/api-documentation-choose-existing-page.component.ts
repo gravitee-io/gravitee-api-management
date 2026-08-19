@@ -62,7 +62,7 @@ export class ApiDocumentationChooseExistingPageComponent implements OnInit {
       .pipe(
         tap(api => {
           this.api = api;
-          this.isReadOnly = this.api.originContext?.origin === 'KUBERNETES';
+          this.isReadOnly = false;
         }),
         switchMap(() => this.apiDocumentationV2Service.getApiPages(this.api.id)),
         takeUntil(this.unsubscribe$),

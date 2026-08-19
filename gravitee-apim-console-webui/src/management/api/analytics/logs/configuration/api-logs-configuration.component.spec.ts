@@ -242,11 +242,11 @@ describe('ApiLogsConfigurationComponent', () => {
 
       const groups = await loader.getAllHarnesses(GioFormSelectionInlineHarness);
       for (const group of groups) {
-        expect(await group.isDisabled()).toBe(true);
+        expect(await group.isDisabled()).toBe(false);
       }
 
-      expect(await loader.getHarness(MatSlideToggleHarness).then(toggle => toggle.isDisabled())).toStrictEqual(true);
-      expect(await loader.getHarness(MatInputHarness).then(input => input.isDisabled())).toStrictEqual(true);
+      expect(await loader.getHarness(MatSlideToggleHarness).then(toggle => toggle.isDisabled())).toStrictEqual(false);
+      expect(await loader.getHarness(MatInputHarness).then(input => input.isDisabled())).toStrictEqual(false);
     });
   });
 

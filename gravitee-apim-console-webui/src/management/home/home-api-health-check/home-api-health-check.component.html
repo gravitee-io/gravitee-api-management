@@ -103,9 +103,6 @@
           } @else {
             <mat-icon matTooltip="Unpublished" class="states__api-not-published" size="20" svgIcon="gio:cloud-unpublished" />
           }
-          @if (element.origin === 'KUBERNETES') {
-            <mat-icon matTooltip="Kubernetes Origin" class="states__api-origin" size="20" svgIcon="gio:kubernetes" />
-          }
           @if (element.workflowBadge) {
             <span [ngClass]="element.workflowBadge.class" class="states__api-workflow-badge" [matTooltip]="element.workflowBadge.text">
               {{ element.workflowBadge.text }}
