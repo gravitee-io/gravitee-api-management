@@ -42,7 +42,7 @@ export function BrandedSendersSection({
             <section className="space-y-3">
                 <div>
                     <h3 className="text-sm font-semibold">Default notification email</h3>
-                    <p className="text-xs text-muted-foreground">Used when no branded rule matches the recipient's email domain.</p>
+                    <p className="text-xs text-muted-foreground">{"Used when no branded rule matches the recipient's email domain."}</p>
                 </div>
                 <div className="space-y-1.5">
                     <label htmlFor="smtp-default-from" className="text-sm font-medium">
@@ -64,8 +64,9 @@ export function BrandedSendersSection({
                     <div>
                         <h3 className="text-sm font-semibold">Branded notification email</h3>
                         <p className="text-xs text-muted-foreground">
-                            Add one or more rules. When a recipient's domain matches a rule, that rule's From and Subject prefix are used
-                            instead of the default above.
+                            {
+                                "Add one or more rules. When a recipient's domain matches a rule, that rule's From and Subject prefix are used instead of the default above."
+                            }
                         </p>
                     </div>
                     {disabled ? null : (

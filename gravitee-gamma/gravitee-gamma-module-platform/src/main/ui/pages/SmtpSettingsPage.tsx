@@ -35,7 +35,7 @@ function buildState(settings: ConsoleSettings | undefined): SmtpFormState {
     return {
         enabled: settings?.email?.enabled ?? false,
         host: settings?.email?.host ?? '',
-        port: settings?.email?.port != null ? String(settings.email.port) : '',
+        port: settings?.email?.port !== undefined && settings?.email?.port !== null ? String(settings.email.port) : '',
         username: settings?.email?.username ?? '',
         password: settings?.email?.password ?? PASSWORD_SENTINEL,
         protocol: settings?.email?.protocol ?? '',

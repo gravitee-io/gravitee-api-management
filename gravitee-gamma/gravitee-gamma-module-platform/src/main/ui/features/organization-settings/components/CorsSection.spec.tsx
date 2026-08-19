@@ -40,6 +40,15 @@ describe('CorsSection', () => {
         expect((screen.getByLabelText('Max age') as HTMLInputElement).value).toBe('1728000');
     });
 
+    it('offers Classic default HTTP headers as CORS autocomplete options', () => {
+        render(<Harness />);
+        fireEvent.focus(screen.getByLabelText('Allow-Headers'));
+        expect(screen.getByRole('option', { name: 'Content-Type' })).not.toBeNull();
+        fireEvent.click(screen.getByRole('option', { name: 'Content-Type' }));
+        expect(screen.getByText('Content-Type')).not.toBeNull();
+        expect(screen.queryByRole('option', { name: 'Authorization' })).toBeNull();
+    });
+
     it('asks before adding * as an origin', () => {
         render(<Harness />);
         fireEvent.change(screen.getByPlaceholderText(/https:\/\/mydomain.com/), { target: { value: '*' } });

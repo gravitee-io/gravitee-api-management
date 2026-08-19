@@ -17,8 +17,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { notify } from '../../../shared/notify';
-import type { ConsoleSettings } from '../types/consoleSettings';
 import { saveOrgConsoleSettings } from '../services/consoleSettings';
+import type { ConsoleSettings } from '../types/consoleSettings';
 import { orgConsoleSettingsKeys } from '../utils/queryKeys';
 
 export function useSaveOrgConsoleSettings() {

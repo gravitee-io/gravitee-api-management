@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { TooltipProvider } from '@gravitee/graphene-core';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { useState } from 'react';
 
@@ -45,7 +46,11 @@ function Harness({
     readonly?: SmtpFieldReadonly;
 }) {
     const [value, setValue] = useState(initial);
-    return <SmtpSection value={value} disabled={disabled} readonly={readonly} onChange={setValue} />;
+    return (
+        <TooltipProvider>
+            <SmtpSection value={value} disabled={disabled} readonly={readonly} onChange={setValue} />
+        </TooltipProvider>
+    );
 }
 
 describe('SmtpSection', () => {
@@ -85,10 +90,18 @@ describe('SmtpSection', () => {
 
     it('requires host, a valid port, and from when enabled', () => {
         expect(isSmtpFormValid({ ...ENABLED, host: '' })).toBe(false);
-        expect(isSmtpFormValid({ ...ENABLED, port: '0' })).toBe(false);
+        expect(isSmtpFormValid({ ...ENABLED, port: '0' })).toBe(true);
+        expect(isSmtpFormValid({ ...ENABLED, port: '65536' })).toBe(false);
         expect(isSmtpFormValid({ ...ENABLED, from: 'not-an-email' })).toBe(false);
         expect(isSmtpFormValid({ ...ENABLED, from: 'Partners <partners@example.com>' })).toBe(true);
         expect(isSmtpFormValid({ ...ENABLED, enabled: false, host: '' })).toBe(true);
+    });
+
+    it('marks system-provided SMTP fields for the Classic tooltip', () => {
+        render(<Harness readonly={{ enabled: true, host: true }} />);
+        expect(screen.getByLabelText('Enable Emailing').closest('[data-system-readonly="true"]')).not.toBeNull();
+        expect(screen.getByLabelText('Host').closest('[data-system-readonly="true"]')).not.toBeNull();
+        expect(screen.getByLabelText('Username').closest('[data-system-readonly="true"]')).toBeNull();
     });
 
     it('lets the user turn emailing on even when host is system-provided', () => {

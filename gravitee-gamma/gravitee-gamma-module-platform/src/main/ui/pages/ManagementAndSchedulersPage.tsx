@@ -123,7 +123,7 @@ export function ManagementAndSchedulersPage() {
                 url: localState.url,
                 support: { enabled: localState.supportEnabled },
                 userCreation: { enabled: localState.userCreationEnabled },
-                automaticValidation: { enabled: localState.userCreationEnabled ? localState.automaticValidationEnabled : false },
+                automaticValidation: { enabled: localState.automaticValidationEnabled },
             },
             scheduler: { tasks: tasksValue, notifications: notificationsValue },
         });
