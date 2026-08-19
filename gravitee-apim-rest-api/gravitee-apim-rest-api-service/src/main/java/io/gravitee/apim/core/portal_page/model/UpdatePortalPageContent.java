@@ -28,4 +28,7 @@ public final class UpdatePortalPageContent {
 
     private String content;
     private OpenApiConfiguration configuration;
+
+    /** When set and different from the current type, the content is converted to this type (file import). */
+    private PortalPageContentType type;
 }

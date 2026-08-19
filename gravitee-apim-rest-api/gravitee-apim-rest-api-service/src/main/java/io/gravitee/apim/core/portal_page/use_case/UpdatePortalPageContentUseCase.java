@@ -62,11 +62,29 @@ public class UpdatePortalPageContentUseCase {
             throw InvalidPortalNavigationItemDataException.sourcedPageContentIsReadOnly(input.portalPageContentId());
         }
 
-        validatorService.validateForUpdate(existingContent, input.updatePortalPageContent());
+        PortalPageContent<?> targetContent = withRequestedType(existingContent, input.updatePortalPageContent());
 
-        existingContent.update(input.updatePortalPageContent());
+        validatorService.validateForUpdate(targetContent, input.updatePortalPageContent());
 
-        return new Output(portalPageContentCrudService.update(existingContent));
+        targetContent.update(input.updatePortalPageContent());
+
+        return new Output(portalPageContentCrudService.update(targetContent));
+    }
+
+    /** File import can change the content type: rebuild the content under its new type, keeping the same id. */
+    private PortalPageContent<?> withRequestedType(PortalPageContent<?> existingContent, UpdatePortalPageContent update) {
+        var requestedType = update.getType();
+        if (requestedType == null || requestedType == existingContent.getType()) {
+            return existingContent;
+        }
+        return PortalPageContent.of(
+            requestedType,
+            existingContent.getId(),
+            existingContent.getOrganizationId(),
+            existingContent.getEnvironmentId(),
+            update.getContent(),
+            existingContent.getAutomationMetadata()
+        );
     }
 
     private boolean isSourced(PortalNavigationPage page, String environmentId) {
