@@ -48,6 +48,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -84,6 +85,9 @@ class UserServiceResetPasswordTargetTest {
 
     @BeforeEach
     void setUp() {
+        // These tests exercise the unauthenticated path; the holder is a thread-local that other test classes of the
+        // same fork leave a UserDetails principal in, which would route the call through the permission check instead.
+        SecurityContextHolder.clearContext();
         userService = new UserServiceImpl();
         ReflectionTestUtils.setField(userService, "installationAccessQueryService", installationAccessQueryService);
         ReflectionTestUtils.setField(userService, "environment", environment);
