@@ -194,4 +194,52 @@ class UserContextLoaderImplTest {
             verify(apiRepository, never()).search(any(), any());
         }
     }
+
+    @Nested
+    class LoadOneApi {
+
+        @Test
+        void should_narrow_the_query_to_the_single_api_for_an_admin() {
+            setUpSecurityContext("ORGANIZATION:ADMIN");
+            auditInfo = auditInfo(ADMIN_USER_ID);
+            when(apiRepository.search(any(), any())).thenReturn(List.of(API_2));
+
+            var context = userContextLoader.loadApi(new UserContext(auditInfo), API_2.getId());
+
+            var criteria = ArgumentCaptor.forClass(ApiCriteria.class);
+            verify(apiRepository).search(criteria.capture(), any());
+            assertThat(criteria.getValue().getIds()).containsExactly(API_2.getId());
+            assertThat(criteria.getValue().getEnvironmentId()).isEqualTo("DEFAULT");
+            assertThat(context.apis()).hasValue(ApiMapper.INSTANCE.map(List.of(API_2)));
+            verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any(), anyBoolean());
+        }
+
+        @Test
+        void should_keep_the_membership_check_for_a_non_admin() {
+            setUpSecurityContext("ORGANIZATION:USER");
+            auditInfo = auditInfo(NON_ADMIN_USER_ID);
+            when(apiAuthorizationService.findApiIdsByUserId(any(), any(), any(), anyBoolean())).thenReturn(NON_ADMIN_API_IDS);
+            when(apiRepository.search(any(), any())).thenReturn(List.of(API_2));
+
+            var context = userContextLoader.loadApi(new UserContext(auditInfo), API_2.getId());
+
+            verify(apiAuthorizationService).findApiIdsByUserId(any(), eq(NON_ADMIN_USER_ID), any(), eq(true));
+            assertThat(context.apis()).hasValue(ApiMapper.INSTANCE.map(List.of(API_2)));
+        }
+
+        @Test
+        void should_yield_nothing_when_a_non_admin_is_not_a_member_of_the_api() {
+            setUpSecurityContext("ORGANIZATION:USER");
+            auditInfo = auditInfo(NON_ADMIN_USER_ID);
+            when(apiAuthorizationService.findApiIdsByUserId(any(), any(), any(), anyBoolean())).thenReturn(NON_ADMIN_API_IDS);
+
+            // API_1 exists in the environment but this user is not a member: narrowing the query by id
+            // must not become "anything in the environment".
+            var context = userContextLoader.loadApi(new UserContext(auditInfo), API_1.getId());
+
+            assertThat(context.apis()).hasValue(Collections.emptyList());
+            assertThat(context.apiNameById()).hasValue(Collections.emptyMap());
+            verify(apiRepository, never()).search(any(), any());
+        }
+    }
 }

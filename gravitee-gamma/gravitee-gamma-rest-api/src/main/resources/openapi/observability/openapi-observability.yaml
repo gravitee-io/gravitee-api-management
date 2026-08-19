@@ -393,6 +393,57 @@ paths:
                                 http_status: 403
                                 message: "Insufficient permissions to access observability metadata."
 
+    /organizations/{orgId}/environments/{envId}/observability/logs/decisions/{eventId}:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+        get:
+            tags:
+                - Logs
+            summary: Get a single authorization decision
+            description: |
+                Returns one decision, in the same shape a row of the search response has, so a client
+                renders it with the translation it already uses for the table.
+
+                **Keyed by event id, not request id.** A batch evaluation stamps every decision it
+                contains with the same request id — the table renders those as `1/2`, `2/2` — so the
+                request id cannot address a single one. This is also why the decision detail is not
+                served by `/observability/logs/{requestId}`, which resolves a connection log: a
+                different record, in a different index, and often absent entirely for a decision
+                taken over AuthZEN rather than in front of an HTTP call.
+
+                **`apiId` is required** as a security defense, same as the connection-log detail. The
+                server verifies `API_LOG[READ]` on that API, and additionally resolves the API
+                through the caller's accessible set; both failures collapse into 404, so a known
+                event id from another API cannot be probed.
+            operationId: getAuthzDecision
+            parameters:
+                - name: eventId
+                  in: path
+                  required: true
+                  description: Identifier of the decision event.
+                  schema:
+                      type: string
+                - name: apiId
+                  in: query
+                  required: true
+                  description: API the decision belongs to. Required — see the security note above.
+                  schema:
+                      type: string
+            responses:
+                "200":
+                    description: The decision.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/LogEntry"
+                "400":
+                    description: '`apiId` is missing or blank.'
+                "404":
+                    description: |
+                        No such decision for that API — or the caller cannot read its logs. The two
+                        are deliberately indistinguishable.
+
     /organizations/{orgId}/environments/{envId}/observability/logs/{requestId}:
         parameters:
             - $ref: "#/components/parameters/orgIdParam"

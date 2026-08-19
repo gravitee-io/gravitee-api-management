@@ -26,10 +26,12 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.gamma.rest.core.observability.logs.model.AuthzDecision;
 import io.gravitee.gamma.rest.core.observability.logs.model.HttpPayload;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogDetail;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsPage;
+import io.gravitee.gamma.rest.core.observability.logs.use_case.GetAuthzDecisionUseCase;
 import io.gravitee.gamma.rest.core.observability.logs.use_case.GetObservabilityLogDetailUseCase;
 import io.gravitee.gamma.rest.core.observability.logs.use_case.SearchObservabilityLogsUseCase;
 import io.gravitee.gamma.rest.resource.AbstractResourceTest;
@@ -67,6 +69,9 @@ class LogsResourceTest extends AbstractResourceTest {
     @Inject
     private GetObservabilityLogDetailUseCase getLogDetailUseCase;
 
+    @Inject
+    private GetAuthzDecisionUseCase getAuthzDecisionUseCase;
+
     @Override
     protected String contextPath() {
         return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/observability/logs";
@@ -82,7 +87,7 @@ class LogsResourceTest extends AbstractResourceTest {
 
     @AfterEach
     void resetUseCases() {
-        reset(searchLogsUseCase, getLogDetailUseCase);
+        reset(searchLogsUseCase, getLogDetailUseCase, getAuthzDecisionUseCase);
     }
 
     @Nested
@@ -261,6 +266,75 @@ class LogsResourceTest extends AbstractResourceTest {
         }
     }
 
+    @Nested
+    class GetDecision {
+
+        private static final String EVENT_ID = "evt-1";
+        private static final String API_ID = "api-1";
+        private static final String REQUEST_ID = "req-123";
+
+        @Test
+        void should_return_the_decision_in_the_same_shape_a_row_has() {
+            var decision = LogEntry.builder()
+                .apiId(API_ID)
+                .requestId(REQUEST_ID)
+                .timestamp(Instant.parse("2026-06-10T14:32:01Z"))
+                .authz(AuthzDecision.builder().eventId(EVENT_ID).decision("FORBID").subjectId("alice").policyGeneration(3L).build())
+                .build();
+            when(getAuthzDecisionUseCase.execute(any())).thenReturn(new GetAuthzDecisionUseCase.Output(Optional.of(decision)));
+
+            Response response = rootTarget("decisions/" + EVENT_ID).queryParam("apiId", API_ID).request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            JsonNode body = response.readEntity(JsonNode.class);
+            assertThat(body.get("apiId").asText()).isEqualTo(API_ID);
+            assertThat(body.get("authz").get("eventId").asText()).isEqualTo(EVENT_ID);
+            assertThat(body.get("authz").get("decision").asText()).isEqualTo("FORBID");
+            assertThat(body.get("authz").get("policyGeneration").asLong()).isEqualTo(3L);
+        }
+
+        @Test
+        void should_forward_apiId_and_eventId_to_the_use_case() {
+            when(getAuthzDecisionUseCase.execute(any())).thenReturn(new GetAuthzDecisionUseCase.Output(Optional.empty()));
+
+            rootTarget("decisions/" + EVENT_ID).queryParam("apiId", API_ID).request().get();
+
+            var captor = ArgumentCaptor.forClass(GetAuthzDecisionUseCase.Input.class);
+            verify(getAuthzDecisionUseCase).execute(captor.capture());
+            assertThat(captor.getValue().apiId()).isEqualTo(API_ID);
+            assertThat(captor.getValue().eventId()).isEqualTo(EVENT_ID);
+        }
+
+        @Test
+        void should_return_400_when_apiId_is_missing() {
+            Response response = rootTarget("decisions/" + EVENT_ID).request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            verifyNoInteractions(getAuthzDecisionUseCase);
+        }
+
+        @Test
+        void should_return_404_when_the_decision_does_not_exist() {
+            when(getAuthzDecisionUseCase.execute(any())).thenReturn(new GetAuthzDecisionUseCase.Output(Optional.empty()));
+
+            Response response = rootTarget("decisions/" + EVENT_ID).queryParam("apiId", API_ID).request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        }
+
+        @Test
+        void should_collapse_a_permission_denial_into_the_same_404() {
+            when(permissionService.hasPermission(any(), eq(RolePermission.API_LOG), eq(API_ID), eq(RolePermissionAction.READ))).thenReturn(
+                false
+            );
+
+            Response response = rootTarget("decisions/" + EVENT_ID).queryParam("apiId", API_ID).request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+            verifyNoInteractions(getAuthzDecisionUseCase);
+        }
+    }
+
     @Configuration
     static class LogsTestConfiguration {
 
@@ -272,6 +346,11 @@ class LogsResourceTest extends AbstractResourceTest {
         @Bean
         GetObservabilityLogDetailUseCase getObservabilityLogDetailUseCase() {
             return mock(GetObservabilityLogDetailUseCase.class);
+        }
+
+        @Bean
+        GetAuthzDecisionUseCase getAuthzDecisionUseCase() {
+            return mock(GetAuthzDecisionUseCase.class);
         }
     }
 }

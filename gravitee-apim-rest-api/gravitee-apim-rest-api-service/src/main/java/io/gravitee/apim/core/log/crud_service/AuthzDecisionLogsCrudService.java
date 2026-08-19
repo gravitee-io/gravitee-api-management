@@ -20,6 +20,7 @@ import io.gravitee.apim.core.log.model.AuthzDecisionLogFilters;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.Optional;
 
 /**
  * Reads authorization outcomes from the event-metrics data stream. Separate from
@@ -34,4 +35,10 @@ public interface AuthzDecisionLogsCrudService {
         AuthzDecisionLogFilters filters,
         Pageable pageable
     );
+
+    /**
+     * One decision by its event id. Batched decisions share a request id, so that is not a key here;
+     * the event id is.
+     */
+    Optional<AuthzDecisionLog> findDecisionLog(ExecutionContext executionContext, String apiId, String eventId);
 }

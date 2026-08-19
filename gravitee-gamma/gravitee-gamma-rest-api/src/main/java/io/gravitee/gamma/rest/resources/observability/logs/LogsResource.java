@@ -19,6 +19,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.logs.exception.LogDetailNotFoundException;
 import io.gravitee.gamma.rest.core.observability.logs.exception.MissingLogScopeException;
+import io.gravitee.gamma.rest.core.observability.logs.use_case.GetAuthzDecisionUseCase;
 import io.gravitee.gamma.rest.core.observability.logs.use_case.GetObservabilityLogDetailUseCase;
 import io.gravitee.gamma.rest.core.observability.logs.use_case.SearchObservabilityLogsUseCase;
 import io.gravitee.gamma.rest.resources.observability.logs.dto.FilterConditionDto;
@@ -79,6 +80,9 @@ public class LogsResource {
     private GetObservabilityLogDetailUseCase getLogDetailUseCase;
 
     @Inject
+    private GetAuthzDecisionUseCase getAuthzDecisionUseCase;
+
+    @Inject
     private PermissionService permissionService;
 
     @POST
@@ -135,6 +139,29 @@ public class LogsResource {
             .detail()
             .map(detail -> Response.ok(LogDetailDto.from(detail)).build())
             .orElseThrow(() -> new LogDetailNotFoundException(requestId, apiId));
+    }
+
+    /**
+     * Fetches one authorization decision by its event id. Its own path rather than the
+     * {@code /{requestId}} detail: a batch stamps every decision it contains with the same request
+     * id, so that is not a key here, and a decision is not an HTTP exchange so the merged log detail
+     * shape does not fit. Same {@code apiId} defense and 404 collapse.
+     */
+    @GET
+    @Path("/decisions/{eventId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getDecision(@PathParam("eventId") String eventId, @QueryParam("apiId") String apiId) {
+        requireParam("apiId", apiId);
+        checkApiLogReadPermissionOrCollapse(apiId, eventId);
+
+        var ctx = GraviteeContext.getExecutionContext();
+        var output = getAuthzDecisionUseCase.execute(
+            new GetAuthzDecisionUseCase.Input(ctx.getOrganizationId(), ctx.getEnvironmentId(), apiId, eventId)
+        );
+        return output
+            .decision()
+            .map(decision -> Response.ok(LogEntryDto.from(decision)).build())
+            .orElseThrow(() -> new LogDetailNotFoundException(eventId, apiId));
     }
 
     private static void requireParam(String name, String value) {

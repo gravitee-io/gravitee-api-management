@@ -195,6 +195,54 @@ class SearchAuthzDecisionLogsResponseAdapterTest {
         assertThat(decision.eventId()).isEqualTo("evt-5");
     }
 
+    @Test
+    void finds_no_decision_when_the_lookup_came_back_without_hits() {
+        assertThat(SearchAuthzDecisionLogsResponseAdapter.adaptFirst(new SearchResponse())).isEmpty();
+    }
+
+    @Test
+    void finds_no_decision_when_the_hit_list_is_absent_or_empty() {
+        var withoutHitList = new SearchResponse();
+        withoutHitList.setSearchHits(new SearchHits());
+
+        var withEmptyHitList = new SearchResponse();
+        var emptyHits = new SearchHits();
+        emptyHits.setHits(List.of());
+        emptyHits.setTotal(new TotalHits(0));
+        withEmptyHitList.setSearchHits(emptyHits);
+
+        assertThat(SearchAuthzDecisionLogsResponseAdapter.adaptFirst(withoutHitList)).isEmpty();
+        assertThat(SearchAuthzDecisionLogsResponseAdapter.adaptFirst(withEmptyHitList)).isEmpty();
+    }
+
+    @Test
+    @SneakyThrows
+    void reads_the_one_decision_a_by_id_lookup_returns() {
+        var response = responseOf(
+            """
+            {
+              "event-id": "evt-9",
+              "api-id": "api-9",
+              "request-id": "req-9",
+              "decision": "DENY",
+              "reasons": ["No policy matched"]
+            }
+            """,
+            1L
+        );
+
+        var decision = SearchAuthzDecisionLogsResponseAdapter.adaptFirst(response);
+
+        assertThat(decision).isPresent();
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(decision.get().eventId()).isEqualTo("evt-9");
+            soft.assertThat(decision.get().apiId()).isEqualTo("api-9");
+            soft.assertThat(decision.get().requestId()).isEqualTo("req-9");
+            soft.assertThat(decision.get().decision()).isEqualTo("DENY");
+            soft.assertThat(decision.get().reasons()).containsExactly("No policy matched");
+        });
+    }
+
     @SneakyThrows
     private SearchResponse responseOf(String source, long total) {
         var response = new SearchResponse();
