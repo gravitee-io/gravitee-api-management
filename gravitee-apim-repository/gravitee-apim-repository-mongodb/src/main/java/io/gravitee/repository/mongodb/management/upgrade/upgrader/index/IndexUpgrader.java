@@ -15,9 +15,11 @@
  */
 package io.gravitee.repository.mongodb.management.upgrade.upgrader.index;
 
+import com.mongodb.MongoCommandException;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.IndexMongoUpgrader;
 import java.time.Duration;
 import lombok.CustomLog;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.bson.BsonInt32;
 import org.bson.BsonValue;
 import reactor.core.publisher.Flux;
@@ -28,6 +30,14 @@ import reactor.core.publisher.Mono;
  */
 @CustomLog
 public abstract class IndexUpgrader extends IndexMongoUpgrader {
+
+    /**
+     * MongoDB error code returned when an index with the same key pattern already exists with different options
+     * (for instance a different name or collation). MongoDB only raises it when the key pattern, the name and the
+     * collation do not allow the two indexes to coexist; Amazon DocumentDB raises it for any second index on the same
+     * key pattern, whatever the name or collation.
+     */
+    static final int INDEX_OPTIONS_CONFLICT_ERROR_CODE = 85;
 
     protected abstract Index buildIndex();
 
@@ -56,6 +66,18 @@ public abstract class IndexUpgrader extends IndexMongoUpgrader {
             )
             .thenReturn(true)
             .onErrorResume(e -> {
+                if (isIndexOptionsConflict(e)) {
+                    // An index with the same key pattern already exists (typically on Amazon DocumentDB, which does not
+                    // allow several indexes on the same keys even with different collations). The existing index already
+                    // serves the same key pattern, so skipping the creation is safe and must not block the startup.
+                    log.warn(
+                        "Index {} on {} has not been created because an index with the same key pattern already exists (error {}). Skipping it.",
+                        name,
+                        collection,
+                        INDEX_OPTIONS_CONFLICT_ERROR_CODE
+                    );
+                    return Mono.just(true);
+                }
                 log.error(
                     "Unexpected error while creating index {} on {}",
                     name,
@@ -74,6 +96,21 @@ public abstract class IndexUpgrader extends IndexMongoUpgrader {
             .subscribe();
 
         return Boolean.TRUE.equals(create.block());
+    }
+
+    /**
+     * Spring Data wraps the driver exception (for instance in a DataIntegrityViolationException), so the Mongo error is
+     * looked up in the cause chain.
+     */
+    static boolean isIndexOptionsConflict(Throwable throwable) {
+        MongoCommandException mongoError = ExceptionUtils.throwableOfType(
+            throwable,
+            MongoCommandException.class
+        );
+        return (
+            mongoError != null &&
+            mongoError.getErrorCode() == INDEX_OPTIONS_CONFLICT_ERROR_CODE
+        );
     }
 
     @Override
