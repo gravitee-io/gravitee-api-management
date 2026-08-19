@@ -24,6 +24,9 @@ export const auditKeys = {
     environments: () => [...auditKeys.all, 'environments'] as const,
     applications: (environmentId: string | undefined) => [...auditKeys.all, 'applications', environmentId ?? ''] as const,
     apis: (environmentId: string | undefined) => [...auditKeys.all, 'apis', environmentId ?? ''] as const,
-    orgApplications: () => [...auditKeys.all, 'org-applications'] as const,
-    orgApis: () => [...auditKeys.all, 'org-apis'] as const,
+    // The org pickers are derived from the environment list, so it belongs in the key: without it a
+    // cached fan-out would survive an environment being added or removed. Sorted so the key does not
+    // change with the order `/environments` happens to return.
+    orgApplications: (environmentIds: readonly string[]) => [...auditKeys.all, 'org-applications', [...environmentIds].sort()] as const,
+    orgApis: (environmentIds: readonly string[]) => [...auditKeys.all, 'org-apis', [...environmentIds].sort()] as const,
 } as const;

@@ -23,7 +23,7 @@ export interface AuditLogsPageViewProps {
     readonly scope: AuditScope;
     readonly description: string;
     readonly state: ReturnType<typeof useAuditLogsPageState>;
-    readonly rows: readonly AuditLogRow[];
+    readonly rows: AuditLogRow[];
     readonly totalCount: number;
     readonly loading: boolean;
     readonly isError: boolean;
@@ -93,14 +93,13 @@ export function AuditLogsPageView({
                 pageSize={state.pageSize}
                 totalCount={isError ? 0 : totalCount}
                 onPageChange={state.setPage}
-                onPageSizeChange={size => {
-                    state.setPageSize(size);
-                    state.setPage(1);
-                }}
+                onPageSizeChange={state.onPageSizeChange}
                 selected={state.selected}
                 onSelectRow={state.setSelected}
                 onCloseDetail={() => state.setSelected(null)}
                 toolbar={filters}
+                hasActiveFilters={state.hasActiveFilters}
+                hideEmptyState={isError}
             />
             <AuditExportDialog
                 open={state.exportOpen}

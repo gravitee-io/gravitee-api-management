@@ -116,17 +116,35 @@ export async function listAuditApis(environmentId: string): Promise<AuditNamedRe
 /**
  * Fans out `listItems` across every environment and groups the results by environment name.
  * Callers pass the environment list in so the `/environments` response is fetched and cached once.
+ *
+ * The fan-out is capped: this only fills a filter dropdown, and an organization with dozens of
+ * environments would otherwise open one request per environment at once (each of which may itself
+ * paginate), hammering the API for a control the user may never open.
  */
+export const ENVIRONMENT_FANOUT_CONCURRENCY = 4;
+
+async function mapWithConcurrency<T, R>(items: readonly T[], limit: number, map: (item: T) => Promise<R>): Promise<R[]> {
+    const results = new Array<R>(items.length);
+    let cursor = 0;
+    const worker = async () => {
+        while (cursor < items.length) {
+            const index = cursor;
+            cursor += 1;
+            results[index] = await map(items[index]);
+        }
+    };
+    await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+    return results;
+}
+
 async function groupByEnvironment(
     environments: readonly AuditNamedRef[],
     listItems: (environmentId: string) => Promise<AuditNamedRef[]>,
 ): Promise<AuditGroupedRefs[]> {
-    const groups = await Promise.all(
-        environments.map(async environment => ({
-            group: environment.name,
-            items: await listItems(environment.id),
-        })),
-    );
+    const groups = await mapWithConcurrency(environments, ENVIRONMENT_FANOUT_CONCURRENCY, async environment => ({
+        group: environment.name,
+        items: await listItems(environment.id),
+    }));
     return groups.filter(group => group.items.length > 0);
 }
 

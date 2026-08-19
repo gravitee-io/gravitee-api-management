@@ -20,8 +20,12 @@ export function downloadBlob(blob: Blob, fileName: string): void {
     const anchor = document.createElement('a');
     anchor.download = fileName;
     anchor.href = url;
+    document.body.appendChild(anchor);
     anchor.click();
-    URL.revokeObjectURL(url);
+    anchor.remove();
+    // Some browsers (older Safari/Edge) start the download asynchronously; revoking in this
+    // turn can cancel it. Yield so the click is processed first.
+    setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 /** Builds a `Blob` from text content and downloads it as `fileName`. */

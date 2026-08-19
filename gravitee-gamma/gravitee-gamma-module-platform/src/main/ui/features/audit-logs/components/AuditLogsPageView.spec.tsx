@@ -25,6 +25,7 @@ function stubState(): AuditLogsPageViewProps['state'] {
         setPage: jest.fn(),
         pageSize: 10,
         setPageSize: jest.fn(),
+        onPageSizeChange: jest.fn(),
         event: '',
         onEventChange: jest.fn(),
         referenceType: '',
@@ -46,6 +47,7 @@ function stubState(): AuditLogsPageViewProps['state'] {
         exporting: false,
         handleReset: jest.fn(),
         handleExport: jest.fn(),
+        hasActiveFilters: false,
     };
 }
 
@@ -78,5 +80,7 @@ describe('AuditLogsPageView', () => {
         expect(screen.getByLabelText('Filter by type')).not.toBeNull();
         expect(screen.getByLabelText('Filter by time period')).not.toBeNull();
         expect(screen.getByRole('button', { name: 'Export' })).not.toBeNull();
+        expect(screen.queryByText('No audit logs')).toBeNull();
+        expect(screen.queryByText('Try adjusting or clearing your filters.')).toBeNull();
     });
 });

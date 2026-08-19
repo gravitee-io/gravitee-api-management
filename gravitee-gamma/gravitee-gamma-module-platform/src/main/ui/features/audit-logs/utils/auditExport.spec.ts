@@ -88,15 +88,30 @@ describe('auditExport', () => {
     });
 
     it('downloads a blob with the given filename', () => {
+        jest.useFakeTimers();
         const click = jest.fn();
         const revoke = jest.fn();
+        const remove = jest.fn();
         jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:audit');
         jest.spyOn(URL, 'revokeObjectURL').mockImplementation(revoke);
-        jest.spyOn(document, 'createElement').mockReturnValue({ click, download: '', href: '' } as unknown as HTMLAnchorElement);
+        jest.spyOn(document.body, 'appendChild').mockImplementation(node => node);
+        jest.spyOn(document, 'createElement').mockReturnValue({
+            click,
+            download: '',
+            href: '',
+            remove,
+        } as unknown as HTMLAnchorElement);
 
-        downloadAuditExport('csv-body', 'audit-logs-2026-08-19.csv', 'text/csv');
+        try {
+            downloadAuditExport('csv-body', 'audit-logs-2026-08-19.csv', 'text/csv');
 
-        expect(click).toHaveBeenCalled();
-        expect(revoke).toHaveBeenCalledWith('blob:audit');
+            expect(click).toHaveBeenCalled();
+            expect(remove).toHaveBeenCalled();
+            expect(revoke).not.toHaveBeenCalled();
+            jest.runAllTimers();
+            expect(revoke).toHaveBeenCalledWith('blob:audit');
+        } finally {
+            jest.useRealTimers();
+        }
     });
 });

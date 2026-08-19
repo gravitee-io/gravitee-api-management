@@ -26,18 +26,18 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@gravitee/graphene-core';
-import { EyeIcon, SearchIcon } from '@gravitee/graphene-core/icons';
+import { EyeIcon, ScrollTextIcon, SearchIcon } from '@gravitee/graphene-core/icons';
 import type { ReactNode } from 'react';
 import { useMemo } from 'react';
 
 import type { ColCell } from '../../applications/utils/dataTableTypes';
 import type { AuditLogRow } from '../types/auditLog';
-import { formatAuditTargetText, prettyPrintPatch } from '../utils/auditListFormat';
+import { prettyPrintPatch } from '../utils/auditListFormat';
 
 export const AUDIT_PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
 
 export interface AuditLogsTableProps {
-    readonly rows: readonly AuditLogRow[];
+    readonly rows: AuditLogRow[];
     readonly loading: boolean;
     readonly page: number;
     readonly pageSize: number;
@@ -48,6 +48,15 @@ export interface AuditLogsTableProps {
     readonly selected: AuditLogRow | null;
     readonly onSelectRow: (row: AuditLogRow) => void;
     readonly onCloseDetail: () => void;
+    readonly hasActiveFilters?: boolean;
+    readonly hideEmptyState?: boolean;
+}
+
+// Every row opens the same sheet, so the labels have to say *which* row — a screen reader reading a
+// page of identical "View audit details" buttons cannot tell them apart. The event is the most
+// identifying field, so it anchors each label.
+function detailLabel(row: AuditLogRow, context: string): string {
+    return `View audit details for ${row.event} ${context}`;
 }
 
 function buildColumns(onSelectRow: (row: AuditLogRow) => void): DataTableProps<AuditLogRow>['columns'] {
@@ -58,7 +67,13 @@ function buildColumns(onSelectRow: (row: AuditLogRow) => void): DataTableProps<A
             header: 'Date',
             enableSorting: false,
             cell: ({ row }: ColCell<AuditLogRow>) => (
-                <button type="button" className="text-left" onClick={() => onSelectRow(row.original)}>
+                <button
+                    type="button"
+                    className="text-left"
+                    aria-label={detailLabel(row.original, `at ${new Date(row.original.createdAt).toISOString()}`)}
+                    onClick={() => onSelectRow(row.original)}
+                >
+                    {/* Audit is a forensic log: wall-clock time belongs in the cell, not a relative "2h ago". */}
                     <DateCell value={new Date(row.original.createdAt).toISOString()} format="absolute" />
                 </button>
             ),
@@ -69,7 +84,12 @@ function buildColumns(onSelectRow: (row: AuditLogRow) => void): DataTableProps<A
             header: 'User',
             enableSorting: false,
             cell: ({ row }: ColCell<AuditLogRow>) => (
-                <button type="button" className="text-left text-sm" onClick={() => onSelectRow(row.original)}>
+                <button
+                    type="button"
+                    className="text-left text-sm"
+                    aria-label={detailLabel(row.original, `by ${row.original.user}`)}
+                    onClick={() => onSelectRow(row.original)}
+                >
                     {row.original.user}
                 </button>
             ),
@@ -97,9 +117,8 @@ function buildColumns(onSelectRow: (row: AuditLogRow) => void): DataTableProps<A
             id: 'Target',
             header: 'Target',
             enableSorting: false,
-            cell: ({ row }: ColCell<AuditLogRow>) => {
-                const text = formatAuditTargetText(row.original.targets);
-                return text ? (
+            cell: ({ row }: ColCell<AuditLogRow>) =>
+                row.original.targets.length > 0 ? (
                     <div className="text-sm">
                         {row.original.targets.map(target => (
                             <div key={`${target.key}:${target.value}`}>
@@ -109,8 +128,7 @@ function buildColumns(onSelectRow: (row: AuditLogRow) => void): DataTableProps<A
                     </div>
                 ) : (
                     <span className="text-muted-foreground/40 italic">—</span>
-                );
-            },
+                ),
         },
         {
             id: 'actions',
@@ -128,10 +146,10 @@ function buildColumns(onSelectRow: (row: AuditLogRow) => void): DataTableProps<A
                             size="icon"
                             className="size-8"
                             onClick={() => onSelectRow(row.original)}
-                            aria-label="View patch"
+                            aria-label={`View patch for ${row.original.event}`}
                             title="View patch"
                         >
-                            <EyeIcon className="size-4" />
+                            <EyeIcon className="size-4" aria-hidden="true" />
                         </Button>
                     </div>
                 );
@@ -152,6 +170,8 @@ export function AuditLogsTable({
     selected,
     onSelectRow,
     onCloseDetail,
+    hasActiveFilters = false,
+    hideEmptyState = false,
 }: AuditLogsTableProps) {
     const columns = useMemo(() => buildColumns(onSelectRow), [onSelectRow]);
 
@@ -160,7 +180,7 @@ export function AuditLogsTable({
             <DataTable
                 aria-label="Audit logs"
                 columns={columns}
-                data={[...rows]}
+                data={rows}
                 loading={loading}
                 skeletonCount={pageSize}
                 serverSide
@@ -172,20 +192,27 @@ export function AuditLogsTable({
                               totalCount,
                               pageSizeOptions: [...AUDIT_PAGE_SIZE_OPTIONS],
                               onPageChange,
-                              onPageSizeChange: (size: number) => {
-                                  onPageSizeChange(size);
-                                  onPageChange(1);
-                              },
+                              // The owner of the page state resets the offset; forward the size as-is.
+                              onPageSizeChange,
                           }
                         : undefined
                 }
                 emptyMessage={
-                    <DataTableEmptyState
-                        variant="no-results"
-                        icon={<SearchIcon />}
-                        title="No audit logs found"
-                        description="Try adjusting or clearing your filters."
-                    />
+                    hideEmptyState ? undefined : hasActiveFilters ? (
+                        <DataTableEmptyState
+                            variant="no-results"
+                            icon={<SearchIcon />}
+                            title="No audit logs found"
+                            description="Try adjusting or clearing your filters."
+                        />
+                    ) : (
+                        <DataTableEmptyState
+                            variant="first-use"
+                            icon={<ScrollTextIcon />}
+                            title="No audit logs"
+                            description="Configuration changes will appear here."
+                        />
+                    )
                 }
                 toolbar={toolbar}
             />

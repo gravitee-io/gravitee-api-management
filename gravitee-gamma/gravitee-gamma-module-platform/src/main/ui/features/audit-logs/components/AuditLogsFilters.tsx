@@ -40,10 +40,11 @@ import type {
     AuditReferenceType,
     AuditScope,
 } from '../types/auditLog';
+import { hasActiveAuditFilters } from '../utils/auditFilters';
 
-const ALL_EVENTS = '__all__';
-const ALL_TYPES = '__all__';
-const ALL_REFS = '__all__';
+// Radix Select cannot hold an empty string as a value, so "no filter" needs a sentinel that the
+// change handlers translate back to ''.
+const ALL_OPTION = '__all__';
 
 export const ORG_AUDIT_REFERENCE_TYPES: AuditReferenceType[] = ['ORGANIZATION', 'ENVIRONMENT', 'APPLICATION', 'API'];
 export const ENV_AUDIT_REFERENCE_TYPES: AuditReferenceType[] = ['APPLICATION', 'API'];
@@ -134,16 +135,16 @@ export function AuditLogsFilters({
     onExport,
 }: AuditLogsFiltersProps) {
     const types = scope === 'organization' ? ORG_AUDIT_REFERENCE_TYPES : ENV_AUDIT_REFERENCE_TYPES;
-    const hasFilters = Boolean(event || referenceType || datePreset || customRange?.from || customRange?.to);
+    const hasFilters = hasActiveAuditFilters({ event, referenceType, environmentId, applicationId, apiId, datePreset, customRange });
 
     return (
         <div className="flex flex-wrap items-center gap-2">
-            <Select value={event || ALL_EVENTS} onValueChange={value => onEventChange(value === ALL_EVENTS ? '' : value)}>
+            <Select value={event || ALL_OPTION} onValueChange={value => onEventChange(value === ALL_OPTION ? '' : value)}>
                 <SelectTrigger className="w-52" aria-label="Filter by event type">
                     <SelectValue placeholder="All events" />
                 </SelectTrigger>
                 <SelectContent position="popper" className="max-h-72 overflow-y-auto">
-                    <SelectItem value={ALL_EVENTS}>All events</SelectItem>
+                    <SelectItem value={ALL_OPTION}>All events</SelectItem>
                     {eventTypes.map(name => (
                         <SelectItem key={name} value={name}>
                             {name}
@@ -153,14 +154,14 @@ export function AuditLogsFilters({
             </Select>
 
             <Select
-                value={referenceType || ALL_TYPES}
-                onValueChange={value => onReferenceTypeChange(value === ALL_TYPES ? '' : (value as AuditReferenceType))}
+                value={referenceType || ALL_OPTION}
+                onValueChange={value => onReferenceTypeChange(value === ALL_OPTION ? '' : (value as AuditReferenceType))}
             >
                 <SelectTrigger className="w-44" aria-label="Filter by type">
                     <SelectValue placeholder="All types" />
                 </SelectTrigger>
                 <SelectContent position="popper">
-                    <SelectItem value={ALL_TYPES}>All types</SelectItem>
+                    <SelectItem value={ALL_OPTION}>All types</SelectItem>
                     {types.map(type => (
                         <SelectItem key={type} value={type}>
                             {type}
@@ -170,12 +171,15 @@ export function AuditLogsFilters({
             </Select>
 
             {scope === 'organization' && referenceType === 'ENVIRONMENT' ? (
-                <Select value={environmentId || ALL_REFS} onValueChange={value => onEnvironmentIdChange(value === ALL_REFS ? '' : value)}>
+                <Select
+                    value={environmentId || ALL_OPTION}
+                    onValueChange={value => onEnvironmentIdChange(value === ALL_OPTION ? '' : value)}
+                >
                     <SelectTrigger className="w-52" aria-label="Filter by environment">
                         <SelectValue placeholder="All environments" />
                     </SelectTrigger>
                     <SelectContent position="popper" className="max-h-72 overflow-y-auto">
-                        <SelectItem value={ALL_REFS}>All environments</SelectItem>
+                        <SelectItem value={ALL_OPTION}>All environments</SelectItem>
                         {environments.map(item => (
                             <SelectItem key={item.id} value={item.id}>
                                 {item.name}
@@ -186,39 +190,42 @@ export function AuditLogsFilters({
             ) : null}
 
             {referenceType === 'APPLICATION' ? (
-                <Select value={applicationId || ALL_REFS} onValueChange={value => onApplicationIdChange(value === ALL_REFS ? '' : value)}>
+                <Select
+                    value={applicationId || ALL_OPTION}
+                    onValueChange={value => onApplicationIdChange(value === ALL_OPTION ? '' : value)}
+                >
                     <SelectTrigger className="w-52" aria-label="Filter by application">
                         <SelectValue placeholder="All applications" />
                     </SelectTrigger>
                     <SelectContent position="popper" className="max-h-72 overflow-y-auto">
-                        <SelectItem value={ALL_REFS}>All applications</SelectItem>
+                        <SelectItem value={ALL_OPTION}>All applications</SelectItem>
                         <RefOptions items={applications} />
                     </SelectContent>
                 </Select>
             ) : null}
 
             {referenceType === 'API' ? (
-                <Select value={apiId || ALL_REFS} onValueChange={value => onApiIdChange(value === ALL_REFS ? '' : value)}>
+                <Select value={apiId || ALL_OPTION} onValueChange={value => onApiIdChange(value === ALL_OPTION ? '' : value)}>
                     <SelectTrigger className="w-52" aria-label="Filter by API">
                         <SelectValue placeholder="All APIs" />
                     </SelectTrigger>
                     <SelectContent position="popper" className="max-h-72 overflow-y-auto">
-                        <SelectItem value={ALL_REFS}>All APIs</SelectItem>
+                        <SelectItem value={ALL_OPTION}>All APIs</SelectItem>
                         <RefOptions items={apis} />
                     </SelectContent>
                 </Select>
             ) : null}
 
             <Select
-                value={datePreset || ALL_EVENTS}
-                onValueChange={value => onDatePresetChange((value === ALL_EVENTS ? '' : value) as AuditDatePreset)}
+                value={datePreset || ALL_OPTION}
+                onValueChange={value => onDatePresetChange((value === ALL_OPTION ? '' : value) as AuditDatePreset)}
             >
                 <SelectTrigger className="w-44" aria-label="Filter by time period">
                     <SelectValue placeholder="Any time" />
                 </SelectTrigger>
                 <SelectContent position="popper">
                     {DATE_PRESETS.map(preset => (
-                        <SelectItem key={preset.value || ALL_EVENTS} value={preset.value || ALL_EVENTS}>
+                        <SelectItem key={preset.value || ALL_OPTION} value={preset.value || ALL_OPTION}>
                             {preset.label}
                         </SelectItem>
                     ))}

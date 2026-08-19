@@ -18,6 +18,7 @@ import {
     AUDIT_EXPORT_MAX_ROWS,
     AUDIT_EXPORT_PAGE_SIZE,
     AuditExportLimitError,
+    ENVIRONMENT_FANOUT_CONCURRENCY,
     buildAuditQuery,
     exportEnvAudits,
     exportOrgAudits,
@@ -135,6 +136,29 @@ describe('auditLogs service', () => {
         ).resolves.toEqual([{ group: 'Production', items: [{ id: 'app-1', name: 'Portal' }] }]);
         // The environments list is supplied by the caller, so no extra `/environments` round-trip.
         expect(mockApimFetchJsonOrg).not.toHaveBeenCalled();
+    });
+
+    it('caps how many environments the org fan-out queries at once', async () => {
+        const environments = Array.from({ length: ENVIRONMENT_FANOUT_CONCURRENCY * 3 }, (_, index) => ({
+            id: `env-${index}`,
+            name: `Env ${index}`,
+        }));
+        let inFlight = 0;
+        let peakInFlight = 0;
+        mockApimFetchJsonV1Env.mockImplementation(async () => {
+            inFlight += 1;
+            peakInFlight = Math.max(peakInFlight, inFlight);
+            await Promise.resolve();
+            inFlight -= 1;
+            return [{ id: 'app-1', name: 'Portal' }];
+        });
+
+        const groups = await listOrgAuditApplicationsByEnvironment(environments);
+
+        expect(groups).toHaveLength(environments.length);
+        // Order follows the environment list, not whichever request happened to settle first.
+        expect(groups.map(group => group.group)).toEqual(environments.map(environment => environment.name));
+        expect(peakInFlight).toBeLessThanOrEqual(ENVIRONMENT_FANOUT_CONCURRENCY);
     });
 
     it('walks pages when exporting and throws when the total exceeds the cap', async () => {

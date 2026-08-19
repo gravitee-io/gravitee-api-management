@@ -27,7 +27,7 @@ import {
     searchEnvAudits,
     searchOrgAudits,
 } from '../services/auditLogs';
-import type { AuditScope, AuditSearchParams } from '../types/auditLog';
+import type { AuditNamedRef, AuditScope, AuditSearchParams } from '../types/auditLog';
 import { auditKeys } from '../utils/queryKeys';
 
 export function useAuditLogs(scope: AuditScope, params: AuditSearchParams, environmentId?: string, enabled = true) {
@@ -72,21 +72,20 @@ export function useAuditApis(environmentId: string | undefined, enabled: boolean
     });
 }
 
-// The org-wide pickers fan out per environment, so they depend on the environments query rather than
-// refetching `/environments` themselves — all three consumers then share one cached response.
-export function useOrgAuditApplications(enabled: boolean) {
-    const { data: environments } = useAuditEnvironments(enabled);
+// Org application/API pickers fan out per environment. The page owns `useAuditEnvironments` so
+// the environment picker and these two queries share one response instead of each hook
+// re-subscribing with its own `enabled` flag.
+export function useOrgAuditApplications(environments: readonly AuditNamedRef[] | undefined, enabled: boolean) {
     return useQuery({
-        queryKey: auditKeys.orgApplications(),
+        queryKey: auditKeys.orgApplications((environments ?? []).map(environment => environment.id)),
         queryFn: () => listOrgAuditApplicationsByEnvironment(environments ?? []),
         enabled: enabled && environments !== undefined,
     });
 }
 
-export function useOrgAuditApis(enabled: boolean) {
-    const { data: environments } = useAuditEnvironments(enabled);
+export function useOrgAuditApis(environments: readonly AuditNamedRef[] | undefined, enabled: boolean) {
     return useQuery({
-        queryKey: auditKeys.orgApis(),
+        queryKey: auditKeys.orgApis((environments ?? []).map(environment => environment.id)),
         queryFn: () => listOrgAuditApisByEnvironment(environments ?? []),
         enabled: enabled && environments !== undefined,
     });

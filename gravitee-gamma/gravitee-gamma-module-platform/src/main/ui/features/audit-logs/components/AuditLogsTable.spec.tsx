@@ -53,7 +53,28 @@ describe('AuditLogsTable', () => {
         expect(screen.getByText(/API: Pets/)).not.toBeNull();
     });
 
-    it('shows an empty state when there are no rows', () => {
+    it('names the Date and User actions distinctly per row so screen readers can tell them apart', () => {
+        const onSelectRow = jest.fn();
+        render(
+            <AuditLogsTable
+                rows={[ROW]}
+                loading={false}
+                page={1}
+                pageSize={10}
+                totalCount={1}
+                onPageChange={jest.fn()}
+                onPageSizeChange={jest.fn()}
+                selected={null}
+                onSelectRow={onSelectRow}
+                onCloseDetail={jest.fn()}
+            />,
+        );
+
+        fireEvent.click(screen.getAllByRole('button', { name: /^View audit details for API_UPDATED/ })[0]);
+        expect(onSelectRow).toHaveBeenCalledWith(ROW);
+    });
+
+    it('shows a first-use empty state when there are no rows and no filters', () => {
         render(
             <AuditLogsTable
                 rows={[]}
@@ -69,7 +90,49 @@ describe('AuditLogsTable', () => {
             />,
         );
 
+        expect(screen.getByText('No audit logs')).not.toBeNull();
+        expect(screen.getByText('Configuration changes will appear here.')).not.toBeNull();
+        expect(screen.queryByText('Try adjusting or clearing your filters.')).toBeNull();
+    });
+
+    it('tells the user to clear filters when a filtered search is empty', () => {
+        render(
+            <AuditLogsTable
+                rows={[]}
+                loading={false}
+                page={1}
+                pageSize={10}
+                totalCount={0}
+                hasActiveFilters
+                onPageChange={jest.fn()}
+                onPageSizeChange={jest.fn()}
+                selected={null}
+                onSelectRow={jest.fn()}
+                onCloseDetail={jest.fn()}
+            />,
+        );
+
         expect(screen.getByText('No audit logs found')).not.toBeNull();
+        expect(screen.getByText('Try adjusting or clearing your filters.')).not.toBeNull();
+    });
+
+    it('renders a dash when a row has no targets', () => {
+        render(
+            <AuditLogsTable
+                rows={[{ ...ROW, targets: [] }]}
+                loading={false}
+                page={1}
+                pageSize={10}
+                totalCount={1}
+                onPageChange={jest.fn()}
+                onPageSizeChange={jest.fn()}
+                selected={null}
+                onSelectRow={jest.fn()}
+                onCloseDetail={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByText('—')).not.toBeNull();
     });
 
     it('opens the detail sheet with a pretty-printed patch when the eye is clicked', () => {
@@ -89,7 +152,7 @@ describe('AuditLogsTable', () => {
             />,
         );
 
-        fireEvent.click(screen.getByRole('button', { name: 'View patch' }));
+        fireEvent.click(screen.getByRole('button', { name: 'View patch for API_UPDATED' }));
         expect(onSelectRow).toHaveBeenCalledWith(ROW);
 
         rerender(

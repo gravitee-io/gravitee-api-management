@@ -70,9 +70,10 @@ export function endOfDayMs(date: Date): number {
 }
 
 /**
- * Relative presets are computed from `now`. Snapshot `now` (or memoize the result)
- * when wiring this into a query key — calling it on every render with Date.now()
- * will change from/to each time and retrigger fetches forever.
+ * Relative presets are computed from `now`. When wiring this into a query key, pass an instant that
+ * is held in state (see `useAuditLogsPageState`) — letting it default to Date.now() on every render
+ * changes from/to each time and retriggers fetches forever. Memoizing is not enough: React may
+ * discard a useMemo cache, and the recomputed value would carry a different `now`.
  */
 export function resolveAuditDateRange(
     preset: AuditDatePreset,
