@@ -185,6 +185,41 @@ jobs:
           path: << parameters.apim-ui-project-workdir >>/coverage/lcov.info
       - store_test_results:
           path: << parameters.apim-ui-project-workdir >>/coverage/junit.xml
+  job-portal-webui-build:
+    docker:
+      - image: cimg/node:24.18.0
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: default
+      - cmd-install-yarn
+      - cmd-webui-install:
+          apim-ui-project: gravitee-apim-portal-webui
+          apim-ui-project-workdir: gravitee-apim-portal-webui
+      - run:
+          name: Update Build version
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui/build.json"
+      - run:
+          name: Build
+          command: yarn build:prod
+          environment:
+            NODE_OPTIONS: --max_old_space_size=4086
+          working_directory: gravitee-apim-portal-webui
+      - cmd-workspace-install
+      - run:
+          name: Update Build version
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui-next/build.json"
+      - run:
+          name: Build Portal Next
+          command: NODE_OPTIONS=--max_old_space_size=4086 yarn portal-next:build:prod
+      - cmd-notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-portal-webui/dist
   job-sonarcloud-analysis:
     parameters:
       working_directory:
@@ -223,41 +258,6 @@ jobs:
             - /opt/sonar-scanner/.sonar/cache
           key: gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
           when: always
-  job-portal-webui-build:
-    docker:
-      - image: cimg/node:24.18.0
-    resource_class: large
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - setup_remote_docker:
-          version: default
-      - cmd-install-yarn
-      - cmd-webui-install:
-          apim-ui-project: gravitee-apim-portal-webui
-          apim-ui-project-workdir: gravitee-apim-portal-webui
-      - run:
-          name: Update Build version
-          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui/build.json"
-      - run:
-          name: Build
-          command: yarn build:prod
-          environment:
-            NODE_OPTIONS: --max_old_space_size=4086
-          working_directory: gravitee-apim-portal-webui
-      - cmd-workspace-install
-      - run:
-          name: Update Build version
-          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui-next/build.json"
-      - run:
-          name: Build Portal Next
-          command: NODE_OPTIONS=--max_old_space_size=4086 yarn portal-next:build:prod
-      - cmd-notify-on-failure
-      - persist_to_workspace:
-          root: .
-          paths:
-            - gravitee-apim-portal-webui/dist
   job-validate-workflow-status:
     docker:
       - image: cimg/base:stable
@@ -284,6 +284,10 @@ workflows:
           apim-ui-project: gravitee-apim-portal-webui
           apim-ui-project-workdir: gravitee-apim-portal-webui
           resource_class: large
+      - job-portal-webui-build:
+          name: Build APIM Portal
+          context:
+            - cicd-orchestrator
       - job-sonarcloud-analysis:
           name: Sonar - gravitee-apim-portal-webui
           context:
@@ -292,10 +296,6 @@ workflows:
             - Lint & test APIM Portal
           working_directory: gravitee-apim-portal-webui
           cache_type: frontend
-      - job-portal-webui-build:
-          name: Build APIM Portal
-          context:
-            - cicd-orchestrator
       - job-validate-workflow-status:
           name: Validate workflow status
           requires:
