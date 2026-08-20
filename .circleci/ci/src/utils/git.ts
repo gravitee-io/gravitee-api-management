@@ -23,33 +23,48 @@ import { spawn } from 'node:child_process';
  */
 export const changedFiles = async (from: string, to = 'HEAD'): Promise<string[]> => {
   return new Promise((resolve, reject) => {
-    const cmd = diffCommand(from, to);
+    const args = diffArgs(from, to);
 
-    console.log(`Running "${cmd}"`);
-    const [bin, ...args] = cmd.split(' ');
-    const child = spawn(bin, args);
+    console.log(`Running "git ${args.join(' ')}"`);
+    const child = spawn('git', args);
+
+    let stdout = '';
+    let stderr = '';
 
     child.stdout.on('data', (data: Buffer) => {
-      const files = data
-        .toString()
-        .split('\n')
-        .map(keepFirstPathItem)
-        .filter(removeDuplicate)
-        .filter((f) => f.length > 0);
-
-      resolve(files);
+      stdout += data.toString();
     });
 
     child.stderr.on('data', (data: Buffer) => {
-      reject(new Error(data.toString()));
+      stderr += data.toString();
     });
 
     child.on('error', (err) => {
       reject(err);
     });
+
+    // Waiting for `close` rather than resolving on the first `data`: a pipe hands over 64 KB at a
+    // time, and a wide diff arrives in several chunks. Resolving on the first one dropped every
+    // path after it — silently, and always the same ones, since git sorts them.
+    child.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(stderr.trim().length > 0 ? stderr.trim() : `git exited with code ${code}`));
+        return;
+      }
+      resolve(toChangedPaths(stdout));
+    });
   });
 };
 
-const diffCommand = (from: string, to: string) => `git --no-pager diff --name-only ${from} ${to}`;
+export const toChangedPaths = (stdout: string): string[] =>
+  stdout
+    .split('\n')
+    .map(keepFirstPathItem)
+    .filter(removeDuplicate)
+    .filter((f) => f.length > 0);
+
+// Three dots: diff from the merge base, so what the base branch gained since this branch started
+// is not reported as a change of this branch.
+const diffArgs = (from: string, to: string) => ['--no-pager', 'diff', '--name-only', `${from}...${to}`];
 const keepFirstPathItem = (path: string) => path.split('/')[0];
 const removeDuplicate = (path: string, index: number, arr: string[]) => arr.indexOf(path) === index;
