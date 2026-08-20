@@ -61,6 +61,16 @@ describe('GroupMembersTable', () => {
         expect(miaRow.textContent).toContain('USER');
     });
 
+    it('orders members by display name regardless of the order the API returned them in', () => {
+        renderTable({ members: [RAVI, MIA] });
+
+        const names = screen
+            .getAllByRole('row')
+            .slice(1)
+            .map(row => row.querySelector('td')?.textContent);
+        expect(names).toEqual(['Mia Chen', 'Ravi PatelGroup admin']);
+    });
+
     it('shows a Group admin badge for members with the GROUP/ADMIN role', () => {
         renderTable();
         expect(screen.getByText('Ravi Patel').closest('tr')!.textContent).toContain('Group admin');
