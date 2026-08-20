@@ -51,11 +51,10 @@
     <mat-slide-toggle data-testid="auto-fetch-toggle" [formControl]="useAutoFetchControl">Auto-fetch</mat-slide-toggle>
 
     @if (useAutoFetch()) {
-      <mat-form-field appearance="outline" class="source-editor__auto-fetch__cron">
-        <mat-label>Update frequency (cron expression)</mat-label>
-        <input matInput data-testid="fetch-cron-input" [formControl]="fetchCronControl" placeholder="0 */10 * * * *" />
-        <mat-hint>Example: "0 */10 * * * *" fetches every 10 minutes</mat-hint>
-      </mat-form-field>
+      <gio-form-cron data-testid="fetch-cron-input" class="source-editor__auto-fetch__cron" [formControl]="fetchCronControl">
+        <gio-form-cron-label>Update frequency</gio-form-cron-label>
+        <gio-form-cron-hint>Required when auto-fetch is enabled</gio-form-cron-hint>
+      </gio-form-cron>
     }
   </div>
 

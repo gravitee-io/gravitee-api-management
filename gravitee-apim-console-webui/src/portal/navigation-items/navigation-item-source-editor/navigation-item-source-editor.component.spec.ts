@@ -130,4 +130,23 @@ describe('NavigationItemSourceEditorComponent', () => {
       }),
     ]);
   });
+
+  it('disables save when the persisted cron of an auto-fetch source is invalid', async () => {
+    await createComponent({ ...githubSource, useAutoFetch: true, fetchCron: 'not a cron' }, false);
+
+    expect(await harness.isSaveDisabled()).toBe(true);
+  });
+
+  it('edits the auto-fetch frequency with the cron builder and blocks save on an invalid expression', async () => {
+    await createComponent(githubSource, false);
+
+    await harness.toggleAutoFetch();
+    fixture.detectChanges();
+
+    await harness.setCron('not a cron');
+    expect(await harness.isSaveDisabled()).toBe(true);
+
+    await harness.setCron('0 */10 * * * *');
+    expect(await harness.isSaveDisabled()).toBe(false);
+  });
 });
