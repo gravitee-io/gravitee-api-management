@@ -46,14 +46,17 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { GroupAddMembersSheet } from '../features/groups/components/GroupAddMembersSheet';
 import { GroupAssociationSection } from '../features/groups/components/GroupAssociationSection';
-import { GroupDeleteSheet } from '../features/groups/components/GroupDeleteSheet';
+import { GroupDeleteDialog } from '../features/groups/components/GroupDeleteDialog';
+import { GroupEditMemberSheet } from '../features/groups/components/GroupEditMemberSheet';
 import { GroupInvitationsTable } from '../features/groups/components/GroupInvitationsTable';
 import { GroupInviteMemberSheet } from '../features/groups/components/GroupInviteMemberSheet';
 import { GroupMembersTable } from '../features/groups/components/GroupMembersTable';
+import { GroupRemoveMemberDialog } from '../features/groups/components/GroupRemoveMemberDialog';
 import { GroupSettingsSection } from '../features/groups/components/GroupSettingsSection';
 import { GroupSheet, type GroupFormValues } from '../features/groups/components/GroupSheet';
 import { GroupTooManyUsersDialog } from '../features/groups/components/GroupTooManyUsersDialog';
 import { SectionError } from '../features/groups/components/SectionError';
+import { useCurrentUserIsGroupAdmin } from '../features/groups/hooks/useCurrentUserGroupAdmin';
 import {
     useEnvironmentSettings,
     useGroupApis,
@@ -64,16 +67,13 @@ import {
 } from '../features/groups/hooks/useGroupDetail';
 import { useGroupMemberActions } from '../features/groups/hooks/useGroupMemberActions';
 import { useDeleteGroup, useUpdateGroup } from '../features/groups/hooks/useGroupMutations';
-import {
-    useGroupApiProductRoles,
-    useGroupApiRoles,
-    useGroupApplicationRoles,
-    useGroupClusterRoles,
-    useGroupExplorerRoles,
-    useGroupIntegrationRoles,
-} from '../features/groups/hooks/useGroupRoles';
+import { useGroupRoles } from '../features/groups/hooks/useGroupRoles';
 import { buildEventRules, buildRolesMap, hasEventRule, parseMaxInvitation } from '../features/groups/utils/groupPayload';
-import { ENVIRONMENT_GROUP_DELETE_PERMISSION, ENVIRONMENT_GROUP_UPDATE_PERMISSION } from '../features/groups/utils/groupPermissions';
+import {
+    canInviteToGroup,
+    ENVIRONMENT_GROUP_DELETE_PERMISSION,
+    ENVIRONMENT_GROUP_UPDATE_PERMISSION,
+} from '../features/groups/utils/groupPermissions';
 import { ConfirmDialog } from '../shared/components/ConfirmDialog';
 import { notify } from '../shared/notify';
 
@@ -99,6 +99,10 @@ export function GroupDetailPage() {
         memberSheet,
         setMemberSheet,
         closeMemberSheet,
+        editingMember,
+        setEditingMember,
+        removingMember,
+        setRemovingMember,
         tooManyUsersEmail,
         setTooManyUsersEmail,
         searchSeed,
@@ -111,32 +115,40 @@ export function GroupDetailPage() {
         handleAddMembers,
         handleInviteMember,
         handleTooManyUsersContinue,
+        handleEditMemberRoles,
+        handleRemoveMember,
         handleDeleteInvitation,
     } = useGroupMemberActions(groupId);
 
     const addMemberRolesNeeded = memberSheet === 'search';
-    const inviteMemberRolesNeeded = memberSheet === 'invite';
-    const apiAndApplicationRolesNeeded = editOpen || addMemberRolesNeeded || inviteMemberRolesNeeded;
-    const apiProductRolesNeeded = editOpen || addMemberRolesNeeded;
-    const { data: apiRoles = [], isLoading: apiRolesLoading } = useGroupApiRoles({ enabled: apiAndApplicationRolesNeeded });
-    const { data: applicationRoles = [], isLoading: applicationRolesLoading } = useGroupApplicationRoles({
-        enabled: apiAndApplicationRolesNeeded,
+    const extraMemberRolesNeeded = addMemberRolesNeeded || editingMember !== null;
+    const defaultGroupRolesNeeded = editOpen || memberSheet !== 'closed' || editingMember !== null;
+    const {
+        apiRoles,
+        apiRolesLoading,
+        applicationRoles,
+        applicationRolesLoading,
+        apiProductRoles,
+        apiProductRolesLoading,
+        integrationRoles,
+        clusterRoles,
+        explorerRoles,
+    } = useGroupRoles({
+        core: defaultGroupRolesNeeded,
+        extra: extraMemberRolesNeeded,
     });
-    const { data: apiProductRoles = [], isLoading: apiProductRolesLoading } = useGroupApiProductRoles({
-        enabled: apiProductRolesNeeded,
-    });
-    const { data: integrationRoles = [] } = useGroupIntegrationRoles({ enabled: addMemberRolesNeeded });
-    const { data: clusterRoles = [] } = useGroupClusterRoles({ enabled: addMemberRolesNeeded });
-    const { data: explorerRoles = [] } = useGroupExplorerRoles({ enabled: addMemberRolesNeeded });
+    const isCurrentUserGroupAdmin = useCurrentUserIsGroupAdmin(members, { enabled: !canEdit });
 
     const maxInvitationsLimitReached = typeof group?.max_invitation === 'number' && group.max_invitation <= members.length;
-    const canManageMembers = canEdit || Boolean(group?.manageable);
     const canAddMembers =
         group !== undefined &&
-        canManageMembers &&
-        Boolean(group.system_invitation || group.email_invitation) &&
-        !maxInvitationsLimitReached;
-    const { data: environmentSettings } = useEnvironmentSettings({ enabled: memberSheet !== 'closed' });
+        (canEdit || canInviteToGroup(group)) &&
+        !maxInvitationsLimitReached &&
+        Boolean(group.system_invitation || group.email_invitation);
+    const canManageMemberActions = canEdit || isCurrentUserGroupAdmin;
+    const { data: environmentSettings } = useEnvironmentSettings({
+        enabled: memberSheet !== 'closed' || editingMember !== null,
+    });
 
     const updateMutation = useUpdateGroup();
     const deleteMutation = useDeleteGroup();
@@ -335,7 +347,14 @@ export function GroupDetailPage() {
                             {membersError ? (
                                 <SectionError message="Failed to load members. Please refresh and try again." />
                             ) : (
-                                <GroupMembersTable members={members} loading={membersLoading} canAddMembers={canAddMembers} />
+                                <GroupMembersTable
+                                    members={members}
+                                    loading={membersLoading}
+                                    canManageMembers={canManageMemberActions}
+                                    canAddMembers={canAddMembers}
+                                    onEditRoles={setEditingMember}
+                                    onRemove={setRemovingMember}
+                                />
                             )}
                         </TabsContent>
                         <TabsContent value="invitations">
@@ -345,7 +364,7 @@ export function GroupDetailPage() {
                                 <GroupInvitationsTable
                                     invitations={invitations}
                                     loading={invitationsLoading}
-                                    canManageMembers={canManageMembers}
+                                    canManageMembers={canManageMemberActions}
                                     onDelete={setDeletingInvitation}
                                 />
                             )}
@@ -401,7 +420,7 @@ export function GroupDetailPage() {
                 isSaving={updateMutation.isPending}
             />
 
-            <GroupDeleteSheet
+            <GroupDeleteDialog
                 open={deleteOpen}
                 group={group}
                 onClose={() => setDeleteOpen(false)}
@@ -445,6 +464,37 @@ export function GroupDetailPage() {
                 apiPrimaryOwnerMode={environmentSettings?.api?.primaryOwnerMode}
                 onClose={closeMemberSheet}
                 onSubmit={handleInviteMember}
+            />
+
+            <GroupEditMemberSheet
+                open={editingMember !== null}
+                groupName={group.name}
+                member={editingMember ?? undefined}
+                members={members}
+                apiRoles={apiRoles}
+                applicationRoles={applicationRoles}
+                apiProductRoles={apiProductRoles}
+                integrationRoles={integrationRoles}
+                clusterRoles={clusterRoles}
+                explorerRoles={explorerRoles}
+                lockApiRole={Boolean(group.lock_api_role)}
+                lockApiProductRole={Boolean(group.lock_api_product_role)}
+                lockApplicationRole={Boolean(group.lock_application_role)}
+                canOverrideLocks={canEdit}
+                groupAllowsGroupAdmin={Boolean(group.system_invitation)}
+                apiPrimaryOwnerMode={environmentSettings?.api?.primaryOwnerMode}
+                apiProductPrimaryOwnerMode={environmentSettings?.apiProduct?.primaryOwnerMode}
+                onClose={() => setEditingMember(null)}
+                onSubmit={handleEditMemberRoles}
+            />
+
+            <GroupRemoveMemberDialog
+                open={removingMember !== null}
+                member={removingMember ?? undefined}
+                members={members}
+                groupName={group.name}
+                onClose={() => setRemovingMember(null)}
+                onConfirm={handleRemoveMember}
             />
 
             <GroupTooManyUsersDialog

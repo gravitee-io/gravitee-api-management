@@ -21,7 +21,8 @@ import { searchUsers } from '../../../shared/services/userSearch';
 import type { SearchableUser } from '../../../shared/types/userSearch';
 import type { GroupMember, GroupMembershipPayload } from '../types/group';
 import { PRIMARY_OWNER_ROLE } from '../types/group';
-import { buildMembershipRoles, getMemberRoleLockFlags, isPrimaryOwnerUnavailable, type RoleField } from '../utils/memberRoles';
+import { buildMembershipRoles, getMemberRoleLockFlags, type RoleField } from '../utils/memberRoles';
+import { isPrimaryOwnerUnavailable } from '../utils/primaryOwnership';
 import { GROUP_SEARCH_DEBOUNCE_MS } from '../utils/paginationConstants';
 import { groupKeys } from '../utils/queryKeys';
 import { nextSearchableUserSelection } from '../utils/searchableUsers';
@@ -34,6 +35,7 @@ const DEFAULT_USER_ROLES: Record<RoleField, string> = {
     clusterRole: 'USER',
     explorerRole: 'USER',
 };
+const PRIMARY_OWNER_DISABLED_OPTIONS = new Set([PRIMARY_OWNER_ROLE]);
 
 export function useGroupAddMembersForm({
     open,
@@ -115,8 +117,8 @@ export function useGroupAddMembersForm({
         isFetching,
         candidates,
         disabledOptionNames: {
-            api: apiPrimaryOwnerDisabled ? new Set([PRIMARY_OWNER_ROLE]) : undefined,
-            apiProduct: apiProductPrimaryOwnerDisabled ? new Set([PRIMARY_OWNER_ROLE]) : undefined,
+            api: apiPrimaryOwnerDisabled ? PRIMARY_OWNER_DISABLED_OPTIONS : undefined,
+            apiProduct: apiProductPrimaryOwnerDisabled ? PRIMARY_OWNER_DISABLED_OPTIONS : undefined,
         },
         handleRoleChange: (field: RoleField, value: string) => {
             setRoleValues(prev => ({ ...prev, [field]: value }));

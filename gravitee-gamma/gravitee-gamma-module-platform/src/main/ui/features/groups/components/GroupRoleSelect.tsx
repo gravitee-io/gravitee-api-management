@@ -56,7 +56,6 @@ export function GroupRoleSelect({
     onChange: (value: string) => void;
     disabled?: boolean;
     disabledOptionNames?: Set<string>;
-    /** Classic add-members: Application/Integration/Cluster disable all system roles; API/API Product keep PRIMARY_OWNER selectable under its own rules. */
     disableSystemRoles?: 'all' | 'except-primary-owner';
     hint?: string;
 }>) {

@@ -25,7 +25,9 @@ import {
     Input,
     Label,
 } from '@gravitee/graphene-core';
-import { useEffect, useId, useState, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
+
+import { useOpenRemountKey } from '../hooks/useOpenRemountKey';
 
 export interface ConfirmDialogProps {
     open: boolean;
@@ -38,6 +40,7 @@ export interface ConfirmDialogProps {
     cancelLabel?: string;
     destructive?: boolean;
     isPending?: boolean;
+    confirmDisabled?: boolean;
     /**
      * When provided, the user must type this exact value to enable the confirm button (type-to-confirm).
      * Use for irreversible actions (e.g. the API or product name).
@@ -45,6 +48,7 @@ export interface ConfirmDialogProps {
     confirmKeyword?: string;
     /** Optional leading icon for the confirm button (e.g. a trash icon for destructive actions). */
     icon?: ReactNode;
+    children?: ReactNode;
     onConfirm: () => void;
 }
 
@@ -54,7 +58,12 @@ export interface ConfirmDialogProps {
  * Errors are intentionally NOT rendered here: API failures from confirm/action dialogs are
  * surfaced via `notify.error(...)` (toast-only), keeping this component purely presentational.
  */
-export function ConfirmDialog({
+export function ConfirmDialog({ open, confirmKeyword, ...props }: Readonly<ConfirmDialogProps>) {
+    const resetKey = useOpenRemountKey(open, confirmKeyword ?? '');
+    return <ConfirmDialogContent key={resetKey} open={open} confirmKeyword={confirmKeyword} {...props} />;
+}
+
+function ConfirmDialogContent({
     open,
     onOpenChange,
     title,
@@ -64,19 +73,17 @@ export function ConfirmDialog({
     cancelLabel = 'Cancel',
     destructive = false,
     isPending = false,
+    confirmDisabled = false,
     confirmKeyword,
     icon,
+    children,
     onConfirm,
 }: Readonly<ConfirmDialogProps>) {
     const inputId = useId();
     const [typed, setTyped] = useState('');
 
-    useEffect(() => {
-        if (!open) setTyped('');
-    }, [open]);
-
     const keywordSatisfied = !confirmKeyword || typed === confirmKeyword;
-    const disabled = isPending || !keywordSatisfied;
+    const disabled = isPending || confirmDisabled || !keywordSatisfied;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -99,6 +106,7 @@ export function ConfirmDialog({
                         />
                     </div>
                 ) : null}
+                {children}
                 <DialogFooter className="sm:justify-end">
                     <DialogClose asChild>
                         <Button type="button" variant="outline" disabled={isPending}>

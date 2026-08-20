@@ -27,10 +27,10 @@ import {
 import { SearchIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useMemo, useState } from 'react';
 
-import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes';
-import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
+import { paginate, totalPagesFor } from '../../../shared/utils/clientPagination';
+import type { ColCell, ColHeader } from '../../../shared/utils/dataTableTypes';
+import { TABLE_PAGE_SIZE_OPTIONS } from '../../../shared/utils/paginationConstants';
 import type { GroupMembershipItem } from '../types/group';
-import { paginate, totalPagesFor } from '../utils/clientPagination';
 
 const PAGE_SIZE = 10;
 
