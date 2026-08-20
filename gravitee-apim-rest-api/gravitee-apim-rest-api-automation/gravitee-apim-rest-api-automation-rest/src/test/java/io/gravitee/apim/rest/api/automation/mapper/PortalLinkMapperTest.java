@@ -150,6 +150,26 @@ class PortalLinkMapperTest {
         assertThat(state.getLocation()).isNull();
     }
 
+    @Test
+    void api_link_state_populates_api_hrid_and_leaves_portal_hrid_null() {
+        var state = PortalLinkMapper.INSTANCE.toApiLinkState(aSpec(), LINK_ID.toString(), List.of(), AUDIT, "my-api");
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(state.getApiHrid()).isEqualTo("my-api");
+            soft.assertThat(state.getPortalHrid()).isNull();
+        });
+    }
+
+    @Test
+    void portal_link_state_still_populates_portal_hrid_and_leaves_api_hrid_null() {
+        var state = PortalLinkMapper.INSTANCE.toPortalLinkState(aSpec(), LINK_ID.toString(), List.of(), AUDIT, "default-portal");
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(state.getPortalHrid()).isEqualTo("default-portal");
+            soft.assertThat(state.getApiHrid()).isNull();
+        });
+    }
+
     private static PortalLinkSpec aSpec() {
         var spec = new PortalLinkSpec();
         spec.setHrid("external-docs");

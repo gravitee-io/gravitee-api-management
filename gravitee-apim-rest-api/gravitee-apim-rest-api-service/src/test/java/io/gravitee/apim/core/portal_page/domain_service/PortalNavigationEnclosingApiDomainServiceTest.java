@@ -20,7 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,6 +64,27 @@ class PortalNavigationEnclosingApiDomainServiceTest {
         var page = PortalNavigationItemFixtures.aPage(DOC_PAGE_ID, "Doc", folder.getId(), contentId);
         page.updateParent(folder);
         itemsQueryService.initWith(List.of(api, folder, page));
+
+        assertThat(enclosingApiDomainService.findEnclosingApiId(ENV_ID, page)).contains("api-x");
+    }
+
+    @Test
+    void should_find_api_from_the_items_own_reference_when_it_is_a_spliced_subtree_root() {
+        var page = PortalNavigationPage.builder()
+            .id(PortalNavigationItemId.of(DOC_PAGE_ID))
+            .organizationId(PortalNavigationItemFixtures.ORG_ID)
+            .environmentId(ENV_ID)
+            .title("Doc")
+            .segment("doc")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .portalPageContentId(PortalPageContentId.random())
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .reference(new NavigationItemReference.ApiReference("api-x"))
+            .build();
+        page.markAsRoot();
+        itemsQueryService.initWith(List.of(page));
 
         assertThat(enclosingApiDomainService.findEnclosingApiId(ENV_ID, page)).contains("api-x");
     }

@@ -23,6 +23,7 @@ import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_listing.model.PortalListingApiEntry;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.ApiDocumentationSyncDomainService;
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -32,10 +33,12 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.slug.model.Slug;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
-/** Owns the {@link PortalNavigationApi} row lifecycle (upsert at the deterministic id, cascade-dematerialize). */
+/** Owns the {@link PortalNavigationApi} row lifecycle (upsert at the deterministic id, row-only dematerialize). */
 @DomainService
 @RequiredArgsConstructor
 class NavigationItemEntryMaterializer {
@@ -74,6 +77,37 @@ class NavigationItemEntryMaterializer {
 
     void dematerialize(AuditInfo auditInfo, PortalId portalId, String apiId) {
         apiDocumentationSyncDomainService.cleanupNavApi(auditInfo, rowId(auditInfo, portalId, apiId));
+    }
+
+    /**
+     * Rows created before the api-owned navigation re-key are still physically parented under the
+     * nav-api row instead of keyed by {@code ApiReference}, so they would render alongside the
+     * re-keyed subtree. Sweeps only descendants carrying {@code automationMetadata.referenceType() == API}
+     * — automation-owned rows — leaving anything hand-created under the row untouched.
+     */
+    void sweepLegacyAutomationOwnedDescendants(AuditInfo auditInfo, PortalId portalId, String apiId) {
+        var environmentId = auditInfo.environmentId();
+        var navApiId = rowId(auditInfo, portalId, apiId);
+        var toDelete = new ArrayList<PortalNavigationItemId>();
+        var queue = new LinkedList<PortalNavigationItemId>();
+        queue.add(navApiId);
+        while (!queue.isEmpty()) {
+            var children = navigationItemsQueryService.findByParentIdAndEnvironmentId(environmentId, queue.poll());
+            for (var child : children) {
+                queue.add(child.getId());
+                if (isAutomationOwnedByApi(child)) {
+                    toDelete.add(child.getId());
+                }
+            }
+        }
+        if (!toDelete.isEmpty()) {
+            navigationItemCrudService.deleteByIds(toDelete);
+        }
+    }
+
+    private static boolean isAutomationOwnedByApi(PortalNavigationItem item) {
+        var metadata = item.getAutomationMetadata();
+        return metadata != null && metadata.referenceType() == AutomationMetadata.ReferenceType.API;
     }
 
     PortalNavigationItemId rowId(AuditInfo auditInfo, PortalId portalId, String apiId) {

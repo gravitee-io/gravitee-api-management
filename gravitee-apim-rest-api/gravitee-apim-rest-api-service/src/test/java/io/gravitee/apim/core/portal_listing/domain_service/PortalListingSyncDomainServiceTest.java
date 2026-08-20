@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_listing.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.mock;
 
 import inmemory.ApiCrudServiceInMemory;
@@ -24,10 +25,14 @@ import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyncPlanExecutor;
+import io.gravitee.apim.core.portal.exception.PathConflictException;
+import io.gravitee.apim.core.portal.model.NavigationPath;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_listing.model.PortalListing;
@@ -37,11 +42,15 @@ import io.gravitee.apim.core.portal_page.domain_service.ApiDocumentationSyncDoma
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.List;
 import java.util.Optional;
@@ -82,13 +91,8 @@ class PortalListingSyncDomainServiceTest {
         pageContentCrud.reset();
         apiCrud.reset();
         var portalListingCrud = new PortalListingCrudServiceInMemory();
-        var apiDocSync = new ApiDocumentationSyncDomainService(
-            navItemCrud,
-            navItemQuery,
-            pageContentQuery,
-            mock(PortalNavigationItemValidatorService.class)
-        );
-        var automationManaged = new AutomationManagedNavigationItemsQueryService(portalListingCrud, pageContentQuery, navItemQuery);
+        var apiDocSync = new ApiDocumentationSyncDomainService(navItemCrud, navItemQuery, mock(PortalNavigationItemValidatorService.class));
+        var automationManaged = new AutomationManagedNavigationItemsQueryService(portalListingCrud, navItemQuery);
         syncService = new PortalListingSyncDomainService(
             pageContentQuery,
             apiDocSync,
@@ -181,36 +185,184 @@ class PortalListingSyncDomainServiceTest {
     }
 
     @Test
-    void should_cascade_remove_api_doc_pages_when_listing_entry_is_removed() {
+    void removing_the_only_listing_entry_keeps_the_apis_documentation_and_folders() {
         var apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
         var docContentId = PortalPageContentId.of(
             HRIDToUUID.apiDocumentation().context(AUDIT_INFO).api(API_HRID).hrid("getting-started").id()
         );
         pageContentQuery.initWith(List.of(anApiDocPageContent(docContentId, apiId)));
+        apiCrud.initWith(List.of(Api.builder().id(apiId).portalNavigation(List.of(new NavigationPath("/getting-started", null))).build()));
 
         var initial = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
         syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), initial);
 
+        var navApiId = PortalNavigationItemId.of(
+            HRIDToUUID.navigation().context(AUDIT_INFO).portal(PORTAL_ID.toString()).listingApi(apiId).id()
+        );
+        var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, apiId, "/getting-started");
+        var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, apiId, docContentId);
+
         var empty = aListing(List.of());
         syncService.sync(AUDIT_INFO, PORTAL_ID, initial.getApis(), empty);
 
-        assertThat(navItemCrud.storage()).isEmpty();
+        assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).doesNotContain(navApiId).contains(folderId, pageId);
     }
 
     @Test
-    void dematerialize_removes_every_nav_row_for_listing() {
+    void dematerialize_removes_only_the_nav_api_row_and_keeps_documentation_and_folders() {
         var apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
         var docContentId = PortalPageContentId.of(
             HRIDToUUID.apiDocumentation().context(AUDIT_INFO).api(API_HRID).hrid("getting-started").id()
         );
         pageContentQuery.initWith(List.of(anApiDocPageContent(docContentId, apiId)));
+        apiCrud.initWith(List.of(Api.builder().id(apiId).portalNavigation(List.of(new NavigationPath("/getting-started", null))).build()));
 
         var listing = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
         syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), listing);
 
+        var navApiId = PortalNavigationItemId.of(
+            HRIDToUUID.navigation().context(AUDIT_INFO).portal(PORTAL_ID.toString()).listingApi(apiId).id()
+        );
+        var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, apiId, "/getting-started");
+        var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, apiId, docContentId);
+
         syncService.dematerialize(AUDIT_INFO, PORTAL_ID, listing);
 
-        assertThat(navItemCrud.storage()).isEmpty();
+        assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).doesNotContain(navApiId).contains(folderId, pageId);
+    }
+
+    @Test
+    void reconciles_the_api_folder_subtree_when_no_portal_lists_the_api() {
+        var apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
+        var guidesPath = new NavigationPath("/guides", null);
+        apiCrud.initWith(List.of(Api.builder().id(apiId).portalNavigation(List.of(guidesPath)).build()));
+
+        syncService.syncApiFolders(AUDIT_INFO, apiId, List.of());
+
+        assertThat(navItemCrud.storage())
+            .singleElement()
+            .satisfies(folder -> {
+                assertThat(folder.getId()).isEqualTo(PortalNavigationItemId.forApiFolder(AUDIT_INFO, apiId, "/guides"));
+                assertThat(folder.getReference()).isEqualTo(new NavigationItemReference.ApiReference(apiId));
+                assertThat(folder.isRoot()).isTrue();
+            });
+    }
+
+    @Test
+    void validates_api_folder_conflicts_with_zero_listings() {
+        // A conflict is a conflict whether or not a portal currently lists the API: the impostor's
+        // segment resolves to the same "/guides" path automation would create, but its id isn't the
+        // deterministic one, so it fails the id check even though nothing lists this API yet.
+        var apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
+        var impostor = PortalNavigationFolder.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId(AUDIT_INFO.organizationId())
+            .environmentId(AUDIT_INFO.environmentId())
+            .title("guides")
+            .segment("guides")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .reference(new NavigationItemReference.ApiReference(apiId))
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+        navItemCrud.create(impostor);
+
+        var throwable = catchThrowable(() ->
+            syncService.validateApiFolderConflictsForApi(AUDIT_INFO, apiId, List.of(new NavigationPath("/guides", null)))
+        );
+
+        assertThat(throwable).isInstanceOf(PathConflictException.class);
+    }
+
+    @Test
+    void an_automation_managed_api_link_survives_its_folder_being_dropped_from_the_api_navigation() {
+        var apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
+        var guidesPath = new NavigationPath("/guides", null);
+        apiCrud.initWith(List.of(Api.builder().id(apiId).portalNavigation(List.of(guidesPath)).build()));
+
+        var listing = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), listing);
+
+        var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, apiId, "/guides");
+        var link = PortalNavigationLink.builder()
+            .id(PortalNavigationItemId.forApiLink(AUDIT_INFO, apiId, "external-docs"))
+            .organizationId(AUDIT_INFO.organizationId())
+            .environmentId(AUDIT_INFO.environmentId())
+            .title("External Docs")
+            .segment("external-docs")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .url("https://docs.example.com")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .parentId(folderId)
+            .automationMetadata(
+                new AutomationMetadata(AutomationMetadata.ReferenceType.API, apiId, null, Optional.of("/guides"), Optional.empty())
+            )
+            .build();
+        navItemCrud.create(link);
+
+        apiCrud.initWith(List.of(Api.builder().id(apiId).portalNavigation(List.of()).build()));
+        syncService.syncApiFolders(AUDIT_INFO, apiId, List.of(guidesPath));
+
+        assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).contains(link.getId()).doesNotContain(folderId);
+    }
+
+    @Test
+    void sweeps_legacy_api_attached_rows_still_parented_under_the_nav_api_row() {
+        var apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
+        var navApiId = PortalNavigationItemId.of(
+            HRIDToUUID.navigation().context(AUDIT_INFO).portal(PORTAL_ID.toString()).listingApi(apiId).id()
+        );
+        var legacyPage = PortalNavigationPage.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId(AUDIT_INFO.organizationId())
+            .environmentId(AUDIT_INFO.environmentId())
+            .title("Legacy Doc")
+            .segment("legacy-doc")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .portalPageContentId(PortalPageContentId.random())
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .parentId(navApiId)
+            .automationMetadata(
+                new AutomationMetadata(AutomationMetadata.ReferenceType.API, apiId, null, Optional.empty(), Optional.empty())
+            )
+            .build();
+        navItemCrud.create(legacyPage);
+
+        var listing = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), listing);
+
+        assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).doesNotContain(legacyPage.getId());
+    }
+
+    @Test
+    void the_sweep_leaves_hand_created_rows_under_the_nav_api_row_alone() {
+        var apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
+        var navApiId = PortalNavigationItemId.of(
+            HRIDToUUID.navigation().context(AUDIT_INFO).portal(PORTAL_ID.toString()).listingApi(apiId).id()
+        );
+        var handCreatedFolder = PortalNavigationFolder.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId(AUDIT_INFO.organizationId())
+            .environmentId(AUDIT_INFO.environmentId())
+            .title("My Notes")
+            .segment("my-notes")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(1)
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .parentId(navApiId)
+            .build();
+        navItemCrud.create(handCreatedFolder);
+
+        var listing = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), listing);
+
+        assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).contains(handCreatedFolder.getId());
     }
 
     private static PortalListing aListing(List<PortalListingApiEntry> apis) {

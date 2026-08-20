@@ -161,19 +161,23 @@ import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQuerySer
 import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
 import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreateOrUpdateApiDocumentationUseCase;
+import io.gravitee.apim.core.portal_page.use_case.CreateOrUpdateApiLinkUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreateOrUpdatePortalDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreateOrUpdatePortalLinkUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.DeleteApiDocumentationUseCase;
+import io.gravitee.apim.core.portal_page.use_case.DeleteApiLinkUseCase;
 import io.gravitee.apim.core.portal_page.use_case.DeletePortalDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.DeletePortalLinkUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetApiDocumentationUseCase;
+import io.gravitee.apim.core.portal_page.use_case.GetApiLinkUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalLinkUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ValidateApiDocumentationUseCase;
+import io.gravitee.apim.core.portal_page.use_case.ValidateApiLinkUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ValidatePortalDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ValidatePortalLinkUseCase;
 import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
@@ -1438,6 +1442,26 @@ public class ResourceContextConfiguration {
     @Bean
     public DeletePortalLinkUseCase deletePortalLinkUseCase() {
         return mock(DeletePortalLinkUseCase.class);
+    }
+
+    @Bean
+    public CreateOrUpdateApiLinkUseCase createOrUpdateApiLinkUseCase() {
+        return mock(CreateOrUpdateApiLinkUseCase.class);
+    }
+
+    @Bean
+    public ValidateApiLinkUseCase validateApiLinkUseCase() {
+        return mock(ValidateApiLinkUseCase.class);
+    }
+
+    @Bean
+    public GetApiLinkUseCase getApiLinkUseCase() {
+        return mock(GetApiLinkUseCase.class);
+    }
+
+    @Bean
+    public DeleteApiLinkUseCase deleteApiLinkUseCase() {
+        return mock(DeleteApiLinkUseCase.class);
     }
 
     @Bean
