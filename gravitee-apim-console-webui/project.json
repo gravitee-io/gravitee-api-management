@@ -184,6 +184,14 @@
       },
       "dependsOn": ["test:jest"]
     },
+    "type-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p gravitee-apim-console-webui/tsconfig.typecheck.json",
+        "cwd": "{workspaceRoot}"
+      },
+      "cache": true
+    },
     "test:jest": {
       "executor": "@nx/jest:jest",
       "options": {
@@ -197,7 +205,8 @@
         "ci": {
           "ci": true
         }
-      }
+      },
+      "dependsOn": ["type-check"]
     },
     "lint": {},
     "lint-eslint": {},
