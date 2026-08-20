@@ -333,6 +333,20 @@ jobs:
             - /opt/sonar-scanner/.sonar/cache
           key: gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
           when: always
+  job-nx-format-check:
+    docker:
+      - image: cimg/node:24.18.0
+    resource_class: medium
+    steps:
+      - checkout
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - attach_workspace:
+          at: .
+      - run:
+          name: Check prettier formatting for nx projects
+          command: yarn prettier
+      - cmd-notify-on-failure
   job-test-definition:
     docker:
       - image: cimg/openjdk:25.0.3
@@ -1192,6 +1206,10 @@ workflows:
             - cicd-orchestrator
           requires:
             - Build backend
+      - job-nx-format-check:
+          name: Check prettier formatting for nx projects
+          context:
+            - cicd-orchestrator
       - job-test-definition:
           name: Test definition
           context:
