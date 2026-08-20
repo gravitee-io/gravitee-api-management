@@ -116,6 +116,8 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
             case EDGE_CLIENT -> "client-identifier";
             case EDGE_TYPE -> "additional-metrics.keyword_edge_type";
             case MESSAGE_CONNECTOR_TYPE -> "connector-type";
+            case NATIVE_CLIENT_ID -> "additional-metrics.keyword_native-kafka_client-id";
+            case NATIVE_CLIENT_SOFTWARE_NAME -> "additional-metrics.keyword_native-kafka_client-software-name";
             case ENTRYPOINT -> "entrypoint-id";
             case ERROR_KEY -> "error-key";
             case REQUEST_ID -> "request-id";
