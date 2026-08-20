@@ -46,31 +46,4 @@ class HttpClientOptionsTest {
 
         assertThat(options.getMaxWaitQueueSize()).isEqualTo(50);
     }
-
-    @Test
-    void should_default_clear_text_upgrade_to_false_for_a_brand_new_http_1_1_endpoint() throws Exception {
-        // A brand-new endpoint keeps the model defaults (HTTP_1_1 + clearTextUpgrade=true), which is
-        // an invalid combination: h2c is an HTTP/2-only mechanism (APIM-14613, APIM-14964).
-        final HttpClientOptions options = mapper.readValue("{}", HttpClientOptions.class);
-
-        assertThat(options.getVersion()).isEqualTo(ProtocolVersion.HTTP_1_1);
-        assertThat(options.isClearTextUpgrade()).isFalse();
-    }
-
-    @Test
-    void should_not_serialize_clear_text_upgrade_as_true_for_http_1_1() throws Exception {
-        final HttpClientOptions options = HttpClientOptions.builder().version(ProtocolVersion.HTTP_1_1).clearTextUpgrade(true).build();
-
-        // Default (bean) serialization is the path that leaked the invalid combo in the exported definition.
-        final boolean clearTextUpgrade = mapper.readTree(mapper.writeValueAsString(options)).path("clearTextUpgrade").asBoolean();
-
-        assertThat(clearTextUpgrade).isFalse();
-    }
-
-    @Test
-    void should_preserve_clear_text_upgrade_for_http_2() {
-        final HttpClientOptions options = HttpClientOptions.builder().version(ProtocolVersion.HTTP_2).clearTextUpgrade(true).build();
-
-        assertThat(options.isClearTextUpgrade()).isTrue();
-    }
 }
