@@ -27,8 +27,15 @@ import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
+import io.gravitee.apim.core.theme.crud_service.ThemeCrudService;
+import io.gravitee.apim.core.theme.domain_service.CurrentThemeDomainService;
+import io.gravitee.apim.core.theme.exception.ThemeNotFoundException;
+import io.gravitee.apim.core.theme.model.Theme;
+import io.gravitee.apim.core.theme.model.ThemeAutomationMetadata;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
@@ -42,14 +49,24 @@ public class CreateOrUpdatePortalUseCase {
     private final PortalPageContentQueryService portalPageContentQueryService;
     private final PortalDocumentationSyncDomainService portalDocumentationSyncDomainService;
     private final PortalAutomationScopeDomainService portalAutomationScopeEnforcer;
+    private final ThemeCrudService themeCrudService;
+    private final CurrentThemeDomainService currentThemeDomainService;
 
-    public record Input(AuditInfo auditInfo, Portal portal, PortalNavigationStructure structure) {
+    public record Input(AuditInfo auditInfo, Portal portal, PortalNavigationStructure structure, String activeThemeHrid) {
         public Input(AuditInfo auditInfo, Portal portal) {
-            this(auditInfo, portal, PortalNavigationStructure.empty());
+            this(auditInfo, portal, PortalNavigationStructure.empty(), null);
+        }
+
+        public Input(AuditInfo auditInfo, Portal portal, PortalNavigationStructure structure) {
+            this(auditInfo, portal, structure, null);
         }
     }
 
-    public record Output(Portal portal, PortalNavigationStructure structure, List<Validator.Error> errors) {}
+    public record Output(Portal portal, PortalNavigationStructure structure, String activeThemeHrid, List<Validator.Error> errors) {
+        public Output(Portal portal, PortalNavigationStructure structure, List<Validator.Error> errors) {
+            this(portal, structure, null, errors);
+        }
+    }
 
     public Output execute(Input input) {
         var validation = validator.validateAndSanitize(
@@ -73,7 +90,8 @@ public class CreateOrUpdatePortalUseCase {
             previouslyPersisted,
             sanitized.structure()
         );
-        var portalToSave = sanitized.portal().withNavigationStructure(sanitized.structure());
+        var resolvedActiveThemeId = resolveActiveThemeId(input, existing.map(Portal::getActiveThemeId).orElse(null));
+        var portalToSave = sanitized.portal().withNavigationStructure(sanitized.structure()).withActiveThemeId(resolvedActiveThemeId);
         var saved = existing.isPresent() ? portalCrudService.update(portalToSave) : portalCrudService.create(portalToSave);
         var isDefault = portalAutomationScopeEnforcer.isDefaultPortal(input.auditInfo(), saved.getId());
         // Skip nav-tree materialization for non-default portals — app is not ready for that.
@@ -83,6 +101,40 @@ public class CreateOrUpdatePortalUseCase {
                 .findByReference(input.auditInfo().environmentId(), AutomationMetadata.ReferenceType.PORTAL, saved.getId().toString())
                 .forEach(pc -> portalDocumentationSyncDomainService.materialize(input.auditInfo(), pc));
         }
-        return new Output(saved, saved.getNavigationStructure(), warnings);
+        var activeThemeHrid = reverseResolveActiveThemeHrid(input, saved.getActiveThemeId());
+        return new Output(saved, saved.getNavigationStructure(), activeThemeHrid, warnings);
+    }
+
+    private String reverseResolveActiveThemeHrid(Input input, String activeThemeId) {
+        if (activeThemeId == null) {
+            return null;
+        }
+        if (input.activeThemeHrid() != null) {
+            return input.activeThemeHrid();
+        }
+        return themeCrudService
+            .findByIdAndEnvironmentId(activeThemeId, input.auditInfo().environmentId())
+            .map(Theme::getAutomationMetadata)
+            .map(ThemeAutomationMetadata::hrid)
+            .orElse(null);
+    }
+
+    private String resolveActiveThemeId(Input input, String currentActiveThemeId) {
+        var targetThemeId = input.activeThemeHrid() == null
+            ? null
+            : HRIDToUUID.portalTheme().context(input.auditInfo()).hrid(input.activeThemeHrid()).id();
+        if (Objects.equals(targetThemeId, currentActiveThemeId)) {
+            return targetThemeId;
+        }
+        var environmentId = input.auditInfo().environmentId();
+        if (targetThemeId == null) {
+            themeCrudService.findByIdAndEnvironmentId(currentActiveThemeId, environmentId).ifPresent(currentThemeDomainService::deactivate);
+            return null;
+        }
+        var target = themeCrudService
+            .findByIdAndEnvironmentId(targetThemeId, environmentId)
+            .orElseThrow(() -> new ThemeNotFoundException(input.activeThemeHrid()));
+        currentThemeDomainService.activate(target);
+        return targetThemeId;
     }
 }

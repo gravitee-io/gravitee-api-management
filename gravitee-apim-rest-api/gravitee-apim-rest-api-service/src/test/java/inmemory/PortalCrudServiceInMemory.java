@@ -22,6 +22,7 @@ import io.gravitee.apim.core.portal.model.PortalId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
 
@@ -58,6 +59,14 @@ public class PortalCrudServiceInMemory implements PortalCrudService, InMemoryAlt
         return storage
             .stream()
             .filter(p -> environmentId.equals(p.getEnvironmentId()))
+            .toList();
+    }
+
+    @Override
+    public List<Portal> findByActiveThemeIdAndEnvironmentId(String activeThemeId, String environmentId) {
+        return findByEnvironmentId(environmentId)
+            .stream()
+            .filter(p -> Objects.equals(activeThemeId, p.getActiveThemeId()))
             .toList();
     }
 

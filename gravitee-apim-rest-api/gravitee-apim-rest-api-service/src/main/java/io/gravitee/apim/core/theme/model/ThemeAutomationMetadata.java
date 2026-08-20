@@ -15,29 +15,4 @@
  */
 package io.gravitee.apim.core.theme.model;
 
-import io.gravitee.rest.api.model.theme.portal.ThemeDefinition;
-import java.time.ZonedDateTime;
-import lombok.Builder;
-import lombok.Data;
-
-@Data
-@Builder
-public class NewTheme {
-
-    private String name;
-    private String referenceId;
-    private Theme.ReferenceType referenceType;
-
-    private ThemeDefinition definitionPortal;
-    private io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition definitionPortalNext;
-
-    private ThemeType type;
-
-    private boolean enabled;
-    private String logo;
-    private String optionalLogo;
-    private String favicon;
-    private String backgroundImage;
-
-    private ThemeAutomationMetadata automationMetadata;
-}
+public record ThemeAutomationMetadata(String hrid) {}

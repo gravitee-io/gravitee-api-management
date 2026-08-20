@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.13.0_17_add_automation_metadata_to_themes
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}themes
+            columns:
+              - column: {name: automation_metadata, type: nclob, constraints: { nullable: true } }

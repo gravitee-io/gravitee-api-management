@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 
 import fixtures.core.model.PortalFixtures;
 import inmemory.PortalCrudServiceInMemory;
+import inmemory.ThemeCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
@@ -44,11 +45,12 @@ class GetPortalUseCaseTest {
         .build();
 
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
+    private final ThemeCrudServiceInMemory themeCrudService = new ThemeCrudServiceInMemory();
     private GetPortalUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        useCase = new GetPortalUseCase(portalCrudService);
+        useCase = new GetPortalUseCase(portalCrudService, themeCrudService);
     }
 
     @AfterEach

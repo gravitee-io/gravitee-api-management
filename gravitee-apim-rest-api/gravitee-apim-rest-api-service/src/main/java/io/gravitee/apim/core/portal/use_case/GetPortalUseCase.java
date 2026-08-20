@@ -22,6 +22,9 @@ import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
+import io.gravitee.apim.core.theme.crud_service.ThemeCrudService;
+import io.gravitee.apim.core.theme.model.Theme;
+import io.gravitee.apim.core.theme.model.ThemeAutomationMetadata;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -29,15 +32,32 @@ import lombok.RequiredArgsConstructor;
 public class GetPortalUseCase {
 
     private final PortalCrudService portalCrudService;
+    private final ThemeCrudService themeCrudService;
 
     public record Input(AuditInfo auditInfo, PortalId portalId) {}
 
-    public record Output(Portal portal, PortalNavigationStructure structure) {}
+    public record Output(Portal portal, PortalNavigationStructure structure, String activeThemeHrid) {
+        public Output(Portal portal, PortalNavigationStructure structure) {
+            this(portal, structure, null);
+        }
+    }
 
     public Output execute(Input input) {
         var portal = portalCrudService
             .findByIdAndEnvironmentId(input.portalId(), input.auditInfo().environmentId())
             .orElseThrow(() -> new PortalNotFoundException(input.portalId().toString()));
-        return new Output(portal, portal.getNavigationStructure());
+        var activeThemeHrid = resolveActiveThemeHrid(portal.getActiveThemeId(), input.auditInfo().environmentId());
+        return new Output(portal, portal.getNavigationStructure(), activeThemeHrid);
+    }
+
+    private String resolveActiveThemeHrid(String activeThemeId, String environmentId) {
+        if (activeThemeId == null) {
+            return null;
+        }
+        return themeCrudService
+            .findByIdAndEnvironmentId(activeThemeId, environmentId)
+            .map(Theme::getAutomationMetadata)
+            .map(ThemeAutomationMetadata::hrid)
+            .orElse(null);
     }
 }

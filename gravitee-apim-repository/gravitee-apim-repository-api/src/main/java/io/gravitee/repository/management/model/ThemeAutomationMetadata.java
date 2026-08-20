@@ -13,31 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.theme.model;
+package io.gravitee.repository.management.model;
 
-import io.gravitee.rest.api.model.theme.portal.ThemeDefinition;
-import java.time.ZonedDateTime;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-public class NewTheme {
+@NoArgsConstructor
+@AllArgsConstructor
+public class ThemeAutomationMetadata {
 
-    private String name;
-    private String referenceId;
-    private Theme.ReferenceType referenceType;
-
-    private ThemeDefinition definitionPortal;
-    private io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition definitionPortalNext;
-
-    private ThemeType type;
-
-    private boolean enabled;
-    private String logo;
-    private String optionalLogo;
-    private String favicon;
-    private String backgroundImage;
-
-    private ThemeAutomationMetadata automationMetadata;
+    private String hrid;
 }

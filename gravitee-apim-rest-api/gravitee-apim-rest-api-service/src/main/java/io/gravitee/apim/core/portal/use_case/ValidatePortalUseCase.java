@@ -33,6 +33,6 @@ public class ValidatePortalUseCase {
         );
         List<Validator.Error> errors = result.errors().orElseGet(List::of);
         var sanitized = result.value().orElse(new ValidatePortalDomainService.Input(input.auditInfo(), input.portal(), input.structure()));
-        return new CreateOrUpdatePortalUseCase.Output(sanitized.portal(), sanitized.structure(), errors);
+        return new CreateOrUpdatePortalUseCase.Output(sanitized.portal(), sanitized.structure(), input.activeThemeHrid(), errors);
     }
 }

@@ -48,6 +48,7 @@ public class Theme {
         this.backgroundImage = cloned.getBackgroundImage();
         this.definition = cloned.getDefinition();
         this.favicon = cloned.getFavicon();
+        this.automationMetadata = cloned.getAutomationMetadata();
     }
 
     public enum AuditEvent implements Audit.AuditEvent {
@@ -82,6 +83,8 @@ public class Theme {
     private String optionalLogo;
 
     private String favicon;
+
+    private ThemeAutomationMetadata automationMetadata;
 
     @Override
     public boolean equals(Object o) {
