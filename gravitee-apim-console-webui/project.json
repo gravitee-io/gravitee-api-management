@@ -187,7 +187,7 @@
     "type-check": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "tsc --noEmit -p gravitee-apim-console-webui/tsconfig.typecheck.json",
+        "command": "yarn console:type-check",
         "cwd": "{workspaceRoot}"
       },
       "cache": true
