@@ -21,7 +21,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { GioBannerModule, GioFormJsonSchemaModule, GioJsonSchema } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioFormCronModule, GioFormJsonSchemaModule, GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { catchError, debounceTime, map, tap } from 'rxjs/operators';
 import { of, Subject, Subscription } from 'rxjs';
 import { DatePipe } from '@angular/common';
@@ -76,6 +76,7 @@ export function stripLegacyAutoFetchFromSchema(schema: GioJsonSchema): GioJsonSc
     MatSelectModule,
     MatSlideToggleModule,
     GioBannerModule,
+    GioFormCronModule,
     GioFormJsonSchemaModule,
     DatePipe,
   ],
@@ -101,6 +102,7 @@ export class NavigationItemSourceEditorComponent {
   readonly selectedType = toSignal(this.typeControl.valueChanges, { initialValue: this.typeControl.value });
   readonly useAutoFetch = toSignal(this.useAutoFetchControl.valueChanges, { initialValue: this.useAutoFetchControl.value });
   readonly fetchCron = toSignal(this.fetchCronControl.valueChanges, { initialValue: this.fetchCronControl.value });
+  private readonly fetchCronStatus = toSignal(this.fetchCronControl.statusChanges, { initialValue: this.fetchCronControl.status });
   private readonly configurationInvalid = signal(false);
   private readonly rebuildConfiguration$ = new Subject<string | null>();
   private configurationSubscription?: Subscription;
@@ -129,7 +131,10 @@ export class NavigationItemSourceEditorComponent {
     if (this.disabled() || !this.selectedType() || !this.selectedSchema() || this.configurationInvalid()) {
       return true;
     }
-    return this.useAutoFetch() && !this.fetchCron()?.trim();
+    if (!this.useAutoFetch()) {
+      return false;
+    }
+    return !this.fetchCron()?.trim() || this.fetchCronStatus() === 'INVALID';
   });
 
   private readonly rebuildConfigurationSubscription = this.rebuildConfiguration$
@@ -159,6 +164,14 @@ export class NavigationItemSourceEditorComponent {
       this.resetFormFromSource(source);
     } else if (fetchers.length > 0 && this.selectedType() && !this.selectedSchema()) {
       this.rebuildConfiguration$.next(this.selectedType());
+    }
+  });
+
+  // The cron field renders only while auto-fetch is on, and its validator attaches with
+  // emitEvent: false — statusChanges misses that recalculation, so re-run it once rendered
+  private readonly observeCronValidityOnRender = effect(() => {
+    if (this.useAutoFetch()) {
+      queueMicrotask(() => this.fetchCronControl.updateValueAndValidity());
     }
   });
 

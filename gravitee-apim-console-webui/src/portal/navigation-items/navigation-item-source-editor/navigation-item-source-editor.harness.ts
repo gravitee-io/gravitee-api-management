@@ -18,13 +18,14 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { GioFormCronHarness } from '@gravitee/ui-particles-angular';
 
 export class NavigationItemSourceEditorHarness extends ComponentHarness {
   static readonly hostSelector = 'navigation-item-source-editor';
 
   private readonly locateTypeSelect = this.locatorFor(MatSelectHarness.with({ selector: '[data-testid="source-type-select"]' }));
   private readonly locateAutoFetchToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[data-testid="auto-fetch-toggle"]' }));
-  private readonly locateCronInput = this.locatorForOptional(MatInputHarness.with({ selector: '[data-testid="fetch-cron-input"]' }));
+  private readonly locateCronInput = this.locatorForOptional(GioFormCronHarness.with({ selector: '[data-testid="fetch-cron-input"]' }));
   private readonly locateSaveButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="save-source-button"]' }));
   private readonly locateRemoveButton = this.locatorForOptional(
     MatButtonHarness.with({ selector: '[data-testid="remove-source-button"]' }),
@@ -72,7 +73,7 @@ export class NavigationItemSourceEditorHarness extends ComponentHarness {
 
   async setCron(cron: string): Promise<void> {
     const input = await this.locateCronInput();
-    await input?.setValue(cron);
+    await input?.setCustomValue(cron);
   }
 
   async getCron(): Promise<string | null> {
