@@ -96,6 +96,8 @@ class DefaultHttpRequestDispatcherTest {
 
     protected static final String HOST = "gravitee.io";
     protected static final String PATH = "/path";
+    // AbstractHttpAcceptor always appends a trailing slash; the real acceptor never returns PATH as-is.
+    protected static final String ACCEPTOR_PATH = "/path/";
     protected static final String MOCK_ERROR_MESSAGE = "Mock error";
     public static final String SERVER_ID = null;
 
@@ -242,7 +244,7 @@ class DefaultHttpRequestDispatcherTest {
         @BeforeEach
         public void prepareV4EmulationMock() {
             when(httpAcceptorResolver.resolve(HOST, PATH, SERVER_ID)).thenReturn(handlerEntrypoint);
-            when(handlerEntrypoint.path()).thenReturn(PATH);
+            when(handlerEntrypoint.path()).thenReturn(ACCEPTOR_PATH);
             when(handlerEntrypoint.reactor()).thenReturn(apiReactor);
             when(apiReactor.tracingContext()).thenReturn(tracingContext);
         }
@@ -325,7 +327,7 @@ class DefaultHttpRequestDispatcherTest {
         @BeforeEach
         public void prepareV2ApiReactor() {
             when(httpAcceptorResolver.resolve(HOST, PATH, SERVER_ID)).thenReturn(handlerEntrypoint);
-            when(handlerEntrypoint.path()).thenReturn(PATH);
+            when(handlerEntrypoint.path()).thenReturn(ACCEPTOR_PATH);
             when(handlerEntrypoint.reactor()).thenReturn(apiReactor);
             when(apiReactor.tracingContext()).thenReturn(tracingContext);
             mockConnectionCreationTimestamp();
