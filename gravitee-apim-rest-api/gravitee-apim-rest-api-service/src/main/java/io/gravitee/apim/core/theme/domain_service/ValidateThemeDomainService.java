@@ -16,26 +16,63 @@
 package io.gravitee.apim.core.theme.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.theme.crud_service.ThemeCrudService;
 import io.gravitee.apim.core.theme.exception.ThemeDefinitionInvalidException;
 import io.gravitee.apim.core.theme.exception.ThemeNotFoundException;
 import io.gravitee.apim.core.theme.exception.ThemeTypeInvalidException;
 import io.gravitee.apim.core.theme.model.Theme;
-import io.gravitee.apim.core.theme.model.ThemeSearchCriteria;
 import io.gravitee.apim.core.theme.model.ThemeType;
 import io.gravitee.apim.core.theme.model.UpdateTheme;
-import io.gravitee.apim.core.theme.query_service.ThemeQueryService;
-import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.rest.api.model.theme.portalnext.ThemeDefinition;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
 @RequiredArgsConstructor
-public class ValidateThemeDomainService {
+public class ValidateThemeDomainService implements Validator<ValidateThemeDomainService.Input> {
 
     private final ThemeCrudService themeCrudService;
+
+    public record Input(
+        AuditInfo auditInfo,
+        String themeHrid,
+        String name,
+        ThemeDefinition definitionPortalNext,
+        String logo,
+        String optionalLogo,
+        String favicon,
+        String backgroundImage
+    ) implements Validator.Input {}
+
+    @Override
+    public Result<Input> validateAndSanitize(Input input) {
+        var errors = new ArrayList<Error>();
+        var sanitizedName = input.name() == null ? null : input.name().trim();
+        if (sanitizedName == null || sanitizedName.isBlank()) {
+            errors.add(Error.severe("spec.name must not be blank"));
+        }
+        if (input.themeHrid() == null || input.themeHrid().isBlank()) {
+            errors.add(Error.severe("spec.hrid must not be blank"));
+        }
+        if (input.definitionPortalNext() == null) {
+            errors.add(Error.severe("spec.definitionPortalNext must not be null"));
+        }
+        var sanitized = new Input(
+            input.auditInfo(),
+            input.themeHrid(),
+            sanitizedName,
+            input.definitionPortalNext(),
+            input.logo(),
+            input.optionalLogo(),
+            input.favicon(),
+            input.backgroundImage()
+        );
+        return Result.ofBoth(sanitized, errors);
+    }
 
     public void validateUpdateTheme(UpdateTheme updateTheme, ExecutionContext executionContext) {
         var existingTheme = this.themeCrudService.get(updateTheme.getId());

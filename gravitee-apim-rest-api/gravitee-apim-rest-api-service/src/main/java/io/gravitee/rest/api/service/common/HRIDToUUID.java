@@ -20,7 +20,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 /**
  * Fluent DSL for generating deterministic UUIDs from HRIDs.
  * <p>
- * Top-level resources (API, Application, SharedPolicyGroup, Group, Portal) produce both {@code id()} and
+ * Top-level resources (API, Application, SharedPolicyGroup, Group, Portal, Theme) produce both {@code id()} and
  * {@code crossId()}.
  * Sub-resources (Plan, Page, Subscription) are scoped to a parent API and only produce {@code id()}.
  * Portal sub-resources (Portal Listing, Portal Documentation) are scoped to a parent Portal and only produce
@@ -41,6 +41,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
  * HRIDToUUID.portalLink().context(audit).portal("my-portal").hrid("my-link").id()
  * HRIDToUUID.apiDocumentation().context(audit).api("my-api").hrid("my-doc").id()
  * HRIDToUUID.gamma().context(audit).module("aim").kind("catalog/mcp-servers").hrid("github").id()
+ * HRIDToUUID.theme().context(audit).hrid("my-theme").id()
  * </pre>
  *
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
@@ -71,6 +72,10 @@ public final class HRIDToUUID {
     }
 
     public static TopLevelBuilder portal() {
+        return new TopLevelBuilder();
+    }
+
+    public static TopLevelBuilder theme() {
         return new TopLevelBuilder();
     }
 

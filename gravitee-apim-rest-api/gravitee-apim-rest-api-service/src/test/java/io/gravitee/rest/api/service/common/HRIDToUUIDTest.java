@@ -89,6 +89,24 @@ class HRIDToUUIDTest {
     }
 
     @Nested
+    class Theme {
+
+        @Test
+        void should_generate_same_id_for_same_hrid() {
+            assertThat(HRIDToUUID.theme().context(AUDIT).hrid("my-theme").id()).isEqualTo(
+                HRIDToUUID.theme().context(AUDIT).hrid("my-theme").id()
+            );
+        }
+
+        @Test
+        void should_generate_different_id_for_different_hrid() {
+            assertThat(HRIDToUUID.theme().context(AUDIT).hrid("light").id()).isNotEqualTo(
+                HRIDToUUID.theme().context(AUDIT).hrid("dark").id()
+            );
+        }
+    }
+
+    @Nested
     class Plan {
 
         @Test

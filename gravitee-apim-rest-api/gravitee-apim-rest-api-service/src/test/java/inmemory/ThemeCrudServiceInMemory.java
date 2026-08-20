@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.OptionalInt;
 
 public class ThemeCrudServiceInMemory implements ThemeCrudService, InMemoryAlternative<Theme> {
@@ -69,5 +70,20 @@ public class ThemeCrudServiceInMemory implements ThemeCrudService, InMemoryAlter
             .filter(theme -> Objects.equals(id, theme.getId()))
             .findAny()
             .orElseThrow(() -> new ThemeNotFoundException(id));
+    }
+
+    @Override
+    public Optional<Theme> findByIdAndEnvironmentId(String id, String environmentId) {
+        return storage
+            .stream()
+            .filter(theme -> Objects.equals(id, theme.getId()))
+            .filter(theme -> theme.getReferenceType() == Theme.ReferenceType.ENVIRONMENT)
+            .filter(theme -> Objects.equals(environmentId, theme.getReferenceId()))
+            .findAny();
+    }
+
+    @Override
+    public void delete(String id) {
+        storage.removeIf(theme -> Objects.equals(id, theme.getId()));
     }
 }

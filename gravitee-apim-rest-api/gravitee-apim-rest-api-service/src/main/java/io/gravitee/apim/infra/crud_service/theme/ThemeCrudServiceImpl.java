@@ -22,7 +22,8 @@ import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.infra.adapter.ThemeAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ThemeRepository;
-import java.time.ZonedDateTime;
+import java.util.Objects;
+import java.util.Optional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -64,6 +65,28 @@ public class ThemeCrudServiceImpl implements ThemeCrudService {
                 .orElseThrow(() -> new ThemeNotFoundException(id));
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("Error during get", e);
+        }
+    }
+
+    @Override
+    public Optional<Theme> findByIdAndEnvironmentId(String id, String environmentId) {
+        try {
+            return themeRepository
+                .findById(id)
+                .map(ThemeAdapter.INSTANCE::map)
+                .filter(theme -> theme.getReferenceType() == Theme.ReferenceType.ENVIRONMENT)
+                .filter(theme -> Objects.equals(theme.getReferenceId(), environmentId));
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("Error during theme lookup", e);
+        }
+    }
+
+    @Override
+    public void delete(String id) {
+        try {
+            themeRepository.delete(id);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("Error during theme deletion", e);
         }
     }
 }

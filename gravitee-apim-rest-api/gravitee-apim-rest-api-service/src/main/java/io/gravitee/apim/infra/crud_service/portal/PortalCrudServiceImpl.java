@@ -23,6 +23,7 @@ import io.gravitee.apim.infra.adapter.PortalAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalRepository;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -85,6 +86,14 @@ public class PortalCrudServiceImpl implements PortalCrudService {
                 e
             );
         }
+    }
+
+    @Override
+    public List<Portal> findByActiveThemeIdAndEnvironmentId(String activeThemeId, String environmentId) {
+        return findByEnvironmentId(environmentId)
+            .stream()
+            .filter(portal -> Objects.equals(portal.getActiveThemeId(), activeThemeId))
+            .toList();
     }
 
     @Override
