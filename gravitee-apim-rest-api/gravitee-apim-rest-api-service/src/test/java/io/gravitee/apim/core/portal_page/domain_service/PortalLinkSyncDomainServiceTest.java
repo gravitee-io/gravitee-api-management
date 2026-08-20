@@ -289,6 +289,31 @@ class PortalLinkSyncDomainServiceTest {
     }
 
     @Test
+    void materialize_for_api_allows_a_root_segment_already_owned_by_a_portal_root() {
+        // An API-attached item with no location is a root of the API's own subtree, spliced in under
+        // every nav-api row that lists the API. It never renders as a sibling of a portal root, so the
+        // two may hold the same segment: /docs under the API is not the portal's own "docs".
+        navItemCrud.create(linkRow("docs", null, 0));
+
+        var link = syncService.materializeForApi(AUDIT_INFO, API_ID, "docs", "Docs", "https://d.example", null, 0);
+
+        assertThat(link.isRoot()).isTrue();
+        assertThat(link.getReference()).isEqualTo(new NavigationItemReference.ApiReference(API_ID));
+    }
+
+    @Test
+    void materialize_still_rejects_a_portal_attached_link_whose_root_segment_is_owned_by_another_portal_item() {
+        // Console-created and seeded roots carry PortalReference(ZERO) while an automation portal link
+        // carries PortalReference(portalId). Both render at the portal's top level, so they do clash —
+        // scoping the root check by exact reference equality would wrongly let this through.
+        navItemCrud.create(linkRow("docs", null, 0));
+
+        var throwable = catchThrowable(() -> syncService.materialize(AUDIT_INFO, PORTAL_ID, "docs", "Docs", "https://d.example", null, 0));
+
+        assertThat(throwable).isInstanceOf(PathConflictException.class);
+    }
+
+    @Test
     void materialize_for_api_stamps_an_api_reference_on_the_nav_item() {
         var link = syncService.materializeForApi(AUDIT_INFO, API_ID, "external-docs", "External Docs", "https://d.example", null, 0);
 

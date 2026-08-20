@@ -190,7 +190,12 @@ public final class HRIDToUUID {
     public static class NavigationBuilder {
 
         public NavigationWithContext context(AuditInfo audit) {
-            return new NavigationWithContext(audit.organizationId(), audit.environmentId());
+            return context(audit.organizationId(), audit.environmentId());
+        }
+
+        /** For callers with no {@link AuditInfo} to construct — an upgrader migrating stored rows, for example. */
+        public NavigationWithContext context(String organizationId, String environmentId) {
+            return new NavigationWithContext(organizationId, environmentId);
         }
     }
 

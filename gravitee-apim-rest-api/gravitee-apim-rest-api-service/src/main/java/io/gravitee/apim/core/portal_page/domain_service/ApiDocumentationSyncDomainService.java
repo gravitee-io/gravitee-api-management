@@ -21,6 +21,7 @@ import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
@@ -33,7 +34,6 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
-import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.apim.core.slug.model.Slug;
 import java.util.List;
 import java.util.Set;
@@ -41,17 +41,13 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Materializes an API-attached Documentation into the navigation tree.
+ * Materializes an API-attached Documentation into the navigation tree, keyed on the API itself.
  *
- * <p>For every {@link PortalNavigationApi} row that exists for the API in the environment (created by a
- * {@code PortalListing}), creates/updates a {@link PortalNavigationPage}. When the doc's {@code location}
- * points to a folder materialized from {@code api.portalNavigation}, the page parents there; otherwise the
- * page parents directly under the nav-api row (orphan-tolerant: a phantom parent is set so the page
- * reconnects once the folder is materialized).
- *
- * <p>If no listing exists yet, the scan returns zero rows and the doc sits idle in {@code portal_page_contents}.
- * When a listing later creates a nav-api row, {@code PortalListingSyncDomainService} calls {@link #materialize}
- * again (Rule 2 backfill) so the new rows get populated regardless of apply order.
+ * <p>The nav page is upserted unconditionally — no portal or listing needs to exist. When the doc's
+ * {@code location} points to a folder materialized from {@code api.portalNavigation}, the page parents
+ * there (orphan-tolerant: a phantom parent is set so the page reconnects once the folder is
+ * materialized); an absent, blank, or {@code "/"} location makes the page a root of the API's own
+ * subtree instead.
  *
  * @author GraviteeSource Team
  */
@@ -67,28 +63,18 @@ public class ApiDocumentationSyncDomainService {
 
     private final PortalNavigationItemCrudService navigationItemCrudService;
     private final PortalNavigationItemsQueryService navigationItemsQueryService;
-    private final PortalPageContentQueryService portalPageContentQueryService;
     private final PortalNavigationItemValidatorService validatorService;
 
     public void materialize(AuditInfo auditInfo, PortalPageContent<?> pageContent) {
         var meta = pageContent.getAutomationMetadata();
         var apiId = meta.referenceId();
         var contentId = pageContent.getId();
-        var navApiRows = findNavApiRows(auditInfo.environmentId(), apiId);
-        if (navApiRows.isEmpty()) {
-            return;
-        }
-        for (var navApi : navApiRows) {
-            var pageId = PortalNavigationItemId.forApiDocumentation(auditInfo, apiId, contentId);
-            var parent = resolveParent(auditInfo, navApi, meta.location().orElse(null));
-            upsertNavPage(auditInfo, pageId, contentId, parent, meta);
-        }
+        var pageId = PortalNavigationItemId.forApiDocumentation(auditInfo, apiId, contentId);
+        var parent = resolveParent(auditInfo, apiId, meta.location().orElse(null));
+        upsertNavPage(auditInfo, pageId, contentId, parent, meta);
     }
 
     public void dematerialize(AuditInfo auditInfo, String apiId, PortalPageContentId contentId) {
-        if (findNavApiRows(auditInfo.environmentId(), apiId).isEmpty()) {
-            return;
-        }
         var pageId = PortalNavigationItemId.forApiDocumentation(auditInfo, apiId, contentId);
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), pageId);
         if (existing != null) {
@@ -97,43 +83,40 @@ public class ApiDocumentationSyncDomainService {
     }
 
     /**
-     * Cleans up navigation rows materialized by the API itself (api-folder subtree + phantom-parented doc pages).
-     * Nav-api rows are owned by their {@code PortalListing} and {@code PortalPageContent} rows by their
-     * {@code Documentation}, so neither is touched here.
+     * Cleans up the API's own subtree — its folder subtree, its documentation pages, and its links, wherever
+     * they are rooted — enumerated by reference rather than by iterating nav-api rows: the subtree belongs to
+     * the API, not to any listing. Nav-api rows are owned by their {@code PortalListing}, so none are touched here.
      */
     public void cleanupForApi(AuditInfo auditInfo, String apiId) {
-        for (var navApi : findNavApiRows(auditInfo.environmentId(), apiId)) {
-            cascadeDeleteNavApiDescendants(auditInfo, navApi.getId(), apiId);
-        }
+        var reference = new NavigationItemReference.ApiReference(apiId);
+        var envFolders = navigationItemsQueryService.search(
+            PortalNavigationItemQueryCriteria.builder()
+                .environmentId(auditInfo.environmentId())
+                .type(PortalNavigationItemType.FOLDER)
+                .build()
+        );
+        envFolders
+            .stream()
+            .filter(folder -> reference.equals(folder.getReference()))
+            .filter(PortalNavigationItem::isRoot)
+            .forEach(root -> {
+                cascadeDeleteDescendants(auditInfo.environmentId(), root.getId(), 0);
+                navigationItemCrudService.delete(root.getId());
+            });
+        navigationItemsQueryService
+            .findByAutomationReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.API, apiId)
+            .stream()
+            .filter(item -> item.getType() == PortalNavigationItemType.PAGE || item.getType() == PortalNavigationItemType.LINK)
+            .forEach(item -> navigationItemCrudService.delete(item.getId()));
     }
 
     /**
-     * Cleans up a single {@link PortalNavigationApi} row and every descendant underneath it. Used by listing
-     * sync when an entry is removed from a listing spec, and indirectly by {@link #cleanupForApi}.
+     * Cleans up a single {@link PortalNavigationApi} row. The API's own subtree is not a descendant of this
+     * row — it belongs to the API (see {@link #cleanupForApi}) — so removing a listing entry never takes it.
      */
     public void cleanupNavApi(AuditInfo auditInfo, PortalNavigationItemId navApiId) {
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), navApiId);
-        if (!(existing instanceof PortalNavigationApi navApi)) {
-            return;
-        }
-        cascadeDeleteNavApi(auditInfo, navApiId, navApi.getApiId());
-    }
-
-    private void cascadeDeleteNavApiDescendants(AuditInfo auditInfo, PortalNavigationItemId navApiId, String apiId) {
-        portalPageContentQueryService
-            .findByReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.API, apiId)
-            .forEach(pc -> {
-                var pageId = PortalNavigationItemId.forApiDocumentation(auditInfo, apiId, pc.getId());
-                if (navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), pageId) != null) {
-                    navigationItemCrudService.delete(pageId);
-                }
-            });
-        cascadeDeleteDescendants(auditInfo.environmentId(), navApiId, 0);
-    }
-
-    private void cascadeDeleteNavApi(AuditInfo auditInfo, PortalNavigationItemId navApiId, String apiId) {
-        cascadeDeleteNavApiDescendants(auditInfo, navApiId, apiId);
-        if (navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), navApiId) != null) {
+        if (existing instanceof PortalNavigationApi) {
             navigationItemCrudService.delete(navApiId);
         }
     }
@@ -148,31 +131,16 @@ public class ApiDocumentationSyncDomainService {
         }
     }
 
-    private PortalNavigationItemContainer resolveParent(AuditInfo auditInfo, PortalNavigationApi navApi, String location) {
+    private PortalNavigationItemContainer resolveParent(AuditInfo auditInfo, String apiId, String location) {
         if (location == null || location.isBlank() || "/".equals(location)) {
-            return navApi;
+            return null;
         }
-        var folderId = PortalNavigationItemId.forApiFolder(auditInfo, navApi.getApiId(), location);
+        var folderId = PortalNavigationItemId.forApiFolder(auditInfo, apiId, location);
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), folderId);
         if (existing instanceof PortalNavigationItemContainer container) {
             return container;
         }
         return PortalNavigationItemContainer.phantom(folderId);
-    }
-
-    private List<PortalNavigationApi> findNavApiRows(String environmentId, String apiId) {
-        return navigationItemsQueryService
-            .search(
-                PortalNavigationItemQueryCriteria.builder()
-                    .environmentId(environmentId)
-                    .type(PortalNavigationItemType.API)
-                    .apiIds(Set.of(apiId))
-                    .build()
-            )
-            .stream()
-            .filter(PortalNavigationApi.class::isInstance)
-            .map(PortalNavigationApi.class::cast)
-            .toList();
     }
 
     private void upsertNavPage(

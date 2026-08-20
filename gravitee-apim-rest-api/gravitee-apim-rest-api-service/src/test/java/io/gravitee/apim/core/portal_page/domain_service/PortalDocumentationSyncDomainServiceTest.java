@@ -368,7 +368,7 @@ class PortalDocumentationSyncDomainServiceTest {
             .id(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000c0d2"))
             .organizationId(AUDIT_INFO.organizationId())
             .environmentId(AUDIT_INFO.environmentId())
-            .reference(NavigationItemReference.DEFAULT)
+            .reference(NavigationItemReference.defaultReference())
             .title("Seeded")
             .segment("seeded")
             .area(PortalArea.HOMEPAGE)
