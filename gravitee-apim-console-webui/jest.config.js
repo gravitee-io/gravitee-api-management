@@ -4,6 +4,18 @@ module.exports = {
   testTimeout: 30000,
   workerIdleMemoryLimit: '1024MB',
   preset: 'jest-preset-angular',
+  // Transpile-only: skipping the type check makes the suite ~35% faster on a cold cache.
+  // Types are still checked, by `yarn console:type-check` right before this suite runs.
+  transform: {
+    '^.+\\.(ts|js|mjs|html|svg)$': [
+      'jest-preset-angular',
+      {
+        tsconfig: '<rootDir>/tsconfig.spec.json',
+        stringifyContentPathRegex: '\\.(html|svg)$',
+        isolatedModules: true,
+      },
+    ],
+  },
   roots: [__dirname + '/src'],
   setupFilesAfterEnv: [__dirname + '/src/setup-jest.ts'],
   collectCoverageFrom: [
