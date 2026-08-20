@@ -208,6 +208,10 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                 .connectionStatus(nativeMetrics.connectionStatus())
                 .failureOrigin(nativeMetrics.failureOrigin(metrics.getErrorKey()))
                 .clientId(nativeMetrics.clientId())
+                .clientSoftwareName(nativeMetrics.clientSoftwareName())
+                .clientSoftwareVersion(nativeMetrics.clientSoftwareVersion())
+                .securityType(metrics.getSecurityType())
+                .securityToken(metrics.getSecurityToken())
                 .brokerId(nativeMetrics.brokerId())
                 .connectionDurationMs(nativeMetrics.connectionDurationMs());
 
@@ -592,10 +596,18 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
      * present — the failure origin is only derived in that case, so HTTP error keys never go through
      * the Kafka classification table.
      */
-    private record NativeMetrics(String connectionStatus, String clientId, String brokerId, Long connectionDurationMs, String failureSide) {
+    private record NativeMetrics(
+        String connectionStatus,
+        String clientId,
+        String clientSoftwareName,
+        String clientSoftwareVersion,
+        String brokerId,
+        Long connectionDurationMs,
+        String failureSide
+    ) {
         static NativeMetrics from(Map<String, Object> additionalMetrics) {
             if (additionalMetrics == null || additionalMetrics.isEmpty()) {
-                return new NativeMetrics(null, null, null, null, null);
+                return new NativeMetrics(null, null, null, null, null, null, null);
             }
             var duration = additionalMetrics.get(NativeApiMetricKeys.CONNECTION_DURATION_MS);
             if (duration == null) {
@@ -604,6 +616,8 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             return new NativeMetrics(
                 asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.CONNECTION_STATUS)),
                 asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.CLIENT_ID)),
+                asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.CLIENT_SOFTWARE_NAME)),
+                asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION)),
                 asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.BROKER_ID)),
                 asLongOrNull(duration),
                 asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.FAILURE_SIDE))
