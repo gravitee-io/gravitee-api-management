@@ -15,7 +15,7 @@
  */
 
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { Input, Switch } from '@gravitee/graphene-core';
+import { Card, CardContent, CardHeader, CardTitle, Input, Switch } from '@gravitee/graphene-core';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { OrgSettingsFormShell } from '../features/organization-settings/components/OrgSettingsFormShell';
@@ -150,97 +150,105 @@ export function ManagementAndSchedulersPage() {
             onDiscard={() => setLocalState(savedState)}
         >
             <div className="space-y-6">
-                <section className="rounded-lg border p-4 space-y-4">
-                    <h2 className="text-base font-semibold">Management</h2>
-                    <div className="space-y-1.5">
-                        <label htmlFor="management-title" className="text-sm font-medium">
-                            Title
-                        </label>
-                        <SystemReadonlyHint locked={readonly.title}>
-                            <Input
-                                id="management-title"
-                                value={localState.title}
-                                onChange={e => setLocalState(prev => ({ ...prev, title: e.target.value }))}
-                                disabled={!canEdit || readonly.title}
-                            />
-                        </SystemReadonlyHint>
-                    </div>
-                    <div className="space-y-1.5">
-                        <label htmlFor="management-url" className="text-sm font-medium">
-                            Management URL
-                        </label>
-                        <SystemReadonlyHint locked={readonly.url}>
-                            <Input
-                                id="management-url"
-                                value={localState.url}
-                                onChange={e => setLocalState(prev => ({ ...prev, url: e.target.value }))}
-                                disabled={!canEdit || readonly.url}
-                            />
-                        </SystemReadonlyHint>
-                    </div>
-                    <ToggleRow
-                        id="management-support"
-                        label="Activate Support"
-                        checked={localState.supportEnabled}
-                        disabled={!canEdit || readonly.support}
-                        systemReadonly={readonly.support}
-                        onToggle={checked => setLocalState(prev => ({ ...prev, supportEnabled: checked }))}
-                    />
-                    <ToggleRow
-                        id="management-user-creation"
-                        label="Allow User Registration"
-                        checked={localState.userCreationEnabled}
-                        disabled={!canEdit || readonly.userCreation}
-                        systemReadonly={readonly.userCreation}
-                        onToggle={checked => setLocalState(prev => ({ ...prev, userCreationEnabled: checked }))}
-                    />
-                    {localState.userCreationEnabled ? (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Management</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="space-y-1.5">
+                            <label htmlFor="management-title" className="text-sm font-medium">
+                                Title
+                            </label>
+                            <SystemReadonlyHint locked={readonly.title}>
+                                <Input
+                                    id="management-title"
+                                    value={localState.title}
+                                    onChange={e => setLocalState(prev => ({ ...prev, title: e.target.value }))}
+                                    disabled={!canEdit || readonly.title}
+                                />
+                            </SystemReadonlyHint>
+                        </div>
+                        <div className="space-y-1.5">
+                            <label htmlFor="management-url" className="text-sm font-medium">
+                                Management URL
+                            </label>
+                            <SystemReadonlyHint locked={readonly.url}>
+                                <Input
+                                    id="management-url"
+                                    value={localState.url}
+                                    onChange={e => setLocalState(prev => ({ ...prev, url: e.target.value }))}
+                                    disabled={!canEdit || readonly.url}
+                                />
+                            </SystemReadonlyHint>
+                        </div>
                         <ToggleRow
-                            id="management-automatic-validation"
-                            label="Enable automatic validation of registration requests"
-                            checked={localState.automaticValidationEnabled}
-                            disabled={!canEdit || readonly.automaticValidation}
-                            systemReadonly={readonly.automaticValidation}
-                            onToggle={checked => setLocalState(prev => ({ ...prev, automaticValidationEnabled: checked }))}
+                            id="management-support"
+                            label="Activate Support"
+                            checked={localState.supportEnabled}
+                            disabled={!canEdit || readonly.support}
+                            systemReadonly={readonly.support}
+                            onToggle={checked => setLocalState(prev => ({ ...prev, supportEnabled: checked }))}
                         />
-                    ) : null}
-                </section>
+                        <ToggleRow
+                            id="management-user-creation"
+                            label="Allow User Registration"
+                            checked={localState.userCreationEnabled}
+                            disabled={!canEdit || readonly.userCreation}
+                            systemReadonly={readonly.userCreation}
+                            onToggle={checked => setLocalState(prev => ({ ...prev, userCreationEnabled: checked }))}
+                        />
+                        {localState.userCreationEnabled ? (
+                            <ToggleRow
+                                id="management-automatic-validation"
+                                label="Enable automatic validation of registration requests"
+                                checked={localState.automaticValidationEnabled}
+                                disabled={!canEdit || readonly.automaticValidation}
+                                systemReadonly={readonly.automaticValidation}
+                                onToggle={checked => setLocalState(prev => ({ ...prev, automaticValidationEnabled: checked }))}
+                            />
+                        ) : null}
+                    </CardContent>
+                </Card>
 
-                <section className="rounded-lg border p-4 space-y-4">
-                    <h2 className="text-base font-semibold">Schedulers</h2>
-                    <div className="space-y-1.5">
-                        <label htmlFor="scheduler-tasks" className="text-sm font-medium">
-                            Tasks (in seconds)
-                        </label>
-                        <SystemReadonlyHint locked={readonly.tasks}>
-                            <Input
-                                id="scheduler-tasks"
-                                type="number"
-                                min={0}
-                                value={localState.tasks}
-                                onChange={e => setLocalState(prev => ({ ...prev, tasks: e.target.value }))}
-                                disabled={!canEdit || readonly.tasks}
-                                aria-invalid={tasksValue === null}
-                            />
-                        </SystemReadonlyHint>
-                    </div>
-                    <div className="space-y-1.5">
-                        <label htmlFor="scheduler-notifications" className="text-sm font-medium">
-                            Notifications (in seconds)
-                        </label>
-                        <SystemReadonlyHint locked={readonly.notifications}>
-                            <Input
-                                id="scheduler-notifications"
-                                type="number"
-                                min={0}
-                                value={localState.notifications}
-                                onChange={e => setLocalState(prev => ({ ...prev, notifications: e.target.value }))}
-                                disabled={!canEdit || readonly.notifications}
-                                aria-invalid={notificationsValue === null}
-                            />
-                        </SystemReadonlyHint>
-                    </div>
-                </section>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Schedulers</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="space-y-1.5">
+                            <label htmlFor="scheduler-tasks" className="text-sm font-medium">
+                                Tasks (in seconds)
+                            </label>
+                            <SystemReadonlyHint locked={readonly.tasks}>
+                                <Input
+                                    id="scheduler-tasks"
+                                    type="number"
+                                    min={0}
+                                    value={localState.tasks}
+                                    onChange={e => setLocalState(prev => ({ ...prev, tasks: e.target.value }))}
+                                    disabled={!canEdit || readonly.tasks}
+                                    aria-invalid={tasksValue === null}
+                                />
+                            </SystemReadonlyHint>
+                        </div>
+                        <div className="space-y-1.5">
+                            <label htmlFor="scheduler-notifications" className="text-sm font-medium">
+                                Notifications (in seconds)
+                            </label>
+                            <SystemReadonlyHint locked={readonly.notifications}>
+                                <Input
+                                    id="scheduler-notifications"
+                                    type="number"
+                                    min={0}
+                                    value={localState.notifications}
+                                    onChange={e => setLocalState(prev => ({ ...prev, notifications: e.target.value }))}
+                                    disabled={!canEdit || readonly.notifications}
+                                    aria-invalid={notificationsValue === null}
+                                />
+                            </SystemReadonlyHint>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </OrgSettingsFormShell>
     );

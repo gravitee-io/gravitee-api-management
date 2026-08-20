@@ -14,23 +14,33 @@
  * limitations under the License.
  */
 
-import { Button, Input } from '@gravitee/graphene-core';
+import { Button, Card, CardContent, Input } from '@gravitee/graphene-core';
 import { PlusIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 
 import { ChipInput } from '../../shared/components/ChipInput';
 import type { BrandedSender } from '../types/consoleSettings';
+
+export interface BrandedSenderFieldErrors {
+    domains?: string;
+    from?: string;
+    subject?: string;
+}
 
 export function BrandedSendersSection({
     defaultFrom,
     defaultSubject,
     senders,
     disabled,
+    senderErrors = [],
+    listError,
     onChange,
 }: Readonly<{
     defaultFrom: string;
     defaultSubject: string;
     senders: BrandedSender[];
     disabled: boolean;
+    senderErrors?: readonly BrandedSenderFieldErrors[];
+    listError?: string;
     onChange: (next: BrandedSender[]) => void;
 }>) {
     function updateAt(index: number, patch: Partial<BrandedSender>) {
@@ -82,60 +92,94 @@ export function BrandedSendersSection({
                     )}
                 </div>
 
-                {senders.map((sender, index) => (
-                    <div key={`branded-sender-${index}`} className="rounded-lg border p-4 space-y-3 relative">
-                        {disabled ? null : (
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="absolute right-2 top-2"
-                                aria-label={`Delete branded sender ${index + 1}`}
-                                onClick={() => onChange(senders.filter((_, senderIndex) => senderIndex !== index))}
-                            >
-                                <Trash2Icon className="size-4" aria-hidden />
-                            </Button>
-                        )}
-                        <div className="space-y-1.5 pr-10">
-                            <label htmlFor={`branded-domains-${index}`} className="text-sm font-medium">
-                                Recipient domains *
-                            </label>
-                            <ChipInput
-                                id={`branded-domains-${index}`}
-                                values={sender.domains}
-                                onChange={domains => updateAt(index, { domains })}
-                                placeholder="partners.example.com"
-                                disabled={disabled}
-                                addOnComma
-                            />
-                            <p className="text-xs text-muted-foreground">
-                                Match is case-insensitive on the part after @ in the recipient address.
-                            </p>
-                        </div>
-                        <div className="space-y-1.5">
-                            <label htmlFor={`branded-from-${index}`} className="text-sm font-medium">
-                                From *
-                            </label>
-                            <Input
-                                id={`branded-from-${index}`}
-                                value={sender.from}
-                                onChange={e => updateAt(index, { from: e.target.value })}
-                                disabled={disabled}
-                            />
-                        </div>
-                        <div className="space-y-1.5">
-                            <label htmlFor={`branded-subject-${index}`} className="text-sm font-medium">
-                                Subject prefix
-                            </label>
-                            <Input
-                                id={`branded-subject-${index}`}
-                                value={sender.subject}
-                                onChange={e => updateAt(index, { subject: e.target.value })}
-                                disabled={disabled}
-                            />
-                        </div>
-                    </div>
-                ))}
+                {listError ? (
+                    <p id="branded-senders-list-error" className="text-sm text-destructive" role="alert">
+                        {listError}
+                    </p>
+                ) : null}
+                {senders.map((sender, index) => {
+                    const fieldErrors = senderErrors[index] ?? {};
+                    const domainsErrorId = `branded-domains-${index}-error`;
+                    const fromErrorId = `branded-from-${index}-error`;
+                    const subjectErrorId = `branded-subject-${index}-error`;
+                    return (
+                        <Card key={`branded-sender-${index}`}>
+                            <CardContent className="space-y-3 relative">
+                                {disabled ? null : (
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute right-2 top-2"
+                                        aria-label={`Delete branded sender ${index + 1}`}
+                                        onClick={() => onChange(senders.filter((_, senderIndex) => senderIndex !== index))}
+                                    >
+                                        <Trash2Icon className="size-4" aria-hidden />
+                                    </Button>
+                                )}
+                                <div className="space-y-1.5 pr-10">
+                                    <label htmlFor={`branded-domains-${index}`} className="text-sm font-medium">
+                                        Recipient domains *
+                                    </label>
+                                    <ChipInput
+                                        id={`branded-domains-${index}`}
+                                        values={sender.domains}
+                                        onChange={domains => updateAt(index, { domains })}
+                                        placeholder="partners.example.com"
+                                        disabled={disabled}
+                                        addOnComma
+                                        invalid={Boolean(fieldErrors.domains)}
+                                        describedBy={fieldErrors.domains ? domainsErrorId : undefined}
+                                    />
+                                    <p className="text-xs text-muted-foreground">
+                                        Match is case-insensitive on the part after @ in the recipient address.
+                                    </p>
+                                    {fieldErrors.domains ? (
+                                        <p id={domainsErrorId} className="text-sm text-destructive" role="alert">
+                                            {fieldErrors.domains}
+                                        </p>
+                                    ) : null}
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label htmlFor={`branded-from-${index}`} className="text-sm font-medium">
+                                        From *
+                                    </label>
+                                    <Input
+                                        id={`branded-from-${index}`}
+                                        value={sender.from}
+                                        onChange={e => updateAt(index, { from: e.target.value })}
+                                        disabled={disabled}
+                                        aria-invalid={Boolean(fieldErrors.from)}
+                                        aria-describedby={fieldErrors.from ? fromErrorId : undefined}
+                                    />
+                                    {fieldErrors.from ? (
+                                        <p id={fromErrorId} className="text-sm text-destructive" role="alert">
+                                            {fieldErrors.from}
+                                        </p>
+                                    ) : null}
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label htmlFor={`branded-subject-${index}`} className="text-sm font-medium">
+                                        Subject prefix
+                                    </label>
+                                    <Input
+                                        id={`branded-subject-${index}`}
+                                        value={sender.subject}
+                                        onChange={e => updateAt(index, { subject: e.target.value })}
+                                        disabled={disabled}
+                                        aria-invalid={Boolean(fieldErrors.subject)}
+                                        aria-describedby={fieldErrors.subject ? subjectErrorId : undefined}
+                                    />
+                                    {fieldErrors.subject ? (
+                                        <p id={subjectErrorId} className="text-sm text-destructive" role="alert">
+                                            {fieldErrors.subject}
+                                        </p>
+                                    ) : null}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    );
+                })}
             </section>
         </div>
     );

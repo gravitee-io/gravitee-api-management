@@ -33,6 +33,12 @@ function Harness({ initial = INITIAL }: { initial?: CorsFormState }) {
 }
 
 describe('CorsSection', () => {
+    it('renders CORS fields in a Graphene Card', () => {
+        render(<Harness />);
+        expect(screen.getByLabelText('Allow-Origin').closest('[data-slot="card"]')).not.toBeNull();
+        expect(screen.getByLabelText('Max age').closest('[data-slot="card"]')).not.toBeNull();
+    });
+
     it('renders origin chips, method checkboxes, and max age', () => {
         render(<Harness />);
         expect(screen.getByText('https://console.example.com')).not.toBeNull();
