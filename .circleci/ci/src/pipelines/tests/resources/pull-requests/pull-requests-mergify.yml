@@ -568,7 +568,7 @@ jobs:
           at: .
       - run:
           name: Lint APIM Libs (affected)
-          command: yarn nx affected -t lint --exclude=console,portal-next
+          command: yarn nx affected -t lint-eslint lint-license --exclude=console,portal-next
       - run:
           name: Test APIM Libs (affected)
           command: NODE_OPTIONS=--max-old-space-size=4096 yarn nx affected -t test --exclude=console,portal-next --coverage --maxWorkers=2 --parallel=1

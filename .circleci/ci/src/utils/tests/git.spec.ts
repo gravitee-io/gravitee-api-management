@@ -15,7 +15,7 @@
  */
 import { EventEmitter } from 'node:events';
 import { spawn } from 'node:child_process';
-import { changedFiles, toChangedPaths } from '../git';
+import { changedFiles, diffRef, toChangedPaths } from '../git';
 
 jest.mock('node:child_process', () => ({ spawn: jest.fn() }));
 
@@ -74,5 +74,17 @@ describe('toChangedPaths', () => {
 
   it('should drop empty lines', () => {
     expect(toChangedPaths('\n\na/b.ts\n\n')).toEqual(['a']);
+  });
+});
+
+describe('diffRef', () => {
+  it('should use the common commit when there is one', () => {
+    expect(diffRef('a-sha', 'origin/master')).toEqual('a-sha');
+  });
+
+  it('should fall back to the base branch when the common commit is empty', () => {
+    // `jq -r '.base.sha // ""'` yields an empty string when the GitHub API answers without it,
+    // so the fallback has to treat empty as absent, not just undefined.
+    expect(diffRef('', 'origin/master')).toEqual('origin/master');
   });
 });

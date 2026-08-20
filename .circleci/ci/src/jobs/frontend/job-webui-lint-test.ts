@@ -161,8 +161,9 @@ export class WebuiLintTestJob {
       new reusable.ReusedCommand(workspaceInstallCommand),
       new commands.workspace.Attach({ at: '.' }),
       new commands.Run({
+        // Same as the nx lint & test jobs above: prettier is left to the format check job.
         name: 'Lint APIM Libs (affected)',
-        command: 'yarn nx affected -t lint --exclude=console,portal-next',
+        command: 'yarn nx affected -t lint-eslint lint-license --exclude=console,portal-next',
       }),
       new commands.Run({
         name: 'Test APIM Libs (affected)',

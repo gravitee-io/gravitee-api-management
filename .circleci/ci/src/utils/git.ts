@@ -15,6 +15,16 @@
  */
 import { spawn } from 'node:child_process';
 
+import { isBlank } from './string';
+
+/**
+ * The ref to diff from: the common commit when we know it, the base branch otherwise.
+ * `GIT_COMMON_COMMIT_HASH` is read as `process.env.X ?? ''`, so an API response without
+ * `base.sha` reaches us as an empty string rather than undefined — hence a blank check.
+ */
+export const diffRef = (commonCommitHash: string, baseBranch: string): string =>
+  isBlank(commonCommitHash) ? baseBranch : commonCommitHash;
+
 /**
  * Returns the files / directories changed between 2 commits
  * @param from sha of the commit where to start
