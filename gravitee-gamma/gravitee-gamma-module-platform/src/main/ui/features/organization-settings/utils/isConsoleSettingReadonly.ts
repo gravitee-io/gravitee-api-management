@@ -15,7 +15,8 @@
  */
 
 import type { ConsoleSettings } from '../types/consoleSettings';
+import { isSettingReadonly } from '../../shared/utils/isSettingReadonly';
 
 export function isConsoleSettingReadonly(settings: ConsoleSettings | undefined, property: string): boolean {
-    return settings?.metadata?.readonly?.some(key => key === property) ?? false;
+    return isSettingReadonly(settings, property);
 }

@@ -84,6 +84,14 @@ describe('buildConsoleSettingsSavePayload', () => {
         expect(payload.email?.password).toBe('new-secret');
     });
 
+    it('keeps the fetched password when the draft password was cleared to an empty string', () => {
+        const payload = buildConsoleSettingsSavePayload(CURRENT, 'email', {
+            email: { ...CURRENT.email, password: '' },
+        });
+
+        expect(payload.email?.password).toBe(CURRENT.email?.password);
+    });
+
     it('does not overlay email on a trial instance', () => {
         const trial: ConsoleSettings = { ...CURRENT, trialInstance: { enabled: true } };
         const payload = buildConsoleSettingsSavePayload(trial, 'email', {

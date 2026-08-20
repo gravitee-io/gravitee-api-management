@@ -19,7 +19,7 @@ import { PASSWORD_SENTINEL, type ConsoleSettings, type ConsoleSettingsEmail } fr
 export type ConsoleSettingsSection = 'management' | 'cors' | 'email';
 
 function mergeEmail(current: ConsoleSettingsEmail | undefined, overlay: ConsoleSettingsEmail | undefined): ConsoleSettingsEmail {
-    const password = overlay?.password === PASSWORD_SENTINEL ? current?.password : overlay?.password;
+    const password = overlay?.password === PASSWORD_SENTINEL || !overlay?.password ? current?.password : overlay?.password;
     return {
         ...current,
         ...overlay,

@@ -50,9 +50,18 @@ export function parseSmtpPort(port: string): number | null {
     return parsed >= 0 && parsed <= 65535 ? parsed : null;
 }
 
+export function isBrandedSenderValid(sender: BrandedSender): boolean {
+    return sender.domains.length > 0 && sender.domains.every(domain => domain.trim().length > 0) && isSmtpFromValid(sender.from);
+}
+
 export function isSmtpFormValid(state: SmtpFormState): boolean {
     if (!state.enabled) return true;
-    return state.host.trim().length > 0 && parseSmtpPort(state.port) !== null && isSmtpFromValid(state.from);
+    return (
+        state.host.trim().length > 0 &&
+        parseSmtpPort(state.port) !== null &&
+        isSmtpFromValid(state.from) &&
+        state.brandedSenders.every(isBrandedSenderValid)
+    );
 }
 
 export interface SmtpFieldReadonly {
