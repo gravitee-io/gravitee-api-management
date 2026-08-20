@@ -55,6 +55,24 @@ describe('CorsSection', () => {
         expect(screen.queryByRole('option', { name: 'Authorization' })).toBeNull();
     });
 
+    it('does not commit incomplete CORS headers on blur (Classic addOnBlur=false)', () => {
+        render(<Harness />);
+        fireEvent.change(screen.getByLabelText('Allow-Headers'), { target: { value: 'Cont' } });
+        fireEvent.blur(screen.getByLabelText('Allow-Headers'));
+        expect(screen.queryByText('Cont')).toBeNull();
+
+        fireEvent.change(screen.getByLabelText('Exposed-Headers'), { target: { value: 'X-Partial' } });
+        fireEvent.blur(screen.getByLabelText('Exposed-Headers'));
+        expect(screen.queryByText('X-Partial')).toBeNull();
+    });
+
+    it('still commits Allow-Origin on blur', () => {
+        render(<Harness />);
+        fireEvent.change(screen.getByLabelText('Allow-Origin'), { target: { value: 'https://app.example.com' } });
+        fireEvent.blur(screen.getByLabelText('Allow-Origin'));
+        expect(screen.getByText('https://app.example.com')).not.toBeNull();
+    });
+
     it('asks before adding * as an origin', () => {
         render(<Harness />);
         fireEvent.change(screen.getByPlaceholderText(/https:\/\/mydomain.com/), { target: { value: '*' } });
