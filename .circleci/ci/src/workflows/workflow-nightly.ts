@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Config, workflow, Workflow } from '../circleci-config';
-import { AikidoScanDockerImagesJob, DeployOnAzureJob, SonarCloudAnalysisJob, TestIntegrationJob } from '../jobs';
+import { AikidoScanDockerImagesJob, DeployOnAzureJob, NxFormatCheckJob, SonarCloudAnalysisJob, TestIntegrationJob } from '../jobs';
 import { CircleCIEnvironment } from '../pipelines';
 import { config } from '../config';
 import { analysisJobFor, BACKEND_ANALYSED_PROJECTS, FRONTEND_ANALYSED_PROJECTS } from './groups/analysed-projects';
@@ -44,6 +44,9 @@ export class NightlyWorkflow {
     const sonarAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(sonarAnalysisJob);
 
+    const formatCheckJob = NxFormatCheckJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(formatCheckJob);
+
     const analysisChain = [
       ...BACKEND_ANALYSED_PROJECTS.map((project) => ({ project, requires: ['Build backend'] })),
       ...FRONTEND_ANALYSED_PROJECTS.map((project) => ({ project, requires: undefined })),
@@ -72,6 +75,12 @@ export class NightlyWorkflow {
         name: 'Integration tests',
         context: config.jobContext,
         requires: ['Build backend'],
+      }),
+
+      // The nx lint & test suites below do not check formatting — this one does, for every nx project.
+      new workflow.WorkflowJob(formatCheckJob, {
+        name: 'Check prettier formatting for nx projects',
+        context: config.jobContext,
       }),
 
       // The suites replayed for the coverage reports they leave behind, each followed by the
