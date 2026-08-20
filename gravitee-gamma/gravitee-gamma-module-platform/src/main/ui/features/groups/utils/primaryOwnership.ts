@@ -67,6 +67,16 @@ export function membershipFromMember(member: GroupMember, overrides: Record<stri
     return { id: member.id, roles };
 }
 
+export function buildMembershipRollbackPayloads(members: GroupMember[], updates: GroupMembershipPayload[]): GroupMembershipPayload[] {
+    return [...updates].reverse().map(update => {
+        const original = members.find(member => member.id === update.id);
+        if (!original) {
+            throw new Error(`Cannot restore unknown group member ${update.id ?? '<missing id>'}`);
+        }
+        return membershipFromMember(original);
+    });
+}
+
 export function joinScopeLabels(scopes: string[]): string {
     const labels = scopes.map(scope => SCOPE_LABELS[scope] ?? scope);
     if (labels.length <= 1) return labels.join('');
@@ -79,6 +89,62 @@ export function primaryOwnerScopesOf(member: GroupMember | undefined): GroupMemb
 
 export function requiresPrimaryOwnerSuccessor(member: GroupMember | undefined): boolean {
     return primaryOwnerScopesOf(member).length > 0;
+}
+
+export function blockedPrimaryOwnerScopes(
+    member: GroupMember | undefined,
+    { apiCount, apiProductCount }: { apiCount: number | null; apiProductCount: number | null },
+): PrimaryOwnerScope[] {
+    if (!member) return [];
+    return [
+        ...(member.roles?.API === PRIMARY_OWNER_ROLE && apiCount !== 0 ? (['API'] as const) : []),
+        ...(member.roles?.API_PRODUCT === PRIMARY_OWNER_ROLE && apiProductCount !== 0 ? (['API_PRODUCT'] as const) : []),
+    ];
+}
+
+export function buildPrimaryOwnerAssociationBlockMessage(
+    blockedScopes: PrimaryOwnerScope[],
+    { apiCount, apiProductCount }: { apiCount: number | null; apiProductCount: number | null },
+    operation: 'edit' | 'remove',
+): string | null {
+    const unavailable =
+        (blockedScopes.includes('API') && apiCount === null) || (blockedScopes.includes('API_PRODUCT') && apiProductCount === null);
+    if (unavailable) {
+        return operation === 'remove'
+            ? 'This member cannot be removed until associated APIs and API Products have loaded. Refresh and try again.'
+            : 'Primary ownership cannot be changed until associated APIs and API Products have loaded. Refresh and try again.';
+    }
+
+    const loadedApiCount = apiCount ?? 0;
+    const loadedApiProductCount = apiProductCount ?? 0;
+    const associations = [
+        ...(blockedScopes.includes('API') ? [`${loadedApiCount} ${loadedApiCount === 1 ? 'API' : 'APIs'}`] : []),
+        ...(blockedScopes.includes('API_PRODUCT')
+            ? [`${loadedApiProductCount} API ${loadedApiProductCount === 1 ? 'Product' : 'Products'}`]
+            : []),
+    ];
+    if (associations.length === 0) return null;
+
+    const resources = joinWithAnd(associations);
+    const pronoun = associationPronoun(blockedScopes, loadedApiCount, loadedApiProductCount);
+    if (operation === 'remove') {
+        return `This member cannot be removed while the group is the primary owner of ${resources}. Transfer ${pronoun} to another primary owner first.`;
+    }
+
+    const scopeLabels = blockedScopes.map(scope => SCOPE_LABELS[scope]);
+    const ownerLabel = `${joinWithAnd(scopeLabels)} primary ${scopeLabels.length === 1 ? 'owner' : 'owners'}`;
+    return `The ${ownerLabel} cannot be changed while this group owns ${resources}. Transfer ${pronoun} to another primary owner first.`;
+}
+
+function joinWithAnd(values: string[]): string {
+    if (values.length <= 1) return values.join('');
+    return `${values.slice(0, -1).join(', ')} and ${values[values.length - 1]}`;
+}
+
+function associationPronoun(blockedScopes: PrimaryOwnerScope[], apiCount: number, apiProductCount: number): string {
+    if (blockedScopes.length > 1) return 'those resources';
+    if (blockedScopes[0] === 'API') return apiCount === 1 ? 'that API' : 'those APIs';
+    return apiProductCount === 1 ? 'that API Product' : 'those API Products';
 }
 
 export type EditOwnershipTransfer = {
@@ -199,14 +265,16 @@ export function buildEditOwnershipTransferMessage(
 }
 
 export type RemovalOwnershipTransfer = {
-    apply: GroupMembershipPayload;
+    apply: GroupMembershipPayload[];
     rollback: GroupMembershipPayload[];
 };
 
 export function buildRemovalOwnershipTransfer(member: GroupMember, successor: GroupMember): RemovalOwnershipTransfer {
-    const overrides = Object.fromEntries(primaryOwnerScopesOf(member).map(scope => [scope, PRIMARY_OWNER_ROLE]));
+    const ownerScopes = primaryOwnerScopesOf(member);
+    const demotionOverrides = Object.fromEntries(ownerScopes.map(scope => [scope, OWNER_ROLE]));
+    const promotionOverrides = Object.fromEntries(ownerScopes.map(scope => [scope, PRIMARY_OWNER_ROLE]));
     return {
-        apply: membershipFromMember(successor, overrides),
+        apply: [membershipFromMember(member, demotionOverrides), membershipFromMember(successor, promotionOverrides)],
         rollback: [membershipFromMember(successor), membershipFromMember(member)],
     };
 }
@@ -221,24 +289,31 @@ export function buildEditMembershipPayloads(
     transfer: EditOwnershipTransfer,
     selectedSuccessor: GroupMember | null,
 ): GroupMembershipPayload[] {
-    const otherOverrides = new Map<string, { member: GroupMember; overrides: Record<string, string> }>();
+    const demotions = new Map<string, { member: GroupMember; overrides: Record<string, string> }>();
+    const promotions = new Map<string, { member: GroupMember; overrides: Record<string, string> }>();
 
-    function addOverride(target: GroupMember | undefined, scope: string, role: string) {
+    function addOverride(
+        entries: Map<string, { member: GroupMember; overrides: Record<string, string> }>,
+        target: GroupMember | undefined,
+        scope: string,
+        role: string,
+    ) {
         if (!target) return;
-        const entry = otherOverrides.get(target.id) ?? { member: target, overrides: {} };
+        const entry = entries.get(target.id) ?? { member: target, overrides: {} };
         entry.overrides[scope] = role;
-        otherOverrides.set(target.id, entry);
+        entries.set(target.id, entry);
     }
 
     for (const scope of PRIMARY_OWNER_SCOPES) {
-        addOverride(transfer.existingOwners[scope], scope, OWNER_ROLE);
+        addOverride(demotions, transfer.existingOwners[scope], scope, OWNER_ROLE);
         if (transfer.downgradeScopes.includes(scope)) {
-            addOverride(selectedSuccessor ?? undefined, scope, PRIMARY_OWNER_ROLE);
+            addOverride(promotions, selectedSuccessor ?? undefined, scope, PRIMARY_OWNER_ROLE);
         }
     }
 
     return [
-        ...Array.from(otherOverrides.values()).map(({ member: m, overrides }) => membershipFromMember(m, overrides)),
+        ...Array.from(demotions.values()).map(({ member: m, overrides }) => membershipFromMember(m, overrides)),
         { id: member.id, roles: buildMembershipRoles(selections) },
+        ...Array.from(promotions.values()).map(({ member: m, overrides }) => membershipFromMember(m, overrides)),
     ];
 }

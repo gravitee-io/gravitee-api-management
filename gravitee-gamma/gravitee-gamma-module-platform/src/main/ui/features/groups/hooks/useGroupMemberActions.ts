@@ -19,19 +19,31 @@ import { useState } from 'react';
 import { useGroupInvitations } from './useGroupDetail';
 import {
     GroupMemberRemovalError,
+    GroupMemberUpdateError,
     useAddGroupMembers,
     useDeleteGroupInvitation,
     useInviteGroupMember,
     useRemoveGroupMemberWithOwnershipTransfer,
+    useUpdateGroupMembersWithRollback,
 } from './useGroupMutations';
 import { notify } from '../../../shared/notify';
 import type { GroupInvitation, GroupMember, GroupMembershipPayload } from '../types/group';
-import { requiresPrimaryOwnerSuccessor, type RemovalOwnershipTransfer } from '../utils/primaryOwnership';
+import {
+    blockedPrimaryOwnerScopes,
+    buildMembershipRollbackPayloads,
+    buildPrimaryOwnerAssociationBlockMessage,
+    requiresPrimaryOwnerSuccessor,
+    type RemovalOwnershipTransfer,
+} from '../utils/primaryOwnership';
 
 type MemberSheetState = 'closed' | 'search' | 'invite';
 type MemberTab = 'members' | 'invitations';
 
-export function useGroupMemberActions(groupId: string | undefined) {
+export function useGroupMemberActions(
+    groupId: string | undefined,
+    members: GroupMember[],
+    associationCounts: { apiCount: number | null; apiProductCount: number | null },
+) {
     const [memberTab, setMemberTab] = useState<MemberTab>('members');
     const [memberSheet, setMemberSheet] = useState<MemberSheetState>('closed');
     const [editingMember, setEditingMember] = useState<GroupMember | null>(null);
@@ -43,6 +55,7 @@ export function useGroupMemberActions(groupId: string | undefined) {
     const addMembersMutation = useAddGroupMembers();
     const inviteMemberMutation = useInviteGroupMember();
     const removeMemberMutation = useRemoveGroupMemberWithOwnershipTransfer();
+    const updateMembersMutation = useUpdateGroupMembersWithRollback();
     const deleteInvitationMutation = useDeleteGroupInvitation();
     const {
         data: invitations = [],
@@ -106,19 +119,57 @@ export function useGroupMemberActions(groupId: string | undefined) {
 
     async function handleEditMemberRoles(memberships: GroupMembershipPayload[]) {
         if (!groupId) return;
+        const editedMembership = memberships.find(membership => membership.id === editingMember?.id);
+        const blockedScopes = blockedPrimaryOwnerScopes(editingMember ?? undefined, associationCounts).filter(scope =>
+            editedMembership?.roles.every(role => role.scope !== scope || role.name !== 'PRIMARY_OWNER'),
+        );
+        const blockedMessage = buildPrimaryOwnerAssociationBlockMessage(blockedScopes, associationCounts, 'edit');
+        if (blockedMessage) {
+            notify.warning(blockedMessage);
+            return;
+        }
         try {
-            await addMembersMutation.mutateAsync({ groupId, memberships });
+            if (memberships.length > 1) {
+                await updateMembersMutation.mutateAsync({
+                    groupId,
+                    apply: memberships,
+                    rollback: buildMembershipRollbackPayloads(members, memberships),
+                });
+            } else {
+                await addMembersMutation.mutateAsync({ groupId, memberships });
+            }
             notify.success(
                 memberships.length > 1 ? 'Member roles updated and primary ownership transferred' : 'Member roles updated successfully',
             );
             setEditingMember(null);
         } catch (error) {
-            notify.error(error, 'Failed to update member roles');
+            if (!(error instanceof GroupMemberUpdateError)) {
+                notify.error(error, 'Failed to update member roles');
+                return;
+            }
+            if (error.rollbackSucceeded) {
+                notify.error(error.operationError, 'Member roles could not be updated. Original roles were restored.');
+                return;
+            }
+            notify.error(
+                error.rollbackError ?? error.operationError,
+                'Member roles could not be updated and original roles could not be restored. Refresh the member list before retrying.',
+            );
         }
     }
 
     async function handleRemoveMember(ownershipTransfer?: RemovalOwnershipTransfer) {
         if (!groupId || !removingMember) return;
+
+        const blockedMessage = buildPrimaryOwnerAssociationBlockMessage(
+            blockedPrimaryOwnerScopes(removingMember, associationCounts),
+            associationCounts,
+            'remove',
+        );
+        if (blockedMessage) {
+            notify.warning(blockedMessage);
+            return;
+        }
 
         if (requiresPrimaryOwnerSuccessor(removingMember) && !ownershipTransfer) {
             notify.warning('Primary ownership must be transferred before removing this member');
@@ -132,12 +183,13 @@ export function useGroupMemberActions(groupId: string | undefined) {
                 notify.error(error, 'Failed to remove member');
                 return;
             }
-            if (error.phase === 'transfer') {
-                notify.error(error.operationError, 'Primary ownership could not be transferred');
-                return;
-            }
             if (error.rollbackSucceeded) {
-                notify.error(error.operationError, 'The member could not be removed. Primary ownership was restored.');
+                notify.error(
+                    error.operationError,
+                    error.phase === 'transfer'
+                        ? 'Primary ownership could not be transferred. Original roles were restored.'
+                        : 'The member could not be removed. Primary ownership was restored.',
+                );
                 return;
             }
             if (error.phase === 'rollback') {
@@ -145,6 +197,10 @@ export function useGroupMemberActions(groupId: string | undefined) {
                     error.rollbackError ?? error.operationError,
                     'The member could not be removed and primary ownership could not be restored. Refresh the member list before retrying.',
                 );
+                return;
+            }
+            if (error.phase === 'transfer') {
+                notify.error(error.operationError, 'Primary ownership could not be transferred');
                 return;
             }
             notify.error(error.operationError, 'Failed to remove member');

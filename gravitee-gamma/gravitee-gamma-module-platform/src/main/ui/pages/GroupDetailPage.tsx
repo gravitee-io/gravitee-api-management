@@ -56,6 +56,7 @@ import { GroupSettingsSection } from '../features/groups/components/GroupSetting
 import { GroupSheet, type GroupFormValues } from '../features/groups/components/GroupSheet';
 import { GroupTooManyUsersDialog } from '../features/groups/components/GroupTooManyUsersDialog';
 import { SectionError } from '../features/groups/components/SectionError';
+import { useCurrentUserIsGroupAdmin } from '../features/groups/hooks/useCurrentUserGroupAdmin';
 import {
     useEnvironmentSettings,
     useGroupApis,
@@ -70,6 +71,7 @@ import { useGroupRoles } from '../features/groups/hooks/useGroupRoles';
 import { buildEventRules, buildRolesMap, hasEventRule, parseMaxInvitation } from '../features/groups/utils/groupPayload';
 import {
     canInviteToGroup,
+    ENVIRONMENT_GROUP_CREATE_PERMISSION,
     ENVIRONMENT_GROUP_DELETE_PERMISSION,
     ENVIRONMENT_GROUP_UPDATE_PERMISSION,
 } from '../features/groups/utils/groupPermissions';
@@ -79,6 +81,7 @@ import { notify } from '../shared/notify';
 export function GroupDetailPage() {
     const { groupId } = useParams<{ groupId: string }>();
     const navigate = useNavigate();
+    const canCreate = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_CREATE_PERMISSION] });
     const canEdit = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_UPDATE_PERMISSION] });
     const canDelete = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_DELETE_PERMISSION] });
 
@@ -91,6 +94,8 @@ export function GroupDetailPage() {
     const { data: apis = [], isLoading: apisLoading, isError: apisError } = useGroupApis(groupId);
     const { data: applications = [], isLoading: applicationsLoading, isError: applicationsError } = useGroupApplications(groupId);
     const { data: apiProducts = [], isLoading: apiProductsLoading, isError: apiProductsError } = useGroupApiProducts(groupId);
+    const associatedApiCount = apisLoading || apisError ? null : apis.length;
+    const associatedApiProductCount = apiProductsLoading || apiProductsError ? null : apiProducts.length;
 
     const {
         memberTab,
@@ -117,7 +122,10 @@ export function GroupDetailPage() {
         handleEditMemberRoles,
         handleRemoveMember,
         handleDeleteInvitation,
-    } = useGroupMemberActions(groupId);
+    } = useGroupMemberActions(groupId, members, {
+        apiCount: associatedApiCount,
+        apiProductCount: associatedApiProductCount,
+    });
 
     const addMemberRolesNeeded = memberSheet === 'search';
     const extraMemberRolesNeeded = addMemberRolesNeeded || editingMember !== null;
@@ -142,7 +150,9 @@ export function GroupDetailPage() {
         (canEdit || canInviteToGroup(group)) &&
         !maxInvitationsLimitReached &&
         Boolean(group.system_invitation || group.email_invitation);
-    const canManageMemberActions = canEdit || Boolean(group?.manageable);
+    const isCurrentUserGroupAdmin = useCurrentUserIsGroupAdmin(members, { enabled: (!canCreate && !canEdit) || !canDelete });
+    const canEditMembers = canCreate || canEdit || isCurrentUserGroupAdmin;
+    const canRemoveMembers = canDelete || isCurrentUserGroupAdmin;
     const { data: environmentSettings } = useEnvironmentSettings({
         enabled: memberSheet !== 'closed' || editingMember !== null,
     });
@@ -347,7 +357,8 @@ export function GroupDetailPage() {
                                 <GroupMembersTable
                                     members={members}
                                     loading={membersLoading}
-                                    canManageMembers={canManageMemberActions}
+                                    canEditMembers={canEditMembers}
+                                    canRemoveMembers={canRemoveMembers}
                                     canAddMembers={canAddMembers}
                                     onEditRoles={setEditingMember}
                                     onRemove={setRemovingMember}
@@ -361,7 +372,7 @@ export function GroupDetailPage() {
                                 <GroupInvitationsTable
                                     invitations={invitations}
                                     loading={invitationsLoading}
-                                    canManageMembers={canManageMemberActions}
+                                    canManageMembers={canEditMembers}
                                     onDelete={setDeletingInvitation}
                                 />
                             )}
@@ -481,6 +492,8 @@ export function GroupDetailPage() {
                 groupAllowsGroupAdmin={Boolean(group.system_invitation)}
                 apiPrimaryOwnerMode={environmentSettings?.api?.primaryOwnerMode}
                 apiProductPrimaryOwnerMode={environmentSettings?.apiProduct?.primaryOwnerMode}
+                associatedApiCount={associatedApiCount}
+                associatedApiProductCount={associatedApiProductCount}
                 onClose={() => setEditingMember(null)}
                 onSubmit={handleEditMemberRoles}
             />
@@ -490,6 +503,8 @@ export function GroupDetailPage() {
                 member={removingMember ?? undefined}
                 members={members}
                 groupName={group.name}
+                associatedApiCount={associatedApiCount}
+                associatedApiProductCount={associatedApiProductCount}
                 onClose={() => setRemovingMember(null)}
                 onConfirm={handleRemoveMember}
             />

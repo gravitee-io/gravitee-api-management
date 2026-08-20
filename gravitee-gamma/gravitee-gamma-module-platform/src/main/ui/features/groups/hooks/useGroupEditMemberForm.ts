@@ -20,6 +20,7 @@ import type { GroupMember, GroupMembershipPayload } from '../types/group';
 import { getMemberRoleLockFlags, sortedSuccessorCandidates, type MemberRoleSelections, type RoleField } from '../utils/memberRoles';
 import {
     analyzeEditOwnershipTransfer,
+    blockedPrimaryOwnerScopes,
     buildEditMembershipPayloads,
     buildEditOwnershipTransferMessage,
     isPrimaryOwnerUnavailable,
@@ -46,6 +47,8 @@ export function useGroupEditMemberForm({
     canOverrideLocks,
     apiPrimaryOwnerMode,
     apiProductPrimaryOwnerMode,
+    associatedApiCount,
+    associatedApiProductCount,
     onSubmit,
 }: {
     member: GroupMember | undefined;
@@ -56,6 +59,8 @@ export function useGroupEditMemberForm({
     canOverrideLocks: boolean;
     apiPrimaryOwnerMode: string | undefined;
     apiProductPrimaryOwnerMode: string | undefined;
+    associatedApiCount: number | null;
+    associatedApiProductCount: number | null;
     onSubmit: (memberships: GroupMembershipPayload[]) => Promise<void>;
 }) {
     const [roleValues, setRoleValues] = useState<Record<RoleField, string>>(() => roleSelectionsFromMember(member));
@@ -66,6 +71,11 @@ export function useGroupEditMemberForm({
     const roleLocks = getMemberRoleLockFlags({ lockApiRole, lockApiProductRole, lockApplicationRole }, canOverrideLocks);
 
     const transfer = member ? analyzeEditOwnershipTransfer(member, members, roleValues) : null;
+    const blockedDowngradeScopes = transfer
+        ? blockedPrimaryOwnerScopes(member, { apiCount: associatedApiCount, apiProductCount: associatedApiProductCount }).filter(scope =>
+              transfer.downgradeScopes.includes(scope),
+          )
+        : [];
     const selectedSuccessor = selectedSuccessorId ? (successorCandidates.find(m => m.id === selectedSuccessorId) ?? null) : null;
     const transferMessage = member && transfer ? buildEditOwnershipTransferMessage(member, transfer, selectedSuccessor, roleValues) : null;
 
@@ -84,7 +94,7 @@ export function useGroupEditMemberForm({
         }
     }
 
-    const canSubmit = !transfer?.needsSuccessor || Boolean(selectedSuccessor);
+    const canSubmit = blockedDowngradeScopes.length === 0 && (!transfer?.needsSuccessor || Boolean(selectedSuccessor));
 
     async function handleSubmit() {
         if (!member) return;
@@ -104,6 +114,7 @@ export function useGroupEditMemberForm({
         selectedSuccessor,
         setSelectedSuccessorId,
         transfer,
+        blockedDowngradeScopes,
         transferMessage,
         handleRoleChange,
         canSubmit,

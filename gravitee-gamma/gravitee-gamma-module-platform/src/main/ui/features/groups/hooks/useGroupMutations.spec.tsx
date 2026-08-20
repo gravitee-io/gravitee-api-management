@@ -20,10 +20,12 @@ import type { ReactNode } from 'react';
 
 import {
     type GroupMemberRemovalError,
+    type GroupMemberUpdateError,
     useAddGroupMembers,
     useDeleteGroupInvitation,
     useInviteGroupMember,
     useRemoveGroupMemberWithOwnershipTransfer,
+    useUpdateGroupMembersWithRollback,
 } from './useGroupMutations';
 import { addGroupMembers, deleteGroupInvitation, inviteGroupMember, removeGroupMember } from '../services/groups';
 import { groupKeys } from '../utils/queryKeys';
@@ -151,7 +153,10 @@ describe('group mutation invalidation', () => {
                 groupId: 'group-1',
                 memberId: 'member-1',
                 ownershipTransfer: {
-                    apply: { id: 'member-2', roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }] },
+                    apply: [
+                        { id: 'member-1', roles: [{ scope: 'API', name: 'OWNER' }] },
+                        { id: 'member-2', roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }] },
+                    ],
                     rollback: [
                         { id: 'member-2', roles: [{ scope: 'API', name: 'OWNER' }] },
                         { id: 'member-1', roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }] },
@@ -161,6 +166,10 @@ describe('group mutation invalidation', () => {
         );
 
         expect(mockAddGroupMembers).toHaveBeenCalledTimes(1);
+        expect(mockAddGroupMembers).toHaveBeenCalledWith('DEFAULT', 'group-1', [
+            { id: 'member-1', roles: [{ scope: 'API', name: 'OWNER' }] },
+            { id: 'member-2', roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }] },
+        ]);
         expect(mockRemoveGroupMember).toHaveBeenCalledWith('DEFAULT', 'group-1', 'member-1');
         expect(invalidateQueries).toHaveBeenCalledTimes(1);
         expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: groupKeys.members('DEFAULT', 'group-1') });
@@ -171,7 +180,10 @@ describe('group mutation invalidation', () => {
         mockRemoveGroupMember.mockRejectedValue(removeError);
         const { result } = renderHook(() => useRemoveGroupMemberWithOwnershipTransfer(), { wrapper });
         const ownershipTransfer = {
-            apply: { id: 'member-2', roles: [{ scope: 'API' as const, name: 'PRIMARY_OWNER' }] },
+            apply: [
+                { id: 'member-1', roles: [{ scope: 'API' as const, name: 'OWNER' }] },
+                { id: 'member-2', roles: [{ scope: 'API' as const, name: 'PRIMARY_OWNER' }] },
+            ],
             rollback: [
                 { id: 'member-2', roles: [{ scope: 'API' as const, name: 'OWNER' }] },
                 { id: 'member-1', roles: [{ scope: 'API' as const, name: 'PRIMARY_OWNER' }] },
@@ -193,8 +205,68 @@ describe('group mutation invalidation', () => {
         } satisfies Partial<GroupMemberRemovalError>);
 
         await waitFor(() => expect(mockAddGroupMembers).toHaveBeenCalledTimes(2));
-        expect(mockAddGroupMembers).toHaveBeenNthCalledWith(1, 'DEFAULT', 'group-1', [ownershipTransfer.apply]);
+        expect(mockAddGroupMembers).toHaveBeenNthCalledWith(1, 'DEFAULT', 'group-1', ownershipTransfer.apply);
         expect(mockAddGroupMembers).toHaveBeenNthCalledWith(2, 'DEFAULT', 'group-1', ownershipTransfer.rollback);
+        expect(invalidateQueries).toHaveBeenCalledTimes(1);
+    });
+
+    it('restores both memberships when the transfer request partially fails', async () => {
+        const transferError = new Error('transfer failed');
+        mockAddGroupMembers.mockRejectedValueOnce(transferError).mockResolvedValueOnce(undefined);
+        const { result } = renderHook(() => useRemoveGroupMemberWithOwnershipTransfer(), { wrapper });
+        const ownershipTransfer = {
+            apply: [
+                { id: 'member-1', roles: [{ scope: 'API' as const, name: 'OWNER' }] },
+                { id: 'member-2', roles: [{ scope: 'API' as const, name: 'PRIMARY_OWNER' }] },
+            ],
+            rollback: [
+                { id: 'member-2', roles: [{ scope: 'API' as const, name: 'OWNER' }] },
+                { id: 'member-1', roles: [{ scope: 'API' as const, name: 'PRIMARY_OWNER' }] },
+            ],
+        };
+
+        await expect(
+            act(() =>
+                result.current.mutateAsync({
+                    groupId: 'group-1',
+                    memberId: 'member-1',
+                    ownershipTransfer,
+                }),
+            ),
+        ).rejects.toMatchObject({
+            phase: 'transfer',
+            operationError: transferError,
+            rollbackSucceeded: true,
+        } satisfies Partial<GroupMemberRemovalError>);
+
+        await waitFor(() => expect(mockAddGroupMembers).toHaveBeenCalledTimes(2));
+        expect(mockAddGroupMembers).toHaveBeenNthCalledWith(1, 'DEFAULT', 'group-1', ownershipTransfer.apply);
+        expect(mockAddGroupMembers).toHaveBeenNthCalledWith(2, 'DEFAULT', 'group-1', ownershipTransfer.rollback);
+        expect(mockRemoveGroupMember).not.toHaveBeenCalled();
+    });
+
+    it('restores original memberships when an edit fails after a partial ownership update', async () => {
+        const updateError = new Error('update failed');
+        mockAddGroupMembers.mockRejectedValueOnce(updateError).mockResolvedValueOnce(undefined);
+        const { result } = renderHook(() => useUpdateGroupMembersWithRollback(), { wrapper });
+        const apply = [
+            { id: 'member-1', roles: [{ scope: 'API' as const, name: 'OWNER' }] },
+            { id: 'member-2', roles: [{ scope: 'API' as const, name: 'PRIMARY_OWNER' }] },
+        ];
+        const rollback = [
+            { id: 'member-2', roles: [{ scope: 'API' as const, name: 'OWNER' }] },
+            { id: 'member-1', roles: [{ scope: 'API' as const, name: 'PRIMARY_OWNER' }] },
+        ];
+
+        await expect(act(() => result.current.mutateAsync({ groupId: 'group-1', apply, rollback }))).rejects.toMatchObject({
+            phase: 'update',
+            operationError: updateError,
+            rollbackSucceeded: true,
+        } satisfies Partial<GroupMemberUpdateError>);
+
+        await waitFor(() => expect(mockAddGroupMembers).toHaveBeenCalledTimes(2));
+        expect(mockAddGroupMembers).toHaveBeenNthCalledWith(1, 'DEFAULT', 'group-1', apply);
+        expect(mockAddGroupMembers).toHaveBeenNthCalledWith(2, 'DEFAULT', 'group-1', rollback);
         expect(invalidateQueries).toHaveBeenCalledTimes(1);
     });
 });

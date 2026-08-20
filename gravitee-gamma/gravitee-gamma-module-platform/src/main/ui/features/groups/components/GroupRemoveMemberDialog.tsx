@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { Alert, AlertDescription } from '@gravitee/graphene-core';
 import { TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 import { useMemo, useState, useTransition } from 'react';
 
@@ -23,6 +24,8 @@ import { useOpenRemountKey } from '../../../shared/hooks/useOpenRemountKey';
 import type { GroupMember } from '../types/group';
 import { sortedSuccessorCandidates } from '../utils/memberRoles';
 import {
+    blockedPrimaryOwnerScopes,
+    buildPrimaryOwnerAssociationBlockMessage,
     buildRemovalOwnershipTransfer,
     buildRemovalOwnershipTransferMessage,
     requiresPrimaryOwnerSuccessor,
@@ -34,6 +37,8 @@ type GroupRemoveMemberDialogProps = Readonly<{
     member: GroupMember | undefined;
     members: GroupMember[];
     groupName: string;
+    associatedApiCount: number | null;
+    associatedApiProductCount: number | null;
     onClose: () => void;
     onConfirm: (ownershipTransfer?: RemovalOwnershipTransfer) => Promise<void>;
 }>;
@@ -43,7 +48,16 @@ export function GroupRemoveMemberDialog(props: GroupRemoveMemberDialogProps) {
     return <GroupRemoveMemberDialogContent key={resetKey} {...props} />;
 }
 
-function GroupRemoveMemberDialogContent({ open, member, members, groupName, onClose, onConfirm }: GroupRemoveMemberDialogProps) {
+function GroupRemoveMemberDialogContent({
+    open,
+    member,
+    members,
+    groupName,
+    associatedApiCount,
+    associatedApiProductCount,
+    onClose,
+    onConfirm,
+}: GroupRemoveMemberDialogProps) {
     const [successor, setSuccessor] = useState<GroupMember | null>(null);
     const [isRemoving, startRemoveTransition] = useTransition();
 
@@ -52,11 +66,20 @@ function GroupRemoveMemberDialogContent({ open, member, members, groupName, onCl
 
     if (!member) return null;
 
+    const blockedScopes = blockedPrimaryOwnerScopes(member, {
+        apiCount: associatedApiCount,
+        apiProductCount: associatedApiProductCount,
+    });
+    const ownershipBlockMessage = buildPrimaryOwnerAssociationBlockMessage(
+        blockedScopes,
+        { apiCount: associatedApiCount, apiProductCount: associatedApiProductCount },
+        'remove',
+    );
     const transferMessage = successor ? buildRemovalOwnershipTransferMessage(member, successor) : null;
-    const canConfirm = !needsSuccessor || Boolean(successor);
+    const canConfirm = !ownershipBlockMessage && (!needsSuccessor || Boolean(successor));
 
     function handleConfirm() {
-        if (needsSuccessor && !successor) {
+        if (!member || (needsSuccessor && !successor)) {
             return;
         }
 
@@ -89,7 +112,13 @@ function GroupRemoveMemberDialogContent({ open, member, members, groupName, onCl
             confirmDisabled={!canConfirm}
             onConfirm={handleConfirm}
         >
-            {needsSuccessor ? (
+            {ownershipBlockMessage ? (
+                <Alert variant="default">
+                    <TriangleAlertIcon className="size-4" aria-hidden />
+                    <AlertDescription>{ownershipBlockMessage}</AlertDescription>
+                </Alert>
+            ) : null}
+            {needsSuccessor && !ownershipBlockMessage ? (
                 <MemberOwnershipTransferField
                     id="remove-member-successor"
                     candidates={candidates}

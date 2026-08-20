@@ -19,6 +19,7 @@ import {
     analyzeEditOwnershipTransfer,
     buildEditMembershipPayloads,
     buildEditOwnershipTransferMessage,
+    buildMembershipRollbackPayloads,
     buildRemovalOwnershipTransfer,
     buildRemovalOwnershipTransferMessage,
     requiresPrimaryOwnerSuccessor,
@@ -109,17 +110,17 @@ describe('buildEditMembershipPayloads', () => {
 
         expect(buildEditMembershipPayloads(ANNA, selections, transfer, RAVI)).toEqual([
             {
-                id: 'user-2',
-                roles: [
-                    { scope: 'APPLICATION', name: 'PRIMARY_OWNER' },
-                    { scope: 'API', name: 'USER' },
-                ],
-            },
-            {
                 id: 'user-1',
                 roles: [
                     { scope: 'API', name: 'USER' },
                     { scope: 'APPLICATION', name: 'OWNER' },
+                ],
+            },
+            {
+                id: 'user-2',
+                roles: [
+                    { scope: 'APPLICATION', name: 'PRIMARY_OWNER' },
+                    { scope: 'API', name: 'USER' },
                 ],
             },
         ]);
@@ -146,6 +147,29 @@ describe('buildEditMembershipPayloads', () => {
             },
         ]);
     });
+
+    it('restores affected memberships in reverse apply order', () => {
+        const selections: MemberRoleSelections = { ...SELECTIONS, applicationRole: 'OWNER' };
+        const transfer = analyzeEditOwnershipTransfer(ANNA, [ANNA, RAVI], selections);
+
+        const apply = buildEditMembershipPayloads(ANNA, selections, transfer, RAVI);
+        expect(buildMembershipRollbackPayloads([ANNA, RAVI], apply)).toEqual([
+            {
+                id: 'user-2',
+                roles: [
+                    { scope: 'APPLICATION', name: 'OWNER' },
+                    { scope: 'API', name: 'USER' },
+                ],
+            },
+            {
+                id: 'user-1',
+                roles: [
+                    { scope: 'APPLICATION', name: 'PRIMARY_OWNER' },
+                    { scope: 'API', name: 'USER' },
+                ],
+            },
+        ]);
+    });
 });
 
 describe('removal ownership transfer', () => {
@@ -167,13 +191,22 @@ describe('removal ownership transfer', () => {
 
     it('builds transfer and rollback memberships from the original members', () => {
         expect(buildRemovalOwnershipTransfer(owner, successor)).toEqual({
-            apply: {
-                id: 'user-2',
-                roles: [
-                    { scope: 'API', name: 'PRIMARY_OWNER' },
-                    { scope: 'APPLICATION', name: 'USER' },
-                ],
-            },
+            apply: [
+                {
+                    id: 'user-1',
+                    roles: [
+                        { scope: 'API', name: 'OWNER' },
+                        { scope: 'APPLICATION', name: 'USER' },
+                    ],
+                },
+                {
+                    id: 'user-2',
+                    roles: [
+                        { scope: 'API', name: 'PRIMARY_OWNER' },
+                        { scope: 'APPLICATION', name: 'USER' },
+                    ],
+                },
+            ],
             rollback: [
                 {
                     id: 'user-2',

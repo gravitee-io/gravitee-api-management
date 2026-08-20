@@ -36,7 +36,8 @@ function renderTable(overrides: Partial<React.ComponentProps<typeof GroupMembers
         <GroupMembersTable
             members={[RAVI, MIA]}
             loading={false}
-            canManageMembers
+            canEditMembers
+            canRemoveMembers
             canAddMembers
             onEditRoles={jest.fn()}
             onRemove={jest.fn()}
@@ -78,8 +79,28 @@ describe('GroupMembersTable', () => {
     });
 
     it('hides the actions column entirely without permission', () => {
-        renderTable({ canManageMembers: false });
+        renderTable({ canEditMembers: false, canRemoveMembers: false });
         expect(screen.queryByRole('button', { name: /Actions for/ })).toBeNull();
+    });
+
+    it('shows Edit roles but not Remove member with update permission only', async () => {
+        const user = userEvent.setup();
+        renderTable({ canEditMembers: true, canRemoveMembers: false });
+
+        await user.click(screen.getByRole('button', { name: 'Actions for Mia Chen' }));
+
+        expect(await screen.findByRole('menuitem', { name: 'Edit roles' })).not.toBeNull();
+        expect(screen.queryByRole('menuitem', { name: 'Remove member' })).toBeNull();
+    });
+
+    it('shows Remove member but not Edit roles with delete permission only', async () => {
+        const user = userEvent.setup();
+        renderTable({ canEditMembers: false, canRemoveMembers: true });
+
+        await user.click(screen.getByRole('button', { name: 'Actions for Mia Chen' }));
+
+        expect(screen.queryByRole('menuitem', { name: 'Edit roles' })).toBeNull();
+        expect(await screen.findByRole('menuitem', { name: 'Remove member' })).not.toBeNull();
     });
 
     it('calls onEditRoles with the row’s member when Edit roles is selected', async () => {

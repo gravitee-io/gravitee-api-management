@@ -112,6 +112,55 @@ export class GroupMemberRemovalError extends Error {
     }
 }
 
+export class GroupMemberUpdateError extends Error {
+    constructor(
+        readonly phase: 'update' | 'rollback',
+        readonly operationError: unknown,
+        readonly rollbackSucceeded = false,
+        readonly rollbackError?: unknown,
+    ) {
+        super(`Group member update failed during ${phase}`);
+        this.name = 'GroupMemberUpdateError';
+    }
+}
+
+export function useUpdateGroupMembersWithRollback() {
+    const env = useEnvironment();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({
+            groupId,
+            apply,
+            rollback,
+        }: {
+            groupId: string;
+            apply: GroupMembershipPayload[];
+            rollback: GroupMembershipPayload[];
+        }) => {
+            if (!env?.id) {
+                throw new Error('No active environment');
+            }
+
+            try {
+                await addGroupMembers(env.id, groupId, apply);
+            } catch (operationError) {
+                try {
+                    await addGroupMembers(env.id, groupId, rollback);
+                } catch (rollbackError) {
+                    throw new GroupMemberUpdateError('rollback', operationError, false, rollbackError);
+                }
+                throw new GroupMemberUpdateError('update', operationError, true);
+            }
+        },
+        onSettled: (_result, _error, data) => {
+            if (env?.id) {
+                void queryClient.invalidateQueries({ queryKey: groupKeys.members(env.id, data.groupId) });
+            }
+        },
+    });
+}
+
 export function useRemoveGroupMemberWithOwnershipTransfer() {
     const env = useEnvironment();
     const queryClient = useQueryClient();
@@ -132,9 +181,14 @@ export function useRemoveGroupMemberWithOwnershipTransfer() {
 
             if (ownershipTransfer) {
                 try {
-                    await addGroupMembers(env.id, groupId, [ownershipTransfer.apply]);
-                } catch (error) {
-                    throw new GroupMemberRemovalError('transfer', error);
+                    await addGroupMembers(env.id, groupId, ownershipTransfer.apply);
+                } catch (operationError) {
+                    try {
+                        await addGroupMembers(env.id, groupId, ownershipTransfer.rollback);
+                    } catch (rollbackError) {
+                        throw new GroupMemberRemovalError('rollback', operationError, false, rollbackError);
+                    }
+                    throw new GroupMemberRemovalError('transfer', operationError, true);
                 }
             }
 
