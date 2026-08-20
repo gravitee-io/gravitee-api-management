@@ -3,8 +3,11 @@
   "compilerOptions": {
     "outDir": "./out-tsc/spec",
     "module": "CommonJs",
-    // The root config sets "bundler", which tsc rejects together with CommonJs.
-    "moduleResolution": "node10",
+    // ts-jest transpiles each file on its own; make the compiler enforce what that assumes.
+    "isolatedModules": true,
+    // Nothing reads decorator metadata here — no reflect-metadata polyfill, no Reflect.getMetadata,
+    // and Ivy does not need it. Emitting it under isolatedModules only produces incomplete data.
+    "emitDecoratorMetadata": false,
     "types": ["jest", "angular", "node"],
     "target": "ES2016",
     "esModuleInterop": true

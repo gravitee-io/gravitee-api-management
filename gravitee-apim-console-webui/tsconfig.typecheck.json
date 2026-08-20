@@ -1,0 +1,10 @@
+{
+  // Type check only — `yarn console:type-check`. Same files as the suite, but keeping the
+  // `moduleResolution: bundler` of the app instead of the `module: CommonJs` ts-jest needs,
+  // which tsc refuses to pair with it.
+  "extends": "./tsconfig.spec.json",
+  "compilerOptions": {
+    "module": "es2020",
+    "incremental": false
+  }
+}

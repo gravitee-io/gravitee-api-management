@@ -38,12 +38,6 @@ export * from './lib/components/filter/add-filter-dialog/add-filter-dialog.compo
 export * from './lib/components/filter/filter-providers';
 export * from './lib/components/filter/timeframe-selector/timeframe-selector.component';
 export * from './lib/components/filter/timeframe-selector/utils/timeframe-ranges';
-export {
-  DEFAULT_VIEW_STATE_PERIOD,
-  encodeViewState,
-  decodeViewState,
-  ViewStatePayload,
-  ViewStateTimeframe,
-  TimeRangeUrlEntry,
-} from './lib/components/filter/utils/filter-url.codec';
+export { DEFAULT_VIEW_STATE_PERIOD, encodeViewState, decodeViewState } from './lib/components/filter/utils/filter-url.codec';
+export type { ViewStatePayload, ViewStateTimeframe, TimeRangeUrlEntry } from './lib/components/filter/utils/filter-url.codec';
 export * from './lib/components/widget/model/request/request';
