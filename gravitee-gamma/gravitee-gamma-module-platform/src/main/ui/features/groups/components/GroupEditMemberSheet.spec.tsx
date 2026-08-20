@@ -368,6 +368,26 @@ describe('GroupEditMemberSheet', () => {
             expect(screen.getByRole('button', { name: 'Save' })).toHaveProperty('disabled', false);
         });
 
+        it('keeps the selected successor when an unrelated role changes', async () => {
+            const user = userEvent.setup();
+            renderSheet({ member: primaryOwnerMember, members: [primaryOwnerMember, otherMember] });
+
+            fireEvent.click(screen.getAllByRole('combobox')[0]);
+            fireEvent.click(screen.getByRole('option', { name: 'OWNER' }));
+            await user.click(screen.getByLabelText('Search members'));
+            await user.click(screen.getByRole('option', { name: 'Ravi Patel' }));
+
+            fireEvent.click(screen.getAllByRole('combobox')[4]);
+            fireEvent.click(screen.getByRole('option', { name: 'USER' }));
+
+            expect(
+                screen.getByText(
+                    'Anna Schmidt is the API primary owner. The API primary ownership will be transferred to Ravi Patel and Anna Schmidt will be updated as owner.',
+                ),
+            ).not.toBeNull();
+            expect(screen.getByRole('button', { name: 'Save' })).toHaveProperty('disabled', false);
+        });
+
         it('names the selected non-owner role in the downgrade transfer message', async () => {
             const user = userEvent.setup();
             renderSheet({

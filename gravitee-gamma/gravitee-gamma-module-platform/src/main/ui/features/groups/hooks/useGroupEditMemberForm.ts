@@ -17,16 +17,14 @@
 import { useMemo, useState } from 'react';
 
 import type { GroupMember, GroupMembershipPayload } from '../types/group';
-import { PRIMARY_OWNER_ROLE } from '../types/group';
 import { getMemberRoleLockFlags, sortedSuccessorCandidates, type MemberRoleSelections, type RoleField } from '../utils/memberRoles';
 import {
     analyzeEditOwnershipTransfer,
     buildEditMembershipPayloads,
     buildEditOwnershipTransferMessage,
     isPrimaryOwnerUnavailable,
+    PRIMARY_OWNER_DISABLED_OPTIONS,
 } from '../utils/primaryOwnership';
-
-const PRIMARY_OWNER_DISABLED_OPTIONS = new Set([PRIMARY_OWNER_ROLE]);
 
 function roleSelectionsFromMember(member: GroupMember | undefined): Record<RoleField, string> {
     return {
@@ -77,8 +75,11 @@ export function useGroupEditMemberForm({
     };
 
     function handleRoleChange(field: RoleField, value: string) {
-        setRoleValues(previous => ({ ...previous, [field]: value }));
-        if (field !== 'explorerRole') {
+        const nextRoleValues = { ...roleValues, [field]: value };
+        const nextTransfer = member ? analyzeEditOwnershipTransfer(member, members, nextRoleValues) : null;
+        const downgradeScopesChanged = transfer?.downgradeScopes.join(',') !== nextTransfer?.downgradeScopes.join(',');
+        setRoleValues(nextRoleValues);
+        if (downgradeScopesChanged) {
             setSelectedSuccessorId(null);
         }
     }

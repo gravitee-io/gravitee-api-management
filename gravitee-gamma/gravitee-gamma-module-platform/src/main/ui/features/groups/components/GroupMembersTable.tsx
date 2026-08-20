@@ -35,7 +35,7 @@ import { paginate, totalPagesFor } from '../../../shared/utils/clientPagination'
 import type { ColCell } from '../../../shared/utils/dataTableTypes';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../../shared/utils/paginationConstants';
 import type { GroupMember } from '../types/group';
-import { primaryOwnerScopesOf } from '../utils/primaryOwnership';
+import { requiresPrimaryOwnerSuccessor } from '../utils/primaryOwnership';
 
 const PAGE_SIZE = 10;
 const REMOVE_DISABLED_MESSAGE = 'Add another member and transfer primary ownership before removing this member.';
@@ -46,7 +46,7 @@ function roleCell(member: GroupMember, scope: 'API' | 'APPLICATION' | 'API_PRODU
 }
 
 function isRemoveDisabled(member: GroupMember, totalMemberCount: number): boolean {
-    return totalMemberCount === 1 && primaryOwnerScopesOf(member).length > 0;
+    return totalMemberCount === 1 && requiresPrimaryOwnerSuccessor(member);
 }
 
 function buildColumns({

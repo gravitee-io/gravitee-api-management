@@ -15,7 +15,14 @@
  */
 
 import type { MemberRoleSelections } from './memberRoles';
-import { analyzeEditOwnershipTransfer, buildEditMembershipPayloads, buildEditOwnershipTransferMessage } from './primaryOwnership';
+import {
+    analyzeEditOwnershipTransfer,
+    buildEditMembershipPayloads,
+    buildEditOwnershipTransferMessage,
+    buildRemovalOwnershipTransfer,
+    buildRemovalOwnershipTransferMessage,
+    requiresPrimaryOwnerSuccessor,
+} from './primaryOwnership';
 import type { GroupMember } from '../types/group';
 
 const SELECTIONS: Pick<
@@ -79,6 +86,20 @@ describe('buildEditOwnershipTransferMessage', () => {
             'Anna Schmidt is the Application primary owner. The Application primary ownership will be transferred to Ravi Patel and Anna Schmidt will be updated as owner.',
         );
     });
+
+    it('describes clearing one role in a compound API and API Product downgrade', () => {
+        const member: GroupMember = {
+            id: 'user-1',
+            displayName: 'Anna Schmidt',
+            roles: { API: 'PRIMARY_OWNER', API_PRODUCT: 'PRIMARY_OWNER' },
+        };
+        const selections = { ...SELECTIONS, apiRole: '', apiProductRole: 'OWNER' };
+        const transfer = analyzeEditOwnershipTransfer(member, [member, RAVI], selections);
+
+        expect(buildEditOwnershipTransferMessage(member, transfer, RAVI, selections)).toBe(
+            'Anna Schmidt is the API and API Product primary owner. Primary ownership will be transferred to Ravi Patel and Anna Schmidt will be updated with no role (API) and as owner (API Product).',
+        );
+    });
 });
 
 describe('buildEditMembershipPayloads', () => {
@@ -124,5 +145,57 @@ describe('buildEditMembershipPayloads', () => {
                 ],
             },
         ]);
+    });
+});
+
+describe('removal ownership transfer', () => {
+    const owner: GroupMember = {
+        id: 'user-1',
+        displayName: 'Anna Schmidt',
+        roles: { API: 'PRIMARY_OWNER', APPLICATION: 'USER' },
+    };
+    const successor: GroupMember = {
+        id: 'user-2',
+        displayName: 'Ravi Patel',
+        roles: { API: 'OWNER', APPLICATION: 'USER' },
+    };
+
+    it('uses one helper to decide whether a member needs a successor', () => {
+        expect(requiresPrimaryOwnerSuccessor(owner)).toBe(true);
+        expect(requiresPrimaryOwnerSuccessor(successor)).toBe(false);
+    });
+
+    it('builds transfer and rollback memberships from the original members', () => {
+        expect(buildRemovalOwnershipTransfer(owner, successor)).toEqual({
+            apply: {
+                id: 'user-2',
+                roles: [
+                    { scope: 'API', name: 'PRIMARY_OWNER' },
+                    { scope: 'APPLICATION', name: 'USER' },
+                ],
+            },
+            rollback: [
+                {
+                    id: 'user-2',
+                    roles: [
+                        { scope: 'API', name: 'OWNER' },
+                        { scope: 'APPLICATION', name: 'USER' },
+                    ],
+                },
+                {
+                    id: 'user-1',
+                    roles: [
+                        { scope: 'API', name: 'PRIMARY_OWNER' },
+                        { scope: 'APPLICATION', name: 'USER' },
+                    ],
+                },
+            ],
+        });
+    });
+
+    it('builds the removal transfer message from the shared ownership wording', () => {
+        expect(buildRemovalOwnershipTransferMessage(owner, successor)).toBe(
+            'Anna Schmidt is the API primary owner. The API primary ownership will be transferred to Ravi Patel.',
+        );
     });
 });

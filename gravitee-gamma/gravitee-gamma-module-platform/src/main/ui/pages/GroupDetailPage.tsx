@@ -56,7 +56,6 @@ import { GroupSettingsSection } from '../features/groups/components/GroupSetting
 import { GroupSheet, type GroupFormValues } from '../features/groups/components/GroupSheet';
 import { GroupTooManyUsersDialog } from '../features/groups/components/GroupTooManyUsersDialog';
 import { SectionError } from '../features/groups/components/SectionError';
-import { useCurrentUserIsGroupAdmin } from '../features/groups/hooks/useCurrentUserGroupAdmin';
 import {
     useEnvironmentSettings,
     useGroupApis,
@@ -137,15 +136,13 @@ export function GroupDetailPage() {
         core: defaultGroupRolesNeeded,
         extra: extraMemberRolesNeeded,
     });
-    const isCurrentUserGroupAdmin = useCurrentUserIsGroupAdmin(members, { enabled: !canEdit });
-
     const maxInvitationsLimitReached = typeof group?.max_invitation === 'number' && group.max_invitation <= members.length;
     const canAddMembers =
         group !== undefined &&
         (canEdit || canInviteToGroup(group)) &&
         !maxInvitationsLimitReached &&
         Boolean(group.system_invitation || group.email_invitation);
-    const canManageMemberActions = canEdit || isCurrentUserGroupAdmin;
+    const canManageMemberActions = canEdit || Boolean(group?.manageable);
     const { data: environmentSettings } = useEnvironmentSettings({
         enabled: memberSheet !== 'closed' || editingMember !== null,
     });

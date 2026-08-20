@@ -108,6 +108,8 @@ function buildColumns({
             enableSorting: false,
             enableHiding: false,
             cell: ({ row }: ColCell<Group>) => {
+                // Classic Console only applies `manageable` to invitations, not group edit/delete.
+                // GroupDeleteDialog explains primary-owner deletion constraints before confirmation.
                 const canEditRow = canEdit;
                 const canDeleteRow = canDelete;
                 if (!canEditRow && !canDeleteRow) return null;

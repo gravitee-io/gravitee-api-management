@@ -17,10 +17,16 @@
 import { useState } from 'react';
 
 import { useGroupInvitations } from './useGroupDetail';
-import { useAddGroupMembers, useDeleteGroupInvitation, useInviteGroupMember, useRemoveGroupMember } from './useGroupMutations';
+import {
+    GroupMemberRemovalError,
+    useAddGroupMembers,
+    useDeleteGroupInvitation,
+    useInviteGroupMember,
+    useRemoveGroupMemberWithOwnershipTransfer,
+} from './useGroupMutations';
 import { notify } from '../../../shared/notify';
 import type { GroupInvitation, GroupMember, GroupMembershipPayload } from '../types/group';
-import { primaryOwnerScopesOf } from '../utils/primaryOwnership';
+import { requiresPrimaryOwnerSuccessor, type RemovalOwnershipTransfer } from '../utils/primaryOwnership';
 
 type MemberSheetState = 'closed' | 'search' | 'invite';
 type MemberTab = 'members' | 'invitations';
@@ -36,7 +42,7 @@ export function useGroupMemberActions(groupId: string | undefined) {
 
     const addMembersMutation = useAddGroupMembers();
     const inviteMemberMutation = useInviteGroupMember();
-    const removeMemberMutation = useRemoveGroupMember();
+    const removeMemberMutation = useRemoveGroupMemberWithOwnershipTransfer();
     const deleteInvitationMutation = useDeleteGroupInvitation();
     const {
         data: invitations = [],
@@ -111,36 +117,37 @@ export function useGroupMemberActions(groupId: string | undefined) {
         }
     }
 
-    async function transferPrimaryOwnership(id: string, transferMembership: GroupMembershipPayload): Promise<boolean> {
-        try {
-            await addMembersMutation.mutateAsync({ groupId: id, memberships: [transferMembership] });
-            return true;
-        } catch (error) {
-            notify.error(error, 'Primary ownership could not be transferred');
-            return false;
-        }
-    }
-
-    async function handleRemoveMember(transferMembership?: GroupMembershipPayload) {
+    async function handleRemoveMember(ownershipTransfer?: RemovalOwnershipTransfer) {
         if (!groupId || !removingMember) return;
 
-        const requiresOwnershipTransfer = primaryOwnerScopesOf(removingMember).length > 0;
-        if (requiresOwnershipTransfer && !transferMembership) {
+        if (requiresPrimaryOwnerSuccessor(removingMember) && !ownershipTransfer) {
             notify.warning('Primary ownership must be transferred before removing this member');
             return;
         }
 
-        if (transferMembership && !(await transferPrimaryOwnership(groupId, transferMembership))) {
-            return;
-        }
-
         try {
-            await removeMemberMutation.mutateAsync({ groupId, memberId: removingMember.id });
+            await removeMemberMutation.mutateAsync({ groupId, memberId: removingMember.id, ownershipTransfer });
         } catch (error) {
-            const message = transferMembership
-                ? 'Ownership was transferred, but the member could not be removed. Retry removal or refresh the member list.'
-                : 'Failed to remove member';
-            notify.error(error, message);
+            if (!(error instanceof GroupMemberRemovalError)) {
+                notify.error(error, 'Failed to remove member');
+                return;
+            }
+            if (error.phase === 'transfer') {
+                notify.error(error.operationError, 'Primary ownership could not be transferred');
+                return;
+            }
+            if (error.rollbackSucceeded) {
+                notify.error(error.operationError, 'The member could not be removed. Primary ownership was restored.');
+                return;
+            }
+            if (error.phase === 'rollback') {
+                notify.error(
+                    error.rollbackError ?? error.operationError,
+                    'The member could not be removed and primary ownership could not be restored. Refresh the member list before retrying.',
+                );
+                return;
+            }
+            notify.error(error.operationError, 'Failed to remove member');
             return;
         }
 

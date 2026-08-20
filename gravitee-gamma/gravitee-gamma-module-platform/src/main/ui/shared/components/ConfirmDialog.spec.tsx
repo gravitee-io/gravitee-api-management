@@ -65,6 +65,24 @@ describe('ConfirmDialog', () => {
         expect(onConfirm).toHaveBeenCalledTimes(1);
     });
 
+    it('clears typed confirmation text when the dialog closes and reopens', async () => {
+        const user = userEvent.setup();
+        const props = {
+            onOpenChange: jest.fn(),
+            title: 'Delete application permanently?',
+            confirmLabel: 'Delete permanently',
+            confirmKeyword: 'payments-app',
+            onConfirm: jest.fn(),
+        };
+        const { rerender } = render(<ConfirmDialog open {...props} />);
+
+        await user.type(screen.getByPlaceholderText('payments-app'), 'payments-app');
+        rerender(<ConfirmDialog open={false} {...props} />);
+        rerender(<ConfirmDialog open {...props} />);
+
+        expect((screen.getByPlaceholderText('payments-app') as HTMLInputElement).value).toBe('');
+    });
+
     it('disables actions while pending and shows the pending label', () => {
         render(
             <ConfirmDialog

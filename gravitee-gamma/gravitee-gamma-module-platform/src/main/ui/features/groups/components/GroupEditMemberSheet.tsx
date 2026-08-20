@@ -32,7 +32,7 @@ import { InfoIcon } from '@gravitee/graphene-core/icons';
 import { useActionState } from 'react';
 
 import { GroupScopedRoleSelects } from './GroupScopedRoleSelects';
-import { MemberSuccessorCombobox } from './MemberSuccessorCombobox';
+import { MemberOwnershipTransferField } from './MemberOwnershipTransferField';
 import { FormActionSubmitButton } from '../../../shared/components/FormActionSubmitButton';
 import { useOpenRemountKey } from '../../../shared/hooks/useOpenRemountKey';
 import { STANDARD_SHEET_WIDTH } from '../../../shared/layout/sheetLayout';
@@ -157,22 +157,22 @@ function GroupEditMemberSheetContent({
                             </div>
 
                             {form.transfer?.needsSuccessor && (
-                                <MemberSuccessorCombobox
+                                <MemberOwnershipTransferField
                                     id="edit-member-successor"
                                     candidates={form.successorCandidates}
                                     value={form.selectedSuccessor}
                                     onChange={picked => form.setSelectedSuccessorId(picked?.id ?? null)}
-                                    hint="Select a member to transfer primary ownership."
+                                    message={form.transferMessage}
                                     disabled={isSaving}
                                 />
                             )}
 
-                            {form.transferMessage && (
+                            {!form.transfer?.needsSuccessor && form.transferMessage ? (
                                 <Alert variant="default">
                                     <InfoIcon className="size-4" aria-hidden />
                                     <AlertDescription>{form.transferMessage}</AlertDescription>
                                 </Alert>
-                            )}
+                            ) : null}
                         </div>
                     </ScrollArea>
 

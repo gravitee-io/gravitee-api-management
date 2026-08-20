@@ -15,10 +15,16 @@
  */
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
-import { useAddGroupMembers, useDeleteGroupInvitation, useInviteGroupMember, useRemoveGroupMember } from './useGroupMutations';
+import {
+    type GroupMemberRemovalError,
+    useAddGroupMembers,
+    useDeleteGroupInvitation,
+    useInviteGroupMember,
+    useRemoveGroupMemberWithOwnershipTransfer,
+} from './useGroupMutations';
 import { addGroupMembers, deleteGroupInvitation, inviteGroupMember, removeGroupMember } from '../services/groups';
 import { groupKeys } from '../utils/queryKeys';
 
@@ -137,13 +143,58 @@ describe('group mutation invalidation', () => {
         expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: groupKeys.invitations('DEFAULT', 'group-1') });
     });
 
-    it('invalidates only members after removing a member', async () => {
-        const { result } = renderHook(() => useRemoveGroupMember(), { wrapper });
+    it('invalidates members once after transferring ownership and removing a member', async () => {
+        const { result } = renderHook(() => useRemoveGroupMemberWithOwnershipTransfer(), { wrapper });
 
-        await act(() => result.current.mutateAsync({ groupId: 'group-1', memberId: 'member-1' }));
+        await act(() =>
+            result.current.mutateAsync({
+                groupId: 'group-1',
+                memberId: 'member-1',
+                ownershipTransfer: {
+                    apply: { id: 'member-2', roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }] },
+                    rollback: [
+                        { id: 'member-2', roles: [{ scope: 'API', name: 'OWNER' }] },
+                        { id: 'member-1', roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }] },
+                    ],
+                },
+            }),
+        );
 
+        expect(mockAddGroupMembers).toHaveBeenCalledTimes(1);
         expect(mockRemoveGroupMember).toHaveBeenCalledWith('DEFAULT', 'group-1', 'member-1');
         expect(invalidateQueries).toHaveBeenCalledTimes(1);
         expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: groupKeys.members('DEFAULT', 'group-1') });
+    });
+
+    it('restores both memberships when removal fails after ownership transfer', async () => {
+        const removeError = new Error('remove failed');
+        mockRemoveGroupMember.mockRejectedValue(removeError);
+        const { result } = renderHook(() => useRemoveGroupMemberWithOwnershipTransfer(), { wrapper });
+        const ownershipTransfer = {
+            apply: { id: 'member-2', roles: [{ scope: 'API' as const, name: 'PRIMARY_OWNER' }] },
+            rollback: [
+                { id: 'member-2', roles: [{ scope: 'API' as const, name: 'OWNER' }] },
+                { id: 'member-1', roles: [{ scope: 'API' as const, name: 'PRIMARY_OWNER' }] },
+            ],
+        };
+
+        await expect(
+            act(() =>
+                result.current.mutateAsync({
+                    groupId: 'group-1',
+                    memberId: 'member-1',
+                    ownershipTransfer,
+                }),
+            ),
+        ).rejects.toMatchObject({
+            phase: 'remove',
+            operationError: removeError,
+            rollbackSucceeded: true,
+        } satisfies Partial<GroupMemberRemovalError>);
+
+        await waitFor(() => expect(mockAddGroupMembers).toHaveBeenCalledTimes(2));
+        expect(mockAddGroupMembers).toHaveBeenNthCalledWith(1, 'DEFAULT', 'group-1', [ownershipTransfer.apply]);
+        expect(mockAddGroupMembers).toHaveBeenNthCalledWith(2, 'DEFAULT', 'group-1', ownershipTransfer.rollback);
+        expect(invalidateQueries).toHaveBeenCalledTimes(1);
     });
 });

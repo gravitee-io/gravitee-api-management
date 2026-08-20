@@ -33,6 +33,8 @@ export function GroupDeleteDialog({
     onConfirm: () => void;
     isDeleting: boolean;
 }>) {
+    // The backend rejects primary-owner group deletion with StillPrimaryOwnerException. Show that
+    // constraint before confirmation while keeping Delete available, as it is in the classic Console.
     const blocked = group ? isPrimaryOwnerGroup(group) : false;
 
     return (

@@ -25,7 +25,7 @@ import {
     Input,
     Label,
 } from '@gravitee/graphene-core';
-import { useId, useState, type ReactNode } from 'react';
+import { useEffect, useId, useState, type ReactNode } from 'react';
 
 import { useOpenRemountKey } from '../hooks/useOpenRemountKey';
 
@@ -81,6 +81,14 @@ function ConfirmDialogContent({
 }: Readonly<ConfirmDialogProps>) {
     const inputId = useId();
     const [typed, setTyped] = useState('');
+
+    useEffect(() => {
+        // Radix keeps dialog content mounted during its close animation; clear sensitive confirmation
+        // text immediately rather than waiting for the next keyed remount.
+        if (!open) {
+            setTyped('');
+        }
+    }, [open]);
 
     const keywordSatisfied = !confirmKeyword || typed === confirmKeyword;
     const disabled = isPending || confirmDisabled || !keywordSatisfied;

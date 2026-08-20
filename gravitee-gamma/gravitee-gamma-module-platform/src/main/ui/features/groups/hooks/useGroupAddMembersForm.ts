@@ -22,8 +22,8 @@ import type { SearchableUser } from '../../../shared/types/userSearch';
 import type { GroupMember, GroupMembershipPayload } from '../types/group';
 import { PRIMARY_OWNER_ROLE } from '../types/group';
 import { buildMembershipRoles, getMemberRoleLockFlags, type RoleField } from '../utils/memberRoles';
-import { isPrimaryOwnerUnavailable } from '../utils/primaryOwnership';
 import { GROUP_SEARCH_DEBOUNCE_MS } from '../utils/paginationConstants';
+import { isPrimaryOwnerUnavailable, PRIMARY_OWNER_DISABLED_OPTIONS } from '../utils/primaryOwnership';
 import { groupKeys } from '../utils/queryKeys';
 import { nextSearchableUserSelection } from '../utils/searchableUsers';
 
@@ -35,8 +35,6 @@ const DEFAULT_USER_ROLES: Record<RoleField, string> = {
     clusterRole: 'USER',
     explorerRole: 'USER',
 };
-const PRIMARY_OWNER_DISABLED_OPTIONS = new Set([PRIMARY_OWNER_ROLE]);
-
 export function useGroupAddMembersForm({
     open,
     groupRoles,
