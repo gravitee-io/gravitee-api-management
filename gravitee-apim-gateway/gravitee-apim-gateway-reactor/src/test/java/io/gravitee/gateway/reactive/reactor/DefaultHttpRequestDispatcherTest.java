@@ -551,6 +551,19 @@ class DefaultHttpRequestDispatcherTest {
             verify(spyNoopTracer).startRootSpanFrom(any(), any());
             verify(spyNoopTracer, timeout(1000)).endWithResponseAndError(any(), any(), any(), eq((Throwable) null));
         }
+
+        @Test
+        void shouldUseStableRouteAsTracingSpanNameOnNotFoundRequest() {
+            ProcessorChain processorChain = spy(new ProcessorChain("id", List.of()));
+            when(notFoundProcessorChainFactory.processorChain()).thenReturn(processorChain);
+            when(httpAcceptorResolver.resolve(HOST, PATH, SERVER_ID)).thenReturn(null);
+            ArgumentCaptor<Context> vertxContextCaptor = ArgumentCaptor.forClass(Context.class);
+
+            cut.dispatch(rxRequest, SERVER_ID).test().assertComplete();
+
+            verify(spyNoopTracer).startRootSpanFrom(vertxContextCaptor.capture(), any());
+            assertThat(vertxContextCaptor.getValue().<String>getLocal("VertxRoute")).isEqualTo("/");
+        }
     }
 
     private void simulateEndHandlerCall(InvocationOnMock i) {

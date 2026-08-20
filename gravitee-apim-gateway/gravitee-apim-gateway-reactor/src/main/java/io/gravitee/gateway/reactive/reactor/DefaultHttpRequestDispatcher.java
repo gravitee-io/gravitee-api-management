@@ -156,6 +156,9 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
             mutableCtx.tracer(
                 new io.gravitee.gateway.reactive.api.tracing.Tracer(vertxContext, gatewayTracingContext.opentelemetryTracer())
             );
+            // No route matched: bucket all of it under "/" rather than the unbounded raw request URI
+            // (scanner/probe traffic on internet-facing gateways is otherwise the largest source of cardinality).
+            markTracingRoute(vertxContext, "/");
             ProcessorChain preProcessorChain = platformProcessorChainFactory.preProcessorChain();
             List<ProcessorHook> processHooks = gatewayTracingContext.isVerbose() ? List.of(tracingHook) : List.of();
             Completable handleNotFoundCompletable = HookHelper.hook(
