@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-import type { PortalSettings } from '../services/portalSettings';
-import { isSettingReadonly } from '../../shared/utils/isSettingReadonly';
+export interface SettingsWithReadonlyMetadata {
+    metadata?: {
+        readonly?: string[];
+    };
+}
 
-export function isPortalSettingReadonly(settings: PortalSettings | undefined, property: string): boolean {
-    return isSettingReadonly(settings, property);
+/** Whether `property` is listed as system-provided (locked) in the fetched settings' metadata. */
+export function isSettingReadonly(settings: SettingsWithReadonlyMetadata | undefined, property: string): boolean {
+    return settings?.metadata?.readonly?.some(key => key === property) ?? false;
 }

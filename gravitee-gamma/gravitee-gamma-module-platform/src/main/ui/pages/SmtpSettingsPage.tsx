@@ -15,7 +15,7 @@
  */
 
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { OrgSettingsFormShell } from '../features/organization-settings/components/OrgSettingsFormShell';
 import {
@@ -30,6 +30,7 @@ import { useSaveOrgConsoleSettings } from '../features/organization-settings/hoo
 import { PASSWORD_SENTINEL, type ConsoleSettings } from '../features/organization-settings/types/consoleSettings';
 import { buildConsoleSettingsSavePayload } from '../features/organization-settings/utils/buildConsoleSettingsSavePayload';
 import { isConsoleSettingReadonly } from '../features/organization-settings/utils/isConsoleSettingReadonly';
+import { isDirty as computeIsDirty } from '../features/shared/utils/isDirty';
 
 function buildState(settings: ConsoleSettings | undefined): SmtpFormState {
     return {
@@ -55,11 +56,18 @@ export function SmtpSettingsPage() {
     const [localState, setLocalState] = useState<SmtpFormState>(() => buildState(settings));
     const [savedState, setSavedState] = useState<SmtpFormState>(() => buildState(settings));
 
+    const isDirty = computeIsDirty(localState, savedState);
+    const isDirtyRef = useRef(isDirty);
+    isDirtyRef.current = isDirty;
+
     useEffect(() => {
         if (!settings) return;
         const next = buildState(settings);
-        setLocalState(next);
         setSavedState(next);
+        // Don't clobber in-progress edits when a background refetch (e.g. window refocus) delivers fresh data.
+        if (!isDirtyRef.current) {
+            setLocalState(next);
+        }
     }, [settings]);
 
     const trialHidesSmtp = Boolean(settings?.trialInstance?.enabled);
@@ -74,13 +82,12 @@ export function SmtpSettingsPage() {
             subject: isConsoleSettingReadonly(settings, 'email.subject'),
             from: isConsoleSettingReadonly(settings, 'email.from'),
             auth: isConsoleSettingReadonly(settings, 'email.properties.auth'),
-            startTlsEnable: isConsoleSettingReadonly(settings, 'email.properties.startTlsEnable'),
-            sslTrust: isConsoleSettingReadonly(settings, 'email.properties.sslTrust'),
+            startTlsEnable: isConsoleSettingReadonly(settings, 'email.properties.starttls.enable'),
+            sslTrust: isConsoleSettingReadonly(settings, 'email.properties.ssl.trust'),
             brandedSenders: isConsoleSettingReadonly(settings, 'email.branded_senders'),
         }),
         [settings],
     );
-    const isDirty = JSON.stringify(localState) !== JSON.stringify(savedState);
     const isValid = isSmtpFormValid(localState);
 
     function handleSave() {

@@ -15,7 +15,7 @@
  */
 
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { CorsSection, type CorsFieldReadonly, type CorsFormState } from '../features/organization-settings/components/CorsSection';
 import { OrgSettingsFormShell } from '../features/organization-settings/components/OrgSettingsFormShell';
@@ -25,6 +25,7 @@ import type { ConsoleSettings } from '../features/organization-settings/types/co
 import { buildConsoleSettingsSavePayload } from '../features/organization-settings/utils/buildConsoleSettingsSavePayload';
 import { DEFAULT_CORS_MAX_AGE, getInvalidAllowOrigins } from '../features/organization-settings/utils/corsValidators';
 import { isConsoleSettingReadonly } from '../features/organization-settings/utils/isConsoleSettingReadonly';
+import { isDirty as computeIsDirty } from '../features/shared/utils/isDirty';
 
 function buildState(settings: ConsoleSettings | undefined): CorsFormState {
     return {
@@ -36,9 +37,13 @@ function buildState(settings: ConsoleSettings | undefined): CorsFormState {
     };
 }
 
+const MAX_CORS_MAX_AGE = 2147483647; // Integer.MAX_VALUE, the backend's storage type for cors.maxAge
+
 function parseMaxAge(value: string): number | null {
     if (!/^\d+$/.test(value.trim())) return null;
-    return Number(value);
+    const parsed = Number(value);
+    if (!Number.isSafeInteger(parsed) || parsed > MAX_CORS_MAX_AGE) return null;
+    return parsed;
 }
 
 export function CorsSettingsPage() {
@@ -48,11 +53,18 @@ export function CorsSettingsPage() {
     const [localState, setLocalState] = useState<CorsFormState>(() => buildState(settings));
     const [savedState, setSavedState] = useState<CorsFormState>(() => buildState(settings));
 
+    const isDirty = computeIsDirty(localState, savedState);
+    const isDirtyRef = useRef(isDirty);
+    isDirtyRef.current = isDirty;
+
     useEffect(() => {
         if (!settings) return;
         const next = buildState(settings);
-        setLocalState(next);
         setSavedState(next);
+        // Don't clobber in-progress edits when a background refetch (e.g. window refocus) delivers fresh data.
+        if (!isDirtyRef.current) {
+            setLocalState(next);
+        }
     }, [settings]);
 
     const readonly = useMemo<CorsFieldReadonly>(
@@ -68,7 +80,6 @@ export function CorsSettingsPage() {
 
     const maxAge = parseMaxAge(localState.maxAge);
     const isValid = maxAge !== null && getInvalidAllowOrigins(localState.allowOrigin).length === 0;
-    const isDirty = JSON.stringify(localState) !== JSON.stringify(savedState);
 
     function handleSave() {
         if (!settings || !isDirty || !isValid || saveMutation.isPending) return;

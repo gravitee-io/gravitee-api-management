@@ -43,6 +43,8 @@ describe('platform navigation config', () => {
 
     it('places Access Management then Audit under Organization / System & Security', () => {
         expect(sectionKeys('Organization', 'System & Security')).toEqual(['access-management', 'organization-audit']);
+    });
+
     it('places Access Management, Management & Schedulers, CORS, and SMTP under Organization / System & Security', () => {
         expect(sectionKeys('Organization', 'System & Security')).toEqual([
             'access-management',
@@ -141,7 +143,10 @@ describe('platform navigation config', () => {
 
     it('declares organization console settings routes', () => {
         expect(PLATFORM_ROUTE_CONFIG.routeKeys).toEqual(expect.arrayContaining(['management-and-schedulers', 'cors', 'smtp']));
-        expect(ROUTES['management-and-schedulers']).toEqual({ path: 'management-and-schedulers', label: 'Management & Schedulers' });
+        expect(ROUTES['management-and-schedulers']).toEqual({
+            path: 'management-and-schedulers',
+            label: 'Management & Schedulers',
+        });
         expect(ROUTES.cors).toEqual({ path: 'cors', label: 'CORS' });
         expect(ROUTES.smtp).toEqual({ path: 'smtp', label: 'SMTP' });
     });

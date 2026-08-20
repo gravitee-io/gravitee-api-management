@@ -16,7 +16,7 @@
 
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Input, Switch } from '@gravitee/graphene-core';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { OrgSettingsFormShell } from '../features/organization-settings/components/OrgSettingsFormShell';
 import { SystemReadonlyHint } from '../features/organization-settings/components/SystemReadonlyHint';
@@ -25,6 +25,7 @@ import { useSaveOrgConsoleSettings } from '../features/organization-settings/hoo
 import type { ConsoleSettings } from '../features/organization-settings/types/consoleSettings';
 import { buildConsoleSettingsSavePayload } from '../features/organization-settings/utils/buildConsoleSettingsSavePayload';
 import { isConsoleSettingReadonly } from '../features/organization-settings/utils/isConsoleSettingReadonly';
+import { isDirty as computeIsDirty } from '../features/shared/utils/isDirty';
 
 interface ManagementFormState {
     title: string;
@@ -90,11 +91,18 @@ export function ManagementAndSchedulersPage() {
     const [localState, setLocalState] = useState<ManagementFormState>(() => buildState(settings));
     const [savedState, setSavedState] = useState<ManagementFormState>(() => buildState(settings));
 
+    const isDirty = computeIsDirty(localState, savedState);
+    const isDirtyRef = useRef(isDirty);
+    isDirtyRef.current = isDirty;
+
     useEffect(() => {
         if (!settings) return;
         const next = buildState(settings);
-        setLocalState(next);
         setSavedState(next);
+        // Don't clobber in-progress edits when a background refetch (e.g. window refocus) delivers fresh data.
+        if (!isDirtyRef.current) {
+            setLocalState(next);
+        }
     }, [settings]);
 
     const readonly = useMemo(
@@ -110,7 +118,6 @@ export function ManagementAndSchedulersPage() {
         [settings],
     );
 
-    const isDirty = JSON.stringify(localState) !== JSON.stringify(savedState);
     const tasksValue = parseNonNegativeInt(localState.tasks);
     const notificationsValue = parseNonNegativeInt(localState.notifications);
     const isValid = tasksValue !== null && notificationsValue !== null;

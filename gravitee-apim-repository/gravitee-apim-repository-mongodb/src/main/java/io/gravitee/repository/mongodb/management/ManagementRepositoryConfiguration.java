@@ -85,13 +85,16 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
     @Bean(name = "managementMongoTemplate")
     public MongoOperations mongoOperations(MongoDatabaseFactory mongoDbFactory, MappingMongoConverter converter) {
         try {
-            MongoTemplate template = new MongoTemplate(mongoDbFactory, converter);
-            // Register in parent context so sibling plugin contexts can reuse it.
+            // Register in parent context so sibling plugin contexts can reuse it. If a prior invocation (e.g. a
+            // retried plugin context load) already registered one, reuse that exact instance rather than handing
+            // this context a second, divergent MongoTemplate that the parent's singleton no longer reflects.
             DefaultListableBeanFactory beanFactory =
                 (DefaultListableBeanFactory) ((ConfigurableApplicationContext) applicationContext.getParent()).getBeanFactory();
-            if (!beanFactory.containsSingleton("managementMongoTemplate")) {
-                beanFactory.registerSingleton("managementMongoTemplate", template);
+            if (beanFactory.containsSingleton("managementMongoTemplate")) {
+                return (MongoOperations) beanFactory.getSingleton("managementMongoTemplate");
             }
+            MongoTemplate template = new MongoTemplate(mongoDbFactory, converter);
+            beanFactory.registerSingleton("managementMongoTemplate", template);
             return template;
         } catch (Exception e) {
             throw new IllegalStateException(e);

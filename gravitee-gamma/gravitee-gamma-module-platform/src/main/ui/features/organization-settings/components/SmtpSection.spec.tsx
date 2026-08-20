@@ -97,6 +97,16 @@ describe('SmtpSection', () => {
         expect(isSmtpFormValid({ ...ENABLED, enabled: false, host: '' })).toBe(true);
     });
 
+    it('requires every branded sender rule to have at least one domain and a valid from address', () => {
+        const validRule = { domains: ['partners.example.com'], from: 'partners@example.com', subject: '' };
+        expect(isSmtpFormValid({ ...ENABLED, brandedSenders: [validRule] })).toBe(true);
+        expect(isSmtpFormValid({ ...ENABLED, brandedSenders: [{ ...validRule, domains: [] }] })).toBe(false);
+        expect(isSmtpFormValid({ ...ENABLED, brandedSenders: [{ ...validRule, from: '' }] })).toBe(false);
+        expect(isSmtpFormValid({ ...ENABLED, brandedSenders: [{ ...validRule, from: 'not-an-email' }] })).toBe(false);
+        // Incomplete branded sender rules don't block save while emailing itself is disabled.
+        expect(isSmtpFormValid({ ...ENABLED, enabled: false, brandedSenders: [{ domains: [], from: '', subject: '' }] })).toBe(true);
+    });
+
     it('marks system-provided SMTP fields for the Classic tooltip', () => {
         render(<Harness readonly={{ enabled: true, host: true }} />);
         expect(screen.getByLabelText('Enable Emailing').closest('[data-system-readonly="true"]')).not.toBeNull();
