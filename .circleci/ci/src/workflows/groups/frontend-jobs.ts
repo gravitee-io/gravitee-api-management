@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Config, workflow } from '../../circleci-config';
+import { Config, Job, workflow } from '../../circleci-config';
 import {
   BuildDockerWebUiImageJob,
   ConsoleWebuiBuildJob,
@@ -224,15 +224,19 @@ export function frontendJobs(
     }
   }
 
-  const sonarAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
-  dynamicConfig.addJob(sonarAnalysisJob);
+  // Created on the first project that survives the predicate, so a pipeline analysing nothing
+  // emits no orphan analysis job.
+  let sonarAnalysisJob: Job | undefined;
 
   FRONTEND_ANALYSED_PROJECTS.forEach((project) => {
     if (filterJobs && !project.predicate(environment.changedFiles)) {
       return;
     }
-    const analysis = analysisJobFor(project, sonarAnalysisJob, 'frontend');
-    jobs.push(new workflow.WorkflowJob(analysis.job, analysis.parameters));
+    if (!sonarAnalysisJob) {
+      sonarAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
+      dynamicConfig.addJob(sonarAnalysisJob);
+    }
+    jobs.push(analysisJobFor(project, sonarAnalysisJob));
   });
 
   return { jobs, requires };

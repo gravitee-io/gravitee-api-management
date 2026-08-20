@@ -36,9 +36,9 @@ describe('Nightly', () => {
     expect(result.stringify()).toStrictEqual(expected);
   });
 
-  // Both sides now derive from `analysed-projects.ts`, so this guards the derivation rather
-  // than the lists: the nightly takes them unfiltered, and a filter creeping in — or a project
-  // added to one consumer only — shows up here rather than in a missing baseline weeks later.
+  // Both consumers derive from `analysed-projects.ts`, so the equality below cannot drift on its
+  // own. What earns its keep is the count: a project dropped from the shared list leaves the
+  // nightly and every pull request at once, which is the failure this epic exists to prevent.
   it('should analyse exactly the projects a pull request analyses', () => {
     const environment = {
       baseBranch: 'master',

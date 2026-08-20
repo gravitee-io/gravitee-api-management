@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Config, workflow } from '../../circleci-config';
+import { Config, Job, workflow } from '../../circleci-config';
 import { BuildBackendJob, SetupJob, SonarCloudAnalysisJob, TestIntegrationJob, ValidateJob } from '../../jobs';
 import { analysisJobFor, BACKEND_ANALYSED_PROJECTS } from './analysed-projects';
 import { CircleCIEnvironment } from '../../pipelines';
@@ -63,25 +63,29 @@ export function backendJobs(
   );
   requires.push('Build backend');
 
-  const sonarAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
-  dynamicConfig.addJob(sonarAnalysisJob);
+  // Created on the first project that survives the predicate: a pipeline that analyses nothing
+  // must not emit an analysis job definition no workflow references.
+  let sonarAnalysisJob: Job | undefined;
 
   BACKEND_ANALYSED_PROJECTS.forEach((project) => {
     if (filterJobs && !project.predicate(environment.changedFiles)) {
       return;
     }
+    if (!sonarAnalysisJob) {
+      sonarAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
+      dynamicConfig.addJob(sonarAnalysisJob);
+    }
 
     const suiteJob = project.createSuite(dynamicConfig, environment);
     dynamicConfig.addJob(suiteJob);
 
-    const analysis = analysisJobFor(project, sonarAnalysisJob, 'backend');
     jobs.push(
       new workflow.WorkflowJob(suiteJob, {
         name: project.suiteName,
         context: config.jobContext,
         requires: ['Build backend'],
       }),
-      new workflow.WorkflowJob(analysis.job, analysis.parameters),
+      analysisJobFor(project, sonarAnalysisJob),
     );
     requires.push(project.suiteName);
   });
