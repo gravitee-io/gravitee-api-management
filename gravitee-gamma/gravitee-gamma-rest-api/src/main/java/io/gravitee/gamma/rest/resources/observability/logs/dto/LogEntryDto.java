@@ -70,6 +70,8 @@ public record LogEntryDto(
     String connectionStatus,
     String failureOrigin,
     String clientId,
+    String clientSoftwareName,
+    String clientSoftwareVersion,
     String brokerId,
     Long connectionDurationMs,
     AuthzDecisionDto authz
@@ -165,6 +167,8 @@ public record LogEntryDto(
             entry.connectionStatus(),
             entry.failureOrigin() != null ? entry.failureOrigin().name() : null,
             entry.clientId(),
+            entry.clientSoftwareName(),
+            entry.clientSoftwareVersion(),
             entry.brokerId(),
             entry.connectionDurationMs(),
             entry.authz() != null ? AuthzDecisionDto.from(entry.authz()) : null

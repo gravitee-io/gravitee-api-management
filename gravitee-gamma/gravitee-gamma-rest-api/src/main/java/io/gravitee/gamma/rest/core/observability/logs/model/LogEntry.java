@@ -64,6 +64,8 @@ public record LogEntry(
     String connectionStatus,
     FailureOrigin failureOrigin,
     String clientId,
+    String clientSoftwareName,
+    String clientSoftwareVersion,
     String brokerId,
     Long connectionDurationMs,
     AuthzDecision authz
