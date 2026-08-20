@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Alert, AlertDescription, Checkbox, Input } from '@gravitee/graphene-core';
+import { Alert, AlertDescription, Card, CardContent, Checkbox, Input } from '@gravitee/graphene-core';
 import { InfoIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
 
@@ -70,123 +70,126 @@ export function CorsSection({
     }
 
     return (
-        <section className="rounded-lg border p-4 space-y-6">
-            <div className="space-y-1.5">
-                <label htmlFor="cors-allow-origin" className="text-sm font-medium">
-                    Allow-Origin
-                </label>
-                <ChipInput
-                    id="cors-allow-origin"
-                    values={value.allowOrigin}
-                    onChange={handleOriginsChange}
-                    placeholder="*, https://mydomain.com, (http|https).*.mydomain.com, ..."
-                    disabled={isFieldDisabled('allowOrigin')}
-                />
-                <p className="text-xs text-muted-foreground">
-                    The origin parameter specifies a URI that may access the resource. Scheme, domain and port are part of the same-origin
-                    definition. If you choose to enable * it means that it allows all requests, regardless of origin. Regular expressions
-                    are also supported.
-                </p>
-                {invalidOrigins.length > 0 ? (
-                    <p className="text-sm text-destructive" role="alert">
-                        {`"${invalidOrigins.join('", "')}" Regex is invalid`}
+        <Card>
+            <CardContent className="space-y-6">
+                <div className="space-y-1.5">
+                    <label htmlFor="cors-allow-origin" className="text-sm font-medium">
+                        Allow-Origin
+                    </label>
+                    <ChipInput
+                        id="cors-allow-origin"
+                        values={value.allowOrigin}
+                        onChange={handleOriginsChange}
+                        placeholder="*, https://mydomain.com, (http|https).*.mydomain.com, ..."
+                        disabled={isFieldDisabled('allowOrigin')}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                        The origin parameter specifies a URI that may access the resource. Scheme, domain and port are part of the
+                        same-origin definition. If you choose to enable * it means that it allows all requests, regardless of origin.
+                        Regular expressions are also supported.
                     </p>
-                ) : null}
-                {value.allowOrigin.includes('*') ? (
-                    <Alert>
-                        <InfoIcon className="size-4" />
-                        <AlertDescription>
-                            Setting <span className="font-mono">*</span> exposes this management API to any website. Make sure that is
-                            intended.
-                        </AlertDescription>
-                    </Alert>
-                ) : null}
-            </div>
-
-            <div className="space-y-1.5">
-                <p className="text-sm font-medium">Access-Control-Allow-Methods</p>
-                <div className="flex flex-wrap gap-3">
-                    {CORS_HTTP_METHODS.map(method => (
-                        <label key={method} className="flex items-center gap-2 text-sm">
-                            <Checkbox
-                                checked={value.allowMethods.includes(method)}
-                                onCheckedChange={checked => toggleMethod(method, checked === true)}
-                                disabled={isFieldDisabled('allowMethods')}
-                                aria-label={method}
-                            />
-                            <span className="font-mono text-xs">{method}</span>
-                        </label>
-                    ))}
+                    {invalidOrigins.length > 0 ? (
+                        <p className="text-sm text-destructive" role="alert">
+                            {`"${invalidOrigins.join('", "')}" Regex is invalid`}
+                        </p>
+                    ) : null}
+                    {value.allowOrigin.includes('*') ? (
+                        <Alert>
+                            <InfoIcon className="size-4" />
+                            <AlertDescription>
+                                Setting <span className="font-mono">*</span> exposes this management API to any website. Make sure that is
+                                intended.
+                            </AlertDescription>
+                        </Alert>
+                    ) : null}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                    Specifies the method or methods allowed when accessing the resource. This is used in response to a preflight request.
-                </p>
-            </div>
 
-            <div className="space-y-1.5">
-                <label htmlFor="cors-allow-headers" className="text-sm font-medium">
-                    Allow-Headers
-                </label>
-                <ChipInput
-                    id="cors-allow-headers"
-                    values={value.allowHeaders}
-                    onChange={allowHeaders => onChange({ ...value, allowHeaders })}
-                    placeholder="Content-Type, ..."
-                    disabled={isFieldDisabled('allowHeaders')}
-                    addOnComma
-                    suggestions={CORS_DEFAULT_HTTP_HEADERS}
+                <div className="space-y-1.5">
+                    <p className="text-sm font-medium">Access-Control-Allow-Methods</p>
+                    <div className="flex flex-wrap gap-3">
+                        {CORS_HTTP_METHODS.map(method => (
+                            <label key={method} className="flex items-center gap-2 text-sm">
+                                <Checkbox
+                                    checked={value.allowMethods.includes(method)}
+                                    onCheckedChange={checked => toggleMethod(method, checked === true)}
+                                    disabled={isFieldDisabled('allowMethods')}
+                                    aria-label={method}
+                                />
+                                <span className="font-mono text-xs">{method}</span>
+                            </label>
+                        ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                        Specifies the method or methods allowed when accessing the resource. This is used in response to a preflight
+                        request.
+                    </p>
+                </div>
+
+                <div className="space-y-1.5">
+                    <label htmlFor="cors-allow-headers" className="text-sm font-medium">
+                        Allow-Headers
+                    </label>
+                    <ChipInput
+                        id="cors-allow-headers"
+                        values={value.allowHeaders}
+                        onChange={allowHeaders => onChange({ ...value, allowHeaders })}
+                        placeholder="Content-Type, ..."
+                        disabled={isFieldDisabled('allowHeaders')}
+                        addOnComma
+                        suggestions={CORS_DEFAULT_HTTP_HEADERS}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                        Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
+                    </p>
+                </div>
+
+                <div className="space-y-1.5">
+                    <label htmlFor="cors-exposed-headers" className="text-sm font-medium">
+                        Exposed-Headers
+                    </label>
+                    <ChipInput
+                        id="cors-exposed-headers"
+                        values={value.exposedHeaders}
+                        onChange={exposedHeaders => onChange({ ...value, exposedHeaders })}
+                        placeholder="Content-Type, ..."
+                        disabled={isFieldDisabled('exposedHeaders')}
+                        addOnComma
+                        suggestions={CORS_DEFAULT_HTTP_HEADERS}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                        Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
+                    </p>
+                </div>
+
+                <div className="space-y-1.5">
+                    <label htmlFor="cors-max-age" className="text-sm font-medium">
+                        Max age
+                    </label>
+                    <Input
+                        id="cors-max-age"
+                        type="number"
+                        min={0}
+                        value={value.maxAge}
+                        onChange={e => onChange({ ...value, maxAge: e.target.value })}
+                        disabled={isFieldDisabled('maxAge')}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                        How long the response from a pre-flight request can be cached by clients (seconds).
+                    </p>
+                </div>
+
+                <ConfirmDialog
+                    open={pendingWildcard}
+                    onOpenChange={open => !open && setPendingWildcard(false)}
+                    title="Are you sure?"
+                    description="Do you want to remove all cross-origin restrictions?"
+                    confirmLabel="Yes, I want to allow all origins."
+                    onConfirm={() => {
+                        onChange({ ...value, allowOrigin: [...value.allowOrigin, '*'] });
+                        setPendingWildcard(false);
+                    }}
                 />
-                <p className="text-xs text-muted-foreground">
-                    Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
-                </p>
-            </div>
-
-            <div className="space-y-1.5">
-                <label htmlFor="cors-exposed-headers" className="text-sm font-medium">
-                    Exposed-Headers
-                </label>
-                <ChipInput
-                    id="cors-exposed-headers"
-                    values={value.exposedHeaders}
-                    onChange={exposedHeaders => onChange({ ...value, exposedHeaders })}
-                    placeholder="Content-Type, ..."
-                    disabled={isFieldDisabled('exposedHeaders')}
-                    addOnComma
-                    suggestions={CORS_DEFAULT_HTTP_HEADERS}
-                />
-                <p className="text-xs text-muted-foreground">
-                    Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
-                </p>
-            </div>
-
-            <div className="space-y-1.5">
-                <label htmlFor="cors-max-age" className="text-sm font-medium">
-                    Max age
-                </label>
-                <Input
-                    id="cors-max-age"
-                    type="number"
-                    min={0}
-                    value={value.maxAge}
-                    onChange={e => onChange({ ...value, maxAge: e.target.value })}
-                    disabled={isFieldDisabled('maxAge')}
-                />
-                <p className="text-xs text-muted-foreground">
-                    How long the response from a pre-flight request can be cached by clients (seconds).
-                </p>
-            </div>
-
-            <ConfirmDialog
-                open={pendingWildcard}
-                onOpenChange={open => !open && setPendingWildcard(false)}
-                title="Are you sure?"
-                description="Do you want to remove all cross-origin restrictions?"
-                confirmLabel="Yes, I want to allow all origins."
-                onConfirm={() => {
-                    onChange({ ...value, allowOrigin: [...value.allowOrigin, '*'] });
-                    setPendingWildcard(false);
-                }}
-            />
-        </section>
+            </CardContent>
+        </Card>
     );
 }

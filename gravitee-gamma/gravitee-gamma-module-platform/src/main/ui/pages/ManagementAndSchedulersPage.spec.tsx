@@ -73,6 +73,14 @@ describe('ManagementAndSchedulersPage', () => {
         } as unknown as ReturnType<typeof useSaveOrgConsoleSettings>);
     });
 
+    it('wraps Management and Schedulers in Graphene Cards', () => {
+        renderPage();
+        expect(screen.getByText('Management').closest('[data-slot="card-title"]')).not.toBeNull();
+        expect(screen.getByText('Schedulers').closest('[data-slot="card-title"]')).not.toBeNull();
+        expect(screen.getByLabelText('Title').closest('[data-slot="card"]')).not.toBeNull();
+        expect(screen.getByLabelText('Tasks (in seconds)').closest('[data-slot="card"]')).not.toBeNull();
+    });
+
     it('renders management and scheduler fields from settings', () => {
         renderPage();
         expect(screen.getByRole('heading', { name: 'Management & Schedulers' })).not.toBeNull();

@@ -27,11 +27,24 @@ export interface ChipInputProps {
     readonly addOnComma?: boolean;
     /** Optional autocomplete values, matching Classic `gio-form-tags-input` `[autocompleteOptions]`. */
     readonly suggestions?: readonly string[];
+    readonly invalid?: boolean;
+    readonly describedBy?: string;
 }
 
-export function ChipInput({ id, values, onChange, placeholder, disabled = false, addOnComma = false, suggestions = [] }: ChipInputProps) {
+export function ChipInput({
+    id,
+    values,
+    onChange,
+    placeholder,
+    disabled = false,
+    addOnComma = false,
+    suggestions = [],
+    invalid = false,
+    describedBy,
+}: ChipInputProps) {
     const [draft, setDraft] = useState('');
     const [open, setOpen] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(-1);
 
     const add = (value: string) => {
         if (disabled) {
@@ -43,6 +56,8 @@ export function ChipInput({ id, values, onChange, placeholder, disabled = false,
         }
         onChange([...values, trimmed]);
         setDraft('');
+        setOpen(false);
+        setActiveIndex(-1);
     };
 
     const removeAt = (index: number) => {
@@ -61,7 +76,9 @@ export function ChipInput({ id, values, onChange, placeholder, disabled = false,
     }, [draft, suggestions, values]);
 
     const listId = id ? `${id}-suggestions` : undefined;
+    const optionId = (index: number) => `${id ?? 'chip'}-option-${index}`;
     const showSuggestions = !disabled && open && filteredSuggestions.length > 0;
+    const activeDescendant = showSuggestions && activeIndex >= 0 ? optionId(activeIndex) : undefined;
 
     return (
         <div className="relative">
@@ -92,13 +109,36 @@ export function ChipInput({ id, values, onChange, placeholder, disabled = false,
                     aria-expanded={suggestions.length > 0 ? showSuggestions : undefined}
                     aria-controls={showSuggestions ? listId : undefined}
                     aria-autocomplete={suggestions.length > 0 ? 'list' : undefined}
+                    aria-activedescendant={activeDescendant}
+                    aria-invalid={invalid || undefined}
+                    aria-describedby={describedBy}
                     autoComplete="off"
                     onChange={event => {
                         setDraft(event.target.value);
                         setOpen(true);
+                        setActiveIndex(-1);
                     }}
                     onFocus={() => setOpen(true)}
                     onKeyDown={event => {
+                        if (suggestions.length > 0 && (event.key === 'ArrowDown' || event.key === 'ArrowUp')) {
+                            event.preventDefault();
+                            if (filteredSuggestions.length === 0) {
+                                return;
+                            }
+                            setOpen(true);
+                            setActiveIndex(current => {
+                                if (event.key === 'ArrowDown') {
+                                    return (current + 1) % filteredSuggestions.length;
+                                }
+                                return current <= 0 ? filteredSuggestions.length - 1 : current - 1;
+                            });
+                            return;
+                        }
+                        if (event.key === 'Enter' && activeIndex >= 0 && filteredSuggestions[activeIndex]) {
+                            event.preventDefault();
+                            add(filteredSuggestions[activeIndex]);
+                            return;
+                        }
                         if (event.key === 'Enter' || (addOnComma && event.key === ',')) {
                             event.preventDefault();
                             add(draft);
@@ -106,11 +146,13 @@ export function ChipInput({ id, values, onChange, placeholder, disabled = false,
                             removeAt(values.length - 1);
                         } else if (event.key === 'Escape') {
                             setOpen(false);
+                            setActiveIndex(-1);
                         }
                     }}
                     onBlur={() => {
                         add(draft);
                         setOpen(false);
+                        setActiveIndex(-1);
                     }}
                 />
             </div>
@@ -121,17 +163,15 @@ export function ChipInput({ id, values, onChange, placeholder, disabled = false,
                     className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-md border bg-popover p-1 shadow-md"
                     onMouseDown={event => event.preventDefault()}
                 >
-                    {filteredSuggestions.map(suggestion => (
+                    {filteredSuggestions.map((suggestion, index) => (
                         <li key={suggestion}>
                             <button
                                 type="button"
+                                id={optionId(index)}
                                 role="option"
-                                aria-selected={false}
-                                className="flex w-full rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent"
-                                onClick={() => {
-                                    add(suggestion);
-                                    setOpen(false);
-                                }}
+                                aria-selected={index === activeIndex}
+                                className={`flex w-full rounded-sm px-2 py-1.5 text-left text-sm ${index === activeIndex ? 'bg-accent' : 'hover:bg-accent'}`}
+                                onClick={() => add(suggestion)}
                             >
                                 {suggestion}
                             </button>
