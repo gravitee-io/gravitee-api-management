@@ -19,6 +19,7 @@ import { useActionState, useState } from 'react';
 
 import { GroupRoleSelect } from './GroupRoleSelect';
 import { FormActionSubmitButton } from '../../../shared/components/FormActionSubmitButton';
+import { useOpenRemountKey } from '../../../shared/hooks/useOpenRemountKey';
 import { STANDARD_SHEET_WIDTH } from '../../../shared/layout/sheetLayout';
 import { isValidEmail } from '../../../shared/utils/email';
 import type { GroupMember, GroupRole } from '../types/group';
@@ -43,7 +44,8 @@ type GroupInviteMemberSheetProps = Readonly<{
 }>;
 
 export function GroupInviteMemberSheet(props: GroupInviteMemberSheetProps) {
-    return <GroupInviteMemberSheetContent key={`${props.open ? 'open' : 'closed'}-${props.groupName}`} {...props} />;
+    const resetKey = useOpenRemountKey(props.open, props.groupName);
+    return <GroupInviteMemberSheetContent key={resetKey} {...props} />;
 }
 
 function GroupInviteMemberSheetContent({

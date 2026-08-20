@@ -30,6 +30,7 @@ import { useActionState } from 'react';
 import { GroupScopedRoleSelects } from './GroupScopedRoleSelects';
 import { GroupUserSearchPicker } from './GroupUserSearchPicker';
 import { FormActionSubmitButton } from '../../../shared/components/FormActionSubmitButton';
+import { useOpenRemountKey } from '../../../shared/hooks/useOpenRemountKey';
 import { STANDARD_SHEET_WIDTH } from '../../../shared/layout/sheetLayout';
 import { useGroupAddMembersForm } from '../hooks/useGroupAddMembersForm';
 import type { GroupMember, GroupMembershipPayload, GroupRole } from '../types/group';
@@ -58,7 +59,7 @@ type GroupAddMembersSheetProps = Readonly<{
 }>;
 
 export function GroupAddMembersSheet(props: GroupAddMembersSheetProps) {
-    const resetKey = `${props.open ? 'open' : 'closed'}-${props.groupName}-${props.initialSearch ?? ''}`;
+    const resetKey = useOpenRemountKey(props.open, `${props.groupName}-${props.initialSearch ?? ''}`);
     return <GroupAddMembersSheetContent key={resetKey} {...props} />;
 }
 
