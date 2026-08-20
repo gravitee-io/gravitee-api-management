@@ -32,4 +32,6 @@ export interface NewPortalPageContent {
 export interface UpdatePortalPageContent {
   content: string;
   configuration?: OpenApiViewerConfiguration;
+  /** When set and different from the current content type, the content is converted to this type (file import). */
+  type?: PortalPageContentType;
 }

@@ -17,7 +17,7 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
-import { GioFormSelectionInlineCardHarness } from '@gravitee/ui-particles-angular';
+import { GioFormFilePickerInputHarness, GioFormSelectionInlineCardHarness } from '@gravitee/ui-particles-angular';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 import { NavigationItemSourceEditorHarness } from '../navigation-item-source-editor/navigation-item-source-editor.harness';
@@ -51,6 +51,7 @@ export class SectionEditorDialogHarness extends ComponentHarness {
     GioFormSelectionInlineCardHarness.with({ ancestor: '.section-editor-dialog__page-types' }),
   );
   private locatePageTypeSection = this.locatorForOptional('.section-editor-dialog__page-types');
+  private readonly locateFilePicker = this.locatorForOptional(GioFormFilePickerInputHarness);
 
   async getTitleInput(): Promise<MatInputHarness> {
     return this.locateTitleInput();
@@ -191,5 +192,27 @@ export class SectionEditorDialogHarness extends ComponentHarness {
 
   async isSourceRemovalWarningDisplayed(): Promise<boolean> {
     return (await this.locateSourceRemovalWarning()) !== null;
+  }
+
+  // --- File import ---
+
+  async isFilePickerVisible(): Promise<boolean> {
+    return (await this.locateFilePicker()) !== null;
+  }
+
+  async getFilePickerAccept(): Promise<string | null> {
+    const picker = await this.locateFilePicker();
+    if (!picker) {
+      throw new Error('File picker not found');
+    }
+    return picker.getInputFileAccept();
+  }
+
+  async pickFile(file: File): Promise<void> {
+    const picker = await this.locateFilePicker();
+    if (!picker) {
+      throw new Error('File picker not found');
+    }
+    return picker.dropFiles([file]);
   }
 }

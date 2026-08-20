@@ -126,6 +126,20 @@
         @if (currentPageContentType() === 'OPENAPI') {
           <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onConfigure()">Configure</button>
         }
+        @if (selectedNavigationItem()?.type === 'PAGE') {
+          <button [disabled]="importFileDisabled()" mat-stroked-button data-testid="import-file-button" (click)="importFileInput.click()">
+            Import file
+          </button>
+          <input
+            #importFileInput
+            hidden
+            type="file"
+            aria-label="Import file"
+            [accept]="importFileAccept"
+            data-testid="import-file-input"
+            (change)="onImportFileSelected($event)"
+          />
+        }
         <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onEdit()">Edit</button>
         <span [matTooltip]="publishDisabledTooltip()" [matTooltipDisabled]="!publishDisabled()">
           <button [disabled]="publishActionDisabled()" mat-stroked-button (click)="onPublishToggle()">

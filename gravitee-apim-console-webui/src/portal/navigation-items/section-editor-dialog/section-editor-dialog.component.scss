@@ -34,3 +34,12 @@ mat-dialog-content {
 .section-editor-dialog__source-toggle {
   margin-bottom: 8px;
 }
+
+.section-editor-dialog__file-picker__prompt {
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  text-align: center;
+}
