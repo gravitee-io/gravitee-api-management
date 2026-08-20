@@ -111,10 +111,12 @@ public class GammaModuleAutomationResource extends AbstractResource {
         var result = dryRun ? port.validate(context, kind, id, spec) : port.upsert(context, kind, id, spec);
         var state = stamp(result.view(), id, hrid, audit, result.issues());
 
-        // A dry run is a preview: severe findings are its payload, so it always answers 200.
         // A real apply that produced severe findings persisted nothing — it must not report success.
-        var applyFailed = !dryRun && result.hasSevere();
-        return Response.status(applyFailed ? Response.Status.BAD_REQUEST : Response.Status.OK).entity(state).build();
+        if (!dryRun && result.hasSevere()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(state).build();
+        }
+        // A dry run is a preview: severe findings are its payload, so it answers 200 like a successful apply.
+        return Response.ok(state).build();
     }
 
     @GET
