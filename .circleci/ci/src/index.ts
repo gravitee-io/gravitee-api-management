@@ -41,7 +41,9 @@ if (isBlank(CIRCLE_SHA1)) {
  *     - if the branch is supported ( CIRCLE_BRANCH is master or a support branch )
  *     - if we are working on a branch with changes committed on the base branch
  */
-const changed = isSupportBranchOrMaster(CIRCLE_BRANCH) ? Promise.resolve([]) : changedFiles(GIT_COMMON_COMMIT_HASH ?? GIT_BASE_BRANCH);
+const changed = isSupportBranchOrMaster(CIRCLE_BRANCH)
+  ? Promise.resolve([])
+  : changedFiles(isBlank(GIT_COMMON_COMMIT_HASH) ? GIT_BASE_BRANCH : GIT_COMMON_COMMIT_HASH);
 
 changed
   .then(
