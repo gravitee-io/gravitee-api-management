@@ -59,20 +59,28 @@ public class VertxHttpServerRequest implements Request {
 
     private Handler<Long> timeoutHandler;
 
+    /**
+     * @deprecated kept so that anything built against it keeps compiling and keeps working. Prefer
+     *     {@link #VertxHttpServerRequest(HttpServerRequest, IdGenerator, VertxHttpServerRequestOptions)},
+     *     which absorbs new fields without moving this signature.
+     */
+    @Deprecated
     public VertxHttpServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator) {
-        this(httpServerRequest, idGenerator, null);
+        this(httpServerRequest, idGenerator, VertxHttpServerRequestOptions.builder().build());
     }
 
     /**
-     * @param path the path this request reports, so that everything derived from it — starting with
-     *     the {@code pathInfo} a contextualized request computes — matches the path the gateway
-     *     resolved rather than the one received. {@code null} reports the native path, which is the
-     *     historical behaviour. {@link #uri()} reports the untouched native value either way.
+     * @deprecated see {@link #VertxHttpServerRequest(HttpServerRequest, IdGenerator)}.
      */
+    @Deprecated
     public VertxHttpServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator, String path) {
-        this.path = path;
+        this(httpServerRequest, idGenerator, VertxHttpServerRequestOptions.builder().path(path).build());
+    }
+
+    public VertxHttpServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator, VertxHttpServerRequestOptions options) {
+        this.path = options.getPath();
         this.serverRequest = httpServerRequest;
-        this.timestamp = System.currentTimeMillis();
+        this.timestamp = options.getTimestamp() != null ? options.getTimestamp() : System.currentTimeMillis();
         this.id = idGenerator.randomString();
         this.headers = new VertxHttpHeaders(httpServerRequest.headers());
         this.metrics = Metrics.on(timestamp).build();
