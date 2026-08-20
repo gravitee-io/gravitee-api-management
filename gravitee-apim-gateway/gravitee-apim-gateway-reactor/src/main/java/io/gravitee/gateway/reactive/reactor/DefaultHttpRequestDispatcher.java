@@ -34,6 +34,7 @@ import io.gravitee.gateway.env.RequestPathHandling;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.http.utils.RequestUtils;
 import io.gravitee.gateway.http.vertx.VertxHttp2ServerRequest;
+import io.gravitee.gateway.http.vertx.VertxHttpServerRequestOptions;
 import io.gravitee.gateway.http.vertx.grpc.VertxGrpcServerRequest;
 import io.gravitee.gateway.http.vertx.ws.VertxWebSocketServerRequest;
 import io.gravitee.gateway.opentelemetry.TracingContext;
@@ -154,6 +155,10 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
      */
     @Override
     public Completable dispatch(HttpServerRequest httpServerRequest, String serverId) {
+        // Before anything else, so that whatever the dispatcher does with this request — the scan,
+        // the resolution, the acceptor lookup — falls inside the window every latency metric covers.
+        // Stamping it in the wrapper's constructor would start the clock once the work is done.
+        final long receivedAt = System.currentTimeMillis();
         //Keep same behavior as in Vertx4 when host was also returning the port.
         //The authority is null when the request has no Host header (nor :authority pseudo-header), as Vertx4 host() was.
         final HostAndPort authority = httpServerRequest.authority();
@@ -172,14 +177,14 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         final boolean needsNormalization = requestPathConfiguration.isEnabled() && RequestPathNormalizer.needsNormalization(rawPath);
 
         if (needsNormalization && requestPathConfiguration.getHandling() == RequestPathHandling.REJECT) {
-            return handleRejectedPath(httpServerRequest, serverId);
+            return handleRejectedPath(httpServerRequest, serverId, receivedAt);
         }
 
         final String normalizedPath = needsNormalization ? RequestPathNormalizer.normalize(rawPath) : rawPath;
 
         // No normalized form at all: the path carries a malformed percent sequence.
         if (normalizedPath == null) {
-            return handleRejectedPath(httpServerRequest, serverId);
+            return handleRejectedPath(httpServerRequest, serverId, receivedAt);
         }
 
         final boolean pathWasNormalized = normalizedPath != rawPath;
@@ -193,7 +198,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         Context vertxContext = VertxContext.createNewDuplicatedContext(vertx.getOrCreateContext());
         if (httpAcceptor == null || httpAcceptor.reactor() == null) {
             log.debug("No acceptor found for host {} and path {}, handling as not found", host, httpServerRequest.path());
-            MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest, serverId);
+            MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest, serverId, null, receivedAt);
             mutableCtx.tracer(
                 new io.gravitee.gateway.reactive.api.tracing.Tracer(vertxContext, gatewayTracingContext.opentelemetryTracer())
             );
@@ -234,17 +239,16 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
             }
         } else if (httpAcceptor.reactor() instanceof ApiReactor<?> apiReactor) {
             log.debug("Request routed to API reactor on path [{}]", httpAcceptor.path());
-            MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest, serverId);
-            if (pathWasNormalized) {
-                // Seed the lazily initialized path so that pathInfo, the flow selectors and the
-                // upstream URI are all derived from the value the acceptor actually matched.
-                // uri() and parameters() keep reading the untouched native request.
-                mutableCtx.request().path(normalizedPath);
-                // Nothing to record here: MetricsProcessor already reports both forms, since it
-                // builds uri from request.uri(), which keeps reading the native request, and
-                // pathInfo from the value seeded above. Received and routed are both accounted
-                // for without a custom metric.
-            }
+            // The path is seeded at construction so that pathInfo, the flow selectors and the
+            // upstream URI all derive from the value the acceptor actually matched. uri() and
+            // parameters() keep reading the untouched native request, and MetricsProcessor reports
+            // both forms from those two — received and routed — with no custom metric needed.
+            MutableExecutionContext mutableCtx = prepareExecutionContext(
+                httpServerRequest,
+                serverId,
+                pathWasNormalized ? normalizedPath : null,
+                receivedAt
+            );
             mutableCtx.request().contextPath(httpAcceptor.path());
             markTracingRoute(vertxContext, httpAcceptor.path());
             TracingContext tracingContext = apiReactor.tracingContext();
@@ -305,7 +309,13 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         }
         // V3 execution mode.
         log.debug("Request routed to V3 handler on path [{}]", httpAcceptor.path());
-        return handleV3Request(httpServerRequest, httpAcceptor, vertxContext, normalizedPath == rawPath ? null : normalizedPath);
+        return handleV3Request(
+                httpServerRequest,
+                httpAcceptor,
+                vertxContext,
+                pathWasNormalized ? normalizedPath : null,
+                receivedAt
+            );
     }
 
     /**
@@ -354,11 +364,20 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         return path.length() > 1 && path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
     }
 
-    private MutableExecutionContext prepareExecutionContext(final HttpServerRequest httpServerRequest, String serverId) {
+    private MutableExecutionContext prepareExecutionContext(
+        final HttpServerRequest httpServerRequest,
+        String serverId,
+        final String path,
+        final long receivedAt
+    ) {
         VertxHttpServerRequest request = new VertxHttpServerRequest(
             httpServerRequest,
             idGenerator,
-            new VertxHttpServerRequest.VertxHttpServerRequestOptions(requestClientAuthConfiguration.getHeaderName())
+            VertxHttpServerRequest.VertxHttpServerRequestOptions.builder()
+                .clientAuthHeaderName(requestClientAuthConfiguration.getHeaderName())
+                .path(path)
+                .timestamp(receivedAt)
+                .build()
         );
 
         MutableExecutionContext ctx = createExecutionContext(request);
@@ -380,8 +399,10 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
      * raw response, so that it is measured and reported like any other request the gateway answers
      * on its own.
      */
-    private Completable handleRejectedPath(final HttpServerRequest httpServerRequest, final String serverId) {
-        final MutableExecutionContext ctx = prepareExecutionContext(httpServerRequest, serverId);
+    private Completable handleRejectedPath(final HttpServerRequest httpServerRequest, final String serverId, final long receivedAt) {
+        // Nothing is rewritten here, so the path stays the one received — which is what the report
+        // has to carry for an operator to see what was actually sent.
+        final MutableExecutionContext ctx = prepareExecutionContext(httpServerRequest, serverId, null, receivedAt);
         ctx.request().contextPath("/");
         final ProcessorChain processorChain = notFoundProcessorChainFactory.rejectedPathProcessorChain();
         return HookHelper.hook(
@@ -409,14 +430,20 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         final HttpServerRequest httpServerRequest,
         final HttpAcceptor handlerEntrypoint,
         final Context vertxContext,
-        final String normalizedPath
+        final String normalizedPath,
+        final long receivedAt
     ) {
         final ReactorHandler reactorHandler = handlerEntrypoint.reactor();
         markTracingRoute(vertxContext, handlerEntrypoint.path());
 
-        // The normalized path is handed over at construction: pathInfo, and therefore the upstream
-        // URI, must derive from the path the acceptor matched rather than from the one received.
-        io.gravitee.gateway.http.vertx.VertxHttpServerRequest request = createV3Request(httpServerRequest, idGenerator, normalizedPath);
+        // Both are handed over at construction: pathInfo, and therefore the upstream URI, must
+        // derive from the path the acceptor matched rather than from the one received; and the
+        // clock must have started before the dispatcher did any of that work.
+        io.gravitee.gateway.http.vertx.VertxHttpServerRequest request = createV3Request(
+            httpServerRequest,
+            idGenerator,
+            VertxHttpServerRequestOptions.builder().path(normalizedPath).timestamp(receivedAt).build()
+        );
 
         // Prepare invocation execution context.
         SimpleExecutionContext simpleExecutionContext = createV3ExecutionContext(httpServerRequest, request);
@@ -503,30 +530,57 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
     }
 
     /**
-     * The single extension point for building the v3 request: subclasses that decorate it must
-     * override this signature, since it is the one {@link #handleV3Request} calls. A convenience
-     * overload without {@code path} would compile in a subclass and never be invoked.
-     *
-     * @param path the path the acceptor matched, or {@code null} to report the one received
+     * @deprecated kept so that anything overriding it keeps compiling — but it is no longer called,
+     *     so an override here decorates nothing. Move to
+     *     {@link #createV3Request(HttpServerRequest, IdGenerator, VertxHttpServerRequestOptions)},
+     *     which is the signature {@link #handleV3Request} invokes and which absorbs new fields
+     *     without ever moving again.
      */
+    @Deprecated
     protected io.gravitee.gateway.http.vertx.VertxHttpServerRequest createV3Request(
         HttpServerRequest httpServerRequest,
         IdGenerator idGenerator,
         String path
     ) {
+        return createV3Request(httpServerRequest, idGenerator, VertxHttpServerRequestOptions.builder().path(path).build());
+    }
+
+    /**
+     * @deprecated see {@link #createV3Request(HttpServerRequest, IdGenerator, String)}.
+     */
+    @Deprecated
+    protected io.gravitee.gateway.http.vertx.VertxHttpServerRequest createV3Request(
+        HttpServerRequest httpServerRequest,
+        IdGenerator idGenerator
+    ) {
+        return createV3Request(httpServerRequest, idGenerator, VertxHttpServerRequestOptions.builder().build());
+    }
+
+    /**
+     * The extension point for building the v3 request: this is the signature
+     * {@link #handleV3Request} calls, and the only one worth overriding to decorate it.
+     *
+     * <p>It takes a single options parameter on purpose, so that a field added later moves nothing
+     * and leaves every subclass and plugin overriding it untouched.
+     */
+    protected io.gravitee.gateway.http.vertx.VertxHttpServerRequest createV3Request(
+        HttpServerRequest httpServerRequest,
+        IdGenerator idGenerator,
+        VertxHttpServerRequestOptions options
+    ) {
         io.gravitee.gateway.http.vertx.VertxHttpServerRequest request;
 
         if (isV3WebSocket(httpServerRequest)) {
-            request = new VertxWebSocketServerRequest(httpServerRequest.getDelegate(), idGenerator, path);
+            request = new VertxWebSocketServerRequest(httpServerRequest.getDelegate(), idGenerator, options);
         } else {
             if (httpServerRequest.version() == HttpVersion.HTTP_2) {
                 if (MediaType.APPLICATION_GRPC.equals(httpServerRequest.getHeader(HttpHeaders.CONTENT_TYPE))) {
-                    request = new VertxGrpcServerRequest(httpServerRequest.getDelegate(), idGenerator, path);
+                    request = new VertxGrpcServerRequest(httpServerRequest.getDelegate(), idGenerator, options);
                 } else {
-                    request = new VertxHttp2ServerRequest(httpServerRequest.getDelegate(), idGenerator, path);
+                    request = new VertxHttp2ServerRequest(httpServerRequest.getDelegate(), idGenerator, options);
                 }
             } else {
-                request = new io.gravitee.gateway.http.vertx.VertxHttpServerRequest(httpServerRequest.getDelegate(), idGenerator, path);
+                request = new io.gravitee.gateway.http.vertx.VertxHttpServerRequest(httpServerRequest.getDelegate(), idGenerator, options);
             }
         }
 
