@@ -88,6 +88,26 @@ public class PortalCrudServiceImpl implements PortalCrudService {
     }
 
     @Override
+    public List<Portal> findByActiveThemeIdAndEnvironmentId(String activeThemeId, String environmentId) {
+        try {
+            return portalRepository
+                .findByActiveThemeIdAndEnvironmentId(activeThemeId, environmentId)
+                .stream()
+                .map(portalAdapter::toEntity)
+                .toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format(
+                    "An error occurred while trying to find Portals by active theme id (%s) and environment (%s)",
+                    activeThemeId,
+                    environmentId
+                ),
+                e
+            );
+        }
+    }
+
+    @Override
     public void delete(PortalId portalId) {
         try {
             portalRepository.delete(portalId.toString());

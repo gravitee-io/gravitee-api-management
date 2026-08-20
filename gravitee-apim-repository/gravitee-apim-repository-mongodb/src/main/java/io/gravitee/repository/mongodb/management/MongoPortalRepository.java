@@ -55,6 +55,11 @@ public class MongoPortalRepository implements PortalRepository {
     }
 
     @Override
+    public List<Portal> findByActiveThemeIdAndEnvironmentId(String activeThemeId, String environmentId) throws TechnicalException {
+        return mapper.mapPortals(internalPortalRepo.findByActiveThemeIdAndEnvironmentId(activeThemeId, environmentId));
+    }
+
+    @Override
     public void deleteByEnvironmentId(String environmentId) throws TechnicalException {
         try {
             internalPortalRepo.deleteByEnvironmentId(environmentId);

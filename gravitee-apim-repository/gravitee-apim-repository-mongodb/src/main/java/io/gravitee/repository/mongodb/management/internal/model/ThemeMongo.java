@@ -64,4 +64,6 @@ public class ThemeMongo {
     private String loader;
 
     private String favicon;
+
+    private io.gravitee.repository.management.model.ThemeAutomationMetadata automationMetadata;
 }

@@ -18,6 +18,7 @@ package io.gravitee.repository.jdbc.management;
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static java.util.stream.Collectors.toSet;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
@@ -25,6 +26,7 @@ import io.gravitee.repository.management.api.ThemeRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.ThemeCriteria;
 import io.gravitee.repository.management.model.Theme;
+import io.gravitee.repository.management.model.ThemeAutomationMetadata;
 import io.gravitee.repository.management.model.ThemeReferenceType;
 import io.gravitee.repository.management.model.ThemeType;
 import java.sql.PreparedStatement;
@@ -44,6 +46,8 @@ import org.springframework.stereotype.Repository;
 @CustomLog
 @Repository
 public class JdbcThemeRepository extends JdbcAbstractCrudRepository<Theme, String> implements ThemeRepository {
+
+    private static final ObjectMapper JSON = new ObjectMapper();
 
     JdbcThemeRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "themes");
@@ -65,7 +69,30 @@ public class JdbcThemeRepository extends JdbcAbstractCrudRepository<Theme, Strin
             .addColumn("optional_logo", Types.NVARCHAR, String.class)
             .addColumn("background_image", Types.NVARCHAR, String.class)
             .addColumn("favicon", Types.NVARCHAR, String.class)
+            .addColumn(
+                "automation_metadata",
+                Types.NCLOB,
+                ThemeAutomationMetadata.class,
+                JdbcThemeRepository::serializeAutomationMetadata,
+                JdbcThemeRepository::deserializeAutomationMetadata
+            )
             .build();
+    }
+
+    static String serializeAutomationMetadata(ThemeAutomationMetadata meta) {
+        try {
+            return JSON.writeValueAsString(meta);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to serialize automation metadata", e);
+        }
+    }
+
+    static ThemeAutomationMetadata deserializeAutomationMetadata(String json) {
+        try {
+            return JSON.readValue(json, ThemeAutomationMetadata.class);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to deserialize automation metadata", e);
+        }
     }
 
     @Override

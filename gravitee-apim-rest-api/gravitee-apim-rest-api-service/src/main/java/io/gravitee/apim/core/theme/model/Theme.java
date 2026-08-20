@@ -43,6 +43,8 @@ public class Theme {
     private String favicon;
     private String backgroundImage;
 
+    private ThemeAutomationMetadata automationMetadata;
+
     public enum ReferenceType {
         ENVIRONMENT,
     }

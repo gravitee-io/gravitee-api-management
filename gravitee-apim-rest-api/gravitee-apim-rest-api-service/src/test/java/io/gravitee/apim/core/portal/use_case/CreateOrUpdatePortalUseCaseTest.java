@@ -26,6 +26,8 @@ import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
+import inmemory.ThemeCrudServiceInMemory;
+import inmemory.ThemeQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -42,6 +44,9 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncD
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.theme.domain_service.CurrentThemeDomainService;
+import io.gravitee.apim.core.theme.model.Theme;
+import io.gravitee.apim.core.theme.model.ThemeType;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,6 +73,8 @@ class CreateOrUpdatePortalUseCaseTest {
     private final PortalPageContentCrudServiceInMemory pageContentCrudService = new PortalPageContentCrudServiceInMemory();
     private final PortalPageContentQueryServiceInMemory pageContentQueryService = new PortalPageContentQueryServiceInMemory();
     private final PortalListingCrudServiceInMemory portalListingCrudService = new PortalListingCrudServiceInMemory();
+    private final ThemeCrudServiceInMemory themeCrudService = new ThemeCrudServiceInMemory();
+    private final ThemeQueryServiceInMemory themeQueryService = new ThemeQueryServiceInMemory(themeCrudService);
     private CreateOrUpdatePortalUseCase useCase;
 
     @BeforeEach
@@ -87,7 +94,9 @@ class CreateOrUpdatePortalUseCaseTest {
                 new HomepageReconciler(navQueryService, navCrudService, pageContentCrudService),
                 mock(PortalNavigationItemValidatorService.class)
             ),
-            scopeEnforcer
+            scopeEnforcer,
+            themeCrudService,
+            new CurrentThemeDomainService(themeQueryService, themeCrudService)
         );
     }
 
@@ -294,5 +303,76 @@ class CreateOrUpdatePortalUseCaseTest {
         var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal));
 
         assertThat(output.portal()).isEqualTo(portal);
+    }
+
+    @Test
+    void should_wire_active_theme_and_enable_it_when_active_theme_hrid_set() {
+        var themeHrid = "brand-theme";
+        var themeId = io.gravitee.rest.api.service.common.HRIDToUUID.portalTheme().context(AUDIT_INFO).hrid(themeHrid).id();
+        var otherThemeId = "11111111-1111-1111-1111-111111111111";
+        themeCrudService.initWith(
+            List.of(
+                io.gravitee.apim.core.theme.model.Theme.builder()
+                    .id(themeId)
+                    .name("Brand")
+                    .type(io.gravitee.apim.core.theme.model.ThemeType.PORTAL_NEXT)
+                    .referenceType(io.gravitee.apim.core.theme.model.Theme.ReferenceType.ENVIRONMENT)
+                    .referenceId(AUDIT_INFO.environmentId())
+                    .enabled(false)
+                    .build(),
+                io.gravitee.apim.core.theme.model.Theme.builder()
+                    .id(otherThemeId)
+                    .name("Other")
+                    .type(io.gravitee.apim.core.theme.model.ThemeType.PORTAL_NEXT)
+                    .referenceType(io.gravitee.apim.core.theme.model.Theme.ReferenceType.ENVIRONMENT)
+                    .referenceId(AUDIT_INFO.environmentId())
+                    .enabled(true)
+                    .build()
+            )
+        );
+        var portal = PortalFixtures.aPortal();
+
+        var output = useCase.execute(
+            new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal, PortalNavigationStructure.empty(), themeHrid)
+        );
+
+        assertThat(output.portal().getActiveThemeId()).isEqualTo(themeId);
+        assertThat(themeCrudService.storage())
+            .filteredOn(t -> t.getId().equals(themeId))
+            .singleElement()
+            .extracting(t -> t.isEnabled())
+            .isEqualTo(true);
+        assertThat(themeCrudService.storage())
+            .filteredOn(t -> t.getId().equals(otherThemeId))
+            .singleElement()
+            .extracting(t -> t.isEnabled())
+            .isEqualTo(false);
+    }
+
+    @Test
+    void should_clear_active_theme_and_disable_previous_when_hrid_not_provided() {
+        var existingActiveThemeId = "22222222-2222-2222-2222-222222222222";
+        var portal = PortalFixtures.aPortal();
+        portalCrudService.initWith(List.of(portal.withActiveThemeId(existingActiveThemeId)));
+        themeCrudService.initWith(
+            List.of(
+                Theme.builder()
+                    .id(existingActiveThemeId)
+                    .type(ThemeType.PORTAL_NEXT)
+                    .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                    .referenceId(AUDIT_INFO.environmentId())
+                    .enabled(true)
+                    .build()
+            )
+        );
+
+        var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal));
+
+        assertThat(output.portal().getActiveThemeId()).isNull();
+        assertThat(themeCrudService.storage())
+            .filteredOn(t -> t.getId().equals(existingActiveThemeId))
+            .singleElement()
+            .extracting(Theme::isEnabled)
+            .isEqualTo(false);
     }
 }

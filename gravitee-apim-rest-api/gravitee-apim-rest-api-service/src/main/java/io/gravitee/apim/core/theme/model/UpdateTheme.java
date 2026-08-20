@@ -37,4 +37,6 @@ public class UpdateTheme {
     private String optionalLogo;
     private String favicon;
     private String backgroundImage;
+
+    private ThemeAutomationMetadata automationMetadata;
 }
