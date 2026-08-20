@@ -517,6 +517,28 @@ class ObservabilityLogsDataPortAdapterTest {
         }
 
         @Test
+        void should_translate_kafka_client_id_filter() {
+            stubEmptySearchResult();
+            var query = queryWith(new FilterCondition("NATIVE_CLIENT_ID", FilterOperator.IN, List.of("rdkafka", "adminclient-1")));
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().nativeClientIds()).containsExactlyInAnyOrder("rdkafka", "adminclient-1");
+        }
+
+        @Test
+        void should_translate_kafka_client_library_filter() {
+            stubEmptySearchResult();
+            // 'unknown' is a selectable population, not an absence: it is every client that advertised
+            // no library (KafkaJS, anything on ApiVersions v0-v2).
+            var query = queryWith(new FilterCondition("NATIVE_CLIENT_SOFTWARE_NAME", FilterOperator.IN, List.of("librdkafka", "unknown")));
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().nativeClientSoftwareNames()).containsExactlyInAnyOrder("librdkafka", "unknown");
+        }
+
+        @Test
         void should_translate_failure_origin_filter() {
             stubEmptySearchResult();
             var query = queryWith(new FilterCondition("FAILURE_ORIGIN", FilterOperator.IN, List.of("GATEWAY_TO_BROKER", "NONE")));

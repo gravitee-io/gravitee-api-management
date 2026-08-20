@@ -200,7 +200,20 @@ public enum StaticFilters {
         Set.of(ApiType.NATIVE)
     ),
     /** Kafka {@code client.id} — the only attribution left once a connection fails before authenticating. */
-    NATIVE_CLIENT_ID("Kafka Client ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.NATIVE)),
+    NATIVE_CLIENT_ID("Kafka Client ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.NATIVE)),
+    /**
+     * KIP-511 client library name, e.g. {@code librdkafka} or {@code apache-kafka-java}. Answers the
+     * fleet question ("who is still on this client?"); the version is not a filter of its own because
+     * comparing versions is a range over an unordered keyword.
+     *
+     * <p>Values include the literal {@code unknown} the gateway writes for a client that advertised
+     * none — that is a real population to be able to select, not an absence.
+     *
+     * <p>LOGS-only, like {@link #FAILURE_ORIGIN}: the analytics definition does not declare this
+     * dimension yet, and advertising an ANALYTICS filter the engine cannot translate would accept a
+     * request and then quietly drop the predicate.
+     */
+    NATIVE_CLIENT_SOFTWARE_NAME("Kafka Client Library", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Set.of(ApiType.NATIVE)),
     /**
      * Dimensions of the Kafka event metrics, ANALYTICS-only: they live in the {@code event-metrics} data
      * stream, which the logs signal does not read. Both are KEYWORD rather than ENUM — a topic name

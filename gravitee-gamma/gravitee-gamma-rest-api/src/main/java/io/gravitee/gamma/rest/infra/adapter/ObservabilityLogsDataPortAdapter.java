@@ -329,6 +329,8 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         Set<String> nativeConnectionStatuses = new HashSet<>();
         Set<String> failureOrigins = new HashSet<>();
         Set<String> tenants = new HashSet<>();
+        Set<String> nativeClientIds = new HashSet<>();
+        Set<String> nativeClientSoftwareNames = new HashSet<>();
         String uri = null;
         List<Range> responseTimeRanges = new ArrayList<>();
         var responseTimeAccumulator = new NumericRangeAccumulator<Long>("HTTP_GATEWAY_RESPONSE_TIME");
@@ -365,6 +367,8 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                 case "MCP_PROXY_RESOURCE" -> mcpProxyResources.addAll(values);
                 case "MCP_PROXY_PROMPT" -> mcpProxyPrompts.addAll(values);
                 case "NATIVE_CONNECTION_STATUS" -> nativeConnectionStatuses.addAll(values);
+                case "NATIVE_CLIENT_ID" -> nativeClientIds.addAll(values);
+                case "NATIVE_CLIENT_SOFTWARE_NAME" -> nativeClientSoftwareNames.addAll(values);
                 case "FAILURE_ORIGIN" -> failureOrigins.addAll(values);
                 case "REQUEST_ID" -> requestIds.addAll(values);
                 case "TRANSACTION_ID" -> transactionIds.addAll(values);
@@ -413,6 +417,8 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         builder.mcpProxyResources(mcpProxyResources);
         builder.mcpProxyPrompts(mcpProxyPrompts);
         builder.nativeConnectionStatuses(nativeConnectionStatuses);
+        builder.nativeClientIds(nativeClientIds);
+        builder.nativeClientSoftwareNames(nativeClientSoftwareNames);
         builder.failureOrigins(failureOrigins);
         builder.tenants(tenants);
         builder.uri(uri);
