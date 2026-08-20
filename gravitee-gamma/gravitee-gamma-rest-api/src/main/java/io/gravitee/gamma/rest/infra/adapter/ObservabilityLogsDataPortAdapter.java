@@ -578,6 +578,8 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .connectionStatus(nativeMetrics.connectionStatus())
             .failureOrigin(nativeMetrics.failureOrigin(log.getErrorKey()))
             .clientId(nativeMetrics.clientId())
+            .clientSoftwareName(nativeMetrics.clientSoftwareName())
+            .clientSoftwareVersion(nativeMetrics.clientSoftwareVersion())
             .brokerId(nativeMetrics.brokerId())
             .connectionDurationMs(nativeMetrics.connectionDurationMs())
             .build();

@@ -46,6 +46,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.logs.model.ApiReference;
 import io.gravitee.gamma.rest.core.observability.logs.model.FailureOrigin;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
+import io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
@@ -134,6 +135,57 @@ class ObservabilityLogsDataPortAdapterTest {
         assertThat(page.data()).hasSize(1);
         assertThat(page.data().getFirst().apiType()).isEqualTo("HTTP_PROXY");
         assertThat(page.data().getFirst().apiName()).isEqualTo("API 1");
+    }
+
+    @Test
+    void should_hoist_the_kafka_client_software_onto_log_rows() {
+        // The table offers a "Client library" column, so the light row has to carry the two fields —
+        // not only the detail. They live in additional-metrics, like the client id already hoisted here.
+        when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
+            new SearchLogsResponse<>(
+                1,
+                List.of(
+                    BaseConnectionLog.builder()
+                        .apiId("api-1")
+                        .additionalMetrics(
+                            Map.of(
+                                NativeApiMetricKeys.CLIENT_ID,
+                                "rdkafka",
+                                NativeApiMetricKeys.CLIENT_SOFTWARE_NAME,
+                                "librdkafka",
+                                NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION,
+                                "2.6.1"
+                            )
+                        )
+                        .build()
+                )
+            )
+        );
+
+        var row = adapter.searchLogs(ORG, ENV, queryWith()).data().getFirst();
+
+        assertThat(row.clientId()).isEqualTo("rdkafka");
+        assertThat(row.clientSoftwareName()).isEqualTo("librdkafka");
+        assertThat(row.clientSoftwareVersion()).isEqualTo("2.6.1");
+    }
+
+    @Test
+    void should_leave_the_client_software_null_on_a_row_written_before_the_gateway_read_it() {
+        // Distinct from the "unknown" sentinel a client advertises: here the gateway never wrote the
+        // fields, and the UI must be able to drop the cell rather than render a misleading value.
+        when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
+            new SearchLogsResponse<>(
+                1,
+                List.of(
+                    BaseConnectionLog.builder().apiId("api-1").additionalMetrics(Map.of(NativeApiMetricKeys.CLIENT_ID, "rdkafka")).build()
+                )
+            )
+        );
+
+        var row = adapter.searchLogs(ORG, ENV, queryWith()).data().getFirst();
+
+        assertThat(row.clientSoftwareName()).isNull();
+        assertThat(row.clientSoftwareVersion()).isNull();
     }
 
     @Nested
