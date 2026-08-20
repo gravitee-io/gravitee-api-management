@@ -594,10 +594,13 @@ paths:
                 than resolved to one of them. Decision rows carry the `authz` object and omit the
                 request-shaped fields; request rows carry neither.
 
-                The decision search accepts `API`, `API_TYPE`, `DECISION` and the time range. Any
-                other condition sent alongside `RECORD_TYPE=AUTHZ_DECISION` is rejected with 400
-                rather than accepted and ignored, so an applied filter is never indistinguishable
-                from an unfiltered result.
+                The decision search accepts `API`, `API_TYPE`, the time range, and the decision
+                vocabulary: `DECISION`, `SUBJECT`, `ACTION`, `RESOURCE`, `CALLER_KIND`, `STATUS`,
+                `OPERATION`, `PDP`, `MATCHED_POLICY`, `REASON`, `POLICY_VERSION` and `REQUEST_ID`.
+                `REASON` takes `CONTAINS` (a reason is a sentence, so equality is unusable); the rest
+                take `EQ`/`IN`. Any other condition sent alongside `RECORD_TYPE=AUTHZ_DECISION` is
+                rejected with 400 rather than accepted and ignored, so an applied filter is never
+                indistinguishable from an unfiltered result.
 
                 **Default entrypoint scoping**: when no explicit `ENTRYPOINT` filter is supplied,
                 the server injects the canonical HTTP entrypoints (`http-get`, `http-post`,

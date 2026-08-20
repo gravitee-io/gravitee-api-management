@@ -16,6 +16,7 @@
 package io.gravitee.repository.elasticsearch.v4.log.adapter.authz;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.json;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -204,5 +205,75 @@ class SearchAuthzDecisionLogsQueryAdapterTest {
         var query = AuthzDecisionLogQuery.builder().apiIds(Set.of("api-1")).size(AuthzDecisionLogQuery.MAX_SIZE).build();
 
         assertThatCode(query::validate).doesNotThrowAnyException();
+    }
+
+    @Test
+    void narrows_on_status_operation_pdp_generation_and_request_id() {
+        var query = AuthzDecisionLogQuery.builder()
+            .apiIds(Set.of("api-1"))
+            .statuses(Set.of("error"))
+            .operations(Set.of("search"))
+            .targetPdpIds(Set.of("default"))
+            .policyGenerations(Set.of("9"))
+            .requestIds(Set.of("req-1"))
+            .build();
+
+        var result = SearchAuthzDecisionLogsQueryAdapter.adapt(query);
+
+        // By content, not by array position: clause order carries no meaning inside a bool filter, so
+        // positional assertions would break on a harmless reorder and pass on a wrong field name.
+        assertThatJson(result).inPath("$.query.bool.filter").isArray().contains(json("{ \"terms\": { \"status\": [ \"error\" ] } }"));
+        assertThatJson(result).inPath("$.query.bool.filter").isArray().contains(json("{ \"terms\": { \"operation\": [ \"search\" ] } }"));
+        assertThatJson(result)
+            .inPath("$.query.bool.filter")
+            .isArray()
+            .contains(json("{ \"terms\": { \"target-pdp-id\": [ \"default\" ] } }"));
+        assertThatJson(result)
+            .inPath("$.query.bool.filter")
+            .isArray()
+            .contains(json("{ \"terms\": { \"policy-generation\": [ \"9\" ] } }"));
+        assertThatJson(result).inPath("$.query.bool.filter").isArray().contains(json("{ \"terms\": { \"request-id\": [ \"req-1\" ] } }"));
+    }
+
+    @Test
+    void wraps_the_matched_policy_clause_in_a_nested_query() {
+        var query = AuthzDecisionLogQuery.builder().apiIds(Set.of("api-1")).matchedPolicyNames(Set.of("forbid-delete")).build();
+
+        var result = SearchAuthzDecisionLogsQueryAdapter.adapt(query);
+
+        // Nested objects are separate Lucene documents: without the wrapper this matches nothing.
+        assertThatJson(result).inPath("$.query.bool.filter[2].nested.path").isEqualTo("\"matched-policies\"");
+        assertThatJson(result)
+            .inPath("$.query.bool.filter[2].nested.query.terms['matched-policies.name']")
+            .isEqualTo(
+                """
+                [ "forbid-delete" ]
+                """
+            );
+    }
+
+    @Test
+    void matches_a_reason_on_a_fragment_rather_than_the_whole_sentence() {
+        var query = AuthzDecisionLogQuery.builder().apiIds(Set.of("api-1")).reasonContains("forbid-delete").build();
+
+        var result = SearchAuthzDecisionLogsQueryAdapter.adapt(query);
+
+        assertThatJson(result)
+            .inPath("$.query.bool.filter")
+            .isArray()
+            .contains(json("{ \"wildcard\": { \"reasons\": { \"value\": \"*forbid-delete*\", \"case_insensitive\": true } } }"));
+    }
+
+    @Test
+    void escapes_wildcard_syntax_so_a_reason_needle_cannot_widen_the_search() {
+        var query = AuthzDecisionLogQuery.builder().apiIds(Set.of("api-1")).reasonContains("a*b?c").build();
+
+        var result = SearchAuthzDecisionLogsQueryAdapter.adapt(query);
+
+        // Unescaped, "*" would match every reason while the caller still sees an active filter.
+        assertThatJson(result)
+            .inPath("$.query.bool.filter")
+            .isArray()
+            .contains(json("{ \"wildcard\": { \"reasons\": { \"value\": \"*a\\\\*b\\\\?c*\", \"case_insensitive\": true } } }"));
     }
 }

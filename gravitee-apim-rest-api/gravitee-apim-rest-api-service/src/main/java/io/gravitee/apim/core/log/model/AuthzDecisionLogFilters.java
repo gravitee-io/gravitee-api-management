@@ -32,5 +32,12 @@ public record AuthzDecisionLogFilters(
     Set<String> subjectIds,
     Set<String> actions,
     Set<String> resourceIds,
-    Set<String> callers
+    Set<String> callers,
+    Set<String> statuses,
+    Set<String> operations,
+    Set<String> targetPdpIds,
+    Set<String> matchedPolicyNames,
+    Set<String> policyGenerations,
+    Set<String> requestIds,
+    String reasonContains
 ) {}

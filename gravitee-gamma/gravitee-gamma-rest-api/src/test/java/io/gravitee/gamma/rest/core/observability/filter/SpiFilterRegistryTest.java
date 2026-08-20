@@ -98,8 +98,24 @@ class SpiFilterRegistryTest {
 
         assertThat(result)
             .extracting(FilterSpec::name)
-            .containsExactlyInAnyOrder("API", "DECISION", "SUBJECT", "ACTION", "RESOURCE", "CALLER_KIND")
-            .doesNotContain("API_TYPE", "RECORD_TYPE", "ENTRYPOINT", "REQUEST_ID", "HTTP_STATUS", "PAYLOAD");
+            .containsExactlyInAnyOrder(
+                "API",
+                "DECISION",
+                "SUBJECT",
+                "ACTION",
+                "RESOURCE",
+                "CALLER_KIND",
+                "STATUS",
+                "OPERATION",
+                "PDP",
+                "MATCHED_POLICY",
+                "REASON",
+                "POLICY_VERSION",
+                // A decision carries the request id of the call it guarded, so this is the join back
+                // to that call's HTTP log. It was absent here only until the search could apply it.
+                "REQUEST_ID"
+            )
+            .doesNotContain("API_TYPE", "RECORD_TYPE", "ENTRYPOINT", "HTTP_STATUS", "PAYLOAD");
     }
 
     @Test

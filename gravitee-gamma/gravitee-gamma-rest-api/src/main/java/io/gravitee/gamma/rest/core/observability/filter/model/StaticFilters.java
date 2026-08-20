@@ -39,9 +39,12 @@ import java.util.Set;
  * {@code HTTP_PATH_MAPPING} is an analytics facet, not a filter, so neither appears here.
  *
  * <p>Operators advertised here are restricted to what the v4 analytics/logs engines actually
- * translate today: {@code EQ, IN} for KEYWORD/ENUM, {@code EQ} for STRING (except
- * {@link #PAYLOAD}, logs-only, which supports {@code CONTAINS}), and {@code EQ, GTE, LTE} for
- * NUMBER. {@code NOT_IN} is intentionally absent until a translator supports it.
+ * translate today: {@code EQ, IN} for KEYWORD/ENUM and for the identifier-shaped STRING filters
+ * ({@link #PDP}, {@link #MATCHED_POLICY}), {@code EQ} for the free-text ones, {@code CONTAINS} where
+ * a fragment is the only usable input ({@link #PAYLOAD}, {@link #REASON}), {@code EQ, GTE, LTE} for
+ * measured NUMBER filters and {@code EQ, IN} for {@link #POLICY_VERSION}, which is a discrete
+ * generation rather than a measurement. {@code NOT_IN} is intentionally absent until a translator
+ * supports it.
  *
  * <p>{@code signals} reflect what is served today (logs + analytics); traces join in a later lot.
  * The trace explorer keeps its own separate registry, so the signal sets here are unaffected by it.
@@ -110,7 +113,7 @@ public enum StaticFilters {
     HTTP_USER_AGENT_OS_NAME("User Agent OS", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     HTTP_USER_AGENT_DEVICE("User Agent Device", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     ERROR_KEY("Error Key", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP_A2A_NATIVE),
-    REQUEST_ID("Request ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A_NATIVE),
+    REQUEST_ID("Request ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.REQUEST_BEARING_KINDS),
     TRANSACTION_ID("Transaction ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A_NATIVE),
     PAYLOAD("Payload content", FilterType.STRING, Defs.CONTAINS_ONLY, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A),
 
@@ -123,6 +126,20 @@ public enum StaticFilters {
     ACTION("Action", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
     RESOURCE("Resource", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
     CALLER_KIND("Caller kind", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_CALLERS, null, Defs.LOGS, Defs.DECISION_RECORDS),
+    STATUS("Outcome status", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_STATUSES, null, Defs.LOGS, Defs.DECISION_RECORDS),
+    OPERATION("Operation", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_OPERATIONS, null, Defs.LOGS, Defs.DECISION_RECORDS),
+    // STRING for the same reason as SUBJECT above: KEYWORD promises a value list, and the filter
+    // data port only serves that for the fields it knows. A PDP id is an open set, so the picker
+    // would ask for values, get a 400, and sit on "Loading..." forever.
+    PDP("PDP Gateway", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
+    MATCHED_POLICY("Matched policy", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
+    // CONTAINS, unlike the exact-match filters above: a reason is a sentence ("Permitted by policy
+    // 'x'"), so equality would force the user to retype it verbatim. The field is a low-cardinality
+    // keyword, which keeps the wildcard cheap.
+    REASON("Reason", FilterType.STRING, Defs.CONTAINS_ONLY, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
+    // Exact generations only. "Before/after a policy change" is the time range's job, and range
+    // support here would mean threading operators through a query model that carries none.
+    POLICY_VERSION("Policy version", FilterType.NUMBER, Defs.EQ_IN, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
 
     // --- LLM ------------------------------------------------------------------------------------
     LLM_PROXY_MODEL("LLM Model", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.LLM)),
@@ -271,6 +288,20 @@ public enum StaticFilters {
         private static final Set<ApiType> GATEWAY_TYPES = Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.A2A, ApiType.EDGE);
         private static final Set<ApiType> DECISION_RECORDS = Set.of(ApiType.AUTHZ_DECISION);
 
+        /**
+         * Every kind whose rows carry a request id, decisions included. Named rather than
+         * {@link ApiType#ALL}: that would also advertise the filter for MESSAGE and EDGE, which the
+         * logs search does not serve.
+         */
+        private static final Set<ApiType> REQUEST_BEARING_KINDS = Set.of(
+            ApiType.HTTP_PROXY,
+            ApiType.LLM,
+            ApiType.MCP,
+            ApiType.A2A,
+            ApiType.NATIVE,
+            ApiType.AUTHZ_DECISION
+        );
+
         private static final List<EnumValue> HTTP_METHODS = List.of(
             self("CONNECT"),
             self("DELETE"),
@@ -330,6 +361,17 @@ public enum StaticFilters {
             new EnumValue("gateway", "Gateway"),
             new EnumValue("authzen", "AuthZEN endpoint"),
             new EnumValue("unknown", "Unknown")
+        );
+
+        private static final List<EnumValue> AUTHZ_STATUSES = List.of(
+            new EnumValue("success", "Success"),
+            new EnumValue("error", "Error"),
+            new EnumValue("not-ready", "Not ready")
+        );
+
+        private static final List<EnumValue> AUTHZ_OPERATIONS = List.of(
+            new EnumValue("evaluate", "Evaluation"),
+            new EnumValue("search", "Search")
         );
 
         private static final List<EnumValue> DECISIONS = List.of(
