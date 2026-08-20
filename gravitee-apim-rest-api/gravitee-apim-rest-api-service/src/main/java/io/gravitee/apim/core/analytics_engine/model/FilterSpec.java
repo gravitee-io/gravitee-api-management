@@ -105,6 +105,7 @@ public record FilterSpec(
         NATIVE_CONNECTION_STATUS,
         NATIVE_FAILURE_SIDE,
         NATIVE_CLIENT_ID,
+        NATIVE_CLIENT_SOFTWARE_NAME,
         NATIVE_TOPIC,
         NATIVE_OPERATION,
         URI,
