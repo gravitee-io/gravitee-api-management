@@ -49,7 +49,7 @@ jest.mock('../features/groups/hooks/useGroupRoles');
 jest.mock('../features/groups/hooks/useGroupMutations');
 jest.mock('../features/groups/hooks/useCurrentUserGroupAdmin');
 jest.mock('../shared/notify', () => ({
-    notify: { success: jest.fn(), error: jest.fn() },
+    notify: { success: jest.fn(), error: jest.fn(), warning: jest.fn() },
 }));
 
 // Stub the nested DataTable-backed components to avoid jsdom/Radix DataTable complexity;
@@ -731,10 +731,7 @@ describe('GroupDetailPage', () => {
             fireEvent.click(screen.getByRole('button', { name: 'Submit remove' }));
 
             await waitFor(() =>
-                expect(notify.error).toHaveBeenCalledWith(
-                    expect.any(Error),
-                    'Primary ownership must be transferred before removing this member',
-                ),
+                expect(notify.warning).toHaveBeenCalledWith('Primary ownership must be transferred before removing this member'),
             );
             expect(removeMutateAsync).not.toHaveBeenCalled();
             expect(screen.getByTestId('remove-member-dialog')).not.toBeNull();

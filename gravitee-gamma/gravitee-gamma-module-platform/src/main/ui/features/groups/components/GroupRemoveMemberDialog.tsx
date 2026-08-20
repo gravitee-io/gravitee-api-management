@@ -44,7 +44,7 @@ function GroupRemoveMemberDialogContent({ open, member, members, groupName, onCl
     const [successor, setSuccessor] = useState<GroupMember | null>(null);
     const [isRemoving, startRemoveTransition] = useTransition();
 
-    const primaryOwnerScopes = useMemo(() => primaryOwnerScopesOf(member), [member]);
+    const primaryOwnerScopes = primaryOwnerScopesOf(member);
     const isPrimaryOwner = primaryOwnerScopes.length > 0;
     const candidates = useMemo(() => sortedSuccessorCandidates(members, member?.id), [members, member]);
 
@@ -94,7 +94,7 @@ function GroupRemoveMemberDialogContent({ open, member, members, groupName, onCl
             onConfirm={handleConfirm}
         >
             {isPrimaryOwner && (
-                <div className="space-y-3 px-6">
+                <div className="space-y-3">
                     <MemberSuccessorCombobox
                         id="remove-member-successor"
                         candidates={candidates}

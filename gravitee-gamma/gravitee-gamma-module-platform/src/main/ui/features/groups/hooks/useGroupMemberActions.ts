@@ -111,9 +111,9 @@ export function useGroupMemberActions(groupId: string | undefined) {
         }
     }
 
-    async function transferPrimaryOwnership(groupId: string, transferMembership: GroupMembershipPayload): Promise<boolean> {
+    async function transferPrimaryOwnership(id: string, transferMembership: GroupMembershipPayload): Promise<boolean> {
         try {
-            await addMembersMutation.mutateAsync({ groupId, memberships: [transferMembership] });
+            await addMembersMutation.mutateAsync({ groupId: id, memberships: [transferMembership] });
             return true;
         } catch (error) {
             notify.error(error, 'Primary ownership could not be transferred');
@@ -126,10 +126,7 @@ export function useGroupMemberActions(groupId: string | undefined) {
 
         const requiresOwnershipTransfer = primaryOwnerScopesOf(removingMember).length > 0;
         if (requiresOwnershipTransfer && !transferMembership) {
-            notify.error(
-                new Error('A successor is required when removing a primary owner'),
-                'Primary ownership must be transferred before removing this member',
-            );
+            notify.warning('Primary ownership must be transferred before removing this member');
             return;
         }
 
