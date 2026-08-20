@@ -37,6 +37,7 @@ import {
     type AlertMetricDefinition,
 } from '../constants/alertConstants';
 import type { AlertConditionType, AlertFormCondition, AlertOperator, AlertStringOperator } from '../types';
+import { conditionWithType } from '../utils/alertConditionComplete';
 import { ALERT_POSITIVE_NUMBER_MIN, nextAlertPositiveNumber } from '../utils/alertPositiveNumber';
 
 interface Props {
@@ -51,11 +52,15 @@ export function FilterRow({ filter, index, metrics, onChange, onRemove }: Props)
     const selectedMetric = filter.property ?? metrics[0]?.key ?? '';
     const isStr = isStringMetric(selectedMetric);
     const availableTypes = getConditionTypesForMetric(selectedMetric, metrics);
-    const condType: AlertConditionType = filter.type && availableTypes.includes(filter.type) ? filter.type : availableTypes[0];
+    const condType: AlertConditionType =
+        availableTypes.length === 0 || availableTypes.includes(filter.type) ? filter.type : (availableTypes[0] ?? filter.type);
 
     const handleMetricChange = (val: string) => {
         const newTypes = getConditionTypesForMetric(val, metrics);
         const nextType = newTypes[0];
+        if (!nextType) {
+            return;
+        }
         const defaultOperator = isStringMetric(val) || nextType === 'STRING' ? 'EQUALS' : 'GT';
         onChange(index, {
             ...filter,
@@ -104,17 +109,7 @@ export function FilterRow({ filter, index, metrics, onChange, onRemove }: Props)
                             <Select
                                 value={condType}
                                 onValueChange={(val: AlertConditionType) =>
-                                    onChange(index, {
-                                        ...filter,
-                                        type: val,
-                                        operator: val === 'STRING' ? 'EQUALS' : val === 'THRESHOLD' || val === 'COMPARE' ? 'GT' : undefined,
-                                        threshold: undefined,
-                                        thresholdLow: undefined,
-                                        thresholdHigh: undefined,
-                                        pattern: undefined,
-                                        property2: undefined,
-                                        multiplier: undefined,
-                                    })
+                                    onChange(index, conditionWithType(filter, val, metrics[0]?.key))
                                 }
                             >
                                 <SelectTrigger>
@@ -235,10 +230,7 @@ export function FilterRow({ filter, index, metrics, onChange, onRemove }: Props)
                         </div>
                         <div className="space-y-1.5">
                             <Label className="text-xs">Property to compare</Label>
-                            <Select
-                                value={filter.property2 || metrics[0]?.key}
-                                onValueChange={val => onChange(index, { ...filter, property2: val })}
-                            >
+                            <Select value={filter.property2} onValueChange={val => onChange(index, { ...filter, property2: val })}>
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>

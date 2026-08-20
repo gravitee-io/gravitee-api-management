@@ -109,11 +109,16 @@ export function AlertsPage() {
         enabled: !!environmentId,
     });
 
+    const listKey = platformAlertKeys.list(environmentId);
+
     const toggleMutation = useMutation({
         mutationFn: (alert: AlertTrigger) => updatePlatformAlert(environmentId, { ...alert, enabled: !alert.enabled }),
         onSuccess: updated => {
-            queryClient.invalidateQueries({ queryKey: platformAlertKeys.list(environmentId) });
+            queryClient.setQueryData<AlertTrigger[]>(listKey, previous =>
+                previous?.map(alert => (alert.id === updated.id ? { ...alert, enabled: updated.enabled } : alert)),
+            );
             notify.success(updated.enabled ? `Alert "${updated.name}" enabled.` : `Alert "${updated.name}" disabled.`);
+            void queryClient.invalidateQueries({ queryKey: listKey });
         },
         onError: error => {
             notify.error(error, 'Failed to update alert.');
@@ -121,7 +126,12 @@ export function AlertsPage() {
     });
 
     const deleteMutation = useMutation({
-        mutationFn: (alert: AlertTrigger) => deletePlatformAlert(environmentId, alert.id!),
+        mutationFn: (alert: AlertTrigger) => {
+            if (!alert.id) {
+                throw new Error('Cannot delete a platform alert without an id');
+            }
+            return deletePlatformAlert(environmentId, alert.id);
+        },
         onSuccess: (_void, alert) => {
             queryClient.invalidateQueries({ queryKey: platformAlertKeys.list(environmentId) });
             notify.success(`Alert "${alert.name}" deleted.`);
@@ -187,73 +197,84 @@ export function AlertsPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {alerts.map(alert => (
-                                    <TableRow key={alert.id}>
-                                        <TableCell>
-                                            <p className="text-sm font-medium">{alert.name}</p>
-                                        </TableCell>
-                                        <TableCell>
-                                            <span className="text-sm text-muted-foreground">
-                                                {getAlertRuleLabel(alert.source, alert.type)}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell>
-                                            <AlertCountersCell counters={alert.counters} />
-                                        </TableCell>
-                                        <TableCell>
-                                            <span className="text-sm text-muted-foreground">{formatLastAlertAt(alert.last_alert_at)}</span>
-                                        </TableCell>
-                                        <TableCell>
-                                            <span className="text-sm text-muted-foreground line-clamp-1">
-                                                {formatLastAlertMessage(alert.last_alert_message)}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell>
-                                            <SeverityBadge severity={alert.severity} />
-                                        </TableCell>
-                                        <TableCell>
-                                            <Switch
-                                                checked={alert.enabled}
-                                                disabled={
-                                                    !canUpdate ||
-                                                    !!alert.template ||
-                                                    (toggleMutation.isPending && toggleMutation.variables?.id === alert.id)
-                                                }
-                                                onCheckedChange={() => toggleMutation.mutate(alert)}
-                                            />
-                                        </TableCell>
-                                        {showActions && (
+                                {alerts.map(alert => {
+                                    const canEditAlert = canUpdate && !!alert.id && !alert.template;
+                                    const canDeleteAlert = canDelete && !!alert.id && !alert.template;
+                                    const rowHasActions = canEditAlert || canDeleteAlert;
+                                    return (
+                                        <TableRow key={alert.id}>
                                             <TableCell>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="size-8"
-                                                            aria-label={`Actions for ${alert.name}`}
-                                                        >
-                                                            <MoreHorizontalIcon className="size-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        {canUpdate && alert.id && (
-                                                            <DropdownMenuItem onClick={() => handleEdit(alert.id!)}>Edit</DropdownMenuItem>
-                                                        )}
-                                                        {canUpdate && canDelete && <DropdownMenuSeparator />}
-                                                        {canDelete && (
-                                                            <DropdownMenuItem
-                                                                className="text-destructive focus:text-destructive"
-                                                                onClick={() => setAlertToDelete(alert)}
-                                                            >
-                                                                Delete alert
-                                                            </DropdownMenuItem>
-                                                        )}
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
+                                                <p className="text-sm font-medium">{alert.name}</p>
                                             </TableCell>
-                                        )}
-                                    </TableRow>
-                                ))}
+                                            <TableCell>
+                                                <span className="text-sm text-muted-foreground">
+                                                    {getAlertRuleLabel(alert.source, alert.type)}
+                                                </span>
+                                            </TableCell>
+                                            <TableCell>
+                                                <AlertCountersCell counters={alert.counters} />
+                                            </TableCell>
+                                            <TableCell>
+                                                <span className="text-sm text-muted-foreground">
+                                                    {formatLastAlertAt(alert.last_alert_at)}
+                                                </span>
+                                            </TableCell>
+                                            <TableCell>
+                                                <span className="text-sm text-muted-foreground line-clamp-1">
+                                                    {formatLastAlertMessage(alert.last_alert_message)}
+                                                </span>
+                                            </TableCell>
+                                            <TableCell>
+                                                <SeverityBadge severity={alert.severity} />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Switch
+                                                    checked={alert.enabled}
+                                                    disabled={
+                                                        !canUpdate ||
+                                                        !!alert.template ||
+                                                        (toggleMutation.isPending && toggleMutation.variables?.id === alert.id)
+                                                    }
+                                                    onCheckedChange={() => toggleMutation.mutate(alert)}
+                                                />
+                                            </TableCell>
+                                            {showActions && (
+                                                <TableCell>
+                                                    {rowHasActions ? (
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="size-8"
+                                                                    aria-label={`Actions for ${alert.name}`}
+                                                                >
+                                                                    <MoreHorizontalIcon className="size-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                {canEditAlert && (
+                                                                    <DropdownMenuItem onClick={() => handleEdit(alert.id!)}>
+                                                                        Edit
+                                                                    </DropdownMenuItem>
+                                                                )}
+                                                                {canEditAlert && canDeleteAlert && <DropdownMenuSeparator />}
+                                                                {canDeleteAlert && (
+                                                                    <DropdownMenuItem
+                                                                        className="text-destructive focus:text-destructive"
+                                                                        onClick={() => setAlertToDelete(alert)}
+                                                                    >
+                                                                        Delete alert
+                                                                    </DropdownMenuItem>
+                                                                )}
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    ) : null}
+                                                </TableCell>
+                                            )}
+                                        </TableRow>
+                                    );
+                                })}
                             </TableBody>
                         </Table>
                     </TooltipProvider>

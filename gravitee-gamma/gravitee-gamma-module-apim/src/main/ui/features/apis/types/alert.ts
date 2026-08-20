@@ -128,9 +128,8 @@ export interface AlertTrigger {
 }
 
 export interface AlertHistoryEvent {
-    id: string;
     message: string;
-    createdAt: string;
+    created_at: number;
 }
 
 export interface AlertHistoryPage {

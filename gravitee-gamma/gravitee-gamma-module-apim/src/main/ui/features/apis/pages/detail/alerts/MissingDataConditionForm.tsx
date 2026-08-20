@@ -15,6 +15,7 @@
  */
 import { Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@gravitee/graphene-core';
 
+import { ALERT_POSITIVE_NUMBER_MIN, nextAlertPositiveNumber } from './alertPositiveNumber';
 import { TIME_UNITS } from '../../../constants/alertConstants';
 import type { AlertFormCondition, AlertTimeUnit } from '../../../types';
 
@@ -30,10 +31,15 @@ export function MissingDataConditionForm({ condition, onChange }: Props) {
                 <Label className="text-xs">Duration</Label>
                 <Input
                     type="number"
-                    min={1}
+                    min={ALERT_POSITIVE_NUMBER_MIN}
                     placeholder="e.g. 5"
                     value={condition.duration ?? ''}
-                    onChange={e => onChange({ ...condition, duration: e.target.value ? Number(e.target.value) : undefined })}
+                    onChange={e =>
+                        onChange({
+                            ...condition,
+                            duration: nextAlertPositiveNumber(e.target.value, condition.duration),
+                        })
+                    }
                 />
             </div>
             <div className="space-y-1.5">

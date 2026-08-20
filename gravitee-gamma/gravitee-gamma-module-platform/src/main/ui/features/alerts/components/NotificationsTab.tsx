@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import {
     Button,
     Card,
@@ -20,10 +21,6 @@ import {
     CardDescription,
     CardHeader,
     CardTitle,
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
     Input,
     Label,
     Select,
@@ -31,39 +28,43 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
-    Separator,
 } from '@gravitee/graphene-core';
-import { MailIcon, MessageSquareIcon, PlusIcon, WebhookIcon } from '@gravitee/graphene-core/icons';
+import { PlusIcon, XIcon } from '@gravitee/graphene-core/icons';
+import { useQuery } from '@tanstack/react-query';
 import type { Dispatch, SetStateAction } from 'react';
 
-import { DAMPENING_MODES, NOTIFICATION_CHANNELS, TIME_UNITS } from '../constants/alertConstants';
+import { NotificationSchemaFields } from './NotificationSchemaFields';
+import { DAMPENING_MODES, TIME_UNITS } from '../constants/alertConstants';
 import type { AlertFormData } from '../services/alerts';
-import type { AlertDampeningMode, AlertFormNotification, AlertNotificationChannel, AlertTimeUnit } from '../types';
+import { listNotifiers, type NotifierListItem } from '../services/notifiers';
+import type { AlertDampeningMode, AlertFormNotification, AlertTimeUnit } from '../types';
+import { platformAlertKeys } from '../utils/queryKeys';
 
-const CHANNEL_META: Record<
-    AlertNotificationChannel,
-    { label: string; icon: React.ComponentType<{ className?: string }>; placeholder: string; inputLabel: string }
-> = {
-    'email-notifier': { label: 'E-mail', icon: MailIcon, placeholder: 'ops@company.com', inputLabel: 'Recipient email' },
-    'default-email': { label: 'System e-mail', icon: MailIcon, placeholder: 'ops@company.com', inputLabel: 'Recipient email' },
-    'slack-notifier': {
-        label: 'Slack',
-        icon: MessageSquareIcon,
-        placeholder: 'https://hooks.slack.com/services/…',
-        inputLabel: 'Slack webhook URL',
-    },
-    'webhook-notifier': { label: 'Webhook', icon: WebhookIcon, placeholder: 'https://hooks.example.com/…', inputLabel: 'Webhook URL' },
-};
+const CHANNEL_ORDER = ['email-notifier', 'slack-notifier', 'default-email', 'webhook-notifier'];
+
+function sortNotifiers(items: NotifierListItem[]): NotifierListItem[] {
+    return [...items].sort((a, b) => {
+        const ia = CHANNEL_ORDER.indexOf(a.id);
+        const ib = CHANNEL_ORDER.indexOf(b.id);
+        if (ia === -1 && ib === -1) return a.name.localeCompare(b.name);
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+    });
+}
 
 export interface NotificationsTabProps {
     dampening: AlertFormData['dampening'];
     setDampening: Dispatch<SetStateAction<AlertFormData['dampening']>>;
     notifications: AlertFormNotification[];
-    addNotification: (channel: AlertNotificationChannel) => void;
+    addNotification: () => void;
     removeNotification: (index: number) => void;
-    updateNotificationTarget: (index: number, target: string) => void;
+    setNotificationType: (index: number, type: string) => void;
+    updateNotification: (index: number, configuration: Record<string, unknown>) => void;
     canEdit: boolean;
     markDirty: () => void;
+    channelError?: string;
+    dampeningError?: string;
 }
 
 export function NotificationsTab({
@@ -72,13 +73,24 @@ export function NotificationsTab({
     notifications,
     addNotification,
     removeNotification,
-    updateNotificationTarget,
+    setNotificationType,
+    updateNotification,
     canEdit,
     markDirty,
+    channelError,
+    dampeningError,
 }: NotificationsTabProps) {
+    const env = useEnvironment();
+    const environmentId = env?.id ?? '';
+    const { data: notifierList, isError: notifierListFailed } = useQuery({
+        queryKey: platformAlertKeys.notifiers(environmentId),
+        queryFn: () => listNotifiers(environmentId),
+        enabled: !!environmentId,
+    });
+    const notifiers = sortNotifiers(notifierList ?? []);
+
     return (
         <div className="mt-6 space-y-6">
-            {/* Dampening */}
             <Card>
                 <CardHeader>
                     <CardTitle className="text-base">Dampening</CardTitle>
@@ -87,8 +99,11 @@ export function NotificationsTab({
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                    {dampeningError && <p className="text-xs text-destructive">{dampeningError}</p>}
                     <div className="space-y-1.5">
-                        <Label className="text-xs">Mode</Label>
+                        <Label className="text-xs">
+                            Mode <span className="text-destructive">*</span>
+                        </Label>
                         <Select
                             value={dampening?.mode || 'STRICT_COUNT'}
                             disabled={!canEdit}
@@ -126,7 +141,9 @@ export function NotificationsTab({
 
                     {(dampening?.mode === 'STRICT_COUNT' || dampening?.mode === 'RELAXED_COUNT' || dampening?.mode === 'RELAXED_TIME') && (
                         <div className="space-y-1.5">
-                            <Label className="text-xs">Number of true evaluations</Label>
+                            <Label className="text-xs">
+                                Number of true evaluations <span className="text-destructive">*</span>
+                            </Label>
                             <Input
                                 type="number"
                                 min={1}
@@ -141,13 +158,15 @@ export function NotificationsTab({
                                     markDirty();
                                 }}
                             />
-                            <p className="text-xs text-muted-foreground">The number from 1 to 100 of consecutive true evaluations.</p>
+                            <p className="text-xs text-muted-foreground">The number of consecutive true evaluations.</p>
                         </div>
                     )}
 
                     {dampening?.mode === 'RELAXED_COUNT' && (
                         <div className="space-y-1.5">
-                            <Label className="text-xs">Number of total evaluations</Label>
+                            <Label className="text-xs">
+                                Number of total evaluations <span className="text-destructive">*</span>
+                            </Label>
                             <Input
                                 type="number"
                                 disabled={!canEdit}
@@ -167,7 +186,9 @@ export function NotificationsTab({
                     {(dampening?.mode === 'STRICT_TIME' || dampening?.mode === 'RELAXED_TIME') && (
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1.5">
-                                <Label className="text-xs">Duration</Label>
+                                <Label className="text-xs">
+                                    Duration <span className="text-destructive">*</span>
+                                </Label>
                                 <Input
                                     type="number"
                                     disabled={!canEdit}
@@ -208,68 +229,72 @@ export function NotificationsTab({
                 </CardContent>
             </Card>
 
-            {/* Notifications */}
             <Card>
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <CardTitle className="text-base">Notifications</CardTitle>
-                            <CardDescription>Allow you to receive notifications via email, Slack or webhooks.</CardDescription>
-                        </div>
-                        {canEdit && (
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button size="sm">
-                                        <PlusIcon className="size-4" />
-                                        Add notification
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    {NOTIFICATION_CHANNELS.map(ch => (
-                                        <DropdownMenuItem key={ch.value} onSelect={() => addNotification(ch.value)}>
-                                            {ch.label}
-                                        </DropdownMenuItem>
-                                    ))}
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        )}
+                <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
+                    <div className="space-y-1.5">
+                        <CardTitle className="text-base">Notifications</CardTitle>
+                        <CardDescription>Allows you to receive notifications via email, Slack, or webhooks.</CardDescription>
                     </div>
+                    {canEdit ? (
+                        <Button type="button" size="sm" className="shrink-0" onClick={addNotification}>
+                            <PlusIcon className="size-4" aria-hidden />
+                            Add
+                        </Button>
+                    ) : null}
                 </CardHeader>
-                {notifications.length > 0 && (
-                    <CardContent className="space-y-4 pt-0">
-                        {notifications.map((notif, idx) => {
-                            const meta = CHANNEL_META[notif.channel];
-                            const ChIcon = meta.icon;
-                            return (
-                                <div key={idx}>
-                                    <Separator className="mb-4" />
-                                    <div className="space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <h4 className="flex items-center gap-2 text-sm font-medium">
-                                                <ChIcon className="size-4 text-muted-foreground" />
-                                                Configure {meta.label} notification
-                                            </h4>
-                                            {canEdit && (
-                                                <Button variant="outline" size="sm" onClick={() => removeNotification(idx)}>
-                                                    Remove
-                                                </Button>
-                                            )}
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <Label className="text-xs">{meta.inputLabel}</Label>
-                                            <Input
-                                                placeholder={meta.placeholder}
-                                                value={notif.target}
-                                                disabled={!canEdit}
-                                                onChange={e => updateNotificationTarget(idx, e.target.value)}
-                                            />
-                                        </div>
-                                    </div>
+                {channelError || notifierListFailed || notifications.length > 0 ? (
+                    <CardContent className="space-y-4">
+                        {channelError && <p className="text-xs text-destructive">{channelError}</p>}
+                        {notifierListFailed && (
+                            <p className="text-xs text-destructive">Failed to load notification channels. Please try again.</p>
+                        )}
+                        {notifications.map((notif, idx) => (
+                            <div key={`${idx}-${notif.type || 'unset'}`} className="relative space-y-4 rounded-lg border p-4">
+                                {canEdit ? (
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute top-2 right-2 size-7"
+                                        aria-label="Remove notification"
+                                        onClick={() => removeNotification(idx)}
+                                    >
+                                        <XIcon className="size-3.5 text-muted-foreground" />
+                                    </Button>
+                                ) : null}
+                                <div className="space-y-1.5 pr-8">
+                                    <Label className="text-xs">
+                                        Channel <span className="text-destructive">*</span>
+                                    </Label>
+                                    <Select
+                                        value={notif.type || undefined}
+                                        disabled={!canEdit}
+                                        onValueChange={val => setNotificationType(idx, val)}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Channel" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {notifiers.map(notifier => (
+                                                <SelectItem key={notifier.id} value={notifier.id}>
+                                                    {notifier.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-                            );
-                        })}
+                                {notif.type ? (
+                                    <NotificationSchemaFields
+                                        environmentId={environmentId}
+                                        notifierId={notif.type}
+                                        value={notif.configuration}
+                                        disabled={!canEdit}
+                                        onChange={configuration => updateNotification(idx, configuration)}
+                                    />
+                                ) : null}
+                            </div>
+                        ))}
                     </CardContent>
-                )}
+                ) : null}
             </Card>
         </div>
     );

@@ -48,6 +48,9 @@ jest.mock('@tanstack/react-query', () => ({
         }),
         isPending: false,
     })),
+    useQueries: jest.fn(({ queries = [] }: { queries?: unknown[] }) =>
+        queries.map(() => ({ data: undefined, isLoading: false, isFetching: false, isError: false })),
+    ),
     useQueryClient: jest.fn(() => ({ invalidateQueries: jest.fn() })),
 }));
 
@@ -153,6 +156,7 @@ it('calls createPlatformAlert with correct payload when form is valid and submit
     renderCreatePage();
 
     await user.type(screen.getByLabelText(/name/i), 'My Alert');
+    await user.type(screen.getByPlaceholderText('e.g. 500'), '500');
     await user.click(screen.getByRole('button', { name: /^create$/i }));
 
     await waitFor(() => expect(mockCreatePlatformAlert).toHaveBeenCalledTimes(1));
@@ -161,6 +165,32 @@ it('calls createPlatformAlert with correct payload when form is valid and submit
     expect(sentData.name).toBe('My Alert');
     expect(sentData.source).toBe('REQUEST');
     expect(sentData.type).toBe('METRICS_SIMPLE_CONDITION');
+    expect(sentData.conditions[0].threshold).toBe(500);
+    expect(sentData.notifications).toEqual([]);
+});
+
+it('does not create when the threshold is empty', async () => {
+    const user = userEvent.setup();
+    renderCreatePage();
+
+    await user.type(screen.getByLabelText(/name/i), 'My Alert');
+    await user.click(screen.getByRole('button', { name: /^create$/i }));
+
+    expect(screen.getByText(/required condition fields/i)).not.toBeNull();
+    expect(mockCreatePlatformAlert).not.toHaveBeenCalled();
+});
+
+it('disables Create after a notification is added until a channel and required schema fields are set', async () => {
+    const user = userEvent.setup();
+    renderCreatePage();
+
+    await user.type(screen.getByLabelText(/name/i), 'My Alert');
+    await user.click(screen.getByRole('tab', { name: /notifications/i }));
+    await user.click(screen.getByRole('button', { name: /^add$/i }));
+
+    expect(screen.getByRole('button', { name: /^create$/i })).toHaveProperty('disabled', true);
+    expect(screen.getByText(/select a channel for each notification/i)).not.toBeNull();
+    expect(mockCreatePlatformAlert).not.toHaveBeenCalled();
 });
 
 it('populates form with existing alert data in edit mode', () => {
@@ -168,6 +198,38 @@ it('populates form with existing alert data in edit mode', () => {
 
     expect(screen.getByRole('heading', { name: /update alert/i })).not.toBeNull();
     expect((screen.getByLabelText(/name/i) as HTMLInputElement).value).toBe('High Response Time');
+});
+
+it('keeps classic group-by projections when saving an existing alert', async () => {
+    const user = userEvent.setup();
+    const grouped = [{ type: 'PROPERTY', property: 'api' }];
+    renderEditPage({
+        ...EXISTING_ALERT,
+        projections: grouped,
+        conditions: [{ type: 'THRESHOLD', property: 'response.response_time', operator: 'GT', threshold: 500, projections: grouped }],
+    });
+
+    await user.type(screen.getByLabelText(/name/i), '!');
+    await user.click(screen.getByRole('button', { name: /^save$/i }));
+
+    await waitFor(() => expect(mockUpdatePlatformAlertFromForm).toHaveBeenCalledTimes(1));
+    const [, , sentData, preserved] = mockUpdatePlatformAlertFromForm.mock.calls[0];
+    expect(preserved.projections).toEqual(grouped);
+    expect(sentData.conditions[0].projections).toEqual(grouped);
+});
+
+it('stays on the Alerts tab in edit mode after save instead of returning to the list', async () => {
+    const user = userEvent.setup();
+    renderEditPage();
+
+    await user.type(screen.getByLabelText(/name/i), '!');
+    await user.click(screen.getByRole('tab', { name: /notifications/i }));
+    await user.click(screen.getByRole('button', { name: /^save$/i }));
+
+    await waitFor(() => expect(mockUpdatePlatformAlertFromForm).toHaveBeenCalledTimes(1));
+    expect(screen.getByRole('heading', { name: /update alert/i })).not.toBeNull();
+    expect(screen.getByRole('tab', { name: /alerts/i }).getAttribute('aria-selected')).toBe('true');
+    expect(screen.queryByRole('button', { name: /^save$/i })).toBeNull();
 });
 
 it('hides Create button for read-only users', () => {
@@ -217,4 +279,84 @@ it('shows History tab in edit mode', () => {
     renderEditPage();
 
     expect(screen.getByRole('tab', { name: /history/i })).not.toBeNull();
+});
+
+it('shows a not-found state for an unknown alert id', () => {
+    mockUseQuery.mockImplementation(config => {
+        if (config.enabled === false) {
+            return { data: undefined, isLoading: false, isError: false, isFetching: false, refetch: jest.fn() };
+        }
+        return { data: [], isLoading: false, isError: false, isFetching: false, refetch: jest.fn() };
+    });
+
+    render(
+        <MemoryRouter initialEntries={['/alerts/missing-id']}>
+            <Routes>
+                <Route path="alerts/:alertId" element={<AlertFormPage />} />
+            </Routes>
+        </MemoryRouter>,
+    );
+
+    expect(screen.getByRole('heading', { name: /alert not found/i })).not.toBeNull();
+    expect(screen.queryByRole('heading', { name: /update alert/i })).toBeNull();
+});
+
+it('does not allow saving a template alert opened by id', () => {
+    renderEditPage({ ...EXISTING_ALERT, template: true, event_rules: [{ event: 'API_CREATE' }] });
+
+    expect(screen.getByRole('heading', { name: /update alert/i })).not.toBeNull();
+    expect(screen.queryByRole('button', { name: /^save$/i })).toBeNull();
+});
+
+it('keeps the original source and type when the rule is unrecognized', async () => {
+    const user = userEvent.setup();
+    renderEditPage({ ...EXISTING_ALERT, source: 'CUSTOM', type: 'UNKNOWN_TYPE' });
+
+    await user.type(screen.getByLabelText(/name/i), '!');
+    await user.click(screen.getByRole('button', { name: /^save$/i }));
+
+    await waitFor(() => expect(mockUpdatePlatformAlertFromForm).toHaveBeenCalledTimes(1));
+    const [, , sentData] = mockUpdatePlatformAlertFromForm.mock.calls[0];
+    expect(sentData.source).toBe('CUSTOM');
+    expect(sentData.type).toBe('UNKNOWN_TYPE');
+});
+
+it('falls back to the Alerts tab when creating with ?tab=history', () => {
+    render(
+        <MemoryRouter initialEntries={['/alerts/new?tab=history']}>
+            <Routes>
+                <Route path="alerts/new" element={<AlertFormPage />} />
+            </Routes>
+        </MemoryRouter>,
+    );
+
+    expect(screen.getByRole('heading', { name: /create new alert/i })).not.toBeNull();
+    expect(screen.getByRole('tab', { name: /alerts/i }).getAttribute('aria-selected')).toBe('true');
+    expect(screen.queryByRole('tab', { name: /history/i })).toBeNull();
+});
+
+it('keeps Save enabled when notifier schema fetch failed', async () => {
+    const user = userEvent.setup();
+    const { useQueries } = jest.requireMock('@tanstack/react-query') as { useQueries: jest.Mock };
+    useQueries.mockImplementation(({ queries = [] }: { queries?: unknown[] }) =>
+        queries.map(() => ({ data: undefined, isLoading: false, isFetching: false, isError: true })),
+    );
+
+    renderEditPage({
+        ...EXISTING_ALERT,
+        notifications: [{ type: 'webhook-notifier', configuration: { url: 'https://example.com' } }],
+    });
+
+    await user.type(screen.getByLabelText(/name/i), '!');
+    expect(screen.getByRole('button', { name: /^save$/i })).toHaveProperty('disabled', false);
+});
+
+it('shows failed-to-load when notification configuration JSON is invalid', () => {
+    renderEditPage({
+        ...EXISTING_ALERT,
+        notifications: [{ type: 'webhook-notifier', configuration: 'not-json' }],
+    });
+
+    expect(screen.getByText(/failed to load this alert/i)).not.toBeNull();
+    expect(screen.queryByRole('heading', { name: /update alert/i })).toBeNull();
 });

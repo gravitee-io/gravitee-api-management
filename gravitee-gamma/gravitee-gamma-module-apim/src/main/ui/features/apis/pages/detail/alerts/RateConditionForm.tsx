@@ -15,6 +15,7 @@
  */
 import { Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@gravitee/graphene-core';
 
+import { ALERT_POSITIVE_NUMBER_MIN, ALERT_RATE_PERCENT_MAX, nextAlertPositiveNumber } from './alertPositiveNumber';
 import {
     ALERT_OPERATORS,
     ALERT_STRING_OPERATORS,
@@ -66,9 +67,15 @@ export function RateConditionForm({ condition, metrics, onChange }: Props) {
                     ) : (
                         <Input
                             type="number"
+                            min={ALERT_POSITIVE_NUMBER_MIN}
                             placeholder="e.g. 500"
                             value={condition.threshold ?? ''}
-                            onChange={e => onChange({ ...condition, threshold: e.target.value ? Number(e.target.value) : undefined })}
+                            onChange={e =>
+                                onChange({
+                                    ...condition,
+                                    threshold: nextAlertPositiveNumber(e.target.value, condition.threshold),
+                                })
+                            }
                         />
                     )}
                 </div>
@@ -114,11 +121,18 @@ export function RateConditionForm({ condition, metrics, onChange }: Props) {
                     <Label className="text-xs">Rate threshold (%)</Label>
                     <Input
                         type="number"
-                        min={0}
-                        max={100}
+                        min={ALERT_POSITIVE_NUMBER_MIN}
+                        max={ALERT_RATE_PERCENT_MAX}
                         placeholder="e.g. 50"
                         value={condition.rateThreshold ?? ''}
-                        onChange={e => onChange({ ...condition, rateThreshold: e.target.value ? Number(e.target.value) : undefined })}
+                        onChange={e =>
+                            onChange({
+                                ...condition,
+                                rateThreshold: nextAlertPositiveNumber(e.target.value, condition.rateThreshold, {
+                                    max: ALERT_RATE_PERCENT_MAX,
+                                }),
+                            })
+                        }
                     />
                 </div>
             </div>
@@ -145,10 +159,15 @@ export function RateConditionForm({ condition, metrics, onChange }: Props) {
                     <Label className="text-xs">Duration</Label>
                     <Input
                         type="number"
-                        min={1}
+                        min={ALERT_POSITIVE_NUMBER_MIN}
                         placeholder="e.g. 1"
                         value={condition.duration ?? ''}
-                        onChange={e => onChange({ ...condition, duration: e.target.value ? Number(e.target.value) : undefined })}
+                        onChange={e =>
+                            onChange({
+                                ...condition,
+                                duration: nextAlertPositiveNumber(e.target.value, condition.duration),
+                            })
+                        }
                     />
                 </div>
                 <div className="space-y-1.5">

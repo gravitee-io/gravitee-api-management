@@ -86,9 +86,9 @@ describe('AlertsPage', () => {
         mockUseNavigate.mockReturnValue(mockNavigate);
         mockUseEnvironment.mockReturnValue({ id: 'env-1' } as ReturnType<typeof useEnvironment>);
         mockUseHasPermission.mockReturnValue(true);
-        mockListPlatformAlerts.mockResolvedValue([]);
-        mockUpdatePlatformAlert.mockResolvedValue(ALERT);
-        mockDeletePlatformAlert.mockResolvedValue(undefined);
+        mockListPlatformAlerts.mockReset().mockResolvedValue([]);
+        mockUpdatePlatformAlert.mockReset().mockResolvedValue(ALERT);
+        mockDeletePlatformAlert.mockReset().mockResolvedValue(undefined);
     });
 
     it('renders the page header', async () => {
@@ -188,6 +188,55 @@ describe('AlertsPage', () => {
         await waitFor(() => expect(notify.success).toHaveBeenCalledWith('Alert "Node stopped" disabled.'));
     });
 
+    it('does not flip the switch until PUT succeeds', async () => {
+        mockListPlatformAlerts.mockResolvedValueOnce([ALERT]);
+        mockUpdatePlatformAlert.mockImplementation(() => new Promise(() => undefined));
+        renderPage();
+
+        await waitFor(() => expect(screen.getByText('Node stopped')).not.toBeNull());
+        const toggle = screen.getByRole('switch');
+        expect(toggle.getAttribute('aria-checked')).toBe('true');
+        fireEvent.click(toggle);
+
+        await waitFor(() => expect(mockUpdatePlatformAlert).toHaveBeenCalled());
+        expect(toggle.getAttribute('aria-checked')).toBe('true');
+        expect(notify.success).not.toHaveBeenCalled();
+        expect(mockListPlatformAlerts).toHaveBeenCalledTimes(1);
+    });
+
+    it('flips the switch from the PUT response, then shows the toast and refetches the list', async () => {
+        mockListPlatformAlerts.mockResolvedValueOnce([ALERT]).mockImplementationOnce(() => new Promise(() => undefined));
+        mockUpdatePlatformAlert.mockResolvedValue({ ...ALERT, enabled: false });
+        renderPage();
+
+        await waitFor(() => expect(screen.getByText('Node stopped')).not.toBeNull());
+        const toggle = screen.getByRole('switch');
+        fireEvent.click(toggle);
+
+        await waitFor(() => expect(toggle.getAttribute('aria-checked')).toBe('false'));
+        expect(notify.success).toHaveBeenCalledWith('Alert "Node stopped" disabled.');
+        await waitFor(() => expect(mockListPlatformAlerts).toHaveBeenCalledTimes(2));
+    });
+
+    it('refetches the list with event counts after enable/disable', async () => {
+        mockListPlatformAlerts.mockResolvedValueOnce([ALERT]).mockResolvedValueOnce([
+            {
+                ...ALERT,
+                enabled: false,
+                counters: { '5m': 9, '1h': 9, '1d': 9, '1M': 9 },
+            },
+        ]);
+        mockUpdatePlatformAlert.mockResolvedValue({ ...ALERT, enabled: false });
+        renderPage();
+
+        await waitFor(() => expect(screen.getByText('1 / 2 / 3 / 4')).not.toBeNull());
+        fireEvent.click(screen.getByRole('switch'));
+
+        await waitFor(() => expect(screen.getByText('9 / 9 / 9 / 9')).not.toBeNull());
+        expect(mockListPlatformAlerts).toHaveBeenCalledTimes(2);
+        expect(mockListPlatformAlerts).toHaveBeenNthCalledWith(2, 'env-1');
+    });
+
     it('does not allow enabling or disabling a template alert', async () => {
         mockListPlatformAlerts.mockResolvedValue([{ ...ALERT, id: 'tpl-1', name: 'API template', template: true }]);
         renderPage();
@@ -199,6 +248,18 @@ describe('AlertsPage', () => {
         expect(mockUpdatePlatformAlert).not.toHaveBeenCalled();
     });
 
+    it('does not offer Edit or Delete for a template alert', async () => {
+        const user = userEvent.setup();
+        mockListPlatformAlerts.mockResolvedValue([{ ...ALERT, id: 'tpl-1', name: 'API template', template: true }, ALERT]);
+        renderPage();
+
+        await waitFor(() => expect(screen.getByText('API template')).not.toBeNull());
+        expect(screen.queryByRole('button', { name: 'Actions for API template' })).toBeNull();
+
+        await user.click(screen.getByRole('button', { name: 'Actions for Node stopped' }));
+        expect(await screen.findByRole('menuitem', { name: 'Edit' })).not.toBeNull();
+    });
+
     it('shows an error toast when enable/disable fails', async () => {
         const failure = new Error('toggle failed');
         mockListPlatformAlerts.mockResolvedValue([ALERT]);
@@ -206,10 +267,12 @@ describe('AlertsPage', () => {
         renderPage();
 
         await waitFor(() => expect(screen.getByText('Node stopped')).not.toBeNull());
-        fireEvent.click(screen.getByRole('switch'));
+        const toggle = screen.getByRole('switch');
+        fireEvent.click(toggle);
 
         await waitFor(() => expect(notify.error).toHaveBeenCalledWith(failure, 'Failed to update alert.'));
         expect(notify.success).not.toHaveBeenCalled();
+        await waitFor(() => expect(toggle.getAttribute('aria-checked')).toBe('true'));
     });
 
     it('hides the actions column when the user cannot update or delete', async () => {

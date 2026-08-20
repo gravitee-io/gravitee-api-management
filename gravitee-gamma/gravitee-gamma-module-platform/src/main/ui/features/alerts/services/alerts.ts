@@ -28,6 +28,10 @@ import type {
     AlertTrigger,
 } from '../types';
 
+function withProjections(form: AlertFormCondition, api: AlertApiCondition): AlertApiCondition {
+    return form.projections !== undefined ? { ...api, projections: form.projections } : api;
+}
+
 export function formConditionToApi(c: AlertFormCondition): AlertApiCondition {
     if (c.type === 'RATE') {
         const isStr = isStringMetric(c.property ?? '');
@@ -44,17 +48,17 @@ export function formConditionToApi(c: AlertFormCondition): AlertApiCondition {
                   operator: (c.operator as AlertOperator) || 'GT',
                   threshold: c.threshold,
               };
-        return {
+        return withProjections(c, {
             type: 'RATE',
             operator: c.rateOperator || 'GT',
             threshold: c.rateThreshold,
             comparison,
             duration: c.duration,
             timeUnit: c.timeUnit,
-        };
+        });
     }
     if (c.type === 'AGGREGATION') {
-        return {
+        return withProjections(c, {
             type: 'AGGREGATION',
             property: c.property,
             function: c.aggregationFunction,
@@ -62,11 +66,11 @@ export function formConditionToApi(c: AlertFormCondition): AlertApiCondition {
             threshold: c.threshold,
             duration: c.duration,
             timeUnit: c.timeUnit,
-        };
+        });
     }
     if (c.type === 'THRESHOLD_RANGE') {
         // Classic env payload always includes operator: BETWEEN on threshold-range conditions.
-        return {
+        return withProjections(c, {
             type: 'THRESHOLD_RANGE',
             property: c.property,
             operator: 'BETWEEN',
@@ -74,25 +78,25 @@ export function formConditionToApi(c: AlertFormCondition): AlertApiCondition {
             thresholdLow: c.thresholdLow,
             operatorHigh: 'INCLUSIVE',
             thresholdHigh: c.thresholdHigh,
-        };
+        });
     }
     if (c.type === 'STRING') {
-        return {
+        return withProjections(c, {
             type: 'STRING',
             property: c.property,
             operator: (c.operator as AlertStringOperator) || 'EQUALS',
             pattern: c.pattern,
-        };
+        });
     }
     if (c.type === 'THRESHOLD') {
-        return {
+        return withProjections(c, {
             type: 'THRESHOLD',
             property: c.property,
             operator: (c.operator as AlertOperator) || 'GT',
             threshold: c.threshold,
-        };
+        });
     }
-    return {
+    return withProjections(c, {
         type: c.type,
         property: c.property,
         operator: c.operator,
@@ -102,7 +106,7 @@ export function formConditionToApi(c: AlertFormCondition): AlertApiCondition {
         multiplier: c.multiplier,
         duration: c.duration,
         timeUnit: c.timeUnit,
-    };
+    });
 }
 
 function apiOperatorToForm(operator: AlertApiCondition['operator']): AlertOperator | AlertStringOperator | undefined {
@@ -123,6 +127,7 @@ export function apiConditionToForm(c: AlertApiCondition): AlertFormCondition {
             rateThreshold: c.threshold,
             duration: c.duration,
             timeUnit: c.timeUnit,
+            projections: c.projections,
         };
     }
     if (c.type === 'AGGREGATION') {
@@ -134,6 +139,7 @@ export function apiConditionToForm(c: AlertApiCondition): AlertFormCondition {
             threshold: c.threshold,
             duration: c.duration,
             timeUnit: c.timeUnit,
+            projections: c.projections,
         };
     }
     if (c.type === 'THRESHOLD_RANGE') {
@@ -142,6 +148,7 @@ export function apiConditionToForm(c: AlertApiCondition): AlertFormCondition {
             property: c.property,
             thresholdLow: c.thresholdLow,
             thresholdHigh: c.thresholdHigh,
+            projections: c.projections,
         };
     }
     return {
@@ -156,22 +163,40 @@ export function apiConditionToForm(c: AlertApiCondition): AlertFormCondition {
         multiplier: c.multiplier,
         duration: c.duration,
         timeUnit: c.timeUnit,
+        projections: c.projections,
     };
 }
 
+export function parseNotificationConfiguration(raw: unknown): Record<string, unknown> {
+    if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+        return raw as Record<string, unknown>;
+    }
+    if (typeof raw === 'string' && raw.trim().length > 0) {
+        let parsed: unknown;
+        try {
+            parsed = JSON.parse(raw);
+        } catch {
+            throw new Error('Notification configuration is not valid JSON');
+        }
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+            throw new Error('Notification configuration must be a JSON object');
+        }
+        return parsed as Record<string, unknown>;
+    }
+    return {};
+}
+
 export function formNotifToApi(n: AlertFormNotification): AlertApiNotification {
-    const isEmail = n.channel === 'email-notifier' || n.channel === 'default-email';
     return {
-        type: n.channel,
-        configuration: isEmail ? { to: n.target, subject: 'Alert notification' } : { url: n.target },
+        type: n.type,
+        configuration: n.configuration,
     };
 }
 
 export function apiNotifToForm(n: AlertApiNotification): AlertFormNotification {
-    const cfg = (n.configuration ?? {}) as Record<string, unknown>;
     return {
-        channel: n.type as AlertFormNotification['channel'],
-        target: (cfg['to'] as string) || (cfg['url'] as string) || '',
+        type: n.type,
+        configuration: parseNotificationConfiguration(n.configuration),
     };
 }
 
@@ -228,7 +253,7 @@ export function formDataToAlertTrigger(data: AlertFormData): Omit<AlertTrigger, 
         type: data.type,
         conditions: data.conditions.map(formConditionToApi),
         filters: data.filters.map(formConditionToApi),
-        notifications: data.notifications.map(formNotifToApi),
+        notifications: data.notifications.filter(n => n.type).map(formNotifToApi),
         notificationPeriods: data.timeframes.map(formTimeframeToApi),
         dampening: data.dampening,
     };
@@ -261,8 +286,22 @@ export async function updatePlatformAlert(environmentId: string, alert: AlertTri
     });
 }
 
-export async function updatePlatformAlertFromForm(environmentId: string, alertId: string, data: AlertFormData): Promise<AlertTrigger> {
-    const payload = { ...formDataToAlertTrigger(data), id: alertId };
+export async function updatePlatformAlertFromForm(
+    environmentId: string,
+    alertId: string,
+    data: AlertFormData,
+    preserved?: Pick<AlertTrigger, 'template' | 'event_rules' | 'projections'>,
+): Promise<AlertTrigger> {
+    const payload: Omit<AlertTrigger, 'id'> & { id: string } = { ...formDataToAlertTrigger(data), id: alertId };
+    if (preserved?.template) {
+        payload.template = true;
+    }
+    if (preserved?.event_rules) {
+        payload.event_rules = preserved.event_rules;
+    }
+    if (preserved?.projections) {
+        payload.projections = preserved.projections;
+    }
     return apimFetchJsonV1Env<AlertTrigger>(environmentId, `/platform/alerts/${encodeURIComponent(alertId)}`, {
         method: 'PUT',
         body: JSON.stringify(payload),

@@ -64,9 +64,9 @@ export function HistoryTab({ historyPage, onRefresh, isRefreshing = false }: His
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {historyPage.content.map(evt => (
-                                        <TableRow key={evt.id}>
-                                            <TableCell className="text-sm">{new Date(evt.createdAt).toLocaleString()}</TableCell>
+                                    {historyPage.content.map((evt, i) => (
+                                        <TableRow key={`${evt.created_at}-${i}`}>
+                                            <TableCell className="text-sm">{new Date(evt.created_at).toLocaleString()}</TableCell>
                                             <TableCell className="text-sm text-muted-foreground">{evt.message}</TableCell>
                                         </TableRow>
                                     ))}

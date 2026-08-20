@@ -33,7 +33,6 @@ export function AlertFormPage() {
         setSeverity,
         enabled,
         setEnabled,
-        ruleId,
         handleRuleChange,
         conditions,
         updateCondition,
@@ -44,7 +43,8 @@ export function AlertFormPage() {
         notifications,
         addNotification,
         removeNotification,
-        updateNotificationTarget,
+        setNotificationType,
+        updateNotification,
         timeframes,
         addTimeframe,
         removeTimeframe,
@@ -63,13 +63,19 @@ export function AlertFormPage() {
         historyPage,
         isRefreshingHistory,
         isLoadingAlert,
+        isAlertListError,
+        hydrateError,
+        alertNotFound,
         isPending,
+        notificationsComplete,
+        notificationsIncompleteReason,
         selectedRule,
         metricsForRule,
         handleSave,
         handleCancel,
         markDirty,
         refreshHistory,
+        ruleLabel,
     } = useAlertForm();
 
     if (isUpdate && isLoadingAlert) {
@@ -78,6 +84,31 @@ export function AlertFormPage() {
                 <Skeleton className="h-8 w-48 rounded" />
                 <Skeleton className="h-10 w-full rounded" />
                 <Skeleton className="h-64 w-full rounded-lg" />
+            </div>
+        );
+    }
+
+    if (isUpdate && (isAlertListError || hydrateError)) {
+        return (
+            <div className="space-y-4">
+                <Button variant="ghost" size="sm" className="-ml-2 text-muted-foreground" onClick={handleCancel}>
+                    <ArrowLeftIcon className="size-4" />
+                    Back to alerts
+                </Button>
+                <p className="text-sm text-destructive">Failed to load this alert. Please try again.</p>
+            </div>
+        );
+    }
+
+    if (alertNotFound) {
+        return (
+            <div className="space-y-4">
+                <Button variant="ghost" size="sm" className="-ml-2 text-muted-foreground" onClick={handleCancel}>
+                    <ArrowLeftIcon className="size-4" />
+                    Back to alerts
+                </Button>
+                <h1 className="text-2xl font-semibold">Alert not found</h1>
+                <p className="text-sm text-muted-foreground">This alert does not exist or was deleted.</p>
             </div>
         );
     }
@@ -143,7 +174,6 @@ export function AlertFormPage() {
                             setSeverity={setSeverity}
                             enabled={enabled}
                             setEnabled={setEnabled}
-                            ruleId={ruleId}
                             handleRuleChange={handleRuleChange}
                             isUpdate={isUpdate}
                             canEdit={canEdit}
@@ -165,6 +195,7 @@ export function AlertFormPage() {
                             updateFilter={updateFilter}
                             removeFilter={removeFilter}
                             selectedRule={selectedRule}
+                            ruleLabel={ruleLabel}
                         />
                     )}
 
@@ -175,9 +206,12 @@ export function AlertFormPage() {
                             notifications={notifications}
                             addNotification={addNotification}
                             removeNotification={removeNotification}
-                            updateNotificationTarget={updateNotificationTarget}
+                            setNotificationType={setNotificationType}
+                            updateNotification={updateNotification}
                             canEdit={canEdit}
                             markDirty={markDirty}
+                            channelError={errors.notifications}
+                            dampeningError={errors.dampening}
                         />
                     )}
 
@@ -189,10 +223,13 @@ export function AlertFormPage() {
                 {/* ─── Save bar ────────────────────────────────────────────────── */}
                 {canEdit && isDirty && (
                     <div className="sticky bottom-0 z-10 -mx-6 flex items-center justify-end gap-3 border-t bg-background px-6 py-3">
+                        {notificationsIncompleteReason && (
+                            <p className="mr-auto text-xs text-destructive">{notificationsIncompleteReason}</p>
+                        )}
                         <Button variant="outline" onClick={handleCancel}>
                             Cancel
                         </Button>
-                        <Button onClick={handleSave} disabled={isPending}>
+                        <Button onClick={handleSave} disabled={isPending || !notificationsComplete}>
                             {isPending ? 'Saving…' : isUpdate ? 'Save' : 'Create'}
                         </Button>
                     </div>
@@ -200,10 +237,13 @@ export function AlertFormPage() {
 
                 {canEdit && !isDirty && !isUpdate && (
                     <div className="flex items-center justify-end gap-3 pt-2">
+                        {notificationsIncompleteReason && (
+                            <p className="mr-auto text-xs text-destructive">{notificationsIncompleteReason}</p>
+                        )}
                         <Button variant="outline" onClick={handleCancel}>
                             Cancel
                         </Button>
-                        <Button onClick={handleSave} disabled={isPending}>
+                        <Button onClick={handleSave} disabled={isPending || !notificationsComplete}>
                             {isPending ? 'Creating…' : 'Create'}
                         </Button>
                     </div>
