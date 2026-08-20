@@ -21,7 +21,12 @@ import { CircleCIEnvironment } from '../../pipelines';
 export class NxFormatCheckJob {
   private static jobName = 'job-nx-format-check';
 
-  public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
+  /**
+   * @param scope 'affected' compares against the base branch — right for a pull request. 'all'
+   * checks every nx project, which is what a nightly build of the reference branch needs: an
+   * affected-based check has nothing to compare against there, and silently checks nothing.
+   */
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment, scope: 'affected' | 'all' = 'affected'): Job {
     const installYarnCmd = InstallYarnCommand.get();
     dynamicConfig.addReusableCommand(installYarnCmd);
 
@@ -38,7 +43,7 @@ export class NxFormatCheckJob {
       new commands.workspace.Attach({ at: '.' }),
       new commands.Run({
         name: 'Check prettier formatting for nx projects',
-        command: 'yarn prettier',
+        command: scope === 'all' ? 'yarn prettier:all' : 'yarn prettier',
       }),
       new reusable.ReusedCommand(notifyOnFailureCommand),
     ];

@@ -345,7 +345,7 @@ jobs:
           at: .
       - run:
           name: Check prettier formatting for nx projects
-          command: yarn prettier
+          command: yarn prettier:all
       - cmd-notify-on-failure
   job-test-definition:
     docker:
