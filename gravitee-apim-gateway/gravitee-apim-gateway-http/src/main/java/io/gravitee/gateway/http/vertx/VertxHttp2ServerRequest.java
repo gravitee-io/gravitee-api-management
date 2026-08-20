@@ -30,12 +30,25 @@ import io.vertx.core.http.HttpServerRequest;
  */
 public class VertxHttp2ServerRequest extends VertxHttpServerRequest {
 
+    /**
+     * @deprecated kept so that anything built against it keeps compiling and keeps working. Prefer
+     *     the {@link VertxHttpServerRequestOptions} form.
+     */
+    @Deprecated
     public VertxHttp2ServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator) {
-        this(httpServerRequest, idGenerator, null);
+        this(httpServerRequest, idGenerator, VertxHttpServerRequestOptions.builder().build());
     }
 
+    /**
+     * @deprecated see {@link #VertxHttp2ServerRequest(HttpServerRequest, IdGenerator)}.
+     */
+    @Deprecated
     public VertxHttp2ServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator, String path) {
-        super(httpServerRequest, idGenerator, path);
+        this(httpServerRequest, idGenerator, VertxHttpServerRequestOptions.builder().path(path).build());
+    }
+
+    public VertxHttp2ServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator, VertxHttpServerRequestOptions options) {
+        super(httpServerRequest, idGenerator, options);
     }
 
     @Override
