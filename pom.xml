@@ -56,7 +56,7 @@
     <gravitee-cloud-initializer.version>2.3.1</gravitee-cloud-initializer.version>
     <logback-ecs-encoder.version>1.7.0</logback-ecs-encoder.version>
     <gravitee-common.version>5.1.0</gravitee-common.version>
-    <gravitee-common-elasticsearch.version>7.0.0</gravitee-common-elasticsearch.version>
+    <gravitee-common-elasticsearch.version>7.0.1</gravitee-common-elasticsearch.version>
     <gravitee-common-mcp.version>1.2.0</gravitee-common-mcp.version>
     <gravitee-connector-api.version>2.0.0</gravitee-connector-api.version>
     <gravitee-exchange.version>3.0.0</gravitee-exchange.version>
@@ -167,7 +167,7 @@
     <build-helper-maven-plugin.version>3.6.1</build-helper-maven-plugin.version>
     <exec-maven-plugin.version>3.5.1</exec-maven-plugin.version>
     <flatten-maven-plugin.version>1.7.2</flatten-maven-plugin.version>
-    <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
+    <jacoco-maven-plugin.version>0.8.15</jacoco-maven-plugin.version>
     <jsonschema2pojo-maven-plugin.version>1.2.2</jsonschema2pojo-maven-plugin.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <os-maven-plugin.version>1.7.1</os-maven-plugin.version>

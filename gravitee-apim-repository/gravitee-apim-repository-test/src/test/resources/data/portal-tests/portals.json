@@ -9,7 +9,8 @@
     "id": "portal2",
     "environmentId": "environment1",
     "organizationId": "organization1",
-    "name": "Secondary Portal"
+    "name": "Secondary Portal",
+    "activeThemeId": "theme-portal2"
   },
   {
     "id": "portal3",

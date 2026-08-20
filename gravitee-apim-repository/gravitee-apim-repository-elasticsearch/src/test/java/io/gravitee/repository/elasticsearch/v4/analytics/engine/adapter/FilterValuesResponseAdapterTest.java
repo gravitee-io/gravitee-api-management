@@ -142,7 +142,7 @@ class FilterValuesResponseAdapterTest {
 
         if (totalCount > 0) {
             var totalCountAgg = new Aggregation();
-            totalCountAgg.setValue((float) totalCount);
+            totalCountAgg.setValue((double) totalCount);
             aggregations.put("total_count", totalCountAgg);
         }
 

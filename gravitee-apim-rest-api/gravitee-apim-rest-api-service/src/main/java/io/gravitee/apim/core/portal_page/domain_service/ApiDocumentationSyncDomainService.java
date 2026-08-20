@@ -31,6 +31,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.apim.core.slug.model.Slug;
@@ -60,10 +61,15 @@ public class ApiDocumentationSyncDomainService {
 
     private static final int MAX_CASCADE_DEPTH = 50;
     private static final PortalArea API_DOCUMENTATION_AREA = PortalArea.TOP_NAVBAR;
+    private static final PortalNavigationItemType TYPE = PortalNavigationItemType.PAGE;
+    private static final PortalVisibility DEFAULT_VISIBILITY = PortalVisibility.PUBLIC;
+    private static final int DEFAULT_ORDER = 0;
+    private static final boolean DEFAULT_PUBLISHED = true;
 
     private final PortalNavigationItemCrudService navigationItemCrudService;
     private final PortalNavigationItemsQueryService navigationItemsQueryService;
     private final PortalPageContentQueryService portalPageContentQueryService;
+    private final PortalNavigationItemValidatorService validatorService;
 
     public void materialize(AuditInfo auditInfo, PortalPageContent<?> pageContent) {
         var meta = pageContent.getAutomationMetadata();
@@ -172,33 +178,48 @@ public class ApiDocumentationSyncDomainService {
         PortalNavigationItemContainer parent,
         AutomationMetadata meta
     ) {
-        var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), pageId);
+        final var envId = auditInfo.environmentId();
+        final var orgId = auditInfo.organizationId();
+        var existing = navigationItemsQueryService.findByIdAndEnvironmentId(envId, pageId);
         var parentId = parent == null ? null : parent.getId();
 
-        if (existing instanceof PortalNavigationPage page) {
-            var segment = Slug.from(meta.name(), siblingSlugs(auditInfo.environmentId(), parentId, pageId));
-            page.update(meta, parent, segment);
+        if (existing instanceof PortalNavigationPage page && page.getArea() == API_DOCUMENTATION_AREA) {
+            var segment = Slug.from(meta.name(), siblingSlugs(envId, parentId, pageId));
+            var update = UpdatePortalNavigationItem.builder()
+                .title(meta.name())
+                .segment(segment.value())
+                .type(TYPE)
+                .order(meta.order().orElse(DEFAULT_ORDER))
+                .parentId(parentId)
+                .visibility(DEFAULT_VISIBILITY)
+                .published(DEFAULT_PUBLISHED)
+                .build();
+            validatorService.validateToUpdate(update, page);
+            page.update(update, meta.trimmedForNavItem());
+            page.attachTo(parent);
             navigationItemCrudService.update(page);
             return;
         }
         if (existing != null) {
             navigationItemCrudService.delete(pageId);
         }
-        var segment = Slug.from(meta.name(), siblingSlugs(auditInfo.environmentId(), parentId, null));
+        var segment = Slug.from(meta.name(), siblingSlugs(envId, parentId, null));
         var create = CreatePortalNavigationItem.builder()
             .id(pageId)
             .title(meta.name())
             .segment(segment.value())
             .area(API_DOCUMENTATION_AREA)
-            .type(PortalNavigationItemType.PAGE)
-            .order(meta.order().orElse(0))
+            .type(TYPE)
+            .order(meta.order().orElse(DEFAULT_ORDER))
             .portalPageContentId(contentId)
+            .parentId(parentId)
             .reference(meta.reference())
+            .visibility(DEFAULT_VISIBILITY)
+            .published(DEFAULT_PUBLISHED)
             .automationMetadata(meta.trimmedForNavItem())
-            .visibility(PortalVisibility.PUBLIC)
-            .published(true)
             .build();
-        navigationItemCrudService.create(PortalNavigationItem.from(create, auditInfo.organizationId(), auditInfo.environmentId(), parent));
+        validatorService.validateOne(create, envId);
+        navigationItemCrudService.create(PortalNavigationItem.from(create, orgId, envId, parent));
     }
 
     private Set<Slug> siblingSlugs(String environmentId, PortalNavigationItemId parentId, PortalNavigationItemId excludeId) {

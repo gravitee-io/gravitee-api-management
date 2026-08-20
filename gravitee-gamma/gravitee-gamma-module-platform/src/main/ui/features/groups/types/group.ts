@@ -101,6 +101,8 @@ export interface GroupRole {
     default?: boolean;
 }
 
+export const PRIMARY_OWNER_ROLE = 'PRIMARY_OWNER';
+
 /** v1 `GroupMemberEntity` (GET .../configuration/groups/{id}/members...). */
 export interface GroupMember {
     id: string;
@@ -118,4 +120,17 @@ export interface GroupMembershipItem {
     id: string;
     name: string;
     version?: string;
+}
+
+export type GroupMemberRoleScope = 'API' | 'APPLICATION' | 'API_PRODUCT' | 'INTEGRATION' | 'CLUSTER' | 'EXPLORER' | 'GROUP';
+
+export interface GroupMembershipRole {
+    scope: GroupMemberRoleScope;
+    name: string;
+}
+
+export interface GroupMembershipPayload {
+    id?: string;
+    reference?: string;
+    roles: GroupMembershipRole[];
 }

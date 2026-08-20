@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.13.0_16_add_active_theme_id_to_portals
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}portals
+            columns:
+              - column: {name: active_theme_id, type: nvarchar(64), constraints: { nullable: true } }

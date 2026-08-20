@@ -116,6 +116,13 @@ public enum StaticFilters {
 
     // --- Authz decisions ------------------------------------------------------------------------
     DECISION("Decision", FilterType.ENUM, Defs.EQ_IN, Defs.DECISIONS, null, Defs.LOGS, Defs.DECISION_RECORDS),
+    // STRING, not KEYWORD: these are open sets (any principal, any resource a policy names), so there
+    // is nothing to suggest from and the picker would offer an empty dropdown. The indexed fields are
+    // keyword, so exact match is the honest operator; CONTAINS would need a wildcard query.
+    SUBJECT("Subject", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
+    ACTION("Action", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
+    RESOURCE("Resource", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
+    CALLER_KIND("Caller kind", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_CALLERS, null, Defs.LOGS, Defs.DECISION_RECORDS),
 
     // --- LLM ------------------------------------------------------------------------------------
     LLM_PROXY_MODEL("LLM Model", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.LLM)),
@@ -311,6 +318,18 @@ public enum StaticFilters {
             new EnumValue("CONNECTION_ERROR", "Connection error"),
             new EnumValue("SESSION_ERROR", "Session error"),
             new EnumValue("INTERNAL_ERROR", "Internal error")
+        );
+
+        /**
+         * What produced the decision, as the reporter writes it (lowercase wire values). {@code reactor}
+         * is deliberately absent: it was renamed to {@code gateway} in gravitee-reporter-api 2.7.1, so
+         * only pre-2.7.1 documents carry it and nothing emits it today.
+         */
+        private static final List<EnumValue> AUTHZ_CALLERS = List.of(
+            new EnumValue("pep", "PEP policy"),
+            new EnumValue("gateway", "Gateway"),
+            new EnumValue("authzen", "AuthZEN endpoint"),
+            new EnumValue("unknown", "Unknown")
         );
 
         private static final List<EnumValue> DECISIONS = List.of(

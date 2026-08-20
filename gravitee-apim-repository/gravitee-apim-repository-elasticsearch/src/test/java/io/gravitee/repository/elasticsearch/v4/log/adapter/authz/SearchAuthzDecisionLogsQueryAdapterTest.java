@@ -124,6 +124,52 @@ class SearchAuthzDecisionLogsQueryAdapterTest {
     }
 
     @Test
+    void narrows_on_subject_action_resource_and_caller() {
+        var query = AuthzDecisionLogQuery.builder()
+            .apiIds(Set.of("api-1"))
+            .subjectIds(Set.of("alice"))
+            .actions(Set.of("read"))
+            .resourceIds(Set.of("doc-1"))
+            .callers(Set.of("pep", "authzen"))
+            .build();
+
+        var result = SearchAuthzDecisionLogsQueryAdapter.adapt(query);
+
+        assertThatJson(result)
+            .inPath("$.query.bool.filter[2].terms.subject-id")
+            .isEqualTo(
+                """
+                [ "alice" ]
+                """
+            );
+        assertThatJson(result)
+            .inPath("$.query.bool.filter[3].terms.action")
+            .isEqualTo(
+                """
+                [ "read" ]
+                """
+            );
+        assertThatJson(result)
+            .inPath("$.query.bool.filter[4].terms.resource-id")
+            .isEqualTo(
+                """
+                [ "doc-1" ]
+                """
+            );
+        assertThatJson(result).inPath("$.query.bool.filter[5].terms.caller").isArray().hasSize(2);
+    }
+
+    @Test
+    void omits_every_optional_clause_when_none_is_requested() {
+        var query = AuthzDecisionLogQuery.builder().apiIds(Set.of("api-1")).build();
+
+        var result = SearchAuthzDecisionLogsQueryAdapter.adapt(query);
+
+        // doc-type + api-id only: an empty terms clause would match nothing and silently empty the table.
+        assertThatJson(result).inPath("$.query.bool.filter").isArray().hasSize(2);
+    }
+
+    @Test
     void omits_the_decision_clause_when_none_is_requested() {
         var query = AuthzDecisionLogQuery.builder().apiIds(Set.of("api-1")).build();
 

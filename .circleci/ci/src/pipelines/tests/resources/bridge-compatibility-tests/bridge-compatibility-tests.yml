@@ -179,6 +179,7 @@ jobs:
           at: .
       - cmd-restore-maven-job-cache:
           jobName: job-build
+      - cmd-install-yarn
       - run:
           name: Build engine
           command: mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8 -P all-modules -DwithJavadoc

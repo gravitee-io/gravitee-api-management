@@ -24,4 +24,13 @@ import lombok.Builder;
  * signature again.
  */
 @Builder
-public record AuthzDecisionLogFilters(Set<String> apiIds, Long from, Long to, Set<String> decisions) {}
+public record AuthzDecisionLogFilters(
+    Set<String> apiIds,
+    Long from,
+    Long to,
+    Set<String> decisions,
+    Set<String> subjectIds,
+    Set<String> actions,
+    Set<String> resourceIds,
+    Set<String> callers
+) {}

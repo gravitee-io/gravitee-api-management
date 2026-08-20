@@ -18,10 +18,12 @@ package io.gravitee.apim.rest.api.automation.resource;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.use_case.CreateOrUpdateApiDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ValidateApiDocumentationUseCase;
 import io.gravitee.apim.rest.api.automation.mapper.ApiDocumentationMapper;
+import io.gravitee.apim.rest.api.automation.model.DocumentationArea;
 import io.gravitee.apim.rest.api.automation.model.DocumentationSpec;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -69,6 +71,9 @@ public class ApiDocumentationsResource extends AbstractResource {
         @Valid @NotNull DocumentationSpec spec,
         @QueryParam("dryRun") boolean dryRun
     ) {
+        if (spec.getArea() != null && spec.getArea() != DocumentationArea.TOP_NAVBAR) {
+            throw new ValidationDomainException("API documentation must be under TOP_NAVBAR area");
+        }
         var auditInfo = getAuditInfo();
         var apiId = HRIDToUUID.api().context(auditInfo).hrid(apiHrid).id();
         var documentationId = PortalPageContentId.of(

@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 import { Config, workflow, Workflow } from '../circleci-config';
-import { AikidoScanDockerImagesJob, DeployOnAzureJob, TestIntegrationJob } from '../jobs';
+import { AikidoScanDockerImagesJob, DeployOnAzureJob, SonarCloudAnalysisJob, TestIntegrationJob } from '../jobs';
 import { CircleCIEnvironment } from '../pipelines';
 import { config } from '../config';
+import { analysisJobFor, BACKEND_ANALYSED_PROJECTS, FRONTEND_ANALYSED_PROJECTS } from './groups/analysed-projects';
 import { devEnvironmentJobs } from './groups/dev-environment-jobs';
 import { e2eJobs } from './groups/e2e-jobs';
-import { chainguardImageJobs } from './groups/chainguard-image-jobs';
 import { chainguardFipsImageJobs } from './groups/chainguard-fips-image-jobs';
 
 /**
  * The scheduled build, one per branch: the default branch and every live support branch.
  *
- * It is the dev-environment refresh plus the two suites that run nowhere else. Pull requests
- * cover their own scope — the changed-files predicates are dependency-aware, so anything a
- * change could affect is retested before merge — and a push to a branch only refreshes the
- * environment. What no one runs, then, is the real-plugin integration tests and the end-to-end
- * suites. It deliberately does not replay the per-module or frontend test suites.
+ * Two chains hang off a single `Build backend`: the development environment refresh, and the
+ * analysis of the reference branch. A push to a branch only refreshes the environment, so
+ * nothing else analyses the default branch — and without that, a pull request has no new-code
+ * baseline and the server-side cache finds nothing to reuse.
+ *
+ * The analysed projects come from the list the pull-request groups use, taken unfiltered here:
+ * a module is analysed on both or on neither.
  */
 export class NightlyWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment): Workflow {
@@ -39,13 +41,31 @@ export class NightlyWorkflow {
     const deployOnAzureJob = DeployOnAzureJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(deployOnAzureJob);
 
+    const sonarAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(sonarAnalysisJob);
+
+    const analysisChain = [
+      ...BACKEND_ANALYSED_PROJECTS.map((project) => ({ project, requires: ['Build backend'] })),
+      ...FRONTEND_ANALYSED_PROJECTS.map((project) => ({ project, requires: undefined })),
+    ].flatMap(({ project, requires }) => {
+      const suiteJob = project.createSuite(dynamicConfig, environment);
+      dynamicConfig.addJob(suiteJob);
+      return [
+        new workflow.WorkflowJob(suiteJob, {
+          name: project.suiteName,
+          context: config.jobContext,
+          ...(requires ? { requires } : {}),
+          ...(project.suiteParameters ?? {}),
+        }),
+        analysisJobFor(project, sonarAnalysisJob),
+      ];
+    });
+
     return new Workflow('nightly', [
       ...devEnvironmentJobs(dynamicConfig, environment),
 
-      // The chainguard variants are shipped but the environment does not run them, so a branch
-      // push has no reason to build them. They are built here instead, which is also what gives
-      // the Aikido scan below something to look at every night rather than only at release time.
-      ...chainguardImageJobs(dynamicConfig, environment),
+      // Only the FIPS variants. The chainguard images are built — and scanned — by every branch
+      // push, since the environment runs them.
       ...chainguardFipsImageJobs(dynamicConfig, environment),
 
       new workflow.WorkflowJob(testIntegrationJob, {
@@ -53,6 +73,10 @@ export class NightlyWorkflow {
         context: config.jobContext,
         requires: ['Build backend'],
       }),
+
+      // The suites replayed for the coverage reports they leave behind, each followed by the
+      // analysis that reads them. Nothing downstream waits on these.
+      ...analysisChain,
       ...e2eJobs(dynamicConfig, environment),
 
       // Last, and only once everything the environment will run has been exercised.
@@ -68,9 +92,10 @@ export class NightlyWorkflow {
         requires: ['Integration tests', 'Run Cypress UI tests'],
       }),
 
-      // Every variant, standard and chainguard alike. This is the only place they are scanned
-      // between two releases.
-      ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, false, '', true),
+      // What this workflow builds: the standard images and the FIPS variants. FIPS is scanned
+      // nowhere else between two releases; the chainguard variants are scanned on the branch
+      // push that builds them.
+      ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, false, '', ['chainguard-fips']),
     ]);
   }
 }

@@ -19,10 +19,4 @@ package io.gravitee.apim.gateway.tests.sdk.license;
  * A test license that reports the "universe" tier, required for features such as API Products.
  * Use this via {@link UniverseTierLicenseManager} in tests that deploy API Products.
  */
-class UniverseTierLicense extends PermissiveLicense {
-
-    @Override
-    public String getTier() {
-        return "universe";
-    }
-}
+class UniverseTierLicense extends PermissiveLicense {}

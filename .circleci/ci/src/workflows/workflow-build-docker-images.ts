@@ -226,7 +226,10 @@ export class BuildDockerImagesWorkflow {
       }),
 
       // Aikido image scans, once every variant of a component has been pushed
-      ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, true, ` for APIM ${environment.graviteeioVersion}`, true),
+      ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, true, ` for APIM ${environment.graviteeioVersion}`, [
+        'chainguard',
+        'chainguard-fips',
+      ]),
     ];
 
     return new Workflow('build-docker-images', jobs);

@@ -116,7 +116,7 @@ services:
             - gravitee_kafka_ssl_keystore_password=gravitee
             - gravitee_kafka_ssl_keystore_path=$${gravitee.home}/ssl/server.keystore.jks
             - gravitee_kafka_ssl_keystore_type=jks
-            - 'gravitee_kafka_routingHostMode_defaultDomain=kafka.local'
+            - 'gravitee_kafka_routingHostMode_domains_0=kafka.local'
         networks:
             storage:
             frontend:

@@ -41,6 +41,7 @@ import { ExportApi } from './ExportApi';
 import { ImagePicker } from './ImagePicker';
 import { ImportApiSheet } from './ImportApiSheet';
 import { PromoteDialog } from './PromoteDialog';
+import { downloadBlob } from '../../../../../shared/browser';
 import { ConfirmDialog } from '../../../../../shared/components';
 import { notify } from '../../../../../shared/notify';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
@@ -49,7 +50,7 @@ import { useEnvCategories } from '../../../hooks/useEnvCategories';
 import { exportApiCrd, exportApiDefinition } from '../../../services/apis';
 import type { ApiDetailDto } from '../../../types';
 import { extractContextPathPlaceholder, extractHostPlaceholder, getDuplicateEntryMode } from '../../../utils/apiGeneralDuplicate';
-import { buildExcludeAdditionalData, buildExportFileName, downloadBlob, type ExportIncludeKey } from '../../../utils/apiGeneralExport';
+import { buildExcludeAdditionalData, buildExportFileName, type ExportIncludeKey } from '../../../utils/apiGeneralExport';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

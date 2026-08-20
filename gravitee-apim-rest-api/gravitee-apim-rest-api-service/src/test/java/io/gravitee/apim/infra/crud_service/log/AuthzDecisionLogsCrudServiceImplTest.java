@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.crud_service.log;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -34,6 +35,7 @@ import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -179,6 +181,45 @@ class AuthzDecisionLogsCrudServiceImplTest {
         var captor = ArgumentCaptor.forClass(AuthzDecisionLogQuery.class);
         verify(metricsRepository).searchAuthzDecisionLogs(any(), captor.capture());
         assertThat(captor.getValue().getDecisions()).containsExactly("FORBID");
+    }
+
+    @Test
+    void finds_one_decision_by_event_id_within_the_api() throws Exception {
+        when(metricsRepository.findAuthzDecisionLog(any(), any(), any())).thenReturn(
+            Optional.of(
+                io.gravitee.repository.log.v4.model.authz.AuthzDecisionLog.builder()
+                    .eventId("evt-1")
+                    .apiId("api-1")
+                    .decision("PERMIT")
+                    .build()
+            )
+        );
+
+        var decision = service.findDecisionLog(CONTEXT, "api-1", "evt-1");
+
+        assertThat(decision).isPresent();
+        assertThat(decision.get().eventId()).isEqualTo("evt-1");
+        assertThat(decision.get().decision()).isEqualTo("PERMIT");
+
+        var contextCaptor = ArgumentCaptor.forClass(QueryContext.class);
+        verify(metricsRepository).findAuthzDecisionLog(contextCaptor.capture(), eq("api-1"), eq("evt-1"));
+        assertThat(contextCaptor.getValue().placeholder()).containsEntry("orgId", "org-1").containsEntry("envId", "env-1");
+    }
+
+    @Test
+    void finds_no_decision_when_the_event_id_is_unknown() throws Exception {
+        when(metricsRepository.findAuthzDecisionLog(any(), any(), any())).thenReturn(Optional.empty());
+
+        assertThat(service.findDecisionLog(CONTEXT, "api-1", "gone")).isEmpty();
+    }
+
+    @Test
+    void turns_a_failed_decision_lookup_into_a_technical_management_exception() throws Exception {
+        when(metricsRepository.findAuthzDecisionLog(any(), any(), any())).thenThrow(new AnalyticsException("index unavailable"));
+
+        assertThatThrownBy(() -> service.findDecisionLog(CONTEXT, "api-1", "evt-1"))
+            .isInstanceOf(TechnicalManagementException.class)
+            .hasMessageContaining("evt-1");
     }
 
     private static AuthzDecisionLogFilters filters(Set<String> apiIds, Long from, Long to) {

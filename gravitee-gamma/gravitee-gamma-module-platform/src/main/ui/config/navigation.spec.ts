@@ -37,20 +37,20 @@ describe('platform navigation config', () => {
         expect(NAV_SECTIONS.some(section => section.key === 'general' || section.title === 'General')).toBe(false);
     });
 
-    it('places Entrypoints & Sharding Tags under Organization / Assets', () => {
-        expect(sectionKeys('Organization', 'Assets')).toEqual(['entrypoints-and-sharding-tags']);
+    it('places Tenants then Entrypoints & Sharding Tags under Organization / Assets', () => {
+        expect(sectionKeys('Organization', 'Assets')).toEqual(['tenants', 'entrypoints-and-sharding-tags']);
     });
 
-    it('places Access Management under Organization / System & Security', () => {
-        expect(sectionKeys('Organization', 'System & Security')).toEqual(['access-management']);
+    it('places Access Management then Audit under Organization / System & Security', () => {
+        expect(sectionKeys('Organization', 'System & Security')).toEqual(['access-management', 'organization-audit']);
     });
 
     it('places Applications, Metadata, and Dictionaries under Environment / APIs & Assets', () => {
         expect(sectionKeys('Environment', 'APIs & Assets')).toEqual(['applications', 'metadata', 'dictionaries']);
     });
 
-    it('places Gateways, Alerts, and Security Plan Types under Environment / System & Security', () => {
-        expect(sectionKeys('Environment', 'System & Security')).toEqual(['gateways', 'alerts', 'security-plan-types']);
+    it('places Gateways, Alerts, Security Plan Types, and Audit under Environment / System & Security', () => {
+        expect(sectionKeys('Environment', 'System & Security')).toEqual(['gateways', 'alerts', 'security-plan-types', 'environment-audit']);
     });
 
     it('places Users and Groups under Team', () => {
@@ -73,13 +73,16 @@ describe('platform navigation config', () => {
         expect(findNavSectionKey(NAV_SECTIONS, 'applications')).toBe('environment');
         expect(findNavSectionKey(NAV_SECTIONS, 'users')).toBe('team');
         expect(findNavSectionKey(NAV_SECTIONS, 'access-management')).toBe('organization');
+        expect(findNavSectionKey(NAV_SECTIONS, 'tenants')).toBe('organization');
+        expect(findNavSectionKey(NAV_SECTIONS, 'organization-audit')).toBe('organization');
+        expect(findNavSectionKey(NAV_SECTIONS, 'environment-audit')).toBe('environment');
         expect(findNavSectionKey(NAV_SECTIONS, 'missing')).toBeUndefined();
     });
 
     it('returns the first visible item in a section', () => {
         const organization = NAV_SECTIONS.find(section => section.key === 'organization');
         expect(organization).toBeDefined();
-        expect(firstNavItemKey(organization!)).toBe('entrypoints-and-sharding-tags');
+        expect(firstNavItemKey(organization!)).toBe('tenants');
     });
 
     it('filters hidden items and drops empty groups and sections', () => {
@@ -102,5 +105,20 @@ describe('platform navigation config', () => {
     it('declares the user-groups route in platform routing config', () => {
         expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('user-groups');
         expect(ROUTES['user-groups']).toEqual({ path: 'user-groups', label: 'Groups' });
+    });
+
+    it('declares the tenants route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('tenants');
+        expect(ROUTES.tenants).toEqual({ path: 'tenants', label: 'Tenants' });
+    });
+
+    it('declares the organization-audit route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('organization-audit');
+        expect(ROUTES['organization-audit']).toEqual({ path: 'organization-audit', label: 'Audit' });
+    });
+
+    it('declares the environment-audit route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('environment-audit');
+        expect(ROUTES['environment-audit']).toEqual({ path: 'environment-audit', label: 'Audit' });
     });
 });

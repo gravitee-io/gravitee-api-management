@@ -24,6 +24,7 @@ import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
+import io.gravitee.repository.elasticsearch.v4.log.adapter.authz.FindAuthzDecisionLogQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.authz.SearchAuthzDecisionLogsQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.authz.SearchAuthzDecisionLogsResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchConnectionLogErrorKeysQueryAdapter;
@@ -157,6 +158,21 @@ public class MetricsElasticsearchRepository extends AbstractElasticsearchReposit
                 .blockingGet();
         } catch (RuntimeException e) {
             throw new AnalyticsException("Failed to search authz decision logs for apis " + query.getApiIds(), e);
+        }
+    }
+
+    @Override
+    public Optional<AuthzDecisionLog> findAuthzDecisionLog(QueryContext queryContext, String apiId, String eventId)
+        throws AnalyticsException {
+        var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.EVENT_METRICS, clusters);
+
+        try {
+            return this.client.search(index, null, FindAuthzDecisionLogQueryAdapter.adapt(apiId, eventId))
+                .map(SearchAuthzDecisionLogsResponseAdapter::adaptFirst)
+                .blockingGet();
+        } catch (RuntimeException e) {
+            throw new AnalyticsException("Failed to find authz decision " + eventId + " for api " + apiId, e);
         }
     }
 }

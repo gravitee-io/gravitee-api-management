@@ -35,7 +35,12 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
 import { CdkDragDrop, CdkDragMove, CdkDragStart, DragDropModule } from '@angular/cdk/drag-drop';
 
-import { PortalNavigationItem, PortalNavigationItemType } from '../../../entities/management-api-v2';
+import {
+  collectNodeIdsWithSourcedPageDescendants,
+  getPortalNavigationItemSource,
+  PortalNavigationItem,
+  PortalNavigationItemType,
+} from '../../../entities/management-api-v2';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
@@ -56,7 +61,7 @@ export interface NodeMovedEvent {
   newOrder: number;
 }
 
-type NodeMenuActionType = 'create' | 'edit' | 'delete' | 'publish' | 'unpublish';
+type NodeMenuActionType = 'create' | 'edit' | 'delete' | 'publish' | 'unpublish' | 'fetchAll';
 
 export interface NodeMenuActionEvent {
   node: SectionNode;
@@ -118,6 +123,7 @@ export class FlatTreeComponent {
 
   links = input<PortalNavigationItem[] | null>(null);
   selectedId = input<string | null>(null);
+  fetchInProgress = input(false);
 
   nodeSelect = output<SectionNode>();
   nodeMenuAction = output<NodeMenuActionEvent>();
@@ -185,6 +191,9 @@ export class FlatTreeComponent {
     return creationAllowedByNodeId;
   });
 
+  // "Fetch All" targets the sourced PAGE descendants, matching what the backend _fetch endpoint collects
+  private readonly nodeIdsWithSourcedPageDescendants = computed(() => collectNodeIdsWithSourcedPageDescendants(this.links()));
+
   publishStateByNodeId = computed(() => {
     const links = this.links();
     const publishStateByNodeId = new Map<string, PublishActionState>();
@@ -233,6 +242,12 @@ export class FlatTreeComponent {
   isSelected = (node: FlatTreeNode) => this.selectedId() === node.id;
 
   isUnpublished = (node: FlatTreeNode) => node.data?.published === false;
+
+  isSourced = (node: FlatTreeNode) => !!node.data && !!getPortalNavigationItemSource(node.data);
+
+  canFetchAll(node: FlatTreeNode): boolean {
+    return this.canUpdate && this.isContainer(node) && this.nodeIdsWithSourcedPageDescendants().has(node.id);
+  }
 
   isPublishDisabled(node: SectionNode): boolean {
     return this.getPublishActionState(node).disabled;
@@ -355,6 +370,14 @@ export class FlatTreeComponent {
   onUnpublish(node: FlatTreeNode) {
     this.nodeMenuAction.emit({
       action: 'unpublish',
+      itemType: node.type,
+      node: this.mapFlatTreeNodeToSectionNode(node),
+    });
+  }
+
+  onFetchAll(node: FlatTreeNode) {
+    this.nodeMenuAction.emit({
+      action: 'fetchAll',
       itemType: node.type,
       node: this.mapFlatTreeNodeToSectionNode(node),
     });

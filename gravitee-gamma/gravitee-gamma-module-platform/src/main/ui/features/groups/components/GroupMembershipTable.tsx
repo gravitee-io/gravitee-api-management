@@ -30,6 +30,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
 import type { GroupMembershipItem } from '../types/group';
+import { paginate, totalPagesFor } from '../utils/clientPagination';
 
 const PAGE_SIZE = 10;
 
@@ -54,11 +55,6 @@ function buildColumns(showVersionColumn: boolean): DataTableProps<GroupMembershi
         });
     }
     return columns;
-}
-
-function paginate(items: GroupMembershipItem[], page: number, pageSize: number): GroupMembershipItem[] {
-    const start = (page - 1) * pageSize;
-    return items.slice(start, start + pageSize);
 }
 
 interface GroupMembershipTableProps {
@@ -91,7 +87,7 @@ export function GroupMembershipTable({
     }, [items, search]);
 
     const totalCount = filtered.length;
-    const totalPages = pageSize > 0 ? Math.max(1, Math.ceil(totalCount / pageSize)) : 1;
+    const totalPages = totalPagesFor(totalCount, pageSize);
     const pageData = useMemo(() => paginate(filtered, page, pageSize), [filtered, page, pageSize]);
     const columns = useMemo(() => buildColumns(showVersionColumn), [showVersionColumn]);
 

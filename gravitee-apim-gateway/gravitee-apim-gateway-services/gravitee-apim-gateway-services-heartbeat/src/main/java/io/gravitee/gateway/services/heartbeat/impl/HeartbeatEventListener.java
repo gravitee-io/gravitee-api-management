@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.heartbeat.impl;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.node.api.cluster.messaging.Message;
 import io.gravitee.node.api.cluster.messaging.MessageListener;
@@ -24,22 +25,39 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.CustomLog;
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 @CustomLog
-@RequiredArgsConstructor
 public class HeartbeatEventListener implements MessageListener<Event> {
 
     private final ClusterManager clusterManager;
     private final EventRepository eventRepository;
 
-    private final ExecutorService heartbeatExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "gio-heartbeat-listener"));
+    private final ExecutorService heartbeatExecutor;
 
     private final AtomicBoolean isProcessing = new AtomicBoolean(false);
+
+    public HeartbeatEventListener(final ClusterManager clusterManager, final EventRepository eventRepository) {
+        this(clusterManager, eventRepository, Executors.newSingleThreadExecutor(r -> new Thread(r, "gio-heartbeat-listener")));
+    }
+
+    /**
+     * Lets the test provide the executor the events are processed on, so it can wait for a submitted task to be fully
+     * completed instead of relying on timings.
+     */
+    @VisibleForTesting
+    HeartbeatEventListener(
+        final ClusterManager clusterManager,
+        final EventRepository eventRepository,
+        final ExecutorService heartbeatExecutor
+    ) {
+        this.clusterManager = clusterManager;
+        this.eventRepository = eventRepository;
+        this.heartbeatExecutor = heartbeatExecutor;
+    }
 
     @Override
     public void onMessage(Message<Event> message) {

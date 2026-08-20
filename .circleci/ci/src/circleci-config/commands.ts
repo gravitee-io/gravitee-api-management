@@ -30,6 +30,7 @@ export interface RunParameters {
   working_directory?: string;
   environment?: Record<string, string>;
   when?: When;
+  no_output_timeout?: string;
 }
 
 /** A `run` step. */

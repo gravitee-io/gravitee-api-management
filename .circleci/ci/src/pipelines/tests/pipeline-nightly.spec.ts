@@ -15,6 +15,7 @@
  */
 import * as fs from 'fs';
 import { generateNightlyConfig } from '../pipeline-nightly';
+import { generatePullRequestsConfig } from '../pipeline-pull-requests';
 
 describe('Nightly', () => {
   it('should generate the nightly pipeline', () => {
@@ -33,5 +34,35 @@ describe('Nightly', () => {
 
     const expected = fs.readFileSync(`./src/pipelines/tests/resources/nightly/nightly.yml`, 'utf-8');
     expect(result.stringify()).toStrictEqual(expected);
+  });
+
+  // Both consumers derive from `analysed-projects.ts`, so the equality below cannot drift on its
+  // own. What earns its keep is the count: a project dropped from the shared list leaves the
+  // nightly and every pull request at once, which is the failure this epic exists to prevent.
+  it('should analyse exactly the projects a pull request analyses', () => {
+    const environment = {
+      baseBranch: 'master',
+      branch: 'master',
+      sha1: '784ff35ca',
+      changedFiles: [],
+      buildNum: '1234',
+      buildId: '1234',
+      graviteeioVersion: '4.2.0',
+      isDryRun: false,
+      apimVersionPath: './src/pipelines/tests/resources/common/pom-snapshot.xml',
+    };
+
+    const sonarJobs = (yaml: string): string[] => [...yaml.matchAll(/name: (Sonar - [\w-]+)/g)].map((match) => match[1]).sort();
+
+    const nightly = generateNightlyConfig({ ...environment, action: 'nightly' }).stringify();
+    const pullRequest = generatePullRequestsConfig({
+      ...environment,
+      action: 'pull_requests',
+      branch: 'APIM-1234-my-custom-branch',
+      changedFiles: ['pom.xml'],
+    }).stringify();
+
+    expect(sonarJobs(nightly)).toEqual(sonarJobs(pullRequest));
+    expect(sonarJobs(nightly)).toHaveLength(9);
   });
 });

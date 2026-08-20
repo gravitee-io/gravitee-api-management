@@ -93,6 +93,10 @@ jest.mock('../pages/RegisterApplicationPage', () => ({
     RegisterApplicationPage: () => <div data-testid="register-application-page" />,
 }));
 
+jest.mock('../pages/TenantsPage', () => ({
+    TenantsPage: () => <div data-testid="tenants-page" />,
+}));
+
 jest.mock('../features/applications/components/detail', () => ({
     ApplicationDetailLayout: () => <div data-testid="application-detail-layout" />,
     ApplicationDetailIndexRedirect: () => null,
@@ -104,6 +108,14 @@ jest.mock('../pages/ApplicationDetailSubscriptionPage', () => ({
 
 jest.mock('../pages/AlertsPage', () => ({
     AlertsPage: () => <div data-testid="alerts-page" />,
+}));
+
+jest.mock('../pages/OrgAuditLogsPage', () => ({
+    OrgAuditLogsPage: () => <div data-testid="org-audit-logs-page" />,
+}));
+
+jest.mock('../pages/EnvAuditLogsPage', () => ({
+    EnvAuditLogsPage: () => <div data-testid="env-audit-logs-page" />,
 }));
 
 function renderPlatform(path = '/applications') {
@@ -390,5 +402,188 @@ describe('AppRoutes', () => {
         renderPlatform();
 
         expect(visibleNavKeys()).not.toContain('alerts');
+    });
+
+    it('routes to the Tenants page under the platform module', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'tenants',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        renderPlatform('/tenants');
+
+        expect(screen.getByTestId('tenants-page')).not.toBeNull();
+    });
+
+    it('shows the Tenants nav item when the user has read permission', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'tenants',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        renderPlatform('/tenants');
+
+        expect(visibleNavKeys()).toContain('tenants');
+        expect(visibleNavKeys()).toContain('entrypoints-and-sharding-tags');
+    });
+
+    it('hides the Tenants nav item when the user lacks tenant read permission', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'tenants',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        mockUseHasPermission.mockImplementation(
+            ({ anyOf }: { anyOf: string[] }) => !anyOf.includes('organization-tenant-r') && !anyOf.includes('environment-tenant-r'),
+        );
+
+        renderPlatform('/tenants');
+
+        expect(visibleNavKeys()).not.toContain('tenants');
+    });
+
+    it('redirects away from Tenants when the user lacks tenant read permission', () => {
+        mockUseHasPermission.mockImplementation(
+            ({ anyOf }: { anyOf: string[] }) => !anyOf.includes('organization-tenant-r') && !anyOf.includes('environment-tenant-r'),
+        );
+
+        renderPlatform('/tenants');
+
+        expect(screen.queryByTestId('tenants-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('routes to the Organization Audit page under the platform module', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'organization-audit',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        renderPlatform('/organization-audit');
+
+        expect(screen.getByTestId('org-audit-logs-page')).not.toBeNull();
+    });
+
+    it('shows the Organization Audit nav item when the user has audit read permission', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'organization-audit',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        renderPlatform('/organization-audit');
+
+        expect(visibleNavKeys()).toContain('organization-audit');
+    });
+
+    it('hides the Organization Audit nav item when the user lacks audit read permission', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'organization-audit',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('organization-audit-r'));
+
+        renderPlatform('/organization-audit');
+
+        expect(visibleNavKeys()).not.toContain('organization-audit');
+    });
+
+    it('redirects away from Organization Audit when the user lacks audit read permission', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('organization-audit-r'));
+
+        renderPlatform('/organization-audit');
+
+        expect(screen.queryByTestId('org-audit-logs-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('routes to the Environment Audit page under the platform module', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'environment-audit',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        renderPlatform('/environment-audit');
+
+        expect(screen.getByTestId('env-audit-logs-page')).not.toBeNull();
+    });
+
+    it('shows the Environment Audit nav item when the user has audit read permission', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'environment-audit',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        renderPlatform('/environment-audit');
+
+        expect(visibleNavKeys()).toContain('environment-audit');
+    });
+
+    it('hides the Environment Audit nav item when the user lacks audit read permission', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'environment-audit',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-audit-r'));
+
+        renderPlatform('/environment-audit');
+
+        expect(visibleNavKeys()).not.toContain('environment-audit');
+    });
+
+    it('redirects away from Environment Audit when the user lacks audit read permission', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-audit-r'));
+
+        renderPlatform('/environment-audit');
+
+        expect(screen.queryByTestId('env-audit-logs-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('hides the Organization Audit nav item for a user holding only environment audit read', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'environment-audit',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('organization-audit-r'));
+
+        renderPlatform('/environment-audit');
+
+        expect(visibleNavKeys()).not.toContain('organization-audit');
+        expect(visibleNavKeys()).toContain('environment-audit');
+    });
+
+    it('hides the Environment Audit nav item for a user holding only organization audit read', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'organization-audit',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-audit-r'));
+
+        renderPlatform('/organization-audit');
+
+        expect(visibleNavKeys()).not.toContain('environment-audit');
+        expect(visibleNavKeys()).toContain('organization-audit');
+    });
+
+    it('redirects away from Organization Audit for a user holding only environment audit read', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('organization-audit-r'));
+
+        renderPlatform('/organization-audit');
+
+        expect(screen.queryByTestId('org-audit-logs-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('redirects away from Environment Audit for a user holding only organization audit read', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-audit-r'));
+
+        renderPlatform('/environment-audit');
+
+        expect(screen.queryByTestId('env-audit-logs-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
     });
 });

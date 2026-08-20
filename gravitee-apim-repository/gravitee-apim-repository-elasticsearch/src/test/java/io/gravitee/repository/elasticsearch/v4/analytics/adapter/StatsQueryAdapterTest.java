@@ -131,11 +131,11 @@ class StatsQueryAdapterTest {
             );
 
             Aggregation agg = new Aggregation();
-            agg.setCount(3600f);
-            agg.setSum(100f);
-            agg.setAvg(10f);
-            agg.setMin(1f);
-            agg.setMax(20f);
+            agg.setCount(3600d);
+            agg.setSum(100d);
+            agg.setAvg(10d);
+            agg.setMin(1d);
+            agg.setMax(20d);
 
             HashMap<String, Aggregation> aggs = new HashMap<>();
             aggs.put("by_response-time", agg);

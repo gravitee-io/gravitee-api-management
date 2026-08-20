@@ -49,6 +49,7 @@ public class HomepageReconciler {
         var itemsToDelete = stale
             .stream()
             .filter(item -> !item.getId().equals(activeHomepageId))
+            .filter(item -> item.getAutomationMetadata() == null)
             .toList();
         itemsToDelete.forEach(this::deleteItemAndContent);
     }

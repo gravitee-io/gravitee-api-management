@@ -27,7 +27,7 @@ import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
-import java.util.Set;
+import java.util.Optional;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -63,6 +63,10 @@ class AuthzDecisionLogsCrudServiceImpl implements AuthzDecisionLogsCrudService {
                     .from(filters.from())
                     .to(filters.to())
                     .decisions(filters.decisions())
+                    .subjectIds(filters.subjectIds())
+                    .actions(filters.actions())
+                    .resourceIds(filters.resourceIds())
+                    .callers(filters.callers())
                     .page(pageable.getPageNumber())
                     .size(pageable.getPageSize())
                     .build()
@@ -74,6 +78,22 @@ class AuthzDecisionLogsCrudServiceImpl implements AuthzDecisionLogsCrudService {
         } catch (AnalyticsException e) {
             log.error("An error occurs while trying to search authz decision logs [apiIds={}]", apiIds, e);
             throw new TechnicalManagementException("Unable to search authz decision logs", e);
+        }
+    }
+
+    @Override
+    public Optional<AuthzDecisionLog> findDecisionLog(ExecutionContext executionContext, String apiId, String eventId) {
+        try {
+            return metricsRepository
+                .findAuthzDecisionLog(
+                    new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
+                    apiId,
+                    eventId
+                )
+                .map(AuthzDecisionLogsCrudServiceImpl::toDomain);
+        } catch (AnalyticsException e) {
+            log.error("An error occurs while trying to find authz decision [apiId={}, eventId={}]", apiId, eventId, e);
+            throw new TechnicalManagementException("Unable to find authz decision " + eventId, e);
         }
     }
 

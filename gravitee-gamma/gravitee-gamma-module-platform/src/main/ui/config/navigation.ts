@@ -18,12 +18,14 @@ import {
     AppWindowIcon,
     BellIcon,
     BookOpenIcon,
+    BoxesIcon,
     CloudIcon,
     DatabaseIcon,
     GlobeIcon,
     GroupIcon,
     KeyIcon,
     RadioIcon,
+    ScrollTextIcon,
     ServerIcon,
     ShieldIcon,
     UsersIcon,
@@ -51,6 +53,11 @@ export const NAV_SECTIONS: PlatformNavSection[] = [
                 label: 'Assets',
                 items: [
                     {
+                        key: 'tenants',
+                        title: ROUTES.tenants.label,
+                        icon: BoxesIcon,
+                    },
+                    {
                         key: 'entrypoints-and-sharding-tags',
                         title: ROUTES['entrypoints-and-sharding-tags'].label,
                         icon: RadioIcon,
@@ -59,7 +66,10 @@ export const NAV_SECTIONS: PlatformNavSection[] = [
             },
             {
                 label: 'System & Security',
-                items: [{ key: 'access-management', title: ROUTES['access-management'].label, icon: ShieldIcon }],
+                items: [
+                    { key: 'access-management', title: ROUTES['access-management'].label, icon: ShieldIcon },
+                    { key: 'organization-audit', title: ROUTES['organization-audit'].label, icon: ScrollTextIcon },
+                ],
             },
         ],
     },
@@ -82,6 +92,7 @@ export const NAV_SECTIONS: PlatformNavSection[] = [
                     { key: 'gateways', title: ROUTES.gateways.label, icon: ServerIcon },
                     { key: 'alerts', title: ROUTES.alerts.label, icon: BellIcon },
                     { key: 'security-plan-types', title: ROUTES['security-plan-types'].label, icon: KeyIcon },
+                    { key: 'environment-audit', title: ROUTES['environment-audit'].label, icon: ScrollTextIcon },
                 ],
             },
         ],

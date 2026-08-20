@@ -16,9 +16,7 @@
 package io.gravitee.apim.core.portal_page.model;
 
 import io.gravitee.apim.core.portal.model.PortalArea;
-import io.gravitee.apim.core.slug.model.Slug;
 import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
@@ -28,7 +26,6 @@ import lombok.experimental.SuperBuilder;
 public final class PortalNavigationPage extends PortalNavigationItem {
 
     private static final PortalNavigationItemType TYPE = PortalNavigationItemType.PAGE;
-    private static final int DEFAULT_AUTOMATION_ORDER = 0;
 
     @Setter
     @Nonnull
@@ -52,17 +49,5 @@ public final class PortalNavigationPage extends PortalNavigationItem {
     @Override
     public PortalNavigationItemType getType() {
         return TYPE;
-    }
-
-    public void update(@Nonnull AutomationMetadata meta, @Nullable PortalNavigationItemContainer parent, @Nonnull Slug segment) {
-        setTitle(meta.name());
-        setSegment(segment.value());
-        setOrder(meta.order().orElse(DEFAULT_AUTOMATION_ORDER));
-        this.automationMetadata = meta.trimmedForNavItem();
-        if (parent == null) {
-            markAsRoot();
-        } else {
-            updateParent(parent);
-        }
     }
 }

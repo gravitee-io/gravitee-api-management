@@ -1,0 +1,46 @@
+<?xml version="1.0" ?>
+<!--
+
+    Copyright © 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<assembly>
+	<id>migrations</id>
+	<formats>
+		<format>zip</format>
+	</formats>
+	<includeBaseDirectory>false</includeBaseDirectory>
+
+	<!--
+		The changesets alone are not usable: they name their tables through parameters, and nothing in them says
+		which tracking tables to write to. The README carries the coordinates, and tells the reader to discover the
+		components to run rather than listing them — the archive contents are the list, so it cannot drift as
+		modules adopt JDBC.
+	-->
+	<files>
+		<file>
+			<source>README.md</source>
+			<outputDirectory>/</outputDirectory>
+		</file>
+	</files>
+
+	<!-- Filled by dependency:unpack-dependencies, which keeps only liquibase/** from each plugin zip. -->
+	<fileSets>
+		<fileSet>
+			<directory>${project.build.directory}/${project.artifactId}</directory>
+			<outputDirectory>/</outputDirectory>
+		</fileSet>
+	</fileSets>
+</assembly>

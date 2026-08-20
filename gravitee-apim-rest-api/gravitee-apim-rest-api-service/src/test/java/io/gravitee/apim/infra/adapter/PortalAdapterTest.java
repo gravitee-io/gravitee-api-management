@@ -140,6 +140,33 @@ class PortalAdapterTest {
             assertThat(repo.getOrganizationId()).isEqualTo("org");
             assertThat(repo.getName()).isEqualTo("Portal");
             assertThat(repo.getPortalNavigation()).isNull();
+            assertThat(repo.getActiveThemeId()).isNull();
+        }
+
+        @Test
+        void to_repository_forwards_active_theme_id() {
+            var portal = Portal.of(PortalId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), "env", "org", "Portal").withActiveThemeId(
+                "theme-1"
+            );
+
+            var repo = adapter.toRepository(portal);
+
+            assertThat(repo.getActiveThemeId()).isEqualTo("theme-1");
+        }
+
+        @Test
+        void to_entity_forwards_active_theme_id() {
+            var repo = io.gravitee.repository.management.model.Portal.builder()
+                .id("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+                .environmentId("env")
+                .organizationId("org")
+                .name("Portal")
+                .activeThemeId("theme-1")
+                .build();
+
+            var entity = adapter.toEntity(repo);
+
+            assertThat(entity.getActiveThemeId()).isEqualTo("theme-1");
         }
 
         @Test

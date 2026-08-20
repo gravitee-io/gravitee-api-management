@@ -29,7 +29,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { AbstractControl, FormControl, ReactiveFormsModule, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { rxResource, takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, exhaustMap, filter, map, shareReplay, skip, switchMap, take, tap } from 'rxjs/operators';
+import { catchError, exhaustMap, filter, finalize, map, shareReplay, skip, switchMap, take, tap } from 'rxjs/operators';
 import { MatMenuItem, MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
@@ -68,6 +68,9 @@ import { PortalHeaderComponent } from '../components/header/portal-header.compon
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { FlatTreeComponent, NodeMenuActionEvent, NodeMovedEvent, SectionNode } from '../components/flat-tree/flat-tree.component';
 import {
+  collectNodeIdsWithSourcedPageDescendants,
+  FetchPortalNavigationItemResponse,
+  getPortalNavigationItemSource,
   NewPortalNavigationItem,
   PortalArea,
   PortalNavigationApi,
@@ -242,7 +245,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   // --- External source state ---
   readonly selectedItemSource: Signal<PortalNavigationItemSource | null> = computed(() => {
     const navItem = this.selectedNavigationItem()?.data;
-    return navItem && (navItem.type === 'PAGE' || navItem.type === 'FOLDER') ? (navItem.source ?? null) : null;
+    return navItem ? (getPortalNavigationItemSource(navItem) ?? null) : null;
   });
   readonly selectedSourceTypeLabel = computed(() => {
     const sourceType = this.selectedItemSource()?.type;
@@ -263,6 +266,18 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     return navItem ? this.findSourcedFolderAbove(navItem) : null;
   });
   readonly isContentEditingLocked = computed(() => !!this.selectedItemSource() || !!this.parentSourcedFolder());
+  readonly isFetching = signal(false);
+  // A folder carries a source but is never fetched itself: only the sourced pages below it are.
+  // Fetching one without such a page is rejected by the backend, so the action stays disabled.
+  readonly canFetchSelectedItem = computed(() => {
+    const navItem = this.selectedNavigationItem()?.data;
+    if (!navItem) {
+      return false;
+    }
+    return navItem.type === 'PAGE'
+      ? !!getPortalNavigationItemSource(navItem)
+      : collectNodeIdsWithSourcedPageDescendants(this.menuLinks()).has(navItem.id);
+  });
 
   // --- Resize Configuration ---
   private readonly ngZone = inject(NgZone);
@@ -391,6 +406,11 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   onNodeMenuAction(event: NodeMenuActionEvent) {
     this.checkUnsavedChangesAndRun(() => {
+      // A fetch refreshes content without mutating the structure, so the read-only guard does not apply
+      if (event.action === 'fetchAll') {
+        this.executeFetch(event.node.id);
+        return;
+      }
       if (this.blockActionOnSourcedItem(event)) {
         return;
       }
@@ -924,6 +944,68 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   onPublishToggle() {
     this.checkUnsavedChangesAndRun(() => this.handlePublishToggle(this.selectedNavigationItem()!.data));
+  }
+
+  onFetchNow() {
+    const navId = this.navId();
+    if (navId) {
+      this.checkUnsavedChangesAndRun(() => this.executeFetch(navId));
+    }
+  }
+
+  private executeFetch(navigationItemId: string): void {
+    // The disabled state of the tree entry only lands on the next change detection, so a second
+    // trigger can still reach here: this guard is what actually prevents overlapping fetches
+    if (this.isFetching()) {
+      this.snackBarService.error('A fetch is already in progress');
+      return;
+    }
+    this.isFetching.set(true);
+    this.portalNavigationItemsService
+      .fetchNavigationItem(navigationItemId)
+      .pipe(
+        finalize(() => this.isFetching.set(false)),
+        catchError(error => {
+          // HTTP errors are already caught by HttpErrorInterceptor and displayed in the snackbar
+          if (!(error instanceof HttpErrorResponse)) {
+            this.snackBarService.error('Failed to fetch content from the external source');
+          }
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(response => {
+        this.notifyFetchResult(response);
+        this.refreshMenuList.next(1);
+      });
+  }
+
+  private notifyFetchResult(response: FetchPortalNavigationItemResponse): void {
+    if (response.summary) {
+      const { succeeded, failed, results } = response.summary;
+      if (failed > 0) {
+        const failedTitles = results.filter(result => !result.success).map(result => `"${result.title}"`);
+        const failedList = failedTitles.slice(0, 3).join(', ') + (failedTitles.length > 3 ? ', …' : '');
+        this.snackBarService.error(`Fetched ${succeeded} of ${succeeded + failed} pages — failed: ${failedList}`);
+      } else if (succeeded > 0) {
+        this.snackBarService.success(`Successfully fetched ${succeeded} page${succeeded === 1 ? '' : 's'}`);
+      } else {
+        this.snackBarService.error('No pages were fetched');
+      }
+      return;
+    }
+
+    if (response.item) {
+      const lastFetchError = getPortalNavigationItemSource(response.item)?.lastFetchError;
+      if (lastFetchError) {
+        this.snackBarService.error(`Fetch failed: ${lastFetchError}`);
+      } else {
+        this.snackBarService.success('Content fetched from the external source');
+      }
+      return;
+    }
+
+    this.snackBarService.error('Unexpected fetch response from the server');
   }
 
   onDeleteSection(node: SectionNode): Observable<void> {

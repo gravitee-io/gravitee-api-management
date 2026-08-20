@@ -35,4 +35,5 @@ public class PortalMongo {
     private String organizationId;
     private String name;
     private String portalNavigation;
+    private String activeThemeId;
 }

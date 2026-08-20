@@ -16,6 +16,10 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -59,12 +63,14 @@ class ApiDocumentationSyncDomainServiceTest {
     private final PortalPageContentQueryServiceInMemory pageContentQuery = new PortalPageContentQueryServiceInMemory();
 
     private ApiDocumentationSyncDomainService syncService;
+    private PortalNavigationItemValidatorService validatorService;
 
     @BeforeEach
     void setUp() {
         navItemCrud.reset();
         pageContentQuery.reset();
-        syncService = new ApiDocumentationSyncDomainService(navItemCrud, navItemQuery, pageContentQuery);
+        validatorService = mock(PortalNavigationItemValidatorService.class);
+        syncService = new ApiDocumentationSyncDomainService(navItemCrud, navItemQuery, pageContentQuery, validatorService);
     }
 
     @Test
@@ -112,6 +118,25 @@ class ApiDocumentationSyncDomainServiceTest {
         var pageIdOurs = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, ours.getId(), DOC_ID);
         var pageIdTheirs = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, theirs.getId(), DOC_ID);
         assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).contains(pageIdOurs).doesNotContain(pageIdTheirs);
+    }
+
+    @Test
+    void materialize_invokes_nav_item_validator_on_create_path() {
+        seedNavApi(PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
+
+        syncService.materialize(AUDIT_INFO, aDocumentation());
+
+        verify(validatorService).validateOne(any(), eq(AUDIT_INFO.environmentId()));
+    }
+
+    @Test
+    void materialize_invokes_nav_item_validator_on_update_path() {
+        seedNavApi(PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
+        syncService.materialize(AUDIT_INFO, aDocumentation());
+
+        syncService.materialize(AUDIT_INFO, aDocumentation());
+
+        verify(validatorService).validateToUpdate(any(), any());
     }
 
     @Test

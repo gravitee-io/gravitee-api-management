@@ -345,19 +345,19 @@ public class AggregationAdapter {
     private static Aggregation toAggregation(JsonNode aggNode) {
         var aggregation = new Aggregation();
         if (aggNode.hasNonNull(ES_VALUE_PROP) && aggNode.get(ES_VALUE_PROP).isNumber()) {
-            aggregation.setValue(aggNode.get(ES_VALUE_PROP).floatValue());
+            aggregation.setValue(aggNode.get(ES_VALUE_PROP).doubleValue());
         }
         if (aggNode.hasNonNull(ES_COUNT_PROP) && aggNode.get(ES_COUNT_PROP).isNumber()) {
-            aggregation.setCount(aggNode.get(ES_COUNT_PROP).floatValue());
+            aggregation.setCount(aggNode.get(ES_COUNT_PROP).doubleValue());
         }
         if (aggNode.hasNonNull(ES_VALUES_PROP) && aggNode.get(ES_VALUES_PROP).isObject()) {
-            var values = new HashMap<String, Float>();
+            var values = new HashMap<String, Double>();
             var jsonValues = aggNode.get(ES_VALUES_PROP);
             jsonValues
                 .fields()
                 .forEachRemaining(entry -> {
                     if (entry.getValue().isNumber()) {
-                        values.put(entry.getKey(), entry.getValue().floatValue());
+                        values.put(entry.getKey(), entry.getValue().doubleValue());
                     }
                 });
             aggregation.setValues(values);
@@ -414,7 +414,7 @@ public class AggregationAdapter {
         return ofNullable(agg.getValues())
             .flatMap(keyValues -> ofNullable(keyValues.values()))
             .flatMap(values -> values.stream().filter(Objects::nonNull).findFirst())
-            .map(Float::floatValue);
+            .map(Double::doubleValue);
     }
 
     private static Metric getMetricFromName(String aggregationName) {

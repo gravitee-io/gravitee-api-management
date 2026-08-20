@@ -61,13 +61,6 @@ export interface GroupMember {
 
 export type GroupMembersMap = Record<string, GroupMember[]>;
 
-export interface SearchableUser {
-    id?: string | null;
-    reference: string;
-    displayName: string;
-    email?: string;
-}
-
 export interface ApplicationTransferOwnershipPayload {
     id?: string;
     reference?: string;

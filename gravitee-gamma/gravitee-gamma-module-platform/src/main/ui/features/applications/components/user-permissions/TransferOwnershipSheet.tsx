@@ -37,8 +37,9 @@ import { useDeferredValue, useMemo, useState } from 'react';
 
 import { MemberAvatar } from './MemberAvatar';
 import { isMemberPrimaryOwner } from './memberHelpers';
-import { searchUsers } from '../../services/applicationMembers';
-import type { ApplicationTransferOwnershipPayload, ApplicationUiMember, SearchableUser } from '../../types/applicationMembers.types';
+import { searchUsers } from '../../../../shared/services/userSearch';
+import type { SearchableUser } from '../../../../shared/types/userSearch';
+import type { ApplicationTransferOwnershipPayload, ApplicationUiMember } from '../../types/applicationMembers.types';
 import { applicationMemberKeys } from '../../utils/queryKeys';
 
 /** Matches AddMembersSheet search dropdown cap (~12rem). */

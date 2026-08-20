@@ -133,6 +133,14 @@ public abstract sealed class PortalNavigationItem
         this.rootId = parent.getRootId();
     }
 
+    public void attachTo(@Nullable PortalNavigationItemContainer parent) {
+        if (parent == null) {
+            markAsRoot();
+        } else {
+            updateParent(parent);
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

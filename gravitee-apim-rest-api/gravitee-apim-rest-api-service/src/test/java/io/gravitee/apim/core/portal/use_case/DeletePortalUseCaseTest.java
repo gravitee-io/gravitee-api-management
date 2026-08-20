@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.Mockito.mock;
 
 import fixtures.core.model.PortalFixtures;
 import inmemory.PortalCrudServiceInMemory;
@@ -39,6 +40,7 @@ import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
@@ -91,7 +93,8 @@ class DeletePortalUseCaseTest {
             new PortalDocumentationSyncDomainService(
                 navCrudService,
                 navQueryService,
-                new HomepageReconciler(navQueryService, navCrudService, pageContentCrudService)
+                new HomepageReconciler(navQueryService, navCrudService, pageContentCrudService),
+                mock(PortalNavigationItemValidatorService.class)
             ),
             scopeEnforcer
         );

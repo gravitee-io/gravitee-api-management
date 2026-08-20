@@ -101,6 +101,8 @@
 
         <!-- Build plugins the distribution drives itself -->
         <maven-dependency-plugin.version>3.8.1</maven-dependency-plugin.version>
+        <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
+        <maven-clean-plugin.version>3.2.0</maven-clean-plugin.version>
         <flatten-maven-plugin.version>1.7.2</flatten-maven-plugin.version>
 
         <!-- ===== Bundled plugin version catalog (moved from the root pom) ===== -->
@@ -109,7 +111,7 @@
     <gravitee-policy-apikey.version>6.0.2</gravitee-policy-apikey.version>
     <gravitee-policy-assign-attributes.version>3.2.0</gravitee-policy-assign-attributes.version>
     <gravitee-policy-assign-content.version>3.1.1</gravitee-policy-assign-content.version>
-    <gravitee-policy-assign-metrics.version>3.1.0</gravitee-policy-assign-metrics.version>
+    <gravitee-policy-assign-metrics.version>4.1.0</gravitee-policy-assign-metrics.version>
     <gravitee-policy-basic-authentication.version>1.6.0</gravitee-policy-basic-authentication.version>
     <gravitee-policy-cache.version>4.0.0</gravitee-policy-cache.version>
     <gravitee-policy-callout-http.version>7.0.0</gravitee-policy-callout-http.version>
@@ -118,7 +120,7 @@
     <gravitee-policy-cloud-events.version>1.1.0</gravitee-policy-cloud-events.version>
     <gravitee-policy-data-cache.version>2.0.0</gravitee-policy-data-cache.version>
     <gravitee-policy-data-logging-masking.version>3.1.3</gravitee-policy-data-logging-masking.version>
-    <gravitee-policy-dynamic-routing.version>1.13.0</gravitee-policy-dynamic-routing.version>
+    <gravitee-policy-dynamic-routing.version>2.1.0</gravitee-policy-dynamic-routing.version>
     <gravitee-policy-generate-http-signature.version>1.5.1</gravitee-policy-generate-http-signature.version>
     <gravitee-policy-generate-jwt.version>1.9.0-alpha.3</gravitee-policy-generate-jwt.version>
     <gravitee-policy-generate-wssecurity.version>1.0.0</gravitee-policy-generate-wssecurity.version>
@@ -148,11 +150,11 @@
     <gravitee-policy-override-http-method.version>2.2.1</gravitee-policy-override-http-method.version>
     <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest,
     policy-token-bucket-ratelimit and gateway-services-ratelimit    -->
-    <!--    <gravitee-policy-quota.version>5.0.0</gravitee-policy-quota.version>    -->
-    <!--    <gravitee-policy-spikearrest.version>5.0.0</gravitee-policy-spikearrest.version>    -->
+    <!--    <gravitee-policy-quota.version>5.0.2</gravitee-policy-quota.version>    -->
+    <!--    <gravitee-policy-spikearrest.version>5.0.2</gravitee-policy-spikearrest.version>    -->
     <!--
     <gravitee-policy-token-bucket-ratelimit.version>5.0.0</gravitee-policy-token-bucket-ratelimit.version>    -->
-    <gravitee-policy-ratelimit.version>5.0.0</gravitee-policy-ratelimit.version>
+    <gravitee-policy-ratelimit.version>5.0.2</gravitee-policy-ratelimit.version>
     <gravitee-policy-regex-threat-protection.version>1.6.0</gravitee-policy-regex-threat-protection.version>
     <gravitee-policy-request-content-limit.version>1.8.1</gravitee-policy-request-content-limit.version>
     <gravitee-policy-request-validation.version>1.15.1</gravitee-policy-request-validation.version>
@@ -162,7 +164,7 @@
     <gravitee-policy-role-based-access-control.version>2.1.0</gravitee-policy-role-based-access-control.version>
     <gravitee-policy-ssl-enforcement.version>1.7.0</gravitee-policy-ssl-enforcement.version>
     <gravitee-policy-traffic-shadowing.version>3.0.3</gravitee-policy-traffic-shadowing.version>
-    <gravitee-policy-transform-avro-json.version>5.2.0</gravitee-policy-transform-avro-json.version>
+    <gravitee-policy-transform-avro-json.version>5.2.1</gravitee-policy-transform-avro-json.version>
     <gravitee-policy-transform-avro-protobuf.version>1.0.9</gravitee-policy-transform-avro-protobuf.version>
     <gravitee-policy-transform-protobuf-json.version>2.0.1</gravitee-policy-transform-protobuf-json.version>
     <gravitee-policy-transformheaders.version>5.2.0</gravitee-policy-transformheaders.version>
@@ -238,8 +240,8 @@
     <gravitee-resource-schema-registry-embedded.version>1.0.0</gravitee-resource-schema-registry-embedded.version>
     <gravitee-resource-storage-azure-blob.version>1.1.0</gravitee-resource-storage-azure-blob.version>
     <gravitee-reactor-message.version>11.0.0</gravitee-reactor-message.version>
-    <gravitee-reactor-native-kafka.version>7.1.0-alpha.6</gravitee-reactor-native-kafka.version>
-    <gravitee-reactor-mcp-proxy.version>3.2.0</gravitee-reactor-mcp-proxy.version>
+    <gravitee-reactor-native-kafka.version>7.1.0-alpha.7</gravitee-reactor-native-kafka.version>
+    <gravitee-reactor-mcp-proxy.version>3.3.0</gravitee-reactor-mcp-proxy.version>
     <gravitee-reactor-llm-proxy.version>4.2.0-alpha.4</gravitee-reactor-llm-proxy.version>
     <gravitee-reactor-a2a-proxy.version>2.1.0</gravitee-reactor-a2a-proxy.version>
     <gravitee-reactor-authz.version>1.2.0</gravitee-reactor-authz.version>
@@ -271,7 +273,7 @@
     <gravitee-resource-ai-model-token-classification.version>1.0.0</gravitee-resource-ai-model-token-classification.version>
 
     <!-- Gamma plugins -->
-    <gravitee-gamma-module-aim.version>3.7.0</gravitee-gamma-module-aim.version>
+    <gravitee-gamma-module-aim.version>3.14.0</gravitee-gamma-module-aim.version>
     <gravitee-gamma-module-authz.version>1.13.0</gravitee-gamma-module-authz.version>
     <gravitee-gamma-module-edge.version>1.3.0</gravitee-gamma-module-edge.version>
     <gravitee-gamma-module-esm.version>1.4.0</gravitee-gamma-module-esm.version>
@@ -320,6 +322,29 @@
     </repositories>
 
     <build>
+        <!--
+            gravitee-parent manages assembly and enforcer, and nothing else this tree drives. Left
+            unmanaged, these three resolve from Maven's super-POM, so their versions come from the
+            executor image rather than from here: the same reactor would unpack with 3.8.1 in
+            standalone, which pins it locally, and with whatever the super-POM offers elsewhere. On
+            Maven 3.8.x that means antrun 1.3, which has no target parameter at all.
+        -->
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>${maven-dependency-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>${maven-antrun-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>${maven-clean-plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <!--
                 The license header check runs with gravitee-parent's configuration now, which knows
@@ -424,6 +449,7 @@
     <modules>
         <module>gravitee-apim-distribution-standalone</module>
         <module>gravitee-apim-distribution-es-index-mappings</module>
+        <module>gravitee-apim-distribution-jdbc-migrations</module>
     </modules>
 
     <profiles>

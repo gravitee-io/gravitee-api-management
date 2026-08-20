@@ -123,6 +123,19 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
     }
 
     @Override
+    public Optional<AccessibleApi> loadAccessibleApi(String organizationId, String environmentId, String apiId) {
+        var auditInfo = currentAuditInfo(organizationId, environmentId);
+        var userContext = userContextLoader.loadApi(new UserContext(auditInfo), apiId);
+
+        return userContext
+            .apis()
+            .orElseGet(Collections::emptyList)
+            .stream()
+            .findFirst()
+            .map(api -> new AccessibleApi(api.getId(), api.getName(), toGammaApiType(api.getType())));
+    }
+
+    @Override
     public LogsPage searchLogs(String organizationId, String environmentId, LogsSearchQuery query) {
         var executionContext = new ExecutionContext(organizationId, environmentId);
         var pageable = new PageableImpl(query.page(), query.perPage());
@@ -410,6 +423,10 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .from(query.from())
             .to(query.to())
             .decisions(valuesOf(query.conditions(), StaticFilters.DECISION.filterName()))
+            .subjectIds(valuesOf(query.conditions(), StaticFilters.SUBJECT.filterName()))
+            .actions(valuesOf(query.conditions(), StaticFilters.ACTION.filterName()))
+            .resourceIds(valuesOf(query.conditions(), StaticFilters.RESOURCE.filterName()))
+            .callers(valuesOf(query.conditions(), StaticFilters.CALLER_KIND.filterName()))
             .build();
         var result = authzDecisionLogsCrudService.searchDecisionLogs(executionContext, filters, pageable);
         var entries = result
@@ -418,6 +435,22 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .map(decision -> mapDecisionToLogEntry(decision, query.apisById()))
             .toList();
         return new LogsPage(entries, result.total());
+    }
+
+    @Override
+    public Optional<LogEntry> getDecision(String organizationId, String environmentId, String apiId, String eventId) {
+        // Resolving the api through the accessible set is what scopes this read: an api the caller
+        // cannot see yields empty, which the resource collapses into the same 404 as "no such decision".
+        return loadAccessibleApi(organizationId, environmentId, apiId).flatMap(api ->
+            authzDecisionLogsCrudService
+                .findDecisionLog(new ExecutionContext(organizationId, environmentId), apiId, eventId)
+                .map(decision ->
+                    mapDecisionToLogEntry(
+                        decision,
+                        Map.of(apiId, new ApiReference(api.name(), api.type() == null ? null : api.type().name()))
+                    )
+                )
+        );
     }
 
     private static Set<String> valuesOf(List<FilterCondition> conditions, String filterName) {

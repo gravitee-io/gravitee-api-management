@@ -33,12 +33,3 @@ export function buildExportFileName(api: ApiDetailDto | null, suffix?: string): 
 export function buildExcludeAdditionalData(include: Record<ExportIncludeKey, boolean>): string[] {
     return EXPORT_INCLUDE_OPTIONS.filter(option => !include[option.id]).map(option => option.id);
 }
-
-export function downloadBlob(blob: Blob, fileName: string): void {
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.download = fileName;
-    anchor.href = url;
-    anchor.click();
-    URL.revokeObjectURL(url);
-}

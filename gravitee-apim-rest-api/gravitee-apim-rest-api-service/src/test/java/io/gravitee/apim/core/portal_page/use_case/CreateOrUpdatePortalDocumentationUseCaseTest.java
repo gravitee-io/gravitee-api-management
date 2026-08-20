@@ -16,25 +16,36 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.Mockito.mock;
 
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
+import io.gravitee.apim.core.api.service_provider.ApiTemplateModelProvider;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.environment.service_provider.EnvironmentTemplateModelProvider;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
+import io.gravitee.apim.core.gravitee_markdown.exception.GraviteeMarkdownContentEmptyException;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal_page.domain_service.GraviteePortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationEnclosingApiDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.ValidatePortalDocumentationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
+import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -71,14 +82,24 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
 
     @BeforeEach
     void setUp() {
+        var gmdContentValidator = new GraviteePortalPageContentValidatorService(
+            new GraviteeMarkdownValidator(),
+            navQueryService,
+            mock(PortalNavigationEnclosingApiDomainService.class),
+            mock(PortalNavigationTemplatingService.class),
+            mock(ApiTemplateModelProvider.class),
+            mock(EnvironmentTemplateModelProvider.class)
+        );
         useCase = new CreateOrUpdatePortalDocumentationUseCase(
             validator,
             crudService,
             queryService,
+            new PortalPageContentValidatorService(List.of(gmdContentValidator)),
             new PortalDocumentationSyncDomainService(
                 navCrudService,
                 navQueryService,
-                new HomepageReconciler(navQueryService, navCrudService, crudService)
+                new HomepageReconciler(navQueryService, navCrudService, crudService),
+                mock(PortalNavigationItemValidatorService.class)
             ),
             scopeEnforcer
         );
@@ -120,6 +141,16 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
         assertThat(stored.getType()).isEqualTo(PortalPageContentType.OPENAPI);
         assertThat(meta.location()).contains("/projects/alpha/v2");
         assertThat(meta.order()).contains(5);
+    }
+
+    @Test
+    void should_reject_update_when_content_becomes_blank() {
+        useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/projects/alpha", 1));
+        queryService.initWith(crudService.storage());
+
+        assertThatThrownBy(() ->
+            useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "   ", "/projects/alpha", 1))
+        ).isInstanceOf(GraviteeMarkdownContentEmptyException.class);
     }
 
     @Test
@@ -214,10 +245,12 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
             new ValidatePortalDocumentationDomainService(restrictedEnforcer),
             crudService,
             queryService,
+            mock(PortalPageContentValidatorService.class),
             new PortalDocumentationSyncDomainService(
                 navCrudService,
                 navQueryService,
-                new HomepageReconciler(navQueryService, navCrudService, crudService)
+                new HomepageReconciler(navQueryService, navCrudService, crudService),
+                mock(PortalNavigationItemValidatorService.class)
             ),
             restrictedEnforcer
         );

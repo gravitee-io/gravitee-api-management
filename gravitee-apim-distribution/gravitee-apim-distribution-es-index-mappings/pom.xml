@@ -48,7 +48,7 @@
         <maven.deploy.skip>false</maven.deploy.skip>
 
         <!-- Property used by the publication job in CI-->
-        <publish-folder-path>graviteeio-apim/es-index-mappings</publish-folder-path>
+        <publish-folder-path>graviteeio-apim/resources</publish-folder-path>
     </properties>
 
     <dependencies>
@@ -120,7 +120,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>3.6.2</version>
+                <version>3.6.3</version>
                 <executions>
                     <execution>
                         <id>build-es-index-mappings</id>

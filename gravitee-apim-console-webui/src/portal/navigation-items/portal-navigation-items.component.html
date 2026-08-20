@@ -68,6 +68,7 @@
         <portal-flat-tree-component
           [links]="menuLinks"
           [selectedId]="navId()"
+          [fetchInProgress]="isFetching()"
           (nodeSelect)="onSelect($event)"
           (nodeMenuAction)="onNodeMenuAction($event)"
           (nodeMoved)="onNodeMoved($event)"
@@ -175,6 +176,7 @@
             <div class="source-mention" data-testid="folder-managed-by-source-banner">
               <mat-icon class="source-mention__icon" svgIcon="gio:link" />
               <span>Folder content from {{ selectedSourceTypeLabel() }} — read only</span>
+              <ng-container *ngTemplateOutlet="fetchNowButton"></ng-container>
             </div>
           }
           <ng-container *ngTemplateOutlet="emptyEditorState"></ng-container>
@@ -244,6 +246,7 @@
     <div class="source-mention" data-testid="content-managed-by-source-banner">
       <mat-icon class="source-mention__icon" svgIcon="gio:link" />
       <span>Content from {{ selectedSourceTypeLabel() }} — read only</span>
+      <ng-container *ngTemplateOutlet="fetchNowButton"></ng-container>
     </div>
     @if (source.lastFetchError; as lastFetchError) {
       <gio-banner-error class="source-banner" data-testid="content-fetch-error-banner">
@@ -252,4 +255,24 @@
       </gio-banner-error>
     }
   }
+</ng-template>
+
+<ng-template #fetchNowButton>
+  <span
+    *gioPermission="{ anyOf: ['environment-documentation-u'] }"
+    class="source-mention__fetch"
+    matTooltip="No page below this folder carries an external source to fetch"
+    [matTooltipDisabled]="canFetchSelectedItem()"
+  >
+    <button
+      mat-stroked-button
+      type="button"
+      data-testid="fetch-now-button"
+      [disabled]="isFetching() || !canFetchSelectedItem()"
+      (click)="onFetchNow()"
+    >
+      <mat-icon svgIcon="gio:refresh-cw"></mat-icon>
+      Fetch now
+    </button>
+  </span>
 </ng-template>

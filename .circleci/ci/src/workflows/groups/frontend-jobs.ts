@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Config, workflow } from '../../circleci-config';
+import { Config, Job, workflow } from '../../circleci-config';
 import {
   BuildDockerWebUiImageJob,
   ConsoleWebuiBuildJob,
@@ -26,6 +26,7 @@ import {
 import { CircleCIEnvironment } from '../../pipelines';
 import { config } from '../../config';
 import { shouldBuildConsole, shouldBuildGammaUI, shouldBuildPortal, shouldBuildPortalNext, shouldBuildWebuiLibs } from './changed-files';
+import { analysisJobFor, FRONTEND_ANALYSED_PROJECTS } from './analysed-projects';
 
 /**
  * The frontend projects: prettier check, lint and test, builds, and their docker images.
@@ -81,9 +82,6 @@ export function frontendJobs(
     const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(consoleWebuiBuildJob);
 
-    const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(sonarCloudAnalysisJob);
-
     jobs.push(
       new workflow.WorkflowJob(webuiLintTestJob, {
         name: 'Lint & test APIM Console',
@@ -117,25 +115,12 @@ export function frontendJobs(
       );
       requires.push('Build APIM Console docker image');
     }
-
-    jobs.push(
-      new workflow.WorkflowJob(sonarCloudAnalysisJob, {
-        name: 'Sonar - gravitee-apim-console-webui',
-        context: config.jobContext,
-        requires: ['Lint & test APIM Console'],
-        working_directory: config.components.console.project,
-        cache_type: 'frontend',
-      }),
-    );
   }
 
   // Lint & Test APIM Portal Next
   if (!filterJobs || shouldBuildPortalNext(environment.changedFiles)) {
     const webuiLintTestJobNx = WebuiLintTestJob.createNx(dynamicConfig, environment);
     dynamicConfig.addJob(webuiLintTestJobNx);
-
-    const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(sonarCloudAnalysisJob);
 
     jobs.push(
       new workflow.WorkflowJob(webuiLintTestJobNx, {
@@ -145,13 +130,6 @@ export function frontendJobs(
         'nx-project': 'portal-next',
         'max-workers': '2',
       }),
-      new workflow.WorkflowJob(sonarCloudAnalysisJob, {
-        name: 'Sonar - gravitee-apim-portal-webui-next',
-        context: config.jobContext,
-        requires: ['Lint & test APIM Portal Next'],
-        working_directory: config.components.portal.next.project,
-        cache_type: 'frontend',
-      }),
     );
     requires.push('Lint & test APIM Portal Next');
   }
@@ -159,9 +137,6 @@ export function frontendJobs(
   if (!filterJobs || shouldBuildPortal(environment.changedFiles)) {
     const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(webuiLintTestJob);
-
-    const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(sonarCloudAnalysisJob);
 
     jobs.push(
       new workflow.WorkflowJob(webuiLintTestJob, {
@@ -173,16 +148,6 @@ export function frontendJobs(
       }),
     );
     requires.push('Lint & test APIM Portal');
-
-    jobs.push(
-      new workflow.WorkflowJob(sonarCloudAnalysisJob, {
-        name: 'Sonar - gravitee-apim-portal-webui',
-        context: config.jobContext,
-        requires: ['Lint & test APIM Portal'],
-        working_directory: config.components.portal.workdir,
-        cache_type: 'frontend',
-      }),
-    );
   }
 
   if (!filterJobs || shouldBuildPortal(environment.changedFiles) || shouldBuildPortalNext(environment.changedFiles)) {
@@ -258,6 +223,21 @@ export function frontendJobs(
       requires.push('Build Gamma Console docker image');
     }
   }
+
+  // Created on the first project that survives the predicate, so a pipeline analysing nothing
+  // emits no orphan analysis job.
+  let sonarAnalysisJob: Job | undefined;
+
+  FRONTEND_ANALYSED_PROJECTS.forEach((project) => {
+    if (filterJobs && !project.predicate(environment.changedFiles)) {
+      return;
+    }
+    if (!sonarAnalysisJob) {
+      sonarAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
+      dynamicConfig.addJob(sonarAnalysisJob);
+    }
+    jobs.push(analysisJobFor(project, sonarAnalysisJob));
+  });
 
   return { jobs, requires };
 }

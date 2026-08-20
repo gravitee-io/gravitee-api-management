@@ -23,6 +23,7 @@ import { DangerJsJob, TestApimChartsJob } from '../jobs';
 import { orbs } from '../orbs';
 import { backendImageJobs } from './groups/backend-image-jobs';
 import { e2eJobs } from './groups/e2e-jobs';
+import { chainguardImageJobs } from './groups/chainguard-image-jobs';
 import { publishAndDeployJobs } from './groups/publish-and-deploy-jobs';
 import { devEnvironmentJobs } from './groups/dev-environment-jobs';
 import { backendJobs } from './groups/backend-jobs';
@@ -39,10 +40,18 @@ export class PullRequestsWorkflow {
     // publishes its snapshots. It no longer replays the test battery: a pull request has already
     // run it, on the scope its changes could affect. What nobody would otherwise run — the
     // real-plugin integration tests and the end-to-end suites — is what the scheduled build is
-    // for. The chainguard and chainguard-fips images keep their own manually triggered
-    // workflows, since the environment does not run them.
+    // for.
+    //
+    // The chainguard images are part of refreshing the environment: it runs them, and the
+    // deployment is a rollout restart, so an image left unbuilt is not an error — the pods just
+    // come back up on the previous one. The chainguard-fips variants are a compliance base the
+    // environment does not run; they stay on the scheduled build and their manual workflow.
     if (isSupportBranchOrMaster(environment.branch)) {
-      jobs.push(...devEnvironmentJobs(dynamicConfig, environment), ...publishAndDeployJobs(dynamicConfig, environment));
+      jobs.push(
+        ...devEnvironmentJobs(dynamicConfig, environment),
+        ...chainguardImageJobs(dynamicConfig, environment),
+        ...publishAndDeployJobs(dynamicConfig, environment),
+      );
     } else if (isE2EBranch(environment.branch)) {
       jobs.push(
         ...this.getCommonJobs(dynamicConfig, environment, false, true, shouldBuildDockerImages, true),

@@ -23,6 +23,7 @@ import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.open_api.OpenApi;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.ApiDocumentationSyncDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.ValidateApiDocumentationDomainService;
 import io.gravitee.apim.core.portal_page.model.AsyncApiPageContent;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
@@ -47,6 +48,7 @@ public class CreateOrUpdateApiDocumentationUseCase {
     private final ValidateApiDocumentationDomainService validator;
     private final PortalPageContentCrudService portalPageContentCrudService;
     private final PortalPageContentQueryService portalPageContentQueryService;
+    private final PortalPageContentValidatorService pageContentValidatorService;
     private final ApiDocumentationSyncDomainService syncDomainService;
 
     public record Input(
@@ -101,7 +103,9 @@ public class CreateOrUpdateApiDocumentationUseCase {
                 portalPageContentCrudService.delete(current.getId());
                 saved = portalPageContentCrudService.create(buildNew(sanitized, meta));
             } else {
-                current.update(new UpdatePortalPageContent(sanitized.content(), null), meta);
+                var updateContent = new UpdatePortalPageContent(sanitized.content(), null);
+                pageContentValidatorService.validateForUpdate(current, updateContent);
+                current.update(updateContent, meta);
                 saved = portalPageContentCrudService.update(current);
             }
         } else {

@@ -74,6 +74,60 @@ export type PortalNavigationItem =
   | PortalNavigationApi
   | PortalNavigationApiProduct;
 
+/** Only PAGE and FOLDER items can carry an external source. */
+export function getPortalNavigationItemSource(item: PortalNavigationItem): PortalNavigationItemSource | undefined {
+  return item.type === 'PAGE' || item.type === 'FOLDER' ? item.source : undefined;
+}
+
+/**
+ * Ids of the items carrying at least one sourced PAGE below them — exactly what the backend `_fetch`
+ * endpoint walks. An item carrying a source itself but no sourced PAGE below it is absent from the
+ * set: the endpoint rejects it with a 400.
+ */
+export function collectNodeIdsWithSourcedPageDescendants(items: PortalNavigationItem[] | null | undefined): Set<string> {
+  const nodeIds = new Set<string>();
+
+  if (!items || !Array.isArray(items)) {
+    return nodeIds;
+  }
+
+  const itemsById = new Map<string, PortalNavigationItem>(items.map(item => [item.id, item]));
+
+  for (const item of items) {
+    if (item.type !== 'PAGE' || !item.source) {
+      continue;
+    }
+    let ancestor = item.parentId ? itemsById.get(item.parentId) : undefined;
+    // Stopping on an already-marked ancestor both short-circuits shared chains and ends parentId cycles
+    while (ancestor && !nodeIds.has(ancestor.id)) {
+      nodeIds.add(ancestor.id);
+      ancestor = ancestor.parentId ? itemsById.get(ancestor.parentId) : undefined;
+    }
+  }
+
+  return nodeIds;
+}
+
+export interface PortalNavigationItemFetchResult {
+  navigationItemId: string;
+  title: string;
+  success: boolean;
+  /** Why the fetch failed. Absent when the fetch succeeded. */
+  error?: string;
+}
+
+export interface PortalNavigationItemsFetchSummary {
+  succeeded: number;
+  failed: number;
+  results: PortalNavigationItemFetchResult[];
+}
+
+/** Exactly one of item or summary is set: item for a sourced PAGE, summary for a container's sourced descendants. */
+export interface FetchPortalNavigationItemResponse {
+  item?: PortalNavigationItem;
+  summary?: PortalNavigationItemsFetchSummary;
+}
+
 interface BaseNewPortalNavigationItem<T extends PortalNavigationItemType> {
   title: string;
   type: T;

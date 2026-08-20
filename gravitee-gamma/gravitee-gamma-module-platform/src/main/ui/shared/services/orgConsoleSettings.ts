@@ -20,3 +20,16 @@ import type { ConsoleSettings } from '../console-settings';
 export async function fetchOrgConsoleSettings(): Promise<ConsoleSettings> {
     return apimFetchJsonOrg<ConsoleSettings>('/console');
 }
+
+/**
+ * POST /organizations/{orgId}/console (Angular ConsoleSettingsService.save()). The backend replaces the
+ * whole settings document, so callers must pass the complete object (spread the currently-loaded settings
+ * and override only the field being changed) — sending a partial object would wipe out every other console
+ * setting (authentication providers, CORS, etc.), not just merge the one field.
+ */
+export async function saveOrgConsoleSettings(settings: ConsoleSettings): Promise<ConsoleSettings> {
+    return apimFetchJsonOrg<ConsoleSettings>('/console', {
+        method: 'POST',
+        body: JSON.stringify(settings),
+    });
+}

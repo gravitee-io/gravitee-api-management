@@ -13,32 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Config, workflow } from '../../circleci-config';
-import {
-  BuildBackendJob,
-  SetupJob,
-  SonarCloudAnalysisJob,
-  TestDefinitionJob,
-  TestGatewayJob,
-  TestIntegrationJob,
-  TestPluginJob,
-  TestReporterJob,
-  TestRepositoryJob,
-  TestRestApiJob,
-  ValidateJob,
-} from '../../jobs';
+import { Config, Job, workflow } from '../../circleci-config';
+import { BuildBackendJob, SetupJob, SonarCloudAnalysisJob, TestIntegrationJob, ValidateJob } from '../../jobs';
+import { analysisJobFor, BACKEND_ANALYSED_PROJECTS } from './analysed-projects';
 import { CircleCIEnvironment } from '../../pipelines';
 import { config } from '../../config';
-import {
-  shouldBuildBackend,
-  shouldTestDefinition,
-  shouldTestGateway,
-  shouldTestIntegrationTests,
-  shouldTestPlugin,
-  shouldTestReporter,
-  shouldTestRepository,
-  shouldTestRestApi,
-} from './changed-files';
+import { shouldBuildBackend, shouldTestIntegrationTests } from './changed-files';
 
 /**
  * Setup, validation, the engine build and the per-module test suites.
@@ -83,77 +63,32 @@ export function backendJobs(
   );
   requires.push('Build backend');
 
-  if (!filterJobs || shouldTestDefinition(environment.changedFiles)) {
-    const testDefinitionJob = TestDefinitionJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(testDefinitionJob);
+  // Created on the first project that survives the predicate: a pipeline that analyses nothing
+  // must not emit an analysis job definition no workflow references.
+  let sonarAnalysisJob: Job | undefined;
 
-    const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(sonarCloudAnalysisJob);
+  BACKEND_ANALYSED_PROJECTS.forEach((project) => {
+    if (filterJobs && !project.predicate(environment.changedFiles)) {
+      return;
+    }
+    if (!sonarAnalysisJob) {
+      sonarAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
+      dynamicConfig.addJob(sonarAnalysisJob);
+    }
+
+    const suiteJob = project.createSuite(dynamicConfig, environment);
+    dynamicConfig.addJob(suiteJob);
 
     jobs.push(
-      new workflow.WorkflowJob(testDefinitionJob, {
-        name: 'Test definition',
+      new workflow.WorkflowJob(suiteJob, {
+        name: project.suiteName,
         context: config.jobContext,
         requires: ['Build backend'],
       }),
-      new workflow.WorkflowJob(sonarCloudAnalysisJob, {
-        name: 'Sonar - gravitee-apim-definition',
-        context: config.jobContext,
-        requires: ['Test definition'],
-        working_directory: 'gravitee-apim-definition',
-        cache_type: 'backend',
-      }),
+      analysisJobFor(project, sonarAnalysisJob),
     );
-    requires.push('Test definition');
-  }
-
-  if (!filterJobs || shouldTestGateway(environment.changedFiles)) {
-    const testGatewayJob = TestGatewayJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(testGatewayJob);
-
-    const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(sonarCloudAnalysisJob);
-
-    jobs.push(
-      new workflow.WorkflowJob(testGatewayJob, {
-        name: 'Test gateway',
-        context: config.jobContext,
-        requires: ['Build backend'],
-      }),
-      new workflow.WorkflowJob(sonarCloudAnalysisJob, {
-        name: 'Sonar - gravitee-apim-gateway',
-        context: config.jobContext,
-        requires: ['Test gateway'],
-        working_directory: 'gravitee-apim-gateway',
-        cache_type: 'backend',
-      }),
-    );
-    requires.push('Test gateway');
-  }
-
-  if (!filterJobs || shouldTestRestApi(environment.changedFiles)) {
-    const testRestApiJob = TestRestApiJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(testRestApiJob);
-
-    const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(sonarCloudAnalysisJob);
-
-    jobs.push(
-      new workflow.WorkflowJob(testRestApiJob, {
-        name: 'Test rest-api',
-        context: config.jobContext,
-        requires: ['Build backend'],
-      }),
-      new workflow.WorkflowJob(sonarCloudAnalysisJob, {
-        name: 'Sonar - gravitee-apim-rest-api',
-        context: config.jobContext,
-        requires: ['Test rest-api'],
-        working_directory: 'gravitee-apim-rest-api',
-        cache_type: 'backend',
-      }),
-    );
-    requires.push('Test rest-api');
-  }
+    requires.push(project.suiteName);
+  });
 
   if (!filterJobs || shouldTestIntegrationTests(environment.changedFiles)) {
     const testIntegrationJob = TestIntegrationJob.create(dynamicConfig, environment);
@@ -167,78 +102,6 @@ export function backendJobs(
       }),
     );
     requires.push('Integration tests');
-  }
-
-  if (!filterJobs || shouldTestPlugin(environment.changedFiles)) {
-    const testPluginsJob = TestPluginJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(testPluginsJob);
-
-    const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(sonarCloudAnalysisJob);
-
-    jobs.push(
-      new workflow.WorkflowJob(testPluginsJob, {
-        name: 'Test plugins',
-        context: config.jobContext,
-        requires: ['Build backend'],
-      }),
-      new workflow.WorkflowJob(sonarCloudAnalysisJob, {
-        name: 'Sonar - gravitee-apim-plugin',
-        context: config.jobContext,
-        requires: ['Test plugins'],
-        working_directory: 'gravitee-apim-plugin',
-        cache_type: 'backend',
-      }),
-    );
-    requires.push('Test plugins');
-  }
-
-  if (!filterJobs || shouldTestReporter(environment.changedFiles)) {
-    const testReporterJob = TestReporterJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(testReporterJob);
-
-    const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(sonarCloudAnalysisJob);
-
-    jobs.push(
-      new workflow.WorkflowJob(testReporterJob, {
-        name: 'Test reporters',
-        context: config.jobContext,
-        requires: ['Build backend'],
-      }),
-      new workflow.WorkflowJob(sonarCloudAnalysisJob, {
-        name: 'Sonar - gravitee-apim-reporter',
-        context: config.jobContext,
-        requires: ['Test reporters'],
-        working_directory: 'gravitee-apim-reporter',
-        cache_type: 'backend',
-      }),
-    );
-    requires.push('Test reporters');
-  }
-
-  if (!filterJobs || shouldTestRepository(environment.changedFiles)) {
-    const testRepositoryJob = TestRepositoryJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(testRepositoryJob);
-
-    const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(sonarCloudAnalysisJob);
-
-    jobs.push(
-      new workflow.WorkflowJob(testRepositoryJob, {
-        name: 'Test repository',
-        context: config.jobContext,
-        requires: ['Build backend'],
-      }),
-      new workflow.WorkflowJob(sonarCloudAnalysisJob, {
-        name: 'Sonar - gravitee-apim-repository',
-        context: config.jobContext,
-        requires: ['Test repository'],
-        working_directory: 'gravitee-apim-repository',
-        cache_type: 'backend',
-      }),
-    );
-    requires.push('Test repository');
   }
 
   return { jobs, requires };

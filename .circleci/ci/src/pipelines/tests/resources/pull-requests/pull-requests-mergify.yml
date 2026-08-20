@@ -280,6 +280,7 @@ jobs:
           at: .
       - cmd-restore-maven-job-cache:
           jobName: job-build
+      - cmd-install-yarn
       - run:
           name: Build engine
           command: mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8 -P all-modules -DwithJavadoc
@@ -308,37 +309,6 @@ jobs:
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*
             - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target/distribution
             - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution
-  job-test-definition:
-    docker:
-      - image: cimg/openjdk:25.0.3
-    resource_class: small
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - cmd-restore-maven-job-cache:
-          jobName: job-test-definition
-      - restore_cache:
-          keys:
-            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
-      - run:
-          name: Run definition tests
-          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Ddefinition-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2
-      - run:
-          name: Save test results
-          command: |-
-            mkdir -p ~/test-results/junit/
-            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
-          when: always
-      - cmd-notify-on-failure
-      - cmd-save-maven-job-cache:
-          jobName: job-test-definition
-      - store_test_results:
-          path: ~/test-results
-      - persist_to_workspace:
-          root: .
-          paths:
-            - gravitee-apim-definition/gravitee-apim-definition-coverage/target/site/jacoco-aggregate/
   job-sonarcloud-analysis:
     parameters:
       working_directory:
@@ -370,12 +340,44 @@ jobs:
           name: Run Sonarcloud Analysis
           command: sonar-scanner -Dsonar.projectVersion=4.2.0
           working_directory: << parameters.working_directory >>
+          no_output_timeout: 30m
       - cmd-notify-on-failure
       - save_cache:
           paths:
             - /opt/sonar-scanner/.sonar/cache
           key: gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
           when: always
+  job-test-definition:
+    docker:
+      - image: cimg/openjdk:25.0.3
+    resource_class: small
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-definition
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: Run definition tests
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Ddefinition-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2
+      - run:
+          name: Save test results
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-test-definition
+      - store_test_results:
+          path: ~/test-results
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-definition/gravitee-apim-definition-coverage/target/site/jacoco-aggregate/
   job-test-gateway:
     docker:
       - image: cimg/openjdk:25.0.3
@@ -905,14 +907,6 @@ workflows:
           name: Build APIM Console
           context:
             - cicd-orchestrator
-      - job-sonarcloud-analysis:
-          name: Sonar - gravitee-apim-console-webui
-          context:
-            - cicd-orchestrator
-          requires:
-            - Lint & test APIM Console
-          working_directory: gravitee-apim-console-webui
-          cache_type: frontend
       - job-nx-webui-lint-test:
           name: Lint & test APIM Portal Next
           context:
@@ -920,14 +914,6 @@ workflows:
           apim-ui-project-workdir: gravitee-apim-portal-webui-next
           nx-project: portal-next
           max-workers: "2"
-      - job-sonarcloud-analysis:
-          name: Sonar - gravitee-apim-portal-webui-next
-          context:
-            - cicd-orchestrator
-          requires:
-            - Lint & test APIM Portal Next
-          working_directory: gravitee-apim-portal-webui-next
-          cache_type: frontend
       - job-webui-lint-test:
           name: Lint & test APIM Portal
           context:
@@ -935,14 +921,6 @@ workflows:
           apim-ui-project: gravitee-apim-portal-webui
           apim-ui-project-workdir: gravitee-apim-portal-webui
           resource_class: large
-      - job-sonarcloud-analysis:
-          name: Sonar - gravitee-apim-portal-webui
-          context:
-            - cicd-orchestrator
-          requires:
-            - Lint & test APIM Portal
-          working_directory: gravitee-apim-portal-webui
-          cache_type: frontend
       - job-portal-webui-build:
           name: Build APIM Portal
           context:
@@ -959,6 +937,30 @@ workflows:
           name: Build Gamma Console
           context:
             - cicd-orchestrator
+      - job-sonarcloud-analysis:
+          name: Sonar - gravitee-apim-console-webui
+          context:
+            - cicd-orchestrator
+          requires:
+            - Lint & test APIM Console
+          working_directory: gravitee-apim-console-webui
+          cache_type: frontend
+      - job-sonarcloud-analysis:
+          name: Sonar - gravitee-apim-portal-webui-next
+          context:
+            - cicd-orchestrator
+          requires:
+            - Lint & test APIM Portal Next
+          working_directory: gravitee-apim-portal-webui-next
+          cache_type: frontend
+      - job-sonarcloud-analysis:
+          name: Sonar - gravitee-apim-portal-webui
+          context:
+            - cicd-orchestrator
+          requires:
+            - Lint & test APIM Portal
+          working_directory: gravitee-apim-portal-webui
+          cache_type: frontend
       - job-validate-workflow-status:
           name: Validate workflow status
           requires:
