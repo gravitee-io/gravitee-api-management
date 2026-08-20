@@ -3,6 +3,8 @@
   "compilerOptions": {
     "outDir": "./out-tsc/spec",
     "module": "CommonJs",
+    // The root config sets "bundler", which tsc rejects together with CommonJs.
+    "moduleResolution": "node10",
     "types": ["jest", "angular", "node"],
     "target": "ES2016",
     "esModuleInterop": true
