@@ -76,7 +76,7 @@ class PortalNavigationSyncDomainServiceTest {
         portalListingCrud.reset();
         syncService = new PortalNavigationSyncDomainService(
             query,
-            new AutomationManagedNavigationItemsQueryService(portalListingCrud, pageContentQuery, query),
+            new AutomationManagedNavigationItemsQueryService(portalListingCrud, query),
             new NavigationSyncPlanExecutor(crud, query, pageContentCrud)
         );
     }

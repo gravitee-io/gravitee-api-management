@@ -59,24 +59,20 @@ public class PortalListingSyncDomainService {
             var envFolders = apiFolderSubtreeReconciler.loadAllFoldersInEnv(auditInfo.environmentId());
             for (var entry : listing.getApis()) {
                 var apiId = entry.apiId(auditInfo);
-                var navApi = navigationItemEntryMaterializer.upsert(auditInfo, portalId, apiId, entry);
-                var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, navApi.getId());
-                apiFolderSubtreeReconciler.sync(auditInfo, navApi, apiId, List.of(), currentFolders);
+                navigationItemEntryMaterializer.upsert(auditInfo, portalId, apiId, entry);
+                navigationItemEntryMaterializer.sweepLegacyAutomationOwnedDescendants(auditInfo, portalId, apiId);
+                var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, apiId);
+                apiFolderSubtreeReconciler.sync(auditInfo, apiId, List.of(), currentFolders);
                 materializeApiDocs(auditInfo, apiId);
             }
         }
     }
 
-    /** Reconciles the api-folder subtree under every nav-api row for this api, then re-materializes its doc pages. */
+    /** Reconciles the api-folder subtree for this api, then re-materializes its doc pages. */
     public void syncApiFolders(AuditInfo auditInfo, String apiId, List<NavigationPath> previousPaths) {
-        var navApis = apiFolderSubtreeReconciler.navApiRowsFor(auditInfo, apiId);
-        if (!navApis.isEmpty()) {
-            var envFolders = apiFolderSubtreeReconciler.loadAllFoldersInEnv(auditInfo.environmentId());
-            for (var navApi : navApis) {
-                var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, navApi.getId());
-                apiFolderSubtreeReconciler.sync(auditInfo, navApi, apiId, previousPaths, currentFolders);
-            }
-        }
+        var envFolders = apiFolderSubtreeReconciler.loadAllFoldersInEnv(auditInfo.environmentId());
+        var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, apiId);
+        apiFolderSubtreeReconciler.sync(auditInfo, apiId, previousPaths, currentFolders);
         materializeApiDocs(auditInfo, apiId);
     }
 
@@ -99,8 +95,8 @@ public class PortalListingSyncDomainService {
                 throw PathConflictException.navigationIdTaken(PathConflictException.EntryKind.LISTING, entry.location());
             }
             navigationItemEntryMaterializer.validateUpsertConflict(auditInfo, portalId, apiId, entry);
-            if (existing instanceof PortalNavigationApi navApi) {
-                var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, navApi.getId());
+            if (existing instanceof PortalNavigationApi) {
+                var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, apiId);
                 var desired = apiFolderSubtreeReconciler.desiredPaths(apiId);
                 apiFolderSubtreeReconciler.validateConflicts(auditInfo, apiId, desired, currentFolders);
             }
@@ -108,13 +104,9 @@ public class PortalListingSyncDomainService {
     }
 
     public void validateApiFolderConflictsForApi(AuditInfo auditInfo, String apiId, List<NavigationPath> desired) {
-        var navApis = apiFolderSubtreeReconciler.navApiRowsFor(auditInfo, apiId);
-        if (navApis.isEmpty()) return;
         var envFolders = apiFolderSubtreeReconciler.loadAllFoldersInEnv(auditInfo.environmentId());
-        for (var navApi : navApis) {
-            var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, navApi.getId());
-            apiFolderSubtreeReconciler.validateConflicts(auditInfo, apiId, desired, currentFolders);
-        }
+        var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, apiId);
+        apiFolderSubtreeReconciler.validateConflicts(auditInfo, apiId, desired, currentFolders);
     }
 
     private void materializeApiDocs(AuditInfo auditInfo, String apiId) {

@@ -31,7 +31,9 @@ import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
@@ -70,14 +72,35 @@ class ApiDocumentationSyncDomainServiceTest {
         navItemCrud.reset();
         pageContentQuery.reset();
         validatorService = mock(PortalNavigationItemValidatorService.class);
-        syncService = new ApiDocumentationSyncDomainService(navItemCrud, navItemQuery, pageContentQuery, validatorService);
+        syncService = new ApiDocumentationSyncDomainService(navItemCrud, navItemQuery, validatorService);
     }
 
     @Test
-    void should_be_noop_when_no_nav_api_row_exists_for_this_api() {
-        syncService.materialize(AUDIT_INFO, aDocumentation());
+    void materializes_a_nav_page_when_no_portal_lists_the_api() {
+        var meta = new AutomationMetadata(
+            AutomationMetadata.ReferenceType.API,
+            API_ID,
+            "Getting Started",
+            Optional.empty(),
+            Optional.of(1)
+        );
+        var doc = new GraviteeMarkdownPageContent(
+            DOC_ID,
+            AUDIT_INFO.organizationId(),
+            AUDIT_INFO.environmentId(),
+            GraviteeMarkdown.of("# Hello"),
+            meta
+        );
 
-        assertThat(navItemCrud.storage()).isEmpty();
+        syncService.materialize(AUDIT_INFO, doc);
+
+        assertThat(navItemCrud.storage())
+            .singleElement()
+            .satisfies(page -> {
+                assertThat(page.getId()).isEqualTo(PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID));
+                assertThat(page.isRoot()).isTrue();
+                assertThat(page.getReference()).isEqualTo(new NavigationItemReference.ApiReference(API_ID));
+            });
     }
 
     @Test
@@ -186,6 +209,28 @@ class ApiDocumentationSyncDomainServiceTest {
     }
 
     @Test
+    void cleanupForApi_also_removes_the_apis_folder_subtree() {
+        var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/guides");
+        var folder = PortalNavigationFolder.builder()
+            .id(folderId)
+            .organizationId(AUDIT_INFO.organizationId())
+            .environmentId(AUDIT_INFO.environmentId())
+            .title("guides")
+            .segment("guides")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .reference(new NavigationItemReference.ApiReference(API_ID))
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+        navItemCrud.create(folder);
+
+        syncService.cleanupForApi(AUDIT_INFO, API_ID);
+
+        assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).doesNotContain(folderId);
+    }
+
+    @Test
     void cleanupForApi_leaves_other_api_rows_untouched() {
         var ownNavApiId = PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
         var otherApiNavId = PortalNavigationItemId.of("cccccccc-cccc-cccc-cccc-cccccccccccc");
@@ -198,7 +243,7 @@ class ApiDocumentationSyncDomainServiceTest {
     }
 
     @Test
-    void cleanupNavApi_removes_the_nav_api_row_and_the_api_page_it_still_owns() {
+    void cleanupNavApi_removes_only_the_row_and_leaves_the_apis_page_intact() {
         var keptNavApiId = PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
         var removedNavApiId = PortalNavigationItemId.of("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
         seedNavApi(keptNavApiId);
@@ -209,11 +254,13 @@ class ApiDocumentationSyncDomainServiceTest {
 
         syncService.cleanupNavApi(AUDIT_INFO, removedNavApiId);
 
+        // The API's page is not a descendant of the row — it belongs to the API — so removing one of two
+        // nav-api rows takes only that row (I6).
         var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
         assertThat(navItemCrud.storage())
             .extracting(PortalNavigationItem::getId)
-            .containsExactly(keptNavApiId)
-            .doesNotContain(removedNavApiId, pageId);
+            .containsExactlyInAnyOrder(keptNavApiId, pageId)
+            .doesNotContain(removedNavApiId);
     }
 
     private PortalNavigationApi seedNavApi(PortalNavigationItemId id) {

@@ -88,6 +88,11 @@ public class ApiResource extends AbstractResource {
         return resourceContext.getResource(ApiDocumentationsResource.class);
     }
 
+    @Path("links")
+    public ApiLinksResource getLinksResource() {
+        return resourceContext.getResource(ApiLinksResource.class);
+    }
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
