@@ -121,12 +121,9 @@ export function GroupInvitationsTable({ invitations, loading, canManageMembers, 
 
     const totalCount = filtered.length;
     const totalPages = totalPagesFor(totalCount, pageSize);
-    const pageData = useMemo(() => paginate(filtered, page, pageSize), [filtered, page, pageSize]);
+    const safePage = Math.min(page, totalPages);
+    const pageData = useMemo(() => paginate(filtered, safePage, pageSize), [filtered, safePage, pageSize]);
     const columns = useMemo(() => buildColumns({ canManageMembers, onDelete }), [canManageMembers, onDelete]);
-
-    if (page > totalPages) {
-        setPage(totalPages);
-    }
 
     function handleSearchChange(value: string) {
         setSearch(value);
@@ -161,7 +158,7 @@ export function GroupInvitationsTable({ invitations, loading, canManageMembers, 
                 skeletonCount={pageSize}
                 serverSide
                 pagination={{
-                    page,
+                    page: safePage,
                     pageSize,
                     totalCount,
                     pageSizeOptions: [...TABLE_PAGE_SIZE_OPTIONS],

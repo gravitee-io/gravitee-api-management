@@ -39,6 +39,7 @@ export type MemberRoleLockFlags = {
     explorer: boolean;
 };
 
+/** Fail closed: until the mode is known and is not USER, PRIMARY_OWNER must stay unavailable. */
 export function isPrimaryOwnerUnavailable(mode: string | undefined): boolean {
     return mode === undefined || mode.toUpperCase() === PRIMARY_OWNER_MODE_USER;
 }
