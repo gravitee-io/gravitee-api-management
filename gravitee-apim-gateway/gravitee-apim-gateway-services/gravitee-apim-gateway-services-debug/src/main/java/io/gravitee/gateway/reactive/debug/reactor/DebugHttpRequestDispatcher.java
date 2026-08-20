@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.debug.reactor;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.debug.vertx.VertxHttpServerRequestDebugDecorator;
+import io.gravitee.gateway.http.vertx.VertxHttpServerRequestOptions;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestClientAuthConfiguration;
 import io.gravitee.gateway.env.RequestPathConfiguration;
@@ -86,9 +87,9 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
     protected io.gravitee.gateway.http.vertx.VertxHttpServerRequest createV3Request(
         final HttpServerRequest httpServerRequest,
         final IdGenerator idGenerator,
-        final String path
+        final VertxHttpServerRequestOptions options
     ) {
-        io.gravitee.gateway.http.vertx.VertxHttpServerRequest v3Request = super.createV3Request(httpServerRequest, idGenerator, path);
+        io.gravitee.gateway.http.vertx.VertxHttpServerRequest v3Request = super.createV3Request(httpServerRequest, idGenerator, options);
         return new VertxHttpServerRequestDebugDecorator(v3Request, idGenerator);
     }
 }
