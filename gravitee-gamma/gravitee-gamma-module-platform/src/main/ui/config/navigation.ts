@@ -71,10 +71,10 @@ export const NAV_SECTIONS: PlatformNavSection[] = [
                 label: 'System & Security',
                 items: [
                     { key: 'access-management', title: ROUTES['access-management'].label, icon: ShieldIcon },
-                    { key: 'organization-audit', title: ROUTES['organization-audit'].label, icon: ScrollTextIcon },
                     { key: 'management-and-schedulers', title: ROUTES['management-and-schedulers'].label, icon: SettingsIcon },
                     { key: 'cors', title: ROUTES.cors.label, icon: GlobeIcon },
                     { key: 'smtp', title: ROUTES.smtp.label, icon: MailIcon },
+                    { key: 'organization-audit', title: ROUTES['organization-audit'].label, icon: ScrollTextIcon },
                 ],
             },
         ],

@@ -15,8 +15,7 @@
  */
 
 import type { PortalSettings } from '../services/portalSettings';
-import { isSettingReadonly } from '../../shared/utils/isSettingReadonly';
 
 export function isPortalSettingReadonly(settings: PortalSettings | undefined, property: string): boolean {
-    return isSettingReadonly(settings, property);
+    return settings?.metadata?.readonly?.some(key => key === property) ?? false;
 }

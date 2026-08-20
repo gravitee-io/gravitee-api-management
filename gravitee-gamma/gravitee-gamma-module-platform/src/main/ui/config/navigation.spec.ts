@@ -41,16 +41,13 @@ describe('platform navigation config', () => {
         expect(sectionKeys('Organization', 'Assets')).toEqual(['tenants', 'entrypoints-and-sharding-tags']);
     });
 
-    it('places Access Management then Audit under Organization / System & Security', () => {
-        expect(sectionKeys('Organization', 'System & Security')).toEqual(['access-management', 'organization-audit']);
-    });
-
-    it('places Access Management, Management & Schedulers, CORS, and SMTP under Organization / System & Security', () => {
+    it('places Access Management, Management & Schedulers, CORS, SMTP, then Audit under Organization / System & Security', () => {
         expect(sectionKeys('Organization', 'System & Security')).toEqual([
             'access-management',
             'management-and-schedulers',
             'cors',
             'smtp',
+            'organization-audit',
         ]);
     });
 

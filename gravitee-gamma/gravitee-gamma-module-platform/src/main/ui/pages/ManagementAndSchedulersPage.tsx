@@ -25,7 +25,6 @@ import { useSaveOrgConsoleSettings } from '../features/organization-settings/hoo
 import type { ConsoleSettings } from '../features/organization-settings/types/consoleSettings';
 import { buildConsoleSettingsSavePayload } from '../features/organization-settings/utils/buildConsoleSettingsSavePayload';
 import { isConsoleSettingReadonly } from '../features/organization-settings/utils/isConsoleSettingReadonly';
-import { isDirty as computeIsDirty } from '../features/shared/utils/isDirty';
 
 interface ManagementFormState {
     title: string;
@@ -91,7 +90,7 @@ export function ManagementAndSchedulersPage() {
     const [localState, setLocalState] = useState<ManagementFormState>(() => buildState(settings));
     const [savedState, setSavedState] = useState<ManagementFormState>(() => buildState(settings));
 
-    const isDirty = computeIsDirty(localState, savedState);
+    const isDirty = JSON.stringify(localState) !== JSON.stringify(savedState);
     const isDirtyRef = useRef(isDirty);
     isDirtyRef.current = isDirty;
 
