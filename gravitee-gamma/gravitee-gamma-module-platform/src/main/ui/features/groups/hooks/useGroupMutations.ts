@@ -34,6 +34,7 @@ import type {
     NewGroupPayload,
     UpdateGroupPayload,
 } from '../types/group';
+import type { RemovalOwnershipTransfer } from '../utils/primaryOwnership';
 import { groupKeys } from '../utils/queryKeys';
 
 type InvalidationKeys<TData, TResult> = (environmentId: string, data: TData, result: TResult) => readonly (readonly unknown[])[];
@@ -99,11 +100,65 @@ export function useInviteGroupMember() {
     );
 }
 
-export function useRemoveGroupMember() {
-    return useGroupMutation<{ groupId: string; memberId: string }, void>(
-        (envId, { groupId, memberId }) => removeGroupMember(envId, groupId, memberId),
-        (envId, { groupId }) => [groupKeys.members(envId, groupId)],
-    );
+export class GroupMemberRemovalError extends Error {
+    constructor(
+        readonly phase: 'transfer' | 'remove' | 'rollback',
+        readonly operationError: unknown,
+        readonly rollbackSucceeded = false,
+        readonly rollbackError?: unknown,
+    ) {
+        super(`Group member removal failed during ${phase}`);
+        this.name = 'GroupMemberRemovalError';
+    }
+}
+
+export function useRemoveGroupMemberWithOwnershipTransfer() {
+    const env = useEnvironment();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({
+            groupId,
+            memberId,
+            ownershipTransfer,
+        }: {
+            groupId: string;
+            memberId: string;
+            ownershipTransfer?: RemovalOwnershipTransfer;
+        }) => {
+            if (!env?.id) {
+                throw new Error('No active environment');
+            }
+
+            if (ownershipTransfer) {
+                try {
+                    await addGroupMembers(env.id, groupId, [ownershipTransfer.apply]);
+                } catch (error) {
+                    throw new GroupMemberRemovalError('transfer', error);
+                }
+            }
+
+            try {
+                await removeGroupMember(env.id, groupId, memberId);
+            } catch (error) {
+                if (!ownershipTransfer) {
+                    throw new GroupMemberRemovalError('remove', error);
+                }
+
+                try {
+                    await addGroupMembers(env.id, groupId, ownershipTransfer.rollback);
+                } catch (rollbackError) {
+                    throw new GroupMemberRemovalError('rollback', error, false, rollbackError);
+                }
+                throw new GroupMemberRemovalError('remove', error, true);
+            }
+        },
+        onSettled: (_result, _error, data) => {
+            if (env?.id) {
+                void queryClient.invalidateQueries({ queryKey: groupKeys.members(env.id, data.groupId) });
+            }
+        },
+    });
 }
 
 export function useDeleteGroupInvitation() {

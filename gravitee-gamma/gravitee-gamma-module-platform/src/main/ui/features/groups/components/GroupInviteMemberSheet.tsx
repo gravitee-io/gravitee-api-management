@@ -25,10 +25,9 @@ import { isValidEmail } from '../../../shared/utils/email';
 import type { GroupMember, GroupRole } from '../types/group';
 import { PRIMARY_OWNER_ROLE } from '../types/group';
 import { getMemberRoleLockFlags } from '../utils/memberRoles';
-import { isPrimaryOwnerUnavailable } from '../utils/primaryOwnership';
+import { isPrimaryOwnerUnavailable, PRIMARY_OWNER_DISABLED_OPTIONS } from '../utils/primaryOwnership';
 
 type InvitationValues = { email: string; apiRole: string; applicationRole: string };
-const PRIMARY_OWNER_DISABLED_OPTIONS = new Set([PRIMARY_OWNER_ROLE]);
 
 type GroupInviteMemberSheetProps = Readonly<{
     open: boolean;

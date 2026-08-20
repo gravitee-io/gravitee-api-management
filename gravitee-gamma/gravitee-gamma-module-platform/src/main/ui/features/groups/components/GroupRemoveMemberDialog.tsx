@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-import { Alert, AlertDescription } from '@gravitee/graphene-core';
-import { InfoIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
+import { TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 import { useMemo, useState, useTransition } from 'react';
 
-import { MemberSuccessorCombobox } from './MemberSuccessorCombobox';
+import { MemberOwnershipTransferField } from './MemberOwnershipTransferField';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { useOpenRemountKey } from '../../../shared/hooks/useOpenRemountKey';
-import type { GroupMember, GroupMembershipPayload } from '../types/group';
-import { PRIMARY_OWNER_ROLE } from '../types/group';
+import type { GroupMember } from '../types/group';
 import { sortedSuccessorCandidates } from '../utils/memberRoles';
-import { joinScopeLabels, membershipFromMember, primaryOwnerScopesOf } from '../utils/primaryOwnership';
+import {
+    buildRemovalOwnershipTransfer,
+    buildRemovalOwnershipTransferMessage,
+    requiresPrimaryOwnerSuccessor,
+    type RemovalOwnershipTransfer,
+} from '../utils/primaryOwnership';
 
 type GroupRemoveMemberDialogProps = Readonly<{
     open: boolean;
@@ -32,7 +35,7 @@ type GroupRemoveMemberDialogProps = Readonly<{
     members: GroupMember[];
     groupName: string;
     onClose: () => void;
-    onConfirm: (transferMembership?: GroupMembershipPayload) => Promise<void>;
+    onConfirm: (ownershipTransfer?: RemovalOwnershipTransfer) => Promise<void>;
 }>;
 
 export function GroupRemoveMemberDialog(props: GroupRemoveMemberDialogProps) {
@@ -44,29 +47,22 @@ function GroupRemoveMemberDialogContent({ open, member, members, groupName, onCl
     const [successor, setSuccessor] = useState<GroupMember | null>(null);
     const [isRemoving, startRemoveTransition] = useTransition();
 
-    const primaryOwnerScopes = primaryOwnerScopesOf(member);
-    const isPrimaryOwner = primaryOwnerScopes.length > 0;
+    const needsSuccessor = requiresPrimaryOwnerSuccessor(member);
     const candidates = useMemo(() => sortedSuccessorCandidates(members, member?.id), [members, member]);
 
     if (!member) return null;
 
-    const scopesLabel = joinScopeLabels(primaryOwnerScopes);
-    const transferMessage = successor
-        ? `${member.displayName} is the ${scopesLabel} primary owner. ${scopesLabel} primary ownership will be transferred from ${member.displayName} to ${successor.displayName}.`
-        : null;
-
-    const canConfirm = !isPrimaryOwner || Boolean(successor);
+    const transferMessage = successor ? buildRemovalOwnershipTransferMessage(member, successor) : null;
+    const canConfirm = !needsSuccessor || Boolean(successor);
 
     function handleConfirm() {
-        if (isPrimaryOwner && !successor) {
+        if (needsSuccessor && !successor) {
             return;
         }
 
-        const transferMembership = successor
-            ? membershipFromMember(successor, Object.fromEntries(primaryOwnerScopes.map(scope => [scope, PRIMARY_OWNER_ROLE])))
-            : undefined;
+        const ownershipTransfer = successor ? buildRemovalOwnershipTransfer(member, successor) : undefined;
         startRemoveTransition(async () => {
-            await onConfirm(transferMembership);
+            await onConfirm(ownershipTransfer);
         });
     }
 
@@ -93,24 +89,16 @@ function GroupRemoveMemberDialogContent({ open, member, members, groupName, onCl
             confirmDisabled={!canConfirm}
             onConfirm={handleConfirm}
         >
-            {isPrimaryOwner && (
-                <div className="space-y-3">
-                    <MemberSuccessorCombobox
-                        id="remove-member-successor"
-                        candidates={candidates}
-                        value={successor}
-                        onChange={setSuccessor}
-                        hint="Select a member to transfer primary ownership."
-                        disabled={isRemoving}
-                    />
-                    {transferMessage && (
-                        <Alert variant="default">
-                            <InfoIcon className="size-4" aria-hidden />
-                            <AlertDescription>{transferMessage}</AlertDescription>
-                        </Alert>
-                    )}
-                </div>
-            )}
+            {needsSuccessor ? (
+                <MemberOwnershipTransferField
+                    id="remove-member-successor"
+                    candidates={candidates}
+                    value={successor}
+                    onChange={setSuccessor}
+                    message={transferMessage}
+                    disabled={isRemoving}
+                />
+            ) : null}
         </ConfirmDialog>
     );
 }

@@ -27,6 +27,7 @@ const SCOPE_LABELS: Readonly<Record<string, string>> = {
 };
 
 const PRIMARY_OWNER_MODE_USER = 'USER';
+export const PRIMARY_OWNER_DISABLED_OPTIONS = new Set([PRIMARY_OWNER_ROLE]);
 
 export const PRIMARY_OWNER_SCOPES = ['API', 'APPLICATION', 'API_PRODUCT', 'INTEGRATION', 'CLUSTER'] as const;
 export type PrimaryOwnerScope = (typeof PRIMARY_OWNER_SCOPES)[number];
@@ -45,16 +46,17 @@ export function isPrimaryOwnerUnavailable(mode: string | undefined): boolean {
 }
 
 function roleUpdatePhrase(role: string | undefined): string {
-    return role ? ` as ${role.toLowerCase().replace(/_/g, ' ')}` : '';
+    return role ? ` as ${role.toLowerCase().replace(/_/g, ' ')}` : ' with no role';
 }
 
 function compoundApiProductSentence(fromName: string, toName: string, updatedPhrase: string): string {
     return `${fromName} is the API and API Product primary owner. Primary ownership will be transferred to ${toName} and ${fromName} will be updated${updatedPhrase}.`;
 }
 
-function scopedTransferSentence(fromName: string, scopes: string[], toName: string, updatedPhrase: string): string {
+function scopedTransferSentence(fromName: string, scopes: string[], toName: string, updatedPhrase?: string): string {
     const labels = joinScopeLabels(scopes);
-    return `${fromName} is the ${labels} primary owner. The ${labels} primary ownership will be transferred to ${toName} and ${fromName} will be updated${updatedPhrase}.`;
+    const update = updatedPhrase === undefined ? '' : ` and ${fromName} will be updated${updatedPhrase}`;
+    return `${fromName} is the ${labels} primary owner. The ${labels} primary ownership will be transferred to ${toName}${update}.`;
 }
 
 export function membershipFromMember(member: GroupMember, overrides: Record<string, string> = {}): GroupMembershipPayload {
@@ -73,6 +75,10 @@ export function joinScopeLabels(scopes: string[]): string {
 
 export function primaryOwnerScopesOf(member: GroupMember | undefined): GroupMemberRoleScope[] {
     return PRIMARY_OWNER_SCOPES.filter(scope => member?.roles?.[scope] === PRIMARY_OWNER_ROLE);
+}
+
+export function requiresPrimaryOwnerSuccessor(member: GroupMember | undefined): boolean {
+    return primaryOwnerScopesOf(member).length > 0;
 }
 
 export type EditOwnershipTransfer = {
@@ -190,6 +196,23 @@ export function buildEditOwnershipTransferMessage(
     }
 
     return parts.length > 0 ? parts.join(' ') : null;
+}
+
+export type RemovalOwnershipTransfer = {
+    apply: GroupMembershipPayload;
+    rollback: GroupMembershipPayload[];
+};
+
+export function buildRemovalOwnershipTransfer(member: GroupMember, successor: GroupMember): RemovalOwnershipTransfer {
+    const overrides = Object.fromEntries(primaryOwnerScopesOf(member).map(scope => [scope, PRIMARY_OWNER_ROLE]));
+    return {
+        apply: membershipFromMember(successor, overrides),
+        rollback: [membershipFromMember(successor), membershipFromMember(member)],
+    };
+}
+
+export function buildRemovalOwnershipTransferMessage(member: GroupMember, successor: GroupMember): string {
+    return scopedTransferSentence(member.displayName, primaryOwnerScopesOf(member), successor.displayName);
 }
 
 export function buildEditMembershipPayloads(

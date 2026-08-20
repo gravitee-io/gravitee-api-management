@@ -93,7 +93,7 @@ describe('GroupRemoveMemberDialog', () => {
             expect(screen.getByRole('button', { name: 'Remove' })).toHaveProperty('disabled', true);
         });
 
-        it('searches members, selects a successor, and submits the transfer membership', async () => {
+        it('searches members, selects a successor, and submits transfer and rollback memberships', async () => {
             const user = userEvent.setup();
             const { onConfirm } = renderSheet({ member: PRIMARY_OWNER_MEMBER, members: [PRIMARY_OWNER_MEMBER, OTHER_MEMBER] });
 
@@ -101,16 +101,29 @@ describe('GroupRemoveMemberDialog', () => {
             await user.click(screen.getByRole('option', { name: 'Ravi Patel' }));
 
             expect(
-                screen.getByText(
-                    'Anna Schmidt is the API primary owner. API primary ownership will be transferred from Anna Schmidt to Ravi Patel.',
-                ),
+                screen.getByText('Anna Schmidt is the API primary owner. The API primary ownership will be transferred to Ravi Patel.'),
             ).not.toBeNull();
 
             fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
 
             expect(onConfirm).toHaveBeenCalledWith({
-                id: 'user-2',
-                roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }],
+                apply: {
+                    id: 'user-2',
+                    roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }],
+                },
+                rollback: [
+                    {
+                        id: 'user-2',
+                        roles: [{ scope: 'API', name: 'OWNER' }],
+                    },
+                    {
+                        id: 'user-1',
+                        roles: [
+                            { scope: 'API', name: 'PRIMARY_OWNER' },
+                            { scope: 'APPLICATION', name: 'USER' },
+                        ],
+                    },
+                ],
             });
         });
 
@@ -136,7 +149,7 @@ describe('GroupRemoveMemberDialog', () => {
 
             expect(
                 screen.getByText(
-                    'Anna Schmidt is the API, API Product and Cluster primary owner. API, API Product and Cluster primary ownership will be transferred from Anna Schmidt to Ravi Patel.',
+                    'Anna Schmidt is the API, API Product and Cluster primary owner. The API, API Product and Cluster primary ownership will be transferred to Ravi Patel.',
                 ),
             ).not.toBeNull();
         });
