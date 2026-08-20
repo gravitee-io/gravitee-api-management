@@ -50,6 +50,7 @@ import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -727,6 +728,74 @@ class ObservabilityLogsDataPortAdapterTest {
             verify(authzDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
             assertThat(captor.getValue().decisions()).containsExactly("PERMIT", "FORBID");
             assertThat(captor.getValue().apiIds()).containsExactly("api-1");
+        }
+
+        @Test
+        void should_route_every_decision_condition_to_its_own_repository_field() {
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(new SearchLogsResponse<>(0, List.of()));
+
+            adapter.searchLogs(
+                ORG,
+                ENV,
+                decisionQueryWith(
+                    new FilterCondition("STATUS", FilterOperator.EQ, List.of("error")),
+                    new FilterCondition("OPERATION", FilterOperator.EQ, List.of("search")),
+                    new FilterCondition("PDP", FilterOperator.EQ, List.of("pdp-a")),
+                    new FilterCondition("MATCHED_POLICY", FilterOperator.EQ, List.of("forbid-delete")),
+                    new FilterCondition("POLICY_VERSION", FilterOperator.EQ, List.of("9")),
+                    new FilterCondition("REQUEST_ID", FilterOperator.EQ, List.of("req-1")),
+                    new FilterCondition("REASON", FilterOperator.CONTAINS, List.of("forbid"))
+                )
+            );
+
+            var captor = ArgumentCaptor.forClass(AuthzDecisionLogFilters.class);
+            verify(authzDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
+            var filters = captor.getValue();
+            // Distinct values per field: swapping two mappings would otherwise still satisfy the assertions.
+            assertThat(filters.statuses()).containsExactly("error");
+            assertThat(filters.operations()).containsExactly("search");
+            assertThat(filters.targetPdpIds()).containsExactly("pdp-a");
+            assertThat(filters.matchedPolicyNames()).containsExactly("forbid-delete");
+            assertThat(filters.policyGenerations()).containsExactly("9");
+            assertThat(filters.requestIds()).containsExactly("req-1");
+            assertThat(filters.reasonContains()).isEqualTo("forbid");
+        }
+
+        @Test
+        void should_refuse_a_policy_version_that_is_not_a_number_instead_of_failing_the_shard() {
+            assertThatThrownBy(() ->
+                adapter.searchLogs(ORG, ENV, decisionQueryWith(new FilterCondition("POLICY_VERSION", FilterOperator.EQ, List.of("v9"))))
+            )
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("v9");
+        }
+
+        @Test
+        void should_keep_a_decimal_policy_version_that_elasticsearch_already_coerces() {
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(new SearchLogsResponse<>(0, List.of()));
+
+            adapter.searchLogs(ORG, ENV, decisionQueryWith(new FilterCondition("POLICY_VERSION", FilterOperator.EQ, List.of("3.0"))));
+
+            var captor = ArgumentCaptor.forClass(AuthzDecisionLogFilters.class);
+            verify(authzDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
+            assertThat(captor.getValue().policyGenerations()).containsExactly("3.0");
+        }
+
+        @Test
+        void should_skip_a_blank_reason_value_rather_than_dropping_the_whole_clause() {
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(new SearchLogsResponse<>(0, List.of()));
+
+            // The validator only refuses a condition whose values are all blank, so a leading blank would
+            // otherwise silently return the unfiltered set under an active filter chip.
+            adapter.searchLogs(
+                ORG,
+                ENV,
+                decisionQueryWith(new FilterCondition("REASON", FilterOperator.CONTAINS, Arrays.asList("", "forbid")))
+            );
+
+            var captor = ArgumentCaptor.forClass(AuthzDecisionLogFilters.class);
+            verify(authzDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
+            assertThat(captor.getValue().reasonContains()).isEqualTo("forbid");
         }
 
         @Test

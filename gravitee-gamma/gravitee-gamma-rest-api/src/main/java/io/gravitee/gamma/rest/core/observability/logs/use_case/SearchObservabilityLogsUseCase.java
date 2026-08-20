@@ -181,12 +181,21 @@ public class SearchObservabilityLogsUseCase {
     }
 
     /** Predicates the decision search can express, on top of the api scope and the time range. */
-    private static final Set<String> DECISION_SUPPORTED_FILTERS = Set.of(
+    // Package-private so a test can assert set equality against the catalog: a filter offered on the
+    // decisions screen but missing here is advertised and then refused with a 400.
+    static final Set<String> DECISION_SUPPORTED_FILTERS = Set.of(
         StaticFilters.DECISION.filterName(),
         StaticFilters.SUBJECT.filterName(),
         StaticFilters.ACTION.filterName(),
         StaticFilters.RESOURCE.filterName(),
-        StaticFilters.CALLER_KIND.filterName()
+        StaticFilters.CALLER_KIND.filterName(),
+        StaticFilters.STATUS.filterName(),
+        StaticFilters.OPERATION.filterName(),
+        StaticFilters.PDP.filterName(),
+        StaticFilters.MATCHED_POLICY.filterName(),
+        StaticFilters.REASON.filterName(),
+        StaticFilters.POLICY_VERSION.filterName(),
+        StaticFilters.REQUEST_ID.filterName()
     );
 
     /**
@@ -205,7 +214,7 @@ public class SearchObservabilityLogsUseCase {
             throw new ValidationDomainException(
                 "Filters " +
                     unsupported +
-                    " do not apply to RECORD_TYPE=AUTHZ_DECISION. Supported: API, API_TYPE, DECISION, SUBJECT, ACTION, RESOURCE, CALLER_KIND and the time range."
+                    " do not apply to RECORD_TYPE=AUTHZ_DECISION. Supported: API, API_TYPE, DECISION, SUBJECT, ACTION, RESOURCE, CALLER_KIND, STATUS, OPERATION, PDP, MATCHED_POLICY, REASON, POLICY_VERSION, REQUEST_ID and the time range."
             );
         }
     }

@@ -46,6 +46,12 @@ public final class SearchAuthzDecisionLogsQueryAdapter {
     private static final String ASC = "asc";
     private static final String UNMAPPED_TYPE = "unmapped_type";
     private static final String KEYWORD = "keyword";
+    private static final String NESTED = "nested";
+    private static final String IGNORE_UNMAPPED = "ignore_unmapped";
+    private static final String PATH = "path";
+    private static final String WILDCARD = "wildcard";
+    private static final String VALUE = "value";
+    private static final String CASE_INSENSITIVE = "case_insensitive";
 
     private SearchAuthzDecisionLogsQueryAdapter() {}
 
@@ -57,6 +63,50 @@ public final class SearchAuthzDecisionLogsQueryAdapter {
         ArrayNode node = MAPPER.createArrayNode();
         values.forEach(node::add);
         filters.add(MAPPER.createObjectNode().set(TERMS, MAPPER.createObjectNode().set(field, node)));
+    }
+
+    /**
+     * Nested objects are indexed as separate Lucene documents, so a plain terms clause on the
+     * sub-field matches nothing at all — the wrapper is what makes the field reachable.
+     *
+     * <p>{@code ignore_unmapped} matters because the search spans every dated event-metrics index,
+     * including ones written before decisions carried policy names. Without it those shards fail the
+     * whole query, and the response model carries no {@code _shards}, so the failure would be silent.
+     * The sort clause below guards the same mixed-index reality with {@code unmapped_type}.
+     */
+    private static void addNestedTermsIfAny(ArrayNode filters, String path, String field, Set<String> values) {
+        if (values == null || values.isEmpty()) {
+            return;
+        }
+        ArrayNode node = MAPPER.createArrayNode();
+        values.forEach(node::add);
+        ObjectNode inner = MAPPER.createObjectNode().set(TERMS, MAPPER.createObjectNode().set(path + "." + field, node));
+        ObjectNode nested = MAPPER.createObjectNode();
+        nested.put(PATH, path);
+        nested.put(IGNORE_UNMAPPED, true);
+        nested.set(QUERY, inner);
+        filters.add(MAPPER.createObjectNode().set(NESTED, nested));
+    }
+
+    /**
+     * Reasons are sentences: the user filters on a fragment, never the whole string.
+     *
+     * <p>The needle is escaped. {@code *} and {@code ?} are wildcard syntax, so an unescaped one turns
+     * the filter into no filter at all while the caller still sees an active filter chip.
+     */
+    private static void addContainsIfAny(ArrayNode filters, String field, String needle) {
+        if (needle == null || needle.isBlank()) {
+            return;
+        }
+        ObjectNode wildcard = MAPPER.createObjectNode();
+        wildcard.put(VALUE, "*" + escapeWildcard(needle) + "*");
+        wildcard.put(CASE_INSENSITIVE, true);
+        filters.add(MAPPER.createObjectNode().set(WILDCARD, MAPPER.createObjectNode().set(field, wildcard)));
+    }
+
+    /** Backslash first, or the escapes inserted below would be escaped in turn. */
+    private static String escapeWildcard(String needle) {
+        return needle.replace("\\", "\\\\").replace("*", "\\*").replace("?", "\\?");
     }
 
     public static String adapt(AuthzDecisionLogQuery query) {
@@ -75,6 +125,18 @@ public final class SearchAuthzDecisionLogsQueryAdapter {
         addTermsIfAny(filters, AuthzDecisionLogFields.ACTION, query.getActions());
         addTermsIfAny(filters, AuthzDecisionLogFields.RESOURCE_ID, query.getResourceIds());
         addTermsIfAny(filters, AuthzDecisionLogFields.CALLER, query.getCallers());
+        addTermsIfAny(filters, AuthzDecisionLogFields.STATUS, query.getStatuses());
+        addTermsIfAny(filters, AuthzDecisionLogFields.OPERATION, query.getOperations());
+        addTermsIfAny(filters, AuthzDecisionLogFields.TARGET_PDP_ID, query.getTargetPdpIds());
+        addTermsIfAny(filters, AuthzDecisionLogFields.POLICY_GENERATION, query.getPolicyGenerations());
+        addTermsIfAny(filters, AuthzDecisionLogFields.REQUEST_ID, query.getRequestIds());
+        addNestedTermsIfAny(
+            filters,
+            AuthzDecisionLogFields.MATCHED_POLICIES,
+            AuthzDecisionLogFields.MATCHED_POLICY_NAME,
+            query.getMatchedPolicyNames()
+        );
+        addContainsIfAny(filters, AuthzDecisionLogFields.REASONS, query.getReasonContains());
 
         if (query.getFrom() != null || query.getTo() != null) {
             ObjectNode bounds = MAPPER.createObjectNode();

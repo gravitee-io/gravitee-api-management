@@ -37,6 +37,13 @@ public class AuthzDecisionLogQuery {
     private Set<String> actions;
     private Set<String> resourceIds;
     private Set<String> callers;
+    private Set<String> statuses;
+    private Set<String> operations;
+    private Set<String> targetPdpIds;
+    private Set<String> matchedPolicyNames;
+    private Set<String> policyGenerations;
+    private Set<String> requestIds;
+    private String reasonContains;
 
     @Builder.Default
     private int size = 20;

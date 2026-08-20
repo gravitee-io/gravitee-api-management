@@ -62,6 +62,7 @@ import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.InstanceNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
@@ -427,6 +428,13 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .actions(valuesOf(query.conditions(), StaticFilters.ACTION.filterName()))
             .resourceIds(valuesOf(query.conditions(), StaticFilters.RESOURCE.filterName()))
             .callers(valuesOf(query.conditions(), StaticFilters.CALLER_KIND.filterName()))
+            .statuses(valuesOf(query.conditions(), StaticFilters.STATUS.filterName()))
+            .operations(valuesOf(query.conditions(), StaticFilters.OPERATION.filterName()))
+            .targetPdpIds(valuesOf(query.conditions(), StaticFilters.PDP.filterName()))
+            .matchedPolicyNames(valuesOf(query.conditions(), StaticFilters.MATCHED_POLICY.filterName()))
+            .policyGenerations(policyGenerationsOf(query.conditions()))
+            .requestIds(valuesOf(query.conditions(), StaticFilters.REQUEST_ID.filterName()))
+            .reasonContains(firstValueOf(query.conditions(), StaticFilters.REASON.filterName()))
             .build();
         var result = authzDecisionLogsCrudService.searchDecisionLogs(executionContext, filters, pageable);
         var entries = result
@@ -462,6 +470,39 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .filter(c -> filterName.equals(c.name()))
             .flatMap(c -> c.values().stream())
             .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    /**
+     * CONTAINS takes a single needle. Blank entries are skipped rather than taken: the validator only
+     * refuses a condition whose values are <em>all</em> blank, so a leading blank would otherwise drop
+     * the clause and hand back the unfiltered set under an active filter chip.
+     */
+    private static String firstValueOf(List<FilterCondition> conditions, String filterName) {
+        return valuesOf(conditions, filterName)
+            .stream()
+            .filter(v -> v != null && !v.isBlank())
+            .findFirst()
+            .orElse(null);
+    }
+
+    /**
+     * `policy-generation` is a long in the index, so a non-numeric value reaches Elasticsearch as a
+     * malformed term and fails the shard. Refuse it here, the way {@link #parseHttpStatus} does.
+     *
+     * <p>The value is passed on unchanged rather than normalised: Elasticsearch already coerces
+     * decimal forms such as {@code "3.0"} to the matching generation, and rewriting them here would
+     * reject input that works today. This only rules out what cannot be a number at all.
+     */
+    private static Set<String> policyGenerationsOf(List<FilterCondition> conditions) {
+        Set<String> values = valuesOf(conditions, StaticFilters.POLICY_VERSION.filterName());
+        for (String value : values) {
+            try {
+                new BigDecimal(value.trim());
+            } catch (NumberFormatException e) {
+                throw new ValidationDomainException("Invalid policy version value: " + value);
+            }
+        }
+        return values;
     }
 
     private LogEntry mapDecisionToLogEntry(AuthzDecisionLog decision, Map<String, ApiReference> apisById) {
