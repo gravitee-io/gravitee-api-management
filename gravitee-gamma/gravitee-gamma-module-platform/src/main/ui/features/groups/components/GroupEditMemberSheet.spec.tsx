@@ -62,6 +62,8 @@ function renderSheet(overrides: Partial<React.ComponentProps<typeof GroupEditMem
             groupAllowsGroupAdmin
             apiPrimaryOwnerMode="HYBRID"
             apiProductPrimaryOwnerMode="HYBRID"
+            associatedApiCount={0}
+            associatedApiProductCount={0}
             onClose={onClose}
             onSubmit={onSubmit}
             {...overrides}
@@ -94,6 +96,8 @@ describe('GroupEditMemberSheet', () => {
                 lockApplicationRole={false}
                 canOverrideLocks
                 groupAllowsGroupAdmin
+                associatedApiCount={0}
+                associatedApiProductCount={0}
                 onClose={jest.fn()}
                 onSubmit={jest.fn()}
             />,
@@ -412,7 +416,7 @@ describe('GroupEditMemberSheet', () => {
             ).not.toBeNull();
         });
 
-        it('submits the promoted successor before the demoted member', async () => {
+        it('submits the demoted member before the promoted successor', async () => {
             const user = userEvent.setup();
             const { onSubmit } = renderSheet({ member: primaryOwnerMember, members: [primaryOwnerMember, otherMember] });
 
@@ -424,7 +428,6 @@ describe('GroupEditMemberSheet', () => {
             fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
             expect(onSubmit).toHaveBeenCalledWith([
-                { id: 'user-2', roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }] },
                 {
                     id: 'user-1',
                     roles: [
@@ -432,7 +435,30 @@ describe('GroupEditMemberSheet', () => {
                         { scope: 'APPLICATION', name: 'USER' },
                     ],
                 },
+                { id: 'user-2', roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }] },
             ]);
+        });
+
+        it('blocks an API primary-owner transfer while the group still owns APIs', () => {
+            const { onSubmit } = renderSheet({
+                member: primaryOwnerMember,
+                members: [primaryOwnerMember, otherMember],
+                associatedApiCount: 1,
+            });
+
+            fireEvent.click(screen.getAllByRole('combobox')[0]);
+            fireEvent.click(screen.getByRole('option', { name: 'OWNER' }));
+
+            expect(
+                screen.getByText(
+                    'The API primary owner cannot be changed while this group owns 1 API. Transfer that API to another primary owner first.',
+                ),
+            ).not.toBeNull();
+            expect(screen.queryByLabelText('Search members')).toBeNull();
+            expect(screen.getByRole('button', { name: 'Save' })).toHaveProperty('disabled', true);
+
+            fireEvent.submit(screen.getByRole('form', { name: 'Edit member roles' }));
+            expect(onSubmit).not.toHaveBeenCalled();
         });
 
         it('promotes a single successor for both scopes when API and API product are both downgraded together', async () => {
@@ -468,18 +494,18 @@ describe('GroupEditMemberSheet', () => {
 
             expect(onSubmit).toHaveBeenCalledWith([
                 {
-                    id: 'user-2',
-                    roles: [
-                        { scope: 'API', name: 'PRIMARY_OWNER' },
-                        { scope: 'API_PRODUCT', name: 'PRIMARY_OWNER' },
-                    ],
-                },
-                {
                     id: 'user-1',
                     roles: [
                         { scope: 'API', name: 'OWNER' },
                         { scope: 'API_PRODUCT', name: 'OWNER' },
                         { scope: 'APPLICATION', name: 'USER' },
+                    ],
+                },
+                {
+                    id: 'user-2',
+                    roles: [
+                        { scope: 'API', name: 'PRIMARY_OWNER' },
+                        { scope: 'API_PRODUCT', name: 'PRIMARY_OWNER' },
                     ],
                 },
             ]);
@@ -535,7 +561,6 @@ describe('GroupEditMemberSheet', () => {
             fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
             expect(onSubmit).toHaveBeenCalledWith([
-                { id: 'user-2', roles: [{ scope: 'APPLICATION', name: 'PRIMARY_OWNER' }] },
                 {
                     id: 'user-1',
                     roles: [
@@ -543,6 +568,7 @@ describe('GroupEditMemberSheet', () => {
                         { scope: 'APPLICATION', name: 'OWNER' },
                     ],
                 },
+                { id: 'user-2', roles: [{ scope: 'APPLICATION', name: 'PRIMARY_OWNER' }] },
             ]);
         });
     });

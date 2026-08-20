@@ -50,12 +50,14 @@ function isRemoveDisabled(member: GroupMember, totalMemberCount: number): boolea
 }
 
 function buildColumns({
-    canManageMembers,
+    canEditMembers,
+    canRemoveMembers,
     totalMemberCount,
     onEditRoles,
     onRemove,
 }: {
-    canManageMembers: boolean;
+    canEditMembers: boolean;
+    canRemoveMembers: boolean;
     totalMemberCount: number;
     onEditRoles: (member: GroupMember) => void;
     onRemove: (member: GroupMember) => void;
@@ -115,7 +117,7 @@ function buildColumns({
         },
     ];
 
-    if (!canManageMembers) {
+    if (!canEditMembers && !canRemoveMembers) {
         return columns;
     }
 
@@ -143,24 +145,28 @@ function buildColumns({
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <DropdownMenuItem onSelect={() => onEditRoles(row.original)}>
-                                <PencilIcon className="size-4 mr-2" aria-hidden />
-                                Edit roles
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                                variant="destructive"
-                                disabled={removeDisabled}
-                                aria-describedby={removeDisabled ? removeDisabledExplanationId : undefined}
-                                onSelect={() => onRemove(row.original)}
-                            >
-                                <Trash2Icon className="size-4 mr-2" aria-hidden />
-                                Remove member
-                            </DropdownMenuItem>
+                            {canEditMembers ? (
+                                <DropdownMenuItem onSelect={() => onEditRoles(row.original)}>
+                                    <PencilIcon className="size-4 mr-2" aria-hidden />
+                                    Edit roles
+                                </DropdownMenuItem>
+                            ) : null}
+                            {canEditMembers && canRemoveMembers ? <DropdownMenuSeparator /> : null}
+                            {canRemoveMembers ? (
+                                <DropdownMenuItem
+                                    variant="destructive"
+                                    disabled={removeDisabled}
+                                    aria-describedby={removeDisabled ? removeDisabledExplanationId : undefined}
+                                    onSelect={() => onRemove(row.original)}
+                                >
+                                    <Trash2Icon className="size-4 mr-2" aria-hidden />
+                                    Remove member
+                                </DropdownMenuItem>
+                            ) : null}
                         </DropdownMenuContent>
                     </DropdownMenu>
                     {/* Kept outside DropdownMenuContent: role="menu" may only contain menu items. */}
-                    {removeDisabled && (
+                    {canRemoveMembers && removeDisabled && (
                         <span id={removeDisabledExplanationId} className="sr-only">
                             {REMOVE_DISABLED_MESSAGE}
                         </span>
@@ -176,13 +182,22 @@ function buildColumns({
 interface GroupMembersTableProps {
     readonly members: GroupMember[];
     readonly loading: boolean;
-    readonly canManageMembers: boolean;
+    readonly canEditMembers: boolean;
+    readonly canRemoveMembers: boolean;
     readonly canAddMembers: boolean;
     readonly onEditRoles: (member: GroupMember) => void;
     readonly onRemove: (member: GroupMember) => void;
 }
 
-export function GroupMembersTable({ members, loading, canManageMembers, canAddMembers, onEditRoles, onRemove }: GroupMembersTableProps) {
+export function GroupMembersTable({
+    members,
+    loading,
+    canEditMembers,
+    canRemoveMembers,
+    canAddMembers,
+    onEditRoles,
+    onRemove,
+}: GroupMembersTableProps) {
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(PAGE_SIZE);
@@ -201,8 +216,8 @@ export function GroupMembersTable({ members, loading, canManageMembers, canAddMe
     const safePage = Math.min(page, totalPages);
     const pageData = useMemo(() => paginate(filtered, safePage, pageSize), [filtered, safePage, pageSize]);
     const columns = useMemo(
-        () => buildColumns({ canManageMembers, totalMemberCount: members.length, onEditRoles, onRemove }),
-        [canManageMembers, members.length, onEditRoles, onRemove],
+        () => buildColumns({ canEditMembers, canRemoveMembers, totalMemberCount: members.length, onEditRoles, onRemove }),
+        [canEditMembers, canRemoveMembers, members.length, onEditRoles, onRemove],
     );
 
     function handleSearchChange(value: string) {

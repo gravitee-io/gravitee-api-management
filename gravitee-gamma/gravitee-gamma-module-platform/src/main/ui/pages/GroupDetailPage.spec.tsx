@@ -19,6 +19,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { GroupDetailPage } from './GroupDetailPage';
+import { useCurrentUserIsGroupAdmin } from '../features/groups/hooks/useCurrentUserGroupAdmin';
 import {
     useEnvironmentSettings,
     useGroupApis,
@@ -30,11 +31,13 @@ import {
 } from '../features/groups/hooks/useGroupDetail';
 import {
     GroupMemberRemovalError,
+    GroupMemberUpdateError,
     useAddGroupMembers,
     useDeleteGroup,
     useDeleteGroupInvitation,
     useInviteGroupMember,
     useRemoveGroupMemberWithOwnershipTransfer,
+    useUpdateGroupMembersWithRollback,
     useUpdateGroup,
 } from '../features/groups/hooks/useGroupMutations';
 import { useGroupRoles } from '../features/groups/hooks/useGroupRoles';
@@ -46,13 +49,19 @@ jest.mock('@gravitee/gamma-modules-sdk', () => ({
     useHasPermission: jest.fn(),
 }));
 jest.mock('../features/groups/hooks/useGroupDetail');
+jest.mock('../features/groups/hooks/useCurrentUserGroupAdmin');
 jest.mock('../features/groups/hooks/useGroupRoles');
 jest.mock('../features/groups/hooks/useGroupMutations', () => {
     const actual = jest.requireActual('../features/groups/hooks/useGroupMutations') as {
         GroupMemberRemovalError: typeof GroupMemberRemovalError;
+        GroupMemberUpdateError: typeof GroupMemberUpdateError;
     };
     const mocked = jest.createMockFromModule('../features/groups/hooks/useGroupMutations') as Record<string, unknown>;
-    return { ...mocked, GroupMemberRemovalError: actual.GroupMemberRemovalError };
+    return {
+        ...mocked,
+        GroupMemberRemovalError: actual.GroupMemberRemovalError,
+        GroupMemberUpdateError: actual.GroupMemberUpdateError,
+    };
 });
 jest.mock('../shared/notify', () => ({
     notify: { success: jest.fn(), error: jest.fn(), warning: jest.fn() },
@@ -64,16 +73,18 @@ jest.mock('../shared/notify', () => ({
 jest.mock('../features/groups/components/GroupMembersTable', () => ({
     GroupMembersTable: ({
         members,
-        canManageMembers,
+        canEditMembers,
+        canRemoveMembers,
         onEditRoles,
         onRemove,
     }: {
         members: GroupMember[];
-        canManageMembers: boolean;
+        canEditMembers: boolean;
+        canRemoveMembers: boolean;
         onEditRoles: (member: GroupMember) => void;
         onRemove: (member: GroupMember) => void;
     }) => (
-        <div data-testid="members-table" data-can-manage-members={canManageMembers}>
+        <div data-testid="members-table" data-can-edit-members={canEditMembers} data-can-remove-members={canRemoveMembers}>
             {members.map(member => member.displayName).join(', ')}
             <button type="button" onClick={() => onEditRoles(members[0])}>
                 Trigger edit roles
@@ -150,6 +161,17 @@ jest.mock('../features/groups/components/GroupEditMemberSheet', () => ({
                 <button type="button" onClick={() => void onSubmit([{ id: 'member-1', roles: [{ scope: 'GROUP', name: 'ADMIN' }] }])}>
                     Submit edit roles
                 </button>
+                <button
+                    type="button"
+                    onClick={() =>
+                        void onSubmit([
+                            { id: 'member-1', roles: [{ scope: 'API', name: 'OWNER' }] },
+                            { id: 'member-2', roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }] },
+                        ])
+                    }
+                >
+                    Submit ownership edit
+                </button>
             </div>
         ) : null,
 }));
@@ -157,12 +179,20 @@ jest.mock('../features/groups/components/GroupRemoveMemberDialog', () => ({
     GroupRemoveMemberDialog: ({
         open,
         onConfirm,
+        associatedApiCount,
+        associatedApiProductCount,
     }: {
         open: boolean;
         onConfirm: (ownershipTransfer?: RemovalOwnershipTransfer) => Promise<void>;
+        associatedApiCount: number | null;
+        associatedApiProductCount: number | null;
     }) =>
         open ? (
-            <div data-testid="remove-member-dialog">
+            <div
+                data-testid="remove-member-dialog"
+                data-associated-api-count={associatedApiCount}
+                data-associated-api-product-count={associatedApiProductCount}
+            >
                 <button type="button" onClick={() => void onConfirm()}>
                     Submit remove
                 </button>
@@ -170,7 +200,10 @@ jest.mock('../features/groups/components/GroupRemoveMemberDialog', () => ({
                     type="button"
                     onClick={() =>
                         void onConfirm({
-                            apply: { id: 'member-2', roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }] },
+                            apply: [
+                                { id: 'member-1', roles: [{ scope: 'API', name: 'OWNER' }] },
+                                { id: 'member-2', roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }] },
+                            ],
                             rollback: [
                                 { id: 'member-2', roles: [{ scope: 'API', name: 'OWNER' }] },
                                 { id: 'member-1', roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }] },
@@ -195,6 +228,7 @@ beforeAll(() => {
 });
 
 const mockUseHasPermission = jest.mocked(useHasPermission);
+const mockUseCurrentUserIsGroupAdmin = jest.mocked(useCurrentUserIsGroupAdmin);
 const mockUseGroupDetail = jest.mocked(useGroupDetail);
 const mockUseGroupMembers = jest.mocked(useGroupMembers);
 const mockUseGroupInvitations = jest.mocked(useGroupInvitations);
@@ -208,6 +242,7 @@ const mockUseDeleteGroup = jest.mocked(useDeleteGroup);
 const mockUseAddGroupMembers = jest.mocked(useAddGroupMembers);
 const mockUseInviteGroupMember = jest.mocked(useInviteGroupMember);
 const mockUseRemoveGroupMemberWithOwnershipTransfer = jest.mocked(useRemoveGroupMemberWithOwnershipTransfer);
+const mockUseUpdateGroupMembersWithRollback = jest.mocked(useUpdateGroupMembersWithRollback);
 const mockUseDeleteGroupInvitation = jest.mocked(useDeleteGroupInvitation);
 
 const GROUP: Group = { id: 'group-1', name: 'Support Team', event_rules: [{ event: 'API_CREATE' }], system_invitation: true };
@@ -245,6 +280,7 @@ async function openEmailInvitation() {
 describe('GroupDetailPage', () => {
     beforeEach(() => {
         mockUseHasPermission.mockReturnValue(true);
+        mockUseCurrentUserIsGroupAdmin.mockReturnValue(false);
         mockUseGroupDetail.mockReturnValue({ data: GROUP, isLoading: false, isError: false } as ReturnType<typeof useGroupDetail>);
         mockUseGroupMembers.mockReturnValue({
             data: [{ id: 'member-1', displayName: 'Anna Schmidt', roles: {} }],
@@ -288,6 +324,7 @@ describe('GroupDetailPage', () => {
         mockUseAddGroupMembers.mockReturnValue(makeMutation());
         mockUseInviteGroupMember.mockReturnValue(makeMutation());
         mockUseRemoveGroupMemberWithOwnershipTransfer.mockReturnValue(makeMutation());
+        mockUseUpdateGroupMembersWithRollback.mockReturnValue(makeMutation());
         mockUseDeleteGroupInvitation.mockReturnValue(makeMutation());
     });
 
@@ -634,6 +671,14 @@ describe('GroupDetailPage', () => {
     });
 
     describe('Edit roles', () => {
+        it('does not expose Remove to an update-only operator', () => {
+            mockUseHasPermission.mockImplementation(({ anyOf }) => anyOf?.includes('environment-group-u') ?? false);
+            renderPage();
+
+            expect(screen.getByTestId('members-table').getAttribute('data-can-edit-members')).toBe('true');
+            expect(screen.getByTestId('members-table').getAttribute('data-can-remove-members')).toBe('false');
+        });
+
         it('opens the edit sheet, submits role changes, and shows a success toast', async () => {
             const editMutateAsync = jest.fn().mockResolvedValue(undefined);
             mockUseAddGroupMembers.mockReturnValue(makeMutation(editMutateAsync));
@@ -662,6 +707,30 @@ describe('GroupDetailPage', () => {
 
             await waitFor(() => expect(notify.error).toHaveBeenCalledWith(error, 'Failed to update member roles'));
             expect(screen.getByTestId('edit-member-sheet')).not.toBeNull();
+        });
+
+        it('reports that original roles were restored when an ownership edit fails', async () => {
+            const updateError = new Error('update failed');
+            mockUseUpdateGroupMembersWithRollback.mockReturnValue(
+                makeMutation(jest.fn().mockRejectedValue(new GroupMemberUpdateError('update', updateError, true))),
+            );
+            mockUseGroupMembers.mockReturnValue({
+                data: [
+                    { id: 'member-1', displayName: 'Anna Schmidt', roles: { API: 'PRIMARY_OWNER' } },
+                    { id: 'member-2', displayName: 'Ravi Patel', roles: { API: 'OWNER' } },
+                ],
+                isLoading: false,
+                isError: false,
+            } as unknown as ReturnType<typeof useGroupMembers>);
+            mockUseGroupApis.mockReturnValue({ data: [], isLoading: false, isError: false } as unknown as ReturnType<typeof useGroupApis>);
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Trigger edit roles' }));
+            fireEvent.click(screen.getByRole('button', { name: 'Submit ownership edit' }));
+
+            await waitFor(() =>
+                expect(notify.error).toHaveBeenCalledWith(updateError, 'Member roles could not be updated. Original roles were restored.'),
+            );
         });
     });
 
@@ -710,7 +779,10 @@ describe('GroupDetailPage', () => {
                     groupId: 'group-1',
                     memberId: 'member-1',
                     ownershipTransfer: {
-                        apply: { id: 'member-2', roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }] },
+                        apply: [
+                            { id: 'member-1', roles: [{ scope: 'API', name: 'OWNER' }] },
+                            { id: 'member-2', roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }] },
+                        ],
                         rollback: [
                             { id: 'member-2', roles: [{ scope: 'API', name: 'OWNER' }] },
                             { id: 'member-1', roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }] },
@@ -738,6 +810,11 @@ describe('GroupDetailPage', () => {
 
         it('does not remove a primary owner without a transfer payload even if the dialog guard is bypassed', async () => {
             const removeMutateAsync = jest.fn().mockResolvedValue(undefined);
+            mockUseGroupApis.mockReturnValue({
+                data: [],
+                isLoading: false,
+                isError: false,
+            } as unknown as ReturnType<typeof useGroupApis>);
             mockUseGroupMembers.mockReturnValue({
                 data: [{ id: 'member-1', displayName: 'Anna Schmidt', roles: { API: 'PRIMARY_OWNER' } }],
                 isLoading: false,
@@ -756,19 +833,81 @@ describe('GroupDetailPage', () => {
             expect(screen.getByTestId('remove-member-dialog')).not.toBeNull();
         });
 
-        it('does not remove the member when ownership transfer fails', async () => {
-            const error = new Error('transfer failed');
+        it('does not call ownership transfer while an API primary-owner group still owns APIs', async () => {
             const removeMutateAsync = jest.fn().mockResolvedValue(undefined);
-            removeMutateAsync.mockRejectedValue(new GroupMemberRemovalError('transfer', error));
+            mockUseGroupMembers.mockReturnValue({
+                data: [
+                    { id: 'member-1', displayName: 'Anna Schmidt', roles: { API: 'PRIMARY_OWNER' } },
+                    { id: 'member-2', displayName: 'Ravi Patel', roles: { API: 'OWNER' } },
+                ],
+                isLoading: false,
+                isError: false,
+            } as unknown as ReturnType<typeof useGroupMembers>);
             mockUseRemoveGroupMemberWithOwnershipTransfer.mockReturnValue(makeMutation(removeMutateAsync));
             renderPage();
 
             fireEvent.click(screen.getByRole('button', { name: 'Trigger remove' }));
             fireEvent.click(screen.getByRole('button', { name: 'Submit remove with successor' }));
 
-            await waitFor(() => expect(notify.error).toHaveBeenCalledWith(error, 'Primary ownership could not be transferred'));
+            await waitFor(() =>
+                expect(notify.warning).toHaveBeenCalledWith(
+                    'This member cannot be removed while the group is the primary owner of 1 API. Transfer that API to another primary owner first.',
+                ),
+            );
+            expect(removeMutateAsync).not.toHaveBeenCalled();
+        });
+
+        it('does not remove the member when ownership transfer fails', async () => {
+            const error = new Error('transfer failed');
+            const removeMutateAsync = jest.fn().mockResolvedValue(undefined);
+            removeMutateAsync.mockRejectedValue(new GroupMemberRemovalError('transfer', error, true));
+            mockUseRemoveGroupMemberWithOwnershipTransfer.mockReturnValue(makeMutation(removeMutateAsync));
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Trigger remove' }));
+            fireEvent.click(screen.getByRole('button', { name: 'Submit remove with successor' }));
+
+            await waitFor(() =>
+                expect(notify.error).toHaveBeenCalledWith(
+                    error,
+                    'Primary ownership could not be transferred. Original roles were restored.',
+                ),
+            );
             expect(removeMutateAsync).toHaveBeenCalledTimes(1);
             expect(screen.getByTestId('remove-member-dialog')).not.toBeNull();
+        });
+
+        it('reports when ownership rollback also fails', async () => {
+            const removeError = new Error('remove failed');
+            const rollbackError = new Error('rollback failed');
+            mockUseRemoveGroupMemberWithOwnershipTransfer.mockReturnValue(
+                makeMutation(jest.fn().mockRejectedValue(new GroupMemberRemovalError('rollback', removeError, false, rollbackError))),
+            );
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Trigger remove' }));
+            fireEvent.click(screen.getByRole('button', { name: 'Submit remove with successor' }));
+
+            await waitFor(() =>
+                expect(notify.error).toHaveBeenCalledWith(
+                    rollbackError,
+                    'The member could not be removed and primary ownership could not be restored. Refresh the member list before retrying.',
+                ),
+            );
+        });
+
+        it('passes the loaded API and API Product counts to the removal preflight', () => {
+            mockUseGroupApiProducts.mockReturnValue({
+                data: [{ id: 'product-1', name: 'Billing Product', version: '1.0' }],
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupApiProducts>);
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Trigger remove' }));
+
+            expect(screen.getByTestId('remove-member-dialog').getAttribute('data-associated-api-count')).toBe('1');
+            expect(screen.getByTestId('remove-member-dialog').getAttribute('data-associated-api-product-count')).toBe('1');
         });
     });
 
@@ -873,6 +1012,7 @@ describe('GroupDetailPage', () => {
     describe('self-service group admin (manageable)', () => {
         it('shows Add members via manageable + system_invitation even without environment-group-u', () => {
             mockUseHasPermission.mockReturnValue(false);
+            mockUseCurrentUserIsGroupAdmin.mockReturnValue(true);
             mockUseGroupDetail.mockReturnValue({
                 data: { ...GROUP, manageable: true, system_invitation: true },
                 isLoading: false,
@@ -881,7 +1021,8 @@ describe('GroupDetailPage', () => {
             renderPage();
 
             expect(screen.queryByRole('button', { name: /Add members/i })).not.toBeNull();
-            expect(screen.getByTestId('members-table').getAttribute('data-can-manage-members')).toBe('true');
+            expect(screen.getByTestId('members-table').getAttribute('data-can-edit-members')).toBe('true');
+            expect(screen.getByTestId('members-table').getAttribute('data-can-remove-members')).toBe('true');
             expect(mockUseEnvironmentSettings).toHaveBeenCalledWith({ enabled: false });
         });
 
@@ -909,8 +1050,9 @@ describe('GroupDetailPage', () => {
             expect(screen.queryByRole('button', { name: /Add members/i })).toBeNull();
         });
 
-        it('uses the backend manageable flag for member actions without environment-group-u', () => {
+        it('allows a group admin to edit and remove members without environment permissions', () => {
             mockUseHasPermission.mockReturnValue(false);
+            mockUseCurrentUserIsGroupAdmin.mockReturnValue(true);
             mockUseGroupDetail.mockReturnValue({
                 data: { ...GROUP, manageable: true },
                 isLoading: false,
@@ -918,10 +1060,11 @@ describe('GroupDetailPage', () => {
             } as ReturnType<typeof useGroupDetail>);
             renderPage();
 
-            expect(screen.getByTestId('members-table').getAttribute('data-can-manage-members')).toBe('true');
+            expect(screen.getByTestId('members-table').getAttribute('data-can-edit-members')).toBe('true');
+            expect(screen.getByTestId('members-table').getAttribute('data-can-remove-members')).toBe('true');
         });
 
-        it('hides member actions without environment-group-u or the manageable flag', () => {
+        it('hides member actions without environment permissions or group admin membership', () => {
             mockUseHasPermission.mockReturnValue(false);
             mockUseGroupDetail.mockReturnValue({
                 data: { ...GROUP, manageable: false },
@@ -930,7 +1073,8 @@ describe('GroupDetailPage', () => {
             } as ReturnType<typeof useGroupDetail>);
             renderPage();
 
-            expect(screen.getByTestId('members-table').getAttribute('data-can-manage-members')).toBe('false');
+            expect(screen.getByTestId('members-table').getAttribute('data-can-edit-members')).toBe('false');
+            expect(screen.getByTestId('members-table').getAttribute('data-can-remove-members')).toBe('false');
         });
     });
 

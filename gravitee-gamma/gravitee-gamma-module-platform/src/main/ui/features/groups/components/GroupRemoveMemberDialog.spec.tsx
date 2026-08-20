@@ -30,6 +30,8 @@ function renderSheet(overrides: Partial<React.ComponentProps<typeof GroupRemoveM
             member={MEMBER}
             members={[MEMBER]}
             groupName="API Team"
+            associatedApiCount={0}
+            associatedApiProductCount={0}
             onClose={onClose}
             onConfirm={onConfirm}
             {...overrides}
@@ -107,10 +109,19 @@ describe('GroupRemoveMemberDialog', () => {
             fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
 
             expect(onConfirm).toHaveBeenCalledWith({
-                apply: {
-                    id: 'user-2',
-                    roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }],
-                },
+                apply: [
+                    {
+                        id: 'user-1',
+                        roles: [
+                            { scope: 'API', name: 'OWNER' },
+                            { scope: 'APPLICATION', name: 'USER' },
+                        ],
+                    },
+                    {
+                        id: 'user-2',
+                        roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }],
+                    },
+                ],
                 rollback: [
                     {
                         id: 'user-2',
@@ -125,6 +136,40 @@ describe('GroupRemoveMemberDialog', () => {
                     },
                 ],
             });
+        });
+
+        it('blocks transfer when the group still owns APIs', async () => {
+            const user = userEvent.setup();
+            const { onConfirm } = renderSheet({
+                member: PRIMARY_OWNER_MEMBER,
+                members: [PRIMARY_OWNER_MEMBER, OTHER_MEMBER],
+                associatedApiCount: 2,
+            });
+
+            expect(
+                screen.getByText(
+                    'This member cannot be removed while the group is the primary owner of 2 APIs. Transfer those APIs to another primary owner first.',
+                ),
+            ).not.toBeNull();
+            expect(screen.queryByLabelText('Search members')).toBeNull();
+
+            await user.click(screen.getByRole('button', { name: 'Remove' }));
+            expect(onConfirm).not.toHaveBeenCalled();
+        });
+
+        it('blocks transfer until associated APIs have loaded', () => {
+            renderSheet({
+                member: PRIMARY_OWNER_MEMBER,
+                members: [PRIMARY_OWNER_MEMBER, OTHER_MEMBER],
+                associatedApiCount: null,
+            });
+
+            expect(
+                screen.getByText(
+                    'This member cannot be removed until associated APIs and API Products have loaded. Refresh and try again.',
+                ),
+            ).not.toBeNull();
+            expect(screen.getByRole('button', { name: 'Remove' })).toHaveProperty('disabled', true);
         });
 
         it('excludes the member being removed from the successor search results', async () => {

@@ -38,6 +38,7 @@ import { useOpenRemountKey } from '../../../shared/hooks/useOpenRemountKey';
 import { STANDARD_SHEET_WIDTH } from '../../../shared/layout/sheetLayout';
 import { useGroupEditMemberForm } from '../hooks/useGroupEditMemberForm';
 import type { GroupMember, GroupMembershipPayload, GroupRole } from '../types/group';
+import { buildPrimaryOwnerAssociationBlockMessage } from '../utils/primaryOwnership';
 
 type GroupEditMemberSheetProps = Readonly<{
     open: boolean;
@@ -57,6 +58,8 @@ type GroupEditMemberSheetProps = Readonly<{
     groupAllowsGroupAdmin: boolean;
     apiPrimaryOwnerMode?: string;
     apiProductPrimaryOwnerMode?: string;
+    associatedApiCount: number | null;
+    associatedApiProductCount: number | null;
     onClose: () => void;
     onSubmit: (memberships: GroupMembershipPayload[]) => Promise<void>;
 }>;
@@ -84,6 +87,8 @@ function GroupEditMemberSheetContent({
     groupAllowsGroupAdmin,
     apiPrimaryOwnerMode,
     apiProductPrimaryOwnerMode,
+    associatedApiCount,
+    associatedApiProductCount,
     onClose,
     onSubmit,
 }: GroupEditMemberSheetProps) {
@@ -96,8 +101,15 @@ function GroupEditMemberSheetContent({
         canOverrideLocks,
         apiPrimaryOwnerMode,
         apiProductPrimaryOwnerMode,
+        associatedApiCount,
+        associatedApiProductCount,
         onSubmit,
     });
+    const ownershipBlockMessage = buildPrimaryOwnerAssociationBlockMessage(
+        form.blockedDowngradeScopes,
+        { apiCount: associatedApiCount, apiProductCount: associatedApiProductCount },
+        'edit',
+    );
     const [, submitMemberRoles, isSaving] = useActionState<null, FormData>(async () => {
         await form.handleSubmit();
         return null;
@@ -156,7 +168,14 @@ function GroupEditMemberSheetContent({
                                 </p>
                             </div>
 
-                            {form.transfer?.needsSuccessor && (
+                            {ownershipBlockMessage ? (
+                                <Alert variant="default">
+                                    <InfoIcon className="size-4" aria-hidden />
+                                    <AlertDescription>{ownershipBlockMessage}</AlertDescription>
+                                </Alert>
+                            ) : null}
+
+                            {form.transfer?.needsSuccessor && !ownershipBlockMessage && (
                                 <MemberOwnershipTransferField
                                     id="edit-member-successor"
                                     candidates={form.successorCandidates}
