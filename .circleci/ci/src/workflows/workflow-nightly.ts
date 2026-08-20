@@ -44,7 +44,7 @@ export class NightlyWorkflow {
     const sonarAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(sonarAnalysisJob);
 
-    const formatCheckJob = NxFormatCheckJob.create(dynamicConfig, environment);
+    const formatCheckJob = NxFormatCheckJob.create(dynamicConfig, environment, 'all');
     dynamicConfig.addJob(formatCheckJob);
 
     const analysisChain = [
@@ -77,7 +77,8 @@ export class NightlyWorkflow {
         requires: ['Build backend'],
       }),
 
-      // The nx lint & test suites below do not check formatting — this one does, for every nx project.
+      // The nx lint & test suites below do not check formatting — this one does. 'all' rather than
+      // the pull-request scope: on the reference branch there is no base to compare against.
       new workflow.WorkflowJob(formatCheckJob, {
         name: 'Check prettier formatting for nx projects',
         context: config.jobContext,
