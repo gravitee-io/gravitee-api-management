@@ -30,7 +30,6 @@ import { useSaveOrgConsoleSettings } from '../features/organization-settings/hoo
 import { PASSWORD_SENTINEL, type ConsoleSettings } from '../features/organization-settings/types/consoleSettings';
 import { buildConsoleSettingsSavePayload } from '../features/organization-settings/utils/buildConsoleSettingsSavePayload';
 import { isConsoleSettingReadonly } from '../features/organization-settings/utils/isConsoleSettingReadonly';
-import { isDirty as computeIsDirty } from '../features/shared/utils/isDirty';
 
 function buildState(settings: ConsoleSettings | undefined): SmtpFormState {
     return {
@@ -56,7 +55,7 @@ export function SmtpSettingsPage() {
     const [localState, setLocalState] = useState<SmtpFormState>(() => buildState(settings));
     const [savedState, setSavedState] = useState<SmtpFormState>(() => buildState(settings));
 
-    const isDirty = computeIsDirty(localState, savedState);
+    const isDirty = JSON.stringify(localState) !== JSON.stringify(savedState);
     const isDirtyRef = useRef(isDirty);
     isDirtyRef.current = isDirty;
 

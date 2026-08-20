@@ -25,7 +25,6 @@ import type { ConsoleSettings } from '../features/organization-settings/types/co
 import { buildConsoleSettingsSavePayload } from '../features/organization-settings/utils/buildConsoleSettingsSavePayload';
 import { DEFAULT_CORS_MAX_AGE, getInvalidAllowOrigins } from '../features/organization-settings/utils/corsValidators';
 import { isConsoleSettingReadonly } from '../features/organization-settings/utils/isConsoleSettingReadonly';
-import { isDirty as computeIsDirty } from '../features/shared/utils/isDirty';
 
 function buildState(settings: ConsoleSettings | undefined): CorsFormState {
     return {
@@ -53,7 +52,7 @@ export function CorsSettingsPage() {
     const [localState, setLocalState] = useState<CorsFormState>(() => buildState(settings));
     const [savedState, setSavedState] = useState<CorsFormState>(() => buildState(settings));
 
-    const isDirty = computeIsDirty(localState, savedState);
+    const isDirty = JSON.stringify(localState) !== JSON.stringify(savedState);
     const isDirtyRef = useRef(isDirty);
     isDirtyRef.current = isDirty;
 
