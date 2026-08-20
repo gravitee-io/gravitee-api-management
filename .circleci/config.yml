@@ -78,43 +78,47 @@ jobs:
                       - run:
                             name: Find base branch
                             command: |
-                                if [ "x${GITHUB_TOKEN}" == "x" ]; then
-                                  echo "[GITHUB_TOKEN] is not set, can't find the base branch. Use 'master'"
-                                  echo "export GIT_BASE_BRANCH=master" >> $BASH_ENV
-                                fi;
+                                # `--fail`, so that an error body -- a rate limited 403 included -- stops being
+                                # parsed like an answer: the jq defaults below used to turn it into `origin/master`.
+                                # Nothing here is fatal any more; a missing answer falls through to the history walk.
+                                if [ "x${CIRCLE_PULL_REQUEST}" != "x" ] && [ "x${GITHUB_TOKEN}" != "x" ]; then
+                                  PULL_REQUEST_URL=$(echo https://api.github.com/repos/${CIRCLE_PULL_REQUEST:19} | sed "s/\/pull\//\/pulls\//")
 
-                                if [ "x${CIRCLE_PULL_REQUEST}" == "x" ]; then
-                                  echo "No opened pull request for this branch -> try to find the base branch with commits."
-                                  # Loop over the last 100 commits maximum and find the first commit that is on a branch matching `origin/master` or `origin/[0-9].[0-9].x`
+                                  if PULL_REQUEST_RESPONSE_CONTENT=$(curl -sS --fail -H "Authorization: token ${GITHUB_TOKEN}" ${PULL_REQUEST_URL}); then
+                                    PULL_REQUEST_BASE=$(echo $PULL_REQUEST_RESPONSE_CONTENT | jq -r '.base.ref // ""')
+                                    COMMON_COMMIT=$(echo $PULL_REQUEST_RESPONSE_CONTENT | jq -r '.base.sha // ""')
+
+                                    if [ "x${PULL_REQUEST_BASE}" != "x" ] && [ "x${COMMON_COMMIT}" != "x" ]; then
+                                      BASE_REF=origin/${PULL_REQUEST_BASE}
+                                    else
+                                      COMMON_COMMIT=""
+                                    fi
+                                  else
+                                    echo "The GitHub API did not answer, looking for the base branch in the history."
+                                  fi
+                                fi
+
+                                # No pull request, or no usable answer: find the first commit that is also on `origin/master`
+                                # or on a support branch.
+                                if [ "x${COMMON_COMMIT}" == "x" ]; then
                                   MAX_COMMITS=100
-
-                                  # Define the pattern for matching branch names: origin/master or origin/[0-9].[0-9].x
                                   PATTERN="origin/master|origin/[0-9]+\.[0-9]+\.x"
 
-                                  # Loop over the last $MAX_COMMITS commits
                                   for (( i = 0; i < MAX_COMMITS; i++ )); do
-                                    # Get the commit hash
                                     hash=$(git rev-parse HEAD~$i)
-                                  
-                                    # Get the branch name that contains the commit hash and matches the pattern
-                                    branch=$(git --no-pager branch -r --contains $hash | grep -oE $PATTERN || true)
-                                  
-                                    # If the branch name is not empty, then the matching branch has been found
+
+                                    # `head -1`: a commit usually sits on several branches, and `origin/HEAD -> origin/master`
+                                    # alone makes `origin/master` match twice. Several lines here means several lines in
+                                    # $BASH_ENV, which every later step sources under `bash -eo pipefail` before running.
+                                    branch=$(git --no-pager branch -r --contains $hash | grep -oE $PATTERN | head -1 || true)
+
                                     if [ -n "$branch" ]; then
                                       BASE_REF=$branch
                                       COMMON_COMMIT=$hash
                                       break
                                     fi
                                   done
-
-                                # else use the pull request info
-                                else
-                                  PULL_REQUEST_URL=$(echo https://api.github.com/repos/${CIRCLE_PULL_REQUEST:19} | sed "s/\/pull\//\/pulls\//")
-                                  PULL_REQUEST_RESPONSE_CONTENT=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" ${PULL_REQUEST_URL})
-
-                                  BASE_REF=origin/$(echo $PULL_REQUEST_RESPONSE_CONTENT | jq -r '.base.ref // "master"')
-                                  COMMON_COMMIT=$(echo $PULL_REQUEST_RESPONSE_CONTENT | jq -r '.base.sha // ""')
-                                fi;
+                                fi
 
                                 # if BASE_REF is empty just stop
                                 if [ "x${BASE_REF}" == "x" ]; then
