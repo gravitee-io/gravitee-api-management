@@ -106,7 +106,7 @@ function ConfirmDialogContent({
                         />
                     </div>
                 ) : null}
-                {children}
+                {children ? <div className="px-6">{children}</div> : null}
                 <DialogFooter className="sm:justify-end">
                     <DialogClose asChild>
                         <Button type="button" variant="outline" disabled={isPending}>

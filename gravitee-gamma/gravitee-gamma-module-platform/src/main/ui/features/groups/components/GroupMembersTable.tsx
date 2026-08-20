@@ -17,8 +17,8 @@
 import {
     Badge,
     Button,
+    cn,
     DataTable,
-    DataTableColumnHeader,
     DataTableEmptyState,
     DropdownMenu,
     DropdownMenuContent,
@@ -32,7 +32,7 @@ import { useDeferredValue, useMemo, useState } from 'react';
 
 import { ClientSideTableSearchField } from '../../../shared/components/ClientSideTableSearchField';
 import { paginate, totalPagesFor } from '../../../shared/utils/clientPagination';
-import type { ColCell, ColHeader } from '../../../shared/utils/dataTableTypes';
+import type { ColCell } from '../../../shared/utils/dataTableTypes';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../../shared/utils/paginationConstants';
 import type { GroupMember } from '../types/group';
 import { primaryOwnerScopesOf } from '../utils/primaryOwnership';
@@ -64,7 +64,8 @@ function buildColumns({
         {
             id: 'member',
             accessorKey: 'displayName',
-            header: ({ column }: ColHeader<GroupMember>) => <DataTableColumnHeader column={column} title="Member" />,
+            header: 'Member',
+            enableSorting: false,
             cell: ({ row }: ColCell<GroupMember>) => (
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">{row.original.displayName}</span>
@@ -156,13 +157,14 @@ function buildColumns({
                                 <Trash2Icon className="size-4 mr-2" aria-hidden />
                                 Remove member
                             </DropdownMenuItem>
-                            {removeDisabled && (
-                                <span id={removeDisabledExplanationId} className="sr-only">
-                                    {REMOVE_DISABLED_MESSAGE}
-                                </span>
-                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
+                    {/* Kept outside DropdownMenuContent: role="menu" may only contain menu items. */}
+                    {removeDisabled && (
+                        <span id={removeDisabledExplanationId} className="sr-only">
+                            {REMOVE_DISABLED_MESSAGE}
+                        </span>
+                    )}
                 </div>
             );
         },
@@ -185,10 +187,12 @@ export function GroupMembersTable({ members, loading, canManageMembers, canAddMe
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(PAGE_SIZE);
     const deferredSearch = useDeferredValue(search);
+    const isFiltering = search !== deferredSearch;
 
     const filtered = useMemo(() => {
         const query = deferredSearch.trim().toLowerCase();
-        return query ? members.filter(member => (member.displayName ?? '').toLowerCase().includes(query)) : members;
+        const matchingMembers = query ? members.filter(member => (member.displayName ?? '').toLowerCase().includes(query)) : members;
+        return [...matchingMembers].sort((left, right) => (left.displayName ?? '').localeCompare(right.displayName ?? ''));
     }, [members, deferredSearch]);
 
     const totalCount = filtered.length;
@@ -212,59 +216,61 @@ export function GroupMembersTable({ members, loading, canManageMembers, canAddMe
     }
 
     return (
-        <DataTable
-            aria-label="Members"
-            columns={columns}
-            data={pageData}
-            loading={loading}
-            skeletonCount={pageSize}
-            // Pagination is actually client-side (paginate() above already slices `data` down to the
-            // current page) — `serverSide` here just tells DataTable not to re-paginate what we hand it,
-            // since the `pagination` prop below drives the page controls off our own state instead.
-            serverSide
-            pagination={{
-                page: safePage,
-                pageSize,
-                totalCount,
-                pageSizeOptions: [...TABLE_PAGE_SIZE_OPTIONS],
-                onPageChange: setPage,
-                onPageSizeChange: handlePageSizeChange,
-            }}
-            emptyMessage={
-                hasActiveSearch ? (
-                    <DataTableEmptyState
-                        variant="no-results"
-                        title="No members match your search"
-                        description="Try adjusting your search terms."
-                        action={
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                    handleSearchChange('');
-                                }}
-                            >
-                                Clear search
-                            </Button>
-                        }
+        <div aria-busy={isFiltering} className={cn('transition-opacity', isFiltering && 'opacity-60')}>
+            <DataTable
+                aria-label="Members"
+                columns={columns}
+                data={pageData}
+                loading={loading}
+                skeletonCount={pageSize}
+                // Pagination is actually client-side (paginate() above already slices `data` down to the
+                // current page) — `serverSide` here just tells DataTable not to re-paginate what we hand it,
+                // since the `pagination` prop below drives the page controls off our own state instead.
+                serverSide
+                pagination={{
+                    page: safePage,
+                    pageSize,
+                    totalCount,
+                    pageSizeOptions: [...TABLE_PAGE_SIZE_OPTIONS],
+                    onPageChange: setPage,
+                    onPageSizeChange: handlePageSizeChange,
+                }}
+                emptyMessage={
+                    hasActiveSearch ? (
+                        <DataTableEmptyState
+                            variant="no-results"
+                            title="No members match your search"
+                            description="Try adjusting your search terms."
+                            action={
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                        handleSearchChange('');
+                                    }}
+                                >
+                                    Clear search
+                                </Button>
+                            }
+                        />
+                    ) : (
+                        <DataTableEmptyState
+                            variant="first-use"
+                            title="No members available to display"
+                            description={canAddMembers ? 'Use Add members above to search or invite users.' : ''}
+                        />
+                    )
+                }
+                toolbar={
+                    <ClientSideTableSearchField
+                        id="group-members-search"
+                        label="Search members"
+                        placeholder="Search members…"
+                        value={search}
+                        onChange={handleSearchChange}
                     />
-                ) : (
-                    <DataTableEmptyState
-                        variant="first-use"
-                        title="No members available to display"
-                        description={canAddMembers ? 'Use Add members above to search or invite users.' : ''}
-                    />
-                )
-            }
-            toolbar={
-                <ClientSideTableSearchField
-                    id="group-members-search"
-                    label="Search members"
-                    placeholder="Search members…"
-                    value={search}
-                    onChange={handleSearchChange}
-                />
-            }
-        />
+                }
+            />
+        </div>
     );
 }
