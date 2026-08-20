@@ -79,7 +79,9 @@ jobs:
                                 if [ "x${CIRCLE_PULL_REQUEST}" != "x" ] && [ "x${GITHUB_TOKEN}" != "x" ]; then
                                   PULL_REQUEST_URL=$(echo https://api.github.com/repos/${CIRCLE_PULL_REQUEST:19} | sed "s/\/pull\//\/pulls\//")
 
-                                  if PULL_REQUEST_RESPONSE_CONTENT=$(curl -sS --fail -H "Authorization: token ${GITHUB_TOKEN}" ${PULL_REQUEST_URL}); then
+                                  # `--max-time`, because a connection that never answers is the one failure
+                                  # `--fail` cannot turn into a fall through: it would sit here until the job times out.
+                                  if PULL_REQUEST_RESPONSE_CONTENT=$(curl -sS --fail --max-time 10 -H "Authorization: token ${GITHUB_TOKEN}" ${PULL_REQUEST_URL}); then
                                     PULL_REQUEST_BASE=$(echo $PULL_REQUEST_RESPONSE_CONTENT | jq -r '.base.ref // ""')
                                     COMMON_COMMIT=$(echo $PULL_REQUEST_RESPONSE_CONTENT | jq -r '.base.sha // ""')
 
@@ -121,10 +123,13 @@ jobs:
                                   circleci step halt
                                 fi;
 
-                                echo "export GIT_BASE_BRANCH=${BASE_REF}" >> $BASH_ENV
+                                # `%q`, because on the pull request path these values come from the API rather than from
+                                # the pattern above, and `git check-ref-format` allows `;`, `&` and backticks in a branch
+                                # name — which $BASH_ENV would hand to every later step.
+                                printf 'export GIT_BASE_BRANCH=%q\n' "${BASE_REF}" >> $BASH_ENV
                                 echo "The base branch is ${BASE_REF}"
 
-                                echo "export GIT_COMMON_COMMIT_HASH=${COMMON_COMMIT}" >> $BASH_ENV
+                                printf 'export GIT_COMMON_COMMIT_HASH=%q\n' "${COMMON_COMMIT}" >> $BASH_ENV
                                 echo "The common commit hash is ${COMMON_COMMIT}"
 
             - node/install-packages:
