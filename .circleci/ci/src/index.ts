@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { changedFiles, isBlank, isSupportBranchOrMaster } from './utils';
+import { changedFiles, diffRef, isBlank, isSupportBranchOrMaster } from './utils';
 import { argv } from 'node:process';
 import { buildCIPipeline, CircleCIEnvironment } from './pipelines';
 import * as fs from 'fs';
@@ -43,7 +43,7 @@ if (isBlank(CIRCLE_SHA1)) {
  */
 const changed = isSupportBranchOrMaster(CIRCLE_BRANCH)
   ? Promise.resolve([])
-  : changedFiles(isBlank(GIT_COMMON_COMMIT_HASH) ? GIT_BASE_BRANCH : GIT_COMMON_COMMIT_HASH);
+  : changedFiles(diffRef(GIT_COMMON_COMMIT_HASH, GIT_BASE_BRANCH));
 
 changed
   .then(
