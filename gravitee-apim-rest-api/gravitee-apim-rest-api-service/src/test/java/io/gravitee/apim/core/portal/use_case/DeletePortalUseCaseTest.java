@@ -26,6 +26,8 @@ import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
+import inmemory.ThemeCrudServiceInMemory;
+import inmemory.ThemeQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
@@ -48,6 +50,9 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
+import io.gravitee.apim.core.theme.domain_service.CurrentThemeDomainService;
+import io.gravitee.apim.core.theme.model.Theme;
+import io.gravitee.apim.core.theme.model.ThemeType;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
@@ -73,6 +78,7 @@ class DeletePortalUseCaseTest {
     private final PortalPageContentCrudServiceInMemory pageContentCrudService = new PortalPageContentCrudServiceInMemory();
     private final PortalPageContentQueryServiceInMemory pageContentQueryService = new PortalPageContentQueryServiceInMemory();
     private final PortalListingCrudServiceInMemory portalListingCrudService = new PortalListingCrudServiceInMemory();
+    private final ThemeCrudServiceInMemory themeCrudService = new ThemeCrudServiceInMemory();
 
     private CreateOrUpdatePortalUseCase setupUseCase;
     private DeletePortalUseCase useCase;
@@ -85,6 +91,8 @@ class DeletePortalUseCaseTest {
             new NavigationSyncPlanExecutor(navCrudService, navQueryService, pageContentCrudService)
         );
         var scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService, () -> false);
+        var themeQueryService = new ThemeQueryServiceInMemory(themeCrudService);
+        var currentThemeDomainService = new CurrentThemeDomainService(themeQueryService, themeCrudService);
         setupUseCase = new CreateOrUpdatePortalUseCase(
             new ValidatePortalDomainService(scopeEnforcer),
             portalCrudService,
@@ -96,9 +104,11 @@ class DeletePortalUseCaseTest {
                 new HomepageReconciler(navQueryService, navCrudService, pageContentCrudService),
                 mock(PortalNavigationItemValidatorService.class)
             ),
-            scopeEnforcer
+            scopeEnforcer,
+            themeCrudService,
+            currentThemeDomainService
         );
-        useCase = new DeletePortalUseCase(portalCrudService, navSync);
+        useCase = new DeletePortalUseCase(portalCrudService, navSync, themeCrudService, currentThemeDomainService);
     }
 
     @AfterEach
@@ -107,6 +117,7 @@ class DeletePortalUseCaseTest {
         navCrudService.reset();
         pageContentCrudService.reset();
         pageContentQueryService.reset();
+        themeCrudService.reset();
     }
 
     @Test
@@ -209,6 +220,33 @@ class DeletePortalUseCaseTest {
 
         assertThat(portalCrudService.storage()).isEmpty();
         assertThat(navCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_disable_active_theme_when_portal_is_deleted() {
+        var activeThemeId = "22222222-2222-2222-2222-222222222222";
+        var portal = PortalFixtures.aPortal().withActiveThemeId(activeThemeId);
+        portalCrudService.initWith(List.of(portal));
+        themeCrudService.initWith(
+            List.of(
+                Theme.builder()
+                    .id(activeThemeId)
+                    .type(ThemeType.PORTAL_NEXT)
+                    .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                    .referenceId(AUDIT_INFO.environmentId())
+                    .enabled(true)
+                    .build()
+            )
+        );
+
+        useCase.execute(new DeletePortalUseCase.Input(AUDIT_INFO, portal.getId()));
+
+        assertThat(portalCrudService.storage()).isEmpty();
+        assertThat(themeCrudService.storage())
+            .filteredOn(t -> t.getId().equals(activeThemeId))
+            .singleElement()
+            .extracting(Theme::isEnabled)
+            .isEqualTo(false);
     }
 
     @Test

@@ -33,6 +33,9 @@ public interface PortalMongoRepository extends MongoRepository<PortalMongo, Stri
     @Query("{ 'environmentId': ?0 }")
     List<PortalMongo> findByEnvironmentId(String environmentId);
 
+    @Query("{ 'activeThemeId': ?0, 'environmentId': ?1 }")
+    List<PortalMongo> findByActiveThemeIdAndEnvironmentId(String activeThemeId, String environmentId);
+
     @Query(value = "{ 'environmentId': ?0 }", delete = true)
     void deleteByEnvironmentId(String environmentId);
 

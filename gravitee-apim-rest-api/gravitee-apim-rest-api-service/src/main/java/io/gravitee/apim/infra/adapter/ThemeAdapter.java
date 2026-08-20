@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.adapter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.apim.core.theme.model.Theme;
+import io.gravitee.apim.core.theme.model.ThemeAutomationMetadata;
 import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.repository.management.model.ThemeType;
 import io.gravitee.rest.api.model.theme.portal.ThemeDefinition;
@@ -41,10 +42,12 @@ public interface ThemeAdapter {
     ThemeAdapter INSTANCE = Mappers.getMapper(ThemeAdapter.class);
 
     @Mapping(target = "definition", expression = "java(serializeDefinition(theme))")
+    @Mapping(target = "automationMetadata", expression = "java(toRepoAutomationMetadata(theme))")
     io.gravitee.repository.management.model.Theme map(Theme theme);
 
     @Mapping(target = "definitionPortal", expression = "java(deserializeDefinitionPortal(theme))")
     @Mapping(target = "definitionPortalNext", expression = "java(deserializeDefinitionPortalNext(theme))")
+    @Mapping(target = "automationMetadata", expression = "java(toCoreAutomationMetadata(theme))")
     Theme map(io.gravitee.repository.management.model.Theme theme);
 
     @Mapping(target = "definitionPortal", source = "definition")
@@ -80,6 +83,16 @@ public interface ThemeAdapter {
         }
 
         return null;
+    }
+
+    default ThemeAutomationMetadata toCoreAutomationMetadata(io.gravitee.repository.management.model.Theme theme) {
+        var meta = theme.getAutomationMetadata();
+        return meta == null ? null : new ThemeAutomationMetadata(meta.getHrid());
+    }
+
+    default io.gravitee.repository.management.model.ThemeAutomationMetadata toRepoAutomationMetadata(Theme theme) {
+        var meta = theme.getAutomationMetadata();
+        return meta == null ? null : io.gravitee.repository.management.model.ThemeAutomationMetadata.builder().hrid(meta.hrid()).build();
     }
 
     default String serializeDefinition(Theme theme) {

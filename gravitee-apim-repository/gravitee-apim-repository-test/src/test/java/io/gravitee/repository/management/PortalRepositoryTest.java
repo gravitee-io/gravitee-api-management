@@ -109,6 +109,20 @@ public class PortalRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void should_find_by_active_theme_id_and_environment() throws Exception {
+        List<Portal> portals = portalRepository.findByActiveThemeIdAndEnvironmentId("theme-portal2", "environment1");
+
+        assertThat(portals).extracting(Portal::getId).containsExactly("portal2");
+    }
+
+    @Test
+    public void should_find_nothing_by_active_theme_id_when_environment_differs() throws Exception {
+        List<Portal> portals = portalRepository.findByActiveThemeIdAndEnvironmentId("theme-portal2", "environment2");
+
+        assertThat(portals).isEmpty();
+    }
+
+    @Test
     public void should_create() throws Exception {
         Portal toCreate = Portal.builder()
             .id("new-portal")

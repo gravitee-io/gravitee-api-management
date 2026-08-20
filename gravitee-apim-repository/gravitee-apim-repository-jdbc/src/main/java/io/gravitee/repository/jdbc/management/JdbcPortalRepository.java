@@ -87,6 +87,27 @@ public class JdbcPortalRepository extends JdbcAbstractCrudRepository<Portal, Str
     }
 
     @Override
+    public List<Portal> findByActiveThemeIdAndEnvironmentId(String activeThemeId, String environmentId) throws TechnicalException {
+        log.debug("JdbcPortalRepository.findByActiveThemeIdAndEnvironmentId({}, {})", activeThemeId, environmentId);
+        try {
+            return jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " WHERE active_theme_id = ? AND environment_id = ?",
+                getOrm().getRowMapper(),
+                activeThemeId,
+                environmentId
+            );
+        } catch (final Exception ex) {
+            final String error = String.format(
+                "Failed to find portals by active theme id (%s) and environment id (%s)",
+                activeThemeId,
+                environmentId
+            );
+            log.error(error, ex);
+            throw new TechnicalException(error, ex);
+        }
+    }
+
+    @Override
     public void deleteByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("JdbcPortalRepository.deleteByEnvironmentId({})", environmentId);
         try {

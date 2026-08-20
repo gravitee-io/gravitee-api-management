@@ -49,4 +49,17 @@ public class CurrentThemeDomainService {
                 this.themeCrudService.update(theme);
             });
     }
+
+    public void activate(Theme newActiveTheme) {
+        if (!newActiveTheme.isEnabled()) {
+            this.themeCrudService.update(newActiveTheme.toBuilder().enabled(true).updatedAt(ZonedDateTime.now()).build());
+        }
+        disablePreviousEnabledTheme(newActiveTheme);
+    }
+
+    public void deactivate(Theme theme) {
+        if (theme.isEnabled()) {
+            this.themeCrudService.update(theme.toBuilder().enabled(false).updatedAt(ZonedDateTime.now()).build());
+        }
+    }
 }
