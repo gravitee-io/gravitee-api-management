@@ -46,6 +46,8 @@ public record SearchLogsFilters(
     Set<String> mcpProxyResources,
     Set<String> mcpProxyPrompts,
     Set<String> nativeConnectionStatuses,
+    Set<String> nativeClientIds,
+    Set<String> nativeClientSoftwareNames,
     Set<String> failureOrigins,
     Set<String> tenants
 ) {

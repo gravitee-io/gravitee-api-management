@@ -30,6 +30,9 @@ public class SearchMetricsQueryAdapter {
     private static final String NATIVE_CONNECTION_STATUS_FIELD =
         RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CONNECTION_STATUS;
     private static final String FAILURE_SIDE_FIELD = RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.FAILURE_SIDE;
+    private static final String NATIVE_CLIENT_ID_FIELD = RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_ID;
+    private static final String NATIVE_CLIENT_SOFTWARE_NAME_FIELD =
+        RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_SOFTWARE_NAME;
 
     private SearchMetricsQueryAdapter() {}
 
@@ -97,6 +100,8 @@ public class SearchMetricsQueryAdapter {
         addMcpProxyPromptsFilter(filter, mustFilterList);
 
         addNativeConnectionStatusesFilter(filter, mustFilterList);
+        addNativeClientIdsFilter(filter, mustFilterList);
+        addNativeClientSoftwareNamesFilter(filter, mustFilterList);
 
         addFailureOriginsFilter(filter, mustFilterList);
 
@@ -261,6 +266,29 @@ public class SearchMetricsQueryAdapter {
     private static void addMcpProxyPromptsFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getMcpProxyPrompts())) {
             mustFilterList.add(buildV4Terms(RequestV2MetricsV4Fields.MCP_PROXY_PROMPT, filter.getMcpProxyPrompts()));
+        }
+    }
+
+    /**
+     * Kafka {@code client.id}. Exact terms rather than a prefix: the value is a keyword in
+     * {@code additional-metrics}, and the attribution an operator follows is the whole id, not a stem.
+     */
+    private static void addNativeClientIdsFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getNativeClientIds())) {
+            mustFilterList.add(JsonObject.of("terms", JsonObject.of(NATIVE_CLIENT_ID_FIELD, filter.getNativeClientIds().toArray())));
+        }
+    }
+
+    /**
+     * KIP-511 client library name. The version is deliberately not filterable: comparing versions is a
+     * range over an unordered string, and the fleet question ("who is still on librdkafka?") is about
+     * the library.
+     */
+    private static void addNativeClientSoftwareNamesFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getNativeClientSoftwareNames())) {
+            mustFilterList.add(
+                JsonObject.of("terms", JsonObject.of(NATIVE_CLIENT_SOFTWARE_NAME_FIELD, filter.getNativeClientSoftwareNames().toArray()))
+            );
         }
     }
 
