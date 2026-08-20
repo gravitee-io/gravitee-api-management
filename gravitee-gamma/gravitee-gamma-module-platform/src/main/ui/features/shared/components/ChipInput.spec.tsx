@@ -92,6 +92,25 @@ describe('ChipInput', () => {
         expect(input.getAttribute('aria-expanded')).toBe('false');
     });
 
+    it('commits the draft on blur by default', () => {
+        const onChange = jest.fn();
+        render(<ChipInput values={[]} onChange={onChange} placeholder="Add origin" />);
+        const input = screen.getByPlaceholderText('Add origin');
+        fireEvent.change(input, { target: { value: 'https://app.example.com' } });
+        fireEvent.blur(input);
+        expect(onChange).toHaveBeenCalledWith(['https://app.example.com']);
+    });
+
+    it('discards the draft on blur when addOnBlur is false', () => {
+        const onChange = jest.fn();
+        render(<ChipInput values={[]} onChange={onChange} placeholder="Add header" addOnBlur={false} />);
+        const input = screen.getByPlaceholderText('Add header');
+        fireEvent.change(input, { target: { value: 'Cont' } });
+        fireEvent.blur(input);
+        expect(onChange).not.toHaveBeenCalled();
+        expect((input as HTMLInputElement).value).toBe('');
+    });
+
     it('marks the input invalid and points aria-describedby at the error', () => {
         render(
             <ChipInput

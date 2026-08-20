@@ -136,6 +136,7 @@ export function CorsSection({
                         placeholder="Content-Type, ..."
                         disabled={isFieldDisabled('allowHeaders')}
                         addOnComma
+                        addOnBlur={false}
                         suggestions={CORS_DEFAULT_HTTP_HEADERS}
                     />
                     <p className="text-xs text-muted-foreground">
@@ -154,6 +155,7 @@ export function CorsSection({
                         placeholder="Content-Type, ..."
                         disabled={isFieldDisabled('exposedHeaders')}
                         addOnComma
+                        addOnBlur={false}
                         suggestions={CORS_DEFAULT_HTTP_HEADERS}
                     />
                     <p className="text-xs text-muted-foreground">

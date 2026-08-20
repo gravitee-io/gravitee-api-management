@@ -58,7 +58,17 @@ describe('SmtpSection', () => {
         render(<Harness />);
         expect(screen.getByLabelText('Enable Emailing').closest('[data-slot="card"]')).not.toBeNull();
         expect(screen.getByText('Mail Properties').closest('[data-slot="card-title"]')).not.toBeNull();
-        expect(screen.getByText('Branded notification email').closest('[data-slot="card"]')).not.toBeNull();
+        expect(screen.getByText('Branded notification email').closest('[data-slot="card"]')).toBeNull();
+    });
+
+    it('shows field errors for host, port, and from when emailing is enabled', () => {
+        render(<Harness initial={{ ...ENABLED, host: '', port: '99999', from: 'not-an-email' }} />);
+        expect(screen.getByText('Host is required when emailing is enabled.')).not.toBeNull();
+        expect(screen.getByText('Enter a port between 0 and 65535.')).not.toBeNull();
+        expect(screen.getByText('Enter a valid email address, optionally with a display name.')).not.toBeNull();
+        expect(screen.getByLabelText('Host').getAttribute('aria-invalid')).toBe('true');
+        expect(screen.getByLabelText('Port').getAttribute('aria-invalid')).toBe('true');
+        expect(screen.getByLabelText('From').getAttribute('aria-invalid')).toBe('true');
     });
 
     it('hides mail fields when emailing is disabled', () => {

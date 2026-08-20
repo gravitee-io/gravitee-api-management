@@ -44,6 +44,12 @@ export function isSmtpFromValid(from: string): boolean {
     return /^[^\s@]+@[^\s@]+$/.test(extractEmailAddress(from));
 }
 
+function smtpFromFieldError(from: string): string | undefined {
+    if (!from.trim()) return 'From is required when emailing is enabled.';
+    if (!isSmtpFromValid(from)) return 'Enter a valid email address, optionally with a display name.';
+    return undefined;
+}
+
 export function parseSmtpPort(port: string): number | null {
     if (!/^\d+$/.test(port.trim())) return null;
     const parsed = Number(port);
@@ -192,6 +198,7 @@ export function SmtpSection({
                                 value={value.host}
                                 disabled={isFieldDisabled('host')}
                                 systemReadonly={Boolean(readonly.host)}
+                                error={value.host.trim().length === 0 ? 'Host is required when emailing is enabled.' : undefined}
                                 onChange={host => onChange({ ...value, host })}
                             />
                             <Field
@@ -202,6 +209,7 @@ export function SmtpSection({
                                 value={value.port}
                                 disabled={isFieldDisabled('port')}
                                 systemReadonly={Boolean(readonly.port)}
+                                error={parseSmtpPort(value.port) === null ? 'Enter a port between 0 and 65535.' : undefined}
                                 onChange={port => onChange({ ...value, port })}
                             />
                             <Field
@@ -249,6 +257,7 @@ export function SmtpSection({
                                 value={value.from}
                                 disabled={isFieldDisabled('from')}
                                 systemReadonly={Boolean(readonly.from)}
+                                error={smtpFromFieldError(value.from)}
                                 onChange={from => onChange({ ...value, from })}
                             />
                         </>
@@ -302,21 +311,19 @@ export function SmtpSection({
                 </Card>
             ) : null}
 
-            <Card>
-                <CardContent>
-                    <SystemReadonlyHint locked={Boolean(readonly.brandedSenders)}>
-                        <BrandedSendersSection
-                            defaultFrom={value.from}
-                            defaultSubject={value.subject}
-                            senders={value.brandedSenders}
-                            disabled={disabled || !value.enabled || Boolean(readonly.brandedSenders)}
-                            senderErrors={value.brandedSenders.map(getBrandedSenderFieldErrors)}
-                            listError={getBrandedSendersListError(value.brandedSenders)}
-                            onChange={brandedSenders => onChange({ ...value, brandedSenders })}
-                        />
-                    </SystemReadonlyHint>
-                </CardContent>
-            </Card>
+            <div>
+                <SystemReadonlyHint locked={Boolean(readonly.brandedSenders)}>
+                    <BrandedSendersSection
+                        defaultFrom={value.from}
+                        defaultSubject={value.subject}
+                        senders={value.brandedSenders}
+                        disabled={disabled || !value.enabled || Boolean(readonly.brandedSenders)}
+                        senderErrors={value.brandedSenders.map(getBrandedSenderFieldErrors)}
+                        listError={getBrandedSendersListError(value.brandedSenders)}
+                        onChange={brandedSenders => onChange({ ...value, brandedSenders })}
+                    />
+                </SystemReadonlyHint>
+            </div>
         </div>
     );
 }
@@ -327,6 +334,7 @@ function Field({
     value,
     disabled,
     systemReadonly = false,
+    error,
     onChange,
     type = 'text',
     min,
@@ -336,18 +344,34 @@ function Field({
     value: string;
     disabled: boolean;
     systemReadonly?: boolean;
+    error?: string;
     onChange: (value: string) => void;
     type?: string;
     min?: number;
 }>) {
+    const errorId = `${id}-error`;
     return (
         <div className="space-y-1.5">
             <label htmlFor={id} className="text-sm font-medium">
                 {label}
             </label>
             <SystemReadonlyHint locked={systemReadonly}>
-                <Input id={id} type={type} min={min} value={value} onChange={e => onChange(e.target.value)} disabled={disabled} />
+                <Input
+                    id={id}
+                    type={type}
+                    min={min}
+                    value={value}
+                    onChange={e => onChange(e.target.value)}
+                    disabled={disabled}
+                    aria-invalid={Boolean(error)}
+                    aria-describedby={error ? errorId : undefined}
+                />
             </SystemReadonlyHint>
+            {error ? (
+                <p id={errorId} className="text-sm text-destructive" role="alert">
+                    {error}
+                </p>
+            ) : null}
         </div>
     );
 }

@@ -29,6 +29,8 @@ export interface ChipInputProps {
     readonly suggestions?: readonly string[];
     readonly invalid?: boolean;
     readonly describedBy?: string;
+    /** When false, blur discards the draft instead of committing it (Classic CORS headers). Default true. */
+    readonly addOnBlur?: boolean;
 }
 
 export function ChipInput({
@@ -41,6 +43,7 @@ export function ChipInput({
     suggestions = [],
     invalid = false,
     describedBy,
+    addOnBlur = true,
 }: ChipInputProps) {
     const [draft, setDraft] = useState('');
     const [open, setOpen] = useState(false);
@@ -150,7 +153,11 @@ export function ChipInput({
                         }
                     }}
                     onBlur={() => {
-                        add(draft);
+                        if (addOnBlur) {
+                            add(draft);
+                        } else {
+                            setDraft('');
+                        }
                         setOpen(false);
                         setActiveIndex(-1);
                     }}
