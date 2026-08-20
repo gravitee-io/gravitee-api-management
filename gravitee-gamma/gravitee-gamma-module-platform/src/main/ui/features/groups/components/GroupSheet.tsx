@@ -35,7 +35,7 @@ import {
 } from '@gravitee/graphene-core';
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 
-import { STANDARD_SHEET_WIDTH } from '../../applications/components/sheetLayout';
+import { STANDARD_SHEET_WIDTH } from '../../../shared/layout/sheetLayout';
 import type { Group, GroupRole } from '../types/group';
 
 export type GroupSheetMode = 'create' | 'edit';
@@ -67,10 +67,6 @@ function hasEventRule(group: Group, event: string): boolean {
     return (group.event_rules ?? []).some(rule => rule.event === event);
 }
 
-// Classic Console mirror (group.component.ts:initializeForm): a brand-new group has no
-// server-side state yet, so admins can change every role (canAdminChangeAPIRole defaults true,
-// i.e. lock_api_role saves as false), invitations start off, and membership-change
-// notifications are on (`!disable_membership_notifications` defaults true).
 function buildEmptyForm(apiRoles: GroupRole[], applicationRoles: GroupRole[], apiProductRoles: GroupRole[]): GroupFormValues {
     return {
         name: '',
@@ -150,9 +146,6 @@ function RoleSelect({
     disabled: boolean;
     onChange: (value: string) => void;
 }>) {
-    // Classic Console hides system roles (e.g. PRIMARY_OWNER) from the default-role pickers — they're
-    // assigned automatically, not chosen. Keep the currently-selected value visible even if it's a
-    // system role (e.g. an existing group saved with one before this filter existed).
     const selectableRoles = roles.filter(role => !role.system || role.name === value);
 
     return (

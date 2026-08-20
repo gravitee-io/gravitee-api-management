@@ -20,35 +20,32 @@ import { listGroupRolesByScope, type GroupRoleScope } from '../services/groups';
 import type { GroupRole } from '../types/group';
 import { groupKeys } from '../utils/queryKeys';
 
-function useGroupRolesQuery(queryKey: readonly unknown[], scope: GroupRoleScope, enabled: boolean) {
+function useGroupRolesQuery(scope: GroupRoleScope, enabled: boolean) {
     return useQuery<GroupRole[]>({
-        queryKey,
+        queryKey: groupKeys.roles(scope),
         queryFn: () => listGroupRolesByScope(scope),
         staleTime: 5 * 60_000,
         enabled,
     });
 }
 
-export function useGroupApiRoles({ enabled = true }: { enabled?: boolean } = {}) {
-    return useGroupRolesQuery(groupKeys.apiRoles(), 'API', enabled);
-}
+export function useGroupRoles({ core = true, extra = false }: { core?: boolean; extra?: boolean } = {}) {
+    const api = useGroupRolesQuery('API', core);
+    const application = useGroupRolesQuery('APPLICATION', core);
+    const apiProduct = useGroupRolesQuery('API_PRODUCT', core);
+    const integration = useGroupRolesQuery('INTEGRATION', extra);
+    const cluster = useGroupRolesQuery('CLUSTER', extra);
+    const explorer = useGroupRolesQuery('EXPLORER', extra);
 
-export function useGroupApplicationRoles({ enabled = true }: { enabled?: boolean } = {}) {
-    return useGroupRolesQuery(groupKeys.applicationRoles(), 'APPLICATION', enabled);
-}
-
-export function useGroupApiProductRoles({ enabled = true }: { enabled?: boolean } = {}) {
-    return useGroupRolesQuery(groupKeys.apiProductRoles(), 'API_PRODUCT', enabled);
-}
-
-export function useGroupIntegrationRoles({ enabled = true }: { enabled?: boolean } = {}) {
-    return useGroupRolesQuery(groupKeys.integrationRoles(), 'INTEGRATION', enabled);
-}
-
-export function useGroupClusterRoles({ enabled = true }: { enabled?: boolean } = {}) {
-    return useGroupRolesQuery(groupKeys.clusterRoles(), 'CLUSTER', enabled);
-}
-
-export function useGroupExplorerRoles({ enabled = true }: { enabled?: boolean } = {}) {
-    return useGroupRolesQuery(groupKeys.explorerRoles(), 'EXPLORER', enabled);
+    return {
+        apiRoles: api.data ?? [],
+        apiRolesLoading: api.isLoading,
+        applicationRoles: application.data ?? [],
+        applicationRolesLoading: application.isLoading,
+        apiProductRoles: apiProduct.data ?? [],
+        apiProductRolesLoading: apiProduct.isLoading,
+        integrationRoles: integration.data ?? [],
+        clusterRoles: cluster.data ?? [],
+        explorerRoles: explorer.data ?? [],
+    };
 }

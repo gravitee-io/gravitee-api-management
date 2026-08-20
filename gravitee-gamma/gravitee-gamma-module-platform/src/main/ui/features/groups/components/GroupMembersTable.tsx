@@ -20,28 +20,47 @@ import {
     DataTable,
     DataTableColumnHeader,
     DataTableEmptyState,
-    InputGroup,
-    InputGroupAddon,
-    InputGroupInput,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
     type DataTableProps,
 } from '@gravitee/graphene-core';
-import { SearchIcon } from '@gravitee/graphene-core/icons';
-import { useEffect, useMemo, useState } from 'react';
+import { MoreVerticalIcon, PencilIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
+import { useDeferredValue, useMemo, useState } from 'react';
 
-import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes';
-import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
+import { ClientSideTableSearchField } from '../../../shared/components/ClientSideTableSearchField';
+import { paginate, totalPagesFor } from '../../../shared/utils/clientPagination';
+import type { ColCell, ColHeader } from '../../../shared/utils/dataTableTypes';
+import { TABLE_PAGE_SIZE_OPTIONS } from '../../../shared/utils/paginationConstants';
 import type { GroupMember } from '../types/group';
-import { paginate, totalPagesFor } from '../utils/clientPagination';
+import { primaryOwnerScopesOf } from '../utils/primaryOwnership';
 
 const PAGE_SIZE = 10;
+const REMOVE_DISABLED_MESSAGE = 'Add another member and transfer primary ownership before removing this member.';
 
-function roleCell(member: GroupMember, scope: 'API' | 'APPLICATION' | 'API_PRODUCT' | 'INTEGRATION' | 'CLUSTER') {
+function roleCell(member: GroupMember, scope: 'API' | 'APPLICATION' | 'API_PRODUCT' | 'INTEGRATION' | 'CLUSTER' | 'EXPLORER') {
     const role = member.roles?.[scope];
     return <span className="text-sm text-muted-foreground">{role ?? '—'}</span>;
 }
 
-function buildColumns(): DataTableProps<GroupMember>['columns'] {
-    return [
+function isRemoveDisabled(member: GroupMember, totalMemberCount: number): boolean {
+    return totalMemberCount === 1 && primaryOwnerScopesOf(member).length > 0;
+}
+
+function buildColumns({
+    canManageMembers,
+    totalMemberCount,
+    onEditRoles,
+    onRemove,
+}: {
+    canManageMembers: boolean;
+    totalMemberCount: number;
+    onEditRoles: (member: GroupMember) => void;
+    onRemove: (member: GroupMember) => void;
+}): DataTableProps<GroupMember>['columns'] {
+    const columns: DataTableProps<GroupMember>['columns'] = [
         {
             id: 'member',
             accessorKey: 'displayName',
@@ -87,33 +106,100 @@ function buildColumns(): DataTableProps<GroupMember>['columns'] {
             enableSorting: false,
             cell: ({ row }: ColCell<GroupMember>) => roleCell(row.original, 'CLUSTER'),
         },
+        {
+            id: 'explorer',
+            header: 'Explorer',
+            enableSorting: false,
+            cell: ({ row }: ColCell<GroupMember>) => roleCell(row.original, 'EXPLORER'),
+        },
     ];
+
+    if (!canManageMembers) {
+        return columns;
+    }
+
+    columns.push({
+        id: 'actions',
+        header: () => <span className="sr-only">Actions</span>,
+        size: 56,
+        enableSorting: false,
+        enableHiding: false,
+        cell: ({ row }: ColCell<GroupMember>) => {
+            const removeDisabled = isRemoveDisabled(row.original, totalMemberCount);
+            const removeDisabledExplanationId = `remove-member-disabled-${row.original.id}`;
+            return (
+                <div className="flex justify-end">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="size-8"
+                                aria-label={`Actions for ${row.original.displayName || 'member'}`}
+                            >
+                                <MoreVerticalIcon className="size-4" aria-hidden />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onSelect={() => onEditRoles(row.original)}>
+                                <PencilIcon className="size-4 mr-2" aria-hidden />
+                                Edit roles
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                                variant="destructive"
+                                disabled={removeDisabled}
+                                aria-describedby={removeDisabled ? removeDisabledExplanationId : undefined}
+                                onSelect={() => onRemove(row.original)}
+                            >
+                                <Trash2Icon className="size-4 mr-2" aria-hidden />
+                                Remove member
+                            </DropdownMenuItem>
+                            {removeDisabled && (
+                                <span id={removeDisabledExplanationId} className="sr-only">
+                                    {REMOVE_DISABLED_MESSAGE}
+                                </span>
+                            )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            );
+        },
+    });
+
+    return columns;
 }
 
 interface GroupMembersTableProps {
     readonly members: GroupMember[];
     readonly loading: boolean;
+    readonly canManageMembers: boolean;
     readonly canAddMembers: boolean;
+    readonly onEditRoles: (member: GroupMember) => void;
+    readonly onRemove: (member: GroupMember) => void;
 }
 
-export function GroupMembersTable({ members, loading, canAddMembers }: GroupMembersTableProps) {
+export function GroupMembersTable({ members, loading, canManageMembers, canAddMembers, onEditRoles, onRemove }: GroupMembersTableProps) {
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(PAGE_SIZE);
+    const deferredSearch = useDeferredValue(search);
 
     const filtered = useMemo(() => {
-        const query = search.trim().toLowerCase();
+        const query = deferredSearch.trim().toLowerCase();
         return query ? members.filter(member => (member.displayName ?? '').toLowerCase().includes(query)) : members;
-    }, [members, search]);
+    }, [members, deferredSearch]);
 
     const totalCount = filtered.length;
+    const hasActiveSearch = deferredSearch.trim().length > 0;
     const totalPages = totalPagesFor(totalCount, pageSize);
-    const pageData = useMemo(() => paginate(filtered, page, pageSize), [filtered, page, pageSize]);
-    const columns = useMemo(() => buildColumns(), []);
-
-    useEffect(() => {
-        if (page > totalPages) setPage(totalPages);
-    }, [page, totalPages]);
+    const safePage = Math.min(page, totalPages);
+    const pageData = useMemo(() => paginate(filtered, safePage, pageSize), [filtered, safePage, pageSize]);
+    const columns = useMemo(
+        () => buildColumns({ canManageMembers, totalMemberCount: members.length, onEditRoles, onRemove }),
+        [canManageMembers, members.length, onEditRoles, onRemove],
+    );
 
     function handleSearchChange(value: string) {
         setSearch(value);
@@ -137,7 +223,7 @@ export function GroupMembersTable({ members, loading, canAddMembers }: GroupMemb
             // since the `pagination` prop below drives the page controls off our own state instead.
             serverSide
             pagination={{
-                page,
+                page: safePage,
                 pageSize,
                 totalCount,
                 pageSizeOptions: [...TABLE_PAGE_SIZE_OPTIONS],
@@ -145,7 +231,7 @@ export function GroupMembersTable({ members, loading, canAddMembers }: GroupMemb
                 onPageSizeChange: handlePageSizeChange,
             }}
             emptyMessage={
-                search ? (
+                hasActiveSearch ? (
                     <DataTableEmptyState
                         variant="no-results"
                         title="No members match your search"
@@ -166,19 +252,18 @@ export function GroupMembersTable({ members, loading, canAddMembers }: GroupMemb
                     <DataTableEmptyState
                         variant="first-use"
                         title="No members available to display"
-                        description={canAddMembers ? 'Use Add members above to search for users.' : ''}
+                        description={canAddMembers ? 'Use Add members above to search or invite users.' : ''}
                     />
                 )
             }
             toolbar={
-                <div className="w-64">
-                    <InputGroup>
-                        <InputGroupAddon align="inline-start">
-                            <SearchIcon className="size-3.5 text-muted-foreground" aria-hidden />
-                        </InputGroupAddon>
-                        <InputGroupInput placeholder="Search members…" value={search} onChange={e => handleSearchChange(e.target.value)} />
-                    </InputGroup>
-                </div>
+                <ClientSideTableSearchField
+                    id="group-members-search"
+                    label="Search members"
+                    placeholder="Search members…"
+                    value={search}
+                    onChange={handleSearchChange}
+                />
             }
         />
     );

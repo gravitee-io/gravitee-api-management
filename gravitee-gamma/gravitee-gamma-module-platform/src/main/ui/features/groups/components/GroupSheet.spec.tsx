@@ -113,8 +113,6 @@ describe('GroupSheet', () => {
             expect((screen.getByLabelText(/Name/i) as HTMLInputElement).value).toBe('');
         });
 
-        // Classic mirror (group.component.ts:initializeForm): a brand-new group has no server-side
-        // state yet, so every lock/association/invitation toggle defaults off.
         it('defaults every toggle off', () => {
             renderSheet({ mode: 'create' });
             expect(screen.getByLabelText('Lock API role').getAttribute('aria-checked')).toBe('false');
