@@ -37,6 +37,7 @@ import io.vertx.core.http.impl.HttpServerConnection;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.core.net.SocketAddress;
 import javax.net.ssl.SSLSession;
+import lombok.Builder;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -57,7 +58,8 @@ public class VertxHttpServerRequest extends AbstractRequest {
     public VertxHttpServerRequest(final HttpServerRequest nativeRequest, IdGenerator idGenerator, VertxHttpServerRequestOptions options) {
         this.nativeRequest = nativeRequest;
         this.originalHost = this.nativeRequest.host();
-        this.timestamp = System.currentTimeMillis();
+        this.timestamp = options.timestamp() != null ? options.timestamp() : System.currentTimeMillis();
+        this.path = options.path();
         this.id = idGenerator.randomString();
         this.headers = new VertxHttpHeaders(nativeRequest.headers().getDelegate());
         this.bufferFlow = new BufferFlow(nativeRequest.toFlowable().map(Buffer::buffer), this::isStreaming);
@@ -254,9 +256,31 @@ public class VertxHttpServerRequest extends AbstractRequest {
         chunks(Flowable.empty());
     }
 
-    public record VertxHttpServerRequestOptions(String clientAuthHeaderName) {
+    /**
+     * What the dispatcher knows about a request before this wrapper exists.
+     *
+     * <p>Build it rather than calling the canonical constructor: a record's canonical constructor is
+     * positional, so adding a component to it moves a signature — the very thing this type exists to
+     * avoid. Through the builder a new field costs no call site anything.
+     *
+     * @param clientAuthHeaderName header the client certificate is extracted from, when a front
+     *     proxy terminates TLS.
+     * @param path the path the request reports, so that everything derived from it — starting with
+     *     the {@code pathInfo} a contextualized request computes — matches the path the gateway
+     *     resolved rather than the one received. {@code null} reports the native path, which is the
+     *     historical behaviour. {@code uri()} reports the untouched native value either way.
+     * @param timestamp when the gateway started handling this request, in milliseconds since the
+     *     epoch, taken before any work is done on it. {@code null} stamps the clock at construction,
+     *     which excludes everything the dispatcher did beforehand from every latency it reports.
+     */
+    @Builder
+    public record VertxHttpServerRequestOptions(String clientAuthHeaderName, String path, Long timestamp) {
         public VertxHttpServerRequestOptions() {
-            this(null);
+            this(null, null, null);
+        }
+
+        public VertxHttpServerRequestOptions(String clientAuthHeaderName) {
+            this(clientAuthHeaderName, null, null);
         }
     }
 }
