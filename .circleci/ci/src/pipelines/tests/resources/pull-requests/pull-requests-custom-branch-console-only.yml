@@ -145,8 +145,8 @@ jobs:
           name: Check License
           command: yarn nx run << parameters.nx-project >>:lint-license
       - run:
-          name: Run Prettier and ESLint
-          command: yarn nx lint << parameters.nx-project >>
+          name: Run ESLint
+          command: yarn nx run << parameters.nx-project >>:lint-eslint
       - run:
           name: Run unit tests
           command: yarn << parameters.nx-project >>:test:ci

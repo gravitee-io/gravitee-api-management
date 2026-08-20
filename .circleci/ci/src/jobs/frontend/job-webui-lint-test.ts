@@ -112,8 +112,10 @@ export class WebuiLintTestJob {
         command: 'yarn nx run << parameters.nx-project >>:lint-license',
       }),
       new commands.Run({
-        name: 'Run Prettier and ESLint',
-        command: 'yarn nx lint << parameters.nx-project >>',
+        // Prettier is deliberately left out: the 'Check prettier formatting for nx projects' job
+        // already checks every nx project, and runs in parallel of this one.
+        name: 'Run ESLint',
+        command: 'yarn nx run << parameters.nx-project >>:lint-eslint',
       }),
       new commands.Run({
         name: 'Run unit tests',
