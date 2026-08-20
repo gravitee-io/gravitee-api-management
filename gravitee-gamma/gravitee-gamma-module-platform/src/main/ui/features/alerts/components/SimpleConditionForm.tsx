@@ -23,6 +23,7 @@ import {
     type AlertMetricDefinition,
 } from '../constants/alertConstants';
 import type { AlertConditionType, AlertFormCondition, AlertOperator, AlertStringOperator } from '../types';
+import { conditionWithType } from '../utils/alertConditionComplete';
 import { ALERT_POSITIVE_NUMBER_MIN, nextAlertPositiveNumber } from '../utils/alertPositiveNumber';
 
 interface Props {
@@ -34,11 +35,15 @@ interface Props {
 export function SimpleConditionForm({ condition, metrics, onChange }: Props) {
     const selectedMetric = condition.property ?? metrics[0]?.key ?? '';
     const availableTypes = getConditionTypesForMetric(selectedMetric, metrics);
-    const condType: AlertConditionType = condition.type && availableTypes.includes(condition.type) ? condition.type : availableTypes[0];
+    const condType: AlertConditionType =
+        availableTypes.length === 0 || availableTypes.includes(condition.type) ? condition.type : (availableTypes[0] ?? condition.type);
 
     const handleMetricChange = (val: string) => {
         const newTypes = getConditionTypesForMetric(val, metrics);
         const nextType = newTypes[0];
+        if (!nextType) {
+            return;
+        }
         const defaultOperator = isStringMetric(val) || nextType === 'STRING' ? 'EQUALS' : 'GT';
         onChange({
             ...condition,
@@ -74,7 +79,10 @@ export function SimpleConditionForm({ condition, metrics, onChange }: Props) {
                 {availableTypes.length > 1 && (
                     <div className="space-y-1.5">
                         <Label className="text-xs">Condition type</Label>
-                        <Select value={condType} onValueChange={(val: AlertConditionType) => onChange({ ...condition, type: val })}>
+                        <Select
+                            value={condType}
+                            onValueChange={(val: AlertConditionType) => onChange(conditionWithType(condition, val, metrics[0]?.key))}
+                        >
                             <SelectTrigger>
                                 <SelectValue />
                             </SelectTrigger>
@@ -191,10 +199,7 @@ export function SimpleConditionForm({ condition, metrics, onChange }: Props) {
                     </div>
                     <div className="space-y-1.5">
                         <Label className="text-xs">Property to compare</Label>
-                        <Select
-                            value={condition.property2 || metrics[0]?.key}
-                            onValueChange={val => onChange({ ...condition, property2: val })}
-                        >
+                        <Select value={condition.property2} onValueChange={val => onChange({ ...condition, property2: val })}>
                             <SelectTrigger>
                                 <SelectValue />
                             </SelectTrigger>

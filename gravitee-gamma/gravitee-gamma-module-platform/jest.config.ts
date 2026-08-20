@@ -23,6 +23,7 @@ export default {
         '^react/jsx-dev-runtime$': '<rootDir>/../../node_modules/react/jsx-dev-runtime.js',
         '^react-dom$': '<rootDir>/../../node_modules/react-dom/index.js',
         '^react-dom/client$': '<rootDir>/../../node_modules/react-dom/client.js',
+        '^react-hook-form$': '<rootDir>/../../node_modules/react-hook-form/dist/index.cjs.js',
         '^@tanstack/react-query$': '<rootDir>/../../node_modules/@tanstack/react-query/build/modern/index.cjs',
         '^@tanstack/query-core$': '<rootDir>/../../node_modules/@tanstack/query-core/build/modern/index.cjs',
         '^@gravitee/graphene-core$': '<rootDir>/../../node_modules/@gravitee/graphene-core/dist/index.js',

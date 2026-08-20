@@ -31,6 +31,16 @@ interface Props {
     onChange: (c: AlertFormCondition) => void;
 }
 
+export function rateConditionWithMetric(condition: AlertFormCondition, metricKey: string): AlertFormCondition {
+    return {
+        ...condition,
+        property: metricKey,
+        operator: isStringMetric(metricKey) ? 'EQUALS' : 'GTE',
+        threshold: undefined,
+        pattern: undefined,
+    };
+}
+
 export function RateConditionForm({ condition, metrics, onChange }: Props) {
     const selectedMetric = condition.property ?? metrics[0]?.key ?? '';
     const isStr = isStringMetric(selectedMetric);
@@ -40,10 +50,7 @@ export function RateConditionForm({ condition, metrics, onChange }: Props) {
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                     <Label className="text-xs">Comparison metric</Label>
-                    <Select
-                        value={selectedMetric}
-                        onValueChange={val => onChange({ ...condition, property: val, threshold: undefined, pattern: undefined })}
-                    >
+                    <Select value={selectedMetric} onValueChange={val => onChange(rateConditionWithMetric(condition, val))}>
                         <SelectTrigger>
                             <SelectValue />
                         </SelectTrigger>

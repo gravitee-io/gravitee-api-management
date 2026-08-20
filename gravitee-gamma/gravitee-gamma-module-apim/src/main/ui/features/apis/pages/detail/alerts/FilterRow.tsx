@@ -29,6 +29,7 @@ import {
 } from '@gravitee/graphene-core';
 import { Trash2Icon } from '@gravitee/graphene-core/icons';
 
+import { ALERT_POSITIVE_NUMBER_MIN, nextAlertPositiveNumber } from './alertPositiveNumber';
 import {
     ALERT_OPERATORS,
     ALERT_STRING_OPERATORS,
@@ -156,10 +157,14 @@ export function FilterRow({ filter, index, metrics, onChange, onRemove }: Props)
                             <Label className="text-xs">Threshold</Label>
                             <Input
                                 type="number"
+                                min={ALERT_POSITIVE_NUMBER_MIN}
                                 placeholder="e.g. 500"
                                 value={filter.threshold ?? ''}
                                 onChange={e =>
-                                    onChange(index, { ...filter, threshold: e.target.value ? Number(e.target.value) : undefined })
+                                    onChange(index, {
+                                        ...filter,
+                                        threshold: nextAlertPositiveNumber(e.target.value, filter.threshold),
+                                    })
                                 }
                             />
                         </div>

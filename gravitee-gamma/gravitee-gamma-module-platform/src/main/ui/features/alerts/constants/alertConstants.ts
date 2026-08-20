@@ -17,7 +17,6 @@ import type {
     AlertAggregationFunction,
     AlertConditionType,
     AlertDampeningMode,
-    AlertNotificationChannel,
     AlertOperator,
     AlertRuleId,
     AlertStringOperator,
@@ -202,15 +201,8 @@ export const DAMPENING_MODES: { value: AlertDampeningMode; label: string }[] = [
     { value: 'STRICT_TIME', label: 'Only true evaluations for at least T time' },
 ];
 
-export const NOTIFICATION_CHANNELS: { value: AlertNotificationChannel; label: string }[] = [
-    { value: 'email-notifier', label: 'E-mail' },
-    { value: 'slack-notifier', label: 'Slack' },
-    { value: 'default-email', label: 'System e-mail' },
-    { value: 'webhook-notifier', label: 'Webhook' },
-];
-
 export function getConditionTypesForMetric(metricKey: string, metrics: AlertMetricDefinition[]): AlertConditionType[] {
-    return metrics.find(m => m.key === metricKey)?.conditionTypes ?? ['THRESHOLD'];
+    return metrics.find(m => m.key === metricKey)?.conditionTypes ?? [];
 }
 
 export function isStringMetric(metricKey: string): boolean {
@@ -238,8 +230,8 @@ export function ruleIdToSourceType(ruleId: AlertRuleId): { source: string; type:
     return { source: ruleId.slice(0, atIdx), type: ruleId.slice(atIdx + 1) };
 }
 
-export function sourceTypeToRuleId(source: string, type: string): AlertRuleId {
-    return ALERT_RULES.find(r => r.id === `${source}@${type}`)?.id ?? 'REQUEST@METRICS_SIMPLE_CONDITION';
+export function sourceTypeToRuleId(source: string, type: string): AlertRuleId | undefined {
+    return ALERT_RULES.find(r => r.id === `${source}@${type}`)?.id;
 }
 
 export function getAlertRuleLabel(source: string, type: string): string {

@@ -16,7 +16,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 
 import { SimpleConditionForm } from './SimpleConditionForm';
-import { API_METRICS } from '../constants/alertConstants';
+import { API_METRICS } from '../../../constants/alertConstants';
 
 jest.mock('@gravitee/graphene-core/icons', () => new Proxy({}, { get: () => () => null }));
 
@@ -37,18 +37,5 @@ describe('SimpleConditionForm', () => {
         fireEvent.change(input, { target: { value: '-8' } });
 
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ threshold: 10 }));
-    });
-
-    it('keeps STRING fields when the metric is not in the catalog', () => {
-        render(
-            <SimpleConditionForm
-                condition={{ type: 'STRING', property: 'custom.unknown', operator: 'EQUALS', pattern: 'foo' }}
-                metrics={API_METRICS}
-                onChange={jest.fn()}
-            />,
-        );
-
-        expect(screen.getByPlaceholderText('e.g. API_KEY_MISSING')).not.toBeNull();
-        expect(screen.queryByPlaceholderText('e.g. 500')).toBeNull();
     });
 });

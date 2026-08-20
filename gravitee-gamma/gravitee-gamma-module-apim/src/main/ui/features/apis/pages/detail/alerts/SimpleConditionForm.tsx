@@ -15,6 +15,7 @@
  */
 import { Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@gravitee/graphene-core';
 
+import { ALERT_POSITIVE_NUMBER_MIN, nextAlertPositiveNumber } from './alertPositiveNumber';
 import {
     ALERT_OPERATORS,
     ALERT_STRING_OPERATORS,
@@ -61,7 +62,16 @@ export function SimpleConditionForm({ condition, metrics, onChange }: Props) {
                 {availableTypes.length > 1 && (
                     <div className="space-y-1.5">
                         <Label className="text-xs">Condition type</Label>
-                        <Select value={condType} onValueChange={(val: AlertConditionType) => onChange({ ...condition, type: val })}>
+                        <Select
+                            value={condType}
+                            onValueChange={(val: AlertConditionType) =>
+                                onChange({
+                                    ...condition,
+                                    type: val,
+                                    property2: val === 'COMPARE' ? (condition.property2 ?? metrics[0]?.key) : condition.property2,
+                                })
+                            }
+                        >
                             <SelectTrigger>
                                 <SelectValue />
                             </SelectTrigger>
@@ -112,18 +122,32 @@ export function SimpleConditionForm({ condition, metrics, onChange }: Props) {
                         <Label className="text-xs">Low threshold</Label>
                         <Input
                             type="number"
+                            min={ALERT_POSITIVE_NUMBER_MIN}
                             placeholder="e.g. 200"
                             value={condition.thresholdLow ?? ''}
-                            onChange={e => onChange({ ...condition, thresholdLow: e.target.value ? Number(e.target.value) : undefined })}
+                            onChange={e =>
+                                onChange({
+                                    ...condition,
+                                    thresholdLow: nextAlertPositiveNumber(e.target.value, condition.thresholdLow),
+                                })
+                            }
                         />
                     </div>
                     <div className="space-y-1.5">
                         <Label className="text-xs">High threshold</Label>
                         <Input
                             type="number"
+                            min={condition.thresholdLow ?? ALERT_POSITIVE_NUMBER_MIN}
                             placeholder="e.g. 500"
                             value={condition.thresholdHigh ?? ''}
-                            onChange={e => onChange({ ...condition, thresholdHigh: e.target.value ? Number(e.target.value) : undefined })}
+                            onChange={e =>
+                                onChange({
+                                    ...condition,
+                                    thresholdHigh: nextAlertPositiveNumber(e.target.value, condition.thresholdHigh, {
+                                        min: condition.thresholdLow ?? ALERT_POSITIVE_NUMBER_MIN,
+                                    }),
+                                })
+                            }
                         />
                     </div>
                 </div>
@@ -151,17 +175,20 @@ export function SimpleConditionForm({ condition, metrics, onChange }: Props) {
                         <Label className="text-xs">Multiplier (%)</Label>
                         <Input
                             type="number"
+                            min={ALERT_POSITIVE_NUMBER_MIN}
                             placeholder="e.g. 150"
                             value={condition.multiplier ?? ''}
-                            onChange={e => onChange({ ...condition, multiplier: e.target.value ? Number(e.target.value) : undefined })}
+                            onChange={e =>
+                                onChange({
+                                    ...condition,
+                                    multiplier: nextAlertPositiveNumber(e.target.value, condition.multiplier),
+                                })
+                            }
                         />
                     </div>
                     <div className="space-y-1.5">
                         <Label className="text-xs">Property to compare</Label>
-                        <Select
-                            value={condition.property2 || metrics[0]?.key}
-                            onValueChange={val => onChange({ ...condition, property2: val })}
-                        >
+                        <Select value={condition.property2} onValueChange={val => onChange({ ...condition, property2: val })}>
                             <SelectTrigger>
                                 <SelectValue />
                             </SelectTrigger>
@@ -199,9 +226,15 @@ export function SimpleConditionForm({ condition, metrics, onChange }: Props) {
                         <Label className="text-xs">Threshold</Label>
                         <Input
                             type="number"
+                            min={ALERT_POSITIVE_NUMBER_MIN}
                             placeholder="e.g. 500"
                             value={condition.threshold ?? ''}
-                            onChange={e => onChange({ ...condition, threshold: e.target.value ? Number(e.target.value) : undefined })}
+                            onChange={e =>
+                                onChange({
+                                    ...condition,
+                                    threshold: nextAlertPositiveNumber(e.target.value, condition.threshold),
+                                })
+                            }
                         />
                     </div>
                 </div>

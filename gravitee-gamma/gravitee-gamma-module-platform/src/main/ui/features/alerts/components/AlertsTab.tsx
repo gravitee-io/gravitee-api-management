@@ -105,7 +105,6 @@ export interface AlertsTabProps {
     setSeverity: Dispatch<SetStateAction<AlertSeverity>>;
     enabled: boolean;
     setEnabled: Dispatch<SetStateAction<boolean>>;
-    ruleId: AlertRuleId;
     handleRuleChange: (newRuleId: AlertRuleId) => void;
     isUpdate: boolean;
     canEdit: boolean;
@@ -127,6 +126,7 @@ export interface AlertsTabProps {
     updateFilter: (index: number, f: AlertFormCondition) => void;
     removeFilter: (index: number) => void;
     selectedRule: AlertRuleDefinition | undefined;
+    ruleLabel: string;
 }
 
 export function AlertsTab({
@@ -138,7 +138,6 @@ export function AlertsTab({
     setSeverity,
     enabled,
     setEnabled,
-    ruleId,
     handleRuleChange,
     isUpdate,
     canEdit,
@@ -160,7 +159,9 @@ export function AlertsTab({
     updateFilter,
     removeFilter,
     selectedRule,
+    ruleLabel,
 }: AlertsTabProps) {
+    const conditionRuleId = selectedRule?.id;
     return (
         <div className="mt-6 space-y-6">
             {/* General */}
@@ -209,31 +210,35 @@ export function AlertsTab({
                             <Label className="text-xs">
                                 Rule <span className="text-destructive">*</span>
                             </Label>
-                            <Select
-                                value={ruleId}
-                                disabled={isUpdate || !canEdit}
-                                onValueChange={val => handleRuleChange(val as AlertRuleId)}
-                            >
-                                <SelectTrigger className={isUpdate ? 'w-full min-w-0 opacity-60' : 'w-full min-w-0'}>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {RULE_CATEGORY_ORDER.map(category => {
-                                        const rules = ALERT_RULES.filter(rule => rule.category === category);
-                                        if (rules.length === 0) return null;
-                                        return (
-                                            <SelectGroup key={category}>
-                                                <SelectLabel>{category.toUpperCase()}</SelectLabel>
-                                                {rules.map(rule => (
-                                                    <SelectItem key={rule.id} value={rule.id}>
-                                                        {rule.description}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectGroup>
-                                        );
-                                    })}
-                                </SelectContent>
-                            </Select>
+                            {selectedRule ? (
+                                <Select
+                                    value={selectedRule.id}
+                                    disabled={isUpdate || !canEdit}
+                                    onValueChange={val => handleRuleChange(val as AlertRuleId)}
+                                >
+                                    <SelectTrigger className={isUpdate ? 'w-full min-w-0 opacity-60' : 'w-full min-w-0'}>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {RULE_CATEGORY_ORDER.map(category => {
+                                            const rules = ALERT_RULES.filter(rule => rule.category === category);
+                                            if (rules.length === 0) return null;
+                                            return (
+                                                <SelectGroup key={category}>
+                                                    <SelectLabel>{category.toUpperCase()}</SelectLabel>
+                                                    {rules.map(rule => (
+                                                        <SelectItem key={rule.id} value={rule.id}>
+                                                            {rule.description}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectGroup>
+                                            );
+                                        })}
+                                    </SelectContent>
+                                </Select>
+                            ) : (
+                                <Input value={ruleLabel} disabled className="opacity-60" />
+                            )}
                         </div>
                         <div className="w-40 shrink-0 space-y-1.5">
                             <Label className="text-xs">
@@ -422,26 +427,42 @@ export function AlertsTab({
                     <CardDescription>Field metrics and condition for the rule</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {(ruleId === 'REQUEST@METRICS_SIMPLE_CONDITION' || ruleId === 'NODE_HEARTBEAT@METRICS_SIMPLE_CONDITION') &&
-                        conditions[0] && (
-                            <SimpleConditionForm condition={conditions[0]} metrics={metricsForRule} onChange={c => updateCondition(0, c)} />
+                    {errors.conditions && <p className="mb-3 text-xs text-destructive">{errors.conditions}</p>}
+                    <fieldset disabled={!canEdit} className="contents">
+                        {(conditionRuleId === 'REQUEST@METRICS_SIMPLE_CONDITION' ||
+                            conditionRuleId === 'NODE_HEARTBEAT@METRICS_SIMPLE_CONDITION') &&
+                            conditions[0] && (
+                                <SimpleConditionForm
+                                    condition={conditions[0]}
+                                    metrics={metricsForRule}
+                                    onChange={c => updateCondition(0, c)}
+                                />
+                            )}
+                        {conditionRuleId === 'REQUEST@MISSING_DATA' && conditions[0] && (
+                            <MissingDataConditionForm condition={conditions[0]} onChange={c => updateCondition(0, c)} />
                         )}
-                    {ruleId === 'REQUEST@MISSING_DATA' && conditions[0] && (
-                        <MissingDataConditionForm condition={conditions[0]} onChange={c => updateCondition(0, c)} />
-                    )}
-                    {(ruleId === 'REQUEST@METRICS_AGGREGATION' || ruleId === 'NODE_HEARTBEAT@METRICS_AGGREGATION') && conditions[0] && (
-                        <AggregationConditionForm
-                            condition={conditions[0]}
-                            metrics={metricsForRule}
-                            onChange={c => updateCondition(0, c)}
-                        />
-                    )}
-                    {(ruleId === 'REQUEST@METRICS_RATE' || ruleId === 'NODE_HEARTBEAT@METRICS_RATE') && conditions[0] && (
-                        <RateConditionForm condition={conditions[0]} metrics={metricsForRule} onChange={c => updateCondition(0, c)} />
-                    )}
-                    {isInfoOnlyRule(ruleId) && (
-                        <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">{infoOnlyMessage(ruleId)}</div>
-                    )}
+                        {(conditionRuleId === 'REQUEST@METRICS_AGGREGATION' || conditionRuleId === 'NODE_HEARTBEAT@METRICS_AGGREGATION') &&
+                            conditions[0] && (
+                                <AggregationConditionForm
+                                    condition={conditions[0]}
+                                    metrics={metricsForRule}
+                                    onChange={c => updateCondition(0, c)}
+                                />
+                            )}
+                        {(conditionRuleId === 'REQUEST@METRICS_RATE' || conditionRuleId === 'NODE_HEARTBEAT@METRICS_RATE') &&
+                            conditions[0] && (
+                                <RateConditionForm
+                                    condition={conditions[0]}
+                                    metrics={metricsForRule}
+                                    onChange={c => updateCondition(0, c)}
+                                />
+                            )}
+                        {conditionRuleId && isInfoOnlyRule(conditionRuleId) && (
+                            <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
+                                {infoOnlyMessage(conditionRuleId)}
+                            </div>
+                        )}
+                    </fieldset>
                 </CardContent>
             </Card>
 
@@ -468,16 +489,23 @@ export function AlertsTab({
                     </CardContent>
                 ) : filters.length > 0 ? (
                     <CardContent className="space-y-3 pt-0">
-                        {filters.map((f, idx) => (
-                            <FilterRow
-                                key={idx}
-                                filter={f}
-                                index={idx}
-                                metrics={metricsForRule}
-                                onChange={updateFilter}
-                                onRemove={removeFilter}
-                            />
-                        ))}
+                        {errors.filters && <p className="text-xs text-destructive">{errors.filters}</p>}
+                        <fieldset disabled={!canEdit} className="contents">
+                            {filters.map((f, idx) => (
+                                <FilterRow
+                                    key={idx}
+                                    filter={f}
+                                    index={idx}
+                                    metrics={metricsForRule}
+                                    onChange={updateFilter}
+                                    onRemove={removeFilter}
+                                />
+                            ))}
+                        </fieldset>
+                    </CardContent>
+                ) : errors.filters ? (
+                    <CardContent className="pt-0">
+                        <p className="text-xs text-destructive">{errors.filters}</p>
                     </CardContent>
                 ) : null}
             </Card>

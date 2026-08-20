@@ -35,7 +35,6 @@ export type AlertStringOperator = 'EQUALS' | 'NOT_EQUALS' | 'STARTS_WITH' | 'END
 export type AlertAggregationFunction = 'COUNT' | 'AVG' | 'MIN' | 'MAX' | 'P50' | 'P90' | 'P95' | 'P99';
 export type AlertTimeUnit = 'SECONDS' | 'MINUTES' | 'HOURS';
 export type AlertDampeningMode = 'STRICT_COUNT' | 'RELAXED_COUNT' | 'RELAXED_TIME' | 'STRICT_TIME';
-export type AlertNotificationChannel = 'email-notifier' | 'slack-notifier' | 'default-email' | 'webhook-notifier';
 
 export interface AlertFormCondition {
     type: AlertConditionType;
@@ -52,11 +51,12 @@ export interface AlertFormCondition {
     aggregationFunction?: AlertAggregationFunction;
     rateOperator?: AlertOperator;
     rateThreshold?: number;
+    projections?: unknown[];
 }
 
 export interface AlertFormNotification {
-    channel: AlertNotificationChannel;
-    target: string;
+    type: string;
+    configuration: Record<string, unknown>;
 }
 
 export interface AlertFormTimeframe {
@@ -92,11 +92,12 @@ export interface AlertApiCondition {
     timeUnit?: AlertTimeUnit;
     function?: AlertAggregationFunction;
     comparison?: AlertApiCondition;
+    projections?: unknown[];
 }
 
 export interface AlertApiNotification {
     type: string;
-    configuration?: Record<string, unknown>;
+    configuration?: Record<string, unknown> | string;
 }
 
 export interface AlertApiPeriod {
@@ -132,9 +133,8 @@ export interface AlertTrigger {
 }
 
 export interface AlertHistoryEvent {
-    id: string;
     message: string;
-    createdAt: string;
+    created_at: number;
 }
 
 export interface AlertHistoryPage {

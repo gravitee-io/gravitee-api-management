@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 import {
+    apiNotifToForm,
     createPlatformAlert,
     deletePlatformAlert,
     formConditionToApi,
+    formNotifToApi,
     listPlatformAlertEvents,
     listPlatformAlerts,
+    parseNotificationConfiguration,
     updatePlatformAlert,
     updatePlatformAlertFromForm,
 } from './alerts';
@@ -93,6 +96,20 @@ describe('platform alerts service', () => {
             expect(body.template).toBe(false);
         });
 
+        it('omits notifications that have no channel type', async () => {
+            mockApimFetchJsonV1Env.mockResolvedValue({ ...ALERT, id: 'created' });
+            await createPlatformAlert('env-1', {
+                ...FORM_DATA,
+                notifications: [
+                    { type: '', configuration: {} },
+                    { type: 'webhook-notifier', configuration: { url: 'https://example.com' } },
+                ],
+            });
+
+            const body = JSON.parse((mockApimFetchJsonV1Env.mock.calls[0][2] as { body: string }).body);
+            expect(body.notifications).toEqual([{ type: 'webhook-notifier', configuration: { url: 'https://example.com' } }]);
+        });
+
         it('maps timeframe start/end as seconds since midnight (classic beginHour/endHour)', async () => {
             mockApimFetchJsonV1Env.mockResolvedValue({ ...ALERT, id: 'created' });
             await createPlatformAlert('env-1', {
@@ -142,6 +159,26 @@ describe('platform alerts service', () => {
             expect(body.id).toBe('alert-1');
             expect(body.name).toBe('High CPU');
         });
+
+        it('preserves template and event_rules from the existing trigger', async () => {
+            await updatePlatformAlertFromForm('env-1', 'tpl-1', FORM_DATA, {
+                template: true,
+                event_rules: [{ event: 'API_CREATE' }],
+            });
+
+            const body = JSON.parse((mockApimFetchJsonV1Env.mock.calls[0][2] as { body: string }).body);
+            expect(body.template).toBe(true);
+            expect(body.event_rules).toEqual([{ event: 'API_CREATE' }]);
+        });
+
+        it('preserves classic group-by projections from the existing trigger', async () => {
+            await updatePlatformAlertFromForm('env-1', 'alert-1', FORM_DATA, {
+                projections: [{ type: 'PROPERTY', property: 'api' }],
+            });
+
+            const body = JSON.parse((mockApimFetchJsonV1Env.mock.calls[0][2] as { body: string }).body);
+            expect(body.projections).toEqual([{ type: 'PROPERTY', property: 'api' }]);
+        });
     });
 
     describe('deletePlatformAlert', () => {
@@ -183,6 +220,24 @@ describe('platform alerts service', () => {
             });
         });
 
+        it('round-trips group-by projections on a THRESHOLD condition', () => {
+            expect(
+                formConditionToApi({
+                    type: 'THRESHOLD',
+                    property: 'response.response_time',
+                    operator: 'GT',
+                    threshold: 500,
+                    projections: [{ type: 'PROPERTY', property: 'api' }],
+                }),
+            ).toEqual({
+                type: 'THRESHOLD',
+                property: 'response.response_time',
+                operator: 'GT',
+                threshold: 500,
+                projections: [{ type: 'PROPERTY', property: 'api' }],
+            });
+        });
+
         it('defaults THRESHOLD operator to GT when missing (classic requires operator)', () => {
             expect(
                 formConditionToApi({
@@ -214,6 +269,54 @@ describe('platform alerts service', () => {
                 thresholdLow: 200,
                 operatorHigh: 'INCLUSIVE',
                 thresholdHigh: 488,
+            });
+        });
+    });
+
+    describe('parseNotificationConfiguration', () => {
+        it('returns an object as-is', () => {
+            expect(parseNotificationConfiguration({ to: 'ops@example.com' })).toEqual({ to: 'ops@example.com' });
+        });
+
+        it('parses a JSON string from the API', () => {
+            expect(parseNotificationConfiguration('{"url":"https://hooks.example.com","method":"POST"}')).toEqual({
+                url: 'https://hooks.example.com',
+                method: 'POST',
+            });
+        });
+
+        it('returns {} for empty values', () => {
+            expect(parseNotificationConfiguration(undefined)).toEqual({});
+            expect(parseNotificationConfiguration('')).toEqual({});
+        });
+
+        it('throws when the JSON string is malformed or not an object', () => {
+            expect(() => parseNotificationConfiguration('not-json')).toThrow(/not valid JSON/i);
+            expect(() => parseNotificationConfiguration('[]')).toThrow(/JSON object/i);
+        });
+    });
+
+    describe('formNotifToApi / apiNotifToForm', () => {
+        it('passes through type and full configuration', () => {
+            const form = {
+                type: 'slack-notifier',
+                configuration: { channel: '#ops', token: 'xoxb-test' },
+            };
+            expect(formNotifToApi(form)).toEqual({
+                type: 'slack-notifier',
+                configuration: { channel: '#ops', token: 'xoxb-test' },
+            });
+        });
+
+        it('parses string configuration when loading an alert', () => {
+            expect(
+                apiNotifToForm({
+                    type: 'webhook-notifier',
+                    configuration: '{"method":"POST","url":"https://example.com"}',
+                }),
+            ).toEqual({
+                type: 'webhook-notifier',
+                configuration: { method: 'POST', url: 'https://example.com' },
             });
         });
     });
