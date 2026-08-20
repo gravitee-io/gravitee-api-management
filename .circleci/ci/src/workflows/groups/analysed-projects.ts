@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Config, Job } from '../../circleci-config';
+import { Config, Job, workflow } from '../../circleci-config';
 import {
   TestDefinitionJob,
   TestGatewayJob,
@@ -52,6 +52,8 @@ export interface AnalysedProject {
   sonarProject: string;
   createSuite: (dynamicConfig: Config, environment: CircleCIEnvironment) => Job;
   predicate: (changedFiles: string[]) => boolean;
+  /** Which scanner cache the analysis restores. Fixed by the list a project belongs to. */
+  cacheType: 'backend' | 'frontend';
   /** Parameters the suite job takes, beyond its name and context. */
   suiteParameters?: Record<string, string>;
 }
@@ -62,36 +64,42 @@ export const BACKEND_ANALYSED_PROJECTS: AnalysedProject[] = [
     sonarProject: 'gravitee-apim-definition',
     createSuite: TestDefinitionJob.create,
     predicate: shouldTestDefinition,
+    cacheType: 'backend',
   },
   {
     suiteName: 'Test gateway',
     sonarProject: 'gravitee-apim-gateway',
     createSuite: TestGatewayJob.create,
     predicate: shouldTestGateway,
+    cacheType: 'backend',
   },
   {
     suiteName: 'Test rest-api',
     sonarProject: 'gravitee-apim-rest-api',
     createSuite: TestRestApiJob.create,
     predicate: shouldTestRestApi,
+    cacheType: 'backend',
   },
   {
     suiteName: 'Test plugins',
     sonarProject: 'gravitee-apim-plugin',
     createSuite: TestPluginJob.create,
     predicate: shouldTestPlugin,
+    cacheType: 'backend',
   },
   {
     suiteName: 'Test reporters',
     sonarProject: 'gravitee-apim-reporter',
     createSuite: TestReporterJob.create,
     predicate: shouldTestReporter,
+    cacheType: 'backend',
   },
   {
     suiteName: 'Test repository',
     sonarProject: 'gravitee-apim-repository',
     createSuite: TestRepositoryJob.create,
     predicate: shouldTestRepository,
+    cacheType: 'backend',
   },
 ];
 
@@ -101,6 +109,7 @@ export const FRONTEND_ANALYSED_PROJECTS: AnalysedProject[] = [
     sonarProject: config.components.console.project,
     createSuite: WebuiLintTestJob.createNx,
     predicate: shouldBuildConsole,
+    cacheType: 'frontend',
     suiteParameters: {
       'apim-ui-project-workdir': config.components.console.workdir,
       'nx-project': 'console',
@@ -113,6 +122,7 @@ export const FRONTEND_ANALYSED_PROJECTS: AnalysedProject[] = [
     sonarProject: config.components.portal.next.project,
     createSuite: WebuiLintTestJob.createNx,
     predicate: shouldBuildPortalNext,
+    cacheType: 'frontend',
     suiteParameters: {
       'apim-ui-project-workdir': config.components.portal.next.project,
       'nx-project': 'portal-next',
@@ -124,6 +134,7 @@ export const FRONTEND_ANALYSED_PROJECTS: AnalysedProject[] = [
     sonarProject: config.components.portal.workdir,
     createSuite: WebuiLintTestJob.create,
     predicate: shouldBuildPortal,
+    cacheType: 'frontend',
     suiteParameters: {
       'apim-ui-project': config.components.portal.project,
       'apim-ui-project-workdir': config.components.portal.workdir,
@@ -133,19 +144,12 @@ export const FRONTEND_ANALYSED_PROJECTS: AnalysedProject[] = [
 ];
 
 /** The analysis job that reads the report a suite left behind. Its only dependency is that suite. */
-export function analysisJobFor(
-  project: AnalysedProject,
-  sonarAnalysisJob: Job,
-  cacheType: 'backend' | 'frontend',
-): { job: Job; parameters: Record<string, string | string[]> } {
-  return {
-    job: sonarAnalysisJob,
-    parameters: {
-      name: `Sonar - ${project.sonarProject}`,
-      context: config.jobContext,
-      requires: [project.suiteName],
-      working_directory: project.sonarProject,
-      cache_type: cacheType,
-    },
-  };
+export function analysisJobFor(project: AnalysedProject, sonarAnalysisJob: Job): workflow.WorkflowJob {
+  return new workflow.WorkflowJob(sonarAnalysisJob, {
+    name: `Sonar - ${project.sonarProject}`,
+    context: config.jobContext,
+    requires: [project.suiteName],
+    working_directory: project.sonarProject,
+    cache_type: project.cacheType,
+  });
 }

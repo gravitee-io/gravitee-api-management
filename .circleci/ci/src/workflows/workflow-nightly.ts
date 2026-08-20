@@ -45,12 +45,11 @@ export class NightlyWorkflow {
     dynamicConfig.addJob(sonarAnalysisJob);
 
     const analysisChain = [
-      ...BACKEND_ANALYSED_PROJECTS.map((project) => ({ project, cacheType: 'backend' as const, requires: ['Build backend'] })),
-      ...FRONTEND_ANALYSED_PROJECTS.map((project) => ({ project, cacheType: 'frontend' as const, requires: undefined })),
-    ].flatMap(({ project, cacheType, requires }) => {
+      ...BACKEND_ANALYSED_PROJECTS.map((project) => ({ project, requires: ['Build backend'] })),
+      ...FRONTEND_ANALYSED_PROJECTS.map((project) => ({ project, requires: undefined })),
+    ].flatMap(({ project, requires }) => {
       const suiteJob = project.createSuite(dynamicConfig, environment);
       dynamicConfig.addJob(suiteJob);
-      const analysis = analysisJobFor(project, sonarAnalysisJob, cacheType);
       return [
         new workflow.WorkflowJob(suiteJob, {
           name: project.suiteName,
@@ -58,7 +57,7 @@ export class NightlyWorkflow {
           ...(requires ? { requires } : {}),
           ...(project.suiteParameters ?? {}),
         }),
-        new workflow.WorkflowJob(analysis.job, analysis.parameters),
+        analysisJobFor(project, sonarAnalysisJob),
       ];
     });
 
