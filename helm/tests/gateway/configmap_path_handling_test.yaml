@@ -1,0 +1,48 @@
+suite: Test Gateway configmap - path handling
+templates:
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Defaults to RAW, so upgrading a deployment does not move its traffic
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \n  pathHandling: RAW
+
+  - it: Sets the mode on the single http server
+    set:
+      gateway:
+        http:
+          pathHandling: NORMALIZE
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \n  pathHandling: NORMALIZE
+
+  # The setting is gateway wide rather than per listener, so it belongs to the http block that
+  # sits beside the servers list, not to an entry inside it.
+  - it: Sets the mode alongside a servers list
+    set:
+      gateway:
+        http:
+          pathHandling: REJECT
+        servers:
+          - type: http
+            port: 8082
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \n  pathHandling: REJECT
+
+  - it: Emits nothing when the value is cleared
+    set:
+      gateway:
+        http:
+          pathHandling: null
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \n  pathHandling:
