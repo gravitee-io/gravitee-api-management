@@ -61,6 +61,10 @@ public class OpenAPIResource {
     }
 
     private InputStream document() {
-        return this.getClass().getClassLoader().getResourceAsStream(OPEN_API_DOCUMENT);
+        InputStream document = this.getClass().getClassLoader().getResourceAsStream(OPEN_API_DOCUMENT);
+        if (document == null) {
+            throw new IllegalStateException("[" + OPEN_API_DOCUMENT + "] is missing from the automation-rest jar");
+        }
+        return document;
     }
 }
