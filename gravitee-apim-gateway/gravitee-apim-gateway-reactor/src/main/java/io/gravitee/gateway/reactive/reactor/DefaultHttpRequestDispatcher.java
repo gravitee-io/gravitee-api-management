@@ -254,7 +254,15 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
     }
 
     private void markTracingRoute(final Context vertxContext, final String route) {
-        vertxContext.putLocal(TRACING_ROUTE_CONTEXT_KEY, route);
+        // Vert.x 4 exposes String-keyed Context#putLocal directly; on Vert.x 5 (master, 4.12.x) it moved to
+        // io.vertx.core.internal.ContextInternal and requires a cast, so this line needs adjusting on cherry-pick.
+        vertxContext.putLocal(TRACING_ROUTE_CONTEXT_KEY, withoutTrailingSlash(route));
+    }
+
+    // httpAcceptor.path() always has a trailing slash; strip it so http.route matches url.path (both for
+    // correlation in APM tooling and so pre-existing transaction.name-based searches keep matching).
+    private static String withoutTrailingSlash(final String path) {
+        return path.length() > 1 && path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
     }
 
     private MutableExecutionContext prepareExecutionContext(final HttpServerRequest httpServerRequest) {
