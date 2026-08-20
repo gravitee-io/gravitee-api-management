@@ -74,6 +74,8 @@ public class FindApiMetricsDetailResponseAdapter {
             .errorComponentName(asTextOrNull(json.get("error-component-name")))
             .errorComponentType(asTextOrNull(json.get("error-component-type")))
             .warnings(buildWarnings(json.get("warnings")))
+            .securityType(asTextOrNull(json.get("security-type")))
+            .securityToken(asTextOrNull(json.get("security-token")))
             .additionalMetrics(asMapOrNull(json.get("additional-metrics")))
             .build();
     }

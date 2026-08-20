@@ -50,5 +50,9 @@ public class ApiMetricsDetail {
     String errorComponentName;
     String errorComponentType;
     List<ConnectionDiagnosticModel> warnings;
+    /** Credential type the connection authenticated with. Top-level in the document, not an additional metric. */
+    String securityType;
+    /** Non-PII token identifying the credential; the application's OAuth client id for OAuth2/JWT plans. */
+    String securityToken;
     Map<String, Object> additionalMetrics;
 }

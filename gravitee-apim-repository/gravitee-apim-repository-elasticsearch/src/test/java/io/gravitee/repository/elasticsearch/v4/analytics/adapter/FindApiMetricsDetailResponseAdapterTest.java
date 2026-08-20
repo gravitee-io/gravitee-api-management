@@ -68,9 +68,34 @@ class FindApiMetricsDetailResponseAdapterTest extends AbstractAdapterTest {
                         .method(HttpMethod.GET)
                         .endpoint("https://api.gravitee.io/echo")
                         .warnings(List.of())
+                        .securityType("JWT")
+                        .securityToken("oauth-client-1")
                         .build()
                 )
             );
+        }
+
+        @Test
+        void should_read_the_security_credential_from_the_top_level_fields() {
+            // security-type / security-token sit at the document root, alongside the HTTP request fields, not in
+            // additional-metrics — so unlike the native-kafka keywords they have to be read explicitly.
+            final SearchResponse searchResponse = buildSearchHit("api-proxy-v4-metrics.json");
+
+            var result = FindApiMetricsDetailResponseAdapter.adaptFirst(searchResponse).orElseThrow();
+
+            assertThat(result.getSecurityType()).isEqualTo("JWT");
+            assertThat(result.getSecurityToken()).isEqualTo("oauth-client-1");
+        }
+
+        @Test
+        void should_leave_the_security_credential_null_for_an_anonymous_connection() {
+            // A key-less plan writes neither field; the document simply omits them.
+            final SearchResponse searchResponse = buildSearchHit("api-proxy-v2-metrics.json");
+
+            var result = FindApiMetricsDetailResponseAdapter.adaptFirst(searchResponse).orElseThrow();
+
+            assertThat(result.getSecurityType()).isNull();
+            assertThat(result.getSecurityToken()).isNull();
         }
 
         @Test

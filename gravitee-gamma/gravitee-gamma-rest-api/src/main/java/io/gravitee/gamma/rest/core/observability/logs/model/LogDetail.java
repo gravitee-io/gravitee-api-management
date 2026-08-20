@@ -70,6 +70,12 @@ public record LogDetail(
     String connectionStatus,
     FailureOrigin failureOrigin,
     String clientId,
+    /** Client library advertised at the handshake; the literal "unknown" when the client advertises none. */
+    String clientSoftwareName,
+    String clientSoftwareVersion,
+    /** Credential the connection authenticated with; top-level in the document, not hoisted. */
+    String securityType,
+    String securityToken,
     String brokerId,
     Long connectionDurationMs,
     // HTTP payloads (v4-log)
