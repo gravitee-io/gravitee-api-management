@@ -93,6 +93,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
     public static final String ATTR_ENTRYPOINT = ContextAttributes.ATTR_PREFIX + "entrypoint";
     // Key checked by gravitee-node's RouteGetter (OTel span naming) before falling back to the raw request URI.
     private static final String TRACING_ROUTE_CONTEXT_KEY = "VertxRoute";
+
     private final GatewayConfiguration gatewayConfiguration;
     private final HttpAcceptorResolver httpAcceptorResolver;
     private final IdGenerator idGenerator;
@@ -181,6 +182,13 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
             return handleRejectedPath(httpServerRequest, serverId);
         }
 
+        final boolean pathWasNormalized = normalizedPath != rawPath;
+        if (pathWasNormalized) {
+            // Both forms, deliberately: the point of this line is to answer "what did the client
+            // actually send" once the gateway has started deciding on something else.
+            log.debug("Path normalized from [{}] to [{}]", rawPath, normalizedPath);
+        }
+
         final HttpAcceptor httpAcceptor = httpAcceptorResolver.resolve(host, normalizedPath, serverId);
         Context vertxContext = VertxContext.createNewDuplicatedContext(vertx.getOrCreateContext());
         if (httpAcceptor == null || httpAcceptor.reactor() == null) {
@@ -227,11 +235,15 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         } else if (httpAcceptor.reactor() instanceof ApiReactor<?> apiReactor) {
             log.debug("Request routed to API reactor on path [{}]", httpAcceptor.path());
             MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest, serverId);
-            if (normalizedPath != rawPath) {
+            if (pathWasNormalized) {
                 // Seed the lazily initialized path so that pathInfo, the flow selectors and the
                 // upstream URI are all derived from the value the acceptor actually matched.
                 // uri() and parameters() keep reading the untouched native request.
                 mutableCtx.request().path(normalizedPath);
+                // Nothing to record here: MetricsProcessor already reports both forms, since it
+                // builds uri from request.uri(), which keeps reading the native request, and
+                // pathInfo from the value seeded above. Received and routed are both accounted
+                // for without a custom metric.
             }
             mutableCtx.request().contextPath(httpAcceptor.path());
             markTracingRoute(vertxContext, httpAcceptor.path());

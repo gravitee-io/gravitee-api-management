@@ -72,6 +72,10 @@ class PathHandlingV4IntegrationTest {
     private static final String ENCODED_TRAVERSAL = "/alpha/api/%2e%2e/%2e%2e/beta/api/echo";
     private static final String REGULAR = "/alpha/api/echo";
 
+    /** No dot segment in sight, only unreserved characters that §6.2.2.2 decodes anyway. */
+    private static final String ENCODED_UNRESERVED = "/alpha/api/%41%42/%7Etilde";
+    private static final String DECODED_UNRESERVED = "/alpha/api/AB/~tilde";
+
     /**
      * Base wiring shared by the three modes. Only {@link #configureGateway} differs between them,
      * which is the whole point of the comparison.
@@ -150,6 +154,17 @@ class PathHandlingV4IntegrationTest {
             assertStatus(httpClient, TRAVERSAL, 200);
 
             assertThat(singleUpstreamRequestUrl()).isEqualTo(TRAVERSAL);
+        }
+
+        @Test
+        void should_leave_percent_encoded_unreserved_characters_encoded(HttpClient httpClient) throws InterruptedException {
+            wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
+
+            // The counterpart of the NORMALIZE case: under RAW the backend receives the bytes the
+            // client sent. This is the pair that shows what switching the default actually changes.
+            assertStatus(httpClient, ENCODED_UNRESERVED, 200);
+
+            assertThat(singleUpstreamRequestUrl()).isEqualTo(ENCODED_UNRESERVED);
         }
     }
 
@@ -240,6 +255,18 @@ class PathHandlingV4IntegrationTest {
             assertStatus(httpClient, "/alpha/api/../../beta/api/../../beta/api/echo", 401);
 
             assertThat(wiremock.findAll(getRequestedFor(anyUrl()))).isEmpty();
+        }
+
+        @Test
+        void should_deliver_percent_encoded_unreserved_characters_decoded(HttpClient httpClient) throws InterruptedException {
+            wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
+
+            // The consequence of RFC 3986 §6.2.2.2 that surprises people: the rule that makes
+            // %2e%2e a dot segment is the same one that turns %41 into A, so a backend matching on
+            // the encoded spelling sees the decoded one. Asserted end to end rather than argued.
+            assertStatus(httpClient, ENCODED_UNRESERVED, 200);
+
+            assertThat(singleUpstreamRequestUrl()).isEqualTo(DECODED_UNRESERVED);
         }
 
         @Test
