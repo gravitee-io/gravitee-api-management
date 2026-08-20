@@ -21,6 +21,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.plugin.gamma.api.automation.AutomationContext;
@@ -30,8 +31,10 @@ import io.gravitee.apim.plugin.gamma.api.automation.ResourceKind;
 import io.gravitee.apim.rest.api.automation.exception.AutomationResourceKindNotFoundException;
 import io.gravitee.apim.rest.api.automation.exception.GammaModuleUnavailableException;
 import io.gravitee.apim.rest.api.automation.exception.HRIDNotFoundException;
+import io.gravitee.apim.rest.api.automation.model.Errors;
 import io.gravitee.apim.rest.api.automation.spring.GammaAutomationPorts;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -78,8 +81,7 @@ public class GammaModuleAutomationResource extends AbstractResource {
     private static final String ENVIRONMENT_ID_FIELD = "environmentId";
     private static final String ORGANIZATION_ID_FIELD = "organizationId";
     private static final String ERRORS_FIELD = "errors";
-    private static final String SEVERE_FIELD = "severe";
-    private static final String WARNING_FIELD = "warning";
+    private static final ObjectMapper MAPPER = new GraviteeMapper();
 
     @Inject
     private GammaAutomationPorts gammaAutomationPorts;
@@ -87,7 +89,6 @@ public class GammaModuleAutomationResource extends AbstractResource {
     @Inject
     private LicenseManager licenseManager;
 
-    // /automation/.../aim
     @PUT
     @Path("/{path: .+}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -191,7 +192,7 @@ public class GammaModuleAutomationResource extends AbstractResource {
     private static String requireHrid(ObjectNode spec) {
         JsonNode hrid = spec.get(HRID_FIELD);
         if (hrid == null || !hrid.isTextual()) {
-            throw new BadRequestException("The spec must carry a textual [" + HRID_FIELD + "]");
+            throw new BadRequestException("field [" + HRID_FIELD + "] of type string is required");
         }
         var value = hrid.asText();
         if (value.length() > HRID_MAX_LENGTH || !HRID_PATTERN.matcher(value).matches()) {
@@ -224,10 +225,11 @@ public class GammaModuleAutomationResource extends AbstractResource {
         state.put(ORGANIZATION_ID_FIELD, audit.organizationId());
         state.remove(ERRORS_FIELD);
         if (!issues.isEmpty()) {
-            var errors = state.putObject(ERRORS_FIELD);
-            var severe = errors.putArray(SEVERE_FIELD);
-            var warning = errors.putArray(WARNING_FIELD);
-            issues.forEach(issue -> (issue.isSevere() ? severe : warning).add(issue.message()));
+            // Serialized through the generated contract model so a schema change breaks compilation here
+            // instead of silently drifting from what the document declares.
+            var errors = new Errors();
+            issues.forEach(issue -> (issue.isSevere() ? errors.getSevere() : errors.getWarning()).add(issue.message()));
+            state.set(ERRORS_FIELD, MAPPER.valueToTree(errors));
         }
         return state;
     }
