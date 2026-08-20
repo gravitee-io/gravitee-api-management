@@ -19,7 +19,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { GroupsPage } from './GroupsPage';
 import { useCreateGroup, useDeleteGroup, useUpdateGroup } from '../features/groups/hooks/useGroupMutations';
-import { useGroupApiProductRoles, useGroupApiRoles, useGroupApplicationRoles } from '../features/groups/hooks/useGroupRoles';
+import { useGroupRoles } from '../features/groups/hooks/useGroupRoles';
 import { useGroupsPaged } from '../features/groups/hooks/useGroups';
 import type { Group } from '../features/groups/types/group';
 import { notify } from '../shared/notify';
@@ -106,9 +106,7 @@ beforeAll(() => {
 const mockUseHasPermission = jest.mocked(useHasPermission);
 const mockUseNavigate = jest.mocked(useNavigate);
 const mockUseGroupsPaged = jest.mocked(useGroupsPaged);
-const mockUseGroupApiRoles = jest.mocked(useGroupApiRoles);
-const mockUseGroupApplicationRoles = jest.mocked(useGroupApplicationRoles);
-const mockUseGroupApiProductRoles = jest.mocked(useGroupApiProductRoles);
+const mockUseGroupRoles = jest.mocked(useGroupRoles);
 const mockUseCreateGroup = jest.mocked(useCreateGroup);
 const mockUseUpdateGroup = jest.mocked(useUpdateGroup);
 const mockUseDeleteGroup = jest.mocked(useDeleteGroup);
@@ -140,17 +138,17 @@ describe('GroupsPage', () => {
         mockUseHasPermission.mockReturnValue(true);
         mockUseNavigate.mockReturnValue(jest.fn());
         mockUseGroupsPaged.mockReturnValue(makeGroupsResult());
-        mockUseGroupApiRoles.mockReturnValue({ data: [{ name: 'USER', scope: 'API', default: true }], isLoading: false } as ReturnType<
-            typeof useGroupApiRoles
-        >);
-        mockUseGroupApplicationRoles.mockReturnValue({
-            data: [{ name: 'USER', scope: 'APPLICATION', default: true }],
-            isLoading: false,
-        } as ReturnType<typeof useGroupApplicationRoles>);
-        mockUseGroupApiProductRoles.mockReturnValue({
-            data: [{ name: 'USER', scope: 'API_PRODUCT', default: true }],
-            isLoading: false,
-        } as ReturnType<typeof useGroupApiProductRoles>);
+        mockUseGroupRoles.mockReturnValue({
+            apiRoles: [{ name: 'USER', scope: 'API', default: true }],
+            apiRolesLoading: false,
+            applicationRoles: [{ name: 'USER', scope: 'APPLICATION', default: true }],
+            applicationRolesLoading: false,
+            apiProductRoles: [{ name: 'USER', scope: 'API_PRODUCT', default: true }],
+            apiProductRolesLoading: false,
+            integrationRoles: [],
+            clusterRoles: [],
+            explorerRoles: [],
+        });
         mockUseCreateGroup.mockReturnValue(makeMutation());
         mockUseUpdateGroup.mockReturnValue(makeMutation());
         mockUseDeleteGroup.mockReturnValue(makeMutation());

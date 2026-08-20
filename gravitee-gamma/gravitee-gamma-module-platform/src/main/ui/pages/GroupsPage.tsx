@@ -20,12 +20,12 @@ import { PlusIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { GroupDeleteSheet } from '../features/groups/components/GroupDeleteSheet';
+import { GroupDeleteDialog } from '../features/groups/components/GroupDeleteDialog';
 import { GroupSheet, type GroupFormValues } from '../features/groups/components/GroupSheet';
 import { GroupsRequireGroupSetting } from '../features/groups/components/GroupsRequireGroupSetting';
 import { GroupsTable } from '../features/groups/components/GroupsTable';
 import { useCreateGroup, useDeleteGroup, useUpdateGroup } from '../features/groups/hooks/useGroupMutations';
-import { useGroupApiProductRoles, useGroupApiRoles, useGroupApplicationRoles } from '../features/groups/hooks/useGroupRoles';
+import { useGroupRoles } from '../features/groups/hooks/useGroupRoles';
 import { useGroupsPaged } from '../features/groups/hooks/useGroups';
 import type { Group, UpdateGroupPayload } from '../features/groups/types/group';
 import { buildEventRules, buildRolesMap, parseMaxInvitation } from '../features/groups/utils/groupPayload';
@@ -59,9 +59,8 @@ export function GroupsPage() {
     }, [search]);
 
     const { data, isLoading, isError } = useGroupsPaged({ query: debouncedSearch, page, size: pageSize });
-    const { data: apiRoles = [], isLoading: apiRolesLoading } = useGroupApiRoles();
-    const { data: applicationRoles = [], isLoading: applicationRolesLoading } = useGroupApplicationRoles();
-    const { data: apiProductRoles = [], isLoading: apiProductRolesLoading } = useGroupApiProductRoles();
+    const { apiRoles, apiRolesLoading, applicationRoles, applicationRolesLoading, apiProductRoles, apiProductRolesLoading } =
+        useGroupRoles();
 
     const createMutation = useCreateGroup();
     const updateMutation = useUpdateGroup();
@@ -237,7 +236,7 @@ export function GroupsPage() {
                 isSaving={createMutation.isPending || updateMutation.isPending}
             />
 
-            <GroupDeleteSheet
+            <GroupDeleteDialog
                 open={sheet.type === 'delete'}
                 group={sheet.type === 'delete' ? sheet.group : undefined}
                 onClose={closeSheet}

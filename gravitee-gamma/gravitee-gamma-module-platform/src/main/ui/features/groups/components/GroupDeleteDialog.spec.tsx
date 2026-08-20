@@ -15,12 +15,12 @@
  */
 import { fireEvent, render, screen } from '@testing-library/react';
 
-import { GroupDeleteSheet } from './GroupDeleteSheet';
+import { GroupDeleteDialog } from './GroupDeleteDialog';
 import type { Group } from '../types/group';
 
 const GROUP: Group = { id: 'group-1', name: 'API Team' };
 
-describe('GroupDeleteSheet', () => {
+describe('GroupDeleteDialog', () => {
     afterEach(() => {
         jest.clearAllMocks();
     });
@@ -28,7 +28,7 @@ describe('GroupDeleteSheet', () => {
     describe('deletable group', () => {
         it('asks for confirmation and calls onConfirm', () => {
             const onConfirm = jest.fn();
-            render(<GroupDeleteSheet open group={GROUP} onClose={jest.fn()} onConfirm={onConfirm} isDeleting={false} />);
+            render(<GroupDeleteDialog open group={GROUP} onClose={jest.fn()} onConfirm={onConfirm} isDeleting={false} />);
 
             expect(screen.queryByRole('heading', { name: 'Delete group' })).not.toBeNull();
             expect(screen.getByRole('button', { name: 'Delete' })).not.toBeNull();
@@ -39,7 +39,7 @@ describe('GroupDeleteSheet', () => {
 
         it('calls onClose when Cancel is clicked', () => {
             const onClose = jest.fn();
-            render(<GroupDeleteSheet open group={GROUP} onClose={onClose} onConfirm={jest.fn()} isDeleting={false} />);
+            render(<GroupDeleteDialog open group={GROUP} onClose={onClose} onConfirm={jest.fn()} isDeleting={false} />);
 
             fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
             expect(onClose).toHaveBeenCalled();
@@ -54,7 +54,7 @@ describe('GroupDeleteSheet', () => {
         ])('shows why the group cannot be deleted, with no Delete button, when %s', (_label, override) => {
             const onConfirm = jest.fn();
             render(
-                <GroupDeleteSheet open group={{ ...GROUP, ...override }} onClose={jest.fn()} onConfirm={onConfirm} isDeleting={false} />,
+                <GroupDeleteDialog open group={{ ...GROUP, ...override }} onClose={jest.fn()} onConfirm={onConfirm} isDeleting={false} />,
             );
 
             expect(screen.queryByRole('heading', { name: 'Delete group' })).not.toBeNull();
@@ -66,7 +66,7 @@ describe('GroupDeleteSheet', () => {
         it('still lets the user cancel out of the blocked dialog', () => {
             const onClose = jest.fn();
             render(
-                <GroupDeleteSheet
+                <GroupDeleteDialog
                     open
                     group={{ ...GROUP, primary_owner: true }}
                     onClose={onClose}

@@ -13,5 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { UserRole } from '@gravitee/gamma-modules-sdk/types';
 
-export { paginate, totalPagesFor } from '../../../shared/utils/clientPagination';
+import { apimFetchJsonOrg } from '../api/apimClient';
+
+export interface CurrentUser {
+    id?: string;
+    displayName?: string;
+    roles?: UserRole[];
+}
+
+/** GET /organizations/{orgId}/user — same resource as the control-plane auth store. */
+export async function fetchCurrentUser(): Promise<CurrentUser> {
+    return apimFetchJsonOrg<CurrentUser>('/user');
+}
+
+export function hasOrganizationAdminRole(roles: UserRole[] | undefined): boolean {
+    return roles?.some(role => role.scope === 'ORGANIZATION' && role.name === 'ADMIN') ?? false;
+}

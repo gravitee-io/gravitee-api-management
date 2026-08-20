@@ -19,6 +19,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { GroupDetailPage } from './GroupDetailPage';
+import { useCurrentUserIsGroupAdmin } from '../features/groups/hooks/useCurrentUserGroupAdmin';
 import {
     useEnvironmentSettings,
     useGroupApis,
@@ -33,17 +34,11 @@ import {
     useDeleteGroup,
     useDeleteGroupInvitation,
     useInviteGroupMember,
+    useRemoveGroupMember,
     useUpdateGroup,
 } from '../features/groups/hooks/useGroupMutations';
-import {
-    useGroupApiProductRoles,
-    useGroupApiRoles,
-    useGroupApplicationRoles,
-    useGroupClusterRoles,
-    useGroupExplorerRoles,
-    useGroupIntegrationRoles,
-} from '../features/groups/hooks/useGroupRoles';
-import type { Group, GroupInvitation, GroupMembershipItem, GroupMembershipPayload } from '../features/groups/types/group';
+import { useGroupRoles } from '../features/groups/hooks/useGroupRoles';
+import type { Group, GroupInvitation, GroupMember, GroupMembershipItem, GroupMembershipPayload } from '../features/groups/types/group';
 import { notify } from '../shared/notify';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
@@ -52,6 +47,7 @@ jest.mock('@gravitee/gamma-modules-sdk', () => ({
 jest.mock('../features/groups/hooks/useGroupDetail');
 jest.mock('../features/groups/hooks/useGroupRoles');
 jest.mock('../features/groups/hooks/useGroupMutations');
+jest.mock('../features/groups/hooks/useCurrentUserGroupAdmin');
 jest.mock('../shared/notify', () => ({
     notify: { success: jest.fn(), error: jest.fn() },
 }));
@@ -60,8 +56,26 @@ jest.mock('../shared/notify', () => ({
 // exposes the fetched rows as plain text so orchestration (what data flows in) stays covered.
 // GroupMembersTable's own spec covers its columns/search internals.
 jest.mock('../features/groups/components/GroupMembersTable', () => ({
-    GroupMembersTable: ({ members }: { members: { id: string; displayName: string }[] }) => (
-        <div data-testid="members-table">{members.map(m => m.displayName).join(', ')}</div>
+    GroupMembersTable: ({
+        members,
+        canManageMembers,
+        onEditRoles,
+        onRemove,
+    }: {
+        members: GroupMember[];
+        canManageMembers: boolean;
+        onEditRoles: (member: GroupMember) => void;
+        onRemove: (member: GroupMember) => void;
+    }) => (
+        <div data-testid="members-table" data-can-manage-members={canManageMembers}>
+            {members.map(member => member.displayName).join(', ')}
+            <button type="button" onClick={() => onEditRoles(members[0])}>
+                Trigger edit roles
+            </button>
+            <button type="button" onClick={() => onRemove(members[0])}>
+                Trigger remove
+            </button>
+        </div>
     ),
 }));
 jest.mock('../features/groups/components/GroupInvitationsTable', () => ({
@@ -123,6 +137,35 @@ jest.mock('../features/groups/components/GroupInviteMemberSheet', () => ({
             </div>
         ) : null,
 }));
+jest.mock('../features/groups/components/GroupEditMemberSheet', () => ({
+    GroupEditMemberSheet: ({ open, onSubmit }: { open: boolean; onSubmit: (memberships: GroupMembershipPayload[]) => Promise<void> }) =>
+        open ? (
+            <div data-testid="edit-member-sheet">
+                <button type="button" onClick={() => void onSubmit([{ id: 'member-1', roles: [{ scope: 'GROUP', name: 'ADMIN' }] }])}>
+                    Submit edit roles
+                </button>
+            </div>
+        ) : null,
+}));
+jest.mock('../features/groups/components/GroupRemoveMemberDialog', () => ({
+    GroupRemoveMemberDialog: ({
+        open,
+        onConfirm,
+    }: {
+        open: boolean;
+        onConfirm: (transferMembership?: GroupMembershipPayload) => Promise<void>;
+    }) =>
+        open ? (
+            <div data-testid="remove-member-dialog">
+                <button type="button" onClick={() => void onConfirm()}>
+                    Submit remove
+                </button>
+                <button type="button" onClick={() => void onConfirm({ id: 'member-2', roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }] })}>
+                    Submit remove with successor
+                </button>
+            </div>
+        ) : null,
+}));
 
 // Radix Switch (rendered inside the real GroupSheet, mounted unconditionally so Edit can open it) measures
 // its thumb via ResizeObserver, which jsdom lacks.
@@ -142,17 +185,14 @@ const mockUseEnvironmentSettings = jest.mocked(useEnvironmentSettings);
 const mockUseGroupApis = jest.mocked(useGroupApis);
 const mockUseGroupApplications = jest.mocked(useGroupApplications);
 const mockUseGroupApiProducts = jest.mocked(useGroupApiProducts);
-const mockUseGroupApiRoles = jest.mocked(useGroupApiRoles);
-const mockUseGroupApplicationRoles = jest.mocked(useGroupApplicationRoles);
-const mockUseGroupApiProductRoles = jest.mocked(useGroupApiProductRoles);
-const mockUseGroupIntegrationRoles = jest.mocked(useGroupIntegrationRoles);
-const mockUseGroupClusterRoles = jest.mocked(useGroupClusterRoles);
-const mockUseGroupExplorerRoles = jest.mocked(useGroupExplorerRoles);
+const mockUseGroupRoles = jest.mocked(useGroupRoles);
 const mockUseUpdateGroup = jest.mocked(useUpdateGroup);
 const mockUseDeleteGroup = jest.mocked(useDeleteGroup);
 const mockUseAddGroupMembers = jest.mocked(useAddGroupMembers);
 const mockUseInviteGroupMember = jest.mocked(useInviteGroupMember);
+const mockUseRemoveGroupMember = jest.mocked(useRemoveGroupMember);
 const mockUseDeleteGroupInvitation = jest.mocked(useDeleteGroupInvitation);
+const mockUseCurrentUserIsGroupAdmin = jest.mocked(useCurrentUserIsGroupAdmin);
 
 const GROUP: Group = { id: 'group-1', name: 'Support Team', event_rules: [{ event: 'API_CREATE' }], system_invitation: true };
 
@@ -216,34 +256,24 @@ describe('GroupDetailPage', () => {
             isLoading: false,
             isError: false,
         } as unknown as ReturnType<typeof useGroupApiProducts>);
-        mockUseGroupApiRoles.mockReturnValue({ data: [{ name: 'USER', scope: 'API', default: true }], isLoading: false } as ReturnType<
-            typeof useGroupApiRoles
-        >);
-        mockUseGroupApplicationRoles.mockReturnValue({
-            data: [{ name: 'USER', scope: 'APPLICATION', default: true }],
-            isLoading: false,
-        } as ReturnType<typeof useGroupApplicationRoles>);
-        mockUseGroupApiProductRoles.mockReturnValue({
-            data: [{ name: 'USER', scope: 'API_PRODUCT', default: true }],
-            isLoading: false,
-        } as ReturnType<typeof useGroupApiProductRoles>);
-        mockUseGroupIntegrationRoles.mockReturnValue({
-            data: [],
-            isLoading: false,
-        } as unknown as ReturnType<typeof useGroupIntegrationRoles>);
-        mockUseGroupClusterRoles.mockReturnValue({
-            data: [],
-            isLoading: false,
-        } as unknown as ReturnType<typeof useGroupClusterRoles>);
-        mockUseGroupExplorerRoles.mockReturnValue({
-            data: [],
-            isLoading: false,
-        } as unknown as ReturnType<typeof useGroupExplorerRoles>);
+        mockUseGroupRoles.mockReturnValue({
+            apiRoles: [{ name: 'USER', scope: 'API', default: true }],
+            apiRolesLoading: false,
+            applicationRoles: [{ name: 'USER', scope: 'APPLICATION', default: true }],
+            applicationRolesLoading: false,
+            apiProductRoles: [{ name: 'USER', scope: 'API_PRODUCT', default: true }],
+            apiProductRolesLoading: false,
+            integrationRoles: [],
+            clusterRoles: [],
+            explorerRoles: [],
+        });
         mockUseUpdateGroup.mockReturnValue(makeMutation());
         mockUseDeleteGroup.mockReturnValue(makeMutation());
         mockUseAddGroupMembers.mockReturnValue(makeMutation());
         mockUseInviteGroupMember.mockReturnValue(makeMutation());
+        mockUseRemoveGroupMember.mockReturnValue(makeMutation());
         mockUseDeleteGroupInvitation.mockReturnValue(makeMutation());
+        mockUseCurrentUserIsGroupAdmin.mockReturnValue(false);
     });
 
     afterEach(() => {
@@ -281,39 +311,24 @@ describe('GroupDetailPage', () => {
         it('skips fetching role catalogs on initial load, even when the user can edit — deferred until Edit opens', () => {
             renderPage();
 
-            expect(mockUseGroupApiRoles).toHaveBeenCalledWith({ enabled: false });
-            expect(mockUseGroupApplicationRoles).toHaveBeenCalledWith({ enabled: false });
-            expect(mockUseGroupApiProductRoles).toHaveBeenCalledWith({ enabled: false });
-            expect(mockUseGroupIntegrationRoles).toHaveBeenCalledWith({ enabled: false });
-            expect(mockUseGroupClusterRoles).toHaveBeenCalledWith({ enabled: false });
-            expect(mockUseGroupExplorerRoles).toHaveBeenCalledWith({ enabled: false });
+            expect(mockUseGroupRoles).toHaveBeenCalledWith({ core: false, extra: false });
         });
 
         it('fetches only default-group role catalogs once the user opens the Edit sheet', () => {
             renderPage();
             fireEvent.click(screen.getByRole('button', { name: 'Edit group' }));
 
-            expect(mockUseGroupApiRoles).toHaveBeenCalledWith({ enabled: true });
-            expect(mockUseGroupApplicationRoles).toHaveBeenCalledWith({ enabled: true });
-            expect(mockUseGroupApiProductRoles).toHaveBeenCalledWith({ enabled: true });
-            expect(mockUseGroupIntegrationRoles).toHaveBeenCalledWith({ enabled: false });
-            expect(mockUseGroupClusterRoles).toHaveBeenCalledWith({ enabled: false });
-            expect(mockUseGroupExplorerRoles).toHaveBeenCalledWith({ enabled: false });
+            expect(mockUseGroupRoles).toHaveBeenCalledWith({ core: true, extra: false });
         });
 
         it('fetches all six role catalogs once the Add members sheet is open', async () => {
             renderPage();
             await openAddMembersViaSearch();
 
-            expect(mockUseGroupApiRoles).toHaveBeenCalledWith({ enabled: true });
-            expect(mockUseGroupApplicationRoles).toHaveBeenCalledWith({ enabled: true });
-            expect(mockUseGroupApiProductRoles).toHaveBeenCalledWith({ enabled: true });
-            expect(mockUseGroupIntegrationRoles).toHaveBeenCalledWith({ enabled: true });
-            expect(mockUseGroupClusterRoles).toHaveBeenCalledWith({ enabled: true });
-            expect(mockUseGroupExplorerRoles).toHaveBeenCalledWith({ enabled: true });
+            expect(mockUseGroupRoles).toHaveBeenCalledWith({ core: true, extra: true });
         });
 
-        it('fetches only API and application roles once the Email invitation sheet is open', async () => {
+        it('fetches core roles once the Email invitation sheet is open', async () => {
             mockUseGroupDetail.mockReturnValue({
                 data: { ...GROUP, email_invitation: true },
                 isLoading: false,
@@ -322,24 +337,14 @@ describe('GroupDetailPage', () => {
             renderPage();
             await openEmailInvitation();
 
-            expect(mockUseGroupApiRoles).toHaveBeenCalledWith({ enabled: true });
-            expect(mockUseGroupApplicationRoles).toHaveBeenCalledWith({ enabled: true });
-            expect(mockUseGroupApiProductRoles).toHaveBeenCalledWith({ enabled: false });
-            expect(mockUseGroupIntegrationRoles).toHaveBeenCalledWith({ enabled: false });
-            expect(mockUseGroupClusterRoles).toHaveBeenCalledWith({ enabled: false });
-            expect(mockUseGroupExplorerRoles).toHaveBeenCalledWith({ enabled: false });
+            expect(mockUseGroupRoles).toHaveBeenCalledWith({ core: true, extra: false });
         });
 
         it('skips fetching role catalogs when the user cannot edit or add members, since no sheet can open', () => {
             mockUseHasPermission.mockReturnValue(false);
             renderPage();
 
-            expect(mockUseGroupApiRoles).toHaveBeenCalledWith({ enabled: false });
-            expect(mockUseGroupApplicationRoles).toHaveBeenCalledWith({ enabled: false });
-            expect(mockUseGroupApiProductRoles).toHaveBeenCalledWith({ enabled: false });
-            expect(mockUseGroupIntegrationRoles).toHaveBeenCalledWith({ enabled: false });
-            expect(mockUseGroupClusterRoles).toHaveBeenCalledWith({ enabled: false });
-            expect(mockUseGroupExplorerRoles).toHaveBeenCalledWith({ enabled: false });
+            expect(mockUseGroupRoles).toHaveBeenCalledWith({ core: false, extra: false });
         });
     });
 
@@ -390,7 +395,7 @@ describe('GroupDetailPage', () => {
             await waitFor(() => expect(notify.error).toHaveBeenCalledWith(error, 'Failed to update group'));
         });
 
-        it('opens the delete sheet, confirms, and navigates back to the groups list', async () => {
+        it('opens the delete dialog, confirms, and navigates back to the groups list', async () => {
             const mutateAsync = jest.fn().mockResolvedValue(undefined);
             mockUseDeleteGroup.mockReturnValue(makeMutation(mutateAsync));
             renderPage();
@@ -613,6 +618,144 @@ describe('GroupDetailPage', () => {
         });
     });
 
+    describe('Edit roles', () => {
+        it('opens the edit sheet, submits role changes, and shows a success toast', async () => {
+            const editMutateAsync = jest.fn().mockResolvedValue(undefined);
+            mockUseAddGroupMembers.mockReturnValue(makeMutation(editMutateAsync));
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Trigger edit roles' }));
+            fireEvent.click(screen.getByRole('button', { name: 'Submit edit roles' }));
+
+            await waitFor(() =>
+                expect(editMutateAsync).toHaveBeenCalledWith({
+                    groupId: 'group-1',
+                    memberships: [{ id: 'member-1', roles: [{ scope: 'GROUP', name: 'ADMIN' }] }],
+                }),
+            );
+            expect(notify.success).toHaveBeenCalledWith('Member roles updated successfully');
+            await waitFor(() => expect(screen.queryByTestId('edit-member-sheet')).toBeNull());
+        });
+
+        it('shows an error and keeps the sheet open when updating roles fails', async () => {
+            const error = new Error('failed');
+            mockUseAddGroupMembers.mockReturnValue(makeMutation(jest.fn().mockRejectedValue(error)));
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Trigger edit roles' }));
+            fireEvent.click(screen.getByRole('button', { name: 'Submit edit roles' }));
+
+            await waitFor(() => expect(notify.error).toHaveBeenCalledWith(error, 'Failed to update member roles'));
+            expect(screen.getByTestId('edit-member-sheet')).not.toBeNull();
+        });
+    });
+
+    describe('Remove member', () => {
+        it('removes the member and closes the dialog', async () => {
+            const removeMutateAsync = jest.fn().mockResolvedValue(undefined);
+            mockUseRemoveGroupMember.mockReturnValue(makeMutation(removeMutateAsync));
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Trigger remove' }));
+            fireEvent.click(screen.getByRole('button', { name: 'Submit remove' }));
+
+            await waitFor(() => expect(removeMutateAsync).toHaveBeenCalledWith({ groupId: 'group-1', memberId: 'member-1' }));
+            expect(notify.success).toHaveBeenCalledWith('Anna Schmidt removed from the group');
+            await waitFor(() => expect(screen.queryByTestId('remove-member-dialog')).toBeNull());
+        });
+
+        it('shows an error and keeps the dialog open when removal fails', async () => {
+            const error = new Error('failed');
+            mockUseRemoveGroupMember.mockReturnValue(makeMutation(jest.fn().mockRejectedValue(error)));
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Trigger remove' }));
+            fireEvent.click(screen.getByRole('button', { name: 'Submit remove' }));
+
+            await waitFor(() => expect(notify.error).toHaveBeenCalledWith(error, 'Failed to remove member'));
+            expect(screen.getByTestId('remove-member-dialog')).not.toBeNull();
+        });
+
+        it('transfers primary ownership before removing the member', async () => {
+            const callOrder: string[] = [];
+            const removeMutateAsync = jest.fn().mockImplementation(async () => {
+                callOrder.push('remove');
+            });
+            const addMutateAsync = jest.fn().mockImplementation(async () => {
+                callOrder.push('transfer');
+            });
+            mockUseRemoveGroupMember.mockReturnValue(makeMutation(removeMutateAsync));
+            mockUseAddGroupMembers.mockReturnValue(makeMutation(addMutateAsync));
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Trigger remove' }));
+            fireEvent.click(screen.getByRole('button', { name: 'Submit remove with successor' }));
+
+            await waitFor(() => expect(removeMutateAsync).toHaveBeenCalled());
+            expect(addMutateAsync).toHaveBeenCalledWith({
+                groupId: 'group-1',
+                memberships: [{ id: 'member-2', roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }] }],
+            });
+            expect(callOrder).toEqual(['transfer', 'remove']);
+        });
+
+        it('reports partial success without attempting an unsafe rollback when removal fails after transfer', async () => {
+            const removeError = new Error('remove failed');
+            const addMutateAsync = jest.fn().mockResolvedValue(undefined);
+            mockUseAddGroupMembers.mockReturnValue(makeMutation(addMutateAsync));
+            mockUseRemoveGroupMember.mockReturnValue(makeMutation(jest.fn().mockRejectedValue(removeError)));
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Trigger remove' }));
+            fireEvent.click(screen.getByRole('button', { name: 'Submit remove with successor' }));
+
+            await waitFor(() => expect(addMutateAsync).toHaveBeenCalledTimes(1));
+            expect(notify.error).toHaveBeenCalledWith(
+                removeError,
+                'Ownership was transferred, but the member could not be removed. Retry removal or refresh the member list.',
+            );
+            expect(screen.getByTestId('remove-member-dialog')).not.toBeNull();
+        });
+
+        it('does not remove a primary owner without a transfer payload even if the dialog guard is bypassed', async () => {
+            const removeMutateAsync = jest.fn().mockResolvedValue(undefined);
+            mockUseGroupMembers.mockReturnValue({
+                data: [{ id: 'member-1', displayName: 'Anna Schmidt', roles: { API: 'PRIMARY_OWNER' } }],
+                isLoading: false,
+                isError: false,
+            } as unknown as ReturnType<typeof useGroupMembers>);
+            mockUseRemoveGroupMember.mockReturnValue(makeMutation(removeMutateAsync));
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Trigger remove' }));
+            fireEvent.click(screen.getByRole('button', { name: 'Submit remove' }));
+
+            await waitFor(() =>
+                expect(notify.error).toHaveBeenCalledWith(
+                    expect.any(Error),
+                    'Primary ownership must be transferred before removing this member',
+                ),
+            );
+            expect(removeMutateAsync).not.toHaveBeenCalled();
+            expect(screen.getByTestId('remove-member-dialog')).not.toBeNull();
+        });
+
+        it('does not remove the member when ownership transfer fails', async () => {
+            const error = new Error('transfer failed');
+            const removeMutateAsync = jest.fn().mockResolvedValue(undefined);
+            mockUseRemoveGroupMember.mockReturnValue(makeMutation(removeMutateAsync));
+            mockUseAddGroupMembers.mockReturnValue(makeMutation(jest.fn().mockRejectedValue(error)));
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Trigger remove' }));
+            fireEvent.click(screen.getByRole('button', { name: 'Submit remove with successor' }));
+
+            await waitFor(() => expect(notify.error).toHaveBeenCalledWith(error, 'Primary ownership could not be transferred'));
+            expect(removeMutateAsync).not.toHaveBeenCalled();
+            expect(screen.getByTestId('remove-member-dialog')).not.toBeNull();
+        });
+    });
+
     describe('Email invitations', () => {
         beforeEach(() => {
             mockUseGroupDetail.mockReturnValue({
@@ -747,6 +890,22 @@ describe('GroupDetailPage', () => {
             renderPage();
 
             expect(screen.queryByRole('button', { name: /Add members/i })).toBeNull();
+        });
+
+        it('allows a group admin to manage member actions without environment-group-u', () => {
+            mockUseHasPermission.mockReturnValue(false);
+            mockUseCurrentUserIsGroupAdmin.mockReturnValue(true);
+            renderPage();
+
+            expect(screen.getByTestId('members-table').getAttribute('data-can-manage-members')).toBe('true');
+        });
+
+        it('hides member actions without environment-group-u or group admin membership', () => {
+            mockUseHasPermission.mockReturnValue(false);
+            mockUseCurrentUserIsGroupAdmin.mockReturnValue(false);
+            renderPage();
+
+            expect(screen.getByTestId('members-table').getAttribute('data-can-manage-members')).toBe('false');
         });
     });
 

@@ -18,8 +18,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
-import { useAddGroupMembers, useDeleteGroupInvitation, useInviteGroupMember } from './useGroupMutations';
-import { addGroupMembers, deleteGroupInvitation, inviteGroupMember } from '../services/groups';
+import { useAddGroupMembers, useDeleteGroupInvitation, useInviteGroupMember, useRemoveGroupMember } from './useGroupMutations';
+import { addGroupMembers, deleteGroupInvitation, inviteGroupMember, removeGroupMember } from '../services/groups';
 import { groupKeys } from '../utils/queryKeys';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
@@ -31,12 +31,14 @@ jest.mock('../services/groups', () => ({
     deleteGroup: jest.fn(),
     deleteGroupInvitation: jest.fn(),
     inviteGroupMember: jest.fn(),
+    removeGroupMember: jest.fn(),
     updateGroup: jest.fn(),
 }));
 
 const mockUseEnvironment = jest.mocked(useEnvironment);
 const mockAddGroupMembers = jest.mocked(addGroupMembers);
 const mockInviteGroupMember = jest.mocked(inviteGroupMember);
+const mockRemoveGroupMember = jest.mocked(removeGroupMember);
 const mockDeleteGroupInvitation = jest.mocked(deleteGroupInvitation);
 const INVITATION_DATA = {
     reference_type: 'GROUP',
@@ -56,6 +58,7 @@ describe('group mutation invalidation', () => {
         mockUseEnvironment.mockReturnValue({ id: 'DEFAULT' } as ReturnType<typeof useEnvironment>);
         mockAddGroupMembers.mockResolvedValue(undefined);
         mockInviteGroupMember.mockResolvedValue({ outcome: 'invitation-created' });
+        mockRemoveGroupMember.mockResolvedValue(undefined);
         mockDeleteGroupInvitation.mockResolvedValue(undefined);
     });
 
@@ -132,5 +135,15 @@ describe('group mutation invalidation', () => {
 
         expect(invalidateQueries).toHaveBeenCalledTimes(1);
         expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: groupKeys.invitations('DEFAULT', 'group-1') });
+    });
+
+    it('invalidates only members after removing a member', async () => {
+        const { result } = renderHook(() => useRemoveGroupMember(), { wrapper });
+
+        await act(() => result.current.mutateAsync({ groupId: 'group-1', memberId: 'member-1' }));
+
+        expect(mockRemoveGroupMember).toHaveBeenCalledWith('DEFAULT', 'group-1', 'member-1');
+        expect(invalidateQueries).toHaveBeenCalledTimes(1);
+        expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: groupKeys.members('DEFAULT', 'group-1') });
     });
 });

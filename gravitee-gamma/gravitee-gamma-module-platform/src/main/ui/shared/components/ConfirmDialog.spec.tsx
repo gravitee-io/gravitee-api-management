@@ -82,4 +82,24 @@ describe('ConfirmDialog', () => {
         expect(screen.getByRole('button', { name: 'Closing…' })).toHaveProperty('disabled', true);
         expect(screen.getByRole('button', { name: 'Cancel' })).toHaveProperty('disabled', true);
     });
+
+    it('renders custom content and can disable confirmation independently of pending state', () => {
+        render(
+            <ConfirmDialog
+                open
+                onOpenChange={() => {}}
+                title="Remove member?"
+                confirmLabel="Remove"
+                destructive
+                confirmDisabled
+                onConfirm={() => {}}
+            >
+                <p>Select a successor before removing this primary owner.</p>
+            </ConfirmDialog>,
+        );
+
+        expect(screen.getByText('Select a successor before removing this primary owner.')).not.toBeNull();
+        expect(screen.getByRole('button', { name: 'Remove' })).toHaveProperty('disabled', true);
+        expect(screen.getByRole('button', { name: 'Cancel' })).toHaveProperty('disabled', false);
+    });
 });

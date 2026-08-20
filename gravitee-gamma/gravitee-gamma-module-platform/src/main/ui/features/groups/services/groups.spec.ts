@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { deleteGroupInvitation, inviteGroupMember, listGroupInvitations } from './groups';
+import { deleteGroupInvitation, inviteGroupMember, listGroupInvitations, removeGroupMember } from './groups';
 import { apimFetchJsonV1Env } from '../../../shared/api/apimClient';
 import type { GroupInvitationPayload } from '../types/group';
 
@@ -77,6 +77,16 @@ describe('groups invitation service', () => {
 
         await deleteGroupInvitation('DEFAULT', 'group/1', 'invitation/1');
         expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('DEFAULT', '/configuration/groups/group%2F1/invitations/invitation%2F1', {
+            method: 'DELETE',
+        });
+    });
+
+    it('removes a member using encoded identifiers', async () => {
+        mockApimFetchJsonV1Env.mockResolvedValue(undefined);
+
+        await removeGroupMember('DEFAULT', 'group/1', 'member/1');
+
+        expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('DEFAULT', '/configuration/groups/group%2F1/members/member%2F1', {
             method: 'DELETE',
         });
     });

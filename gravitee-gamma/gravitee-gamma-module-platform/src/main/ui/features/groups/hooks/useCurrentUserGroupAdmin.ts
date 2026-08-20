@@ -15,22 +15,18 @@
  */
 import { useQuery } from '@tanstack/react-query';
 
-import { fetchCurrentUser, hasOrganizationAdminRole } from '../../../shared/services/currentUser';
+import { fetchCurrentUser } from '../../../shared/services/currentUser';
 import { currentUserKeys } from '../../../shared/utils/queryKeys';
+import type { GroupMember } from '../types/group';
 
-/**
- * Whether the current user has the organization ADMIN role (required to list archived apps and restore).
- * Aligns with console `gioRole` / `ApplicationResource.restoreApplication` admin check.
- */
-export function useOrganizationAdmin(): { isAdmin: boolean; isLoading: boolean } {
-    const { data, isLoading } = useQuery({
+export function useCurrentUserIsGroupAdmin(members: GroupMember[], { enabled = true }: { enabled?: boolean } = {}): boolean {
+    const { data } = useQuery({
         queryKey: currentUserKeys.detail(),
         queryFn: fetchCurrentUser,
         staleTime: 300_000,
+        enabled,
     });
 
-    return {
-        isAdmin: hasOrganizationAdminRole(data?.roles),
-        isLoading,
-    };
+    if (!data?.id) return false;
+    return members.some(member => member.id === data.id && member.roles?.GROUP === 'ADMIN');
 }

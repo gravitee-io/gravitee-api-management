@@ -17,9 +17,10 @@
 import { useState } from 'react';
 
 import { useGroupInvitations } from './useGroupDetail';
-import { useAddGroupMembers, useDeleteGroupInvitation, useInviteGroupMember } from './useGroupMutations';
+import { useAddGroupMembers, useDeleteGroupInvitation, useInviteGroupMember, useRemoveGroupMember } from './useGroupMutations';
 import { notify } from '../../../shared/notify';
-import type { GroupInvitation, GroupMembershipPayload } from '../types/group';
+import type { GroupInvitation, GroupMember, GroupMembershipPayload } from '../types/group';
+import { primaryOwnerScopesOf } from '../utils/primaryOwnership';
 
 type MemberSheetState = 'closed' | 'search' | 'invite';
 type MemberTab = 'members' | 'invitations';
@@ -27,12 +28,15 @@ type MemberTab = 'members' | 'invitations';
 export function useGroupMemberActions(groupId: string | undefined) {
     const [memberTab, setMemberTab] = useState<MemberTab>('members');
     const [memberSheet, setMemberSheet] = useState<MemberSheetState>('closed');
+    const [editingMember, setEditingMember] = useState<GroupMember | null>(null);
+    const [removingMember, setRemovingMember] = useState<GroupMember | null>(null);
     const [tooManyUsersEmail, setTooManyUsersEmail] = useState<string | null>(null);
     const [searchSeed, setSearchSeed] = useState<string | null>(null);
     const [deletingInvitation, setDeletingInvitation] = useState<GroupInvitation | null>(null);
 
     const addMembersMutation = useAddGroupMembers();
     const inviteMemberMutation = useInviteGroupMember();
+    const removeMemberMutation = useRemoveGroupMember();
     const deleteInvitationMutation = useDeleteGroupInvitation();
     const {
         data: invitations = [],
@@ -94,6 +98,59 @@ export function useGroupMemberActions(groupId: string | undefined) {
         setMemberSheet('search');
     }
 
+    async function handleEditMemberRoles(memberships: GroupMembershipPayload[]) {
+        if (!groupId) return;
+        try {
+            await addMembersMutation.mutateAsync({ groupId, memberships });
+            notify.success(
+                memberships.length > 1 ? 'Member roles updated and primary ownership transferred' : 'Member roles updated successfully',
+            );
+            setEditingMember(null);
+        } catch (error) {
+            notify.error(error, 'Failed to update member roles');
+        }
+    }
+
+    async function transferPrimaryOwnership(groupId: string, transferMembership: GroupMembershipPayload): Promise<boolean> {
+        try {
+            await addMembersMutation.mutateAsync({ groupId, memberships: [transferMembership] });
+            return true;
+        } catch (error) {
+            notify.error(error, 'Primary ownership could not be transferred');
+            return false;
+        }
+    }
+
+    async function handleRemoveMember(transferMembership?: GroupMembershipPayload) {
+        if (!groupId || !removingMember) return;
+
+        const requiresOwnershipTransfer = primaryOwnerScopesOf(removingMember).length > 0;
+        if (requiresOwnershipTransfer && !transferMembership) {
+            notify.error(
+                new Error('A successor is required when removing a primary owner'),
+                'Primary ownership must be transferred before removing this member',
+            );
+            return;
+        }
+
+        if (transferMembership && !(await transferPrimaryOwnership(groupId, transferMembership))) {
+            return;
+        }
+
+        try {
+            await removeMemberMutation.mutateAsync({ groupId, memberId: removingMember.id });
+        } catch (error) {
+            const message = transferMembership
+                ? 'Ownership was transferred, but the member could not be removed. Retry removal or refresh the member list.'
+                : 'Failed to remove member';
+            notify.error(error, message);
+            return;
+        }
+
+        notify.success(`${removingMember.displayName} removed from the group`);
+        setRemovingMember(null);
+    }
+
     async function handleDeleteInvitation() {
         if (!groupId || !deletingInvitation) return;
         try {
@@ -111,6 +168,10 @@ export function useGroupMemberActions(groupId: string | undefined) {
         memberSheet,
         setMemberSheet,
         closeMemberSheet,
+        editingMember,
+        setEditingMember,
+        removingMember,
+        setRemovingMember,
         tooManyUsersEmail,
         setTooManyUsersEmail,
         searchSeed,
@@ -123,6 +184,8 @@ export function useGroupMemberActions(groupId: string | undefined) {
         handleAddMembers,
         handleInviteMember,
         handleTooManyUsersContinue,
+        handleEditMemberRoles,
+        handleRemoveMember,
         handleDeleteInvitation,
     };
 }

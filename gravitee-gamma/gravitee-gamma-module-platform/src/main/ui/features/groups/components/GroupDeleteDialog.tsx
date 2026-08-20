@@ -20,7 +20,7 @@ import { TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 import type { Group } from '../types/group';
 import { isPrimaryOwnerGroup } from '../utils/groupPermissions';
 
-export function GroupDeleteSheet({
+export function GroupDeleteDialog({
     open,
     group,
     onClose,
@@ -33,9 +33,6 @@ export function GroupDeleteSheet({
     onConfirm: () => void;
     isDeleting: boolean;
 }>) {
-    // Delete is always offered (classic doesn't hide it either) — a primary-owner group is rejected by the
-    // backend with StillPrimaryOwnerException regardless, so surface that as soon as the dialog opens
-    // instead of letting the user hit an API error after confirming.
     const blocked = group ? isPrimaryOwnerGroup(group) : false;
 
     return (

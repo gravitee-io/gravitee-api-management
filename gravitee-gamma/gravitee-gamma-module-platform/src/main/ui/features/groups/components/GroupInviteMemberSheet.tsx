@@ -24,9 +24,11 @@ import { STANDARD_SHEET_WIDTH } from '../../../shared/layout/sheetLayout';
 import { isValidEmail } from '../../../shared/utils/email';
 import type { GroupMember, GroupRole } from '../types/group';
 import { PRIMARY_OWNER_ROLE } from '../types/group';
-import { getMemberRoleLockFlags, isPrimaryOwnerUnavailable } from '../utils/memberRoles';
+import { getMemberRoleLockFlags } from '../utils/memberRoles';
+import { isPrimaryOwnerUnavailable } from '../utils/primaryOwnership';
 
 type InvitationValues = { email: string; apiRole: string; applicationRole: string };
+const PRIMARY_OWNER_DISABLED_OPTIONS = new Set([PRIMARY_OWNER_ROLE]);
 
 type GroupInviteMemberSheetProps = Readonly<{
     open: boolean;
@@ -116,7 +118,7 @@ function GroupInviteMemberSheetContent({
                             value={apiRole}
                             onChange={setApiRole}
                             disabled={roleLocks.api || isPending}
-                            disabledOptionNames={apiPrimaryOwnerDisabled ? new Set([PRIMARY_OWNER_ROLE]) : undefined}
+                            disabledOptionNames={apiPrimaryOwnerDisabled ? PRIMARY_OWNER_DISABLED_OPTIONS : undefined}
                             disableSystemRoles="except-primary-owner"
                         />
 

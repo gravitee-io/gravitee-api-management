@@ -36,11 +36,6 @@ export const applicationPermissionKeys = {
     detail: (envId: string, applicationId: string) => [...applicationPermissionKeys.all, envId, applicationId] as const,
 } as const;
 
-export const currentUserKeys = {
-    all: ['current-user'] as const,
-    detail: () => [...currentUserKeys.all, 'detail'] as const,
-} as const;
-
 export const applicationListKeys = {
     all: ['application-list'] as const,
     search: (envId: string, query: string, status: string, page: number, perPage: number, order: string) =>
