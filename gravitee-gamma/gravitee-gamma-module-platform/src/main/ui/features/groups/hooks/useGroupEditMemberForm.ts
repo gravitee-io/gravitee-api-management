@@ -86,7 +86,9 @@ export function useGroupEditMemberForm({
     const canSubmit = !transfer?.needsSuccessor || Boolean(selectedSuccessor);
 
     async function handleSubmit() {
-        if (!member || !transfer || !canSubmit) return;
+        if (!member) return;
+        if (!transfer) return;
+        if (!canSubmit) return;
         const selections: MemberRoleSelections = { ...roleValues, groupAdmin };
         await onSubmit(buildEditMembershipPayloads(member, selections, transfer, selectedSuccessor));
     }
