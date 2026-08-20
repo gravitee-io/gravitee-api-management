@@ -39,6 +39,7 @@ import {
   PortalNavigationItemType,
 } from '../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'test-host-component',
@@ -93,6 +94,7 @@ describe('SectionEditorDialogComponent', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let rootLoader: HarnessLoader;
   let apiResolveNameById: jest.Mock;
+  let snackBarErrorSpy: jest.SpyInstance;
 
   beforeEach(async () => {
     apiResolveNameById = jest.fn().mockReturnValue(of('api-1'));
@@ -105,6 +107,7 @@ describe('SectionEditorDialogComponent', () => {
     fixture = TestBed.createComponent(TestHostComponent);
     component = fixture.componentInstance;
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+    snackBarErrorSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
     fixture.detectChanges();
   });
 
@@ -202,6 +205,111 @@ describe('SectionEditorDialogComponent', () => {
         expect(component.dialogValue).toBeUndefined();
       });
     });
+    describe('when adding a page from a file', () => {
+      async function openImportStep(): Promise<SectionEditorDialogHarness> {
+        fixture.componentRef.setInput('type', 'PAGE');
+        fixture.detectChanges();
+        component.clicked();
+        fixture.detectChanges();
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        await dialog.selectContentSource('IMPORT_FILE');
+        fixture.detectChanges();
+        await dialog.clickContinueButton();
+        fixture.detectChanges();
+        return dialog;
+      }
+
+      // The picker reads the file asynchronously: yield a few ticks so the read settles
+      async function waitForFileRead(): Promise<void> {
+        for (let tick = 0; tick < 5; tick++) {
+          await new Promise(resolve => setTimeout(resolve));
+        }
+        fixture.detectChanges();
+      }
+
+      it('offers a file picker instead of the page type selection', async () => {
+        const dialog = await openImportStep();
+
+        expect(await dialog.isFilePickerVisible()).toBe(true);
+        expect(await dialog.isPageTypeSelectionVisible()).toBe(false);
+        expect(await dialog.getFilePickerAccept()).toBe('.md,.yaml,.yml,.json');
+      });
+
+      it('cannot be submitted until a file is picked', async () => {
+        const dialog = await openImportStep();
+        await dialog.setTitleInputValue('My imported page');
+
+        expect(await dialog.isSubmitButtonDisabled()).toBe(true);
+      });
+
+      it('creates a markdown page carrying the file content', async () => {
+        const dialog = await openImportStep();
+        await dialog.pickFile(new File(['# Imported'], 'doc.md'));
+        await waitForFileRead();
+
+        await dialog.clickSubmitButton();
+        fixture.detectChanges();
+
+        expect(component.dialogValue).toEqual({
+          title: 'doc',
+          visibility: 'PUBLIC',
+          contentType: 'GRAVITEE_MARKDOWN',
+          content: '# Imported',
+        });
+      });
+
+      it('derives the OpenAPI type from the document, not the extension', async () => {
+        const dialog = await openImportStep();
+        await dialog.pickFile(new File(['openapi: 3.0.3\ninfo:\n  title: Imported'], 'spec.yaml'));
+        await waitForFileRead();
+
+        await dialog.clickSubmitButton();
+        fixture.detectChanges();
+
+        expect(component.dialogValue).toEqual(expect.objectContaining({ contentType: 'OPENAPI' }));
+      });
+
+      it('derives the AsyncAPI type from the document, not the extension', async () => {
+        const dialog = await openImportStep();
+        await dialog.pickFile(new File(['asyncapi: 3.0.0\ninfo:\n  title: Imported'], 'spec.yaml'));
+        await waitForFileRead();
+
+        await dialog.clickSubmitButton();
+        fixture.detectChanges();
+
+        expect(component.dialogValue).toEqual(expect.objectContaining({ contentType: 'ASYNCAPI' }));
+      });
+
+      it('keeps a title the user already typed', async () => {
+        const dialog = await openImportStep();
+        await dialog.setTitleInputValue('My own title');
+        await dialog.pickFile(new File(['# Imported'], 'doc.md'));
+        await waitForFileRead();
+
+        expect(await dialog.getTitleInputValue()).toBe('My own title');
+      });
+
+      it('rejects a document with no recognizable root property', async () => {
+        const dialog = await openImportStep();
+        await dialog.pickFile(new File(['title: Not a spec'], 'spec.yaml'));
+        await waitForFileRead();
+
+        expect(await dialog.isSubmitButtonDisabled()).toBe(true);
+        expect(snackBarErrorSpy).toHaveBeenCalledWith(expect.stringContaining('asyncapi'));
+      });
+
+      it('rejects a file above the import size limit', async () => {
+        const dialog = await openImportStep();
+        const oversized = new File(['# Imported'], 'big.md');
+        Object.defineProperty(oversized, 'size', { value: 10 * 1024 * 1024 + 1 });
+        await dialog.pickFile(oversized);
+        await waitForFileRead();
+
+        expect(await dialog.isSubmitButtonDisabled()).toBe(true);
+        expect(snackBarErrorSpy).toHaveBeenCalledWith(expect.stringContaining('10 MB'));
+      });
+    });
+
     describe('when adding a page with PRIVATE parent', () => {
       beforeEach(async () => {
         fixture.componentRef.setInput('type', 'PAGE');

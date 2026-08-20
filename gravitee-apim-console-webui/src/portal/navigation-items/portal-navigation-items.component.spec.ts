@@ -284,6 +284,43 @@ describe('PortalNavigationItemsComponent', () => {
         );
         await expectGetNavigationItems(fakeResponse);
       });
+      it('should push the file content to the created page when importing from a file', async () => {
+        // Back to the source choice: this suite lands on the "Fill in content" step
+        await dialogHarness.clickBackButton();
+        fixture.detectChanges();
+        await dialogHarness.selectContentSource('IMPORT_FILE');
+        fixture.detectChanges();
+        await dialogHarness.clickContinueButton();
+        fixture.detectChanges();
+
+        await dialogHarness.pickFile(new File(['openapi: 3.0.3\ninfo:\n  title: Imported'], 'spec.yaml'));
+        for (let tick = 0; tick < 5; tick++) {
+          await new Promise(resolve => setTimeout(resolve));
+        }
+        fixture.detectChanges();
+
+        await dialogHarness.clickSubmitButton();
+
+        expectCreateNavigationItem(
+          fakeNewPagePortalNavigationItem({ title: 'spec', area: 'TOP_NAVBAR', type: 'PAGE', contentType: 'OPENAPI' }),
+          fakePortalNavigationPage({
+            title: 'spec',
+            area: 'TOP_NAVBAR',
+            type: 'PAGE',
+            portalPageContentId: 'created-content-id',
+          }),
+        );
+
+        const contentReq = httpTestingController.expectOne({
+          method: 'PUT',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/created-content-id`,
+        });
+        expect(contentReq.request.body).toEqual({ content: 'openapi: 3.0.3\ninfo:\n  title: Imported', type: 'OPENAPI' });
+        contentReq.flush({ id: 'created-content-id', type: 'OPENAPI', content: 'openapi: 3.0.3\ninfo:\n  title: Imported' });
+
+        await expectGetNavigationItems(fakeResponse);
+      });
+
       it('should navigate to the created page after creation', async () => {
         const title = 'New Page Title';
         await dialogHarness.setTitleInputValue(title);
@@ -1483,6 +1520,255 @@ describe('PortalNavigationItemsComponent', () => {
       expect(document.body.textContent).not.toContain('Failed to update page content');
       expect(await harness.getEditorContentText()).toBe('Edited content with ${api.invalid}');
       expect(await harness.isSaveButtonDisabled()).toBe(false);
+    });
+  });
+
+  describe('importing content from a file', () => {
+    // The FileReader used by the component completes on macrotasks: yield a few ticks so the read settles
+    async function waitForFileRead() {
+      for (let tick = 0; tick < 5; tick++) {
+        await new Promise(resolve => setTimeout(resolve));
+      }
+      fixture.detectChanges();
+    }
+
+    async function selectImportFile(name: string, content: string) {
+      component.onImportFileSelected({ target: { files: [new File([content], name)], value: '' } } as unknown as Event);
+      fixture.detectChanges();
+    }
+
+    async function confirmImportDialog() {
+      const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+      await confirmDialog.confirm();
+      await waitForFileRead();
+    }
+
+    describe('on an editable page', () => {
+      beforeEach(async () => {
+        snackBarErrorSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+        await expectGetNavigationItems(
+          fakePortalNavigationItemsResponse({
+            items: [fakePortalNavigationPage({ id: 'nav-item-1', title: 'Nav Item 1', portalPageContentId: 'content-1' })],
+          }),
+        );
+        expectGetPageContent('content-1', 'Initial content');
+      });
+
+      it('shows an enabled Import file button', async () => {
+        expect(await harness.isImportFileButtonVisible()).toBe(true);
+        expect(await harness.isImportFileButtonDisabled()).toBe(false);
+      });
+
+      it('imports a markdown file after confirmation and replaces the content, keeping the page editable', async () => {
+        await selectImportFile('doc.md', '# Imported');
+        await confirmImportDialog();
+        await fixture.whenStable();
+
+        const req = httpTestingController.expectOne({
+          method: 'PUT',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/content-1`,
+        });
+        expect(req.request.body).toEqual({ content: '# Imported', type: 'GRAVITEE_MARKDOWN' });
+        req.flush({ id: 'content-1', type: 'GRAVITEE_MARKDOWN', content: '# Imported' });
+        fixture.detectChanges();
+
+        expect(await harness.getEditorContentText()).toBe('# Imported');
+        expect(await harness.isSaveButtonDisabled()).toBe(true);
+        expect(await harness.isContentEditorReadOnly()).toBe(false);
+      });
+
+      it('imports an OpenAPI yaml file and switches to the OpenAPI editor', async () => {
+        await selectImportFile('spec.yaml', 'openapi: 3.0.3\ninfo:\n  title: Imported');
+        await confirmImportDialog();
+        await fixture.whenStable();
+
+        const req = httpTestingController.expectOne({
+          method: 'PUT',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/content-1`,
+        });
+        expect(req.request.body).toEqual(expect.objectContaining({ type: 'OPENAPI' }));
+        req.flush({ id: 'content-1', type: 'OPENAPI', content: 'openapi: 3.0.3\ninfo:\n  title: Imported' });
+        fixture.detectChanges();
+
+        expect(await harness.getOpenApiEditor()).not.toBeNull();
+      });
+
+      it('imports an AsyncAPI yaml file as ASYNCAPI, not OpenAPI', async () => {
+        await selectImportFile('spec.yaml', 'asyncapi: 3.0.0\ninfo:\n  title: Imported');
+        await confirmImportDialog();
+        await fixture.whenStable();
+
+        const req = httpTestingController.expectOne({
+          method: 'PUT',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/content-1`,
+        });
+        expect(req.request.body).toEqual(expect.objectContaining({ type: 'ASYNCAPI' }));
+        req.flush({ id: 'content-1', type: 'ASYNCAPI', content: 'asyncapi: 3.0.0\ninfo:\n  title: Imported' });
+      });
+
+      it('imports an OpenAPI json file as OPENAPI', async () => {
+        const content = '{"openapi": "3.0.3", "info": {"title": "Imported"}}';
+        await selectImportFile('spec.json', content);
+        await confirmImportDialog();
+        await fixture.whenStable();
+
+        const req = httpTestingController.expectOne({
+          method: 'PUT',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/content-1`,
+        });
+        expect(req.request.body).toEqual(expect.objectContaining({ type: 'OPENAPI' }));
+        req.flush({ id: 'content-1', type: 'OPENAPI', content });
+      });
+
+      it('shows a clear error and does not call the backend when a spec file has no root spec property', async () => {
+        await selectImportFile('spec.yaml', 'title: Not a spec');
+        await confirmImportDialog();
+        await fixture.whenStable();
+
+        httpTestingController.expectNone({
+          method: 'PUT',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/content-1`,
+        });
+        expect(snackBarErrorSpy).toHaveBeenCalledWith(expect.stringContaining('asyncapi'));
+      });
+
+      it('shows a clear error and does not call the backend for an unsupported extension', async () => {
+        await selectImportFile('image.png', 'binary');
+        await fixture.whenStable();
+
+        httpTestingController.expectNone({
+          method: 'PUT',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/content-1`,
+        });
+        expect(snackBarErrorSpy).toHaveBeenCalledWith(expect.stringContaining('.png'));
+      });
+
+      it('rejects an .adoc file: AsciiDoc has no matching content type', async () => {
+        await selectImportFile('doc.adoc', '= Imported');
+        await fixture.whenStable();
+
+        httpTestingController.expectNone({
+          method: 'PUT',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/content-1`,
+        });
+        expect(snackBarErrorSpy).toHaveBeenCalledWith(expect.stringContaining('.adoc'));
+      });
+
+      it('rejects a file above the import size limit before reading it', async () => {
+        const oversized = new File(['# Imported'], 'big.md');
+        Object.defineProperty(oversized, 'size', { value: 10 * 1024 * 1024 + 1 });
+
+        component.onImportFileSelected({ target: { files: [oversized], value: '' } } as unknown as Event);
+        fixture.detectChanges();
+        await fixture.whenStable();
+
+        httpTestingController.expectNone({
+          method: 'PUT',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/content-1`,
+        });
+        expect(snackBarErrorSpy).toHaveBeenCalledWith(expect.stringContaining('10 MB'));
+      });
+
+      it('does not touch the content when the confirmation is cancelled', async () => {
+        await selectImportFile('doc.md', '# Imported');
+
+        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+        await confirmDialog.cancel();
+        await waitForFileRead();
+
+        httpTestingController.expectNone({
+          method: 'PUT',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/content-1`,
+        });
+        expect(await harness.getEditorContentText()).toBe('Initial content');
+      });
+
+      it('asks the same confirmation when there are unsaved changes, then imports over them', async () => {
+        await harness.setEditorContentText('Edited but not saved');
+        await selectImportFile('doc.md', '# Imported');
+        await confirmImportDialog();
+
+        const req = httpTestingController.expectOne({
+          method: 'PUT',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/content-1`,
+        });
+        req.flush({ id: 'content-1', type: 'GRAVITEE_MARKDOWN', content: '# Imported' });
+        fixture.detectChanges();
+
+        expect(await harness.getEditorContentText()).toBe('# Imported');
+      });
+
+      it('wires the Import file button to the hidden file input', async () => {
+        const input: HTMLInputElement = fixture.nativeElement.querySelector('[data-testid="import-file-input"]');
+        const clickSpy = jest.spyOn(input, 'click').mockImplementation(() => {});
+
+        await harness.clickImportFileButton();
+        expect(clickSpy).toHaveBeenCalled();
+
+        Object.defineProperty(input, 'files', { value: [new File(['# Imported'], 'doc.md')] });
+        input.dispatchEvent(new Event('change'));
+        fixture.detectChanges();
+        await confirmImportDialog();
+
+        const req = httpTestingController.expectOne({
+          method: 'PUT',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/content-1`,
+        });
+        expect(req.request.body).toEqual({ content: '# Imported', type: 'GRAVITEE_MARKDOWN' });
+        req.flush({ id: 'content-1', type: 'GRAVITEE_MARKDOWN', content: '# Imported' });
+      });
+    });
+
+    it('does not overwrite the editor of another page selected while the import response is pending', async () => {
+      const snackBarSuccessSpy = jest.spyOn(TestBed.inject(SnackBarService), 'success');
+      await expectGetNavigationItems(
+        fakePortalNavigationItemsResponse({
+          items: [
+            fakePortalNavigationPage({ id: 'nav-item-1', title: 'Page A', portalPageContentId: 'content-1' }),
+            fakePortalNavigationPage({ id: 'nav-item-2', title: 'Page B', portalPageContentId: 'content-2' }),
+          ],
+        }),
+      );
+      expectGetPageContent('content-1', 'Page A content');
+
+      await selectImportFile('doc.md', '# Imported');
+      await confirmImportDialog();
+
+      await harness.selectNavigationItemByTitle('Page B');
+      expectGetPageContent('content-2', 'Page B content');
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      httpTestingController
+        .expectOne({
+          method: 'PUT',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/content-1`,
+        })
+        .flush({ id: 'content-1', type: 'GRAVITEE_MARKDOWN', content: '# Imported' });
+      fixture.detectChanges();
+
+      expect(await harness.getEditorContentText()).toBe('Page B content');
+      expect(snackBarSuccessSpy).toHaveBeenCalledWith(expect.stringContaining('Page A'));
+    });
+
+    it('disables the Import file button when the page is managed by an external source', async () => {
+      const sourcedPage = fakePortalNavigationPage({
+        id: 'nav-item-1',
+        title: 'Nav Item 1',
+        portalPageContentId: 'content-1',
+        source: { type: 'github-fetcher', configuration: {} },
+      });
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [sourcedPage] }));
+      expectGetPageContent('content-1', 'Fetched content');
+
+      expect(await harness.isImportFileButtonDisabled()).toBe(true);
+    });
+
+    it('does not show the Import file button for a folder', async () => {
+      const folder = fakePortalNavigationFolder({ id: 'folder-1', title: 'My Folder', area: 'TOP_NAVBAR' });
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder] }));
+
+      expect(await harness.isImportFileButtonVisible()).toBe(false);
     });
   });
 

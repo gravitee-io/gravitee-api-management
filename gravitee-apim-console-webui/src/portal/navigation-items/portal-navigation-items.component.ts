@@ -22,6 +22,8 @@ import {
   GioCardEmptyStateModule,
   GioConfirmAndValidateDialogComponent,
   GioConfirmAndValidateDialogData,
+  GioConfirmDialogComponent,
+  GioConfirmDialogData,
 } from '@gravitee/ui-particles-angular';
 import { Component, computed, DestroyRef, effect, HostListener, inject, NgZone, Signal, signal, viewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
@@ -63,6 +65,7 @@ import {
   PublishNavigationItemDialogData,
   PublishNavigationItemDialogResult,
 } from './publish-navigation-item-dialog/publish-navigation-item-dialog.component';
+import { ImportFileError, IMPORTABLE_FILE_EXTENSIONS, readImportedFile, validateImportFile } from './portal-page-content-import.util';
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
@@ -278,6 +281,8 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       ? !!getPortalNavigationItemSource(navItem)
       : collectNodeIdsWithSourcedPageDescendants(this.menuLinks()).has(navItem.id);
   });
+  readonly importFileDisabled = computed(() => this.actionsDisabled() || this.isContentEditingLocked());
+  protected readonly importFileAccept = IMPORTABLE_FILE_EXTENSIONS.join(',');
 
   // --- Resize Configuration ---
   private readonly ngZone = inject(NgZone);
@@ -760,7 +765,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
               visibility: result.visibility,
               ...(type === 'PAGE' && result.contentType ? { contentType: result.contentType } : {}),
               ...(type === 'PAGE' && result.source ? { source: result.source } : {}),
-            });
+            }).pipe(switchMap(created => this.pushImportedContent(created, result.content, result.contentType)));
           } else {
             if (!existingItem) {
               return EMPTY;
@@ -802,6 +807,26 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
+  }
+
+  /** A page created from a file is created empty, then filled: only the content endpoint carries content. */
+  private pushImportedContent(
+    createdItem: PortalNavigationItem,
+    content: string | undefined,
+    contentType: PortalPageContentType | undefined,
+  ): Observable<PortalNavigationItem> {
+    if (!content || createdItem.type !== 'PAGE') {
+      return of(createdItem);
+    }
+    return this.portalPageContentService.updatePageContent(createdItem.portalPageContentId, { content, type: contentType }).pipe(
+      map(() => createdItem),
+      catchError(error => {
+        if (!(error instanceof HttpErrorResponse)) {
+          this.snackBarService.error('Failed to import the file content into the new page');
+        }
+        return of(createdItem);
+      }),
+    );
   }
 
   private create(newPortalNavigationItem: NewPortalNavigationItem): Observable<PortalNavigationItem> {
@@ -951,6 +976,81 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     if (navId) {
       this.checkUnsavedChangesAndRun(() => this.executeFetch(navId));
     }
+  }
+
+  onImportFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    // Reset so selecting the same file again re-triggers the change event
+    input.value = '';
+    if (!file) {
+      return;
+    }
+
+    const validationError = validateImportFile(file);
+    if (validationError) {
+      this.snackBarService.error(validationError);
+      return;
+    }
+
+    // The import overwrites the saved content with no way back: always confirm, unsaved edits or not
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        width: GIO_DIALOG_WIDTH.SMALL,
+        data: {
+          title: 'Replace page content',
+          content: `Importing "${file.name}" will replace the content of this page, including what is already saved. This cannot be undone.`,
+          confirmButton: 'Replace content',
+          cancelButton: 'Cancel',
+        },
+        role: 'alertdialog',
+        id: 'importFileConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter(confirmed => !!confirmed),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.importFileContent(file));
+  }
+
+  private importFileContent(file: File): void {
+    const navItem = this.selectedNavigationItem()?.data;
+    if (!navItem || navItem.type !== 'PAGE') {
+      return;
+    }
+
+    readImportedFile(file)
+      .pipe(
+        switchMap(({ content, contentType }) =>
+          this.portalPageContentService.updatePageContent(navItem.portalPageContentId, { content, type: contentType }),
+        ),
+        catchError(error => {
+          // HTTP errors are already caught by HttpErrorInterceptor and displayed in the snackbar
+          if (error instanceof ImportFileError) {
+            this.snackBarService.error(error.message);
+          } else if (!(error instanceof HttpErrorResponse)) {
+            this.snackBarService.error(`Failed to import content from "${file.name}"`);
+          }
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(updatedContent => {
+        // The user may have navigated away while the PUT was in flight: the import did succeed
+        // server-side, but this response must not overwrite the now-selected page's editor state
+        const selected = this.selectedNavigationItem()?.data;
+        if (!selected || selected.type !== 'PAGE' || selected.portalPageContentId !== navItem.portalPageContentId) {
+          this.snackBarService.success(`Content imported into "${navItem.title}"`);
+          return;
+        }
+        this.currentPageContentType.set(updatedContent.type);
+        this.currentPageConfiguration.set(updatedContent.configuration ?? {});
+        this.contentControl.reset(updatedContent.content);
+        this.contentControl.updateValueAndValidity();
+        this.initialContent.set(updatedContent.content);
+        this.snackBarService.success(`Content imported from "${file.name}"`);
+      });
   }
 
   private executeFetch(navigationItemId: string): void {

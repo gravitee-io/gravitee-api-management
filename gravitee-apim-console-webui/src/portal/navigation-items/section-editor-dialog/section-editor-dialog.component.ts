@@ -19,15 +19,16 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconRegistry } from '@angular/material/icon';
+import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { LowerCasePipe } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
-import { GioBannerModule, GioFormSelectionInlineModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioFormFilePickerModule, GioFormSelectionInlineModule, NewFile } from '@gravitee/ui-particles-angular';
 import { isEqual, pick } from 'lodash';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Observable, of } from 'rxjs';
+import { EMPTY, Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import {
   PortalNavigationApi,
@@ -44,6 +45,15 @@ import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { urlValidator } from '../../../shared/validators/url.validator';
 import { getPublicVisibilityDisabledTooltip, isPublicVisibilityDisabled } from '../visibility-toggle.util';
 import { NavigationItemSourceEditorComponent } from '../navigation-item-source-editor/navigation-item-source-editor.component';
+import {
+  extractTitleFromFileName,
+  ImportedFileContent,
+  ImportFileError,
+  IMPORTABLE_FILE_EXTENSIONS,
+  readImportedFile,
+  validateImportFile,
+} from '../portal-page-content-import.util';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 export type SectionEditorDialogMode = 'create' | 'edit';
 
@@ -70,6 +80,7 @@ export interface SectionEditorDialogResult {
   url?: string;
   contentType?: PortalPageContentType;
   source?: PortalNavigationItemSource;
+  content?: string;
 }
 
 export type SectionContentSource = 'FILL' | 'IMPORT_FILE' | 'EXTERNAL';
@@ -125,6 +136,8 @@ type SectionForm = FormGroup<SectionFormControls>;
     LowerCasePipe,
     MatTooltipModule,
     NavigationItemSourceEditorComponent,
+    GioFormFilePickerModule,
+    MatIconModule,
   ],
   templateUrl: './section-editor-dialog.component.html',
   styleUrls: ['./section-editor-dialog.component.scss'],
@@ -152,8 +165,22 @@ export class SectionEditorDialogComponent implements OnInit {
   public initialSource: PortalNavigationItemSource | undefined;
   private readonly sourceEditor = viewChild(NavigationItemSourceEditorComponent);
 
+  // --- File import state ---
+  readonly importFileControl = new FormControl<(NewFile | string)[]>([]);
+  readonly importFileAccept = IMPORTABLE_FILE_EXTENSIONS.join(',');
+  readonly importedFile = signal<ImportedFileContent | null>(null);
+  readonly importedFileName = signal<string | null>(null);
+  readonly importedContentTypeLabel = computed(() => {
+    const contentType = this.importedFile()?.contentType;
+    return PORTAL_PAGE_CONTENT_TYPE_OPTIONS.find(option => option.value === contentType)?.label ?? '';
+  });
+
+  showFileImport(): boolean {
+    return this.isCreatePageFlow() && this.contentSource() === 'IMPORT_FILE';
+  }
+
   showPageTypeSelection(): boolean {
-    return this.mode === 'create' && this.type === 'PAGE';
+    return this.mode === 'create' && this.type === 'PAGE' && this.contentSource() !== 'IMPORT_FILE';
   }
 
   isCreatePageFlow(): boolean {
@@ -176,6 +203,7 @@ export class SectionEditorDialogComponent implements OnInit {
   private readonly iconRegistry = inject(MatIconRegistry);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly apiService = inject(ApiV2Service);
+  private readonly snackBarService = inject(SnackBarService);
   private readonly destroyRef = inject(DestroyRef);
   readonly publicDisabled: Signal<boolean> = computed(() => {
     return isPublicVisibilityDisabled(this.data.parentItem);
@@ -218,6 +246,8 @@ export class SectionEditorDialogComponent implements OnInit {
       this.isSourceChoiceStep.set(true);
     }
 
+    this.importFileControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(files => this.onFilePicked(files ?? []));
+
     this.useExternalSourceControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(useSource => {
       if (!this.initialSource) {
         return;
@@ -235,6 +265,40 @@ export class SectionEditorDialogComponent implements OnInit {
 
   continueToDetails(): void {
     this.isSourceChoiceStep.set(false);
+  }
+
+  private onFilePicked(files: (NewFile | string)[]): void {
+    this.importedFile.set(null);
+    this.importedFileName.set(null);
+
+    const picked = files.find(file => file instanceof NewFile);
+    if (!picked?.file) {
+      return;
+    }
+    const file = picked.file;
+
+    const validationError = validateImportFile(file);
+    if (validationError) {
+      this.snackBarService.error(validationError);
+      return;
+    }
+
+    readImportedFile(file)
+      .pipe(
+        catchError(error => {
+          this.snackBarService.error(error instanceof ImportFileError ? error.message : `Failed to read "${file.name}"`);
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(imported => {
+        this.importedFile.set(imported);
+        this.importedFileName.set(file.name);
+        this.form.controls.contentType?.setValue(imported.contentType);
+        if (!this.form.controls.title.value.trim()) {
+          this.form.controls.title.setValue(extractTitleFromFileName(file.name));
+        }
+      });
   }
 
   backToSourceChoice(): void {
@@ -263,7 +327,7 @@ export class SectionEditorDialogComponent implements OnInit {
         }),
       );
     }
-    if (this.showPageTypeSelection()) {
+    if (this.isCreatePageFlow()) {
       this.form.addControl('contentType', new FormControl<PortalPageContentType>('GRAVITEE_MARKDOWN', { nonNullable: true }));
     }
   }
@@ -297,8 +361,9 @@ export class SectionEditorDialogComponent implements OnInit {
       title: formValues.title,
       visibility: formValues.isPrivate ? 'PRIVATE' : 'PUBLIC',
       ...(this.type === 'LINK' ? { url: formValues.url! } : {}),
-      ...(this.showPageTypeSelection() && formValues.contentType ? { contentType: formValues.contentType } : {}),
+      ...(this.isCreatePageFlow() && formValues.contentType ? { contentType: formValues.contentType } : {}),
       ...(this.isExternalSourceActive() ? { source: this.sourceEditor()?.buildSource() ?? undefined } : {}),
+      ...(this.showFileImport() && this.importedFile() ? { content: this.importedFile()!.content } : {}),
     });
   }
 
@@ -309,6 +374,9 @@ export class SectionEditorDialogComponent implements OnInit {
   isSubmitDisabled(): boolean {
     if (!this.form.valid) {
       return true;
+    }
+    if (this.showFileImport()) {
+      return !this.importedFile();
     }
     if (this.isExternalSourceActive()) {
       const editor = this.sourceEditor();

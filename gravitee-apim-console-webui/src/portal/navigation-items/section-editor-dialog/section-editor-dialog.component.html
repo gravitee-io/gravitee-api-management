@@ -29,10 +29,10 @@
             <gio-card-content-subtitle>Write Markdown or OpenAPI directly in the editor</gio-card-content-subtitle>
           </gio-form-selection-inline-card-content>
         </gio-form-selection-inline-card>
-        <gio-form-selection-inline-card value="IMPORT_FILE" [disabled]="true">
+        <gio-form-selection-inline-card value="IMPORT_FILE">
           <gio-form-selection-inline-card-content icon="gio:upload">
             <gio-card-content-title>Import from file</gio-card-content-title>
-            <gio-card-content-subtitle>Upload a .md or .yaml file from your machine (coming soon)</gio-card-content-subtitle>
+            <gio-card-content-subtitle>Upload a Markdown, OpenAPI or AsyncAPI file from your machine</gio-card-content-subtitle>
           </gio-form-selection-inline-card-content>
         </gio-form-selection-inline-card>
         <gio-form-selection-inline-card value="EXTERNAL">
@@ -64,6 +64,24 @@
           }
         </gio-form-selection-inline>
       }
+      @if (showFileImport()) {
+        <div class="form-field-title">File</div>
+        <gio-form-file-picker class="section-editor-dialog__file-picker" [accept]="importFileAccept" [formControl]="importFileControl">
+          <gio-form-file-picker-add-button>
+            <div class="section-editor-dialog__file-picker__prompt">
+              <mat-icon svgIcon="gio:upload"></mat-icon>
+              <p class="mat-body-strong">Drag and drop a file, or click here to choose one.</p>
+              <p>Supported formats: {{ importFileAccept }}</p>
+            </div>
+          </gio-form-file-picker-add-button>
+        </gio-form-file-picker>
+        @if (importedFileName(); as fileName) {
+          <gio-banner-info data-testid="imported-file-banner">
+            {{ fileName }} will be imported as {{ importedContentTypeLabel() }}.
+          </gio-banner-info>
+        }
+      }
+
       <div class="form-field-title">Title</div>
       <mat-form-field>
         <mat-label>{{ titleFieldLabel }}</mat-label>
