@@ -109,6 +109,10 @@ jest.mock('../pages/CreateIdentityProviderPage', () => ({
     CreateIdentityProviderPage: () => <div data-testid="create-identity-provider-page" />,
 }));
 
+jest.mock('../pages/EditIdentityProviderPage', () => ({
+    EditIdentityProviderPage: () => <div data-testid="edit-identity-provider-page" />,
+}));
+
 jest.mock('../pages/RegisterApplicationPage', () => ({
     RegisterApplicationPage: () => <div data-testid="register-application-page" />,
 }));
@@ -743,6 +747,11 @@ describe('AppRoutes', () => {
         expect(screen.getByTestId('create-identity-provider-page')).not.toBeNull();
     });
 
+    it('routes to Edit Identity Provider', () => {
+        renderPlatform('/authentication/google-idp');
+        expect(screen.getByTestId('edit-identity-provider-page')).not.toBeNull();
+    });
+
     it('hides Authentication without organization-identity_provider-r', () => {
         mockUseModuleRouting.mockReturnValue({
             activeNavKey: 'access-management',
@@ -761,5 +770,12 @@ describe('AppRoutes', () => {
         renderPlatform('/authentication/new');
         expect(screen.queryByTestId('create-identity-provider-page')).toBeNull();
         expect(screen.getByTestId('authentication-page')).not.toBeNull();
+    });
+
+    it('redirects Edit Identity Provider to applications without organization-identity_provider-r', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('organization-identity_provider-r'));
+        renderPlatform('/authentication/google-idp');
+        expect(screen.queryByTestId('edit-identity-provider-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
     });
 });

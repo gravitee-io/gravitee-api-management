@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { formatTruncatedNameSummary } from '../../../shared/utils/truncatedList';
 import type { OrganizationUser } from '../types/user';
+
 export { isValidEmail } from '../../../shared/utils/email';
 
 /** Strips HTML tags from user-provided name fields before submit. */
@@ -41,19 +43,7 @@ export function formatTruncatedRoleSummary(
     roles: { name?: string; scope?: string }[] | undefined,
     visibleCount = 3,
 ): { display: string; full: string; truncated: boolean } {
-    const names = roleDisplayNames(roles, { fallbackToId: true });
-    if (names.length === 0) {
-        return { display: '—', full: '—', truncated: false };
-    }
-    const full = names.join(', ');
-    if (names.length <= visibleCount) {
-        return { display: full, full, truncated: false };
-    }
-    return {
-        display: `${names.slice(0, visibleCount).join(', ')}...`,
-        full,
-        truncated: true,
-    };
+    return formatTruncatedNameSummary(roleDisplayNames(roles, { fallbackToId: true }), visibleCount);
 }
 
 export function formatUserStatus(status: string | undefined): string {

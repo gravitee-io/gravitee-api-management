@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-export const authenticationKeys = {
-    all: ['org-authentication'] as const,
-    providers: () => [...authenticationKeys.all, 'providers'] as const,
-    activations: () => [...authenticationKeys.all, 'activations'] as const,
-    detail: (id: string) => [...authenticationKeys.all, 'detail', id] as const,
-} as const;
+export interface LocalLoginConsoleSettings {
+    authentication?: {
+        localLogin?: {
+            enabled?: boolean;
+        };
+    };
+}
+
+export function isLocalLoginEnabled(settings: LocalLoginConsoleSettings | undefined): boolean {
+    return settings?.authentication?.localLogin?.enabled ?? true;
+}

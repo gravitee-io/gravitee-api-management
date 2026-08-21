@@ -13,8 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const ROLE_LIST_TOOLTIP_CONTENT_CLASS = 'block max-w-xs items-start p-1 text-left text-xs';
 
-export function RoleListTooltipContent({ labels }: Readonly<{ labels: string[] }>) {
-    return <span className="min-w-0 max-h-48 overflow-y-auto [overflow-wrap:anywhere]">{labels.join(', ')}</span>;
-}
+export { isLocalLoginEnabled, type LocalLoginConsoleSettings } from './isLocalLoginEnabled';

@@ -54,6 +54,11 @@ beforeAll(() => {
             dispatchEvent: jest.fn(),
         })),
     });
+    global.ResizeObserver = class ResizeObserver {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+    } as typeof ResizeObserver;
 });
 
 describe('UserProfileCard', () => {
@@ -79,5 +84,28 @@ describe('UserProfileCard', () => {
         expect(copyTextToClipboardWithNotifyHandler).toHaveBeenCalledWith('anna.schmidt@company.com', 'Copied to clipboard');
         expect(copyTextToClipboardWithNotifyHandler).toHaveBeenCalledWith('ldap', 'Copied to clipboard');
         expect(copyTextToClipboardWithNotifyHandler).toHaveBeenCalledWith('Operations', 'Copied to clipboard');
+    });
+
+    it('shows three organization roles then an ellipsis, with the full list on hover', async () => {
+        const user = userEvent.setup();
+        renderWithGraphene(
+            <UserProfileCard
+                user={{
+                    ...USER,
+                    roles: [
+                        { id: 'org-2', name: 'ORGANIZATION_2', scope: 'ORGANIZATION' },
+                        { id: 'org', name: 'ORG', scope: 'ORGANIZATION' },
+                        { id: 'org-1', name: 'ORGANIZATION_1', scope: 'ORGANIZATION' },
+                        { id: 'user', name: 'USER', scope: 'ORGANIZATION' },
+                    ],
+                }}
+            />,
+        );
+
+        expect(screen.getByText('ORGANIZATION_2, ORG, ORGANIZATION_1...')).toBeTruthy();
+        expect(screen.queryByText('ORGANIZATION_2, ORG, ORGANIZATION_1, USER')).toBeNull();
+
+        await user.hover(screen.getByText('ORGANIZATION_2, ORG, ORGANIZATION_1...'));
+        expect((await screen.findByRole('tooltip')).textContent).toBe('ORGANIZATION_2, ORG, ORGANIZATION_1, USER');
     });
 });

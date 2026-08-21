@@ -19,8 +19,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { saveOrgConsoleSettings } from '../../organization-settings/services/consoleSettings';
 import type { ConsoleSettings } from '../../organization-settings/types/consoleSettings';
 import { orgConsoleSettingsKeys } from '../../organization-settings/utils/queryKeys';
-import { createIdentityProvider, deleteIdentityProvider, updateActivatedIdentityProviders } from '../services/identityProviders';
-import type { NewIdentityProviderPayload } from '../types/identityProvider';
+import {
+    createIdentityProvider,
+    deleteIdentityProvider,
+    updateActivatedIdentityProviders,
+    updateIdentityProvider,
+} from '../services/identityProviders';
+import type { NewIdentityProviderPayload, UpdateIdentityProviderPayload } from '../types/identityProvider';
 import { authenticationKeys } from '../utils/queryKeys';
 
 async function invalidateAuthentication(queryClient: ReturnType<typeof useQueryClient>) {
@@ -37,10 +42,20 @@ export function useCreateIdentityProvider() {
     });
 }
 
+export function useUpdateIdentityProvider(id: string) {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (payload: UpdateIdentityProviderPayload) => updateIdentityProvider(id, payload),
+        onSuccess: async () => {
+            await invalidateAuthentication(queryClient);
+        },
+    });
+}
+
 export function useDeleteIdentityProvider() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (id: string) => deleteIdentityProvider(id),
+        mutationFn: (providerId: string) => deleteIdentityProvider(providerId),
         onSuccess: async () => {
             await invalidateAuthentication(queryClient);
         },

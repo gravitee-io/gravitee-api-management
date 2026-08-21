@@ -25,11 +25,13 @@ export function IdentityProviderConfigurationFields({
     form,
     showErrors,
     errors,
+    disabled = false,
     onPatch,
 }: Readonly<{
     form: IdentityProviderFormState;
     showErrors: boolean;
     errors: Record<string, string>;
+    disabled?: boolean;
     onPatch: (patch: Partial<IdentityProviderFormState['configuration']>) => void;
 }>) {
     return (
@@ -41,6 +43,7 @@ export function IdentityProviderConfigurationFields({
                 <Input
                     id="idp-client-id"
                     value={form.configuration.clientId}
+                    disabled={disabled}
                     aria-required="true"
                     aria-invalid={showErrors && !!errors.clientId}
                     aria-describedby={showErrors && errors.clientId ? 'idp-client-id-error' : undefined}
@@ -56,6 +59,7 @@ export function IdentityProviderConfigurationFields({
                     id="idp-client-secret"
                     autoComplete="off"
                     value={form.configuration.clientSecret}
+                    disabled={disabled}
                     aria-required="true"
                     aria-invalid={showErrors && !!errors.clientSecret}
                     aria-describedby={showErrors && errors.clientSecret ? 'idp-client-secret-error' : undefined}
@@ -74,6 +78,7 @@ export function IdentityProviderConfigurationFields({
                             id="idp-server-url"
                             type="url"
                             value={form.configuration.serverURL ?? ''}
+                            disabled={disabled}
                             aria-required="true"
                             aria-invalid={showErrors && !!errors.serverURL}
                             aria-describedby={showErrors && errors.serverURL ? 'idp-server-url-error' : undefined}
@@ -88,6 +93,7 @@ export function IdentityProviderConfigurationFields({
                         <Input
                             id="idp-domain"
                             value={form.configuration.domain ?? ''}
+                            disabled={disabled}
                             aria-required="true"
                             aria-invalid={showErrors && !!errors.domain}
                             aria-describedby={showErrors && errors.domain ? 'idp-domain-error' : undefined}
@@ -101,6 +107,7 @@ export function IdentityProviderConfigurationFields({
                             id="idp-scopes"
                             values={form.configuration.scopes ?? []}
                             placeholder="Enter a scope and press Enter"
+                            disabled={disabled}
                             onChange={scopes => onPatch({ scopes })}
                         />
                     </Field>
@@ -109,7 +116,7 @@ export function IdentityProviderConfigurationFields({
                         <ColorField
                             id="idp-color"
                             value={form.configuration.color ?? ''}
-                            disabled={false}
+                            disabled={disabled}
                             onChange={color => onPatch({ color })}
                         />
                     </Field>
@@ -126,6 +133,7 @@ export function IdentityProviderConfigurationFields({
                             id="idp-token-endpoint"
                             type="url"
                             value={form.configuration.tokenEndpoint ?? ''}
+                            disabled={disabled}
                             aria-required="true"
                             aria-invalid={showErrors && !!errors.tokenEndpoint}
                             aria-describedby={showErrors && errors.tokenEndpoint ? 'idp-token-endpoint-error' : undefined}
@@ -141,6 +149,7 @@ export function IdentityProviderConfigurationFields({
                             id="idp-token-introspection"
                             type="url"
                             value={form.configuration.tokenIntrospectionEndpoint ?? ''}
+                            disabled={disabled}
                             onChange={event => onPatch({ tokenIntrospectionEndpoint: event.target.value })}
                         />
                     </Field>
@@ -152,6 +161,7 @@ export function IdentityProviderConfigurationFields({
                             id="idp-authorize-endpoint"
                             type="url"
                             value={form.configuration.authorizeEndpoint ?? ''}
+                            disabled={disabled}
                             aria-required="true"
                             aria-invalid={showErrors && !!errors.authorizeEndpoint}
                             aria-describedby={showErrors && errors.authorizeEndpoint ? 'idp-authorize-endpoint-error' : undefined}
@@ -169,6 +179,7 @@ export function IdentityProviderConfigurationFields({
                             id="idp-userinfo-endpoint"
                             type="url"
                             value={form.configuration.userInfoEndpoint ?? ''}
+                            disabled={disabled}
                             aria-required="true"
                             aria-invalid={showErrors && !!errors.userInfoEndpoint}
                             aria-describedby={showErrors && errors.userInfoEndpoint ? 'idp-userinfo-endpoint-error' : undefined}
@@ -184,6 +195,7 @@ export function IdentityProviderConfigurationFields({
                             id="idp-logout-endpoint"
                             type="url"
                             value={form.configuration.userLogoutEndpoint ?? ''}
+                            disabled={disabled}
                             onChange={event => onPatch({ userLogoutEndpoint: event.target.value })}
                         />
                     </Field>
@@ -200,6 +212,7 @@ export function IdentityProviderConfigurationFields({
                             required
                             invalid={showErrors && !!errors.scopes}
                             describedBy={showErrors && errors.scopes ? 'idp-oidc-scopes-error' : undefined}
+                            disabled={disabled}
                             onChange={scopes => onPatch({ scopes })}
                         />
                         {showErrors && errors.scopes ? <FieldError id="idp-oidc-scopes-error">{errors.scopes}</FieldError> : null}
@@ -209,7 +222,7 @@ export function IdentityProviderConfigurationFields({
                         <ColorField
                             id="idp-oidc-color"
                             value={form.configuration.color ?? ''}
-                            disabled={false}
+                            disabled={disabled}
                             onChange={color => onPatch({ color })}
                         />
                     </Field>
@@ -223,11 +236,13 @@ export function IdentityProviderUserProfileFields({
     form,
     showErrors,
     errors,
+    disabled = false,
     onChange,
 }: Readonly<{
     form: IdentityProviderFormState;
     showErrors: boolean;
     errors: Record<string, string>;
+    disabled?: boolean;
     onChange: (mapping: IdentityProviderFormState['userProfileMapping']) => void;
 }>) {
     return (
@@ -240,6 +255,7 @@ export function IdentityProviderUserProfileFields({
                     id="idp-profile-id"
                     value={form.userProfileMapping.id}
                     placeholder="sub"
+                    disabled={disabled}
                     aria-required="true"
                     aria-invalid={showErrors && !!errors.profileId}
                     aria-describedby={showErrors && errors.profileId ? 'idp-profile-id-error' : undefined}
@@ -253,6 +269,7 @@ export function IdentityProviderUserProfileFields({
                     id="idp-profile-firstname"
                     value={form.userProfileMapping.firstname ?? ''}
                     placeholder="given_name"
+                    disabled={disabled}
                     onChange={event => onChange({ ...form.userProfileMapping, firstname: event.target.value })}
                 />
             </Field>
@@ -262,6 +279,7 @@ export function IdentityProviderUserProfileFields({
                     id="idp-profile-lastname"
                     value={form.userProfileMapping.lastname ?? ''}
                     placeholder="family_name"
+                    disabled={disabled}
                     onChange={event => onChange({ ...form.userProfileMapping, lastname: event.target.value })}
                 />
             </Field>
@@ -271,6 +289,7 @@ export function IdentityProviderUserProfileFields({
                     id="idp-profile-email"
                     value={form.userProfileMapping.email ?? ''}
                     placeholder="email"
+                    disabled={disabled}
                     onChange={event => onChange({ ...form.userProfileMapping, email: event.target.value })}
                 />
             </Field>
@@ -280,6 +299,7 @@ export function IdentityProviderUserProfileFields({
                     id="idp-profile-picture"
                     value={form.userProfileMapping.picture ?? ''}
                     placeholder="picture"
+                    disabled={disabled}
                     onChange={event => onChange({ ...form.userProfileMapping, picture: event.target.value })}
                 />
             </Field>

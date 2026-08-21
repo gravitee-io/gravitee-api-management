@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Button, DataTableEmptyState } from '@gravitee/graphene-core';
+import { Button, Card, CardContent, DataTableEmptyState } from '@gravitee/graphene-core';
 import {
     ArrowRightIcon,
     CircleCheckIcon,
@@ -88,25 +88,29 @@ export function AuthenticationEmptyProviders({ canCreate = false, onAdd }: Reado
             }
         >
             <div className="flex flex-col items-stretch gap-4 md:flex-row">
-                <div className="flex-1 space-y-3 rounded-xl border p-4">
-                    <p className="text-xs font-semibold text-muted-foreground">Without a provider</p>
-                    <ul className="space-y-1">
-                        {WITHOUT.map(label => (
-                            <ComparisonLine key={label} label={label} variant="negative" />
-                        ))}
-                    </ul>
-                </div>
+                <Card className="flex-1">
+                    <CardContent className="space-y-3 pt-6">
+                        <p className="text-xs font-semibold text-muted-foreground">Without a provider</p>
+                        <ul className="space-y-1">
+                            {WITHOUT.map(label => (
+                                <ComparisonLine key={label} label={label} variant="negative" />
+                            ))}
+                        </ul>
+                    </CardContent>
+                </Card>
                 <div className="hidden shrink-0 items-center justify-center md:flex">
                     <ArrowRightIcon className="size-5 text-primary" aria-hidden />
                 </div>
-                <div className="flex-1 space-y-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
-                    <p className="text-xs font-semibold text-primary">With a provider</p>
-                    <ul className="space-y-1">
-                        {WITH.map(label => (
-                            <ComparisonLine key={label} label={label} variant="positive" />
-                        ))}
-                    </ul>
-                </div>
+                <Card className="flex-1 border-primary/20 bg-primary/5">
+                    <CardContent className="space-y-3 pt-6">
+                        <p className="text-xs font-semibold text-primary">With a provider</p>
+                        <ul className="space-y-1">
+                            {WITH.map(label => (
+                                <ComparisonLine key={label} label={label} variant="positive" />
+                            ))}
+                        </ul>
+                    </CardContent>
+                </Card>
             </div>
 
             <div className="flex flex-col gap-4 pt-5 md:flex-row">

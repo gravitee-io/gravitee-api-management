@@ -13,21 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    Button,
-    cn,
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from '@gravitee/graphene-core';
+import { Button, cn, Popover, PopoverContent, PopoverTrigger, TooltipProvider } from '@gravitee/graphene-core';
 import { CheckIcon, ChevronDownIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useMemo, useState } from 'react';
 
-import { ROLE_LIST_TOOLTIP_CONTENT_CLASS, RoleListTooltipContent } from './RoleListTooltip';
+import { TruncatedDisplayText } from '../../../shared/components/TruncatedDisplayText';
+import { formatTruncatedRoleSummary } from '../utils/userDisplay';
 
 export interface RoleMultiSelectOption {
     value: string;
@@ -43,35 +34,6 @@ interface UserRoleMultiSelectProps {
     readonly disabled?: boolean;
     readonly emptyMessage?: string;
     readonly className?: string;
-}
-
-function RoleDisplayText({
-    displayText,
-    isPlaceholder,
-    showTooltip,
-    labels,
-}: Readonly<{
-    displayText: string;
-    isPlaceholder: boolean;
-    showTooltip: boolean;
-    labels: string[];
-}>) {
-    const textClassName = cn('min-w-0 flex-1 truncate text-left', isPlaceholder && 'text-muted-foreground');
-
-    if (!showTooltip) {
-        return <span className={textClassName}>{displayText}</span>;
-    }
-
-    return (
-        <Tooltip>
-            <TooltipTrigger asChild>
-                <span className={textClassName}>{displayText}</span>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" align="start" className={ROLE_LIST_TOOLTIP_CONTENT_CLASS}>
-                <RoleListTooltipContent labels={labels} />
-            </TooltipContent>
-        </Tooltip>
-    );
 }
 
 export function UserRoleMultiSelect({
@@ -95,8 +57,12 @@ export function UserRoleMultiSelect({
         () => options.filter(option => draftValues.includes(option.value)).map(option => option.label),
         [draftValues, options],
     );
-    const displayText = selectedLabels.length === 0 ? placeholder : selectedLabels.join(', ');
-    const showTooltip = selectedLabels.length > 0 && !popoverOpen;
+    const roleSummary = formatTruncatedRoleSummary(
+        selectedLabels.map(name => ({ name })),
+        3,
+    );
+    const displayText = selectedLabels.length === 0 ? placeholder : roleSummary.display;
+    const showTooltip = roleSummary.truncated && !popoverOpen;
 
     function toggleRole(roleId: string) {
         setDraftValues(current => (current.includes(roleId) ? current.filter(value => value !== roleId) : [...current, roleId]));
@@ -127,7 +93,7 @@ export function UserRoleMultiSelect({
                         disabled={disabled}
                         className={cn('h-10 w-72 max-w-full justify-between gap-2 px-3 font-normal', className)}
                     >
-                        <RoleDisplayText
+                        <TruncatedDisplayText
                             displayText={displayText}
                             isPlaceholder={selectedLabels.length === 0}
                             showTooltip={showTooltip}

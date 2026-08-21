@@ -15,25 +15,13 @@
  */
 
 import { useHasFeature } from '@gravitee/gamma-modules-sdk';
-import {
-    Button,
-    Card,
-    CardContent,
-    Field,
-    FieldDescription,
-    FieldError,
-    FieldLabel,
-    Input,
-    RadioGroup,
-    RadioGroupItem,
-} from '@gravitee/graphene-core';
+import { Button, Card, CardContent } from '@gravitee/graphene-core';
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { IdentityProviderConfigurationFields, IdentityProviderUserProfileFields } from './IdentityProviderConfigurationFields';
+import { IdentityProviderGeneralFields } from './IdentityProviderGeneralFields';
 import { IdentityProviderTypeSelector } from './IdentityProviderTypeSelector';
-import { RequiredMark } from './RequiredMark';
-import { ToggleRow } from './ToggleRow';
 import { notify } from '../../../shared/notify';
 import { useCreateIdentityProvider } from '../hooks/useIdentityProviderMutations';
 import { OPENID_CONNECT_SSO_LICENSE_FEATURE } from '../license/openidConnectSsoLicense';
@@ -42,8 +30,6 @@ import {
     emptyIdentityProviderForm,
     formToCreatePayload,
     formWithType,
-    IDENTITY_PROVIDER_NAME_MAX,
-    IDENTITY_PROVIDER_NAME_MIN,
     validateIdentityProviderForm,
     type IdentityProviderFormState,
 } from '../utils/identityProviderForm';
@@ -69,9 +55,9 @@ export function IdentityProviderCreateForm() {
             return;
         }
         try {
-            await createMutation.mutateAsync(formToCreatePayload(form));
+            const created = await createMutation.mutateAsync(formToCreatePayload(form));
             notify.success('Identity provider successfully saved!');
-            navigate('..');
+            navigate(`../${created.id}`, { relative: 'path' });
         } catch (error: unknown) {
             notify.error(error, 'Failed to create identity provider');
         }
@@ -93,71 +79,13 @@ export function IdentityProviderCreateForm() {
             <Card>
                 <CardContent className="space-y-4 pt-6">
                     <h2 className="text-base font-semibold">General</h2>
-                    <Field>
-                        <FieldLabel htmlFor="idp-name">
-                            Name <RequiredMark />
-                        </FieldLabel>
-                        <Input
-                            id="idp-name"
-                            value={form.name}
-                            minLength={IDENTITY_PROVIDER_NAME_MIN}
-                            maxLength={IDENTITY_PROVIDER_NAME_MAX}
-                            aria-required="true"
-                            aria-invalid={showErrors && !!errors.name}
-                            aria-describedby={showErrors && errors.name ? 'idp-name-error' : 'idp-name-hint'}
-                            onChange={event => setForm(prev => ({ ...prev, name: event.target.value }))}
-                        />
-                        <FieldDescription id="idp-name-hint">
-                            Identity provider name. The name will be used to define the authentication endpoint.
-                        </FieldDescription>
-                        {showErrors && errors.name ? <FieldError id="idp-name-error">{errors.name}</FieldError> : null}
-                    </Field>
-                    <Field>
-                        <FieldLabel htmlFor="idp-description">Description</FieldLabel>
-                        <Input
-                            id="idp-description"
-                            value={form.description}
-                            onChange={event => setForm(prev => ({ ...prev, description: event.target.value }))}
-                        />
-                        <FieldDescription>Provide a description of the identity provider.</FieldDescription>
-                    </Field>
-                    <ToggleRow
-                        id="idp-enabled"
-                        label="Allow portal authentication to use this identity provider"
-                        checked={form.enabled}
-                        disabled={false}
-                        onToggle={enabled => setForm(prev => ({ ...prev, enabled }))}
+                    <IdentityProviderGeneralFields
+                        form={form}
+                        showErrors={showErrors}
+                        errors={errors}
+                        disabled={createMutation.isPending}
+                        onChange={patch => setForm(prev => ({ ...prev, ...patch }))}
                     />
-                    <ToggleRow
-                        id="idp-email-required"
-                        label="A public email is required to be able to authenticate"
-                        checked={form.emailRequired}
-                        disabled={false}
-                        onToggle={emailRequired => setForm(prev => ({ ...prev, emailRequired }))}
-                    />
-                    <Field>
-                        <FieldLabel>Group and role mappings</FieldLabel>
-                        <FieldDescription>Platform administrators still have the ability to override mappings.</FieldDescription>
-                        <RadioGroup
-                            value={form.syncMappings ? 'each' : 'first'}
-                            onValueChange={value => setForm(prev => ({ ...prev, syncMappings: value === 'each' }))}
-                            className="mt-2 space-y-2"
-                            aria-label="Group and role mappings"
-                        >
-                            <div className="flex items-center gap-2 text-sm">
-                                <RadioGroupItem value="first" id="idp-sync-first" />
-                                <FieldLabel htmlFor="idp-sync-first" className="cursor-pointer font-normal">
-                                    Computed only during first user authentication
-                                </FieldLabel>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm">
-                                <RadioGroupItem value="each" id="idp-sync-each" />
-                                <FieldLabel htmlFor="idp-sync-each" className="cursor-pointer font-normal">
-                                    Computed during each user authentication
-                                </FieldLabel>
-                            </div>
-                        </RadioGroup>
-                    </Field>
                 </CardContent>
             </Card>
 

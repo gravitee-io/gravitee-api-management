@@ -16,6 +16,8 @@
 
 import { buttonHarness, dataTableHarness, inputHarness, renderWithGraphene } from '@gravitee/graphene-core/testing';
 import { fireEvent, screen } from '@testing-library/react';
+import type { ReactElement } from 'react';
+import { MemoryRouter } from 'react-router-dom';
 
 import { IdentityProvidersTable } from './IdentityProvidersTable';
 import type { IdentityProviderRow } from '../types/identityProvider';
@@ -71,15 +73,17 @@ beforeAll(() => {
 });
 
 describe('IdentityProvidersTable', () => {
+    function renderTable(ui: ReactElement) {
+        return renderWithGraphene(<MemoryRouter initialEntries={['/authentication']}>{ui}</MemoryRouter>);
+    }
     it('renders name, callback id, status, and type', () => {
-        renderWithGraphene(<IdentityProvidersTable rows={ROWS} />);
+        renderTable(<IdentityProvidersTable rows={ROWS} />);
         const table = identityProvidersTable();
         expect(table.getHeaders().slice(0, 4)).toEqual(['Name', 'Id', 'Status', 'Type']);
         expect(table.getRow('Gravitee.io AM').getCellText('Name')).toBe('Gravitee.io AM');
         expect(table.getRow('Google SSO').getCellText('Name')).toBe('Google');
-        expect(table.getRow('Google SSO').getCellText('Id')).toBe('google-idp');
         expect(table.getRow('Gravitee.io AM').getCellText('Id')).toBe('gravitee-am');
-        expect(screen.queryByRole('link', { name: 'Google' })).toBeNull();
+        expect(table.getRow('Google SSO').getCellText('Id')).toBe('google-idp');
         expect(table.getRow('Gravitee.io AM').getCellText('Type')).toBe('Gravitee.io AM');
         expect(table.getRow('Google SSO').getCellText('Type')).toBe('Google');
         expect(table.getRow('Google SSO').getCellElement('Type').querySelector('svg')).toBeNull();
@@ -90,7 +94,7 @@ describe('IdentityProvidersTable', () => {
     });
 
     it('filters rows by search query', async () => {
-        renderWithGraphene(<IdentityProvidersTable rows={ROWS} />);
+        renderTable(<IdentityProvidersTable rows={ROWS} />);
         await inputHarness({ name: 'Search identity providers' }).type('google');
         const table = identityProvidersTable();
         expect(table.queryRow('Organization AM')).toBeNull();
@@ -98,7 +102,7 @@ describe('IdentityProvidersTable', () => {
     });
 
     it('filters rows by callback id', async () => {
-        renderWithGraphene(<IdentityProvidersTable rows={ROWS} />);
+        renderTable(<IdentityProvidersTable rows={ROWS} />);
         await inputHarness({ name: 'Search identity providers' }).type('google-idp');
         const table = identityProvidersTable();
         expect(table.queryRow('Organization AM')).toBeNull();
@@ -106,7 +110,7 @@ describe('IdentityProvidersTable', () => {
     });
 
     it('clears the search from the no-results empty state', async () => {
-        renderWithGraphene(<IdentityProvidersTable rows={ROWS} />);
+        renderTable(<IdentityProvidersTable rows={ROWS} />);
         await inputHarness({ name: 'Search identity providers' }).type('nobody');
         expect(identityProvidersTable().isEmpty()).toBe(true);
         expect(screen.getByText('No identity providers found')).not.toBeNull();
@@ -116,7 +120,7 @@ describe('IdentityProvidersTable', () => {
 
     it('calls onToggle when Activate is selected', async () => {
         const onToggle = jest.fn();
-        renderWithGraphene(<IdentityProvidersTable rows={ROWS} canActivate onToggle={onToggle} />);
+        renderTable(<IdentityProvidersTable rows={ROWS} canActivate onToggle={onToggle} />);
         await buttonHarness({ name: /Actions for Google/i }).click();
         (await screen.findByRole('menuitem', { name: /^Activate$/ })).click();
         expect(onToggle).toHaveBeenCalledWith(ROWS[1]);
@@ -124,19 +128,19 @@ describe('IdentityProvidersTable', () => {
 
     it('calls onDelete when Delete is selected', async () => {
         const onDelete = jest.fn();
-        renderWithGraphene(<IdentityProvidersTable rows={ROWS} canDelete onDelete={onDelete} />);
+        renderTable(<IdentityProvidersTable rows={ROWS} canDelete onDelete={onDelete} />);
         await buttonHarness({ name: /Actions for Gravitee.io AM/i }).click();
         (await screen.findByRole('menuitem', { name: /^Delete$/ })).click();
         expect(onDelete).toHaveBeenCalledWith(ROWS[0]);
     });
 
     it('hides the actions menu when the user cannot activate or delete', () => {
-        renderWithGraphene(<IdentityProvidersTable rows={ROWS} />);
+        renderTable(<IdentityProvidersTable rows={ROWS} />);
         expect(screen.queryByRole('button', { name: /Actions for Google/i })).toBeNull();
     });
 
     it('shows an unknown status instead of deactivated when activation state is missing', () => {
-        renderWithGraphene(
+        renderTable(
             <IdentityProvidersTable
                 rows={ROWS.map(row => {
                     const { activated: _activated, ...rest } = row;
@@ -148,7 +152,7 @@ describe('IdentityProvidersTable', () => {
     });
 
     it('omits Activate when activation state is unknown', async () => {
-        renderWithGraphene(
+        renderTable(
             <IdentityProvidersTable
                 rows={ROWS.map(row => {
                     const { activated: _activated, ...rest } = row;
@@ -178,10 +182,16 @@ describe('IdentityProvidersTable', () => {
             created_at: 1,
             updated_at: 1,
         }));
-        renderWithGraphene(<IdentityProvidersTable rows={many} />);
+        renderTable(<IdentityProvidersTable rows={many} />);
         fireEvent.click(screen.getByRole('button', { name: 'Next page' }));
         const table = identityProvidersTable();
         expect(table.queryRow('Description 0')).toBeNull();
         expect(table.getRow('Description 10').getCellText('Name')).toBe('Provider 10');
+    });
+
+    it('links each provider name to the edit page', () => {
+        renderTable(<IdentityProvidersTable rows={ROWS} />);
+        expect(screen.getByRole('link', { name: 'Gravitee.io AM' }).getAttribute('href')).toBe('/gravitee-am');
+        expect(screen.getByRole('link', { name: 'Google' }).getAttribute('href')).toBe('/google-idp');
     });
 });

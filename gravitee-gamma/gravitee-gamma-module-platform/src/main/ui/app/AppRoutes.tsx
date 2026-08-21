@@ -64,6 +64,7 @@ import { CorsSettingsPage } from '../pages/CorsSettingsPage';
 import { CreateIdentityProviderPage } from '../pages/CreateIdentityProviderPage';
 import { DictionariesPage } from '../pages/DictionariesPage';
 import { DictionaryDetailPage } from '../pages/DictionaryDetailPage';
+import { EditIdentityProviderPage } from '../pages/EditIdentityProviderPage';
 import { EntrypointsAndShardingTagsPage } from '../pages/EntrypointsAndShardingTagsPage';
 import { EnvAuditLogsPage } from '../pages/EnvAuditLogsPage';
 import { GatewayInstanceEnvironmentPage } from '../pages/GatewayInstanceEnvironmentPage';
@@ -424,6 +425,7 @@ export function AppRoutes() {
                                         </PermissionPageGuard>
                                     }
                                 />
+                                <Route path=":identityProviderId" element={<EditIdentityProviderPage />} />
                             </Route>
                             <Route
                                 path="management-and-schedulers"

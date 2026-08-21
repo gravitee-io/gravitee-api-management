@@ -41,6 +41,7 @@ import { toIdentityProviderRows } from '../features/authentication/utils/identit
 import { useOrgConsoleSettings } from '../features/organization-settings/hooks/useOrgConsoleSettings';
 import type { ConsoleSettings } from '../features/organization-settings/types/consoleSettings';
 import { ConfirmDialog } from '../shared/components/ConfirmDialog';
+import { isLocalLoginEnabled } from '../shared/console-settings';
 import { useForbiddenResourceRedirect } from '../shared/hooks/useForbiddenResourceRedirect';
 import { notify } from '../shared/notify';
 import { isForbiddenApiError } from '../shared/utils/apiErrors';
@@ -85,7 +86,7 @@ export function AuthenticationPage() {
         [activationsLoaded, activationsQuery.data, providersQuery.data],
     );
     const hasActivatedIdp = activationsLoaded && rows.some(row => row.activated === true);
-    const localLoginEnabled = settings?.authentication?.localLogin?.enabled === true;
+    const localLoginEnabled = isLocalLoginEnabled(settings);
     const localLoginSystemReadonly = isLocalLoginReadonly(settings?.metadata?.readonly);
     const providersFailed = providersQuery.isError && !isForbidden;
     const activationsFailed = activationsQuery.isError;

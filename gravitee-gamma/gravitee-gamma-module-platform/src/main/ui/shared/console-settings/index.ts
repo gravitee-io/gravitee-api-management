@@ -16,3 +16,4 @@
 export type { ConsoleSettings } from './types';
 export { ConsoleSettingsProvider, useConsoleSettings, useConsoleSettingsReady, useSetConsoleSettings } from './ConsoleSettingsProvider';
 export { isUserGroupRequired } from './isUserGroupRequired';
+export { isLocalLoginEnabled } from '../../../../../../gamma-ui-shared/src/consoleSettings';

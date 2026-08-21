@@ -206,7 +206,18 @@ describe('AuthenticationPage', () => {
         renderPage();
         expect(screen.queryByRole('heading', { name: 'Authentication' })).not.toBeNull();
         expect(switchHarness({ name: 'Show login form on management console' }).getElement()).not.toBeNull();
+        expect(screen.getByRole('switch', { name: 'Show login form on management console' }).getAttribute('aria-checked')).toBe('true');
         expect(screen.queryByRole('heading', { name: 'Identity Providers' })).not.toBeNull();
+    });
+
+    it('treats a missing local-login setting as enabled', () => {
+        mockUseOrgConsoleSettings.mockReturnValue(
+            makeSettingsResult({
+                data: { authentication: { google: { clientId: 'keep-me' } } },
+            }),
+        );
+        renderPage();
+        expect(screen.getByRole('switch', { name: 'Show login form on management console' }).getAttribute('aria-checked')).toBe('true');
     });
 
     it('navigates to the create page from the add button', async () => {
