@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 import { Config, workflow, Workflow } from '../circleci-config';
-import { AikidoScanDockerImagesJob, DeployOnAzureJob, NxFormatCheckJob, SonarCloudAnalysisJob, TestIntegrationJob } from '../jobs';
+import { AikidoScanDockerImagesJob, DeployOnAzureJob, NxFormatCheckJob, SonarCloudAnalysisJob } from '../jobs';
 import { CircleCIEnvironment } from '../pipelines';
 import { config } from '../config';
-import { analysisJobFor, BACKEND_ANALYSED_PROJECTS, FRONTEND_ANALYSED_PROJECTS } from './groups/analysed-projects';
+import {
+  analysisJobFor,
+  BACKEND_ANALYSED_PROJECTS,
+  BACKEND_UNANALYSED_SUITES,
+  FRONTEND_ANALYSED_PROJECTS,
+} from './groups/analysed-projects';
 import { devEnvironmentJobs } from './groups/dev-environment-jobs';
 import { e2eJobs } from './groups/e2e-jobs';
 import { chainguardFipsImageJobs } from './groups/chainguard-fips-image-jobs';
@@ -35,9 +40,6 @@ import { chainguardFipsImageJobs } from './groups/chainguard-fips-image-jobs';
  */
 export class NightlyWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment): Workflow {
-    const testIntegrationJob = TestIntegrationJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(testIntegrationJob);
-
     const deployOnAzureJob = DeployOnAzureJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(deployOnAzureJob);
 
@@ -64,18 +66,24 @@ export class NightlyWorkflow {
       ];
     });
 
+    // No analysis reads these, but the nightly still has to run them: they are covered on a pull
+    // request only when the change touches them.
+    const unanalysedSuites = BACKEND_UNANALYSED_SUITES.map((suite) => {
+      const suiteJob = suite.createSuite(dynamicConfig, environment);
+      dynamicConfig.addJob(suiteJob);
+      return new workflow.WorkflowJob(suiteJob, {
+        name: suite.suiteName,
+        context: config.jobContext,
+        ...(suite.requiresBuildBackend === false ? {} : { requires: ['Build backend'] }),
+      });
+    });
+
     return new Workflow('nightly', [
       ...devEnvironmentJobs(dynamicConfig, environment),
 
       // Only the FIPS variants. The chainguard images are built — and scanned — by every branch
       // push, since the environment runs them.
       ...chainguardFipsImageJobs(dynamicConfig, environment),
-
-      new workflow.WorkflowJob(testIntegrationJob, {
-        name: 'Integration tests',
-        context: config.jobContext,
-        requires: ['Build backend'],
-      }),
 
       // The nx lint & test suites below do not check formatting — this one does. 'all' rather than
       // the pull-request scope: on the reference branch there is no base to compare against.
@@ -87,6 +95,7 @@ export class NightlyWorkflow {
       // The suites replayed for the coverage reports they leave behind, each followed by the
       // analysis that reads them. Nothing downstream waits on these.
       ...analysisChain,
+      ...unanalysedSuites,
       ...e2eJobs(dynamicConfig, environment),
 
       // Last, and only once everything the environment will run has been exercised.

@@ -16,7 +16,11 @@
 import { Config, Job, workflow } from '../../circleci-config';
 import {
   TestDefinitionJob,
+  TestGammaJob,
+  TestGammaUiJob,
   TestGatewayJob,
+  TestIntegrationJob,
+  TestKafkaExplorerJob,
   TestPluginJob,
   TestReporterJob,
   TestRepositoryJob,
@@ -30,7 +34,9 @@ import {
   shouldBuildPortal,
   shouldBuildPortalNext,
   shouldTestDefinition,
+  shouldTestGamma,
   shouldTestGateway,
+  shouldTestIntegrationTests,
   shouldTestPlugin,
   shouldTestReporter,
   shouldTestRepository,
@@ -101,6 +107,37 @@ export const BACKEND_ANALYSED_PROJECTS: AnalysedProject[] = [
     predicate: shouldTestRepository,
     cacheType: 'backend',
   },
+];
+
+/**
+ * The backend suites no analysis reads, listed here for the same reason as the ones above: both
+ * workflows take them from one place. They are the ones the coverage aggregation module does not
+ * cover, so nothing else would have pinned them together — which is how the kafka-explorer and
+ * gamma suites once stopped running at night when they were split into jobs of their own.
+ */
+export interface UnanalysedSuite {
+  suiteName: string;
+  createSuite: (dynamicConfig: Config, environment: CircleCIEnvironment) => Job;
+  predicate: (changedFiles: string[]) => boolean;
+  /** False for a suite that reads nothing the Maven build produces. Defaults to true. */
+  requiresBuildBackend?: boolean;
+}
+
+export const BACKEND_UNANALYSED_SUITES: UnanalysedSuite[] = [
+  // The only containerised module, kept out of the rest-api reactor; it shares that reactor's
+  // predicate.
+  { suiteName: 'Test kafka-explorer', createSuite: TestKafkaExplorerJob.create, predicate: shouldTestRestApi },
+  { suiteName: 'Test gamma', createSuite: TestGammaJob.create, predicate: shouldTestGamma },
+  // Nothing this job reads comes from the Maven build: it checks out, installs the yarn workspace
+  // and runs nx. Gating it on Build backend would serialise a pure-JS job behind the whole
+  // reactor, which the other front-end jobs are careful not to do.
+  {
+    suiteName: 'Test gamma UI',
+    createSuite: TestGammaUiJob.create,
+    predicate: shouldTestGamma,
+    requiresBuildBackend: false,
+  },
+  { suiteName: 'Integration tests', createSuite: TestIntegrationJob.create, predicate: shouldTestIntegrationTests },
 ];
 
 export const FRONTEND_ANALYSED_PROJECTS: AnalysedProject[] = [

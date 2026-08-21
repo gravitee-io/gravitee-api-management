@@ -106,6 +106,12 @@
 
         <dependency>
             <groupId>io.gravitee.apim.rest.api.management.v2</groupId>
+            <artifactId>gravitee-apim-rest-api-management-v2-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api.management.v2</groupId>
             <artifactId>gravitee-apim-rest-api-management-v2-rest</artifactId>
             <version>${project.version}</version>
         </dependency>

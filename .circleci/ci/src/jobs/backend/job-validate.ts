@@ -36,7 +36,7 @@ export class ValidateJob {
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: ValidateJob.jobName }),
       new commands.Run({
         name: 'Validate project',
-        command: `mvn -s ${config.maven.settingsFile} validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pall-modules ${mavenParallelism('medium')}`,
+        command: `mvn -s ${config.maven.settingsFile} validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pall-modules ${mavenParallelism('large')}`,
       }),
       new commands.Run({
         // Its own reactor, so validated separately. No engine-snapshot here: the profile makes the
@@ -45,7 +45,7 @@ export class ValidateJob {
         // after a <revision> bump none exists, and validation would hard-fail on every pull request
         // until the first publication. License and prettier do not care which engine is pinned.
         name: 'Validate distribution',
-        command: `mvn -s ${config.maven.settingsFile} -f gravitee-apim-distribution/pom.xml validate -nsu -Dgravitee.archrules.skip=true --no-transfer-progress -Pintegration-tests-modules ${mavenParallelism('medium')}`,
+        command: `mvn -s ${config.maven.settingsFile} -f gravitee-apim-distribution/pom.xml validate -nsu -Dgravitee.archrules.skip=true --no-transfer-progress -Pintegration-tests-modules ${mavenParallelism('large')}`,
       }),
       new commands.Run({
         // The two reactors each carry a version triplet and they must stay in step: engine-snapshot
@@ -75,6 +75,6 @@ fi`,
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new reusable.ReusedCommand(saveMavenJobCacheCmd, { jobName: ValidateJob.jobName }),
     ];
-    return new Job(ValidateJob.jobName, OpenJdkExecutor.create('medium'), steps);
+    return new Job(ValidateJob.jobName, OpenJdkExecutor.create('large'), steps);
   }
 }

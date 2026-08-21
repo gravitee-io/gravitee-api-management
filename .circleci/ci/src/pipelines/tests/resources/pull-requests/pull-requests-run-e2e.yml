@@ -258,7 +258,7 @@ jobs:
   job-validate:
     docker:
       - image: cimg/openjdk:25.0.3
-    resource_class: medium
+    resource_class: large
     steps:
       - checkout
       - attach_workspace:
@@ -267,10 +267,10 @@ jobs:
           jobName: job-validate
       - run:
           name: Validate project
-          command: mvn -s .gravitee.settings.xml validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pall-modules -T 4
+          command: mvn -s .gravitee.settings.xml validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pall-modules -T 8
       - run:
           name: Validate distribution
-          command: mvn -s .gravitee.settings.xml -f gravitee-apim-distribution/pom.xml validate -nsu -Dgravitee.archrules.skip=true --no-transfer-progress -Pintegration-tests-modules -T 4
+          command: mvn -s .gravitee.settings.xml -f gravitee-apim-distribution/pom.xml validate -nsu -Dgravitee.archrules.skip=true --no-transfer-progress -Pintegration-tests-modules -T 8
       - run:
           name: Check both reactors carry the same version
           command: |-
@@ -325,6 +325,14 @@ jobs:
             - ~/.m2/repository/io/gravitee/apim
             - ~/.m2/repository/io/gravitee/gamma
           key: gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          when: on_success
+      - run:
+          name: Archive the compiled rest-api classes
+          command: tar -cf /tmp/rest-api-classes.tar ./gravitee-apim-rest-api/*/target/classes ./gravitee-apim-rest-api/*/target/test-classes ./gravitee-apim-rest-api/*/*/target/classes ./gravitee-apim-rest-api/*/*/target/test-classes
+      - save_cache:
+          paths:
+            - /tmp/rest-api-classes.tar
+          key: gravitee-api-management-v14-rest-api-classes-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
           when: on_success
       - cmd-save-maven-job-cache:
           jobName: job-build
@@ -449,10 +457,18 @@ jobs:
       - restore_cache:
           keys:
             - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
-      - cmd-install-yarn
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-rest-api-classes-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: Restore the compiled rest-api classes
+          command: tar -xf /tmp/rest-api-classes.tar
       - run:
           name: Run Rest API tests
-          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Drest-api-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C
+          command: mvn --fail-fast -s .gravitee.settings.xml dependency:properties jacoco:prepare-agent surefire:test --no-transfer-progress -Drest-api-modules -pl '!.,!gravitee-apim-rest-api/gravitee-apim-rest-api-kafka-explorer' -nsu -T 8
+      - run:
+          name: Aggregate coverage
+          command: mvn -s .gravitee.settings.xml org.jacoco:jacoco-maven-plugin:report-aggregate --no-transfer-progress -Drest-api-modules -pl '!.,!gravitee-apim-rest-api/gravitee-apim-rest-api-kafka-explorer' -nsu
       - run:
           name: Save test results
           command: |-
@@ -567,6 +583,85 @@ jobs:
           root: .
           paths:
             - gravitee-apim-repository/gravitee-apim-repository-coverage/target/site/jacoco-aggregate/
+  job-test-kafka-explorer:
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: false
+    resource_class: large
+    steps:
+      - checkout
+      - cmd-install-jdk
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-kafka-explorer
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: Run Kafka Explorer tests
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Drest-api-modules -pl gravitee-apim-rest-api/gravitee-apim-rest-api-kafka-explorer -Dskip.validation=true -Dgravitee.archrules.skip=true -nsu
+      - run:
+          name: Save test results
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-test-kafka-explorer
+      - store_test_results:
+          path: ~/test-results
+  job-test-gamma:
+    docker:
+      - image: cimg/openjdk:25.0.3
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-gamma
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: Run Gamma tests
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dgamma-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -Dskip.ui.build=true -nsu -T 4
+      - run:
+          name: Save test results
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-test-gamma
+      - store_test_results:
+          path: ~/test-results
+  job-test-gamma-ui:
+    docker:
+      - image: cimg/node:24.18.0
+    resource_class: large
+    steps:
+      - checkout
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - run:
+          name: Run Prettier, ESLint and license check
+          command: yarn nx run-many --target=lint --projects=gravitee-gamma-module-apim,gravitee-gamma-module-platform
+      - run:
+          name: Run unit tests
+          command: yarn nx run-many --target=test --projects=gravitee-gamma-module-apim,gravitee-gamma-module-platform --maxWorkers=2 --coverage
+      - cmd-notify-on-failure
+      - store_test_results:
+          path: gravitee-gamma/gravitee-gamma-module-apim/coverage/junit.xml
+      - store_artifacts:
+          path: gravitee-gamma/gravitee-gamma-module-apim/coverage/lcov.info
+      - store_test_results:
+          path: gravitee-gamma/gravitee-gamma-module-platform/coverage/junit.xml
+      - store_artifacts:
+          path: gravitee-gamma/gravitee-gamma-module-platform/coverage/lcov.info
   job-test-integration:
     machine:
       image: ubuntu-2204:current
@@ -1178,6 +1273,22 @@ workflows:
             - Test repository
           working_directory: gravitee-apim-repository
           cache_type: backend
+      - job-test-kafka-explorer:
+          name: Test kafka-explorer
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build backend
+      - job-test-gamma:
+          name: Test gamma
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build backend
+      - job-test-gamma-ui:
+          name: Test gamma UI
+          context:
+            - cicd-orchestrator
       - job-test-integration:
           name: Integration tests
           context:
@@ -1299,6 +1410,9 @@ workflows:
             - Test plugins
             - Test reporters
             - Test repository
+            - Test kafka-explorer
+            - Test gamma
+            - Test gamma UI
             - Integration tests
             - Check prettier formatting for nx projects
             - Lint & test APIM Libs

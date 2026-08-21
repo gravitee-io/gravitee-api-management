@@ -63,6 +63,28 @@ commands:
           branch_pattern: master,[0-9]+\.[0-9]+\.x
           event: fail
           template: basic_fail_1
+  cmd-install-yarn:
+    steps:
+      - run:
+          name: Enable Corepack and Set Yarn Version
+          command: |-
+            corepack enable || sudo corepack enable
+                    yarn set version 4.1.1
+  cmd-workspace-install:
+    steps:
+      - restore_cache:
+          name: Restore Yarn workspace cache
+          keys:
+            - gravitee-api-management-v14-workspace-{{ .Branch }}-{{ checksum "yarn.lock" }}
+            - gravitee-api-management-v14-workspace-{{ .Branch }}
+      - run:
+          name: Install workspace dependencies
+          command: yarn install --frozen-lockfile
+      - save_cache:
+          name: Save Yarn workspace cache
+          key: gravitee-api-management-v14-workspace-{{ .Branch }}-{{ checksum "yarn.lock" }}
+          paths:
+            - ./node_modules
   cmd-install-jdk:
     steps:
       - restore_cache:
@@ -119,28 +141,6 @@ commands:
             - ~/.cache/temurin
           when: on_success
     description: Install the JDK on machine executors, which ship an older one
-  cmd-install-yarn:
-    steps:
-      - run:
-          name: Enable Corepack and Set Yarn Version
-          command: |-
-            corepack enable || sudo corepack enable
-                    yarn set version 4.1.1
-  cmd-workspace-install:
-    steps:
-      - restore_cache:
-          name: Restore Yarn workspace cache
-          keys:
-            - gravitee-api-management-v14-workspace-{{ .Branch }}-{{ checksum "yarn.lock" }}
-            - gravitee-api-management-v14-workspace-{{ .Branch }}
-      - run:
-          name: Install workspace dependencies
-          command: yarn install --frozen-lockfile
-      - save_cache:
-          name: Save Yarn workspace cache
-          key: gravitee-api-management-v14-workspace-{{ .Branch }}-{{ checksum "yarn.lock" }}
-          paths:
-            - ./node_modules
   cmd-webui-install:
     parameters:
       apim-ui-project:
@@ -210,55 +210,6 @@ commands:
           command: docker logout graviteeio.azurecr.io
     description: Logout from Azure Container Registry
 jobs:
-  job-test-integration:
-    machine:
-      image: ubuntu-2204:current
-      docker_layer_caching: false
-    resource_class: medium
-    steps:
-      - checkout
-      - cmd-install-jdk
-      - attach_workspace:
-          at: .
-      - cmd-restore-maven-job-cache:
-          jobName: job-test-integration
-      - restore_cache:
-          keys:
-            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
-      - run:
-          name: Run tests
-          command: |-
-            cd gravitee-apim-distribution/gravitee-apim-distribution-integration-tests
-            # List all tests
-            circleci tests glob "src/test/java/**/*Test.java" | sed -e 's#^src/test/java/\(.*\)\.java#\1#' | tr "/" "." > all-tests
-
-            # List all tests to run on this executor
-            cat all-tests | circleci tests split --split-by=timings --timings-type=classname --time-default=10s > tests-to-run
-
-            # Compute exclusion list (use grep to invert the include list to an exclude list)
-            cat all-tests | grep -xvf tests-to-run > /tmp/ignore_list
-
-            # Add * add the end of each line of ignore_list to also exclude all inner classes
-            sed -i 's/$/*/' /tmp/ignore_list
-
-            # Display tests to run on this executor
-            echo "Following test files will run on this executor:"
-            cat tests-to-run
-
-            # Run tests with rerunFailingTestsCount=3 because some integration tests related to RabbitMQ or Websocket are randomly failing on the CI
-            mvn --fail-fast -s ../../.gravitee.settings.xml test --no-transfer-progress -nsu -Pengine-snapshot -Dskip.validation=true -Dgravitee.archrules.skip=true -Dsurefire.excludesFile=/tmp/ignore_list -Dsurefire.rerunFailingTestsCount=3 -Dsurefire.exitTimeout=300
-      - run:
-          name: Save test results
-          command: |-
-            mkdir -p ~/test-results/junit/
-            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
-          when: always
-      - cmd-notify-on-failure
-      - cmd-save-maven-job-cache:
-          jobName: job-test-integration
-      - store_test_results:
-          path: ~/test-results
-    parallelism: 3
   job-deploy-on-azure-cluster:
     docker:
       - image: mcr.microsoft.com/azure-cli:2.88.0
@@ -424,10 +375,18 @@ jobs:
       - restore_cache:
           keys:
             - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
-      - cmd-install-yarn
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-rest-api-classes-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: Restore the compiled rest-api classes
+          command: tar -xf /tmp/rest-api-classes.tar
       - run:
           name: Run Rest API tests
-          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Drest-api-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C
+          command: mvn --fail-fast -s .gravitee.settings.xml dependency:properties jacoco:prepare-agent surefire:test --no-transfer-progress -Drest-api-modules -pl '!.,!gravitee-apim-rest-api/gravitee-apim-rest-api-kafka-explorer' -nsu -T 8
+      - run:
+          name: Aggregate coverage
+          command: mvn -s .gravitee.settings.xml org.jacoco:jacoco-maven-plugin:report-aggregate --no-transfer-progress -Drest-api-modules -pl '!.,!gravitee-apim-rest-api/gravitee-apim-rest-api-kafka-explorer' -nsu
       - run:
           name: Save test results
           command: |-
@@ -633,6 +592,134 @@ jobs:
           path: << parameters.apim-ui-project-workdir >>/coverage/lcov.info
       - store_test_results:
           path: << parameters.apim-ui-project-workdir >>/coverage/junit.xml
+  job-test-kafka-explorer:
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: false
+    resource_class: large
+    steps:
+      - checkout
+      - cmd-install-jdk
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-kafka-explorer
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: Run Kafka Explorer tests
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Drest-api-modules -pl gravitee-apim-rest-api/gravitee-apim-rest-api-kafka-explorer -Dskip.validation=true -Dgravitee.archrules.skip=true -nsu
+      - run:
+          name: Save test results
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-test-kafka-explorer
+      - store_test_results:
+          path: ~/test-results
+  job-test-gamma:
+    docker:
+      - image: cimg/openjdk:25.0.3
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-gamma
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: Run Gamma tests
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dgamma-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -Dskip.ui.build=true -nsu -T 4
+      - run:
+          name: Save test results
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-test-gamma
+      - store_test_results:
+          path: ~/test-results
+  job-test-gamma-ui:
+    docker:
+      - image: cimg/node:24.18.0
+    resource_class: large
+    steps:
+      - checkout
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - run:
+          name: Run Prettier, ESLint and license check
+          command: yarn nx run-many --target=lint --projects=gravitee-gamma-module-apim,gravitee-gamma-module-platform
+      - run:
+          name: Run unit tests
+          command: yarn nx run-many --target=test --projects=gravitee-gamma-module-apim,gravitee-gamma-module-platform --maxWorkers=2 --coverage
+      - cmd-notify-on-failure
+      - store_test_results:
+          path: gravitee-gamma/gravitee-gamma-module-apim/coverage/junit.xml
+      - store_artifacts:
+          path: gravitee-gamma/gravitee-gamma-module-apim/coverage/lcov.info
+      - store_test_results:
+          path: gravitee-gamma/gravitee-gamma-module-platform/coverage/junit.xml
+      - store_artifacts:
+          path: gravitee-gamma/gravitee-gamma-module-platform/coverage/lcov.info
+  job-test-integration:
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: false
+    resource_class: medium
+    steps:
+      - checkout
+      - cmd-install-jdk
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-integration
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: Run tests
+          command: |-
+            cd gravitee-apim-distribution/gravitee-apim-distribution-integration-tests
+            # List all tests
+            circleci tests glob "src/test/java/**/*Test.java" | sed -e 's#^src/test/java/\(.*\)\.java#\1#' | tr "/" "." > all-tests
+
+            # List all tests to run on this executor
+            cat all-tests | circleci tests split --split-by=timings --timings-type=classname --time-default=10s > tests-to-run
+
+            # Compute exclusion list (use grep to invert the include list to an exclude list)
+            cat all-tests | grep -xvf tests-to-run > /tmp/ignore_list
+
+            # Add * add the end of each line of ignore_list to also exclude all inner classes
+            sed -i 's/$/*/' /tmp/ignore_list
+
+            # Display tests to run on this executor
+            echo "Following test files will run on this executor:"
+            cat tests-to-run
+
+            # Run tests with rerunFailingTestsCount=3 because some integration tests related to RabbitMQ or Websocket are randomly failing on the CI
+            mvn --fail-fast -s ../../.gravitee.settings.xml test --no-transfer-progress -nsu -Pengine-snapshot -Dskip.validation=true -Dgravitee.archrules.skip=true -Dsurefire.excludesFile=/tmp/ignore_list -Dsurefire.rerunFailingTestsCount=3 -Dsurefire.exitTimeout=300
+      - run:
+          name: Save test results
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-test-integration
+      - store_test_results:
+          path: ~/test-results
+    parallelism: 3
   job-setup:
     docker:
       - image: cimg/base:stable
@@ -678,6 +765,14 @@ jobs:
             - ~/.m2/repository/io/gravitee/apim
             - ~/.m2/repository/io/gravitee/gamma
           key: gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          when: on_success
+      - run:
+          name: Archive the compiled rest-api classes
+          command: tar -cf /tmp/rest-api-classes.tar ./gravitee-apim-rest-api/*/target/classes ./gravitee-apim-rest-api/*/target/test-classes ./gravitee-apim-rest-api/*/*/target/classes ./gravitee-apim-rest-api/*/*/target/test-classes
+      - save_cache:
+          paths:
+            - /tmp/rest-api-classes.tar
+          key: gravitee-api-management-v14-rest-api-classes-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
           when: on_success
       - cmd-save-maven-job-cache:
           jobName: job-build
@@ -1200,12 +1295,6 @@ workflows:
           docker-context: .
           docker-image-name: gamma-ui
           docker-fips-base-image: graviteeio.azurecr.io/nginx:1.30-chainguard-fips
-      - job-test-integration:
-          name: Integration tests
-          context:
-            - cicd-orchestrator
-          requires:
-            - Build backend
       - job-nx-format-check:
           name: Check prettier formatting for nx projects
           context:
@@ -1340,6 +1429,28 @@ workflows:
             - Lint & test APIM Portal
           working_directory: gravitee-apim-portal-webui
           cache_type: frontend
+      - job-test-kafka-explorer:
+          name: Test kafka-explorer
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build backend
+      - job-test-gamma:
+          name: Test gamma
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build backend
+      - job-test-gamma-ui:
+          name: Test gamma UI
+          context:
+            - cicd-orchestrator
+      - job-test-integration:
+          name: Integration tests
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build backend
       - job-e2e-generate-sdk:
           context:
             - cicd-orchestrator

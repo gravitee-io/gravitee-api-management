@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 import { Config, Job, workflow } from '../../circleci-config';
-import { BuildBackendJob, SetupJob, SonarCloudAnalysisJob, TestIntegrationJob, ValidateJob } from '../../jobs';
-import { analysisJobFor, BACKEND_ANALYSED_PROJECTS } from './analysed-projects';
+import { BuildBackendJob, SetupJob, SonarCloudAnalysisJob, ValidateJob } from '../../jobs';
+import { analysisJobFor, BACKEND_ANALYSED_PROJECTS, BACKEND_UNANALYSED_SUITES } from './analysed-projects';
 import { CircleCIEnvironment } from '../../pipelines';
 import { config } from '../../config';
-import { shouldBuildBackend, shouldTestIntegrationTests } from './changed-files';
+import { shouldBuildBackend } from './changed-files';
 
 /**
  * Setup, validation, the engine build and the per-module test suites.
@@ -90,19 +90,23 @@ export function backendJobs(
     requires.push(project.suiteName);
   });
 
-  if (!filterJobs || shouldTestIntegrationTests(environment.changedFiles)) {
-    const testIntegrationJob = TestIntegrationJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(testIntegrationJob);
+  BACKEND_UNANALYSED_SUITES.forEach((suite) => {
+    if (filterJobs && !suite.predicate(environment.changedFiles)) {
+      return;
+    }
+
+    const suiteJob = suite.createSuite(dynamicConfig, environment);
+    dynamicConfig.addJob(suiteJob);
 
     jobs.push(
-      new workflow.WorkflowJob(testIntegrationJob, {
-        name: 'Integration tests',
+      new workflow.WorkflowJob(suiteJob, {
+        name: suite.suiteName,
         context: config.jobContext,
-        requires: ['Build backend'],
+        ...(suite.requiresBuildBackend === false ? {} : { requires: ['Build backend'] }),
       }),
     );
-    requires.push('Integration tests');
-  }
+    requires.push(suite.suiteName);
+  });
 
   return { jobs, requires };
 }

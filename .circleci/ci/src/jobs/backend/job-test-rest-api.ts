@@ -13,27 +13,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, Config, reusable } from '../../circleci-config';
+import { commands, Config } from '../../circleci-config';
 import { config } from '../../config';
 import { UbuntuExecutor } from '../../executors';
 import { AbstractTestJob } from './abstract-job-test';
 import { CircleCIEnvironment } from '../../pipelines';
-import { InstallYarnCommand } from '../../commands';
+import { mavenParallelism } from '../../utils';
 
 export class TestRestApiJob extends AbstractTestJob {
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
-    const installYarnCmd = InstallYarnCommand.get();
-    dynamicConfig.addReusableCommand(installYarnCmd);
-
     return super.create(
       dynamicConfig,
       environment,
       'job-test-rest-api',
       [
-        new reusable.ReusedCommand(installYarnCmd),
+        new commands.cache.Restore({
+          keys: [`${config.cache.prefix}-rest-api-classes-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}`],
+        }),
         new commands.Run({
+          // The classes `Build backend` compiled, kept out of the shared workspace so that only
+          // this job pays for them. Failing here rather than recompiling is deliberate: a silent
+          // fallback would hand back the wall clock this job exists to save.
+          name: 'Restore the compiled rest-api classes',
+          command: `tar -xf ${config.cache.restApiClassesArchive}`,
+        }),
+        new commands.Run({
+          // Goals, not a lifecycle phase. `Build backend` has already compiled these modules and
+          // generated their models, and the step above brings the result back: running `test` here
+          // would rewrite the generated sources and recompile all of it for nothing.
+          //
+          // surefire needs two of them first — dependency:properties resolves the mockito agent path
+          // and jacoco:prepare-agent fills argLine — or it hands `@{argLine}` to the JVM verbatim.
+          //
+          // standalone-container depends on two Gamma artifacts this reactor no longer builds, and
+          // management-v2-rest on kafka-explorer, which has a job of its own — all three come from the
+          // local repository. -nsu keeps a published snapshot from taking the place of the one
+          // `Build backend` just installed. Yarn went with Gamma: nothing here needs it.
+          //
+          // -pl '!.' drops the aggregator from the reactor. It is the one pom with no gravitee-apim-parent
+          // above it, so the jacoco prefix does not resolve there and Maven would either fail outright or
+          // reach for the latest release instead of the version the build pins.
           name: `Run Rest API tests`,
-          command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -Drest-api-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C`,
+          command: `mvn --fail-fast -s ${config.maven.settingsFile} dependency:properties jacoco:prepare-agent surefire:test --no-transfer-progress -Drest-api-modules -pl '!.,!gravitee-apim-rest-api/gravitee-apim-rest-api-kafka-explorer' -nsu ${mavenParallelism('large')}`,
+        }),
+        new commands.Run({
+          // report-aggregate is bound to the test phase, which no longer runs, so it is invoked here --
+          // over the same module selection as the tests, not over the coverage module alone. The mojo
+          // keeps only the dependencies it can find among the projects of the current session: narrow
+          // the selection to the coverage module and every one of them resolves from the local
+          // repository instead, leaving an empty report that Sonar reads as 0% coverage.
+          name: `Aggregate coverage`,
+          command: `mvn -s ${config.maven.settingsFile} org.jacoco:jacoco-maven-plugin:report-aggregate --no-transfer-progress -Drest-api-modules -pl '!.,!gravitee-apim-rest-api/gravitee-apim-rest-api-kafka-explorer' -nsu`,
         }),
       ],
       UbuntuExecutor.create('large'),
