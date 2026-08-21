@@ -16,7 +16,11 @@
 package io.gravitee.apim.core.portal_page.model;
 
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import jakarta.annotation.Nonnull;
+import java.util.List;
+import java.util.Objects;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
@@ -29,6 +33,10 @@ public final class PortalNavigationApiProduct extends PortalNavigationItem imple
     @Nonnull
     private final String apiProductId;
 
+    @Builder.Default
+    @Nonnull
+    private List<PortalCategoryId> categoryIds = List.of();
+
     PortalNavigationApiProduct(
         @Nonnull PortalNavigationItemId id,
         @Nonnull String organizationId,
@@ -38,14 +46,26 @@ public final class PortalNavigationApiProduct extends PortalNavigationItem imple
         @Nonnull Integer order,
         @Nonnull String apiProductId,
         @Nonnull Boolean published,
-        @Nonnull PortalVisibility visibility
+        @Nonnull PortalVisibility visibility,
+        List<PortalCategoryId> categoryIds
     ) {
         super(id, organizationId, environmentId, title, area, order, published, visibility);
         this.apiProductId = apiProductId;
+        this.categoryIds = normalizeCategoryIds(categoryIds);
     }
 
     @Override
     public PortalNavigationItemType getType() {
         return TYPE;
+    }
+
+    @Override
+    public void update(UpdatePortalNavigationItem navItem) {
+        super.update(navItem);
+        this.categoryIds = normalizeCategoryIds(navItem.getCategoryIds());
+    }
+
+    private static List<PortalCategoryId> normalizeCategoryIds(List<PortalCategoryId> categoryIds) {
+        return Objects.requireNonNullElse(categoryIds, List.of());
     }
 }

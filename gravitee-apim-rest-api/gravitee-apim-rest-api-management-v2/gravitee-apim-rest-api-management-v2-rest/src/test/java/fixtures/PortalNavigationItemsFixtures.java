@@ -35,6 +35,7 @@ import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
 import io.gravitee.rest.api.management.v2.rest.model.PortalVisibility;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApi;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApiProduct;
+import java.util.List;
 import java.util.UUID;
 
 public class PortalNavigationItemsFixtures {
@@ -104,16 +105,23 @@ public class PortalNavigationItemsFixtures {
             .visibility(PortalVisibility.PUBLIC);
     }
 
-    public static BaseCreatePortalNavigationItem aCreatePortalNavigationApiProduct() {
-        return new CreatePortalNavigationApiProduct()
-            .apiProductId(UUID.fromString("00000000-0000-0000-0000-000000000019"))
-            .type(PortalNavigationItemType.API_PRODUCT)
-            .id(UUID.fromString("00000000-0000-0000-0000-000000000018"))
-            .title("My API Product")
-            .area(io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
-            .order(4)
-            .parentId(UUID.fromString("00000000-0000-0000-0000-000000000002"))
-            .visibility(PortalVisibility.PUBLIC);
+    public static CreatePortalNavigationApiProduct aCreatePortalNavigationApiProduct() {
+        var apiProduct = new CreatePortalNavigationApiProduct();
+        apiProduct.setApiProductId(UUID.fromString("00000000-0000-0000-0000-000000000019"));
+        apiProduct.setType(PortalNavigationItemType.API_PRODUCT);
+        apiProduct.setId(UUID.fromString("00000000-0000-0000-0000-000000000018"));
+        apiProduct.setTitle("My API Product");
+        apiProduct.setArea(io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR);
+        apiProduct.setOrder(4);
+        apiProduct.setParentId(UUID.fromString("00000000-0000-0000-0000-000000000002"));
+        apiProduct.setVisibility(PortalVisibility.PUBLIC);
+        return apiProduct;
+    }
+
+    public static CreatePortalNavigationApiProduct aCreatePortalNavigationApiProduct(List<UUID> categoryIds) {
+        var apiProduct = aCreatePortalNavigationApiProduct();
+        apiProduct.setCategoryIds(categoryIds);
+        return apiProduct;
     }
 
     public static BaseUpdatePortalNavigationItem anUpdatePortalNavigationApi() {
@@ -125,13 +133,20 @@ public class PortalNavigationItemsFixtures {
             .visibility(PortalVisibility.PRIVATE);
     }
 
-    public static BaseUpdatePortalNavigationItem anUpdatePortalNavigationApiProduct() {
-        return new UpdatePortalNavigationApiProduct()
-            .type(PortalNavigationItemType.API_PRODUCT)
-            .title("Updated API Product")
-            .order(1)
-            .published(false)
-            .visibility(PortalVisibility.PRIVATE);
+    public static UpdatePortalNavigationApiProduct anUpdatePortalNavigationApiProduct() {
+        var apiProduct = new UpdatePortalNavigationApiProduct();
+        apiProduct.setType(PortalNavigationItemType.API_PRODUCT);
+        apiProduct.setTitle("Updated API Product");
+        apiProduct.setOrder(1);
+        apiProduct.setPublished(false);
+        apiProduct.setVisibility(PortalVisibility.PRIVATE);
+        return apiProduct;
+    }
+
+    public static UpdatePortalNavigationApiProduct anUpdatePortalNavigationApiProduct(List<UUID> categoryIds) {
+        var apiProduct = anUpdatePortalNavigationApiProduct();
+        apiProduct.setCategoryIds(categoryIds);
+        return apiProduct;
     }
 
     public static BaseCreatePortalNavigationItem aPrivateCreatePortalNavigationPage() {

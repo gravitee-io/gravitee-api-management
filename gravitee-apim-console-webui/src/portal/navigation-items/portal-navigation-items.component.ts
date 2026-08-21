@@ -778,6 +778,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
                 order: existingItem.order,
                 published: existingItem.published,
                 visibility: result.visibility,
+                categoryIds: existingItem.categoryIds,
               });
             }
             return this.update(existingItem.id, {
@@ -1167,6 +1168,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         order: navItem.order,
         published: !navItem.published,
         visibility: navItem.visibility,
+        categoryIds: navItem.categoryIds,
       };
     }
 
@@ -1251,6 +1253,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
             type: 'API_PRODUCT',
             published: navItem.published,
             visibility: navItem.visibility,
+            categoryIds: navItem.categoryIds,
             parentId: newParentId ?? undefined,
             order: newOrder,
           }
