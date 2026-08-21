@@ -56,6 +56,7 @@ import io.gravitee.gateway.reactive.debug.DebugReactorEventListener;
 import io.gravitee.gateway.reactive.debug.handlers.api.v4.DebugV4ApiReactorHandlerFactory;
 import io.gravitee.gateway.reactive.debug.policy.condition.DebugExpressionLanguageConditionFilter;
 import io.gravitee.gateway.reactive.debug.reactor.DebugHttpRequestDispatcher;
+import io.gravitee.gateway.reactive.debug.reactor.processor.DebugCompletionProcessor;
 import io.gravitee.gateway.reactive.debug.reactor.processor.DebugPlatformProcessorChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
@@ -323,6 +324,7 @@ public class DebugConfiguration {
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         RequestClientAuthConfiguration requestClientAuthConfiguration,
         RequestPathConfiguration requestPathConfiguration,
+        DebugCompletionProcessor debugCompletionProcessor,
         Vertx vertx,
         @Value("${reporters.warnings.enabled:true}") boolean warningsEnabled
     ) {
@@ -338,6 +340,7 @@ public class DebugConfiguration {
             requestTimeoutConfiguration,
             requestClientAuthConfiguration,
             requestPathConfiguration,
+            debugCompletionProcessor,
             vertx,
             warningsEnabled
         );
@@ -348,6 +351,16 @@ public class DebugConfiguration {
         @Qualifier("debugReactorHandlerRegistry") ReactorHandlerRegistry debugReactorHandlerRegistry
     ) {
         return new DefaultHttpAcceptorResolver(debugReactorHandlerRegistry);
+    }
+
+    /**
+     * The same processor the platform post-chain builds, exposed on its own so the dispatcher can
+     * run it directly on a request that was refused before any reactor could handle it. It holds no
+     * state, so the two instances are interchangeable.
+     */
+    @Bean
+    public DebugCompletionProcessor debugCompletionProcessor(EventRepository eventRepository, ObjectMapper objectMapper) {
+        return new DebugCompletionProcessor(eventRepository, objectMapper);
     }
 
     @Bean
