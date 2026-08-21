@@ -66,6 +66,21 @@ public abstract class WorkflowItem {
     /** {@code agent | external-agent | human | sequence | parallel | loop | conditional | supervisor}. */
     protected String type;
 
+    /**
+     * This node's own identity, stable across edits — generated once, when the node is added.
+     *
+     * <p>A node that references a deployed agent is identified by its {@code refId}. A {@code human} gate and an
+     * {@code external-agent} reference nothing, so they had only {@link #name} to fall back on — which is optional,
+     * omitted by default, and so shared by every unnamed node of the same kind. Two such nodes in one workflow then
+     * collide twice over: they write the same scope key, and they answer to the same vault entry, so the first human's
+     * reply satisfies a second gate nobody was shown.</p>
+     *
+     * <p>Optional, and read as {@code id → name → literal}: a definition without one behaves exactly as it did before
+     * this field existed.</p>
+     */
+    protected String id;
+
+    /** A label, for outlines and traces. Not an identity — see {@link #id}. */
     protected String name;
 
     /** Optional guard — honoured when this item is a child of a {@code conditional}. */
