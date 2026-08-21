@@ -168,6 +168,44 @@ class DebugEventCompletionProcessorTest {
         assertThat(updatedEvent.getPayload()).isEqualTo("PAYLOAD_CONTENT");
     }
 
+    /**
+     * The console spreads the preprocessor step over the request submitted in the form, so this is
+     * the only channel through which it can learn that the gateway resolved the path before the
+     * policies ran. Without it the timeline shows a request that never reached a single policy.
+     */
+    @Test
+    void should_report_the_path_the_policies_ran_on_in_the_preprocessor_step() throws TechnicalException, JsonProcessingException {
+        // Given a request whose path the gateway resolved before the API was selected.
+        when(debugApi.getEventId()).thenReturn("event-id");
+        when(debugExecutionContext.getComponent(io.gravitee.gateway.handlers.api.definition.Api.class)).thenReturn(debugApi);
+        when(debugExecutionContext.request()).thenReturn(request);
+        when(debugExecutionContext.getDebugSteps()).thenReturn(List.of());
+        // Built before the stubbing below: these helpers create mocks of their own, and Mockito
+        // cannot open a stubbing while another one is still being defined.
+        VertxHttpServerResponseDebugDecorator debugResponse = getDebugResponse();
+        InvokerResponse invokerResponse = getInvokerResponse();
+        when(debugExecutionContext.response()).thenReturn(debugResponse);
+        when(debugExecutionContext.getInvokerResponse()).thenReturn(invokerResponse);
+        when(debugExecutionContext.getInitialPath()).thenReturn("/b");
+
+        Event event = new Event();
+        event.setId("event-id");
+        event.setProperties(new HashMap<>());
+        event.setType(EventType.DEBUG_API);
+        when(eventRepository.findById("event-id")).thenReturn(Optional.of(event));
+        when(objectMapper.writeValueAsString(any())).thenReturn("PAYLOAD_CONTENT");
+
+        // When the debug session completes.
+        cut.handle(debugExecutionContext);
+
+        // Then the payload handed to the console carries the executed path.
+        ArgumentCaptor<io.gravitee.definition.model.debug.DebugApiV2> captor = ArgumentCaptor.forClass(
+            io.gravitee.definition.model.debug.DebugApiV2.class
+        );
+        verify(objectMapper).writeValueAsString(captor.capture());
+        assertThat(captor.getValue().getPreprocessorStep().getPath()).isEqualTo("/b");
+    }
+
     @ParameterizedTest
     @EnumSource(ResponseType.class)
     void shouldSetEventInErrorWhenEventUpdateThrows(ResponseType responseType) throws TechnicalException, JsonProcessingException {
