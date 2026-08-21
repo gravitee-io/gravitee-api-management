@@ -143,6 +143,7 @@ export function fakePortalNavigationApiProduct(overrides?: Partial<PortalNavigat
     apiProductId: 'api-product-1',
     published: false,
     visibility: 'PUBLIC',
+    categoryIds: [],
   };
 
   if (isFunction(overrides)) {

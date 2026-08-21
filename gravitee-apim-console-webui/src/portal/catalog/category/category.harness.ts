@@ -36,7 +36,11 @@ export class CategoryHarness extends ComponentHarness {
   }
 
   async getAddApiButton(harnessLoader: HarnessLoader): Promise<MatButtonHarness | null> {
-    return await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ selector: '.add-button' }));
+    return await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid="add-api-button"]' }));
+  }
+
+  async getAddApiProductButton(harnessLoader: HarnessLoader): Promise<MatButtonHarness | null> {
+    return await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid="add-api-product-button"]' }));
   }
 
   async getSaveBar(rootLoader: HarnessLoader): Promise<GioSaveBarHarness> {
@@ -44,7 +48,7 @@ export class CategoryHarness extends ComponentHarness {
   }
 
   async getTableRows(harnessLoader: HarnessLoader): Promise<MatRowHarness[]> {
-    return await harnessLoader.getHarness(MatTableHarness).then(table => table.getRows());
+    return await this.getApiTable(harnessLoader).then(table => table.getRows());
   }
 
   async getNameByRowIndex(harnessLoader: HarnessLoader, index: number): Promise<string> {
@@ -64,5 +68,32 @@ export class CategoryHarness extends ComponentHarness {
       .then(rows => rows[index].getCells({ columnName: 'actions' }))
       .then(cells => cells[0])
       .then(actionCell => actionCell.getHarnessOrNull(MatButtonHarness));
+  }
+
+  async getApiProductTable(harnessLoader: HarnessLoader): Promise<MatTableHarness> {
+    return await harnessLoader.getHarness(MatTableHarness.with({ selector: '[data-testid="api-product-table"]' }));
+  }
+
+  async getApiProductNameByRowIndex(harnessLoader: HarnessLoader, index: number): Promise<string> {
+    return await this.getApiProductTextByColumnNameAndRowIndex(harnessLoader, 'name', index);
+  }
+
+  async getApiProductTextByColumnNameAndRowIndex(harnessLoader: HarnessLoader, columnName: string, index: number): Promise<string> {
+    return await this.getApiProductTable(harnessLoader)
+      .then(table => table.getRows())
+      .then(rows => rows[index])
+      .then(row => row.getCellTextByIndex({ columnName }).then(cell => cell[0]));
+  }
+
+  async getRemoveApiProductButtonByRowIndex(harnessLoader: HarnessLoader, index: number): Promise<MatButtonHarness | null> {
+    return await this.getApiProductTable(harnessLoader)
+      .then(table => table.getRows())
+      .then(rows => rows[index].getCells({ columnName: 'actions' }))
+      .then(cells => cells[0])
+      .then(actionCell => actionCell.getHarnessOrNull(MatButtonHarness));
+  }
+
+  private async getApiTable(harnessLoader: HarnessLoader): Promise<MatTableHarness> {
+    return await harnessLoader.getHarness(MatTableHarness.with({ selector: '[data-testid="api-table"]' }));
   }
 }
