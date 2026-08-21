@@ -28,6 +28,15 @@ public class PreprocessorStep implements Serializable {
     @JsonProperty("headers")
     private Map<String, List<String>> headers;
 
+    /**
+     * The path the gateway is about to run the policies on, once everything it does before them has
+     * been applied. It differs from the path submitted in the debug request whenever the gateway
+     * resolved it — see {@code http.pathHandling} — and reporting only the submitted one would show
+     * a request that never existed.
+     */
+    @JsonProperty("path")
+    private String path;
+
     public Map<String, Serializable> getAttributes() {
         return attributes;
     }
@@ -42,5 +51,13 @@ public class PreprocessorStep implements Serializable {
 
     public void setHeaders(Map<String, List<String>> headers) {
         this.headers = headers;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 }

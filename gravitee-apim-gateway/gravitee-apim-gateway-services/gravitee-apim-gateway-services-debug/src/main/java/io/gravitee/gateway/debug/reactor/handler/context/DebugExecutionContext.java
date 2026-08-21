@@ -43,15 +43,24 @@ public class DebugExecutionContext implements MutableExecutionContext {
     private final Map<String, Serializable> initialAttributes;
     private final InvokerResponse invokerResponse = new InvokerResponse();
     private final HttpHeaders initialHeaders;
+    private final String initialPath;
 
     public DebugExecutionContext(ExecutionContext context) {
         this.context = (MutableExecutionContext) context;
         this.initialAttributes = AttributeHelper.filterAndSerializeAttributes(context.getAttributes());
         this.initialHeaders = HttpHeaders.create(request().headers());
+        // Read here rather than at completion, like the attributes and headers above: this is the
+        // state the policies are about to see. Reading it once they have run would report a path a
+        // policy rewrote as if the gateway had produced it.
+        this.initialPath = request().pathInfo();
     }
 
     public Map<String, Serializable> getInitialAttributes() {
         return initialAttributes;
+    }
+
+    public String getInitialPath() {
+        return initialPath;
     }
 
     /**
