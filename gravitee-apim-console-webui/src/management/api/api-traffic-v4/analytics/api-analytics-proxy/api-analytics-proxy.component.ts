@@ -299,7 +299,7 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       title: 'Top Paths',
       tooltip: 'Most frequently hit API paths',
       shouldSortBuckets: false,
-      groupByField: 'path-info.keyword',
+      groupByField: 'uri',
       analyticsType: 'GROUP_BY',
       orderBy: '-count:_count',
       isClickable: false,
