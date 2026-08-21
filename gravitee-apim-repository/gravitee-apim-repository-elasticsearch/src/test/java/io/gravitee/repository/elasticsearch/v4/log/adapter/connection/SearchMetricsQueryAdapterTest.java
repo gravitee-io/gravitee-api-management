@@ -1045,6 +1045,47 @@ class SearchMetricsQueryAdapterTest {
     }
 
     @Nested
+    class NativeClientFilters {
+
+        private static final String CLIENT_ID_FIELD = RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_ID;
+        private static final String SOFTWARE_NAME_FIELD =
+            RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_SOFTWARE_NAME;
+
+        @Test
+        void should_add_kafka_client_id_terms_filter_on_additional_metrics() {
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().nativeClientIds(Set.of("rdkafka", "adminclient-1")).build())
+                .build();
+
+            assertThat(hasTermsOn(query, CLIENT_ID_FIELD)).isTrue();
+        }
+
+        @Test
+        void should_add_kafka_client_software_name_terms_filter_on_additional_metrics() {
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().nativeClientSoftwareNames(Set.of("librdkafka")).build())
+                .build();
+
+            assertThat(hasTermsOn(query, SOFTWARE_NAME_FIELD)).isTrue();
+        }
+
+        @Test
+        void should_not_add_native_client_filters_when_null_or_empty() {
+            var nullQuery = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().nativeClientIds(null).nativeClientSoftwareNames(null).build())
+                .build();
+            var emptyQuery = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().nativeClientIds(Set.of()).nativeClientSoftwareNames(Set.of()).build())
+                .build();
+
+            assertThat(hasTermsOn(nullQuery, CLIENT_ID_FIELD)).isFalse();
+            assertThat(hasTermsOn(nullQuery, SOFTWARE_NAME_FIELD)).isFalse();
+            assertThat(hasTermsOn(emptyQuery, CLIENT_ID_FIELD)).isFalse();
+            assertThat(hasTermsOn(emptyQuery, SOFTWARE_NAME_FIELD)).isFalse();
+        }
+    }
+
+    @Nested
     class FailureOriginFilter {
 
         private static final String STATUS_FIELD =

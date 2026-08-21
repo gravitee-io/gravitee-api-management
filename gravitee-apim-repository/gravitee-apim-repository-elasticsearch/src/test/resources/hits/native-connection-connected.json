@@ -12,8 +12,12 @@
   "remote-address": "192.168.1.10",
   "local-address": "10.0.2.208",
   "host": "broker.kafka.local:9092",
+  "security-type": "JWT",
+  "security-token": "oauth-client-1",
   "additional-metrics": {
     "keyword_native-kafka_client-id": "consumer-app-1-A",
+    "keyword_native-kafka_client-software-name": "librdkafka",
+    "keyword_native-kafka_client-software-version": "2.6.1",
     "keyword_native-kafka_broker-id": "broker-1",
     "keyword_native-kafka_connection-status": "CONNECTED"
   }

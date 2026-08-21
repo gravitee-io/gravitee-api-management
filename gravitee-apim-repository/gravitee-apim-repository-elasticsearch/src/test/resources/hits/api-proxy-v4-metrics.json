@@ -41,5 +41,7 @@
   "application-id": "1",
   "gateway-response-time-ms": 19,
   "user-agent": "HTTPie/3.2.4",
-  "status": 202
+  "status": 202,
+  "security-type": "JWT",
+  "security-token": "oauth-client-1"
 }

@@ -60,6 +60,9 @@ public interface AnalyticsDefinitionMapper {
     @ValueMapping(source = "ERROR_KEY", target = MappingConstants.THROW_EXCEPTION)
     @ValueMapping(source = "REQUEST_ID", target = MappingConstants.THROW_EXCEPTION)
     @ValueMapping(source = "TRANSACTION_ID", target = MappingConstants.THROW_EXCEPTION)
+    // Declared in the analytics catalog so the filter bar can list its values, but no analytics widget
+    // offers it and the engine has no dimension to group by — LOGS-only, like the four above.
+    @ValueMapping(source = "NATIVE_CLIENT_SOFTWARE_NAME", target = MappingConstants.THROW_EXCEPTION)
     FilterName mapAnalyticsFilterName(io.gravitee.apim.core.analytics_engine.model.FilterSpec.Name name);
 
     List<MetricSpec> mapMetricSpecs(List<io.gravitee.apim.core.analytics_engine.model.MetricSpec> metricSpecs);

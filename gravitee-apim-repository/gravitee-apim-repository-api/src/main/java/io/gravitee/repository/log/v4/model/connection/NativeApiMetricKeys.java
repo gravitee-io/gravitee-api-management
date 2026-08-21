@@ -18,6 +18,10 @@ package io.gravitee.repository.log.v4.model.connection;
 public final class NativeApiMetricKeys {
 
     public static final String CLIENT_ID = "keyword_native-kafka_client-id";
+    /** KIP-511 client library name advertised at the handshake; 'unknown' when the client does not advertise one. */
+    public static final String CLIENT_SOFTWARE_NAME = "keyword_native-kafka_client-software-name";
+    /** KIP-511 client library version advertised at the handshake; 'unknown' when the client does not advertise one. */
+    public static final String CLIENT_SOFTWARE_VERSION = "keyword_native-kafka_client-software-version";
     public static final String BROKER_ID = "keyword_native-kafka_broker-id";
     public static final String CONNECTION_STATUS = "keyword_native-kafka_connection-status";
     public static final String CONNECTION_DURATION_MS = "long_native-kafka_connection-duration-ms";

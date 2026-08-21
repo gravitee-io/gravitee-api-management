@@ -229,6 +229,8 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             .mcpProxyResources(searchLogsFilters.mcpProxyResources())
             .mcpProxyPrompts(searchLogsFilters.mcpProxyPrompts())
             .nativeConnectionStatuses(searchLogsFilters.nativeConnectionStatuses())
+            .nativeClientIds(searchLogsFilters.nativeClientIds())
+            .nativeClientSoftwareNames(searchLogsFilters.nativeClientSoftwareNames())
             .failureOrigins(searchLogsFilters.failureOrigins())
             .tenants(searchLogsFilters.tenants());
     }

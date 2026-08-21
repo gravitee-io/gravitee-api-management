@@ -58,4 +58,8 @@ export class ApiRuntimeLogsNativeDetailsHarness extends ComponentHarness {
   isBackLinkVisible(): Promise<boolean> {
     return this.backLink().then(el => el != null);
   }
+
+  clientCardText(): Promise<string> {
+    return this.clientCard().then(el => (el ? el.text() : ''));
+  }
 }

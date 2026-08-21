@@ -78,6 +78,38 @@ describe('ApiRuntimeLogsNativeDetailsComponent', () => {
     expect(await harness.isErrorCardVisible()).toBe(false);
   });
 
+  it('renders the client library and the authenticated credential on the client card', async () => {
+    await setup();
+    flushLog(
+      fakeNativeApiLog({
+        connectionStatus: 'CONNECTED',
+        clientId: 'kafka-consumer-1',
+        clientSoftwareName: 'librdkafka',
+        clientSoftwareVersion: '2.6.1',
+        securityType: 'JWT',
+        securityToken: 'oauth-client-1',
+      }),
+    );
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const clientCard = await harness.clientCardText();
+    expect(clientCard).toContain('librdkafka');
+    expect(clientCard).toContain('2.6.1');
+    expect(clientCard).toContain('JWT');
+    expect(clientCard).toContain('oauth-client-1');
+  });
+
+  it('renders a dash on the client card when the connection is anonymous and the client advertises no library', async () => {
+    await setup();
+    flushLog(fakeNativeApiLog({ connectionStatus: 'CONNECTED', clientId: 'kafka-consumer-1' }));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(await harness.isClientCardVisible()).toBe(true);
+    expect(await harness.clientCardText()).toContain('Client library');
+  });
+
   it('renders error card when connectionStatus is not CONNECTED', async () => {
     await setup();
     flushLog(
