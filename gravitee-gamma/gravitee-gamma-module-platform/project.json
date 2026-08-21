@@ -14,7 +14,7 @@
         "lint-license": {},
         "test": {
             "executor": "@nx/jest:jest",
-            "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+            "outputs": ["{projectRoot}/coverage"],
             "options": {
                 "jestConfig": "gravitee-gamma/gravitee-gamma-module-platform/jest.config.ts"
             }
