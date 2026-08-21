@@ -27,6 +27,7 @@ import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuil
 import io.gravitee.apim.gateway.tests.sdk.connector.ConnectorBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.container.GatewayTestContainer;
+import io.gravitee.apim.gateway.tests.sdk.converters.AgentApiDeploymentPreparer;
 import io.gravitee.apim.gateway.tests.sdk.converters.ApiDeploymentPreparer;
 import io.gravitee.apim.gateway.tests.sdk.converters.EdgeApiDeploymentPreparer;
 import io.gravitee.apim.gateway.tests.sdk.converters.LegacyApiDeploymentPreparer;
@@ -226,7 +227,9 @@ public class GatewayRunner {
             NativeApi.class,
             new NativeApiDeploymentPreparer(),
             EdgeApi.class,
-            new EdgeApiDeploymentPreparer()
+            new EdgeApiDeploymentPreparer(),
+            io.gravitee.definition.model.v4.agent.AgentApi.class,
+            new AgentApiDeploymentPreparer()
         );
     }
 
@@ -700,6 +703,11 @@ public class GatewayRunner {
                 api = graviteeMapper.treeToValue(apiAsJson, NativeApi.class);
             } else if (apiType == ApiType.EDGE) {
                 api = graviteeMapper.treeToValue(apiAsJson, EdgeApi.class);
+            } else if (apiType == ApiType.AGENT) {
+                // An agent's model, tools, skills and memory live on AgentApi and have no home on the V4 definition.
+                // Read as a plain V4 Api they are simply dropped, and the test deploys an agent-shaped proxy that
+                // answers nothing.
+                api = graviteeMapper.treeToValue(apiAsJson, io.gravitee.definition.model.v4.agent.AgentApi.class);
             } else {
                 api = graviteeMapper.treeToValue(apiAsJson, io.gravitee.definition.model.v4.Api.class);
             }
