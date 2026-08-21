@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.analytics_engine.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -65,7 +66,8 @@ class AnalyticsQueryValidatorTest {
     @BeforeEach
     void setUp() {
         var definitionQueryService = mock(AnalyticsDefinitionQueryService.class);
-        when(definitionQueryService.findMetric(any())).thenReturn(Optional.of(HTTP_REQUESTS_SPEC));
+        when(definitionQueryService.findMetric(any())).thenAnswer(invocation -> CATALOG.findMetric(invocation.getArgument(0)));
+        when(definitionQueryService.findMetric(MetricSpec.Name.HTTP_REQUESTS)).thenReturn(Optional.of(HTTP_REQUESTS_SPEC));
         when(definitionQueryService.getAllFilters()).thenReturn(CATALOG.getAllFilters());
         when(definitionQueryService.findFilter(any())).thenAnswer(invocation -> CATALOG.findFilter(invocation.getArgument(0)));
         validator = new AnalyticsQueryValidator(definitionQueryService);
@@ -236,5 +238,33 @@ class AnalyticsQueryValidatorTest {
                 return !e.getMessage().contains("not supported for analytics queries");
             }
         }
+    }
+
+    @Test
+    void should_accept_an_authz_decision_facet_on_the_authz_decisions_metric() {
+        var request = new FacetsRequest(
+            VALID_TIME_RANGE,
+            List.of(),
+            List.of(new FacetMetricMeasuresRequest(MetricSpec.Name.AUTHZ_DECISIONS, List.of(MetricSpec.Measure.COUNT), List.of())),
+            List.of(FacetSpec.Name.AUTHZ_DECISION),
+            null,
+            List.of()
+        );
+
+        assertThatCode(() -> validator.validateFacetsRequest(request)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void should_reject_an_http_facet_on_an_authz_metric() {
+        var request = new FacetsRequest(
+            VALID_TIME_RANGE,
+            List.of(),
+            List.of(new FacetMetricMeasuresRequest(MetricSpec.Name.AUTHZ_DECISIONS, List.of(MetricSpec.Measure.COUNT), List.of())),
+            List.of(FacetSpec.Name.HTTP_STATUS),
+            null,
+            List.of()
+        );
+
+        assertThatThrownBy(() -> validator.validateFacetsRequest(request)).isInstanceOf(InvalidQueryException.class);
     }
 }

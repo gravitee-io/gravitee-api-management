@@ -184,17 +184,17 @@ public class SearchObservabilityLogsUseCase {
     // Package-private so a test can assert set equality against the catalog: a filter offered on the
     // decisions screen but missing here is advertised and then refused with a 400.
     static final Set<String> DECISION_SUPPORTED_FILTERS = Set.of(
-        StaticFilters.DECISION.filterName(),
-        StaticFilters.SUBJECT.filterName(),
-        StaticFilters.ACTION.filterName(),
-        StaticFilters.RESOURCE.filterName(),
-        StaticFilters.CALLER_KIND.filterName(),
-        StaticFilters.STATUS.filterName(),
-        StaticFilters.OPERATION.filterName(),
-        StaticFilters.PDP.filterName(),
-        StaticFilters.MATCHED_POLICY.filterName(),
-        StaticFilters.REASON.filterName(),
-        StaticFilters.POLICY_VERSION.filterName(),
+        StaticFilters.AUTHZ_DECISION.filterName(),
+        StaticFilters.AUTHZ_SUBJECT_ID.filterName(),
+        StaticFilters.AUTHZ_ACTION.filterName(),
+        StaticFilters.AUTHZ_RESOURCE_ID.filterName(),
+        StaticFilters.AUTHZ_CALLER.filterName(),
+        StaticFilters.AUTHZ_STATUS.filterName(),
+        StaticFilters.AUTHZ_OPERATION.filterName(),
+        StaticFilters.AUTHZ_PDP.filterName(),
+        StaticFilters.AUTHZ_MATCHED_POLICY.filterName(),
+        StaticFilters.AUTHZ_REASON.filterName(),
+        StaticFilters.AUTHZ_POLICY_VERSION.filterName(),
         StaticFilters.REQUEST_ID.filterName()
     );
 
@@ -214,7 +214,9 @@ public class SearchObservabilityLogsUseCase {
             throw new ValidationDomainException(
                 "Filters " +
                     unsupported +
-                    " do not apply to RECORD_TYPE=AUTHZ_DECISION. Supported: API, API_TYPE, DECISION, SUBJECT, ACTION, RESOURCE, CALLER_KIND, STATUS, OPERATION, PDP, MATCHED_POLICY, REASON, POLICY_VERSION, REQUEST_ID and the time range."
+                    " do not apply to RECORD_TYPE=AUTHZ_DECISION. Supported: API, API_TYPE, " +
+                    DECISION_SUPPORTED_FILTERS.stream().sorted().collect(Collectors.joining(", ")) +
+                    " and the time range."
             );
         }
     }

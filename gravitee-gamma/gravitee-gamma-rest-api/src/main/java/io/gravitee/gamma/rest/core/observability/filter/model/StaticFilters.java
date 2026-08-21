@@ -40,9 +40,9 @@ import java.util.Set;
  *
  * <p>Operators advertised here are restricted to what the v4 analytics/logs engines actually
  * translate today: {@code EQ, IN} for KEYWORD/ENUM and for the identifier-shaped STRING filters
- * ({@link #PDP}, {@link #MATCHED_POLICY}), {@code EQ} for the free-text ones, {@code CONTAINS} where
- * a fragment is the only usable input ({@link #PAYLOAD}, {@link #REASON}), {@code EQ, GTE, LTE} for
- * measured NUMBER filters and {@code EQ, IN} for {@link #POLICY_VERSION}, which is a discrete
+ * ({@link #AUTHZ_PDP}, {@link #AUTHZ_MATCHED_POLICY}), {@code EQ} for the free-text ones, {@code CONTAINS} where
+ * a fragment is the only usable input ({@link #PAYLOAD}, {@link #AUTHZ_REASON}), {@code EQ, GTE, LTE} for
+ * measured NUMBER filters and {@code EQ, IN} for {@link #AUTHZ_POLICY_VERSION}, which is a discrete
  * generation rather than a measurement. {@code NOT_IN} is intentionally absent until a translator
  * supports it.
  *
@@ -118,28 +118,19 @@ public enum StaticFilters {
     PAYLOAD("Payload content", FilterType.STRING, Defs.CONTAINS_ONLY, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A),
 
     // --- Authz decisions ------------------------------------------------------------------------
-    DECISION("Decision", FilterType.ENUM, Defs.EQ_IN, Defs.DECISIONS, null, Defs.LOGS, Defs.DECISION_RECORDS),
-    // STRING, not KEYWORD: these are open sets (any principal, any resource a policy names), so there
-    // is nothing to suggest from and the picker would offer an empty dropdown. The indexed fields are
-    // keyword, so exact match is the honest operator; CONTAINS would need a wildcard query.
-    SUBJECT("Subject", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
-    ACTION("Action", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
-    RESOURCE("Resource", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
-    CALLER_KIND("Caller kind", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_CALLERS, null, Defs.LOGS, Defs.DECISION_RECORDS),
-    STATUS("Outcome status", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_STATUSES, null, Defs.LOGS, Defs.DECISION_RECORDS),
-    OPERATION("Operation", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_OPERATIONS, null, Defs.LOGS, Defs.DECISION_RECORDS),
-    // STRING for the same reason as SUBJECT above: KEYWORD promises a value list, and the filter
-    // data port only serves that for the fields it knows. A PDP id is an open set, so the picker
-    // would ask for values, get a 400, and sit on "Loading..." forever.
-    PDP("PDP Gateway", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
-    MATCHED_POLICY("Matched policy", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
-    // CONTAINS, unlike the exact-match filters above: a reason is a sentence ("Permitted by policy
-    // 'x'"), so equality would force the user to retype it verbatim. The field is a low-cardinality
-    // keyword, which keeps the wildcard cheap.
-    REASON("Reason", FilterType.STRING, Defs.CONTAINS_ONLY, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
-    // Exact generations only. "Before/after a policy change" is the time range's job, and range
-    // support here would mean threading operators through a query model that carries none.
-    POLICY_VERSION("Policy version", FilterType.NUMBER, Defs.EQ_IN, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
+    AUTHZ_DECISION("Decision", FilterType.ENUM, Defs.EQ_IN, Defs.DECISIONS, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
+    AUTHZ_SUBJECT_ID("Subject", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
+    AUTHZ_ACTION("Action", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
+    AUTHZ_RESOURCE_ID("Resource", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
+    AUTHZ_CALLER("Caller kind", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_CALLERS, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
+    AUTHZ_STATUS("Outcome status", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_STATUSES, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
+    AUTHZ_OPERATION("Operation", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_OPERATIONS, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
+
+    AUTHZ_PDP("PDP Gateway", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
+    AUTHZ_MATCHED_POLICY("Matched policy", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
+    AUTHZ_POLICY_VERSION("Policy version", FilterType.NUMBER, Defs.EQ_IN, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
+
+    AUTHZ_REASON("Reason", FilterType.STRING, Defs.CONTAINS_ONLY, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
 
     // --- LLM ------------------------------------------------------------------------------------
     LLM_PROXY_MODEL("LLM Model", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.LLM)),

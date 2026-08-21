@@ -449,18 +449,18 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .apiIds(query.apiIds())
             .from(query.from())
             .to(query.to())
-            .decisions(valuesOf(query.conditions(), StaticFilters.DECISION.filterName()))
-            .subjectIds(valuesOf(query.conditions(), StaticFilters.SUBJECT.filterName()))
-            .actions(valuesOf(query.conditions(), StaticFilters.ACTION.filterName()))
-            .resourceIds(valuesOf(query.conditions(), StaticFilters.RESOURCE.filterName()))
-            .callers(valuesOf(query.conditions(), StaticFilters.CALLER_KIND.filterName()))
-            .statuses(valuesOf(query.conditions(), StaticFilters.STATUS.filterName()))
-            .operations(valuesOf(query.conditions(), StaticFilters.OPERATION.filterName()))
-            .targetPdpIds(valuesOf(query.conditions(), StaticFilters.PDP.filterName()))
-            .matchedPolicyNames(valuesOf(query.conditions(), StaticFilters.MATCHED_POLICY.filterName()))
+            .decisions(valuesOf(query.conditions(), StaticFilters.AUTHZ_DECISION.filterName()))
+            .subjectIds(valuesOf(query.conditions(), StaticFilters.AUTHZ_SUBJECT_ID.filterName()))
+            .actions(valuesOf(query.conditions(), StaticFilters.AUTHZ_ACTION.filterName()))
+            .resourceIds(valuesOf(query.conditions(), StaticFilters.AUTHZ_RESOURCE_ID.filterName()))
+            .callers(valuesOf(query.conditions(), StaticFilters.AUTHZ_CALLER.filterName()))
+            .statuses(valuesOf(query.conditions(), StaticFilters.AUTHZ_STATUS.filterName()))
+            .operations(valuesOf(query.conditions(), StaticFilters.AUTHZ_OPERATION.filterName()))
+            .targetPdpIds(valuesOf(query.conditions(), StaticFilters.AUTHZ_PDP.filterName()))
+            .matchedPolicyNames(valuesOf(query.conditions(), StaticFilters.AUTHZ_MATCHED_POLICY.filterName()))
             .policyGenerations(policyGenerationsOf(query.conditions()))
             .requestIds(valuesOf(query.conditions(), StaticFilters.REQUEST_ID.filterName()))
-            .reasonContains(firstValueOf(query.conditions(), StaticFilters.REASON.filterName()))
+            .reasonContains(firstValueOf(query.conditions(), StaticFilters.AUTHZ_REASON.filterName()))
             .build();
         var result = authzDecisionLogsCrudService.searchDecisionLogs(executionContext, filters, pageable);
         var entries = result
@@ -520,7 +520,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
      * reject input that works today. This only rules out what cannot be a number at all.
      */
     private static Set<String> policyGenerationsOf(List<FilterCondition> conditions) {
-        Set<String> values = valuesOf(conditions, StaticFilters.POLICY_VERSION.filterName());
+        Set<String> values = valuesOf(conditions, StaticFilters.AUTHZ_POLICY_VERSION.filterName());
         for (String value : values) {
             try {
                 new BigDecimal(value.trim());

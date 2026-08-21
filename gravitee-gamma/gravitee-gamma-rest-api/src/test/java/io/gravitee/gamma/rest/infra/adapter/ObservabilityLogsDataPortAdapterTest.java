@@ -878,7 +878,7 @@ class ObservabilityLogsDataPortAdapterTest {
             adapter.searchLogs(
                 ORG,
                 ENV,
-                decisionQueryWith(new FilterCondition("DECISION", FilterOperator.IN, List.of("PERMIT", "FORBID")))
+                decisionQueryWith(new FilterCondition("AUTHZ_DECISION", FilterOperator.IN, List.of("PERMIT", "FORBID")))
             );
 
             var captor = ArgumentCaptor.forClass(AuthzDecisionLogFilters.class);
@@ -895,13 +895,13 @@ class ObservabilityLogsDataPortAdapterTest {
                 ORG,
                 ENV,
                 decisionQueryWith(
-                    new FilterCondition("STATUS", FilterOperator.EQ, List.of("error")),
-                    new FilterCondition("OPERATION", FilterOperator.EQ, List.of("search")),
-                    new FilterCondition("PDP", FilterOperator.EQ, List.of("pdp-a")),
-                    new FilterCondition("MATCHED_POLICY", FilterOperator.EQ, List.of("forbid-delete")),
-                    new FilterCondition("POLICY_VERSION", FilterOperator.EQ, List.of("9")),
+                    new FilterCondition("AUTHZ_STATUS", FilterOperator.EQ, List.of("error")),
+                    new FilterCondition("AUTHZ_OPERATION", FilterOperator.EQ, List.of("search")),
+                    new FilterCondition("AUTHZ_PDP", FilterOperator.EQ, List.of("pdp-a")),
+                    new FilterCondition("AUTHZ_MATCHED_POLICY", FilterOperator.EQ, List.of("forbid-delete")),
+                    new FilterCondition("AUTHZ_POLICY_VERSION", FilterOperator.EQ, List.of("9")),
                     new FilterCondition("REQUEST_ID", FilterOperator.EQ, List.of("req-1")),
-                    new FilterCondition("REASON", FilterOperator.CONTAINS, List.of("forbid"))
+                    new FilterCondition("AUTHZ_REASON", FilterOperator.CONTAINS, List.of("forbid"))
                 )
             );
 
@@ -921,7 +921,11 @@ class ObservabilityLogsDataPortAdapterTest {
         @Test
         void should_refuse_a_policy_version_that_is_not_a_number_instead_of_failing_the_shard() {
             assertThatThrownBy(() ->
-                adapter.searchLogs(ORG, ENV, decisionQueryWith(new FilterCondition("POLICY_VERSION", FilterOperator.EQ, List.of("v9"))))
+                adapter.searchLogs(
+                    ORG,
+                    ENV,
+                    decisionQueryWith(new FilterCondition("AUTHZ_POLICY_VERSION", FilterOperator.EQ, List.of("v9")))
+                )
             )
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessageContaining("v9");
@@ -931,7 +935,7 @@ class ObservabilityLogsDataPortAdapterTest {
         void should_keep_a_decimal_policy_version_that_elasticsearch_already_coerces() {
             when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(new SearchLogsResponse<>(0, List.of()));
 
-            adapter.searchLogs(ORG, ENV, decisionQueryWith(new FilterCondition("POLICY_VERSION", FilterOperator.EQ, List.of("3.0"))));
+            adapter.searchLogs(ORG, ENV, decisionQueryWith(new FilterCondition("AUTHZ_POLICY_VERSION", FilterOperator.EQ, List.of("3.0"))));
 
             var captor = ArgumentCaptor.forClass(AuthzDecisionLogFilters.class);
             verify(authzDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
@@ -947,7 +951,7 @@ class ObservabilityLogsDataPortAdapterTest {
             adapter.searchLogs(
                 ORG,
                 ENV,
-                decisionQueryWith(new FilterCondition("REASON", FilterOperator.CONTAINS, Arrays.asList("", "forbid")))
+                decisionQueryWith(new FilterCondition("AUTHZ_REASON", FilterOperator.CONTAINS, Arrays.asList("", "forbid")))
             );
 
             var captor = ArgumentCaptor.forClass(AuthzDecisionLogFilters.class);

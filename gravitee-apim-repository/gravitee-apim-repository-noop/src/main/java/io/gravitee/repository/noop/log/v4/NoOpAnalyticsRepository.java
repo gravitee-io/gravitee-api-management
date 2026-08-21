@@ -167,6 +167,21 @@ public class NoOpAnalyticsRepository implements AnalyticsRepository {
     }
 
     @Override
+    public MeasuresResult searchAuthzMeasures(QueryContext queryContext, MeasuresQuery query) {
+        return new MeasuresResult(List.of());
+    }
+
+    @Override
+    public FacetsResult searchAuthzFacets(QueryContext queryContext, FacetsQuery query) {
+        return new FacetsResult(List.of());
+    }
+
+    @Override
+    public TimeSeriesResult searchAuthzTimeSeries(QueryContext queryContext, TimeSeriesQuery query) {
+        return new TimeSeriesResult(List.of());
+    }
+
+    @Override
     public FilterValuesResult searchFilterValues(QueryContext queryContext, FilterValuesQuery query) {
         return new FilterValuesResult(Collections.emptyList(), null, 0);
     }

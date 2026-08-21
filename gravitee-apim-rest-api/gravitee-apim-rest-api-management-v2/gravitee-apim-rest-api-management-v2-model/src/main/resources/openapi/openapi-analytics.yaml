@@ -1334,6 +1334,7 @@ components:
                 - A2A
                 - NATIVE
                 - EDGE
+                - AUTHZ
             description: Available API names for analytics queries
             example: "HTTP_PROXY"
 
@@ -1384,6 +1385,14 @@ components:
                 - NATIVE_OPERATION_GATEWAY_REQUEST_DURATION
                 - NATIVE_OPERATION_BROKER_DURATION
                 - NATIVE_OPERATION_GATEWAY_RESPONSE_DURATION
+                - AUTHZ_OPERATIONS
+                - AUTHZ_DECISIONS
+                - AUTHZ_PERMITS
+                - AUTHZ_FORBIDS
+                - AUTHZ_NOT_APPLICABLE
+                - AUTHZ_SEARCHES
+                - AUTHZ_FAILURES
+                - AUTHZ_EVAL_DURATION
             description: Available metric names for analytics queries
 
         FacetName:
@@ -1430,6 +1439,14 @@ components:
                 - NATIVE_CLIENT_ID
                 - NATIVE_TOPIC
                 - NATIVE_OPERATION
+                - AUTHZ_DECISION
+                - AUTHZ_OPERATION
+                - AUTHZ_STATUS
+                - AUTHZ_CALLER
+                - AUTHZ_SUBJECT_ID
+                - AUTHZ_ACTION
+                - AUTHZ_RESOURCE_ID
+                - AUTHZ_REASON
             description: Available facet names for grouping analytics data
 
         FilterName:
@@ -1490,6 +1507,14 @@ components:
                 - NATIVE_OPERATION
                 - URI
                 - ENTRYPOINT
+                - AUTHZ_DECISION
+                - AUTHZ_OPERATION
+                - AUTHZ_STATUS
+                - AUTHZ_CALLER
+                - AUTHZ_SUBJECT_ID
+                - AUTHZ_ACTION
+                - AUTHZ_RESOURCE_ID
+                - AUTHZ_REASON
             description: Available filter names for filtering analytics data
 
         ObservabilityFilterName:
@@ -1552,6 +1577,14 @@ components:
                 - NATIVE_OPERATION
                 - URI
                 - ENTRYPOINT
+                - AUTHZ_DECISION
+                - AUTHZ_OPERATION
+                - AUTHZ_STATUS
+                - AUTHZ_CALLER
+                - AUTHZ_SUBJECT_ID
+                - AUTHZ_ACTION
+                - AUTHZ_RESOURCE_ID
+                - AUTHZ_REASON
             description: Filter names for observability filter definitions, including logs-only filters such as PAYLOAD
 
         Operator:
