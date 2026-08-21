@@ -116,7 +116,7 @@ export function SharedPolicyGroupDetailLayout() {
             <Tabs value={activeTab} onValueChange={handleTabChange} aria-busy={isTabPending}>
                 <TabsList variant="line" aria-label="Shared Policy Group sections">
                     {SHARED_POLICY_GROUP_DETAIL_TABS.map(tab => (
-                        <TabsTrigger key={tab.path} value={tab.path} data-testid={tab.testId}>
+                        <TabsTrigger key={tab.path} value={tab.path}>
                             {tab.label}
                         </TabsTrigger>
                     ))}

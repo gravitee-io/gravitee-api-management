@@ -16,9 +16,9 @@
 
 /** Child routes under `shared-policy-groups/:sharedPolicyGroupId`. */
 export const SHARED_POLICY_GROUP_DETAIL_TABS = [
-    { path: 'overview', label: 'Overview', testId: 'shared-policy-group-tab-overview' },
-    { path: 'studio', label: 'Studio', testId: 'shared-policy-group-tab-studio' },
-    { path: 'history', label: 'History', testId: 'shared-policy-group-tab-history' },
+    { path: 'overview', label: 'Overview' },
+    { path: 'studio', label: 'Studio' },
+    { path: 'history', label: 'History' },
 ] as const;
 
 export type SharedPolicyGroupDetailTabPath = (typeof SHARED_POLICY_GROUP_DETAIL_TABS)[number]['path'];

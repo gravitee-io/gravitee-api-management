@@ -74,9 +74,9 @@ describe('SharedPolicyGroupDetailLayout', () => {
         expect(screen.getByText('Deployed')).not.toBeNull();
         expect(screen.getByText('Reusable auth policies')).not.toBeNull();
         expect(screen.getByText('Proxy · Request')).not.toBeNull();
-        expect(screen.getByTestId('shared-policy-group-tab-overview')).not.toBeNull();
-        expect(screen.getByTestId('shared-policy-group-tab-studio')).not.toBeNull();
-        expect(screen.getByTestId('shared-policy-group-tab-history')).not.toBeNull();
+        expect(screen.getByRole('tab', { name: 'Overview' })).not.toBeNull();
+        expect(screen.getByRole('tab', { name: 'Studio' }).getAttribute('aria-selected')).toBe('true');
+        expect(screen.getByRole('tab', { name: 'History' })).not.toBeNull();
         expect(screen.getByText('Studio content')).not.toBeNull();
     });
 
