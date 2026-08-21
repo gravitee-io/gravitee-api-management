@@ -311,7 +311,7 @@
         <gravitee-reactor-a2a-proxy.version>1.0.2</gravitee-reactor-a2a-proxy.version>
         <gravitee-resource-ai-vector-store-redis.version>1.0.1</gravitee-resource-ai-vector-store-redis.version>
         <gravitee-resource-ai-vector-store-aws-s3.version>1.0.0</gravitee-resource-ai-vector-store-aws-s3.version>
-        <gravitee-resource-ai-model-text-embedding.version>1.0.0</gravitee-resource-ai-model-text-embedding.version>
+        <gravitee-resource-ai-model-text-embedding.version>2.0.0</gravitee-resource-ai-model-text-embedding.version>
         <gravitee-policy-ai-semantic-caching.version>1.1.0</gravitee-policy-ai-semantic-caching.version>
         <gravitee-apim-repository-bridge.version>8.4.0</gravitee-apim-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>2.1.0</gravitee-secretprovider-hc-vault.version>
