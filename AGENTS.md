@@ -142,7 +142,7 @@ When adding or changing HTTP endpoints under `gravitee-apim-rest-api/`:
 
 | Area | Module path (under `gravitee-apim-rest-api/`) | OpenAPI spec(s) |
 | --- | --- | --- |
-| **Management API v2** | `gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-rest` | `src/main/resources/openapi/openapi-*.yaml` (split by area) |
+| **Management API v2** | `gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-model` | `src/main/resources/openapi/openapi-*.yaml` (split by area) |
 | **Kafka Explorer** | `gravitee-apim-rest-api-kafka-explorer` | `src/main/resources/openapi/openapi-kafka-explorer.yaml` |
 | **Portal API** | `gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest` | `src/main/resources/portal-openapi.yaml` |
 | **Automation API** | `gravitee-apim-rest-api-automation/gravitee-apim-rest-api-automation-rest` | `src/main/resources/open-api.yaml` |

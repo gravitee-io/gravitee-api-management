@@ -35,7 +35,8 @@
     <name>Gravitee.io APIM - Management API - Management - v2</name>
 
     <modules>
-        <module>gravitee-apim-rest-api-management-v2-rest</module>
+        <module>gravitee-apim-rest-api-management-v2-model</module>
+		<module>gravitee-apim-rest-api-management-v2-rest</module>
         <module>gravitee-apim-rest-api-management-v2-security</module>
     </modules>
 </project>
