@@ -423,8 +423,9 @@ workflows:
                 - elasticsearch
               engineVersion:
                 - 7.17.29
-                - 8.19.12
-                - 9.3.1
+                - 8.19.19
+                - 9.3.8
+                - 9.4.4
       - job-elastic-test-container:
           name: Analytics repository tests - OpenSearch << matrix.engineVersion >>
           context:
