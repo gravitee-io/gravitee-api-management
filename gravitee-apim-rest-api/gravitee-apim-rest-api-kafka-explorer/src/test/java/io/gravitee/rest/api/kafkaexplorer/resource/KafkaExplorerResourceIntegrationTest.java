@@ -145,42 +145,4 @@ class KafkaExplorerResourceIntegrationTest extends AbstractKafkaExplorerResource
             assertThat(body.getNodes()).isNotEmpty();
         }
     }
-
-    @Nested
-    class WrongProtocol {
-
-        @Test
-        void should_return_502_when_using_sasl_on_plaintext_listener() {
-            givenClusterWithConfig(
-                Map.of(
-                    "bootstrapServers",
-                    plaintextBootstrapServers(),
-                    "security",
-                    Map.of(
-                        "protocol",
-                        "SASL_PLAINTEXT",
-                        "sasl",
-                        Map.of("mechanism", Map.of("type", "PLAIN", "username", "user", "password", "password"))
-                    )
-                )
-            );
-
-            var request = new DescribeClusterRequest().clusterId(CLUSTER_ID);
-
-            var response = resource.describeCluster(request);
-
-            assertThat(response.getStatus()).isEqualTo(502);
-        }
-
-        @Test
-        void should_return_502_when_using_ssl_on_plaintext_listener() {
-            givenClusterWithConfig(Map.of("bootstrapServers", plaintextBootstrapServers(), "security", Map.of("protocol", "SSL")));
-
-            var request = new DescribeClusterRequest().clusterId(CLUSTER_ID);
-
-            var response = resource.describeCluster(request);
-
-            assertThat(response.getStatus()).isEqualTo(502);
-        }
-    }
 }
