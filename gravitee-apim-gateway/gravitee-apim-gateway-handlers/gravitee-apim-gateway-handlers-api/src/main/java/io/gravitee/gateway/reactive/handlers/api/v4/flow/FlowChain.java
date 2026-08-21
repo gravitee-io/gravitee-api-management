@@ -21,6 +21,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
+import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.ChainHook;
@@ -29,6 +30,7 @@ import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
+import io.gravitee.gateway.reactive.policy.HttpPolicyFactory;
 import io.gravitee.gateway.reactive.v4.flow.FlowResolver;
 import io.gravitee.gateway.reactive.v4.policy.PolicyChainFactory;
 import io.reactivex.rxjava3.annotations.NonNull;
@@ -89,6 +91,30 @@ public class FlowChain implements Hookable<ChainHook> {
             this.hooks = new ArrayList<>();
         }
         this.hooks.addAll(hooks);
+    }
+
+    /**
+     * Pre-creates policy chains for the given flows, triggering warmup on any {@code WarmablePolicy}
+     * instances created while the warmup context is active.
+     *
+     * @param deploymentContext the deployment context passed through to policy warmup
+     * @param flows the flows whose policy chains to pre-create
+     */
+    public void warmupPolicies(final DeploymentContext deploymentContext, final Iterable<Flow> flows) {
+        HttpPolicyFactory.beginWarmup(deploymentContext);
+        try {
+            for (Flow flow : flows) {
+                if (!flow.isEnabled()) {
+                    continue;
+                }
+                log.debug("Warming up policies of flow '{}' ({} level) for request phase", flow.getName(), id);
+                policyChainFactory.create(id, flow, ExecutionPhase.REQUEST);
+                log.debug("Warming up policies of flow '{}' ({} level) for response phase", flow.getName(), id);
+                policyChainFactory.create(id, flow, ExecutionPhase.RESPONSE);
+            }
+        } finally {
+            HttpPolicyFactory.endWarmup();
+        }
     }
 
     /**
