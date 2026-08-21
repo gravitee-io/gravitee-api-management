@@ -119,6 +119,71 @@ class RequestPathNormalizerTest {
     }
 
     @Nested
+    class Dot_segments_carrying_path_parameters {
+
+        @ParameterizedTest
+        @CsvSource(
+            {
+                "/alpha/api/..;/..;/beta/api/secret, /beta/api/secret",
+                "/alpha/..;jsessionid=1/beta, /beta",
+                "/alpha/.;/beta, /alpha/beta",
+                "/alpha/..;/..;/beta, /beta",
+            }
+        )
+        void should_resolve_them_the_way_a_servlet_container_will(String path, String expected) {
+            // Given a receiver that strips ;params before resolving — Tomcat, Jetty, Spring.
+            // When the gateway normalizes.
+            // Then it lands on the same resource the receiver would, rather than authorizing one
+            // and letting the other be served. This is the escalation, in one line.
+            assertThat(RequestPathNormalizer.normalize(path)).isEqualTo(expected);
+        }
+
+        @Test
+        void should_flag_them_so_that_reject_refuses_them_too() {
+            assertThat(RequestPathNormalizer.needsNormalization("/alpha/api/..;/..;/beta/api/secret")).isTrue();
+        }
+
+        @Test
+        void should_never_emit_the_shape_it_refuses_to_resolve() {
+            // The dangerous one: %2e%2e; decodes to ..; and, before the strip, normalize produced a
+            // traversal a servlet receiver resolves from an input that contained none literally.
+            final String normalized = RequestPathNormalizer.normalize("/alpha/%2e%2e;/beta");
+
+            assertThat(normalized).isEqualTo("/beta").doesNotContain("..");
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "/orders;v=2", "/a/report.csv;charset=utf8", "/a/..b;x/c", "/a/b..;x/c" })
+        void should_leave_ordinary_segments_alone(String path) {
+            // Only a segment that is entirely dots before the ';' is a dot segment. Anything else
+            // keeps its parameters, or REJECT would start refusing perfectly well formed traffic.
+            assertThat(RequestPathNormalizer.normalize(path)).isSameAs(path);
+        }
+    }
+
+    @Nested
+    class Reading_percent_sequences {
+
+        @ParameterizedTest
+        @ValueSource(strings = { "/a%+41b", "/a%-41b", "/a%4+1b" })
+        void should_refuse_a_sign_wherever_a_hexadecimal_digit_is_expected(String path) {
+            // Integer.parseInt accepts a leading sign, Character.digit does not. While the two
+            // implementations each had their own reading, %+41 was flagged by one and ignored by
+            // the other — the single disagreement a brute force over the input space could find.
+            assertThat(RequestPathNormalizer.normalize(path)).isNull();
+            assertThat(RequestPathNormalizer.needsNormalization(path)).isTrue();
+        }
+
+        @Test
+        void should_refuse_a_non_ascii_digit_rather_than_reading_it_as_a_number() {
+            // Character.digit is Unicode-aware: it reads the Arabic-Indic '٢' as 2, which turned
+            // %٢e%٢e into a dot segment the gateway resolved and no receiver ever would — routing
+            // to an API the raw path never named.
+            assertThat(RequestPathNormalizer.normalize("/alpha/%٢e%٢e/beta")).isNull();
+        }
+    }
+
+    @Nested
     class Beyond_the_specification {
 
         @ParameterizedTest

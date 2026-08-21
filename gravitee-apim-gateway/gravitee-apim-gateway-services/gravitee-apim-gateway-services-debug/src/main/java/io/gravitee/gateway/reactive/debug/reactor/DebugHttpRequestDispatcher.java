@@ -136,9 +136,6 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
         // names the session to close. The raw path still matches: the acceptor compares prefixes and
         // the debug context path the daemon prepends sits ahead of whatever the user typed.
         final ReactableDebugApi<?> debugApi = resolveDebugApi(httpServerRequest, serverId);
-        if (debugApi != null) {
-            ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, debugApi);
-        }
 
         final ProcessorChain rejectedChain = notFoundProcessorChainFactory.rejectedPathProcessorChain();
         final Completable reject = rejectedChain.execute(ctx, ExecutionPhase.RESPONSE);
@@ -148,7 +145,21 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
             log.warn("Rejected debug request on path {} could not be matched to a debug API", httpServerRequest.path());
             return reject;
         }
-        return reject.andThen(Completable.defer(() -> debugCompletionProcessor.execute((HttpExecutionContextInternal) ctx)));
+
+        // doFinally rather than andThen, and for one reason: the session must be closed on failure
+        // and on cancellation too. Ending the response throws when the client has already gone, and
+        // the debug verticle disposes this chain when the connection closes — either would otherwise
+        // leave the event in DEBUGGING and the console spinning, which is the dead end this exists
+        // to close.
+        return reject.doFinally(() -> {
+            // Set here rather than before the rejected chain: two of its processors read this same
+            // attribute to decide whether to report, and finding it set would make them follow the
+            // API's own analytics configuration instead of handlers.rejected.analytics.enabled.
+            ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, debugApi);
+            debugCompletionProcessor
+                .execute((HttpExecutionContextInternal) ctx)
+                .subscribe(() -> {}, throwable -> log.error("Failed to close the debug session for a rejected path", throwable));
+        });
     }
 
     private ReactableDebugApi<?> resolveDebugApi(final HttpServerRequest httpServerRequest, final String serverId) {

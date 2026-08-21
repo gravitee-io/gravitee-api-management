@@ -35,10 +35,14 @@ import io.gravitee.gateway.env.RequestPathHandling;
  * <p><b>Why this exists next to the dispatcher rather than inside it.</b> {@code
  * DefaultHttpRequestDispatcher.dispatch} runs on every request the gateway serves, and deliberately
  * inlines this decision so it can reuse the single scan it already pays for and allocate nothing.
- * Calling this method there would scan the path a second time. The duplication is intentional and
- * bounded, and it is pinned by {@code RequestPathRejectionTest}, which walks the same table of modes
- * and paths the dispatcher tests use — two readings of one rule drift silently, and this one would
- * drift open.
+ * Calling this method there would scan the path a second time.
+ *
+ * <p>The duplication is therefore intentional, and it is guarded by {@code
+ * DefaultHttpRequestDispatcherTest.The_rejection_decision}, which drives the <b>dispatcher</b> over
+ * a table of modes and paths and asserts that it refused exactly the ones this method announces.
+ * Two readings of one rule drift the moment one is touched alone, and this drift fails open. Note
+ * what that guard is not: asserting this method against the normalizer it is built from restates its
+ * own body and passes whatever the dispatcher does.
  *
  * @author GraviteeSource Team
  */

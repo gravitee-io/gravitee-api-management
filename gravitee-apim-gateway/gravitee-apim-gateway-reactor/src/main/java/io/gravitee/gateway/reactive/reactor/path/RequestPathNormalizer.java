@@ -39,13 +39,29 @@ package io.gravitee.gateway.reactive.reactor.path;
  *       stack.
  *   <li>A malformed percent sequence has no normalized form. {@link #normalize(String)} answers
  *       {@code null} for it rather than throwing, leaving the caller to reject the request.
+ *   <li>A dot segment carrying path parameters, {@code ..;x}, is treated as a dot segment. RFC 3986
+ *       says it is an ordinary segment; the Servlet specification says a container strips
+ *       {@code ;params} first, which makes it a dot segment. Tomcat, Jetty and Spring follow the
+ *       latter. The gateway takes the most permissive reading any receiver could, because being
+ *       stricter than the receiver costs a refused request while being laxer re-opens the very
+ *       bypass this class closes. See {@link #stripDotSegmentParameters(StringBuilder)}.
  * </ul>
+ *
+ * <p><b>What the modes assume of the receiver.</b> The rules above describe a receiver that decodes
+ * percent sequences once, per RFC 3986 §2.3, and treats only {@code /} as a separator. Reserved
+ * characters are deliberately left encoded, so {@code /a/..%2f../b} and {@code /a/%252e%252e/b} are
+ * canonical here and are neither resolved nor refused. A receiver configured to decode {@code %2F}
+ * into a separator (nginx with a URI in {@code proxy_pass}, Apache with {@code AllowEncodedSlashes
+ * On}) or to accept {@code \} as one resolves paths this class does not, and neither mode protects
+ * against that. {@code REJECT} refuses paths that are not canonical; it is not traversal hardening
+ * for an arbitrary receiver.
  *
  * @author GraviteeSource Team
  */
 public final class RequestPathNormalizer {
 
     private static final char SEGMENT_SEPARATOR = '/';
+    private static final char PARAM_SEPARATOR = ';';
     private static final String ROOT = "/";
 
     private RequestPathNormalizer() {}
@@ -123,9 +139,10 @@ public final class RequestPathNormalizer {
     }
 
     /**
-     * @return whether the segment starting at {@code start} is exactly {@code .} or {@code ..}.
-     *     Encoded spellings are not looked for here: they are already caught by the unreserved
-     *     decoding rule, whatever their position.
+     * @return whether the segment starting at {@code start} is a dot segment. Encoded spellings are
+     *     not looked for here: they are already caught by the unreserved decoding rule, whatever
+     *     their position. A path-parameter suffix does not disqualify one — see
+     *     {@link #stripDotSegmentParameters(StringBuilder)}.
      */
     private static boolean isDotSegment(final String path, final int start, final int length) {
         if (start >= length || path.charAt(start) != '.') {
@@ -135,15 +152,78 @@ public final class RequestPathNormalizer {
         if (end < length && path.charAt(end) == '.') {
             end++;
         }
-        return end == length || path.charAt(end) == SEGMENT_SEPARATOR;
+        return end == length || path.charAt(end) == SEGMENT_SEPARATOR || path.charAt(end) == PARAM_SEPARATOR;
     }
 
     /**
-     * @return the octet the two characters spell, or {@code -1} when they are not hexadecimal
+     * Drops the path-parameter suffix of any segment whose content is exactly {@code .} or
+     * {@code ..}, so that {@link #removeDotSegments(CharSequence)} sees the dot segment the receiver
+     * downstream is going to see.
+     *
+     * <p><b>Why this is not RFC 3986.</b> The specification is clear that a segment may carry
+     * parameters after a {@code ;} (§3.3) and that {@code remove_dot_segments} matches only the
+     * exact strings {@code .} and {@code ..} (§5.2.4). By that reading {@code ..;x} is an ordinary
+     * segment and this method is wrong. The Servlet specification is equally clear that a container
+     * strips {@code ;params} from every segment <em>before</em> resolving anything, which is what
+     * Tomcat, Jetty and Spring do. By that reading {@code ..;x} is a dot segment.
+     *
+     * <p>Both are right, and that disagreement is the whole bug this class exists to close. A
+     * gateway cannot know what sits behind it, so it decides on the most permissive reading any
+     * plausible receiver could take. Being stricter than a receiver costs an over-refused request;
+     * being laxer authorises one resource and lets another be served, which is the escalation that
+     * started this.
+     *
+     * <p>Only segments that are <em>entirely</em> dots before the {@code ;} are touched, so an
+     * ordinary {@code /orders;v=2} or a session id on a real segment is left alone.
+     */
+    private static void stripDotSegmentParameters(final StringBuilder path) {
+        int segmentStart = 0;
+        while (segmentStart <= path.length()) {
+            int segmentEnd = segmentStart;
+            while (segmentEnd < path.length() && path.charAt(segmentEnd) != SEGMENT_SEPARATOR) {
+                segmentEnd++;
+            }
+            int afterDots = segmentStart;
+            while (afterDots < segmentEnd && path.charAt(afterDots) == '.') {
+                afterDots++;
+            }
+            final int dots = afterDots - segmentStart;
+            if ((dots == 1 || dots == 2) && afterDots < segmentEnd && path.charAt(afterDots) == PARAM_SEPARATOR) {
+                path.delete(afterDots, segmentEnd);
+                segmentEnd = afterDots;
+            }
+            segmentStart = segmentEnd + 1;
+        }
+    }
+
+    /**
+     * @return the value of a single <b>ASCII</b> hexadecimal digit, or {@code -1}.
+     *     <p>Deliberately not {@link Character#digit(char, int)}, which is Unicode-aware:
+     *     {@code Character.digit('٢', 16)} answers 2, so {@code %٢e} would decode to a dot that no
+     *     receiver on earth resolves, and the gateway would route somewhere the raw path never
+     *     named. A percent sequence is ASCII by definition (RFC 3986 §2.1).
+     */
+    private static int hexDigit(final char c) {
+        if (c >= '0' && c <= '9') {
+            return c - '0';
+        }
+        if (c >= 'A' && c <= 'F') {
+            return c - 'A' + 10;
+        }
+        if (c >= 'a' && c <= 'f') {
+            return c - 'a' + 10;
+        }
+        return -1;
+    }
+
+    /**
+     * @return the octet the two characters spell, or {@code -1} when they are not hexadecimal.
+     *     Shared by both implementations on purpose: when they each had their own reading of what a
+     *     hexadecimal digit is, they disagreed on {@code %+41}.
      */
     private static int hexValue(final char high, final char low) {
-        final int h = Character.digit(high, 16);
-        final int l = Character.digit(low, 16);
+        final int h = hexDigit(high);
+        final int l = hexDigit(low);
         return h < 0 || l < 0 ? -1 : (h << 4) + l;
     }
 
@@ -191,6 +271,9 @@ public final class RequestPathNormalizer {
         if (firstPercent != -1) {
             decodeUnreservedChars(buffer, firstPercent);
         }
+        // After decoding, so that %2e%2e; is stripped too — otherwise this method would itself
+        // produce the ..; shape that a servlet receiver resolves and this one would not.
+        stripDotSegmentParameters(buffer);
         return removeDotSegments(buffer);
     }
 
@@ -295,15 +378,9 @@ public final class RequestPathNormalizer {
             throw new IllegalArgumentException("Invalid position for escape character: " + start);
         }
 
-        final String escapeSequence = path.substring(start + 1, start + 3);
-        final int unescaped;
-        try {
-            unescaped = Integer.parseInt(escapeSequence, 16);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid escape sequence: %" + escapeSequence, e);
-        }
+        final int unescaped = hexValue(path.charAt(start + 1), path.charAt(start + 2));
         if (unescaped < 0) {
-            throw new IllegalArgumentException("Invalid escape sequence: %" + escapeSequence);
+            throw new IllegalArgumentException("Invalid escape sequence: %" + path.substring(start + 1, start + 3));
         }
 
         if (isUnreserved(unescaped)) {
