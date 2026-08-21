@@ -62,6 +62,9 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     private final EventMetricsMeasuresQueryAdapter eventMetricsMeasuresQueryAdapter = new EventMetricsMeasuresQueryAdapter();
     private final EventMetricsFacetsQueryAdapter eventMetricsFacetsQueryAdapter = new EventMetricsFacetsQueryAdapter();
     private final EventMetricsTimeSeriesQueryAdapter eventMetricsTimeSeriesQueryAdapter = new EventMetricsTimeSeriesQueryAdapter();
+    private final AuthzMeasuresQueryAdapter authzMeasuresQueryAdapter = new AuthzMeasuresQueryAdapter();
+    private final AuthzFacetsQueryAdapter authzFacetsQueryAdapter = new AuthzFacetsQueryAdapter();
+    private final AuthzTimeSeriesQueryAdapter authzTimeSeriesQueryAdapter = new AuthzTimeSeriesQueryAdapter();
     private final FilterValuesQueryAdapter filterValuesQueryAdapter = new FilterValuesQueryAdapter();
     private final FilterValuesResponseAdapter filterValuesResponseAdapter = new FilterValuesResponseAdapter();
 
@@ -372,6 +375,45 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         var esQuery = eventMetricsTimeSeriesQueryAdapter.adapt(query);
 
         log.debug("Event metrics time series query: {}", esQuery);
+
+        return client
+            .search(index, null, esQuery)
+            .map(response -> timeSeriesResponseAdapter.adapt(response, query))
+            .blockingGet();
+    }
+
+    @Override
+    public MeasuresResult searchAuthzMeasures(QueryContext queryContext, MeasuresQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.EVENT_METRICS, clusters);
+        var esQuery = authzMeasuresQueryAdapter.adapt(query);
+
+        log.debug("Authz measures query: {}", esQuery);
+
+        return client
+            .search(index, null, esQuery)
+            .map(response -> measuresResponseAdapter.adapt(response, query))
+            .blockingGet();
+    }
+
+    @Override
+    public FacetsResult searchAuthzFacets(QueryContext queryContext, FacetsQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.EVENT_METRICS, clusters);
+        var esQuery = authzFacetsQueryAdapter.adapt(query);
+
+        log.debug("Authz facets query: {}", esQuery);
+
+        return client
+            .search(index, null, esQuery)
+            .map(response -> facetsResponseAdapter.adapt(response, query))
+            .blockingGet();
+    }
+
+    @Override
+    public TimeSeriesResult searchAuthzTimeSeries(QueryContext queryContext, TimeSeriesQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.EVENT_METRICS, clusters);
+        var esQuery = authzTimeSeriesQueryAdapter.adapt(query);
+
+        log.debug("Authz time series query: {}", esQuery);
 
         return client
             .search(index, null, esQuery)

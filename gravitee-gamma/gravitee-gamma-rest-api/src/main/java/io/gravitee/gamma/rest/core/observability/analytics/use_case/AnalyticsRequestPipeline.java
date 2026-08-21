@@ -83,7 +83,11 @@ public class AnalyticsRequestPipeline {
             return PreparedScope.EMPTY;
         }
 
-        var effectiveConditions = applyDefaultEntrypointScoping(removeApiConditions(conditions));
+        var withoutApi = removeApiConditions(conditions);
+        var isAuthzDecision = isAuthzDecisionRequest(withoutApi);
+        var withoutRecordType = removeRecordTypeConditions(withoutApi);
+        // Entrypoints only exist on request documents; injecting them would match nothing on a decision.
+        var effectiveConditions = isAuthzDecision ? withoutRecordType : applyDefaultEntrypointScoping(withoutRecordType);
 
         var allFilters = new ArrayList<>(effectiveConditions);
         if (!scope.apiIds().isEmpty()) {
@@ -122,5 +126,16 @@ public class AnalyticsRequestPipeline {
         var result = new ArrayList<>(conditions);
         result.add(new FilterCondition("ENTRYPOINT", FilterOperator.IN, List.copyOf(DEFAULT_ENTRYPOINT_IDS)));
         return List.copyOf(result);
+    }
+
+    private static boolean isAuthzDecisionRequest(List<FilterCondition> conditions) {
+        return conditions.stream().anyMatch(c -> "RECORD_TYPE".equals(c.name()) && c.values().contains("AUTHZ_DECISION"));
+    }
+
+    private static List<FilterCondition> removeRecordTypeConditions(List<FilterCondition> conditions) {
+        return conditions
+            .stream()
+            .filter(c -> !"RECORD_TYPE".equals(c.name()))
+            .toList();
     }
 }

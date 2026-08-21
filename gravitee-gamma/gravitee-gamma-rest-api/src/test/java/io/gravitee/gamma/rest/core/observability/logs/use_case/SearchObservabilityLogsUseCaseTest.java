@@ -134,7 +134,7 @@ class SearchObservabilityLogsUseCaseTest {
                     io.gravitee.gamma.rest.core.observability.filter.model.ApiType.ALL
                 ),
                 new FilterSpec(
-                    "DECISION",
+                    "AUTHZ_DECISION",
                     "Decision",
                     FilterType.ENUM,
                     List.of(FilterOperator.EQ, FilterOperator.IN),
@@ -219,7 +219,7 @@ class SearchObservabilityLogsUseCaseTest {
                         ENV_ID,
                         List.of(
                             new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
-                            new FilterCondition("DECISION", FilterOperator.IN, List.of())
+                            new FilterCondition("AUTHZ_DECISION", FilterOperator.IN, List.of())
                         ),
                         null,
                         null,
@@ -245,7 +245,7 @@ class SearchObservabilityLogsUseCaseTest {
                     ENV_ID,
                     List.of(
                         new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
-                        new FilterCondition("DECISION", FilterOperator.IN, List.of("PERMIT", "FORBID"))
+                        new FilterCondition("AUTHZ_DECISION", FilterOperator.IN, List.of("PERMIT", "FORBID"))
                     ),
                     null,
                     null,
@@ -256,7 +256,7 @@ class SearchObservabilityLogsUseCaseTest {
 
             var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
             verify(logsDataPort).searchLogs(any(), any(), captor.capture());
-            assertThat(captor.getValue().conditions()).extracting(FilterCondition::name).containsExactly("DECISION");
+            assertThat(captor.getValue().conditions()).extracting(FilterCondition::name).containsExactly("AUTHZ_DECISION");
         }
 
         @Test

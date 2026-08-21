@@ -72,6 +72,14 @@ public record Filter(Filter.Name name, Operator operator, Object value) {
         NATIVE_OPERATION,
         URI,
         ENTRYPOINT,
+        AUTHZ_DECISION,
+        AUTHZ_OPERATION,
+        AUTHZ_STATUS,
+        AUTHZ_CALLER,
+        AUTHZ_SUBJECT_ID,
+        AUTHZ_ACTION,
+        AUTHZ_RESOURCE_ID,
+        AUTHZ_REASON,
     }
 
     public enum Operator {

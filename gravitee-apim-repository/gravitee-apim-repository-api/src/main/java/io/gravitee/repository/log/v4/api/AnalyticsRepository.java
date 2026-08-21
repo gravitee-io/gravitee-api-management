@@ -89,5 +89,11 @@ public interface AnalyticsRepository {
 
     TimeSeriesResult searchEventMetricsTimeSeries(QueryContext queryContext, TimeSeriesQuery query);
 
+    MeasuresResult searchAuthzMeasures(QueryContext queryContext, MeasuresQuery query);
+
+    FacetsResult searchAuthzFacets(QueryContext queryContext, FacetsQuery query);
+
+    TimeSeriesResult searchAuthzTimeSeries(QueryContext queryContext, TimeSeriesQuery query);
+
     FilterValuesResult searchFilterValues(QueryContext queryContext, FilterValuesQuery query);
 }

@@ -1534,6 +1534,227 @@ spec:
               - PLAN
               - NATIVE_OPERATION
 
+        # Authorization decision events, from the authz event-metrics doc-type (see AuthzFieldResolver).
+        - name: AUTHZ_DECISIONS
+          label: Decisions
+          apis:
+              - AUTHZ
+          unit: NUMBER
+          measures:
+              - COUNT
+          facets:
+              - API
+              - GATEWAY
+              - AUTHZ_DECISION
+              - AUTHZ_ACTION
+              - AUTHZ_SUBJECT_ID
+              - AUTHZ_RESOURCE_ID
+              - AUTHZ_REASON
+              - AUTHZ_CALLER
+          filters:
+              - API
+              - GATEWAY
+              - AUTHZ_DECISION
+              - AUTHZ_ACTION
+              - AUTHZ_SUBJECT_ID
+              - AUTHZ_RESOURCE_ID
+              - AUTHZ_REASON
+              - AUTHZ_CALLER
+
+        - name: AUTHZ_PERMITS
+          label: Permits
+          apis:
+              - AUTHZ
+          unit: NUMBER
+          measures:
+              - COUNT
+          facets:
+              - API
+              - GATEWAY
+              - AUTHZ_DECISION
+              - AUTHZ_ACTION
+              - AUTHZ_SUBJECT_ID
+              - AUTHZ_RESOURCE_ID
+              - AUTHZ_REASON
+              - AUTHZ_CALLER
+          filters:
+              - API
+              - GATEWAY
+              - AUTHZ_DECISION
+              - AUTHZ_ACTION
+              - AUTHZ_SUBJECT_ID
+              - AUTHZ_RESOURCE_ID
+              - AUTHZ_REASON
+              - AUTHZ_CALLER
+
+        - name: AUTHZ_FORBIDS
+          label: Forbids
+          apis:
+              - AUTHZ
+          unit: NUMBER
+          measures:
+              - COUNT
+          facets:
+              - API
+              - GATEWAY
+              - AUTHZ_DECISION
+              - AUTHZ_ACTION
+              - AUTHZ_SUBJECT_ID
+              - AUTHZ_RESOURCE_ID
+              - AUTHZ_REASON
+              - AUTHZ_CALLER
+          filters:
+              - API
+              - GATEWAY
+              - AUTHZ_DECISION
+              - AUTHZ_ACTION
+              - AUTHZ_SUBJECT_ID
+              - AUTHZ_RESOURCE_ID
+              - AUTHZ_REASON
+              - AUTHZ_CALLER
+
+        - name: AUTHZ_NOT_APPLICABLE
+          label: Not Applicable
+          apis:
+              - AUTHZ
+          unit: NUMBER
+          measures:
+              - COUNT
+          facets:
+              - API
+              - GATEWAY
+              - AUTHZ_DECISION
+              - AUTHZ_ACTION
+              - AUTHZ_SUBJECT_ID
+              - AUTHZ_RESOURCE_ID
+              - AUTHZ_REASON
+              - AUTHZ_CALLER
+          filters:
+              - API
+              - GATEWAY
+              - AUTHZ_DECISION
+              - AUTHZ_ACTION
+              - AUTHZ_SUBJECT_ID
+              - AUTHZ_RESOURCE_ID
+              - AUTHZ_REASON
+              - AUTHZ_CALLER
+
+        - name: AUTHZ_OPERATIONS
+          label: Operations
+          apis:
+              - AUTHZ
+          unit: NUMBER
+          measures:
+              - COUNT
+          facets:
+              - API
+              - GATEWAY
+              - AUTHZ_DECISION
+              - AUTHZ_ACTION
+              - AUTHZ_SUBJECT_ID
+              - AUTHZ_RESOURCE_ID
+              - AUTHZ_REASON
+              - AUTHZ_CALLER
+              - AUTHZ_OPERATION
+              - AUTHZ_STATUS
+          filters:
+              - API
+              - GATEWAY
+              - AUTHZ_DECISION
+              - AUTHZ_ACTION
+              - AUTHZ_SUBJECT_ID
+              - AUTHZ_RESOURCE_ID
+              - AUTHZ_REASON
+              - AUTHZ_CALLER
+              - AUTHZ_OPERATION
+              - AUTHZ_STATUS
+
+        - name: AUTHZ_SEARCHES
+          label: Searches
+          apis:
+              - AUTHZ
+          unit: NUMBER
+          measures:
+              - COUNT
+          facets:
+              - API
+              - GATEWAY
+              - AUTHZ_ACTION
+              - AUTHZ_SUBJECT_ID
+              - AUTHZ_RESOURCE_ID
+              - AUTHZ_REASON
+              - AUTHZ_CALLER
+          filters:
+              - API
+              - GATEWAY
+              - AUTHZ_DECISION
+              - AUTHZ_ACTION
+              - AUTHZ_SUBJECT_ID
+              - AUTHZ_RESOURCE_ID
+              - AUTHZ_REASON
+              - AUTHZ_CALLER
+
+        - name: AUTHZ_FAILURES
+          label: Failed Operations
+          apis:
+              - AUTHZ
+          unit: NUMBER
+          measures:
+              - COUNT
+          facets:
+              - API
+              - GATEWAY
+              - AUTHZ_DECISION
+              - AUTHZ_ACTION
+              - AUTHZ_SUBJECT_ID
+              - AUTHZ_RESOURCE_ID
+              - AUTHZ_REASON
+              - AUTHZ_CALLER
+              - AUTHZ_STATUS
+              - AUTHZ_OPERATION
+          filters:
+              - API
+              - GATEWAY
+              - AUTHZ_DECISION
+              - AUTHZ_ACTION
+              - AUTHZ_SUBJECT_ID
+              - AUTHZ_RESOURCE_ID
+              - AUTHZ_REASON
+              - AUTHZ_CALLER
+              - AUTHZ_STATUS
+              - AUTHZ_OPERATION
+
+        - name: AUTHZ_EVAL_DURATION
+          label: Evaluation Duration
+          apis:
+              - AUTHZ
+          unit: MILLISECONDS
+          measures:
+              - AVG
+              - MIN
+              - MAX
+              - P50
+              - P95
+              - P99
+          facets:
+              - API
+              - GATEWAY
+              - AUTHZ_DECISION
+              - AUTHZ_ACTION
+              - AUTHZ_SUBJECT_ID
+              - AUTHZ_RESOURCE_ID
+              - AUTHZ_REASON
+              - AUTHZ_CALLER
+          filters:
+              - API
+              - GATEWAY
+              - AUTHZ_DECISION
+              - AUTHZ_ACTION
+              - AUTHZ_SUBJECT_ID
+              - AUTHZ_RESOURCE_ID
+              - AUTHZ_REASON
+              - AUTHZ_CALLER
+
     filters:
         - name: API
           label: API
@@ -2006,6 +2227,62 @@ spec:
           operators:
               - EQ
               - IN
+
+        - name: AUTHZ_DECISION
+          label: Decision
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
+        - name: AUTHZ_OPERATION
+          label: Operation
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
+        - name: AUTHZ_STATUS
+          label: Status
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
+        - name: AUTHZ_CALLER
+          label: Caller
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
+        - name: AUTHZ_SUBJECT_ID
+          label: Subject ID
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
+        - name: AUTHZ_ACTION
+          label: Action
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
+        - name: AUTHZ_RESOURCE_ID
+          label: Resource ID
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
+        - name: AUTHZ_REASON
+          label: Reason
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
     facets:
         - name: API
           label: API
@@ -2153,4 +2430,36 @@ spec:
 
         - name: NATIVE_OPERATION
           label: Kafka Operation
+          type: KEYWORD
+
+        - name: AUTHZ_DECISION
+          label: Decision
+          type: KEYWORD
+
+        - name: AUTHZ_OPERATION
+          label: Operation
+          type: KEYWORD
+
+        - name: AUTHZ_STATUS
+          label: Status
+          type: KEYWORD
+
+        - name: AUTHZ_CALLER
+          label: Caller
+          type: KEYWORD
+
+        - name: AUTHZ_SUBJECT_ID
+          label: Subject ID
+          type: KEYWORD
+
+        - name: AUTHZ_ACTION
+          label: Action
+          type: KEYWORD
+
+        - name: AUTHZ_RESOURCE_ID
+          label: Resource ID
+          type: KEYWORD
+
+        - name: AUTHZ_REASON
+          label: Reason
           type: KEYWORD
