@@ -18,6 +18,9 @@ package architecture;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -45,6 +48,14 @@ public class AbstractApimArchitectureTest {
     public final String ADAPTER_PACKAGE = "adapter";
     public final String MODEL_PACKAGE = "model";
 
+    /**
+     * Importing io.gravitee.apim takes several seconds and every rule needs the same view of it, so the
+     * result is held for the lifetime of the JVM rather than rebuilt per test. Keyed by import option
+     * because the two views differ. JavaClasses is immutable, so sharing it is safe as long as no rule
+     * mutates what it returns — none does.
+     */
+    private static final Map<Optional<ImportOption>, JavaClasses> IMPORTED = new ConcurrentHashMap<>();
+
     public JavaClasses apimClassesWithoutTests() {
         return apimClasses(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS);
     }
@@ -54,6 +65,10 @@ public class AbstractApimArchitectureTest {
     }
 
     public JavaClasses apimClasses(ImportOption importOption) {
+        return IMPORTED.computeIfAbsent(Optional.ofNullable(importOption), option -> importApim(option.orElse(null)));
+    }
+
+    private JavaClasses importApim(ImportOption importOption) {
         ClassFileImporter classFileImporter = new ClassFileImporter();
         if (importOption != null) {
             classFileImporter = classFileImporter.withImportOption(importOption);
