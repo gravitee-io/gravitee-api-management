@@ -280,44 +280,47 @@ public final class RequestPathNormalizer {
     /**
      * RFC 3986 §5.2.4, plus the merging of duplicate slashes inherited from Vert.x.
      */
-    private static String removeDotSegments(CharSequence path) {
+    private static String removeDotSegments(final CharSequence path) {
         final StringBuilder out = new StringBuilder(path.length());
+        // The input buffer of §5.2.4, kept apart from the parameter so the path the caller handed us
+        // stays readable while the algorithm rewrites its own working copy.
+        CharSequence remaining = path;
         int i = 0;
 
-        while (i < path.length()) {
-            if (matches(path, i, "./")) {
+        while (i < remaining.length()) {
+            if (matches(remaining, i, "./")) {
                 i += 2;
-            } else if (matches(path, i, "../")) {
+            } else if (matches(remaining, i, "../")) {
                 i += 3;
-            } else if (matches(path, i, "/./")) {
+            } else if (matches(remaining, i, "/./")) {
                 // Preserve the trailing slash.
                 i += 2;
-            } else if (matches(path, i, "/.", true)) {
-                path = ROOT;
+            } else if (matches(remaining, i, "/.", true)) {
+                remaining = ROOT;
                 i = 0;
-            } else if (matches(path, i, "/../")) {
+            } else if (matches(remaining, i, "/../")) {
                 i += 3;
                 removeLastSegment(out);
-            } else if (matches(path, i, "/..", true)) {
-                path = ROOT;
+            } else if (matches(remaining, i, "/..", true)) {
+                remaining = ROOT;
                 i = 0;
                 removeLastSegment(out);
-            } else if (matches(path, i, ".", true) || matches(path, i, "..", true)) {
+            } else if (matches(remaining, i, ".", true) || matches(remaining, i, "..", true)) {
                 break;
             } else {
-                if (path.charAt(i) == SEGMENT_SEPARATOR) {
+                if (remaining.charAt(i) == SEGMENT_SEPARATOR) {
                     i++;
                     // Not standard, but every hop around us collapses "//" into "/".
                     if (out.length() == 0 || out.charAt(out.length() - 1) != SEGMENT_SEPARATOR) {
                         out.append(SEGMENT_SEPARATOR);
                     }
                 }
-                final int nextSlash = indexOfSlash(path, i);
+                final int nextSlash = indexOfSlash(remaining, i);
                 if (nextSlash != -1) {
-                    out.append(path, i, nextSlash);
+                    out.append(remaining, i, nextSlash);
                     i = nextSlash;
                 } else {
-                    out.append(path, i, path.length());
+                    out.append(remaining, i, remaining.length());
                     break;
                 }
             }
@@ -358,12 +361,24 @@ public final class RequestPathNormalizer {
         return -1;
     }
 
-    private static void decodeUnreservedChars(final StringBuilder path, int start) {
-        while (start < path.length()) {
-            if (path.charAt(start) == '%') {
-                decodeUnreserved(path, start);
+    /**
+     * Decodes in place, which is quadratic in the worst case: every decoded escape deletes two
+     * characters from the middle of the buffer and shifts the suffix behind them.
+     *
+     * <p>Kept that way deliberately. The input is a request line, which Vert.x caps at
+     * {@code maxInitialLineLength} — 4096 bytes by default — so the worst case an attacker can reach
+     * is a full line of {@code %41}, measured at around 60 µs. A single-pass rewrite would be faster
+     * on paper and would also be a rewrite of vendored resolution logic on the one code path where a
+     * mistake is a security defect, which is a poor trade at this size. Revisit if that cap is ever
+     * raised.
+     */
+    private static void decodeUnreservedChars(final StringBuilder path, final int start) {
+        int cursor = start;
+        while (cursor < path.length()) {
+            if (path.charAt(cursor) == '%') {
+                decodeUnreserved(path, cursor);
             }
-            start++;
+            cursor++;
         }
     }
 
