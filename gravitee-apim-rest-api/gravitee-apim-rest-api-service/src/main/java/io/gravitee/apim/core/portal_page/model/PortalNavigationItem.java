@@ -202,7 +202,8 @@ public abstract sealed class PortalNavigationItem
                 order,
                 apiProductId,
                 published,
-                visibility
+                visibility,
+                categoryIds
             );
         };
         newItem.setSegment(segmentFor(item));

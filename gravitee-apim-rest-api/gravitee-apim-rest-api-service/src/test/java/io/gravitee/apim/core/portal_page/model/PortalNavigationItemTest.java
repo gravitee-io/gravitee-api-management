@@ -47,7 +47,28 @@ class PortalNavigationItemTest {
         assertThat(apiProduct.getApiProductId()).isEqualTo("00000000-0000-0000-0000-000000000020");
         assertThat(apiProduct.getPublished()).isFalse();
         assertThat(apiProduct.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
+        assertThat(apiProduct.getCategoryIds()).isEmpty();
         assertThat(apiProduct.isRoot()).isTrue();
+    }
+
+    @Test
+    void should_create_api_product_with_category_ids() {
+        var categoryIds = List.of(PortalCategoryId.random(), PortalCategoryId.random());
+        var create = CreatePortalNavigationItem.builder()
+            .title("Product documentation")
+            .segment("product-documentation")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .type(PortalNavigationItemType.API_PRODUCT)
+            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+            .apiProductId("00000000-0000-0000-0000-000000000020")
+            .categoryIds(categoryIds)
+            .build();
+
+        var item = PortalNavigationItem.from(create, "organization-id", "environment-id", null);
+
+        assertThat(item).isInstanceOf(PortalNavigationApiProduct.class);
+        assertThat(((PortalNavigationApiProduct) item).getCategoryIds()).containsExactlyElementsOf(categoryIds);
     }
 
     @Test
@@ -66,6 +87,50 @@ class PortalNavigationItemTest {
 
         assertThat(apiProduct.getApiProductId()).isEqualTo(originalApiProductId);
         assertThat(apiProduct.getTitle()).isEqualTo("Updated product documentation");
+    }
+
+    @Test
+    void should_update_api_product_category_ids() {
+        var apiProduct = PortalNavigationItemFixtures.anApiProduct();
+        var categoryId = PortalCategoryId.random();
+        var update = UpdatePortalNavigationItem.builder()
+            .title("Updated product documentation")
+            .order(1)
+            .type(PortalNavigationItemType.API_PRODUCT)
+            .published(false)
+            .visibility(PortalVisibility.PRIVATE)
+            .categoryIds(List.of(categoryId))
+            .build();
+
+        apiProduct.update(update);
+
+        assertThat(apiProduct.getCategoryIds()).containsExactly(categoryId);
+    }
+
+    @Test
+    void should_reset_api_product_category_ids_to_empty_list_when_update_omits_them() {
+        var apiProduct = PortalNavigationItemFixtures.anApiProduct();
+        apiProduct.update(
+            UpdatePortalNavigationItem.builder()
+                .title("Updated product documentation")
+                .order(1)
+                .type(PortalNavigationItemType.API_PRODUCT)
+                .published(false)
+                .visibility(PortalVisibility.PRIVATE)
+                .categoryIds(List.of(PortalCategoryId.random()))
+                .build()
+        );
+        var update = UpdatePortalNavigationItem.builder()
+            .title("Updated product documentation")
+            .order(1)
+            .type(PortalNavigationItemType.API_PRODUCT)
+            .published(false)
+            .visibility(PortalVisibility.PRIVATE)
+            .build();
+
+        apiProduct.update(update);
+
+        assertThat(apiProduct.getCategoryIds()).isEmpty();
     }
 
     @Test
