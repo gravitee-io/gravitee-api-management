@@ -45,14 +45,14 @@
     @if (mode === 'edit') {
       <mat-card *gioPermission="{ anyOf: ['environment-documentation-r'] }">
         <mat-card-content class="category__content">
-          <div class="category__apis__title">
+          <div class="category__assignments__title">
             <div class="category__content__header">
               <h3>APIs</h3>
             </div>
             <button
-              class="add-button"
               mat-raised-button
               color="primary"
+              data-testid="add-api-button"
               (click)="addApiToCategory()"
               *gioPermission="{ anyOf: ['environment-documentation-u'] }"
             >
@@ -61,7 +61,14 @@
             </button>
           </div>
           @if (apis$ | async; as apis) {
-            <table mat-table class="gio-table-light" [dataSource]="apis" id="categoriesTable" aria-label="Categories table">
+            <table
+              mat-table
+              class="gio-table-light"
+              [dataSource]="apis"
+              id="categoriesTable"
+              aria-label="APIs assigned to category"
+              data-testid="api-table"
+            >
               <!-- Display Name Column -->
               <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef id="name">Name</th>
@@ -110,6 +117,75 @@
               <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
                 <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
                   There are no APIs for this category.
+                </td>
+              </tr>
+            </table>
+          }
+        </mat-card-content>
+      </mat-card>
+      <mat-card *gioPermission="{ anyOf: ['environment-documentation-r'] }">
+        <mat-card-content class="category__content">
+          <div class="category__assignments__title">
+            <div class="category__content__header">
+              <h3>API Products</h3>
+            </div>
+            <button
+              mat-raised-button
+              color="primary"
+              data-testid="add-api-product-button"
+              [disabled]="isLoadingApiProductCandidates()"
+              (click)="addApiProductToCategory()"
+              *gioPermission="{ anyOf: ['environment-documentation-u'] }"
+            >
+              <mat-icon>add</mat-icon>
+              Add API Product to Category
+            </button>
+          </div>
+          @if (apiProducts$ | async; as apiProducts) {
+            <table
+              mat-table
+              class="gio-table-light"
+              [dataSource]="apiProducts"
+              aria-label="API Products assigned to category"
+              data-testid="api-product-table"
+            >
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef id="api-product-name">Name</th>
+                <td mat-cell *matCellDef="let element">
+                  <div class="category__table__name">
+                    {{ element.name }}
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="version">
+                <th mat-header-cell *matHeaderCellDef id="api-product-version">Version</th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.version }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef id="api-product-list-actions"></th>
+                <td mat-cell *matCellDef="let element">
+                  <button
+                    mat-button
+                    (click)="removeApiProductFromCategory(element)"
+                    matTooltip="Remove API Product"
+                    aria-label="Remove {{ element.name }} from category"
+                    *gioPermission="{ anyOf: ['environment-documentation-u'] }"
+                  >
+                    <mat-icon svgIcon="gio:trash"></mat-icon>
+                  </button>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="apiProductDisplayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: apiProductDisplayedColumns"></tr>
+
+              <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+                <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="apiProductDisplayedColumns.length">
+                  There are no API Products for this category.
                 </td>
               </tr>
             </table>
