@@ -20,6 +20,8 @@ import { useTransition } from 'react';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { SharedPolicyGroupStatusBadge } from './SharedPolicyGroupStatusBadge';
+import { useForbiddenResourceRedirect } from '../../../shared/hooks/useForbiddenResourceRedirect';
+import { isForbiddenApiError } from '../../../shared/utils/apiErrors';
 import { resolveListHrefFromDetailBasePath, useDetailBasePath } from '../../shared/hooks/useDetailBasePath';
 import { useSharedPolicyGroupDetail } from '../hooks/useSharedPolicyGroups';
 import { toReadableApiType, toReadableFlowPhase } from '../types/sharedPolicyGroup';
@@ -29,8 +31,6 @@ import {
     SHARED_POLICY_GROUP_DETAIL_TABS,
 } from '../utils/sharedPolicyGroupDetailNavigation';
 import { ENVIRONMENT_SHARED_POLICY_GROUP_PERMISSION_PREFIX } from '../utils/sharedPolicyGroupPermissions';
-import { useForbiddenResourceRedirect } from '../../../shared/hooks/useForbiddenResourceRedirect';
-import { isForbiddenApiError } from '../../../shared/utils/apiErrors';
 
 export function SharedPolicyGroupDetailLayout() {
     const { sharedPolicyGroupId } = useParams<{ sharedPolicyGroupId: string }>();

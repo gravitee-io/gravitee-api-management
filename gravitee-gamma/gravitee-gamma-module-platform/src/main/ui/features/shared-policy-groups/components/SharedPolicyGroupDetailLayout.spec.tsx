@@ -15,13 +15,14 @@
  */
 
 import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { SharedPolicyGroupDetailLayout } from './SharedPolicyGroupDetailLayout';
-import { useSharedPolicyGroupDetail } from '../hooks/useSharedPolicyGroups';
-import type { SharedPolicyGroup } from '../types/sharedPolicyGroup';
 import { ApimApiError } from '../../../shared/api/apimClient';
 import { useForbiddenResourceRedirect } from '../../../shared/hooks/useForbiddenResourceRedirect';
+import { useSharedPolicyGroupDetail } from '../hooks/useSharedPolicyGroups';
+import type { SharedPolicyGroup } from '../types/sharedPolicyGroup';
 
 const mockNavigate = jest.fn();
 
@@ -79,11 +80,11 @@ describe('SharedPolicyGroupDetailLayout', () => {
         expect(screen.getByText('Studio content')).not.toBeNull();
     });
 
-    it('navigates between detail tabs', () => {
+    it('navigates between detail tabs', async () => {
         mockUseDetail.mockReturnValue({ data: SPG, isLoading: false, isError: false } as never);
         renderLayout();
 
-        fireEvent.click(screen.getByRole('tab', { name: 'Overview' }));
+        await userEvent.setup().click(screen.getByRole('tab', { name: 'Overview' }));
 
         expect(mockNavigate).toHaveBeenCalledWith('/shared-policy-groups/spg-1/overview');
     });

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { render, screen } from '@testing-library/react';
+import type { ComponentType } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
 import { AppRoutes } from './AppRoutes';
@@ -94,8 +95,7 @@ jest.mock('../pages/SharedPolicyGroupsPage', () => ({
 }));
 
 jest.mock('../features/shared-policy-groups/components/SharedPolicyGroupDetailLayout', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { Outlet } = require('react-router-dom');
+    const { Outlet } = jest.requireActual<{ Outlet: ComponentType }>('react-router-dom');
     return {
         SharedPolicyGroupDetailLayout: () => (
             <div data-testid="shared-policy-group-detail-layout">

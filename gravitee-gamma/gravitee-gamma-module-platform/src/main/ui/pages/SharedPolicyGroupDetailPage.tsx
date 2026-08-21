@@ -52,7 +52,6 @@ export function SharedPolicyGroupDetailPage() {
     const showEdit = canEdit && !isKubernetesOrigin(sharedPolicyGroup);
 
     async function handleEdit(values: SharedPolicyGroupEditFormValues) {
-        if (!sharedPolicyGroup) return;
         try {
             await updateMutation.mutateAsync({
                 id: sharedPolicyGroup.id,

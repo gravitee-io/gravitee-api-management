@@ -120,11 +120,6 @@ describe('SharedPolicyGroupDetailPage', () => {
     it('shows an error and keeps the edit sheet open when update fails', async () => {
         const error = new Error('update failed');
         mockUseUpdateSharedPolicyGroup.mockReturnValue(makeMutation(jest.fn().mockRejectedValue(error)));
-        mockUseSharedPolicyGroupDetail.mockReturnValue({
-            data: SPG,
-            isLoading: false,
-            isError: false,
-        } as ReturnType<typeof useSharedPolicyGroupDetail>);
 
         renderPage();
         fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
