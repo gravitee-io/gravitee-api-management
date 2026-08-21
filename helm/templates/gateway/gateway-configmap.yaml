@@ -200,6 +200,9 @@ data:
     http:
       requestTimeout: {{ include "gateway.httpRequestTimeout" . }}
       requestTimeoutGraceDelay: {{ include "gateway.httpRequestTimeoutGraceDelay" . }}
+      {{- if .Values.gateway.http.pathHandling }}
+      pathHandling: {{ .Values.gateway.http.pathHandling }}
+      {{- end }}
     {{- else }}
     http:
       port: {{ .Values.gateway.service.internalPort }}
@@ -215,6 +218,9 @@ data:
       maxInitialLineLength: {{ .Values.gateway.http.maxInitialLineLength }}
       maxFormAttributeSize: {{ .Values.gateway.http.maxFormAttributeSize }}
       alpn: {{ .Values.gateway.http.alpn | default "true" }}
+      {{- if .Values.gateway.http.pathHandling }}
+      pathHandling: {{ .Values.gateway.http.pathHandling }}
+      {{- end }}
       {{- if .Values.gateway.ssl.enabled }}
       secured: true
       ssl:

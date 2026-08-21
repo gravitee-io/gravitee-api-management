@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.env;
 
+import java.util.Arrays;
+import java.util.Locale;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -50,5 +52,39 @@ public class RequestConfiguration {
         @Value("${http.ssl.clientAuthHeader.name:#{null}}") String headerName
     ) {
         return new RequestClientAuthConfiguration(headerName);
+    }
+
+    @Bean
+    public RequestPathConfiguration httpRequestPathConfiguration(@Value("${http.pathHandling:RAW}") String pathHandling) {
+        RequestPathHandling handling;
+        try {
+            // Locale.ROOT, and not the JVM default: in Turkish 🇹🇷 (and Azerbaijani) a lowercase "i"
+            // uppercases to "İ", so "normalize" becomes "NORMALİZE", valueOf throws, and the catch
+            // below quietly turns a security control off because of where the server happens to be.
+            // "raw" and "reject" carry no "i" and would have kept working, which is exactly the kind
+            // of bug that survives every test suite that does not set a locale.
+            handling = RequestPathHandling.valueOf(pathHandling.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            log.warn(
+                "Unknown value [{}] for http.pathHandling, falling back to {}. Expected one of {}.",
+                pathHandling,
+                RequestPathHandling.RAW,
+                Arrays.toString(RequestPathHandling.values())
+            );
+            handling = RequestPathHandling.RAW;
+        }
+        // Logged in every mode, including the default. An operator who mistyped the value above gets
+        // a warning they may not be watching for; this line is what lets them confirm, positively,
+        // which mode the gateway actually came up in.
+        log.info("Request path handling is set to {}: {}", handling, describe(handling));
+        return new RequestPathConfiguration(handling);
+    }
+
+    private static String describe(final RequestPathHandling handling) {
+        return switch (handling) {
+            case RAW -> "the request path is used exactly as received";
+            case REJECT -> "a path that is not already in its normalized form is answered 400, and nothing is rewritten";
+            case NORMALIZE -> "dot segments are resolved before the listener is resolved";
+        };
     }
 }

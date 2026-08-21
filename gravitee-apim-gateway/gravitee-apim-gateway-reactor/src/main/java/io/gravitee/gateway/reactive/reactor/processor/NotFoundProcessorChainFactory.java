@@ -22,6 +22,7 @@ import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.reactor.processor.metrics.MetricsProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.notfound.NotFoundProcessor;
+import io.gravitee.gateway.reactive.reactor.processor.rejected.RejectedPathProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.reporter.ReporterProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.responsetime.ResponseTimeProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessorFactory;
@@ -40,21 +41,25 @@ public class NotFoundProcessorChainFactory {
     private final Environment environment;
     private final ReporterService reporterService;
     private final boolean notFoundAnalyticsEnabled;
+    private final boolean rejectedAnalyticsEnabled;
     private final GatewayConfiguration gatewayConfiguration;
     private final List<ProcessorHook> processorHooks = new ArrayList<>();
     private ProcessorChain processorChain;
+    private ProcessorChain rejectedPathProcessorChain;
 
     public NotFoundProcessorChainFactory(
         final TransactionPreProcessorFactory transactionHandlerFactory,
         final Environment environment,
         final ReporterService reporterService,
         boolean notFoundAnalyticsEnabled,
+        boolean rejectedAnalyticsEnabled,
         GatewayConfiguration gatewayConfiguration
     ) {
         this.transactionHandlerFactory = transactionHandlerFactory;
         this.environment = environment;
         this.reporterService = reporterService;
         this.notFoundAnalyticsEnabled = notFoundAnalyticsEnabled;
+        this.rejectedAnalyticsEnabled = rejectedAnalyticsEnabled;
         this.gatewayConfiguration = gatewayConfiguration;
     }
 
@@ -63,6 +68,30 @@ public class NotFoundProcessorChainFactory {
             initProcessorChain();
         }
         return processorChain;
+    }
+
+    /**
+     * The same chain as {@link #processorChain()}, answering 400 instead of 404. A request refused
+     * on its path is refused before any API is selected, exactly like an unmatched context path, so
+     * it needs the same treatment to be counted and reported at all.
+     *
+     * <p>Its reporting is on by default, where the not-found chain's is off. An unmatched context
+     * path is ordinary internet noise and reporting all of it would drown an operator; a path the
+     * gateway refused to route on is rare and diagnostic, and staying silent about it would defeat
+     * the point of refusing.
+     */
+    public ProcessorChain rejectedPathProcessorChain() {
+        if (rejectedPathProcessorChain == null) {
+            List<Processor> processorList = new ArrayList<>();
+            processorList.add(transactionHandlerFactory.create());
+            processorList.add(new MetricsProcessor(gatewayConfiguration, rejectedAnalyticsEnabled));
+            processorList.add(new RejectedPathProcessor(environment));
+            processorList.add(new ResponseTimeProcessor());
+            processorList.add(new ReporterProcessor(reporterService));
+            rejectedPathProcessorChain = new ProcessorChain("rejected-path", processorList);
+            rejectedPathProcessorChain.addHooks(processorHooks);
+        }
+        return rejectedPathProcessorChain;
     }
 
     void initProcessorChain() {

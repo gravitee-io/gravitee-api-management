@@ -1,0 +1,39 @@
+{
+  "id": "v2-alpha-path-policy",
+  "name": "v2-alpha-path-policy",
+  "gravitee": "2.0.0",
+  "proxy": {
+    "context_path": "/alpha/api",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://localhost:8080/alpha/api",
+        "http": {
+          "connectTimeout": 3000,
+          "readTimeout": 60000
+        }
+      }
+    ]
+  },
+  "flows": [
+    {
+      "name": "observe the path",
+      "enabled": true,
+      "path-operator": {
+        "path": "/",
+        "operator": "STARTS_WITH"
+      },
+      "condition": "",
+      "pre": [],
+      "post": [
+        {
+          "name": "Path to header",
+          "enabled": true,
+          "policy": "path-to-header",
+          "configuration": {}
+        }
+      ]
+    }
+  ],
+  "resources": []
+}

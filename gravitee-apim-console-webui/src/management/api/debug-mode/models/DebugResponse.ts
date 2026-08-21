@@ -100,14 +100,20 @@ export const convertDebugEventToDebugResponse = (event: DebugEvent): DebugRespon
     { ...requestInputDebugStep, id: 'request-output' },
   );
 
-  // Then, compute response initial attributes and headers -> either from the last REQUEST debug step or the request initial attributes
+  // Then, compute response initial attributes and headers -> either from the last REQUEST debug step or the request initial attributes.
+  // Both branches list what a response step may inherit, deliberately. Spreading the whole
+  // preprocessor step here would carry its `path` onto the backend response, where the inspector
+  // renders it as an HTTP property a response policy added — a change that never happened.
   const responsePreprocessorStep: DebugEvent['payload']['preprocessorStep'] =
     requestPolicyDebugSteps.length > 0
       ? {
           attributes: requestPolicyDebugSteps[requestPolicyDebugSteps.length - 1].output.attributes,
           headers: requestPolicyDebugSteps[requestPolicyDebugSteps.length - 1].output.headers,
         }
-      : event.payload.preprocessorStep;
+      : {
+          attributes: event.payload.preprocessorStep?.attributes,
+          headers: event.payload.preprocessorStep?.headers,
+        };
 
   // Finally, create the hydrated debug steps for the RESPONSE with initial request data + attributes
   const responsePolicyDebugSteps =

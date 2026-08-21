@@ -25,6 +25,7 @@ import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestClientAuthConfiguration;
+import io.gravitee.gateway.env.RequestPathConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.core.connection.ConnectionDrainManager;
@@ -164,6 +165,7 @@ public class ReactorConfiguration {
         NotFoundProcessorChainFactory notFoundProcessorChainFactory,
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         RequestClientAuthConfiguration requestClientAuthConfiguration,
+        RequestPathConfiguration requestPathConfiguration,
         Vertx vertx,
         TracingContext tracingContext,
         @Value("${reporters.warnings.enabled:true}") boolean warningsEnabled
@@ -180,6 +182,7 @@ public class ReactorConfiguration {
             tracingContext,
             requestTimeoutConfiguration,
             requestClientAuthConfiguration,
+            requestPathConfiguration,
             vertx,
             warningsEnabled
         );
@@ -252,6 +255,7 @@ public class ReactorConfiguration {
         ReporterService reporterService,
         @Value("${handlers.notfound.analytics.enabled:false}") boolean notFoundAnalyticsEnabled,
         @Deprecated @Value("${handlers.notfound.log.enabled:false}") boolean notFoundLogEnabled,
+        @Value("${handlers.rejected.analytics.enabled:true}") boolean rejectedAnalyticsEnabled,
         GatewayConfiguration gatewayConfiguration
     ) {
         return new NotFoundProcessorChainFactory(
@@ -259,6 +263,7 @@ public class ReactorConfiguration {
             environment,
             reporterService,
             notFoundAnalyticsEnabled || notFoundLogEnabled,
+            rejectedAnalyticsEnabled,
             gatewayConfiguration
         );
     }

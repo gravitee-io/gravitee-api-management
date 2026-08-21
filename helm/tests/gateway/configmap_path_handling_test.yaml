@@ -1,0 +1,47 @@
+suite: Test Gateway configmap - path handling
+templates:
+  - "gateway/gateway-configmap.yaml"
+# Patterns are written inline rather than with a block scalar. `pattern: |` keeps the trailing
+# newline, so `\n  pathHandling:` only matched a line whose colon was followed by end-of-line —
+# which a rendered key never is. The negative assertion below passed even when the key was present.
+tests:
+  - it: Defaults to RAW, so upgrading a deployment does not move its traffic
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "\n  pathHandling: RAW\n"
+
+  - it: Sets the mode on the single http server
+    set:
+      gateway:
+        http:
+          pathHandling: NORMALIZE
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "\n  pathHandling: NORMALIZE\n"
+
+  # The setting is gateway wide rather than per listener, so it belongs to the http block that
+  # sits beside the servers list, not to an entry inside it.
+  - it: Sets the mode alongside a servers list
+    set:
+      gateway:
+        http:
+          pathHandling: REJECT
+        servers:
+          - type: http
+            port: 8082
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "\n  pathHandling: REJECT\n"
+
+  - it: Emits nothing when the value is cleared
+    set:
+      gateway:
+        http:
+          pathHandling: null
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "pathHandling"

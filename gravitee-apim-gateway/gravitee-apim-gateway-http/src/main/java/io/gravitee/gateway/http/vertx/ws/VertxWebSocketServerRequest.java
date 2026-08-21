@@ -20,6 +20,7 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.ws.WebSocket;
 import io.gravitee.gateway.http.vertx.VertxHttpServerRequest;
+import io.gravitee.gateway.http.vertx.VertxHttpServerRequestOptions;
 import io.vertx.core.http.HttpServerRequest;
 
 /**
@@ -30,8 +31,29 @@ public class VertxWebSocketServerRequest extends VertxHttpServerRequest {
 
     private final VertxWebSocket vertxWebSocket;
 
+    /**
+     * @deprecated kept so that anything built against it keeps compiling and keeps working. Prefer
+     *     the {@link VertxHttpServerRequestOptions} form.
+     */
+    @Deprecated
     public VertxWebSocketServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator) {
-        super(httpServerRequest, idGenerator);
+        this(httpServerRequest, idGenerator, VertxHttpServerRequestOptions.builder().build());
+    }
+
+    /**
+     * @deprecated see {@link #VertxWebSocketServerRequest(HttpServerRequest, IdGenerator)}.
+     */
+    @Deprecated
+    public VertxWebSocketServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator, String path) {
+        this(httpServerRequest, idGenerator, VertxHttpServerRequestOptions.builder().path(path).build());
+    }
+
+    public VertxWebSocketServerRequest(
+        HttpServerRequest httpServerRequest,
+        IdGenerator idGenerator,
+        VertxHttpServerRequestOptions options
+    ) {
+        super(httpServerRequest, idGenerator, options);
         this.vertxWebSocket = new VertxWebSocket(httpServerRequest);
     }
 

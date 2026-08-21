@@ -1206,6 +1206,16 @@ gateway:
     maxInitialLineLength: 4096
     maxFormAttributeSize: 2048
     alpn: "true"
+    # How dot segments in the request path are treated, before the listener context path is
+    # resolved and therefore before any plan is enforced. One value for the whole gateway:
+    # it cannot be set per server or per API.
+    #   RAW       (default) the path is used, and forwarded, exactly as received.
+    #   REJECT    answers 400 when the normalized path differs from the one received.
+    #   NORMALIZE resolves the dot segments and routes, enforces and forwards on the result.
+    # Beyond dot segments, REJECT and NORMALIZE also decode percent-encoded unreserved
+    # characters, merge duplicate slashes, and answer 400 on a malformed percent sequence.
+    # Encoded slashes are never decoded.
+    pathHandling: RAW
     requestTimeout: 30000
     requestTimeoutGraceDelay: 30
 

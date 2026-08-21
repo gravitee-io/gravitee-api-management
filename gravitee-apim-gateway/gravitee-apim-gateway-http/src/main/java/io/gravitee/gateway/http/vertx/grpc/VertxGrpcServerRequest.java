@@ -18,6 +18,7 @@ package io.gravitee.gateway.http.vertx.grpc;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.http.vertx.VertxHttp2ServerRequest;
+import io.gravitee.gateway.http.vertx.VertxHttpServerRequestOptions;
 import io.vertx.core.http.HttpServerRequest;
 
 /**
@@ -26,8 +27,25 @@ import io.vertx.core.http.HttpServerRequest;
  */
 public class VertxGrpcServerRequest extends VertxHttp2ServerRequest {
 
+    /**
+     * @deprecated kept so that anything built against it keeps compiling and keeps working. Prefer
+     *     the {@link VertxHttpServerRequestOptions} form.
+     */
+    @Deprecated
     public VertxGrpcServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator) {
-        super(httpServerRequest, idGenerator);
+        this(httpServerRequest, idGenerator, VertxHttpServerRequestOptions.builder().build());
+    }
+
+    /**
+     * @deprecated see {@link #VertxGrpcServerRequest(HttpServerRequest, IdGenerator)}.
+     */
+    @Deprecated
+    public VertxGrpcServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator, String path) {
+        this(httpServerRequest, idGenerator, VertxHttpServerRequestOptions.builder().path(path).build());
+    }
+
+    public VertxGrpcServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator, VertxHttpServerRequestOptions options) {
+        super(httpServerRequest, idGenerator, options);
     }
 
     @Override

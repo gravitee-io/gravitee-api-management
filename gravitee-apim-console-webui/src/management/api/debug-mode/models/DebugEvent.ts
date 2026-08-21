@@ -47,6 +47,9 @@ interface DebugEventPayload {
   preprocessorStep: {
     attributes?: Record<string, boolean | number | string>;
     headers?: Record<string, string[]>;
+    // The path the policies actually ran on. It overrides the submitted one when the gateway
+    // resolved it, so the timeline shows the request the gateway handled rather than the one typed.
+    path?: string;
   };
   backendResponse: {
     statusCode?: number;

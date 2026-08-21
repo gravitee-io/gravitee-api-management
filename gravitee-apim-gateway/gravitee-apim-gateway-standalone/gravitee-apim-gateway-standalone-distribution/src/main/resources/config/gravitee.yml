@@ -84,6 +84,16 @@ secrets:
 #  The following is only used in v4 engine. It represents the maximum delay to let the response's platform flows execute properly in case of error during the previous phases.
 #  It's configures a timeout from the max between (requestTimeout - api elapsed time) and requestTimeoutGraceDelay.
 #  requestTimeoutGraceDelay: 30
+#  How dot segments in the request path are treated, before the listener context path is
+#  resolved and therefore before any plan is enforced.
+#    RAW       (default) the path is used, and forwarded, exactly as received.
+#    REJECT    answers 400 when the normalized path differs from the one received.
+#    NORMALIZE resolves the dot segments and routes, enforces and forwards on the result,
+#              so /alpha/api/../../beta/api is read as the call to beta that it is.
+#  Beyond dot segments, both REJECT and NORMALIZE also decode percent-encoded unreserved
+#  characters, merge duplicate slashes, and answer 400 on a malformed percent sequence.
+#  Encoded slashes are never decoded. RAW is the default for backward compatibility.
+#  pathHandling: RAW
 #  secured: false
 #  alpn: false
 #  ssl:
@@ -768,6 +778,12 @@ services:
 #  notfound:
 #    analytics:
 #      enabled: false
+#  rejected:
+#    Reporting of the requests refused by http.pathHandling: REJECT. Enabled by default, so that a
+#    platform being probed with traversal paths leaves a trace, and deliberately independent from
+#    the notfound flag above, which is disabled by default.
+#    analytics:
+#      enabled: true
 
 # Referenced properties
 ds:

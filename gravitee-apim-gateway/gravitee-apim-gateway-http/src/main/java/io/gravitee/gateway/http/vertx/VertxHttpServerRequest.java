@@ -46,6 +46,7 @@ public class VertxHttpServerRequest implements Request {
     private final long timestamp;
 
     protected final HttpServerRequest serverRequest;
+    private String path;
 
     private MultiValueMap<String, String> queryParameters = null;
 
@@ -57,9 +58,28 @@ public class VertxHttpServerRequest implements Request {
 
     private Handler<Long> timeoutHandler;
 
+    /**
+     * @deprecated kept so that anything built against it keeps compiling and keeps working. Prefer
+     *     {@link #VertxHttpServerRequest(HttpServerRequest, IdGenerator, VertxHttpServerRequestOptions)},
+     *     which absorbs new fields without moving this signature.
+     */
+    @Deprecated
     public VertxHttpServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator) {
+        this(httpServerRequest, idGenerator, VertxHttpServerRequestOptions.builder().build());
+    }
+
+    /**
+     * @deprecated see {@link #VertxHttpServerRequest(HttpServerRequest, IdGenerator)}.
+     */
+    @Deprecated
+    public VertxHttpServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator, String path) {
+        this(httpServerRequest, idGenerator, VertxHttpServerRequestOptions.builder().path(path).build());
+    }
+
+    public VertxHttpServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator, VertxHttpServerRequestOptions options) {
+        this.path = options.getPath();
         this.serverRequest = httpServerRequest;
-        this.timestamp = System.currentTimeMillis();
+        this.timestamp = options.getTimestamp() != null ? options.getTimestamp() : System.currentTimeMillis();
         this.id = idGenerator.randomString();
         this.headers = new VertxHttpHeaders(httpServerRequest.headers());
         this.metrics = Metrics.on(timestamp).build();
@@ -89,7 +109,10 @@ public class VertxHttpServerRequest implements Request {
 
     @Override
     public String path() {
-        return serverRequest.path();
+        if (path == null) {
+            path = serverRequest.path();
+        }
+        return path;
     }
 
     @Override
