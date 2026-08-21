@@ -112,7 +112,7 @@ public class GetVisiblePortalCatalogItemsUseCase {
             visibleApis,
             navigationItemsById
         );
-        // API products carry no category association, so a category-filtered catalog search never matches any of them.
+        // Category assignment and catalog filtering are delivered separately; exclude products until catalog filtering is implemented.
         List<PortalNavigationApiProduct> visibleApiProducts = input.categoryId().isPresent()
             ? List.of()
             : findVisibleApiProducts(navigationItems, input, navigationItemsById, accessibleApiNavigationItemIds, accessibleApiProductIds);

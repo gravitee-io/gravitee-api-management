@@ -28,16 +28,19 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
+import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationApiProduct;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalVisibility;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApiProduct;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationPage;
@@ -200,6 +203,63 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         // And storage reflects the change
         var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
         assertThat(updated.getTitle()).isEqualTo("Updated Title");
+    }
+
+    @Test
+    void should_replace_api_product_category_ids() {
+        var existingCategoryId = PortalCategoryId.random();
+        var replacementCategoryIds = List.of(PortalCategoryId.random(), PortalCategoryId.random());
+        var parent = PortalNavigationItemFixtures.aFolder(APIS_ID, "APIs");
+        parent.markAsRoot();
+        var apiProduct = PortalNavigationItemFixtures.anApiProduct().toBuilder().categoryIds(List.of(existingCategoryId)).build();
+        apiProduct.updateParent(parent);
+        initStorageWith(List.of(parent, apiProduct));
+
+        var payload = new UpdatePortalNavigationApiProduct().categoryIds(
+            replacementCategoryIds.stream().map(PortalCategoryId::id).toList()
+        );
+        payload
+            .title(apiProduct.getTitle())
+            .type(PortalNavigationItemType.API_PRODUCT)
+            .order(apiProduct.getOrder())
+            .published(apiProduct.getPublished())
+            .parentId(parent.getId().id())
+            .visibility(PortalVisibility.PUBLIC);
+
+        Response response = target.path(apiProduct.getId().toString()).request().put(json(payload));
+
+        assertThat(response).hasStatus(OK_200);
+        PortalNavigationApiProduct body = response.readEntity(PortalNavigationApiProduct.class);
+        assertThat(body.getCategoryIds()).containsExactlyElementsOf(replacementCategoryIds.stream().map(PortalCategoryId::id).toList());
+
+        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, apiProduct.getId());
+        assertThat(updated).hasFieldOrPropertyWithValue("categoryIds", replacementCategoryIds);
+    }
+
+    @Test
+    void should_reset_api_product_category_ids_when_omitted() {
+        var parent = PortalNavigationItemFixtures.aFolder(APIS_ID, "APIs");
+        parent.markAsRoot();
+        var apiProduct = PortalNavigationItemFixtures.anApiProduct().toBuilder().categoryIds(List.of(PortalCategoryId.random())).build();
+        apiProduct.updateParent(parent);
+        initStorageWith(List.of(parent, apiProduct));
+
+        var payload = new UpdatePortalNavigationApiProduct()
+            .title(apiProduct.getTitle())
+            .type(PortalNavigationItemType.API_PRODUCT)
+            .order(apiProduct.getOrder())
+            .published(apiProduct.getPublished())
+            .parentId(parent.getId().id())
+            .visibility(PortalVisibility.PUBLIC);
+
+        Response response = target.path(apiProduct.getId().toString()).request().put(json(payload));
+
+        assertThat(response).hasStatus(OK_200);
+        PortalNavigationApiProduct body = response.readEntity(PortalNavigationApiProduct.class);
+        assertThat(body.getCategoryIds()).isEmpty();
+
+        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, apiProduct.getId());
+        assertThat(updated).hasFieldOrPropertyWithValue("categoryIds", List.of());
     }
 
     @Test

@@ -65,6 +65,7 @@ export interface PortalNavigationApi extends BasePortalNavigationItem<'API'> {
 
 export interface PortalNavigationApiProduct extends BasePortalNavigationItem<'API_PRODUCT'> {
   apiProductId: string;
+  categoryIds?: string[];
 }
 
 export type PortalNavigationItem =
@@ -158,6 +159,7 @@ export interface NewApiPortalNavigationItem extends BaseNewPortalNavigationItem<
 
 export interface NewApiProductPortalNavigationItem extends BaseNewPortalNavigationItem<'API_PRODUCT'> {
   apiProductId: string;
+  categoryIds?: string[];
 }
 
 export type NewPortalNavigationItem =
@@ -193,7 +195,9 @@ export interface UpdateApiPortalNavigationItem extends BaseUpdatePortalNavigatio
   categoryIds?: string[];
 }
 
-export interface UpdateApiProductPortalNavigationItem extends BaseUpdatePortalNavigationItem<'API_PRODUCT'> {}
+export interface UpdateApiProductPortalNavigationItem extends BaseUpdatePortalNavigationItem<'API_PRODUCT'> {
+  categoryIds?: string[];
+}
 
 export type UpdatePortalNavigationItem =
   | UpdatePagePortalNavigationItem

@@ -4248,6 +4248,7 @@ describe('PortalNavigationItemsComponent', () => {
       order: 2,
       published: false,
       visibility: 'PUBLIC',
+      categoryIds: ['category-1', 'category-2'],
     });
 
     it('should display the linked API Product name and version in the selected item header', async () => {
@@ -4287,6 +4288,34 @@ describe('PortalNavigationItemsComponent', () => {
           order: apiProductItem.order,
           published: apiProductItem.published,
           visibility: apiProductItem.visibility,
+          categoryIds: apiProductItem.categoryIds,
+        }),
+        updatedItem,
+      );
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, updatedItem] }));
+    });
+
+    it('should preserve category IDs when changing the item position', async () => {
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, apiProductItem] }));
+      flushPendingLinkedApiProductRequests();
+
+      component.onNodeMoved({
+        node: fakeSectionNode({ id: apiProductItem.id, data: apiProductItem }),
+        newParentId: folder.id,
+        newOrder: 0,
+      });
+      fixture.detectChanges();
+
+      const updatedItem = fakePortalNavigationApiProduct({ ...apiProductItem, order: 0 });
+      expectPutPortalNavigationItem(
+        apiProductItem.id,
+        fakeUpdateApiProductPortalNavigationItem({
+          title: apiProductItem.title,
+          parentId: folder.id,
+          order: 0,
+          published: apiProductItem.published,
+          visibility: apiProductItem.visibility,
+          categoryIds: apiProductItem.categoryIds,
         }),
         updatedItem,
       );
@@ -4444,6 +4473,7 @@ describe('PortalNavigationItemsComponent', () => {
       title: 'API Product Item 1',
       apiProductId: 'api-product-1',
       published: false,
+      categoryIds: ['category-1', 'category-2'],
     });
     const fakeResponse = fakePortalNavigationItemsResponse({ items: [apiProduct] });
 
@@ -4471,6 +4501,7 @@ describe('PortalNavigationItemsComponent', () => {
           order: apiProduct.order,
           published: true,
           visibility: apiProduct.visibility,
+          categoryIds: apiProduct.categoryIds,
         }),
         apiProduct,
         { propagatePublishToChildren: true },
