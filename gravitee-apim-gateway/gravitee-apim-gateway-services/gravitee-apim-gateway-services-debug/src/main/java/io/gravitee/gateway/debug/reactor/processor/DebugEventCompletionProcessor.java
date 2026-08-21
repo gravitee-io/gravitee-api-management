@@ -134,6 +134,7 @@ public class DebugEventCompletionProcessor extends AbstractProcessor<ExecutionCo
         final PreprocessorStep preprocessorStep = new PreprocessorStep();
         preprocessorStep.setAttributes(debugContext.getInitialAttributes());
         preprocessorStep.setHeaders(convertHeaders(debugContext.getInitialHeaders()));
+        preprocessorStep.setPath(debugContext.getInitialPath());
         return preprocessorStep;
     }
 
