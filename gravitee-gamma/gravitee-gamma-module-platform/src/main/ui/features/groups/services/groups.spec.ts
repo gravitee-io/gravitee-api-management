@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { deleteGroupInvitation, inviteGroupMember, listGroupInvitations, removeGroupMember } from './groups';
+import { associateGroupToExisting, deleteGroupInvitation, inviteGroupMember, listGroupInvitations, removeGroupMember } from './groups';
 import { apimFetchJsonV1Env } from '../../../shared/api/apimClient';
 import type { GroupInvitationPayload } from '../types/group';
 
 jest.mock('../../../shared/api/apimClient', () => ({
-    apimFetchJsonOrg: jest.fn(),
     apimFetchJsonV1Env: jest.fn(),
 }));
 
@@ -32,7 +31,7 @@ const INVITATION: GroupInvitationPayload = {
     application_role: 'USER',
 };
 
-describe('groups invitation service', () => {
+describe('groups service', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
@@ -88,6 +87,17 @@ describe('groups invitation service', () => {
 
         expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('DEFAULT', '/configuration/groups/group%2F1/members/member%2F1', {
             method: 'DELETE',
+        });
+    });
+
+    it.each(['api', 'api_product', 'application'] as const)('associates a group with all existing %s resources', async type => {
+        mockApimFetchJsonV1Env.mockResolvedValue({ id: 'group/1' });
+
+        await associateGroupToExisting('DEFAULT', 'group/1', type);
+
+        expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('DEFAULT', `/configuration/groups/group%2F1/memberships?type=${type}`, {
+            method: 'POST',
+            body: JSON.stringify({}),
         });
     });
 });

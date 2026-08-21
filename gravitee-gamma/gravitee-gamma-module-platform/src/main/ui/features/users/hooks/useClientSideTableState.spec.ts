@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { act, renderHook } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 
-import { useClientSideTableState } from './useClientSideTableState';
-import { CLIENT_SIDE_TABLE_DEFAULT_PAGE_SIZE } from '../utils/clientSideTableUtils';
+import { useClientSideTableState } from '../../../shared/hooks/useClientSideTableState';
+import { CLIENT_SIDE_TABLE_DEFAULT_PAGE_SIZE } from '../../../shared/utils/clientSideTableUtils';
 
 const SEARCH_IGNORE_KEYS = ['id'] as const;
 
@@ -26,7 +26,7 @@ describe('useClientSideTableState', () => {
         name: `Item ${index + 1}`,
     }));
 
-    it('paginates and filters client-side data', () => {
+    it('paginates and filters client-side data', async () => {
         const { result } = renderHook(() => useClientSideTableState(items, SEARCH_IGNORE_KEYS));
 
         expect(result.current.paginatedItems).toHaveLength(10);
@@ -43,9 +43,10 @@ describe('useClientSideTableState', () => {
             result.current.handleSearchChange('Item 11');
         });
 
+        await waitFor(() => expect(result.current.totalCount).toBe(1));
         expect(result.current.page).toBe(1);
-        expect(result.current.totalCount).toBe(1);
         expect(result.current.paginatedItems[0]?.name).toBe('Item 11');
+        expect(result.current.hasActiveSearch).toBe(true);
     });
 
     it('resets search, page, and page size when resetWhen changes', () => {
@@ -70,7 +71,7 @@ describe('useClientSideTableState', () => {
         expect(result.current.pageSize).toBe(CLIENT_SIDE_TABLE_DEFAULT_PAGE_SIZE);
     });
 
-    it('clamps the page when the filtered result set shrinks', () => {
+    it('clamps the page when the filtered result set shrinks', async () => {
         const { result } = renderHook(() => useClientSideTableState(items, SEARCH_IGNORE_KEYS));
 
         act(() => {
@@ -83,7 +84,18 @@ describe('useClientSideTableState', () => {
             result.current.handleSearchChange('Item 11');
         });
 
+        await waitFor(() => expect(result.current.totalCount).toBe(1));
         expect(result.current.page).toBe(1);
-        expect(result.current.totalCount).toBe(1);
+    });
+
+    it('uses the default when an invalid page size is requested', () => {
+        const { result } = renderHook(() => useClientSideTableState(items, SEARCH_IGNORE_KEYS));
+
+        act(() => {
+            result.current.handlePageSizeChange(0);
+        });
+
+        expect(result.current.pageSize).toBe(CLIENT_SIDE_TABLE_DEFAULT_PAGE_SIZE);
+        expect(result.current.paginatedItems).toHaveLength(CLIENT_SIDE_TABLE_DEFAULT_PAGE_SIZE);
     });
 });

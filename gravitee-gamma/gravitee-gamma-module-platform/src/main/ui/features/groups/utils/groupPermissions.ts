@@ -23,6 +23,8 @@ export const ENVIRONMENT_GROUP_DELETE_PERMISSION = 'environment-group-d' as cons
 
 export const ORGANIZATION_SETTINGS_READ_PERMISSION = 'organization-settings-r' as const;
 export const ORGANIZATION_SETTINGS_UPDATE_PERMISSION = 'organization-settings-u' as const;
+// OrganizationGroupsResource protects the organization-wide groups endpoint with ORGANIZATION_TAG READ.
+export const ORGANIZATION_TAG_READ_PERMISSION = 'organization-tag-r' as const;
 
 export function isPrimaryOwnerGroup(group: Pick<Group, 'primary_owner' | 'apiPrimaryOwner' | 'apiProductPrimaryOwner'>): boolean {
     return Boolean(group.primary_owner || group.apiPrimaryOwner || group.apiProductPrimaryOwner);
@@ -30,6 +32,10 @@ export function isPrimaryOwnerGroup(group: Pick<Group, 'primary_owner' | 'apiPri
 
 export function canInviteToGroup(group: Pick<Group, 'manageable' | 'system_invitation' | 'email_invitation'>): boolean {
     return Boolean(group.manageable) && Boolean(group.system_invitation || group.email_invitation);
+}
+
+export function canAssociateGroupToExisting(group: Pick<Group, 'manageable'>): boolean {
+    return Boolean(group.manageable);
 }
 
 export function isRoleLocked(locked: boolean, canOverrideLocks: boolean): boolean {

@@ -32,10 +32,10 @@ import {
 import { MoreHorizontalIcon, PencilIcon, SearchIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 import { useEffect, useMemo, useState } from 'react';
 
+import { clampPage, paginateClientSideTableItems } from '../../../shared/utils/clientSideTableUtils';
 import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
 import type { TableSortingState } from '../../applications/utils/tableSort';
-import { clampPage, paginateClientSideTableItems } from '../../users/utils/clientSideTableUtils';
 import type { Tenant } from '../types/tenant';
 import { filterTenants } from '../utils/tenantTableUtils';
 

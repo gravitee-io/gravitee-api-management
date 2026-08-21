@@ -22,12 +22,22 @@ import {
     type GroupMemberRemovalError,
     type GroupMemberUpdateError,
     useAddGroupMembers,
+    useAssociateGroupToExisting,
+    useDeleteGroup,
     useDeleteGroupInvitation,
     useInviteGroupMember,
     useRemoveGroupMemberWithOwnershipTransfer,
     useUpdateGroupMembersWithRollback,
 } from './useGroupMutations';
-import { addGroupMembers, deleteGroupInvitation, inviteGroupMember, removeGroupMember } from '../services/groups';
+import { organizationGroupKeys } from '../../../shared/utils/queryKeys';
+import {
+    addGroupMembers,
+    associateGroupToExisting,
+    deleteGroup,
+    deleteGroupInvitation,
+    inviteGroupMember,
+    removeGroupMember,
+} from '../services/groups';
 import { groupKeys } from '../utils/queryKeys';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
@@ -35,6 +45,7 @@ jest.mock('@gravitee/gamma-modules-sdk', () => ({
 }));
 jest.mock('../services/groups', () => ({
     addGroupMembers: jest.fn(),
+    associateGroupToExisting: jest.fn(),
     createGroup: jest.fn(),
     deleteGroup: jest.fn(),
     deleteGroupInvitation: jest.fn(),
@@ -45,8 +56,10 @@ jest.mock('../services/groups', () => ({
 
 const mockUseEnvironment = jest.mocked(useEnvironment);
 const mockAddGroupMembers = jest.mocked(addGroupMembers);
+const mockAssociateGroupToExisting = jest.mocked(associateGroupToExisting);
 const mockInviteGroupMember = jest.mocked(inviteGroupMember);
 const mockRemoveGroupMember = jest.mocked(removeGroupMember);
+const mockDeleteGroup = jest.mocked(deleteGroup);
 const mockDeleteGroupInvitation = jest.mocked(deleteGroupInvitation);
 const INVITATION_DATA = {
     reference_type: 'GROUP',
@@ -65,8 +78,10 @@ describe('group mutation invalidation', () => {
         invalidateQueries = jest.spyOn(queryClient, 'invalidateQueries').mockResolvedValue(undefined);
         mockUseEnvironment.mockReturnValue({ id: 'DEFAULT' } as ReturnType<typeof useEnvironment>);
         mockAddGroupMembers.mockResolvedValue(undefined);
+        mockAssociateGroupToExisting.mockResolvedValue({ id: 'group-1', name: 'Support Team' });
         mockInviteGroupMember.mockResolvedValue({ outcome: 'invitation-created' });
         mockRemoveGroupMember.mockResolvedValue(undefined);
+        mockDeleteGroup.mockResolvedValue(undefined);
         mockDeleteGroupInvitation.mockResolvedValue(undefined);
     });
 
@@ -78,6 +93,16 @@ describe('group mutation invalidation', () => {
     function wrapper({ children }: { children: ReactNode }) {
         return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
     }
+
+    it('invalidates environment and organization group lists after deleting a group', async () => {
+        const { result } = renderHook(() => useDeleteGroup(), { wrapper });
+
+        await act(() => result.current.mutateAsync('group-1'));
+
+        expect(invalidateQueries).toHaveBeenCalledTimes(2);
+        expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: groupKeys.all });
+        expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: organizationGroupKeys.all });
+    });
 
     it('invalidates only members after adding members', async () => {
         const { result } = renderHook(() => useAddGroupMembers(), { wrapper });
@@ -143,6 +168,18 @@ describe('group mutation invalidation', () => {
 
         expect(invalidateQueries).toHaveBeenCalledTimes(1);
         expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: groupKeys.invitations('DEFAULT', 'group-1') });
+    });
+
+    it.each(['api', 'api_product', 'application'] as const)('invalidates only the %s memberships after bulk association', async type => {
+        const { result } = renderHook(() => useAssociateGroupToExisting(), { wrapper });
+
+        await act(() => result.current.mutateAsync({ groupId: 'group-1', type }));
+
+        expect(mockAssociateGroupToExisting).toHaveBeenCalledWith('DEFAULT', 'group-1', type);
+        expect(invalidateQueries).toHaveBeenCalledTimes(1);
+        expect(invalidateQueries).toHaveBeenCalledWith({
+            queryKey: groupKeys.memberships('DEFAULT', 'group-1', type),
+        });
     });
 
     it('invalidates members once after transferring ownership and removing a member', async () => {

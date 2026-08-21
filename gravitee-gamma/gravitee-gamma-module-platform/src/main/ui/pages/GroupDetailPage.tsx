@@ -66,10 +66,12 @@ import {
     useGroupMembers,
 } from '../features/groups/hooks/useGroupDetail';
 import { useGroupMemberActions } from '../features/groups/hooks/useGroupMemberActions';
-import { useDeleteGroup, useUpdateGroup } from '../features/groups/hooks/useGroupMutations';
+import { useAssociateGroupToExisting, useDeleteGroup, useUpdateGroup } from '../features/groups/hooks/useGroupMutations';
 import { useGroupRoles } from '../features/groups/hooks/useGroupRoles';
+import type { GroupMembershipItem, GroupMembershipType } from '../features/groups/types/group';
 import { buildEventRules, buildRolesMap, hasEventRule, parseMaxInvitation } from '../features/groups/utils/groupPayload';
 import {
+    canAssociateGroupToExisting,
     canInviteToGroup,
     ENVIRONMENT_GROUP_CREATE_PERMISSION,
     ENVIRONMENT_GROUP_DELETE_PERMISSION,
@@ -77,6 +79,40 @@ import {
 } from '../features/groups/utils/groupPermissions';
 import { ConfirmDialog } from '../shared/components/ConfirmDialog';
 import { notify } from '../shared/notify';
+
+interface AssociationCopy {
+    readonly actionLabel: string;
+    readonly dialogDescription: string;
+    readonly successMessage: string;
+    readonly errorMessage: string;
+}
+
+function createAssociationCopy(resourceLabel: string): AssociationCopy {
+    return {
+        actionLabel: `Add group to existing ${resourceLabel}`,
+        dialogDescription: `You are trying to add the group to all the existing ${resourceLabel}. Do you want to continue?`,
+        successMessage: `Successfully added the group to existing ${resourceLabel}.`,
+        errorMessage: `Error occurred while adding the group to existing ${resourceLabel}.`,
+    };
+}
+
+const ASSOCIATION_COPY: Record<GroupMembershipType, AssociationCopy> = {
+    api: createAssociationCopy('APIs'),
+    api_product: createAssociationCopy('API Products'),
+    application: createAssociationCopy('applications'),
+};
+
+interface AssociationSectionConfig {
+    readonly type: GroupMembershipType;
+    readonly title: string;
+    readonly error: boolean;
+    readonly errorMessage: string;
+    readonly items: GroupMembershipItem[];
+    readonly loading: boolean;
+    readonly searchPlaceholder: string;
+    readonly emptyTitle: string;
+    readonly showVersionColumn?: boolean;
+}
 
 export function GroupDetailPage() {
     const { groupId } = useParams<{ groupId: string }>();
@@ -88,6 +124,7 @@ export function GroupDetailPage() {
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [isMemberTabPending, startMemberTabTransition] = useTransition();
+    const [associatingType, setAssociatingType] = useState<GroupMembershipType | null>(null);
 
     const { data: group, isLoading, isError } = useGroupDetail(groupId);
     const { data: members = [], isLoading: membersLoading, isError: membersError } = useGroupMembers(groupId);
@@ -96,6 +133,39 @@ export function GroupDetailPage() {
     const { data: apiProducts = [], isLoading: apiProductsLoading, isError: apiProductsError } = useGroupApiProducts(groupId);
     const associatedApiCount = apisLoading || apisError ? null : apis.length;
     const associatedApiProductCount = apiProductsLoading || apiProductsError ? null : apiProducts.length;
+    const associationSections: AssociationSectionConfig[] = [
+        {
+            type: 'api',
+            title: 'APIs',
+            error: apisError,
+            errorMessage: 'Failed to load associated APIs. Please refresh and try again.',
+            items: apis,
+            loading: apisLoading,
+            searchPlaceholder: 'Search APIs…',
+            emptyTitle: 'No dependent APIs to display',
+        },
+        {
+            type: 'api_product',
+            title: 'API Products',
+            error: apiProductsError,
+            errorMessage: 'Failed to load associated API Products. Please refresh and try again.',
+            items: apiProducts,
+            loading: apiProductsLoading,
+            searchPlaceholder: 'Search API Products…',
+            emptyTitle: 'No dependent API Products to display',
+        },
+        {
+            type: 'application',
+            title: 'Applications',
+            error: applicationsError,
+            errorMessage: 'Failed to load associated applications. Please refresh and try again.',
+            items: applications,
+            loading: applicationsLoading,
+            searchPlaceholder: 'Search Applications…',
+            emptyTitle: 'No dependent applications to display',
+            showVersionColumn: false,
+        },
+    ];
 
     const {
         memberTab,
@@ -159,6 +229,8 @@ export function GroupDetailPage() {
 
     const updateMutation = useUpdateGroup();
     const deleteMutation = useDeleteGroup();
+    const associateMutation = useAssociateGroupToExisting();
+    const canAssociateGroup = Boolean(group && canEdit && canAssociateGroupToExisting(group));
 
     async function handleUpdate(values: GroupFormValues) {
         if (!group) return;
@@ -208,6 +280,26 @@ export function GroupDetailPage() {
 
     function handleMemberTabChange(value: string) {
         startMemberTabTransition(() => setMemberTab(value as 'members' | 'invitations'));
+    }
+
+    async function handleAssociate() {
+        if (!group) return;
+        if (!associatingType) return;
+        if (!canAssociateGroup) return;
+        const associationType = associatingType;
+        const copy = ASSOCIATION_COPY[associationType];
+        try {
+            await associateMutation.mutateAsync({ groupId: group.id, type: associationType });
+            notify.success(copy.successMessage);
+            setAssociatingType(null);
+        } catch (error) {
+            notify.error(error, copy.errorMessage);
+        }
+    }
+
+    function handleAssociateDialogOpenChange(isOpen: boolean) {
+        if (isOpen || associateMutation.isPending) return;
+        setAssociatingType(null);
     }
 
     if (isLoading) {
@@ -380,39 +472,22 @@ export function GroupDetailPage() {
                     </Tabs>
                 </section>
 
-                <GroupAssociationSection
-                    title="APIs"
-                    error={apisError}
-                    errorMessage="Failed to load associated APIs. Please refresh and try again."
-                    items={apis}
-                    loading={apisLoading}
-                    ariaLabel="APIs"
-                    searchPlaceholder="Search APIs…"
-                    emptyTitle="No dependent APIs to display"
-                />
-
-                <GroupAssociationSection
-                    title="API Products"
-                    error={apiProductsError}
-                    errorMessage="Failed to load associated API Products. Please refresh and try again."
-                    items={apiProducts}
-                    loading={apiProductsLoading}
-                    ariaLabel="API Products"
-                    searchPlaceholder="Search API Products…"
-                    emptyTitle="No dependent API Products to display"
-                />
-
-                <GroupAssociationSection
-                    title="Applications"
-                    error={applicationsError}
-                    errorMessage="Failed to load associated applications. Please refresh and try again."
-                    items={applications}
-                    loading={applicationsLoading}
-                    ariaLabel="Applications"
-                    searchPlaceholder="Search Applications…"
-                    emptyTitle="No dependent applications to display"
-                    showVersionColumn={false}
-                />
+                {associationSections.map(section => (
+                    <GroupAssociationSection
+                        key={section.type}
+                        title={section.title}
+                        error={section.error}
+                        errorMessage={section.errorMessage}
+                        items={section.items}
+                        loading={section.loading}
+                        ariaLabel={section.title}
+                        searchPlaceholder={section.searchPlaceholder}
+                        emptyTitle={section.emptyTitle}
+                        showVersionColumn={section.showVersionColumn}
+                        actionLabel={ASSOCIATION_COPY[section.type].actionLabel}
+                        onAction={canAssociateGroup ? () => setAssociatingType(section.type) : undefined}
+                    />
+                ))}
             </div>
 
             <GroupSheet
@@ -526,6 +601,20 @@ export function GroupDetailPage() {
                 isPending={deleteInvitationMutation.isPending}
                 onConfirm={handleDeleteInvitation}
             />
+
+            {associatingType ? (
+                <ConfirmDialog
+                    open
+                    onOpenChange={handleAssociateDialogOpenChange}
+                    title={ASSOCIATION_COPY[associatingType].actionLabel}
+                    description={ASSOCIATION_COPY[associatingType].dialogDescription}
+                    confirmLabel="Continue"
+                    pendingLabel="Adding…"
+                    isPending={associateMutation.isPending}
+                    confirmDisabled={!canAssociateGroup}
+                    onConfirm={handleAssociate}
+                />
+            ) : null}
         </>
     );
 }
