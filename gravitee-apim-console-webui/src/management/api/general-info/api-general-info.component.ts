@@ -113,7 +113,6 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   public isQualitySupported = false;
 
   public isReadOnly = false;
-  public isKubernetesOrigin = false;
 
   public integrationName = '';
   public integrationId = '';
@@ -174,14 +173,12 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
           ),
         ),
         tap(([api, categories]) => {
-          this.isKubernetesOrigin = api.originContext?.origin === 'KUBERNETES';
-
           if (api.definitionVersion === 'V4') {
             this.apiType = (api as ApiV4).type;
             this.canDisplayAllowInApiProduct = this.apiType === 'PROXY' && this.permissionService.hasAnyMatching(['api-definition-r']);
           }
 
-          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || this.isKubernetesOrigin;
+          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']);
 
           this.api = api;
 
@@ -213,8 +210,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
             canDelete: !(api.state === 'STARTED' || api.lifecycleState === 'PUBLISHED'),
           };
           this.canDisplayV4EmulationEngineToggle = (api.definitionVersion != null && api.definitionVersion === 'V2') ?? false;
-          this.cannotPromote =
-            !(this.dangerActions.canChangeApiLifecycle && api.lifecycleState !== 'DEPRECATED') || this.isKubernetesOrigin;
+          this.cannotPromote = !(this.dangerActions.canChangeApiLifecycle && api.lifecycleState !== 'DEPRECATED');
 
           this.apiDetailsForm = new UntypedFormGroup({
             name: new UntypedFormControl(

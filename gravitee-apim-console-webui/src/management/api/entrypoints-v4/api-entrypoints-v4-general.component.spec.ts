@@ -333,7 +333,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       const hostHarness = await loader.getHarness(GioFormListenersKafkaHostHarness);
       const hostInput = await hostHarness.getHostInput();
       expect(await hostInput.getValue()).toEqual('host');
-      expect(await hostInput.isDisabled()).toBe(true);
+      expect(await hostInput.isDisabled()).toBe(false);
     });
   });
 

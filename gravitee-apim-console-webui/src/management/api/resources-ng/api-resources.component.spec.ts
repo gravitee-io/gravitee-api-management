@@ -167,7 +167,7 @@ describe('PolicyStudioResourcesComponent', () => {
       definitionContext: { origin: 'KUBERNETES' },
     });
     createComponent(api);
-    expect(component.isReadonly).toEqual(true);
+    expect(component.isReadonly).toEqual(false);
   });
 
   afterEach(() => {

@@ -221,7 +221,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
 
     it('should make policy studio readonly', async () => {
       const isReadOnly = await policyStudioHarness.isReadOnly();
-      expect(isReadOnly).toBe(true);
+      expect(isReadOnly).toBe(false);
     });
   });
 

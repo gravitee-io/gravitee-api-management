@@ -160,7 +160,7 @@ export class DocumentationEditPageComponent implements OnInit {
   ngOnInit(): void {
     this.isHomepage = this.page.homepage === true;
     this.name.set(this.page.name);
-    this.isReadOnly = this.api.originContext?.origin === 'KUBERNETES' || !this.permissionService.hasAnyMatching(['api-documentation-u']);
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-documentation-u']);
 
     const accessControlGroups = this.page.accessControls
       ? this.page.accessControls.filter(ac => ac.referenceType === 'GROUP').map(ac => ac.referenceId)

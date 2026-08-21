@@ -314,22 +314,22 @@ describe('ApiProxyResponseTemplatesComponent', () => {
           expectApiGetRequest(api);
 
           const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="key"]' }));
-          expect(await keyInput.isDisabled()).toEqual(true);
+          expect(await keyInput.isDisabled()).toEqual(false);
           expect(await keyInput.getValue()).toEqual('DEFAULT');
 
           const acceptHeaderInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="acceptHeader"]' }));
-          expect(await acceptHeaderInput.isDisabled()).toEqual(true);
+          expect(await acceptHeaderInput.isDisabled()).toEqual(false);
           expect(await acceptHeaderInput.getValue()).toEqual('*/*');
 
           const statusCodeInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="statusCode"]' }));
-          expect(await statusCodeInput.isDisabled()).toEqual(true);
+          expect(await statusCodeInput.isDisabled()).toEqual(false);
           expect(await statusCodeInput.getValue()).toEqual('400');
 
           const headersInput = await loader.getHarness(GioFormHeadersHarness.with({ selector: '[formControlName="headers"]' }));
-          expect(await headersInput.isDisabled()).toEqual(true);
+          expect(await headersInput.isDisabled()).toEqual(false);
 
           const bodyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="body"]' }));
-          expect(await bodyInput.isDisabled()).toEqual(true);
+          expect(await bodyInput.isDisabled()).toEqual(false);
           expect(await bodyInput.getValue()).toEqual('json');
         });
       },

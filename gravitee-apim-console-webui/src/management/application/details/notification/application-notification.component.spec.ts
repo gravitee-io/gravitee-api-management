@@ -35,10 +35,8 @@ import { fakeNotificationSettings, fakePortalNotificationSettings } from '../../
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { fakeHooks } from '../../../../entities/notification/hooks.fixture';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { Application } from '../../../../entities/application/Application';
 import { Metadata } from '../../../../entities/metadata/metadata';
 import { fakeMetadata } from '../../../../entities/metadata/metadata.fixture';
-import { fakeApplication } from '../../../../entities/application/Application.fixture';
 
 describe('AppNotificationComponent', () => {
   const APPLICATION_ID = 'an-app-id';
@@ -113,7 +111,6 @@ describe('AppNotificationComponent', () => {
 
     expectNotificationSettingsRequest();
     expectNotifiersRequest();
-    expectGetApplication(fakeApplication());
     expectMetadataList();
   }
 
@@ -540,12 +537,6 @@ describe('AppNotificationComponent', () => {
       fakeNotifier({ id: NOTIFIER_EMAIL_ID, type: 'EMAIL', name: NOTIFIER_EMAIL_NAME }),
       fakeNotifier({ id: NOTIFIER_WEBHOOK_ID, type: 'WEBHOOK', name: NOTIFIER_WEBHOOK_NAME }),
     ]);
-  }
-
-  function expectGetApplication(application: Application) {
-    httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/applications/${APPLICATION_ID}`, method: 'GET' })
-      .flush(application);
   }
 
   function expectMetadataList(list: Metadata[] = [fakeMetadata({ key: 'key1' }), fakeMetadata({ key: 'key2' })]) {

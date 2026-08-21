@@ -283,65 +283,6 @@ describe('ApiGeneralInfoDangerZoneComponent', () => {
     expect(component.reloadDetails.emit).not.toHaveBeenCalled();
   });
 
-  it('should detach the api', async () => {
-    const api = fakeApiV2({
-      id: API_ID,
-      originContext: { origin: 'KUBERNETES' },
-    });
-    createComponent(api);
-
-    const detachButton = await loader.getHarness(MatButtonHarness.with({ text: 'Detach the API' }));
-    await detachButton.click();
-
-    const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
-    await confirmDialog.confirm();
-
-    httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/_detach` }).flush({});
-    expect(routerNavigateSpy).not.toHaveBeenCalled();
-
-    expect(component.reloadDetails.emit).toHaveBeenCalled();
-  });
-
-  it('should hide detach action when api origin context is updated', async () => {
-    const api = fakeApiV2({
-      id: API_ID,
-      originContext: { origin: 'KUBERNETES' },
-    });
-    createComponent(api);
-
-    expect(await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Detach the API' }))).toHaveLength(1);
-
-    component.api = fakeApiV2({ id: API_ID, originContext: { origin: 'MANAGEMENT' } });
-    component.ngOnChanges({ api: new SimpleChange(api, component.api, false) });
-    fixture.detectChanges();
-
-    expect(await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Detach the API' }))).toHaveLength(0);
-  });
-
-  it('should show detach action', async () => {
-    const api = fakeApiV2({
-      id: API_ID,
-      originContext: { origin: 'KUBERNETES' },
-    });
-    createComponent(api);
-
-    const detachButtons = await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Detach the API' }));
-
-    expect(detachButtons.length).toBe(1);
-  });
-
-  it('should not show detach action', async () => {
-    const api = fakeApiV2({
-      id: API_ID,
-      originContext: { origin: 'MANAGEMENT' },
-    });
-    createComponent(api);
-
-    const detachButtons = await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Detach the API' }));
-
-    expect(detachButtons.length).toBe(0);
-  });
-
   describe('Classic Developer Portal Only banner', () => {
     it('should show banner when portalNext is enabled and publish action is present', async () => {
       portalNextEnabled = true;

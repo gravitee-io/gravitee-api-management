@@ -81,10 +81,6 @@
       vertical-align: top;
     }
 
-    &__api-origin {
-      color: #326ce5;
-    }
-
     &__api-is-not-synced {
       color: mat.m2-get-color-from-palette(gio.$mat-warning-palette, 'default');
     }

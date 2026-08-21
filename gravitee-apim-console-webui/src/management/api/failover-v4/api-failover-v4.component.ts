@@ -71,7 +71,7 @@ export class ApiFailoverV4Component implements OnInit, OnDestroy {
       .pipe(
         onlyApiV4Filter(this.snackBarService),
         tap((api: ApiV4) => {
-          const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
+          const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']);
           this.hasKafkaEndpointsGroup = api?.endpointGroups?.some(endpointGroup => endpointGroup.type === 'kafka');
           this.createForm(isReadOnly, api.type, api?.failover);
           this.setupDisablingFields();

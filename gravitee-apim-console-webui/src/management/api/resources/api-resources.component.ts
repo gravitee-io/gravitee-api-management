@@ -147,7 +147,7 @@ export class ApiResourcesComponent implements OnInit {
         });
 
         const filteredResources = gioTableFilterCollection(apiResourcesDS, tableFilters);
-        this.isReadOnly = api.definitionContext?.origin === 'KUBERNETES';
+        this.isReadOnly = false;
         return {
           isReadOnly: this.isReadOnly,
           isLoading: false,

@@ -40,7 +40,6 @@ type TableData = {
   owner: unknown;
   updated_at: number;
   status: string;
-  origin: string;
 };
 
 @Component({
@@ -151,7 +150,6 @@ export class EnvApplicationListComponent implements OnInit, OnDestroy {
       owner: a.owner,
       updated_at: a.updated_at,
       status: a.status,
-      origin: a.origin,
     }));
     this.nbTotalApplications = applications.page.total_elements;
     this.displayedColumns = this.displayedColumnsByStatus[this.currentStatus];

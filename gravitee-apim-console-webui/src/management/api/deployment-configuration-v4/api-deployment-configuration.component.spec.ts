@@ -114,7 +114,7 @@ describe('ApiDeploymentConfigurationComponent', () => {
         expect(await saveBar.isVisible()).toBe(false);
 
         const tagsSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="tags"]' }));
-        expect(await tagsSelect.isDisabled()).toEqual(true);
+        expect(await tagsSelect.isDisabled()).toEqual(false);
       });
     },
   );

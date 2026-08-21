@@ -690,31 +690,31 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
     it('should not allow user to update the form', async () => {
       expect(
         await loader.getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint name input"]' })).then(input => input.isDisabled()),
-      ).toBeTruthy();
+      ).toBeFalsy();
 
       expect(
         await loader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Endpoint type"]' })).then(select => select.isDisabled()),
-      ).toBeTruthy();
+      ).toBeFalsy();
 
       expect(
         await loader
           .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint weight input"]' }))
           .then(input => input.isDisabled()),
-      ).toBeTruthy();
+      ).toBeFalsy();
 
       expect(
         await loader
           .getHarness(MatInputHarness.with({ selector: '[aria-label="Endpoint target input"]' }))
           .then(input => input.isDisabled()),
-      ).toBeTruthy();
+      ).toBeFalsy();
 
       expect(
         await loader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Endpoint tenants"]' })).then(input => input.isDisabled()),
-      ).toBeTruthy();
+      ).toBeFalsy();
 
       expect(
         await loader.getHarness(MatCheckboxHarness.with({ selector: '[formControlName="backup"]' })).then(input => input.isDisabled()),
-      ).toBeTruthy();
+      ).toBeFalsy();
 
       await loader.getHarness(MatTabHarness.with({ label: 'Configuration' })).then(tab => tab.select());
       fixture.detectChanges();
@@ -723,7 +723,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
         await loader
           .getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="inherit"]' }))
           .then(slider => slider.isDisabled()),
-      ).toBeTruthy();
+      ).toBeFalsy();
     });
   });
 

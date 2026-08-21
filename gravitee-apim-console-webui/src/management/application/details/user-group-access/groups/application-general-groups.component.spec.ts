@@ -75,7 +75,7 @@ describe('ApplicationGeneralGroupsComponent', () => {
       expectGetApplication(fakeApplication({ origin: 'KUBERNETES' }));
       expectGetGroupsListRequest([fakeGroup()]);
       const groupFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Groups' }));
-      expect(await groupFormField.isDisabled()).toBe(true);
+      expect(await groupFormField.isDisabled()).toBe(false);
     });
 
     it('should not disable form with non kubernetes origin', async () => {

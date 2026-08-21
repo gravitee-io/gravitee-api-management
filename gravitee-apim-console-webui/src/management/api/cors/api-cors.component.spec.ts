@@ -268,10 +268,10 @@ describe('ApiCorsComponent', () => {
       expect(await saveBar.isVisible()).toBe(false);
 
       const allowMethodsInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="allowMethods"]' }));
-      expect(await allowMethodsInput.isDisabled()).toEqual(true);
+      expect(await allowMethodsInput.isDisabled()).toEqual(false);
 
       const enabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
-      expect(await enabledSlideToggle.isDisabled()).toEqual(true);
+      expect(await enabledSlideToggle.isDisabled()).toEqual(false);
     });
   });
 
@@ -513,10 +513,10 @@ describe('ApiCorsComponent', () => {
       expect(await saveBar.isVisible()).toBe(false);
 
       const allowMethodsInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="allowMethods"]' }));
-      expect(await allowMethodsInput.isDisabled()).toEqual(true);
+      expect(await allowMethodsInput.isDisabled()).toEqual(false);
 
       const enabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
-      expect(await enabledSlideToggle.isDisabled()).toEqual(true);
+      expect(await enabledSlideToggle.isDisabled()).toEqual(false);
     });
   });
 

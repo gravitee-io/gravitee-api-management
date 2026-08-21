@@ -126,11 +126,11 @@ describe('ApiProxyEntrypointsComponent', () => {
       expectApiGetPortalSettings();
 
       const saveButton = await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Save changes' }));
-      expect(saveButton.length).toEqual(0);
+      expect(saveButton.length).toEqual(1);
 
       const formListenersContextPathHarness = await loader.getHarness(GioFormListenersContextPathHarness);
       const contextPathInput = await formListenersContextPathHarness.getLastListenerRow().then(row => row.pathInput);
-      expect(await contextPathInput.isDisabled()).toEqual(true);
+      expect(await contextPathInput.isDisabled()).toEqual(false);
       expectVerifyContextPath();
     });
 
@@ -220,23 +220,23 @@ describe('ApiProxyEntrypointsComponent', () => {
       expectVerifyContextPath();
 
       const saveButton = await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Save changes' }));
-      expect(saveButton.length).toBe(0);
+      expect(saveButton.length).toBe(1);
 
       const formListenersContextPathHarness = await loader.getHarness(GioFormListenersVirtualHostHarness);
       const row = (await formListenersContextPathHarness.getListenerRows())[0];
       const vhTableFirstRowHostInput = row.hostSubDomainInput;
-      expect(await vhTableFirstRowHostInput.isDisabled()).toEqual(true);
+      expect(await vhTableFirstRowHostInput.isDisabled()).toEqual(false);
 
       const vhTableFirstRowPathInput = row.pathInput;
-      expect(await vhTableFirstRowPathInput.isDisabled()).toEqual(true);
+      expect(await vhTableFirstRowPathInput.isDisabled()).toEqual(false);
 
       const vhTableFirstRowOverrideCheckbox = row.overrideAccessInput;
-      expect(await vhTableFirstRowOverrideCheckbox.isDisabled()).toEqual(true);
+      expect(await vhTableFirstRowOverrideCheckbox.isDisabled()).toEqual(false);
 
       const vhTableFirstRowButtons = row.removeButton;
-      expect(vhTableFirstRowButtons).toBeNull();
+      expect(vhTableFirstRowButtons).not.toBeNull();
 
-      expect((await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Add virtual-host' }))).length).toEqual(0);
+      expect((await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Add context-path' }))).length).toEqual(1);
     });
 
     it('should add virtual-host', async () => {

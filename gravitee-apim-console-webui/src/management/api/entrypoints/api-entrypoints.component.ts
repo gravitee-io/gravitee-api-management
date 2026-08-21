@@ -164,9 +164,7 @@ export class ApiEntrypointsComponent implements OnInit, OnDestroy {
     this.apiProxy = api.proxy;
     this.formGroup = new UntypedFormGroup({});
 
-    this.isReadOnly =
-      !this.permissionService.hasAllMatching(['api-definition-u', 'api-gateway_definition-u']) ||
-      api.definitionContext?.origin === 'KUBERNETES';
+    this.isReadOnly = !this.permissionService.hasAllMatching(['api-definition-u', 'api-gateway_definition-u']);
 
     const paths: PathV4[] = this.getApiPaths(api);
     this.pathsFormControl = this.formBuilder.control({ value: paths, disabled: this.isReadOnly }, Validators.required);

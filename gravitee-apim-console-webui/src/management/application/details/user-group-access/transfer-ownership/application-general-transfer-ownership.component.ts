@@ -61,8 +61,7 @@ export class ApplicationGeneralTransferOwnershipComponent implements OnInit {
       this.roleService.list('APPLICATION'),
     ])
       .pipe(
-        tap(([app, members, roles]) => {
-          this.isReadonly = app.origin === 'KUBERNETES';
+        tap(([, members, roles]) => {
           this.applicationMembers = members.filter(member => member.role !== 'PRIMARY_OWNER');
           this.roles = roles.filter(role => role.name !== 'PRIMARY_OWNER');
         }),

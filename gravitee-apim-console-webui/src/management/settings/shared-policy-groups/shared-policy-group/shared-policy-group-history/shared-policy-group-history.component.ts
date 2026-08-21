@@ -197,9 +197,7 @@ export class SharedPolicyGroupHistoryComponent implements OnInit {
       .open<HistoryStudioDialogComponent, HistoryStudioDialogData, HistoryStudioDialogResult>(HistoryStudioDialogComponent, {
         data: {
           sharedPolicyGroup,
-          isReadOnly:
-            sharedPolicyGroup.originContext?.origin === 'KUBERNETES' ||
-            !this.permissionService.hasAnyMatching(['environment-shared_policy_group-u']),
+          isReadOnly: !this.permissionService.hasAnyMatching(['environment-shared_policy_group-u']),
         },
         width: GIO_DIALOG_WIDTH.LARGE,
         role: 'dialog',

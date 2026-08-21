@@ -31,7 +31,6 @@ import { MatDialog } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { combineLatest, BehaviorSubject, switchMap, Observable, EMPTY } from 'rxjs';
 import { catchError, filter, map, tap } from 'rxjs/operators';
-import { MatTooltip } from '@angular/material/tooltip';
 
 import { ApplicationService } from '../../../../../services-ngx/application.service';
 import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
@@ -64,7 +63,6 @@ type PageVM = {
     GioPermissionModule,
     GioConfirmDialogModule,
     SubscriptionApiKeysComponent,
-    MatTooltip,
     SubscriptionEditPushConfigComponent,
     SubscriptionMetadataViewerComponent,
   ],

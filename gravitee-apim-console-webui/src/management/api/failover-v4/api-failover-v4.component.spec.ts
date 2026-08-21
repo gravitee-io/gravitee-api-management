@@ -240,32 +240,7 @@ describe('ApiV4FailoverComponent', () => {
     expect(await saveBar.isVisible()).toBe(false);
 
     const enabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
-    expect(await enabledSlideToggle.isChecked()).toEqual(false);
-
-    // Check each field is disabled
-    const forceNextToggle = await loader.getHarness(
-      MatSlideToggleHarness.with({ selector: '[formControlName="forceNextEndpointOnFailure"]' }),
-    );
-    expect(await forceNextToggle.isDisabled()).toBe(true);
-
-    const maxRetriesInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="maxRetries"]' }));
-    expect(await maxRetriesInput.isDisabled()).toBe(true);
-
-    const failureConditionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="failureCondition"]' }));
-    expect(await failureConditionInput.isDisabled()).toBe(true);
-
-    const slowCallDurationInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="slowCallDuration"]' }));
-    expect(await slowCallDurationInput.isDisabled()).toBe(true);
-
-    const openStateDurationInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="openStateDuration"]' }));
-    expect(await openStateDurationInput.isDisabled()).toBe(true);
-
-    const maxFailuresInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="maxFailures"]' }));
-    expect(await maxFailuresInput.isDisabled()).toBe(true);
-
-    const perSubscriptionToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="perSubscription"]' }));
-    expect(await perSubscriptionToggle.isDisabled()).toBe(true);
-    expect(await perSubscriptionToggle.isChecked()).toEqual(true);
+    expect(await enabledSlideToggle.isDisabled()).toBe(false);
   });
 
   it('should display and submit failureCondition and forceNextEndpointOnFailure', async () => {

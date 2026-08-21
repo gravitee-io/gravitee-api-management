@@ -85,13 +85,13 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
             };
             requestValidation = api.proxy?.requestValidation ?? { rejectNullByte: false };
           }
-          const isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
+
           const hasUpdatePermission =
             api.definitionVersion === 'V4'
               ? this.permissionService.hasAllMatching(['api-definition-u', 'api-gateway_definition-u'])
               : this.permissionService.hasAnyMatching(['api-definition-u']);
 
-          const isReadOnly = !hasUpdatePermission || isKubernetesOrigin;
+          const isReadOnly = !hasUpdatePermission;
           const isCorsDisabled = isReadOnly || !cors.enabled;
 
           this.corsForm = new UntypedFormGroup({

@@ -40,7 +40,7 @@ import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wra
 import { toOrder, toSort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { GioQuickTimeRangeComponent } from '../components/gio-quick-time-range/gio-quick-time-range.component';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
-import { apiSortByParamFromString, ApisResponse, ApiState, ApiV2, ApiV4, GenericApi, Origin } from '../../../entities/management-api-v2';
+import { apiSortByParamFromString, ApisResponse, ApiState, ApiV2, ApiV4, GenericApi } from '../../../entities/management-api-v2';
 
 type ApisTableDS = {
   id: string;
@@ -52,7 +52,6 @@ type ApisTableDS = {
   ownerEmail: string;
   picture: string;
   state: ApiState;
-  origin: Origin;
   lifecycleState: GenericApi['lifecycleState'];
   workflowBadge: { text: string; class: string };
   healthcheck_enabled: boolean;
@@ -285,7 +284,6 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
       availability$: this.getAvailability$(api.id, this.healthcheckEnabledApiV2(api)),
       picture: api._links.pictureUrl,
       healthcheck_enabled: this.healthcheckEnabledApiV2(api),
-      origin: api.originContext.origin,
     } satisfies ApisTableDS;
   }
 
@@ -303,7 +301,6 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
       workflowBadge: this.getWorkflowBadge(api),
       picture: api._links.pictureUrl,
       healthcheck_enabled: this.healthcheckEnabled(api),
-      origin: api.originContext.origin,
       availability$: this.getAvailability$(api.id, this.healthcheckEnabled(api)),
     } satisfies ApisTableDS;
   }

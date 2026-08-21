@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { map, takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { MetadataSaveServices } from '../../../../components/gio-metadata/gio-metadata.component';
 import { ApiService } from '../../../../services-ngx/api.service';
 import { ApiMetadataV2Service } from '../../../../services-ngx/api-metadata-v2.service';
 import { Metadata } from '../../../../entities/metadata/metadata';
-import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 
 @Component({
   selector: 'gio-api-metadata-list',
@@ -30,17 +28,12 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
   styleUrls: ['./gio-api-metadata-list.component.scss'],
   standalone: false,
 })
-export class GioApiMetadataListComponent implements OnInit, OnDestroy {
+export class GioApiMetadataListComponent implements OnInit {
   metadataSaveServices: MetadataSaveServices;
   description: string;
 
-  readOnly = false;
-
-  private unsubscribe$ = new Subject<void>();
-
   constructor(
     private readonly apiService: ApiService,
-    private readonly apiV2Service: ApiV2Service,
     private readonly apiMetadataV2Service: ApiMetadataV2Service,
     private readonly activatedRoute: ActivatedRoute,
   ) {}
@@ -61,16 +54,5 @@ export class GioApiMetadataListComponent implements OnInit, OnDestroy {
       delete: metadataKey => this.apiService.deleteMetadata(this.activatedRoute.snapshot.params.apiId, metadataKey),
     };
     this.description = `Set metadata information on the API that can be easily accessed through Markdown templating`;
-    this.apiV2Service
-      .get(this.activatedRoute.snapshot.params.apiId)
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe(api => {
-        this.readOnly = api.definitionContext?.origin === 'KUBERNETES';
-      });
-  }
-
-  ngOnDestroy() {
-    this.unsubscribe$.next();
-    this.unsubscribe$.complete();
   }
 }

@@ -18,25 +18,17 @@
 <button mat-button aria-label="Go back to your subscriptions" [routerLink]="'../'">
   <mat-icon svgIcon="gio:nav-arrow-left"></mat-icon> Go back to subscriptions list
 </button>
-
 @if (pageVM$ | async; as pageVM) {
   <mat-card class="subscriptionDetailsCard">
     <mat-card-header>
       <mat-card-title>Subscription details</mat-card-title>
     </mat-card-header>
-    <ng-container *ngIf="pageVM.subscription.origin === 'KUBERNETES'">
-      <div class="kubernetes-origin-message">
-        <mat-icon matTooltip="Kubernetes Origin" class="matt-icon__origin" svgIcon="gio:kubernetes"></mat-icon>
-        <p>This subscription was created by the Kubernetes Operator and cannot be managed through the console.</p>
-      </div>
-    </ng-container>
     <mat-card-content>
       <dl class="gio-description-list">
         <dt>ID</dt>
         <dd gioClipboardCopyWrapper [contentToCopy]="pageVM.subscription.id">
           {{ pageVM.subscription.id || '-' }}
         </dd>
-
         <dt>{{ pageVM.subscription.referenceType === 'API_PRODUCT' || pageVM.subscription.apiProduct ? 'API Product' : 'API' }}</dt>
         <dd
           gioClipboardCopyWrapper
@@ -56,41 +48,34 @@
               : '-'
           }}
         </dd>
-
         <dt>Plan</dt>
         <dd gioClipboardCopyWrapper [contentToCopy]="pageVM.subscription.plan?.name">
           {{ pageVM.subscription.plan?.name || '-' }}
         </dd>
-
         <dt>Status</dt>
         <dd gioClipboardCopyWrapper [contentToCopy]="pageVM.subscription.status | uppercase">
           {{ (pageVM.subscription.status | uppercase) || '-' }}
         </dd>
-
         <dt>Subscribed by</dt>
         <dd gioClipboardCopyWrapper [contentToCopy]="pageVM.subscription.subscribed_by?.displayName">
           {{ pageVM.subscription.subscribed_by?.displayName || '-' }}
         </dd>
-
         @if (pageVM.subscription.request) {
           <dt>Publisher message to subscriber</dt>
           <dd gioClipboardCopyWrapper [contentToCopy]="pageVM.subscription.request">
             {{ pageVM.subscription.request || '-' }}
           </dd>
         }
-
         @if (pageVM.subscription.reason) {
           <dt>Subscriber message to publisher</dt>
           <dd gioClipboardCopyWrapper [contentToCopy]="pageVM.subscription.reason">
             {{ pageVM.subscription.reason || '-' }}
           </dd>
         }
-
         <dt>Created at</dt>
         <dd>{{ (pageVM.subscription.created_at | date: 'medium') || '-' }}</dd>
         <dt>Processed at</dt>
         <dd>{{ (pageVM.subscription.processed_at | date: 'medium') || '-' }}</dd>
-
         @if ('REJECTED' !== pageVM.subscription.status) {
           <dt>Starting at</dt>
           <dd>{{ (pageVM.subscription.starting_at | date: 'medium') || '-' }}</dd>
@@ -101,18 +86,13 @@
         }
         <dt>Closed at</dt>
         <dd>{{ (pageVM.subscription.closed_at | date: 'medium') || '-' }}</dd>
-
         <dt>Metadata</dt>
         <dd class="subscription__metadata-cell" data-testid="subscription-metadata">
           <subscription-metadata-viewer [metadata]="pageVM.subscription.metadata" />
         </dd>
       </dl>
     </mat-card-content>
-
-    @if (
-      (pageVM.subscription.status === 'ACCEPTED' || pageVM.subscription.status === 'PENDING' || pageVM.subscription.status === 'PAUSED') &&
-      pageVM.subscription.origin !== 'KUBERNETES'
-    ) {
+    @if (pageVM.subscription.status === 'ACCEPTED' || pageVM.subscription.status === 'PENDING' || pageVM.subscription.status === 'PAUSED') {
       <mat-card-actions *gioPermission="{ anyOf: ['application-subscription-d'] }">
         <button mat-raised-button color="warn" (click)="closeSubscription(pageVM.application, pageVM.subscription)">
           <mat-icon svgIcon="gio:x-circle"></mat-icon>
@@ -121,7 +101,6 @@
       </mat-card-actions>
     }
   </mat-card>
-
   @if (pageVM.subscription.plan.security === 'API_KEY') {
     <subscription-api-keys
       [applicationId]="pageVM.application.id"
@@ -140,7 +119,6 @@
       ></subscription-api-keys
     >
   }
-
   @if (!pageVM.subscription?.plan?.security && !!pageVM.subscription?.configuration) {
     <subscription-edit-push-config
       [updatePermission]="'application-subscription-u'"

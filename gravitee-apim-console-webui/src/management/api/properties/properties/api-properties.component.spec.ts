@@ -274,7 +274,7 @@ describe('ApiPropertiesComponent', () => {
 
     const removePropertyButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Remove property"]' }));
     const isDisabled = await removePropertyButton.isDisabled();
-    expect(isDisabled).toBe(true);
+    expect(isDisabled).toBe(false);
   });
 
   it('should add property', async () => {
@@ -323,7 +323,7 @@ describe('ApiPropertiesComponent', () => {
       }),
     );
 
-    await expect(loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add property"]' }))).rejects.toBeTruthy();
+    expect(await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add property"]' }))).toBeTruthy();
   });
 
   it('should import properties', async () => {

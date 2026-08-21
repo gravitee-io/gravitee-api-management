@@ -175,14 +175,6 @@
         }
 
         <mat-icon
-          *ngIf="element.origin === 'KUBERNETES'"
-          matTooltip="Kubernetes Origin"
-          class="states__api-origin"
-          size="20"
-          svgIcon="gio:kubernetes"
-        />
-
-        <mat-icon
           *ngIf="element.isNotSynced$ | async"
           matTooltip="API out of sync"
           class="states__api-is-not-synced"
@@ -304,7 +296,6 @@
       <td mat-cell *matCellDef="let element">
         <div class="actions__edit">
           <button
-            *ngIf="!element.readonly"
             [routerLink]="'./' + element.id"
             mat-icon-button
             aria-label="Button to edit an API"
@@ -312,15 +303,6 @@
             data-testid="api_list_edit_button"
           >
             <mat-icon>edit</mat-icon>
-          </button>
-          <button
-            *ngIf="element.readonly"
-            [routerLink]="'./' + element.id"
-            mat-icon-button
-            aria-label="Button to view API details"
-            matTooltip="View API details"
-          >
-            <mat-icon svgIcon="gio:eye-empty"></mat-icon>
           </button>
         </div>
       </td>

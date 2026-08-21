@@ -301,8 +301,9 @@ describe('ApiPlanEditComponent', () => {
         expectPlanGetRequest(API_ID, PLAN);
       });
 
-      it('should access plan in read only', async () => {
-        expect(await loader.getAllHarnesses(GioSaveBarHarness)).toHaveLength(0);
+      it('should allow editing a kubernetes-origin plan', async () => {
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await saveBar.isVisible()).toBe(false);
 
         const planForm = await loader.getHarness(ApiPlanFormHarness);
 
@@ -324,7 +325,7 @@ describe('ApiPlanEditComponent', () => {
         planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
 
         const nameInput = await planForm.getNameInput();
-        expect(await nameInput.isDisabled()).toEqual(true);
+        expect(await nameInput.isDisabled()).toEqual(false);
       });
     });
   });
@@ -393,8 +394,9 @@ describe('ApiPlanEditComponent', () => {
         expectPlanGetRequest(API_ID, PLAN);
       });
 
-      it('should access plan in read only', async () => {
-        expect(await loader.getAllHarnesses(GioSaveBarHarness)).toHaveLength(0);
+      it('should allow editing a kubernetes-origin plan', async () => {
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await saveBar.isVisible()).toBe(false);
 
         const planForm = await loader.getHarness(ApiPlanFormHarness);
 
@@ -416,7 +418,7 @@ describe('ApiPlanEditComponent', () => {
         planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([TAG_1_ID]);
 
         const nameInput = await planForm.getNameInput();
-        expect(await nameInput.isDisabled()).toEqual(true);
+        expect(await nameInput.isDisabled()).toEqual(false);
       });
     });
   });

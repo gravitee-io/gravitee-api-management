@@ -85,7 +85,6 @@ export class PolicyStudioDesignComponent implements OnInit, OnDestroy {
           this.apiFlowSchema = flowSchema;
           this.policies = policies;
           this.apiDefinition = definition;
-          this.isReadonly = definition.origin === 'kubernetes';
           this.resourceTypes = resourceTypes;
           if (!this.permissionService.hasAnyMatching(['api-plan-u'])) {
             this.readonlyPlans = true;

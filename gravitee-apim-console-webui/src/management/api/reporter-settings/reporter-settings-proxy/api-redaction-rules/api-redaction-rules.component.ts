@@ -71,7 +71,7 @@ export class ApiRedactionRulesComponent {
 
   protected readonly displayedColumns = ['index', 'pattern', 'masking', 'valueFilter', 'actions'];
   protected rows = signal<RedactionRuleRow[]>([]);
-  protected isReadOnly = computed(() => this.api().definitionContext?.origin === 'KUBERNETES');
+  protected isReadOnly = computed(() => false);
 
   private readonly resetEffect = effect(() => {
     this.resetTrigger();

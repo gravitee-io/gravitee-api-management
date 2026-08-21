@@ -66,8 +66,6 @@ export interface GroupData {
 export class ApiGeneralMembersComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private apiId: string;
-  public isKubernetesOrigin: boolean;
-
   form: UntypedFormGroup;
   roles: Role[];
   roleNames: string[];
@@ -235,12 +233,11 @@ export class ApiGeneralMembersComponent implements OnInit {
         data: {
           api: this.api,
           groups: this.groups.filter(group => !group.apiPrimaryOwner),
-          isKubernetesOrigin: this.isKubernetesOrigin,
         },
       })
       .afterClosed()
       .pipe(
-        filter((apiDialogResult): apiDialogResult is ApiGroupsDialogResult => !!apiDialogResult && !this.isKubernetesOrigin),
+        filter((apiDialogResult): apiDialogResult is ApiGroupsDialogResult => !!apiDialogResult),
         switchMap(apiDialogResult => this.apiService.updateGroups(this.apiId, apiDialogResult.groups)),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
@@ -298,8 +295,7 @@ export class ApiGeneralMembersComponent implements OnInit {
   }
 
   private initForm(api: Api) {
-    this.isKubernetesOrigin = api.originContext?.origin === 'KUBERNETES';
-    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-member-u']) || this.isKubernetesOrigin;
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-member-u']);
     this.form = new UntypedFormGroup({
       isNotificationsEnabled: new UntypedFormControl({
         value: !api.disableMembershipNotifications,

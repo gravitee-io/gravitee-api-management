@@ -71,7 +71,7 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
           if (api.definitionVersion !== 'V2') {
             throw new Error('Unexpected API type. This page is compatible only for API > V1');
           }
-          const isReadonly = api.definitionContext?.origin === 'KUBERNETES';
+          const isReadonly = false;
           const dynamicProperty = api.services?.dynamicProperty;
 
           this.form = new UntypedFormGroup({

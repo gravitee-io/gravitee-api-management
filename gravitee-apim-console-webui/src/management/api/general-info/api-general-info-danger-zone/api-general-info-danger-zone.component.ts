@@ -84,15 +84,12 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
     canDeprecate: false,
     canDelete: false,
   };
-  public isReadOnly = false;
-  public canDetach = false;
   public license$: Observable<License>;
   public isOEM$: Observable<boolean>;
   public shouldUpgrade: boolean;
   public subject = 'API';
 
   ngOnInit(): void {
-    this.updateOriginContextState();
     this.license$ = this.licenseService.getLicense$();
     this.isOEM$ = this.licenseService.isOEM$();
 
@@ -108,7 +105,6 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.api) {
-      this.updateOriginContextState();
       this.dangerActions = {
         canAskForReview:
           this.constants.env?.settings?.apiReview?.enabled &&
@@ -311,41 +307,6 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
       .subscribe(() => {
         this.router.navigate(['..'], { relativeTo: this.activatedRoute });
       });
-  }
-
-  detach() {
-    this.matDialog
-      .open<GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData>(GioConfirmAndValidateDialogComponent, {
-        width: '500px',
-        data: {
-          title: `Detach API`,
-          content: `Are you sure you want to detach the API from its automation source?`,
-          confirmButton: `Yes, detach it`,
-          validationMessage: `Please, type in the name of the api <code>${this.api.name}</code> to confirm.`,
-          validationValue: this.api.name,
-          warning: `Any update made while the API was detached will be lost when the API is re-attached to the automation agent.`,
-        },
-        role: 'alertdialog',
-        id: 'apiDetachDialog',
-      })
-      .afterClosed()
-      .pipe(
-        filter(confirm => confirm === true),
-        switchMap(() => this.apiService.detach(this.api.id)),
-        catchError(({ error }) => {
-          this.snackBarService.error(error.message);
-          return EMPTY;
-        }),
-        tap(() => this.reloadDetails.emit()),
-        map(() => this.snackBarService.success(`The API has been detached from its automation source.`)),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe();
-  }
-
-  private updateOriginContextState(): void {
-    this.isReadOnly = this.api?.originContext?.origin === 'KUBERNETES';
-    this.canDetach = this.api?.originContext?.origin === 'KUBERNETES';
   }
 
   private canChangeApiLifecycle(api: Api): boolean {

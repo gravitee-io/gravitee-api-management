@@ -522,25 +522,25 @@ describe('ApiProxyGroupEditComponent', () => {
 
     it('should not allow user to update the form', async () => {
       const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[aria-label="Group name input"]' }));
-      expect(await nameInput.isDisabled()).toBeTruthy();
+      expect(await nameInput.isDisabled()).toBeFalsy();
 
       expect(
         await loader
           .getHarness(MatSelectHarness.with({ selector: '[aria-label="Load balancing algorithm"]' }))
           .then(select => select.isDisabled()),
-      ).toBeTruthy();
+      ).toBeFalsy();
 
       await loader.getHarness(MatTabHarness.with({ label: 'Configuration' })).then(tab => tab.select());
 
       const endpointHttpConfigHarness = await loader.getHarness(EndpointHttpConfigHarness);
 
-      expect(await endpointHttpConfigHarness.getMatInput('connectTimeout').then(input => input.isDisabled())).toBeTruthy();
+      expect(await endpointHttpConfigHarness.getMatInput('connectTimeout').then(input => input.isDisabled())).toBeFalsy();
 
       await loader.getHarness(MatTabHarness.with({ label: 'Service discovery' })).then(tab => tab.select());
 
       expect(
         await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' })).then(slide => slide.isDisabled()),
-      ).toBeTruthy();
+      ).toBeFalsy();
 
       expect(
         (await loader.getAllHarnesses(MatSelectHarness.with({ selector: '[aria-label="Service discovery provider"]' }))).length,

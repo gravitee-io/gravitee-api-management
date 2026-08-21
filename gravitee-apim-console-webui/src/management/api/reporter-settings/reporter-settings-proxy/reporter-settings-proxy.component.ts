@@ -172,7 +172,7 @@ export class ReporterSettingsProxyComponent implements OnInit {
   private initForm(api: ApiV4) {
     const analyticsEnabled = api.analytics?.enabled;
     const atLeastModeIsEnabled = api.analytics?.logging?.mode?.entrypoint || api.analytics?.logging?.mode?.endpoint;
-    const isReadOnly = api.definitionContext?.origin === 'KUBERNETES';
+    const isReadOnly = false;
 
     this.form = new UntypedFormGroup({
       enabled: new UntypedFormControl({ value: analyticsEnabled, disabled: isReadOnly }),

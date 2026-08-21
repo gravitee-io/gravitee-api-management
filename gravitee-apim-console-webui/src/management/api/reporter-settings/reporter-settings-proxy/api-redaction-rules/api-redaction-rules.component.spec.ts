@@ -77,10 +77,10 @@ describe('ApiRedactionRulesComponent', () => {
       expect(component['rows']()).toHaveLength(0);
     });
 
-    it('should mark as read-only for Kubernetes-origin APIs', async () => {
+    it('should not be read-only for Kubernetes-origin APIs', async () => {
       await setup(fakeProxyApiV4({ definitionContext: { origin: 'KUBERNETES' } }));
 
-      expect(component['isReadOnly']()).toBe(true);
+      expect(component['isReadOnly']()).toBe(false);
     });
 
     it('should not be read-only for management-origin APIs', async () => {
