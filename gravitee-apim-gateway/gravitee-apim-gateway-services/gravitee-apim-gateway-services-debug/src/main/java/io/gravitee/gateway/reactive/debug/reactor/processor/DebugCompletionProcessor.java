@@ -145,6 +145,7 @@ public class DebugCompletionProcessor implements Processor {
         final PreprocessorStep preprocessorStep = new PreprocessorStep();
         preprocessorStep.setAttributes(debugContext.getInitialAttributes());
         preprocessorStep.setHeaders(debugContext.getInitialHeaders().toListValuesMap());
+        preprocessorStep.setPath(debugContext.getInitialPath());
         return preprocessorStep;
     }
 

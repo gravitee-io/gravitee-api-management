@@ -45,11 +45,27 @@ public class DebugExecutionContext extends DefaultExecutionContext {
     private final Map<String, Serializable> initialAttributes;
     private final InvokerResponse invokerResponse = new InvokerResponse();
     private final HttpHeaders initialHeaders;
+    private String initialPath;
 
     public DebugExecutionContext(final MutableRequest request, final MutableResponse response) {
         super(request, response);
         this.initialAttributes = AttributeHelper.filterAndSerializeAttributes(getAttributes());
         this.initialHeaders = HttpHeaders.create(request().headers());
+    }
+
+    /**
+     * Records the path the policies are about to run on.
+     *
+     * <p>Unlike the attributes and headers above, this cannot be read at construction: {@code
+     * pathInfo} is derived from the context path, and the dispatcher only assigns that once the
+     * acceptor has matched — which happens after this context exists. It must equally not be read at
+     * completion, since by then a policy may have rewritten the path, and reporting that value here
+     * would credit the gateway with a change a policy made.
+     *
+     * <p>Called from {@code DebugInitProcessor}, which sits between the two.
+     */
+    public void captureInitialPath() {
+        this.initialPath = request().pathInfo();
     }
 
     public Completable prePolicyExecution(final String id, final ExecutionPhase executionPhase) {
@@ -116,6 +132,10 @@ public class DebugExecutionContext extends DefaultExecutionContext {
 
     public HttpHeaders getInitialHeaders() {
         return initialHeaders;
+    }
+
+    public String getInitialPath() {
+        return initialPath;
     }
 
     public PolicyStep<?> getCurrentDebugStep() {

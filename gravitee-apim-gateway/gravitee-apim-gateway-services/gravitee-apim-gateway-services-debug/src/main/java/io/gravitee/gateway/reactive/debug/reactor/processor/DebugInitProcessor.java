@@ -19,6 +19,7 @@ import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseRequest;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
+import io.gravitee.gateway.reactive.debug.reactor.context.DebugExecutionContext;
 import io.reactivex.rxjava3.core.Completable;
 import lombok.CustomLog;
 
@@ -45,6 +46,12 @@ public class DebugInitProcessor implements Processor {
             ctx.withLogger(log).debug("Original URL: {}", originalUrl);
 
             ctx.setAttribute(ContextAttributes.ATTR_REQUEST_ORIGINAL_URL, originalUrl);
+
+            // The acceptor has matched by now, so the path the policies will run on is finally
+            // readable — and none of them has run yet. This is the only window where both hold.
+            if (ctx instanceof DebugExecutionContext debugContext) {
+                debugContext.captureInitialPath();
+            }
         });
     }
 }
