@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -24,9 +25,13 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.exception.PathConflictException;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.List;
@@ -45,6 +50,7 @@ class PortalLinkSyncDomainServiceTest {
         .actor(AuditActor.builder().userId("user-id").build())
         .build();
     private static final String PORTAL_ID = "11111111-1111-1111-1111-111111111111";
+    private static final String API_ID = "00000000-0000-0000-0000-0000000000a1";
 
     private final PortalNavigationItemsCrudServiceInMemory navItemCrud = new PortalNavigationItemsCrudServiceInMemory();
     private final PortalNavigationItemsQueryServiceInMemory navItemQuery = new PortalNavigationItemsQueryServiceInMemory(
@@ -222,11 +228,101 @@ class PortalLinkSyncDomainServiceTest {
         assertThat(navItemCrud.storage()).isEmpty();
     }
 
+    @Test
+    void materialize_for_api_creates_a_link_under_the_api_folder() {
+        var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/guides");
+
+        var link = syncService.materializeForApi(
+            AUDIT_INFO,
+            API_ID,
+            "external-docs",
+            "External Docs",
+            "https://docs.example.com",
+            "/guides",
+            3
+        );
+
+        assertThat(navItemCrud.storage()).hasSize(1);
+        assertThat(link.getId()).isEqualTo(PortalNavigationItemId.forApiLink(AUDIT_INFO, API_ID, "external-docs"));
+        assertThat(link.getParentId()).isEqualTo(folderId);
+        assertThat(link.getOrder()).isEqualTo(3);
+        assertThat(link.getAutomationMetadata().referenceType()).isEqualTo(AutomationMetadata.ReferenceType.API);
+        assertThat(link.getAutomationMetadata().referenceId()).isEqualTo(API_ID);
+    }
+
+    @Test
+    void materialize_for_api_makes_the_link_a_root_of_the_api_subtree_when_no_location_is_given() {
+        var link = syncService.materializeForApi(AUDIT_INFO, API_ID, "external-docs", "External Docs", "https://d.example", null, 0);
+
+        assertThat(link.isRoot()).isTrue();
+    }
+
+    @Test
+    void materialize_for_api_persists_the_link_even_when_the_api_is_not_listed_anywhere() {
+        // No folder exists yet: the parent is a phantom, and the link still lands (D5).
+        var link = syncService.materializeForApi(AUDIT_INFO, API_ID, "external-docs", "External Docs", "https://d.example", "/guides", 0);
+
+        assertThat(navItemCrud.storage()).hasSize(1);
+        assertThat(link.getParentId()).isEqualTo(PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/guides"));
+    }
+
+    @Test
+    void materialize_for_api_is_idempotent() {
+        var first = syncService.materializeForApi(AUDIT_INFO, API_ID, "external-docs", "External Docs", "https://d.example", "/guides", 1);
+        var second = syncService.materializeForApi(AUDIT_INFO, API_ID, "external-docs", "External Docs", "https://d.example", "/guides", 1);
+
+        assertThat(navItemCrud.storage()).hasSize(1);
+        assertThat(second.getId()).isEqualTo(first.getId());
+    }
+
+    @Test
+    void materialize_for_api_rejects_a_segment_already_taken_by_a_foreign_item() {
+        var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/guides");
+        var squatter = linkRow("external-docs", folderId, 0);
+        navItemCrud.create(squatter);
+
+        var throwable = catchThrowable(() ->
+            syncService.materializeForApi(AUDIT_INFO, API_ID, "external-docs", "External Docs", "https://d.example", "/guides", 0)
+        );
+
+        assertThat(throwable).isInstanceOf(PathConflictException.class);
+    }
+
+    @Test
+    void materialize_for_api_stamps_an_api_reference_on_the_nav_item() {
+        var link = syncService.materializeForApi(AUDIT_INFO, API_ID, "external-docs", "External Docs", "https://d.example", null, 0);
+
+        assertThat(link.getReference()).isEqualTo(new NavigationItemReference.ApiReference(API_ID));
+    }
+
+    @Test
+    void materialize_stamps_a_portal_reference_on_a_portal_attached_link() {
+        var link = syncService.materialize(AUDIT_INFO, PORTAL_ID, "docs", "Docs", "https://d.example", null, 0);
+
+        assertThat(link.getReference()).isEqualTo(new NavigationItemReference.PortalReference(PortalId.of(PORTAL_ID)));
+    }
+
     private static PortalNavigationItemId expectedLinkId() {
         return PortalNavigationItemId.of(HRIDToUUID.portalLink().context(AUDIT_INFO).portal(PORTAL_ID).hrid("external-docs").id());
     }
 
     private static PortalNavigationItemId expectedFolderId(String path) {
         return PortalNavigationItemId.forPortalFolder(AUDIT_INFO, PORTAL_ID, path);
+    }
+
+    private PortalNavigationLink linkRow(String title, PortalNavigationItemId parentId, int order) {
+        return PortalNavigationLink.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId(AUDIT_INFO.organizationId())
+            .environmentId(AUDIT_INFO.environmentId())
+            .title(title)
+            .segment(PortalNavigationItem.slugify(title).value())
+            .area(PortalArea.TOP_NAVBAR)
+            .order(order)
+            .parentId(parentId)
+            .url("https://example.com")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
     }
 }

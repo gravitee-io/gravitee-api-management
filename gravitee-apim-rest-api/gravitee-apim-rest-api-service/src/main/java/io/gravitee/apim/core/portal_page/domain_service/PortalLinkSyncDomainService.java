@@ -61,19 +61,34 @@ public class PortalLinkSyncDomainService {
         String location,
         Integer order
     ) {
-        var linkId = linkId(auditInfo, portalId, linkHrid);
+        return upsert(
+            auditInfo,
+            PortalNavigationItemId.forPortalLink(auditInfo, portalId, linkHrid),
+            resolveParent(auditInfo, location, portalId),
+            linkHrid,
+            name,
+            href,
+            location,
+            order,
+            new AutomationMetadata(AutomationMetadata.ReferenceType.PORTAL, portalId, null, Optional.ofNullable(location), Optional.empty())
+        );
+    }
+
+    private PortalNavigationLink upsert(
+        AuditInfo auditInfo,
+        PortalNavigationItemId linkId,
+        PortalNavigationItemContainer parent,
+        String linkHrid,
+        String name,
+        String href,
+        String location,
+        Integer order,
+        AutomationMetadata automationMetadata
+    ) {
         var segment = Slug.from(linkHrid).value();
-        var parent = resolveParent(auditInfo, location, portalId);
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), linkId);
         var existingLink = existing instanceof PortalNavigationLink link ? link : null;
         var parentId = parent == null ? null : parent.getId();
-        var automationMetadata = new AutomationMetadata(
-            AutomationMetadata.ReferenceType.PORTAL,
-            portalId,
-            null,
-            Optional.ofNullable(location),
-            Optional.empty()
-        );
 
         // Segment is derived from the stable linkHrid, never from the mutable name — so a conflict can
         // only newly arise on create or on an actual relocation. Skipping the check on an in-place update
@@ -109,6 +124,7 @@ public class PortalLinkSyncDomainService {
             .type(PortalNavigationItemType.LINK)
             .order(order != null ? order : 0)
             .url(href)
+            .reference(automationMetadata.reference())
             .automationMetadata(automationMetadata)
             .visibility(PortalVisibility.PUBLIC)
             .published(true)
@@ -120,13 +136,48 @@ public class PortalLinkSyncDomainService {
     }
 
     public void validateForConflicts(AuditInfo auditInfo, String portalId, String linkHrid, String location) {
-        var linkId = linkId(auditInfo, portalId, linkHrid);
-
         rejectIfSegmentTakenByForeignItem(
             auditInfo,
             resolveParent(auditInfo, location, portalId),
             Slug.from(linkHrid).value(),
-            linkId,
+            PortalNavigationItemId.forPortalLink(auditInfo, portalId, linkHrid),
+            location
+        );
+    }
+
+    /**
+     * The API-attached counterpart of {@link #materialize}. {@code location} resolves against the
+     * API's own {@code portalNavigation} folder subtree — the same tree API-attached documentation
+     * uses — so the parent is derived from the API rather than from a portal folder.
+     */
+    public PortalNavigationLink materializeForApi(
+        AuditInfo auditInfo,
+        String apiId,
+        String linkHrid,
+        String name,
+        String href,
+        String location,
+        Integer order
+    ) {
+        return upsert(
+            auditInfo,
+            PortalNavigationItemId.forApiLink(auditInfo, apiId, linkHrid),
+            resolveApiParent(auditInfo, location, apiId),
+            linkHrid,
+            name,
+            href,
+            location,
+            order,
+            new AutomationMetadata(AutomationMetadata.ReferenceType.API, apiId, null, Optional.ofNullable(location), Optional.empty())
+        );
+    }
+
+    public void validateForConflictsForApi(AuditInfo auditInfo, String apiId, String linkHrid, String location) {
+        rejectIfSegmentTakenByForeignItem(
+            auditInfo,
+            resolveApiParent(auditInfo, location, apiId),
+            Slug.from(linkHrid).value(),
+            PortalNavigationItemId.forApiLink(auditInfo, apiId, linkHrid),
             location
         );
     }
@@ -137,8 +188,21 @@ public class PortalLinkSyncDomainService {
         }
     }
 
-    private static PortalNavigationItemId linkId(AuditInfo auditInfo, String portalId, String linkHrid) {
-        return PortalNavigationItemId.forPortalLink(auditInfo, portalId, linkHrid);
+    /**
+     * An API-attached link lives in the API's own navigation subtree, so its location resolves in the
+     * API's key space and an absent location makes the link a root of that subtree. Rendering splices
+     * the subtree in under every portal row that lists the API; nothing here needs to know about portals.
+     */
+    private PortalNavigationItemContainer resolveApiParent(AuditInfo auditInfo, String location, String apiId) {
+        if (location == null || location.isBlank() || "/".equals(location)) {
+            return null;
+        }
+        var folderId = PortalNavigationItemId.forApiFolder(auditInfo, apiId, location);
+        var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), folderId);
+        if (existing instanceof PortalNavigationItemContainer container) {
+            return container;
+        }
+        return PortalNavigationItemContainer.phantom(folderId);
     }
 
     private PortalNavigationItemContainer resolveParent(AuditInfo auditInfo, String location, String portalId) {

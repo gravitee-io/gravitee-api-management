@@ -73,16 +73,20 @@ public class PortalNavigationItemId implements Comparable<PortalNavigationItemId
         return of(HRIDToUUID.portalLink().context(auditInfo).portal(portalId).hrid(linkHrid).id());
     }
 
-    public static PortalNavigationItemId forApiDocumentation(
-        AuditInfo auditInfo,
-        PortalNavigationItemId navApiRowId,
-        PortalPageContentId contentId
-    ) {
-        return of(HRIDToUUID.navigation().context(auditInfo).api(navApiRowId.toString()).documentation(contentId.toString()).id());
+    /**
+     * The API-attached sibling of {@link #forPortalLink}. Keyed on the API rather than on a
+     * {@code PortalNavigationApi} row, so the id survives listings being added or removed.
+     */
+    public static PortalNavigationItemId forApiLink(AuditInfo auditInfo, String apiId, String linkHrid) {
+        return of(HRIDToUUID.apiLink().context(auditInfo).api(apiId).hrid(linkHrid).id());
     }
 
-    public static PortalNavigationItemId forApiFolder(AuditInfo auditInfo, PortalNavigationItemId navApiRowId, @Nullable String location) {
-        return of(HRIDToUUID.navigation().context(auditInfo).api(navApiRowId.toString()).folder(normalizeLocation(location)).id());
+    public static PortalNavigationItemId forApiDocumentation(AuditInfo auditInfo, String apiId, PortalPageContentId contentId) {
+        return of(HRIDToUUID.navigation().context(auditInfo).api(apiId).documentation(contentId.toString()).id());
+    }
+
+    public static PortalNavigationItemId forApiFolder(AuditInfo auditInfo, String apiId, @Nullable String location) {
+        return of(HRIDToUUID.navigation().context(auditInfo).api(apiId).folder(normalizeLocation(location)).id());
     }
 
     private static String normalizeLocation(@Nullable String location) {

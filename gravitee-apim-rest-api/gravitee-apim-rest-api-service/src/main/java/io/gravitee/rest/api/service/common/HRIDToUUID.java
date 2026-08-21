@@ -106,6 +106,10 @@ public final class HRIDToUUID {
         return new ApiSubResourceBuilder();
     }
 
+    public static ApiSubResourceBuilder apiLink() {
+        return new ApiSubResourceBuilder();
+    }
+
     public static GammaBuilder gamma() {
         return new GammaBuilder();
     }

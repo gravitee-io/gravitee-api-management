@@ -18,10 +18,20 @@ package io.gravitee.apim.core.portal_page.domain_service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.ApiQueryServiceInMemory;
+import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import inmemory.SubscriptionQueryServiceInMemory;
+import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
+import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.List;
 import java.util.function.Predicate;
 import org.junit.jupiter.api.BeforeEach;
@@ -74,6 +84,45 @@ class PortalNavigationItemVisibilityEvaluatorTest {
         var evaluator = evaluatorWith(new HiddenApiProductVisibilityService());
 
         assertThat(evaluator.hasHiddenAncestor(page)).isTrue();
+    }
+
+    @Test
+    void should_detect_hidden_ancestor_when_the_enclosing_api_of_a_spliced_subtree_root_is_hidden() {
+        var privateApiRow = PortalNavigationItemFixtures.anApi("00000000-0000-0000-0000-00000000b001", "Private API", null, "api-x");
+        privateApiRow.markAsRoot();
+        privateApiRow.setVisibility(PortalVisibility.PRIVATE);
+        queryService.initWith(List.of(privateApiRow));
+
+        var apiMembershipDomainService = new ApiPortalMembershipDomainService(
+            new MembershipQueryServiceInMemory(),
+            new SubscriptionQueryServiceInMemory(),
+            new ApiQueryServiceInMemory()
+        );
+        var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(queryService, apiMembershipDomainService);
+
+        var splicedRoot = PortalNavigationPage.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId(PortalNavigationItemFixtures.ORG_ID)
+            .environmentId(PortalNavigationItemFixtures.ENV_ID)
+            .title("Doc")
+            .segment("doc")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .portalPageContentId(PortalPageContentId.random())
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .reference(new NavigationItemReference.ApiReference("api-x"))
+            .build();
+        splicedRoot.markAsRoot();
+
+        var evaluator = new PortalNavigationItemVisibilityEvaluator(
+            PortalNavigationItemFixtures.ENV_ID,
+            PortalNavigationItemViewerContext.forPortal(false),
+            queryService,
+            List.of(apiVisibilityDomainService)
+        );
+
+        assertThat(evaluator.hasHiddenAncestor(splicedRoot)).isTrue();
     }
 
     private PortalNavigationItemVisibilityEvaluator evaluatorWith(PortalNavigationItemVisibilityService visibilityService) {

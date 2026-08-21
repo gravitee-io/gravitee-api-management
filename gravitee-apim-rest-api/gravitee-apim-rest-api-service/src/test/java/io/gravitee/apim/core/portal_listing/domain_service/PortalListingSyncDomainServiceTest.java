@@ -140,10 +140,7 @@ class PortalListingSyncDomainServiceTest {
         var listing = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
         syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), listing);
 
-        var expectedNavApiId = PortalNavigationItemId.of(
-            HRIDToUUID.navigation().context(AUDIT_INFO).portal(PORTAL_ID.toString()).listingApi(apiId).id()
-        );
-        var expectedPageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, expectedNavApiId, docContentId);
+        var expectedPageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, apiId, docContentId);
         assertThat(navItemCrud.storage())
             .filteredOn(PortalNavigationPage.class::isInstance)
             .extracting(PortalNavigationItem::getId)

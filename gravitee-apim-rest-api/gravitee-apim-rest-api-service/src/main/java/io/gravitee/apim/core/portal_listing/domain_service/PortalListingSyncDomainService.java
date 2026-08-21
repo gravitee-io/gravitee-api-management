@@ -102,7 +102,7 @@ public class PortalListingSyncDomainService {
             if (existing instanceof PortalNavigationApi navApi) {
                 var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, navApi.getId());
                 var desired = apiFolderSubtreeReconciler.desiredPaths(apiId);
-                apiFolderSubtreeReconciler.validateConflicts(auditInfo, navApi, apiId, desired, currentFolders);
+                apiFolderSubtreeReconciler.validateConflicts(auditInfo, apiId, desired, currentFolders);
             }
         }
     }
@@ -113,7 +113,7 @@ public class PortalListingSyncDomainService {
         var envFolders = apiFolderSubtreeReconciler.loadAllFoldersInEnv(auditInfo.environmentId());
         for (var navApi : navApis) {
             var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, navApi.getId());
-            apiFolderSubtreeReconciler.validateConflicts(auditInfo, navApi, apiId, desired, currentFolders);
+            apiFolderSubtreeReconciler.validateConflicts(auditInfo, apiId, desired, currentFolders);
         }
     }
 

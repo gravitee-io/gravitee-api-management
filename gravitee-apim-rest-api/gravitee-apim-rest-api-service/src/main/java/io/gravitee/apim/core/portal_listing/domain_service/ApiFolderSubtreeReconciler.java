@@ -56,22 +56,16 @@ class ApiFolderSubtreeReconciler {
         List<PortalNavigationItem> currentFolders
     ) {
         var desired = desiredPaths(apiId);
-        var ownership = ownership(auditInfo, navApi, apiId, desired);
+        var ownership = ownership(auditInfo, apiId, desired);
         var plan = NavigationSyncPlanner.plan(desired, currentFolders, previousPaths, ownership);
-        Function<String, PortalNavigationItemId> idMapper = path -> apiFolderId(auditInfo, navApi.getId(), path);
+        Function<String, PortalNavigationItemId> idMapper = path -> apiFolderId(auditInfo, apiId, path);
         var deleteStrategy = ownership.asDeleteStrategy();
         planExecutor.execute(plan, auditInfo, navApi.getArea(), navApi, idMapper, deleteStrategy);
     }
 
-    void validateConflicts(
-        AuditInfo auditInfo,
-        PortalNavigationApi navApi,
-        String apiId,
-        List<NavigationPath> desired,
-        List<PortalNavigationItem> currentFolders
-    ) {
+    void validateConflicts(AuditInfo auditInfo, String apiId, List<NavigationPath> desired, List<PortalNavigationItem> currentFolders) {
         var safeDesired = desired == null ? List.<NavigationPath>of() : desired;
-        var ownership = ownership(auditInfo, navApi, apiId, safeDesired);
+        var ownership = ownership(auditInfo, apiId, safeDesired);
         NavigationSyncPlanner.plan(safeDesired, currentFolders, safeDesired, ownership);
     }
 
@@ -109,18 +103,18 @@ class ApiFolderSubtreeReconciler {
             .orElseGet(List::of);
     }
 
-    private NavigationOwnership ownership(AuditInfo auditInfo, PortalNavigationApi navApi, String apiId, List<NavigationPath> paths) {
+    private NavigationOwnership ownership(AuditInfo auditInfo, String apiId, List<NavigationPath> paths) {
         return new NavigationOwnership(
             NavigationSyncPlanner.expandToFullPaths(paths),
-            path -> apiFolderId(auditInfo, navApi.getId(), path),
-            automationManagedNavigationItemsQueryService.automationManagedApiDocPages(auditInfo, navApi, apiId),
+            path -> apiFolderId(auditInfo, apiId, path),
+            automationManagedNavigationItemsQueryService.automationManagedApiDocPages(auditInfo, apiId),
             Set.of(),
             Set.of()
         );
     }
 
-    private PortalNavigationItemId apiFolderId(AuditInfo auditInfo, PortalNavigationItemId navApiId, String path) {
-        return PortalNavigationItemId.forApiFolder(auditInfo, navApiId, path);
+    private PortalNavigationItemId apiFolderId(AuditInfo auditInfo, String apiId, String path) {
+        return PortalNavigationItemId.forApiFolder(auditInfo, apiId, path);
     }
 
     private static final class FolderCollector implements PortalNavigationVisitor {
