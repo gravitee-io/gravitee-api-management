@@ -311,13 +311,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         }
         // V3 execution mode.
         log.debug("Request routed to V3 handler on path [{}]", httpAcceptor.path());
-        return handleV3Request(
-                httpServerRequest,
-                httpAcceptor,
-                vertxContext,
-                pathWasNormalized ? normalizedPath : null,
-                receivedAt
-            );
+        return handleV3Request(httpServerRequest, httpAcceptor, vertxContext, pathWasNormalized ? normalizedPath : null, receivedAt);
     }
 
     /**
@@ -366,7 +360,12 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         return path.length() > 1 && path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
     }
 
-    private MutableExecutionContext prepareExecutionContext(
+    /**
+     * Visible to subclasses so that a dispatcher serving a single kind of traffic can build the same
+     * context this one builds, rather than a lookalike. The debug dispatcher needs it to answer a
+     * rejected path without losing the debug session — see {@code DebugHttpRequestDispatcher}.
+     */
+    protected MutableExecutionContext prepareExecutionContext(
         final HttpServerRequest httpServerRequest,
         String serverId,
         final String path,
