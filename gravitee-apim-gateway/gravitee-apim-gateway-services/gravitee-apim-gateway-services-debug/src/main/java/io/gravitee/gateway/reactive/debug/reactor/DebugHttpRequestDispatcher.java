@@ -17,33 +17,51 @@ package io.gravitee.gateway.reactive.debug.reactor;
 
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.debug.definition.ReactableDebugApi;
 import io.gravitee.gateway.debug.vertx.VertxHttpServerRequestDebugDecorator;
-import io.gravitee.gateway.http.vertx.VertxHttpServerRequestOptions;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestClientAuthConfiguration;
 import io.gravitee.gateway.env.RequestPathConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
+import io.gravitee.gateway.http.vertx.VertxHttpServerRequestOptions;
 import io.gravitee.gateway.opentelemetry.TracingContext;
+import io.gravitee.gateway.reactive.api.ExecutionPhase;
+import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
+import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
+import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
 import io.gravitee.gateway.reactive.debug.reactor.context.DebugExecutionContext;
+import io.gravitee.gateway.reactive.debug.reactor.processor.DebugCompletionProcessor;
 import io.gravitee.gateway.reactive.debug.reactor.processor.DebugPlatformProcessorChainFactory;
 import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest;
+import io.gravitee.gateway.reactive.reactor.ApiReactor;
 import io.gravitee.gateway.reactive.reactor.DefaultHttpRequestDispatcher;
 import io.gravitee.gateway.reactive.reactor.handler.HttpAcceptorResolver;
+import io.gravitee.gateway.reactive.reactor.path.RequestPathRejection;
 import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFactory;
+import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.opentelemetry.Tracer;
 import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
+import io.reactivex.rxjava3.core.Completable;
 import io.vertx.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
+import lombok.CustomLog;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
+
+    private final HttpAcceptorResolver httpAcceptorResolver;
+    private final NotFoundProcessorChainFactory notFoundProcessorChainFactory;
+    private final RequestPathConfiguration requestPathConfiguration;
+    private final DebugCompletionProcessor debugCompletionProcessor;
 
     public DebugHttpRequestDispatcher(
         GatewayConfiguration gatewayConfiguration,
@@ -57,6 +75,7 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
         RequestTimeoutConfiguration requestTimeoutConfiguration,
         RequestClientAuthConfiguration requestClientAuthConfiguration,
         RequestPathConfiguration requestPathConfiguration,
+        DebugCompletionProcessor debugCompletionProcessor,
         Vertx vertx,
         boolean warningsEnabled
     ) {
@@ -76,6 +95,68 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
             vertx,
             warningsEnabled
         );
+        this.httpAcceptorResolver = httpAcceptorResolver;
+        this.notFoundProcessorChainFactory = notFoundProcessorChainFactory;
+        this.requestPathConfiguration = requestPathConfiguration;
+        this.debugCompletionProcessor = debugCompletionProcessor;
+    }
+
+    /**
+     * Answers a rejected path without abandoning the debug session it belongs to.
+     *
+     * <p>The gateway refuses a path <em>before</em> the acceptor is resolved — that is the point of
+     * the mode, since the routing decision itself is what must not be made on an unresolved path.
+     * The consequence is that the dispatcher never learns the request was a debug one: the platform
+     * post-processor chain is skipped, {@link DebugCompletionProcessor} never runs, and the debug
+     * event is left in {@code DEBUGGING} while the console waits for a result that will never come.
+     * The user sees an endless spinner, with nothing in the logs to explain it.
+     *
+     * <p>This port serves debug traffic and nothing else, so it is the one place where that can be
+     * noticed without weakening the production path. The request is refused exactly as it would be
+     * upstream — the same chain, the same 400 — and the completion processor is then run on the same
+     * context, which reports a session with no policy step and the response the gateway gave.
+     *
+     * <p>Note this holds for the not-found branch too, which has always had the same dead end. It is
+     * left alone deliberately: a debug request carries a context path the daemon built itself, so
+     * failing to match an acceptor means something is wrong well upstream of this decision.
+     */
+    @Override
+    public Completable dispatch(final HttpServerRequest httpServerRequest, final String serverId) {
+        if (!RequestPathRejection.applies(requestPathConfiguration, httpServerRequest.path())) {
+            return super.dispatch(httpServerRequest, serverId);
+        }
+        return dispatchRejected(httpServerRequest, serverId, System.currentTimeMillis());
+    }
+
+    private Completable dispatchRejected(final HttpServerRequest httpServerRequest, final String serverId, final long receivedAt) {
+        final MutableExecutionContext ctx = prepareExecutionContext(httpServerRequest, serverId, null, receivedAt);
+        ctx.request().contextPath("/");
+
+        // Resolving here decides nothing about routing — the request is refused either way. It only
+        // names the session to close. The raw path still matches: the acceptor compares prefixes and
+        // the debug context path the daemon prepends sits ahead of whatever the user typed.
+        final ReactableDebugApi<?> debugApi = resolveDebugApi(httpServerRequest, serverId);
+        if (debugApi != null) {
+            ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, debugApi);
+        }
+
+        final ProcessorChain rejectedChain = notFoundProcessorChainFactory.rejectedPathProcessorChain();
+        final Completable reject = rejectedChain.execute(ctx, ExecutionPhase.RESPONSE);
+
+        if (debugApi == null) {
+            // Nothing identifies the session, so there is nothing to close. Answering is still right.
+            log.warn("Rejected debug request on path {} could not be matched to a debug API", httpServerRequest.path());
+            return reject;
+        }
+        return reject.andThen(Completable.defer(() -> debugCompletionProcessor.execute((HttpExecutionContextInternal) ctx)));
+    }
+
+    private ReactableDebugApi<?> resolveDebugApi(final HttpServerRequest httpServerRequest, final String serverId) {
+        final HttpAcceptor acceptor = httpAcceptorResolver.resolve(httpServerRequest.host(), httpServerRequest.path(), serverId);
+        if (acceptor != null && acceptor.reactor() instanceof ApiReactor<?> apiReactor) {
+            return apiReactor.api() instanceof ReactableDebugApi<?> reactableDebugApi ? reactableDebugApi : null;
+        }
+        return null;
     }
 
     @Override

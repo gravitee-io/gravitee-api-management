@@ -27,6 +27,7 @@ import io.gravitee.gateway.debug.definition.DebugApiV4;
 import io.gravitee.gateway.debug.definition.ReactableDebugApi;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
+import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.debug.policy.steps.PolicyStep;
@@ -121,14 +122,20 @@ public class DebugCompletionProcessor implements Processor {
     }
 
     private ReactableDebugApi<?> getDebugApi(HttpExecutionContextInternal ctx) {
-        ReactableDebugApi<?> debugApi;
-        try {
-            debugApi = (ReactableDebugApi<?>) ctx.getComponent(Api.class);
-        } catch (NoSuchBeanDefinitionException e) {
-            debugApi = (ReactableDebugApi<?>) ctx.getComponent(io.gravitee.gateway.reactive.handlers.api.v4.Api.class);
+        // The API-scoped component provider is only installed once a reactor starts handling the
+        // request. A request refused on its path never gets that far, so the context still carries
+        // the global provider — which has no Api bean at all — and the dispatcher's own attribute is
+        // the only place the API can be read from.
+        final Object reactableApi = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API);
+        if (reactableApi instanceof ReactableDebugApi<?> debugApi) {
+            return debugApi;
         }
 
-        return debugApi;
+        try {
+            return (ReactableDebugApi<?>) ctx.getComponent(Api.class);
+        } catch (NoSuchBeanDefinitionException e) {
+            return (ReactableDebugApi<?>) ctx.getComponent(io.gravitee.gateway.reactive.handlers.api.v4.Api.class);
+        }
     }
 
     private DebugMetrics createMetrics(Metrics metrics) {
