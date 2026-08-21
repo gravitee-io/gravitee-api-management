@@ -101,6 +101,14 @@ jest.mock('../pages/AccessManagementPage', () => ({
     AccessManagementPage: () => <div data-testid="access-management-page" />,
 }));
 
+jest.mock('../pages/AuthenticationPage', () => ({
+    AuthenticationPage: () => <div data-testid="authentication-page" />,
+}));
+
+jest.mock('../pages/CreateIdentityProviderPage', () => ({
+    CreateIdentityProviderPage: () => <div data-testid="create-identity-provider-page" />,
+}));
+
 jest.mock('../pages/RegisterApplicationPage', () => ({
     RegisterApplicationPage: () => <div data-testid="register-application-page" />,
 }));
@@ -707,8 +715,9 @@ describe('AppRoutes', () => {
         });
         renderPlatform('/management-and-schedulers');
 
-        expect(visibleNavKeys()).toEqual(expect.arrayContaining(['access-management', 'management-and-schedulers', 'cors', 'smtp']));
-        expect(visibleNavKeys()).not.toContain('authentication');
+        expect(visibleNavKeys()).toEqual(
+            expect.arrayContaining(['access-management', 'authentication', 'management-and-schedulers', 'cors', 'smtp']),
+        );
         expect(visibleNavKeys()).not.toContain('templates');
     });
 
@@ -725,5 +734,32 @@ describe('AppRoutes', () => {
         expect(visibleNavKeys()).not.toContain('cors');
         expect(visibleNavKeys()).not.toContain('smtp');
         expect(visibleNavKeys()).toContain('access-management');
+    });
+
+    it('routes to Authentication and Create Identity Provider', () => {
+        renderPlatform('/authentication');
+        expect(screen.getByTestId('authentication-page')).not.toBeNull();
+        renderPlatform('/authentication/new');
+        expect(screen.getByTestId('create-identity-provider-page')).not.toBeNull();
+    });
+
+    it('hides Authentication without organization-identity_provider-r', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'access-management',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('organization-identity_provider-r'));
+        renderPlatform('/access-management');
+
+        expect(visibleNavKeys()).not.toContain('authentication');
+        expect(visibleNavKeys()).toContain('access-management');
+    });
+
+    it('redirects Create Identity Provider to the list without organization-identity_provider-c', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('organization-identity_provider-c'));
+        renderPlatform('/authentication/new');
+        expect(screen.queryByTestId('create-identity-provider-page')).toBeNull();
+        expect(screen.getByTestId('authentication-page')).not.toBeNull();
     });
 });

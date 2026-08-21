@@ -59,7 +59,9 @@ import { AccessManagementPage } from '../pages/AccessManagementPage';
 import { AlertsPage } from '../pages/AlertsPage';
 import { ApplicationDetailSubscriptionPage } from '../pages/ApplicationDetailSubscriptionPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
+import { AuthenticationPage } from '../pages/AuthenticationPage';
 import { CorsSettingsPage } from '../pages/CorsSettingsPage';
+import { CreateIdentityProviderPage } from '../pages/CreateIdentityProviderPage';
 import { DictionariesPage } from '../pages/DictionariesPage';
 import { DictionaryDetailPage } from '../pages/DictionaryDetailPage';
 import { EntrypointsAndShardingTagsPage } from '../pages/EntrypointsAndShardingTagsPage';
@@ -118,22 +120,40 @@ function PermissionPageGuard({
     return children;
 }
 
-function isNavItemVisible(
-    itemKey: string,
-    permissionsReady: boolean,
-    canReadMetadata: boolean,
-    canReadDictionaries: boolean,
-    canAccessUsers: boolean,
-    canReadGateways: boolean,
-    canReadEntrypoints: boolean,
-    canReadGroups: boolean,
-    canReadSharedPolicyGroups: boolean,
-    canReadAlerts: boolean,
-    canReadTenants: boolean,
-    canReadOrgAudit: boolean,
-    canReadEnvAudit: boolean,
-    canReadOrgSettings: boolean,
-): boolean {
+interface PlatformNavVisibility {
+    readonly permissionsReady: boolean;
+    readonly canReadMetadata: boolean;
+    readonly canReadDictionaries: boolean;
+    readonly canAccessUsers: boolean;
+    readonly canReadGateways: boolean;
+    readonly canReadEntrypoints: boolean;
+    readonly canReadGroups: boolean;
+    readonly canReadSharedPolicyGroups: boolean;
+    readonly canReadAlerts: boolean;
+    readonly canReadTenants: boolean;
+    readonly canReadOrgAudit: boolean;
+    readonly canReadEnvAudit: boolean;
+    readonly canReadOrgSettings: boolean;
+    readonly canReadIdentityProviders: boolean;
+}
+
+function isNavItemVisible(itemKey: string, visibility: PlatformNavVisibility): boolean {
+    const {
+        permissionsReady,
+        canReadMetadata,
+        canReadDictionaries,
+        canAccessUsers,
+        canReadGateways,
+        canReadEntrypoints,
+        canReadGroups,
+        canReadSharedPolicyGroups,
+        canReadAlerts,
+        canReadTenants,
+        canReadOrgAudit,
+        canReadEnvAudit,
+        canReadOrgSettings,
+        canReadIdentityProviders,
+    } = visibility;
     if (itemKey === 'users') {
         return !permissionsReady || canAccessUsers;
     }
@@ -169,6 +189,9 @@ function isNavItemVisible(
     }
     if (itemKey === 'management-and-schedulers' || itemKey === 'cors' || itemKey === 'smtp') {
         return !permissionsReady || canReadOrgSettings;
+    }
+    if (itemKey === 'authentication') {
+        return !permissionsReady || canReadIdentityProviders;
     }
     return true;
 }
@@ -257,14 +280,14 @@ function ModuleLayout() {
     const canReadOrgAudit = useHasPermission({ anyOf: [...ORGANIZATION_AUDIT_READ_PERMISSIONS] });
     const canReadEnvAudit = useHasPermission({ anyOf: [...ENVIRONMENT_AUDIT_READ_PERMISSIONS] });
     const canReadOrgSettings = useHasPermission({ anyOf: ['organization-settings-r'] });
+    const canReadIdentityProviders = useHasPermission({ anyOf: ['organization-identity_provider-r'] });
 
     const { activeNavKey, navigateToKey } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
 
     const visibleNavSections = useMemo(
         () =>
             filterNavSections(NAV_SECTIONS, itemKey =>
-                isNavItemVisible(
-                    itemKey,
+                isNavItemVisible(itemKey, {
                     permissionsReady,
                     canReadMetadata,
                     canReadDictionaries,
@@ -278,7 +301,8 @@ function ModuleLayout() {
                     canReadOrgAudit,
                     canReadEnvAudit,
                     canReadOrgSettings,
-                ),
+                    canReadIdentityProviders,
+                }),
             ),
         [
             permissionsReady,
@@ -294,6 +318,7 @@ function ModuleLayout() {
             canReadOrgAudit,
             canReadEnvAudit,
             canReadOrgSettings,
+            canReadIdentityProviders,
         ],
     );
 
@@ -382,6 +407,24 @@ export function AppRoutes() {
                             <Route path="applications" element={<ApplicationsPage />} />
                             <Route path="applications/new" element={<RegisterApplicationPage />} />
                             <Route path="access-management" element={<AccessManagementPage />} />
+                            <Route
+                                path="authentication"
+                                element={
+                                    <PermissionPageGuard permission="organization-identity_provider-r" unauthorizedTo="../applications">
+                                        <Outlet />
+                                    </PermissionPageGuard>
+                                }
+                            >
+                                <Route index element={<AuthenticationPage />} />
+                                <Route
+                                    path="new"
+                                    element={
+                                        <PermissionPageGuard permission="organization-identity_provider-c" unauthorizedTo="..">
+                                            <CreateIdentityProviderPage />
+                                        </PermissionPageGuard>
+                                    }
+                                />
+                            </Route>
                             <Route
                                 path="management-and-schedulers"
                                 element={

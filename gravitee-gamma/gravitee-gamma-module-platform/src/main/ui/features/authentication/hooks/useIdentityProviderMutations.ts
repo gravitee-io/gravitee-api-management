@@ -1,0 +1,68 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+import { saveOrgConsoleSettings } from '../../organization-settings/services/consoleSettings';
+import type { ConsoleSettings } from '../../organization-settings/types/consoleSettings';
+import { orgConsoleSettingsKeys } from '../../organization-settings/utils/queryKeys';
+import { createIdentityProvider, deleteIdentityProvider, updateActivatedIdentityProviders } from '../services/identityProviders';
+import type { NewIdentityProviderPayload } from '../types/identityProvider';
+import { authenticationKeys } from '../utils/queryKeys';
+
+async function invalidateAuthentication(queryClient: ReturnType<typeof useQueryClient>) {
+    await queryClient.invalidateQueries({ queryKey: authenticationKeys.all });
+}
+
+export function useCreateIdentityProvider() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (payload: NewIdentityProviderPayload) => createIdentityProvider(payload),
+        onSuccess: async () => {
+            await invalidateAuthentication(queryClient);
+        },
+    });
+}
+
+export function useDeleteIdentityProvider() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => deleteIdentityProvider(id),
+        onSuccess: async () => {
+            await invalidateAuthentication(queryClient);
+        },
+    });
+}
+
+export function useUpdateActivatedIdentityProviders() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (activatedIds: string[]) => updateActivatedIdentityProviders(activatedIds),
+        onSuccess: async () => {
+            await invalidateAuthentication(queryClient);
+        },
+    });
+}
+
+export function useSaveLocalLogin() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (settings: ConsoleSettings) => saveOrgConsoleSettings(settings),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: orgConsoleSettingsKeys.all });
+        },
+    });
+}
