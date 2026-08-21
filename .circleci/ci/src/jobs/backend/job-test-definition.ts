@@ -18,6 +18,7 @@ import { config } from '../../config';
 import { OpenJdkExecutor } from '../../executors';
 import { AbstractTestJob } from './abstract-job-test';
 import { CircleCIEnvironment } from '../../pipelines';
+import { mavenParallelism } from '../../utils';
 
 export class TestDefinitionJob extends AbstractTestJob {
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
@@ -28,7 +29,7 @@ export class TestDefinitionJob extends AbstractTestJob {
       [
         new commands.Run({
           name: `Run definition tests`,
-          command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -Ddefinition-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C`,
+          command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -Ddefinition-modules -Dskip.validation=true -Dgravitee.archrules.skip=true ${mavenParallelism('small')}`,
         }),
       ],
       OpenJdkExecutor.create('small'),
