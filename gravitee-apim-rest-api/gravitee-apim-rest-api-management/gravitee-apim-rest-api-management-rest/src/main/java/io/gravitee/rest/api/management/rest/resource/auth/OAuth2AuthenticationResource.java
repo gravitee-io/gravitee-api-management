@@ -17,7 +17,6 @@ package io.gravitee.rest.api.management.rest.resource.auth;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.el.spel.function.json.JsonPathFunction;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.management.rest.model.ExchangePayloadEntity;
 import io.gravitee.rest.api.management.rest.model.PayloadInput;
@@ -77,15 +76,6 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     private static final String TEMPLATE_ENGINE_PROFILE_ATTRIBUTE = "profile";
     private static final String ACCESS_TOKEN_PROPERTY = "access_token";
     private static final String ID_TOKEN_PROPERTY = "id_token";
-
-    // Dirty hack: only used to force class loading
-    static {
-        try {
-            log.trace("Loading class to initialize properly JsonPath Cache provider: " + Class.forName(JsonPathFunction.class.getName()));
-        } catch (ClassNotFoundException ignored) {
-            log.debug("ClassNotFoundException ignored in OAuth2AuthenticationResource");
-        }
-    }
 
     @Autowired
     private SocialIdentityProviderService socialIdentityProviderService;
