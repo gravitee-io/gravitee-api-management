@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright © 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>io.gravitee.apim.rest.api.management.v2</groupId>
+		<artifactId>gravitee-apim-rest-api-management-v2</artifactId>
+		<version>${revision}${sha1}${changelist}</version>
+	</parent>
+
+	<artifactId>gravitee-apim-rest-api-management-v2-model</artifactId>
+	<name>Gravitee.io APIM - Management API - Management - v2 - Model</name>
+	<description>OpenAPI contracts of the v2 Management API, and the models generated from them</description>
+
+	<properties>
+		<openapi-generator.version>7.12.0</openapi-generator.version>
+		<openapi.modelPackage>io.gravitee.rest.api.management.v2.rest.model</openapi.modelPackage>
+		<jackson-databind-nullable-version>0.2.6</jackson-databind-nullable-version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.openapitools</groupId>
+			<artifactId>jackson-databind-nullable</artifactId>
+			<version>${jackson-databind-nullable-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.annotation</groupId>
+			<artifactId>jakarta.annotation-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.validation</groupId>
+			<artifactId>jakarta.validation-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.ws.rs</groupId>
+			<artifactId>jakarta.ws.rs-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.core</groupId>
+			<artifactId>jersey-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-json-jackson</artifactId>
+		</dependency>
+	</dependencies>
+
+    <build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.openapitools</groupId>
+				<artifactId>openapi-generator-maven-plugin</artifactId>
+				<version>${openapi-generator.version}</version>
+				<configuration>
+					<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-apis.yaml</inputSpec>
+					<generatorName>java</generatorName>
+					<library>jersey3</library>
+					<modelPackage>${openapi.modelPackage}</modelPackage>
+					<generateApis>false</generateApis>
+					<generateModels>true</generateModels>
+					<generateModelTests>false</generateModelTests>
+					<generateModelDocumentation>false</generateModelDocumentation>
+					<generateSupportingFiles>true</generateSupportingFiles>
+					<supportingFilesToGenerate>JSON.java,RFC3339DateFormat.java,AbstractOpenApiSchema.java,ApiException.java</supportingFilesToGenerate>
+					<reservedWordsMappings>configuration=configuration</reservedWordsMappings>
+                    <importMappings>Interval=io.gravitee.rest.api.management.v2.rest.model.analytics.engine.CustomInterval</importMappings>
+					<configOptions>
+						<dateLibrary>java8</dateLibrary>
+                        <enumPropertyNaming>legacy</enumPropertyNaming>
+						<useBeanValidation>true</useBeanValidation>
+					</configOptions>
+					<typeMappings>
+						<typeMapping>BigDecimal=Number</typeMapping>
+                        <typeMapping>Interval=CustomInterval</typeMapping>
+					</typeMappings>
+					<additionalProperties>removeEnumValuePrefix=false</additionalProperties>
+				</configuration>
+				<executions>
+                    <execution>
+                        <id>model-api-products</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/openapi/openapi-api-products.yaml</inputSpec>
+                        </configuration>
+                    </execution>
+					<execution>
+						<id>model-management</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-apis.yaml</inputSpec>
+						</configuration>
+					</execution>
+                    <execution>
+                        <id>model-environments</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/openapi/openapi-environments.yaml</inputSpec>
+                        </configuration>
+                    </execution>
+					<execution>
+						<id>model-plugins</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-plugins.yaml</inputSpec>
+						</configuration>
+					</execution>
+					<execution>
+						<id>model-installation</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-installation.yaml</inputSpec>
+						</configuration>
+					</execution>
+					<execution>
+						<id>model-ui</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-ui.yaml</inputSpec>
+						</configuration>
+					</execution>
+					<execution>
+						<id>model-users</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-users.yaml</inputSpec>
+						</configuration>
+					</execution>
+					<execution>
+						<id>model-plugins-deprecated</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-plugins-deprecated.yaml</inputSpec>
+						</configuration>
+					</execution>
+					<execution>
+						<id>model-installation-deprecated</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-installation-deprecated.yaml</inputSpec>
+						</configuration>
+					</execution>
+                    <execution>
+                        <id>model-analytics</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/openapi/openapi-analytics.yaml</inputSpec>
+                            <modelPackage>${openapi.modelPackage}.analytics.engine</modelPackage>
+                            <importMappings>Pagination=io.gravitee.rest.api.management.v2.rest.model.Pagination,Links=io.gravitee.rest.api.management.v2.rest.model.Links</importMappings>
+                            <configOptions>
+                                <disallowAdditionalPropertiesIfNotPresent>false</disallowAdditionalPropertiesIfNotPresent>
+                                <useOneOfDiscriminatorLookup>true</useOneOfDiscriminatorLookup>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>model-logs</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/openapi/openapi-logs.yaml</inputSpec>
+                            <modelPackage>${openapi.modelPackage}.logs.engine</modelPackage>
+                            <configOptions>
+                                <disallowAdditionalPropertiesIfNotPresent>false</disallowAdditionalPropertiesIfNotPresent>
+                                <useOneOfDiscriminatorLookup>true</useOneOfDiscriminatorLookup>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+
+			</plugin>
+        </plugins>
+    </build>
+</project>
