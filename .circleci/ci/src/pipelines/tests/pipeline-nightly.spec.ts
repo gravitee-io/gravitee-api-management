@@ -16,7 +16,7 @@
 import * as fs from 'fs';
 import { generateNightlyConfig } from '../pipeline-nightly';
 import { generatePullRequestsConfig } from '../pipeline-pull-requests';
-import { BACKEND_UNANALYSED_SUITES } from '../../workflows/groups/analysed-projects';
+import { BACKEND_SUITES } from '../../workflows/groups/analysed-projects';
 
 describe('Nightly', () => {
   it('should generate the nightly pipeline', () => {
@@ -71,7 +71,7 @@ describe('Nightly', () => {
     expect(sonarJobs(nightly)).toHaveLength(9);
 
     // A pull request runs the suites it touches; the nightly build runs every one of them.
-    const unanalysedSuiteNames = BACKEND_UNANALYSED_SUITES.map((suite) => suite.suiteName);
+    const unanalysedSuiteNames = BACKEND_SUITES.filter((suite) => !suite.sonar).map((suite) => suite.suiteName);
     expect(unanalysedSuiteNames).toEqual(
       expect.arrayContaining(['Test kafka-explorer', 'Test gamma', 'Test gamma UI', 'Integration tests']),
     );

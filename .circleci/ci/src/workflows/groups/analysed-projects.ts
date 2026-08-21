@@ -44,86 +44,74 @@ import {
 } from './changed-files';
 
 /**
- * The suites whose coverage report an analysis reads, and the project each one feeds.
+ * Every test suite a workflow can run, and the analysis that reads its coverage report when
+ * there is one.
  *
- * Single source of truth for the pull-request workflow and for the nightly build: a module
- * added here is analysed on a pull request and on the reference branch, or on neither. The
- * `predicate` narrows the pull-request scope to what the change could have touched; the
- * nightly ignores it and takes them all.
+ * Single source of truth for the pull-request workflow and for the nightly build: a suite added
+ * here runs on a pull request that touches it and on the reference branch every night, or on
+ * neither. The `predicate` narrows the pull-request scope; the nightly ignores it.
+ *
+ * `sonar` is an attribute, not a category: kafka-explorer, the two gamma suites and the
+ * integration tests have no analysis because the coverage aggregation module does not list them,
+ * and that is the only thing that sets them apart. Splitting them into a second list is what let
+ * them fall out of the nightly unnoticed.
  */
-export interface AnalysedProject {
-  /** Workflow job name of the suite that produces the coverage report. */
+export interface Suite {
+  /** Workflow job name, and what a downstream gate waits on. */
   suiteName: string;
-  /** Sonar project directory, holding its `sonar-project.properties`. */
-  sonarProject: string;
   createSuite: (dynamicConfig: Config, environment: CircleCIEnvironment) => Job;
   predicate: (changedFiles: string[]) => boolean;
-  /** Which scanner cache the analysis restores. Fixed by the list a project belongs to. */
-  cacheType: 'backend' | 'frontend';
+  /** The analysis that reads this suite's coverage report. Absent when no analysis does. */
+  sonar?: {
+    /** Sonar project directory, holding its `sonar-project.properties`. */
+    project: string;
+    /** Which scanner cache the analysis restores. */
+    cacheType: 'backend' | 'frontend';
+  };
   /** Parameters the suite job takes, beyond its name and context. */
   suiteParameters?: Record<string, string>;
-}
-
-export const BACKEND_ANALYSED_PROJECTS: AnalysedProject[] = [
-  {
-    suiteName: 'Test definition',
-    sonarProject: 'gravitee-apim-definition',
-    createSuite: TestDefinitionJob.create,
-    predicate: shouldTestDefinition,
-    cacheType: 'backend',
-  },
-  {
-    suiteName: 'Test gateway',
-    sonarProject: 'gravitee-apim-gateway',
-    createSuite: TestGatewayJob.create,
-    predicate: shouldTestGateway,
-    cacheType: 'backend',
-  },
-  {
-    suiteName: 'Test rest-api',
-    sonarProject: 'gravitee-apim-rest-api',
-    createSuite: TestRestApiJob.create,
-    predicate: shouldTestRestApi,
-    cacheType: 'backend',
-  },
-  {
-    suiteName: 'Test plugins',
-    sonarProject: 'gravitee-apim-plugin',
-    createSuite: TestPluginJob.create,
-    predicate: shouldTestPlugin,
-    cacheType: 'backend',
-  },
-  {
-    suiteName: 'Test reporters',
-    sonarProject: 'gravitee-apim-reporter',
-    createSuite: TestReporterJob.create,
-    predicate: shouldTestReporter,
-    cacheType: 'backend',
-  },
-  {
-    suiteName: 'Test repository',
-    sonarProject: 'gravitee-apim-repository',
-    createSuite: TestRepositoryJob.create,
-    predicate: shouldTestRepository,
-    cacheType: 'backend',
-  },
-];
-
-/**
- * The backend suites no analysis reads, listed here for the same reason as the ones above: both
- * workflows take them from one place. They are the ones the coverage aggregation module does not
- * cover, so nothing else would have pinned them together — which is how the kafka-explorer and
- * gamma suites once stopped running at night when they were split into jobs of their own.
- */
-export interface UnanalysedSuite {
-  suiteName: string;
-  createSuite: (dynamicConfig: Config, environment: CircleCIEnvironment) => Job;
-  predicate: (changedFiles: string[]) => boolean;
   /** False for a suite that reads nothing the Maven build produces. Defaults to true. */
   requiresBuildBackend?: boolean;
 }
 
-export const BACKEND_UNANALYSED_SUITES: UnanalysedSuite[] = [
+export const BACKEND_SUITES: Suite[] = [
+  {
+    suiteName: 'Test definition',
+    createSuite: TestDefinitionJob.create,
+    predicate: shouldTestDefinition,
+    sonar: { project: 'gravitee-apim-definition', cacheType: 'backend' },
+  },
+  {
+    suiteName: 'Test gateway',
+    createSuite: TestGatewayJob.create,
+    predicate: shouldTestGateway,
+    sonar: { project: 'gravitee-apim-gateway', cacheType: 'backend' },
+  },
+  {
+    suiteName: 'Test rest-api',
+    createSuite: TestRestApiJob.create,
+    predicate: shouldTestRestApi,
+    sonar: { project: 'gravitee-apim-rest-api', cacheType: 'backend' },
+  },
+  {
+    suiteName: 'Test plugins',
+    createSuite: TestPluginJob.create,
+    predicate: shouldTestPlugin,
+    sonar: { project: 'gravitee-apim-plugin', cacheType: 'backend' },
+  },
+  {
+    suiteName: 'Test reporters',
+    createSuite: TestReporterJob.create,
+    predicate: shouldTestReporter,
+    sonar: { project: 'gravitee-apim-reporter', cacheType: 'backend' },
+  },
+  {
+    suiteName: 'Test repository',
+    createSuite: TestRepositoryJob.create,
+    predicate: shouldTestRepository,
+    sonar: { project: 'gravitee-apim-repository', cacheType: 'backend' },
+  },
+
   // The only containerised module, kept out of the rest-api reactor; it shares that reactor's
   // predicate.
   { suiteName: 'Test kafka-explorer', createSuite: TestKafkaExplorerJob.create, predicate: shouldTestRestApi },
@@ -140,13 +128,13 @@ export const BACKEND_UNANALYSED_SUITES: UnanalysedSuite[] = [
   { suiteName: 'Integration tests', createSuite: TestIntegrationJob.create, predicate: shouldTestIntegrationTests },
 ];
 
-export const FRONTEND_ANALYSED_PROJECTS: AnalysedProject[] = [
+export const FRONTEND_SUITES: Suite[] = [
   {
     suiteName: 'Lint & test APIM Console',
-    sonarProject: config.components.console.project,
     createSuite: WebuiLintTestJob.createNx,
+    requiresBuildBackend: false,
     predicate: shouldBuildConsole,
-    cacheType: 'frontend',
+    sonar: { project: config.components.console.project, cacheType: 'frontend' },
     suiteParameters: {
       'apim-ui-project-workdir': config.components.console.workdir,
       'nx-project': 'console',
@@ -156,10 +144,10 @@ export const FRONTEND_ANALYSED_PROJECTS: AnalysedProject[] = [
   },
   {
     suiteName: 'Lint & test APIM Portal Next',
-    sonarProject: config.components.portal.next.project,
     createSuite: WebuiLintTestJob.createNx,
+    requiresBuildBackend: false,
     predicate: shouldBuildPortalNext,
-    cacheType: 'frontend',
+    sonar: { project: config.components.portal.next.project, cacheType: 'frontend' },
     suiteParameters: {
       'apim-ui-project-workdir': config.components.portal.next.project,
       'nx-project': 'portal-next',
@@ -168,10 +156,10 @@ export const FRONTEND_ANALYSED_PROJECTS: AnalysedProject[] = [
   },
   {
     suiteName: 'Lint & test APIM Portal',
-    sonarProject: config.components.portal.workdir,
     createSuite: WebuiLintTestJob.create,
+    requiresBuildBackend: false,
     predicate: shouldBuildPortal,
-    cacheType: 'frontend',
+    sonar: { project: config.components.portal.workdir, cacheType: 'frontend' },
     suiteParameters: {
       'apim-ui-project': config.components.portal.project,
       'apim-ui-project-workdir': config.components.portal.workdir,
@@ -180,13 +168,38 @@ export const FRONTEND_ANALYSED_PROJECTS: AnalysedProject[] = [
   },
 ];
 
-/** The analysis job that reads the report a suite left behind. Its only dependency is that suite. */
-export function analysisJobFor(project: AnalysedProject, sonarAnalysisJob: Job): workflow.WorkflowJob {
-  return new workflow.WorkflowJob(sonarAnalysisJob, {
-    name: `Sonar - ${project.sonarProject}`,
+/** Looks a suite up by the name it carries in the list. Throws rather than emitting a job the
+ * workflow silently gets wrong. */
+export function suiteNamed(name: string): Suite {
+  const suite = [...BACKEND_SUITES, ...FRONTEND_SUITES].find((candidate) => candidate.suiteName === name);
+  if (!suite) {
+    throw new Error(`No suite named ${name}`);
+  }
+  return suite;
+}
+
+/** The suite job itself, with the parameters the list holds for it. */
+export function suiteJobFor(suite: Suite, dynamicConfig: Config, environment: CircleCIEnvironment): workflow.WorkflowJob {
+  const suiteJob = suite.createSuite(dynamicConfig, environment);
+  dynamicConfig.addJob(suiteJob);
+  return new workflow.WorkflowJob(suiteJob, {
+    name: suite.suiteName,
     context: config.jobContext,
-    requires: [project.suiteName],
-    working_directory: project.sonarProject,
-    cache_type: project.cacheType,
+    ...(suite.requiresBuildBackend === false ? {} : { requires: ['Build backend'] }),
+    ...(suite.suiteParameters ?? {}),
+  });
+}
+
+/** The analysis job that reads the report a suite left behind. Its only dependency is that suite. */
+export function analysisJobFor(suite: Suite, sonarAnalysisJob: Job): workflow.WorkflowJob {
+  if (!suite.sonar) {
+    throw new Error(`No analysis is declared for ${suite.suiteName}`);
+  }
+  return new workflow.WorkflowJob(sonarAnalysisJob, {
+    name: `Sonar - ${suite.sonar.project}`,
+    context: config.jobContext,
+    requires: [suite.suiteName],
+    working_directory: suite.sonar.project,
+    cache_type: suite.sonar.cacheType,
   });
 }

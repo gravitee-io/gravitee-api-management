@@ -187,6 +187,37 @@ jobs:
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*
             - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target/distribution
             - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution
+  job-test-gateway:
+    docker:
+      - image: cimg/openjdk:25.0.3
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-gateway
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: Run gateway tests
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dgateway-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 8
+      - run:
+          name: Save test results
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-test-gateway
+      - store_test_results:
+          path: ~/test-results
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-gateway/gravitee-apim-gateway-coverage/target/site/jacoco-aggregate/
   job-sonarcloud-analysis:
     parameters:
       working_directory:
@@ -225,37 +256,6 @@ jobs:
             - /opt/sonar-scanner/.sonar/cache
           key: gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
           when: always
-  job-test-gateway:
-    docker:
-      - image: cimg/openjdk:25.0.3
-    resource_class: large
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - cmd-restore-maven-job-cache:
-          jobName: job-test-gateway
-      - restore_cache:
-          keys:
-            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
-      - run:
-          name: Run gateway tests
-          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dgateway-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 8
-      - run:
-          name: Save test results
-          command: |-
-            mkdir -p ~/test-results/junit/
-            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
-          when: always
-      - cmd-notify-on-failure
-      - cmd-save-maven-job-cache:
-          jobName: job-test-gateway
-      - store_test_results:
-          path: ~/test-results
-      - persist_to_workspace:
-          root: .
-          paths:
-            - gravitee-apim-gateway/gravitee-apim-gateway-coverage/target/site/jacoco-aggregate/
   job-validate-workflow-status:
     docker:
       - image: cimg/base:stable
