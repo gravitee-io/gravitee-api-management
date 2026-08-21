@@ -2563,6 +2563,13 @@ components:
               format: uuid
               description: API Product referenced by the navigation item
               example: 3f2504e0-4f89-41d3-9a0c-0305e82c3301
+            categoryIds:
+              type: array
+              description: The IDs of the Portal Next categories this API Product navigation item is assigned to
+              items:
+                type: string
+                format: uuid
+              example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
           required: [ apiProductId ]
     PortalNavigationItem:
       oneOf:
@@ -2710,6 +2717,13 @@ components:
               format: uuid
               description: API Product referenced by the navigation item
               example: "3f2504e0-4f89-41d3-9a0c-0305e82c3301"
+            categoryIds:
+              type: array
+              description: The IDs of the Portal Next categories this API Product navigation item is assigned to. Defaults to an empty list if not provided.
+              items:
+                type: string
+                format: uuid
+              example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
           required: [ apiProductId ]
     CreatePortalNavigationItem:
       oneOf:
@@ -2851,6 +2865,14 @@ components:
       description: Portal navigation API Product item to update. The linked API Product is immutable; an apiProductId property supplied in an update payload is ignored.
       allOf:
         - $ref: "#/components/schemas/BaseUpdatePortalNavigationItem"
+        - properties:
+            categoryIds:
+              type: array
+              description: The IDs of the Portal Next categories this API Product navigation item is assigned to. Defaults to an empty list if not provided.
+              items:
+                type: string
+                format: uuid
+              example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
     UpdatePortalNavigationItem:
       oneOf:
         - $ref: "#/components/schemas/UpdatePortalNavigationPage"

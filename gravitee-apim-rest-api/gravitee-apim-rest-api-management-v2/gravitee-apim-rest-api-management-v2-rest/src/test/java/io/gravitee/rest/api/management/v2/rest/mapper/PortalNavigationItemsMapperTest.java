@@ -30,6 +30,7 @@ import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPageContentType;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApi;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApiProduct;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -150,7 +151,9 @@ class PortalNavigationItemsMapperTest {
 
         @Test
         void should_map_portal_navigation_api_product() {
-            var apiProduct = PortalNavigationItemFixtures.anApiProduct();
+            var category1 = PortalCategoryId.random();
+            var category2 = PortalCategoryId.random();
+            var apiProduct = PortalNavigationItemFixtures.anApiProduct().toBuilder().categoryIds(List.of(category1, category2)).build();
 
             var result = mapper.map(apiProduct);
 
@@ -158,6 +161,7 @@ class PortalNavigationItemsMapperTest {
             assertThat(result.getId()).isEqualTo(UUID.fromString(PortalNavigationItemFixtures.API_PRODUCT_ID));
             assertThat(result.getType()).isEqualTo(PortalNavigationItemType.API_PRODUCT);
             assertThat(result.getApiProductId()).isEqualTo(UUID.fromString(apiProduct.getApiProductId()));
+            assertThat(result.getCategoryIds()).containsExactly(category1.id(), category2.id());
             assertThat(result.getRootId()).isEqualTo(apiProduct.getRootId().id());
         }
 
@@ -307,23 +311,30 @@ class PortalNavigationItemsMapperTest {
 
         @Test
         void should_map_create_portal_navigation_api_product() {
-            final var apiProduct = PortalNavigationItemsFixtures.aCreatePortalNavigationApiProduct();
+            final var apiProduct = (CreatePortalNavigationApiProduct) PortalNavigationItemsFixtures.aCreatePortalNavigationApiProduct();
+            var category1 = UUID.randomUUID();
+            var category2 = UUID.randomUUID();
+            apiProduct.setCategoryIds(List.of(category1, category2));
 
             var result = mapper.map(apiProduct);
 
             assertThat(result.getType()).isEqualTo(io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.API_PRODUCT);
-            assertThat(result.getApiProductId()).isEqualTo(((CreatePortalNavigationApiProduct) apiProduct).getApiProductId().toString());
+            assertThat(result.getApiProductId()).isEqualTo(apiProduct.getApiProductId().toString());
+            assertThat(result.getCategoryIds()).containsExactly(new PortalCategoryId(category1), new PortalCategoryId(category2));
         }
 
         @Test
         void should_map_update_portal_navigation_api_product_without_product_relinking_field() {
-            final var apiProduct = PortalNavigationItemsFixtures.anUpdatePortalNavigationApiProduct();
+            final var apiProduct = (UpdatePortalNavigationApiProduct) PortalNavigationItemsFixtures.anUpdatePortalNavigationApiProduct();
+            var categoryId = UUID.randomUUID();
+            apiProduct.setCategoryIds(List.of(categoryId));
 
             var result = mapper.map(apiProduct);
 
             assertThat(result.getType()).isEqualTo(io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.API_PRODUCT);
             assertThat(result.getTitle()).isEqualTo("Updated API Product");
             assertThat(result.getPublished()).isFalse();
+            assertThat(result.getCategoryIds()).containsExactly(new PortalCategoryId(categoryId));
         }
 
         @Test
@@ -332,7 +343,9 @@ class PortalNavigationItemsMapperTest {
             final var folder = PortalNavigationItemsFixtures.aCreatePortalNavigationFolder();
             final var link = PortalNavigationItemsFixtures.aCreatePortalNavigationLink();
             final var api = PortalNavigationItemsFixtures.aCreatePortalNavigationApi();
-            final var apiProduct = PortalNavigationItemsFixtures.aCreatePortalNavigationApiProduct();
+            final var apiProduct = (CreatePortalNavigationApiProduct) PortalNavigationItemsFixtures.aCreatePortalNavigationApiProduct();
+            var apiProductCategoryId = UUID.randomUUID();
+            apiProduct.setCategoryIds(List.of(apiProductCategoryId));
 
             final var requestItems = java.util.List.of(page, folder, link, api, apiProduct);
 
@@ -348,6 +361,7 @@ class PortalNavigationItemsMapperTest {
                     io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.API,
                     io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.API_PRODUCT
                 );
+            assertThat(result.get(4).getCategoryIds()).containsExactly(new PortalCategoryId(apiProductCategoryId));
         }
 
         @Test
