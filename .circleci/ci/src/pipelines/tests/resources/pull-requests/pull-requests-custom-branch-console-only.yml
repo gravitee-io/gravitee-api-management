@@ -114,6 +114,29 @@ jobs:
           name: Check prettier formatting for nx projects
           command: yarn prettier
       - cmd-notify-on-failure
+  job-console-webui-build:
+    docker:
+      - image: cimg/node:24.18.0
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: default
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - run:
+          name: Update Build version
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-console-webui/build.json"
+      - run:
+          name: Build Console
+          command: NODE_OPTIONS=--max_old_space_size=4086 yarn console:build:prod
+      - cmd-notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-console-webui/dist
   job-nx-webui-lint-test:
     parameters:
       apim-ui-project-workdir:
@@ -159,29 +182,6 @@ jobs:
           path: << parameters.apim-ui-project-workdir >>/coverage/lcov.info
       - store_test_results:
           path: << parameters.apim-ui-project-workdir >>/coverage/junit.xml
-  job-console-webui-build:
-    docker:
-      - image: cimg/node:24.18.0
-    resource_class: large
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - setup_remote_docker:
-          version: default
-      - cmd-install-yarn
-      - cmd-workspace-install
-      - run:
-          name: Update Build version
-          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-console-webui/build.json"
-      - run:
-          name: Build Console
-          command: NODE_OPTIONS=--max_old_space_size=4086 yarn console:build:prod
-      - cmd-notify-on-failure
-      - persist_to_workspace:
-          root: .
-          paths:
-            - gravitee-apim-console-webui/dist
   job-sonarcloud-analysis:
     parameters:
       working_directory:

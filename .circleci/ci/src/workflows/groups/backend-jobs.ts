@@ -15,7 +15,7 @@
  */
 import { Config, Job, workflow } from '../../circleci-config';
 import { BuildBackendJob, SetupJob, SonarCloudAnalysisJob, ValidateJob } from '../../jobs';
-import { analysisJobFor, BACKEND_ANALYSED_PROJECTS, BACKEND_UNANALYSED_SUITES } from './analysed-projects';
+import { analysisJobFor, BACKEND_SUITES, suiteJobFor } from './analysed-projects';
 import { CircleCIEnvironment } from '../../pipelines';
 import { config } from '../../config';
 import { shouldBuildBackend } from './changed-files';
@@ -67,44 +67,21 @@ export function backendJobs(
   // must not emit an analysis job definition no workflow references.
   let sonarAnalysisJob: Job | undefined;
 
-  BACKEND_ANALYSED_PROJECTS.forEach((project) => {
-    if (filterJobs && !project.predicate(environment.changedFiles)) {
-      return;
-    }
-    if (!sonarAnalysisJob) {
-      sonarAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
-      dynamicConfig.addJob(sonarAnalysisJob);
-    }
-
-    const suiteJob = project.createSuite(dynamicConfig, environment);
-    dynamicConfig.addJob(suiteJob);
-
-    jobs.push(
-      new workflow.WorkflowJob(suiteJob, {
-        name: project.suiteName,
-        context: config.jobContext,
-        requires: ['Build backend'],
-      }),
-      analysisJobFor(project, sonarAnalysisJob),
-    );
-    requires.push(project.suiteName);
-  });
-
-  BACKEND_UNANALYSED_SUITES.forEach((suite) => {
+  BACKEND_SUITES.forEach((suite) => {
     if (filterJobs && !suite.predicate(environment.changedFiles)) {
       return;
     }
 
-    const suiteJob = suite.createSuite(dynamicConfig, environment);
-    dynamicConfig.addJob(suiteJob);
+    jobs.push(suiteJobFor(suite, dynamicConfig, environment));
 
-    jobs.push(
-      new workflow.WorkflowJob(suiteJob, {
-        name: suite.suiteName,
-        context: config.jobContext,
-        ...(suite.requiresBuildBackend === false ? {} : { requires: ['Build backend'] }),
-      }),
-    );
+    if (suite.sonar) {
+      if (!sonarAnalysisJob) {
+        sonarAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
+        dynamicConfig.addJob(sonarAnalysisJob);
+      }
+      jobs.push(analysisJobFor(suite, sonarAnalysisJob));
+    }
+
     requires.push(suite.suiteName);
   });
 

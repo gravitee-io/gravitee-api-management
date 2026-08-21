@@ -317,6 +317,37 @@ jobs:
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*
             - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target/distribution
             - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution
+  job-test-definition:
+    docker:
+      - image: cimg/openjdk:25.0.3
+    resource_class: small
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-definition
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: Run definition tests
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Ddefinition-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2
+      - run:
+          name: Save test results
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-test-definition
+      - store_test_results:
+          path: ~/test-results
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-definition/gravitee-apim-definition-coverage/target/site/jacoco-aggregate/
   job-sonarcloud-analysis:
     parameters:
       working_directory:
@@ -355,37 +386,6 @@ jobs:
             - /opt/sonar-scanner/.sonar/cache
           key: gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
           when: always
-  job-test-definition:
-    docker:
-      - image: cimg/openjdk:25.0.3
-    resource_class: small
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - cmd-restore-maven-job-cache:
-          jobName: job-test-definition
-      - restore_cache:
-          keys:
-            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
-      - run:
-          name: Run definition tests
-          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Ddefinition-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2
-      - run:
-          name: Save test results
-          command: |-
-            mkdir -p ~/test-results/junit/
-            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
-          when: always
-      - cmd-notify-on-failure
-      - cmd-save-maven-job-cache:
-          jobName: job-test-definition
-      - store_test_results:
-          path: ~/test-results
-      - persist_to_workspace:
-          root: .
-          paths:
-            - gravitee-apim-definition/gravitee-apim-definition-coverage/target/site/jacoco-aggregate/
   job-test-gateway:
     docker:
       - image: cimg/openjdk:25.0.3
@@ -691,6 +691,29 @@ jobs:
           path: gravitee-apim-webui-libs/gravitee-dashboard/coverage/lcov.info
       - store_test_results:
           path: gravitee-apim-webui-libs/gravitee-dashboard/coverage/junit.xml
+  job-console-webui-build:
+    docker:
+      - image: cimg/node:24.18.0
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: default
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - run:
+          name: Update Build version
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-console-webui/build.json"
+      - run:
+          name: Build Console
+          command: NODE_OPTIONS=--max_old_space_size=4086 yarn console:build:prod
+      - cmd-notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-console-webui/dist
   job-nx-webui-lint-test:
     parameters:
       apim-ui-project-workdir:
@@ -736,29 +759,6 @@ jobs:
           path: << parameters.apim-ui-project-workdir >>/coverage/lcov.info
       - store_test_results:
           path: << parameters.apim-ui-project-workdir >>/coverage/junit.xml
-  job-console-webui-build:
-    docker:
-      - image: cimg/node:24.18.0
-    resource_class: large
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - setup_remote_docker:
-          version: default
-      - cmd-install-yarn
-      - cmd-workspace-install
-      - run:
-          name: Update Build version
-          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-console-webui/build.json"
-      - run:
-          name: Build Console
-          command: NODE_OPTIONS=--max_old_space_size=4086 yarn console:build:prod
-      - cmd-notify-on-failure
-      - persist_to_workspace:
-          root: .
-          paths:
-            - gravitee-apim-console-webui/dist
   job-webui-lint-test:
     parameters:
       apim-ui-project:

@@ -17,12 +17,7 @@ import { Config, workflow, Workflow } from '../circleci-config';
 import { AikidoScanDockerImagesJob, DeployOnAzureJob, NxFormatCheckJob, SonarCloudAnalysisJob } from '../jobs';
 import { CircleCIEnvironment } from '../pipelines';
 import { config } from '../config';
-import {
-  analysisJobFor,
-  BACKEND_ANALYSED_PROJECTS,
-  BACKEND_UNANALYSED_SUITES,
-  FRONTEND_ANALYSED_PROJECTS,
-} from './groups/analysed-projects';
+import { analysisJobFor, BACKEND_SUITES, FRONTEND_SUITES, suiteJobFor } from './groups/analysed-projects';
 import { devEnvironmentJobs } from './groups/dev-environment-jobs';
 import { e2eJobs } from './groups/e2e-jobs';
 import { chainguardFipsImageJobs } from './groups/chainguard-fips-image-jobs';
@@ -49,33 +44,11 @@ export class NightlyWorkflow {
     const formatCheckJob = NxFormatCheckJob.create(dynamicConfig, environment, 'all');
     dynamicConfig.addJob(formatCheckJob);
 
-    const analysisChain = [
-      ...BACKEND_ANALYSED_PROJECTS.map((project) => ({ project, requires: ['Build backend'] })),
-      ...FRONTEND_ANALYSED_PROJECTS.map((project) => ({ project, requires: undefined })),
-    ].flatMap(({ project, requires }) => {
-      const suiteJob = project.createSuite(dynamicConfig, environment);
-      dynamicConfig.addJob(suiteJob);
-      return [
-        new workflow.WorkflowJob(suiteJob, {
-          name: project.suiteName,
-          context: config.jobContext,
-          ...(requires ? { requires } : {}),
-          ...(project.suiteParameters ?? {}),
-        }),
-        analysisJobFor(project, sonarAnalysisJob),
-      ];
-    });
-
-    // No analysis reads these, but the nightly still has to run them: they are covered on a pull
-    // request only when the change touches them.
-    const unanalysedSuites = BACKEND_UNANALYSED_SUITES.map((suite) => {
-      const suiteJob = suite.createSuite(dynamicConfig, environment);
-      dynamicConfig.addJob(suiteJob);
-      return new workflow.WorkflowJob(suiteJob, {
-        name: suite.suiteName,
-        context: config.jobContext,
-        ...(suite.requiresBuildBackend === false ? {} : { requires: ['Build backend'] }),
-      });
+    // Every suite, unfiltered: a pull request runs the ones it touches, the nightly runs them all,
+    // each followed by its analysis when it has one.
+    const suites = [...BACKEND_SUITES, ...FRONTEND_SUITES].flatMap((suite) => {
+      const suiteJob = suiteJobFor(suite, dynamicConfig, environment);
+      return suite.sonar ? [suiteJob, analysisJobFor(suite, sonarAnalysisJob)] : [suiteJob];
     });
 
     return new Workflow('nightly', [
@@ -94,8 +67,7 @@ export class NightlyWorkflow {
 
       // The suites replayed for the coverage reports they leave behind, each followed by the
       // analysis that reads them. Nothing downstream waits on these.
-      ...analysisChain,
-      ...unanalysedSuites,
+      ...suites,
       ...e2eJobs(dynamicConfig, environment),
 
       // Last, and only once everything the environment will run has been exercised.

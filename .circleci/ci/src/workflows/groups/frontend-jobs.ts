@@ -26,7 +26,7 @@ import {
 import { CircleCIEnvironment } from '../../pipelines';
 import { config } from '../../config';
 import { shouldBuildConsole, shouldBuildGammaUI, shouldBuildPortal, shouldBuildPortalNext, shouldBuildWebuiLibs } from './changed-files';
-import { analysisJobFor, FRONTEND_ANALYSED_PROJECTS } from './analysed-projects';
+import { analysisJobFor, FRONTEND_SUITES, Suite, suiteJobFor, suiteNamed } from './analysed-projects';
 
 /**
  * The frontend projects: prettier check, lint and test, builds, and their docker images.
@@ -76,21 +76,11 @@ export function frontendJobs(
   }
 
   if (!filterJobs || shouldBuildConsole(environment.changedFiles)) {
-    const webuiLintTestJob = WebuiLintTestJob.createNx(dynamicConfig, environment);
-    dynamicConfig.addJob(webuiLintTestJob);
-
     const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(consoleWebuiBuildJob);
 
     jobs.push(
-      new workflow.WorkflowJob(webuiLintTestJob, {
-        name: 'Lint & test APIM Console',
-        context: config.jobContext,
-        'apim-ui-project-workdir': config.components.console.workdir,
-        'nx-project': 'console',
-        resource_class: 'xlarge',
-        'max-workers': '7',
-      }),
+      suiteJobFor(suiteNamed('Lint & test APIM Console'), dynamicConfig, environment),
       new workflow.WorkflowJob(consoleWebuiBuildJob, {
         name: 'Build APIM Console',
         context: config.jobContext,
@@ -119,34 +109,12 @@ export function frontendJobs(
 
   // Lint & Test APIM Portal Next
   if (!filterJobs || shouldBuildPortalNext(environment.changedFiles)) {
-    const webuiLintTestJobNx = WebuiLintTestJob.createNx(dynamicConfig, environment);
-    dynamicConfig.addJob(webuiLintTestJobNx);
-
-    jobs.push(
-      new workflow.WorkflowJob(webuiLintTestJobNx, {
-        name: 'Lint & test APIM Portal Next',
-        context: config.jobContext,
-        'apim-ui-project-workdir': config.components.portal.next.project,
-        'nx-project': 'portal-next',
-        'max-workers': '2',
-      }),
-    );
+    jobs.push(suiteJobFor(suiteNamed('Lint & test APIM Portal Next'), dynamicConfig, environment));
     requires.push('Lint & test APIM Portal Next');
   }
 
   if (!filterJobs || shouldBuildPortal(environment.changedFiles)) {
-    const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(webuiLintTestJob);
-
-    jobs.push(
-      new workflow.WorkflowJob(webuiLintTestJob, {
-        name: 'Lint & test APIM Portal',
-        context: config.jobContext,
-        'apim-ui-project': config.components.portal.project,
-        'apim-ui-project-workdir': config.components.portal.workdir,
-        resource_class: 'large',
-      }),
-    );
+    jobs.push(suiteJobFor(suiteNamed('Lint & test APIM Portal'), dynamicConfig, environment));
     requires.push('Lint & test APIM Portal');
   }
 
@@ -228,7 +196,7 @@ export function frontendJobs(
   // emits no orphan analysis job.
   let sonarAnalysisJob: Job | undefined;
 
-  FRONTEND_ANALYSED_PROJECTS.forEach((project) => {
+  FRONTEND_SUITES.forEach((project: Suite) => {
     if (filterJobs && !project.predicate(environment.changedFiles)) {
       return;
     }
