@@ -64,6 +64,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpVersion;
+import io.vertx.core.internal.ContextInternal;
 import io.vertx.core.net.HostAndPort;
 import io.vertx.rxjava3.core.http.HttpHeaders;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
@@ -265,7 +266,6 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         return handleV3Request(httpServerRequest, httpAcceptor, vertxContext);
     }
 
-<<<<<<< HEAD
     /**
      * Surface a client→gateway connection close (TCP reset, broken pipe, plain channel close) onto <b>this</b>
      * request's metrics by hooking the per-request/stream response exception handler. The in-flight execution context
@@ -300,12 +300,10 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         }
     }
 
-    private MutableExecutionContext prepareExecutionContext(final HttpServerRequest httpServerRequest, String serverId) {
-=======
     private void markTracingRoute(final Context vertxContext, final String route) {
-        // Vert.x 4 exposes String-keyed Context#putLocal directly; on Vert.x 5 (master, 4.12.x) it moved to
-        // io.vertx.core.internal.ContextInternal and requires a cast, so this line needs adjusting on cherry-pick.
-        vertxContext.putLocal(TRACING_ROUTE_CONTEXT_KEY, withoutTrailingSlash(route));
+        // Vert.x 5 keeps Object-keyed getLocal/putLocal behind ContextInternal (public Context only exposes the
+        // ContextLocal<T>-typed overloads) - matches how gravitee-node's own RouteGetter reads this same key.
+        ((ContextInternal) vertxContext).putLocal(TRACING_ROUTE_CONTEXT_KEY, withoutTrailingSlash(route));
     }
 
     // httpAcceptor.path() always has a trailing slash; strip it so http.route matches url.path (both for
@@ -314,8 +312,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         return path.length() > 1 && path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
     }
 
-    private MutableExecutionContext prepareExecutionContext(final HttpServerRequest httpServerRequest) {
->>>>>>> 7b2d4689e5 (fix(gateway): use stable route name for OpenTelemetry transaction.name (#19212))
+    private MutableExecutionContext prepareExecutionContext(final HttpServerRequest httpServerRequest, String serverId) {
         VertxHttpServerRequest request = new VertxHttpServerRequest(
             httpServerRequest,
             idGenerator,

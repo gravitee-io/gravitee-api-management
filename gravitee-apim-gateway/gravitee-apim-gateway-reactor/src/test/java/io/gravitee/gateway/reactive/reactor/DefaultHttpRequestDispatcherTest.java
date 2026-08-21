@@ -74,6 +74,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.http.impl.HttpServerConnection;
+import io.vertx.core.internal.ContextInternal;
 import io.vertx.core.net.HostAndPort;
 import io.vertx.rxjava3.core.http.HttpConnection;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
@@ -303,7 +304,7 @@ class DefaultHttpRequestDispatcherTest {
             cut.dispatch(rxRequest, SERVER_ID).test().assertComplete();
 
             verify(spyNoopTracer).startRootSpanFrom(vertxContextCaptor.capture(), any());
-            assertThat(vertxContextCaptor.getValue().<String>getLocal("VertxRoute")).isEqualTo(PATH);
+            assertThat(((ContextInternal) vertxContextCaptor.getValue()).<String>getLocal("VertxRoute")).isEqualTo(PATH);
         }
 
         @Test
@@ -506,7 +507,7 @@ class DefaultHttpRequestDispatcherTest {
             cut.dispatch(rxRequest, SERVER_ID).test().assertComplete();
 
             verify(spyNoopTracer).startRootSpanFrom(vertxContextCaptor.capture(), any());
-            assertThat(vertxContextCaptor.getValue().<String>getLocal("VertxRoute")).isEqualTo(PATH);
+            assertThat(((ContextInternal) vertxContextCaptor.getValue()).<String>getLocal("VertxRoute")).isEqualTo(PATH);
         }
 
         @Test
@@ -585,7 +586,7 @@ class DefaultHttpRequestDispatcherTest {
             cut.dispatch(rxRequest, SERVER_ID).test().assertComplete();
 
             verify(spyNoopTracer).startRootSpanFrom(vertxContextCaptor.capture(), any());
-            assertThat(vertxContextCaptor.getValue().<String>getLocal("VertxRoute")).isEqualTo("/");
+            assertThat(((ContextInternal) vertxContextCaptor.getValue()).<String>getLocal("VertxRoute")).isEqualTo("/");
         }
     }
 
