@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -100,22 +101,45 @@ class SpiFilterRegistryTest {
             .extracting(FilterSpec::name)
             .containsExactlyInAnyOrder(
                 "API",
-                "DECISION",
-                "SUBJECT",
-                "ACTION",
-                "RESOURCE",
-                "CALLER_KIND",
-                "STATUS",
-                "OPERATION",
-                "PDP",
-                "MATCHED_POLICY",
-                "REASON",
-                "POLICY_VERSION",
+                "AUTHZ_DECISION",
+                "AUTHZ_SUBJECT_ID",
+                "AUTHZ_ACTION",
+                "AUTHZ_RESOURCE_ID",
+                "AUTHZ_CALLER",
+                "AUTHZ_STATUS",
+                "AUTHZ_OPERATION",
+                "AUTHZ_PDP",
+                "AUTHZ_MATCHED_POLICY",
+                "AUTHZ_REASON",
+                "AUTHZ_POLICY_VERSION",
                 // A decision carries the request id of the call it guarded, so this is the join back
                 // to that call's HTTP log. It was absent here only until the search could apply it.
                 "REQUEST_ID"
             )
             .doesNotContain("API_TYPE", "RECORD_TYPE", "ENTRYPOINT", "HTTP_STATUS", "PAYLOAD");
+    }
+
+    @Test
+    void should_expose_the_authz_analytics_filters_without_request_only_filters() {
+        FilterRegistry registry = registryWith();
+
+        List<FilterSpec> result = registry.getFilters(Set.of(Signal.ANALYTICS), Set.of(ApiType.AUTHZ_DECISION));
+
+        assertThat(result.stream().map(FilterSpec::name).toList())
+            .contains("AUTHZ_DECISION", "AUTHZ_OPERATION", "AUTHZ_STATUS", "AUTHZ_CALLER", "AUTHZ_ACTION")
+            .doesNotContain("ENTRYPOINT", "HTTP_STATUS", "PAYLOAD", "API_TYPE", "RECORD_TYPE");
+    }
+
+    @Test
+    void should_give_every_authz_analytics_filter_operators_and_inline_enum_values() {
+        FilterRegistry registry = registryWith();
+
+        List<FilterSpec> result = registry.getFilters(Set.of(Signal.ANALYTICS), Set.of(ApiType.AUTHZ_DECISION));
+
+        assertThat(result).allSatisfy(spec -> assertThat(spec.operators()).isNotEmpty());
+        assertThat(result)
+            .filteredOn(spec -> spec.type() == FilterType.ENUM)
+            .allSatisfy(spec -> assertThat(spec.enumValues()).isNotEmpty());
     }
 
     @Test
@@ -255,6 +279,31 @@ class SpiFilterRegistryTest {
             Set.of(Signal.LOGS, Signal.ANALYTICS),
             Set.of(ApiType.LLM)
         );
+    }
+
+    /**
+     * Two filters sharing a label inside one api kind are indistinguishable in the picker: the user
+     * sees the same word twice and can only tell them apart by the signal icon. It happened once
+     * already, when a second "Reason" was added for the analytics signal.
+     */
+    @Test
+    void should_not_declare_two_filters_with_the_same_label_for_an_api_kind() {
+        var specs = Arrays.stream(StaticFilters.values()).map(StaticFilters::toSpec).toList();
+
+        var duplicates = Arrays.stream(ApiType.values())
+            .flatMap(kind ->
+                specs
+                    .stream()
+                    .filter(spec -> spec.apiTypes().contains(kind))
+                    .collect(Collectors.groupingBy(FilterSpec::label))
+                    .entrySet()
+                    .stream()
+                    .filter(e -> e.getValue().size() > 1)
+                    .map(e -> kind + ": " + e.getKey())
+            )
+            .toList();
+
+        assertThat(duplicates).isEmpty();
     }
 
     private static FilterContributor filtersContributor(FilterSpec... filters) {

@@ -18,10 +18,14 @@ package io.gravitee.apim.infra.domain_service.analytics_engine.definition;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.gravitee.apim.core.analytics_engine.model.ApiSpec;
+import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
+import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.observability.model.FilterOperator;
 import io.gravitee.apim.core.observability.model.FilterType;
 import io.gravitee.apim.core.observability.model.Signal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -77,6 +81,73 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
                 List.of(),
                 Set.of(Signal.ANALYTICS)
             );
+        }
+    }
+
+    @Nested
+    class Apis {
+
+        // getApis() is what GET /analytics/definition/apis returns, and a metric declaring an api kind
+        // the list withholds leaves that kind's whole catalog unreachable.
+        @Test
+        void should_advertise_every_api_kind_a_metric_declares() {
+            var service = new AnalyticsDefinitionYAMLQueryService();
+            var advertised = service.getApis().stream().map(ApiSpec::name).toList();
+
+            var declaredButUnadvertised = Arrays.stream(ApiSpec.Name.values())
+                .filter(name -> !service.getMetrics(name).isEmpty())
+                .filter(name -> !advertised.contains(name))
+                .toList();
+
+            assertThat(declaredButUnadvertised).isEmpty();
+        }
+    }
+
+    @Nested
+    class AuthzFilters {
+
+        /**
+         * KEYWORD promises a value picker served from Elasticsearch, and no authz field has a mapping in
+         * FilterValuesQueryServiceImpl, so a KEYWORD authz filter is a 500 the moment someone opens it.
+         * Closed sets belong in ENUM, open ones in STRING.
+         */
+        @Test
+        void should_not_type_any_authz_filter_as_keyword() {
+            var service = new AnalyticsDefinitionYAMLQueryService();
+
+            var keywordAuthzFilters = service
+                .getAllFilters()
+                .stream()
+                .filter(spec -> spec.name().name().startsWith("AUTHZ_"))
+                .filter(spec -> spec.type() == FilterType.KEYWORD)
+                .map(FilterSpec::name)
+                .toList();
+
+            assertThat(keywordAuthzFilters).isEmpty();
+        }
+    }
+
+    @Nested
+    class AuthzFacets {
+
+        // A search document carries no decision, so faceting searches on it yields one empty bucket.
+        @Test
+        void should_not_offer_decision_as_a_facet_of_searches() {
+            var service = new AnalyticsDefinitionYAMLQueryService();
+
+            var facetNames = service.getFacets(MetricSpec.Name.AUTHZ_SEARCHES).stream().map(FacetSpec::name).toList();
+
+            assertThat(facetNames).doesNotContain(FacetSpec.Name.AUTHZ_DECISION);
+        }
+
+        // Same absent field: offered as a filter it would silently match nothing.
+        @Test
+        void should_not_offer_decision_as_a_filter_of_searches() {
+            var service = new AnalyticsDefinitionYAMLQueryService();
+
+            var filterNames = service.getFilters(MetricSpec.Name.AUTHZ_SEARCHES).stream().map(FilterSpec::name).toList();
+
+            assertThat(filterNames).doesNotContain(FilterSpec.Name.AUTHZ_DECISION);
         }
     }
 }

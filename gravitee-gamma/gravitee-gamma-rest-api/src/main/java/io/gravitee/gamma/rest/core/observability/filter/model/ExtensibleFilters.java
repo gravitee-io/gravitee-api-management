@@ -43,7 +43,8 @@ public enum ExtensibleFilters {
     // Which document contract the rows come from. Every reportable in the event-metrics data stream
     // answers BaseEventMetrics#getDocumentType, so this is the axis that separates decisions from
     // request logs — API_TYPE cannot, since a decision is attached to the API it guarded, of any kind.
-    RECORD_TYPE("Record Type", Set.of(Signal.LOGS), ApiType.API_KINDS);
+    // ANALYTICS so an AUTHZ_DECISION scope condition survives validation on that signal too.
+    RECORD_TYPE("Record Type", Set.of(Signal.LOGS, Signal.ANALYTICS), ApiType.API_KINDS);
 
     private final String label;
     private final Set<Signal> signals;

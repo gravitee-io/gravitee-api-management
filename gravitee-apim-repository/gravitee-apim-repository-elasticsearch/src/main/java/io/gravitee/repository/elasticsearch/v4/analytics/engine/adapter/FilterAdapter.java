@@ -120,6 +120,19 @@ public class FilterAdapter {
         Filter.Name.EDGE_TOOL
     );
 
+    static final List<Filter.Name> AUTHZ_FILTER_NAMES = List.of(
+        Filter.Name.API,
+        Filter.Name.GATEWAY,
+        Filter.Name.AUTHZ_DECISION,
+        Filter.Name.AUTHZ_OPERATION,
+        Filter.Name.AUTHZ_STATUS,
+        Filter.Name.AUTHZ_CALLER,
+        Filter.Name.AUTHZ_SUBJECT_ID,
+        Filter.Name.AUTHZ_ACTION,
+        Filter.Name.AUTHZ_RESOURCE_ID,
+        Filter.Name.AUTHZ_REASON
+    );
+
     private final FieldResolver fieldResolver;
 
     public FilterAdapter(FieldResolver fieldResolver) {
@@ -191,6 +204,20 @@ public class FilterAdapter {
             }
         }
         return jsonFilters.add(edgeFilter());
+    }
+
+    public JsonArray adaptForAuthz(Query query) {
+        var jsonFilters = JsonArray.of(TimeRangeAdapter.adapt(query));
+        for (var filter : query.filters()) {
+            if (shouldAdaptForAuthz(filter)) {
+                jsonFilters.add(filter(filter));
+            }
+        }
+        return jsonFilters;
+    }
+
+    public boolean shouldAdaptForAuthz(Filter filter) {
+        return AUTHZ_FILTER_NAMES.contains(filter.name());
     }
 
     public boolean shouldAdaptForHTTP(Filter filter) {

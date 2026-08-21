@@ -61,6 +61,14 @@ public record FacetSpec(Name name, String label, String type, List<Object> enumV
         NATIVE_CLIENT_ID,
         NATIVE_TOPIC,
         NATIVE_OPERATION,
+        AUTHZ_DECISION,
+        AUTHZ_OPERATION,
+        AUTHZ_STATUS,
+        AUTHZ_CALLER,
+        AUTHZ_SUBJECT_ID,
+        AUTHZ_ACTION,
+        AUTHZ_RESOURCE_ID,
+        AUTHZ_REASON,
     }
 
     public enum Type {

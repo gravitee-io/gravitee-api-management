@@ -52,6 +52,19 @@ class GetAnalyticsFilterDefinitionsUseCaseTest {
         assertThat(specs).hasSizeLessThan(catalog.getAllFilters().size());
     }
 
+    @Test
+    void should_advertise_authz_reason_as_applicable_to_authz() {
+        var specs = useCase.execute(GetAnalyticsFilterDefinitionsUseCase.Input.ALL).specs();
+
+        var authzReason = specs
+            .stream()
+            .filter(spec -> spec.name() == FilterSpec.Name.AUTHZ_REASON)
+            .findFirst()
+            .orElseThrow();
+
+        assertThat(authzReason.apis()).isNotEmpty();
+    }
+
     /**
      * The per-metric endpoint advertises whatever the {@code metrics[].filters} lists declare, and the analytics
      * engine rejects filters the catalog withholds from that signal. Walking the real definition here turns

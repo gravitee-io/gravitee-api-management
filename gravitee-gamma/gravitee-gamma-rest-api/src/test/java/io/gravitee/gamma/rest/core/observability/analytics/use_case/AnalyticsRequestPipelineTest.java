@@ -97,6 +97,16 @@ class AnalyticsRequestPipelineTest {
                     null,
                     Set.of(Signal.LOGS, Signal.ANALYTICS),
                     ApiType.ALL
+                ),
+                new FilterSpec(
+                    "RECORD_TYPE",
+                    "Record Type",
+                    FilterType.ENUM,
+                    List.of(FilterOperator.EQ, FilterOperator.IN),
+                    List.of(new FilterSpec.EnumValue("REQUEST", "Request"), new FilterSpec.EnumValue("AUTHZ_DECISION", "Authz decision")),
+                    null,
+                    Set.of(Signal.LOGS, Signal.ANALYTICS),
+                    ApiType.API_KINDS
                 )
             )
         );
@@ -247,6 +257,64 @@ class AnalyticsRequestPipelineTest {
                 .toList();
             assertThat(entrypoints).hasSize(1);
             assertThat(entrypoints.getFirst().values()).containsExactly("http-proxy");
+        }
+    }
+
+    @Nested
+    class AuthzDecisionScoping {
+
+        @Test
+        void should_not_inject_entrypoint_scoping_for_an_authz_decision_request() {
+            var conditions = List.of(new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")));
+
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, conditions, null, null, analyticsDataPort);
+
+            assertThat(scope.filters()).noneMatch(condition -> "ENTRYPOINT".equals(condition.name()));
+        }
+
+        @Test
+        void should_still_inject_entrypoint_scoping_for_a_normal_request() {
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
+            );
+
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), null, null, analyticsDataPort);
+
+            assertThat(scope.filters()).anyMatch(condition -> "ENTRYPOINT".equals(condition.name()));
+        }
+
+        @Test
+        void should_strip_the_record_type_condition_before_it_reaches_the_analytics_engine() {
+            var conditions = List.of(new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")));
+
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, conditions, null, null, analyticsDataPort);
+
+            assertThat(scope.filters()).noneMatch(condition -> "RECORD_TYPE".equals(condition.name()));
+        }
+
+        @Test
+        void should_scope_authz_decisions_to_the_accessible_apis() {
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
+            );
+            var conditions = List.of(new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")));
+
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, conditions, null, null, analyticsDataPort);
+
+            assertThat(scope.filters()).anyMatch(condition -> "API".equals(condition.name()));
+        }
+
+        @Test
+        void should_strip_a_record_type_request_condition_before_it_reaches_the_analytics_engine() {
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
+            );
+            var conditions = List.of(new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("REQUEST")));
+
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, conditions, null, null, analyticsDataPort);
+
+            assertThat(scope.filters()).noneMatch(condition -> "RECORD_TYPE".equals(condition.name()));
+            assertThat(scope.filters()).anyMatch(condition -> "ENTRYPOINT".equals(condition.name()));
         }
     }
 }
