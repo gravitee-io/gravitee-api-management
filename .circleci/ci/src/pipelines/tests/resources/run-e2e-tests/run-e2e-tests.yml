@@ -183,6 +183,14 @@ jobs:
             - ~/.m2/repository/io/gravitee/gamma
           key: gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
           when: on_success
+      - run:
+          name: Archive the compiled rest-api classes
+          command: tar -cf /tmp/rest-api-classes.tar ./gravitee-apim-rest-api/*/target/classes ./gravitee-apim-rest-api/*/target/test-classes ./gravitee-apim-rest-api/*/*/target/classes ./gravitee-apim-rest-api/*/*/target/test-classes
+      - save_cache:
+          paths:
+            - /tmp/rest-api-classes.tar
+          key: gravitee-api-management-v14-rest-api-classes-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          when: on_success
       - cmd-save-maven-job-cache:
           jobName: job-build
       - persist_to_workspace:

@@ -16,6 +16,7 @@
 import * as fs from 'fs';
 import { generateNightlyConfig } from '../pipeline-nightly';
 import { generatePullRequestsConfig } from '../pipeline-pull-requests';
+import { BACKEND_UNANALYSED_SUITES } from '../../workflows/groups/analysed-projects';
 
 describe('Nightly', () => {
   it('should generate the nightly pipeline', () => {
@@ -39,7 +40,11 @@ describe('Nightly', () => {
   // Both consumers derive from `analysed-projects.ts`, so the equality below cannot drift on its
   // own. What earns its keep is the count: a project dropped from the shared list leaves the
   // nightly and every pull request at once, which is the failure this epic exists to prevent.
-  it('should analyse exactly the projects a pull request analyses', () => {
+  //
+  // The suites with no analysis need their own assertion: comparing Sonar jobs cannot see them,
+  // which is how kafka-explorer and gamma silently stopped running at night once they were split
+  // into jobs of their own.
+  it('should run and analyse exactly what a pull request runs and analyses', () => {
     const environment = {
       baseBranch: 'master',
       branch: 'master',
@@ -64,5 +69,12 @@ describe('Nightly', () => {
 
     expect(sonarJobs(nightly)).toEqual(sonarJobs(pullRequest));
     expect(sonarJobs(nightly)).toHaveLength(9);
+
+    // A pull request runs the suites it touches; the nightly build runs every one of them.
+    const unanalysedSuiteNames = BACKEND_UNANALYSED_SUITES.map((suite) => suite.suiteName);
+    expect(unanalysedSuiteNames).toEqual(
+      expect.arrayContaining(['Test kafka-explorer', 'Test gamma', 'Test gamma UI', 'Integration tests']),
+    );
+    unanalysedSuiteNames.forEach((name) => expect(nightly).toContain(`name: ${name}`));
   });
 });

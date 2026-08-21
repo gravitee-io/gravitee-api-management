@@ -20,6 +20,8 @@ const awsECRUrl = '430630701098.dkr.ecr.eu-west-2.amazonaws.com';
 
 const cache = {
   prefix: 'gravitee-api-management-v14',
+  // Written by `Build backend`, read by `Test rest-api` and by nothing else.
+  restApiClassesArchive: '/tmp/rest-api-classes.tar',
 };
 
 const components = {

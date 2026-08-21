@@ -411,6 +411,17 @@
       </activation>
       <modules>
         <module>gravitee-apim-rest-api</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>gamma-modules</id>
+      <activation>
+        <property>
+          <name>gamma-modules</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <modules>
         <module>gravitee-gamma</module>
       </modules>
     </profile>

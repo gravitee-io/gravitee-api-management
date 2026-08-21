@@ -159,7 +159,7 @@ jobs:
   job-validate:
     docker:
       - image: cimg/openjdk:25.0.3
-    resource_class: medium
+    resource_class: large
     steps:
       - checkout
       - attach_workspace:
@@ -168,10 +168,10 @@ jobs:
           jobName: job-validate
       - run:
           name: Validate project
-          command: mvn -s .gravitee.settings.xml validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pall-modules -T 4
+          command: mvn -s .gravitee.settings.xml validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pall-modules -T 8
       - run:
           name: Validate distribution
-          command: mvn -s .gravitee.settings.xml -f gravitee-apim-distribution/pom.xml validate -nsu -Dgravitee.archrules.skip=true --no-transfer-progress -Pintegration-tests-modules -T 4
+          command: mvn -s .gravitee.settings.xml -f gravitee-apim-distribution/pom.xml validate -nsu -Dgravitee.archrules.skip=true --no-transfer-progress -Pintegration-tests-modules -T 8
       - run:
           name: Check both reactors carry the same version
           command: |-
@@ -226,6 +226,14 @@ jobs:
             - ~/.m2/repository/io/gravitee/apim
             - ~/.m2/repository/io/gravitee/gamma
           key: gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          when: on_success
+      - run:
+          name: Archive the compiled rest-api classes
+          command: tar -cf /tmp/rest-api-classes.tar ./gravitee-apim-rest-api/*/target/classes ./gravitee-apim-rest-api/*/target/test-classes ./gravitee-apim-rest-api/*/*/target/classes ./gravitee-apim-rest-api/*/*/target/test-classes
+      - save_cache:
+          paths:
+            - /tmp/rest-api-classes.tar
+          key: gravitee-api-management-v14-rest-api-classes-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
           when: on_success
       - cmd-save-maven-job-cache:
           jobName: job-build

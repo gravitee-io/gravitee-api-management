@@ -58,10 +58,16 @@ find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-resu
         new commands.StoreTestResults({
           path: '~/test-results',
         }),
-        new commands.workspace.Persist({
-          root: '.',
-          paths: pathsToPersist,
-        }),
+        // A job with nothing to hand downstream skips the step entirely: persisting an empty path list
+        // is not a no-op, it fails the job with "the specified paths did not match any files".
+        ...(pathsToPersist.length > 0
+          ? [
+              new commands.workspace.Persist({
+                root: '.',
+                paths: pathsToPersist,
+              }),
+            ]
+          : []),
       ],
       properties,
     );

@@ -68,6 +68,22 @@ export class BuildBackendJob {
         key: `${config.cache.prefix}-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}`,
         when: 'on_success',
       }),
+      new commands.Run({
+        // The rest-api test job runs surefire against these instead of compiling and generating
+        // again. -DskipTests above compiles the tests without running them, so test-classes are
+        // already here. Two levels of glob because the modules nest one deep in places.
+        //
+        // A cache rather than the workspace: every job attaches the workspace whole, so putting a
+        // few hundred megabytes of classes there would bill all 30-odd of them for something only
+        // this one consumer reads. save_cache takes literal paths, hence the archive.
+        name: 'Archive the compiled rest-api classes',
+        command: `tar -cf ${config.cache.restApiClassesArchive} ./gravitee-apim-rest-api/*/target/classes ./gravitee-apim-rest-api/*/target/test-classes ./gravitee-apim-rest-api/*/*/target/classes ./gravitee-apim-rest-api/*/*/target/test-classes`,
+      }),
+      new commands.cache.Save({
+        paths: [config.cache.restApiClassesArchive],
+        key: `${config.cache.prefix}-rest-api-classes-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}`,
+        when: 'on_success',
+      }),
       new reusable.ReusedCommand(saveMavenJobCacheCmd, { jobName: jobName }),
       new commands.workspace.Persist({
         root: './',
