@@ -100,13 +100,13 @@ class SpiFilterRegistryTest {
             .extracting(FilterSpec::name)
             .containsExactlyInAnyOrder(
                 "API",
-                "DECISION",
-                "SUBJECT",
-                "ACTION",
-                "RESOURCE",
-                "CALLER_KIND",
-                "STATUS",
-                "OPERATION",
+                "AUTHZ_DECISION",
+                "AUTHZ_SUBJECT_ID",
+                "AUTHZ_ACTION",
+                "AUTHZ_RESOURCE_ID",
+                "AUTHZ_CALLER",
+                "AUTHZ_STATUS",
+                "AUTHZ_OPERATION",
                 "PDP",
                 "MATCHED_POLICY",
                 "REASON",
@@ -116,6 +116,29 @@ class SpiFilterRegistryTest {
                 "REQUEST_ID"
             )
             .doesNotContain("API_TYPE", "RECORD_TYPE", "ENTRYPOINT", "HTTP_STATUS", "PAYLOAD");
+    }
+
+    @Test
+    void should_expose_the_authz_analytics_filters_without_request_only_filters() {
+        FilterRegistry registry = registryWith();
+
+        List<FilterSpec> result = registry.getFilters(Set.of(Signal.ANALYTICS), Set.of(ApiType.AUTHZ_DECISION));
+
+        assertThat(result.stream().map(FilterSpec::name).toList())
+            .contains("AUTHZ_DECISION", "AUTHZ_OPERATION", "AUTHZ_STATUS", "AUTHZ_CALLER", "AUTHZ_ACTION")
+            .doesNotContain("ENTRYPOINT", "HTTP_STATUS", "PAYLOAD", "API_TYPE", "RECORD_TYPE");
+    }
+
+    @Test
+    void should_give_every_authz_analytics_filter_operators_and_inline_enum_values() {
+        FilterRegistry registry = registryWith();
+
+        List<FilterSpec> result = registry.getFilters(Set.of(Signal.ANALYTICS), Set.of(ApiType.AUTHZ_DECISION));
+
+        assertThat(result).allSatisfy(spec -> assertThat(spec.operators()).isNotEmpty());
+        assertThat(result)
+            .filteredOn(spec -> spec.type() == FilterType.ENUM)
+            .allSatisfy(spec -> assertThat(spec.enumValues()).isNotEmpty());
     }
 
     @Test

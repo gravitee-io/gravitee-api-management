@@ -113,5 +113,13 @@ public record FilterSpec(
         REQUEST_ID,
         TRANSACTION_ID,
         PAYLOAD,
+        AUTHZ_DECISION,
+        AUTHZ_OPERATION,
+        AUTHZ_STATUS,
+        AUTHZ_CALLER,
+        AUTHZ_SUBJECT_ID,
+        AUTHZ_ACTION,
+        AUTHZ_RESOURCE_ID,
+        AUTHZ_REASON,
     }
 }

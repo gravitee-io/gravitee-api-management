@@ -721,7 +721,7 @@ class ObservabilityLogsDataPortAdapterTest {
             adapter.searchLogs(
                 ORG,
                 ENV,
-                decisionQueryWith(new FilterCondition("DECISION", FilterOperator.IN, List.of("PERMIT", "FORBID")))
+                decisionQueryWith(new FilterCondition("AUTHZ_DECISION", FilterOperator.IN, List.of("PERMIT", "FORBID")))
             );
 
             var captor = ArgumentCaptor.forClass(AuthzDecisionLogFilters.class);
@@ -738,8 +738,8 @@ class ObservabilityLogsDataPortAdapterTest {
                 ORG,
                 ENV,
                 decisionQueryWith(
-                    new FilterCondition("STATUS", FilterOperator.EQ, List.of("error")),
-                    new FilterCondition("OPERATION", FilterOperator.EQ, List.of("search")),
+                    new FilterCondition("AUTHZ_STATUS", FilterOperator.EQ, List.of("error")),
+                    new FilterCondition("AUTHZ_OPERATION", FilterOperator.EQ, List.of("search")),
                     new FilterCondition("PDP", FilterOperator.EQ, List.of("pdp-a")),
                     new FilterCondition("MATCHED_POLICY", FilterOperator.EQ, List.of("forbid-delete")),
                     new FilterCondition("POLICY_VERSION", FilterOperator.EQ, List.of("9")),

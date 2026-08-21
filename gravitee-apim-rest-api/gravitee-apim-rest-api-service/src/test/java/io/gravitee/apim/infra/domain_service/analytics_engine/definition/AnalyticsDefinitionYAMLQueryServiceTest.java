@@ -18,7 +18,9 @@ package io.gravitee.apim.infra.domain_service.analytics_engine.definition;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
+import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.observability.model.FilterOperator;
 import io.gravitee.apim.core.observability.model.FilterType;
 import io.gravitee.apim.core.observability.model.Signal;
@@ -77,6 +79,20 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
                 List.of(),
                 Set.of(Signal.ANALYTICS)
             );
+        }
+    }
+
+    @Nested
+    class AuthzFacets {
+
+        // A search document carries no decision, so faceting searches on it yields one empty bucket.
+        @Test
+        void should_not_offer_decision_as_a_facet_of_searches() {
+            var service = new AnalyticsDefinitionYAMLQueryService();
+
+            var facetNames = service.getFacets(MetricSpec.Name.AUTHZ_SEARCHES).stream().map(FacetSpec::name).toList();
+
+            assertThat(facetNames).doesNotContain(FacetSpec.Name.AUTHZ_DECISION);
         }
     }
 }

@@ -24,5 +24,6 @@ public record ApiSpec(Name name, String label) {
         A2A,
         NATIVE,
         EDGE,
+        AUTHZ,
     }
 }

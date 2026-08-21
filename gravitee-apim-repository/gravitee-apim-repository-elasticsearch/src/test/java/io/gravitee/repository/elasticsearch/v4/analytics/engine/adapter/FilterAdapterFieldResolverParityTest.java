@@ -38,6 +38,7 @@ class FilterAdapterFieldResolverParityTest {
     private static final FieldResolver HTTP_RESOLVER = new HTTPFieldResolver();
     private static final FieldResolver MESSAGE_RESOLVER = new MessageFieldResolver();
     private static final FieldResolver NATIVE_RESOLVER = new NativeApiFieldResolver();
+    private static final FieldResolver AUTHZ_RESOLVER = new AuthzFieldResolver();
 
     // TODO(GMA-932): MESSAGE_SIZE / MESSAGE_COUNT / MESSAGE_ERROR_COUNT are allow-listed but not
     // resolvable by MessageFieldResolver — remove this exclusion once GMA-932 adds their cases.
@@ -76,6 +77,13 @@ class FilterAdapterFieldResolverParityTest {
     }
 
     @Test
+    void should_resolve_every_filter_name_allow_listed_for_authz() {
+        assertThat(unresolvable(FilterAdapter.AUTHZ_FILTER_NAMES, AUTHZ_RESOLVER))
+            .as("AUTHZ_FILTER_NAMES entries not resolvable by AuthzFieldResolver (query would fail at ES adaptation)")
+            .isEmpty();
+    }
+
+    @Test
     void should_allow_list_every_filter_name_resolvable_by_http_field_resolver() {
         var allowListed = new HashSet<Filter.Name>();
         allowListed.addAll(FilterAdapter.HTTP_FILTER_NAMES);
@@ -104,6 +112,21 @@ class FilterAdapterFieldResolverParityTest {
         assertThat(resolvableButNotAllowListed)
             .as(
                 "Filter names resolvable by NativeApiFieldResolver but absent from NATIVE_FILTER_NAMES: " +
+                    "these filters are accepted by the API yet silently dropped from the ES query"
+            )
+            .isEmpty();
+    }
+
+    @Test
+    void should_allow_list_every_filter_name_resolvable_by_authz_field_resolver() {
+        var resolvableButNotAllowListed = Arrays.stream(Filter.Name.values())
+            .filter(name -> resolves(AUTHZ_RESOLVER, name))
+            .filter(name -> !FilterAdapter.AUTHZ_FILTER_NAMES.contains(name))
+            .toList();
+
+        assertThat(resolvableButNotAllowListed)
+            .as(
+                "Filter names resolvable by AuthzFieldResolver but absent from AUTHZ_FILTER_NAMES: " +
                     "these filters are accepted by the API yet silently dropped from the ES query"
             )
             .isEmpty();

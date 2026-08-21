@@ -184,13 +184,13 @@ public class SearchObservabilityLogsUseCase {
     // Package-private so a test can assert set equality against the catalog: a filter offered on the
     // decisions screen but missing here is advertised and then refused with a 400.
     static final Set<String> DECISION_SUPPORTED_FILTERS = Set.of(
-        StaticFilters.DECISION.filterName(),
-        StaticFilters.SUBJECT.filterName(),
-        StaticFilters.ACTION.filterName(),
-        StaticFilters.RESOURCE.filterName(),
-        StaticFilters.CALLER_KIND.filterName(),
-        StaticFilters.STATUS.filterName(),
-        StaticFilters.OPERATION.filterName(),
+        StaticFilters.AUTHZ_DECISION.filterName(),
+        StaticFilters.AUTHZ_SUBJECT_ID.filterName(),
+        StaticFilters.AUTHZ_ACTION.filterName(),
+        StaticFilters.AUTHZ_RESOURCE_ID.filterName(),
+        StaticFilters.AUTHZ_CALLER.filterName(),
+        StaticFilters.AUTHZ_STATUS.filterName(),
+        StaticFilters.AUTHZ_OPERATION.filterName(),
         StaticFilters.PDP.filterName(),
         StaticFilters.MATCHED_POLICY.filterName(),
         StaticFilters.REASON.filterName(),
