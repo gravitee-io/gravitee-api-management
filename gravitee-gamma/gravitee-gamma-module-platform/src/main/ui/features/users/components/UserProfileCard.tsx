@@ -18,8 +18,8 @@ import { CalendarIcon, ClockIcon } from '@gravitee/graphene-core/icons';
 import type { ReactNode } from 'react';
 
 import { CopyableProfileValue } from './CopyableProfileValue';
-import { ROLE_LIST_TOOLTIP_CONTENT_CLASS, RoleListTooltipContent } from './RoleListTooltip';
 import { UserAvatar } from './UserAvatar';
+import { TRUNCATED_LIST_TOOLTIP_CONTENT_CLASS, TruncatedListTooltipContent } from '../../../shared/components/TruncatedListTooltip';
 import type { OrganizationUser } from '../types/user';
 import {
     formatCustomFieldCopyValue,
@@ -115,8 +115,8 @@ export function UserProfileCard({ user, headerActions }: UserProfileCardProps) {
                                     <TooltipTrigger asChild>
                                         <span className="cursor-default">{roleSummary.display}</span>
                                     </TooltipTrigger>
-                                    <TooltipContent side="bottom" align="start" className={ROLE_LIST_TOOLTIP_CONTENT_CLASS}>
-                                        <RoleListTooltipContent labels={organizationRoleLabels} />
+                                    <TooltipContent side="bottom" align="start" className={TRUNCATED_LIST_TOOLTIP_CONTENT_CLASS}>
+                                        <TruncatedListTooltipContent labels={organizationRoleLabels} />
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>

@@ -129,7 +129,7 @@ describe('IdentityProviderCreateForm', () => {
         expect(mutateAsync).not.toHaveBeenCalled();
     });
 
-    it('creates a Google identity provider and returns to the list', async () => {
+    it('creates a Google identity provider and opens the edit page', async () => {
         renderForm();
         fireEvent.click(screen.getByRole('radio', { name: /^Google$/i }));
         await inputHarness({ name: /^Name/ }).type('Google SSO');
@@ -148,7 +148,7 @@ describe('IdentityProviderCreateForm', () => {
                 configuration: { clientId: 'client-id', clientSecret: 'client-secret' },
             });
             expect(notify.success).toHaveBeenCalledWith('Identity provider successfully saved!');
-            expect(mockNavigate).toHaveBeenCalledWith('..');
+            expect(mockNavigate).toHaveBeenCalledWith('../google-sso', { relative: 'path' });
         });
     });
 

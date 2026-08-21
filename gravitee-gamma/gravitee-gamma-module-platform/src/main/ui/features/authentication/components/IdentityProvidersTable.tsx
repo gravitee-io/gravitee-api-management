@@ -34,6 +34,7 @@ import {
 } from '@gravitee/graphene-core';
 import { CheckIcon, MoreVerticalIcon, SearchIcon, ShieldIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
@@ -122,7 +123,11 @@ function buildColumns({
             id: 'name',
             accessorKey: 'name',
             header: ({ column }: ColHeader<IdentityProviderRow>) => <DataTableColumnHeader column={column} title="Name" />,
-            cell: ({ row }: ColCell<IdentityProviderRow>) => <span className="font-medium">{row.original.name}</span>,
+            cell: ({ row }: ColCell<IdentityProviderRow>) => (
+                <Button asChild variant="link" className="h-auto p-0 text-left text-sm font-medium text-foreground hover:underline">
+                    <Link to={row.original.id}>{row.original.name}</Link>
+                </Button>
+            ),
         },
         {
             id: 'id',

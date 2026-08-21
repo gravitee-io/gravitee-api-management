@@ -61,6 +61,17 @@ export interface IdentityProviderConfiguration {
     userLogoutEndpoint?: string;
 }
 
+export interface GroupMapping {
+    condition: string;
+    groups: string[];
+}
+
+export interface RoleMapping {
+    condition: string;
+    organizations: string[];
+    environments: Record<string, string[]>;
+}
+
 export interface NewIdentityProviderPayload {
     name: string;
     description?: string;
@@ -72,6 +83,18 @@ export interface NewIdentityProviderPayload {
     userProfileMapping?: IdentityProviderUserProfileMapping;
 }
 
+export interface UpdateIdentityProviderPayload {
+    name: string;
+    description?: string;
+    enabled: boolean;
+    emailRequired: boolean;
+    syncMappings: boolean;
+    configuration: IdentityProviderConfiguration;
+    groupMappings: GroupMapping[];
+    roleMappings: RoleMapping[];
+    userProfileMapping?: IdentityProviderUserProfileMapping;
+}
+
 export interface IdentityProvider {
     id: string;
     name: string;
@@ -80,6 +103,8 @@ export interface IdentityProvider {
     enabled: boolean;
     configuration?: IdentityProviderConfiguration;
     userProfileMapping?: IdentityProviderUserProfileMapping;
+    groupMappings: GroupMapping[];
+    roleMappings: RoleMapping[];
     emailRequired?: boolean;
     syncMappings?: boolean;
 }

@@ -22,6 +22,7 @@ export const TEST_CONFIG: BootstrapConfig = {
     organizationId: 'test-org',
     gammaBaseURL: 'http://api.test/gamma',
     identityProviders: [],
+    localLoginEnabled: true,
 };
 
 export const TEST_MANAGEMENT_BASE = `${TEST_CONFIG.managementBaseURL}/organizations/${TEST_CONFIG.organizationId}`;

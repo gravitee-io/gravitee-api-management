@@ -84,7 +84,7 @@ export function respondWithError(method: 'get' | 'post' | 'put' | 'delete', url:
 }
 
 export function resetAllStores() {
-    useBootstrapStore.setState({ config: null, loading: false, error: null });
+    useBootstrapStore.setState({ config: null, loading: false, error: null, loginMethodsFetchedAt: null });
     useAuthStore.setState({ user: null, loading: false, initialized: false, oauthRedirectUrl: null });
     useEnvironmentStore.getState().reset();
     useModulesStore.setState({ modules: [] });
@@ -97,6 +97,7 @@ export function seedBootstrap(overrides: Partial<BootstrapConfig> = {}) {
         config: buildBootstrapConfig(overrides),
         loading: false,
         error: null,
+        loginMethodsFetchedAt: null,
     });
 }
 

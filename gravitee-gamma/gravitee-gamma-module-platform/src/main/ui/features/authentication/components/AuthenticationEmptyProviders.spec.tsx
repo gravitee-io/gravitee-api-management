@@ -62,6 +62,7 @@ describe('AuthenticationEmptyProviders', () => {
     it('renders through DataTableEmptyState instead of a nested bordered panel', () => {
         renderWithGraphene(<AuthenticationEmptyProviders />);
         expect(screen.getByText('No identity providers yet').closest('div.space-y-6')).toBeNull();
-        expect(screen.getByText('No identity providers yet')).not.toBeNull();
+        expect(screen.getByText('Without a provider').closest('[data-slot="card"]')).not.toBeNull();
+        expect(screen.getByText('With a provider').closest('[data-slot="card"]')).not.toBeNull();
     });
 });

@@ -20,6 +20,7 @@ import type {
     IdentityProviderActivation,
     IdentityProviderListItem,
     NewIdentityProviderPayload,
+    UpdateIdentityProviderPayload,
 } from '../types/identityProvider';
 
 export async function listIdentityProviders(): Promise<IdentityProviderListItem[]> {
@@ -46,4 +47,25 @@ export async function createIdentityProvider(payload: NewIdentityProviderPayload
 
 export async function deleteIdentityProvider(id: string): Promise<void> {
     await apimFetchJsonOrg<void>(`/configuration/identities/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+function withMappings(provider: IdentityProvider): IdentityProvider {
+    return {
+        ...provider,
+        groupMappings: provider.groupMappings ?? [],
+        roleMappings: provider.roleMappings ?? [],
+    };
+}
+
+export async function getIdentityProvider(id: string): Promise<IdentityProvider> {
+    const provider = await apimFetchJsonOrg<IdentityProvider>(`/configuration/identities/${encodeURIComponent(id)}`);
+    return withMappings(provider);
+}
+
+export async function updateIdentityProvider(id: string, payload: UpdateIdentityProviderPayload): Promise<IdentityProvider> {
+    const provider = await apimFetchJsonOrg<IdentityProvider>(`/configuration/identities/${encodeURIComponent(id)}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+    });
+    return withMappings(provider);
 }

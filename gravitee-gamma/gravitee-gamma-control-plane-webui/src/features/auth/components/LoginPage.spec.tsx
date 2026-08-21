@@ -15,11 +15,13 @@
  */
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { http, HttpResponse } from 'msw';
 import { MemoryRouter } from 'react-router-dom';
 
 import { useBootstrapStore } from '../../../shared/config/bootstrap.store';
 import { buildBootstrapConfig, buildUser, TEST_MANAGEMENT_BASE } from '../../../testing/factories';
-import { respondWithError, trackHandler } from '../../../testing/helpers';
+import { respondWith, respondWithError, trackHandler } from '../../../testing/helpers';
+import { server } from '../../../testing/server';
 import { useAuthStore } from '../auth.store';
 import type { SocialIdentityProvider } from '../auth.types';
 import { LoginPage } from './LoginPage';
@@ -60,28 +62,36 @@ const noColorProvider: SocialIdentityProvider = {
     authorizationEndpoint: 'https://sso.example.com/authorize',
 };
 
-function seedWithProviders(providers: SocialIdentityProvider[]) {
+function seedWithProviders(providers: SocialIdentityProvider[], localLoginEnabled = true) {
     useBootstrapStore.setState({
-        config: buildBootstrapConfig({ identityProviders: providers }),
+        config: buildBootstrapConfig({ identityProviders: providers, localLoginEnabled }),
         loading: false,
         error: null,
     });
 }
 
+function stubLoginMethods(providers: SocialIdentityProvider[] = [], localLoginEnabled = true) {
+    respondWith('get', `${TEST_MANAGEMENT_BASE}/social-identities`, providers);
+    respondWith('get', `${TEST_MANAGEMENT_BASE}/console`, {
+        authentication: { localLogin: { enabled: localLoginEnabled } },
+        reCaptcha: { enabled: false },
+    });
+}
+
 describe('LoginPage', () => {
     describe('username/password form', () => {
-        it('should render the sign-in form', () => {
+        it('should render the sign-in form', async () => {
             renderLoginPage();
 
-            expect(screen.getByLabelText('Username')).toBeTruthy();
+            expect(await screen.findByLabelText('Username')).toBeTruthy();
             expect(screen.getByLabelText('Password')).toBeTruthy();
             expect(screen.getByRole('button', { name: 'Sign in' })).toBeTruthy();
         });
 
-        it('should disable submit button when fields are empty', () => {
+        it('should disable submit button when fields are empty', async () => {
             renderLoginPage();
 
-            const button = screen.getByRole('button', { name: 'Sign in' }) as HTMLButtonElement;
+            const button = (await screen.findByRole('button', { name: 'Sign in' })) as HTMLButtonElement;
             expect(button.disabled).toBe(true);
         });
 
@@ -89,7 +99,7 @@ describe('LoginPage', () => {
             const user = userEvent.setup();
             renderLoginPage();
 
-            await user.type(screen.getByLabelText('Username'), 'admin');
+            await user.type(await screen.findByLabelText('Username'), 'admin');
             await user.type(screen.getByLabelText('Password'), 'password');
 
             const button = screen.getByRole('button', { name: 'Sign in' }) as HTMLButtonElement;
@@ -101,7 +111,7 @@ describe('LoginPage', () => {
             respondWithError('post', `${TEST_MANAGEMENT_BASE}/user/login`, 401);
             renderLoginPage();
 
-            await user.type(screen.getByLabelText('Username'), 'admin');
+            await user.type(await screen.findByLabelText('Username'), 'admin');
             await user.type(screen.getByLabelText('Password'), 'wrong');
             await user.click(screen.getByRole('button', { name: 'Sign in' }));
 
@@ -115,68 +125,150 @@ describe('LoginPage', () => {
             trackHandler('get', `${TEST_MANAGEMENT_BASE}/user`, buildUser());
             renderLoginPage();
 
-            await user.type(screen.getByLabelText('Username'), 'admin');
+            await user.type(await screen.findByLabelText('Username'), 'admin');
             await user.type(screen.getByLabelText('Password'), 'password');
             await user.click(screen.getByRole('button', { name: 'Sign in' }));
 
             expect(loginTracker.callCount).toBe(1);
             expect(useAuthStore.getState().user?.displayName).toBe('Test User');
         });
+
+        it('should hide username and password when local login is disabled', async () => {
+            stubLoginMethods([], false);
+            renderLoginPage();
+
+            expect(await screen.findByText('No login method available. Please contact your administrator.')).toBeTruthy();
+            expect(screen.queryByLabelText('Username')).toBeNull();
+            expect(screen.queryByLabelText('Password')).toBeNull();
+            expect(screen.queryByRole('button', { name: 'Sign in' })).toBeNull();
+        });
+
+        it('should show cached login methods without waiting for a refresh', async () => {
+            seedWithProviders([], true);
+            let release: () => void = () => {};
+            const gate = new Promise<void>(resolve => {
+                release = resolve;
+            });
+            server.use(
+                http.get(`${TEST_MANAGEMENT_BASE}/social-identities`, async () => {
+                    await gate;
+                    return HttpResponse.json([]);
+                }),
+                http.get(`${TEST_MANAGEMENT_BASE}/console`, async () => {
+                    await gate;
+                    return HttpResponse.json({ authentication: { localLogin: { enabled: false } } });
+                }),
+            );
+
+            renderLoginPage();
+
+            expect(screen.getByLabelText('Username')).toBeTruthy();
+            expect(screen.queryByLabelText('Loading sign-in options')).toBeNull();
+
+            release();
+            expect(await screen.findByText('No login method available. Please contact your administrator.')).toBeTruthy();
+            expect(screen.queryByLabelText('Username')).toBeNull();
+        });
+
+        it('should skip a duplicate login-methods fetch when bootstrap data is still fresh', () => {
+            useBootstrapStore.setState({
+                config: buildBootstrapConfig({ localLoginEnabled: true }),
+                loading: false,
+                error: null,
+                loginMethodsFetchedAt: Date.now(),
+            });
+            const tracker = trackHandler('get', `${TEST_MANAGEMENT_BASE}/console`, {
+                authentication: { localLogin: { enabled: false } },
+            });
+
+            renderLoginPage();
+
+            expect(screen.getByLabelText('Username')).toBeTruthy();
+            expect(tracker.callCount).toBe(0);
+        });
     });
 
     describe('identity provider buttons', () => {
-        it('should not render IdP section when no providers configured', () => {
-            seedWithProviders([]);
+        it('should not render IdP section when no providers configured', async () => {
+            stubLoginMethods([]);
             renderLoginPage();
 
+            await screen.findByLabelText('Username');
             expect(screen.queryByText('or')).toBeNull();
         });
 
-        it('should render IdP buttons when providers are configured', () => {
-            seedWithProviders([googleProvider, githubProvider]);
+        it('should render IdP buttons from the current social-identities response', async () => {
+            seedWithProviders([githubProvider]);
+            stubLoginMethods([googleProvider, githubProvider]);
             renderLoginPage();
 
+            expect(await screen.findByText('Sign in with Google')).toBeTruthy();
             expect(screen.getByText('or')).toBeTruthy();
-            expect(screen.getByText('Sign in with Google')).toBeTruthy();
             expect(screen.getByText('Sign in with GitHub')).toBeTruthy();
         });
 
-        it('should apply provider color as background', () => {
+        it('should drop identity providers that are no longer returned for login', async () => {
             seedWithProviders([googleProvider]);
+            stubLoginMethods([]);
             renderLoginPage();
 
-            const button = screen.getByText('Sign in with Google').closest('button')!;
+            await screen.findByLabelText('Username');
+            expect(screen.queryByText('Sign in with Google')).toBeNull();
+        });
+
+        it('should keep previous identity providers when social-identities cannot be loaded', async () => {
+            seedWithProviders([googleProvider]);
+            respondWithError('get', `${TEST_MANAGEMENT_BASE}/social-identities`, 500);
+            renderLoginPage();
+
+            expect(await screen.findByText('Sign in with Google')).toBeTruthy();
+        });
+
+        it('should show identity providers without the password form when local login is disabled', async () => {
+            stubLoginMethods([googleProvider], false);
+            renderLoginPage();
+
+            expect(await screen.findByText('Sign in with Google')).toBeTruthy();
+            expect(screen.queryByLabelText('Username')).toBeNull();
+            expect(screen.queryByText('or')).toBeNull();
+        });
+
+        it('should apply provider color as background', async () => {
+            stubLoginMethods([googleProvider]);
+            renderLoginPage();
+
+            const button = (await screen.findByText('Sign in with Google')).closest('button')!;
             expect(button.style.backgroundColor).toBe('rgb(66, 133, 244)');
             // #4285F4 has luminance ~0.24 (above 0.179 threshold), so text is black
             expect(button.style.color).toBe('black');
         });
 
-        it('should not apply inline color when provider has no color', () => {
-            seedWithProviders([noColorProvider]);
+        it('should not apply inline color when provider has no color', async () => {
+            stubLoginMethods([noColorProvider]);
             renderLoginPage();
 
-            const button = screen.getByText('Sign in with Corporate SSO').closest('button')!;
+            const button = (await screen.findByText('Sign in with Corporate SSO')).closest('button')!;
             // No inline styles — uses Button variant="outline" default styling
             expect(button.style.backgroundColor).toBe('');
             expect(button.style.color).toBe('');
         });
 
-        it('should use white text on dark provider color', () => {
+        it('should use white text on dark provider color', async () => {
             const darkProvider: SocialIdentityProvider = { ...githubProvider, color: '#111111' };
-            seedWithProviders([darkProvider]);
+            stubLoginMethods([darkProvider]);
             renderLoginPage();
 
-            const button = screen.getByText('Sign in with GitHub').closest('button')!;
+            const button = (await screen.findByText('Sign in with GitHub')).closest('button')!;
             expect(button.style.color).toBe('white');
         });
 
         it('should call loginWithProvider on IdP button click', async () => {
             const user = userEvent.setup();
-            seedWithProviders([googleProvider]);
+            stubLoginMethods([googleProvider]);
             const loginWithProviderSpy = jest.spyOn(useAuthStore.getState(), 'loginWithProvider').mockResolvedValue();
             renderLoginPage();
 
-            await user.click(screen.getByText('Sign in with Google'));
+            await user.click(await screen.findByText('Sign in with Google'));
 
             expect(loginWithProviderSpy).toHaveBeenCalledWith('google-idp', '/');
             loginWithProviderSpy.mockRestore();
@@ -184,11 +276,11 @@ describe('LoginPage', () => {
 
         it('should show error when IdP login fails', async () => {
             const user = userEvent.setup();
-            seedWithProviders([googleProvider]);
+            stubLoginMethods([googleProvider]);
             jest.spyOn(useAuthStore.getState(), 'loginWithProvider').mockRejectedValue(new Error('IdP error'));
             renderLoginPage();
 
-            await user.click(screen.getByText('Sign in with Google'));
+            await user.click(await screen.findByText('Sign in with Google'));
 
             expect(await screen.findByRole('alert')).toBeTruthy();
             expect(screen.getByText('Failed to start identity provider authentication.')).toBeTruthy();
@@ -196,7 +288,7 @@ describe('LoginPage', () => {
 
         it('should pass redirect param to loginWithProvider', async () => {
             const user = userEvent.setup();
-            seedWithProviders([googleProvider]);
+            stubLoginMethods([googleProvider]);
             const loginWithProviderSpy = jest.spyOn(useAuthStore.getState(), 'loginWithProvider').mockResolvedValue();
 
             render(
@@ -205,7 +297,7 @@ describe('LoginPage', () => {
                 </MemoryRouter>,
             );
 
-            await user.click(screen.getByText('Sign in with Google'));
+            await user.click(await screen.findByText('Sign in with Google'));
 
             expect(loginWithProviderSpy).toHaveBeenCalledWith('google-idp', '/dashboard');
             loginWithProviderSpy.mockRestore();

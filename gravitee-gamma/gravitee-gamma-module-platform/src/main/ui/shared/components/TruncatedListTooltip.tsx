@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-export const authenticationKeys = {
-    all: ['org-authentication'] as const,
-    providers: () => [...authenticationKeys.all, 'providers'] as const,
-    activations: () => [...authenticationKeys.all, 'activations'] as const,
-    detail: (id: string) => [...authenticationKeys.all, 'detail', id] as const,
-} as const;
+export const TRUNCATED_LIST_TOOLTIP_CONTENT_CLASS = 'block max-w-xs items-start p-1 text-left text-xs';
+
+export function TruncatedListTooltipContent({ labels }: Readonly<{ labels: readonly string[] }>) {
+    return <span className="min-w-0 max-h-48 overflow-y-auto [overflow-wrap:anywhere]">{labels.join(', ')}</span>;
+}

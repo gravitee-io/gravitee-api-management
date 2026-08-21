@@ -17,8 +17,8 @@ import { renderWithGraphene } from '@gravitee/graphene-core/testing';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { RoleListTooltipContent } from './RoleListTooltip';
 import { UserRoleMultiSelect } from './UserRoleMultiSelect';
+import { TruncatedListTooltipContent } from '../../../shared/components/TruncatedListTooltip';
 
 const OPTIONS = [
     { value: 'admin', label: 'ADMIN' },
@@ -151,10 +151,49 @@ describe('UserRoleMultiSelect', () => {
         expect(screen.getByText('No organization roles')).toBeTruthy();
     });
 
+    it('shows the first three selected roles and the full list on hover', async () => {
+        const user = userEvent.setup();
+        const options = [
+            { value: 'org-2', label: 'ORGANIZATION_2' },
+            { value: 'org', label: 'ORG' },
+            { value: 'org-1', label: 'ORGANIZATION_1' },
+            { value: 'user', label: 'USER' },
+        ];
+
+        renderWithGraphene(
+            <UserRoleMultiSelect
+                options={options}
+                selectedValues={['org-2', 'org', 'org-1', 'user']}
+                onSelectedValuesChange={jest.fn()}
+                ariaLabel="Organization roles"
+            />,
+        );
+
+        expect(screen.getByText('ORGANIZATION_2, ORG, ORGANIZATION_1...')).toBeTruthy();
+        expect(screen.queryByText('ORGANIZATION_2, ORG, ORGANIZATION_1, USER')).toBeNull();
+
+        await user.hover(screen.getByText('ORGANIZATION_2, ORG, ORGANIZATION_1...'));
+        expect((await screen.findByRole('tooltip')).textContent).toBe('ORGANIZATION_2, ORG, ORGANIZATION_1, USER');
+    });
+
+    it('shows every selected role when there are three or fewer', () => {
+        renderWithGraphene(
+            <UserRoleMultiSelect
+                options={OPTIONS}
+                selectedValues={['admin', 'publisher']}
+                onSelectedValuesChange={jest.fn()}
+                ariaLabel="Organization roles"
+            />,
+        );
+
+        expect(screen.getByText('ADMIN, API_PUBLISHER')).toBeTruthy();
+        expect(screen.queryByText('ADMIN, API_PUBLISHER...')).toBeNull();
+    });
+
     it('renders a comma-separated tooltip with every role name intact', () => {
         const labels = ['Admin', 'ORG_TEST1', 'ORG_TEST10', 'AAASKLNG_LSDJGH_OSRGUH_OURGHS_OUGOSUHG_SOUHFOSDUHAOUGI', 'User'];
 
-        renderWithGraphene(<RoleListTooltipContent labels={labels} />);
+        renderWithGraphene(<TruncatedListTooltipContent labels={labels} />);
 
         expect(screen.getByText(labels.join(', '))).toBeTruthy();
     });

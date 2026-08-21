@@ -21,3 +21,4 @@ export const useIsAuthenticated = () => useAuthStore(s => !!s.user);
 export const useLogin = () => useAuthStore(s => s.login);
 export const useLogout = () => useAuthStore(s => s.logout);
 export const useIdentityProviders = () => useBootstrapStore(s => s.config?.identityProviders ?? []);
+export const useLocalLoginEnabled = () => useBootstrapStore(s => s.config?.localLoginEnabled ?? true);

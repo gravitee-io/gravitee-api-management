@@ -16,6 +16,7 @@
 
 export const ORGANIZATION_IDENTITY_PROVIDER_READ_PERMISSION = 'organization-identity_provider-r' as const;
 export const ORGANIZATION_IDENTITY_PROVIDER_CREATE_PERMISSION = 'organization-identity_provider-c' as const;
+export const ORGANIZATION_IDENTITY_PROVIDER_UPDATE_PERMISSION = 'organization-identity_provider-u' as const;
 export const ORGANIZATION_IDENTITY_PROVIDER_DELETE_PERMISSION = 'organization-identity_provider-d' as const;
 export const ORGANIZATION_IDENTITY_PROVIDER_ACTIVATION_UPDATE_PERMISSION = 'organization-identity_provider_activation-u' as const;
 export const ORGANIZATION_SETTINGS_UPDATE_PERMISSION = 'organization-settings-u' as const;
