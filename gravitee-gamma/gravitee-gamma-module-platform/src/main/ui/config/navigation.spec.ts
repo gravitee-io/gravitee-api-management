@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CloudIcon, GlobeIcon, GroupIcon, UsersIcon } from '@gravitee/graphene-core/icons';
+import { CloudIcon, GlobeIcon, UsersIcon, UsersRoundIcon } from '@gravitee/graphene-core/icons';
 
 import { filterNavSections, findNavSectionKey, firstNavItemKey, NAV_SECTIONS, platformPrimaryNavItems } from './navigation';
 import { PLATFORM_ROUTE_CONFIG, ROUTES } from './routes';
@@ -44,6 +44,7 @@ describe('platform navigation config', () => {
     it('places Access Management, Management & Schedulers, CORS, SMTP, then Audit under Organization / System & Security', () => {
         expect(sectionKeys('Organization', 'System & Security')).toEqual([
             'access-management',
+            'authentication',
             'management-and-schedulers',
             'cors',
             'smtp',
@@ -51,8 +52,7 @@ describe('platform navigation config', () => {
         ]);
     });
 
-    it('does not add Authentication or Templates nav items', () => {
-        expect(sectionKeys('Organization', 'System & Security')).not.toContain('authentication');
+    it('does not add a Templates nav item', () => {
         expect(sectionKeys('Organization', 'System & Security')).not.toContain('templates');
     });
 
@@ -70,7 +70,7 @@ describe('platform navigation config', () => {
         expect(teamGroup?.items[0]?.title).toBe('Users');
         expect(teamGroup?.items[0]?.icon).toBe(UsersIcon);
         expect(teamGroup?.items[1]?.title).toBe('Groups');
-        expect(teamGroup?.items[1]?.icon).toBe(GroupIcon);
+        expect(teamGroup?.items[1]?.icon).toBe(UsersRoundIcon);
     });
 
     it('builds unlabeled primary items from visible sections', () => {
@@ -85,6 +85,7 @@ describe('platform navigation config', () => {
         expect(findNavSectionKey(NAV_SECTIONS, 'users')).toBe('team');
         expect(findNavSectionKey(NAV_SECTIONS, 'access-management')).toBe('organization');
         expect(findNavSectionKey(NAV_SECTIONS, 'tenants')).toBe('organization');
+        expect(findNavSectionKey(NAV_SECTIONS, 'authentication')).toBe('organization');
         expect(findNavSectionKey(NAV_SECTIONS, 'organization-audit')).toBe('organization');
         expect(findNavSectionKey(NAV_SECTIONS, 'environment-audit')).toBe('environment');
         expect(findNavSectionKey(NAV_SECTIONS, 'missing')).toBeUndefined();
@@ -146,5 +147,10 @@ describe('platform navigation config', () => {
         });
         expect(ROUTES.cors).toEqual({ path: 'cors', label: 'CORS' });
         expect(ROUTES.smtp).toEqual({ path: 'smtp', label: 'SMTP' });
+    });
+
+    it('declares the authentication route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('authentication');
+        expect(ROUTES.authentication).toEqual({ path: 'authentication', label: 'Authentication' });
     });
 });

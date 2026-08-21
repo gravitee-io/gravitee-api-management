@@ -29,6 +29,7 @@ export interface ChipInputProps {
     readonly suggestions?: readonly string[];
     readonly invalid?: boolean;
     readonly describedBy?: string;
+    readonly required?: boolean;
     /** When false, blur discards the draft instead of committing it (Classic CORS headers). Default true. */
     readonly addOnBlur?: boolean;
 }
@@ -43,6 +44,7 @@ export function ChipInput({
     suggestions = [],
     invalid = false,
     describedBy,
+    required = false,
     addOnBlur = true,
 }: ChipInputProps) {
     const [draft, setDraft] = useState('');
@@ -115,6 +117,7 @@ export function ChipInput({
                     aria-activedescendant={activeDescendant}
                     aria-invalid={invalid || undefined}
                     aria-describedby={describedBy}
+                    aria-required={required || undefined}
                     autoComplete="off"
                     onChange={event => {
                         setDraft(event.target.value);

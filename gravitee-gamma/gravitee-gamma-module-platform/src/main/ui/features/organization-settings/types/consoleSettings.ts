@@ -68,6 +68,17 @@ export interface ConsoleSettingsMetadata {
     readonly?: string[];
 }
 
+export interface ConsoleSettingsClientId {
+    clientId?: string;
+}
+
+export interface ConsoleSettingsAuthentication {
+    localLogin?: DisableableFeature;
+    google?: ConsoleSettingsClientId;
+    github?: ConsoleSettingsClientId;
+    oauth2?: ConsoleSettingsClientId;
+}
+
 /**
  * Org console settings from GET/POST `/organizations/{orgId}/settings`.
  * Extra backend fields are preserved via index signature so a section save cannot drop them.
@@ -79,5 +90,6 @@ export interface ConsoleSettings {
     scheduler?: ConsoleSettingsScheduler;
     management?: ConsoleSettingsManagement;
     trialInstance?: DisableableFeature;
+    authentication?: ConsoleSettingsAuthentication;
     [key: string]: unknown;
 }

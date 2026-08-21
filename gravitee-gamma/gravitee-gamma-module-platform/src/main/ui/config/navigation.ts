@@ -21,8 +21,8 @@ import {
     BoxesIcon,
     CloudIcon,
     DatabaseIcon,
+    FingerprintIcon,
     GlobeIcon,
-    GroupIcon,
     KeyIcon,
     LayersIcon,
     MailIcon,
@@ -32,6 +32,7 @@ import {
     SettingsIcon,
     ShieldIcon,
     UsersIcon,
+    UsersRoundIcon,
 } from '@gravitee/graphene-core/icons';
 import type { ElementType } from 'react';
 
@@ -71,6 +72,7 @@ export const NAV_SECTIONS: PlatformNavSection[] = [
                 label: 'System & Security',
                 items: [
                     { key: 'access-management', title: ROUTES['access-management'].label, icon: ShieldIcon },
+                    { key: 'authentication', title: ROUTES.authentication.label, icon: FingerprintIcon },
                     { key: 'management-and-schedulers', title: ROUTES['management-and-schedulers'].label, icon: SettingsIcon },
                     { key: 'cors', title: ROUTES.cors.label, icon: GlobeIcon },
                     { key: 'smtp', title: ROUTES.smtp.label, icon: MailIcon },
@@ -113,7 +115,7 @@ export const NAV_SECTIONS: PlatformNavSection[] = [
                 label: 'Team',
                 items: [
                     { key: 'users', title: ROUTES.users.label, icon: UsersIcon },
-                    { key: 'user-groups', title: ROUTES['user-groups'].label, icon: GroupIcon },
+                    { key: 'user-groups', title: ROUTES['user-groups'].label, icon: UsersRoundIcon },
                 ],
             },
         ],
