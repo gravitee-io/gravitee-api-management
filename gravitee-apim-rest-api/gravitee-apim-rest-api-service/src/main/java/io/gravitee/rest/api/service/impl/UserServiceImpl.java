@@ -54,7 +54,6 @@ import io.gravitee.apim.core.user.domain_service.AssignUserDefaultRolesDomainSer
 import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.el.TemplateEngine;
-import io.gravitee.el.spel.function.json.JsonPathFunction;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.UserRepository;
@@ -205,15 +204,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     private static final String TEMPLATE_ENGINE_IDTOKEN_ATTRIBUTE = "idToken";
     private static final ObjectMapper CLAIMS_MAPPER = new ObjectMapper();
     private static final String PORTAL_REGISTRATION_CONFIRMATION_PATH = "/user/registration/confirm";
-
-    // Dirty hack: only used to force class loading
-    static {
-        try {
-            log.trace("Loading class to initialize properly JsonPath Cache provider: {}", Class.forName(JsonPathFunction.class.getName()));
-        } catch (ClassNotFoundException | ExceptionInInitializerError ignored) {
-            log.trace("Loading class to initialize properly JsonPath Cache provider : fail");
-        }
-    }
 
     @Lazy
     @Autowired
