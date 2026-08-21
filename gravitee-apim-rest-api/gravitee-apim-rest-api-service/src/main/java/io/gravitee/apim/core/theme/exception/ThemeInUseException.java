@@ -13,23 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal.crud_service;
+package io.gravitee.apim.core.theme.exception;
 
-import io.gravitee.apim.core.portal.model.Portal;
-import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
-public interface PortalCrudService {
-    Portal create(Portal portal);
+public class ThemeInUseException extends ValidationDomainException {
 
-    Portal update(Portal portal);
-
-    Optional<Portal> findByIdAndEnvironmentId(PortalId portalId, String environmentId);
-
-    List<Portal> findByEnvironmentId(String environmentId);
-
-    List<Portal> findByActiveThemeIdAndEnvironmentId(String activeThemeId, String environmentId);
-
-    void delete(PortalId portalId);
+    public ThemeInUseException(String themeId, List<String> referencingPortalIds) {
+        super(
+            "Theme cannot be deleted as it is still referenced by portal(s).",
+            Map.of("themeId", themeId, "portalIds", String.join(",", referencingPortalIds))
+        );
+    }
 }

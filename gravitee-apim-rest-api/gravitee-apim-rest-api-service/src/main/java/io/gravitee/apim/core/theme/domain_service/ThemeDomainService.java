@@ -31,6 +31,10 @@ public class ThemeDomainService {
     private final ThemeCrudService themeCrudService;
 
     public Theme create(NewTheme newTheme) {
+        return this.create(newTheme, UuidString.generateRandom());
+    }
+
+    public Theme create(NewTheme newTheme, String id) {
         var currentTime = ZonedDateTime.now();
 
         var themeToBeCreated = Theme.builder()
@@ -45,7 +49,7 @@ public class ThemeDomainService {
             .optionalLogo(newTheme.getOptionalLogo())
             .favicon(newTheme.getFavicon())
             .backgroundImage(newTheme.getBackgroundImage())
-            .id(UuidString.generateRandom())
+            .id(id)
             .createdAt(currentTime)
             .updatedAt(currentTime)
             .build();

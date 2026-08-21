@@ -16,9 +16,12 @@
 package io.gravitee.apim.core.theme.crud_service;
 
 import io.gravitee.apim.core.theme.model.Theme;
+import java.util.Optional;
 
 public interface ThemeCrudService {
     Theme create(Theme theme);
     Theme update(Theme theme);
     Theme get(String id);
+    Optional<Theme> findByIdAndEnvironmentId(String id, String environmentId);
+    void delete(String id);
 }
