@@ -151,6 +151,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
           domain: 'Domain',
           scopes: null,
           serverURL: 'ServerURL',
+          tokenEndpointAuthMethod: null,
         },
         userProfileMapping: {
           email: 'email',
@@ -270,6 +271,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
           domain: 'Domain',
           scopes: ['Scope A', 'Scope B'],
           serverURL: 'ServerURL',
+          tokenEndpointAuthMethod: null,
         });
 
         const idInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=id]' }));
@@ -316,6 +318,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
             domain: 'Domain',
             scopes: ['Scope A', 'Scope B'],
             serverURL: 'ServerURL',
+            tokenEndpointAuthMethod: null,
           },
           userProfileMapping: {
             email: 'Email',
@@ -397,6 +400,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
 
         expect(fixture.componentInstance.identityProviderFormGroup.get('configuration').value).toEqual({
           authorizeEndpoint: 'AuthorizeEndpoint',
+          tokenEndpointAuthMethod: null,
           clientId: 'Client Id',
           clientSecret: 'Client Secret',
           color: '#ffffff',
@@ -446,6 +450,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
           type: 'OIDC',
           configuration: {
             authorizeEndpoint: 'AuthorizeEndpoint',
+            tokenEndpointAuthMethod: null,
             clientId: 'Client Id',
             clientSecret: 'Client Secret',
             color: '#ffffff',
@@ -509,6 +514,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
             color: null,
             scopes: ['openid', 'profile', 'email'],
             tokenEndpoint: 'TokenEndpoint',
+            tokenEndpointAuthMethod: null,
             tokenIntrospectionEndpoint: null,
             userInfoEndpoint: 'UserInfoEndpoint',
             userLogoutEndpoint: null,
@@ -583,6 +589,49 @@ describe('OrgSettingsIdentityProviderComponent', () => {
       });
     });
 
+    it('should keep the configured client authentication method when the provider is saved', async () => {
+      const identityProviderToUpdate = fakeIdentityProvider({
+        id: 'providerId',
+        type: 'OIDC',
+        name: 'OIDC Provider',
+        configuration: {
+          authorizeEndpoint: 'AuthorizeEndpoint',
+          clientId: 'Client Id',
+          clientSecret: 'Client Secret',
+          color: null,
+          scopes: ['openid'],
+          tokenEndpoint: 'TokenEndpoint',
+          tokenEndpointAuthMethod: 'client_secret_basic',
+          tokenIntrospectionEndpoint: null,
+          userInfoEndpoint: 'UserInfoEndpoint',
+          userLogoutEndpoint: null,
+        },
+        userProfileMapping: {
+          email: null,
+          firstname: null,
+          id: 'Id',
+          lastname: null,
+          picture: null,
+        },
+      });
+      expectIdentityProviderGetRequest(identityProviderToUpdate);
+      expectEnvironmentListRequest([]);
+
+      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
+      await nameInput.setValue('Renamed');
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+      await saveBar.clickSubmit();
+
+      // configuration is rebuilt wholesale from the enumerated controls on save, so without a control for this key an
+      // unrelated edit would drop it and quietly revert the provider to the endpoint defaults
+      expectIdentityProviderUpdateRequest('providerId', { ...identityProviderToUpdate, name: 'Renamed' });
+
+      expect(component.isLoading).toBe(true);
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/providerId`);
+    });
+
     it('should be in edit mode', async () => {
       expectIdentityProviderGetRequest(fakeIdentityProvider({ id: 'providerId' }));
       expectEnvironmentListRequest([]);
@@ -614,6 +663,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
             domain: 'Domain',
             scopes: null,
             serverURL: 'ServerURL',
+            tokenEndpointAuthMethod: null,
           },
           userProfileMapping: {
             email: null,
@@ -681,6 +731,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
           domain: 'Updated Domain',
           scopes: null,
           serverURL: 'UpdatedServerURL',
+          tokenEndpointAuthMethod: null,
         },
         userProfileMapping: {
           email: null,
@@ -715,6 +766,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
             domain: 'Domain',
             scopes: null,
             serverURL: 'ServerURL',
+            tokenEndpointAuthMethod: null,
           },
           userProfileMapping: {
             email: null,
@@ -832,6 +884,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
             domain: 'Domain',
             scopes: null,
             serverURL: 'ServerURL',
+            tokenEndpointAuthMethod: null,
           },
           userProfileMapping: {
             email: null,

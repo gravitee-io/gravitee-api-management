@@ -44,6 +44,17 @@
     </mat-form-field>
 
     <mat-form-field class="identity-provider__card__form-field">
+      <mat-label>Client Authentication Method</mat-label>
+      <mat-select name="configurationTokenEndpointAuthMethod" formControlName="tokenEndpointAuthMethod">
+        <mat-option [value]="null">Provider default</mat-option>
+        <mat-option *ngFor="let method of clientAuthenticationMethods" [value]="method.value">{{ method.label }}</mat-option>
+      </mat-select>
+      <mat-hint
+        >How APIM sends its credentials to the token and introspection endpoints. Leave unset to keep the current behavior.</mat-hint
+      >
+    </mat-form-field>
+
+    <mat-form-field class="identity-provider__card__form-field">
       <mat-label>Scopes</mat-label>
       <gio-form-tags-input placeholder="Enter a scope and press Enter" formControlName="scopes"></gio-form-tags-input>
     </mat-form-field>
