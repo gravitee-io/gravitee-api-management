@@ -1881,7 +1881,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     /**
      * Persists the IdP claims whitelisted on the social identity provider onto the user record, refreshing them on
-     * every login. When no whitelist is configured the feature is inactive and the user record is left untouched.
+     * every login. An absent or empty whitelist means nothing may be retained, so previously captured claims are
+     * removed at the user's next login (APIM-14840).
+     *
+     * <p>Removal is therefore only as timely as that login: a user who never authenticates again keeps whatever was
+     * captured, and no bulk purge or administrative delete exists to reach them.
      */
     private void persistWhitelistedClaims(
         List<String> whitelist,
@@ -1890,19 +1894,31 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         String accessTokenPayload,
         String idTokenPayload
     ) {
-        if (whitelist == null || whitelist.isEmpty()) {
-            return;
-        }
-        Map<String, String> idpClaims = extractWhitelistedClaims(whitelist, userInfo, accessTokenPayload, idTokenPayload);
+        // Null, not an empty map: User.setIdpClaims treats null as "no claims stored" and an empty map as a stored
+        // empty value, and only the former clears the column.
+        Map<String, String> idpClaims = whitelist == null || whitelist.isEmpty()
+            ? null
+            : extractWhitelistedClaims(whitelist, userInfo, accessTokenPayload, idTokenPayload);
         try {
             Optional<User> optionalUser = userRepository.findById(userId);
-            if (optionalUser.isPresent()) {
-                User user = optionalUser.get();
+            if (optionalUser.isEmpty()) {
+                // The user was created or refreshed a few statements ago, so this means concurrent deletion or replica
+                // lag. On a retention path a silent skip would leave no trace that the purge was even attempted.
+                log.warn("Cannot apply the IdP claims whitelist: user {} was not found", userId);
+                return;
+            }
+
+            User user = optionalUser.get();
+            // Every login reaches this point and most deployments configure no whitelist at all, so without this
+            // guard the common case would add a redundant write to each login.
+            if (!Objects.equals(user.getIdpClaims(), idpClaims)) {
                 user.setIdpClaims(idpClaims);
                 userRepository.update(user);
             }
         } catch (TechnicalException e) {
-            log.warn("Unable to persist IdP claims for user {}", userId, e);
+            // Deliberately not rethrown: a claims failure must not fail the login. Logged as a retention failure rather
+            // than a persistence one, because when the whitelist was cleared the claims are still stored.
+            log.error("Unable to apply the IdP claims whitelist for user {}; previously stored claims may remain", userId, e);
         }
     }
 
