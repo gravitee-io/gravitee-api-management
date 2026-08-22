@@ -43,8 +43,8 @@ public enum ClientAuthenticationMethod {
     }
 
     /**
-     * Resolves a configured value, accepting either the OIDC name ({@code client_secret_basic}) or the enum constant
-     * ({@code CLIENT_SECRET_BASIC}).
+     * Resolves a configured value. The comparison is case-insensitive, so the OIDC name ({@code client_secret_basic})
+     * and the enum constant ({@code CLIENT_SECRET_BASIC}) both resolve.
      *
      * @return the matching method, or {@code null} when the value is absent, blank or unrecognised. Callers decide what
      *         an unrecognised value means rather than having a login fail here on a configuration typo.
@@ -55,7 +55,7 @@ public enum ClientAuthenticationMethod {
         }
         String normalized = value.trim();
         for (ClientAuthenticationMethod method : values()) {
-            if (method.value.equalsIgnoreCase(normalized) || method.name().equalsIgnoreCase(normalized)) {
+            if (method.value.equalsIgnoreCase(normalized)) {
                 return method;
             }
         }

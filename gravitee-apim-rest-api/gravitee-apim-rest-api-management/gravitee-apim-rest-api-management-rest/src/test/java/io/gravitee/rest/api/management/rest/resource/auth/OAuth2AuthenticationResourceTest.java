@@ -56,6 +56,7 @@ import jakarta.ws.rs.core.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
@@ -384,13 +385,22 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         );
     }
 
+    /** Carries detail a caller must never see, so relaying the provider's raw body fails these tests. */
+    private static final String PROVIDER_REJECTION_BODY =
+        "{\"error\":\"invalid_client\",\"error_description\":\"client not found in realm internal-realm-7\",\"trace\":\"provider-node-3\"}";
+
+    private void assertRelaysOnlyTheErrorCode(String body) {
+        assertTrue(body.contains("invalid_client"), "the provider's own error code must reach the caller, got: " + body);
+        assertFalse(body.contains("internal-realm-7"), "the provider's response detail must not be relayed, got: " + body);
+        assertFalse(body.contains("provider-node-3"), "the provider's response detail must not be relayed, got: " + body);
+        assertFalse(body.contains("error_description"), "the provider's response detail must not be relayed, got: " + body);
+    }
+
     @Test
     public void should_report_invalid_client_on_token_request_instead_of_an_empty_unauthorized() throws Exception {
         // Given
         mockDefaultEnvironment();
-        stubFor(
-            post("/token").willReturn(aResponse().withStatus(HttpStatusCode.UNAUTHORIZED_401).withBody("{\"error\":\"invalid_client\"}"))
-        );
+        stubFor(post("/token").willReturn(aResponse().withStatus(HttpStatusCode.UNAUTHORIZED_401).withBody(PROVIDER_REJECTION_BODY)));
 
         // When
         Response response = orgTarget().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
@@ -398,7 +408,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         // Then
         assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
         String body = response.readEntity(String.class);
-        assertTrue(body.contains("invalid_client"), "the provider's own error must reach the caller, got: " + body);
+        assertRelaysOnlyTheErrorCode(body);
         assertTrue(
             body.contains("tokenEndpointAuthMethod"),
             "an invalid_client failure must name the client authentication method as the likely cause, got: " + body
@@ -409,11 +419,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     public void should_report_invalid_client_on_introspection_instead_of_a_server_error() throws Exception {
         // Given
         mockDefaultEnvironment();
-        stubFor(
-            post("/introspect").willReturn(
-                aResponse().withStatus(HttpStatusCode.UNAUTHORIZED_401).withBody("{\"error\":\"invalid_client\"}")
-            )
-        );
+        stubFor(post("/introspect").willReturn(aResponse().withStatus(HttpStatusCode.UNAUTHORIZED_401).withBody(PROVIDER_REJECTION_BODY)));
 
         // When
         Response response = orgTarget().path("exchange").queryParam("token", "MyToken").request().post(json(null));
@@ -421,11 +427,52 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         // Then
         assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
         String body = response.readEntity(String.class);
-        assertTrue(body.contains("invalid_client"), "the provider's own error must reach the caller, got: " + body);
+        assertRelaysOnlyTheErrorCode(body);
         assertTrue(
             body.contains("tokenEndpointAuthMethod"),
             "an invalid_client failure must name the client authentication method as the likely cause, got: " + body
         );
+    }
+
+    @Test
+    public void should_not_suggest_the_client_authentication_method_for_an_unrelated_error() throws Exception {
+        // Given
+        mockDefaultEnvironment();
+        stubFor(
+            post("/token").willReturn(aResponse().withStatus(HttpStatusCode.BAD_REQUEST_400).withBody("{\"error\":\"invalid_grant\"}"))
+        );
+
+        // When
+        Response response = orgTarget().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
+
+        // Then
+        String body = response.readEntity(String.class);
+        assertTrue(body.contains("invalid_grant"), "the provider's own error code must reach the caller, got: " + body);
+        assertFalse(
+            body.contains("tokenEndpointAuthMethod"),
+            "the client authentication hint must be reserved for credential rejections, got: " + body
+        );
+    }
+
+    @Test
+    public void should_report_a_non_json_provider_response_without_relaying_it() throws Exception {
+        // Given
+        mockDefaultEnvironment();
+        stubFor(
+            post("/token").willReturn(
+                aResponse().withStatus(HttpStatusCode.BAD_GATEWAY_502).withBody("<html><body>nginx: upstream 10.0.0.7 down</body></html>")
+            )
+        );
+
+        // When
+        Response response = orgTarget().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
+
+        // Then
+        String body = response.readEntity(String.class);
+        // A provider that is unreachable must not be reported as a credential problem
+        assertTrue(body.contains("identity_provider_unavailable"), "an unreachable provider must be named as such, got: " + body);
+        assertFalse(body.contains("10.0.0.7"), "the provider's response body must not be relayed, got: " + body);
+        assertFalse(body.contains("tokenEndpointAuthMethod"), "an outage must not be blamed on the auth method, got: " + body);
     }
 
     private void mockTokenEndpoint() throws IOException {
@@ -447,7 +494,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     }
 
     private static String expectedBasicAuthorization() {
-        return "Basic " + Base64.getEncoder().encodeToString("the_client_id:the_client_secret".getBytes());
+        return "Basic " + Base64.getEncoder().encodeToString("the_client_id:the_client_secret".getBytes(StandardCharsets.UTF_8));
     }
 
     private static void mockIntrospectToken() {
