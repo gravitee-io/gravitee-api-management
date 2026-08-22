@@ -75,6 +75,11 @@ public class User {
 
     /**
      * IdP claims captured at login (whitelisted on the identity provider), for later use such as DCR injection.
+     *
+     * <p>{@code null} and an empty map are not interchangeable, and callers rely on the difference: {@code null} means
+     * no claims are stored and clears the value, while an empty map is itself a stored value. Every implementation of
+     * {@link io.gravitee.repository.management.api.UserRepository} must preserve that distinction, so a caller wanting
+     * to remove what was captured sets {@code null} rather than an empty map.
      */
     private Map<String, String> idpClaims;
 

@@ -7,5 +7,6 @@
   "picture":"http://example.com/janedoe/me.jpg",
   "identity_provider_id": "idp_5",
   "job_id": "API_FRIENDLY_USER",
-  "service_id": "585252525"
+  "service_id": "585252525",
+  "groups": ["platform-admin", "api-reviewer"]
 }
