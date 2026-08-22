@@ -40,6 +40,8 @@ public final class FilterContext {
     private Long responseTimeFrom;
     private Long responseTimeTo;
     private Set<String> errorKeys;
+    private Set<String> nativeClientIds;
+    private Set<String> nativeClientSoftwareNames;
     private Set<String> apiProductIds;
     private Set<String> tenants;
     private String bodyText;
@@ -111,6 +113,14 @@ public final class FilterContext {
 
     public void limitByErrorKeys(Set<String> errorKeys) {
         this.errorKeys = limitBy(this.errorKeys, errorKeys);
+    }
+
+    public void limitByNativeClientIds(Set<String> nativeClientIds) {
+        this.nativeClientIds = limitBy(this.nativeClientIds, nativeClientIds);
+    }
+
+    public void limitByNativeClientSoftwareNames(Set<String> nativeClientSoftwareNames) {
+        this.nativeClientSoftwareNames = limitBy(this.nativeClientSoftwareNames, nativeClientSoftwareNames);
     }
 
     public void limitByApiProductIds(Set<String> apiProductIds) {
@@ -211,6 +221,14 @@ public final class FilterContext {
 
     public Optional<Set<String>> errorKeys() {
         return Optional.ofNullable(errorKeys);
+    }
+
+    public Optional<Set<String>> nativeClientIds() {
+        return Optional.ofNullable(nativeClientIds);
+    }
+
+    public Optional<Set<String>> nativeClientSoftwareNames() {
+        return Optional.ofNullable(nativeClientSoftwareNames);
     }
 
     public Optional<Set<String>> apiProductIds() {

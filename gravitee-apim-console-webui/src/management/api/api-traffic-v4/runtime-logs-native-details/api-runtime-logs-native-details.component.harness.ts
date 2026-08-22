@@ -26,6 +26,8 @@ export class ApiRuntimeLogsNativeDetailsHarness extends ComponentHarness {
   private readonly serverCard = this.locatorForOptional('[data-testid=native_log_server_card]');
   private readonly errorCard = this.locatorForOptional('[data-testid=native_log_error_card]');
   private readonly backLink = this.locatorForOptional('[data-testid=native_log_back]');
+  private readonly clientCardLabels = this.locatorForAll('[data-testid=native_log_client_card] dt');
+  private readonly clientCardValues = this.locatorForAll('[data-testid=native_log_client_card] dd');
 
   isNotFoundBannerVisible(): Promise<boolean> {
     return this.notFoundBanner().then(el => el != null);
@@ -61,5 +63,20 @@ export class ApiRuntimeLogsNativeDetailsHarness extends ComponentHarness {
 
   clientCardText(): Promise<string> {
     return this.clientCard().then(el => (el ? el.text() : ''));
+  }
+
+  /**
+   * The client card as [label, value] pairs, so a test can assert on a rendered value — including the
+   * '—' the template falls back to — rather than on the presence of a static <dt> label, which stays
+   * green when a binding points at the wrong property.
+   */
+  async clientCardRows(): Promise<[string, string][]> {
+    const labels = await this.clientCardLabels();
+    const values = await this.clientCardValues();
+    const rows: [string, string][] = [];
+    for (let i = 0; i < Math.min(labels.length, values.length); i++) {
+      rows.push([await labels[i].text(), await values[i].text()]);
+    }
+    return rows;
   }
 }

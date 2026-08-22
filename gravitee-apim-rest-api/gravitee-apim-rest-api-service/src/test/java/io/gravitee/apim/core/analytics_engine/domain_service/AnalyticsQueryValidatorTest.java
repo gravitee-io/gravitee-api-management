@@ -197,7 +197,10 @@ class AnalyticsQueryValidatorTest {
         @Test
         void should_reject_exactly_the_filters_the_catalog_withholds_from_analytics() {
             // Guards the move from a hand-kept denylist to the catalog's signal axis: the set of rejected
-            // filters must still be the four logs-only ones, no more and no less.
+            // filters must be exactly the logs-only ones, no more and no less. NATIVE_CLIENT_SOFTWARE_NAME
+            // joins them — it is in the catalog so the filter bar can list its values, but the analytics
+            // engine has no dimension for it, and being accepted here would reach a MapStruct mapping
+            // annotated THROW_EXCEPTION, turning a 400 into a 500.
             var rejected = Arrays.stream(FilterSpec.Name.values())
                 .filter(name -> !accepts(name))
                 .toList();
@@ -206,7 +209,8 @@ class AnalyticsQueryValidatorTest {
                 FilterSpec.Name.PAYLOAD,
                 FilterSpec.Name.ERROR_KEY,
                 FilterSpec.Name.REQUEST_ID,
-                FilterSpec.Name.TRANSACTION_ID
+                FilterSpec.Name.TRANSACTION_ID,
+                FilterSpec.Name.NATIVE_CLIENT_SOFTWARE_NAME
             );
         }
 

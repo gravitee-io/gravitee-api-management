@@ -725,6 +725,58 @@ class ObservabilityLogsDataPortAdapterTest {
     }
 
     @Nested
+    class DetailCredential {
+
+        /**
+         * securityType/securityToken are root document fields carried by every API type, and on an HTTP
+         * document the token is the credential verbatim (ApiKeyAuthenticationHandler does
+         * setSecurityToken(apiKey)). Returning it here would hand a subscriber's live API key to anyone
+         * holding log-read permission, so the detail must expose the pair only for native connections —
+         * where the reactor deliberately never writes the key.
+         */
+        @Test
+        void should_not_expose_the_security_credential_on_a_non_native_document() {
+            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1"))).thenReturn(
+                Optional.of(
+                    io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder()
+                        .apiId("api-1")
+                        .requestId("req-1")
+                        .securityType("API_KEY")
+                        .securityToken("f4c1a0de-live-api-key")
+                        .build()
+                )
+            );
+            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any())).thenReturn(Optional.empty());
+
+            var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            assertThat(detail.securityToken()).isNull();
+            assertThat(detail.securityType()).isNull();
+        }
+
+        @Test
+        void should_expose_the_security_credential_on_a_native_connection_document() {
+            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1"))).thenReturn(
+                Optional.of(
+                    io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder()
+                        .apiId("api-1")
+                        .requestId("req-1")
+                        .securityType("JWT")
+                        .securityToken("oauth-client-1")
+                        .additionalMetrics(Map.of(NativeApiMetricKeys.CONNECTION_STATUS, "CONNECTED"))
+                        .build()
+                )
+            );
+            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any())).thenReturn(Optional.empty());
+
+            var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            assertThat(detail.securityType()).isEqualTo("JWT");
+            assertThat(detail.securityToken()).isEqualTo("oauth-client-1");
+        }
+    }
+
+    @Nested
     class AuthzDecisions {
 
         @Test

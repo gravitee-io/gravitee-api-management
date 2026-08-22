@@ -203,7 +203,9 @@ class ObservabilityFiltersDefinitionResourceTest extends AbstractResourceTest {
                     "REQUEST_ID",
                     "TRANSACTION_ID",
                     "PAYLOAD",
-                    "TENANT"
+                    "TENANT",
+                    "NATIVE_CLIENT_ID",
+                    "NATIVE_CLIENT_SOFTWARE_NAME"
                 );
                 // The filters APIM-14817 reported as offered-but-ignored on the logs screen.
                 assertThat(names(filters)).doesNotContain("GATEWAY", "HTTP_ENDPOINT_RESPONSE_TIME", "GEO_IP_COUNTRY");

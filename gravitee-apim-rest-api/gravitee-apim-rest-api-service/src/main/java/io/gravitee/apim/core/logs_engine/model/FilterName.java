@@ -29,6 +29,8 @@ public enum FilterName {
     URI,
     RESPONSE_TIME,
     ERROR_KEY,
+    NATIVE_CLIENT_ID,
+    NATIVE_CLIENT_SOFTWARE_NAME,
     API_PRODUCT,
     API_TYPE,
     PAYLOAD,
