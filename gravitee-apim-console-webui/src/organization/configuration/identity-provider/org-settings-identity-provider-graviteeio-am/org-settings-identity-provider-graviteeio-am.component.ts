@@ -17,6 +17,7 @@ import { Component } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
 import { ProviderConfiguration } from '../org-settings-identity-provider.component';
+import { CLIENT_AUTHENTICATION_METHODS } from '../../../../entities/identity-provider';
 
 @Component({
   selector: 'org-settings-identity-provider-graviteeio-am',
@@ -27,11 +28,14 @@ import { ProviderConfiguration } from '../org-settings-identity-provider.compone
 export class OrgSettingsIdentityProviderGraviteeioAmComponent implements ProviderConfiguration {
   name = 'OrgSettingsIdentityProviderGraviteeioAmComponent';
 
+  clientAuthenticationMethods = CLIENT_AUTHENTICATION_METHODS;
+
   configurationFormGroup: UntypedFormGroup = new UntypedFormGroup({
     clientId: new UntypedFormControl(null, Validators.required),
     clientSecret: new UntypedFormControl(null, Validators.required),
     serverURL: new UntypedFormControl(null, Validators.required),
     domain: new UntypedFormControl(null, Validators.required),
+    tokenEndpointAuthMethod: new UntypedFormControl(),
     scopes: new UntypedFormControl(),
     color: new UntypedFormControl(),
   });

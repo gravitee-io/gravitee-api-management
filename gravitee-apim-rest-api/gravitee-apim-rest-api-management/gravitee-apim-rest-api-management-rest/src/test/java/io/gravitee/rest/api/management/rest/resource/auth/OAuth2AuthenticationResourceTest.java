@@ -41,6 +41,7 @@ import io.gravitee.rest.api.management.rest.model.ExchangePayloadEntity;
 import io.gravitee.rest.api.management.rest.model.TokenEntity;
 import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.configuration.identity.ClientAuthenticationMethod;
 import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderType;
 import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
@@ -55,6 +56,7 @@ import jakarta.ws.rs.core.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
@@ -298,6 +300,201 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         verify(userService, times(1)).connect(any(), eq(userEntity.getSourceId()));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         verifyJwtToken(response);
+    }
+
+    @Test
+    public void should_send_client_credentials_in_token_request_body_when_no_auth_method_configured() throws Exception {
+        // Given
+        mockDefaultEnvironment();
+        mockTokenEndpoint();
+        mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
+        mockConnectedUser();
+
+        // When
+        Response response = orgTarget().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
+
+        // Then
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        WireMock.verify(
+            postRequestedFor(urlEqualTo("/token"))
+                .withHeader(HttpHeaders.AUTHORIZATION, absent())
+                .withRequestBody(containing("client_secret=the_client_secret"))
+        );
+    }
+
+    @Test
+    public void should_send_client_credentials_as_basic_auth_in_token_request_when_configured() throws Exception {
+        // Given
+        mockDefaultEnvironment();
+        identityProvider.setTokenEndpointAuthMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC);
+        mockTokenEndpoint();
+        mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
+        mockConnectedUser();
+
+        // When
+        Response response = orgTarget().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
+
+        // Then
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        WireMock.verify(
+            postRequestedFor(urlEqualTo("/token"))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo(expectedBasicAuthorization()))
+                .withRequestBody(notContaining("client_secret"))
+        );
+    }
+
+    @Test
+    public void should_authenticate_introspection_with_basic_auth_when_no_auth_method_configured() throws Exception {
+        // Given
+        mockDefaultEnvironment();
+        mockIntrospectionEndpoint();
+        mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())), "MyToken");
+        mockConnectedUser();
+
+        // When
+        Response response = orgTarget().path("exchange").queryParam("token", "MyToken").request().post(json(null));
+
+        // Then
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        WireMock.verify(
+            postRequestedFor(urlEqualTo("/introspect"))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo(expectedBasicAuthorization()))
+                .withRequestBody(notContaining("client_secret"))
+        );
+    }
+
+    @Test
+    public void should_send_client_credentials_in_introspection_body_when_configured() throws Exception {
+        // Given
+        mockDefaultEnvironment();
+        identityProvider.setTokenEndpointAuthMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST);
+        mockIntrospectionEndpoint();
+        mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())), "MyToken");
+        mockConnectedUser();
+
+        // When
+        Response response = orgTarget().path("exchange").queryParam("token", "MyToken").request().post(json(null));
+
+        // Then
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        WireMock.verify(
+            postRequestedFor(urlEqualTo("/introspect"))
+                .withHeader(HttpHeaders.AUTHORIZATION, absent())
+                .withRequestBody(containing("client_secret=the_client_secret"))
+                .withRequestBody(containing("client_id=the_client_id"))
+        );
+    }
+
+    /** Carries detail a caller must never see, so relaying the provider's raw body fails these tests. */
+    private static final String PROVIDER_REJECTION_BODY =
+        "{\"error\":\"invalid_client\",\"error_description\":\"client not found in realm internal-realm-7\",\"trace\":\"provider-node-3\"}";
+
+    private void assertRelaysOnlyTheErrorCode(String body) {
+        assertTrue(body.contains("invalid_client"), "the provider's own error code must reach the caller, got: " + body);
+        assertFalse(body.contains("internal-realm-7"), "the provider's response detail must not be relayed, got: " + body);
+        assertFalse(body.contains("provider-node-3"), "the provider's response detail must not be relayed, got: " + body);
+        assertFalse(body.contains("error_description"), "the provider's response detail must not be relayed, got: " + body);
+    }
+
+    @Test
+    public void should_report_invalid_client_on_token_request_instead_of_an_empty_unauthorized() throws Exception {
+        // Given
+        mockDefaultEnvironment();
+        stubFor(post("/token").willReturn(aResponse().withStatus(HttpStatusCode.UNAUTHORIZED_401).withBody(PROVIDER_REJECTION_BODY)));
+
+        // When
+        Response response = orgTarget().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
+
+        // Then
+        assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
+        String body = response.readEntity(String.class);
+        assertRelaysOnlyTheErrorCode(body);
+        assertTrue(
+            body.contains("tokenEndpointAuthMethod"),
+            "an invalid_client failure must name the client authentication method as the likely cause, got: " + body
+        );
+    }
+
+    @Test
+    public void should_report_invalid_client_on_introspection_instead_of_a_server_error() throws Exception {
+        // Given
+        mockDefaultEnvironment();
+        stubFor(post("/introspect").willReturn(aResponse().withStatus(HttpStatusCode.UNAUTHORIZED_401).withBody(PROVIDER_REJECTION_BODY)));
+
+        // When
+        Response response = orgTarget().path("exchange").queryParam("token", "MyToken").request().post(json(null));
+
+        // Then
+        assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
+        String body = response.readEntity(String.class);
+        assertRelaysOnlyTheErrorCode(body);
+        assertTrue(
+            body.contains("tokenEndpointAuthMethod"),
+            "an invalid_client failure must name the client authentication method as the likely cause, got: " + body
+        );
+    }
+
+    @Test
+    public void should_not_suggest_the_client_authentication_method_for_an_unrelated_error() throws Exception {
+        // Given
+        mockDefaultEnvironment();
+        stubFor(
+            post("/token").willReturn(aResponse().withStatus(HttpStatusCode.BAD_REQUEST_400).withBody("{\"error\":\"invalid_grant\"}"))
+        );
+
+        // When
+        Response response = orgTarget().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
+
+        // Then
+        String body = response.readEntity(String.class);
+        assertTrue(body.contains("invalid_grant"), "the provider's own error code must reach the caller, got: " + body);
+        assertFalse(
+            body.contains("tokenEndpointAuthMethod"),
+            "the client authentication hint must be reserved for credential rejections, got: " + body
+        );
+    }
+
+    @Test
+    public void should_report_a_non_json_provider_response_without_relaying_it() throws Exception {
+        // Given
+        mockDefaultEnvironment();
+        stubFor(
+            post("/token").willReturn(
+                aResponse().withStatus(HttpStatusCode.BAD_GATEWAY_502).withBody("<html><body>nginx: upstream 10.0.0.7 down</body></html>")
+            )
+        );
+
+        // When
+        Response response = orgTarget().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
+
+        // Then
+        String body = response.readEntity(String.class);
+        // A provider that is unreachable must not be reported as a credential problem
+        assertTrue(body.contains("identity_provider_unavailable"), "an unreachable provider must be named as such, got: " + body);
+        assertFalse(body.contains("10.0.0.7"), "the provider's response body must not be relayed, got: " + body);
+        assertFalse(body.contains("tokenEndpointAuthMethod"), "an outage must not be blamed on the auth method, got: " + body);
+    }
+
+    private void mockTokenEndpoint() throws IOException {
+        stubFor(
+            post("/token").willReturn(okJson(IOUtils.toString(read("/oauth2/json/token_response_body.json"), Charset.defaultCharset())))
+        );
+    }
+
+    private void mockIntrospectionEndpoint() {
+        stubFor(post("/introspect").willReturn(okJson(new JsonObject().put("active", "true").toString())));
+    }
+
+    private void mockConnectedUser() {
+        UserEntity userEntity = mockUserEntity();
+        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), eq(identityProvider), any(), any(), any())).thenReturn(
+            userEntity
+        );
+        when(userService.connect(any(), eq(userEntity.getId()))).thenReturn(userEntity);
+    }
+
+    private static String expectedBasicAuthorization() {
+        return "Basic " + Base64.getEncoder().encodeToString("the_client_id:the_client_secret".getBytes(StandardCharsets.UTF_8));
     }
 
     private static void mockIntrospectToken() {

@@ -42,6 +42,7 @@ export interface IdentityProviderGraviteeioAmConfiguration {
   domain?: string;
   scopes?: string[];
   serverURL?: string;
+  tokenEndpointAuthMethod?: string | null;
 }
 
 export interface IdentityProviderOidcConfiguration {
@@ -54,6 +55,7 @@ export interface IdentityProviderOidcConfiguration {
   tokenIntrospectionEndpoint?: string;
   userInfoEndpoint?: string;
   userLogoutEndpoint?: string;
+  tokenEndpointAuthMethod?: string | null;
 }
 
 export type IdentityProviderConfiguration =
@@ -69,6 +71,15 @@ export interface IdentityProviderUserProfileMapping {
   email?: string;
   picture?: string;
 }
+
+/**
+ * How APIM authenticates itself when calling the provider's token and introspection endpoints. The values are the
+ * OpenID Connect Discovery token_endpoint_auth_method names, matching what the server accepts.
+ */
+export const CLIENT_AUTHENTICATION_METHODS: { value: string; label: string }[] = [
+  { value: 'client_secret_basic', label: 'Client secret in the Authorization header (client_secret_basic)' },
+  { value: 'client_secret_post', label: 'Client secret in the request body (client_secret_post)' },
+];
 
 export interface IdentityProvider {
   id?: string;

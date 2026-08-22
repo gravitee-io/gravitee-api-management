@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource.auth;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static jakarta.ws.rs.client.Entity.form;
+import static jakarta.ws.rs.client.Entity.text;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.any;
@@ -36,6 +37,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.configuration.identity.ClientAuthenticationMethod;
 import io.gravitee.rest.api.model.configuration.identity.GroupMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderType;
 import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
@@ -48,7 +50,9 @@ import jakarta.ws.rs.core.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -157,6 +161,16 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
             @Override
             public boolean isEmailRequired() {
                 return true;
+            }
+
+            @Override
+            public String getTokenIntrospectionEndpoint() {
+                return "http://localhost:" + wireMockServer.port() + "/introspect";
+            }
+
+            @Override
+            public String getClientId() {
+                return "the_client_id";
             }
         };
 
@@ -363,6 +377,154 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         // verify jwt token not present
         assertFalse(response.getCookies().containsKey(HttpHeaders.AUTHORIZATION));
+    }
+
+    @Test
+    void should_authenticate_introspection_with_basic_auth_when_no_auth_method_configured() throws Exception {
+        mockDefaultEnvironment();
+        mockIntrospectionEndpoint();
+        mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())), "MyToken");
+        mockConnectedUser();
+
+        Response response = target().path("_exchange").queryParam("token", "MyToken").request().post(text(""));
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        WireMock.verify(
+            postRequestedFor(urlEqualTo("/introspect"))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo(expectedBasicAuthorization()))
+                .withRequestBody(notContaining("client_secret"))
+        );
+    }
+
+    @Test
+    void should_send_client_credentials_in_introspection_body_when_configured() throws Exception {
+        mockDefaultEnvironment();
+        identityProvider.setTokenEndpointAuthMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST);
+        mockIntrospectionEndpoint();
+        mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())), "MyToken");
+        mockConnectedUser();
+
+        Response response = target().path("_exchange").queryParam("token", "MyToken").request().post(text(""));
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        WireMock.verify(
+            postRequestedFor(urlEqualTo("/introspect"))
+                .withHeader(HttpHeaders.AUTHORIZATION, absent())
+                .withRequestBody(containing("client_secret=the_client_secret"))
+                .withRequestBody(containing("client_id=the_client_id"))
+        );
+    }
+
+    @Test
+    void should_send_client_credentials_as_basic_auth_in_token_request_when_configured() throws Exception {
+        mockDefaultEnvironment();
+        identityProvider.setTokenEndpointAuthMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC);
+        wireMockServer.stubFor(
+            post("/token").willReturn(okJson(IOUtils.toString(read("/oauth2/json/token_response_body.json"), Charset.defaultCharset())))
+        );
+        mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
+        mockConnectedUser();
+
+        Response response = target().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe")));
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        WireMock.verify(
+            postRequestedFor(urlEqualTo("/token"))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo(expectedBasicAuthorization()))
+                .withRequestBody(notContaining("client_secret"))
+        );
+    }
+
+    @Test
+    void should_send_client_credentials_in_token_request_body_when_no_auth_method_configured() throws Exception {
+        mockDefaultEnvironment();
+        wireMockServer.stubFor(
+            post("/token").willReturn(okJson(IOUtils.toString(read("/oauth2/json/token_response_body.json"), Charset.defaultCharset())))
+        );
+        mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
+        mockConnectedUser();
+
+        Response response = target().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe")));
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        // The default this endpoint has always used, and the claim the backwards compatibility argument rests on
+        WireMock.verify(
+            postRequestedFor(urlEqualTo("/token"))
+                .withHeader(HttpHeaders.AUTHORIZATION, absent())
+                .withRequestBody(containing("client_secret=the_client_secret"))
+        );
+    }
+
+    @Test
+    void should_report_invalid_client_on_introspection_instead_of_a_server_error() throws Exception {
+        mockDefaultEnvironment();
+        wireMockServer.stubFor(
+            post("/introspect").willReturn(aResponse().withStatus(HttpStatusCode.UNAUTHORIZED_401).withBody(PROVIDER_REJECTION_BODY))
+        );
+
+        Response response = target().path("_exchange").queryParam("token", "MyToken").request().post(text(""));
+
+        assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
+        String body = response.readEntity(String.class);
+        assertRelaysOnlyTheErrorCode(body);
+        assertTrue(body.contains("tokenEndpointAuthMethod"), "the likely cause must be named, got: " + body);
+    }
+
+    @Test
+    void should_report_invalid_client_on_token_request_instead_of_an_empty_unauthorized() throws Exception {
+        mockDefaultEnvironment();
+        wireMockServer.stubFor(
+            post("/token").willReturn(aResponse().withStatus(HttpStatusCode.UNAUTHORIZED_401).withBody(PROVIDER_REJECTION_BODY))
+        );
+
+        Response response = target().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe")));
+
+        assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
+        String body = response.readEntity(String.class);
+        assertRelaysOnlyTheErrorCode(body);
+        assertTrue(body.contains("tokenEndpointAuthMethod"), "the likely cause must be named, got: " + body);
+    }
+
+    /** Carries detail a caller must never see, so relaying the provider's raw body fails these tests. */
+    private static final String PROVIDER_REJECTION_BODY =
+        "{\"error\":\"invalid_client\",\"error_description\":\"client not found in realm internal-realm-7\",\"trace\":\"provider-node-3\"}";
+
+    private void assertRelaysOnlyTheErrorCode(String body) {
+        assertTrue(body.contains("invalid_client"), "the provider's own error code must reach the caller, got: " + body);
+        assertFalse(body.contains("internal-realm-7"), "the provider's response detail must not be relayed, got: " + body);
+        assertFalse(body.contains("provider-node-3"), "the provider's response detail must not be relayed, got: " + body);
+        assertFalse(body.contains("error_description"), "the provider's response detail must not be relayed, got: " + body);
+    }
+
+    private void mockIntrospectionEndpoint() {
+        wireMockServer.stubFor(post("/introspect").willReturn(okJson("{\"active\":\"true\"}")));
+    }
+
+    private void mockConnectedUser() {
+        UserEntity userEntity = mockUserEntity();
+        when(
+            userService.createOrUpdateUserFromSocialIdentityProvider(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(identityProvider),
+                anyString(),
+                any(),
+                any()
+            )
+        ).thenReturn(userEntity);
+        when(userService.connect(GraviteeContext.getExecutionContext(), userEntity.getId())).thenReturn(userEntity);
+    }
+
+    private static String expectedBasicAuthorization() {
+        return "Basic " + Base64.getEncoder().encodeToString("the_client_id:the_client_secret".getBytes(StandardCharsets.UTF_8));
+    }
+
+    private void mockUserInfo(ResponseDefinitionBuilder responseDefinitionBuilder, String expectedBearer) {
+        wireMockServer.stubFor(
+            get("/userinfo")
+                .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_TYPE.toString()))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer " + expectedBearer))
+                .willReturn(responseDefinitionBuilder)
+        );
     }
 
     private void mockUserInfo(ResponseDefinitionBuilder responseDefinitionBuilder) {
