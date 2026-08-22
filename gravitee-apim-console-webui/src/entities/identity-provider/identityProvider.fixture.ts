@@ -49,6 +49,7 @@ export function fakeIdentityProvider(attributes?: Partial<IdentityProvider>): Id
     userProfileMapping: { id: '', firstname: '', lastname: '', email: '', picture: '' },
     emailRequired: true,
     syncMappings: false,
+    persistedClaimsWhitelist: [],
   };
 
   return {

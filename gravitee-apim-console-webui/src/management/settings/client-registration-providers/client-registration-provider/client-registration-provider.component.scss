@@ -32,6 +32,10 @@ $textColor: map.get(gio.$mat-dove-palette, default);
       display: flex;
       flex-direction: column;
 
+      &__description {
+        margin: 0 0 16px;
+      }
+
       &__form-field {
         width: 100%;
       }

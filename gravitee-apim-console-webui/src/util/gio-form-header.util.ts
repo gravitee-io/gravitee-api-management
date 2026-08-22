@@ -15,6 +15,7 @@
  */
 import { Header } from '@gravitee/ui-particles-angular';
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { isEmpty } from 'lodash';
 
 export function toGioFormHeader(record: Record<string, string> | undefined): Header[] {
   if (record === undefined) {
@@ -32,6 +33,23 @@ export function toDictionary(headers: Header[] | undefined): Record<string, stri
   }
 
   return headers.reduce((acc, { key, value }) => ({ ...acc, [key]: value }), {});
+}
+
+/**
+ * Rejects entries where either side is blank. `toDictionary` keeps them, so a half-filled row would otherwise be sent
+ * as an empty key or an empty value.
+ */
+export function nonBlankEntriesValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const headers: Header[] = control.value;
+    if (!headers) {
+      return null;
+    }
+
+    const hasBlankEntry = headers.some(header => isEmpty(header.key?.trim()) || isEmpty(header.value?.trim()));
+
+    return hasBlankEntry ? { blankEntries: true } : null;
+  };
 }
 
 export function uniqueKeysValidator(): ValidatorFn {

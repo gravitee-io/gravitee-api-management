@@ -17,13 +17,15 @@ import { JKSTrustStore, PKCS12TrustStore } from 'src/entities/management-api-v2'
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
-import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormControl, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { Header } from '@gravitee/ui-particles-angular';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ClientRegistrationProvidersService } from '../../../../services-ngx/client-registration-providers.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ClientRegistrationProvider } from '../../../../entities/client-registration-provider/clientRegistrationProvider';
+import { nonBlankEntriesValidator, toDictionary, toGioFormHeader, uniqueKeysValidator } from '../../../../util/gio-form-header.util';
 
 @Component({
   selector: 'client-registration-provider',
@@ -99,6 +101,7 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
 
     const providerFormValueToSave = {
       ...this.providerForm.value,
+      claim_mappings: toDictionary(this.providerForm.value.claim_mappings),
       trust_store: this.getTrustStoreFromForm(),
       key_store: this.getKeyStoreFromForm(),
     };
@@ -256,6 +259,10 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
       initial_access_token: new UntypedFormControl(clientRegistrationProvider?.initial_access_token),
       renew_client_secret_support: new UntypedFormControl(clientRegistrationProvider?.renew_client_secret_support),
       renew_client_secret_endpoint: new UntypedFormControl(clientRegistrationProvider?.renew_client_secret_endpoint),
+      claim_mappings: new FormControl<Header[]>(toGioFormHeader(clientRegistrationProvider?.claim_mappings), [
+        uniqueKeysValidator(),
+        nonBlankEntriesValidator(),
+      ]),
       trust_store: trustStoreGroup,
       key_store: keyStoreGroup,
     });

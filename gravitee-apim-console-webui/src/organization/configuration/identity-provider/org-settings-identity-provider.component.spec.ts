@@ -495,6 +495,94 @@ describe('OrgSettingsIdentityProviderComponent', () => {
       fixture.detectChanges();
     });
 
+    describe('persisted claims', () => {
+      const oidcIdentityProvider = (persistedClaimsWhitelist: string[]) =>
+        fakeIdentityProvider({
+          id: 'providerId',
+          type: 'OIDC',
+          name: 'OIDC Provider',
+          persistedClaimsWhitelist,
+          configuration: {
+            authorizeEndpoint: 'AuthorizeEndpoint',
+            clientId: 'Client Id',
+            clientSecret: 'Client Secret',
+            color: null,
+            scopes: ['openid', 'profile', 'email'],
+            tokenEndpoint: 'TokenEndpoint',
+            tokenIntrospectionEndpoint: null,
+            userInfoEndpoint: 'UserInfoEndpoint',
+            userLogoutEndpoint: null,
+          },
+          userProfileMapping: {
+            email: null,
+            firstname: null,
+            id: 'Id',
+            lastname: null,
+            picture: null,
+          },
+        });
+
+      const claimsInput = () => loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName=persistedClaimsWhitelist]' }));
+
+      it('should show the configured claims and save an added one', async () => {
+        const identityProvider = oidcIdentityProvider(['org_id']);
+        expectIdentityProviderGetRequest(identityProvider);
+        expectEnvironmentListRequest([]);
+
+        const claims = await claimsInput();
+        expect(await claims.getTags()).toEqual(['org_id']);
+
+        await claims.addTag('https://example.com/org');
+
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+        await saveBar.clickSubmit();
+
+        expectIdentityProviderUpdateRequest('providerId', {
+          ...identityProvider,
+          persistedClaimsWhitelist: ['org_id', 'https://example.com/org'],
+        });
+
+        expect(component.isLoading).toBe(true);
+        httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/providerId`);
+      });
+
+      it('should send an empty list once every claim is removed, so the stored claims are purged', async () => {
+        const identityProvider = oidcIdentityProvider(['org_id']);
+        expectIdentityProviderGetRequest(identityProvider);
+        expectEnvironmentListRequest([]);
+
+        await (await claimsInput()).removeTag('org_id');
+
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        await saveBar.clickSubmit();
+
+        // An omitted field means "keep" on the API, so clearing has to travel as an explicit empty list
+        expectIdentityProviderUpdateRequest('providerId', { ...identityProvider, persistedClaimsWhitelist: [] });
+
+        expect(component.isLoading).toBe(true);
+        httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/providerId`);
+      });
+
+      it('should explain what persisting claims means for personal data', async () => {
+        expectIdentityProviderGetRequest(oidcIdentityProvider(['org_id']));
+        expectEnvironmentListRequest([]);
+
+        // This copy is the only place an administrator is told that these values are personal data and what emptying the
+        // list does, so it is behaviour rather than decoration
+        const description = fixture.nativeElement.querySelector('[data-testid="persisted-claims-description"]')?.textContent;
+        expect(description).toContain('personal data');
+        expect(description).toContain('Emptying the list stops new claims being captured');
+      });
+
+      it('should offer persisted claims for every provider type, since the whitelist applies to all of them', async () => {
+        expectIdentityProviderGetRequest(fakeIdentityProvider({ id: 'providerId', type: 'GOOGLE', persistedClaimsWhitelist: ['sub'] }));
+        expectEnvironmentListRequest([]);
+
+        expect(await (await claimsInput()).getTags()).toEqual(['sub']);
+      });
+    });
+
     it('should be in edit mode', async () => {
       expectIdentityProviderGetRequest(fakeIdentityProvider({ id: 'providerId' }));
       expectEnvironmentListRequest([]);
@@ -921,14 +1009,15 @@ describe('OrgSettingsIdentityProviderComponent', () => {
   function expectIdentityProviderCreateRequest(newIdentityProvider: NewIdentityProvider) {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities`);
     expect(req.request.method).toEqual('POST');
-    expect(req.request.body).toStrictEqual(newIdentityProvider);
+    // Defaulted here rather than in every caller: the payload always carries the claims whitelist, empty unless a test sets it
+    expect(req.request.body).toStrictEqual({ persistedClaimsWhitelist: [], ...newIdentityProvider });
     req.flush(fakeIdentityProvider({ ...newIdentityProvider }));
   }
 
   function expectIdentityProviderUpdateRequest(id: string, identityProvider: IdentityProvider) {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/${id}`);
     expect(req.request.method).toEqual('PUT');
-    expect(req.request.body).toStrictEqual(omit(identityProvider, ['id', 'type']));
+    expect(req.request.body).toStrictEqual({ persistedClaimsWhitelist: [], ...omit(identityProvider, ['id', 'type']) });
     req.flush({ id, identityProvider });
   }
 
