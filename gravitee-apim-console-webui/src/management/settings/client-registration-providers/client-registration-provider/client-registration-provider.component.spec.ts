@@ -85,7 +85,7 @@ describe('ClientRegistrationProvider', () => {
       expect(loader).toBeTruthy();
       const newProvider = {
         ...fakeNewClientRegistrationProvider(),
-        claimMappings: [{ key: 'org_id', value: 'metadata.organization' }],
+        claim_mappings: [{ key: 'org_id', value: 'metadata.organization' }],
         trust_store: {
           type: 'NONE',
           pathOrContent: 'PATH',
@@ -116,7 +116,7 @@ describe('ClientRegistrationProvider', () => {
         method: 'POST',
         url: `${CONSTANTS_TESTING.env.baseURL}/configuration/applications/registration/providers`,
       });
-      expect(req.request.body.claimMappings).toStrictEqual({ org_id: 'metadata.organization' });
+      expect(req.request.body.claim_mappings).toStrictEqual({ org_id: 'metadata.organization' });
       req.flush(PROVIDER);
     });
 
@@ -183,7 +183,7 @@ describe('ClientRegistrationProvider', () => {
 
   describe('claim mappings', () => {
     const providerWithClaimMappings = fakeClientRegistrationProvider({
-      claimMappings: { org_id: 'metadata.organization' },
+      claim_mappings: { org_id: 'metadata.organization' },
     });
 
     async function initWith(provider: typeof providerWithClaimMappings) {
@@ -207,17 +207,51 @@ describe('ClientRegistrationProvider', () => {
 
       await claimMappings.addHeader({ key: 'department', value: 'metadata.department' });
 
-      fixture.componentInstance.onSubmit();
+      // Driving the save bar rather than onSubmit(): a validator that wrongly marked a valid form invalid would leave
+      // Save permanently disabled in the real UI, which calling onSubmit() directly cannot detect
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+      await saveBar.clickSubmit();
 
       const req = httpTestingController.expectOne({
         method: 'PUT',
         url: `${CONSTANTS_TESTING.env.baseURL}/configuration/applications/registration/providers/${providerWithClaimMappings.id}`,
       });
-      expect(req.request.body.claimMappings).toStrictEqual({
+      expect(req.request.body.claim_mappings).toStrictEqual({
         org_id: 'metadata.organization',
         department: 'metadata.department',
       });
       req.flush(providerWithClaimMappings);
+    });
+
+    it('should drop a removed mapping from the payload', async () => {
+      await initWith(providerWithClaimMappings);
+
+      const claimMappings = await loader.getHarness(GioFormHeadersHarness);
+      const configuredRow = (await claimMappings.getHeaderRows())[0];
+      await configuredRow.removeButton?.click();
+
+      // gio-form-headers' remove button carries no type="button", so inside a form with an (ngSubmit) handler the click
+      // submits on its own. Asserting the resulting request rather than clicking Save keeps this test pinned to the
+      // payload regardless of whether that submit stays implicit.
+      const requests = httpTestingController.match({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.baseURL}/configuration/applications/registration/providers/${providerWithClaimMappings.id}`,
+      });
+      expect(requests.length).toBe(1);
+      // Removal is where the trailing blank row could otherwise leak through toDictionary as an empty key
+      expect(requests[0].request.body.claim_mappings).toStrictEqual({});
+      requests[0].flush(providerWithClaimMappings);
+    });
+
+    it('should state which registration fields can be targeted', async () => {
+      await initWith(providerWithClaimMappings);
+
+      // The server rejects standard registration fields at save time and the console cannot mirror that set, so this
+      // guidance is the only thing steering an administrator away from them
+      const guidance = fixture.nativeElement.querySelector('[data-testid="claim-mappings-field-guidance"]')?.textContent;
+      expect(guidance).toContain('Only extension fields can be written');
+      expect(guidance).toContain('client_name');
     });
 
     it('should not allow saving a mapping whose claim name is missing', async () => {
@@ -232,7 +266,7 @@ describe('ClientRegistrationProvider', () => {
     });
 
     it('should send an empty dictionary when no mapping is configured', async () => {
-      await initWith(fakeClientRegistrationProvider({ claimMappings: {} }));
+      await initWith(fakeClientRegistrationProvider({ claim_mappings: {} }));
 
       fixture.componentInstance.onSubmit();
 
@@ -240,7 +274,7 @@ describe('ClientRegistrationProvider', () => {
         method: 'PUT',
         url: `${CONSTANTS_TESTING.env.baseURL}/configuration/applications/registration/providers/${PROVIDER.id}`,
       });
-      expect(req.request.body.claimMappings).toStrictEqual({});
+      expect(req.request.body.claim_mappings).toStrictEqual({});
       req.flush(PROVIDER);
     });
   });
@@ -266,7 +300,7 @@ describe('ClientRegistrationProvider', () => {
       const base = fakeNewClientRegistrationProvider();
       const updateProvider = {
         ...base,
-        claimMappings: [{ key: 'org_id', value: 'metadata.organization' }],
+        claim_mappings: [{ key: 'org_id', value: 'metadata.organization' }],
         trust_store: {
           type: 'NONE',
           pathOrContent: 'PATH',

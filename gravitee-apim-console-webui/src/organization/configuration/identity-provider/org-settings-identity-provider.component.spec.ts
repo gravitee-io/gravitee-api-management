@@ -564,6 +564,17 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/providerId`);
       });
 
+      it('should explain what persisting claims means for personal data', async () => {
+        expectIdentityProviderGetRequest(oidcIdentityProvider(['org_id']));
+        expectEnvironmentListRequest([]);
+
+        // This copy is the only place an administrator is told that these values are personal data and what emptying the
+        // list does, so it is behaviour rather than decoration
+        const description = fixture.nativeElement.querySelector('[data-testid="persisted-claims-description"]')?.textContent;
+        expect(description).toContain('personal data');
+        expect(description).toContain('Emptying the list stops new claims being captured');
+      });
+
       it('should offer persisted claims for every provider type, since the whitelist applies to all of them', async () => {
         expectIdentityProviderGetRequest(fakeIdentityProvider({ id: 'providerId', type: 'GOOGLE', persistedClaimsWhitelist: ['sub'] }));
         expectEnvironmentListRequest([]);

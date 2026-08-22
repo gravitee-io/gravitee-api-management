@@ -152,11 +152,10 @@
         <mat-card-content>
           <h2 gioTableOfContents>Persisted Claims</h2>
 
-          <p class="identity-provider__card__description">
+          <p class="identity-provider__card__description" data-testid="persisted-claims-description">
             Claims listed here are read at each login, from the ID token, the access token or the user info endpoint, and stored on the user
             profile, where a client registration provider can inject them into dynamic client registration requests. Only list the claims
-            you need: everything stored here is personal data. Emptying the list stops the capture and removes the claims already stored, on
-            the user's next login.
+            you need: everything stored here is personal data. Emptying the list stops new claims being captured.
           </p>
 
           <mat-form-field class="identity-provider__card__form-field">
