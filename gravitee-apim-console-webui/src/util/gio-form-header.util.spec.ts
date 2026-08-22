@@ -78,6 +78,10 @@ describe('nonBlankEntriesValidator', () => {
     expect(nonBlankEntriesValidator()(new FormControl([]))).toBeNull();
   });
 
+  it('should return null when the control has no value', () => {
+    expect(nonBlankEntriesValidator()(new FormControl(null))).toBeNull();
+  });
+
   it('should return null when every entry has both sides filled', () => {
     const headers: Header[] = [{ key: 'org_id', value: 'metadata.organization' }];
     expect(nonBlankEntriesValidator()(new FormControl(headers))).toBeNull();

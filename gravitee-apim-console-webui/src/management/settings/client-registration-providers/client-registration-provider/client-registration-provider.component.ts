@@ -101,7 +101,7 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
 
     const providerFormValueToSave = {
       ...this.providerForm.value,
-      claimMappings: toDictionary(this.providerForm.value.claimMappings),
+      claim_mappings: toDictionary(this.providerForm.value.claim_mappings),
       trust_store: this.getTrustStoreFromForm(),
       key_store: this.getKeyStoreFromForm(),
     };
@@ -259,7 +259,7 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
       initial_access_token: new UntypedFormControl(clientRegistrationProvider?.initial_access_token),
       renew_client_secret_support: new UntypedFormControl(clientRegistrationProvider?.renew_client_secret_support),
       renew_client_secret_endpoint: new UntypedFormControl(clientRegistrationProvider?.renew_client_secret_endpoint),
-      claimMappings: new FormControl<Header[]>(toGioFormHeader(clientRegistrationProvider?.claimMappings), [
+      claim_mappings: new FormControl<Header[]>(toGioFormHeader(clientRegistrationProvider?.claim_mappings), [
         uniqueKeysValidator(),
         nonBlankEntriesValidator(),
       ]),

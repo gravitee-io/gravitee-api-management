@@ -105,7 +105,10 @@ describe('ClientRegistrationProviderService', () => {
   });
 
   it('should update provider', done => {
-    const mockProvider: ClientRegistrationProvider = fakeClientRegistrationProvider({ scopes: null });
+    const mockProvider: ClientRegistrationProvider = fakeClientRegistrationProvider({
+      scopes: null,
+      claim_mappings: { org_id: 'metadata.organization' },
+    });
 
     clientRegistrationProvidersService.update(mockProvider).subscribe(response => {
       expect(response).toMatchObject(mockProvider);
@@ -115,6 +118,26 @@ describe('ClientRegistrationProviderService', () => {
     const req = httpTestingController.expectOne({
       method: 'PUT',
       url: `${CONSTANTS_TESTING.env.baseURL}/configuration/applications/registration/providers/${mockProvider.id}`,
+    });
+
+    // Pins the explicit field allowlist: a dropped or misnamed key here reaches the server as an unknown property and is
+    // silently ignored, so only asserting the method and URL lets that through
+    expect(req.request.body).toStrictEqual({
+      name: mockProvider.name,
+      description: mockProvider.description,
+      discovery_endpoint: mockProvider.discovery_endpoint,
+      initial_access_token_type: mockProvider.initial_access_token_type,
+      client_id: mockProvider.client_id,
+      client_secret: mockProvider.client_secret,
+      scopes: mockProvider.scopes,
+      initial_access_token: mockProvider.initial_access_token,
+      renew_client_secret_support: mockProvider.renew_client_secret_support,
+      renew_client_secret_endpoint: mockProvider.renew_client_secret_endpoint,
+      renew_client_secret_method: mockProvider.renew_client_secret_method,
+      software_id: mockProvider.software_id,
+      claim_mappings: { org_id: 'metadata.organization' },
+      trust_store: mockProvider.trust_store,
+      key_store: mockProvider.key_store,
     });
 
     req.flush(mockProvider);

@@ -324,16 +324,16 @@
         does not have is skipped.
       </p>
 
-      <gio-form-headers formControlName="claimMappings" [autocompleteDisabled]="true">
+      <gio-form-headers formControlName="claim_mappings" [autocompleteDisabled]="true">
         <gio-form-headers-label>Claim name (key) and registration request field (value)</gio-form-headers-label>
       </gio-form-headers>
-      @if (providerForm.get('claimMappings')?.hasError('nonUniqueKeys')) {
+      @if (providerForm.get('claim_mappings')?.hasError('nonUniqueKeys')) {
         <mat-error>Claim names must be unique</mat-error>
       }
-      @if (providerForm.get('claimMappings')?.hasError('blankEntries')) {
+      @if (providerForm.get('claim_mappings')?.hasError('blankEntries')) {
         <mat-error>Every mapping needs both a claim name and a registration request field</mat-error>
       }
-      <p class="client-registration-provider__card__content__description">
+      <p class="client-registration-provider__card__content__description" data-testid="claim-mappings-field-guidance">
         Only extension fields can be written, using dot notation for nested ones such as <code>metadata.organization</code>. Standard
         registration fields defined by the specification, <code>client_name</code> among them, are rejected.
       </p>
