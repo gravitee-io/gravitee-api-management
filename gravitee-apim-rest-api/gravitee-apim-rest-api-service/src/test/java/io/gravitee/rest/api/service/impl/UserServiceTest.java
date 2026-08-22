@@ -1833,6 +1833,9 @@ public class UserServiceTest {
         // Nothing whitelisted means nothing retained, so an administrator who clears the whitelist to stop capturing a
         // sensitive claim also gets the already-captured value removed (APIM-14840)
         assertNull(user.getIdpClaims());
+        // Production mutates the instance the findById stub returns, so asserting on it only proves the setter ran.
+        // The second write is what proves the cleared value reached the repository: one from the profile refresh, one here.
+        verify(userRepository, times(2)).update(any(User.class));
     }
 
     @Test
@@ -1845,6 +1848,8 @@ public class UserServiceTest {
         when(userRepository.findBySource(null, user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
         when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
+        // Stubbed explicitly: an unstubbed List-returning mock yields an empty list, which is the other branch
+        when(identityProvider.getPersistedClaimsWhitelist()).thenReturn(null);
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
         String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
@@ -1853,6 +1858,81 @@ public class UserServiceTest {
         userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
 
         assertNull(user.getIdpClaims());
+        verify(userRepository, times(2)).update(any(User.class));
+    }
+
+    @Test
+    public void shouldNotUpdateUserWhenTheWhitelistedClaimsAreUnchanged() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository);
+        mockDefaultEnvironment();
+
+        User user = mockUser();
+        when(userRepository.findBySource(null, user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
+        when(identityProvider.getPersistedClaimsWhitelist()).thenReturn(Collections.singletonList("service_id"));
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+
+        // The steady state the write guard exists for: a stable whitelist and an unchanged token on re-login. The first
+        // login writes the claims, the second must not write them again.
+        assertEquals(Map.of("service_id", "585252525"), user.getIdpClaims());
+        verify(userRepository, times(3)).update(any(User.class));
+    }
+
+    @Test
+    public void shouldJsonSerializeANonScalarWhitelistedClaim() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository);
+        mockDefaultEnvironment();
+
+        User user = mockUser();
+        when(userRepository.findBySource(null, user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
+        when(identityProvider.getPersistedClaimsWhitelist()).thenReturn(Collections.singletonList("groups"));
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+
+        // Array and object claims are stored as their JSON form rather than a Java toString (APIM-13951)
+        assertEquals("[\"platform-admin\",\"api-reviewer\"]", user.getIdpClaims().get("groups"));
+    }
+
+    @Test
+    public void shouldNotFailTheLoginWhenTheClaimsCannotBePersisted() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository);
+        mockDefaultEnvironment();
+
+        User user = mockUser();
+        when(userRepository.findBySource(null, user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(identityProvider.getPersistedClaimsWhitelist()).thenReturn(Collections.singletonList("service_id"));
+        // The profile refresh writes first and must succeed; the claims write is the one that fails
+        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg()).thenThrow(new TechnicalException("boom"));
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+
+        // A claims failure is reported but swallowed: it must never stop a user logging in
+        UserEntity connectedUser = userService.createOrUpdateUserFromSocialIdentityProvider(
+            EXECUTION_CONTEXT,
+            identityProvider,
+            userInfo,
+            accessToken,
+            idToken
+        );
+
+        assertNotNull(connectedUser);
+        verify(userRepository, times(2)).update(any(User.class));
     }
 
     @Test
