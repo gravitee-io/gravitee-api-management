@@ -1984,6 +1984,9 @@ spec:
         # unresolved when the failure happens before authentication.
         - name: NATIVE_CLIENT_ID
           label: Kafka Client ID
+          signals:
+              - LOGS
+              - ANALYTICS
           type: KEYWORD
           operators:
               - EQ
@@ -1994,6 +1997,8 @@ spec:
         # above; 'unknown' is among them, and it means "the client advertised no library".
         - name: NATIVE_CLIENT_SOFTWARE_NAME
           label: Kafka Client Library
+          signals:
+              - LOGS
           type: KEYWORD
           operators:
               - EQ

@@ -52,7 +52,16 @@ public class ApiMetricsDetail {
     List<ConnectionDiagnostic> warnings;
     /** Credential type the connection authenticated with. Top-level in the document, not an additional metric. */
     String securityType;
-    /** Non-PII token identifying the credential; the application's OAuth client id for OAuth2/JWT plans. */
+    /**
+     * Token identifying the authenticated credential, read from the {@code security-token} root field that
+     * every API type writes — not a native-only field.
+     *
+     * <p><b>May hold a credential verbatim.</b> On an HTTP document produced by an API-key plan this is the raw
+     * API key ({@code ApiKeyAuthenticationHandler} calls {@code setSecurityToken(apiKey)}). Only the native
+     * Kafka reactor guarantees otherwise: it reports the plan type but never the key value, so the token there
+     * is the non-PII OAuth/JWT client id. Anything projecting this field outside a native connection must
+     * scope or redact it.
+     */
     String securityToken;
     Map<String, Object> additionalMetrics;
 }

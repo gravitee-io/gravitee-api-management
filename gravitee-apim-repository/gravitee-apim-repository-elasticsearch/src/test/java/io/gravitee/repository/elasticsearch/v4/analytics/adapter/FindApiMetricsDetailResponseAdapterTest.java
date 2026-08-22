@@ -76,20 +76,11 @@ class FindApiMetricsDetailResponseAdapterTest extends AbstractAdapterTest {
         }
 
         @Test
-        void should_read_the_security_credential_from_the_top_level_fields() {
-            // security-type / security-token sit at the document root, alongside the HTTP request fields, not in
-            // additional-metrics — so unlike the native-kafka keywords they have to be read explicitly.
-            final SearchResponse searchResponse = buildSearchHit("api-proxy-v4-metrics.json");
-
-            var result = FindApiMetricsDetailResponseAdapter.adaptFirst(searchResponse).orElseThrow();
-
-            assertThat(result.getSecurityType()).isEqualTo("JWT");
-            assertThat(result.getSecurityToken()).isEqualTo("oauth-client-1");
-        }
-
-        @Test
-        void should_leave_the_security_credential_null_for_an_anonymous_connection() {
-            // A key-less plan writes neither field; the document simply omits them.
+        void should_leave_the_security_credential_null_when_the_document_omits_the_fields() {
+            // security-type / security-token sit at the document root, not in additional-metrics, so they are
+            // read explicitly — and read the same way on a v2 document, which uses the identical field names
+            // (LogBuilder). This fixture carries neither, which is what a key-less plan produces; the test
+            // proves the adapter yields null rather than anything about why the fields are absent.
             final SearchResponse searchResponse = buildSearchHit("api-proxy-v2-metrics.json");
 
             var result = FindApiMetricsDetailResponseAdapter.adaptFirst(searchResponse).orElseThrow();

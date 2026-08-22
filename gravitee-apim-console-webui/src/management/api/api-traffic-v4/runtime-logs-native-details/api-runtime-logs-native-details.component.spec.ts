@@ -102,12 +102,32 @@ describe('ApiRuntimeLogsNativeDetailsComponent', () => {
 
   it('renders a dash on the client card when the connection is anonymous and the client advertises no library', async () => {
     await setup();
-    flushLog(fakeNativeApiLog({ connectionStatus: 'CONNECTED', clientId: 'kafka-consumer-1' }));
+    flushLog(
+      fakeNativeApiLog({
+        connectionStatus: 'CONNECTED',
+        clientId: 'kafka-consumer-1',
+        clientSoftwareName: undefined,
+        clientSoftwareVersion: undefined,
+        securityType: undefined,
+        securityToken: undefined,
+      }),
+    );
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(await harness.isClientCardVisible()).toBe(true);
-    expect(await harness.clientCardText()).toContain('Client library');
+    // Asserting on the '—' the template falls back to, not on the static <dt> labels: a binding on the
+    // wrong property, or a dropped `|| '—'`, keeps a label assertion green while the value is blank.
+    const rows = await harness.clientCardRows();
+    expect(rows).toEqual(
+      expect.arrayContaining([
+        ['Client library', '—'],
+        ['Client library version', '—'],
+        ['Security type', '—'],
+        ['Security token', '—'],
+      ]),
+    );
+    // The client id is present, so the dash above is the absent value and not a card that failed to render.
+    expect(rows).toEqual(expect.arrayContaining([['Client id', 'kafka-consumer-1']]));
   });
 
   it('renders error card when connectionStatus is not CONNECTED', async () => {

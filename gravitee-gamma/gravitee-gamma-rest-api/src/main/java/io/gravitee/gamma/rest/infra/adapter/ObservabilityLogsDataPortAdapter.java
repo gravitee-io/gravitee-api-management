@@ -210,10 +210,20 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                 .clientId(nativeMetrics.clientId())
                 .clientSoftwareName(nativeMetrics.clientSoftwareName())
                 .clientSoftwareVersion(nativeMetrics.clientSoftwareVersion())
-                .securityType(metrics.getSecurityType())
-                .securityToken(metrics.getSecurityToken())
                 .brokerId(nativeMetrics.brokerId())
                 .connectionDurationMs(nativeMetrics.connectionDurationMs());
+
+            // securityType/securityToken are ROOT document fields every API type carries, unlike the
+            // native-kafka keywords above which are simply absent on an HTTP document. On an HTTP document
+            // the token is the credential verbatim — ApiKeyAuthenticationHandler does setSecurityToken(apiKey)
+            // — so returning it here would hand a subscriber's live API key to anyone holding log-read
+            // permission. The native reactor deliberately never writes the key ("the plan type is reportable,
+            // the key value never is", KafkaClientCredential), which is what makes the pair safe, and
+            // meaningful, on a native connection document and only there. The connection status is the
+            // discriminator: only the native reactor writes it.
+            if (nativeMetrics.connectionStatus() != null) {
+                builder.securityType(metrics.getSecurityType()).securityToken(metrics.getSecurityToken());
+            }
 
             var names = resolveDetailNames(executionContext, metrics);
             builder
