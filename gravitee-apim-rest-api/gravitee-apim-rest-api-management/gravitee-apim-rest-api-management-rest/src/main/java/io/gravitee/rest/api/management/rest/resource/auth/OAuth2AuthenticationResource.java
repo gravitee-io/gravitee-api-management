@@ -50,6 +50,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
@@ -83,6 +84,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     private static final String ERROR_PROPERTY = "error";
     private static final String INVALID_CLIENT_ERROR = "invalid_client";
     private static final String PROVIDER_ERROR = "identity_provider_error";
+    private static final String PROVIDER_UNAVAILABLE_ERROR = "identity_provider_unavailable";
     private static final String CLIENT_AUTHENTICATION_HINT =
         "The identity provider rejected the client credentials. Check that the tokenEndpointAuthMethod configured on " +
         "the identity provider matches the method the provider expects (client_secret_basic or client_secret_post); " +
@@ -161,13 +163,21 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                     if (active) {
                         return authenticateUser(identityProvider, servletResponse, token, null, null);
                     } else {
+                        log.info("Identity provider {} reported the exchanged token as inactive", identityProvider.getId());
                         return Response.status(Response.Status.UNAUTHORIZED).entity(introspectPayload).build();
                     }
                 }
 
                 String errorBody = getResponseEntityAsString(response);
-                log.error("Token exchange failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), errorBody);
-                return clientAuthenticationFailure(errorBody);
+                log.warn(
+                    "Token introspection for identity provider {} at {} failed with status {}: {}\n{}",
+                    identityProvider.getId(),
+                    identityProvider.getTokenIntrospectionEndpoint(),
+                    response.getStatus(),
+                    response.getStatusInfo(),
+                    errorBody
+                );
+                return clientAuthenticationFailure(response.getStatus(), errorBody);
             } else {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity("Token exchange is not supported for this identity provider")
@@ -219,13 +229,15 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             }
 
             String errorBody = getResponseEntityAsString(response);
-            log.error(
-                "Exchange authorization code failed with status {}: {}\n{}",
+            log.warn(
+                "Authorization-code exchange for identity provider {} at {} failed with status {}: {}\n{}",
+                identityProvider.getId(),
+                identityProvider.getTokenEndpoint(),
                 response.getStatus(),
                 response.getStatusInfo(),
                 errorBody
             );
-            return clientAuthenticationFailure(errorBody);
+            return clientAuthenticationFailure(response.getStatus(), errorBody);
         }
 
         return Response.status(Response.Status.NOT_FOUND).build();
@@ -246,24 +258,26 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             ? identityProvider.getTokenEndpointAuthMethod()
             : endpointDefault;
 
-        if (method == ClientAuthenticationMethod.CLIENT_SECRET_BASIC) {
-            request.header(
-                HttpHeaders.AUTHORIZATION,
-                String.format(
-                    "Basic %s",
-                    Base64.getEncoder().encodeToString(
-                        (identityProvider.getClientId() + ':' + identityProvider.getClientSecret()).getBytes()
-                    )
-                )
-            );
-        } else {
-            // The authorization-code flow already carries the client_id supplied by the caller, so only add one where
-            // the form has none and the request body keeps the shape providers are already receiving.
-            if (!form.containsKey(CLIENT_ID_KEY)) {
-                form.add(CLIENT_ID_KEY, identityProvider.getClientId());
+        // Switched rather than decided by exclusion: token_endpoint_auth_method has values such as none and
+        // private_key_jwt that must not fall through to putting the secret in the body, so adding a constant has to be
+        // a deliberate decision here rather than a silent change on a credential path.
+        switch (method) {
+            case CLIENT_SECRET_BASIC -> request.header(HttpHeaders.AUTHORIZATION, basicAuthorization(identityProvider));
+            case CLIENT_SECRET_POST -> {
+                // The authorization-code flow already carries the client_id supplied by the caller. add() registers the
+                // key even for a null value, so the presence of a value is what decides, not the presence of the key.
+                if (form.getFirst(CLIENT_ID_KEY) == null) {
+                    form.putSingle(CLIENT_ID_KEY, identityProvider.getClientId());
+                }
+                form.add(CLIENT_SECRET, identityProvider.getClientSecret());
             }
-            form.add(CLIENT_SECRET, identityProvider.getClientSecret());
         }
+    }
+
+    private static String basicAuthorization(SocialIdentityProviderEntity identityProvider) {
+        String credentials = identityProvider.getClientId() + ':' + identityProvider.getClientSecret();
+        // Explicit charset: the platform default silently changes the bytes, and therefore the credential, per host
+        return String.format("Basic %s", Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8)));
     }
 
     /**
@@ -271,8 +285,10 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
      * naming the client authentication method when the provider rejected our credentials. Only the error code is
      * relayed, never the provider's raw response, which may describe its internals.
      */
-    private Response clientAuthenticationFailure(String providerResponseBody) {
-        String error = PROVIDER_ERROR;
+    private Response clientAuthenticationFailure(int providerStatus, String providerResponseBody) {
+        // A provider that is down and a provider that rejected our credentials are different problems, so they must not
+        // arrive as the same error code. Without this, an outage reads as a configuration mistake.
+        String error = providerStatus >= 500 ? PROVIDER_UNAVAILABLE_ERROR : PROVIDER_ERROR;
         try {
             Object providerError = getEntity(providerResponseBody).get(ERROR_PROPERTY);
             if (providerError instanceof String providerErrorCode && !providerErrorCode.isBlank()) {

@@ -32,7 +32,9 @@ import io.gravitee.rest.api.service.configuration.identity.IdentityProviderServi
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -57,6 +59,8 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
     private static final String CLIENT_ID = "clientId";
     private static final String CLIENT_SECRET = "clientSecret";
     private static final String TOKEN_ENDPOINT_AUTH_METHOD = "tokenEndpointAuthMethod";
+
+    private final Map<String, String> reportedClientAuthenticationMethods = new ConcurrentHashMap<>();
 
     @Autowired
     private IdentityProviderService identityProviderService;
@@ -178,10 +182,7 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
             provider.setClientId((String) identityProvider.getConfiguration().get(CLIENT_ID));
             provider.setClientSecret((String) identityProvider.getConfiguration().get(CLIENT_SECRET));
             provider.setTokenEndpointAuthMethod(
-                clientAuthenticationMethod(
-                    (String) identityProvider.getConfiguration().get(TOKEN_ENDPOINT_AUTH_METHOD),
-                    identityProvider.getId()
-                )
+                clientAuthenticationMethod(identityProvider.getConfiguration().get(TOKEN_ENDPOINT_AUTH_METHOD), identityProvider.getId())
             );
             provider.setGroupMappings(identityProvider.getGroupMappings());
             provider.setRoleMappings(identityProvider.getRoleMappings());
@@ -195,21 +196,40 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
     }
 
     /**
-     * An unrecognised value is reported rather than rejected: failing here would break every login for the provider,
-     * whereas falling back leaves authentication working while the warning names the typo.
+     * An unusable value is reported rather than rejected: failing here would break every login for the provider, and
+     * because {@code findAll} turns any exception from {@code convert} into a single failure, it would remove every
+     * other provider from the list too. Falling back leaves authentication working on the endpoint defaults.
+     *
+     * <p>The value arrives from a free-form configuration map, so it is not assumed to be a String.
      */
-    private ClientAuthenticationMethod clientAuthenticationMethod(String configured, String identityProviderId) {
-        ClientAuthenticationMethod method = ClientAuthenticationMethod.fromValue(configured);
-        if (method == null && configured != null && !configured.isBlank()) {
-            log.warn(
-                "Identity provider {} declares an unknown {} '{}'. Expected {} or {}. Falling back to the default of each endpoint.",
-                identityProviderId,
-                TOKEN_ENDPOINT_AUTH_METHOD,
-                configured,
-                ClientAuthenticationMethod.CLIENT_SECRET_BASIC.getValue(),
-                ClientAuthenticationMethod.CLIENT_SECRET_POST.getValue()
-            );
+    private ClientAuthenticationMethod clientAuthenticationMethod(Object configured, String identityProviderId) {
+        if (configured == null || (configured instanceof String declared && declared.isBlank())) {
+            return null;
+        }
+
+        ClientAuthenticationMethod method = configured instanceof String declared ? ClientAuthenticationMethod.fromValue(declared) : null;
+        if (method == null) {
+            reportUnusableClientAuthenticationMethod(identityProviderId, configured);
         }
         return method;
+    }
+
+    /**
+     * Reported once per provider and value rather than on every call: {@code convert} runs on each token exchange, so
+     * warning per call turns a single typo into one log line per authentication request.
+     */
+    private void reportUnusableClientAuthenticationMethod(String identityProviderId, Object configured) {
+        String previouslyReported = reportedClientAuthenticationMethods.put(identityProviderId, String.valueOf(configured));
+        if (String.valueOf(configured).equals(previouslyReported)) {
+            return;
+        }
+        log.warn(
+            "Identity provider {} declares an unusable {} '{}'. Expected {} or {}. Falling back to the default of each endpoint.",
+            identityProviderId,
+            TOKEN_ENDPOINT_AUTH_METHOD,
+            configured,
+            ClientAuthenticationMethod.CLIENT_SECRET_BASIC.getValue(),
+            ClientAuthenticationMethod.CLIENT_SECRET_POST.getValue()
+        );
     }
 }
