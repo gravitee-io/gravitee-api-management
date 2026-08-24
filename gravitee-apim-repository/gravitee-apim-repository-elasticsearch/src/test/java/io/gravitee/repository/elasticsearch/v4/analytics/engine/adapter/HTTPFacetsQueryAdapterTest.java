@@ -16,6 +16,7 @@
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
 import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FilterAdapter.A2A_PROXY_ENTRYPOINT_ID;
+import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FilterAdapter.ENTRYPOINT_FIELD;
 import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FilterAdapter.HTTP_GET_ENTRYPOINT_ID;
 import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FilterAdapter.HTTP_POST_ENTRYPOINT_ID;
 import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FilterAdapter.HTTP_PROXY_ENTRYPOINT_ID;
@@ -274,6 +275,23 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         assertThat(nestedMeasures).isNotNull();
     }
 
+    /**
+     * GMA-513 regression guard, from the side that broke.
+     *
+     * <p>{@code http-get} and {@code http-post} are Message API entrypoints as much as LLM/MCP ones
+     * — a plugin id says nothing about the api type. Adding them to the HTTP allow-list to fix
+     * LLM/MCP dashboards silently removed them here, because this query was that list's complement.
+     */
+    @Test
+    void should_not_exclude_connections_on_the_shared_http_entrypoints() throws JsonProcessingException {
+        var query = new MeasuresQuery(buildTimeRange(), buildFilters(), buildMetrics());
+
+        var jsonQuery = JSON.readTree(adapter.adaptRequestIDsQuery(query, null));
+
+        var filters = jsonQuery.at("/query/bool/filter").toString();
+        assertThat(filters).doesNotContain(HTTP_GET_ENTRYPOINT_ID).doesNotContain(HTTP_POST_ENTRYPOINT_ID);
+    }
+
     @Test
     void should_build_request_ids_query_with_composite_aggregation() throws JsonProcessingException {
         var timeRange = buildTimeRange();
@@ -290,35 +308,12 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         assertThat(filterArray).isNotNull();
         assertThat(filterArray.isArray()).isTrue();
 
-        var messageFilter = filterArray.findValue("bool");
-        assertThat(messageFilter).isNotNull();
-
-        var mustNot = messageFilter.at("/must_not");
-        assertThat(mustNot).isNotNull();
-        assertThat(mustNot.isArray()).isTrue();
-
-        var httpFilterInMustNot = mustNot.at("/0/bool");
-        assertThat(httpFilterInMustNot).isNotNull();
-        var should = httpFilterInMustNot.at("/should");
-        assertThat(should).isNotNull();
-        assertThat(should.isArray()).isTrue();
-        assertThat(should.size()).isEqualTo(2);
-
-        var entrypointFilter = should.at("/0/terms/entrypoint-id");
-        assertThat(entrypointFilter).isNotNull();
-        assertThat(entrypointFilter.size()).isEqualTo(6);
-        assertThat(entrypointFilter.at("/0").asText()).isEqualTo(HTTP_GET_ENTRYPOINT_ID);
-        assertThat(entrypointFilter.at("/1").asText()).isEqualTo(HTTP_POST_ENTRYPOINT_ID);
-        assertThat(entrypointFilter.at("/2").asText()).isEqualTo(HTTP_PROXY_ENTRYPOINT_ID);
-        assertThat(entrypointFilter.at("/3").asText()).isEqualTo(LLM_PROXY_ENTRYPOINT_ID);
-        assertThat(entrypointFilter.at("/4").asText()).isEqualTo(MCP_PROXY_ENTRYPOINT_ID);
-        assertThat(entrypointFilter.at("/5").asText()).isEqualTo(A2A_PROXY_ENTRYPOINT_ID);
-
-        var fieldMissingFilter = should.at("/1/bool/must_not/exists/field");
-        assertThat(fieldMissingFilter).isNotNull();
-        assertThat(fieldMissingFilter.asText()).isEqualTo("entrypoint-id");
-
-        assertThat(httpFilterInMustNot.at("/minimum_should_match").asInt()).isEqualTo(1);
+        // No entrypoint predicate. Which API a connection belongs to is already carried by the API
+        // filter every query gets, and the second phase keeps only request ids that have message
+        // documents. Guessing it from entrypoint ids is what made Message APIs on http-get /
+        // http-post invisible when GMA-513 added those ids to the HTTP side — this query used to be
+        // the complement of that list.
+        assertThat(filterArray.toString()).doesNotContain(ENTRYPOINT_FIELD);
 
         var aggs = jsonQuery.at("/aggs");
         assertThat(aggs).isNotEmpty();
