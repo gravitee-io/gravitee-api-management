@@ -671,6 +671,7 @@ data:
             request: {{ .Values.es.lifecycle.policies.request }}
             health: {{ .Values.es.lifecycle.policies.health }}
             log: {{ .Values.es.lifecycle.policies.log }}
+            event_metrics: {{ .Values.es.lifecycle.policies.eventMetrics }}
         {{- end }}
         {{- if (eq .Values.es.security.enabled true) }}
         security:

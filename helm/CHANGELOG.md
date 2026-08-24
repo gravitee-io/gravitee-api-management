@@ -9,6 +9,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - Add `gateway.kafka.routingHostMode.virtualClusterBrokerDomainPattern`, a broker domain pattern applied to Kafka APIs backed by a Virtual Cluster only. Such APIs advertise rewritten broker ids, and setting their pattern separately keeps the domains of the other Kafka APIs on the gateway unchanged. Optional: when unset, Virtual Clusters follow `brokerDomainPattern`. Two placeholders come with it, usable in either pattern: `{realBrokerId}` (the id configured on the backend broker) and `{clusterIndex}` (the backend's position in the Virtual Cluster).
 - Document `gateway.services.metrics.kafka.durations.principalName` to add the `principal_name` tag to Kafka duration metrics (disabled by default).
 - fix gateway requestTimeout ignored when gateway.servers is configured (APIM-14276)
+- Add `es.lifecycle.policies.eventMetrics`, the ILM policy for the `gravitee-event-metrics-*` data streams. The gateway already read this key, but the chart did not render it under `es.lifecycle`, so it could only be set by hand through `gateway.env` (APIM-14875).
 
 ### 4.12.0
 - Add support for Kubernetes Gateway API HTTPRoute for all components (API, Gateway, User Interface, Portal).
