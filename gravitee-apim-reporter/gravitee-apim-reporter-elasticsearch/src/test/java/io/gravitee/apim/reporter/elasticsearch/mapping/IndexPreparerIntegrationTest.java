@@ -69,6 +69,7 @@ import org.testcontainers.utility.DockerImageName;
         "reporters.elasticsearch.lifecycle.policies.monitor=policy-monitor",
         "reporters.elasticsearch.lifecycle.policies.request=policy-request",
         "reporters.elasticsearch.lifecycle.policies.log=policy-log",
+        "reporters.elasticsearch.lifecycle.policies.event_metrics=policy-event-metrics",
     }
 )
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)

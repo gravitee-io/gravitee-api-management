@@ -39,11 +39,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 class IndexTemplateTest {
 
     /**
-     * Every type whose template can render lifecycle settings. EVENT_METRICS is excluded because
-     * {@link AbstractIndexPreparer#getTemplateData()} never puts its policy into the model, so its
-     * lifecycle block cannot render whatever the configuration says. es7x is kept alongside es8x/es9x
-     * because it is the odd one out structurally — its settings sit at the root rather than under
-     * {@code template} — and it is pushed through the legacy template API.
+     * Every type whose template can render lifecycle settings. es7x is kept alongside es8x/es9x because it
+     * is the odd one out structurally — its settings sit at the root rather than under {@code template} —
+     * and it is pushed through the legacy template API.
      */
     static Stream<Arguments> es_trees_and_lifecycle_types() {
         return Stream.of("es7x", "es8x", "es9x").flatMap(esDir ->
@@ -55,7 +53,8 @@ class IndexTemplateTest {
                 Type.V4_LOG,
                 Type.V4_METRICS,
                 Type.V4_MESSAGE_LOG,
-                Type.V4_MESSAGE_METRICS
+                Type.V4_MESSAGE_METRICS,
+                Type.EVENT_METRICS
             ).map(type -> Arguments.of(esDir, type))
         );
     }
@@ -115,6 +114,7 @@ class IndexTemplateTest {
         configuration.setIndexLifecyclePolicyMonitor("policy-monitor");
         configuration.setIndexLifecyclePolicyRequest("policy-request");
         configuration.setIndexLifecyclePolicyLog("policy-log");
+        configuration.setIndexLifecyclePolicyEventMetrics("policy-event-metrics");
         return configuration;
     }
 
