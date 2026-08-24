@@ -68,6 +68,11 @@ git config --global user.email "\${GIT_USER_EMAIL}"`,
         working_directory: './release',
       }),
       new commands.Run({
+        name: 'Run unit tests',
+        command: 'yarn test',
+        working_directory: './release',
+      }),
+      new commands.Run({
         name: 'Open a PR to create release notes into docs repository',
         command: `yarn zx --quiet ci-steps/generate-changelog.mjs --version=${environment.graviteeioVersion}`,
         working_directory: './release',
