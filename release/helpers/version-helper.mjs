@@ -26,13 +26,15 @@ export function computeVersion(releasingVersion) {
 }
 
 /**
- * Returns the branch related to the version to release. If patch version is 0, then the branch is master, else it's Major.Minor.x
+ * Returns the support branch a version is released from — always, X.Y.0 included: the release tags
+ * and bumps the branch it runs on, and the version after 4.13.0 is 4.13.1, not what master should
+ * become.
  * @param releasingVersion
- * @returns {string|string}
+ * @returns {string}
  */
 function branch(releasingVersion) {
   const split = releasingVersion.split('.');
-  return split[2] === 0 ? 'master' : `${split[0]}.${split[1]}.x`;
+  return `${split[0]}.${split[1]}.x`;
 }
 
 function trimmed(releasingVersion) {
@@ -41,6 +43,5 @@ function trimmed(releasingVersion) {
 }
 
 function pattern(releasingVersion) {
-  const releaseBranch = branch(releasingVersion);
-  return releaseBranch === 'master' ? '' : releaseBranch.replace('x', '*');
+  return branch(releasingVersion).replace('x', '*');
 }
