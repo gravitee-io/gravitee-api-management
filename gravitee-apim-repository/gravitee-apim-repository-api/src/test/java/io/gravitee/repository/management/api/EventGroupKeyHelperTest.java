@@ -207,4 +207,18 @@ class EventGroupKeyHelperTest {
             assertThat(result.referenceId()).isEqualTo("api.bookings");
         }
     }
+
+    @Test
+    void should_group_authz_schema_events_by_authz_schema_id() {
+        EventType[] schemaEventTypes = { EventType.PUBLISH_AUTHZ_SCHEMA, EventType.UNPUBLISH_AUTHZ_SCHEMA };
+        Map<String, String> properties = new HashMap<>();
+        properties.put(Event.EventProperties.AUTHZ_SCHEMA_ID.getValue(), "schema-1");
+
+        for (EventType eventType : schemaEventTypes) {
+            EventRepository.EventToCleanGroup result = EventRepository.EventGroupKeyHelper.determineGroup(eventType, properties);
+            assertThat(result).as("non-null group for %s", eventType).isNotNull();
+            assertThat(result.type()).isEqualTo(eventType.name());
+            assertThat(result.referenceId()).isEqualTo("schema-1");
+        }
+    }
 }
