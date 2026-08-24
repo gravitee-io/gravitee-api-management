@@ -22,6 +22,18 @@ import java.util.Set;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * TODO(AUTHZ-32): schema documents are not replayed over distributed sync, unlike policies and entities,
+ * which have DistributedAuthzPolicySynchronizer and DistributedAuthzEntitySynchronizer. The consequence is
+ * specific and worth stating precisely: the bootstrap engine IS present on every node, and
+ * AuthzHostedScopes#serves admits the bare default scope unconditionally, so a secondary node running
+ * distributed sync does receive policies and entities there while never receiving any schema. Evaluation
+ * outcomes do not diverge, because the PDP builds its Authorizer without a schema by design and therefore
+ * never validates against one; the schema's only runtime consumer is SearchExecutor. So what diverges is
+ * action search: the same query answers from the schema on the primary and from nothing on a secondary.
+ * Distributed sync is opt-in and the default wiring is NoopDistributedSyncService, so this is inert unless
+ * it is switched on.
+ */
 @CustomLog
 @RequiredArgsConstructor
 public class AuthzSchemaDeployer implements Deployer<AuthzSchemaReactorDeployable> {
@@ -49,26 +61,11 @@ public class AuthzSchemaDeployer implements Deployer<AuthzSchemaReactorDeployabl
             .doOnError(e -> log.warn("Failed to stage authz schema '{}': {}", deployable.docId(), e.getMessage()));
     }
 
-    // TODO(AUTHZ-32): distributed replay for schema documents, tracked there with the rest of distributed
-    // sync. Until it lands, a secondary node with distributed sync enabled receives no schema at all:
-    // DefaultSyncManager runs either the distributed synchronizers or the repository ones and never both,
-    // so there is no fallback cycle. Opt-in only, the default wiring is NoopDistributedSyncService.
-    // No DistributedSyncService is injected until there is something to distribute.
-    @Override
-    public Completable doAfterDeployment(AuthzSchemaReactorDeployable deployable) {
-        return Completable.complete();
-    }
-
     @Override
     public Completable undeploy(AuthzSchemaReactorDeployable deployable) {
         return enginePort
             .removeSchema(deployable.environmentId(), deployable.docId(), deployable.targetPdpIds())
             .doOnComplete(() -> log.debug("Authz schema '{}' staged for removal on next commit", deployable.docId()))
             .doOnError(e -> log.warn("Failed to stage authz schema '{}' removal: {}", deployable.docId(), e.getMessage()));
-    }
-
-    @Override
-    public Completable doAfterUndeployment(AuthzSchemaReactorDeployable deployable) {
-        return Completable.complete();
     }
 }

@@ -39,8 +39,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import lombok.CustomLog;
 
 /**
- * Shared reactive synchronization engine for the two scoped authz document types (entities and
- * policies). It owns the fetch → map → (un)deploy → retry → commit pipeline, the per-node retry
+ * Shared reactive synchronization engine for the scoped authz document types (schema documents,
+ * entities and policies). It owns the fetch → map → (un)deploy → retry → commit pipeline, the per-node retry
  * bookkeeping and the scope-placement reconciliation; subclasses only supply the type-specific
  * bindings (mapper, deployer, event types, labels). Keeping a single implementation means a fix to
  * the shared logic (e.g. placement eviction or commit retry) lands once instead of diverging across
@@ -200,6 +200,15 @@ public abstract class AbstractAuthzReactorSynchronizer<D extends AuthzScopedDepl
             });
     }
 
+    /**
+     * Base scopes (tag stripped) that this document type's wildcard expansion does NOT reach, and which
+     * therefore stay in the eviction set when a document is retargeted to {@code "*"}. Empty for policies
+     * and entities, whose wildcard covers every engine including the bootstrap one.
+     */
+    protected Set<String> scopesNotCoveredByWildcard() {
+        return Set.of();
+    }
+
     private Flowable<D> deploy(Deployer<D> deployer, D deployable, Set<String> attemptedThisCycle) {
         String rk = runtimeKey(deployable);
         attemptedThisCycle.add(rk);
@@ -213,11 +222,21 @@ public abstract class AbstractAuthzReactorSynchronizer<D extends AuthzScopedDepl
             // A wildcard targets every hosted scope, so it can never narrow a previously-applied scope
             // away. Computing dropped = applied − {"*"} would flag every concretely-applied scope — e.g. a
             // scope recorded by the hydration backfill, which never equals the literal "*" — as removed and
-            // (ungated) evict the document from the very scopes it must stay on. A wildcard drops nothing.
-            dropped.clear();
-        } else {
-            dropped.removeAll(target);
+            // (ungated) evict the document from the very scopes it must stay on. A wildcard drops nothing
+            // except the scopes its own expansion does not reach; for policies and entities that set is
+            // empty, so this removes everything, exactly like the clear() it replaces.
+            // Compared on the BASE of the routing scope: a placement records "default@us", never the bare
+            // "default", so an exact match would leave a tagged bootstrap engine holding a schema forever.
+            Set<String> keptByWildcard = scopesNotCoveredByWildcard();
+            dropped.removeIf(scope -> !keptByWildcard.contains(EventBusAuthzEnginePort.baseScope(scope)));
         }
+        // A scope named in the new target is never dropped, wildcard or not: "*" plus an explicit scope
+        // still means that scope is wanted. Matched on the base too, because the two sides are recorded
+        // differently: the deploy path stores the document's declared targets ("orders"), while hydration
+        // stores the routing scope it applied to ("orders@eu"). Since addressFor strips the tag, those name
+        // one engine, so an exact-string comparison would evict a document from the very engine it is being
+        // published to — harmless today only because the deployer evicts before it stages.
+        dropped.removeIf(scope -> target.contains(scope) || target.contains(EventBusAuthzEnginePort.baseScope(scope)));
         deployable.removedTargetPdpIds(dropped);
         return deployer
             .deploy(deployable)
@@ -345,13 +364,24 @@ public abstract class AbstractAuthzReactorSynchronizer<D extends AuthzScopedDepl
     }
 
     /** Stage the pre-grouped documents for a single scope (route to {@code scope} only, never evict) and
-     *  seal that scope's engine. Records each document in the shared {@link AuthzScopePlacement} so a later
+     *  seal that scope's engine. Records each document in this synchronizer's own {@link AuthzScopePlacement} (one instance per
+     *  document type, so the three do not see each other's placements) so a later
      *  narrowing PUBLISH can still evict it. */
     public Completable stageScope(String environmentId, String scope, List<D> docs) {
+        return stageScope(environmentId, scope, docs, true);
+    }
+
+    /**
+     * Stages {@code docs} into {@code scope}, sealing the scope with a commit only when {@code commit} is
+     * set. Hydration stages schema, policies and entities into the same scope and seals once at the end, so
+     * a scope costs one commit round trip rather than one per document type. The final commit is emitted
+     * even when nothing was staged: a freshly provisioned engine has to leave commit generation 0, which is
+     * what its readiness checks key on.
+     */
+    public Completable stageScope(String environmentId, String scope, List<D> docs, boolean commit) {
         Deployer<D> deployer = createDeployer();
-        return Flowable.fromIterable(docs)
-            .concatMapCompletable(doc -> backfillOne(deployer, doc, scope))
-            .andThen(Completable.defer(() -> enginePort.commitScope(environmentId, scope)));
+        Completable staged = Flowable.fromIterable(docs).concatMapCompletable(doc -> backfillOne(deployer, doc, scope));
+        return commit ? staged.andThen(Completable.defer(() -> enginePort.commitScope(environmentId, scope))) : staged;
     }
 
     private Completable backfillOne(Deployer<D> deployer, D deployable, String scope) {

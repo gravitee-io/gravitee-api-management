@@ -38,6 +38,9 @@ class OrderTest {
         assertThat(Order.AUTHZ_ENTITY.index()).isLessThan(Order.API.index());
         assertThat(Order.AUTHZ_POLICY.index()).isLessThan(Order.API.index());
         assertThat(Order.AUTHZ_ENTITY.index()).isLessThan(Order.AUTHZ_POLICY.index());
+        // A policy may reference a type the schema declares, so the schema must be staged first.
+        assertThat(Order.AUTHZ_SCHEMA.index()).isLessThan(Order.AUTHZ_POLICY.index());
+        assertThat(Order.AUTHZ_SCHEMA.index()).isLessThan(Order.API.index());
         assertThat(Order.AUTHZ_POLICY.index()).isLessThan(Order.SUBSCRIPTION.index());
         assertThat(Order.AUTHZ_POLICY.index()).isLessThan(Order.API_KEY.index());
     }
@@ -45,14 +48,16 @@ class OrderTest {
     @Test
     void authz_indices_match_plan_specification() {
         assertThat(Order.AUTHZ_PDP.index()).isEqualTo(8);
-        assertThat(Order.AUTHZ_ENTITY.index()).isEqualTo(9);
-        assertThat(Order.AUTHZ_POLICY.index()).isEqualTo(10);
+        assertThat(Order.AUTHZ_SCHEMA.index()).isEqualTo(9);
+        assertThat(Order.AUTHZ_ENTITY.index()).isEqualTo(10);
+        assertThat(Order.AUTHZ_POLICY.index()).isEqualTo(11);
     }
 
     @Test
     void authz_pdp_runs_before_entity_and_policy() {
         assertThat(Order.AUTHZ_PDP.index()).isLessThan(Order.AUTHZ_ENTITY.index());
         assertThat(Order.AUTHZ_PDP.index()).isLessThan(Order.AUTHZ_POLICY.index());
+        assertThat(Order.AUTHZ_PDP.index()).isLessThan(Order.AUTHZ_SCHEMA.index());
     }
 
     @Test

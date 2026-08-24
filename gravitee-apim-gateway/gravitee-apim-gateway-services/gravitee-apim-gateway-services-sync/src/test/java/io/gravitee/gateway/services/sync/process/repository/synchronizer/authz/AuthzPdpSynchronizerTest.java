@@ -113,6 +113,16 @@ class AuthzPdpSynchronizerTest {
             executor(),
             executor()
         );
+
+        AuthzSchemaSynchronizer schemaSynchronizer = new AuthzSchemaSynchronizer(
+            fetcher,
+            new AuthzSchemaMapper(new ObjectMapper()),
+            deployerFactory,
+            enginePort,
+            new AuthzScopePlacement(),
+            executor(),
+            executor()
+        );
         AuthzEntitySynchronizer entitySynchronizer = new AuthzEntitySynchronizer(
             fetcher,
             new AuthzEntityMapper(new ObjectMapper()),
@@ -127,6 +137,7 @@ class AuthzPdpSynchronizerTest {
         return new AuthzPdpSynchronizer(
             fetcher,
             new AuthzPdpMapper(new ObjectMapper()),
+            schemaSynchronizer,
             policySynchronizer,
             entitySynchronizer,
             node,

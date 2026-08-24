@@ -128,6 +128,16 @@ class AuthzPdpSynchronizerGapsTest {
             executor(),
             executor()
         );
+
+        AuthzSchemaSynchronizer schemaSynchronizer = new AuthzSchemaSynchronizer(
+            fetcher,
+            new AuthzSchemaMapper(new ObjectMapper()),
+            deployerFactory,
+            enginePort,
+            new AuthzScopePlacement(),
+            executor(),
+            executor()
+        );
         AuthzEntitySynchronizer entitySynchronizer = new AuthzEntitySynchronizer(
             fetcher,
             new AuthzEntityMapper(new ObjectMapper()),
@@ -140,6 +150,7 @@ class AuthzPdpSynchronizerGapsTest {
         return new AuthzPdpSynchronizer(
             fetcher,
             new AuthzPdpMapper(new ObjectMapper()),
+            schemaSynchronizer,
             policySynchronizer,
             entitySynchronizer,
             node,
@@ -256,6 +267,7 @@ class AuthzPdpSynchronizerGapsTest {
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
             Flowable.just(List.of(a, b))
         );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(Flowable.empty());
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
             Flowable.just(List.of(policyA, policyB, policyW))
         );
@@ -280,8 +292,8 @@ class AuthzPdpSynchronizerGapsTest {
         verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-a"), any(), any(), eq(Set.of("scope-b@eu")), anyLong());
 
         // one commit per provisioned scope, per synchronizer (policy + entity backfill)
-        verify(enginePort, times(2)).commitScope("env-pdp", "scope-a@eu");
-        verify(enginePort, times(2)).commitScope("env-pdp", "scope-b@eu");
+        verify(enginePort, times(1)).commitScope("env-pdp", "scope-a@eu");
+        verify(enginePort, times(1)).commitScope("env-pdp", "scope-b@eu");
     }
 
     // ---------------------------------------------------------------------
@@ -297,6 +309,7 @@ class AuthzPdpSynchronizerGapsTest {
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
             Flowable.just(List.of(us))
         );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(Flowable.empty());
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
             Flowable.just(List.of(policyUs))
         );
@@ -364,6 +377,7 @@ class AuthzPdpSynchronizerGapsTest {
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
             Flowable.just(List.of(publish))
         );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(Flowable.empty());
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
             Flowable.just(List.of(policy))
         );
@@ -399,6 +413,7 @@ class AuthzPdpSynchronizerGapsTest {
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
             Flowable.just(List.of(publish))
         );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(Flowable.empty());
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
             Flowable.just(List.of(policy))
         );
@@ -427,7 +442,7 @@ class AuthzPdpSynchronizerGapsTest {
             .extracting(m -> m.getString("op") + ":" + m.getString("environmentId") + ":" + m.getString("targetPdpId"))
             .containsExactly("provision:env-pdp:scope-lost");
         verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-1"), any(), any(), eq(Set.of("scope-lost@eu")), anyLong());
-        verify(enginePort, times(2)).commitScope("env-pdp", "scope-lost@eu");
+        verify(enginePort, times(1)).commitScope("env-pdp", "scope-lost@eu");
     }
 
     @Test
@@ -455,6 +470,7 @@ class AuthzPdpSynchronizerGapsTest {
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
             Flowable.just(List.of(bad, good))
         );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(Flowable.empty());
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
             Flowable.just(List.of(policyGood, policyBad))
         );
@@ -588,6 +604,7 @@ class AuthzPdpSynchronizerGapsTest {
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
             Flowable.just(List.of(publish))
         );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(Flowable.empty());
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
             Flowable.just(List.of(policy))
         );
@@ -603,10 +620,13 @@ class AuthzPdpSynchronizerGapsTest {
         synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
         // The scope was hydrated again on cycle 2 and finally committed.
-        // Cycle 1: policy backfill commit errors before the entity backfill runs (1 commitScope).
-        // Cycle 2: healthy, policy backfill commits then entity backfill commits (2 commitScope) = 3 total.
+        // A scope is sealed once, after schema, policies and entities have all been staged, so each cycle
+        // costs exactly one commitScope. Cycle 1 stages everything and then fails on that single commit;
+        // cycle 2 repeats the staging and the commit succeeds. Two cycles, two commits, two policy stages.
+        // Note the trade-off this makes explicit: committing once per scope means a dead engine is now
+        // discovered after the staging calls rather than at the first aggregate boundary.
         verify(enginePort, times(2)).addOrUpdatePolicy(eq("env-pdp"), eq("pol-h"), any(), any(), eq(Set.of("scope-h@eu")), anyLong());
-        verify(enginePort, times(3)).commitScope("env-pdp", "scope-h@eu");
+        verify(enginePort, times(2)).commitScope("env-pdp", "scope-h@eu");
     }
 
     // ---------------------------------------------------------------------
