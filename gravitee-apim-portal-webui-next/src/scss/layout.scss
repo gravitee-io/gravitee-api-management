@@ -48,6 +48,9 @@ $container-padding-horizontal: 16px;
     max-width: $max-width;
     justify-content: center; // when flex-flow is column
     justify-self: center; // when flex-flow is row
+
+    // Firefox ignores justify-self on a block-level parent.
+    margin-inline: auto;
   }
 }
 
