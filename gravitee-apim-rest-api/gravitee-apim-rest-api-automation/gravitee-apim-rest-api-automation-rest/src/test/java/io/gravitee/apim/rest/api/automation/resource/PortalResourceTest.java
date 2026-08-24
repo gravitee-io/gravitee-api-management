@@ -66,7 +66,9 @@ class PortalResourceTest extends AbstractResourceTest {
         @Test
         void should_return_portal_by_hrid() {
             var persisted = Portal.of(PORTAL_ID, ENVIRONMENT, ORGANIZATION, "Default Portal");
-            when(getPortalUseCase.execute(any())).thenReturn(new GetPortalUseCase.Output(persisted, PortalNavigationStructure.empty()));
+            when(getPortalUseCase.execute(any())).thenReturn(
+                new GetPortalUseCase.Output(persisted, PortalNavigationStructure.empty(), null)
+            );
 
             try (var response = rootTarget(HRID).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
                 assertThat(response.getStatus()).isEqualTo(200);
@@ -88,7 +90,7 @@ class PortalResourceTest extends AbstractResourceTest {
             // order is inverted in the list to show that API returns it in the correct order
             var navigation = List.of(new NavigationPath("/projects/alpha", "Alpha", 1), new NavigationPath("/projects", null));
             when(getPortalUseCase.execute(any())).thenReturn(
-                new GetPortalUseCase.Output(persisted, PortalNavigationStructure.ofTopNavbar(navigation))
+                new GetPortalUseCase.Output(persisted, PortalNavigationStructure.ofTopNavbar(navigation), null)
             );
 
             try (var response = rootTarget(HRID).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {

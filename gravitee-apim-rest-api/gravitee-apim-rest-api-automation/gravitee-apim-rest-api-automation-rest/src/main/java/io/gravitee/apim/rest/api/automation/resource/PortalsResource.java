@@ -78,11 +78,17 @@ public class PortalsResource extends AbstractResource {
         );
         var structure = PortalMapper.INSTANCE.toCoreStructure(spec);
 
-        var input = new CreateOrUpdatePortalUseCase.Input(auditInfo, portal, structure);
+        var input = new CreateOrUpdatePortalUseCase.Input(auditInfo, portal, structure, spec.getActiveThemeHrid());
         var output = dryRun ? validatePortalUseCase.execute(input) : createOrUpdatePortalUseCase.execute(input);
 
         return Response.ok(
-            PortalMapper.INSTANCE.toPortalState(output.portal(), spec.getHrid(), output.structure(), output.errors())
+            PortalMapper.INSTANCE.toPortalState(
+                output.portal(),
+                spec.getHrid(),
+                output.structure(),
+                output.activeThemeHrid(),
+                output.errors()
+            )
         ).build();
     }
 }

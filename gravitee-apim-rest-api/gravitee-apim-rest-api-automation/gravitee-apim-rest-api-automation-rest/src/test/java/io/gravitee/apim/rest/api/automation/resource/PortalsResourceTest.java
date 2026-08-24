@@ -67,7 +67,7 @@ class PortalsResourceTest extends AbstractResourceTest {
         void should_return_populated_state_without_calling_use_case() {
             when(validatePortalUseCase.execute(any())).thenAnswer(inv -> {
                 var input = (CreateOrUpdatePortalUseCase.Input) inv.getArgument(0);
-                return new CreateOrUpdatePortalUseCase.Output(input.portal(), input.structure(), List.of());
+                return new CreateOrUpdatePortalUseCase.Output(input.portal(), input.structure(), null, List.of());
             });
 
             try (
@@ -95,7 +95,7 @@ class PortalsResourceTest extends AbstractResourceTest {
         void should_echo_navigation_in_dry_run() {
             when(validatePortalUseCase.execute(any())).thenAnswer(inv -> {
                 var input = (CreateOrUpdatePortalUseCase.Input) inv.getArgument(0);
-                return new CreateOrUpdatePortalUseCase.Output(input.portal(), input.structure(), List.of());
+                return new CreateOrUpdatePortalUseCase.Output(input.portal(), input.structure(), null, List.of());
             });
 
             try (
@@ -139,7 +139,7 @@ class PortalsResourceTest extends AbstractResourceTest {
         void should_create_or_update_portal() {
             var persisted = Portal.of(PortalId.of("00000000-0000-0000-0000-0000000000a1"), ENVIRONMENT, ORGANIZATION, "Default Portal");
             when(createOrUpdatePortalUseCase.execute(any())).thenReturn(
-                new CreateOrUpdatePortalUseCase.Output(persisted, PortalNavigationStructure.empty(), List.of())
+                new CreateOrUpdatePortalUseCase.Output(persisted, PortalNavigationStructure.empty(), null, List.of())
             );
 
             try (var response = rootTarget().request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON("portal.json")))) {
@@ -167,7 +167,7 @@ class PortalsResourceTest extends AbstractResourceTest {
                 new NavigationPath("/projects/alpha/docs", null)
             );
             when(createOrUpdatePortalUseCase.execute(any())).thenReturn(
-                new CreateOrUpdatePortalUseCase.Output(persisted, PortalNavigationStructure.ofTopNavbar(echoed), List.of())
+                new CreateOrUpdatePortalUseCase.Output(persisted, PortalNavigationStructure.ofTopNavbar(echoed), null, List.of())
             );
 
             try (
@@ -202,7 +202,7 @@ class PortalsResourceTest extends AbstractResourceTest {
             var persisted = Portal.of(PortalId.of("00000000-0000-0000-0000-0000000000a1"), ENVIRONMENT, ORGANIZATION, "Default Portal");
             when(createOrUpdatePortalUseCase.execute(any())).thenAnswer(inv -> {
                 var input = (CreateOrUpdatePortalUseCase.Input) inv.getArgument(0);
-                return new CreateOrUpdatePortalUseCase.Output(persisted, input.structure(), List.of());
+                return new CreateOrUpdatePortalUseCase.Output(persisted, input.structure(), null, List.of());
             });
 
             try (
@@ -240,7 +240,7 @@ class PortalsResourceTest extends AbstractResourceTest {
             var persisted = Portal.of(PortalId.of("00000000-0000-0000-0000-0000000000a1"), ENVIRONMENT, ORGANIZATION, "Default Portal");
             var echoed = List.of(new NavigationPath("/x", null));
             when(createOrUpdatePortalUseCase.execute(any())).thenReturn(
-                new CreateOrUpdatePortalUseCase.Output(persisted, PortalNavigationStructure.ofTopNavbar(echoed), List.of())
+                new CreateOrUpdatePortalUseCase.Output(persisted, PortalNavigationStructure.ofTopNavbar(echoed), null, List.of())
             );
 
             try (
