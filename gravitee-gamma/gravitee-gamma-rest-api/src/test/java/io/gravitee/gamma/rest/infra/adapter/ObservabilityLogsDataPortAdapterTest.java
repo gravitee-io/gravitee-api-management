@@ -728,11 +728,12 @@ class ObservabilityLogsDataPortAdapterTest {
     class DetailCredential {
 
         /**
-         * securityType/securityToken are root document fields carried by every API type, and on an HTTP
-         * document the token is the credential verbatim (ApiKeyAuthenticationHandler does
-         * setSecurityToken(apiKey)). Returning it here would hand a subscriber's live API key to anyone
-         * holding log-read permission, so the detail must expose the pair only for native connections —
-         * where the reactor deliberately never writes the key.
+         * Scope. securityType/securityToken are root document fields carried by every API type, so an HTTP
+         * document reaches this mapping too. The pair is added for native Kafka connections and nothing
+         * renders it elsewhere, so it stops here — widening it is a separate decision.
+         *
+         * <p>The sibling below covers the other, independent condition: the token is the credential itself
+         * on an API-key plan, and that is what the allow-list guards, native or not.
          */
         @Test
         void should_not_expose_the_security_credential_on_a_non_native_document() {
@@ -750,8 +751,38 @@ class ObservabilityLogsDataPortAdapterTest {
 
             var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
 
-            assertThat(detail.securityToken()).isNull();
+            // Out of scope, so neither field is emitted — this PR adds the pair for native connections and
+            // no screen renders it elsewhere. The token would additionally be withheld by the allow-list.
             assertThat(detail.securityType()).isNull();
+            assertThat(detail.securityToken()).isNull();
+        }
+
+        /**
+         * The case the previous "is this a native document" guard let through: a native Kafka API may carry
+         * an API-key plan (nothing in PlanValidatorDomainService forbids it), and the invariant that made the
+         * token safe there — the reactor never writing the key — lives in another repository, so no test here
+         * would catch its regression. Keying on the credential type fails closed instead.
+         */
+        @Test
+        void should_not_expose_the_token_of_an_api_key_plan_even_on_a_native_document() {
+            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1"))).thenReturn(
+                Optional.of(
+                    io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder()
+                        .apiId("api-1")
+                        .requestId("req-1")
+                        .securityType("API_KEY")
+                        .securityToken("f4c1a0de-live-api-key")
+                        .additionalMetrics(Map.of(NativeApiMetricKeys.CONNECTION_STATUS, "CONNECTED"))
+                        .build()
+                )
+            );
+            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any())).thenReturn(Optional.empty());
+
+            var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            // The type stays: knowing the connection authenticated with an API key is not a leak.
+            assertThat(detail.securityType()).isEqualTo("API_KEY");
+            assertThat(detail.securityToken()).isNull();
         }
 
         @Test

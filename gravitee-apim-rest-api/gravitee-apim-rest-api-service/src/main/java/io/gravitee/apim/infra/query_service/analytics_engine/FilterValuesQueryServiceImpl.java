@@ -23,6 +23,7 @@ import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.FilterValuesQuery;
 import io.gravitee.repository.log.v4.model.analytics.FilterValuesResult;
+import io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
@@ -81,6 +82,8 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
         return new FilterValuesPage(values, result.afterKey(), result.totalCount());
     }
 
+    private static final String ADDITIONAL_METRICS_PREFIX = "additional-metrics.";
+
     /**
      * Maps domain filter names to Elasticsearch field names.
      * Mirrors the mapping in HTTPFieldResolver (ES module) to keep the repository API simple (String field name).
@@ -116,8 +119,10 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
             case EDGE_CLIENT -> "client-identifier";
             case EDGE_TYPE -> "additional-metrics.keyword_edge_type";
             case MESSAGE_CONNECTOR_TYPE -> "connector-type";
-            case NATIVE_CLIENT_ID -> "additional-metrics.keyword_native-kafka_client-id";
-            case NATIVE_CLIENT_SOFTWARE_NAME -> "additional-metrics.keyword_native-kafka_client-software-name";
+            // Composed from the shared keys rather than spelled out: a rename there would otherwise leave this
+            // switch on a stale path, and the values dropdown would quietly return an empty page.
+            case NATIVE_CLIENT_ID -> ADDITIONAL_METRICS_PREFIX + NativeApiMetricKeys.CLIENT_ID;
+            case NATIVE_CLIENT_SOFTWARE_NAME -> ADDITIONAL_METRICS_PREFIX + NativeApiMetricKeys.CLIENT_SOFTWARE_NAME;
             case ENTRYPOINT -> "entrypoint-id";
             case ERROR_KEY -> "error-key";
             case REQUEST_ID -> "request-id";

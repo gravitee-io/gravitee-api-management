@@ -26,6 +26,7 @@ import io.gravitee.apim.core.log.crud_service.AuthzDecisionLogsCrudService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.apim.core.log.model.AuthzDecisionLog;
 import io.gravitee.apim.core.log.model.AuthzDecisionLogFilters;
+import io.gravitee.apim.core.log.model.SecurityTokenProjection;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
@@ -214,15 +215,20 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                 .connectionDurationMs(nativeMetrics.connectionDurationMs());
 
             // securityType/securityToken are ROOT document fields every API type carries, unlike the
-            // native-kafka keywords above which are simply absent on an HTTP document. On an HTTP document
-            // the token is the credential verbatim — ApiKeyAuthenticationHandler does setSecurityToken(apiKey)
-            // — so returning it here would hand a subscriber's live API key to anyone holding log-read
-            // permission. The native reactor deliberately never writes the key ("the plan type is reportable,
-            // the key value never is", KafkaClientCredential), which is what makes the pair safe, and
-            // meaningful, on a native connection document and only there. The connection status is the
-            // discriminator: only the native reactor writes it.
+            // native-kafka keywords above which are simply absent on an HTTP document. Two independent
+            // conditions, and conflating them is what made the first attempt at this wrong:
+            //
+            //   - SCOPE. This PR adds the pair for native Kafka connections, and no screen renders it for
+            //     any other API type, so an HTTP document would carry a field nobody reads. Widening it is
+            //     a product decision that belongs in its own change.
+            //   - SAFETY. The token is the credential itself on an API-key plan, and a native Kafka API may
+            //     carry one — so the allow-list below, not the native check, is what keeps the secret out.
+            //     It fails closed; the scope check must never be mistaken for the guard.
             if (nativeMetrics.connectionStatus() != null) {
-                builder.securityType(metrics.getSecurityType()).securityToken(metrics.getSecurityToken());
+                builder.securityType(metrics.getSecurityType());
+                if (SecurityTokenProjection.isTokenProjectable(metrics.getSecurityType())) {
+                    builder.securityToken(metrics.getSecurityToken());
+                }
             }
 
             var names = resolveDetailNames(executionContext, metrics);

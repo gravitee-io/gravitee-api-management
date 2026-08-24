@@ -95,6 +95,27 @@ class NativeApiLogCrudServiceImplTest {
         }
 
         @Test
+        void withholds_the_token_of_an_api_key_plan() throws AnalyticsException {
+            // This resource is reached as /apis/{apiId}/logs/native/{requestId} and the Elasticsearch query
+            // matches on api-id + request-id only, with no API-type assertion — so an HTTP v4 document, whose
+            // security-token is the API key verbatim, can be projected here. The type is still reportable.
+            stubRepositoryReturning(
+                Optional.of(
+                    buildNativeApiMetrics(API_ID, REQUEST_ID)
+                        .toBuilder()
+                        .securityType("API_KEY")
+                        .securityToken("f4c1a0de-live-api-key")
+                        .build()
+                )
+            );
+
+            var found = service.findLog(EXECUTION_CONTEXT, API_ID, REQUEST_ID, FROM_MILLIS, TO_MILLIS).orElseThrow();
+
+            assertThat(found.getSecurityType()).isEqualTo("API_KEY");
+            assertThat(found.getSecurityToken()).isNull();
+        }
+
+        @Test
         void returns_empty_when_repository_empty() throws AnalyticsException {
             stubRepositoryReturning(Optional.empty());
 

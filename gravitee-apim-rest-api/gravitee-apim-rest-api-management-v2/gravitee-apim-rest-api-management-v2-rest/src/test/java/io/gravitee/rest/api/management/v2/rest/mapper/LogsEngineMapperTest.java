@@ -17,9 +17,14 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.apim.core.observability.model.Signal;
+import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.logs.engine.EnvironmentApiLog;
 import io.gravitee.rest.api.management.v2.rest.model.logs.engine.FilterName;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -79,5 +84,23 @@ class LogsEngineMapperTest {
         // Guards the switch in mapFilterName: a name added to openapi-logs.yaml without an engine
         // counterpart would otherwise blow up at request time rather than here.
         assertThat(FilterName.values()).allSatisfy(name -> assertThat(LogsEngineMapper.INSTANCE.mapFilterName(name)).isNotNull());
+    }
+
+    @Test
+    void every_logs_filter_the_catalog_publishes_should_exist_in_the_wire_enum() {
+        // The other direction, and the one that bites in production: the console forwards the names from
+        // GET /observability/filters/definition verbatim into POST /v2/logs/search. A catalog entry carrying
+        // signals: [LOGS] with no counterpart here makes the generated enum's fromValue throw, so picking
+        // that chip fails the WHOLE search rather than dropping one clause. openapi-logs.yaml says this list
+        // is aligned on the catalog; nothing enforced it until now.
+        var wireNames = Arrays.stream(FilterName.values()).map(Enum::name).collect(Collectors.toSet());
+
+        assertThat(new AnalyticsDefinitionYAMLQueryService().getFilters(Set.of(Signal.LOGS)))
+            .isNotEmpty()
+            .allSatisfy(spec ->
+                assertThat(wireNames)
+                    .as("%s is published for the LOGS signal but missing from FilterName in openapi-logs.yaml", spec.name())
+                    .contains(spec.name().name())
+            );
     }
 }
