@@ -95,8 +95,7 @@ class IndexPreparerIntegrationTest {
     @Autowired
     private PipelineConfiguration pipelineConfiguration;
 
-    @Autowired
-    private GenericContainer<?> openSearchContainer;
+    private static final HttpClient HTTP = HttpClient.newHttpClient();
 
     static Stream<Arguments> es_preparers() {
         return Stream.of(Arguments.of("es7x"), Arguments.of("es8x"), Arguments.of("es9x"));
@@ -106,6 +105,9 @@ class IndexPreparerIntegrationTest {
     @MethodSource("es_preparers")
     void should_put_templates_against_opensearch_when_ism_property_names_set(String esDir) throws Exception {
         AbstractIndexPreparer preparer = preparerFor(esDir);
+        // Every tree PUTs the same template names into one shared container. Without this, a tree whose
+        // PUT never happened would pass on the previous tree's leftovers.
+        deleteStoredTemplates();
 
         TestObserver<Void> observer = preparer.prepare().test();
         observer.awaitDone(60, TimeUnit.SECONDS);
@@ -127,10 +129,24 @@ class IndexPreparerIntegrationTest {
     }
 
     private String storedTemplate(String api, String name) throws Exception {
-        String url = "http://%s:%d/%s/%s".formatted(openSearchContainer.getHost(), openSearchContainer.getMappedPort(9200), api, name);
-        return HttpClient.newHttpClient()
-            .send(HttpRequest.newBuilder(URI.create(url)).GET().build(), HttpResponse.BodyHandlers.ofString())
-            .body();
+        HttpResponse<String> response = send(HttpRequest.newBuilder(uri(api, name)).GET());
+        assertThat(response.statusCode()).as("GET %s/%s", api, name).isEqualTo(200);
+        return response.body();
+    }
+
+    private void deleteStoredTemplates() throws Exception {
+        for (String name : new String[] { "event-metrics", "request" }) {
+            send(HttpRequest.newBuilder(uri("_index_template", "gravitee-ism-override-" + name)).DELETE());
+            send(HttpRequest.newBuilder(uri("_template", "gravitee-ism-override-" + name)).DELETE());
+        }
+    }
+
+    private URI uri(String api, String name) {
+        return URI.create("%s/%s/%s".formatted(configuration.getEndpoints().get(0).getUrl(), api, name));
+    }
+
+    private HttpResponse<String> send(HttpRequest.Builder request) throws Exception {
+        return HTTP.send(request.build(), HttpResponse.BodyHandlers.ofString());
     }
 
     private AbstractIndexPreparer preparerFor(String esDir) {

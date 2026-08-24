@@ -16,7 +16,9 @@
 package io.gravitee.apim.reporter.elasticsearch.mapping;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.mapping.es7.ES7IndexPreparer;
@@ -32,7 +34,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 /**
- * Asserts what the es{@code 7,8,9}x index templates actually render: the configured lifecycle property names
+ * Asserts what the es{@code 7,8,9}x and {@code opensearch} index templates actually render: the configured lifecycle property names
  * when they are overridden, the Elasticsearch defaults when they are blank, and JSON-safe output when a name
  * is malformed. Runs without the OpenSearch container {@link IndexPreparerIntegrationTest} needs, which
  * proves the complementary half — that a cluster accepts the rendered body.
@@ -93,7 +95,7 @@ class IndexTemplateTest {
     }
 
     static Stream<Arguments> es_trees() {
-        return Stream.of(Arguments.of("es7x"), Arguments.of("es8x"), Arguments.of("es9x"));
+        return Stream.of("es7x", "es8x", "es9x").map(Arguments::of);
     }
 
     /** Every tree that ships an event-metrics template, with the lifecycle key that tree writes. */
@@ -107,7 +109,7 @@ class IndexTemplateTest {
     }
 
     static Stream<Arguments> all_trees() {
-        return Stream.of(Arguments.of("es7x"), Arguments.of("es8x"), Arguments.of("es9x"), Arguments.of("opensearch"));
+        return all_trees_and_policy_keys().map(args -> Arguments.of(args.get()[0]));
     }
 
     @ParameterizedTest(name = "{0} event-metrics template carries the configured lifecycle policy as {1}")
@@ -145,6 +147,33 @@ class IndexTemplateTest {
 
         assertThat(preparerFor(esDir, configuration).generateIndexTemplate(Type.EVENT_METRICS)).contains(
             "\"index.plugins.index_state_management.policy_id\": \"policy-event-metrics\""
+        );
+    }
+
+    @ParameterizedTest(name = "{0} event-metrics template renders no lifecycle settings when unset")
+    @MethodSource("all_trees_and_policy_keys")
+    void should_render_no_lifecycle_settings_for_the_event_metrics_data_stream_when_no_policy_is_set(String esDir, String policyKey) {
+        // The default deployment: the key is documented but unset, and must stay entirely absent.
+        assertThat(preparerFor(esDir, new ReporterConfiguration()).generateIndexTemplate(Type.EVENT_METRICS))
+            .doesNotContain(policyKey)
+            .doesNotContain("rollover_alias");
+    }
+
+    @ParameterizedTest(name = "{0} {1} template is valid JSON")
+    @MethodSource("all_trees_and_all_types")
+    void should_render_a_body_that_parses_as_json(String esDir, Type type) throws Exception {
+        // Every other assertion here is a substring match, which cannot see a body broken into invalid
+        // JSON by a stray separator — the failure mode a cluster reports only as a parse error.
+        assertThatNoException().isThrownBy(() ->
+            new ObjectMapper().readTree(preparerFor(esDir, configurationWithPolicies()).generateIndexTemplate(type))
+        );
+    }
+
+    static Stream<Arguments> all_trees_and_all_types() {
+        return all_trees().flatMap(tree ->
+            Stream.concat(es_trees_and_lifecycle_types().map(args -> args.get()[1]), Stream.of(Type.EVENT_METRICS))
+                .distinct()
+                .map(type -> Arguments.of(tree.get()[0], type))
         );
     }
 
