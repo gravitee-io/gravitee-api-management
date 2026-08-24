@@ -2005,6 +2005,15 @@ components:
                     type: string
                     description: Identifier of the API that handled the request.
                     example: "67e246cb-ab02-4da4-8f47-f9fa3e061d6b"
+                apiType:
+                    type: string
+                    description: |
+                        API kind as stored in the definition (e.g. `HTTP_PROXY`, `MESSAGE`, `NATIVE`).
+                        Read by id from the API definition, scoped to the environment, rather than off
+                        the connection document, which does not carry it: a direct link to a detail has
+                        no list row to inherit it from, and the client needs it to pick the right
+                        detail view.
+                    example: "MESSAGE"
                 transactionId:
                     type: string
                     description: Correlation id shared across chained requests.
@@ -2266,6 +2275,14 @@ components:
                 endpoint:
                     type: string
                     description: Backend endpoint the request was proxied to.
+                entrypointId:
+                    type: string
+                    description: |
+                        Entrypoint plugin id of the connection. On a Message API this is the protocol
+                        the client used — `http-post` to publish, `sse` / `websocket` / `http-get` to
+                        subscribe — and one API commonly exposes several at once, which makes it the
+                        column that tells its rows apart.
+                    example: sse
                 host:
                     type: string
                     description: Host header (HTTP) or SNI (native Kafka) the client used.

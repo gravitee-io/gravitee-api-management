@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.infra.adapter;
 
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
@@ -115,6 +116,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
     private final ApplicationCrudService applicationCrudService;
     private final InstanceQueryService instanceQueryService;
     private final ApiProductQueryService apiProductQueryService;
+    private final ApiCrudService apiCrudService;
 
     @Override
     public List<AccessibleApi> loadAccessibleApis(String organizationId, String environmentId) {
@@ -181,7 +183,21 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             return Optional.empty();
         }
 
-        var builder = LogDetail.builder().requestId(requestId).apiId(apiId);
+        // The connection indices do not store the api type. Resolved here rather than left to the
+        // client: a direct link to a detail has no list row to carry it from.
+        //
+        // Read by id rather than through loadAccessibleApi: that path enumerates every API the caller
+        // can reach only to test one id, and the resource already ran checkApiLogReadPermissionOrCollapse
+        // on this one. The environment filter is kept because the by-id read has no scope of its own,
+        // and toGammaApiType because the wire names differ from the definition enum (PROXY -> HTTP_PROXY).
+        var apiType = apiCrudService
+            .findById(apiId)
+            .filter(api -> api.belongsToEnvironment(environmentId))
+            .map(api -> toGammaApiType(api.getType()))
+            .map(Enum::name)
+            .orElse(null);
+
+        var builder = LogDetail.builder().requestId(requestId).apiId(apiId).apiType(apiType);
 
         metricsOpt.ifPresent(metrics -> {
             builder
@@ -595,6 +611,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .gateway(log.getGateway())
             .uri(log.getUri())
             .endpoint(log.getEndpoint())
+            .entrypointId(log.getEntrypointId())
             .host(log.getHost())
             .subscriptionId(log.getSubscriptionId())
             .message(log.getMessage())

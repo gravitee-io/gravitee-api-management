@@ -49,6 +49,12 @@ public record LogEntry(
     String gatewayHostname,
     String uri,
     String endpoint,
+    /**
+     * Entrypoint plugin id of the connection. On a Message API this is the protocol the client used —
+     * http-post to publish, sse / websocket / http-get to subscribe — and one API commonly exposes
+     * several at once, which makes it the column that tells its rows apart.
+     */
+    String entrypointId,
     String host,
     String subscriptionId,
     String message,

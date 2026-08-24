@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
@@ -48,6 +49,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.logs.model.ApiReference;
 import io.gravitee.gamma.rest.core.observability.logs.model.FailureOrigin;
+import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
 import io.gravitee.gamma.rest.core.observability.logs.model.MessageLogsPage;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys;
@@ -104,6 +106,9 @@ class ObservabilityLogsDataPortAdapterTest {
     @Mock
     private ApiProductQueryService apiProductQueryService;
 
+    @Mock
+    private ApiCrudService apiCrudService;
+
     private ObservabilityLogsDataPortAdapter adapter;
 
     @BeforeEach
@@ -117,7 +122,8 @@ class ObservabilityLogsDataPortAdapterTest {
             planCrudService,
             applicationCrudService,
             instanceQueryService,
-            apiProductQueryService
+            apiProductQueryService,
+            apiCrudService
         );
     }
 
@@ -742,8 +748,75 @@ class ObservabilityLogsDataPortAdapterTest {
         return captor.getValue();
     }
 
+    /**
+     * The two projections the connection indices cannot supply on their own: the entrypoint travels on
+     * the connection document but was previously dropped by the mapping, and the api type is not on
+     * the document at all — it is read by id from the API definition, scoped to the environment.
+     */
+    @Nested
+    class Projections {
+
+        @Test
+        void should_carry_the_connection_entrypoint_onto_the_log_row() {
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
+                new SearchLogsResponse<>(
+                    1,
+                    List.of(BaseConnectionLog.builder().apiId("api-1").requestId("req-1").entrypointId("sse").build())
+                )
+            );
+
+            var page = adapter.searchLogs(ORG, ENV, queryWith());
+
+            assertThat(page.data()).singleElement().extracting(LogEntry::entrypointId).isEqualTo("sse");
+        }
+
+        @Test
+        void should_resolve_the_api_type_onto_the_log_detail() {
+            when(apiCrudService.findById("api-1")).thenReturn(
+                Optional.of(Api.builder().id("api-1").name("API 1").environmentId(ENV).type(ApiType.MESSAGE).build())
+            );
+            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1"))).thenReturn(
+                Optional.of(io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder().apiId("api-1").requestId("req-1").build())
+            );
+            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any())).thenReturn(Optional.empty());
+
+            var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            assertThat(detail.apiType()).isEqualTo("MESSAGE");
+        }
+
+        /**
+         * The by-id read has no scope of its own, so the environment filter is the only thing keeping
+         * an API of another environment from reporting its type here.
+         */
+        @Test
+        void should_not_resolve_the_api_type_of_another_environment() {
+            when(apiCrudService.findById("api-1")).thenReturn(
+                Optional.of(Api.builder().id("api-1").name("API 1").environmentId("other-env").type(ApiType.MESSAGE).build())
+            );
+            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1"))).thenReturn(
+                Optional.of(io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder().apiId("api-1").requestId("req-1").build())
+            );
+            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any())).thenReturn(Optional.empty());
+
+            var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            assertThat(detail.apiType()).isNull();
+        }
+    }
+
     @Nested
     class DetailCredential {
+
+        /**
+         * The detail resolves the api type through a by-id read, so every detail test goes through it.
+         * These cases are about the credential, not about the api type: answer empty so the type stays
+         * null and the assertions below stay about what they name.
+         */
+        @BeforeEach
+        void stubApiLookup() {
+            when(apiCrudService.findById("api-1")).thenReturn(Optional.empty());
+        }
 
         /**
          * Scope. securityType/securityToken are root document fields carried by every API type, so an HTTP
