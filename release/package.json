@@ -11,6 +11,7 @@
     "zx": "8.8.5"
   },
   "scripts": {
+    "test": "node --test \"helpers/*.test.mjs\"",
     "prettier": "prettier --check \"**/*.{js,mjs,json}\"",
     "prettier:fix": "prettier --write \"**/*.{js,mjs,json}\"",
     "full_release": "zx steps/full_release.mjs",
