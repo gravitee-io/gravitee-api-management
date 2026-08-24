@@ -24,6 +24,7 @@ import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.agent.definition.AgentOutput;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
@@ -36,7 +37,6 @@ import java.util.Map;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
-import io.gravitee.definition.model.v4.agent.definition.AgentOutput;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiModelFactoryTest {
@@ -72,7 +72,11 @@ class ApiModelFactoryTest {
             .type(ApiType.AGENT)
             .kind("standalone")
             .listeners(List.of(HttpListener.builder().paths(List.of()).build()))
-            .standalone(io.gravitee.definition.model.v4.agent.StandaloneAgentDefinition.builder().outputs(List.of(AgentOutput.builder().name("answer").build())).build())
+            .standalone(
+                io.gravitee.definition.model.v4.agent.StandaloneAgentDefinition.builder()
+                    .outputs(List.of(AgentOutput.builder().name("answer").build()))
+                    .build()
+            )
             .build();
 
         Api api = ApiModelFactory.fromNewAgentApi(newAgentApi, ENVIRONMENT_ID);
