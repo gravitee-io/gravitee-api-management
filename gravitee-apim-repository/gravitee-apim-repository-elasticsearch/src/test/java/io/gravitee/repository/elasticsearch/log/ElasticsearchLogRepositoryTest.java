@@ -24,7 +24,9 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
+import io.gravitee.repository.elasticsearch.TimeProvider;
 import io.gravitee.repository.log.model.ExtendedLog;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -47,7 +49,7 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
         ExtendedLog log = logRepository.findById(
             queryContext,
             "29381bce-df59-47b2-b81b-cedf59c7b23e",
-            System.currentTimeMillis() - 24 * 60 * 60 * 1000
+            TimeProvider.now().minus(1, ChronoUnit.DAYS).toEpochMilli()
         );
 
         assertThat(log).isNotNull();
