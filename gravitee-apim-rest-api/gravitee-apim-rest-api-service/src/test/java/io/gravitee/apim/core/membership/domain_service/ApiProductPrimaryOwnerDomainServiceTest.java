@@ -18,6 +18,12 @@ package io.gravitee.apim.core.membership.domain_service;
 import static fixtures.core.model.RoleFixtures.apiProductPrimaryOwnerRoleId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import fixtures.core.model.AuditInfoFixtures;
 import inmemory.AuditCrudServiceInMemory;
@@ -44,6 +50,8 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
@@ -186,6 +194,188 @@ class ApiProductPrimaryOwnerDomainServiceTest {
             assertThat(throwable)
                 .isInstanceOf(ApiProductPrimaryOwnerNotFoundException.class)
                 .hasMessageContaining("Primary owner not found for API Product");
+        }
+    }
+
+    @Nested
+    class GetApiProductPrimaryOwners {
+
+        @Test
+        public void should_resolve_every_product_in_one_pass() {
+            givenExistingUsers(
+                List.of(
+                    BaseUserEntity.builder().id(MEMBER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build(),
+                    BaseUserEntity.builder().id("member-2").firstname("John").lastname("Roe").email("john.roe@gravitee.io").build()
+                )
+            );
+            givenExistingMemberships(
+                List.of(aUserPrimaryOwnerMembership(API_PRODUCT_ID, MEMBER_ID), aUserPrimaryOwnerMembership("api-product-2", "member-2"))
+            );
+
+            var result = service.getApiProductPrimaryOwners(ORGANIZATION_ID, Set.of(API_PRODUCT_ID, "api-product-2"));
+
+            Assertions.assertThat(result)
+                .extractingByKeys(API_PRODUCT_ID, "api-product-2")
+                .extracting(PrimaryOwnerEntity::displayName)
+                .containsExactly("Jane Doe", "John Roe");
+        }
+
+        @Test
+        public void should_leave_out_a_product_that_has_no_primary_owner() {
+            // The caller decides what a missing owner means; reporting it as absent lets a listing render the
+            // rest of the row rather than fail.
+            var result = service.getApiProductPrimaryOwners(ORGANIZATION_ID, Set.of(API_PRODUCT_ID));
+
+            Assertions.assertThat(result).isEmpty();
+        }
+
+        @Test
+        public void should_ask_the_store_for_nothing_when_there_are_no_products() {
+            Assertions.assertThat(service.getApiProductPrimaryOwners(ORGANIZATION_ID, Set.of())).isEmpty();
+        }
+
+        @Test
+        public void should_resolve_a_group_owner_and_take_its_email_from_the_group_primary_owner() {
+            // The group path is three joins deep - the product's group membership, the group itself, then the
+            // group's own primary owner for the contact email - and each is batched separately.
+            givenExistingUsers(
+                List.of(BaseUserEntity.builder().id(MEMBER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
+            );
+            givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("Group name").build()));
+            givenExistingMemberships(
+                List.of(aGroupPrimaryOwnerMembership(API_PRODUCT_ID, GROUP_ID), aGroupsOwnPrimaryOwnerMembership(GROUP_ID, MEMBER_ID))
+            );
+
+            var result = service.getApiProductPrimaryOwners(ORGANIZATION_ID, Set.of(API_PRODUCT_ID));
+
+            Assertions.assertThat(result).containsExactly(
+                Assertions.entry(
+                    API_PRODUCT_ID,
+                    PrimaryOwnerEntity.builder()
+                        .id(GROUP_ID)
+                        .email("jane.doe@gravitee.io")
+                        .displayName("Group name")
+                        .type(PrimaryOwnerEntity.Type.GROUP)
+                        .build()
+                )
+            );
+        }
+
+        @Test
+        public void should_resolve_a_group_owner_without_an_email_when_the_group_has_no_primary_owner() {
+            givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("Group name").build()));
+            givenExistingMemberships(List.of(aGroupPrimaryOwnerMembership(API_PRODUCT_ID, GROUP_ID)));
+
+            var result = service.getApiProductPrimaryOwners(ORGANIZATION_ID, Set.of(API_PRODUCT_ID));
+
+            Assertions.assertThat(result.get(API_PRODUCT_ID))
+                .extracting(PrimaryOwnerEntity::id, PrimaryOwnerEntity::displayName, PrimaryOwnerEntity::email)
+                .containsExactly(GROUP_ID, "Group name", null);
+        }
+
+        @Test
+        public void should_resolve_user_owners_and_group_owners_in_the_same_pass() {
+            givenExistingUsers(
+                List.of(
+                    BaseUserEntity.builder().id(MEMBER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build(),
+                    BaseUserEntity.builder().id("member-2").firstname("John").lastname("Roe").email("john.roe@gravitee.io").build()
+                )
+            );
+            givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("Group name").build()));
+            givenExistingMemberships(
+                List.of(
+                    aUserPrimaryOwnerMembership(API_PRODUCT_ID, MEMBER_ID),
+                    aGroupPrimaryOwnerMembership("api-product-2", GROUP_ID),
+                    aGroupsOwnPrimaryOwnerMembership(GROUP_ID, "member-2")
+                )
+            );
+
+            var result = service.getApiProductPrimaryOwners(ORGANIZATION_ID, Set.of(API_PRODUCT_ID, "api-product-2"));
+
+            Assertions.assertThat(result)
+                .extractingByKeys(API_PRODUCT_ID, "api-product-2")
+                .extracting(PrimaryOwnerEntity::type, PrimaryOwnerEntity::displayName, PrimaryOwnerEntity::email)
+                .containsExactly(
+                    tuple(PrimaryOwnerEntity.Type.USER, "Jane Doe", "jane.doe@gravitee.io"),
+                    tuple(PrimaryOwnerEntity.Type.GROUP, "Group name", "john.roe@gravitee.io")
+                );
+        }
+
+        @Test
+        public void should_cost_the_same_queries_however_many_products_there_are() {
+            // Resolving one owner costs three queries, so a page of twenty-five resolved one at a time cost
+            // about seventy-five. Batched it is six whatever the page holds: the role, the products'
+            // memberships, their users, then the groups' own memberships, those members, and the groups.
+            var memberships = spy(membershipQueryService);
+            var users = spy(userCrudService);
+            var groups = spy(groupQueryService);
+            var batched = new ApiProductPrimaryOwnerDomainService(
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+                groups,
+                membershipCrudService,
+                memberships,
+                roleQueryService,
+                users
+            );
+
+            var productIds = IntStream.range(0, 25)
+                .mapToObj(i -> "api-product-" + i)
+                .collect(java.util.stream.Collectors.toSet());
+            givenExistingUsers(
+                List.of(BaseUserEntity.builder().id(MEMBER_ID).firstname("Jane").lastname("Doe").email("j@gravitee.io").build())
+            );
+            givenExistingGroup(List.of(Group.builder().id(GROUP_ID).name("Group name").build()));
+            givenExistingMemberships(
+                Stream.concat(
+                    productIds
+                        .stream()
+                        .map(id ->
+                            id.endsWith("0") ? aGroupPrimaryOwnerMembership(id, GROUP_ID) : aUserPrimaryOwnerMembership(id, MEMBER_ID)
+                        ),
+                    Stream.of(aGroupsOwnPrimaryOwnerMembership(GROUP_ID, MEMBER_ID))
+                ).toList()
+            );
+
+            var result = batched.getApiProductPrimaryOwners(ORGANIZATION_ID, productIds);
+
+            Assertions.assertThat(result).hasSize(25);
+            verify(memberships, times(2)).findByReferencesAndRoleId(any(), any(), any());
+            verify(users, times(2)).findBaseUsersByIds(any());
+            verify(groups, times(1)).findByIds(any());
+            // The per-product finders the singular lookup uses must not appear at all.
+            verify(memberships, never()).findByReferenceAndRoleId(any(), any(), any());
+            verify(users, never()).findBaseUserById(any());
+            verify(groups, never()).findById(any());
+        }
+
+        private Membership aGroupPrimaryOwnerMembership(String apiProductId, String groupId) {
+            return Membership.builder()
+                .referenceType(Membership.ReferenceType.API_PRODUCT)
+                .referenceId(apiProductId)
+                .memberType(Membership.Type.GROUP)
+                .memberId(groupId)
+                .roleId(apiProductPrimaryOwnerRoleId(ORGANIZATION_ID))
+                .build();
+        }
+
+        private Membership aGroupsOwnPrimaryOwnerMembership(String groupId, String memberId) {
+            return Membership.builder()
+                .referenceType(Membership.ReferenceType.GROUP)
+                .referenceId(groupId)
+                .memberType(Membership.Type.USER)
+                .memberId(memberId)
+                .roleId(apiProductPrimaryOwnerRoleId(ORGANIZATION_ID))
+                .build();
+        }
+
+        private Membership aUserPrimaryOwnerMembership(String apiProductId, String memberId) {
+            return Membership.builder()
+                .referenceType(Membership.ReferenceType.API_PRODUCT)
+                .referenceId(apiProductId)
+                .memberType(Membership.Type.USER)
+                .memberId(memberId)
+                .roleId(apiProductPrimaryOwnerRoleId(ORGANIZATION_ID))
+                .build();
         }
     }
 

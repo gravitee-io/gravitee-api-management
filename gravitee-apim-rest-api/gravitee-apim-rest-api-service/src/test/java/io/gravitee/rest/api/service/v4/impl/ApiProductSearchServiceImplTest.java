@@ -25,7 +25,6 @@ import static org.mockito.Mockito.when;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
-import io.gravitee.apim.core.membership.exception.ApiProductPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.search.model.IndexableApiProduct;
 import io.gravitee.common.data.domain.Page;
@@ -37,6 +36,7 @@ import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -90,7 +90,7 @@ class ApiProductSearchServiceImplTest {
         when(apiProductQueryService.findByEnvironmentIdAndIdIn(eq(ENV_ID), eq(Set.of("id-3", "id-4")))).thenReturn(
             Set.of(p3, ApiProduct.builder().id("id-4").name("P4").environmentId(ENV_ID).build())
         );
-        when(apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwner(eq(ORG_ID), any())).thenReturn(null);
+        when(apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwners(eq(ORG_ID), any())).thenReturn(Map.of());
         var queryBuilder = QueryBuilder.create(IndexableApiProduct.class);
         var pageable = new PageableImpl(2, 2); // page 2, size 2 -> ids at index 2,3 = id-3, id-4
 
@@ -135,14 +135,14 @@ class ApiProductSearchServiceImplTest {
     }
 
     @Test
-    void should_swallow_primary_owner_not_found_and_return_product_without_owner() {
+    void should_return_a_product_without_an_owner_when_it_has_none() {
         ExecutionContext executionContext = new ExecutionContext(ORG_ID, ENV_ID);
         when(searchEngineService.search(any(), any())).thenReturn(new SearchResult(List.of("id-1"), 1));
         ApiProduct apiProduct = ApiProduct.builder().id("id-1").name("P1").environmentId(ENV_ID).build();
         when(apiProductQueryService.findByEnvironmentIdAndIdIn(eq(ENV_ID), eq(Set.of("id-1")))).thenReturn(Set.of(apiProduct));
-        when(apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwner(ORG_ID, "id-1")).thenThrow(
-            new ApiProductPrimaryOwnerNotFoundException("id-1")
-        );
+        // A product with no primary owner is simply absent from the batch answer, so the row renders
+        // without an owner rather than failing the whole page.
+        when(apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwners(ORG_ID, Set.of("id-1"))).thenReturn(Map.of());
 
         Page<ApiProduct> result = service.search(executionContext, QueryBuilder.create(IndexableApiProduct.class), new PageableImpl(1, 10));
 
@@ -158,7 +158,7 @@ class ApiProductSearchServiceImplTest {
         ApiProduct apiProduct = ApiProduct.builder().id("id-1").name("P1").environmentId(ENV_ID).build();
         PrimaryOwnerEntity owner = new PrimaryOwnerEntity("u1", "o@e.io", "Owner", PrimaryOwnerEntity.Type.USER);
         when(apiProductQueryService.findByEnvironmentIdAndIdIn(eq(ENV_ID), eq(Set.of("id-1")))).thenReturn(Set.of(apiProduct));
-        when(apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwner(ORG_ID, "id-1")).thenReturn(owner);
+        when(apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwners(ORG_ID, Set.of("id-1"))).thenReturn(Map.of("id-1", owner));
 
         Page<ApiProduct> result = service.search(executionContext, QueryBuilder.create(IndexableApiProduct.class), new PageableImpl(1, 10));
 

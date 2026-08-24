@@ -20,6 +20,7 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.MembershipAuditEvent;
+import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
 import io.gravitee.apim.core.membership.exception.ApiProductPrimaryOwnerNotFoundException;
@@ -34,8 +35,14 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.common.UuidString;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
@@ -82,6 +89,111 @@ public class ApiProductPrimaryOwnerDomainService {
                 )
             )
             .orElseThrow(() -> new ApiProductPrimaryOwnerNotFoundException(apiProductId));
+    }
+
+    /**
+     * The primary owner of each of several API Products, resolved together.
+     *
+     * <p>Costs a fixed handful of queries however many products are asked for, so listing a page does not
+     * cost three round trips per row. Products with no primary owner are absent from the result rather
+     * than raising: a listing renders the rest of the row instead of failing.</p>
+     */
+    public Map<String, PrimaryOwnerEntity> getApiProductPrimaryOwners(final String organizationId, Set<String> apiProductIds) {
+        if (apiProductIds.isEmpty()) {
+            return Map.of();
+        }
+        return findPrimaryOwnerRole(organizationId)
+            .map(role -> resolvePrimaryOwners(apiProductIds, role))
+            .orElseGet(Map::of);
+    }
+
+    private Map<String, PrimaryOwnerEntity> resolvePrimaryOwners(Set<String> apiProductIds, Role role) {
+        Collection<Membership> memberships = membershipQueryService.findByReferencesAndRoleId(
+            Membership.ReferenceType.API_PRODUCT,
+            List.copyOf(apiProductIds),
+            role.getId()
+        );
+        if (memberships.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<Membership.Type, Set<String>> memberIdsByType = memberships
+            .stream()
+            .collect(Collectors.groupingBy(Membership::getMemberType, Collectors.mapping(Membership::getMemberId, Collectors.toSet())));
+        Set<String> userIds = memberIdsByType.getOrDefault(Membership.Type.USER, Set.of());
+        Set<String> groupIds = memberIdsByType.getOrDefault(Membership.Type.GROUP, Set.of());
+
+        Map<String, BaseUserEntity> usersById = findUsersById(userIds);
+        Map<String, PrimaryOwnerEntity> groupOwnersById = findGroupOwnersById(groupIds, role.getId());
+
+        Map<String, PrimaryOwnerEntity> ownersByApiProductId = new HashMap<>();
+        memberships.forEach(membership -> {
+            PrimaryOwnerEntity owner = switch (membership.getMemberType()) {
+                case USER -> Optional.ofNullable(usersById.get(membership.getMemberId())).map(this::toUserPrimaryOwner).orElse(null);
+                case GROUP -> groupOwnersById.get(membership.getMemberId());
+            };
+            if (owner != null) {
+                ownersByApiProductId.putIfAbsent(membership.getReferenceId(), owner);
+            }
+        });
+        return ownersByApiProductId;
+    }
+
+    private Map<String, BaseUserEntity> findUsersById(Set<String> userIds) {
+        if (userIds.isEmpty()) {
+            return Map.of();
+        }
+        return userCrudService
+            .findBaseUsersByIds(List.copyOf(userIds))
+            .stream()
+            .collect(Collectors.toMap(BaseUserEntity::getId, Function.identity(), (first, second) -> first));
+    }
+
+    /**
+     * A group's own primary-owner member supplies the contact email, so groups cost one extra membership
+     * query for the whole batch rather than one per group.
+     */
+    private Map<String, PrimaryOwnerEntity> findGroupOwnersById(Set<String> groupIds, String primaryOwnerRoleId) {
+        if (groupIds.isEmpty()) {
+            return Map.of();
+        }
+        Collection<Membership> groupMemberships = membershipQueryService.findByReferencesAndRoleId(
+            Membership.ReferenceType.GROUP,
+            List.copyOf(groupIds),
+            primaryOwnerRoleId
+        );
+        Map<String, String> memberIdByGroupId = groupMemberships
+            .stream()
+            .collect(Collectors.toMap(Membership::getReferenceId, Membership::getMemberId, (first, second) -> first));
+        Map<String, BaseUserEntity> groupMembersById = findUsersById(Set.copyOf(memberIdByGroupId.values()));
+
+        return groupQueryService
+            .findByIds(groupIds)
+            .stream()
+            .collect(
+                Collectors.toMap(Group::getId, group ->
+                    PrimaryOwnerEntity.builder()
+                        .id(group.getId())
+                        .displayName(group.getName())
+                        .type(PrimaryOwnerEntity.Type.GROUP)
+                        .email(
+                            Optional.ofNullable(memberIdByGroupId.get(group.getId()))
+                                .map(groupMembersById::get)
+                                .map(BaseUserEntity::getEmail)
+                                .orElse(null)
+                        )
+                        .build()
+                )
+            );
+    }
+
+    private PrimaryOwnerEntity toUserPrimaryOwner(BaseUserEntity user) {
+        return PrimaryOwnerEntity.builder()
+            .id(user.getId())
+            .displayName(user.displayName())
+            .email(user.getEmail())
+            .type(PrimaryOwnerEntity.Type.USER)
+            .build();
     }
 
     private Optional<Membership> findApiProductPrimaryOwnerMembership(String apiProductId, Role role) {
