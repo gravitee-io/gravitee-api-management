@@ -181,7 +181,12 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             return Optional.empty();
         }
 
-        var builder = LogDetail.builder().requestId(requestId).apiId(apiId);
+        // The connection indices do not store the api type, so it comes from the caller's accessible
+        // set — the same source the list rows use. Resolved here rather than left to the client: a
+        // direct link to a detail has no list row to carry it from.
+        var apiType = loadAccessibleApi(organizationId, environmentId, apiId).map(AccessibleApi::type).map(Enum::name).orElse(null);
+
+        var builder = LogDetail.builder().requestId(requestId).apiId(apiId).apiType(apiType);
 
         metricsOpt.ifPresent(metrics -> {
             builder
@@ -592,6 +597,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .gateway(log.getGateway())
             .uri(log.getUri())
             .endpoint(log.getEndpoint())
+            .entrypointId(log.getEntrypointId())
             .host(log.getHost())
             .subscriptionId(log.getSubscriptionId())
             .message(log.getMessage())

@@ -48,6 +48,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.logs.model.ApiReference;
 import io.gravitee.gamma.rest.core.observability.logs.model.FailureOrigin;
+import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
 import io.gravitee.gamma.rest.core.observability.logs.model.MessageLogsPage;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys;
@@ -732,8 +733,58 @@ class ObservabilityLogsDataPortAdapterTest {
         return captor.getValue();
     }
 
+    /**
+     * The two projections the connection indices cannot supply on their own: the entrypoint travels on
+     * the connection document but was previously dropped by the mapping, and the api type is not on
+     * the document at all — it is resolved from the caller's accessible set.
+     */
+    @Nested
+    class Projections {
+
+        @Test
+        void should_carry_the_connection_entrypoint_onto_the_log_row() {
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
+                new SearchLogsResponse<>(
+                    1,
+                    List.of(BaseConnectionLog.builder().apiId("api-1").requestId("req-1").entrypointId("sse").build())
+                )
+            );
+
+            var page = adapter.searchLogs(ORG, ENV, queryWith());
+
+            assertThat(page.data()).singleElement().extracting(LogEntry::entrypointId).isEqualTo("sse");
+        }
+
+        @Test
+        void should_resolve_the_api_type_onto_the_log_detail() {
+            when(userContextLoader.loadApi(any(), eq("api-1"))).thenAnswer(invocation ->
+                ((UserContext) invocation.getArgument(0)).withApis(
+                    List.of(Api.builder().id("api-1").name("API 1").type(ApiType.MESSAGE).build())
+                )
+            );
+            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1"))).thenReturn(
+                Optional.of(io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder().apiId("api-1").requestId("req-1").build())
+            );
+            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any())).thenReturn(Optional.empty());
+
+            var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            assertThat(detail.apiType()).isEqualTo("MESSAGE");
+        }
+    }
+
     @Nested
     class DetailCredential {
+
+        /**
+         * The detail resolves the api type from the caller's accessible set, so every detail test goes
+         * through the loader. These cases are about the credential, not about the api type: hand the
+         * context straight back so the lookup finds no api and the type stays null.
+         */
+        @BeforeEach
+        void stubUserContext() {
+            when(userContextLoader.loadApi(any(), eq("api-1"))).thenAnswer(invocation -> invocation.getArgument(0));
+        }
 
         /**
          * Scope. securityType/securityToken are root document fields carried by every API type, so an HTTP

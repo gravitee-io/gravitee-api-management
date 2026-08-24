@@ -2031,6 +2031,14 @@ components:
                 endpoint:
                     type: string
                     description: Backend endpoint the request was proxied to.
+                entrypointId:
+                    type: string
+                    description: |
+                        Entrypoint plugin id of the connection. On a Message API this is the protocol
+                        the client used — `http-post` to publish, `sse` / `websocket` / `http-get` to
+                        subscribe — and one API commonly exposes several at once, which makes it the
+                        column that tells its rows apart.
+                    example: sse
                 host:
                     type: string
                     description: Host header value from the client request.
