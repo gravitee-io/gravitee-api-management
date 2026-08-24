@@ -54,6 +54,7 @@ export interface PortalNavigationApi extends BasePortalNavigationItem {
 export interface PortalNavigationApiProduct extends BasePortalNavigationItem {
   type: 'API_PRODUCT';
   apiProductId: string;
+  categoryIds?: string[];
 }
 
 export type PortalNavigationItem =

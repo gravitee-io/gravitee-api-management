@@ -585,7 +585,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    void should_exclude_api_products_from_catalog_search_when_category_id_is_present() {
+    void should_return_api_and_api_product_assigned_to_catalog_category() {
         var apiItem = PortalNavigationApi.builder()
             .id(PortalNavigationItemId.random())
             .organizationId("org")
@@ -605,7 +605,10 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
             "Payments Product",
             PortalArea.TOP_NAVBAR,
             apiProductId
-        );
+        )
+            .toBuilder()
+            .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID_1)))
+            .build();
         apiProductItem.setEnvironmentId(ENV_ID);
         portalNavigationItemsQueryService.initWith(List.of(apiItem, apiProductItem));
         var apis = List.of(Api.builder().id("api-uuid-1").name("Auth API").environmentId(ENV_ID).build());
@@ -634,9 +637,16 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
         @SuppressWarnings("unchecked")
         var data = (List<Map<String, Object>>) result.get("data");
-        assertThat(data).hasSize(1);
-        assertThat(data.getFirst()).containsEntry("id", apiItem.getId().toString());
-        assertThat(result.get("apiProducts")).isNull();
+        assertThat(data).hasSize(2);
+        assertThat(data).anySatisfy(item -> assertThat(item).containsEntry("id", apiItem.getId().toString()));
+        assertThat(data).anySatisfy(item ->
+            assertThat(item).containsEntry("id", apiProductItem.getId().toString()).containsEntry("categoryIds", List.of(CATEGORY_ID_1))
+        );
+        @SuppressWarnings("unchecked")
+        var apiProducts = (List<Map<String, Object>>) result.get("apiProducts");
+        assertThat(apiProducts)
+            .singleElement()
+            .satisfies(product -> assertThat(product).containsEntry("id", apiProductId.toString()));
     }
 
     @Test

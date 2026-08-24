@@ -21,6 +21,7 @@ import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -43,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class PortalNavigationItemsResourceNotAuthenticatedTest extends AbstractResourceTest {
 
     private static final String ENV_ID = "DEFAULT";
+    private static final String CATEGORY_ID = "11111111-1111-1111-1111-111111111111";
 
     @Autowired
     private PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService;
@@ -142,5 +144,79 @@ public class PortalNavigationItemsResourceNotAuthenticatedTest extends AbstractR
         @SuppressWarnings("unchecked")
         var data = (List<Object>) result.get("data");
         assertThat(data).isEmpty();
+    }
+
+    @Test
+    void should_not_return_private_api_product_in_category_filtered_catalog_search() {
+        var apiProductId = "00000000-0000-0000-0000-000000000101";
+        var item = PortalNavigationApiProduct.builder()
+            .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000102"))
+            .organizationId("org")
+            .environmentId(ENV_ID)
+            .title("Private Product")
+            .segment("private-product")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .apiProductId(apiProductId)
+            .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID)))
+            .published(true)
+            .visibility(PortalVisibility.PRIVATE)
+            .build();
+        portalNavigationItemsQueryService.initWith(List.of(item));
+        apiProductQueryService.initWith(
+            List.of(
+                ApiProduct.builder()
+                    .id(apiProductId)
+                    .environmentId(ENV_ID)
+                    .name("Private Product")
+                    .version("1.0.0")
+                    .apiIds(Set.of())
+                    .build()
+            )
+        );
+
+        Response response = target("/_search").queryParam("type", "catalog").queryParam("categoryId", CATEGORY_ID).request().get();
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
+        @SuppressWarnings("unchecked")
+        var data = (List<Object>) result.get("data");
+        assertThat(data).isEmpty();
+    }
+
+    @Test
+    void should_return_public_api_product_in_category_filtered_catalog_search() {
+        var apiProductId = "00000000-0000-0000-0000-000000000201";
+        var item = PortalNavigationApiProduct.builder()
+            .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000202"))
+            .organizationId("org")
+            .environmentId(ENV_ID)
+            .title("Public Product")
+            .segment("public-product")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .apiProductId(apiProductId)
+            .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID)))
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+        portalNavigationItemsQueryService.initWith(List.of(item));
+        apiProductQueryService.initWith(
+            List.of(
+                ApiProduct.builder().id(apiProductId).environmentId(ENV_ID).name("Public Product").version("1.0.0").apiIds(Set.of()).build()
+            )
+        );
+
+        Response response = target("/_search").queryParam("type", "catalog").queryParam("categoryId", CATEGORY_ID).request().get();
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
+        @SuppressWarnings("unchecked")
+        var data = (List<Map<String, Object>>) result.get("data");
+        assertThat(data)
+            .singleElement()
+            .satisfies(product ->
+                assertThat(product).containsEntry("id", item.getId().json()).containsEntry("categoryIds", List.of(CATEGORY_ID))
+            );
     }
 }

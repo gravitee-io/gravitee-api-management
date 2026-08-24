@@ -248,6 +248,7 @@ export class CatalogComponent {
             apiNames: item.apis.map(api => api.name),
             rootId: item.rootId,
             navItemId: item.navItemId,
+            categoryIds: item.categoryIds,
           } satisfies CatalogApiProductVM;
         });
 

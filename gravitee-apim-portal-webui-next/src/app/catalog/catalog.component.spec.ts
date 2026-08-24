@@ -75,6 +75,7 @@ describe('CatalogComponent', () => {
         id: apiProduct.navigationItemId,
         rootId: 'product-root-1',
         apiProductId: apiProduct.id,
+        categoryIds: ['cat-1'],
       }),
       fakePortalNavigationApi({ id: 'api-nav-2', rootId: 'api-root-2', apiId: mcpApi.id }),
     ],
@@ -123,6 +124,7 @@ describe('CatalogComponent', () => {
     fixture = TestBed.createComponent(CatalogComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+    catalogHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, CatalogHarness);
   };
 
   afterEach(() => {
@@ -289,6 +291,47 @@ describe('CatalogComponent', () => {
 
       const categorySelect = await harnessLoader.getHarness(DropdownSearchComponentHarness);
       expect(await categorySelect.getTriggerText()).toContain('Category One');
+    });
+
+    it('should render the selected category for an API Product in list view', async () => {
+      await initWithQueryParams({ category: 'cat-1' });
+
+      flushCategories(categories);
+      fixture.detectChanges();
+
+      expectCatalogRequest(1, 20, 'cat-1').flush(
+        createCatalogResponse({
+          data: [
+            fakePortalNavigationApiProduct({
+              id: apiProduct.navigationItemId,
+              rootId: 'product-root-1',
+              apiProductId: apiProduct.id,
+              categoryIds: ['cat-1'],
+            }),
+          ],
+          apis: [],
+          apiProducts: [apiProduct],
+          metadata: {
+            pagination: {
+              current_page: 1,
+              size: 20,
+              total: 1,
+              total_pages: 1,
+            },
+          },
+        }),
+      );
+      fixture.detectChanges();
+
+      fixture.componentInstance.toggleViewMode();
+      fixture.detectChanges();
+
+      const rows = await catalogHarness.getAllRowsCellText();
+      expect(rows).toHaveLength(1);
+      expect(rows[0]).toMatchObject({
+        name: expect.stringContaining('AI Workspace'),
+        category: expect.stringContaining('Category One'),
+      });
     });
 
     it('should show a generic error state for an unknown or hidden category id, without calling search', async () => {
