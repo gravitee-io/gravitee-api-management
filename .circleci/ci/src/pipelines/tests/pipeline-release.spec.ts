@@ -43,7 +43,7 @@ describe('Release tests', () => {
     },
   );
 
-  it('should throw error when branch is not a support branch', () => {
+  it('should throw error when branch is neither a support nor a hotfix branch', () => {
     expect.assertions(1);
 
     try {
@@ -60,7 +60,47 @@ describe('Release tests', () => {
         isDryRun: false,
       });
     } catch (e) {
-      expect(e).toStrictEqual(new Error('Release is only supported on support branches'));
+      expect(e).toStrictEqual(new Error('Release is only supported on a support branch (X.Y.x) or a hotfix branch (hotfix/X.Y.Z)'));
     }
+  });
+
+  it('should build release config on a hotfix branch cut from a released tag', () => {
+    const result = generateReleaseConfig({
+      action: 'release',
+      sha1: '784ff35ca',
+      changedFiles: [],
+      buildNum: '1234',
+      buildId: '1234',
+      graviteeioVersion: '4.2.0-hotfix.1',
+      baseBranch: '4.2.x',
+      branch: 'hotfix/4.2.0',
+      apimVersionPath: './src/pipelines/tests/resources/common/pom-snapshot.xml',
+      isDryRun: false,
+    });
+
+    const expected = fs.readFileSync('./src/pipelines/tests/resources/release/release-4-2-0-hotfix.yml', 'utf-8');
+    expect(result.stringify()).toStrictEqual(expected);
+  });
+
+  it.each`
+    graviteeioVersion   | branch            | expectedError
+    ${'4.2.0'}          | ${'hotfix/4.2.0'} | ${'hotfix/4.2.0 releases 4.2.0 with a qualifier, not 4.2.0'}
+    ${'4.2.1-hotfix.1'} | ${'hotfix/4.2.0'} | ${'hotfix/4.2.0 releases 4.2.0 with a qualifier, not 4.2.1-hotfix.1'}
+    ${'4.2.0-hotfix.1'} | ${'4.2.x'}        | ${'4.2.0-hotfix.1 is only released from hotfix/4.2.0, not from 4.2.x'}
+  `('should throw for version $graviteeioVersion on branch $branch', ({ graviteeioVersion, branch, expectedError }) => {
+    expect(() =>
+      generateReleaseConfig({
+        action: 'release',
+        sha1: '784ff35ca',
+        changedFiles: [],
+        buildNum: '1234',
+        buildId: '1234',
+        graviteeioVersion,
+        baseBranch: '4.2.x',
+        branch,
+        apimVersionPath: './src/pipelines/tests/resources/common/pom-snapshot.xml',
+        isDryRun: false,
+      }),
+    ).toThrow(expectedError);
   });
 });
