@@ -26,9 +26,10 @@ export function computeVersion(releasingVersion) {
 }
 
 /**
- * Returns the support branch a version is released from — always, X.Y.0 included: the release tags
- * and bumps the branch it runs on, and the version after 4.13.0 is 4.13.1, not what master should
- * become.
+ * Returns the support line a version belongs to — always, X.Y.0 included: the release tags and
+ * bumps the branch it runs on, and the version after 4.13.0 is 4.13.1, not what master should
+ * become. Which branch a release runs on is getTargetBranch's answer, and for a hotfix the two
+ * differ.
  * @param releasingVersion
  * @returns {string}
  */
