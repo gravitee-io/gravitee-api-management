@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.infra.config;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
@@ -59,7 +60,8 @@ public class GammaLogsConfiguration {
         PlanCrudService planCrudService,
         ApplicationCrudService applicationCrudService,
         InstanceQueryService instanceQueryService,
-        ApiProductQueryService apiProductQueryService
+        ApiProductQueryService apiProductQueryService,
+        ApiCrudService apiCrudService
     ) {
         return new ObservabilityLogsDataPortAdapter(
             aggregatedMessageLogCrudService,
@@ -70,7 +72,8 @@ public class GammaLogsConfiguration {
             planCrudService,
             applicationCrudService,
             instanceQueryService,
-            apiProductQueryService
+            apiProductQueryService,
+            apiCrudService
         );
     }
 }

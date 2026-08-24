@@ -37,6 +37,7 @@ import java.util.Map;
 public record LogDetailDto(
     String requestId,
     String apiId,
+    String apiType,
     String transactionId,
     String clientIdentifier,
     Long timestampEpochMs,
@@ -94,6 +95,7 @@ public record LogDetailDto(
         return new LogDetailDto(
             detail.requestId(),
             detail.apiId(),
+            detail.apiType(),
             detail.transactionId(),
             detail.clientIdentifier(),
             detail.timestamp() != null ? detail.timestamp().toEpochMilli() : null,
