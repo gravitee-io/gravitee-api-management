@@ -43,6 +43,17 @@ public interface AuthzEnginePort {
 
     Completable removePolicy(String environmentId, String docId, Set<String> targetPdpIds);
 
+    Completable addOrUpdateSchema(
+        String environmentId,
+        String docId,
+        String name,
+        String schemaText,
+        Set<String> targetPdpIds,
+        long updatedAt
+    );
+
+    Completable removeSchema(String environmentId, String docId, Set<String> targetPdpIds);
+
     Completable commit();
 
     /**
