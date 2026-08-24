@@ -32,9 +32,7 @@ import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery.Filter;
 import io.gravitee.repository.log.v4.model.message.AggregatedMessageLog;
 import io.gravitee.repository.log.v4.model.message.MessageLogQuery;
 import jakarta.annotation.PostConstruct;
-import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -179,7 +177,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
         @Test
         void should_return_a_page_of_connection_logs_from_yesterday() {
             var from =
-                ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)
+                ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
                     .minusDays(1)
                     .withHour(0)
                     .withMinute(1)
@@ -189,7 +187,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                 1000;
 
             var to =
-                ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)
+                ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
                     .minusDays(1)
                     .withHour(23)
                     .withMinute(59)
@@ -217,7 +215,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
         @Test
         void should_return_a_page_of_connection_logs_from_whenever_to_yesterday() {
             var to =
-                ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)
+                ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
                     .minusDays(1)
                     .withHour(23)
                     .withMinute(59)
@@ -245,7 +243,12 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
         @Test
         void should_return_a_page_of_connection_logs_from_today_to_whenever() {
             var from =
-                ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).withHour(0).withMinute(1).withSecond(0).withNano(0).toEpochSecond() *
+                ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
+                    .withHour(0)
+                    .withMinute(1)
+                    .withSecond(0)
+                    .withNano(0)
+                    .toEpochSecond() *
                 1000;
 
             var result = logV4Repository.searchConnectionLogs(
@@ -469,7 +472,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
         @Test
         void should_return_a_page_of_connection_logs_from_yesterday_from_multi_indexes() {
             var from =
-                ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)
+                ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
                     .minusDays(1)
                     .withHour(0)
                     .withMinute(1)
@@ -479,7 +482,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
                 1000;
 
             var to =
-                ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)
+                ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
                     .minusDays(1)
                     .withHour(23)
                     .withMinute(59)
@@ -512,7 +515,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
         @Test
         void should_return_a_page_of_connection_logs_from_whenever_to_yesterday_from_multi_indexes() {
             var to =
-                ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)
+                ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
                     .minusDays(1)
                     .withHour(23)
                     .withMinute(59)
@@ -545,7 +548,12 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
         @Test
         void should_return_a_page_of_connection_logs_from_today_to_whenever_from_multi_indexes() {
             var from =
-                ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).withHour(0).withMinute(1).withSecond(0).withNano(0).toEpochSecond() *
+                ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
+                    .withHour(0)
+                    .withMinute(1)
+                    .withSecond(0)
+                    .withNano(0)
+                    .toEpochSecond() *
                 1000;
 
             var result = logV4Repository.searchConnectionLogs(
