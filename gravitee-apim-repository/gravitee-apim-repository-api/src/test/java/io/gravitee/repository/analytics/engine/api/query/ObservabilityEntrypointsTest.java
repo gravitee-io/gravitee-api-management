@@ -63,8 +63,13 @@ class ObservabilityEntrypointsTest {
             );
         }
 
+        /**
+         * The logs signal serves two families analytics does not: native Kafka connections, and the
+         * async entrypoints of Message APIs. Asserted in declaration order, which is the order the
+         * ids reach Elasticsearch.
+         */
         @Test
-        void should_extend_the_http_scope_with_native_kafka_only_for_logs() {
+        void should_extend_the_http_scope_with_the_logs_only_entrypoints() {
             assertThat(ObservabilityEntrypoints.LOGS_SCOPE_IDS).containsExactly(
                 "http-get",
                 "http-post",
@@ -74,7 +79,10 @@ class ObservabilityEntrypointsTest {
                 "a2a-proxy",
                 "mcp",
                 "mcp-studio",
-                "native-kafka"
+                "native-kafka",
+                "sse",
+                "webhook",
+                "websocket"
             );
         }
     }

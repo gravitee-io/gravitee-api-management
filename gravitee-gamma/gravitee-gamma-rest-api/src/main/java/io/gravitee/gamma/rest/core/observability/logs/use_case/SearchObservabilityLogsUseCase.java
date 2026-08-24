@@ -56,15 +56,15 @@ public class SearchObservabilityLogsUseCase {
     private static final int MAX_PER_PAGE = 100;
 
     /**
-     * API types the LOGS signal serves today. Extensible: adding MESSAGE later only requires
-     * widening this set — the rest of the pipeline (AccessibleApiScope, query building) adjusts
-     * automatically.
+     * API types the LOGS signal serves today. Extensible: adding a type only requires widening this
+     * set — the rest of the pipeline (AccessibleApiScope, query building) adjusts automatically.
      */
     static final Set<ApiType> LOGS_SUPPORTED_API_TYPES = Set.of(
         ApiType.HTTP_PROXY,
         ApiType.LLM,
         ApiType.MCP,
         ApiType.A2A,
+        ApiType.MESSAGE,
         ApiType.NATIVE,
         ApiType.AUTHZ
     );
@@ -216,7 +216,7 @@ public class SearchObservabilityLogsUseCase {
     /**
      * Narrows {@link #LOGS_SUPPORTED_API_TYPES} when the caller supplies an explicit
      * {@code API_TYPE} filter. Values are intersected with the supported set so that an
-     * unsupported type (e.g. {@code MESSAGE}) simply yields an empty scope instead of an error.
+     * unsupported type (e.g. {@code EDGE}) simply yields an empty scope instead of an error.
      */
     private static Set<ApiType> narrowApiTypes(List<FilterCondition> conditions) {
         var requested = conditions

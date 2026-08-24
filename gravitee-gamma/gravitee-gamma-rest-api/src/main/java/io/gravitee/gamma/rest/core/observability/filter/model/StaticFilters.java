@@ -71,8 +71,16 @@ public enum StaticFilters {
     ENTRYPOINT("Entrypoint", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, ApiType.API_KINDS),
 
     // --- HTTP -----------------------------------------------------------------------------------
-    HTTP_METHOD("HTTP Method", FilterType.ENUM, Defs.EQ_IN, Defs.HTTP_METHODS, null, Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
-    HTTP_STATUS("Status Code", FilterType.NUMBER, Defs.NUMBER_OPS, null, new Range(100, 599), Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
+    HTTP_METHOD("HTTP Method", FilterType.ENUM, Defs.EQ_IN, Defs.HTTP_METHODS, null, Defs.LOGS_ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
+    HTTP_STATUS(
+        "Status Code",
+        FilterType.NUMBER,
+        Defs.NUMBER_OPS,
+        null,
+        new Range(100, 599),
+        Defs.LOGS_ANALYTICS,
+        Defs.HTTP_CONNECTION_KINDS
+    ),
     HTTP_STATUS_CODE_GROUP(
         "Status Code Group",
         FilterType.ENUM,
@@ -80,10 +88,10 @@ public enum StaticFilters {
         Defs.STATUS_CODE_GROUPS,
         null,
         Defs.LOGS_ANALYTICS,
-        Defs.HTTP_LLM_MCP_A2A
+        Defs.HTTP_CONNECTION_KINDS
     ),
-    URI("HTTP Path", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
-    HOST("Host", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
+    URI("HTTP Path", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.LOGS_ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
+    HOST("Host", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
     HTTP_GATEWAY_RESPONSE_TIME(
         "Gateway Response Time",
         FilterType.NUMBER,
@@ -91,9 +99,9 @@ public enum StaticFilters {
         null,
         null,
         Defs.LOGS_ANALYTICS,
-        Defs.HTTP_LLM_MCP_A2A
+        Defs.HTTP_CONNECTION_KINDS
     ),
-    HTTP_GATEWAY_LATENCY("Latency", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
+    HTTP_GATEWAY_LATENCY("Latency", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
     HTTP_ENDPOINT_RESPONSE_TIME(
         "Endpoint Response Time",
         FilterType.NUMBER,
@@ -112,9 +120,13 @@ public enum StaticFilters {
     CONSUMER_IP("Consumer IP", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     HTTP_USER_AGENT_OS_NAME("User Agent OS", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     HTTP_USER_AGENT_DEVICE("User Agent Device", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
-    ERROR_KEY("Error Key", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP_A2A_NATIVE),
+    ERROR_KEY("Error Key", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.HTTP_CONNECTION_KINDS_NATIVE),
     REQUEST_ID("Request ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.REQUEST_BEARING_KINDS),
-    TRANSACTION_ID("Transaction ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A_NATIVE),
+    TRANSACTION_ID("Transaction ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_CONNECTION_KINDS_NATIVE),
+    // MESSAGE is deliberately absent: the connection-level body a payload search reads is never
+    // recorded for a Message API — AnalyticsValidationServiceImpl rejects `logging.content.payload`
+    // on that api type, only the `message*` flags are accepted. Message bodies live in the nested
+    // message logs instead, which this filter does not search.
     PAYLOAD("Payload content", FilterType.STRING, Defs.CONTAINS_ONLY, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A),
 
     // --- Authz decisions ------------------------------------------------------------------------
@@ -299,11 +311,31 @@ public enum StaticFilters {
         private static final Set<Signal> LOGS_ANALYTICS = Set.of(Signal.LOGS, Signal.ANALYTICS);
 
         private static final Set<ApiType> HTTP_LLM_MCP_A2A = Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.A2A);
-        private static final Set<ApiType> HTTP_LLM_MCP_A2A_NATIVE = Set.of(
+
+        /**
+         * Kinds whose observability rows are HTTP connection documents, MESSAGE included: the
+         * connection leg of a Message API is an HTTP request, which is why the analytics catalog
+         * already declares MESSAGE on every {@code HTTP_*} metric. Filters reading a field of that
+         * document (method, status, path, response time) therefore apply to it unchanged.
+         *
+         * <p>The boundary is the document, not the signal: {@code FilterAdapter.HTTP_FILTER_NAMES}
+         * carries host and latency alongside the rest, so the analytics-only filters belong here too.
+         * Splitting them off would make MESSAGE follow the signal, which was never why it was excluded.
+         */
+        private static final Set<ApiType> HTTP_CONNECTION_KINDS = Set.of(
             ApiType.HTTP_PROXY,
             ApiType.LLM,
             ApiType.MCP,
             ApiType.A2A,
+            ApiType.MESSAGE
+        );
+
+        private static final Set<ApiType> HTTP_CONNECTION_KINDS_NATIVE = Set.of(
+            ApiType.HTTP_PROXY,
+            ApiType.LLM,
+            ApiType.MCP,
+            ApiType.A2A,
+            ApiType.MESSAGE,
             ApiType.NATIVE
         );
         private static final Set<ApiType> APP_TYPES = Set.of(
@@ -319,14 +351,19 @@ public enum StaticFilters {
 
         /**
          * Every kind whose rows carry a request id, decisions included. Named rather than
-         * {@link ApiType#ALL}: that would also advertise the filter for MESSAGE and EDGE, which the
-         * logs search does not serve.
+         * {@link ApiType#ALL}: that would also advertise the filter for EDGE, which the logs search
+         * does not serve.
+         *
+         * <p>AUTHZ is absent too, though the logs search does serve it — a pre-existing gap, not a
+         * decision taken here: an authz API is offered neither {@code REQUEST_ID} nor
+         * {@code TRANSACTION_ID}.
          */
         private static final Set<ApiType> REQUEST_BEARING_KINDS = Set.of(
             ApiType.HTTP_PROXY,
             ApiType.LLM,
             ApiType.MCP,
             ApiType.A2A,
+            ApiType.MESSAGE,
             ApiType.NATIVE,
             ApiType.AUTHZ_DECISION
         );

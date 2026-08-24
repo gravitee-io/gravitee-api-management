@@ -75,9 +75,17 @@ public enum ObservabilityEntrypoints {
      */
     AGENT_TO_AGENT("agent-to-agent", "gravitee-entrypoint-agent-to-agent", Scope.PENDING),
 
-    SSE("sse", "gravitee-entrypoint-sse", Scope.EXCLUDED),
-    WEBHOOK("webhook", "gravitee-entrypoint-webhook", Scope.EXCLUDED),
-    WEBSOCKET("websocket", "gravitee-entrypoint-websocket", Scope.EXCLUDED),
+    /*
+     * The async entrypoints of Message APIs. LOGS_ONLY rather than EXCLUDED since the logs signal
+     * serves Message APIs: their connection documents are HTTP connection documents like any other,
+     * and leaving them out returned an empty page with no error. Analytics still excludes them —
+     * FilterAdapter.httpFilter() does not list them — which is the same deliberate divergence
+     * native-kafka carries, tracked by OBS-18.
+     */
+    SSE("sse", "gravitee-entrypoint-sse", Scope.LOGS_ONLY),
+    WEBHOOK("webhook", "gravitee-entrypoint-webhook", Scope.LOGS_ONLY),
+    WEBSOCKET("websocket", "gravitee-entrypoint-websocket", Scope.LOGS_ONLY),
+
     TCP_PROXY("tcp-proxy", "gravitee-apim-plugin-entrypoint-tcp-proxy", Scope.EXCLUDED);
 
     /**
@@ -96,6 +104,12 @@ public enum ObservabilityEntrypoints {
          * Served by Gamma logs but not by analytics. Native connections have their own documents and
          * their own dashboard tiles; adding them to the analytics default would change every
          * environment-wide total. The divergence is deliberate.
+         *
+         * <p>The subscription entrypoints sit here for the same reason, one signal at a time: their
+         * connections are not requests and their duration would distort every latency aggregate, which
+         * is an argument about analytics — so they stay out of {@link #HTTP}. It is not an argument
+         * about logs, where a connection is exactly what the screen lists, and where excluding them
+         * meant a Message API served over SSE answered an empty page with no error.
          */
         LOGS_ONLY,
 
@@ -113,9 +127,8 @@ public enum ObservabilityEntrypoints {
         PENDING,
 
         /**
-         * Outside what the observability signals cover today: the subscription entrypoints, whose
-         * connections are not requests and whose duration would distort every latency aggregate, and TCP.
-         * Being a Message-API entrypoint is not the criterion — see {@link #HTTP} and {@link #PENDING}.
+         * Outside what the observability signals cover at all: TCP. Being a Message-API entrypoint is
+         * not the criterion — see {@link #HTTP} and {@link #LOGS_ONLY}.
          */
         EXCLUDED,
     }
