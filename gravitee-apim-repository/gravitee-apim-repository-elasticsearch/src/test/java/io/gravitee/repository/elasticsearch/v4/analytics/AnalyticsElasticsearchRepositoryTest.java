@@ -64,8 +64,6 @@ import io.gravitee.repository.log.v4.model.analytics.TopHitsAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopHitsQueryCriteria;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -156,7 +154,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_average_connection_duration_by_entrypoint_for_a_time_period() {
-            var now = Instant.now();
+            var now = TimeProvider.now();
             var from = now.truncatedTo(ChronoUnit.DAYS).minus(Duration.ofDays(1));
             var to = now.truncatedTo(ChronoUnit.DAYS);
 
@@ -218,8 +216,21 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_response_status_by_entrypoint_for_a_given_api_and_date_range() {
-            var yesterdayAtStartOfTheDayEpochMilli = LocalDate.now().minusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
-            var yesterdayAtEndOfTheDayEpochMilli = LocalDate.now().minusDays(1).atTime(23, 59, 59).toInstant(ZoneOffset.UTC).toEpochMilli();
+            var yesterdayAtStartOfTheDayEpochMilli = TimeProvider.now()
+                .atZone(TimeProvider.zone())
+                .toLocalDate()
+                .minusDays(1)
+                .atStartOfDay(TimeProvider.zone())
+                .toInstant()
+                .toEpochMilli();
+            var yesterdayAtEndOfTheDayEpochMilli = TimeProvider.now()
+                .atZone(TimeProvider.zone())
+                .toLocalDate()
+                .minusDays(1)
+                .atTime(23, 59, 59)
+                .atZone(TimeProvider.zone())
+                .toInstant()
+                .toEpochMilli();
 
             var result = cut.searchResponseStatusRanges(
                 new QueryContext("org#1", "env#1"),
@@ -268,7 +279,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         @Test
         void should_return_response_status_by_entrypoint_for_a_given_api() {
             // Given
-            var now = Instant.now();
+            var now = TimeProvider.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = from.plus(Duration.ofDays(1));
             Duration interval = Duration.ofMinutes(10);
@@ -292,7 +303,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         @Test
         void should_return_response_status_for_api_v2_and_v4() {
             // Given
-            var now = Instant.now();
+            var now = TimeProvider.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = from.plus(Duration.ofDays(1));
             Duration interval = Duration.ofMinutes(10);
@@ -342,7 +353,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_response_status_over_time_for_a_given_api() {
-            var now = Instant.now();
+            var now = TimeProvider.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var interval = Duration.ofMinutes(30);
@@ -363,7 +374,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_response_status_over_time_for_api_v2_and_v4() {
-            var now = Instant.now();
+            var now = TimeProvider.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var interval = Duration.ofMinutes(30);
@@ -425,8 +436,21 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_top_hits_count_for_a_given_api_and_date_range() {
-            var yesterdayAtStartOfTheDayEpochMilli = LocalDate.now().minusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
-            var yesterdayAtEndOfTheDayEpochMilli = LocalDate.now().minusDays(1).atTime(23, 59, 59).toInstant(ZoneOffset.UTC).toEpochMilli();
+            var yesterdayAtStartOfTheDayEpochMilli = TimeProvider.now()
+                .atZone(TimeProvider.zone())
+                .toLocalDate()
+                .minusDays(1)
+                .atStartOfDay(TimeProvider.zone())
+                .toInstant()
+                .toEpochMilli();
+            var yesterdayAtEndOfTheDayEpochMilli = TimeProvider.now()
+                .atZone(TimeProvider.zone())
+                .toLocalDate()
+                .minusDays(1)
+                .atTime(23, 59, 59)
+                .atZone(TimeProvider.zone())
+                .toInstant()
+                .toEpochMilli();
 
             var result = cut.searchTopHitsApi(
                 new QueryContext("org#1", "env#1"),
@@ -443,8 +467,21 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_top_hits_count_for_api_v2_and_v4() {
-            var yesterdayAtStartOfTheDayEpochMilli = LocalDate.now().minusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
-            var yesterdayAtEndOfTheDayEpochMilli = LocalDate.now().minusDays(1).atTime(23, 59, 59).toInstant(ZoneOffset.UTC).toEpochMilli();
+            var yesterdayAtStartOfTheDayEpochMilli = TimeProvider.now()
+                .atZone(TimeProvider.zone())
+                .toLocalDate()
+                .minusDays(1)
+                .atStartOfDay(TimeProvider.zone())
+                .toInstant()
+                .toEpochMilli();
+            var yesterdayAtEndOfTheDayEpochMilli = TimeProvider.now()
+                .atZone(TimeProvider.zone())
+                .toLocalDate()
+                .minusDays(1)
+                .atTime(23, 59, 59)
+                .atZone(TimeProvider.zone())
+                .toInstant()
+                .toEpochMilli();
 
             var result = cut.searchTopHitsApi(
                 new QueryContext("org#1", "env#1"),
@@ -488,7 +525,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_top_hits_count_for_a_given_api_and_date_range() {
-            var now = Instant.now();
+            var now = TimeProvider.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS).toEpochMilli();
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS).toEpochMilli();
 
@@ -508,7 +545,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_top_hits_count_for_a_apiv2_and_v4() {
-            var now = Instant.now();
+            var now = TimeProvider.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS).toEpochMilli();
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS).toEpochMilli();
 
@@ -554,8 +591,21 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_top_hits_count_for_a_given_api_and_date_range() {
-            var yesterdayAtStartOfTheDayEpochMilli = LocalDate.now().minusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
-            var yesterdayAtEndOfTheDayEpochMilli = LocalDate.now().minusDays(1).atTime(23, 59, 59).toInstant(ZoneOffset.UTC).toEpochMilli();
+            var yesterdayAtStartOfTheDayEpochMilli = TimeProvider.now()
+                .atZone(TimeProvider.zone())
+                .toLocalDate()
+                .minusDays(1)
+                .atStartOfDay(TimeProvider.zone())
+                .toInstant()
+                .toEpochMilli();
+            var yesterdayAtEndOfTheDayEpochMilli = TimeProvider.now()
+                .atZone(TimeProvider.zone())
+                .toLocalDate()
+                .minusDays(1)
+                .atTime(23, 59, 59)
+                .atZone(TimeProvider.zone())
+                .toInstant()
+                .toEpochMilli();
 
             var result = cut.searchTopApps(
                 new QueryContext("org#1", "env#1"),
@@ -576,8 +626,21 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_top_hits_fom_V4_and_V2() {
-            var yesterdayAtStartOfTheDayEpochMilli = LocalDate.now().minusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
-            var yesterdayAtEndOfTheDayEpochMilli = LocalDate.now().minusDays(1).atTime(23, 59, 59).toInstant(ZoneOffset.UTC).toEpochMilli();
+            var yesterdayAtStartOfTheDayEpochMilli = TimeProvider.now()
+                .atZone(TimeProvider.zone())
+                .toLocalDate()
+                .minusDays(1)
+                .atStartOfDay(TimeProvider.zone())
+                .toInstant()
+                .toEpochMilli();
+            var yesterdayAtEndOfTheDayEpochMilli = TimeProvider.now()
+                .atZone(TimeProvider.zone())
+                .toLocalDate()
+                .minusDays(1)
+                .atTime(23, 59, 59)
+                .atZone(TimeProvider.zone())
+                .toInstant()
+                .toEpochMilli();
 
             var result = cut.searchTopApps(
                 new QueryContext("org#1", "env#1"),
@@ -624,7 +687,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
     class TopFailedApis {
 
         private static final String V4_API_ID = "4a6895d5-a1bc-4041-a895-d5a1bce041ae";
-        private static final Instant NOW = Instant.now();
+        private static final Instant NOW = TimeProvider.now();
         private static final long FROM = NOW.truncatedTo(ChronoUnit.DAYS).minus(Duration.ofDays(1)).toEpochMilli();
         private static final long TO = NOW.truncatedTo(ChronoUnit.DAYS).toEpochMilli();
 
@@ -681,7 +744,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_histogram_aggregates_for_a_given_api() {
-            var now = Instant.now();
+            var now = TimeProvider.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var interval = Duration.ofMinutes(30);
@@ -722,7 +785,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_histogram_aggregates_for_avg_gateway_response_time_ms() {
-            var now = Instant.now();
+            var now = TimeProvider.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var interval = Duration.ofMinutes(30);
@@ -756,7 +819,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_histogram_aggregates_for_a_given_api_with_query_string() {
-            var now = Instant.now();
+            var now = TimeProvider.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var interval = Duration.ofMinutes(30);
@@ -792,7 +855,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_group_by_aggregate_for_terms() {
-            var now = Instant.now();
+            var now = TimeProvider.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
 
@@ -817,7 +880,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_group_by_aggregate_for_range() {
-            var now = Instant.now();
+            var now = TimeProvider.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
 
@@ -842,7 +905,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_group_by_aggregate_for_terms_with_query_parameter() {
-            var now = Instant.now();
+            var now = TimeProvider.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
 
@@ -870,7 +933,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_group_by_aggregate_for_terms_with_order_avg() {
-            var now = Instant.now();
+            var now = TimeProvider.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
 
@@ -897,7 +960,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_group_by_aggregate_for_terms_with_order_value() {
-            var now = Instant.now();
+            var now = TimeProvider.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
 
@@ -928,7 +991,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_stats_for_a_given_api_and_field() {
-            var now = Instant.now();
+            var now = TimeProvider.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
 
@@ -955,7 +1018,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_empty_if_no_stats_found() {
-            var now = Instant.now();
+            var now = TimeProvider.now();
             var from = now.minus(Duration.ofDays(10)).truncatedTo(ChronoUnit.DAYS);
             var to = from.plus(Duration.ofDays(1));
 
@@ -973,7 +1036,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_stats_for_a_given_api_and_field_with_query_string() {
-            var now = Instant.now();
+            var now = TimeProvider.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var queryString = "status:404 AND http-method:8";
@@ -1008,7 +1071,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_all_the_requests_count_by_entrypoint_for_a_given_api() {
-            var now = Instant.now();
+            var now = TimeProvider.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var result = cut.searchRequestsCountByEvent(
@@ -1026,7 +1089,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Test
         void should_return_count_for_a_given_api_and_field_with_query_string() {
-            var now = Instant.now();
+            var now = TimeProvider.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
             var queryString = "status:404 AND http-method:8";
@@ -1099,8 +1162,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         private static final String NATIVE_API_ID = "273f4728-1e30-4c78-bf47-281e304c78a5";
         private static final QueryContext QUERY_CONTEXT = new QueryContext("DEFAULT", "DEFAULT");
-        private final TimeProvider timeProvider = new TimeProvider();
-        private final Instant now = timeProvider.getNow();
+        private final Instant now = TimeProvider.now();
 
         @Test
         void should_return_latest_value_summed_per_key() {
@@ -1250,7 +1312,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         private static final QueryContext QUERY_CONTEXT = new QueryContext("DEFAULT", "DEFAULT");
 
-        private static final Instant NOW = Instant.now().truncatedTo(ChronoUnit.DAYS);
+        private static final Instant NOW = TimeProvider.now().truncatedTo(ChronoUnit.DAYS);
         private static final Instant TOMORROW = NOW.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
         private static final Instant YESTERDAY = NOW.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
 

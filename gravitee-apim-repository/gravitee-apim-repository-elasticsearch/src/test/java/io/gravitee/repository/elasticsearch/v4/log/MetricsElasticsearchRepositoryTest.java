@@ -31,7 +31,6 @@ import io.gravitee.repository.log.v4.model.message.MessageMetricsQuery;
 import jakarta.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
@@ -171,7 +170,7 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
         @Test
         void should_return_a_page_of_connection_logs_from_yesterday() {
             var from =
-                ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)
+                ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
                     .minusDays(1)
                     .withHour(0)
                     .withMinute(1)
@@ -181,7 +180,7 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                 1000;
 
             var to =
-                ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)
+                ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
                     .minusDays(1)
                     .withHour(23)
                     .withMinute(59)
@@ -209,7 +208,7 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
         @Test
         void should_return_a_page_of_connection_logs_from_whenever_to_yesterday() {
             var to =
-                ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)
+                ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
                     .minusDays(1)
                     .withHour(23)
                     .withMinute(59)
@@ -237,7 +236,12 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
         @Test
         void should_return_a_page_of_connection_logs_from_today_to_whenever() {
             var from =
-                ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).withHour(0).withMinute(1).withSecond(0).withNano(0).toEpochSecond() *
+                ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
+                    .withHour(0)
+                    .withMinute(1)
+                    .withSecond(0)
+                    .withNano(0)
+                    .toEpochSecond() *
                 1000;
 
             var result = metricsV4Repository.searchMetrics(
@@ -461,7 +465,7 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
         @Test
         void should_return_a_page_of_connection_logs_from_yesterday_from_multi_indexes() {
             var from =
-                ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)
+                ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
                     .minusDays(1)
                     .withHour(0)
                     .withMinute(1)
@@ -471,7 +475,7 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                 1000;
 
             var to =
-                ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)
+                ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
                     .minusDays(1)
                     .withHour(23)
                     .withMinute(59)
@@ -504,7 +508,7 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
         @Test
         void should_return_a_page_of_connection_logs_from_whenever_to_yesterday_from_multi_indexes() {
             var to =
-                ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)
+                ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
                     .minusDays(1)
                     .withHour(23)
                     .withMinute(59)
@@ -537,7 +541,12 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
         @Test
         void should_return_a_page_of_connection_logs_from_today_to_whenever_from_multi_indexes() {
             var from =
-                ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).withHour(0).withMinute(1).withSecond(0).withNano(0).toEpochSecond() *
+                ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
+                    .withHour(0)
+                    .withMinute(1)
+                    .withSecond(0)
+                    .withNano(0)
+                    .toEpochSecond() *
                 1000;
 
             var result = metricsV4Repository.searchMetrics(
