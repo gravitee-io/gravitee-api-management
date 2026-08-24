@@ -40,7 +40,7 @@ public class TimeSeriesResponseAdapter extends AbstractResponseAdapter {
         return new TimeSeriesResult(AggregationAdapter.toMetricsAndTimeSeries(aggregations, query));
     }
 
-    private TimeSeriesResult empty(TimeSeriesQuery query) {
+    public TimeSeriesResult empty(TimeSeriesQuery query) {
         return new TimeSeriesResult(emptyMetrics(query));
     }
 

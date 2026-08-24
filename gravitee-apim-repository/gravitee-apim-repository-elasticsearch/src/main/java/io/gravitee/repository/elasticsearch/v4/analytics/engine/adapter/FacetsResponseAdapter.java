@@ -40,7 +40,7 @@ public class FacetsResponseAdapter extends AbstractResponseAdapter {
         return new FacetsResult(AggregationAdapter.toMetricsAndBuckets(aggregations, query));
     }
 
-    FacetsResult empty(FacetsQuery query) {
+    public FacetsResult empty(FacetsQuery query) {
         return new FacetsResult(emptyMetrics(query));
     }
 

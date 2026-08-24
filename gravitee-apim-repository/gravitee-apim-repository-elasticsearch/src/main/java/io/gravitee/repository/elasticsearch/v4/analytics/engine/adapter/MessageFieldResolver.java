@@ -38,13 +38,29 @@ public class MessageFieldResolver implements FieldResolver {
         };
     }
 
+    /**
+     * Only the dimensions a message document actually carries.
+     *
+     * <p>Deliberately not falling through to the HTTP resolver for the rest. It would answer
+     * {@code plan-id} or {@code application-id} — fields of the connection document, absent from
+     * this index — and Elasticsearch does not fail a terms aggregation on a field it cannot find:
+     * it returns no buckets. A breakdown that cannot work would render as an empty chart rather
+     * than an error, which is the harder failure to diagnose. Failing here keeps a drift between
+     * the catalog and this resolver visible.
+     *
+     * <p>{@code API} and {@code GATEWAY} do fall through, and are meant to: {@code api-id} and
+     * {@code gateway} are stamped on every message document.
+     */
     @Override
     public String fromFacet(Facet facet) {
         return switch (facet) {
             case MESSAGE_CONNECTOR_ID -> "connector-id";
             case MESSAGE_CONNECTOR_TYPE -> "connector-type";
             case MESSAGE_OPERATION_TYPE -> "operation";
-            default -> httpFieldResolver.fromFacet(facet);
+            case API, GATEWAY -> httpFieldResolver.fromFacet(facet);
+            default -> throw new UnsupportedOperationException(
+                "Message documents carry no %s dimension; it lives on the connection document".formatted(facet)
+            );
         };
     }
 

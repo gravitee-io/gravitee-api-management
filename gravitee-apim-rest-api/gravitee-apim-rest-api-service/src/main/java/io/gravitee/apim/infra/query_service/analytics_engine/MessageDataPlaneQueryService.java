@@ -62,11 +62,15 @@ public class MessageDataPlaneQueryService implements AnalyticsEngineQueryService
 
     @Override
     public FacetsResponse searchFacets(ExecutionContext context, FacetsRequest request) {
-        throw new UnsupportedOperationException("Facets are not supported for message analytics");
+        var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
+        var result = analyticsRepository.searchMessageFacets(context.getQueryContext(), query);
+        return AnalyticsMeasuresAdapter.INSTANCE.fromResult(result);
     }
 
     @Override
     public TimeSeriesResponse searchTimeSeries(ExecutionContext context, TimeSeriesRequest request) {
-        throw new UnsupportedOperationException("Time series are not supported for message analytics");
+        var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
+        var result = analyticsRepository.searchMessageTimeSeries(context.getQueryContext(), query);
+        return AnalyticsMeasuresAdapter.INSTANCE.fromResult(result);
     }
 }
