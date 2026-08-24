@@ -25,8 +25,6 @@ import io.gravitee.repository.elasticsearch.TimeProvider;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetrics;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetricsQuery;
 import jakarta.annotation.PostConstruct;
-import java.time.Instant;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -40,9 +38,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class MetricsElasticsearchRepositoryTest_SearchNativeApiMetrics extends AbstractElasticsearchRepositoryTest {
 
     private static final long FROM_MILLIS =
-        ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).withHour(9).withMinute(0).withSecond(0).withNano(0).toEpochSecond() * 1000;
+        ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
+            .withHour(9)
+            .withMinute(0)
+            .withSecond(0)
+            .withNano(0)
+            .toEpochSecond() *
+        1000;
     private static final long TO_MILLIS =
-        ZonedDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).withHour(11).withMinute(0).withSecond(0).withNano(0).toEpochSecond() * 1000;
+        ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
+            .withHour(11)
+            .withMinute(0)
+            .withSecond(0)
+            .withNano(0)
+            .toEpochSecond() *
+        1000;
 
     private static final String API_ID = "kafka-api-001";
 
