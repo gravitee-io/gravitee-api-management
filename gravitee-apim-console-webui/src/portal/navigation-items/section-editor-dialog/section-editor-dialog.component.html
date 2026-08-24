@@ -134,7 +134,8 @@
           Link to external source
         </mat-slide-toggle>
         @if (useExternalSource()) {
-          <navigation-item-source-editor [embedded]="true" [source]="initialSource" />
+          <!-- A folder source drives a re-import: only directory-capable fetchers can back it -->
+          <navigation-item-source-editor [embedded]="true" [source]="initialSource" [onlyFilesFetchers]="type === 'FOLDER'" />
         } @else if (initialSource) {
           <gio-banner-warning data-testid="source-removal-warning">
             The external source will be removed

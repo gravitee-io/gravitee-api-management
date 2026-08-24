@@ -225,6 +225,31 @@ describe('PortalNavigationItemService', () => {
     });
   });
 
+  describe('importNavigation', () => {
+    it('should post the import request and return the created folder with its summary', done => {
+      const request = {
+        title: 'Imported Docs',
+        source: { type: 'github-fetcher', configuration: { repository: 'docs' } },
+      };
+      const response = {
+        rootFolder: fakePortalNavigationFolder({ id: 'folder-1', title: 'Imported Docs' }),
+        summary: fakePortalNavigationItemsFetchSummary(),
+      };
+
+      service.importNavigation(request).subscribe(result => {
+        expect(result).toEqual(response);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_import`,
+      });
+      expect(req.request.body).toEqual(request);
+      req.flush(response);
+    });
+  });
+
   describe('fetchNavigationItem', () => {
     it('should return the fetched item for a sourced page', done => {
       const fetchedPage = fakePortalNavigationPage({ id: 'page-1' });

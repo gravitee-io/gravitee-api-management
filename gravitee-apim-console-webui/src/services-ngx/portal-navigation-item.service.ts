@@ -20,6 +20,8 @@ import { Observable } from 'rxjs';
 import { Constants } from '../entities/Constants';
 import {
   FetchPortalNavigationItemResponse,
+  ImportPortalNavigationRequest,
+  ImportPortalNavigationResponse,
   NewPortalNavigationItem,
   PortalArea,
   PortalNavigationItem,
@@ -67,6 +69,10 @@ export class PortalNavigationItemService {
       updatePortalNavigationItem,
       { params },
     );
+  }
+
+  public importNavigation(request: ImportPortalNavigationRequest): Observable<ImportPortalNavigationResponse> {
+    return this.http.post<ImportPortalNavigationResponse>(`${this.constants.env.v2BaseURL}/portal-navigation-items/_import`, request);
   }
 
   public fetchNavigationItem(portalNavigationItemId: string): Observable<FetchPortalNavigationItemResponse> {

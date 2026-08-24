@@ -66,12 +66,16 @@ import {
   PublishNavigationItemDialogResult,
 } from './publish-navigation-item-dialog/publish-navigation-item-dialog.component';
 import { ImportFileError, IMPORTABLE_FILE_EXTENSIONS, readImportedFile, validateImportFile } from './portal-page-content-import.util';
+import {
+  ImportNavigationDialogComponent,
+  ImportNavigationDialogResult,
+} from './import-navigation-dialog/import-navigation-dialog.component';
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { FlatTreeComponent, NodeMenuActionEvent, NodeMovedEvent, SectionNode } from '../components/flat-tree/flat-tree.component';
 import {
-  collectNodeIdsWithSourcedPageDescendants,
+  collectFetchableContainerIds,
   FetchPortalNavigationItemResponse,
   getPortalNavigationItemSource,
   NewPortalNavigationItem,
@@ -270,8 +274,8 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   });
   readonly isContentEditingLocked = computed(() => !!this.selectedItemSource() || !!this.parentSourcedFolder());
   readonly isFetching = signal(false);
-  // A folder carries a source but is never fetched itself: only the sourced pages below it are.
-  // Fetching one without such a page is rejected by the backend, so the action stays disabled.
+  // A folder bound to a file-listing source is fetched as a re-import; any other container is only a walk
+  // over the sourced pages below it, which the backend rejects when there is none.
   readonly canFetchSelectedItem = computed(() => {
     const navItem = this.selectedNavigationItem()?.data;
     if (!navItem) {
@@ -279,7 +283,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     }
     return navItem.type === 'PAGE'
       ? !!getPortalNavigationItemSource(navItem)
-      : collectNodeIdsWithSourcedPageDescendants(this.menuLinks()).has(navItem.id);
+      : collectFetchableContainerIds(this.menuLinks()).has(navItem.id);
   });
   readonly importFileDisabled = computed(() => this.actionsDisabled() || this.isContentEditingLocked());
   protected readonly importFileAccept = IMPORTABLE_FILE_EXTENSIONS.join(',');
@@ -979,6 +983,38 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     }
   }
 
+  onImportNavigation() {
+    this.checkUnsavedChangesAndRun(() => {
+      this.matDialog
+        .open<ImportNavigationDialogComponent, void, ImportNavigationDialogResult>(ImportNavigationDialogComponent, {
+          width: GIO_DIALOG_WIDTH.MEDIUM,
+        })
+        .afterClosed()
+        .pipe(
+          filter((result): result is ImportNavigationDialogResult => !!result),
+          switchMap(result => this.portalNavigationItemsService.importNavigation({ title: result.title, source: result.source })),
+          catchError(error => {
+            // HTTP errors are already caught by HttpErrorInterceptor and displayed in the snackbar
+            if (!(error instanceof HttpErrorResponse)) {
+              this.snackBarService.error('Failed to import the documentation tree');
+            }
+            return EMPTY;
+          }),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe(response => {
+          const { succeeded, failed, results } = response.summary;
+          if (failed > 0) {
+            this.snackBarService.error(`Imported ${succeeded} of ${succeeded + failed} pages — ${this.describeFailedResults(results)}`);
+          } else {
+            this.snackBarService.success(`Successfully imported ${succeeded} page${succeeded === 1 ? '' : 's'}`);
+          }
+          this.refreshMenuList.next(1);
+          this.navigateToItemByNavId(response.rootFolder.id);
+        });
+    });
+  }
+
   onImportFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -1085,9 +1121,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     if (response.summary) {
       const { succeeded, failed, results } = response.summary;
       if (failed > 0) {
-        const failedTitles = results.filter(result => !result.success).map(result => `"${result.title}"`);
-        const failedList = failedTitles.slice(0, 3).join(', ') + (failedTitles.length > 3 ? ', …' : '');
-        this.snackBarService.error(`Fetched ${succeeded} of ${succeeded + failed} pages — failed: ${failedList}`);
+        this.snackBarService.error(`Fetched ${succeeded} of ${succeeded + failed} pages — ${this.describeFailedResults(results)}`);
       } else if (succeeded > 0) {
         this.snackBarService.success(`Successfully fetched ${succeeded} page${succeeded === 1 ? '' : 's'}`);
       } else {
@@ -1107,6 +1141,19 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     }
 
     this.snackBarService.error('Unexpected fetch response from the server');
+  }
+
+  /** Names what failed: the lone failure's error when nothing was imported at all, the failing titles otherwise */
+  private describeFailedResults(results: ReadonlyArray<{ title: string; success: boolean; error?: string }>): string {
+    const failures = results.filter(result => !result.success);
+    if (failures.length === 1 && failures.length === results.length && failures[0].error) {
+      return `failed: ${failures[0].error}`;
+    }
+    if (failures.length === 0) {
+      return 'some files failed';
+    }
+    const titles = failures.map(result => `"${result.title}"`);
+    return `failed: ${titles.slice(0, 3).join(', ')}${titles.length > 3 ? ', …' : ''}`;
   }
 
   onDeleteSection(node: SectionNode): Observable<void> {

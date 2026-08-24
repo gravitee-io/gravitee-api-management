@@ -15,14 +15,14 @@
  */
 import { Component, computed, DestroyRef, effect, inject, input, output, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { GioBannerModule, GioFormCronModule, GioFormJsonSchemaModule, GioJsonSchema } from '@gravitee/ui-particles-angular';
-import { catchError, debounceTime, map, tap } from 'rxjs/operators';
+import { catchError, debounceTime, map, switchMap, tap } from 'rxjs/operators';
 import { of, Subject, Subscription } from 'rxjs';
 import { DatePipe } from '@angular/common';
 import { isEqual } from 'lodash';
@@ -89,6 +89,8 @@ export class NavigationItemSourceEditorComponent {
   source = input<PortalNavigationItemSource | null>(null);
   disabled = input(false);
   embedded = input(false);
+  /** Restricts the picker to the fetchers an import can walk, as the legacy documentation import screen does */
+  onlyFilesFetchers = input(false);
 
   saveSource = output<PortalNavigationItemSource>();
   removeSource = output<void>();
@@ -109,20 +111,25 @@ export class NavigationItemSourceEditorComponent {
   private lastResetSource: PortalNavigationItemSource | null | undefined = undefined;
 
   readonly fetchers = toSignal(
-    this.fetcherService.getList().pipe(
-      map(fetchers =>
-        fetchers.map(
-          (fetcher): FetcherVM => ({
-            id: fetcher.id,
-            name: fetcher.name ?? fetcher.id,
-            schema: stripLegacyAutoFetchFromSchema(JSON.parse(fetcher.schema)),
+    // The input is only readable after construction, hence the reactive read rather than a plain call
+    toObservable(this.onlyFilesFetchers).pipe(
+      switchMap(onlyFilesFetchers =>
+        this.fetcherService.getList(onlyFilesFetchers).pipe(
+          map(fetchers =>
+            fetchers.map(
+              (fetcher): FetcherVM => ({
+                id: fetcher.id,
+                name: fetcher.name ?? fetcher.id,
+                schema: stripLegacyAutoFetchFromSchema(JSON.parse(fetcher.schema)),
+              }),
+            ),
+          ),
+          catchError(() => {
+            this.snackBarService.error('Failed to load the fetcher plugins');
+            return of([] as FetcherVM[]);
           }),
         ),
       ),
-      catchError(() => {
-        this.snackBarService.error('Failed to load the fetcher plugins');
-        return of([] as FetcherVM[]);
-      }),
     ),
     { initialValue: [] as FetcherVM[] },
   );

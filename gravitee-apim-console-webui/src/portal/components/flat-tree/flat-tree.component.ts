@@ -36,7 +36,7 @@ import { CommonModule } from '@angular/common';
 import { CdkDragDrop, CdkDragMove, CdkDragStart, DragDropModule } from '@angular/cdk/drag-drop';
 
 import {
-  collectNodeIdsWithSourcedPageDescendants,
+  collectFetchableContainerIds,
   getPortalNavigationItemSource,
   PortalNavigationItem,
   PortalNavigationItemType,
@@ -191,8 +191,9 @@ export class FlatTreeComponent {
     return creationAllowedByNodeId;
   });
 
-  // "Fetch All" targets the sourced PAGE descendants, matching what the backend _fetch endpoint collects
-  private readonly nodeIdsWithSourcedPageDescendants = computed(() => collectNodeIdsWithSourcedPageDescendants(this.links()));
+  // "Fetch All" targets what the backend _fetch endpoint accepts: the sourced PAGE descendants, and the
+  // import-managed folders, whose re-import replaces the walk of individual sourced pages
+  private readonly fetchableContainerIds = computed(() => collectFetchableContainerIds(this.links()));
 
   publishStateByNodeId = computed(() => {
     const links = this.links();
@@ -246,7 +247,7 @@ export class FlatTreeComponent {
   isSourced = (node: FlatTreeNode) => !!node.data && !!getPortalNavigationItemSource(node.data);
 
   canFetchAll(node: FlatTreeNode): boolean {
-    return this.canUpdate && this.isContainer(node) && this.nodeIdsWithSourcedPageDescendants().has(node.id);
+    return this.canUpdate && this.isContainer(node) && this.fetchableContainerIds().has(node.id);
   }
 
   isPublishDisabled(node: SectionNode): boolean {

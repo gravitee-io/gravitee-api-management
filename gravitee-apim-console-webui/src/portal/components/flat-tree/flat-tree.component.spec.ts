@@ -477,6 +477,41 @@ describe('FlatTreeComponent', () => {
       expect(await harness.getMenuItemByTestId('fetch-all-button')).toBeNull();
     });
 
+    it('should emit fetchAll for an imported folder whose pages carry no source', async () => {
+      const actionSpy = jest.fn();
+      component.nodeMenuAction.subscribe(actionSpy);
+
+      fixture.componentRef.setInput('links', [
+        fakePortalNavigationFolder({ id: 'f1', title: 'Imported Docs', order: 0, source: { ...source, subtreeImport: true } }),
+        fakePortalNavigationPage({ id: 'p1', title: 'Imported Page', order: 0, parentId: 'f1' }),
+      ]);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      await harness.selectFetchAllById('f1');
+      await fixture.whenStable();
+
+      expect(actionSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'fetchAll',
+          itemType: 'FOLDER',
+          node: expect.objectContaining({ id: 'f1' }),
+        }),
+      );
+    });
+
+    it('should not show Fetch All for a sourced folder the import does not manage', async () => {
+      fixture.componentRef.setInput('links', [
+        fakePortalNavigationFolder({ id: 'f1', title: 'Folder 1', order: 0, source: { type: 'http-fetcher', configuration: {} } }),
+        fakePortalNavigationPage({ id: 'p1', title: 'Plain Page', order: 0, parentId: 'f1' }),
+      ]);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      await harness.openMoreActionsMenuById('f1');
+      expect(await harness.getMenuItemByTestId('fetch-all-button')).toBeNull();
+    });
+
     it('should not show Fetch All for a sourced page itself', async () => {
       fixture.componentRef.setInput('links', [fakePortalNavigationPage({ id: 'p1', title: 'Sourced Page', order: 0, source })]);
       fixture.detectChanges();
