@@ -310,7 +310,8 @@ class SearchObservabilityLogsUseCaseTest {
                     new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY),
                     new AccessibleApi("api-message", "Message API", ApiType.MESSAGE),
                     new AccessibleApi("api-llm", "LLM API", ApiType.LLM),
-                    new AccessibleApi("api-native", "Native API", ApiType.NATIVE)
+                    new AccessibleApi("api-native", "Native API", ApiType.NATIVE),
+                    new AccessibleApi("api-edge", "Edge API", ApiType.EDGE)
                 )
             );
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
@@ -319,7 +320,7 @@ class SearchObservabilityLogsUseCaseTest {
 
             var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
             verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());
-            assertThat(captor.getValue().apiIds()).containsExactlyInAnyOrder("api-proxy", "api-llm", "api-native");
+            assertThat(captor.getValue().apiIds()).containsExactlyInAnyOrder("api-proxy", "api-llm", "api-native", "api-message");
         }
 
         @Test
@@ -410,14 +411,32 @@ class SearchObservabilityLogsUseCaseTest {
             when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
                 List.of(
                     new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY),
-                    new AccessibleApi("api-message", "Message API", ApiType.MESSAGE)
+                    new AccessibleApi("api-edge", "Edge API", ApiType.EDGE)
                 )
             );
 
-            var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("MESSAGE")));
+            var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("EDGE")));
             var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, null, null, 1, 20));
 
             assertThat(output.data()).isEqualTo(LogsPage.EMPTY);
+        }
+
+        @Test
+        void should_serve_message_apis() {
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+                List.of(
+                    new AccessibleApi("api-message", "Message API", ApiType.MESSAGE),
+                    new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY)
+                )
+            );
+            when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
+
+            var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("MESSAGE")));
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, null, null, 1, 20));
+
+            var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
+            verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());
+            assertThat(captor.getValue().apiIds()).containsExactly("api-message");
         }
 
         @Test
@@ -542,8 +561,38 @@ class SearchObservabilityLogsUseCaseTest {
                 "llm-proxy",
                 "mcp-proxy",
                 "a2a-proxy",
-                "native-kafka"
+                "native-kafka",
+                "sse",
+                "websocket",
+                "webhook"
             );
+        }
+
+        /**
+         * A Message API exposed over SSE, WebSocket or Webhook must not be silently dropped by the
+         * default scoping. Verified against real connection documents: {@code entrypoint-id} carries
+         * the plugin id, so an allow-list missing these three yields an empty page with no error.
+         */
+        @Test
+        void should_cover_the_async_message_entrypoints() {
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+                List.of(new AccessibleApi("api-message", "Message API", ApiType.MESSAGE))
+            );
+            when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
+
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), null, null, 1, 20));
+
+            var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
+            verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());
+            var entrypoints = captor
+                .getValue()
+                .conditions()
+                .stream()
+                .filter(c -> "ENTRYPOINT".equals(c.name()))
+                .findFirst()
+                .orElseThrow()
+                .values();
+            assertThat(entrypoints).contains("sse", "websocket", "webhook");
         }
     }
 

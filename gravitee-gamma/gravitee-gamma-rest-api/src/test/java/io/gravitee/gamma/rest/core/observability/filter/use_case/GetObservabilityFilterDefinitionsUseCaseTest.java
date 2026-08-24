@@ -72,7 +72,39 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
 
         List<String> names = output.filters().stream().map(FilterSpec::name).toList();
         assertThat(names).contains("MESSAGE_OPERATION_TYPE", "MESSAGE_SIZE", "API_TYPE");
-        // URI is HTTP_PROXY/LLM/MCP only → excluded for MESSAGE; REQUEST_ID is LOGS-only → excluded for ANALYTICS.
-        assertThat(names).doesNotContain("URI", "REQUEST_ID");
+        // One exclusion per axis, so the test keeps covering both: GEO_IP_COUNTRY is HTTP/LLM/MCP/A2A
+        // only → excluded by api type; REQUEST_ID is LOGS-only → excluded by signal. HOST and
+        // HTTP_GATEWAY_LATENCY no longer serve as the api-type witness: they read connection-document
+        // fields and are now offered for MESSAGE like the rest.
+        assertThat(names).doesNotContain("GEO_IP_COUNTRY", "REQUEST_ID");
+    }
+
+    /**
+     * A Message API's log row is an HTTP connection document, so the filters reading its fields must
+     * be offered. Measured before this was wired: the catalog answered six filters for MESSAGE+LOGS
+     * (API, APPLICATION, PLAN, ENTRYPOINT, API_TYPE, RECORD_TYPE), leaving the screen with nothing
+     * useful to narrow on.
+     */
+    @Test
+    void should_serve_the_connection_document_filters_for_message_logs() {
+        var output = useCase.execute(new GetObservabilityFilterDefinitionsUseCase.Input(Set.of(Signal.LOGS), Set.of(ApiType.MESSAGE)));
+
+        List<String> names = output.filters().stream().map(FilterSpec::name).toList();
+        assertThat(names).contains(
+            "API",
+            "APPLICATION",
+            "PLAN",
+            "ENTRYPOINT",
+            "HTTP_METHOD",
+            "HTTP_STATUS",
+            "HTTP_STATUS_CODE_GROUP",
+            "URI",
+            "HTTP_GATEWAY_RESPONSE_TIME",
+            "ERROR_KEY",
+            "REQUEST_ID",
+            "TRANSACTION_ID"
+        );
+        // A Message API records no connection-level body, so a payload search would always be empty.
+        assertThat(names).doesNotContain("PAYLOAD");
     }
 }
