@@ -53,6 +53,8 @@ $container-content-padding-vertical: 32px;
     display: flex;
     width: 100%;
     max-width: $max-width;
+    // Firefox ignores justify-self on a block-level parent.
+    margin-inline: auto;
     justify-content: center; // when flex-flow is column
     justify-self: center; // when flex-flow is row
   }
