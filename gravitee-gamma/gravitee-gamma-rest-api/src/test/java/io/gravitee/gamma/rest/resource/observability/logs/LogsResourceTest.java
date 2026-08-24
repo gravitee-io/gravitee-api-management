@@ -31,8 +31,11 @@ import io.gravitee.gamma.rest.core.observability.logs.model.HttpPayload;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogDetail;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsPage;
+import io.gravitee.gamma.rest.core.observability.logs.model.MessageLog;
+import io.gravitee.gamma.rest.core.observability.logs.model.MessageLogsPage;
 import io.gravitee.gamma.rest.core.observability.logs.use_case.GetAuthzDecisionUseCase;
 import io.gravitee.gamma.rest.core.observability.logs.use_case.GetObservabilityLogDetailUseCase;
+import io.gravitee.gamma.rest.core.observability.logs.use_case.SearchObservabilityLogMessagesUseCase;
 import io.gravitee.gamma.rest.core.observability.logs.use_case.SearchObservabilityLogsUseCase;
 import io.gravitee.gamma.rest.resource.AbstractResourceTest;
 import io.gravitee.gamma.rest.resource.observability.logs.LogsResourceTest.LogsTestConfiguration;
@@ -72,6 +75,9 @@ class LogsResourceTest extends AbstractResourceTest {
     @Inject
     private GetAuthzDecisionUseCase getAuthzDecisionUseCase;
 
+    @Inject
+    private SearchObservabilityLogMessagesUseCase searchLogMessagesUseCase;
+
     @Override
     protected String contextPath() {
         return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/observability/logs";
@@ -87,7 +93,7 @@ class LogsResourceTest extends AbstractResourceTest {
 
     @AfterEach
     void resetUseCases() {
-        reset(searchLogsUseCase, getLogDetailUseCase, getAuthzDecisionUseCase);
+        reset(searchLogsUseCase, getLogDetailUseCase, getAuthzDecisionUseCase, searchLogMessagesUseCase);
     }
 
     @Nested
@@ -335,6 +341,60 @@ class LogsResourceTest extends AbstractResourceTest {
         }
     }
 
+    @Nested
+    class GetLogMessages {
+
+        private static final String REQUEST_ID = "req-1";
+        private static final String API_ID = "api-1";
+
+        @Test
+        void should_return_the_messages_in_a_paginated_envelope() {
+            when(permissionService.hasPermission(any(), eq(RolePermission.API_LOG), eq(API_ID), eq(RolePermissionAction.READ))).thenReturn(
+                true
+            );
+            var message = MessageLog.builder()
+                .requestId(REQUEST_ID)
+                .timestamp("2026-08-24T13:14:59.395Z")
+                .operation("PUBLISH")
+                .entrypoint(MessageLog.Message.builder().connectorId("http-post").payload("{}").build())
+                .endpoint(MessageLog.Message.builder().connectorId("kafka").payload("{}").build())
+                .build();
+            when(searchLogMessagesUseCase.execute(any())).thenReturn(
+                new SearchObservabilityLogMessagesUseCase.Output(new MessageLogsPage(List.of(message), 1), 1, 20)
+            );
+
+            var response = rootTarget(REQUEST_ID + "/messages").queryParam("apiId", API_ID).request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            JsonNode body = response.readEntity(JsonNode.class);
+            assertThat(body.get("pagination").get("totalCount").asLong()).isEqualTo(1);
+            var first = body.get("data").get(0);
+            assertThat(first.get("operation").asText()).isEqualTo("PUBLISH");
+            assertThat(first.get("entrypoint").get("connectorId").asText()).isEqualTo("http-post");
+            assertThat(first.get("endpoint").get("connectorId").asText()).isEqualTo("kafka");
+        }
+
+        @Test
+        void should_return_400_when_apiId_is_missing() {
+            var response = rootTarget(REQUEST_ID + "/messages").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            verifyNoInteractions(searchLogMessagesUseCase);
+        }
+
+        @Test
+        void should_collapse_a_forbidden_api_into_404_so_it_cannot_be_probed() {
+            when(permissionService.hasPermission(any(), eq(RolePermission.API_LOG), eq(API_ID), eq(RolePermissionAction.READ))).thenReturn(
+                false
+            );
+
+            var response = rootTarget(REQUEST_ID + "/messages").queryParam("apiId", API_ID).request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+            verifyNoInteractions(searchLogMessagesUseCase);
+        }
+    }
+
     @Configuration
     static class LogsTestConfiguration {
 
@@ -351,6 +411,11 @@ class LogsResourceTest extends AbstractResourceTest {
         @Bean
         GetAuthzDecisionUseCase getAuthzDecisionUseCase() {
             return mock(GetAuthzDecisionUseCase.class);
+        }
+
+        @Bean
+        SearchObservabilityLogMessagesUseCase searchObservabilityLogMessagesUseCase() {
+            return mock(SearchObservabilityLogMessagesUseCase.class);
         }
     }
 }
