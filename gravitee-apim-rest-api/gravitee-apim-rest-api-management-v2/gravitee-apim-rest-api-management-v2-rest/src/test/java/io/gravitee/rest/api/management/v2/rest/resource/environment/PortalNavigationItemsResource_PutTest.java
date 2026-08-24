@@ -571,7 +571,8 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
                 new PortalNavigationItemSource(
                     OffsetDateTime.parse("2026-07-17T10:00:00Z"),
                     OffsetDateTime.parse("2026-07-17T11:00:00Z"),
-                    "forged error"
+                    "forged error",
+                    true
                 )
                     .type("github-fetcher")
                     .configuration(Map.of("repository", "docs"))
@@ -595,6 +596,7 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(body.getSource().getLastFetchedAt()).isNull();
         assertThat(body.getSource().getLastFetchAttemptAt()).isNull();
         assertThat(body.getSource().getLastFetchError()).isNull();
+        assertThat(body.getSource().getSubtreeImport()).isFalse();
 
         // And storage reflects the same
         var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
@@ -603,6 +605,7 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(updated.getSource().getLastFetchedAt()).isNull();
         assertThat(updated.getSource().getLastFetchAttemptAt()).isNull();
         assertThat(updated.getSource().getLastFetchError()).isNull();
+        assertThat(updated.getSource().isSubtreeImport()).isFalse();
     }
 
     @Test
@@ -633,7 +636,9 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
 
         // When: PUT keeping the same source origin (clients never send the readOnly fields back)
         BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationPage()
-            .source(new PortalNavigationItemSource(null, null, null).type("github-fetcher").configuration(Map.of("repository", "docs")))
+            .source(
+                new PortalNavigationItemSource(null, null, null, null).type("github-fetcher").configuration(Map.of("repository", "docs"))
+            )
             .title("Sourced Page")
             .order(0)
             .type(PortalNavigationItemType.PAGE)

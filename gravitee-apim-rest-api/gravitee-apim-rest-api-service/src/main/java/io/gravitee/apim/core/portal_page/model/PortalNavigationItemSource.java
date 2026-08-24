@@ -52,6 +52,14 @@ public class PortalNavigationItemSource {
     @Nullable
     private String lastFetchError;
 
+    /**
+     * Set by the import: fetching this folder re-imports the subtree, deleting what the import no
+     * longer knows. Server-owned, never read from a payload, so a hand-made sourced folder is never
+     * mistaken for an import target.
+     */
+    @Builder.Default
+    private boolean subtreeImport = false;
+
     public void registerFetchAttempt() {
         this.lastFetchAttemptAt = TimeProvider.instantNow();
     }

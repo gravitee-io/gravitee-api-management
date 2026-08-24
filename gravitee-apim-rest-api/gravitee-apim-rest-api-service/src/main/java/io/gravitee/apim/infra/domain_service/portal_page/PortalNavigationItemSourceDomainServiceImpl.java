@@ -25,6 +25,8 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.fetcher.api.Fetcher;
 import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.fetcher.api.FetcherException;
+import io.gravitee.fetcher.api.FilepathAwareFetcherConfiguration;
+import io.gravitee.fetcher.api.FilesFetcher;
 import io.gravitee.fetcher.api.Sensitive;
 import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
@@ -35,6 +37,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -68,6 +71,44 @@ public class PortalNavigationItemSourceDomainServiceImpl implements PortalNaviga
         var fetcher = loadFetcher(source).orElseThrow(() ->
             InvalidPortalNavigationItemSourceException.unknownSourceType(source.getSourceType())
         );
+        return readContent(fetcher, source);
+    }
+
+    @Override
+    public boolean supportsFileListing(PortalNavigationItemSource source) {
+        try {
+            return loadFetcher(source).filter(FilesFetcher.class::isInstance).isPresent();
+        } catch (Exception e) {
+            log.warn("Unable to determine file-listing support of portal page source [type={}]", source.getSourceType(), e);
+            return false;
+        }
+    }
+
+    @Override
+    public List<String> listFiles(PortalNavigationItemSource source) {
+        var fetcher = loadFetcher(source).orElseThrow(() ->
+            InvalidPortalNavigationItemSourceException.unknownSourceType(source.getSourceType())
+        );
+        if (!(fetcher instanceof FilesFetcher filesFetcher)) {
+            throw InvalidPortalNavigationItemSourceException.sourceCannotListFiles(source.getSourceType());
+        }
+        try {
+            var files = filesFetcher.files();
+            return files == null ? List.of() : Arrays.stream(files).filter(Objects::nonNull).toList();
+        } catch (FetcherException e) {
+            throw new TechnicalDomainException("unable to list files from source type " + source.getSourceType(), e);
+        }
+    }
+
+    @Override
+    public String fetchFileContent(PortalNavigationItemSource source, String filepath) {
+        var fetcher = loadFetcher(source).orElseThrow(() ->
+            InvalidPortalNavigationItemSourceException.unknownSourceType(source.getSourceType())
+        );
+        if (!(fetcher.getConfiguration() instanceof FilepathAwareFetcherConfiguration filepathAwareConfiguration)) {
+            throw InvalidPortalNavigationItemSourceException.sourceCannotListFiles(source.getSourceType());
+        }
+        filepathAwareConfiguration.setFilepath(filepath);
         return readContent(fetcher, source);
     }
 

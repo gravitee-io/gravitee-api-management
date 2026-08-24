@@ -16,8 +16,11 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationBulkImportDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import lombok.CustomLog;
@@ -36,27 +39,73 @@ public class AutoFetchPortalNavigationItemsUseCase {
     private final PortalNavigationItemsQueryService queryService;
     private final PortalNavigationItemSourceDomainService sourceDomainService;
     private final PortalNavigationItemDomainService domainService;
+    private final PortalNavigationBulkImportDomainService bulkImportDomainService;
 
     public Output execute() {
-        var duePages = queryService
+        var dueItems = queryService
             .findAllWithAutoFetchEnabled()
             .stream()
-            .filter(PortalNavigationPage.class::isInstance)
-            .map(PortalNavigationPage.class::cast)
-            .filter(page -> page.getSource() != null)
-            .filter(page -> sourceDomainService.isAutoFetchDue(page.getSource()))
+            .filter(item -> item.getSource() != null)
+            .filter(this::isAutoFetchable)
+            .filter(item -> sourceDomainService.isAutoFetchDue(item.getSource()))
             .toList();
 
         int succeeded = 0;
         int failed = 0;
-        for (var page : duePages) {
-            if (fetch(page)) {
+        for (var item : dueItems) {
+            var fetched = switch (item) {
+                case PortalNavigationPage page -> fetch(page);
+                case PortalNavigationFolder folder -> reimport(folder);
+                default -> true;
+            };
+            if (fetched) {
                 succeeded++;
             } else {
                 failed++;
             }
         }
         return new Output(succeeded, failed);
+    }
+
+    /**
+     * A folder is auto-fetchable only when the navigation import set it up: its fetch is a re-import,
+     * which deletes what the import does not know. Folders sourced by hand before imports existed
+     * carry no marker and must never be picked up here. Runs after the null-source filter: the
+     * source can be dereferenced.
+     */
+    private boolean isAutoFetchable(PortalNavigationItem item) {
+        return switch (item) {
+            case PortalNavigationPage page -> true;
+            case PortalNavigationFolder folder -> folder.getSource().isSubtreeImport();
+            default -> false;
+        };
+    }
+
+    /** Never throws: one failing folder must not stop the items after it. */
+    private boolean reimport(PortalNavigationFolder folder) {
+        try {
+            log.debug(
+                "Auto-importing portal navigation folder [id={}, title={}, environmentId={}]",
+                folder.getId().json(),
+                folder.getTitle(),
+                folder.getEnvironmentId()
+            );
+            return bulkImportDomainService
+                .importSubtree(folder)
+                .files()
+                .stream()
+                .allMatch(file -> file.success());
+        } catch (Exception e) {
+            log.warn(
+                "Failed to auto-import portal navigation folder [id={}, title={}, environmentId={}, sourceType={}]",
+                folder.getId().json(),
+                folder.getTitle(),
+                folder.getEnvironmentId(),
+                folder.getSource() == null ? null : folder.getSource().getSourceType(),
+                e
+            );
+            return false;
+        }
     }
 
     /** Never throws: one failing page must not stop the ones after it. */

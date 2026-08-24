@@ -453,6 +453,7 @@ class PortalNavigationItemAdapterTest {
                 .lastFetchedAt(LAST_FETCHED_AT)
                 .lastFetchAttemptAt(LAST_FETCH_ATTEMPT_AT)
                 .lastFetchError("boom")
+                .subtreeImport(true)
                 .build();
         }
 
@@ -477,6 +478,7 @@ class PortalNavigationItemAdapterTest {
             assertThat(source.get("lastFetchedAt").asText()).isEqualTo(LAST_FETCHED_AT.toString());
             assertThat(source.get("lastFetchAttemptAt").asText()).isEqualTo(LAST_FETCH_ATTEMPT_AT.toString());
             assertThat(source.get("lastFetchError").asText()).isEqualTo("boom");
+            assertThat(source.get("subtreeImport").asBoolean()).isTrue();
         }
 
         @Test
@@ -530,7 +532,8 @@ class PortalNavigationItemAdapterTest {
                     "fetchCron": "0 */10 * * * *",
                     "lastFetchedAt": "2026-07-17T10:00:00Z",
                     "lastFetchAttemptAt": "2026-07-17T11:00:00Z",
-                    "lastFetchError": "boom"
+                    "lastFetchError": "boom",
+                    "subtreeImport": true
                   }
                 }
                 """
@@ -549,6 +552,7 @@ class PortalNavigationItemAdapterTest {
             assertThat(entity.getSource().getLastFetchedAt()).isEqualTo(LAST_FETCHED_AT);
             assertThat(entity.getSource().getLastFetchAttemptAt()).isEqualTo(LAST_FETCH_ATTEMPT_AT);
             assertThat(entity.getSource().getLastFetchError()).isEqualTo("boom");
+            assertThat(entity.getSource().isSubtreeImport()).isTrue();
         }
 
         /** Items stored before the key existed: no migration, the field simply reads as absent. */
@@ -582,6 +586,8 @@ class PortalNavigationItemAdapterTest {
             // Then
             assertThat(entity.getSource().getLastFetchAttemptAt()).isNull();
             assertThat(entity.getSource().getLastFetchedAt()).isEqualTo(LAST_FETCHED_AT);
+            // A pre-import row must never read as an import target
+            assertThat(entity.getSource().isSubtreeImport()).isFalse();
         }
 
         @Test

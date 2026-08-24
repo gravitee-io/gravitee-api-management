@@ -50,6 +50,10 @@ public class UpdatePortalNavigationItemUseCase {
         if (existing.getSource() != null && toUpdate.getSource() != null) {
             sourceDomainService.mergeSensitiveData(existing.getSource(), toUpdate.getSource());
         }
+        // The import marker is server-owned: carried over from the stored source, never taken from a payload
+        if (toUpdate.getSource() != null) {
+            toUpdate.getSource().setSubtreeImport(existing.getSource() != null && existing.getSource().isSubtreeImport());
+        }
         validatorService.validateToUpdate(toUpdate, existing);
         var updatedItem = domainService.update(toUpdate, existing, input.propagatePublishToChildren());
         if (updatedItem.getSource() != null) {

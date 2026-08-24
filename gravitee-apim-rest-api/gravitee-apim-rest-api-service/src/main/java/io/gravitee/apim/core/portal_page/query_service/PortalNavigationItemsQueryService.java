@@ -63,9 +63,8 @@ public interface PortalNavigationItemsQueryService {
      * is a node-wide job and does not run inside an environment context.
      */
     default List<PortalNavigationItem> findAllWithAutoFetchEnabled() {
-        // Restricted to PAGE in the query rather than in the caller: only a PAGE owns content that the
-        // scheduler knows how to refresh.
-        return search(PortalNavigationItemQueryCriteria.builder().useAutoFetch(true).type(PortalNavigationItemType.PAGE).build());
+        // PAGEs and FOLDERs both qualify: the auto-fetch use case decides what a refresh means per type
+        return search(PortalNavigationItemQueryCriteria.builder().useAutoFetch(true).build());
     }
 
     default Optional<PortalNavigationPage> findNavigationPageByPortalPageContentId(String environmentId, PortalPageContentId contentId) {

@@ -20,12 +20,14 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.use_case.BulkCreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
+import io.gravitee.apim.core.portal_page.use_case.ImportPortalNavigationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForPortalNavigationItemsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItems;
+import io.gravitee.rest.api.management.v2.rest.model.ImportPortalNavigationRequest;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemApiSummary;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemsResponseMetadata;
@@ -75,6 +77,9 @@ public class PortalNavigationItemsResource extends AbstractResource {
 
     @Inject
     private SeedDefaultPagesForPortalNavigationItemsUseCase seedDefaultPagesForPortalNavigationItemsUseCase;
+
+    @Inject
+    private ImportPortalNavigationUseCase importPortalNavigationUseCase;
 
     private final PortalNavigationItemsMapper mapper = PortalNavigationItemsMapper.INSTANCE;
 
@@ -155,6 +160,21 @@ public class PortalNavigationItemsResource extends AbstractResource {
         );
 
         return Response.ok(new PortalNavigationItemsResponse().items(mapper.map(output.items()))).build();
+    }
+
+    @Path("_import")
+    @POST
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response importPortalNavigation(@Valid @NotNull final ImportPortalNavigationRequest importPortalNavigationRequest) {
+        final var executionContext = GraviteeContext.getExecutionContext();
+
+        final var output = importPortalNavigationUseCase.execute(
+            mapper.map(executionContext.getOrganizationId(), executionContext.getEnvironmentId(), importPortalNavigationRequest)
+        );
+
+        return Response.ok(mapper.map(output)).build();
     }
 
     @Path("_default-pages")

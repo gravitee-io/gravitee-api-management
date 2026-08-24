@@ -16,9 +16,16 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
+import java.util.List;
 
 public interface PortalNavigationItemSourceDomainService {
     String fetchContent(PortalNavigationItemSource source);
+
+    boolean supportsFileListing(PortalNavigationItemSource source);
+
+    List<String> listFiles(PortalNavigationItemSource source);
+
+    String fetchFileContent(PortalNavigationItemSource source, String filepath);
 
     void removeSensitiveData(PortalNavigationItemSource source);
 

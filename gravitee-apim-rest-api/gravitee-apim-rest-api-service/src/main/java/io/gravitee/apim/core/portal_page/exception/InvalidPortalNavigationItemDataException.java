@@ -61,6 +61,22 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
         );
     }
 
+    public static InvalidPortalNavigationItemDataException fileListingSourceOnlyCreatedByImport(String itemId) {
+        return new InvalidPortalNavigationItemDataException(
+            "A file-listing source cannot be attached to folder %s: fetching such a folder replaces its children with the remote tree. Import the repository into a new folder instead.".formatted(
+                itemId
+            )
+        );
+    }
+
+    public static InvalidPortalNavigationItemDataException importManagedFolderNeedsFileListingSource(String itemId) {
+        return new InvalidPortalNavigationItemDataException(
+            "Folder %s is managed by the navigation import: its source must be able to list files. Pick a repository fetcher, or remove the source to detach the folder.".formatted(
+                itemId
+            )
+        );
+    }
+
     public static InvalidPortalNavigationItemDataException sourcedItemCannotBeRenamedOrMoved(String itemId) {
         return new InvalidPortalNavigationItemDataException(
             "Navigation item %s is managed by an external source and cannot be renamed or moved. Remove the source first.".formatted(itemId)

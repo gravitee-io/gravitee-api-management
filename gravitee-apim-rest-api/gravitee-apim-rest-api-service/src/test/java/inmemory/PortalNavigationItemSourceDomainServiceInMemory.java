@@ -19,7 +19,10 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSour
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemSourceException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 import org.springframework.scheduling.support.CronExpression;
 
@@ -33,6 +36,11 @@ public class PortalNavigationItemSourceDomainServiceInMemory implements PortalNa
 
     private RuntimeException fetchFailure;
     private String lastValidatedConfiguration;
+
+    private boolean filesCapable = false;
+    private final Map<String, String> remoteFiles = new LinkedHashMap<>();
+    private final Set<String> fileFetchFailures = new HashSet<>();
+    private RuntimeException listFilesFailure;
 
     public void failNextFetchWith(RuntimeException failure) {
         this.fetchFailure = failure;
@@ -51,6 +59,59 @@ public class PortalNavigationItemSourceDomainServiceInMemory implements PortalNa
             throw failure;
         }
         return MARKDOWN;
+    }
+
+    @Override
+    public boolean supportsFileListing(PortalNavigationItemSource source) {
+        return filesCapable;
+    }
+
+    @Override
+    public java.util.List<String> listFiles(PortalNavigationItemSource source) {
+        if (listFilesFailure != null) {
+            var failure = listFilesFailure;
+            listFilesFailure = null;
+            throw failure;
+        }
+        return java.util.List.copyOf(remoteFiles.keySet());
+    }
+
+    @Override
+    public String fetchFileContent(PortalNavigationItemSource source, String filepath) {
+        if (fileFetchFailures.remove(filepath)) {
+            throw new RuntimeException("failed to fetch " + filepath);
+        }
+        var content = remoteFiles.get(filepath);
+        if (content == null) {
+            throw new RuntimeException("no such remote file " + filepath);
+        }
+        return content;
+    }
+
+    /** Makes {@link #supportsFileListing} answer true and registers a remote file with its content. */
+    public void givenRemoteFile(String filepath, String content) {
+        filesCapable = true;
+        remoteFiles.put(filepath, content);
+    }
+
+    public void removeRemoteFile(String filepath) {
+        remoteFiles.remove(filepath);
+    }
+
+    public void failNextListFilesWith(RuntimeException failure) {
+        this.listFilesFailure = failure;
+    }
+
+    public void failFileFetch(String filepath) {
+        fileFetchFailures.add(filepath);
+    }
+
+    /** Clears the file-listing state; shared instances (Spring test contexts) call it between tests. */
+    public void resetFileListing() {
+        filesCapable = false;
+        remoteFiles.clear();
+        fileFetchFailures.clear();
+        listFilesFailure = null;
     }
 
     @Override

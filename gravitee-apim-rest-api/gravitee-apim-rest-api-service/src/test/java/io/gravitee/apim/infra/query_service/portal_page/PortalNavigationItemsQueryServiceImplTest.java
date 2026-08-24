@@ -408,9 +408,10 @@ class PortalNavigationItemsQueryServiceImplTest {
             assertThat(result).hasSize(1);
             var capturedCriteria = criteriaCaptor.getValue();
             assertThat(capturedCriteria.getUseAutoFetch()).isTrue();
-            // node-wide job, so no environment restriction, but only a PAGE owns content to refresh
+            // node-wide job, so no environment restriction; no type restriction either, since
+            // sourced PAGEs are re-fetched and imported FOLDERs re-imported
             assertThat(capturedCriteria.getEnvironmentId()).isNull();
-            assertThat(capturedCriteria.getType()).isEqualTo("PAGE");
+            assertThat(capturedCriteria.getType()).isNull();
         }
 
         @Test

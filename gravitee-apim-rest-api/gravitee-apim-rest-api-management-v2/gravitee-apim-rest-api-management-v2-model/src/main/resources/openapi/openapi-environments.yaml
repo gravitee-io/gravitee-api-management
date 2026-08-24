@@ -1097,6 +1097,43 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  /portal-navigation-items/_import:
+    post:
+      tags:
+        - Portal Navigation Items
+      summary: Import a documentation tree from a remote repository
+      description: |
+        User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+        Creates a FOLDER bound to a file-listing source (e.g. a git repository), lists the remote files
+        and builds the FOLDER/PAGE hierarchy below it. When a `.gravitee.json` manifest is present in the
+        repository the hierarchy follows it, otherwise the remote tree is mirrored. The source is carried
+        by the root folder only: its subtree is read-only, and re-fetching the folder re-runs the import.
+        Unlike `_bulk`, which creates items from an explicit list, `_import` builds that list from the repository.
+        The fetcher configuration must point at the directory to walk (e.g. `/` for the repository root):
+        a configuration without a path lists nothing and the import fails.
+      operationId: importPortalNavigation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportPortalNavigationRequest"
+        required: true
+      responses:
+        "200":
+          description: Import result. A file failing to import does not abort the others; per-file failures are reported in the summary.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportPortalNavigationResponse"
+        "400":
+          description: Invalid target, source configuration, or a source that cannot list files
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
   /portal-navigation-items/_default-pages:
     post:
       tags:
@@ -1215,8 +1252,8 @@ paths:
       description: |
         User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
         On a PAGE carrying an external source, fetches the page content and returns the updated item.
-        On a container item such as a FOLDER, fetches every PAGE descendant carrying an external source and returns a success/failure summary.
-        A source carried by the FOLDER itself is not fetched yet: only the sources of the PAGE items below it are.
+        On a FOLDER bound to a file-listing source (created by `_import`), re-runs the import and returns a per-file summary.
+        On any other container item, fetches every PAGE descendant carrying an external source and returns a success/failure summary.
       operationId: fetchPortalNavigationItem
       parameters:
         - name: navId
@@ -2465,6 +2502,13 @@ components:
           type: string
           readOnly: true
           description: Error message of the last failed fetch. Absent when the last fetch succeeded.
+        subtreeImport:
+          type: boolean
+          readOnly: true
+          default: false
+          description: >
+            Whether the folder carrying this source is managed by the navigation import: fetching it
+            re-runs the import over its subtree. Only ever set by the import endpoint.
       required: [ type, configuration ]
     FetchPortalNavigationItemResponse:
       type: object
@@ -2474,9 +2518,36 @@ components:
           $ref: "#/components/schemas/PortalNavigationItem"
         summary:
           $ref: "#/components/schemas/PortalNavigationItemsFetchSummary"
+    ImportPortalNavigationRequest:
+      type: object
+      description: Import of a remote documentation tree into a new sourced folder.
+      properties:
+        title:
+          type: string
+          description: Title of the root folder created for the import.
+        parentId:
+          type: string
+          format: uuid
+          description: >
+            The unique ID of the navigation item the root folder is created under. The folder takes the
+            parent's portal area; without a parent it is created at the top level of the top navbar.
+        visibility:
+          $ref: "#/components/schemas/PortalVisibility"
+        source:
+          $ref: "#/components/schemas/PortalNavigationItemSource"
+      required: [ title, source ]
+    ImportPortalNavigationResponse:
+      type: object
+      description: Result of a portal navigation import.
+      properties:
+        rootFolder:
+          $ref: "#/components/schemas/PortalNavigationItem"
+        summary:
+          $ref: "#/components/schemas/PortalNavigationItemsFetchSummary"
+      required: [ rootFolder, summary ]
     PortalNavigationItemsFetchSummary:
       type: object
-      description: Success/failure summary of fetching every sourced PAGE descendant of a container item.
+      description: Per-page success/failure summary of a subtree fetch or of a repository import.
       properties:
         succeeded:
           type: integer
