@@ -72,6 +72,61 @@ yarn nexus_sync    --version=4.12.18
 | `--branch` | Release from a branch other than the derived one. The version commit and the tag are pushed there.
 |===
 
+== Hotfixes
+
+When an urgent fix has to ship and the support branch already carries work that is not ready to go out with it, releasing from that branch would drag the lot along. Take the released tag instead:
+
+[source,shell]
+----
+yarn prepare_hotfix --version=4.12.17
+----
+
+It cuts `hotfix/4.12.17` from the tag of the same name and commits the version that branch will release — `4.12.17-hotfix.1`. That step is not optional. A branch cut from a tag sits at the released version with an empty `<changelist>`, so releasing it untouched would republish `4.12.17` under a tag claiming otherwise. The command puts `-hotfix.1` in `<sha1>` and brings `-SNAPSHOT` back, the same shape a pre-release uses.
+
+Then add the fix as one commit, and release from there:
+
+[source,shell]
+----
+yarn full_release --version=4.12.17-hotfix.1
+----
+
+The support branch is untouched throughout, and the Docker `4.12` and `latest` tags are left where they were — a qualified version never claims them.
+
+No `--branch` to pass: a hotfix version names the branch it comes from. `4.12.17-hotfix.1` is released from `hotfix/4.12.17`, the way `4.12.18` is released from `4.12.x`. A branch that contradicts the version is refused — by the command, and again by the pipeline.
+
+One thing is on you afterwards: cherry-pick the fix into the support branch, so the next patch carries it too. What belongs in that patch is a judgement call, not a step that can be automated.
+
+=== The Helm chart
+
+The chart is published with the hotfix version, qualifier and all. Helm reads that as semver, where anything after a `-` is a pre-release. So the chart sorts *below* the release it fixes.
+
+Three things follow, and none of them warn you:
+
+* `helm search repo` hides it. `--devel` shows it.
+* No range matches it — not `^4.12.0`, not `~4.12.0`, not even `>=4.11.0`, with or without `--devel`.
+* `helm upgrade` without `--version` picks the plain release. The fix is gone, and the command reports success.
+
+So name the version, and keep it named:
+
+[source,shell]
+----
+helm upgrade apim graviteeio/apim3 --version 4.12.17-hotfix.1
+----
+
+Unpin when the next patch ships. It carries the same fix and sorts above everything here. Nothing reminds you, so write it down somewhere.
+
+ArgoCD behaves the same way. An `Application` tracking a range never sees the hotfix. `targetRevision` has to name the version, then be changed back later. If the next patch is close, waiting for it is the better answer — it arrives on its own.
+
+No version string avoids this. Semver has nothing between a release and the next patch. And build metadata is ignored in comparisons, so a `+hotfix.1` suffix would rank *equal* to the release.
+
+=== A second hotfix
+
+Nothing to prepare. The release bumps the branch it ran on, and on a qualified version it bumps the qualifier — so `hotfix/4.12.17` comes out of the first release already at `4.12.17-hotfix.2-SNAPSHOT`, and the branch is kept for that reason. Commit the next fix and release it.
+
+Running `prepare_hotfix` again is harmless: it checks the branch out as it stands — origin's copy if you do not have it locally — and prints the version to release. What it will not do is prepare it twice, which would set the qualifier back to `.1`.
+
+The command also refuses to start on a dirty working tree. `git switch` carries uncommitted changes onto the branch it moves to, and they would be committed with the version.
+
 == Pre-release versions
 
 Alpha, beta, RC and milestone versions come from the poms, not from a flag. Set `<sha1>` on the branch, in the form `-NAME.NUMBER`:
