@@ -69,22 +69,9 @@ export function OrgSettingsFormShell({
     return (
         <TooltipProvider delayDuration={200}>
             <div className="space-y-6">
-                <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-1">
-                        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-                        <p className="text-sm text-muted-foreground">{description}</p>
-                    </div>
-                    {isDirty && canEdit ? (
-                        <div className="flex shrink-0 items-center gap-2">
-                            <Button variant="outline" size="sm" onClick={onDiscard} disabled={isSaving}>
-                                Discard
-                            </Button>
-                            <Button size="sm" onClick={onSave} disabled={isSaving || !isValid}>
-                                <CheckIcon className="size-4" aria-hidden />
-                                {isSaving ? 'Saving…' : 'Save changes'}
-                            </Button>
-                        </div>
-                    ) : null}
+                <div className="space-y-1">
+                    <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+                    <p className="text-sm text-muted-foreground">{description}</p>
                 </div>
 
                 <Alert>
@@ -105,6 +92,18 @@ export function OrgSettingsFormShell({
                 ) : null}
 
                 {children}
+
+                {isDirty && canEdit ? (
+                    <div className="sticky bottom-0 z-10 flex flex-wrap items-center justify-end gap-2 border-t bg-background py-4">
+                        <Button variant="outline" size="sm" onClick={onDiscard} disabled={isSaving}>
+                            Discard
+                        </Button>
+                        <Button size="sm" onClick={onSave} disabled={isSaving || !isValid}>
+                            <CheckIcon className="size-4" aria-hidden />
+                            {isSaving ? 'Saving…' : 'Save changes'}
+                        </Button>
+                    </div>
+                ) : null}
             </div>
         </TooltipProvider>
     );
