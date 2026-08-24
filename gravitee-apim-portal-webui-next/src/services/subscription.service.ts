@@ -21,6 +21,7 @@ import { ConfigService } from './config.service';
 import {
   CreateSubscription,
   Subscription,
+  SubscriptionConsumerStatusEnum,
   SubscriptionReferenceType,
   SubscriptionsResponse,
   SubscriptionStatusEnum,
@@ -77,6 +78,12 @@ export class SubscriptionService {
 
   close(subscriptionId: string) {
     return this.http.post<void>(`${this.configService.baseURL}/subscriptions/${subscriptionId}/_close`, null);
+  }
+
+  changeConsumerStatus(subscriptionId: string, status: SubscriptionConsumerStatusEnum): Observable<Subscription> {
+    return this.http.post<Subscription>(`${this.configService.baseURL}/subscriptions/${subscriptionId}/_changeConsumerStatus`, null, {
+      params: { status },
+    });
   }
 
   resumeConsumerStatus(subscriptionId: string): Observable<Subscription> {

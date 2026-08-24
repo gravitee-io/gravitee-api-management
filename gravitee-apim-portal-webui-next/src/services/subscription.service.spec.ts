@@ -21,6 +21,7 @@ import {
   fakeApiProductSubscriptionDetails,
   fakeSubscription,
   fakeSubscriptionResponse,
+  SubscriptionConsumerStatusEnum,
   SubscriptionsResponse,
   SubscriptionStatusEnum,
 } from '../entities/subscription';
@@ -138,4 +139,22 @@ describe('SubscriptionService', () => {
 
     req.flush(null);
   });
+
+  it.each([SubscriptionConsumerStatusEnum.STARTED, SubscriptionConsumerStatusEnum.STOPPED])(
+    'should change subscription consumer status to %s',
+    consumerStatus => {
+      const subscription = fakeSubscription({ consumerStatus });
+
+      service.changeConsumerStatus(subscription.id, consumerStatus).subscribe(response => {
+        expect(response).toEqual(subscription);
+      });
+
+      const req = httpTestingController.expectOne(
+        `${TESTING_BASE_URL}/subscriptions/${subscription.id}/_changeConsumerStatus?status=${consumerStatus}`,
+      );
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body).toBeNull();
+      req.flush(subscription);
+    },
+  );
 });
