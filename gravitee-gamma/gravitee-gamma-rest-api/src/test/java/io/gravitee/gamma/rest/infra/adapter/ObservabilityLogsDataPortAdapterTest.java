@@ -30,10 +30,13 @@ import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
+import io.gravitee.apim.core.log.crud_service.AggregatedMessageLogCrudService;
 import io.gravitee.apim.core.log.crud_service.AuthzDecisionLogsCrudService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
+import io.gravitee.apim.core.log.model.AggregatedMessageLog;
 import io.gravitee.apim.core.log.model.AuthzDecisionLog;
 import io.gravitee.apim.core.log.model.AuthzDecisionLogFilters;
+import io.gravitee.apim.core.log.model.MessageOperation;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.model.UserContext;
@@ -46,6 +49,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.logs.model.ApiReference;
 import io.gravitee.gamma.rest.core.observability.logs.model.FailureOrigin;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
+import io.gravitee.gamma.rest.core.observability.logs.model.MessageLogsPage;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
@@ -86,6 +90,9 @@ class ObservabilityLogsDataPortAdapterTest {
     private UserContextLoader userContextLoader;
 
     @Mock
+    private AggregatedMessageLogCrudService aggregatedMessageLogCrudService;
+
+    @Mock
     private PlanCrudService planCrudService;
 
     @Mock
@@ -102,6 +109,7 @@ class ObservabilityLogsDataPortAdapterTest {
     @BeforeEach
     void setUp() {
         adapter = new ObservabilityLogsDataPortAdapter(
+            aggregatedMessageLogCrudService,
             connectionLogsCrudService,
             authzDecisionLogsCrudService,
             analyticsQueryService,
@@ -1039,6 +1047,54 @@ class ObservabilityLogsDataPortAdapterTest {
                 .perPage(20)
                 .recordType(RecordType.AUTHZ_DECISION)
                 .build();
+        }
+    }
+
+    @Nested
+    class SearchMessages {
+
+        @Test
+        void should_map_both_legs_of_a_message() {
+            var message = AggregatedMessageLog.builder()
+                .requestId("req-1")
+                .apiId("api-1")
+                .timestamp("2026-08-24T13:14:59.395Z")
+                .clientIdentifier("client-1")
+                .correlationId("corr-1")
+                .operation(MessageOperation.PUBLISH)
+                .entrypoint(
+                    AggregatedMessageLog.Message.builder()
+                        .id("msg-1")
+                        .connectorId("http-post")
+                        .payload("{\"order\":200}")
+                        .isError(false)
+                        .headers(Map.of("content-type", List.of("application/json")))
+                        .build()
+                )
+                .endpoint(AggregatedMessageLog.Message.builder().id("msg-1").connectorId("kafka").payload("{\"order\":200}").build())
+                .build();
+            when(aggregatedMessageLogCrudService.searchApiAggregatedMessageLog(any(), eq("api-1"), eq("req-1"), any())).thenReturn(
+                new SearchLogsResponse<>(1L, List.of(message))
+            );
+
+            var page = adapter.searchMessages("org-1", "env-1", "api-1", "req-1", 1, 20);
+
+            assertThat(page.totalCount()).isEqualTo(1);
+            var mapped = page.data().getFirst();
+            assertThat(mapped.operation()).isEqualTo("PUBLISH");
+            assertThat(mapped.timestamp()).isEqualTo("2026-08-24T13:14:59.395Z");
+            assertThat(mapped.entrypoint().connectorId()).isEqualTo("http-post");
+            assertThat(mapped.entrypoint().headers()).containsKey("content-type");
+            assertThat(mapped.endpoint().connectorId()).isEqualTo("kafka");
+        }
+
+        @Test
+        void should_return_an_empty_page_when_the_api_records_no_message_logs() {
+            when(aggregatedMessageLogCrudService.searchApiAggregatedMessageLog(any(), eq("api-1"), eq("req-1"), any())).thenReturn(
+                new SearchLogsResponse<>(0L, List.of())
+            );
+
+            assertThat(adapter.searchMessages("org-1", "env-1", "api-1", "req-1", 1, 20)).isEqualTo(MessageLogsPage.EMPTY);
         }
     }
 }

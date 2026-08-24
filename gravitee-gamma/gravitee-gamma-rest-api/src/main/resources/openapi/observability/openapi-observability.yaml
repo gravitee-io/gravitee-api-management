@@ -393,6 +393,112 @@ paths:
                                 http_status: 403
                                 message: "Insufficient permissions to access observability metadata."
 
+    /organizations/{orgId}/environments/{envId}/observability/logs/{requestId}/messages:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+        get:
+            tags:
+                - Logs
+            summary: List the messages of one connection
+            description: |
+                Returns the messages that crossed a Message API during a single connection — the
+                message-level trace behind a log detail. Each entry joins the two documents the
+                gateway records per message: the `entrypoint` leg (client side) and the `endpoint`
+                leg (broker side).
+
+                **Message APIs only.** Other api types record no message documents and get an empty
+                page. So does a Message API whose `analytics.logging` does not enable the message
+                content flags — they are off by default, and `content.payload` is rejected outright
+                on that api type, so only the `message*` flags apply.
+
+                **`apiId` is required** and guarded exactly like the log detail: `API_LOG[READ]` on
+                that API, with failures collapsed into 404 so a known request id from another API
+                cannot be probed.
+
+                **Paginated** — a single connection can carry thousands of messages, while a
+                debugging session reads the first few. `perPage` is capped at 100.
+            operationId: getObservabilityLogMessages
+            parameters:
+                - name: requestId
+                  in: path
+                  required: true
+                  description: Identifier of the connection whose messages are returned.
+                  example: req-abc-123
+                  schema:
+                      type: string
+                - name: apiId
+                  in: query
+                  required: true
+                  description: |
+                      API identifier scoping the request. Required as a security defense — prevents
+                      cross-API existence probing.
+                  example: 67e246cb-ab02-4da4-8f47-f9fa3e061d6b
+                  schema:
+                      type: string
+                - name: page
+                  in: query
+                  required: false
+                  description: 1-based page number. Defaults to 1.
+                  schema:
+                      type: integer
+                      minimum: 1
+                      default: 1
+                - name: perPage
+                  in: query
+                  required: false
+                  description: Messages per page. Defaults to 20, capped at 100.
+                  schema:
+                      type: integer
+                      minimum: 1
+                      maximum: 100
+                      default: 20
+            responses:
+                "200":
+                    description: One page of messages, newest first.
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    data:
+                                        type: array
+                                        items:
+                                            $ref: "#/components/schemas/MessageLog"
+                                    pagination:
+                                        $ref: "#/components/schemas/Pagination"
+                            examples:
+                                published:
+                                    summary: One published message, both legs
+                                    value:
+                                        data:
+                                            - requestId: "req-abc-123"
+                                              apiId: "67e246cb-ab02-4da4-8f47-f9fa3e061d6b"
+                                              timestamp: "2026-08-24T13:14:59.395Z"
+                                              clientIdentifier: "245c0ffc0f6a02154715"
+                                              correlationId: "1f2af8f0-dc9d-41a4-90ff-9333b5697ae2"
+                                              operation: "PUBLISH"
+                                              entrypoint:
+                                                  id: "e279b068-7d94-4d2b-8853-9f5ed4bb4c1d"
+                                                  connectorId: "http-post"
+                                                  payload: '{"order":200}'
+                                                  isError: false
+                                              endpoint:
+                                                  id: "e279b068-7d94-4d2b-8853-9f5ed4bb4c1d"
+                                                  connectorId: "kafka"
+                                                  payload: '{"order":200}'
+                                                  isError: false
+                                        pagination:
+                                            totalCount: 1
+                                            page: 1
+                                            pageCount: 1
+                "403":
+                    description: The caller cannot read observability data in this environment.
+                "404":
+                    description: |
+                        No such connection, or the caller cannot read this API's logs — the two are
+                        deliberately indistinguishable.
+
     /organizations/{orgId}/environments/{envId}/observability/logs/decisions/{eventId}:
         parameters:
             - $ref: "#/components/parameters/orgIdParam"
@@ -1572,6 +1678,61 @@ components:
                 type: string
 
     schemas:
+        MessageLog:
+            type: object
+            description: |
+                One message of a connection, joined from the two documents the gateway records for
+                it. `timestamp` is ISO-8601 here, unlike the epoch millis a log entry carries.
+            properties:
+                requestId:
+                    type: string
+                apiId:
+                    type: string
+                timestamp:
+                    type: string
+                    format: date-time
+                clientIdentifier:
+                    type: string
+                correlationId:
+                    type: string
+                parentCorrelationId:
+                    type: string
+                operation:
+                    type: string
+                    enum: [PUBLISH, SUBSCRIBE]
+                entrypoint:
+                    $ref: "#/components/schemas/MessageLogLeg"
+                endpoint:
+                    $ref: "#/components/schemas/MessageLogLeg"
+
+        MessageLogLeg:
+            type: object
+            description: |
+                One side of a message. `connectorId` names the plugin that handled it — an entrypoint
+                id (http-post, sse, webhook…) on the client side, a connector type (kafka, mqtt5…) on
+                the broker side.
+            properties:
+                id:
+                    type: string
+                timestamp:
+                    type: string
+                connectorId:
+                    type: string
+                payload:
+                    type: string
+                isError:
+                    type: boolean
+                headers:
+                    type: object
+                    additionalProperties:
+                        type: array
+                        items:
+                            type: string
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+
         Signal:
             type: string
             description: Observability signal a filter applies to.

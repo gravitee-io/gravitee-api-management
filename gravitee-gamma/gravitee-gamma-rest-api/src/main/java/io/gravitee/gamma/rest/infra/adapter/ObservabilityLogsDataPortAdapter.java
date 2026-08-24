@@ -22,8 +22,10 @@ import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.gateway.model.BaseInstance;
 import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
+import io.gravitee.apim.core.log.crud_service.AggregatedMessageLogCrudService;
 import io.gravitee.apim.core.log.crud_service.AuthzDecisionLogsCrudService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
+import io.gravitee.apim.core.log.model.AggregatedMessageLog;
 import io.gravitee.apim.core.log.model.AuthzDecisionLog;
 import io.gravitee.apim.core.log.model.AuthzDecisionLogFilters;
 import io.gravitee.apim.core.log.model.SecurityTokenProjection;
@@ -47,6 +49,8 @@ import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntryWarning;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsPage;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
+import io.gravitee.gamma.rest.core.observability.logs.model.MessageLog;
+import io.gravitee.gamma.rest.core.observability.logs.model.MessageLogsPage;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort;
 import io.gravitee.repository.analytics.engine.api.query.HttpStatusCodeGroups;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys;
@@ -102,6 +106,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
     private static final int HTTP_STATUS_MIN = HTTP_STATUS_RANGE.min().intValue();
     private static final int HTTP_STATUS_MAX = HTTP_STATUS_RANGE.max().intValue();
 
+    private final AggregatedMessageLogCrudService aggregatedMessageLogCrudService;
     private final ConnectionLogsCrudService connectionLogsCrudService;
     private final AuthzDecisionLogsCrudService authzDecisionLogsCrudService;
     private final AnalyticsQueryService analyticsQueryService;
@@ -863,5 +868,64 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             case EDGE -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.EDGE;
             case AUTHZ -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.AUTHZ;
         };
+    }
+
+    /**
+     * Messages are stored per connection in a dedicated index, so this reads a different source from
+     * every other method here — the connection documents say a client connected, these say what
+     * flowed. An API that records no message logs simply has none, which surfaces as an empty page
+     * rather than an error: the message content flags are off by default.
+     */
+    @Override
+    public MessageLogsPage searchMessages(
+        String organizationId,
+        String environmentId,
+        String apiId,
+        String requestId,
+        int page,
+        int perPage
+    ) {
+        var executionContext = new ExecutionContext(organizationId, environmentId);
+        var result = aggregatedMessageLogCrudService.searchApiAggregatedMessageLog(
+            executionContext,
+            apiId,
+            requestId,
+            new PageableImpl(page, perPage)
+        );
+
+        // Keep the total even when this page is empty: a page past the end is not the same as a
+        // connection that recorded nothing, and the client needs the count to paginate back.
+        var logs = result.logs() == null ? List.<AggregatedMessageLog>of() : result.logs();
+
+        return new MessageLogsPage(logs.stream().map(ObservabilityLogsDataPortAdapter::mapToMessageLog).toList(), result.total());
+    }
+
+    private static MessageLog mapToMessageLog(AggregatedMessageLog log) {
+        return MessageLog.builder()
+            .requestId(log.getRequestId())
+            .apiId(log.getApiId())
+            .timestamp(log.getTimestamp())
+            .clientIdentifier(log.getClientIdentifier())
+            .correlationId(log.getCorrelationId())
+            .parentCorrelationId(log.getParentCorrelationId())
+            .operation(log.getOperation() != null ? log.getOperation().name() : null)
+            .entrypoint(mapToMessage(log.getEntrypoint()))
+            .endpoint(mapToMessage(log.getEndpoint()))
+            .build();
+    }
+
+    private static MessageLog.Message mapToMessage(AggregatedMessageLog.Message message) {
+        if (message == null) {
+            return null;
+        }
+        return MessageLog.Message.builder()
+            .id(message.getId())
+            .timestamp(message.getTimestamp())
+            .connectorId(message.getConnectorId())
+            .payload(message.getPayload())
+            .error(message.isError())
+            .headers(message.getHeaders())
+            .metadata(message.getMetadata())
+            .build();
     }
 }
