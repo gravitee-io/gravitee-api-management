@@ -167,6 +167,21 @@ public class FilterAdapter {
         return jsonFilters;
     }
 
+    /**
+     * Selects the connection documents whose messages a message query aggregates over.
+     *
+     * <p>Deliberately carries no entrypoint predicate. Which API a connection belongs to is already
+     * expressed by the {@code API} filter every query carries — {@code ApiTypeFilterTransformer}
+     * appends one unconditionally — and the second phase keeps only the request ids that have
+     * message documents, an index no other api type writes to. An entrypoint predicate would
+     * restate that guess in terms the entrypoint ids cannot support: they name plugins, and
+     * {@code http-get} / {@code http-post} serve Message APIs and LLM/MCP proxies alike.
+     *
+     * <p>This used to be {@code must_not(httpFilter())}, which read as "not a plain HTTP proxy" when
+     * {@code httpFilter()} held a single id. Every later widening of that list silently narrowed
+     * this one, and GMA-513 — adding http-get and http-post to fix LLM/MCP dashboards — made every
+     * Message API exposed over them invisible to message analytics.
+     */
     public JsonArray adaptForMessageConnexion(Query query) {
         var jsonFilters = JsonArray.of(TimeRangeAdapter.adapt(query));
         for (var filter : query.filters()) {
@@ -174,7 +189,7 @@ public class FilterAdapter {
                 jsonFilters.add(filter(filter));
             }
         }
-        return jsonFilters.add(messageFilter());
+        return jsonFilters;
     }
 
     public JsonArray adaptForNative(Query query) {
@@ -284,10 +299,6 @@ public class FilterAdapter {
 
     public JsonObject edgeFilter() {
         return JsonObject.of("term", JsonObject.of(ENTRYPOINT_FIELD, EDGE_ENTRYPOINT_ID));
-    }
-
-    public JsonObject messageFilter() {
-        return JsonObject.of("bool", JsonObject.of("must_not", JsonArray.of(httpFilter())));
     }
 
     private JsonObject filter(Filter filter) {
