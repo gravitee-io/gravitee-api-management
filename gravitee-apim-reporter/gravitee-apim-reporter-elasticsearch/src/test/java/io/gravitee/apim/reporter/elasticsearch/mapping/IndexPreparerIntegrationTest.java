@@ -136,9 +136,16 @@ class IndexPreparerIntegrationTest {
 
     private void deleteStoredTemplates() throws Exception {
         for (String name : new String[] { "event-metrics", "request" }) {
-            send(HttpRequest.newBuilder(uri("_index_template", "gravitee-ism-override-" + name)).DELETE());
-            send(HttpRequest.newBuilder(uri("_template", "gravitee-ism-override-" + name)).DELETE());
+            delete("_index_template", "gravitee-ism-override-" + name);
+            delete("_template", "gravitee-ism-override-" + name);
         }
+    }
+
+    private void delete(String api, String name) throws Exception {
+        // 404 just means this run is the first to create it; anything else means the cleanup did not
+        // happen and a later assertion could be satisfied by a previous tree's template.
+        HttpResponse<String> response = send(HttpRequest.newBuilder(uri(api, name)).DELETE());
+        assertThat(response.statusCode()).as("DELETE %s/%s", api, name).isIn(200, 404);
     }
 
     private URI uri(String api, String name) {

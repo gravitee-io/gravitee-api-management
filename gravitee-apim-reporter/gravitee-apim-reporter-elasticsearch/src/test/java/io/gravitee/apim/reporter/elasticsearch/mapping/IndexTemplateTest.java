@@ -41,6 +41,8 @@ import org.junit.jupiter.params.provider.MethodSource;
  */
 class IndexTemplateTest {
 
+    private static final ObjectMapper JSON = new ObjectMapper();
+
     /**
      * Every alias-managed type whose template can render lifecycle settings. es7x is kept alongside
      * es8x/es9x because it is the odd one out structurally — its settings sit at the root rather than
@@ -159,21 +161,40 @@ class IndexTemplateTest {
             .doesNotContain("rollover_alias");
     }
 
-    @ParameterizedTest(name = "{0} {1} template is valid JSON")
-    @MethodSource("all_trees_and_all_types")
-    void should_render_a_body_that_parses_as_json(String esDir, Type type) throws Exception {
+    /**
+     * Both configurations, because they render different bodies: a policy adds a settings entry, and a
+     * separator that only works in one of the two arrangements leaves the other invalid. The unset case
+     * is the state most installations are in.
+     */
+    @ParameterizedTest(name = "{0} {1} template is valid JSON with policies {2}")
+    @MethodSource("all_trees_and_all_types_and_policy_state")
+    void should_render_a_body_that_parses_as_json(String esDir, Type type, String policyState) {
         // Every other assertion here is a substring match, which cannot see a body broken into invalid
         // JSON by a stray separator — the failure mode a cluster reports only as a parse error.
-        assertThatNoException().isThrownBy(() ->
-            new ObjectMapper().readTree(preparerFor(esDir, configurationWithPolicies()).generateIndexTemplate(type))
+        var configuration = "set".equals(policyState) ? configurationWithPolicies() : new ReporterConfiguration();
+
+        assertThatNoException().isThrownBy(() -> JSON.readTree(preparerFor(esDir, configuration).generateIndexTemplate(type)));
+    }
+
+    /** Every type that has a template, listed explicitly: mining a tree-specific source would silently
+     * assert an es-only type against the opensearch tree. */
+    static Stream<Type> all_types() {
+        return Stream.of(
+            Type.REQUEST,
+            Type.HEALTH_CHECK,
+            Type.LOG,
+            Type.MONITOR,
+            Type.V4_LOG,
+            Type.V4_METRICS,
+            Type.V4_MESSAGE_LOG,
+            Type.V4_MESSAGE_METRICS,
+            Type.EVENT_METRICS
         );
     }
 
-    static Stream<Arguments> all_trees_and_all_types() {
+    static Stream<Arguments> all_trees_and_all_types_and_policy_state() {
         return all_trees().flatMap(tree ->
-            Stream.concat(es_trees_and_lifecycle_types().map(args -> args.get()[1]), Stream.of(Type.EVENT_METRICS))
-                .distinct()
-                .map(type -> Arguments.of(tree.get()[0], type))
+            all_types().flatMap(type -> Stream.of("set", "unset").map(policyState -> Arguments.of(tree.get()[0], type, policyState)))
         );
     }
 
