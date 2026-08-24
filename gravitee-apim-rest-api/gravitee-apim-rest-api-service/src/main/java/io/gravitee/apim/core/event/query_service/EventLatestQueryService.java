@@ -18,7 +18,6 @@ package io.gravitee.apim.core.event.query_service;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.rest.api.model.EventType;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -27,14 +26,17 @@ import java.util.Set;
  */
 public interface EventLatestQueryService {
     /**
-     * Returns the latest event of the given type recorded for the specified entity.
+     * The latest event of a type for each of several entities, in one query.
      *
-     * @param entityId     the entity ID (e.g. an API Product ID)
-     * @param eventType    the event type to filter on
-     * @param propertyKey  the event property that holds the entity ID
-     * @return the single latest event, or empty if none has been recorded yet
+     * <p>The entity ids are pushed down to the store rather than filtered afterwards, so a caller
+     * resolving a page reads that page's rows and not the whole environment's. Entities with no such
+     * event are simply absent from the result.</p>
+     *
+     * @param entityIds   the entity ids (e.g. API Product ids)
+     * @param eventType   the event type to look for
+     * @param propertyKey the property the event carries the entity id under
      */
-    Optional<Event> findLatestByEntityId(String entityId, EventType eventType, Event.EventProperties propertyKey);
+    List<Event> findLatestByEntityIds(Set<String> entityIds, EventType eventType, Event.EventProperties propertyKey);
 
     List<Event> findAllByTypeAndEnvironments(Set<EventType> eventTypes, Set<String> environments, Event.EventProperties groupBy);
 }

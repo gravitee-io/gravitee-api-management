@@ -16,7 +16,7 @@
 package io.gravitee.apim.core.api_product.query_service;
 
 import io.gravitee.apim.core.api_product.model.ApiProduct;
-import io.gravitee.apim.core.api_product.model.ApiProductKind;
+import io.gravitee.apim.core.api_product.model.ApiProductKindFilter;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
@@ -33,7 +33,7 @@ public interface ApiProductSearchQueryService {
         Set<String> ids,
         Pageable pageable,
         Sortable sortable,
-        Set<ApiProductKind> excludedKinds
+        ApiProductKindFilter kindFilter
     );
 
     Page<GenericApiEntity> searchApis(

@@ -136,6 +136,31 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
     }
 
     @Test
+    public void shouldReturnEventsForSeveralEntityIdsInOneSearch() {
+        // A collection property value must narrow to those ids, not be compared as a single value: a caller
+        // resolving a page of entities has to be able to read that page's events without reading the
+        // environment's.
+        final EventCriteria criteria = EventCriteria.builder()
+            .property(Event.EventProperties.API_ID.getValue(), List.of("api-1", "api-3"))
+            .build();
+
+        List<Event> events = eventLatestRepository.search(criteria, Event.EventProperties.API_ID, null, null);
+
+        assertThat(events).extracting(Event::getId).containsExactlyInAnyOrder("api-1", "api-3");
+    }
+
+    @Test
+    public void shouldReturnNoEventWhenNoEntityIdInTheCollectionMatches() {
+        final EventCriteria criteria = EventCriteria.builder()
+            .property(Event.EventProperties.API_ID.getValue(), List.of("unknown-1", "unknown-2"))
+            .build();
+
+        List<Event> events = eventLatestRepository.search(criteria, Event.EventProperties.API_ID, null, null);
+
+        assertThat(events).isEmpty();
+    }
+
+    @Test
     public void shouldReturnApiEventsInSameOrderWhenSearchWithPagination() {
         //The order of events should be always the same, whatever the page size is
         final EventCriteria eventCriteria = EventCriteria.builder().build();

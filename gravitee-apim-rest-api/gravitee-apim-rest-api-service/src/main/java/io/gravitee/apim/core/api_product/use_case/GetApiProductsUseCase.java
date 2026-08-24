@@ -15,39 +15,27 @@
  */
 package io.gravitee.apim.core.api_product.use_case;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductDeploymentStateDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.ApiProductKindFilter;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
-import io.gravitee.apim.core.event.model.Event;
-import io.gravitee.apim.core.event.query_service.EventLatestQueryService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
-import io.gravitee.apim.core.membership.exception.ApiProductPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
-import io.gravitee.apim.core.plan.query_service.PlanQueryService;
-import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.rest.api.model.EventType;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
 @RequiredArgsConstructor
-@CustomLog
 public class GetApiProductsUseCase {
 
     private final ApiProductQueryService apiProductQueryService;
     private final ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService;
-    private final EventLatestQueryService eventLatestQueryService;
-    private final PlanQueryService planQueryService;
-    private final ObjectMapper objectMapper;
+    private final ApiProductDeploymentStateDomainService apiProductDeploymentStateDomainService;
     private final ApiProductAccessibleIdsDomainService apiProductAccessibleIdsDomainService;
 
     public Output execute(Input input) {
@@ -56,8 +44,8 @@ public class GetApiProductsUseCase {
                 .findById(input.apiProductId())
                 .filter(p -> p.getEnvironmentId().equals(input.environmentId()))
                 .filter(input.kindFilter()::matches)
-                .map(product -> addPrimaryOwnerToApiProduct(product, input.organizationId()))
-                .map(this::computeDeploymentState);
+                .map(product -> addPrimaryOwner(product, input.organizationId()))
+                .map(apiProductDeploymentStateDomainService::computeDeploymentState);
             return Output.single(apiProduct);
         }
 
@@ -68,9 +56,9 @@ public class GetApiProductsUseCase {
         Set<ApiProduct> apiProducts = findAccessibleApiProducts(input)
             .stream()
             .filter(input.kindFilter()::matches)
-            .map(product -> addPrimaryOwnerToApiProduct(product, input.organizationId()))
-            .map(this::computeDeploymentState)
             .collect(Collectors.toSet());
+        addPrimaryOwners(apiProducts, input.organizationId());
+        apiProductDeploymentStateDomainService.computeDeploymentState(apiProducts);
         return Output.multiple(apiProducts);
     }
 
@@ -85,90 +73,17 @@ public class GetApiProductsUseCase {
         return apiProductQueryService.findByEnvironmentIdAndIdIn(input.environmentId(), allowedIds);
     }
 
-    private ApiProduct addPrimaryOwnerToApiProduct(ApiProduct apiProduct, String organizationId) {
-        try {
-            PrimaryOwnerEntity primaryOwner = apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwner(
-                organizationId,
-                apiProduct.getId()
-            );
-            apiProduct.setPrimaryOwner(primaryOwner);
-        } catch (ApiProductPrimaryOwnerNotFoundException e) {
-            log.debug("Failed to retrieve primary owner for API Product [{}]: {}", apiProduct.getId(), e.getMessage());
-        }
+    private ApiProduct addPrimaryOwner(ApiProduct apiProduct, String organizationId) {
+        addPrimaryOwners(Set.of(apiProduct), organizationId);
         return apiProduct;
     }
 
-    private ApiProduct computeDeploymentState(ApiProduct product) {
-        try {
-            Optional<Event> latestDeployEvent = eventLatestQueryService.findLatestByEntityId(
-                product.getId(),
-                EventType.DEPLOY_API_PRODUCT,
-                Event.EventProperties.API_PRODUCT_ID
-            );
-
-            if (latestDeployEvent.isEmpty()) {
-                product.setDeploymentState(ApiProduct.DeploymentState.NEED_REDEPLOY);
-                return product;
-            }
-
-            Event event = latestDeployEvent.get();
-            String payload = event.getPayload();
-            if (payload == null || payload.isBlank()) {
-                product.setDeploymentState(ApiProduct.DeploymentState.NEED_REDEPLOY);
-                return product;
-            }
-
-            ApiProduct deployedProduct;
-            try {
-                deployedProduct = objectMapper.readValue(payload, ApiProduct.class);
-            } catch (JsonProcessingException e) {
-                log.warn("Failed to deserialize deploy event payload for API Product [{}]: {}", product.getId(), e.getMessage());
-                product.setDeploymentState(ApiProduct.DeploymentState.NEED_REDEPLOY);
-                return product;
-            }
-            if (deployedProduct == null) {
-                product.setDeploymentState(ApiProduct.DeploymentState.NEED_REDEPLOY);
-                return product;
-            }
-
-            if (!setsEqual(product.getApiIds(), deployedProduct.getApiIds())) {
-                product.setDeploymentState(ApiProduct.DeploymentState.NEED_REDEPLOY);
-                return product;
-            }
-
-            if (!setsEqual(product.getTags(), deployedProduct.getTags())) {
-                product.setDeploymentState(ApiProduct.DeploymentState.NEED_REDEPLOY);
-                return product;
-            }
-
-            if (event.getUpdatedAt() == null) {
-                product.setDeploymentState(ApiProduct.DeploymentState.NEED_REDEPLOY);
-                return product;
-            }
-            Instant lastDeployedAt = event.getUpdatedAt().toInstant();
-            boolean anyPlanModifiedAfterDeploy = planQueryService
-                .findAllByReferenceIdAndReferenceType(product.getId(), GenericPlanEntity.ReferenceType.API_PRODUCT)
-                .stream()
-                .filter(plan -> plan.getPlanStatus() != PlanStatus.STAGING)
-                .anyMatch(plan -> plan.getNeedRedeployAt() != null && plan.getNeedRedeployAt().toInstant().isAfter(lastDeployedAt));
-
-            product.setDeploymentState(
-                anyPlanModifiedAfterDeploy ? ApiProduct.DeploymentState.NEED_REDEPLOY : ApiProduct.DeploymentState.DEPLOYED
-            );
-        } catch (Exception e) {
-            log.warn("Failed to compute deployment state for API Product [{}]: {}", product.getId(), e.getMessage());
-            product.setDeploymentState(ApiProduct.DeploymentState.NEED_REDEPLOY);
-        }
-        return product;
-    }
-
-    /**
-     * True when two sets carry the same elements (e.g. apiIds or sharding tags vs last deploy payload).
-     */
-    private static boolean setsEqual(Set<String> current, Set<String> deployed) {
-        if (current == null && deployed == null) return true;
-        if (current == null || deployed == null) return false;
-        return current.size() == deployed.size() && current.containsAll(deployed);
+    private void addPrimaryOwners(Set<ApiProduct> apiProducts, String organizationId) {
+        Map<String, PrimaryOwnerEntity> primaryOwnersById = apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwners(
+            organizationId,
+            apiProducts.stream().map(ApiProduct::getId).collect(Collectors.toSet())
+        );
+        apiProducts.forEach(apiProduct -> apiProduct.setPrimaryOwner(primaryOwnersById.get(apiProduct.getId())));
     }
 
     public record Input(

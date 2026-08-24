@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.ApiProductKind;
+import io.gravitee.apim.core.api_product.model.ApiProductKindFilter;
 import io.gravitee.apim.core.api_product.query_service.ApiProductSearchQueryService;
 import io.gravitee.apim.core.search.model.IndexableApiProduct;
 import io.gravitee.apim.core.utils.CollectionUtils;
@@ -58,7 +59,7 @@ public class ApiProductSearchQueryServiceImpl implements ApiProductSearchQuerySe
         Set<String> ids,
         Pageable pageable,
         Sortable sortable,
-        Set<ApiProductKind> excludedKinds
+        ApiProductKindFilter kindFilter
     ) {
         var executionContext = new ExecutionContext(organizationId, environmentId);
         QueryBuilder<IndexableApiProduct> queryBuilder = QueryBuilder.create(IndexableApiProduct.class);
@@ -72,14 +73,20 @@ public class ApiProductSearchQueryServiceImpl implements ApiProductSearchQuerySe
         if (sortable != null) {
             queryBuilder.setSort(sortable);
         }
-        if (CollectionUtils.isNotEmpty(excludedKinds)) {
-            queryBuilder.addExcludedFilter(
-                IndexableApiProductDocumentTransformer.FIELD_KIND,
-                excludedKinds.stream().map(Enum::name).collect(Collectors.toSet())
-            );
+        // A listing that wants only specialized kinds requires them, so the store returns a full page of
+        // them. Excluding the other kinds would not: a classic product carries no kind term, and so passes
+        // every exclusion, leaving the page padded with products the caller asked not to see.
+        if (CollectionUtils.isNotEmpty(kindFilter.requiredKinds())) {
+            queryBuilder.addFilter(IndexableApiProductDocumentTransformer.FIELD_KIND, names(kindFilter.requiredKinds()));
+        } else if (CollectionUtils.isNotEmpty(kindFilter.excludedKinds())) {
+            queryBuilder.addExcludedFilter(IndexableApiProductDocumentTransformer.FIELD_KIND, names(kindFilter.excludedKinds()));
         }
 
         return apiProductSearchService.search(executionContext, queryBuilder, pageable);
+    }
+
+    private static Set<String> names(Set<ApiProductKind> kinds) {
+        return kinds.stream().map(Enum::name).collect(Collectors.toSet());
     }
 
     @Override

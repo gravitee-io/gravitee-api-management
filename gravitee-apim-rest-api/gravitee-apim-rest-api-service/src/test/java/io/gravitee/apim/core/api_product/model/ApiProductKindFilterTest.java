@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api_product.model;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.EnumSet;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class ApiProductKindFilterTest {
@@ -30,5 +31,20 @@ class ApiProductKindFilterTest {
     @Test
     void any_excludes_no_kind() {
         assertThat(ApiProductKindFilter.any().excludedKinds()).isEmpty();
+    }
+
+    @Test
+    void a_listing_that_wants_only_specialized_kinds_requires_them() {
+        var filter = new ApiProductKindFilter(Set.of(ApiProductKind.AI_WORKSPACE), false);
+
+        assertThat(filter.requiredKinds()).containsExactly(ApiProductKind.AI_WORKSPACE);
+    }
+
+    @Test
+    void a_listing_that_also_wants_classic_products_requires_no_kind() {
+        // A classic product carries no kind, so no kind term can match it: those listings narrow by
+        // exclusion instead, and requiring a kind here would hide every classic product.
+        assertThat(ApiProductKindFilter.classicOnly().requiredKinds()).isEmpty();
+        assertThat(ApiProductKindFilter.any().requiredKinds()).isEmpty();
     }
 }

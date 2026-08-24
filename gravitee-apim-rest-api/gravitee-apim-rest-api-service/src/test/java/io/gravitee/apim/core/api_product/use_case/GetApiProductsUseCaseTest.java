@@ -28,6 +28,7 @@ import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductDeploymentStateDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.event.model.Event;
@@ -103,9 +104,7 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
         getApiProductsUseCase = new GetApiProductsUseCase(
             apiProductQueryService,
             apiProductPrimaryOwnerDomainService,
-            eventLatestQueryService,
-            planQueryService,
-            objectMapper,
+            new ApiProductDeploymentStateDomainService(eventLatestQueryService, planQueryService, objectMapper),
             apiProductAccessibleIdsDomainService
         );
     }
@@ -511,6 +510,7 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
                 .properties(
                     new EnumMap<>(Map.of(Event.EventProperties.API_PRODUCT_ID, apiProductId, Event.EventProperties.USER, "user-id"))
                 )
+                .environments(Set.of(ENV_ID))
                 .createdAt(updatedAt.atZone(ZoneId.systemDefault()))
                 .updatedAt(updatedAt.atZone(ZoneId.systemDefault()));
             if (deployedPayload != null) {
