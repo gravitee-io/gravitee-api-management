@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { isMasterBranch, isSupportBranch, isSupportBranchOrMaster, sanitizeBranch } from '../branch';
+import { isHotfixBranch, isMasterBranch, isSupportBranch, isSupportBranchOrMaster, sanitizeBranch } from '../branch';
 
 describe('branch', () => {
   describe('sanitize', () => {
@@ -54,6 +54,26 @@ describe('branch', () => {
       ${'x'}                         | ${false}
     `('returns `$expected` for `$branch`', ({ branch, expected }) => {
       expect(isSupportBranch(branch)).toEqual(expected);
+    });
+  });
+
+  describe('isHotfix', () => {
+    it.each`
+      branch                   | expected
+      ${'hotfix/4.12.17'}      | ${true}
+      ${'hotfix/4.12.x'}       | ${false}
+      ${'hotfix/4.12'}         | ${false}
+      ${'hotfix/4.12.17.1'}    | ${false}
+      ${'hotfix/4.12.17-rc'}   | ${false}
+      ${'hotfix'}              | ${false}
+      ${'hotfix/'}             | ${false}
+      ${'4.12.17'}             | ${false}
+      ${'feat/hotfix/4.12.17'} | ${false}
+      ${'hotfix/4.12.17/fix'}  | ${false}
+      ${'4.12.x'}              | ${false}
+      ${'master'}              | ${false}
+    `('returns `$expected` for `$branch`', ({ branch, expected }) => {
+      expect(isHotfixBranch(branch)).toEqual(expected);
     });
   });
 
