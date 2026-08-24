@@ -541,8 +541,16 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public PortalNavigationItemsQueryService portalNavigationItemsQueryService() {
-        return new PortalNavigationItemsQueryServiceInMemory();
+    public PortalNavigationManifestParserInMemory portalNavigationManifestParser() {
+        return new PortalNavigationManifestParserInMemory();
+    }
+
+    @Bean
+    public PortalNavigationItemsQueryService portalNavigationItemsQueryService(
+        PortalNavigationItemsCrudServiceInMemory portalNavigationItemsCrudService
+    ) {
+        // Shares the crud storage so items created during a request are queryable, as with a real repository
+        return new PortalNavigationItemsQueryServiceInMemory(portalNavigationItemsCrudService.storage());
     }
 
     @Bean

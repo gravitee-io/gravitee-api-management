@@ -21,10 +21,12 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import inmemory.PortalNavigationManifestParserInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationBulkImportDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
@@ -54,6 +56,7 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
     private static final Instant NOW = Instant.parse("2026-08-05T12:34:56Z");
 
     private PortalNavigationItemsCrudServiceInMemory crudService;
+    private PortalNavigationItemsQueryServiceInMemory queryService;
     private PortalPageContentCrudServiceInMemory pageContentCrudService;
     private PortalNavigationItemSourceDomainServiceInMemory sourceDomainService;
     private AutoFetchPortalNavigationItemsUseCase useCase;
@@ -68,7 +71,7 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
         TimeProvider.overrideClock(Clock.fixed(NOW, ZoneId.systemDefault()));
         var storage = new ArrayList<PortalNavigationItem>();
         crudService = new PortalNavigationItemsCrudServiceInMemory(storage);
-        var queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
+        queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
         pageContentCrudService = new PortalPageContentCrudServiceInMemory();
         sourceDomainService = new PortalNavigationItemSourceDomainServiceInMemory();
 
@@ -80,7 +83,16 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
             new ApiCrudServiceInMemory(),
             sourceDomainService
         );
-        useCase = new AutoFetchPortalNavigationItemsUseCase(queryService, sourceDomainService, domainService);
+        var bulkImportDomainService = new PortalNavigationBulkImportDomainService(
+            sourceDomainService,
+            new PortalNavigationManifestParserInMemory(),
+            domainService,
+            queryService,
+            crudService,
+            pageContentCrudService,
+            PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage())
+        );
+        useCase = new AutoFetchPortalNavigationItemsUseCase(queryService, sourceDomainService, domainService, bulkImportDomainService);
     }
 
     @Test
@@ -134,6 +146,36 @@ class AutoFetchPortalNavigationItemsUseCaseTest {
         assertThat(output.failed()).isZero();
         assertThat(withoutAutoFetch.getSource().getLastFetchedAt()).isNull();
         assertThat(withoutAutoFetch.getSource().getLastFetchAttemptAt()).isNull();
+    }
+
+    @Test
+    void should_reimport_folders_bound_to_a_file_listing_source() {
+        var folder = aFolder("Imported Docs", autoFetchSource().subtreeImport(true).build());
+        sourceDomainService.givenRemoteFile("/docs/guide.md", "# Guide");
+
+        var output = useCase.execute();
+
+        assertThat(output.succeeded()).isEqualTo(1);
+        assertThat(output.failed()).isZero();
+        assertThat(folder.getSource().getLastFetchedAt()).isNotNull();
+        assertThat(queryService.findByParentIdAndEnvironmentId(folder.getEnvironmentId(), folder.getId()))
+            .singleElement()
+            .satisfies(item -> assertThat(item.getTitle()).isEqualTo("docs"));
+    }
+
+    @Test
+    void should_never_reimport_a_sourced_folder_the_import_did_not_create() {
+        // Representable before imports existed: a hand-sourced auto-fetch folder. Picking it up
+        // on upgrade would replace its subtree with the remote tree, without any user action.
+        var folder = aFolder("Legacy Folder", autoFetchSource().build());
+        sourceDomainService.givenRemoteFile("/docs/guide.md", "# Guide");
+
+        var output = useCase.execute();
+
+        assertThat(output.succeeded()).isZero();
+        assertThat(output.failed()).isZero();
+        assertThat(folder.getSource().getLastFetchAttemptAt()).isNull();
+        assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, folder.getId())).isEmpty();
     }
 
     @Test

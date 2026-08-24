@@ -397,7 +397,8 @@ class PortalNavigationItemsMapperTest {
                 new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource(
                     OffsetDateTime.parse("2026-07-17T10:00:00Z"),
                     OffsetDateTime.parse("2026-07-17T11:00:00Z"),
-                    "injected error"
+                    "injected error",
+                    true
                 )
                     .type("github-fetcher")
                     .configuration(new java.util.LinkedHashMap<>(Map.of("repository", "docs")))
@@ -411,6 +412,8 @@ class PortalNavigationItemsMapperTest {
             // a forged attempt date would let a client push its page's next auto-fetch arbitrarily far out
             assertThat(source.getLastFetchAttemptAt()).isNull();
             assertThat(source.getLastFetchError()).isNull();
+            // a forged marker would turn the folder's next fetch into a subtree-replacing re-import
+            assertThat(source.isSubtreeImport()).isFalse();
         }
 
         @Test

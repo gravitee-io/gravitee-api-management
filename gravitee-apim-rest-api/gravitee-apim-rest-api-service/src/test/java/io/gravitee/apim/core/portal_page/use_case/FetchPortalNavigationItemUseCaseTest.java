@@ -23,10 +23,12 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import inmemory.PortalNavigationManifestParserInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationBulkImportDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
@@ -73,11 +75,21 @@ class FetchPortalNavigationItemUseCaseTest {
             new ApiCrudServiceInMemory(),
             sourceDomainService
         );
+        var bulkImportDomainService = new PortalNavigationBulkImportDomainService(
+            sourceDomainService,
+            new PortalNavigationManifestParserInMemory(),
+            domainService,
+            queryService,
+            crudService,
+            pageContentCrudService,
+            PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage())
+        );
         useCase = new FetchPortalNavigationItemUseCase(
             queryService,
             new PortalNavigationSourcedItemsDomainService(queryService),
             domainService,
-            sourceDomainService
+            sourceDomainService,
+            bulkImportDomainService
         );
     }
 
@@ -203,6 +215,49 @@ class FetchPortalNavigationItemUseCaseTest {
                 .isInstanceOf(InvalidPortalNavigationItemDataException.class)
                 .hasMessageContaining("No page below navigation item")
                 .hasMessageNotContaining("has no external source configured");
+        }
+    }
+
+    @Nested
+    class ImportedFolder {
+
+        @Test
+        void should_reimport_the_subtree_of_an_import_managed_folder() {
+            var folder = aFolder("Imported Docs", null, aSource().subtreeImport(true).build());
+            sourceDomainService.givenRemoteFile("/docs/guide.md", "# Guide");
+
+            var summary = execute(folder).summary();
+
+            assertThat(summary.succeeded()).isEqualTo(1);
+            assertThat(summary.failed()).isZero();
+            assertThat(summary.results())
+                .singleElement()
+                .satisfies(result -> assertThat(result.title()).isEqualTo("guide"));
+            var docsFolder = queryService
+                .findByParentIdAndEnvironmentId(ENV_ID, folder.getId())
+                .stream()
+                .filter(item -> "docs".equals(item.getTitle()))
+                .findFirst()
+                .orElseThrow();
+            assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, docsFolder.getId()))
+                .singleElement()
+                .satisfies(item -> assertThat(item.getTitle()).isEqualTo("guide"));
+        }
+
+        @Test
+        void should_walk_descendants_of_a_sourced_folder_the_import_did_not_create() {
+            // A folder sourced by hand keeps the historical fetch semantics: its own source is
+            // never fetched, so its hand-made children can never be replaced by a remote tree
+            var folder = aFolder("Legacy Folder", null, aSource().build());
+            var child = aPage("Sourced Child", folder.getId(), aSource().build());
+            sourceDomainService.givenRemoteFile("/docs/guide.md", "# Guide");
+
+            var summary = execute(folder).summary();
+
+            assertThat(summary.results())
+                .singleElement()
+                .satisfies(result -> assertThat(result.title()).isEqualTo("Sourced Child"));
+            assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, folder.getId())).containsExactly(child);
         }
     }
 

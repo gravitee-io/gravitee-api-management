@@ -48,6 +48,16 @@ public class InvalidPortalNavigationItemSourceException extends ValidationDomain
         );
     }
 
+    public static InvalidPortalNavigationItemSourceException sourceCannotListFiles(String sourceType) {
+        return new InvalidPortalNavigationItemSourceException(
+            "The source type %s cannot list files: a files fetcher is required.".formatted(sourceType)
+        );
+    }
+
+    public static InvalidPortalNavigationItemSourceException invalidManifest(Throwable cause) {
+        return new InvalidPortalNavigationItemSourceException("The .gravitee.json manifest cannot be read.", cause);
+    }
+
     public static InvalidPortalNavigationItemSourceException cronRequiredForAutoFetch() {
         return new InvalidPortalNavigationItemSourceException("A fetch cron expression is required when auto-fetch is enabled.");
     }

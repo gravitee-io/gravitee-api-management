@@ -38,6 +38,7 @@ import inmemory.PageCrudServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
+import inmemory.PortalNavigationManifestParserInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
@@ -199,6 +200,7 @@ import io.gravitee.apim.core.portal_page.domain_service.OpenApiContentTransforme
 import io.gravitee.apim.core.portal_page.domain_service.OpenApiPortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationBulkImportDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationEnclosingApiDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
@@ -214,6 +216,7 @@ import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseC
 import io.gravitee.apim.core.portal_page.use_case.DeletePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.FetchPortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
+import io.gravitee.apim.core.portal_page.use_case.ImportPortalNavigationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
@@ -1432,13 +1435,52 @@ public class ResourceContextConfiguration {
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
         PortalNavigationSourcedItemsDomainService portalNavigationSourcedItemsDomainService,
         PortalNavigationItemDomainService domainService,
-        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService
+        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService,
+        PortalNavigationBulkImportDomainService portalNavigationBulkImportDomainService
     ) {
         return new FetchPortalNavigationItemUseCase(
             portalNavigationItemsQueryService,
             portalNavigationSourcedItemsDomainService,
             domainService,
-            portalNavigationItemSourceDomainService
+            portalNavigationItemSourceDomainService,
+            portalNavigationBulkImportDomainService
+        );
+    }
+
+    @Bean
+    public PortalNavigationBulkImportDomainService portalNavigationBulkImportDomainService(
+        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService,
+        PortalNavigationItemDomainService domainService,
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+        PortalNavigationItemCrudService portalNavigationItemCrudService,
+        PortalPageContentCrudService portalPageContentCrudService,
+        PortalPageContentQueryService portalPageContentQueryService
+    ) {
+        return new PortalNavigationBulkImportDomainService(
+            portalNavigationItemSourceDomainService,
+            new PortalNavigationManifestParserInMemory(),
+            domainService,
+            portalNavigationItemsQueryService,
+            portalNavigationItemCrudService,
+            portalPageContentCrudService,
+            portalPageContentQueryService
+        );
+    }
+
+    @Bean
+    public ImportPortalNavigationUseCase importPortalNavigationUseCase(
+        PortalNavigationItemValidatorService portalNavigationItemValidatorService,
+        PortalNavigationItemDomainService domainService,
+        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService,
+        PortalNavigationBulkImportDomainService portalNavigationBulkImportDomainService,
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService
+    ) {
+        return new ImportPortalNavigationUseCase(
+            portalNavigationItemValidatorService,
+            domainService,
+            portalNavigationItemSourceDomainService,
+            portalNavigationBulkImportDomainService,
+            portalNavigationItemsQueryService
         );
     }
 

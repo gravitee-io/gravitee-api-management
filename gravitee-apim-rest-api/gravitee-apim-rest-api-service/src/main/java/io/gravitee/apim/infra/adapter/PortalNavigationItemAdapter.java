@@ -43,6 +43,7 @@ public interface PortalNavigationItemAdapter {
     String LAST_FETCHED_AT = "lastFetchedAt";
     String LAST_FETCH_ATTEMPT_AT = "lastFetchAttemptAt";
     String LAST_FETCH_ERROR = "lastFetchError";
+    String SUBTREE_IMPORT = "subtreeImport";
 
     default PortalNavigationItem toEntity(io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem) {
         return switch (portalNavigationItem.getType()) {
@@ -252,6 +253,9 @@ public interface PortalNavigationItemAdapter {
         if (source.getLastFetchError() != null) {
             sourceNode.put(LAST_FETCH_ERROR, source.getLastFetchError());
         }
+        if (source.isSubtreeImport()) {
+            sourceNode.put(SUBTREE_IMPORT, true);
+        }
     }
 
     @Named("parsePortalPageContentId")
@@ -306,6 +310,8 @@ public interface PortalNavigationItemAdapter {
                         : null
                 )
                 .lastFetchError(sourceNode.hasNonNull(LAST_FETCH_ERROR) ? sourceNode.get(LAST_FETCH_ERROR).asText() : null)
+                // Absent on rows stored before the navigation import existed: they are not import targets
+                .subtreeImport(sourceNode.path(SUBTREE_IMPORT).asBoolean(false))
                 .build();
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid source in configuration for PortalNavigationItem", e);

@@ -17,8 +17,10 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationBulkImportDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.use_case.FetchPortalNavigationItemUseCase;
+import io.gravitee.apim.core.portal_page.use_case.ImportPortalNavigationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForPortalNavigationItemsUseCase;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.listener.ListenerType;
@@ -33,6 +35,8 @@ import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolde
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.FetchPortalNavigationItemResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ImportPortalNavigationRequest;
+import io.gravitee.rest.api.management.v2.rest.model.ImportPortalNavigationResponse;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemApiSummary;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemFetchResult;
@@ -174,6 +178,34 @@ public interface PortalNavigationItemsMapper {
 
     FetchPortalNavigationItemResponse map(FetchPortalNavigationItemUseCase.Output output);
 
+    PortalNavigationItemFetchResult map(PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult result);
+
+    default ImportPortalNavigationResponse map(ImportPortalNavigationUseCase.Output output) {
+        var results = output.result().files().stream().map(this::map).toList();
+        var succeeded = (int) output
+            .result()
+            .files()
+            .stream()
+            .filter(file -> file.success())
+            .count();
+        return new ImportPortalNavigationResponse()
+            .rootFolder(map((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) output.rootFolder()))
+            .summary(new PortalNavigationItemsFetchSummary().succeeded(succeeded).failed(results.size() - succeeded).results(results));
+    }
+
+    default ImportPortalNavigationUseCase.Input map(String organizationId, String environmentId, ImportPortalNavigationRequest request) {
+        return ImportPortalNavigationUseCase.Input.builder()
+            .organizationId(organizationId)
+            .environmentId(environmentId)
+            .title(request.getTitle())
+            .parentId(map(request.getParentId()))
+            .visibility(map(request.getVisibility()))
+            .source(map(request.getSource()))
+            .build();
+    }
+
+    io.gravitee.apim.core.portal_page.model.PortalVisibility map(io.gravitee.rest.api.management.v2.rest.model.PortalVisibility visibility);
+
     // Hand-built because the fetch state is readOnly in the OpenAPI spec: the generated model only
     // exposes it through its @JsonCreator constructor, which MapStruct cannot target.
     default io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource map(
@@ -185,7 +217,8 @@ public interface PortalNavigationItemsMapper {
         return new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource(
             DateMapper.INSTANCE.map(source.getLastFetchedAt()),
             DateMapper.INSTANCE.map(source.getLastFetchAttemptAt()),
-            source.getLastFetchError()
+            source.getLastFetchError(),
+            source.isSubtreeImport()
         )
             .type(source.getSourceType())
             .configuration(ConfigurationSerializationMapper.INSTANCE.deserializeConfiguration(source.getSourceConfiguration()))
@@ -199,6 +232,7 @@ public interface PortalNavigationItemsMapper {
     @Mapping(target = "lastFetchedAt", ignore = true)
     @Mapping(target = "lastFetchAttemptAt", ignore = true)
     @Mapping(target = "lastFetchError", ignore = true)
+    @Mapping(target = "subtreeImport", ignore = true)
     io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource map(
         io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource source
     );

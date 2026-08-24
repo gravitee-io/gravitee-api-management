@@ -165,7 +165,7 @@ class PortalNavigationItemResource_FetchTest extends AbstractResourceTest {
     }
 
     private void seed(PortalNavigationItem item) {
-        ((PortalNavigationItemsQueryServiceInMemory) portalNavigationItemsQueryService).storage().add(item);
+        // The query fake shares the crud storage: creating through the crud service is enough
         portalNavigationItemCrudService.create(item);
     }
 

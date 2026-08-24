@@ -28,6 +28,7 @@ import io.gravitee.apim.core.portal_page.domain_service.validation.CreateValidat
 import io.gravitee.apim.core.portal_page.domain_service.validation.DuplicateApiIdsInPayloadRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.DuplicateApiProductIdsInPayloadRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ExternalSourceItemTypeRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.FileListingSourceOnFolderRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.HomepageUniquenessRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.LinkUrlRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.PageContentExistsRule;
@@ -80,6 +81,7 @@ public class PortalNavigationItemValidatorService {
         var sourceConfigurationRule = new SourceConfigurationRule(portalNavigationItemSourceDomainService::validateSourceConfiguration);
         var sourceAutomationExclusivityRule = new SourceAutomationExclusivityRule(navigationItemsQueryService, pageContentQueryService);
         var sourcedItemReadOnlyRule = new SourcedItemReadOnlyRule(new SourcedAncestorFinder(navigationItemsQueryService));
+        var fileListingSourceOnFolderRule = new FileListingSourceOnFolderRule(portalNavigationItemSourceDomainService::supportsFileListing);
 
         this.createRules = List.of(
             new UniqueItemIdRule(navigationItemsQueryService),
@@ -106,7 +108,8 @@ public class PortalNavigationItemValidatorService {
             externalSourceItemTypeRule,
             sourceConfigurationRule,
             sourceAutomationExclusivityRule,
-            sourcedItemReadOnlyRule
+            sourcedItemReadOnlyRule,
+            fileListingSourceOnFolderRule
         );
     }
 

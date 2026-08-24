@@ -1135,6 +1135,72 @@ class UpdatePortalNavigationItemUseCaseTest {
         }
 
         @Test
+        void should_reject_attaching_a_file_listing_source_to_a_folder() {
+            // Fetching such a folder re-imports the subtree; only the import endpoint may create one
+            sourceDomainService.givenRemoteFile("/docs/guide.md", "# Guide");
+            var folder = PortalNavigationItemFixtures.aFolder(SOURCED_FOLDER_ID, "Folder");
+            folder.markAsRoot();
+            var child = PortalNavigationItemFixtures.aPage(CHILD_PAGE_ID, "Child Page", folder.getId());
+            queryService.storage().addAll(List.of(folder, child));
+
+            var input = anUpdateInput(folder, anUpdateKeeping(folder).source(aSource()).build());
+
+            var error = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
+
+            assertThat(error).hasMessageContaining("file-listing source");
+        }
+
+        @Test
+        void should_accept_attaching_a_source_that_cannot_list_files_to_a_folder_with_children() {
+            // The in-memory source is not files-capable by default: such a source cannot trigger a re-import
+            var folder = PortalNavigationItemFixtures.aFolder(SOURCED_FOLDER_ID, "Folder");
+            folder.markAsRoot();
+            var child = PortalNavigationItemFixtures.aPage(CHILD_PAGE_ID, "Child Page", folder.getId());
+            queryService.storage().addAll(List.of(folder, child));
+
+            var input = anUpdateInput(folder, anUpdateKeeping(folder).source(aSource()).build());
+
+            assertDoesNotThrow(() -> useCase.execute(input));
+        }
+
+        @Test
+        void should_accept_updating_the_source_of_an_import_managed_folder_and_keep_its_marker() {
+            sourceDomainService.givenRemoteFile("/docs/guide.md", "# Guide");
+            var folder = PortalNavigationItemFixtures.aFolder(SOURCED_FOLDER_ID, "Imported Docs")
+                .toBuilder()
+                .source(aSource().toBuilder().subtreeImport(true).build())
+                .build();
+            folder.markAsRoot();
+            var child = PortalNavigationItemFixtures.aPage(CHILD_PAGE_ID, "Imported Page", folder.getId());
+            queryService.storage().addAll(List.of(folder, child));
+
+            var input = anUpdateInput(folder, anUpdateKeeping(folder).source(aSource()).build());
+
+            var output = useCase.execute(input);
+
+            // The payload carries no marker: it must be carried over from the stored source
+            assertThat(output.updatedItem().getSource().isSubtreeImport()).isTrue();
+        }
+
+        @Test
+        void should_reject_updating_an_import_managed_folder_to_a_source_that_cannot_list_files() {
+            // The in-memory source is not files-capable by default: such a source cannot re-run the import
+            var folder = PortalNavigationItemFixtures.aFolder(SOURCED_FOLDER_ID, "Imported Docs")
+                .toBuilder()
+                .source(aSource().toBuilder().subtreeImport(true).build())
+                .build();
+            folder.markAsRoot();
+            var child = PortalNavigationItemFixtures.aPage(CHILD_PAGE_ID, "Imported Page", folder.getId());
+            queryService.storage().addAll(List.of(folder, child));
+
+            var input = anUpdateInput(folder, anUpdateKeeping(folder).source(aSource()).build());
+
+            var error = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
+
+            assertThat(error).hasMessageContaining("must be able to list files");
+        }
+
+        @Test
         void should_reject_invalid_cron_expression_on_update() {
             var page = givenASourcedPage();
             var invalidSource = PortalNavigationItemSource.builder()

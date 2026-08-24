@@ -16,11 +16,13 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationBulkImportDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
@@ -32,9 +34,9 @@ import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Re-runs the fetch of a navigation item: a sourced PAGE is fetched on its own, any other item
- * fetches every sourced PAGE below it. A page failing to fetch never blocks the others; an internal
- * inconsistency aborts the run.
+ * Re-runs the fetch of a navigation item: a sourced PAGE is fetched on its own, an import-managed
+ * FOLDER re-runs its import, any other item fetches every sourced PAGE below it. A page failing to
+ * fetch never blocks the others; an internal inconsistency aborts the run.
  */
 @UseCase
 @RequiredArgsConstructor
@@ -44,6 +46,7 @@ public class FetchPortalNavigationItemUseCase {
     private final PortalNavigationSourcedItemsDomainService sourcedItemsDomainService;
     private final PortalNavigationItemDomainService domainService;
     private final PortalNavigationItemSourceDomainService sourceDomainService;
+    private final PortalNavigationBulkImportDomainService bulkImportDomainService;
 
     public Output execute(Input input) {
         var item = queryService.findByIdAndEnvironmentId(input.environmentId(), PortalNavigationItemId.of(input.navigationItemId()));
@@ -54,7 +57,19 @@ public class FetchPortalNavigationItemUseCase {
         if (item instanceof PortalNavigationPage page && page.getSource() != null) {
             return Output.ofItem(fetchSingle(page));
         }
+        if (item instanceof PortalNavigationFolder folder && folder.getSource() != null && folder.getSource().isSubtreeImport()) {
+            return Output.ofSummary(reimportSubtree(folder));
+        }
         return Output.ofSummary(fetchDescendants(input.environmentId(), item));
+    }
+
+    private List<PageFetchResult> reimportSubtree(PortalNavigationFolder folder) {
+        return bulkImportDomainService
+            .importSubtree(folder)
+            .files()
+            .stream()
+            .map(file -> new PageFetchResult(file.navigationItemId(), file.title(), file.success(), file.error()))
+            .toList();
     }
 
     private PortalNavigationItem fetchSingle(PortalNavigationPage page) {
