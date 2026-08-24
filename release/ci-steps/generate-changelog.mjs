@@ -1,7 +1,7 @@
 import { syncProcessCwd } from 'zx';
 import { computeVersion, extractVersion } from '../helpers/version-helper.mjs';
-import { getJiraIssuesOfVersion, getJiraVersion } from '../helpers/jira-helper.mjs';
-import { ChangelogSections, ComponentTypes, getTicketsFor } from '../helpers/changelog-helper.mjs';
+import { getJiraIssuesOfVersions, getJiraVersions } from '../helpers/jira-helper.mjs';
+import { ChangelogSections, ComponentTypes, getTicketsFor, getTicketsForProduct, productKeysOf } from '../helpers/changelog-helper.mjs';
 
 syncProcessCwd(); // restores legacy v7 behavior
 
@@ -29,16 +29,20 @@ echo(chalk.blue(`# Clone ${docRepository} repository`));
 await $`git clone --depth 1  ${docRepositoryURL} --single-branch --branch=main`;
 cd(docRepository);
 
-const version = await getJiraVersion(releasingVersion);
-if (version === undefined) {
-  echo(chalk.blue(`No Jira release found for: ${releasingVersion}, nothing to do.`));
+const jiraProjectKeys = await getJiraVersions(releasingVersion);
+if (jiraProjectKeys.length === 0) {
+  echo(chalk.blue(`No Jira release found for: ${releasingVersion} in any project, nothing to do.`));
   process.exit(0);
 }
-const issues = await getJiraIssuesOfVersion(version.id);
+echo(chalk.blue(`# Jira projects releasing ${releasingVersion}: ${jiraProjectKeys.join(', ')}`));
+
+const issues = await getJiraIssuesOfVersions(jiraProjectKeys, releasingVersion);
 
 let changelogPatchTemplate = `
 ## Gravitee API Management ${releasingVersion} - ${new Date().toLocaleDateString('en-US', dateOptions)}
 `;
+
+const productKeys = productKeysOf(issues);
 
 ChangelogSections.forEach((section) => {
   let changelogSection = '';
@@ -46,6 +50,12 @@ ChangelogSections.forEach((section) => {
     const ticketsForComponent = getTicketsFor(issues, componentType, section.ticketType);
     if (ticketsForComponent) {
       changelogSection += ticketsForComponent;
+    }
+  });
+  productKeys.forEach((projectKey) => {
+    const ticketsForProduct = getTicketsForProduct(issues, projectKey, section.ticketType);
+    if (ticketsForProduct) {
+      changelogSection += ticketsForProduct;
     }
   });
   if (changelogSection) {
