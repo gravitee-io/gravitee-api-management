@@ -458,6 +458,8 @@ components:
         - API_TYPE
         - PAYLOAD
         - TENANT
+        - NATIVE_CLIENT_ID
+        - NATIVE_CLIENT_SOFTWARE_NAME
         - MCP_METHOD
         - URI
         - RESPONSE_TIME

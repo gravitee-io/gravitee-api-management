@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.crud_service.log;
 import io.gravitee.apim.core.log.crud_service.NativeApiLogCrudService;
 import io.gravitee.apim.core.log.model.NativeApiLog;
 import io.gravitee.apim.core.log.model.NativeConnectionStatus;
+import io.gravitee.apim.core.log.model.SecurityTokenProjection;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.log.v4.api.MetricsRepository;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys;
@@ -105,9 +106,13 @@ class NativeApiLogCrudServiceImpl implements NativeApiLogCrudService {
             .clientId(asString(additional, NativeApiMetricKeys.CLIENT_ID))
             .clientSoftwareName(asString(additional, NativeApiMetricKeys.CLIENT_SOFTWARE_NAME))
             .clientSoftwareVersion(asString(additional, NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION))
-            // Top-level document fields, unlike the native-kafka keywords above.
+            // Top-level document fields, unlike the native-kafka keywords above — every API type writes
+            // them. This resource is reached as /apis/{apiId}/logs/native/{requestId} and the query matches
+            // on api-id + request-id only (NativeApiMetricsFindQueryAdapter), with no API-type assertion, so
+            // an HTTP v4 document can land here. Its token would be the API key verbatim; see
+            // SecurityTokenProjection.
             .securityType(metrics.getSecurityType())
-            .securityToken(metrics.getSecurityToken())
+            .securityToken(SecurityTokenProjection.isTokenProjectable(metrics.getSecurityType()) ? metrics.getSecurityToken() : null)
             .brokerId(asString(additional, NativeApiMetricKeys.BROKER_ID))
             .connectionDurationMs(asLong(additional, NativeApiMetricKeys.CONNECTION_DURATION_MS))
             .build();
