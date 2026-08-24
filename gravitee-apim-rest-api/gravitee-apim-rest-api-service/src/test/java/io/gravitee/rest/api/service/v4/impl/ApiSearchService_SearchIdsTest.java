@@ -158,7 +158,10 @@ public class ApiSearchService_SearchIdsTest {
         var filters = new HashMap<String, Object>();
         filters.put("api", ids);
         apiEntityQueryBuilder.setFilters(filters);
-        apiEntityQueryBuilder.addExcludedFilter(FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
+        apiEntityQueryBuilder.addExcludedFilter(
+            FIELD_API_TYPE,
+            List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name(), DefinitionVersion.V4.name() + "_" + ApiType.AGENT.name())
+        );
 
         when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build()))).thenReturn(
             new SearchResult(List.of())
@@ -184,7 +187,10 @@ public class ApiSearchService_SearchIdsTest {
         var filters = new HashMap<String, Object>();
         filters.put("api", ids);
         apiEntityQueryBuilder.setFilters(filters);
-        apiEntityQueryBuilder.addExcludedFilter(FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
+        apiEntityQueryBuilder.addExcludedFilter(
+            FIELD_API_TYPE,
+            List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name(), DefinitionVersion.V4.name() + "_" + ApiType.AGENT.name())
+        );
 
         when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build()))).thenReturn(
             new SearchResult(List.of("api-id"))
@@ -211,7 +217,10 @@ public class ApiSearchService_SearchIdsTest {
         var filters = new HashMap<String, Object>();
         filters.put("api", ids);
         apiEntityQueryBuilder.setFilters(filters);
-        apiEntityQueryBuilder.addExcludedFilter(FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
+        apiEntityQueryBuilder.addExcludedFilter(
+            FIELD_API_TYPE,
+            List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name(), DefinitionVersion.V4.name() + "_" + ApiType.AGENT.name())
+        );
 
         when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build()))).thenReturn(
             new SearchResult(List.of("api-id"))
@@ -238,7 +247,10 @@ public class ApiSearchService_SearchIdsTest {
         var filters = new HashMap<String, Object>();
         filters.put("api", ids);
         apiEntityQueryBuilder.setFilters(filters);
-        apiEntityQueryBuilder.addExcludedFilter(FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
+        apiEntityQueryBuilder.addExcludedFilter(
+            FIELD_API_TYPE,
+            List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name(), DefinitionVersion.V4.name() + "_" + ApiType.AGENT.name())
+        );
 
         when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build()))).thenReturn(
             new SearchResult(List.of("api-id"))
