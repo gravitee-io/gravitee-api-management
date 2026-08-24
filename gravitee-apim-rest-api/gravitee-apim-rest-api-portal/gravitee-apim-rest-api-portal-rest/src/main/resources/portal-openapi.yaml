@@ -2653,6 +2653,8 @@ paths:
             responses:
                 204:
                     description: No-Content
+                400:
+                    description: API Product subscription cannot be closed in its current status
                 403:
                     $ref: "#/components/responses/PermissionError"
                 404:

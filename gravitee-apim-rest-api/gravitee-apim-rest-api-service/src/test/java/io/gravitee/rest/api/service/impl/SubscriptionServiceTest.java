@@ -2852,6 +2852,47 @@ public class SubscriptionServiceTest {
     }
 
     @Test
+    public void shouldPauseApiProductSubscriptionByConsumer() throws Exception {
+        String apiProductId = "api-product-id";
+        Subscription subscription = buildTestSubscription(
+            SUBSCRIPTION_ID,
+            apiProductId,
+            ACCEPTED,
+            PLAN_ID,
+            APPLICATION_ID,
+            SUBSCRIBER_ID,
+            SubscriptionReferenceType.API_PRODUCT
+        );
+        subscription.setConsumerStatus(Subscription.ConsumerStatus.STARTED);
+        planEntityV4.setReferenceId(apiProductId);
+        planEntityV4.setReferenceType(GenericPlanEntity.ReferenceType.API_PRODUCT);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(subscription)).thenReturn(subscription);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntityV4);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        final ApiKeyEntity apiKey = buildTestApiKey(subscription.getId(), false, false);
+        when(apiKeyService.findBySubscription(any(), any())).thenReturn(List.of(apiKey));
+
+        subscriptionService.pauseConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+
+        assertThat(subscription.getConsumerStatus()).isEqualTo(Subscription.ConsumerStatus.STOPPED);
+        assertThat(subscription.getConsumerPausedAt()).isNotNull();
+        verify(apiKeyService).update(GraviteeContext.getExecutionContext(), apiKey);
+        verify(auditService).createApiProductAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(auditLogData -> auditLogData.getEvent().equals(SUBSCRIPTION_PAUSED_BY_CONSUMER)),
+            eq(apiProductId)
+        );
+        verify(auditService).createApplicationAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(auditLogData -> auditLogData.getEvent().equals(SUBSCRIPTION_PAUSED_BY_CONSUMER)),
+            eq(APPLICATION_ID)
+        );
+        verify(apiTemplateService, never()).findByIdForTemplates(any(), anyString());
+    }
+
+    @Test
     public void shouldNotResumeByConsumerBecauseDoesNoExist() throws Exception {
         assertThrows(SubscriptionNotFoundException.class, () -> {
             // Stub
@@ -2938,6 +2979,47 @@ public class SubscriptionServiceTest {
             argThat(auditLogData -> auditLogData.getEvent().equals(SUBSCRIPTION_RESUMED_BY_CONSUMER)),
             eq(APPLICATION_ID)
         );
+    }
+
+    @Test
+    public void shouldResumeApiProductSubscriptionByConsumer() throws Exception {
+        String apiProductId = "api-product-id";
+        Subscription subscription = buildTestSubscription(
+            SUBSCRIPTION_ID,
+            apiProductId,
+            ACCEPTED,
+            PLAN_ID,
+            APPLICATION_ID,
+            SUBSCRIBER_ID,
+            SubscriptionReferenceType.API_PRODUCT
+        );
+        subscription.setConsumerStatus(Subscription.ConsumerStatus.STOPPED);
+        subscription.setConsumerPausedAt(new Date());
+        planEntityV4.setReferenceId(apiProductId);
+        planEntityV4.setReferenceType(GenericPlanEntity.ReferenceType.API_PRODUCT);
+
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(subscription)).thenReturn(subscription);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntityV4);
+        final ApiKeyEntity apiKey = buildTestApiKey(subscription.getId(), false, false);
+        when(apiKeyService.findBySubscription(any(), any())).thenReturn(List.of(apiKey));
+
+        subscriptionService.resumeConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+
+        assertThat(subscription.getConsumerStatus()).isEqualTo(Subscription.ConsumerStatus.STARTED);
+        assertThat(subscription.getConsumerPausedAt()).isNull();
+        verify(apiKeyService).update(GraviteeContext.getExecutionContext(), apiKey);
+        verify(auditService).createApiProductAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(auditLogData -> auditLogData.getEvent().equals(SUBSCRIPTION_RESUMED_BY_CONSUMER)),
+            eq(apiProductId)
+        );
+        verify(auditService).createApplicationAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(auditLogData -> auditLogData.getEvent().equals(SUBSCRIPTION_RESUMED_BY_CONSUMER)),
+            eq(APPLICATION_ID)
+        );
+        verify(apiTemplateService, never()).findByIdForTemplates(any(), anyString());
     }
 
     @Test

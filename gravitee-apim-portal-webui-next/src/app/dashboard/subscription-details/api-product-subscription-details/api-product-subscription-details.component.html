@@ -15,7 +15,73 @@
     limitations under the License.
 
 -->
-<h1 class="next-gen-h3" i18n="@@apiProductSubscriptionDetailsTitle">Subscription Details</h1>
+<div class="subscription-header">
+  <h1 class="next-gen-h3" i18n="@@apiProductSubscriptionDetailsTitle">Subscription Details</h1>
+  <div class="subscription-actions" [attr.aria-busy]="isActionPending()">
+    @if (canPause()) {
+      <button
+        mat-stroked-button
+        type="button"
+        data-testid="pause-subscription"
+        [disabled]="isActionPending()"
+        (click)="pauseSubscription()"
+        i18n="@@apiProductSubscriptionPause"
+      >
+        Pause
+      </button>
+    }
+    @if (canResume()) {
+      <button
+        mat-stroked-button
+        type="button"
+        data-testid="resume-subscription"
+        [disabled]="isActionPending()"
+        (click)="resumeSubscription()"
+        i18n="@@apiProductSubscriptionResume"
+      >
+        Resume
+      </button>
+    }
+    @if (canRetry()) {
+      <button
+        mat-stroked-button
+        type="button"
+        data-testid="retry-subscription"
+        [disabled]="isActionPending()"
+        (click)="retrySubscription()"
+        i18n="@@apiProductSubscriptionRetry"
+      >
+        Retry subscription
+      </button>
+    }
+    @if (canClose()) {
+      <button
+        mat-stroked-button
+        color="warn"
+        type="button"
+        data-testid="close-subscription"
+        [disabled]="isActionPending()"
+        (click)="closeSubscription()"
+        i18n="@@apiProductSubscriptionClose"
+      >
+        Close
+      </button>
+    }
+  </div>
+</div>
+
+@if (actionFeedback(); as feedback) {
+  <p
+    class="action-feedback"
+    data-testid="subscription-action-feedback"
+    [class.action-feedback--error]="feedback.type === 'error'"
+    [class.action-feedback--success]="feedback.type === 'success'"
+    [attr.role]="feedback.type === 'error' ? 'alert' : 'status'"
+    [attr.aria-live]="feedback.type === 'success' ? 'polite' : null"
+  >
+    {{ feedback.message }}
+  </p>
+}
 
 @if (product(); as productDetails) {
   <mat-card appearance="outlined">
@@ -24,7 +90,10 @@
     </mat-card-header>
     <mat-card-content class="details-grid" data-testid="product-subscription-summary">
       <span class="details-grid__label" i18n="@@apiProductSubscriptionStatus">Status</span>
-      <span>{{ subscription().status | capitalizeFirst }}</span>
+      <span>{{ displayedSubscription().status | capitalizeFirst }}</span>
+
+      <span class="details-grid__label" i18n="@@apiProductSubscriptionAccessStatus">Access status</span>
+      <span>{{ accessStatusLabel() }}</span>
 
       <span class="details-grid__label" i18n="@@apiProductSubscriptionProduct">API Product</span>
       <span
@@ -40,29 +109,29 @@
       } @else if (applicationResource.isLoading()) {
         <span i18n="@@apiProductSubscriptionApplicationLoading">Loading application...</span>
       } @else {
-        <span>{{ subscription().application }}</span>
+        <span>{{ displayedSubscription().application }}</span>
       }
 
       <span class="details-grid__label" i18n="@@apiProductSubscriptionId">Subscription ID</span>
-      <span>{{ subscription().id }}</span>
+      <span>{{ displayedSubscription().id }}</span>
 
       <span class="details-grid__label" i18n="@@apiProductSubscriptionPlan">Plan</span>
-      <span>{{ productDetails.plan?.name || productDetails.plan?.id || subscription().plan }}</span>
+      <span>{{ productDetails.plan?.name || productDetails.plan?.id || displayedSubscription().plan }}</span>
 
       @if (planSecurityLabel()) {
         <span class="details-grid__label" i18n="@@apiProductSubscriptionAuthentication">Authentication</span>
         <span>{{ planSecurityLabel() }}</span>
       }
 
-      @if (subscription().created_at; as createdAt) {
+      @if (displayedSubscription().created_at; as createdAt) {
         <span class="details-grid__label" i18n="@@apiProductSubscriptionCreatedAt">Created at</span>
         <span>{{ createdAt | date: 'medium' }}</span>
       }
-      @if (subscription().start_at; as startAt) {
+      @if (displayedSubscription().start_at; as startAt) {
         <span class="details-grid__label" i18n="@@apiProductSubscriptionStartsAt">Starts at</span>
         <span>{{ startAt | date: 'medium' }}</span>
       }
-      @if (subscription().end_at; as endAt) {
+      @if (displayedSubscription().end_at; as endAt) {
         <span class="details-grid__label" i18n="@@apiProductSubscriptionEndsAt">Ends at</span>
         <span>{{ endAt | date: 'medium' }}</span>
       }
@@ -97,8 +166,8 @@
       <mat-card-title class="next-gen-h4" i18n="@@apiProductSubscriptionCredentialsTitle">API access</mat-card-title>
     </mat-card-header>
     <mat-card-content class="credentials">
-      @if (subscription().status !== 'ACCEPTED') {
-        @switch (subscription().status) {
+      @if (displayedSubscription().status !== 'ACCEPTED') {
+        @switch (displayedSubscription().status) {
           @case ('PENDING') {
             <p i18n="@@apiProductSubscriptionPending">Your subscription request is being reviewed.</p>
           }
@@ -106,12 +175,27 @@
             <p i18n="@@apiProductSubscriptionRejected">This subscription request was rejected.</p>
           }
           @case ('PAUSED') {
-            <p i18n="@@apiProductSubscriptionPaused">This subscription is paused.</p>
+            <p i18n="@@apiProductSubscriptionPaused">This subscription was paused by the API publisher.</p>
           }
           @case ('CLOSED') {
             <p i18n="@@apiProductSubscriptionClosed">This subscription is closed.</p>
           }
         }
+      } @else if (displayedSubscription().consumerStatus === 'FAILURE') {
+        <app-banner type="error">
+          <div>
+            <p class="next-gen-h5" i18n="@@apiProductSubscriptionConsumerFailed">Subscription consumer failed</p>
+            <p i18n="@@apiProductSubscriptionConsumerFailedDescription">There is a problem with the subscription consumer.</p>
+            @if (displayedSubscription().failureCause; as failureCause) {
+              <p>
+                <span class="next-gen-h6" i18n="@@apiProductSubscriptionConsumerFailureCause">Failure cause:</span>
+                {{ failureCause }}
+              </p>
+            }
+          </div>
+        </app-banner>
+      } @else if (displayedSubscription().consumerStatus === 'STOPPED') {
+        <p i18n="@@apiProductSubscriptionConsumerPaused">API access for this subscription is paused.</p>
       } @else {
         @if (productDetails.plan?.security === 'OAUTH2' || productDetails.plan?.security === 'JWT') {
           @if (applicationResource.isLoading()) {
@@ -132,7 +216,7 @@
         } @else {
           @switch (productDetails.plan?.security) {
             @case ('API_KEY') {
-              <app-api-keys-list [apiKeys]="subscription().keys ?? []" [canManageApiKey]="false" />
+              <app-api-keys-list [apiKeys]="displayedSubscription().keys ?? []" [canManageApiKey]="false" />
             }
             @case ('KEY_LESS') {
               <p i18n="@@apiProductSubscriptionKeyless">No credentials are required for this plan.</p>

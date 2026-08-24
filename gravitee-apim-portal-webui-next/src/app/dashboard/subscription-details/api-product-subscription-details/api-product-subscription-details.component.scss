@@ -29,6 +29,28 @@ p {
   margin: 0;
 }
 
+.subscription-header,
+.subscription-actions {
+  display: flex;
+  align-items: center;
+  gap: layout.$container-padding-horizontal;
+}
+
+.subscription-header {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.action-feedback {
+  &--success {
+    color: app-theme.$primary-main-color;
+  }
+
+  &--error {
+    color: app-theme.$error-main-color;
+  }
+}
+
 .details-grid {
   display: grid;
   grid-template-columns: minmax(140px, auto) 1fr;
@@ -58,6 +80,11 @@ p {
 }
 
 @media (max-width: 600px) {
+  .subscription-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .details-grid {
     grid-template-columns: 1fr;
   }

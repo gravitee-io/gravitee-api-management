@@ -49,6 +49,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionClosedApiHookContext;
+import io.gravitee.apim.core.notification.model.hook.SubscriptionClosedApiProductHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionClosedApplicationHookContext;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
@@ -296,6 +297,59 @@ class CloseSubscriptionUseCaseTest {
         assertThat(result.subscription())
             .extracting(SubscriptionEntity::getId, SubscriptionEntity::getStatus)
             .containsExactly(SUBSCRIPTION_ID, SubscriptionEntity.Status.CLOSED);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = SubscriptionEntity.Status.class, names = { "ACCEPTED", "PAUSED" })
+    void should_close_api_product_subscription_with_product_side_effects(SubscriptionEntity.Status status) {
+        // Given
+        var apiProductId = "api-product-id";
+        var application = givenExistingApplication(
+            BaseApplicationEntity.builder().id(APPLICATION_ID).apiKeyMode(ApiKeyMode.EXCLUSIVE).build()
+        );
+        var subscription = givenExistingSubscription(
+            SubscriptionFixtures.aSubscription()
+                .toBuilder()
+                .id(SUBSCRIPTION_ID)
+                .referenceId(apiProductId)
+                .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                .applicationId(application.getId())
+                .planId("plan-id")
+                .status(status)
+                .build()
+        );
+        givenExistingApiKeysForSubscription(
+            List.of(
+                ApiKeyFixtures.anApiKey()
+                    .toBuilder()
+                    .id("api-key-id")
+                    .key("api-key")
+                    .applicationId(application.getId())
+                    .subscriptions(List.of(subscription.getId()))
+                    .revoked(false)
+                    .expireAt(Instant.now().plus(1, ChronoUnit.DAYS).atZone(ZoneId.systemDefault()))
+                    .build()
+            )
+        );
+
+        // When
+        var result = usecase.execute(new Input(SUBSCRIPTION_ID, AUDIT_INFO));
+
+        // Then
+        assertThat(result.subscription().getStatus()).isEqualTo(SubscriptionEntity.Status.CLOSED);
+        assertThat(apiKeyCrudService.storage()).allMatch(ApiKeyEntity::isRevoked);
+        assertThat(triggerNotificationService.getHookNotifications()).containsExactly(
+            new SubscriptionClosedApiProductHookContext(apiProductId, APPLICATION_ID, "plan-id")
+        );
+        assertThat(triggerNotificationService.getApplicationNotifications()).containsExactly(
+            new ApplicationNotification(
+                new SubscriptionClosedApplicationHookContext(APPLICATION_ID, SubscriptionReferenceType.API_PRODUCT, apiProductId, "plan-id")
+            )
+        );
+        assertThat(auditCrudServiceInMemory.storage())
+            .extracting(AuditEntity::getReferenceType)
+            .contains(AuditEntity.AuditReferenceType.API_PRODUCT, AuditEntity.AuditReferenceType.APPLICATION);
+        assertThat(apiCrudService.storage()).isEmpty();
     }
 
     @ParameterizedTest
