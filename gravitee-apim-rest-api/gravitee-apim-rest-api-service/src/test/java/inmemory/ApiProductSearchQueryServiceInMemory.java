@@ -16,7 +16,7 @@
 package inmemory;
 
 import io.gravitee.apim.core.api_product.model.ApiProduct;
-import io.gravitee.apim.core.api_product.model.ApiProductKind;
+import io.gravitee.apim.core.api_product.model.ApiProductKindFilter;
 import io.gravitee.apim.core.api_product.query_service.ApiProductSearchQueryService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -35,7 +35,7 @@ public class ApiProductSearchQueryServiceInMemory extends AbstractQueryServiceIn
 
     private String lastEnvironmentId;
     private String lastOrganizationId;
-    private Set<ApiProductKind> lastExcludedKinds;
+    private ApiProductKindFilter lastKindFilter;
 
     public String getLastEnvironmentId() {
         return lastEnvironmentId;
@@ -45,8 +45,8 @@ public class ApiProductSearchQueryServiceInMemory extends AbstractQueryServiceIn
         return lastOrganizationId;
     }
 
-    public Set<ApiProductKind> getLastExcludedKinds() {
-        return lastExcludedKinds;
+    public ApiProductKindFilter getLastKindFilter() {
+        return lastKindFilter;
     }
 
     @Override
@@ -57,11 +57,11 @@ public class ApiProductSearchQueryServiceInMemory extends AbstractQueryServiceIn
         Set<String> ids,
         Pageable pageable,
         Sortable sortable,
-        Set<ApiProductKind> excludedKinds
+        ApiProductKindFilter kindFilter
     ) {
         this.lastEnvironmentId = environmentId;
         this.lastOrganizationId = organizationId;
-        this.lastExcludedKinds = excludedKinds;
+        this.lastKindFilter = kindFilter;
 
         int pageNumber = pageable != null ? pageable.getPageNumber() : 1;
         int pageSize = pageable != null ? pageable.getPageSize() : 10;
@@ -70,13 +70,7 @@ public class ApiProductSearchQueryServiceInMemory extends AbstractQueryServiceIn
             .stream()
             .filter(apiProduct -> Objects.equals(apiProduct.getEnvironmentId(), environmentId))
             .filter(apiProduct -> ids == null || ids.isEmpty() || (ids.contains(apiProduct.getId())))
-            .filter(
-                apiProduct ->
-                    excludedKinds == null ||
-                    excludedKinds.isEmpty() ||
-                    apiProduct.getKind() == null ||
-                    !excludedKinds.contains(apiProduct.getKind())
-            )
+            .filter(apiProduct -> kindFilter == null || kindFilter.matches(apiProduct))
             .filter(apiProduct -> {
                 if (query == null || query.isBlank()) return true;
                 String queryLower = query.trim().toLowerCase();

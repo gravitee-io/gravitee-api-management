@@ -40,25 +40,30 @@ public class EventLatestQueryServiceImpl implements EventLatestQueryService {
     }
 
     @Override
-    public Optional<Event> findLatestByEntityId(
-        String entityId,
+    public List<Event> findLatestByEntityIds(
+        Set<String> entityIds,
         io.gravitee.rest.api.model.EventType eventType,
         Event.EventProperties propertyKey
     ) {
+        if (entityIds.isEmpty()) {
+            return List.of();
+        }
         try {
+            // The ids go into the criteria as a collection, which both stores turn into an IN rather than a
+            // single-value comparison, so the store returns this page's events and not the environment's.
             List<io.gravitee.repository.management.model.Event> events = eventLatestRepository.search(
                 EventCriteria.builder()
                     .types(List.of(EventType.valueOf(eventType.name())))
-                    .properties(Map.of(propertyKey.getLabel(), entityId))
+                    .properties(Map.of(propertyKey.getLabel(), entityIds))
                     .build(),
                 io.gravitee.repository.management.model.Event.EventProperties.valueOf(propertyKey.name()),
-                0L,
-                1L
+                null,
+                null
             );
-            return events.stream().findFirst().map(EventAdapter.INSTANCE::map);
+            return events.stream().map(EventAdapter.INSTANCE::map).toList();
         } catch (Exception e) {
             throw new TechnicalManagementException(
-                "An error occurs while trying to find latest event for entity [" + entityId + "]: " + e.getMessage(),
+                "An error occurs while trying to find latest events for entities " + entityIds + ": " + e.getMessage(),
                 e
             );
         }

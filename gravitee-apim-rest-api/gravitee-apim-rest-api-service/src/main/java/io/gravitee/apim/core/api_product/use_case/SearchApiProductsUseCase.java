@@ -17,6 +17,7 @@ package io.gravitee.apim.core.api_product.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductDeploymentStateDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.ApiProductKindFilter;
 import io.gravitee.apim.core.api_product.query_service.ApiProductSearchQueryService;
@@ -35,6 +36,7 @@ public class SearchApiProductsUseCase {
 
     private final ApiProductSearchQueryService apiProductSearchQueryService;
     private final ApiProductAccessibleIdsDomainService apiProductAccessibleIdsDomainService;
+    private final ApiProductDeploymentStateDomainService apiProductDeploymentStateDomainService;
 
     public Output execute(Input input) {
         if (input.isAdmin()) {
@@ -64,17 +66,17 @@ public class SearchApiProductsUseCase {
     }
 
     private Output search(Input input, Set<String> ids) {
-        return new Output(
-            apiProductSearchQueryService.search(
-                input.environmentId(),
-                input.organizationId(),
-                input.query(),
-                ids,
-                input.pageable(),
-                input.sortable(),
-                input.kindFilter().excludedKinds()
-            )
+        Page<ApiProduct> page = apiProductSearchQueryService.search(
+            input.environmentId(),
+            input.organizationId(),
+            input.query(),
+            ids,
+            input.pageable(),
+            input.sortable(),
+            input.kindFilter()
         );
+        apiProductDeploymentStateDomainService.computeDeploymentState(page.getContent());
+        return new Output(page);
     }
 
     public record Input(

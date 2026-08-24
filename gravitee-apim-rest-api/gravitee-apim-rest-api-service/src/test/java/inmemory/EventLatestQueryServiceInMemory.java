@@ -35,12 +35,18 @@ public class EventLatestQueryServiceInMemory implements EventLatestQueryService,
     }
 
     @Override
-    public Optional<Event> findLatestByEntityId(String entityId, EventType eventType, Event.EventProperties propertyKey) {
-        return storage
+    public List<Event> findLatestByEntityIds(Set<String> entityIds, EventType eventType, Event.EventProperties propertyKey) {
+        return entityIds
             .stream()
-            .filter(event -> eventType.name().equals(event.getType() != null ? event.getType().name() : null))
-            .filter(event -> entityId.equals(event.getProperties().getOrDefault(propertyKey, null)))
-            .max(Comparator.comparing(event -> event.getUpdatedAt() != null ? event.getUpdatedAt() : event.getCreatedAt()));
+            .map(entityId ->
+                storage
+                    .stream()
+                    .filter(event -> eventType.name().equals(event.getType() != null ? event.getType().name() : null))
+                    .filter(event -> entityId.equals(event.getProperties().getOrDefault(propertyKey, null)))
+                    .max(Comparator.comparing(event -> event.getUpdatedAt() != null ? event.getUpdatedAt() : event.getCreatedAt()))
+            )
+            .flatMap(Optional::stream)
+            .collect(Collectors.toList());
     }
 
     @Override

@@ -16,17 +16,29 @@
 package io.gravitee.apim.core.api_product.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import inmemory.ApiProductSearchQueryServiceInMemory;
+import inmemory.EventLatestQueryServiceInMemory;
+import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductDeploymentStateDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.event.model.Event;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
+import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.SortableImpl;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,7 +54,12 @@ class SearchApiProductsUseCaseTest {
     private static final String ORG_ID = "org-id";
     private static final String USER_ID = "user-id";
 
+    private static final Instant DEPLOYED_AT = Instant.parse("2024-01-10T10:00:00Z");
+
     private ApiProductSearchQueryServiceInMemory apiProductSearchQueryService;
+    private final EventLatestQueryServiceInMemory eventLatestQueryService = new EventLatestQueryServiceInMemory();
+    private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
+    private final ObjectMapper objectMapper = GraviteeJacksonMapper.getInstance();
 
     @Mock
     private ApiProductAccessibleIdsDomainService apiProductAccessibleIdsDomainService;
@@ -52,12 +69,18 @@ class SearchApiProductsUseCaseTest {
     @BeforeEach
     void setUp() {
         apiProductSearchQueryService = new ApiProductSearchQueryServiceInMemory();
-        useCase = new SearchApiProductsUseCase(apiProductSearchQueryService, apiProductAccessibleIdsDomainService);
+        useCase = new SearchApiProductsUseCase(
+            apiProductSearchQueryService,
+            apiProductAccessibleIdsDomainService,
+            new ApiProductDeploymentStateDomainService(eventLatestQueryService, planQueryService, objectMapper)
+        );
     }
 
     @AfterEach
     void tearDown() {
         verifyNoMoreInteractions(apiProductAccessibleIdsDomainService);
+        eventLatestQueryService.reset();
+        planQueryService.reset();
     }
 
     @Test
@@ -257,5 +280,56 @@ class SearchApiProductsUseCaseTest {
 
         assertThat(output.page().getContent()).isEmpty();
         verify(apiProductAccessibleIdsDomainService).findAccessibleApiProductIds(eq(ENV_ID), eq(USER_ID));
+    }
+
+    @Test
+    void should_report_whether_each_matched_product_is_still_deployed() throws Exception {
+        // A listing that never resolves this reports every product as "not deployed", whatever the gateway
+        // is actually serving.
+        var deployed = ApiProduct.builder().id("id-1").name("Deployed").environmentId(ENV_ID).apiIds(Set.of("api-1")).build();
+        var drifted = ApiProduct.builder().id("id-2").name("Drifted").environmentId(ENV_ID).apiIds(Set.of("api-1", "api-2")).build();
+        apiProductSearchQueryService.initWith(List.of(deployed, drifted));
+        eventLatestQueryService.initWith(
+            List.of(
+                aDeployEvent("id-1", ApiProduct.builder().id("id-1").apiIds(Set.of("api-1")).build()),
+                aDeployEvent("id-2", ApiProduct.builder().id("id-2").apiIds(Set.of("api-1")).build())
+            )
+        );
+
+        var output = useCase.execute(
+            SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, null, new PageableImpl(1, 10), null, USER_ID, true)
+        );
+
+        assertThat(output.page().getContent())
+            .extracting(ApiProduct::getId, ApiProduct::getDeploymentState)
+            .containsExactlyInAnyOrder(
+                tuple("id-1", ApiProduct.DeploymentState.DEPLOYED),
+                tuple("id-2", ApiProduct.DeploymentState.NEED_REDEPLOY)
+            );
+    }
+
+    @Test
+    void should_report_a_product_that_was_never_deployed_as_needing_a_deploy() {
+        apiProductSearchQueryService.initWith(List.of(ApiProduct.builder().id("id-1").name("Fresh").environmentId(ENV_ID).build()));
+
+        var output = useCase.execute(
+            SearchApiProductsUseCase.Input.of(ENV_ID, ORG_ID, null, null, new PageableImpl(1, 10), null, USER_ID, true)
+        );
+
+        assertThat(output.page().getContent())
+            .extracting(ApiProduct::getDeploymentState)
+            .containsExactly(ApiProduct.DeploymentState.NEED_REDEPLOY);
+    }
+
+    private Event aDeployEvent(String apiProductId, ApiProduct deployedPayload) throws Exception {
+        return Event.builder()
+            .id("event-" + apiProductId)
+            .type(EventType.DEPLOY_API_PRODUCT)
+            .properties(new EnumMap<>(Map.of(Event.EventProperties.API_PRODUCT_ID, apiProductId)))
+            .payload(objectMapper.writeValueAsString(deployedPayload))
+            .environments(Set.of(ENV_ID))
+            .createdAt(DEPLOYED_AT.atZone(ZoneId.systemDefault()))
+            .updatedAt(DEPLOYED_AT.atZone(ZoneId.systemDefault()))
+            .build();
     }
 }

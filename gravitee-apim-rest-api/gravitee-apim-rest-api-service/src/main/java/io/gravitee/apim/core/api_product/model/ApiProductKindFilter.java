@@ -40,6 +40,15 @@ public record ApiProductKindFilter(Set<ApiProductKind> kinds, boolean includeCla
     }
 
     /**
+     * The kinds a store-backed search must require. Empty when the listing also wants classic products,
+     * which carry no kind and so cannot be matched by a kind term: those listings narrow with
+     * {@link #excludedKinds()} instead.
+     */
+    public Set<ApiProductKind> requiredKinds() {
+        return includeClassic ? Set.of() : kinds;
+    }
+
+    /**
      * The specialized kinds a store-backed search must hide: every kind not explicitly included. A new
      * {@link ApiProductKind} is therefore excluded from a classic listing until it is opted in.
      */
