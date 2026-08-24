@@ -80,18 +80,23 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
         entity.setFeature(plugin.manifest().feature());
         ConnectorFactory<?> connectorFactory = getConnectorFactory(plugin.id());
 
-        if (connectorFactory.supportedApiTypes() != null) {
+        // supportedApiTypes() defaults to Set.of(supportedApi()), which throws rather than returning null when a
+        // factory declares no supported api, so the singular accessor is what decides whether there is anything to read.
+        Set<io.gravitee.gateway.reactive.api.ApiType> supportedApiTypes = connectorFactory.supportedApi() == null
+            ? Set.of()
+            : connectorFactory.supportedApiTypes();
+
+        if (!supportedApiTypes.isEmpty()) {
             entity.setSupportedApiType(ApiType.fromLabel(connectorFactory.supportedApi().getLabel()));
             entity.setSupportedApiTypes(
-                connectorFactory
-                    .supportedApiTypes()
+                supportedApiTypes
                     .stream()
                     .map(type -> ApiType.fromLabel(type.getLabel()))
                     .collect(Collectors.toSet())
             );
         }
 
-        if (connectorFactory.supportedApiTypes().contains(io.gravitee.gateway.reactive.api.ApiType.MESSAGE)) {
+        if (supportedApiTypes.contains(io.gravitee.gateway.reactive.api.ApiType.MESSAGE)) {
             Set<io.gravitee.gateway.reactive.api.qos.Qos> supportedQos = extractSupportedQos(connectorFactory);
             if (supportedQos != null) {
                 entity.setSupportedQos(

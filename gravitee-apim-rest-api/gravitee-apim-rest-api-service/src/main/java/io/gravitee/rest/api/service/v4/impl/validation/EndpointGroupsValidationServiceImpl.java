@@ -221,9 +221,22 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         if (apiType == ApiType.AUTHZ) {
             return;
         }
-        if (isBlank(type) || !connectorPluginEntity.getSupportedApiTypes().contains(apiType)) {
+        if (isBlank(type) || !supportedApiTypes(connectorPluginEntity).contains(apiType)) {
             throw new EndpointGroupTypeInvalidException(type);
         }
+    }
+
+    /**
+     * A connector only carries the plural set when its factory declares one — {@code AbstractConnectorPluginService}
+     * leaves it null otherwise — so fall back to the single type rather than reading a null set.
+     */
+    private static Set<ApiType> supportedApiTypes(final ConnectorPluginEntity connectorPluginEntity) {
+        Set<ApiType> supported = connectorPluginEntity.getSupportedApiTypes();
+        if (supported != null && !supported.isEmpty()) {
+            return supported;
+        }
+        ApiType single = connectorPluginEntity.getSupportedApiType();
+        return single == null ? Set.of() : Set.of(single);
     }
 
     private void validateEndpointMatchType(final AbstractEndpointGroup<?> endpointGroup, final AbstractEndpoint endpoint) {
