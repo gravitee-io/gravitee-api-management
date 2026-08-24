@@ -20,7 +20,6 @@ import static java.util.stream.Collectors.toList;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
-import io.gravitee.apim.core.membership.exception.ApiProductPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.search.model.IndexableApiProduct;
 import io.gravitee.common.data.domain.Page;
@@ -37,13 +36,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-@CustomLog
 public class ApiProductSearchServiceImpl implements ApiProductSearchService {
 
     private final SearchEngineService searchEngineService;
@@ -75,24 +72,19 @@ public class ApiProductSearchServiceImpl implements ApiProductSearchService {
         Map<String, ApiProduct> byId = new LinkedHashMap<>();
         apiProducts.forEach(apiProduct -> byId.put(apiProduct.getId(), apiProduct));
 
+        Map<String, PrimaryOwnerEntity> primaryOwnersById = apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwners(
+            executionContext.getOrganizationId(),
+            byId.keySet()
+        );
+
         List<ApiProduct> orderedPage = pageIds
             .stream()
             .map(byId::get)
             .filter(Objects::nonNull)
-            .map(apiProduct -> addPrimaryOwner(apiProduct, executionContext.getOrganizationId()))
+            .map(apiProduct -> apiProduct.toBuilder().primaryOwner(primaryOwnersById.get(apiProduct.getId())).build())
             .collect(toList());
 
         return new Page<>(orderedPage, pageable.getPageNumber(), orderedPage.size(), sortedIds.size());
-    }
-
-    private ApiProduct addPrimaryOwner(ApiProduct apiProduct, String organizationId) {
-        PrimaryOwnerEntity primaryOwner = null;
-        try {
-            primaryOwner = apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwner(organizationId, apiProduct.getId());
-        } catch (ApiProductPrimaryOwnerNotFoundException e) {
-            log.warn("Failed to retrieve primary owner for API Product [{}]: {}", apiProduct.getId(), e.getMessage());
-        }
-        return apiProduct.toBuilder().primaryOwner(primaryOwner).build();
     }
 
     private List<String> getPageSubset(List<String> ids, Pageable pageable) {
