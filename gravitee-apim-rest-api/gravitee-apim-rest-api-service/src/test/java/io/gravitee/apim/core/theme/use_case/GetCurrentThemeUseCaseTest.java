@@ -20,10 +20,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.InMemoryAlternative;
 import inmemory.ParametersDomainServiceInMemory;
+import inmemory.PortalCrudServiceInMemory;
 import inmemory.ThemeCrudServiceInMemory;
 import inmemory.ThemePortalNextAssetsDomainServiceInMemory;
 import inmemory.ThemeQueryServiceInMemory;
 import inmemory.ThemeServiceLegacyWrapperInMemory;
+import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.theme.domain_service.DefaultThemeDomainService;
 import io.gravitee.apim.core.theme.domain_service.ThemeDomainService;
 import io.gravitee.apim.core.theme.domain_service.ThemePortalNextAssetsDomainService;
@@ -67,6 +70,7 @@ public class GetCurrentThemeUseCaseTest {
     ThemeServiceLegacyWrapperInMemory themeServiceLegacyWrapper = new ThemeServiceLegacyWrapperInMemory();
     ThemeQueryServiceInMemory themeQueryServiceInMemory = new ThemeQueryServiceInMemory(themeCrudService);
     ThemePortalNextAssetsDomainServiceInMemory themePortalNextAssetsDomainService = new ThemePortalNextAssetsDomainServiceInMemory();
+    PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
 
     DefaultThemeDomainService defaultThemeDomainService;
     GetCurrentThemeUseCase cut;
@@ -132,14 +136,18 @@ public class GetCurrentThemeUseCaseTest {
             themeServiceLegacyWrapper,
             themePortalNextAssetsDomainService
         );
-        cut = new GetCurrentThemeUseCase(themeQueryServiceInMemory, defaultThemeDomainService);
+        cut = new GetCurrentThemeUseCase(themeQueryServiceInMemory, defaultThemeDomainService, portalCrudService, themeCrudService);
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(parametersDomainService, themeCrudService, themeServiceLegacyWrapper, themeQueryServiceInMemory).forEach(
-            InMemoryAlternative::reset
-        );
+        Stream.of(
+            parametersDomainService,
+            themeCrudService,
+            themeServiceLegacyWrapper,
+            themeQueryServiceInMemory,
+            portalCrudService
+        ).forEach(InMemoryAlternative::reset);
     }
 
     @Test
@@ -189,6 +197,63 @@ public class GetCurrentThemeUseCaseTest {
             .satisfies(res -> {
                 assertThat(res.getId()).isEqualTo("portal-default-theme");
             });
+    }
+
+    @Test
+    void should_return_portal_referenced_theme_when_portal_id_provided() {
+        var portalTheme = aPortalNextTheme(false).toBuilder().id("portal-attached-theme").build();
+        var envWideTheme = aPortalNextTheme(true).toBuilder().id("env-enabled-theme").build();
+        themeCrudService.initWith(List.of(portalTheme, envWideTheme));
+        var portal = aPortalIn(EXECUTION_CONTEXT.getEnvironmentId()).withActiveThemeId("portal-attached-theme");
+        portalCrudService.initWith(List.of(portal));
+
+        var result = cut.execute(
+            GetCurrentThemeUseCase.Input.builder()
+                .type(ThemeType.PORTAL_NEXT)
+                .executionContext(EXECUTION_CONTEXT)
+                .portalId(portal.getId())
+                .build()
+        );
+
+        assertThat(result.result().getId()).isEqualTo("portal-attached-theme");
+    }
+
+    @Test
+    void should_fall_back_to_enabled_theme_when_portal_has_no_active_theme() {
+        var envWideTheme = aPortalNextTheme(true);
+        themeCrudService.initWith(List.of(envWideTheme));
+        var portal = aPortalIn(EXECUTION_CONTEXT.getEnvironmentId());
+        portalCrudService.initWith(List.of(portal));
+
+        var result = cut.execute(
+            GetCurrentThemeUseCase.Input.builder()
+                .type(ThemeType.PORTAL_NEXT)
+                .executionContext(EXECUTION_CONTEXT)
+                .portalId(portal.getId())
+                .build()
+        );
+
+        assertThat(result.result()).isEqualTo(envWideTheme);
+    }
+
+    @Test
+    void should_fall_back_to_enabled_theme_when_portal_id_unknown() {
+        var envWideTheme = aPortalNextTheme(true);
+        themeCrudService.initWith(List.of(envWideTheme));
+
+        var result = cut.execute(
+            GetCurrentThemeUseCase.Input.builder()
+                .type(ThemeType.PORTAL_NEXT)
+                .executionContext(EXECUTION_CONTEXT)
+                .portalId(PortalId.of("00000000-0000-0000-0000-0000000000ff"))
+                .build()
+        );
+
+        assertThat(result.result()).isEqualTo(envWideTheme);
+    }
+
+    private Portal aPortalIn(String environmentId) {
+        return Portal.of(PortalId.of("00000000-0000-0000-0000-0000000000a1"), environmentId, "organization-id", "Default Portal");
     }
 
     private Theme aPortalTheme(boolean enabled) {
