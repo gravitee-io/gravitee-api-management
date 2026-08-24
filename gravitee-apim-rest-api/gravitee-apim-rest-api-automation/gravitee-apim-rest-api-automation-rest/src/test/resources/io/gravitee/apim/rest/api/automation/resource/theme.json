@@ -1,0 +1,22 @@
+{
+  "hrid": "default-theme",
+  "name": "Default Theme",
+  "definition": {
+    "customCss": ".portal { padding: 0; }",
+    "font": {
+      "fontFamily": "Inter"
+    },
+    "color": {
+      "primary": "#123456",
+      "secondary": "#654321",
+      "tertiary": "#abcdef",
+      "error": "#ff0000",
+      "background": {
+        "page": "#ffffff",
+        "card": "#f4f4f4"
+      }
+    }
+  },
+  "logo": "data:image/png;base64,LOGO",
+  "favicon": "data:image/png;base64,FAV"
+}

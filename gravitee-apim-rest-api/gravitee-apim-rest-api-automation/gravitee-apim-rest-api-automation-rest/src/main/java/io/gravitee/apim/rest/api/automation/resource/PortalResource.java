@@ -74,7 +74,9 @@ public class PortalResource extends AbstractResource {
         PortalId id = PortalId.of(HRIDToUUID.portal().context(auditInfo).hrid(hrid).id());
         try {
             var output = getPortalUseCase.execute(new GetPortalUseCase.Input(auditInfo, id));
-            return Response.ok(PortalMapper.INSTANCE.toPortalState(output.portal(), hrid, output.structure(), null)).build();
+            return Response.ok(
+                PortalMapper.INSTANCE.toPortalState(output.portal(), hrid, output.structure(), output.activeThemeHrid(), null)
+            ).build();
         } catch (PortalNotFoundException e) {
             throw new HRIDNotFoundException(hrid);
         }

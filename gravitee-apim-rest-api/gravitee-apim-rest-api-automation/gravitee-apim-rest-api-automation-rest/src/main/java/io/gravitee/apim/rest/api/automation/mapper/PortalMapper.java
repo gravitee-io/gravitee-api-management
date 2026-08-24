@@ -46,6 +46,7 @@ public interface PortalMapper {
         Portal portal,
         String hrid,
         io.gravitee.apim.core.portal.model.PortalNavigationStructure structure,
+        String activeThemeHrid,
         List<Validator.Error> errors
     ) {
         var state = new PortalState(
@@ -60,6 +61,7 @@ public interface PortalMapper {
         structure.areas().forEach((area, paths) -> writeWireArea(wireStructure, area, toApiNavigation(paths)));
         state.setStructure(wireStructure);
         state.setNavigation(wireStructure.getTopNavbar());
+        state.setActiveThemeHrid(activeThemeHrid);
         return state;
     }
 
@@ -91,6 +93,7 @@ public interface PortalMapper {
     @Mapping(target = "hrid", ignore = true)
     @Mapping(target = "navigation", ignore = true)
     @Mapping(target = "structure", ignore = true)
+    @Mapping(target = "activeThemeHrid", ignore = true)
     void mapPortalToState(Portal portal, @MappingTarget PortalState state);
 
     default io.gravitee.apim.core.portal.model.PortalNavigationStructure toCoreStructure(PortalSpec spec) {

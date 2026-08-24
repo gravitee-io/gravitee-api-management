@@ -211,6 +211,10 @@ import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionCRDUseCase;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.UpdateSubscriptionUseCase;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSchemaGenerator;
+import io.gravitee.apim.core.theme.use_case.CreateOrUpdatePortalThemeUseCase;
+import io.gravitee.apim.core.theme.use_case.DeletePortalThemeUseCase;
+import io.gravitee.apim.core.theme.use_case.GetPortalThemeUseCase;
+import io.gravitee.apim.core.theme.use_case.ValidatePortalThemeUseCase;
 import io.gravitee.apim.core.user.domain_service.CreateUserDomainService;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.service_provider.UserPasswordService;
@@ -1438,6 +1442,26 @@ public class ResourceContextConfiguration {
     @Bean
     public DeletePortalLinkUseCase deletePortalLinkUseCase() {
         return mock(DeletePortalLinkUseCase.class);
+    }
+
+    @Bean
+    public CreateOrUpdatePortalThemeUseCase createOrUpdatePortalThemeUseCase() {
+        return mock(CreateOrUpdatePortalThemeUseCase.class);
+    }
+
+    @Bean
+    public ValidatePortalThemeUseCase validatePortalThemeUseCase() {
+        return mock(ValidatePortalThemeUseCase.class);
+    }
+
+    @Bean
+    public GetPortalThemeUseCase getPortalThemeUseCase() {
+        return mock(GetPortalThemeUseCase.class);
+    }
+
+    @Bean
+    public DeletePortalThemeUseCase deletePortalThemeUseCase() {
+        return mock(DeletePortalThemeUseCase.class);
     }
 
     @Bean
