@@ -36,6 +36,7 @@ import { ApiSectionEditorDialogHarness } from './api-section-editor-dialog/api-s
 import { ApiProductSectionEditorDialogHarness } from './api-product-section-editor-dialog/api-product-section-editor-dialog.harness';
 import { OpenApiConfigDialogHarness } from './openapi-config-dialog/openapi-config-dialog.harness';
 import { PublishNavigationItemDialogHarness } from './publish-navigation-item-dialog/publish-navigation-item-dialog.harness';
+import { ImportNavigationDialogHarness } from './import-navigation-dialog/import-navigation-dialog.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../shared/testing';
 import { GioTestingPermissionProvider } from '../../shared/components/gio-permission/gio-permission.service';
@@ -66,7 +67,7 @@ import {
   UpdatePagePortalNavigationItem,
   UpdatePortalNavigationItem,
 } from '../../entities/management-api-v2';
-import { fakeFetcherList } from '../../entities/fetcher/fetcher.fixture';
+import { fakeFetcherList, fakeFilesFetcherList } from '../../entities/fetcher/fetcher.fixture';
 import {
   OpenApiDocExpansion,
   OpenApiViewer,
@@ -3452,10 +3453,14 @@ describe('PortalNavigationItemsComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectGetFetchers() {
-    httpTestingController
-      .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.baseURL}/fetchers?expand=schema` })
-      .flush(fakeFetcherList());
+  // Several embedded source editors can ask for the same list within one test, hence match() over expectOne()
+  function expectGetFetchers(onlyFilesFetchers = false) {
+    const requests = httpTestingController.match({
+      method: 'GET',
+      url: `${CONSTANTS_TESTING.env.baseURL}/fetchers?expand=schema${onlyFilesFetchers ? '&import=true' : ''}`,
+    });
+    expect(requests.length).toBeGreaterThan(0);
+    requests.forEach(request => request.flush(onlyFilesFetchers ? fakeFilesFetcherList() : fakeFetcherList()));
 
     fixture.detectChanges();
   }
@@ -3593,11 +3598,11 @@ describe('PortalNavigationItemsComponent', () => {
   // The source editor shown for FOLDER items (and the External Source tab) loads the fetcher list on creation
   function flushPendingFetcherRequests() {
     const requests = httpTestingController.match(
-      request => request.method === 'GET' && request.url === `${CONSTANTS_TESTING.env.baseURL}/fetchers?expand=schema`,
+      request => request.method === 'GET' && request.url.startsWith(`${CONSTANTS_TESTING.env.baseURL}/fetchers?expand=schema`),
     );
 
     const activeRequests = requests.filter(req => !req.cancelled);
-    activeRequests.forEach(req => req.flush(fakeFetcherList()));
+    activeRequests.forEach(req => req.flush(req.request.url.includes('import=true') ? fakeFilesFetcherList() : fakeFetcherList()));
 
     if (activeRequests.length > 0) {
       fixture.detectChanges();
@@ -4966,9 +4971,28 @@ describe('PortalNavigationItemsComponent', () => {
         expect(await harness.getFolderManagedBySourceBannerText()).toContain('Folder content from GitHub — read only');
       });
 
-      it('disables Fetch now on a sourced folder with no sourced page below it', async () => {
-        const folder = fakePortalNavigationFolder({ id: 'folder-1', title: 'My Folder', area: 'TOP_NAVBAR', source: githubSource });
+      it('enables Fetch now on an imported folder, whose pages carry no source of their own', async () => {
+        const folder = fakePortalNavigationFolder({
+          id: 'folder-1',
+          title: 'Imported Docs',
+          area: 'TOP_NAVBAR',
+          source: { ...githubSource, subtreeImport: true },
+        });
         await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder] }));
+        flushPendingFetcherRequests();
+
+        expect(await harness.isFetchNowButtonDisabled()).toBe(false);
+      });
+
+      it('disables Fetch now on a sourced folder the import does not manage', async () => {
+        const folder = fakePortalNavigationFolder({
+          id: 'folder-1',
+          title: 'My Folder',
+          area: 'TOP_NAVBAR',
+          source: { type: 'http-fetcher', configuration: { url: 'https://example.com/page.md' } },
+        });
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder] }));
+        flushPendingFetcherRequests();
 
         expect(await harness.isFetchNowButtonDisabled()).toBe(true);
       });
@@ -4998,35 +5022,28 @@ describe('PortalNavigationItemsComponent', () => {
         await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, sourcedChild] }));
       });
 
-      it('adds a source on the folder from the Edit dialog', async () => {
+      it('does not offer attaching a source to a folder that has none', async () => {
         const folder = fakePortalNavigationFolder({ id: 'folder-1', title: 'My Folder', area: 'TOP_NAVBAR' });
         await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder] }));
 
         const dialog = await openEditDialog();
-        expect(await dialog.hasExternalSourceToggle()).toBe(true);
-        await dialog.toggleExternalSource();
-        fixture.detectChanges();
-        expectGetFetchers();
+        // Only the import can bind a folder to a file-listing source; the backend rejects an update doing it
+        expect(await dialog.hasExternalSourceToggle()).toBe(false);
+        await dialog.clickCancelButton();
+      });
 
-        const sourceEditor = await dialog.getSourceEditor();
-        await sourceEditor.selectType('HTTP');
+      it('restricts an import-managed folder source to directory-capable fetchers', async () => {
+        const folder = fakePortalNavigationFolder({ id: 'folder-1', title: 'My Folder', area: 'TOP_NAVBAR', source: githubSource });
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder] }));
+
+        const dialog = await openEditDialog();
         await fixture.whenStable();
         fixture.detectChanges();
-        await sourceEditor.setSchemaFormInputValue('https://example.com/folder');
-        await dialog.clickSubmitButton();
-
-        const body = expectPutNavigationItemAndCaptureBody('folder-1', fakePortalNavigationFolder({ ...folder, source: githubSource }));
-        expect(body.type).toBe('FOLDER');
-        expect((body as UpdateFolderPortalNavigationItem).source).toEqual(
-          expect.objectContaining({
-            type: 'http-fetcher',
-            configuration: expect.objectContaining({ url: 'https://example.com/folder' }),
-          }),
-        );
-
-        await expectGetNavigationItems(
-          fakePortalNavigationItemsResponse({ items: [fakePortalNavigationFolder({ ...folder, source: githubSource })] }),
-        );
+        expect(await dialog.hasExternalSourceToggle()).toBe(true);
+        expect(await dialog.isExternalSourceToggleChecked()).toBe(true);
+        // The folder edit asks for the same restricted list as the import dialog
+        expectGetFetchers(true);
+        await dialog.clickCancelButton();
       });
     });
 
@@ -5112,6 +5129,117 @@ describe('PortalNavigationItemsComponent', () => {
           expectGetPageContent('content-1', 'Some content');
 
           expect(await harness.isFetchNowButtonVisible()).toBe(false);
+        });
+      });
+
+      describe('Import from a remote repository', () => {
+        const importedFolder = fakePortalNavigationFolder({
+          id: 'imported-folder',
+          title: 'Imported Docs',
+          area: 'TOP_NAVBAR',
+          source: githubSource,
+        });
+
+        beforeEach(async () => {
+          await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [] }));
+        });
+
+        async function openImportDialog(): Promise<ImportNavigationDialogHarness> {
+          await harness.clickImportNavigationButton();
+          fixture.detectChanges();
+          return rootLoader.getHarness(ImportNavigationDialogHarness);
+        }
+
+        it('imports a documentation tree and navigates to the created folder', async () => {
+          const dialog = await openImportDialog();
+          expectGetFetchers(true);
+
+          await dialog.setTitle('Imported Docs');
+          const sourceEditor = await dialog.getSourceEditor();
+          await sourceEditor.selectType('GIT');
+          await fixture.whenStable();
+          fixture.detectChanges();
+
+          expect(await dialog.isImportButtonDisabled()).toBe(true);
+          await sourceEditor.setSchemaFormInputValue('https://example.com/repo.git');
+          await sourceEditor.setSchemaFormInputValue('/docs', 2);
+          expect(await dialog.isImportButtonDisabled()).toBe(false);
+          await dialog.clickImportButton();
+
+          const req = httpTestingController.expectOne({
+            method: 'POST',
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_import`,
+          });
+          expect(req.request.body).toEqual({
+            title: 'Imported Docs',
+            source: expect.objectContaining({
+              type: 'git-fetcher',
+              configuration: expect.objectContaining({ repository: 'https://example.com/repo.git', path: '/docs' }),
+            }),
+          });
+          req.flush({
+            rootFolder: importedFolder,
+            summary: fakePortalNavigationItemsFetchSummary({ succeeded: 3, failed: 0 }),
+          });
+          fixture.detectChanges();
+
+          expect(snackBarSuccessSpy).toHaveBeenCalledWith(expect.stringContaining('3 pages'));
+          expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: 'imported-folder' } }));
+          await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [importedFolder] }));
+        });
+
+        it('shows a failure summary when some files fail to import', async () => {
+          const dialog = await openImportDialog();
+          expectGetFetchers(true);
+
+          await dialog.setTitle('Imported Docs');
+          const sourceEditor = await dialog.getSourceEditor();
+          await sourceEditor.selectType('GIT');
+          await fixture.whenStable();
+          fixture.detectChanges();
+          await sourceEditor.setSchemaFormInputValue('https://example.com/repo.git');
+          await sourceEditor.setSchemaFormInputValue('/docs', 2);
+          await dialog.clickImportButton();
+
+          httpTestingController
+            .expectOne({
+              method: 'POST',
+              url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_import`,
+            })
+            .flush({
+              rootFolder: importedFolder,
+              summary: fakePortalNavigationItemsFetchSummary({
+                succeeded: 1,
+                failed: 1,
+                results: [
+                  { navigationItemId: 'nav-1', title: 'Intro', success: true },
+                  {
+                    navigationItemId: 'nav-2',
+                    title: 'Legacy',
+                    success: false,
+                    error: 'Unsupported file extension for /docs/legacy.adoc.',
+                  },
+                ],
+              }),
+            });
+          fixture.detectChanges();
+
+          expect(snackBarErrorSpy).toHaveBeenCalledWith(expect.stringContaining('1 of 2'));
+          expect(snackBarErrorSpy).toHaveBeenCalledWith(expect.stringContaining('"Legacy"'));
+          await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [importedFolder] }));
+        });
+
+        it('does not call the backend when the dialog is cancelled', async () => {
+          const dialog = await openImportDialog();
+          expectGetFetchers(true);
+
+          await dialog.clickCancelButton();
+          fixture.detectChanges();
+
+          httpTestingController.expectNone({
+            method: 'POST',
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_import`,
+          });
         });
       });
 

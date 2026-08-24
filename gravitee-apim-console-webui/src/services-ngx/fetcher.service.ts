@@ -29,7 +29,12 @@ export class FetcherService {
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
-  getList(): Observable<FetcherListItem[]> {
-    return this.http.get<FetcherListItem[]>(`${this.constants.env.baseURL}/fetchers?expand=schema`);
+  /**
+   * @param onlyFilesFetchers keep only the fetchers able to list a directory (FilesFetcher), the ones an import can walk
+   */
+  getList(onlyFilesFetchers = false): Observable<FetcherListItem[]> {
+    return this.http.get<FetcherListItem[]>(
+      `${this.constants.env.baseURL}/fetchers?expand=schema${onlyFilesFetchers ? '&import=true' : ''}`,
+    );
   }
 }

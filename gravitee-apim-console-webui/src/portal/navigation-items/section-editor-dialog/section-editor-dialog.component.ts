@@ -188,7 +188,15 @@ export class SectionEditorDialogComponent implements OnInit {
   }
 
   canConfigureSourceOnEdit(): boolean {
-    return this.mode === 'edit' && (this.type === 'PAGE' || this.type === 'FOLDER');
+    if (this.mode !== 'edit') {
+      return false;
+    }
+    // A folder only gets a source through the import (the backend rejects attaching one by update):
+    // offer the source section solely on import-managed folders, to edit or remove their source
+    if (this.type === 'FOLDER') {
+      return !!this.initialSource;
+    }
+    return this.type === 'PAGE';
   }
 
   isExternalSourceActive(): boolean {

@@ -63,5 +63,21 @@ describe('FetcherService', () => {
 
       req.flush(fetcherListItem);
     });
+
+    it('should ask for the file-listing fetchers only', done => {
+      const fetcherListItem = [fakeFetcherListItem({ id: 'github-fetcher' })];
+
+      fetcherService.getList(true).subscribe(fetchers => {
+        expect(fetchers).toEqual(fetcherListItem);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.baseURL}/fetchers?expand=schema&import=true`,
+          method: 'GET',
+        })
+        .flush(fetcherListItem);
+    });
   });
 });

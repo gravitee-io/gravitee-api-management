@@ -58,6 +58,9 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
   );
   private readonly getFetchNowButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="fetch-now-button"]' }));
   private readonly getImportFileButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="import-file-button"]' }));
+  private readonly getImportNavigationButton = this.locatorFor(
+    MatButtonHarness.with({ selector: '[data-testid="import-navigation-toolbar-button"]' }),
+  );
   private readonly getContentManagedBySourceBanner = this.locatorForOptional('[data-testid="content-managed-by-source-banner"]');
   private readonly getContentManagedByParentBanner = this.locatorForOptional('[data-testid="content-managed-by-parent-banner"]');
   private readonly getContentFetchErrorBanner = this.locatorForOptional('[data-testid="content-fetch-error-banner"]');
@@ -287,6 +290,11 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
   async isPageNotFoundDisplayed(): Promise<boolean> {
     const emptyState = await this.getPageNotFoundEmptyState();
     return emptyState !== null;
+  }
+
+  async clickImportNavigationButton(): Promise<void> {
+    const button = await this.getImportNavigationButton();
+    return button.click();
   }
 
   async isImportFileButtonVisible(): Promise<boolean> {

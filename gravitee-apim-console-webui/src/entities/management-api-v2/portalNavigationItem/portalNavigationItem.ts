@@ -30,6 +30,8 @@ export interface PortalNavigationItemSource {
   lastFetchAttemptAt?: string;
   /** Read-only, server-managed. Absent when the last fetch succeeded. */
   lastFetchError?: string;
+  /** Read-only, server-managed. True on a folder managed by the navigation import: fetching it re-runs the import. */
+  subtreeImport?: boolean;
 }
 
 interface BasePortalNavigationItem<T extends PortalNavigationItemType> {
@@ -109,6 +111,25 @@ export function collectNodeIdsWithSourcedPageDescendants(items: PortalNavigation
   return nodeIds;
 }
 
+/**
+ * Ids of the containers the backend `_fetch` endpoint accepts: those carrying at least one sourced PAGE
+ * below them, plus the import-managed FOLDERs — an imported folder owns the source alone, its pages
+ * carry none, so it would be missing from the descendants-only set. `subtreeImport` is server-owned,
+ * so this is exactly the set the backend fetches, not an approximation of it.
+ */
+export function collectFetchableContainerIds(items: PortalNavigationItem[] | null | undefined): Set<string> {
+  const nodeIds = collectNodeIdsWithSourcedPageDescendants(items);
+
+  for (const item of items ?? []) {
+    const source = getPortalNavigationItemSource(item);
+    if (item.type === 'FOLDER' && source?.subtreeImport) {
+      nodeIds.add(item.id);
+    }
+  }
+
+  return nodeIds;
+}
+
 export interface PortalNavigationItemFetchResult {
   navigationItemId: string;
   title: string;
@@ -127,6 +148,18 @@ export interface PortalNavigationItemsFetchSummary {
 export interface FetchPortalNavigationItemResponse {
   item?: PortalNavigationItem;
   summary?: PortalNavigationItemsFetchSummary;
+}
+
+export interface ImportPortalNavigationRequest {
+  title: string;
+  parentId?: string;
+  visibility?: PortalVisibility;
+  source: PortalNavigationItemSource;
+}
+
+export interface ImportPortalNavigationResponse {
+  rootFolder: PortalNavigationFolder;
+  summary: PortalNavigationItemsFetchSummary;
 }
 
 interface BaseNewPortalNavigationItem<T extends PortalNavigationItemType> {

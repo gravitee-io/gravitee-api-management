@@ -31,6 +31,11 @@ export function fakeFetcherListItem(attributes?: Partial<FetcherListItem>): Fetc
   };
 }
 
+/** The fetchers able to list a directory, what `GET /fetchers?import=true` returns: everything but the single-file HTTP one */
+export function fakeFilesFetcherList(): FetcherListItem[] {
+  return fakeFetcherList().filter(fetcher => fetcher.id !== 'http-fetcher');
+}
+
 export function fakeFetcherList(): FetcherListItem[] {
   return [
     {

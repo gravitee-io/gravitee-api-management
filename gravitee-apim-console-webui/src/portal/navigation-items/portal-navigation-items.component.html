@@ -33,6 +33,15 @@
         >
           <mat-icon>{{ isAnyTreeNodeExpanded() ? 'unfold_less' : 'unfold_more' }}</mat-icon>
         </button>
+        <button
+          *gioPermission="{ anyOf: ['environment-documentation-u'] }"
+          mat-stroked-button
+          type="button"
+          data-testid="import-navigation-toolbar-button"
+          (click)="onImportNavigation()"
+        >
+          Import
+        </button>
         <ng-container *gioPermission="{ anyOf: ['environment-documentation-c'] }">
           <button
             mat-stroked-button
