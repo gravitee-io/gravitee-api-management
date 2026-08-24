@@ -820,6 +820,10 @@ jobs:
           command: yarn
           working_directory: ./release
       - run:
+          name: Run unit tests
+          command: yarn test
+          working_directory: ./release
+      - run:
           name: Open a PR to create release notes into docs repository
           command: yarn zx --quiet ci-steps/generate-changelog.mjs --version=4.2.0
           working_directory: ./release
