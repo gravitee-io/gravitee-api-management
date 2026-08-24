@@ -52,6 +52,7 @@ export interface PortalCatalogApiProductSearchItem {
   rootId: string;
   navItemId: string;
   apis: ApiProductApi[];
+  categoryIds?: string[];
 }
 
 export type PortalCatalogSearchItem = PortalCatalogApiSearchItem | PortalCatalogApiProductSearchItem;

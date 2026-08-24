@@ -182,6 +182,7 @@ export class PortalNavigationItemsService {
             rootId: item.rootId,
             navItemId: item.id,
             apis: apiProduct.apis,
+            categoryIds: item.categoryIds,
           } satisfies PortalCatalogApiProductSearchItem,
         ];
       }

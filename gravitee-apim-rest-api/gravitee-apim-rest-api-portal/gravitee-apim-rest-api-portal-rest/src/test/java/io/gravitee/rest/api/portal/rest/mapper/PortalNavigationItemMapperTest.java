@@ -108,6 +108,8 @@ class PortalNavigationItemMapperTest {
     @Test
     void should_map_api_product() {
         var apiProductId = "00000000-0000-0000-0000-000000000019";
+        var category1 = PortalCategoryId.random();
+        var category2 = PortalCategoryId.random();
         var apiProduct = PortalNavigationApiProduct.builder()
             .id(PortalNavigationFixtures.randomNavigationId())
             .organizationId("org")
@@ -117,6 +119,7 @@ class PortalNavigationItemMapperTest {
             .area(PortalArea.TOP_NAVBAR)
             .order(1)
             .apiProductId(apiProductId)
+            .categoryIds(List.of(category1, category2))
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
             .build();
@@ -126,6 +129,7 @@ class PortalNavigationItemMapperTest {
         assertThat(mapped.getActualInstance()).isInstanceOf(io.gravitee.rest.api.portal.rest.model.PortalNavigationApiProduct.class);
         var mappedApiProduct = (io.gravitee.rest.api.portal.rest.model.PortalNavigationApiProduct) mapped.getActualInstance();
         assertThat(mappedApiProduct.getApiProductId()).isEqualTo(UUID.fromString(apiProductId));
+        assertThat(mappedApiProduct.getCategoryIds()).containsExactly(category1.id(), category2.id());
         assertThat(mappedApiProduct.getTitle()).isEqualTo("API Product");
     }
 }

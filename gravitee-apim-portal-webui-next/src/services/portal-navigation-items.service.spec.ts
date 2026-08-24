@@ -261,7 +261,13 @@ describe('PortalNavigationItemsService', () => {
     };
     const rawResponse = {
       data: [
-        { type: 'API_PRODUCT' as const, apiProductId: apiProduct.id, id: 'product-nav-1', rootId: 'product-root-1' },
+        {
+          type: 'API_PRODUCT' as const,
+          apiProductId: apiProduct.id,
+          id: 'product-nav-1',
+          rootId: 'product-root-1',
+          categoryIds: ['cat-1'],
+        },
         { type: 'API' as const, apiId: api.id, id: 'api-nav-1', rootId: 'api-root-1', categoryIds: ['cat-1'] },
       ],
       apis: [api],
@@ -288,6 +294,7 @@ describe('PortalNavigationItemsService', () => {
           rootId: 'product-root-1',
           navItemId: 'product-nav-1',
           apis: apiProduct.apis,
+          categoryIds: ['cat-1'],
         },
         {
           type: 'API',
