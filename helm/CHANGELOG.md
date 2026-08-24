@@ -13,6 +13,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 
 ### 4.11.14
 - fix gateway requestTimeout ignored when gateway.servers is configured (APIM-14276)
+- Add `es.lifecycle.policies.eventMetrics`, the ILM policy for the `gravitee-event-metrics-*` data streams. The gateway already read this key, but the chart did not render it under `es.lifecycle`, so it could only be set by hand through `gateway.env` (APIM-14875).
 
 ### 4.11.11
 - Support multiple custom domains for native Kafka APIs with `gateway.kafka.routingHostMode.domains` (list). `defaultDomain` is deprecated and ignored when `domains` is set.

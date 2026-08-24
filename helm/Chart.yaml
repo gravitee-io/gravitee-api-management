@@ -34,4 +34,13 @@ annotations:
       description: "`gateway.http.http2.connectionWindowSize` and `gateway.http.http2.streamWindowSize` (also per server under `gateway.servers[]`) set the gateway HTTP/2 flow-control windows, unset by default so the 65535 bytes protocol default is kept. Set both or neither: raising the stream window alone leaves the connection window as the bottleneck"
       links:
         - name: Github PR
+<<<<<<< HEAD
           url: https://github.com/gravitee-io/gravitee-api-management/pull/19686
+=======
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/19653
+    - kind: added
+      description: "`es.lifecycle.policies.eventMetrics` sets the ILM policy for the gravitee-event-metrics-* data streams, which the chart previously could not render"
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/19361
+>>>>>>> 6e42d9d (fix(helm): expose es.lifecycle.policies.eventMetrics for the gateway)
