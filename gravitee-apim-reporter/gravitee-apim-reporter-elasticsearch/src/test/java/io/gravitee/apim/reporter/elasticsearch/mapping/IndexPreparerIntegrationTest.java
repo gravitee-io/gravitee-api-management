@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.reporter.elasticsearch.mapping;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.gravitee.apim.reporter.elasticsearch.UnitTestConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.config.ReporterConfiguration;
@@ -25,6 +27,10 @@ import io.gravitee.common.templating.FreeMarkerComponent;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.config.Endpoint;
 import io.reactivex.rxjava3.observers.TestObserver;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -56,8 +62,10 @@ import org.testcontainers.utility.DockerImageName;
  * template tree and the ISM property-name overrides must flow into the rendered body for OpenSearch to
  * accept the PUT.
  *
- * <p>Scope: this proves OpenSearch accepts the rendered templates. What the rendered body actually
- * contains is asserted by {@link IndexTemplateTest}, which needs no container.
+ * <p>Scope: this proves a real cluster both accepts the rendered templates and stores the lifecycle
+ * settings they carry. Acceptance alone proves nothing — a cluster returns 200 for a template whose
+ * lifecycle block is absent — so the stored template is read back. What the templates render for every
+ * tree and type is asserted by {@link IndexTemplateTest}, which needs no container.
  */
 @SpringJUnitConfig(IndexPreparerIntegrationTest.OpenSearchTestConfig.class)
 @TestPropertySource(
@@ -87,19 +95,42 @@ class IndexPreparerIntegrationTest {
     @Autowired
     private PipelineConfiguration pipelineConfiguration;
 
+    @Autowired
+    private GenericContainer<?> openSearchContainer;
+
     static Stream<Arguments> es_preparers() {
         return Stream.of(Arguments.of("es7x"), Arguments.of("es8x"), Arguments.of("es9x"));
     }
 
     @ParameterizedTest(name = "{0} preparer against OpenSearch")
     @MethodSource("es_preparers")
-    void should_put_templates_against_opensearch_when_ism_property_names_set(String esDir) {
+    void should_put_templates_against_opensearch_when_ism_property_names_set(String esDir) throws Exception {
         AbstractIndexPreparer preparer = preparerFor(esDir);
 
         TestObserver<Void> observer = preparer.prepare().test();
         observer.awaitDone(60, TimeUnit.SECONDS);
         observer.assertComplete();
         observer.assertNoErrors();
+
+        // A 200 on the PUT only proves the body parsed. Read the stored template back: every cluster
+        // accepts a template whose lifecycle block is missing or meaningless, so acceptance alone
+        // cannot tell a working configuration from a silently dropped one.
+        // Data-stream types always go through the composable index template API, on every tree.
+        String eventMetrics = storedTemplate("_index_template", "gravitee-ism-override-event-metrics");
+        assertThat(eventMetrics).contains("policy-event-metrics");
+        assertThat(eventMetrics).doesNotContain("rollover_alias");
+
+        // Control: alias-managed types still resolve their policy. es7x pushes those through the
+        // legacy template API (useOldClient), so they are stored under _template, not _index_template.
+        String legacyApi = "es7x".equals(esDir) ? "_template" : "_index_template";
+        assertThat(storedTemplate(legacyApi, "gravitee-ism-override-request")).contains("policy-request");
+    }
+
+    private String storedTemplate(String api, String name) throws Exception {
+        String url = "http://%s:%d/%s/%s".formatted(openSearchContainer.getHost(), openSearchContainer.getMappedPort(9200), api, name);
+        return HttpClient.newHttpClient()
+            .send(HttpRequest.newBuilder(URI.create(url)).GET().build(), HttpResponse.BodyHandlers.ofString())
+            .body();
     }
 
     private AbstractIndexPreparer preparerFor(String esDir) {
