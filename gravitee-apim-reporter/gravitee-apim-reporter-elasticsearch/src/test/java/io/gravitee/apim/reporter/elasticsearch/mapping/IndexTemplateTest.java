@@ -39,9 +39,13 @@ import org.junit.jupiter.params.provider.MethodSource;
 class IndexTemplateTest {
 
     /**
-     * Every type whose template can render lifecycle settings. es7x is kept alongside es8x/es9x because it
-     * is the odd one out structurally — its settings sit at the root rather than under {@code template} —
-     * and it is pushed through the legacy template API.
+     * Every alias-managed type whose template can render lifecycle settings. es7x is kept alongside
+     * es8x/es9x because it is the odd one out structurally — its settings sit at the root rather than
+     * under {@code template} — and it is pushed through the legacy template API.
+     *
+     * <p>EVENT_METRICS is covered separately: it is the only data-stream template, so neither of those
+     * two statements holds for it, and the rollover alias these cases assert is meaningless on a data
+     * stream.
      */
     static Stream<Arguments> es_trees_and_lifecycle_types() {
         return Stream.of("es7x", "es8x", "es9x").flatMap(esDir ->
@@ -53,8 +57,7 @@ class IndexTemplateTest {
                 Type.V4_LOG,
                 Type.V4_METRICS,
                 Type.V4_MESSAGE_LOG,
-                Type.V4_MESSAGE_METRICS,
-                Type.EVENT_METRICS
+                Type.V4_MESSAGE_METRICS
             ).map(type -> Arguments.of(esDir, type))
         );
     }
@@ -86,6 +89,34 @@ class IndexTemplateTest {
             .contains("\"index.lifecycle.rollover_alias\"")
             .doesNotContain("\"\":")
             .doesNotContain("\"  index.lifecycle.rollover_alias  \"");
+    }
+
+    static Stream<Arguments> es_trees() {
+        return Stream.of(Arguments.of("es7x"), Arguments.of("es8x"), Arguments.of("es9x"));
+    }
+
+    /**
+     * The event-metrics template also emits a rollover alias, which is meaningless on a data stream.
+     * That is a pre-existing defect and is deliberately left unasserted in both directions: pinning it
+     * present would make the eventual fix read as a test break, and pinning it absent would fail today.
+     */
+    @ParameterizedTest(name = "{0} event-metrics template carries the configured lifecycle policy")
+    @MethodSource("es_trees")
+    void should_attach_the_configured_lifecycle_policy_to_the_event_metrics_data_stream(String esDir) {
+        assertThat(preparerFor(esDir, configurationWithPolicies()).generateIndexTemplate(Type.EVENT_METRICS)).contains(
+            "\"index.lifecycle.name\": \"policy-event-metrics\""
+        );
+    }
+
+    @ParameterizedTest(name = "{0} event-metrics template honours the configured ISM property name")
+    @MethodSource("es_trees")
+    void should_attach_the_event_metrics_policy_under_the_configured_property_name(String esDir) {
+        var configuration = configurationWithPolicies();
+        configuration.setIndexLifecyclePolicyPropertyName("index.plugins.index_state_management.policy_id");
+
+        assertThat(preparerFor(esDir, configuration).generateIndexTemplate(Type.EVENT_METRICS)).contains(
+            "\"index.plugins.index_state_management.policy_id\": \"policy-event-metrics\""
+        );
     }
 
     @Test
