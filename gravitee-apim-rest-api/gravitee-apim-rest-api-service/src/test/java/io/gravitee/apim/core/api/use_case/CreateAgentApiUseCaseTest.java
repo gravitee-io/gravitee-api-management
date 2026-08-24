@@ -64,6 +64,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.agent.AgentApi;
 import io.gravitee.definition.model.v4.agent.StandaloneAgentDefinition;
 import io.gravitee.definition.model.v4.agent.definition.AgentModel;
+import io.gravitee.definition.model.v4.agent.definition.AgentOutput;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
@@ -83,7 +84,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
-import io.gravitee.definition.model.v4.agent.definition.AgentOutput;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class CreateAgentApiUseCaseTest {
@@ -311,7 +311,12 @@ class CreateAgentApiUseCaseTest {
             .type(ApiType.AGENT)
             .kind("standalone")
             .listeners(List.of(HttpListener.builder().paths(List.of()).build()))
-            .standalone(StandaloneAgentDefinition.builder().model(AgentModel.builder().type("openai").build()).outputs(List.of(AgentOutput.builder().name("answer").build())).build())
+            .standalone(
+                StandaloneAgentDefinition.builder()
+                    .model(AgentModel.builder().type("openai").build())
+                    .outputs(List.of(AgentOutput.builder().name("answer").build()))
+                    .build()
+            )
             .build();
     }
 }

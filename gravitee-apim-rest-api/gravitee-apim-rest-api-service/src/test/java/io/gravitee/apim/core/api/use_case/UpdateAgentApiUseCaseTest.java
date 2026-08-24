@@ -56,6 +56,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.agent.AgentApi;
 import io.gravitee.definition.model.v4.agent.StandaloneAgentDefinition;
 import io.gravitee.definition.model.v4.agent.definition.AgentModel;
+import io.gravitee.definition.model.v4.agent.definition.AgentOutput;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import java.time.Clock;
 import java.time.Instant;
@@ -70,7 +71,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
-import io.gravitee.definition.model.v4.agent.definition.AgentOutput;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class UpdateAgentApiUseCaseTest {
@@ -285,7 +285,10 @@ class UpdateAgentApiUseCaseTest {
                     .definitionVersion(DefinitionVersion.V4)
                     .kind("standalone")
                     .standalone(
-                        StandaloneAgentDefinition.builder().model(AgentModel.builder().type("openai").build()).outputs(List.of(AgentOutput.builder().name("old-output").build())).build()
+                        StandaloneAgentDefinition.builder()
+                            .model(AgentModel.builder().type("openai").build())
+                            .outputs(List.of(AgentOutput.builder().name("old-output").build()))
+                            .build()
                     )
                     .build()
             )
@@ -299,7 +302,12 @@ class UpdateAgentApiUseCaseTest {
             .type(ApiType.AGENT)
             .kind("standalone")
             .listeners(List.of(HttpListener.builder().paths(List.of()).build()))
-            .standalone(StandaloneAgentDefinition.builder().model(AgentModel.builder().type("openai").build()).outputs(List.of(AgentOutput.builder().name("new-output").build())).build())
+            .standalone(
+                StandaloneAgentDefinition.builder()
+                    .model(AgentModel.builder().type("openai").build())
+                    .outputs(List.of(AgentOutput.builder().name("new-output").build()))
+                    .build()
+            )
             .build();
     }
 }
