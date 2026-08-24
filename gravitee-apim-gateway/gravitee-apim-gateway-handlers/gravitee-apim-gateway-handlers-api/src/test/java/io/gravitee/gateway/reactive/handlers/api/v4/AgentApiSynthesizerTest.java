@@ -46,7 +46,7 @@ class AgentApiSynthesizerTest {
           ],
           "standalone": {
             "model": { "type": "openai", "configuration": {} },
-            "instructions": "Hi {{q}}", "inputs": [ { "name": "q" } ], "output": "a"
+            "instructions": "Hi {{q}}", "inputs": [ { "name": "q" } ], "outputs": [ { "name": "a" } ]
           },
           "plans": [ { "id": "keyless", "name": "Keyless", "security": { "type": "KEY_LESS", "configuration": {} },
                       "status": "published", "mode": "standard" } ]
@@ -64,7 +64,7 @@ class AgentApiSynthesizerTest {
           ],
           "standalone": {
             "model": { "type": "openai", "configuration": {} },
-            "instructions": "Hi {{q}}", "inputs": [ { "name": "q" } ], "output": "a"
+            "instructions": "Hi {{q}}", "inputs": [ { "name": "q" } ], "outputs": [ { "name": "a" } ]
           }
         }
         """;
@@ -81,7 +81,7 @@ class AgentApiSynthesizerTest {
           ],
           "resources": [ { "name": "mem", "type": "chat-memory-store-inmemory", "configuration": {} } ],
           "standalone": {
-            "model": { "type": "openai", "configuration": {} }, "instructions": "do", "output": "a",
+            "model": { "type": "openai", "configuration": {} }, "instructions": "do", "outputs": [ { "name": "a" } ],
             "tools": [
               { "name": "search", "type": "tool-http", "configuration": { "url": "https://x" } },
               { "name": "fetch", "type": "tool-http", "configuration": { "url": "https://y" } },
