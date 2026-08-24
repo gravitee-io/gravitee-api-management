@@ -49,8 +49,14 @@ import org.springframework.stereotype.Repository;
  * under concurrency. Owning the connection here guarantees the lock is held across the whole
  * read-modify-write regardless of how the surrounding context wires its transaction manager.
  *
- * <p>The first request for a key has no row to lock, so a concurrent insert can lose the race with a
- * duplicate-key error; that is retried, and the retry locks the now-existing row.
+ * <p>The first request for a key has no row to lock, so the row is <em>seeded</em> first — a full,
+ * untouched bucket inserted in auto-commit, outside any locking transaction — and the locking
+ * transaction then consumes from it. A concurrent seeder simply loses with a duplicate-key error,
+ * which is ignored: either way the row exists afterwards. Seeding must never happen inside the
+ * locking transaction: on MySQL/MariaDB (and SQL Server's {@code HOLDLOCK}) an empty locking SELECT
+ * takes a shared range lock on the index gap, so N concurrent first requests would all take it and
+ * then every INSERT would wait on the others' — a guaranteed deadlock storm under a concurrent
+ * first request, which no bounded retry reliably survives.
  *
  * <p><strong>No automatic eviction.</strong> Unlike the other backends — Mongo (TTL index), Redis
  * ({@code PEXPIREAT}) and Hazelcast (entry TTL) all honour {@link TokenBucketCalculator#ttlMillis} — a
@@ -63,7 +69,8 @@ import org.springframework.stereotype.Repository;
 @Repository("tokenBucketRateLimitRepository")
 public class JdbcTokenBucketRateLimitRepository implements TokenBucketRateLimitRepository<TokenBucket> {
 
-    private static final int MAX_INSERT_RETRIES = 5;
+    /** Safety net only: the seed/lock handshake converges by design, retries cover external interference (e.g. a purge racing the seed). */
+    private static final int MAX_RETRIES = 5;
 
     /** Upper bound on each statement, preserved from the previous transaction-template timeout so a request cannot block indefinitely on the row lock. */
     private static final int STATEMENT_TIMEOUT_SECONDS = 5;
@@ -116,28 +123,51 @@ public class JdbcTokenBucketRateLimitRepository implements TokenBucketRateLimitR
         long nowMillis,
         Supplier<TokenBucket> supplier
     ) throws SQLException {
+        // Validate before any write so a contract violation cannot seed a row before failing.
+        TokenBucketCalculator.requireValidArgs(tokensRequested, refillPeriodMillis, capacity);
         for (int attempt = 0; ; attempt++) {
             try {
-                return consumeInTransaction(key, tokensRequested, refillRate, refillPeriodMillis, capacity, nowMillis, supplier);
-            } catch (SQLException e) {
-                // Concurrent first-insert race; the row now exists, so the retry's locking SELECT serialises on it.
-                // PostgreSQL surfaces it as an integrity violation, MySQL/MariaDB as an InnoDB deadlock.
-                if ((isIntegrityViolation(e) || isTransientRollback(e)) && attempt < MAX_INSERT_RETRIES) {
-                    continue;
+                TokenBucketConsumeResult result = consumeInTransaction(
+                    key,
+                    tokensRequested,
+                    refillRate,
+                    refillPeriodMillis,
+                    capacity,
+                    nowMillis
+                );
+                if (result == null) {
+                    // First request for this key: seed the row (see the class javadoc), then lock and consume it.
+                    seed(key, TokenBucketCalculator.newFullBucket(supplier.get(), capacity, nowMillis));
+                    result = consumeInTransaction(key, tokensRequested, refillRate, refillPeriodMillis, capacity, nowMillis);
                 }
-                throw e;
+                if (result != null) {
+                    return result;
+                }
+                // The row vanished between the seed and the locking pass (external purge racing us): retry.
+            } catch (SQLException e) {
+                // A leftover transient rollback or integrity violation is safe to replay: the transaction rolled back entirely.
+                if ((!isIntegrityViolation(e) && !isTransientRollback(e)) || attempt >= MAX_RETRIES) {
+                    throw e;
+                }
+            }
+            if (attempt >= MAX_RETRIES) {
+                throw new SQLException("Token bucket '" + key + "' could not be consumed after " + (attempt + 1) + " attempts");
             }
         }
     }
 
+    /**
+     * Lock the row for {@code key}, refill/consume and write it back, all in one transaction.
+     * Returns {@code null} — after releasing the (range) lock via rollback — when no row exists yet,
+     * so the caller can seed it lock-free.
+     */
     private TokenBucketConsumeResult consumeInTransaction(
         String key,
         long tokensRequested,
         long refillRate,
         long refillPeriodMillis,
         long capacity,
-        long nowMillis,
-        Supplier<TokenBucket> supplier
+        long nowMillis
     ) throws SQLException {
         final DataSource dataSource = jdbcTemplate.getDataSource();
         try (Connection connection = dataSource.getConnection()) {
@@ -145,9 +175,11 @@ public class JdbcTokenBucketRateLimitRepository implements TokenBucketRateLimitR
             connection.setAutoCommit(false);
             try {
                 TokenBucket bucket = selectForUpdate(connection, key);
-                boolean isNew = bucket == null;
-                if (isNew) {
-                    bucket = TokenBucketCalculator.newFullBucket(supplier.get(), capacity, nowMillis);
+                if (bucket == null) {
+                    // Nothing read, nothing written: roll back to release the range lock the empty
+                    // locking SELECT may hold, so the caller's seed INSERT cannot deadlock on it.
+                    connection.rollback();
+                    return null;
                 }
 
                 TokenBucketConsumeResult result = TokenBucketCalculator.refillAndTryConsume(
@@ -159,16 +191,35 @@ public class JdbcTokenBucketRateLimitRepository implements TokenBucketRateLimitR
                     nowMillis
                 );
 
-                if (isNew) {
-                    insert(connection, key, bucket);
-                } else {
-                    update(connection, key, bucket);
-                }
+                update(connection, key, bucket);
                 connection.commit();
                 return result;
             } catch (SQLException | RuntimeException e) {
                 connection.rollback();
                 throw e;
+            } finally {
+                connection.setAutoCommit(previousAutoCommit);
+            }
+        }
+    }
+
+    /**
+     * Insert a full, untouched bucket for {@code key} in auto-commit, tolerating the duplicate key a
+     * concurrent seeder loses with — either way the row exists (and is committed) afterwards.
+     */
+    private void seed(String key, TokenBucket bucket) throws SQLException {
+        final DataSource dataSource = jdbcTemplate.getDataSource();
+        try (Connection connection = dataSource.getConnection()) {
+            final boolean previousAutoCommit = connection.getAutoCommit();
+            // The seed must be committed and visible before the locking pass, whatever the pool's default.
+            connection.setAutoCommit(true);
+            try {
+                insert(connection, key, bucket);
+            } catch (SQLException e) {
+                if (!isIntegrityViolation(e)) {
+                    throw e;
+                }
+                // Another request seeded the row first; the locking pass will consume from it.
             } finally {
                 connection.setAutoCommit(previousAutoCommit);
             }
