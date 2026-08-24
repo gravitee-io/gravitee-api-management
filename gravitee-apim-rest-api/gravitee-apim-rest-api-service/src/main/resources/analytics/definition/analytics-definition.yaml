@@ -850,6 +850,12 @@ spec:
               - LLM_PROXY_MODEL
               - LLM_PROXY_PROVIDER
 
+        # The message index keys documents by request id and carries only the dimensions the gateway
+        # stamps on a message: operation, connector, api, gateway. It has no plan-id, app-id, tenant
+        # or zone — those live on the connection document. Declaring them here would advertise
+        # facets that silently return zero buckets, since Elasticsearch does not fail a terms
+        # aggregation on a field that does not exist. Faceting messages by application or plan needs
+        # the dimension carried across the request-id join first.
         - name: MESSAGE_PAYLOAD_SIZE
           label: Message Payload Size
           apis:
@@ -864,11 +870,7 @@ spec:
               - P99
           facets:
               - API
-              - APPLICATION
-              - PLAN
               - GATEWAY
-              - TENANT
-              - ZONE
               - MESSAGE_CONNECTOR_TYPE
               - MESSAGE_CONNECTOR_ID
               - MESSAGE_OPERATION_TYPE
@@ -892,11 +894,7 @@ spec:
               - COUNT
           facets:
               - API
-              - APPLICATION
-              - PLAN
               - GATEWAY
-              - TENANT
-              - ZONE
               - MESSAGE_CONNECTOR_TYPE
               - MESSAGE_CONNECTOR_ID
               - MESSAGE_OPERATION_TYPE
@@ -920,11 +918,7 @@ spec:
               - COUNT
           facets:
               - API
-              - APPLICATION
-              - PLAN
               - GATEWAY
-              - TENANT
-              - ZONE
               - MESSAGE_CONNECTOR_TYPE
               - MESSAGE_CONNECTOR_ID
               - MESSAGE_OPERATION_TYPE
@@ -953,11 +947,7 @@ spec:
               - P99
           facets:
               - API
-              - APPLICATION
-              - PLAN
               - GATEWAY
-              - TENANT
-              - ZONE
               - MESSAGE_CONNECTOR_TYPE
               - MESSAGE_CONNECTOR_ID
               - MESSAGE_OPERATION_TYPE

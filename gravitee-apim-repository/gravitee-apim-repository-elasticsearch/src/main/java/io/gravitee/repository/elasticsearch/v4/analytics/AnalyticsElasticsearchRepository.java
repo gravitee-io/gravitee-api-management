@@ -19,6 +19,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
+import io.gravitee.repository.analytics.engine.api.query.Query;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
 import io.gravitee.repository.analytics.engine.api.result.FacetsResult;
 import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
@@ -59,6 +60,8 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     private final FacetsResponseAdapter facetsResponseAdapter = new FacetsResponseAdapter();
     private final TimeSeriesResponseAdapter timeSeriesResponseAdapter = new TimeSeriesResponseAdapter();
     private final MessageMeasuresQueryAdapter messageMeasuresQueryAdapter = new MessageMeasuresQueryAdapter();
+    private final MessageFacetsQueryAdapter messageFacetsQueryAdapter = new MessageFacetsQueryAdapter();
+    private final MessageTimeSeriesQueryAdapter messageTimeSeriesQueryAdapter = new MessageTimeSeriesQueryAdapter();
     private final EventMetricsMeasuresQueryAdapter eventMetricsMeasuresQueryAdapter = new EventMetricsMeasuresQueryAdapter();
     private final EventMetricsFacetsQueryAdapter eventMetricsFacetsQueryAdapter = new EventMetricsFacetsQueryAdapter();
     private final EventMetricsTimeSeriesQueryAdapter eventMetricsTimeSeriesQueryAdapter = new EventMetricsTimeSeriesQueryAdapter();
@@ -442,12 +445,54 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
             .blockingGet();
     }
 
-    private Set<String> searchMessageConnectionRequestIDs(MeasuresQuery query, String httpIndex) {
+    @Override
+    public FacetsResult searchMessageFacets(QueryContext queryContext, FacetsQuery query) {
+        var httpIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+
+        var httpConnectionRequestIDs = searchMessageConnectionRequestIDs(query, httpIndex);
+
+        if (httpConnectionRequestIDs.isEmpty()) {
+            return facetsResponseAdapter.empty(query);
+        }
+
+        var messageIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_MESSAGE_METRICS, clusters);
+        var messageQuery = messageFacetsQueryAdapter.adapt(query, httpConnectionRequestIDs);
+
+        log.debug("Message - Facets query: {}", messageQuery);
+
+        return client
+            .search(messageIndex, null, messageQuery)
+            .map(response -> facetsResponseAdapter.adapt(response, query))
+            .blockingGet();
+    }
+
+    @Override
+    public TimeSeriesResult searchMessageTimeSeries(QueryContext queryContext, TimeSeriesQuery query) {
+        var httpIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+
+        var httpConnectionRequestIDs = searchMessageConnectionRequestIDs(query, httpIndex);
+
+        if (httpConnectionRequestIDs.isEmpty()) {
+            return timeSeriesResponseAdapter.empty(query);
+        }
+
+        var messageIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_MESSAGE_METRICS, clusters);
+        var messageQuery = messageTimeSeriesQueryAdapter.adapt(query, httpConnectionRequestIDs);
+
+        log.debug("Message - Time series query: {}", messageQuery);
+
+        return client
+            .search(messageIndex, null, messageQuery)
+            .map(response -> timeSeriesResponseAdapter.adapt(response, query))
+            .blockingGet();
+    }
+
+    private Set<String> searchMessageConnectionRequestIDs(Query query, String httpIndex) {
         return searchMessageConnectionRequestIDs(query, httpIndex, null, new HashSet<>(), 0);
     }
 
     private Set<String> searchMessageConnectionRequestIDs(
-        MeasuresQuery query,
+        Query query,
         String httpIndex,
         JsonObject afterKey,
         Set<String> accumulatedRequestIDs,

@@ -84,6 +84,24 @@ public class MessageMeasuresQueryAdapter {
         return JsonObject.of("terms", JsonObject.of("request-id", new JsonArray(requestIDsList)));
     }
 
+    /**
+     * Measure aggregations for one metric, without the surrounding query. Shared with the facets and
+     * time-series adapters so the three cannot disagree on how a message measure is built.
+     */
+    JsonObject adaptMeasures(MetricMeasuresQuery metric) {
+        var aggs = new JsonObject();
+        var field = fieldResolver.fromMetric(metric.metric());
+        for (var measure : metric.measures()) {
+            var aggName = AggregationAdapter.adaptName(metric.metric(), measure);
+            aggregate(aggName, field, measure).ifPresent(agg -> aggs.put(agg.keySet().iterator().next(), agg.values().iterator().next()));
+        }
+        return aggs;
+    }
+
+    FieldResolver fieldResolver() {
+        return fieldResolver;
+    }
+
     JsonObject adaptMetrics(List<MetricMeasuresQuery> metrics) {
         var aggs = new JsonObject();
         for (var metric : metrics) {

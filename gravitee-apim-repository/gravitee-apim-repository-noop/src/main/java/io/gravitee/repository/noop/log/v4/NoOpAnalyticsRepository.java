@@ -152,6 +152,16 @@ public class NoOpAnalyticsRepository implements AnalyticsRepository {
     }
 
     @Override
+    public FacetsResult searchMessageFacets(QueryContext queryContext, FacetsQuery query) {
+        return new FacetsResult(List.of());
+    }
+
+    @Override
+    public TimeSeriesResult searchMessageTimeSeries(QueryContext queryContext, TimeSeriesQuery query) {
+        return new TimeSeriesResult(List.of());
+    }
+
+    @Override
     public MeasuresResult searchEventMetricsMeasures(QueryContext queryContext, MeasuresQuery query) {
         return new MeasuresResult(List.of());
     }

@@ -79,6 +79,18 @@ public interface AnalyticsRepository {
     MeasuresResult searchMessageMeasures(QueryContext queryContext, MeasuresQuery query);
 
     /**
+     * Message measures broken down by a dimension — operation, connector, API, application.
+     *
+     * <p>Like {@link #searchMessageMeasures}, resolves the matching connection documents first: the
+     * message index carries none of the connection dimensions, so a query filtered on plan or
+     * application can only be answered by joining on request id.
+     */
+    FacetsResult searchMessageFacets(QueryContext queryContext, FacetsQuery query);
+
+    /** Message measures over time, optionally split by a dimension. Same two-phase join. */
+    TimeSeriesResult searchMessageTimeSeries(QueryContext queryContext, TimeSeriesQuery query);
+
+    /**
      * Native Kafka event metrics, read from the {@code event-metrics} data stream (throughput per
      * topic, active connections, authentications, per-operation counters and durations) — as opposed
      * to {@code searchNativeApi*}, which reads connection documents from {@code v4-metrics}.
