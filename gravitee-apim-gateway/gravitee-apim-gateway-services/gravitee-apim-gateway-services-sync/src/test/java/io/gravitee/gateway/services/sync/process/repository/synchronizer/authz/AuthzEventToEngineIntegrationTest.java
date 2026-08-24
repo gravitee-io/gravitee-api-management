@@ -139,6 +139,15 @@ class AuthzEventToEngineIntegrationTest {
         return event;
     }
 
+    @Test
+    void the_schema_recorder_is_live_so_an_absence_of_schema_ops_is_a_real_assertion() {
+        assertThat(port.schemaOps).isEmpty();
+
+        port.addOrUpdateSchema("env-1", "probe", "n", "entity User;", Set.of("scope-1"), 1L).blockingAwait();
+
+        assertThat(port.schemaOps).containsExactly("addOrUpdateSchema:probe");
+    }
+
     private static class RecordingPort implements AuthzEnginePort {
 
         final ConcurrentLinkedQueue<String> ops = new ConcurrentLinkedQueue<>();

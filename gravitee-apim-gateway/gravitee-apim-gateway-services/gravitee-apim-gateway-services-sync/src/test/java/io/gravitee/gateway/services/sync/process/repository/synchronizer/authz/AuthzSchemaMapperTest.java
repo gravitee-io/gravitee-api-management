@@ -62,7 +62,7 @@ class AuthzSchemaMapperTest {
                 event(
                     "evt-2",
                     """
-                    {"id": "doc-uuid-2", "schemaText": "entity User;"}
+                    {"id": "doc-uuid-2", "environmentId": "env-1", "schemaText": "entity User;"}
                     """
                 )
             )
@@ -136,7 +136,7 @@ class AuthzSchemaMapperTest {
                 event(
                     "evt-7",
                     """
-                    {"id": "doc-uuid-7"}
+                    {"id": "doc-uuid-7", "environmentId": "env-1"}
                     """
                 )
             )
@@ -144,6 +144,40 @@ class AuthzSchemaMapperTest {
 
         assertThat(d).isNotNull();
         assertThat(d.docId()).isEqualTo("doc-uuid-7");
+    }
+
+    @Test
+    void toDeploy_skips_an_event_without_an_environmentId() {
+        // Without it AuthzHostedScopes#serves looks up "null:<base>", matches nothing, and the document is
+        // dropped further downstream with no trace at all. AuthzPdpMapper guards the same field.
+        AuthzSchemaReactorDeployable d = mapper
+            .toDeploy(
+                event(
+                    "evt-no-env",
+                    """
+                    {"id": "doc-uuid-10", "schemaText": "entity User;", "targetPdpIds": ["orders"]}
+                    """
+                )
+            )
+            .blockingGet();
+
+        assertThat(d).isNull();
+    }
+
+    @Test
+    void toUndeploy_skips_an_event_without_an_environmentId() {
+        AuthzSchemaReactorDeployable d = mapper
+            .toUndeploy(
+                event(
+                    "evt-no-env-undeploy",
+                    """
+                    {"id": "doc-uuid-11", "targetPdpIds": ["orders"]}
+                    """
+                )
+            )
+            .blockingGet();
+
+        assertThat(d).isNull();
     }
 
     @Test
@@ -169,7 +203,7 @@ class AuthzSchemaMapperTest {
                 event(
                     "evt-9",
                     """
-                    {"id": "doc-uuid-9", "schemaText": "entity User;"}
+                    {"id": "doc-uuid-9", "environmentId": "env-1", "schemaText": "entity User;"}
                     """
                 )
             )

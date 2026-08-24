@@ -69,6 +69,8 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.A
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzPdpSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzPolicyMapper;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzPolicySynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzSchemaMapper;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzSchemaSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzScopePlacement;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.GammaEnabledCondition;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.cluster.ClusterSynchronizer;
@@ -397,6 +399,12 @@ public class RepositorySyncConfiguration {
 
     @Bean
     @Conditional(GammaEnabledCondition.class)
+    public AuthzScopePlacement authzSchemaScopePlacement() {
+        return new AuthzScopePlacement();
+    }
+
+    @Bean
+    @Conditional(GammaEnabledCondition.class)
     public AuthzScopePlacement authzPolicyScopePlacement() {
         return new AuthzScopePlacement();
     }
@@ -467,6 +475,34 @@ public class RepositorySyncConfiguration {
 
     @Bean
     @Conditional(GammaEnabledCondition.class)
+    public AuthzSchemaMapper authzSchemaMapper(ObjectMapper objectMapper) {
+        return new AuthzSchemaMapper(objectMapper);
+    }
+
+    @Bean
+    @Conditional(GammaEnabledCondition.class)
+    public AuthzSchemaSynchronizer authzSchemaSynchronizer(
+        LatestEventFetcher eventsFetcher,
+        AuthzSchemaMapper authzSchemaMapper,
+        DeployerFactory deployerFactory,
+        AuthzEnginePort authzEnginePort,
+        @Qualifier("authzSchemaScopePlacement") AuthzScopePlacement authzSchemaScopePlacement,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
+    ) {
+        return new AuthzSchemaSynchronizer(
+            eventsFetcher,
+            authzSchemaMapper,
+            deployerFactory,
+            authzEnginePort,
+            authzSchemaScopePlacement,
+            syncFetcherExecutor,
+            syncDeployerExecutor
+        );
+    }
+
+    @Bean
+    @Conditional(GammaEnabledCondition.class)
     public AuthzPdpMapper authzPdpMapper(ObjectMapper objectMapper) {
         return new AuthzPdpMapper(objectMapper);
     }
@@ -476,6 +512,7 @@ public class RepositorySyncConfiguration {
     public AuthzPdpSynchronizer authzPdpSynchronizer(
         LatestEventFetcher eventsFetcher,
         AuthzPdpMapper authzPdpMapper,
+        AuthzSchemaSynchronizer authzSchemaSynchronizer,
         AuthzPolicySynchronizer authzPolicySynchronizer,
         AuthzEntitySynchronizer authzEntitySynchronizer,
         Node node,
@@ -489,6 +526,7 @@ public class RepositorySyncConfiguration {
         return new AuthzPdpSynchronizer(
             eventsFetcher,
             authzPdpMapper,
+            authzSchemaSynchronizer,
             authzPolicySynchronizer,
             authzEntitySynchronizer,
             node,

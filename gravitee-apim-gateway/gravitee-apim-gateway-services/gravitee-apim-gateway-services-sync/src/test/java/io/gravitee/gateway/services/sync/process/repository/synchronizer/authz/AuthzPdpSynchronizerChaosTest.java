@@ -135,6 +135,16 @@ class AuthzPdpSynchronizerChaosTest {
             executor(),
             executor()
         );
+
+        AuthzSchemaSynchronizer schemaSynchronizer = new AuthzSchemaSynchronizer(
+            fetcher,
+            new AuthzSchemaMapper(new ObjectMapper()),
+            deployerFactory,
+            enginePort,
+            new AuthzScopePlacement(),
+            executor(),
+            executor()
+        );
         AuthzEntitySynchronizer entitySynchronizer = new AuthzEntitySynchronizer(
             fetcher,
             new AuthzEntityMapper(new ObjectMapper()),
@@ -147,6 +157,7 @@ class AuthzPdpSynchronizerChaosTest {
         return new AuthzPdpSynchronizer(
             fetcher,
             new AuthzPdpMapper(new ObjectMapper()),
+            schemaSynchronizer,
             policySynchronizer,
             entitySynchronizer,
             node,
@@ -187,6 +198,7 @@ class AuthzPdpSynchronizerChaosTest {
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
             Flowable.just(List.of(publish))
         );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(Flowable.empty());
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
             Flowable.just(List.of(policy))
         );
@@ -204,7 +216,7 @@ class AuthzPdpSynchronizerChaosTest {
         assertThat(received.peek().getString("environmentId")).isEqualTo("env-1");
         verify(enginePort).addOrUpdatePolicy(eq("env-1"), eq("pol-1"), any(), any(), eq(Set.of("scope-1@eu")), anyLong());
         verify(enginePort).addOrUpdateEntity(eq("env-1"), any(), any(), any(), eq(Set.of("scope-1@eu")), anyLong());
-        verify(enginePort, times(2)).commitScope("env-1", "scope-1@eu");
+        verify(enginePort, times(1)).commitScope("env-1", "scope-1@eu");
     }
 
     // ---------------------------------------------------------------------
@@ -226,6 +238,7 @@ class AuthzPdpSynchronizerChaosTest {
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
             Flowable.just(List.of(publish))
         );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(Flowable.empty());
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
             Flowable.just(List.of(policy))
         );
@@ -247,7 +260,7 @@ class AuthzPdpSynchronizerChaosTest {
             .extracting(m -> m.getString("op") + ":" + m.getString("environmentId") + ":" + m.getString("targetPdpId"))
             .containsExactly("provision:env-1:scope-cut");
         verify(enginePort).addOrUpdatePolicy(eq("env-1"), eq("pol-1"), any(), any(), eq(Set.of("scope-cut@eu")), anyLong());
-        verify(enginePort, times(2)).commitScope("env-1", "scope-cut@eu");
+        verify(enginePort, times(1)).commitScope("env-1", "scope-cut@eu");
     }
 
     // ---------------------------------------------------------------------
@@ -278,6 +291,7 @@ class AuthzPdpSynchronizerChaosTest {
             }
             return Flowable.empty();
         });
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(Flowable.empty());
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenAnswer(invocation -> {
             Set<String> envs = invocation.getArgument(3);
             if (envs != null && envs.contains("env-a")) {
@@ -439,6 +453,7 @@ class AuthzPdpSynchronizerChaosTest {
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
             Flowable.just(List.of(noEnv))
         );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(Flowable.empty());
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
             Flowable.just(List.of(policy))
         );

@@ -241,6 +241,18 @@ class AuthzSyncCycleIsolationTest {
         );
     }
 
+    private AuthzSchemaSynchronizer schemaSynchronizer() {
+        return new AuthzSchemaSynchronizer(
+            fetcher,
+            new AuthzSchemaMapper(new ObjectMapper()),
+            deployerFactory,
+            enginePort,
+            new AuthzScopePlacement(),
+            executor(),
+            executor()
+        );
+    }
+
     private AuthzPdpSynchronizer pdpSynchronizer() {
         Node node = mock(Node.class);
         GatewayConfiguration gatewayConfiguration = mock(GatewayConfiguration.class);
@@ -249,6 +261,7 @@ class AuthzSyncCycleIsolationTest {
         return new AuthzPdpSynchronizer(
             fetcher,
             new AuthzPdpMapper(new ObjectMapper()),
+            schemaSynchronizer(),
             policySynchronizer(),
             entitySynchronizer(),
             node,

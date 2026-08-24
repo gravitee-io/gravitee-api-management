@@ -41,6 +41,12 @@ public class AuthzSchemaMapper {
                     log.warn("Skipping authz schema DEPLOY event [{}] — missing or blank schemaText", event.getId());
                     return null;
                 }
+                // Without it AuthzHostedScopes#serves looks up "null:<base>", matches nothing, and the
+                // document is dropped with no trace. AuthzPdpMapper guards the same field.
+                if (wire.getEnvironmentId() == null || wire.getEnvironmentId().isBlank()) {
+                    log.warn("Skipping authz schema DEPLOY event [{}] — missing environmentId", event.getId());
+                    return null;
+                }
                 String resolvedName = wire.getName() != null && !wire.getName().isBlank() ? wire.getName() : wire.getId();
                 return AuthzSchemaReactorDeployable.builder()
                     .docId(wire.getId())
@@ -64,6 +70,12 @@ public class AuthzSchemaMapper {
                 AuthzSchema wire = objectMapper.readValue(event.getPayload(), AuthzSchema.class);
                 if (wire.getId() == null || wire.getId().isBlank()) {
                     log.warn("Skipping authz schema UNDEPLOY event [{}] — missing id", event.getId());
+                    return null;
+                }
+                // Without it AuthzHostedScopes#serves looks up "null:<base>", matches nothing, and the
+                // document is dropped with no trace. AuthzPdpMapper guards the same field.
+                if (wire.getEnvironmentId() == null || wire.getEnvironmentId().isBlank()) {
+                    log.warn("Skipping authz schema UNDEPLOY event [{}] — missing environmentId", event.getId());
                     return null;
                 }
                 return AuthzSchemaReactorDeployable.builder()

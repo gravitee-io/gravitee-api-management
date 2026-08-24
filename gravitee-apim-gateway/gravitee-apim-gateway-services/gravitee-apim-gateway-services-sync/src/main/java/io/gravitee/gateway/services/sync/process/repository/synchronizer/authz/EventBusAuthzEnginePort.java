@@ -160,7 +160,9 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
         // The PDP consumer reads docId and schemaText and nothing else; name stays on the deployable
         // for gateway-side logging.
         JsonObject command = new JsonObject().put("op", OP_ADD_OR_UPDATE_SCHEMA).put("docId", docId).put("schemaText", schemaText);
-        return routeGated(environmentId, command, schemaScopes(environmentId, targetPdpIds, docId), docId, updatedAt);
+        Set<String> scopes = expandWildcardWithoutBootstrap(environmentId, targetPdpIds);
+        warnOnceIfWildcardReachesNothing(environmentId, docId, targetPdpIds, scopes, updatedAt);
+        return routeGated(environmentId, command, scopes, docId, updatedAt);
     }
 
     @Override
@@ -168,7 +170,7 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
         return routeForget(
             environmentId,
             new JsonObject().put("op", OP_REMOVE_SCHEMA).put("docId", docId),
-            schemaScopes(environmentId, targetPdpIds, docId),
+            expandWildcardWithoutBootstrap(environmentId, targetPdpIds),
             docId
         );
     }
@@ -331,20 +333,31 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
     // D7: "*" on a schema means every NAMED engine of the environment. Unlike expandWildcard it does not
     // add the bootstrap engine, which is shared across environments — a wildcard schema landing there would
     // merge two environments' contracts into one. Targeting "default" explicitly still works.
-    // A wildcard schema reaches only NAMED engines (D7), so on a node hosting none it expands to nothing
-    // and no command is sent. Policies never hit this, because their wildcard always includes the bootstrap
+    // A wildcard schema reaches only NAMED engines (D7), so on a node hosting none it expands to nothing and
+    // no command is sent. Policies never hit this, because their wildcard always includes the bootstrap
     // engine, so the silence is specific to schema and would otherwise leave a single-node install running
     // policies against no schema at all with nothing in the log to say so.
-    private Set<String> schemaScopes(String environmentId, Set<String> targetPdpIds, String docId) {
-        Set<String> scopes = expandWildcardWithoutBootstrap(environmentId, targetPdpIds);
-        if (scopes.isEmpty() && targetPdpIds != null && targetPdpIds.contains(WILDCARD)) {
+    // Deduplicated on the document's revision, because the resync window re-delivers the same event once per
+    // cycle for its whole duration and an ungated warning would repeat with it. Only the publish path warns:
+    // an empty expansion on removal simply means there is nothing to remove.
+    private void warnOnceIfWildcardReachesNothing(
+        String environmentId,
+        String docId,
+        Set<String> targetPdpIds,
+        Set<String> expanded,
+        long updatedAt
+    ) {
+        if (!expanded.isEmpty() || targetPdpIds == null || !targetPdpIds.contains(WILDCARD)) {
+            return;
+        }
+        if (revisions.shouldApply(environmentId, WILDCARD, docId, updatedAt)) {
+            revisions.markApplied(environmentId, WILDCARD, docId, updatedAt);
             log.warn(
                 "Authz schema '{}' targets every named engine of environment [{}], which hosts none, so it reaches nothing",
                 docId,
                 environmentId
             );
         }
-        return scopes;
     }
 
     private Set<String> expandWildcardWithoutBootstrap(String environmentId, Set<String> targetPdpIds) {

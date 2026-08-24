@@ -61,6 +61,7 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
 
     private final LatestEventFetcher eventsFetcher;
     private final AuthzPdpMapper mapper;
+    private final AuthzSchemaSynchronizer schemaSynchronizer;
     private final AuthzPolicySynchronizer policySynchronizer;
     private final AuthzEntitySynchronizer entitySynchronizer;
     private final Node node;
@@ -114,6 +115,7 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
     public AuthzPdpSynchronizer(
         LatestEventFetcher eventsFetcher,
         AuthzPdpMapper mapper,
+        AuthzSchemaSynchronizer schemaSynchronizer,
         AuthzPolicySynchronizer policySynchronizer,
         AuthzEntitySynchronizer entitySynchronizer,
         Node node,
@@ -126,6 +128,7 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
     ) {
         this.eventsFetcher = eventsFetcher;
         this.mapper = mapper;
+        this.schemaSynchronizer = Objects.requireNonNull(schemaSynchronizer, "schemaSynchronizer must not be null");
         this.policySynchronizer = Objects.requireNonNull(policySynchronizer, "policySynchronizer must not be null");
         this.entitySynchronizer = Objects.requireNonNull(entitySynchronizer, "entitySynchronizer must not be null");
         this.node = Objects.requireNonNull(node, "node must not be null");
@@ -447,6 +450,7 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
         Set<String> scopes = byScope.keySet();
         // One scan+map of policies and one of entities for the whole environment, grouped by scope.
         return Single.zip(
+            schemaSynchronizer.groupByScope(environmentId, scopes),
             policySynchronizer.groupByScope(environmentId, scopes),
             entitySynchronizer.groupByScope(environmentId, scopes),
             BackfillGroups::new
@@ -466,11 +470,15 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
 
     private Completable hydrateScope(String environmentId, String scope, AuthzPdpProvisionDeployable provision, BackfillGroups groups) {
         String rk = runtimeKey(provision);
-        // Per scope: policies then entities (policy failure short-circuits the scope), so a single scope's
-        // engine failure re-pends only that scope, not the whole environment.
-        return policySynchronizer
-            .stageScope(environmentId, scope, groups.policies().getOrDefault(scope, List.of()))
-            .andThen(entitySynchronizer.stageScope(environmentId, scope, groups.entities().getOrDefault(scope, List.of())))
+        // Per scope: schema, then policies, then entities (a failure short-circuits the scope), so a single
+        // scope's engine failure re-pends only that scope, not the whole environment. Schema goes first so
+        // the freshly provisioned scope's very first commit already carries it; staged later it would take
+        // effect a full cycle after the policies that depend on it. Only the last stage commits, so a scope
+        // is sealed once instead of three times.
+        return schemaSynchronizer
+            .stageScope(environmentId, scope, groups.schemas().getOrDefault(scope, List.of()), false)
+            .andThen(policySynchronizer.stageScope(environmentId, scope, groups.policies().getOrDefault(scope, List.of()), false))
+            .andThen(entitySynchronizer.stageScope(environmentId, scope, groups.entities().getOrDefault(scope, List.of()), true))
             .doOnComplete(() -> {
                 pendingHydrations.remove(rk);
                 pendingHydrationAttempts.remove(rk);
@@ -484,6 +492,7 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
     }
 
     private record BackfillGroups(
+        Map<String, List<AuthzSchemaReactorDeployable>> schemas,
         Map<String, List<AuthzPolicyReactorDeployable>> policies,
         Map<String, List<AuthzEntityReactorDeployable>> entities
     ) {}

@@ -145,4 +145,8 @@ public class DeployerFactory {
     public AuthzPolicyDeployer createAuthzPolicyDeployer() {
         return new AuthzPolicyDeployer(authzEnginePort, distributedSyncService);
     }
+
+    public AuthzSchemaDeployer createAuthzSchemaDeployer() {
+        return new AuthzSchemaDeployer(authzEnginePort);
+    }
 }

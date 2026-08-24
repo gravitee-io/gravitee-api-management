@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -29,6 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.services.sync.process.common.deployer.AuthzEntityDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.AuthzPolicyDeployer;
+import io.gravitee.gateway.services.sync.process.common.deployer.AuthzSchemaDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.distributed.service.NoopDistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
@@ -52,6 +54,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -87,6 +90,7 @@ class AuthzPdpHydrationTest {
         lenient().when(gatewayConfiguration.shardingTags()).thenReturn(java.util.Optional.of(java.util.List.of()));
         lenient().when(enginePort.addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong())).thenReturn(Completable.complete());
         lenient().when(enginePort.addOrUpdateEntity(any(), any(), any(), any(), any(), anyLong())).thenReturn(Completable.complete());
+        lenient().when(enginePort.addOrUpdateSchema(any(), any(), any(), any(), any(), anyLong())).thenReturn(Completable.complete());
         lenient().when(enginePort.commit()).thenReturn(Completable.complete());
         lenient().when(enginePort.commitScope(any(), any())).thenReturn(Completable.complete());
         provisionConsumer = vertx
@@ -97,10 +101,21 @@ class AuthzPdpHydrationTest {
         DeployerFactory deployerFactory = org.mockito.Mockito.mock(DeployerFactory.class);
         lenient().when(deployerFactory.createAuthzPolicyDeployer()).thenReturn(new AuthzPolicyDeployer(enginePort, distributedSyncService));
         lenient().when(deployerFactory.createAuthzEntityDeployer()).thenReturn(new AuthzEntityDeployer(enginePort, distributedSyncService));
+        lenient().when(deployerFactory.createAuthzSchemaDeployer()).thenReturn(new AuthzSchemaDeployer(enginePort));
 
         AuthzPolicySynchronizer policySynchronizer = new AuthzPolicySynchronizer(
             fetcher,
             new AuthzPolicyMapper(new ObjectMapper()),
+            deployerFactory,
+            enginePort,
+            new AuthzScopePlacement(),
+            executor(),
+            executor()
+        );
+
+        AuthzSchemaSynchronizer schemaSynchronizer = new AuthzSchemaSynchronizer(
+            fetcher,
+            new AuthzSchemaMapper(new ObjectMapper()),
             deployerFactory,
             enginePort,
             new AuthzScopePlacement(),
@@ -120,6 +135,7 @@ class AuthzPdpHydrationTest {
         synchronizer = new AuthzPdpSynchronizer(
             fetcher,
             new AuthzPdpMapper(new ObjectMapper()),
+            schemaSynchronizer,
             policySynchronizer,
             entitySynchronizer,
             node,
@@ -154,6 +170,7 @@ class AuthzPdpHydrationTest {
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
             Flowable.just(List.of(provision))
         );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(Flowable.empty());
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
             Flowable.just(List.of(policyInScope, policyWildcard, policyOtherScope))
         );
@@ -167,7 +184,7 @@ class AuthzPdpHydrationTest {
         verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-2"), any(), any(), eq(Set.of("scope-1")), anyLong());
         verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-3"), any(), any(), any(), anyLong());
         verify(enginePort).addOrUpdateEntity(eq("env-pdp"), any(), any(), any(), eq(Set.of("scope-1")), anyLong());
-        verify(enginePort, times(2)).commitScope("env-pdp", "scope-1");
+        verify(enginePort, times(1)).commitScope("env-pdp", "scope-1");
     }
 
     @Test
@@ -181,6 +198,7 @@ class AuthzPdpHydrationTest {
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
             Flowable.just(List.of(provision))
         );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(Flowable.empty());
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
             Flowable.just(List.of(policyX, policyWildcard, policyOther, policyMulti))
         );
@@ -204,6 +222,7 @@ class AuthzPdpHydrationTest {
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
             Flowable.just(List.of(provision))
         );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(Flowable.empty());
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
             Flowable.just(List.of(ownPolicy, foreignPolicy, foreignWildcard))
         );
@@ -247,7 +266,7 @@ class AuthzPdpHydrationTest {
         verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong());
         verify(enginePort, never()).addOrUpdateEntity(any(), any(), any(), any(), any(), anyLong());
         // the scope must still seal generation 0 so it does not stay cold forever (once per synchronizer)
-        verify(enginePort, times(2)).commitScope("env-pdp", "scope-empty");
+        verify(enginePort, times(1)).commitScope("env-pdp", "scope-empty");
     }
 
     @Test
@@ -313,6 +332,45 @@ class AuthzPdpHydrationTest {
         event.setType(type);
         event.setPayload(new JsonObject().put("targetPdpId", targetPdpId).put("tag", tag).put("environmentId", "env-pdp").encode());
         event.setProperties(Map.of(Event.EventProperties.AUTHZ_PDP_ID.getValue(), id));
+        return event;
+    }
+
+    @Test
+    void hydration_stages_the_schema_before_the_policies_of_the_same_scope() throws InterruptedException {
+        Event provision = pdpEvent("evt-pdp", EventType.PUBLISH_AUTHZ_PDP, "scope-1", null);
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
+            Flowable.just(List.of(provision))
+        );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(
+            Flowable.just(List.of(schemaEvent("sch-1", "scope-1")))
+        );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
+            Flowable.just(List.of(policyEvent("pol-1", "scope-1")))
+        );
+
+        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+
+        // A freshly provisioned scope must carry the schema on its very first commit: a policy that names a
+        // type the schema declares would otherwise be staged against an engine that has no schema yet.
+        InOrder inOrder = inOrder(enginePort);
+        inOrder.verify(enginePort).addOrUpdateSchema(eq("env-pdp"), eq("sch-1"), any(), any(), eq(Set.of("scope-1")), anyLong());
+        inOrder.verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-1"), any(), any(), eq(Set.of("scope-1")), anyLong());
+    }
+
+    private static Event schemaEvent(String docId, String targetPdpId) {
+        Event event = new Event();
+        event.setId(docId);
+        event.setType(EventType.PUBLISH_AUTHZ_SCHEMA);
+        event.setPayload(
+            new JsonObject()
+                .put("id", docId)
+                .put("name", docId)
+                .put("schemaText", "entity User;")
+                .put("environmentId", "env-pdp")
+                .put("targetPdpIds", List.of(targetPdpId))
+                .encode()
+        );
+        event.setUpdatedAt(new java.util.Date());
         return event;
     }
 

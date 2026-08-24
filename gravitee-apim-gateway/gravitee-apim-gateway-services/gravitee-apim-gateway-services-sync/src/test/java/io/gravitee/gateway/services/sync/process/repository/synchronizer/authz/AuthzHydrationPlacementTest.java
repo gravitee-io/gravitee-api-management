@@ -131,9 +131,20 @@ class AuthzHydrationPlacementTest {
             executor(),
             executor()
         );
+
+        AuthzSchemaSynchronizer schemaSynchronizer = new AuthzSchemaSynchronizer(
+            fetcher,
+            new AuthzSchemaMapper(new ObjectMapper()),
+            deployerFactory,
+            port,
+            new AuthzScopePlacement(),
+            executor(),
+            executor()
+        );
         pdpSynchronizer = new AuthzPdpSynchronizer(
             fetcher,
             new AuthzPdpMapper(new ObjectMapper()),
+            schemaSynchronizer,
             policySynchronizer,
             entitySynchronizer,
             node,
@@ -164,6 +175,7 @@ class AuthzHydrationPlacementTest {
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
             Flowable.just(List.of(pdpPublish))
         );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(Flowable.empty());
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(Flowable.empty());
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_ENTITY_ID), any(), any())).thenReturn(
             Flowable.just(List.of(entityForScopeB))
@@ -199,6 +211,7 @@ class AuthzHydrationPlacementTest {
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
             Flowable.just(List.of(pdpPublish))
         );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_SCHEMA_ID), any(), any())).thenReturn(Flowable.empty());
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(Flowable.empty());
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_ENTITY_ID), any(), any())).thenReturn(
             Flowable.just(List.of(entityForScopeB))
@@ -253,6 +266,15 @@ class AuthzHydrationPlacementTest {
                 .encode()
         );
         return event;
+    }
+
+    @Test
+    void the_schema_recorder_is_live_so_an_absence_of_schema_ops_is_a_real_assertion() {
+        assertThat(port.schemaOps).isEmpty();
+
+        port.addOrUpdateSchema("env-1", "probe", "n", "entity User;", Set.of("scope-1"), 1L).blockingAwait();
+
+        assertThat(port.schemaOps).containsExactly("addOrUpdateSchema:probe");
     }
 
     private static class RecordingPort implements AuthzEnginePort {
