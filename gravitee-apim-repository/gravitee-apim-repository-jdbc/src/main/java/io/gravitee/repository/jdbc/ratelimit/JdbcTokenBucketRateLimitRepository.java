@@ -145,8 +145,10 @@ public class JdbcTokenBucketRateLimitRepository implements TokenBucketRateLimitR
                 }
                 // The row vanished between the seed and the locking pass (external purge racing us): retry.
             } catch (SQLException e) {
-                // A leftover transient rollback or integrity violation is safe to replay: the transaction rolled back entirely.
-                if ((!isIntegrityViolation(e) && !isTransientRollback(e)) || attempt >= MAX_RETRIES) {
+                // A transient rollback is safe to replay: the transaction rolled back entirely. Integrity
+                // violations cannot surface here — the transaction only reads and updates, and a duplicate
+                // key on the seed is absorbed by seed() itself.
+                if (!isTransientRollback(e) || attempt >= MAX_RETRIES) {
                     throw e;
                 }
             }
