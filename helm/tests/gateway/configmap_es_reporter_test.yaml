@@ -140,6 +140,7 @@ tests:
             request: request
             health: health
             log: log
+            eventMetrics: eventMetrics
     asserts:
       - hasDocuments:
           count: 1
@@ -163,6 +164,7 @@ tests:
                     request: request
                     health: health
                     log: log
+                    event_metrics: eventMetrics
                 index: gravitee
                 settings:
                   number_of_replicas: 1
@@ -171,3 +173,20 @@ tests:
                 bulk:
                   actions: 1000           # Number of requests action before flush
                   flush_interval: 5       # Flush interval in seconds
+
+  - it: Check es lifecycle settings when no event metrics policy is set
+    template: gateway/gateway-configmap.yaml
+    set:
+      es:
+        index_mode: ilm
+        lifecycle:
+          enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      # The state every deployment is in after an upgrade. The key has to render with no value: the
+      # gateway reads that as unset, where a default policy name would point the event-metrics data
+      # streams at an ILM policy the cluster does not have.
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "log: my_policy\\n\\s+event_metrics: *\\n"
