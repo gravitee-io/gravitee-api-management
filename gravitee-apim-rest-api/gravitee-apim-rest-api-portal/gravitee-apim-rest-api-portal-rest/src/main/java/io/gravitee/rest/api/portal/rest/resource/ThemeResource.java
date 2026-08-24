@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.theme.use_case.GetCurrentThemeUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.InlinePictureEntity;
@@ -52,7 +53,7 @@ public class ThemeResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getPortalTheme(@QueryParam("type") ThemeType themeType) {
+    public Response getPortalTheme(@QueryParam("type") ThemeType themeType, @QueryParam("portalId") String portalId) {
         if (Objects.isNull(themeType)) {
             throw new ThemeTypeNotSupportedException();
         }
@@ -61,6 +62,7 @@ public class ThemeResource extends AbstractResource {
                 GetCurrentThemeUseCase.Input.builder()
                     .type(io.gravitee.apim.core.theme.model.ThemeType.valueOf(themeType.name()))
                     .executionContext(GraviteeContext.getExecutionContext())
+                    .portalId(portalId != null ? PortalId.of(portalId) : null)
                     .build()
             )
             .result();

@@ -16,12 +16,17 @@
 package io.gravitee.apim.core.theme.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
+import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.theme.crud_service.ThemeCrudService;
 import io.gravitee.apim.core.theme.domain_service.DefaultThemeDomainService;
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.core.theme.model.ThemeType;
 import io.gravitee.apim.core.theme.query_service.ThemeQueryService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
@@ -32,19 +37,42 @@ public class GetCurrentThemeUseCase {
 
     private final ThemeQueryService themeQueryService;
     private final DefaultThemeDomainService defaultThemeDomainService;
+    private final PortalCrudService portalCrudService;
+    private final ThemeCrudService themeCrudService;
 
     public Output execute(Input input) {
-        var currentTheme = this.themeQueryService.findByThemeTypeAndEnvironmentId(input.type(), input.executionContext().getEnvironmentId())
+        var envId = input.executionContext().getEnvironmentId();
+        var theme = resolveByPortal(input.portalId(), envId).orElseGet(() ->
+            resolveEnabledOrCreate(input.type(), envId, input.executionContext())
+        );
+        return new Output(theme);
+    }
+
+    private Optional<Theme> resolveByPortal(PortalId portalId, String envId) {
+        if (portalId == null) {
+            return Optional.empty();
+        }
+        return portalCrudService
+            .findByIdAndEnvironmentId(portalId, envId)
+            .map(Portal::getActiveThemeId)
+            .flatMap(themeId -> themeCrudService.findByIdAndEnvironmentId(themeId, envId));
+    }
+
+    private Theme resolveEnabledOrCreate(ThemeType type, String envId, ExecutionContext ctx) {
+        return themeQueryService
+            .findByThemeTypeAndEnvironmentId(type, envId)
             .stream()
             .filter(theme -> Objects.equals(true, theme.isEnabled()))
             .findFirst()
-            .orElseGet(() -> this.defaultThemeDomainService.createAndEnableDefaultTheme(input.type(), input.executionContext()));
-
-        return new Output(currentTheme);
+            .orElseGet(() -> defaultThemeDomainService.createAndEnableDefaultTheme(type, ctx));
     }
 
     @Builder
-    public record Input(ThemeType type, ExecutionContext executionContext) {}
+    public record Input(ThemeType type, ExecutionContext executionContext, PortalId portalId) {
+        public Input(ThemeType type, ExecutionContext executionContext) {
+            this(type, executionContext, null);
+        }
+    }
 
     public record Output(Theme result) {}
 }
