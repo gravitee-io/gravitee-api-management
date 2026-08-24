@@ -16,13 +16,35 @@
 import { Config } from '@circleci/circleci-config-sdk';
 import { ReleaseWorkflow } from '../workflows';
 import { CircleCIEnvironment } from './circleci-environment';
-import { isSupportBranch } from '../utils';
+import { isHotfixBranch, isSupportBranch } from '../utils';
 import { initDynamicConfig } from './config-factory';
 
-export function generateReleaseConfig(environment: CircleCIEnvironment): Config {
-  if (!isSupportBranch(environment.branch)) {
-    throw new Error('Release is only supported on support branches');
+const HOTFIX_QUALIFIER = /-hotfix\.\d+$/;
+
+/**
+ * The version and the branch reach this pipeline as two independent inputs, and nothing downstream
+ * brings them together: the published version comes from the poms of whichever branch runs, while
+ * the tag comes from the version. A mismatch therefore tags one version and publishes another,
+ * without failing. A hotfix is where the two diverge most easily, since `hotfix/4.12.17` and
+ * `4.12.17-hotfix.1` name the same release twice.
+ */
+function assertVersionMatchesBranch(version: string, branch: string): void {
+  if (isHotfixBranch(branch)) {
+    const releasedVersion = branch.substring('hotfix/'.length);
+    if (!version.startsWith(`${releasedVersion}-`)) {
+      throw new Error(`${branch} releases ${releasedVersion} with a qualifier, not ${version}`);
+    }
+  } else if (HOTFIX_QUALIFIER.test(version)) {
+    throw new Error(`${version} is only released from hotfix/${version.replace(HOTFIX_QUALIFIER, '')}, not from ${branch}`);
   }
+}
+
+export function generateReleaseConfig(environment: CircleCIEnvironment): Config {
+  if (!isSupportBranch(environment.branch) && !isHotfixBranch(environment.branch)) {
+    throw new Error('Release is only supported on a support branch (X.Y.x) or a hotfix branch (hotfix/X.Y.Z)');
+  }
+
+  assertVersionMatchesBranch(environment.graviteeioVersion, environment.branch);
 
   const dynamicConfig = initDynamicConfig();
   const workflow = ReleaseWorkflow.create(dynamicConfig, environment);
