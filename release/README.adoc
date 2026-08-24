@@ -1,129 +1,97 @@
-= Release process
+= Releasing APIM
 
-== 📝 Description
+The scripts in this folder do not build anything. Each one is a *trigger*: it posts to the CircleCI API and hands over. Understanding that explains most of what follows — in particular why the branch you are standing on has no effect on what gets released.
 
-This repo contains some https://github.com/google/zx[zx] scripts to execute the different release steps for APIM.
+== What decides what
 
-== 🛠 Requirement
+Three things, and they are not the same thing.
 
-To run the scripts, you need to have:
+[cols="1,3"]
+|===
+| Where the release runs
+| Derived from `--version`: `4.12.18` releases from `4.12.x`. Never from your current branch — no script reads your local git state. `--branch` overrides it, and you are asked to confirm when it differs from the derived one.
 
-* Node.js >= 16.0.0 (configured in link:.nvmrc[.nvmrc] with v18.4.0)
-* https://github.com/google/zx[zx], to install it you just have to run:
+| Which version is published
+| The poms, through `<revision><sha1><changelist>`. The release clears `<changelist>` to drop `-SNAPSHOT`, and publishes what is left. `--version` does *not* set it — it feeds the commit message, the git tag and the UI `build.json` files.
+
+| What happens next
+| After releasing, the branch is bumped to the next version. `4.12.18` leaves it at `4.12.19-SNAPSHOT`; a qualified version like `4.13.0-alpha.1` leaves it at `4.13.0-alpha.2-SNAPSHOT`.
+|===
+
+The second row is the one that surprises people. If a branch's poms and the `--version` you pass disagree, the tag will say one thing and the artefacts another, without failing.
+
+== Setup
+
+* Node — the version in link:../.nvmrc[.nvmrc]. `nvm use` in this folder picks it up.
+* https://github.com/google/zx[zx], globally: `npm i -g zx`.
+* Dependencies: `yarn install`, here in `release/`.
+* A CircleCI personal token, in a `.env` file next to this README:
++
+[source,shell]
+----
+echo "CIRCLECI_TOKEN=<your token>" > .env
+----
++
+Create the token at https://app.circleci.com/settings/user/tokens. Every command reads it from there and stops immediately if it is missing.
+
+== Releasing
+
+=== The whole thing at once
 
 [source,shell]
 ----
-npm i -g zx
-# Check everything is ok:
-zx -v
+yarn full_release --version=4.12.18
 ----
-* A https://github.com/motdotla/dotenv#readme[dotenv] file containing the variable `CIRCLECI_TOKEN`, which is your personal token on CircleCI:
- - Go to https://app.circleci.com/settings/user/tokens, create a token and copy it
- - Run the following command in the `release` folder to create a `.env` file with the token:
+
+It asks for confirmation on the JIRA release and on leftover alpha qualifiers, then runs every step. Add `--latest` to tag the Docker images as `latest`, or it will ask.
+
+=== Step by step
+
+The older path, still there for when a single step has to be replayed. Each command prints the next one to run.
 
 [source,shell]
 ----
-touch .env && echo "CIRCLECI_TOKEN=[YOUR_TOKEN]" > .env
+yarn release       --version=4.12.18
+yarn package_zip   --version=4.12.18
+yarn docker        --version=4.12.18   # --latest to also tag as latest
+yarn rpms          --version=4.12.18
+yarn helm_chart    --version=4.12.18
+yarn release_notes --version=4.12.18
+yarn nexus_sync    --version=4.12.18
 ----
 
-* Some dependencies to run the scripts, you can install them with:
-[source, shell]
-----
-# In the `release` folder
-yarn install
-----
+`yarn maven_release --version=4.12.18` publishes to Maven Central on its own, outside both paths.
 
+=== Flags
 
-== 🛠 Pre-Release
+[cols="1,3"]
+|===
+| `--version` | Required, everywhere.
+| `--dry-run` | Runs the pipeline without publishing. Not supported by `nexus_sync`.
+| `--latest` | Docker images also get the `latest` tag.
+| `--branch` | Release from a branch other than the derived one. The version commit and the tag are pushed there.
+|===
 
-=== Helm changelog steps
+== Pre-release versions
 
-Before apply the release, and mainly during each fix/feat/... on helm chart, you have to ensure some prerequisites:
-
-. Add changelog entry on `helm/Chart.yaml` file in section `artifacthub.io/changes`. Notice that it is cleanup during release process.
-.. This is used in https://artifacthub.io/packages/helm/graviteeio/apim3/?modal=changelog[artifacthub.io changelog]
-. At least on master branch: update the changelog in right version. This make the master branch the reference for each change on all version.
-
-
-== 🏁 Usage[[Usage]]
-
-=== ⚡️ Full release for the win!
-
-Thanks to link:package.json[package.json], you can run those scripts as simple `yarn` commands (do not forget to use `yarn install` before starting).
-
-Each of the commands needs:
-
-* A `CIRCLECI_TOKEN` in `.env` file
-* the `--version` parameter
-
-Optional flag:
-
-* `--dry-run`: allow to run the pipeline in dry run mode (except for `nexus_sync` which does not have this mode)
-* `--latest`: to tag the docker image as the `latest`
-* `--branch=<name>`: target branch on which the pipeline is triggered. When omitted, the branch is derived from the version (e.g. `4.5.x` for `4.5.11`). Use it to release from any branch (the version bump commit and tag are pushed to that branch). You will be asked to confirm when it differs from the derived branch.
-
-Here is the command to fully release APIM (Releasing 3.15.11, in the following example):
-
-`yarn full_release --version=3.15.11`: You can also provide the `--latest` parameter to flag the image as `latest`.
-
-IMPORTANT::
-If alpha released have been created and you want to release a minor version, don't forget to update:
-- pom.xml: replace `<sha1>alpha.x</sha1>` by `<sha1/>`
-- helm/Chart.yml: remove the `alpha` qualifier from the version
-
-
-=== 🐌 Step by step release
-
-It will allow you to manually trigger these workflows on CircleCI:
-
-1. Release
-2. Package Zip
-3. Docker and RPMs
-4. Helm Chart
-5. Generate changelog
-6. Nexus Sync
-
-This is the legacy process making you execute each step manually
-
-Thanks to link:package.json[package.json], you can run those scripts as simple `yarn` commands (do not forget to use `yarn install` before starting).
-
-Each of the commands needs:
-
-* A `CIRCLECI_TOKEN` in `.env` file
-* the `--version` parameter
-
-Optional flag:
-
-* `--dry-run`: allow to run the pipeline in dry run mode (except for `nexus_sync` which does not have this mode)
-
-Each command, when successful, will guide you to the next command to run, for example:
-
-[source]
-----
-When it's done, run 'yarn nexus_sync --version=3.19.8'
-----
-
-Here are the steps to run to fully release APIM (Releasing 3.19.8, in the following example):
-
-1. `yarn release --version=3.19.8`
-2. `yarn package_zip --version=3.19.8`:
-3. `yarn docker_rpms --version=3.19.8`: You can also provide the `--latest` parameter to flag the image as `latest`.
-4. `yarn helm_chart --version=3.19.8`
-5. `yarn release_notes --version=3.19.8`
-6. `yarn nexus_sync --version=3.19.8`
-
-== 🧪 Handle pre-version releases
-
-To create a pre-version release (like `alpha`, `beta`, RC`, `GA`, ...), you just have to change the `<sha1/>` tag in `pom.xml` file. +
-This tag MUST be of the form: `-NAME.VERSION` (e.g. `-alpha.1`, `-RC.3`, ...)
+Alpha, beta, RC and milestone versions come from the poms, not from a flag. Set `<sha1>` on the branch, in the form `-NAME.NUMBER`:
 
 [source,xml]
 ----
-    <!-- Version properties -->
-    <revision>3.20.0</revision>
-    <sha1>-alpha.1</sha1>
-    <changelist>-SNAPSHOT</changelist>
+<revision>4.13.0</revision>
+<sha1>-alpha.1</sha1>
+<changelist>-SNAPSHOT</changelist>
 ----
 
-Then, follow instructions of <<Usage>> with `--version=3.20.0-alpha.1`. +
-The version of the modifier will be automatically increased. (`3.20.0-alpha.2` in the example above).
+Then release with `--version=4.13.0-alpha.1`. The bump that follows moves to `-alpha.2`, so the next one needs no manual edit.
+
+Going back to a final release means undoing that by hand, before releasing:
+
+* `pom.xml` — `<sha1>-alpha.4</sha1>` back to `<sha1/>`. Since the reactor cut, on `master`, `gravitee-apim-distribution/pom.xml` carries its own triplet and needs the same treatment.
+* `helm/Chart.yaml` — drop the qualifier from `version` and `appVersion`.
+
+`full_release` asks whether this was done. It cannot check.
+
+== Helm changelog
+
+Entries under `artifacthub.io/changes` in `helm/Chart.yaml` feed the https://artifacthub.io/packages/helm/graviteeio/apim3/?modal=changelog[published changelog], and the release wipes the section afterwards. So the entry has to be added with the change itself, not at release time — and on `master` first, which is where the changelog for every version is kept.
