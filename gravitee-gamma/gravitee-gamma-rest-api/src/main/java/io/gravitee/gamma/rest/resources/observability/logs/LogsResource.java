@@ -21,10 +21,12 @@ import io.gravitee.gamma.rest.core.observability.logs.exception.LogDetailNotFoun
 import io.gravitee.gamma.rest.core.observability.logs.exception.MissingLogScopeException;
 import io.gravitee.gamma.rest.core.observability.logs.use_case.GetAuthzDecisionUseCase;
 import io.gravitee.gamma.rest.core.observability.logs.use_case.GetObservabilityLogDetailUseCase;
+import io.gravitee.gamma.rest.core.observability.logs.use_case.SearchObservabilityLogMessagesUseCase;
 import io.gravitee.gamma.rest.core.observability.logs.use_case.SearchObservabilityLogsUseCase;
 import io.gravitee.gamma.rest.resources.observability.logs.dto.FilterConditionDto;
 import io.gravitee.gamma.rest.resources.observability.logs.dto.LogDetailDto;
 import io.gravitee.gamma.rest.resources.observability.logs.dto.LogEntryDto;
+import io.gravitee.gamma.rest.resources.observability.logs.dto.MessageLogDto;
 import io.gravitee.gamma.rest.resources.observability.logs.dto.SearchLogsRequestDto;
 import io.gravitee.gamma.rest.resources.tracing.dto.PaginatedResponseDto;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -78,6 +80,9 @@ public class LogsResource {
 
     @Inject
     private GetObservabilityLogDetailUseCase getLogDetailUseCase;
+
+    @Inject
+    private SearchObservabilityLogMessagesUseCase searchLogMessagesUseCase;
 
     @Inject
     private GetAuthzDecisionUseCase getAuthzDecisionUseCase;
@@ -162,6 +167,42 @@ public class LogsResource {
             .decision()
             .map(decision -> Response.ok(LogEntryDto.from(decision)).build())
             .orElseThrow(() -> new LogDetailNotFoundException(eventId, apiId));
+    }
+
+    /**
+     * Messages that crossed a Message API during one connection — the message-level trace behind a
+     * log detail. Paginated because a single connection can carry thousands, and a debugging session
+     * reads the first few.
+     *
+     * <p>Guarded like the detail it belongs to, including the collapse to 404: a caller who may not
+     * read this API's logs must not be able to tell a forbidden connection from an absent one.
+     */
+    @GET
+    @Path("/{requestId}/messages")
+    @Produces(MediaType.APPLICATION_JSON)
+    public PaginatedResponseDto<MessageLogDto> getLogMessages(
+        @PathParam("requestId") String requestId,
+        @QueryParam("apiId") String apiId,
+        @QueryParam("page") Integer page,
+        @QueryParam("perPage") Integer perPage
+    ) {
+        requireParam("apiId", apiId);
+        checkApiLogReadPermissionOrCollapse(apiId, requestId);
+
+        var ctx = GraviteeContext.getExecutionContext();
+        var output = searchLogMessagesUseCase.execute(
+            new SearchObservabilityLogMessagesUseCase.Input(
+                ctx.getOrganizationId(),
+                ctx.getEnvironmentId(),
+                apiId,
+                requestId,
+                page,
+                perPage
+            )
+        );
+
+        var data = output.data().data().stream().map(MessageLogDto::from).toList();
+        return PaginatedResponseDto.of(data, output.data().totalCount(), output.page(), output.perPage());
     }
 
     private static void requireParam(String name, String value) {
