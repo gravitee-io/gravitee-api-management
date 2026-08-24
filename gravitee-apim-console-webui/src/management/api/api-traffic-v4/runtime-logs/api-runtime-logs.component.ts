@@ -22,7 +22,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 
 import { QuickFiltersStoreService } from './services';
-import { LogFiltersInitialValues } from './models';
+import { LogFiltersInitialValues, PERIODS, resolveInitialLogPeriod } from './models';
 
 import { ApiLogsV2Service } from '../../../../services-ngx/api-logs-v2.service';
 import { ApiLogsParam, ApiLogsResponse, ApiV4 } from '../../../../entities/management-api-v2';
@@ -68,6 +68,7 @@ export class ApiRuntimeLogsComponent implements OnInit {
   isMessageApi = toSignal(this.api$.pipe(map((api: ApiV4) => !!api && api.type === 'MESSAGE')));
   initialValues: LogFiltersInitialValues;
   loading = true;
+  private lastSearchTimeRange: { from?: number | null; to?: number | null } | null = null;
 
   ngOnInit(): void {
     this.initData();
@@ -89,8 +90,12 @@ export class ApiRuntimeLogsComponent implements OnInit {
   }
 
   paginationUpdated(event: GioTableWrapperPagination) {
-    const logFilters = this.quickFilterStore.getFilters();
-    const params = this.quickFilterStore.toLogFilterQueryParam(logFilters, event.index, event.size);
+    const params = this.quickFilterStore.toLogFilterQueryParam(
+      this.quickFilterStore.getFilters(),
+      event.index,
+      event.size,
+      this.lastSearchTimeRange,
+    );
     this.searchConnectionLogs(params);
   }
 
@@ -99,6 +104,7 @@ export class ApiRuntimeLogsComponent implements OnInit {
   }
 
   searchConnectionLogs(queryParam?: ApiLogsParam) {
+    this.lastSearchTimeRange = queryParam ? { from: queryParam.from, to: queryParam.to } : null;
     this.loading = true;
     this.apiLogsService
       .searchConnectionLogs(this.activatedRoute.snapshot.params.apiId, queryParam)
@@ -117,15 +123,12 @@ export class ApiRuntimeLogsComponent implements OnInit {
   }
 
   private initData() {
-    const applicationIds: string[] = this.activatedRoute.snapshot.queryParams?.applicationIds
-      ? this.activatedRoute.snapshot.queryParams.applicationIds.split(',')
-      : null;
-    const planIds: string[] = this.activatedRoute.snapshot.queryParams?.planIds
-      ? this.activatedRoute.snapshot.queryParams.planIds.split(',')
-      : null;
-    const statuses: Set<number> = this.activatedRoute.snapshot.queryParams?.statuses
-      ? new Set(this.activatedRoute.snapshot.queryParams.statuses.split(',').map(Number))
-      : null;
+    const qp = this.activatedRoute.snapshot.queryParams;
+    const applicationIds: string[] = qp?.applicationIds ? qp.applicationIds.split(',') : null;
+    const planIds: string[] = qp?.planIds ? qp.planIds.split(',') : null;
+    const statuses: Set<number> = qp?.statuses ? new Set(qp.statuses.split(',').map(Number)) : null;
+    const periodFromQuery = qp?.period != null ? PERIODS.find((p) => p.value === String(qp.period)) : undefined;
+    const hasRelativePeriod = periodFromQuery && periodFromQuery.value !== '0';
 
     forkJoin([
       applicationIds?.length > 0 ? this.applicationService.findByIds(applicationIds, 1, applicationIds?.length ?? 10) : of(null),
@@ -133,7 +136,10 @@ export class ApiRuntimeLogsComponent implements OnInit {
     ])
       .pipe(
         map(([applications, plans]) => {
+          const from = !hasRelativePeriod && qp?.from ? moment(Number(qp.from)) : undefined;
+          const to = !hasRelativePeriod && qp?.to ? moment(Number(qp.to)) : undefined;
           return {
+            period: resolveInitialLogPeriod(periodFromQuery, from, to),
             plans:
               planIds?.map((id) => {
                 const plan = plans.find((p) => p.id === id);
@@ -144,13 +150,11 @@ export class ApiRuntimeLogsComponent implements OnInit {
                 const application = applications.data.find((app) => app.id === id);
                 return { value: id, label: `${application.name} ( ${application.owner?.displayName} )` };
               }) ?? undefined,
-            from: this.activatedRoute.snapshot.queryParams?.from
-              ? moment(Number(this.activatedRoute.snapshot.queryParams.from))
-              : undefined,
-            to: this.activatedRoute.snapshot.queryParams?.to ? moment(Number(this.activatedRoute.snapshot.queryParams.to)) : undefined,
-            methods: this.activatedRoute.snapshot.queryParams?.methods?.split(',') ?? undefined,
+            from,
+            to,
+            methods: qp?.methods?.split(',') ?? undefined,
             statuses: statuses?.size > 0 ? statuses : undefined,
-            entrypoints: this.activatedRoute.snapshot.queryParams?.entrypointIds?.split(',') ?? undefined,
+            entrypoints: qp?.entrypointIds?.split(',') ?? undefined,
           };
         }),
       )

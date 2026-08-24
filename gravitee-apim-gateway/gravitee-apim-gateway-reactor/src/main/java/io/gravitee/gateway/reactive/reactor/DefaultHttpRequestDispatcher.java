@@ -83,6 +83,8 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
 
     private static final String ATTR_INTERNAL_VERTX_TIMER_ID = ContextAttributes.ATTR_PREFIX + "vertx-timer-id";
     public static final String ATTR_ENTRYPOINT = ContextAttributes.ATTR_PREFIX + "entrypoint";
+    // Key checked by gravitee-node's RouteGetter (OTel span naming) before falling back to the raw request URI.
+    private static final String TRACING_ROUTE_CONTEXT_KEY = "VertxRoute";
     private final GatewayConfiguration gatewayConfiguration;
     private final HttpAcceptorResolver httpAcceptorResolver;
     private final IdGenerator idGenerator;
@@ -154,6 +156,9 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
             mutableCtx.tracer(
                 new io.gravitee.gateway.reactive.api.tracing.Tracer(vertxContext, gatewayTracingContext.opentelemetryTracer())
             );
+            // No route matched: bucket all of it under "/" rather than the unbounded raw request URI
+            // (scanner/probe traffic on internet-facing gateways is otherwise the largest source of cardinality).
+            markTracingRoute(vertxContext, "/");
             ProcessorChain preProcessorChain = platformProcessorChainFactory.preProcessorChain();
             List<ProcessorHook> processHooks = gatewayTracingContext.isVerbose() ? List.of(tracingHook) : List.of();
             Completable handleNotFoundCompletable = HookHelper.hook(
@@ -190,6 +195,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
             log.debug("Request routed to API reactor on path [{}]", httpAcceptor.path());
             MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest);
             mutableCtx.request().contextPath(httpAcceptor.path());
+            markTracingRoute(vertxContext, httpAcceptor.path());
             TracingContext tracingContext = apiReactor.tracingContext();
             mutableCtx.tracer(new io.gravitee.gateway.reactive.api.tracing.Tracer(vertxContext, tracingContext.opentelemetryTracer()));
             mutableCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, apiReactor.api());
@@ -250,6 +256,18 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         return handleV3Request(httpServerRequest, httpAcceptor, vertxContext);
     }
 
+    private void markTracingRoute(final Context vertxContext, final String route) {
+        // Vert.x 4 exposes String-keyed Context#putLocal directly; on Vert.x 5 (master, 4.12.x) it moved to
+        // io.vertx.core.internal.ContextInternal and requires a cast, so this line needs adjusting on cherry-pick.
+        vertxContext.putLocal(TRACING_ROUTE_CONTEXT_KEY, withoutTrailingSlash(route));
+    }
+
+    // httpAcceptor.path() always has a trailing slash; strip it so http.route matches url.path (both for
+    // correlation in APM tooling and so pre-existing transaction.name-based searches keep matching).
+    private static String withoutTrailingSlash(final String path) {
+        return path.length() > 1 && path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
+    }
+
     private MutableExecutionContext prepareExecutionContext(final HttpServerRequest httpServerRequest) {
         VertxHttpServerRequest request = new VertxHttpServerRequest(
             httpServerRequest,
@@ -288,6 +306,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         final Context vertxContext
     ) {
         final ReactorHandler reactorHandler = handlerEntrypoint.reactor();
+        markTracingRoute(vertxContext, handlerEntrypoint.path());
 
         io.gravitee.gateway.http.vertx.VertxHttpServerRequest request = createV3Request(httpServerRequest, idGenerator);
 
