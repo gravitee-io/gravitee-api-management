@@ -47,6 +47,8 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
     static final String OP_REMOVE_ENTITY = "removeEntity";
     static final String OP_ADD_OR_UPDATE_POLICY = "addOrUpdatePolicy";
     static final String OP_REMOVE_POLICY = "removePolicy";
+    static final String OP_ADD_OR_UPDATE_SCHEMA = "addOrUpdateSchema";
+    static final String OP_REMOVE_SCHEMA = "removeSchema";
     static final String OP_COMMIT = "commit";
 
     // Vertx default reply timeout is 30s — long enough to wedge a sync cycle when the PDP service
@@ -106,12 +108,17 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
         if (parents != null && !parents.isEmpty()) {
             command.put("parents", new JsonArray(parents));
         }
-        return routeGated(environmentId, command, targetPdpIds, uid, updatedAt);
+        return routeGated(environmentId, command, expandWildcard(environmentId, targetPdpIds), uid, updatedAt);
     }
 
     @Override
     public Completable removeEntity(String environmentId, String uid, Set<String> targetPdpIds) {
-        return routeForget(environmentId, new JsonObject().put("op", OP_REMOVE_ENTITY).put("uid", uid), targetPdpIds, uid);
+        return routeForget(
+            environmentId,
+            new JsonObject().put("op", OP_REMOVE_ENTITY).put("uid", uid),
+            expandWildcard(environmentId, targetPdpIds),
+            uid
+        );
     }
 
     @Override
@@ -128,12 +135,42 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
             .put("docId", docId)
             .put("name", name)
             .put("policyText", policyText);
-        return routeGated(environmentId, command, targetPdpIds, docId, updatedAt);
+        return routeGated(environmentId, command, expandWildcard(environmentId, targetPdpIds), docId, updatedAt);
     }
 
     @Override
     public Completable removePolicy(String environmentId, String docId, Set<String> targetPdpIds) {
-        return routeForget(environmentId, new JsonObject().put("op", OP_REMOVE_POLICY).put("docId", docId), targetPdpIds, docId);
+        return routeForget(
+            environmentId,
+            new JsonObject().put("op", OP_REMOVE_POLICY).put("docId", docId),
+            expandWildcard(environmentId, targetPdpIds),
+            docId
+        );
+    }
+
+    @Override
+    public Completable addOrUpdateSchema(
+        String environmentId,
+        String docId,
+        String name,
+        String schemaText,
+        Set<String> targetPdpIds,
+        long updatedAt
+    ) {
+        // The PDP consumer reads docId and schemaText and nothing else; name stays on the deployable
+        // for gateway-side logging.
+        JsonObject command = new JsonObject().put("op", OP_ADD_OR_UPDATE_SCHEMA).put("docId", docId).put("schemaText", schemaText);
+        return routeGated(environmentId, command, schemaScopes(environmentId, targetPdpIds, docId), docId, updatedAt);
+    }
+
+    @Override
+    public Completable removeSchema(String environmentId, String docId, Set<String> targetPdpIds) {
+        return routeForget(
+            environmentId,
+            new JsonObject().put("op", OP_REMOVE_SCHEMA).put("docId", docId),
+            schemaScopes(environmentId, targetPdpIds, docId),
+            docId
+        );
     }
 
     @Override
@@ -219,12 +256,12 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
         pendingByAddress.computeIfAbsent(address, k -> ConcurrentHashMap.newKeySet()).addAll(refs);
     }
 
-    private Completable routeGated(String environmentId, JsonObject command, Set<String> targetPdpIds, String docId, long updatedAt) {
-        if (targetPdpIds == null || targetPdpIds.isEmpty()) {
+    private Completable routeGated(String environmentId, JsonObject command, Set<String> scopes, String docId, long updatedAt) {
+        if (scopes.isEmpty()) {
             return Completable.complete();
         }
         List<Completable> sends = new ArrayList<>();
-        for (String scope : expandWildcard(environmentId, targetPdpIds)) {
+        for (String scope : scopes) {
             if (!hostedScopes.serves(environmentId, scope)) {
                 continue;
             }
@@ -249,12 +286,12 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
         return Completable.merge(sends);
     }
 
-    private Completable routeForget(String environmentId, JsonObject command, Set<String> targetPdpIds, String docId) {
-        if (targetPdpIds == null || targetPdpIds.isEmpty()) {
+    private Completable routeForget(String environmentId, JsonObject command, Set<String> scopes, String docId) {
+        if (scopes.isEmpty()) {
             return Completable.complete();
         }
         List<Completable> sends = new ArrayList<>();
-        for (String scope : expandWildcard(environmentId, targetPdpIds)) {
+        for (String scope : scopes) {
             if (!hostedScopes.serves(environmentId, scope)) {
                 continue;
             }
@@ -278,6 +315,9 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
     // default engine. Expanding to those and routing per-scope gives confirmed, retried delivery — unlike a
     // fire-and-forget broadcast — and a scope provisioned later is backfilled by the hydration path.
     private Set<String> expandWildcard(String environmentId, Set<String> targetPdpIds) {
+        if (targetPdpIds == null || targetPdpIds.isEmpty()) {
+            return Set.of();
+        }
         if (!targetPdpIds.contains(WILDCARD)) {
             return targetPdpIds;
         }
@@ -285,6 +325,38 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
         expanded.remove(WILDCARD);
         expanded.addAll(hostedScopes.hostedFor(environmentId));
         expanded.add(DEFAULT_SCOPE);
+        return expanded;
+    }
+
+    // D7: "*" on a schema means every NAMED engine of the environment. Unlike expandWildcard it does not
+    // add the bootstrap engine, which is shared across environments — a wildcard schema landing there would
+    // merge two environments' contracts into one. Targeting "default" explicitly still works.
+    // A wildcard schema reaches only NAMED engines (D7), so on a node hosting none it expands to nothing
+    // and no command is sent. Policies never hit this, because their wildcard always includes the bootstrap
+    // engine, so the silence is specific to schema and would otherwise leave a single-node install running
+    // policies against no schema at all with nothing in the log to say so.
+    private Set<String> schemaScopes(String environmentId, Set<String> targetPdpIds, String docId) {
+        Set<String> scopes = expandWildcardWithoutBootstrap(environmentId, targetPdpIds);
+        if (scopes.isEmpty() && targetPdpIds != null && targetPdpIds.contains(WILDCARD)) {
+            log.warn(
+                "Authz schema '{}' targets every named engine of environment [{}], which hosts none, so it reaches nothing",
+                docId,
+                environmentId
+            );
+        }
+        return scopes;
+    }
+
+    private Set<String> expandWildcardWithoutBootstrap(String environmentId, Set<String> targetPdpIds) {
+        if (targetPdpIds == null || targetPdpIds.isEmpty()) {
+            return Set.of();
+        }
+        if (!targetPdpIds.contains(WILDCARD)) {
+            return targetPdpIds;
+        }
+        Set<String> expanded = new LinkedHashSet<>(targetPdpIds);
+        expanded.remove(WILDCARD);
+        expanded.addAll(hostedScopes.hostedFor(environmentId));
         return expanded;
     }
 

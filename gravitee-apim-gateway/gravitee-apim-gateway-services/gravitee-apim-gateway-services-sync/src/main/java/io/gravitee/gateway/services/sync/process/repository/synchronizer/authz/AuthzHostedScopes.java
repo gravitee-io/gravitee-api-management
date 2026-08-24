@@ -31,9 +31,12 @@ import java.util.stream.Collectors;
  * declares and hitting {@code NO_HANDLERS} on scopes that live on other nodes.
  *
  * <p>The global {@code default} scope (no tag) is always served (the bootstrap engine present on every
- * node). The {@code *} wildcard is expanded by the engine port to {@link #hostedFor(String)} plus
- * {@code default} and routed per-scope, so each node delivers a wildcard document to exactly the engines
- * it hosts.
+ * node). The {@code *} wildcard is expanded by the engine port and routed per-scope, so each node delivers
+ * a wildcard document to exactly the engines it hosts. Policies and entities expand to
+ * {@link #hostedFor(String)} plus {@code default}; <strong>schema documents expand to
+ * {@link #hostedFor(String)} only</strong>, because the bootstrap engine is shared across environments and
+ * a wildcard schema landing there would merge two environments' contracts into one. Targeting
+ * {@code default} explicitly still reaches it.
  *
  * <p>Tag gating mirrors API sharding ({@link io.gravitee.common.util.EnvironmentUtils#hasMatchingTags}):
  * an untagged gateway is a catch-all that serves every scope, a tagged gateway serves a scope whose tag

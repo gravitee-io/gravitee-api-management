@@ -186,6 +186,7 @@ class AuthzHydrationPlacementTest {
 
         assertThat(port.ops).contains("removeEntity:" + ENGINE_UID + ":[scope-b]");
         assertThat(entityPlacement.applied(ENV + ":" + ENTITY_ID)).containsExactly("scope-a");
+        assertThat(port.schemaOps).as("an entity retarget must not reach the schema route").isEmpty();
     }
 
     @Test
@@ -221,6 +222,7 @@ class AuthzHydrationPlacementTest {
 
         assertThat(port.ops).noneMatch(op -> op.startsWith("removeEntity:"));
         assertThat(port.ops).contains("addOrUpdateEntity:" + ENGINE_UID + ":[*]");
+        assertThat(port.schemaOps).as("an entity widen must not reach the schema route").isEmpty();
     }
 
     private static ThreadPoolExecutor executor() {
@@ -292,6 +294,27 @@ class AuthzHydrationPlacementTest {
         @Override
         public Completable removePolicy(String environmentId, String docId, Set<String> targetPdpIds) {
             ops.add("removePolicy:" + docId);
+            return Completable.complete();
+        }
+
+        final ConcurrentLinkedQueue<String> schemaOps = new ConcurrentLinkedQueue<>();
+
+        @Override
+        public Completable addOrUpdateSchema(
+            String environmentId,
+            String docId,
+            String name,
+            String schemaText,
+            Set<String> targetPdpIds,
+            long updatedAt
+        ) {
+            schemaOps.add("addOrUpdateSchema:" + docId);
+            return Completable.complete();
+        }
+
+        @Override
+        public Completable removeSchema(String environmentId, String docId, Set<String> targetPdpIds) {
+            schemaOps.add("removeSchema:" + docId);
             return Completable.complete();
         }
 

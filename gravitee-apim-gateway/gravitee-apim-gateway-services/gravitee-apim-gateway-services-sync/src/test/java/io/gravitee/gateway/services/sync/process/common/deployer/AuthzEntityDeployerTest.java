@@ -157,6 +157,22 @@ class AuthzEntityDeployerTest {
             .build();
     }
 
+    @Test
+    void deploying_and_undeploying_an_entity_never_reaches_the_schema_ops() {
+        AuthzEntityReactorDeployable d = principal("idp.am.alice");
+
+        deployer.deploy(d).blockingAwait();
+        deployer.undeploy(d).blockingAwait();
+
+        assertThat(port.entityOps).isNotEmpty();
+        assertThat(port.schemaOps).as("the schema route is separate; an entity must never stage a schema").isEmpty();
+
+        // The assertion above is only worth anything if the recorder actually records; prove it here,
+        // otherwise gutting the recorder would leave the guard silently green.
+        port.addOrUpdateSchema("env-1", "probe", "n", "entity User;", Set.of("orders"), 1L).blockingAwait();
+        assertThat(port.schemaOps).containsExactly("addOrUpdateSchema:probe");
+    }
+
     private static class RecordingPort implements AuthzEnginePort {
 
         record EntityOp(String op, String uid, Map<String, Object> attributes, List<String> parents, Set<String> targetPdpIds) {}
@@ -196,6 +212,27 @@ class AuthzEntityDeployerTest {
 
         @Override
         public Completable removePolicy(String environmentId, String docId, Set<String> targetPdpIds) {
+            return Completable.complete();
+        }
+
+        final ConcurrentLinkedQueue<String> schemaOps = new ConcurrentLinkedQueue<>();
+
+        @Override
+        public Completable addOrUpdateSchema(
+            String environmentId,
+            String docId,
+            String name,
+            String schemaText,
+            Set<String> targetPdpIds,
+            long updatedAt
+        ) {
+            schemaOps.add("addOrUpdateSchema:" + docId);
+            return Completable.complete();
+        }
+
+        @Override
+        public Completable removeSchema(String environmentId, String docId, Set<String> targetPdpIds) {
+            schemaOps.add("removeSchema:" + docId);
             return Completable.complete();
         }
 

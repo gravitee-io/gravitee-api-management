@@ -204,6 +204,22 @@ class AuthzPolicyDeployerTest {
             .build();
     }
 
+    @Test
+    void deploying_and_undeploying_a_policy_never_reaches_the_schema_ops() {
+        AuthzPolicyReactorDeployable d = global("doc-schema-guard", "Default deny", "permit(p,a,r);");
+
+        deployer.deploy(d).blockingAwait();
+        deployer.undeploy(d).blockingAwait();
+
+        assertThat(port.policyOps).isNotEmpty();
+        assertThat(port.schemaOps).as("the schema route is separate; a policy must never stage a schema").isEmpty();
+
+        // The assertion above is only worth anything if the recorder actually records; prove it here,
+        // otherwise gutting the recorder would leave the guard silently green.
+        port.addOrUpdateSchema("env-1", "probe", "n", "entity User;", Set.of("orders"), 1L).blockingAwait();
+        assertThat(port.schemaOps).containsExactly("addOrUpdateSchema:probe");
+    }
+
     private static class RecordingPort implements AuthzEnginePort {
 
         record PolicyOp(String op, String docId, String name, String policyText, Set<String> targetPdpIds) {}
@@ -243,6 +259,27 @@ class AuthzPolicyDeployerTest {
         @Override
         public Completable removePolicy(String environmentId, String docId, Set<String> targetPdpIds) {
             policyOps.add(new PolicyOp("removePolicy", docId, null, null, targetPdpIds));
+            return Completable.complete();
+        }
+
+        final ConcurrentLinkedQueue<String> schemaOps = new ConcurrentLinkedQueue<>();
+
+        @Override
+        public Completable addOrUpdateSchema(
+            String environmentId,
+            String docId,
+            String name,
+            String schemaText,
+            Set<String> targetPdpIds,
+            long updatedAt
+        ) {
+            schemaOps.add("addOrUpdateSchema:" + docId);
+            return Completable.complete();
+        }
+
+        @Override
+        public Completable removeSchema(String environmentId, String docId, Set<String> targetPdpIds) {
+            schemaOps.add("removeSchema:" + docId);
             return Completable.complete();
         }
 

@@ -57,6 +57,23 @@ public class NoopAuthzEnginePort implements AuthzEnginePort {
     }
 
     @Override
+    public Completable addOrUpdateSchema(
+        String environmentId,
+        String docId,
+        String name,
+        String schemaText,
+        Set<String> targetPdpIds,
+        long updatedAt
+    ) {
+        return Completable.complete();
+    }
+
+    @Override
+    public Completable removeSchema(String environmentId, String docId, Set<String> targetPdpIds) {
+        return Completable.complete();
+    }
+
+    @Override
     public Completable commit() {
         return Completable.complete();
     }

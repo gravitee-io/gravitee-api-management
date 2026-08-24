@@ -100,6 +100,7 @@ class AuthzEventToEngineIntegrationTest {
         synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
         assertThat(port.ops).containsExactly("addOrUpdateEntity:Resource::\"api.bookings\"", "commit");
+        assertThat(port.schemaOps).as("an entity event must not reach the schema route").isEmpty();
     }
 
     @Test
@@ -123,6 +124,7 @@ class AuthzEventToEngineIntegrationTest {
         synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
         assertThat(port.ops).containsExactly("addOrUpdatePolicy:doc-1", "commit");
+        assertThat(port.schemaOps).as("a policy event must not reach the schema route").isEmpty();
     }
 
     private static ThreadPoolExecutor executor() {
@@ -176,6 +178,27 @@ class AuthzEventToEngineIntegrationTest {
         @Override
         public Completable removePolicy(String environmentId, String docId, Set<String> targetPdpIds) {
             ops.add("removePolicy:" + docId);
+            return Completable.complete();
+        }
+
+        final ConcurrentLinkedQueue<String> schemaOps = new ConcurrentLinkedQueue<>();
+
+        @Override
+        public Completable addOrUpdateSchema(
+            String environmentId,
+            String docId,
+            String name,
+            String schemaText,
+            Set<String> targetPdpIds,
+            long updatedAt
+        ) {
+            schemaOps.add("addOrUpdateSchema:" + docId);
+            return Completable.complete();
+        }
+
+        @Override
+        public Completable removeSchema(String environmentId, String docId, Set<String> targetPdpIds) {
+            schemaOps.add("removeSchema:" + docId);
             return Completable.complete();
         }
 
