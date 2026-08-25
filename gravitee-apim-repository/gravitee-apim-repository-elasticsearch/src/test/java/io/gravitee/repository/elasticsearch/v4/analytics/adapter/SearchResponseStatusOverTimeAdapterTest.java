@@ -72,6 +72,7 @@ class SearchResponseStatusOverTimeAdapterTest {
                          "extended_bounds": { "max": 1697969730000, "min": 1697883330000 },
                          "field": "@timestamp",
                          "fixed_interval": "600000ms",
+                         "offset": "330000ms",
                          "min_doc_count": 0
                        }
                      }
@@ -83,8 +84,8 @@ class SearchResponseStatusOverTimeAdapterTest {
                          {
                            "range": {
                              "@timestamp": {
-                               "gte": 1697882730000,
-                               "lte": 1697970330000
+                               "gte": 1697883330000,
+                               "lt": 1697970330000
                              }
                            }
                          }
@@ -122,6 +123,7 @@ class SearchResponseStatusOverTimeAdapterTest {
                          "extended_bounds": { "max": 1697969730000, "min": 1697883330000 },
                          "field": "@timestamp",
                          "fixed_interval": "600000ms",
+                         "offset": "330000ms",
                          "min_doc_count": 0
                        }
                      }
@@ -133,8 +135,8 @@ class SearchResponseStatusOverTimeAdapterTest {
                          {
                            "range": {
                              "@timestamp": {
-                               "gte": 1697882730000,
-                               "lte": 1697970330000
+                               "gte": 1697883330000,
+                               "lt": 1697970330000
                              }
                            }
                          }
@@ -172,6 +174,7 @@ class SearchResponseStatusOverTimeAdapterTest {
                          "extended_bounds": { "max": 1697969730000, "min": 1697883330000 },
                          "field": "@timestamp",
                          "interval": "600000ms",
+                         "offset": "330000ms",
                          "min_doc_count": 0
                        }
                      }
@@ -183,8 +186,8 @@ class SearchResponseStatusOverTimeAdapterTest {
                          {
                            "range": {
                              "@timestamp": {
-                               "gte": 1697882730000,
-                               "lte": 1697970330000
+                               "gte": 1697883330000,
+                               "lt": 1697970330000
                              }
                            }
                          }
