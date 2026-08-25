@@ -41,30 +41,30 @@ public class GetCurrentThemeUseCase {
     private final ThemeCrudService themeCrudService;
 
     public Output execute(Input input) {
-        var envId = input.executionContext().getEnvironmentId();
-        var theme = resolveByPortal(input.portalId(), envId).orElseGet(() ->
-            resolveEnabledOrCreate(input.type(), envId, input.executionContext())
+        var environmentId = input.executionContext().getEnvironmentId();
+        var theme = resolveByPortal(input.portalId(), environmentId).orElseGet(() ->
+            resolveEnabledOrCreate(input.type(), environmentId, input.executionContext())
         );
         return new Output(theme);
     }
 
-    private Optional<Theme> resolveByPortal(PortalId portalId, String envId) {
+    private Optional<Theme> resolveByPortal(PortalId portalId, String environmentId) {
         if (portalId == null) {
             return Optional.empty();
         }
         return portalCrudService
-            .findByIdAndEnvironmentId(portalId, envId)
+            .findByIdAndEnvironmentId(portalId, environmentId)
             .map(Portal::getActiveThemeId)
-            .flatMap(themeId -> themeCrudService.findByIdAndEnvironmentId(themeId, envId));
+            .flatMap(themeId -> themeCrudService.findByIdAndEnvironmentId(themeId, environmentId));
     }
 
-    private Theme resolveEnabledOrCreate(ThemeType type, String envId, ExecutionContext ctx) {
+    private Theme resolveEnabledOrCreate(ThemeType type, String environmentId, ExecutionContext executionContext) {
         return themeQueryService
-            .findByThemeTypeAndEnvironmentId(type, envId)
+            .findByThemeTypeAndEnvironmentId(type, environmentId)
             .stream()
             .filter(theme -> Objects.equals(true, theme.isEnabled()))
             .findFirst()
-            .orElseGet(() -> defaultThemeDomainService.createAndEnableDefaultTheme(type, ctx));
+            .orElseGet(() -> defaultThemeDomainService.createAndEnableDefaultTheme(type, executionContext));
     }
 
     @Builder
