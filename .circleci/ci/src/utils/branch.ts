@@ -36,16 +36,6 @@ export function isSupportBranch(branch: string): boolean {
   return regex.test(branch);
 }
 
-/**
- * A branch cut from a released tag to carry an urgent fix, without disturbing the support branch.
- * Named after the tag it starts from, so the release version it produces is readable from it:
- * `hotfix/4.12.17` releases `4.12.17-hotfix.N`.
- */
-export function isHotfixBranch(branch: string): boolean {
-  const regex = /^hotfix\/\d+\.\d+\.\d+$/;
-  return regex.test(branch);
-}
-
 export function isSupportBranchOrMaster(branch: string): boolean {
   return isMasterBranch(branch) || isSupportBranch(branch);
 }

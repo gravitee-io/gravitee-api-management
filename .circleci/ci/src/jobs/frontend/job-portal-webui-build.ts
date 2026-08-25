@@ -36,9 +36,7 @@ export class PortalWebuiBuildJob {
     const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig, environment);
     dynamicConfig.addReusableCommand(notifyOnFailureCommand);
 
-    const apimVersion = ['build_rpm', 'build_docker_images', 'release', 'full_release'].includes(environment.action)
-      ? environment.graviteeioVersion
-      : computeApimVersion(environment);
+    const apimVersion = environment.action === 'full_release' ? environment.graviteeioVersion : computeApimVersion(environment);
 
     const steps: Command[] = [
       new commands.Checkout(),
