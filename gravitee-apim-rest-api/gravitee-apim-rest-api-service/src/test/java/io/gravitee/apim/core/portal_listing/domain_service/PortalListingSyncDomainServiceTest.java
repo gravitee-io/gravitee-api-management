@@ -73,6 +73,7 @@ class PortalListingSyncDomainServiceTest {
     private final PortalPageContentCrudServiceInMemory pageContentCrud = new PortalPageContentCrudServiceInMemory();
     private final ApiCrudServiceInMemory apiCrud = new ApiCrudServiceInMemory();
 
+    private PortalNavigationItemValidatorService validator;
     private PortalListingSyncDomainService syncService;
 
     @BeforeEach
@@ -89,6 +90,7 @@ class PortalListingSyncDomainServiceTest {
             mock(PortalNavigationItemValidatorService.class)
         );
         var automationManaged = new AutomationManagedNavigationItemsQueryService(portalListingCrud, pageContentQuery, navItemQuery);
+        validator = mock(PortalNavigationItemValidatorService.class);
         syncService = new PortalListingSyncDomainService(
             pageContentQuery,
             apiDocSync,
@@ -98,7 +100,8 @@ class PortalListingSyncDomainServiceTest {
                 apiCrud,
                 new NavigationSyncPlanExecutor(navItemCrud, navItemQuery, pageContentCrud),
                 automationManaged
-            )
+            ),
+            validator
         );
     }
 
@@ -215,6 +218,27 @@ class PortalListingSyncDomainServiceTest {
 
     private static PortalListing aListing(List<PortalListingApiEntry> apis) {
         return PortalListing.of(LISTING_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), PORTAL_ID, apis);
+    }
+
+    @Test
+    void validate_for_conflicts_produces_create_for_new_nav_api_and_no_updates() {
+        var listing = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
+
+        syncService.validateForConflicts(AUDIT_INFO, PORTAL_ID, listing);
+
+        var createsCaptor = org.mockito.ArgumentCaptor.forClass(List.class);
+        org.mockito.Mockito.verify(validator).validateAll(createsCaptor.capture(), org.mockito.ArgumentMatchers.anyString());
+        assertThat(createsCaptor.getValue()).hasSize(1);
+        var updatesCaptor = org.mockito.ArgumentCaptor.forClass(List.class);
+        org.mockito.Mockito.verify(validator).validateAllUpdates(updatesCaptor.capture());
+        assertThat(updatesCaptor.getValue()).isEmpty();
+    }
+
+    @Test
+    void validate_for_conflicts_is_a_noop_on_empty_listing() {
+        syncService.validateForConflicts(AUDIT_INFO, PORTAL_ID, aListing(List.of()));
+
+        org.mockito.Mockito.verifyNoInteractions(validator);
     }
 
     private static GraviteeMarkdownPageContent anApiDocPageContent(PortalPageContentId id, String apiId) {

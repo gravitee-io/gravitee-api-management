@@ -17,12 +17,12 @@ package io.gravitee.apim.core.portal_listing.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.portal.exception.PathConflictException;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_listing.model.PortalListingApiEntry;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.ApiDocumentationSyncDomainService;
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -55,7 +55,6 @@ class NavigationItemEntryMaterializer {
             applyUpdate(navApi, apiId, entry, parent);
             return (PortalNavigationApi) navigationItemCrudService.update(navApi);
         }
-        rejectIfSegmentTakenByForeignItem(auditInfo, parent, Slug.from(entry.apiHrid()).value(), navApiId, entry.location());
         var create = CreatePortalNavigationItem.builder()
             .id(navApiId)
             .title(entry.apiHrid())
@@ -84,26 +83,31 @@ class NavigationItemEntryMaterializer {
         return navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), navApiId);
     }
 
-    void validateUpsertConflict(AuditInfo auditInfo, PortalId portalId, String apiId, PortalListingApiEntry entry) {
+    CreatePortalNavigationItem itemForValidation(AuditInfo auditInfo, PortalId portalId, String apiId, PortalListingApiEntry entry) {
         var navApiId = rowId(auditInfo, portalId, apiId);
         var parent = resolveParent(auditInfo, portalId.toString(), entry.location());
-        rejectIfSegmentTakenByForeignItem(auditInfo, parent, Slug.from(entry.apiHrid()).value(), navApiId, entry.location());
-    }
-
-    private void rejectIfSegmentTakenByForeignItem(
-        AuditInfo auditInfo,
-        PortalNavigationItemContainer parent,
-        String segment,
-        PortalNavigationItemId expectedId,
-        String location
-    ) {
         var parentId = Optional.ofNullable(parent).map(PortalNavigationItemContainer::getId).orElse(null);
-        navigationItemsQueryService
-            .findByParentIdAndSegment(auditInfo.environmentId(), parentId, segment)
-            .filter(sibling -> !sibling.getId().equals(expectedId))
-            .ifPresent(squatter -> {
-                throw PathConflictException.segmentTaken(PathConflictException.EntryKind.LISTING, location);
-            });
+        return CreatePortalNavigationItem.builder()
+            .id(navApiId)
+            .title(entry.apiHrid())
+            .segment(Slug.from(entry.apiHrid()).value())
+            .area(AREA)
+            .type(PortalNavigationItemType.API)
+            .order(entry.order() != null ? entry.order() : 0)
+            .apiId(apiId)
+            .parentId(parentId)
+            .visibility(PortalVisibility.PUBLIC)
+            .published(true)
+            .automationMetadata(
+                new AutomationMetadata(
+                    AutomationMetadata.ReferenceType.PORTAL,
+                    portalId.toString(),
+                    null,
+                    Optional.ofNullable(entry.location()),
+                    Optional.empty()
+                )
+            )
+            .build();
     }
 
     private static void applyUpdate(

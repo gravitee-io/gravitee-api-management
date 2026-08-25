@@ -19,7 +19,6 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.domain_service.navigation.NavigationFolderMapper;
 import io.gravitee.apim.core.portal.domain_service.navigation.actions.FolderActions;
-import io.gravitee.apim.core.portal.exception.PathConflictException;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
@@ -114,8 +113,6 @@ public final class NavigationSyncPlanExecutor {
         Function<String, PortalNavigationItemId> idFactory
     ) {
         final var folderId = idFactory.apply(df.path());
-        final var parentId = parent == null ? null : parent.getId();
-        rejectIfSegmentTakenByForeignItem(auditInfo, parentId, df.segment().value(), folderId, df.path());
         final var create = CreatePortalNavigationItem.builder()
             .id(folderId)
             .title(df.title())
@@ -129,21 +126,6 @@ public final class NavigationSyncPlanExecutor {
         return (PortalNavigationFolder) crudService.create(
             PortalNavigationItem.from(create, auditInfo.organizationId(), auditInfo.environmentId(), parent)
         );
-    }
-
-    private void rejectIfSegmentTakenByForeignItem(
-        AuditInfo auditInfo,
-        @Nullable PortalNavigationItemId parentId,
-        String segment,
-        PortalNavigationItemId expectedId,
-        String path
-    ) {
-        queryService
-            .findByParentIdAndSegment(auditInfo.environmentId(), parentId, segment)
-            .filter(sibling -> !sibling.getId().equals(expectedId))
-            .ifPresent(squatter -> {
-                throw PathConflictException.folderPath(path);
-            });
     }
 
     private PortalNavigationFolder applyUpdate(

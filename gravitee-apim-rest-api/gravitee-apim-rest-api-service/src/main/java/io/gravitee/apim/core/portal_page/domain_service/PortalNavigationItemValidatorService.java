@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
+import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ApiDocumentationAreaRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ApiItemCreateRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ApiItemUpdateRule;
@@ -33,6 +34,7 @@ import io.gravitee.apim.core.portal_page.domain_service.validation.HomepageUniqu
 import io.gravitee.apim.core.portal_page.domain_service.validation.LinkUrlRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.PageContentExistsRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ParentRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.SegmentConflictRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.SourceAutomationExclusivityRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.SourceConfigurationRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.SourcedAncestorFinder;
@@ -57,7 +59,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @DomainService
-public class PortalNavigationItemValidatorService {
+public class PortalNavigationItemValidatorService implements PortalNavigationValidator {
 
     private final PortalNavigationItemsQueryService navigationItemsQueryService;
     private final List<BulkCreatePortalNavigationItemValidationRule> bulkCreateRules;
@@ -76,6 +78,7 @@ public class PortalNavigationItemValidatorService {
         // Rules applied on both update and create
         var titleRequiredRule = new TitleRequiredRule();
         var parentRule = new ParentRule(navigationItemsQueryService);
+        var segmentConflictRule = new SegmentConflictRule(navigationItemsQueryService);
         var linkUrlRule = new LinkUrlRule();
         var externalSourceItemTypeRule = new ExternalSourceItemTypeRule();
         var sourceConfigurationRule = new SourceConfigurationRule(portalNavigationItemSourceDomainService::validateSourceConfiguration);
@@ -93,6 +96,7 @@ public class PortalNavigationItemValidatorService {
             new ApiDocumentationAreaRule(),
             linkUrlRule,
             parentRule,
+            segmentConflictRule,
             externalSourceItemTypeRule,
             sourceConfigurationRule,
             sourceAutomationExclusivityRule,
@@ -113,6 +117,7 @@ public class PortalNavigationItemValidatorService {
         );
     }
 
+    @Override
     public void validateAll(List<CreatePortalNavigationItem> items, String environmentId) {
         List<PortalNavigationItem> navigationItems = hasApiOrApiProductItems(items) ? fetchAllNavigationItems(environmentId) : List.of();
         Map<PortalNavigationItemId, PortalNavigationItem> itemsById = navigationItems
@@ -137,10 +142,12 @@ public class PortalNavigationItemValidatorService {
         }
     }
 
+    @Override
     public void validateOne(CreatePortalNavigationItem item, String environmentId) {
         validateAll(List.of(item), environmentId);
     }
 
+    @Override
     public void validateToUpdate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem) {
         List<PortalNavigationItem> navigationItems;
         Map<PortalNavigationItemId, PortalNavigationItem> itemsById;

@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import inmemory.PortalListingCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
@@ -24,6 +25,7 @@ import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator;
 import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyncPlanExecutor;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.PortalArea;
@@ -64,7 +66,8 @@ class PortalNavigationListingDomainServiceTest {
         syncService = new PortalNavigationSyncDomainService(
             query,
             new AutomationManagedNavigationItemsQueryService(portalListingCrud, pageContentQuery, query),
-            new NavigationSyncPlanExecutor(crud, query, pageContentCrud)
+            new NavigationSyncPlanExecutor(crud, query, pageContentCrud),
+            mock(PortalNavigationValidator.class)
         );
         listingService = new PortalNavigationListingDomainService(query);
     }
