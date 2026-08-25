@@ -26,13 +26,15 @@ const HOTFIX_QUALIFIER = /-hotfix\.\d+$/;
  * brings them together: the published version comes from the poms of whichever branch runs, while
  * the tag comes from the version. A mismatch therefore tags one version and publishes another,
  * without failing. A hotfix is where the two diverge most easily, since `hotfix/4.12.17` and
- * `4.12.17-hotfix.1` name the same release twice.
+ * `4.12.17-hotfix.1` name the same release twice. A hotfix branch releases hotfix versions of the
+ * tag it was cut from, and nothing else: any other qualifier on it would tag a version its poms do
+ * not carry.
  */
 function assertVersionMatchesBranch(version: string, branch: string): void {
   if (isHotfixBranch(branch)) {
     const releasedVersion = branch.substring('hotfix/'.length);
-    if (!version.startsWith(`${releasedVersion}-`)) {
-      throw new Error(`${branch} releases ${releasedVersion} with a qualifier, not ${version}`);
+    if (!HOTFIX_QUALIFIER.test(version) || version.replace(HOTFIX_QUALIFIER, '') !== releasedVersion) {
+      throw new Error(`${branch} releases ${releasedVersion}-hotfix.N, not ${version}`);
     }
   } else if (HOTFIX_QUALIFIER.test(version)) {
     throw new Error(`${version} is only released from hotfix/${version.replace(HOTFIX_QUALIFIER, '')}, not from ${branch}`);

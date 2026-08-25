@@ -83,10 +83,13 @@ describe('Release tests', () => {
   });
 
   it.each`
-    graviteeioVersion   | branch            | expectedError
-    ${'4.2.0'}          | ${'hotfix/4.2.0'} | ${'hotfix/4.2.0 releases 4.2.0 with a qualifier, not 4.2.0'}
-    ${'4.2.1-hotfix.1'} | ${'hotfix/4.2.0'} | ${'hotfix/4.2.0 releases 4.2.0 with a qualifier, not 4.2.1-hotfix.1'}
-    ${'4.2.0-hotfix.1'} | ${'4.2.x'}        | ${'4.2.0-hotfix.1 is only released from hotfix/4.2.0, not from 4.2.x'}
+    graviteeioVersion      | branch            | expectedError
+    ${'4.2.0'}             | ${'hotfix/4.2.0'} | ${'hotfix/4.2.0 releases 4.2.0-hotfix.N, not 4.2.0'}
+    ${'4.2.1-hotfix.1'}    | ${'hotfix/4.2.0'} | ${'hotfix/4.2.0 releases 4.2.0-hotfix.N, not 4.2.1-hotfix.1'}
+    ${'4.2.0-alpha.1'}     | ${'hotfix/4.2.0'} | ${'hotfix/4.2.0 releases 4.2.0-hotfix.N, not 4.2.0-alpha.1'}
+    ${'4.2.0-milestone.3'} | ${'hotfix/4.2.0'} | ${'hotfix/4.2.0 releases 4.2.0-hotfix.N, not 4.2.0-milestone.3'}
+    ${'4.2.0-hotfix'}      | ${'hotfix/4.2.0'} | ${'hotfix/4.2.0 releases 4.2.0-hotfix.N, not 4.2.0-hotfix'}
+    ${'4.2.0-hotfix.1'}    | ${'4.2.x'}        | ${'4.2.0-hotfix.1 is only released from hotfix/4.2.0, not from 4.2.x'}
   `('should throw for version $graviteeioVersion on branch $branch', ({ graviteeioVersion, branch, expectedError }) => {
     expect(() =>
       generateReleaseConfig({
