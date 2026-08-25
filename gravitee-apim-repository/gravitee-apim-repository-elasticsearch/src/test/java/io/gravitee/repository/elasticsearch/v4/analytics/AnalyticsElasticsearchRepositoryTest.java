@@ -50,6 +50,7 @@ import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestResponseTimeQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountByEventQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
+import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusOverTimeQuery;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
@@ -422,6 +423,88 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     .isEqualTo(3);
                 softly.assertThat(result.getStatusCount().get("404")).hasSize((int) nbBuckets).haveAtMost(2, not(is(0)));
             });
+        }
+
+        @Nested
+        class WindowBoundaries {
+
+            // The V2 sample documents for these two APIs all sit on the very same instant, one day before the
+            // shared reference. Deriving the windows from that instant keeps these cases independent of the hour
+            // the build runs at, while pinning what the window is supposed to include and exclude.
+            private static final Instant DOCUMENTS_AT = TimeProvider.now().minus(1, ChronoUnit.DAYS);
+            private static final Duration INTERVAL = Duration.ofMinutes(10);
+
+            private ResponseStatusOverTimeAggregate search(Instant from, Instant to) {
+                return cut.searchResponseStatusOvertime(
+                    new QueryContext("org#1", "env#1"),
+                    ResponseStatusOverTimeQuery.builder()
+                        .apiIds(List.of(APIV2_1, APIV2_2))
+                        .from(from)
+                        .to(to)
+                        .interval(INTERVAL)
+                        .versions(EnumSet.of(V2))
+                        .build()
+                );
+            }
+
+            @Test
+            void should_count_a_document_sitting_on_the_start_of_the_window_in_the_first_bucket() {
+                // Given a window starting exactly on the documents
+                var from = DOCUMENTS_AT;
+                var to = from.plus(1, ChronoUnit.HOURS);
+
+                // When
+                var result = search(from, to);
+
+                // Then the series spans the window and the documents land on its first point
+                SoftAssertions.assertSoftly(softly -> {
+                    softly.assertThat(result.getStatusCount()).containsOnlyKeys("200", "401");
+                    softly.assertThat(result.getStatusCount().get("200")).hasSize(7).contains(2L, atIndex(0));
+                    softly.assertThat(result.getStatusCount().get("401")).hasSize(7).contains(2L, atIndex(0));
+                });
+            }
+
+            @Test
+            void should_ignore_a_document_one_millisecond_before_the_window() {
+                // Given a window opening just after the documents
+                var from = DOCUMENTS_AT.plusMillis(1);
+                var to = from.plus(1, ChronoUnit.HOURS);
+
+                // When
+                var result = search(from, to);
+
+                // Then nothing is reported: rounding the lower bound down to a bucket boundary would have
+                // counted them into the first point
+                assertThat(result.getStatusCount()).isEmpty();
+            }
+
+            @Test
+            void should_ignore_a_document_past_the_last_bucket_of_a_window_that_is_not_a_whole_number_of_intervals() {
+                // Given a window of 65 minutes bucketed by 10: it spans 6 whole intervals plus 5 minutes, so the
+                // last emitted bucket ends one minute before the documents. Stopping one interval past the window
+                // end instead would reach four minutes past them and report an eighth point.
+                var to = DOCUMENTS_AT.minus(6, ChronoUnit.MINUTES);
+                var from = to.minus(65, ChronoUnit.MINUTES);
+
+                // When
+                var result = search(from, to);
+
+                // Then
+                assertThat(result.getStatusCount()).isEmpty();
+            }
+
+            @Test
+            void should_ignore_a_document_past_the_end_of_the_last_bucket() {
+                // Given a window closing more than one interval before the documents
+                var to = DOCUMENTS_AT.minus(1, ChronoUnit.HOURS);
+                var from = to.minus(1, ChronoUnit.HOURS);
+
+                // When
+                var result = search(from, to);
+
+                // Then nothing is reported: the upper bound reaches the end of the last bucket and no further
+                assertThat(result.getStatusCount()).isEmpty();
+            }
         }
 
         private Condition<Long> is(long expected) {
