@@ -44,10 +44,19 @@
 
       @if (showConfiguration && providerSchema?.config) {
         <div class="endpoint-card__form__field">
-          @if (formGroup.dirty && formGroup.errors?.aliasesMismatch; as mismatch) {
-            <gio-banner-error>
-              All endpoints in this group must use the same list of aliases ({{ mismatch.expected.join(', ') }}).
-            </gio-banner-error>
+          @if (aliasWarning; as warning) {
+            <gio-banner-warning>
+              Model aliases differ across the endpoints of this group — an alias only routes (and fails over) across the endpoints that
+              declare it.
+              <span gioBannerBody>
+                Align them for cross-endpoint failover:
+                <ul class="alias-warning__list">
+                  @for (entry of warning; track entry.endpointName) {
+                    <li>{{ entry.endpointName }}: {{ entry.aliases.length ? entry.aliases.join(', ') : 'no aliases' }}</li>
+                  }
+                </ul>
+              </span>
+            </gio-banner-warning>
           }
           <gio-form-json-schema formControlName="configuration" [jsonSchema]="providerSchema.config" />
         </div>

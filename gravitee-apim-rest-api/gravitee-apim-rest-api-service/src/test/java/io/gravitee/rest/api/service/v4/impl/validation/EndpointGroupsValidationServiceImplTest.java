@@ -26,7 +26,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -43,7 +42,6 @@ import io.gravitee.rest.api.service.exceptions.EndpointNameAlreadyExistsExceptio
 import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.rest.api.service.exceptions.HealthcheckInheritanceException;
 import io.gravitee.rest.api.service.exceptions.HealthcheckInvalidException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiServicePluginService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.exception.*;
@@ -114,11 +112,7 @@ public class EndpointGroupsValidationServiceImplTest {
         llmProxyEndpoint.setSupportedApiType(ApiType.LLM_PROXY);
         lenient().when(endpointService.findById("llm-proxy")).thenReturn(llmProxyEndpoint);
 
-        endpointGroupsValidationService = new EndpointGroupsValidationServiceImpl(
-            endpointService,
-            apiServicePluginService,
-            new ObjectMapper()
-        );
+        endpointGroupsValidationService = new EndpointGroupsValidationServiceImpl(endpointService, apiServicePluginService);
     }
 
     @Test
@@ -1101,50 +1095,6 @@ public class EndpointGroupsValidationServiceImplTest {
         }
 
         @Test
-        public void should_throw_technical_exception_when_fail_to_parse_configuration() {
-            EndpointGroup endpointGroup = new EndpointGroup();
-            endpointGroup.setName("llm-group-name");
-            endpointGroup.setType("llm-proxy");
-
-            Endpoint endpoint1 = new Endpoint();
-            endpoint1.setName("openai-endpoint");
-            endpoint1.setType("llm-proxy");
-            endpoint1.setConfiguration(
-                """
-                {
-                 "models": [
-                   {"name": "gemini-2.5-flash-lite"},
-                   {"n
-                 "provider": "OPEN_AI"
-                }
-                """
-            );
-
-            Endpoint endpoint2 = new Endpoint();
-            endpoint2.setName("azure-endpoint");
-            endpoint2.setType("llm-proxy");
-            endpoint2.setConfiguration(
-                """
-                {
-                 "models": [
-                   {"name": "gemini-2.5-flash-lite", "aliases": ["light"]},
-                   {"name": "gemini-3"}
-                 ],
-                 "provider": "OPEN_AI"
-                }
-                """
-            );
-
-            endpointGroup.setEndpoints(List.of(endpoint1, endpoint2));
-
-            var exception = catchException(() ->
-                endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.LLM_PROXY, List.of(endpointGroup))
-            );
-
-            assertThat(exception).isInstanceOf(TechnicalManagementException.class);
-        }
-
-        @Test
         public void should_not_throw_when_llm_proxy_endpoints_have_same_aliases() {
             EndpointGroup endpointGroup = new EndpointGroup();
             endpointGroup.setName("llm-group-name");
@@ -1191,7 +1141,7 @@ public class EndpointGroupsValidationServiceImplTest {
         }
 
         @Test
-        public void should_throw_when_llm_proxy_endpoints_have_different_aliases() {
+        public void should_accept_llm_proxy_endpoints_with_different_aliases() {
             EndpointGroup endpointGroup = new EndpointGroup();
             endpointGroup.setName("llm-group-name");
             endpointGroup.setType("llm-proxy");
@@ -1228,10 +1178,16 @@ public class EndpointGroupsValidationServiceImplTest {
 
             endpointGroup.setEndpoints(List.of(endpoint1, endpoint2));
 
-            assertThatExceptionOfType(EndpointGroupLlmProxyInvalidException.class)
-                .isThrownBy(() -> endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.LLM_PROXY, List.of(endpointGroup)))
-                .withMessageContaining("aliases")
-                .withMessageContaining("llm-group-name");
+            // Diverging aliases are accepted (APIM-15005): the console edits one endpoint at a time,
+            // so introducing an alias necessarily goes through this state — a hard rejection made it
+            // unreachable. The gateway only routes an alias to the endpoints that declare it, and the
+            // console shows an advisory warning until the group converges.
+            List<EndpointGroup> endpointGroups = endpointGroupsValidationService.validateAndSanitizeHttpV4(
+                ApiType.LLM_PROXY,
+                List.of(endpointGroup)
+            );
+
+            assertThat(endpointGroups).hasSize(1);
         }
     }
 }

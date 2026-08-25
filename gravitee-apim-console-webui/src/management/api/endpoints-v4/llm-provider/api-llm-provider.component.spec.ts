@@ -322,6 +322,72 @@ describe('ApiProviderComponent', () => {
     });
   });
 
+  describe('alias consistency (APIM-15005)', () => {
+    const groupWithTwoEndpoints = (aliases1: string[], aliases2: string[]) => ({
+      name: 'Providers',
+      type: 'llm-proxy',
+      sharedConfiguration: {},
+      endpoints: [
+        {
+          name: '01-azure',
+          type: 'llm-proxy',
+          configuration: { provider: 'OPEN_AI', models: [{ name: 'gpt-4o', aliases: aliases1 }] },
+          inheritConfiguration: true,
+        },
+        {
+          name: '02-bedrock',
+          type: 'llm-proxy',
+          configuration: { provider: 'BEDROCK', models: [{ name: 'claude', aliases: aliases2 }] },
+          inheritConfiguration: true,
+        },
+      ],
+    });
+
+    it('lets an alias be introduced on one endpoint of an alias-less group, with a warning, not a block', async () => {
+      const apiV4 = fakeApiV4({ id: API_ID, endpointGroups: [groupWithTwoEndpoints([], [])] });
+      await initComponent(apiV4, { apiId: API_ID, providerIndex: '0', endpointIndex: '0' }, ['provider', '0', '0']);
+
+      fixture.componentInstance.formGroup
+        .get('configuration')!
+        .setValue({ provider: 'OPEN_AI', models: [{ name: 'gpt-4o', aliases: ['chat-model'] }] });
+      fixture.componentInstance.formGroup.get('configuration')!.setErrors(null);
+      fixture.componentInstance.formGroup.updateValueAndValidity();
+      fixture.detectChanges();
+
+      // The divergence is reported, but the form stays valid: the screen edits one endpoint at a
+      // time, so reaching a consistent group necessarily goes through this intermediate state.
+      expect(fixture.componentInstance.aliasWarning).toEqual([
+        { endpointName: '02-bedrock', aliases: [] },
+        { endpointName: '01-azure', aliases: ['chat-model'] },
+      ]);
+      // No group-level error any more: the divergence no longer invalidates the form. (Overall
+      // validity still depends on unrelated controls, e.g. the required shared configuration.)
+      expect(fixture.componentInstance.formGroup.errors).toBeNull();
+    });
+
+    it('clears the warning when the edited endpoint aligns the group', async () => {
+      const apiV4 = fakeApiV4({ id: API_ID, endpointGroups: [groupWithTwoEndpoints([], ['chat-model'])] });
+      await initComponent(apiV4, { apiId: API_ID, providerIndex: '0', endpointIndex: '0' }, ['provider', '0', '0']);
+
+      // Stored state already diverges: the warning shows before any edit.
+      expect(fixture.componentInstance.aliasWarning).not.toBeNull();
+
+      fixture.componentInstance.formGroup
+        .get('configuration')!
+        .setValue({ provider: 'OPEN_AI', models: [{ name: 'gpt-4o', aliases: ['chat-model'] }] });
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.aliasWarning).toBeNull();
+    });
+
+    it('shows no warning on a group whose aliases already match', async () => {
+      const apiV4 = fakeApiV4({ id: API_ID, endpointGroups: [groupWithTwoEndpoints(['chat-model'], ['chat-model'])] });
+      await initComponent(apiV4, { apiId: API_ID, providerIndex: '0', endpointIndex: '0' }, ['provider', '0', '0']);
+
+      expect(fixture.componentInstance.aliasWarning).toBeNull();
+    });
+  });
+
   function expectEndpointsSharedConfigurationSchemaGetRequest(id: string) {
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints/${id}/shared-configuration-schema`, method: 'GET' })
