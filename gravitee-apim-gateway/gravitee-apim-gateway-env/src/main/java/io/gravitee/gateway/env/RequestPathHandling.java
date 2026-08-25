@@ -27,9 +27,9 @@ package io.gravitee.gateway.env;
  */
 public enum RequestPathHandling {
     /**
-     * Byte-preserving pass-through: the path is used, and forwarded, exactly as it arrived. This is
-     * the historical behaviour and remains the default, so that request signing and encoded slashes
-     * keep working without any change.
+     * Byte-preserving pass-through: the path is used, and forwarded, exactly as it arrived. This
+     * was the default up to 4.12 and is what a deployment sets explicitly to keep that behaviour,
+     * so that request signing and encoded slashes keep working without any change.
      */
     RAW,
 
@@ -41,8 +41,8 @@ public enum RequestPathHandling {
     REJECT,
 
     /**
-     * Resolves the dot segments and uses the result for listener resolution, plan enforcement, flow
-     * selection and the upstream URI. The request is not blocked, it is simply read for what it
+     * The default since 4.13. Resolves the dot segments and uses the result for listener
+     * resolution, plan enforcement, flow selection and the upstream URI. The request is not blocked, it is simply read for what it
      * means: {@code /alpha/api/../../beta/api} is a call to {@code beta}, so {@code beta}'s plan
      * applies.
      */

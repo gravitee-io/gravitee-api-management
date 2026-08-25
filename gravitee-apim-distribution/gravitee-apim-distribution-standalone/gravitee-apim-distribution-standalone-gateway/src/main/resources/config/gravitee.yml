@@ -86,18 +86,24 @@ secrets:
 #  requestTimeoutGraceDelay: 30
 #  How dot segments in the request path are treated, before the listener context path is
 #  resolved and therefore before any plan is enforced.
-#    RAW       (default) the path is used, and forwarded, exactly as received.
+#    RAW       the path is used, and forwarded, exactly as received.
 #    REJECT    answers 400 when the normalized path differs from the one received.
-#    NORMALIZE resolves the dot segments and routes, enforces and forwards on the result,
-#              so /alpha/api/../../beta/api is read as the call to beta that it is.
+#    NORMALIZE (default) resolves the dot segments and routes, enforces and forwards on the
+#              result, so /alpha/api/../../beta/api is read as the call to beta that it is.
 #  Beyond dot segments, both REJECT and NORMALIZE also decode percent-encoded unreserved
 #  characters, merge duplicate slashes, and answer 400 on a malformed percent sequence.
 #  Encoded slashes are never decoded, and segment parameters on an ordinary segment are left
 #  alone: /a/admin;x/b is canonical here and forwarded as sent, while a Servlet receiver strips
 #  the ;x and serves /a/admin/b. An allow or deny rule written against /admin/** therefore still
 #  needs its own guard against that spelling.
-#  RAW is the default for backward compatibility.
-#  pathHandling: RAW
+#  Under NORMALIZE the request exposes two forms of the path to policies and flow conditions:
+#  {#request.path} and {#request.pathInfo} carry the resolved path, {#request.uri} still carries
+#  the bytes as received, because request signing depends on them. Write security rules on
+#  {#request.path}: a condition on {#request.uri} is evaded by the very traversal being resolved.
+#  NORMALIZE is the default since 4.13. It was RAW up to 4.12, and a gateway upgrading from
+#  that line changes how it routes: a path carrying dot segments now reaches the API the
+#  resolved path points at, not the one the raw path did. Set RAW to keep the old behaviour.
+#  pathHandling: NORMALIZE
 #  secured: false
 #  alpn: false
 #  ssl:

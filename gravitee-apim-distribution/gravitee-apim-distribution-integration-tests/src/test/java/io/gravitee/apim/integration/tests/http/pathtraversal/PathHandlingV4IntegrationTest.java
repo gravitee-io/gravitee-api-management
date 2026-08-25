@@ -345,4 +345,63 @@ class PathHandlingV4IntegrationTest {
             assertStatus(httpClient, "/alpha/api/orders;v=2/echo", 200);
         }
     }
+
+    /**
+     * The mode a gateway comes up in when nothing asks for one. Every other class here sets
+     * http.pathHandling explicitly, so without this one the shipped default is the single
+     * setting the suite never exercises — and the one whose regression is silent.
+     */
+    @Nested
+    @GatewayTest
+    @DeployApi({ "/apis/v4/http/pathtraversal/api-alpha.json", "/apis/v4/http/pathtraversal/api-beta.json" })
+    class With_no_handling_configured extends PathHandlingTest {
+
+        // Deliberately no configureGateway override: the gateway resolves the default itself.
+
+        @Test
+        void should_normalize(HttpClient httpClient) throws InterruptedException {
+            wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
+
+            // The same expectation as With_normalize_handling, reached without configuring anything.
+            assertStatus(httpClient, TRAVERSAL, 401);
+
+            assertThat(wiremock.findAll(getRequestedFor(anyUrl()))).isEmpty();
+        }
+
+        @Test
+        void should_still_serve_a_regular_path(HttpClient httpClient) throws InterruptedException {
+            wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
+
+            assertStatus(httpClient, REGULAR, 200);
+
+            assertThat(singleUpstreamRequestUrl()).isEqualTo(REGULAR);
+        }
+    }
+
+    /**
+     * A value no one can read falls back to the default, not to RAW. The unit test on
+     * RequestConfiguration pins the bean's decision; this pins what the running gateway does with
+     * it, which is the half an operator would notice.
+     */
+    @Nested
+    @GatewayTest
+    @DeployApi({ "/apis/v4/http/pathtraversal/api-alpha.json", "/apis/v4/http/pathtraversal/api-beta.json" })
+    class With_an_unreadable_handling_value extends PathHandlingTest {
+
+        @Override
+        public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
+            configurationBuilder.set("http.pathHandling", "NORMALISE");
+        }
+
+        @Test
+        void should_normalize_rather_than_fall_through_to_the_raw_path(HttpClient httpClient) throws InterruptedException {
+            wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
+
+            // Falling back to RAW here would answer 200 and hand the caller beta's backend without
+            // a key: a typo in a configuration file would be a way to reopen the bypass.
+            assertStatus(httpClient, TRAVERSAL, 401);
+
+            assertThat(wiremock.findAll(getRequestedFor(anyUrl()))).isEmpty();
+        }
+    }
 }

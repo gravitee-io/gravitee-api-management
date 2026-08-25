@@ -26,6 +26,7 @@ import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
+import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
@@ -50,7 +51,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
 /**
- * Pins the gateway's current handling of dot segments in a request path.
+ * Pins how the gateway treats dot segments under {@code http.pathHandling: RAW}.
  *
  * <p>Two v4 HTTP proxy APIs share one upstream host, each on its own path prefix: {@code alpha} on
  * {@code /alpha/api/} with no plan, so it is reachable without any credential, and {@code beta} on
@@ -61,9 +62,11 @@ import org.junit.jupiter.api.Test;
  * resolving it. A conforming upstream applies RFC 3986 §5.2.4 and serves a different resource than
  * the one the gateway authorized.
  *
- * <p><strong>These assertions describe the behaviour as it stands, not the behaviour we want.</strong>
- * They exist so the change is visible the day the gateway starts normalizing: this class is expected
- * to go red, and the expectations below then become 401 or 404 rather than 200.
+ * <p><strong>These assertions describe RAW, not the behaviour we want.</strong> They were written
+ * when RAW was the default, so that the change would be visible the day the gateway started
+ * normalizing. That day is 4.13.0: the default is now NORMALIZE, this class sets RAW explicitly to
+ * go on describing the mode it was written for, and {@code PathHandlingV4IntegrationTest} carries
+ * the counterpart under NORMALIZE, where these same paths answer 401 or 404.
  *
  * @author GraviteeSource Team
  */
@@ -96,6 +99,13 @@ class PathTraversalV4IntegrationTest extends AbstractGatewayTest {
         if (isV4Api(definitionClass) && "beta".equals(api.getId())) {
             configurePlans((Api) api.getDefinition(), Set.of("api-key"));
         }
+    }
+
+    @Override
+    public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
+        // Explicit, because this class describes RAW, not "whatever the default happens to be".
+        // The default became NORMALIZE in 4.13.0, and under it these assertions no longer hold.
+        configurationBuilder.set("http.pathHandling", "RAW");
     }
 
     @Test

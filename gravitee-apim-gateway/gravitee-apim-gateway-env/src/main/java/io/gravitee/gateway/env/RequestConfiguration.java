@@ -55,23 +55,26 @@ public class RequestConfiguration {
     }
 
     @Bean
-    public RequestPathConfiguration httpRequestPathConfiguration(@Value("${http.pathHandling:RAW}") String pathHandling) {
+    public RequestPathConfiguration httpRequestPathConfiguration(@Value("${http.pathHandling:NORMALIZE}") String pathHandling) {
         RequestPathHandling handling;
         try {
             // Locale.ROOT, and not the JVM default: in Turkish 🇹🇷 (and Azerbaijani) a lowercase "i"
-            // uppercases to "İ", so "normalize" becomes "NORMALİZE", valueOf throws, and the catch
-            // below quietly turns a security control off because of where the server happens to be.
-            // "raw" and "reject" carry no "i" and would have kept working, which is exactly the kind
-            // of bug that survives every test suite that does not set a locale.
+            // uppercases to "İ", so "normalize" becomes "NORMALİZE" and valueOf throws. "raw" and
+            // "reject" carry no "i", so without this an operator asking for RAW where the server
+            // happens to be would silently get the default instead. That is the kind of bug that
+            // survives every test suite that does not set a locale.
             handling = RequestPathHandling.valueOf(pathHandling.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
             log.warn(
                 "Unknown value [{}] for http.pathHandling, falling back to {}. Expected one of {}.",
                 pathHandling,
-                RequestPathHandling.RAW,
+                RequestPathHandling.NORMALIZE,
                 Arrays.toString(RequestPathHandling.values())
             );
-            handling = RequestPathHandling.RAW;
+            // The default, not RAW: a value nobody can read is not a reason to drop the gateway back
+            // to the behaviour this default exists to replace. An operator who meant RAW and mistyped
+            // it gets a warning and the safe mode; the reverse would hand them the bypass in silence.
+            handling = RequestPathHandling.NORMALIZE;
         }
         // Logged in every mode, including the default. An operator who mistyped the value above gets
         // a warning they may not be watching for; this line is what lets them confirm, positively,

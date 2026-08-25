@@ -5,11 +5,11 @@ templates:
 # newline, so `\n  pathHandling:` only matched a line whose colon was followed by end-of-line —
 # which a rendered key never is. The negative assertion below passed even when the key was present.
 tests:
-  - it: Defaults to RAW, so upgrading a deployment does not move its traffic
+  - it: Defaults to NORMALIZE, so a deployment that sets nothing is not bypassable
     asserts:
       - matchRegex:
           path: data["gravitee.yml"]
-          pattern: "\n  pathHandling: RAW\n"
+          pattern: "\n  pathHandling: NORMALIZE\n"
 
   - it: Sets the mode on the single http server
     set:
