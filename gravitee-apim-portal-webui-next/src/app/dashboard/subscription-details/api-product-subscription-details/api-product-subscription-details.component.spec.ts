@@ -15,7 +15,9 @@
  */
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
@@ -26,16 +28,18 @@ import { ConfirmDialogHarness } from '../../../../components/confirm-dialog/conf
 import { fakeApplication } from '../../../../entities/application/application.fixture';
 import { UserApplicationPermissions } from '../../../../entities/permission/permission';
 import { fakeUserApplicationPermissions } from '../../../../entities/permission/permission.fixtures';
+import { PlanSecurityEnum } from '../../../../entities/plan/plan';
 import {
   fakeApiProductSubscriptionDetails,
   fakeSubscription,
   Subscription,
   SubscriptionConsumerStatusEnum,
+  SubscriptionStatusEnum,
 } from '../../../../entities/subscription';
 import { ApplicationService } from '../../../../services/application.service';
 import { PermissionsService } from '../../../../services/permissions.service';
 import { SubscriptionService } from '../../../../services/subscription.service';
-import { AppTestingModule } from '../../../../testing/app-testing.module';
+import { AppTestingModule, TESTING_BASE_URL } from '../../../../testing/app-testing.module';
 
 describe('ApiProductSubscriptionDetailsComponent', () => {
   let fixture: ComponentFixture<ApiProductSubscriptionDetailsComponent>;
@@ -43,6 +47,7 @@ describe('ApiProductSubscriptionDetailsComponent', () => {
   let applicationService: jest.Mocked<Pick<ApplicationService, 'get'>>;
   let permissionsService: jest.Mocked<Pick<PermissionsService, 'getApplicationPermissions'>>;
   let subscriptionService: jest.Mocked<Pick<SubscriptionService, 'changeConsumerStatus' | 'close' | 'get' | 'resumeConsumerStatus'>>;
+  let httpTestingController: HttpTestingController;
 
   const acceptedSubscription = (modifier: Partial<Subscription> = {}): Subscription =>
     fakeSubscription({
@@ -70,7 +75,7 @@ describe('ApiProductSubscriptionDetailsComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [ApiProductSubscriptionDetailsComponent, AppTestingModule],
+      imports: [ApiProductSubscriptionDetailsComponent, AppTestingModule, MatIconTestingModule],
       providers: [
         provideNoopAnimations(),
         provideRouter([]),
@@ -82,6 +87,11 @@ describe('ApiProductSubscriptionDetailsComponent', () => {
 
     fixture = TestBed.createComponent(ApiProductSubscriptionDetailsComponent);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+    httpTestingController = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
   async function init(
@@ -159,6 +169,90 @@ describe('ApiProductSubscriptionDetailsComponent', () => {
     expect(await harness.getCredentialsText()).toContain('Client ID');
     expect(await harness.getCredentialsText()).toContain('Client Secret');
     expect(fixture.nativeElement.querySelectorAll('[data-testid="product-subscription-credentials"] app-copy-code')).toHaveLength(2);
+  });
+
+  it('should show Renew API Key for an accepted API Key subscription with application update permission', async () => {
+    const harness = await init(apiKeySubscription());
+
+    expect(await harness.hasRenewApiKeyButton()).toBeTruthy();
+  });
+
+  it('should hide Renew API Key without application update permission', async () => {
+    const harness = await init(apiKeySubscription(), fakeUserApplicationPermissions({ SUBSCRIPTION: ['R'] }));
+
+    expect(await harness.hasRenewApiKeyButton()).toBeFalsy();
+  });
+
+  it.each(['PENDING', 'PAUSED', 'REJECTED', 'CLOSED'] as SubscriptionStatusEnum[])(
+    'should hide Renew API Key for a %s subscription',
+    async status => {
+      const harness = await init(apiKeySubscription(status));
+
+      expect(await harness.hasRenewApiKeyButton()).toBeFalsy();
+    },
+  );
+
+  it.each(['KEY_LESS', 'OAUTH2', 'JWT'] as PlanSecurityEnum[])('should hide Renew API Key for a %s plan', async security => {
+    const harness = await init(apiKeySubscription('ACCEPTED', security));
+
+    expect(await harness.hasRenewApiKeyButton()).toBeFalsy();
+  });
+
+  it('should not renew the API key when confirmation is cancelled', async () => {
+    const harness = await init(apiKeySubscription());
+
+    await harness.clickRenewApiKey();
+    const confirmDialog = await rootLoader.getHarness(ConfirmDialogHarness);
+    expect(await confirmDialog.getTitle()).toContain('Renew API Key?');
+    expect(await confirmDialog.getContent()).toContain('API Key renewal will eventually deprecate the current key');
+    await confirmDialog.cancel();
+
+    httpTestingController.expectNone(request => request.url.includes('/keys/_renew'));
+  });
+
+  it('should renew the API key and emit a refresh event after confirmation', async () => {
+    const subscription = apiKeySubscription();
+    const apiKeyRenewedSpy = jest.spyOn(fixture.componentInstance.apiKeyRenewed, 'emit');
+    const harness = await init(subscription);
+
+    await harness.clickRenewApiKey();
+    const confirmDialog = await rootLoader.getHarness(ConfirmDialogHarness);
+    await confirmDialog.confirm();
+
+    const request = httpTestingController.expectOne(`${TESTING_BASE_URL}/subscriptions/${subscription.id}/keys/_renew`);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toBeNull();
+    expect(await harness.isRenewApiKeyButtonDisabled()).toBeTruthy();
+    request.flush(null);
+    fixture.detectChanges();
+
+    expect(apiKeyRenewedSpy).toHaveBeenCalledTimes(1);
+    expect(await harness.getApiKeyFeedbackText()).toContain('API key renewed successfully');
+    expect(await harness.getApiKeyFeedbackAttribute('aria-live')).toBe('polite');
+    expect(await harness.getApiKeyFeedbackAttribute('role')).toBeNull();
+
+    fixture.componentRef.setInput('subscription', apiKeySubscription());
+    fixture.detectChanges();
+
+    expect(await harness.getApiKeyFeedbackText()).toBeNull();
+  });
+
+  it('should show an accessible error when API key renewal fails', async () => {
+    const subscription = apiKeySubscription();
+    const apiKeyRenewedSpy = jest.spyOn(fixture.componentInstance.apiKeyRenewed, 'emit');
+    const harness = await init(subscription);
+
+    await harness.clickRenewApiKey();
+    await (await rootLoader.getHarness(ConfirmDialogHarness)).confirm();
+    httpTestingController
+      .expectOne(`${TESTING_BASE_URL}/subscriptions/${subscription.id}/keys/_renew`)
+      .flush(null, { status: 500, statusText: 'Server Error' });
+    fixture.detectChanges();
+
+    expect(apiKeyRenewedSpy).not.toHaveBeenCalled();
+    expect(await harness.getApiKeyFeedbackText()).toContain('Failed to renew API key');
+    expect(await harness.getApiKeyFeedbackAttribute('role')).toBe('alert');
+    expect(await harness.isRenewApiKeyButtonDisabled()).toBeFalsy();
   });
 
   it('should distinguish a publisher-paused subscription from a consumer pause', async () => {
@@ -395,4 +489,13 @@ describe('ApiProductSubscriptionDetailsComponent', () => {
     expect(subscriptionService.changeConsumerStatus).toHaveBeenCalled();
     expect(await harness.getFeedbackText()).toContain('updated, but its latest details could not be loaded');
   });
+
+  function apiKeySubscription(status: SubscriptionStatusEnum = 'ACCEPTED', security: PlanSecurityEnum = 'API_KEY'): Subscription {
+    return acceptedSubscription({
+      status,
+      apiProduct: fakeApiProductSubscriptionDetails({
+        plan: { id: 'plan-id', name: 'Gold', security, mode: 'STANDARD' },
+      }),
+    });
+  }
 });

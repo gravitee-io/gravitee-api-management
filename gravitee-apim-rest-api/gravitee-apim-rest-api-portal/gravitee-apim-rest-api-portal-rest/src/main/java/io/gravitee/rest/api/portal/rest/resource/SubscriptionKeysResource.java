@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.apim.core.api_key.use_case.RevokeSubscriptionApiKeyUseCase;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -27,6 +28,7 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
@@ -36,6 +38,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import java.util.Objects;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -65,19 +68,37 @@ public class SubscriptionKeysResource extends AbstractResource {
     public Response renewKeySubscription(@PathParam("subscriptionId") String subscriptionId) {
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        if (
-            hasPermission(
-                executionContext,
-                RolePermission.APPLICATION_SUBSCRIPTION,
-                subscriptionEntity.getApplication(),
-                RolePermissionAction.UPDATE
-            ) ||
-            hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.UPDATE)
-        ) {
-            final Key createdKey = keyMapper.convert(apiKeyService.renew(executionContext, subscriptionEntity));
-            return Response.status(Response.Status.CREATED).entity(createdKey).build();
+        boolean apiProductSubscription = SubscriptionReferenceType.API_PRODUCT.name().equals(subscriptionEntity.getReferenceType());
+
+        if (apiProductSubscription && !Objects.equals(executionContext.getEnvironmentId(), subscriptionEntity.getEnvironmentId())) {
+            throw new SubscriptionNotFoundException(subscriptionId);
         }
-        throw new ForbiddenAccessException();
+        if (!hasUpdatePermission(executionContext, subscriptionEntity, apiProductSubscription)) {
+            throw new ForbiddenAccessException();
+        }
+
+        final Key createdKey = keyMapper.convert(apiKeyService.renew(executionContext, subscriptionEntity));
+        return Response.status(Response.Status.CREATED).entity(createdKey).build();
+    }
+
+    private boolean hasUpdatePermission(
+        ExecutionContext executionContext,
+        SubscriptionEntity subscriptionEntity,
+        boolean apiProductSubscription
+    ) {
+        boolean hasApplicationPermission = hasPermission(
+            executionContext,
+            RolePermission.APPLICATION_SUBSCRIPTION,
+            subscriptionEntity.getApplication(),
+            RolePermissionAction.UPDATE
+        );
+        if (apiProductSubscription) {
+            return hasApplicationPermission;
+        }
+        return (
+            hasApplicationPermission ||
+            hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.UPDATE)
+        );
     }
 
     @POST

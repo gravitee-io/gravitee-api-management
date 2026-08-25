@@ -67,6 +67,13 @@ p {
   padding-top: layout.$container-padding-horizontal;
 }
 
+.credentials-header {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .included-apis {
   display: flex;
   flex-direction: column;

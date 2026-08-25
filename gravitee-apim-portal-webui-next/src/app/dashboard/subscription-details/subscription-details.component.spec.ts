@@ -15,8 +15,9 @@
  */
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { provideHttpClient } from '@angular/common/http';
-import { Component, Input } from '@angular/core';
+import { Component, Input, output } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { of, throwError } from 'rxjs';
 
 import { ApiProductSubscriptionDetailsComponent } from './api-product-subscription-details/api-product-subscription-details.component';
@@ -47,6 +48,7 @@ class MockSubscriptionsDetailsComponent {
 })
 class MockApiProductSubscriptionDetailsComponent {
   @Input() subscription!: Subscription;
+  readonly apiKeyRenewed = output<void>();
 }
 
 describe('SubscriptionDetailsComponent', () => {
@@ -93,6 +95,30 @@ describe('SubscriptionDetailsComponent', () => {
 
     expect(await harness.hasApiProductSubscriptionDetails()).toBeTruthy();
     expect(await harness.hasSubscriptionsDetails()).toBeFalsy();
+  });
+
+  it('should reload API Product subscription details after API key renewal', async () => {
+    jest.mocked(subscriptionServiceMock.get!).mockReturnValue(
+      of(
+        fakeSubscription({
+          api: undefined,
+          reference_id: 'api-product-id',
+          reference_type: 'API_PRODUCT',
+          apiProduct: fakeApiProductSubscriptionDetails({ id: 'api-product-id' }),
+        }),
+      ),
+    );
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const apiProductDetails = fixture.debugElement.query(By.css('app-api-product-subscription-details'))
+      .componentInstance as MockApiProductSubscriptionDetailsComponent;
+    apiProductDetails.apiKeyRenewed.emit();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(subscriptionServiceMock.get).toHaveBeenCalledTimes(2);
   });
 
   it('should use the API reference ID when the legacy api field is absent', async () => {

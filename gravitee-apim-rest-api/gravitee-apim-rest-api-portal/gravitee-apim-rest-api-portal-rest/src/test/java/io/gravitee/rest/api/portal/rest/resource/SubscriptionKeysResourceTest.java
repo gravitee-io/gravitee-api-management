@@ -54,8 +54,10 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
     private static final String ANOTHER_SUBSCRIPTION = "my-other-ubscription";
     private static final String KEY = "my-key";
     private static final String API = "my-api";
+    private static final String API_PRODUCT = "my-api-product";
     private static final String APPLICATION = "my-application";
     private ApiKeyEntity apiKeyEntity;
+    private SubscriptionEntity subscriptionEntity;
 
     @Autowired
     private ApiKeyCrudServiceInMemory apiKeyCrudServiceInMemory;
@@ -88,11 +90,12 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
 
         doReturn(new Key().key(KEY)).when(keyMapper).convert(apiKeyEntity);
 
-        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setApi(API);
         subscriptionEntity.setReferenceId(API);
         subscriptionEntity.setReferenceType("API");
         subscriptionEntity.setApplication(APPLICATION);
+        subscriptionEntity.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
         doReturn(subscriptionEntity).when(subscriptionService).findById(eq(SUBSCRIPTION));
         doReturn(true).when(permissionService).hasPermission(any(), any(), any(), any());
     }
@@ -111,6 +114,82 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
         Key key = response.readEntity(Key.class);
         assertNotNull(key);
         assertEquals(KEY, key.getKey());
+    }
+
+    @Test
+    public void should_renew_api_product_subscription_with_application_update_permission() {
+        subscriptionEntity.setApi(null);
+        subscriptionEntity.setReferenceId(API_PRODUCT);
+        subscriptionEntity.setReferenceType("API_PRODUCT");
+        reset(permissionService);
+        doReturn(true)
+            .when(permissionService)
+            .hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.APPLICATION_SUBSCRIPTION,
+                APPLICATION,
+                RolePermissionAction.UPDATE
+            );
+
+        Response response = target(SUBSCRIPTION).path("keys/_renew").request().post(null);
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
+        verify(apiKeyService).renew(GraviteeContext.getExecutionContext(), subscriptionEntity);
+        verify(permissionService, never()).hasPermission(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(RolePermission.API_SUBSCRIPTION),
+            any(),
+            eq(RolePermissionAction.UPDATE)
+        );
+    }
+
+    @Test
+    public void should_forbid_api_product_subscription_renewal_without_application_update_permission() {
+        subscriptionEntity.setApi(null);
+        subscriptionEntity.setReferenceId(API_PRODUCT);
+        subscriptionEntity.setReferenceType("API_PRODUCT");
+        reset(permissionService);
+        doReturn(false)
+            .when(permissionService)
+            .hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.APPLICATION_SUBSCRIPTION,
+                APPLICATION,
+                RolePermissionAction.UPDATE
+            );
+        doReturn(true)
+            .when(permissionService)
+            .hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_SUBSCRIPTION,
+                API_PRODUCT,
+                RolePermissionAction.UPDATE
+            );
+
+        Response response = target(SUBSCRIPTION).path("keys/_renew").request().post(null);
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
+        verify(apiKeyService, never()).renew(any(), any(SubscriptionEntity.class));
+        verify(permissionService, never()).hasPermission(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(RolePermission.API_SUBSCRIPTION),
+            any(),
+            eq(RolePermissionAction.UPDATE)
+        );
+    }
+
+    @Test
+    public void should_not_renew_api_product_subscription_from_another_environment() {
+        subscriptionEntity.setApi(null);
+        subscriptionEntity.setReferenceId(API_PRODUCT);
+        subscriptionEntity.setReferenceType("API_PRODUCT");
+        subscriptionEntity.setEnvironmentId("another-environment");
+
+        Response response = target(SUBSCRIPTION).path("keys/_renew").request().post(null);
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        verify(apiKeyService, never()).renew(any(), any(SubscriptionEntity.class));
+        verifyNoInteractions(permissionService);
     }
 
     @Test
