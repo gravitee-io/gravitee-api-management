@@ -57,16 +57,18 @@ import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.vertx.core.Future;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.http.impl.HttpServerConnection;
-import io.vertx.rxjava3.core.MultiMap;
+import io.vertx.core.net.HostAndPort;
 import io.vertx.rxjava3.core.http.HttpConnection;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.core.http.HttpServerResponse;
@@ -101,6 +103,7 @@ import org.springframework.core.env.StandardEnvironment;
 class DebugHttpRequestDispatcherTest {
 
     private static final String HOST = "gravitee.io";
+    private static final int PORT = -1;
     private static final String CANONICAL_PATH = "/event-id-proxyv4/b";
     private static final String PATH_WITH_DOT_SEGMENTS = "/event-id-proxyv4/a/../b";
     private static final String SERVER_ID = null;
@@ -165,7 +168,7 @@ class DebugHttpRequestDispatcherTest {
 
     @BeforeEach
     void init() {
-        lenient().when(rxRequest.host()).thenReturn(HOST);
+        lenient().when(rxRequest.authority()).thenReturn(HostAndPort.create(HOST, PORT));
         lenient().when(rxRequest.version()).thenReturn(HttpVersion.HTTP_1_1);
         lenient().when(rxRequest.method()).thenReturn(HttpMethod.GET);
         lenient().when(rxRequest.headers()).thenReturn(MultiMap.caseInsensitiveMultiMap());
@@ -173,17 +176,17 @@ class DebugHttpRequestDispatcherTest {
         lenient().when(rxRequest.response()).thenReturn(rxResponse);
         lenient().when(rxRequest.getDelegate()).thenReturn(request);
 
-        lenient().when(request.host()).thenReturn(HOST);
+        lenient().when(request.authority()).thenReturn(HostAndPort.create(HOST, PORT));
         lenient().when(request.method()).thenReturn(HttpMethod.GET);
-        lenient().when(request.headers()).thenReturn(io.vertx.core.MultiMap.caseInsensitiveMultiMap());
+        lenient().when(request.headers()).thenReturn(MultiMap.caseInsensitiveMultiMap());
         lenient().when(request.response()).thenReturn(response);
 
         lenient().when(rxResponse.headers()).thenReturn(MultiMap.caseInsensitiveMultiMap());
         lenient().when(rxResponse.trailers()).thenReturn(MultiMap.caseInsensitiveMultiMap());
         lenient().when(rxResponse.getDelegate()).thenReturn(response);
 
-        lenient().when(response.headers()).thenReturn(io.vertx.core.MultiMap.caseInsensitiveMultiMap());
-        lenient().when(response.trailers()).thenReturn(io.vertx.core.MultiMap.caseInsensitiveMultiMap());
+        lenient().when(response.headers()).thenReturn(MultiMap.caseInsensitiveMultiMap());
+        lenient().when(response.trailers()).thenReturn(MultiMap.caseInsensitiveMultiMap());
         lenient().when(response.end()).thenReturn(Future.succeededFuture());
 
         lenient().when(requestTimeoutConfiguration.getRequestTimeout()).thenReturn(0L);
@@ -205,11 +208,13 @@ class DebugHttpRequestDispatcherTest {
         HttpConnection httpConnection = mock(HttpConnection.class);
         HttpServerConnection httpServerConnection = mock(HttpServerConnection.class);
         Channel channel = mock(Channel.class);
+        ChannelHandlerContext channelHandlerContext = mock(ChannelHandlerContext.class);
         Attribute attribute = mock(Attribute.class);
 
         lenient().when(rxRequest.connection()).thenReturn(httpConnection);
         lenient().when(httpConnection.getDelegate()).thenReturn(httpServerConnection);
-        lenient().when(httpServerConnection.channel()).thenReturn(channel);
+        lenient().when(httpServerConnection.channelHandlerContext()).thenReturn(channelHandlerContext);
+        lenient().when(channelHandlerContext.channel()).thenReturn(channel);
         lenient().when(channel.attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))).thenReturn(attribute);
         lenient().when(attribute.get()).thenReturn(System.currentTimeMillis());
     }
