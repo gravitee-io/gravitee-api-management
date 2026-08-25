@@ -22,8 +22,8 @@ import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.reporter.api.v4.metric.Metrics;
-import io.grpc.Status;
 import io.reactivex.rxjava3.core.Completable;
+import io.vertx.grpc.common.GrpcStatus;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.env.Environment;
@@ -73,7 +73,7 @@ public class RejectedPathProcessor implements Processor {
             // unmatched context path, which is the closest thing this rejection resembles.
             final MediaType mediaType = MediaType.parseMediaType(ctx.request().headers().get(HttpHeaderNames.CONTENT_TYPE));
             if (MediaType.MEDIA_APPLICATION_GRPC.equals(mediaType)) {
-                ctx.response().headers().set("grpc-status", String.valueOf(Status.INVALID_ARGUMENT.getCode().value()));
+                ctx.response().headers().set("grpc-status", GrpcStatus.INVALID_ARGUMENT.toString());
                 ctx.response().headers().set("grpc-message", message);
             }
 

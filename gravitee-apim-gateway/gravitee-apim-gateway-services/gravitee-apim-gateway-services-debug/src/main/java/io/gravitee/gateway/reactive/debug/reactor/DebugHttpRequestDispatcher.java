@@ -26,7 +26,6 @@ import io.gravitee.gateway.env.RequestPathConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.http.vertx.VertxHttpServerRequestOptions;
 import io.gravitee.gateway.opentelemetry.TracingContext;
-import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
