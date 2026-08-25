@@ -163,7 +163,22 @@
 
   <mat-card appearance="outlined" data-testid="product-subscription-credentials">
     <mat-card-header>
-      <mat-card-title class="next-gen-h4" i18n="@@apiProductSubscriptionCredentialsTitle">API access</mat-card-title>
+      <div class="credentials-header">
+        <mat-card-title class="next-gen-h4" i18n="@@apiProductSubscriptionCredentialsTitle">API access</mat-card-title>
+        @if (canRenewApiKey()) {
+          <button
+            mat-stroked-button
+            type="button"
+            matTooltip="Renew API Key"
+            i18n-matTooltip="@@apiKeyRenewTooltip"
+            [disabled]="isRenewingApiKey()"
+            data-testid="renew-api-key-button"
+            (click)="renewApiKey()"
+          >
+            <span class="next-gen-small-bold" i18n="@@apiKeyRenew">Renew API Key</span>
+          </button>
+        }
+      </div>
     </mat-card-header>
     <mat-card-content class="credentials">
       @if (displayedSubscription().status !== 'ACCEPTED') {
@@ -216,7 +231,7 @@
         } @else {
           @switch (productDetails.plan?.security) {
             @case ('API_KEY') {
-              <app-api-keys-list [apiKeys]="displayedSubscription().keys ?? []" [canManageApiKey]="false" />
+              <app-api-keys-list [apiKeys]="displayedSubscription().keys ?? []" [canManageApiKey]="false" [feedback]="apiKeyFeedback()" />
             }
             @case ('KEY_LESS') {
               <p i18n="@@apiProductSubscriptionKeyless">No credentials are required for this plan.</p>

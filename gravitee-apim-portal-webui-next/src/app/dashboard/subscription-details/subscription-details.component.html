@@ -23,7 +23,7 @@
   </div>
 } @else if (subscriptionResource.value(); as subscription) {
   @if (subscription.reference_type === 'API_PRODUCT') {
-    <app-api-product-subscription-details [subscription]="subscription" />
+    <app-api-product-subscription-details [subscription]="subscription" (apiKeyRenewed)="subscriptionResource.reload()" />
   } @else if (apiId(); as resolvedApiId) {
     <app-subscriptions-details [apiId]="resolvedApiId" [subscriptionId]="subscriptionId()" />
   } @else {

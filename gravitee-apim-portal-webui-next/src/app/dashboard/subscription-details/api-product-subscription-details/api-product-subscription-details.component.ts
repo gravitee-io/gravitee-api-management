@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 import { DatePipe } from '@angular/common';
-import { Component, computed, DestroyRef, inject, input, linkedSignal, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, input, linkedSignal, output, signal } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
-import { catchError, map, Observable, of, switchMap } from 'rxjs';
+import { catchError, filter, finalize, map, Observable, of, switchMap, tap } from 'rxjs';
 
 import { ApiProductSubscriptionApiAccessComponent } from './api-product-subscription-api-access/api-product-subscription-api-access.component';
-import { ApiKeysListComponent } from '../../../../components/api-access/api-keys-list/api-keys-list.component';
+import { ApiKeyFeedback, ApiKeysListComponent } from '../../../../components/api-access/api-keys-list/api-keys-list.component';
 import { BannerComponent } from '../../../../components/banner/banner.component';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../../../components/confirm-dialog/confirm-dialog.component';
 import { CopyCodeComponent } from '../../../../components/copy-code/copy-code.component';
@@ -34,6 +35,7 @@ import { CapitalizeFirstPipe } from '../../../../pipe/capitalize-first.pipe';
 import { ToPeriodTimeUnitLabelPipe } from '../../../../pipe/time-unit.pipe';
 import { ApplicationService } from '../../../../services/application.service';
 import { PermissionsService } from '../../../../services/permissions.service';
+import { SubscriptionKeysService } from '../../../../services/subscription-keys.service';
 import { SubscriptionService } from '../../../../services/subscription.service';
 
 type LifecycleAction = 'pause' | 'resume' | 'retry' | 'close';
@@ -55,6 +57,7 @@ interface ActionFeedback {
     LoaderComponent,
     MatButtonModule,
     MatCardModule,
+    MatTooltipModule,
     RouterLink,
     ToPeriodTimeUnitLabelPipe,
   ],
@@ -64,15 +67,23 @@ interface ActionFeedback {
 export class ApiProductSubscriptionDetailsComponent {
   private readonly applicationService = inject(ApplicationService);
   private readonly permissionsService = inject(PermissionsService);
+  private readonly subscriptionKeysService = inject(SubscriptionKeysService);
   private readonly subscriptionService = inject(SubscriptionService);
   private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly subscription = input.required<Subscription>();
+  readonly apiKeyRenewed = output<void>();
 
   protected readonly displayedSubscription = linkedSignal(() => this.subscription());
   protected readonly pendingAction = signal<LifecycleAction | null>(null);
   protected readonly actionFeedback = signal<ActionFeedback | null>(null);
+  protected readonly isRenewingApiKey = signal(false);
+  protected readonly apiKeyFeedback = linkedSignal<Subscription, ApiKeyFeedback | undefined>({
+    source: () => this.subscription(),
+    computation: () => undefined,
+  });
+  private readonly isRenewApiKeyDialogOpen = signal(false);
   protected readonly product = computed(() => this.displayedSubscription().apiProduct);
   protected readonly plan = computed(() => this.product()?.plan);
   protected readonly planSecurityLabel = computed(() => getPlanSecurityTypeLabel(this.plan()?.security));
@@ -104,6 +115,12 @@ export class ApiProductSubscriptionDetailsComponent {
     params: () => this.displayedSubscription().application,
     stream: ({ params }) => this.permissionsService.getApplicationPermissions(params),
   });
+  protected readonly canRenewApiKey = computed(
+    () =>
+      this.displayedSubscription().status === 'ACCEPTED' &&
+      this.plan()?.security === 'API_KEY' &&
+      !!this.permissionsResource.value()?.SUBSCRIPTION?.includes('U'),
+  );
   protected readonly clientId = computed(
     () => this.applicationResource.value()?.settings.oauth?.client_id ?? this.applicationResource.value()?.settings.app?.client_id,
   );
@@ -140,6 +157,34 @@ export class ApiProductSubscriptionDetailsComponent {
       (this.permissionsResource.value()?.SUBSCRIPTION?.includes('D') ?? false)
     );
   });
+
+  protected renewApiKey(): void {
+    if (!this.canRenewApiKey() || this.isRenewingApiKey() || this.isRenewApiKeyDialogOpen()) {
+      return;
+    }
+
+    const dialogData: ConfirmDialogData = {
+      title: $localize`:@@apiKeyRenewDialogTitle:Renew API Key?`,
+      content: $localize`:@@apiKeyRenewDialogContent:API Key renewal will eventually deprecate the current key`,
+      confirmLabel: $localize`:@@apiKeyRenewDialogConfirm:Yes, renew`,
+      cancelLabel: $localize`:@@apiKeyRenewDialogCancel:Cancel`,
+    };
+
+    this.isRenewApiKeyDialogOpen.set(true);
+    this.dialog
+      .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
+        role: 'alertdialog',
+        id: 'confirmDialog',
+        data: dialogData,
+      })
+      .afterClosed()
+      .pipe(
+        tap(() => this.isRenewApiKeyDialogOpen.set(false)),
+        filter(confirmed => !!confirmed),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.executeApiKeyRenewal());
+  }
 
   protected pauseSubscription(): void {
     const subscriptionId = this.displayedSubscription().id;
@@ -210,6 +255,32 @@ export class ApiProductSubscriptionDetailsComponent {
         error: () => {
           this.pendingAction.set(null);
           this.actionFeedback.set({ type: 'error', message: this.getErrorMessage(action) });
+        },
+      });
+  }
+
+  private executeApiKeyRenewal(): void {
+    this.isRenewingApiKey.set(true);
+    this.apiKeyFeedback.set(undefined);
+    this.subscriptionKeysService
+      .renew(this.displayedSubscription().id)
+      .pipe(
+        finalize(() => this.isRenewingApiKey.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.apiKeyRenewed.emit();
+          this.apiKeyFeedback.set({
+            type: 'success',
+            message: $localize`:@@apiKeyRenewSuccess:API key renewed successfully. You can now use it to access the API.`,
+          });
+        },
+        error: () => {
+          this.apiKeyFeedback.set({
+            type: 'error',
+            message: $localize`:@@apiKeyRenewError:Failed to renew API key. Please try again.`,
+          });
         },
       });
   }

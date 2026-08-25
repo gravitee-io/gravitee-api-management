@@ -28,6 +28,8 @@ export class ApiProductSubscriptionDetailsHarness extends ComponentHarness {
   private readonly retryButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="retry-subscription"]' }));
   private readonly closeButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="close-subscription"]' }));
   private readonly feedback = this.locatorForOptional('[data-testid="subscription-action-feedback"]');
+  private readonly renewApiKeyButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="renew-api-key-button"]' }));
+  private readonly apiKeyFeedback = this.locatorForOptional('[data-testid="api-key-feedback"]');
 
   async getSummaryText(): Promise<string> {
     return (await this.summary()).text();
@@ -67,5 +69,25 @@ export class ApiProductSubscriptionDetailsHarness extends ComponentHarness {
 
   async getFeedbackAttribute(attribute: string): Promise<string | null> {
     return (await this.feedback())?.getAttribute(attribute) ?? null;
+  }
+
+  async hasRenewApiKeyButton(): Promise<boolean> {
+    return !!(await this.renewApiKeyButton());
+  }
+
+  async clickRenewApiKey(): Promise<void> {
+    await (await this.renewApiKeyButton())?.click();
+  }
+
+  async isRenewApiKeyButtonDisabled(): Promise<boolean | null> {
+    return (await this.renewApiKeyButton())?.isDisabled() ?? null;
+  }
+
+  async getApiKeyFeedbackText(): Promise<string | null> {
+    return (await this.apiKeyFeedback())?.text() ?? null;
+  }
+
+  async getApiKeyFeedbackAttribute(attribute: string): Promise<string | null> {
+    return (await this.apiKeyFeedback())?.getAttribute(attribute) ?? null;
   }
 }
