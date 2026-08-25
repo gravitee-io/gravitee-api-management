@@ -23,6 +23,8 @@ import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.vertx.core.Vertx;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Collections;
 import org.opensearch.testcontainers.OpensearchContainer;
 import org.springframework.beans.factory.annotation.Value;
@@ -68,7 +70,29 @@ public class TestConfiguration {
 
     @Bean
     public TimeProvider timeProvider() {
+        requireUtcClock();
         return new TimeProvider();
+    }
+
+    /**
+     * The sample data is dated in UTC while production resolves the day it reads from the default zone, so the
+     * two only agree while the JVM runs on UTC. Surefire is pinned to it — see {@code argLine} in this module's
+     * pom — but an IDE run is not, and outside UTC the mismatch only shows for the hours where the local date
+     * is not the UTC date. Failing here says why, rather than letting a handful of repositories come back empty
+     * for reasons that look like anything but the clock.
+     */
+    private void requireUtcClock() {
+        final LocalDate local = LocalDate.now();
+        final LocalDate utc = LocalDate.now(ZoneOffset.UTC);
+        if (!local.equals(utc)) {
+            throw new IllegalStateException(
+                "These tests need the JVM on UTC: the sample data is dated in UTC while production reads the day " +
+                    "from the default zone, and right now they disagree — local date %s, UTC date %s. Add -Duser.timezone=UTC to the run configuration.".formatted(
+                        local,
+                        utc
+                    )
+            );
+        }
     }
 
     @Bean
