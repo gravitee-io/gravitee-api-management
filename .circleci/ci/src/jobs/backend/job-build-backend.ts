@@ -38,7 +38,7 @@ export class BuildBackendJob {
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: jobName }),
       new commands.Run({
         name: 'Build project',
-        command: `mvn -s ${config.maven.settingsFile} clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true ${mavenParallelism('xlarge')} -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc`,
+        command: `mvn -s ${config.maven.settingsFile} clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true ${mavenParallelism('large')} -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc`,
         environment: {
           BUILD_ID: environment.buildId,
           BUILD_NUMBER: environment.buildNum,
@@ -64,6 +64,6 @@ export class BuildBackendJob {
         ],
       }),
     ];
-    return new Job(jobName, OpenJdkExecutor.create('xlarge'), steps);
+    return new Job(jobName, OpenJdkExecutor.create('large'), steps);
   }
 }
