@@ -373,7 +373,7 @@ class PortalDocumentationSyncDomainServiceTest {
 
     private static PortalNavigationItemId expectedNavItemId() {
         return PortalNavigationItemId.of(
-            HRIDToUUID.navigation().context(AUDIT_INFO).portal(PORTAL_ID.toString()).documentation(DOC_ID.toString()).id()
+            HRIDToUUID.navigation().context(AUDIT_INFO).portal(PORTAL_ID.toString()).documentation(DOC_ID).id()
         );
     }
 

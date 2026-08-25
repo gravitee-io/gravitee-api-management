@@ -18,10 +18,16 @@ package io.gravitee.rest.api.service.common;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class HRIDToUUIDTest {
@@ -417,6 +423,86 @@ class HRIDToUUIDTest {
         void should_produce_same_result_from_audit_info_and_execution_context() {
             assertThat(HRIDToUUID.gamma().context(AUDIT).module("aim").kind("catalog/mcp-servers").hrid("x").id()).isEqualTo(
                 HRIDToUUID.gamma().context(EXEC_CTX).module("aim").kind("catalog/mcp-servers").hrid("x").id()
+            );
+        }
+    }
+
+    @Nested
+    class Navigation {
+
+        @Test
+        void portal_navigation_item_result_model_id_wraps_id_as_portal_navigation_item_id() {
+            var result = HRIDToUUID.navigation().context(AUDIT).portal("my-portal").folder("/projects/alpha");
+
+            assertThat(result.modelId()).isEqualTo(PortalNavigationItemId.of(result.id()));
+        }
+
+        @Test
+        void api_navigation_item_result_model_id_wraps_id_as_portal_navigation_item_id() {
+            var result = HRIDToUUID.navigation().context(AUDIT).api("my-api").folder("/getting-started");
+
+            assertThat(result.modelId()).isEqualTo(PortalNavigationItemId.of(result.id()));
+        }
+
+        @Test
+        void api_folder_id_returns_the_folder_result_model_id() {
+            var expected = HRIDToUUID.navigation().context(AUDIT).api("my-api").folder("/getting-started").modelId();
+
+            assertThat(HRIDToUUID.navigation().context(AUDIT).api("my-api").folderId("/getting-started")).isEqualTo(expected);
+        }
+
+        @Test
+        void api_folder_id_treats_null_location_as_the_api_folder_subtree_root() {
+            var expected = HRIDToUUID.navigation().context(AUDIT).api("my-api").folder("").modelId();
+
+            assertThat(HRIDToUUID.navigation().context(AUDIT).api("my-api").folderId(null)).isEqualTo(expected);
+        }
+
+        @Test
+        void api_folder_id_ignores_a_trailing_slash() {
+            assertThat(HRIDToUUID.navigation().context(AUDIT).api("my-api").folderId("/getting-started/")).isEqualTo(
+                HRIDToUUID.navigation().context(AUDIT).api("my-api").folderId("/getting-started")
+            );
+        }
+
+        @ParameterizedTest
+        @NullSource
+        @ValueSource(strings = { "", "  ", "/" })
+        void folder_id_is_empty_when_location_denotes_the_portal_root(String location) {
+            assertThat(HRIDToUUID.navigation().context(AUDIT).portal("my-portal").folderId(location)).isEmpty();
+        }
+
+        @Test
+        void folder_id_returns_the_folder_result_model_id_for_a_real_location() {
+            var expected = HRIDToUUID.navigation().context(AUDIT).portal("my-portal").folder("/projects/alpha").modelId();
+
+            assertThat(HRIDToUUID.navigation().context(AUDIT).portal("my-portal").folderId("/projects/alpha")).contains(expected);
+        }
+
+        @Test
+        void portal_overload_taking_a_portal_id_produces_the_same_result_as_its_string_form() {
+            var portalId = PortalId.random();
+
+            assertThat(HRIDToUUID.navigation().context(AUDIT).portal(portalId).folder("/x").id()).isEqualTo(
+                HRIDToUUID.navigation().context(AUDIT).portal(portalId.toString()).folder("/x").id()
+            );
+        }
+
+        @Test
+        void portal_documentation_overload_taking_a_content_id_produces_the_same_result_as_its_string_form() {
+            var contentId = PortalPageContentId.random();
+
+            assertThat(HRIDToUUID.navigation().context(AUDIT).portal("my-portal").documentation(contentId).id()).isEqualTo(
+                HRIDToUUID.navigation().context(AUDIT).portal("my-portal").documentation(contentId.toString()).id()
+            );
+        }
+
+        @Test
+        void api_documentation_overload_taking_a_content_id_produces_the_same_result_as_its_string_form() {
+            var contentId = PortalPageContentId.random();
+
+            assertThat(HRIDToUUID.navigation().context(AUDIT).api("my-api").documentation(contentId).id()).isEqualTo(
+                HRIDToUUID.navigation().context(AUDIT).api("my-api").documentation(contentId.toString()).id()
             );
         }
     }

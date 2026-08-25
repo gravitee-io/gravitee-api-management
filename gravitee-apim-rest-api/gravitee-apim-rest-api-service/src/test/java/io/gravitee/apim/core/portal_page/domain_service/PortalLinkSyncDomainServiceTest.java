@@ -230,7 +230,7 @@ class PortalLinkSyncDomainServiceTest {
 
     @Test
     void materialize_for_api_creates_a_link_under_the_api_folder() {
-        var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/guides");
+        var folderId = HRIDToUUID.navigation().context(AUDIT_INFO).api(API_ID).folderId("/guides");
 
         var link = syncService.materializeForApi(
             AUDIT_INFO,
@@ -263,7 +263,7 @@ class PortalLinkSyncDomainServiceTest {
         var link = syncService.materializeForApi(AUDIT_INFO, API_ID, "external-docs", "External Docs", "https://d.example", "/guides", 0);
 
         assertThat(navItemCrud.storage()).hasSize(1);
-        assertThat(link.getParentId()).isEqualTo(PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/guides"));
+        assertThat(link.getParentId()).isEqualTo(HRIDToUUID.navigation().context(AUDIT_INFO).api(API_ID).folderId("/guides"));
     }
 
     @Test
@@ -277,7 +277,7 @@ class PortalLinkSyncDomainServiceTest {
 
     @Test
     void materialize_for_api_rejects_a_segment_already_taken_by_a_foreign_item() {
-        var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/guides");
+        var folderId = HRIDToUUID.navigation().context(AUDIT_INFO).api(API_ID).folderId("/guides");
         var squatter = linkRow("external-docs", folderId, 0);
         navItemCrud.create(squatter);
 
@@ -307,7 +307,7 @@ class PortalLinkSyncDomainServiceTest {
     }
 
     private static PortalNavigationItemId expectedFolderId(String path) {
-        return PortalNavigationItemId.forPortalFolder(AUDIT_INFO, PORTAL_ID, path);
+        return HRIDToUUID.navigation().context(AUDIT_INFO).portal(PORTAL_ID).folderId(path).orElseThrow();
     }
 
     private PortalNavigationLink linkRow(String title, PortalNavigationItemId parentId, int order) {

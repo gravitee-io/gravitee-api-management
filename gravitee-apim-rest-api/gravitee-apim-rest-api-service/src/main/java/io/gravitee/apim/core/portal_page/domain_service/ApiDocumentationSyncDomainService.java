@@ -35,6 +35,7 @@ import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.apim.core.slug.model.Slug;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -80,7 +81,7 @@ public class ApiDocumentationSyncDomainService {
             return;
         }
         for (var navApi : navApiRows) {
-            var pageId = PortalNavigationItemId.forApiDocumentation(auditInfo, apiId, contentId);
+            var pageId = HRIDToUUID.navigation().context(auditInfo).api(apiId).documentation(contentId).modelId();
             var parent = resolveParent(auditInfo, navApi, meta.location().orElse(null));
             upsertNavPage(auditInfo, pageId, contentId, parent, meta);
         }
@@ -90,7 +91,7 @@ public class ApiDocumentationSyncDomainService {
         if (findNavApiRows(auditInfo.environmentId(), apiId).isEmpty()) {
             return;
         }
-        var pageId = PortalNavigationItemId.forApiDocumentation(auditInfo, apiId, contentId);
+        var pageId = HRIDToUUID.navigation().context(auditInfo).api(apiId).documentation(contentId).modelId();
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), pageId);
         if (existing != null) {
             navigationItemCrudService.delete(pageId);
@@ -124,7 +125,7 @@ public class ApiDocumentationSyncDomainService {
         portalPageContentQueryService
             .findByReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.API, apiId)
             .forEach(pc -> {
-                var pageId = PortalNavigationItemId.forApiDocumentation(auditInfo, apiId, pc.getId());
+                var pageId = HRIDToUUID.navigation().context(auditInfo).api(apiId).documentation(pc.getId()).modelId();
                 if (navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), pageId) != null) {
                     navigationItemCrudService.delete(pageId);
                 }
@@ -153,7 +154,7 @@ public class ApiDocumentationSyncDomainService {
         if (location == null || location.isBlank() || "/".equals(location)) {
             return navApi;
         }
-        var folderId = PortalNavigationItemId.forApiFolder(auditInfo, navApi.getApiId(), location);
+        var folderId = HRIDToUUID.navigation().context(auditInfo).api(navApi.getApiId()).folderId(location);
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), folderId);
         if (existing instanceof PortalNavigationItemContainer container) {
             return container;

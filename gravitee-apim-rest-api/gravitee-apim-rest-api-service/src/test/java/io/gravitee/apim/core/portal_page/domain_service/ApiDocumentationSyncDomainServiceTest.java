@@ -39,6 +39,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -87,7 +88,7 @@ class ApiDocumentationSyncDomainServiceTest {
 
         syncService.materialize(AUDIT_INFO, aDocumentation());
 
-        var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
+        var pageId = apiDocPageId(API_ID, DOC_ID);
         assertThat(
             navItemCrud.storage().stream().filter(PortalNavigationPage.class::isInstance).map(PortalNavigationItem::getId)
         ).containsExactly(pageId);
@@ -109,13 +110,13 @@ class ApiDocumentationSyncDomainServiceTest {
 
     @Test
     void should_ignore_nav_api_rows_belonging_to_other_apis() {
-        var ours = seedNavApi(PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
-        var theirs = seedNavApi(PortalNavigationItemId.of("cccccccc-cccc-cccc-cccc-cccccccccccc"), "another-api-id");
+        seedNavApi(PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
+        seedNavApi(PortalNavigationItemId.of("cccccccc-cccc-cccc-cccc-cccccccccccc"), "another-api-id");
 
         syncService.materialize(AUDIT_INFO, aDocumentation());
 
-        var pageIdOurs = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
-        var pageIdTheirs = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, "another-api-id", DOC_ID);
+        var pageIdOurs = apiDocPageId(API_ID, DOC_ID);
+        var pageIdTheirs = apiDocPageId("another-api-id", DOC_ID);
         assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).contains(pageIdOurs).doesNotContain(pageIdTheirs);
     }
 
@@ -156,7 +157,7 @@ class ApiDocumentationSyncDomainServiceTest {
 
         syncService.dematerialize(AUDIT_INFO, API_ID, DOC_ID);
 
-        var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
+        var pageId = apiDocPageId(API_ID, DOC_ID);
         assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).doesNotContain(pageId);
     }
 
@@ -209,11 +210,15 @@ class ApiDocumentationSyncDomainServiceTest {
 
         syncService.cleanupNavApi(AUDIT_INFO, removedNavApiId);
 
-        var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
+        var pageId = apiDocPageId(API_ID, DOC_ID);
         assertThat(navItemCrud.storage())
             .extracting(PortalNavigationItem::getId)
             .containsExactly(keptNavApiId)
             .doesNotContain(removedNavApiId, pageId);
+    }
+
+    private static PortalNavigationItemId apiDocPageId(String apiId, PortalPageContentId contentId) {
+        return HRIDToUUID.navigation().context(AUDIT_INFO).api(apiId).documentation(contentId).modelId();
     }
 
     private PortalNavigationApi seedNavApi(PortalNavigationItemId id) {

@@ -32,6 +32,7 @@ import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.slug.model.Slug;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -64,7 +65,7 @@ public class PortalDocumentationSyncDomainService {
     }
 
     public void dematerialize(AuditInfo auditInfo, String portalId, PortalPageContentId pageContentId) {
-        final var navigationItemId = PortalNavigationItemId.forPortalDocumentation(auditInfo, portalId, pageContentId);
+        final var navigationItemId = HRIDToUUID.navigation().context(auditInfo).portal(portalId).documentation(pageContentId).modelId();
         final var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), navigationItemId);
         if (existing != null) {
             navigationItemCrudService.delete(navigationItemId);
@@ -142,12 +143,17 @@ public class PortalDocumentationSyncDomainService {
     }
 
     private PortalNavigationItemContainer resolveParent(AuditInfo auditInfo, String location, String portalId) {
-        var folderId = PortalNavigationItemId.forPortalFolder(auditInfo, portalId, location);
-        if (folderId == null) return null;
-        var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), folderId);
-        if (existing instanceof PortalNavigationItemContainer container) {
-            return container;
-        }
-        return PortalNavigationItemContainer.phantom(folderId);
+        return HRIDToUUID.navigation()
+            .context(auditInfo)
+            .portal(portalId)
+            .folderId(location)
+            .map(folderId -> {
+                var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), folderId);
+                if (existing instanceof PortalNavigationItemContainer container) {
+                    return container;
+                }
+                return PortalNavigationItemContainer.phantom(folderId);
+            })
+            .orElse(null);
     }
 }

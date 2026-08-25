@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import java.util.UUID;
 
 public class PortalNavigationItemId implements Comparable<PortalNavigationItemId> {
@@ -45,23 +44,12 @@ public class PortalNavigationItemId implements Comparable<PortalNavigationItemId
         return new PortalNavigationItemId(UUID.fromString(value));
     }
 
-    public static PortalNavigationItemId forPortalDocumentation(AuditInfo auditInfo, String portalId, PortalPageContentId contentId) {
-        return of(HRIDToUUID.navigation().context(auditInfo).portal(portalId).documentation(contentId.toString()).id());
-    }
-
     public static PortalNavigationItemId forPortalDocumentationContent(AuditInfo auditInfo, PortalPageContent<?> pageContent) {
-        return forPortalDocumentation(auditInfo, pageContent.getAutomationMetadata().referenceId(), pageContent.getId());
-    }
-
-    public static @Nullable PortalNavigationItemId forPortalFolder(AuditInfo auditInfo, String portalId, @Nullable String location) {
-        if (location == null || location.isBlank() || "/".equals(location)) {
-            return null;
-        }
-        return of(HRIDToUUID.navigation().context(auditInfo).portal(portalId).folder(location).id());
-    }
-
-    public static PortalNavigationItemId forListingApi(AuditInfo auditInfo, String portalId, String apiId) {
-        return of(HRIDToUUID.navigation().context(auditInfo).portal(portalId).listingApi(apiId).id());
+        return HRIDToUUID.navigation()
+            .context(auditInfo)
+            .portal(pageContent.getAutomationMetadata().referenceId())
+            .documentation(pageContent.getId())
+            .modelId();
     }
 
     /**
@@ -79,19 +67,6 @@ public class PortalNavigationItemId implements Comparable<PortalNavigationItemId
      */
     public static PortalNavigationItemId forApiLink(AuditInfo auditInfo, String apiId, String linkHrid) {
         return of(HRIDToUUID.apiLink().context(auditInfo).api(apiId).hrid(linkHrid).id());
-    }
-
-    public static PortalNavigationItemId forApiDocumentation(AuditInfo auditInfo, String apiId, PortalPageContentId contentId) {
-        return of(HRIDToUUID.navigation().context(auditInfo).api(apiId).documentation(contentId.toString()).id());
-    }
-
-    public static PortalNavigationItemId forApiFolder(AuditInfo auditInfo, String apiId, @Nullable String location) {
-        return of(HRIDToUUID.navigation().context(auditInfo).api(apiId).folder(normalizeLocation(location)).id());
-    }
-
-    private static String normalizeLocation(@Nullable String location) {
-        if (location == null) return "";
-        return location.endsWith("/") && location.length() > 1 ? location.substring(0, location.length() - 1) : location;
     }
 
     public UUID id() {

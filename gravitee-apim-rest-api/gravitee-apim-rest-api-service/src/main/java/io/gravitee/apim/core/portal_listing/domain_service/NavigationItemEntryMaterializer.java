@@ -32,6 +32,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.slug.model.Slug;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
@@ -77,7 +78,7 @@ class NavigationItemEntryMaterializer {
     }
 
     PortalNavigationItemId rowId(AuditInfo auditInfo, PortalId portalId, String apiId) {
-        return PortalNavigationItemId.forListingApi(auditInfo, portalId.toString(), apiId);
+        return HRIDToUUID.navigation().context(auditInfo).portal(portalId).listingApi(apiId).modelId();
     }
 
     PortalNavigationItem findExistingRow(AuditInfo auditInfo, PortalNavigationItemId navApiId) {
@@ -126,14 +127,17 @@ class NavigationItemEntryMaterializer {
     }
 
     private PortalNavigationItemContainer resolveParent(AuditInfo auditInfo, String portalId, String location) {
-        var folderId = PortalNavigationItemId.forPortalFolder(auditInfo, portalId, location);
-        if (folderId == null) {
-            return null;
-        }
-        var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), folderId);
-        if (existing instanceof PortalNavigationItemContainer container) {
-            return container;
-        }
-        return PortalNavigationItemContainer.phantom(folderId);
+        return HRIDToUUID.navigation()
+            .context(auditInfo)
+            .portal(portalId)
+            .folderId(location)
+            .map(folderId -> {
+                var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), folderId);
+                if (existing instanceof PortalNavigationItemContainer container) {
+                    return container;
+                }
+                return PortalNavigationItemContainer.phantom(folderId);
+            })
+            .orElse(null);
     }
 }

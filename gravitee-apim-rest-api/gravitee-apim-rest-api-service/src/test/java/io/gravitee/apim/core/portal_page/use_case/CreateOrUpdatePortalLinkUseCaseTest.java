@@ -198,7 +198,7 @@ class CreateOrUpdatePortalLinkUseCaseTest {
             .order(0)
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
-            .parentId(PortalNavigationItemId.forPortalFolder(AUDIT_INFO, PORTAL_ID.toString(), "/projects/beta"))
+            .parentId(HRIDToUUID.navigation().context(AUDIT_INFO).portal(PORTAL_ID).folderId("/projects/beta").orElseThrow())
             .build();
         navCrudService.create(squatter);
 

@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.model;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -50,22 +51,22 @@ class PortalNavigationItemIdTest {
     }
 
     @Test
-    void forApiFolder_is_the_same_id_regardless_of_which_portal_lists_the_api() {
-        var folder = PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/guides");
+    void api_folder_id_is_the_same_id_regardless_of_which_portal_lists_the_api() {
+        var folder = HRIDToUUID.navigation().context(AUDIT_INFO).api(API_ID).folderId("/guides");
 
-        assertThat(folder).isEqualTo(PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/guides"));
-        assertThat(folder).isNotEqualTo(PortalNavigationItemId.forApiFolder(AUDIT_INFO, "other-api-id", "/guides"));
+        assertThat(folder).isEqualTo(HRIDToUUID.navigation().context(AUDIT_INFO).api(API_ID).folderId("/guides"));
+        assertThat(folder).isNotEqualTo(HRIDToUUID.navigation().context(AUDIT_INFO).api("other-api-id").folderId("/guides"));
     }
 
     @Test
-    void forApiDocumentation_is_keyed_on_the_api_not_on_a_listing_row() {
+    void api_documentation_id_is_keyed_on_the_api_not_on_a_listing_row() {
         var contentId = PortalPageContentId.random();
 
-        assertThat(PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, contentId)).isEqualTo(
-            PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, contentId)
+        assertThat(HRIDToUUID.navigation().context(AUDIT_INFO).api(API_ID).documentation(contentId).modelId()).isEqualTo(
+            HRIDToUUID.navigation().context(AUDIT_INFO).api(API_ID).documentation(contentId).modelId()
         );
-        assertThat(PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, contentId)).isNotEqualTo(
-            PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, "other-api-id", contentId)
+        assertThat(HRIDToUUID.navigation().context(AUDIT_INFO).api(API_ID).documentation(contentId).modelId()).isNotEqualTo(
+            HRIDToUUID.navigation().context(AUDIT_INFO).api("other-api-id").documentation(contentId).modelId()
         );
     }
 }

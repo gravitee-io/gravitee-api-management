@@ -31,6 +31,7 @@ import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.slug.model.Slug;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -197,7 +198,7 @@ public class PortalLinkSyncDomainService {
         if (location == null || location.isBlank() || "/".equals(location)) {
             return null;
         }
-        var folderId = PortalNavigationItemId.forApiFolder(auditInfo, apiId, location);
+        var folderId = HRIDToUUID.navigation().context(auditInfo).api(apiId).folderId(location);
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), folderId);
         if (existing instanceof PortalNavigationItemContainer container) {
             return container;
@@ -206,15 +207,18 @@ public class PortalLinkSyncDomainService {
     }
 
     private PortalNavigationItemContainer resolveParent(AuditInfo auditInfo, String location, String portalId) {
-        var folderId = PortalNavigationItemId.forPortalFolder(auditInfo, portalId, location);
-        if (folderId == null) {
-            return null;
-        }
-        var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), folderId);
-        if (existing instanceof PortalNavigationItemContainer container) {
-            return container;
-        }
-        return PortalNavigationItemContainer.phantom(folderId);
+        return HRIDToUUID.navigation()
+            .context(auditInfo)
+            .portal(portalId)
+            .folderId(location)
+            .map(folderId -> {
+                var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), folderId);
+                if (existing instanceof PortalNavigationItemContainer container) {
+                    return container;
+                }
+                return PortalNavigationItemContainer.phantom(folderId);
+            })
+            .orElse(null);
     }
 
     private void rejectIfSegmentTakenByForeignItem(
