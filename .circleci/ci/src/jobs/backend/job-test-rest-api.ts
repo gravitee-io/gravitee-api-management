@@ -29,7 +29,7 @@ export class TestRestApiJob extends AbstractTestJob {
         name: `Run Rest API tests`,
         command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -Drest-api-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C`,
       }),
-      UbuntuExecutor.create('xlarge'),
+      UbuntuExecutor.create('medium'),
       ['gravitee-apim-rest-api/gravitee-apim-rest-api-coverage/target/site/jacoco-aggregate/'],
     );
   }

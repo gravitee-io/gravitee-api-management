@@ -120,7 +120,7 @@ jobs:
   job-build:
     docker:
       - image: cimg/openjdk:21.0.5
-    resource_class: xlarge
+    resource_class: large
     steps:
       - checkout
       - attach_workspace:
@@ -129,7 +129,7 @@ jobs:
           jobName: job-build
       - run:
           name: Build project
-          command: mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 16 -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc
+          command: mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8 -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc
           environment:
             BUILD_ID: "1234"
             BUILD_NUMBER: "1234"
@@ -153,7 +153,7 @@ jobs:
     machine:
       image: ubuntu-2204:current
       docker_layer_caching: false
-    resource_class: xlarge
+    resource_class: medium
     steps:
       - checkout
       - attach_workspace:
