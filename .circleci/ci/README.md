@@ -60,12 +60,12 @@ will execute what you have in mind. To do so, you need to *really* execute code 
 > [!WARNING]
 > Be careful, the fact that CI is running mean that it is executed for real, even if dry-run mode is enabled. So double check what you are doing and do not hesitate to ask for review before any execution.
 
-Example to trigger `build_rpm` on current branch with latest tag:
+Example to trigger `publish_docker_images` on current branch with latest tag:
 
 ```bash
 export APIM_VERSION_PATH="${PWD%gravitee-api-management/*}/gravitee-api-management/pom.xml"     
 export CIRCLE_BRANCH="$(git branch --show-current)"                                          
-export CI_ACTION="build_rpm"
+export CI_ACTION="publish_docker_images"
 export CIRCLE_SHA1="$(git rev-parse --short HEAD)"
 export CI_DRY_RUN=true 
 export CI_DOCKER_TAG_AS_LATEST=false
@@ -78,7 +78,7 @@ Then, if you are satisfied by the yaml output, you can add a *temporary commit* 
 
 ```yaml
         environment:
-            CI_ACTION: "build_rpm"
+            CI_ACTION: "publish_docker_images"
             CI_DRY_RUN: "true"
             CI_GRAVITEEIO_VERSION: "4.7.2"
             CI_DOCKER_TAG_AS_LATEST: "false"
