@@ -325,6 +325,48 @@ describe('ApiCorsComponent', () => {
       });
     });
 
+    it('should enable and set CORS config on a LLM_PROXY API', async () => {
+      const api = fakeApiV4({
+        id: API_ID,
+        type: 'LLM_PROXY',
+        listeners: [{ type: 'HTTP', entrypoints: [{ type: 'llm-proxy' }], paths: [{ path: '/path' }] }],
+      });
+      expectApiGetRequest(api);
+      expectEntrypointsGetRequest([
+        ...ENTRYPOINTS_LIST,
+        { id: 'llm-proxy', supportedApiType: 'LLM_PROXY', name: 'LLM Proxy', availableFeatures: ['CORS'] },
+      ]);
+
+      expect(await loader.getAllHarnesses(DivHarness.with({ selector: '.banner.warning' }))).toEqual([]);
+
+      const enabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="enabled"]' }));
+      expect(await enabledSlideToggle.isDisabled()).toEqual(false);
+      await enabledSlideToggle.toggle();
+
+      const allowOriginInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="allowOrigin"]' }));
+      await allowOriginInput.addTag('https://console.example.com');
+
+      const allowMethodsInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="allowMethods"]' }));
+      await allowMethodsInput.addTag('POST');
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      await saveBar.clickSubmit();
+
+      expectApiGetRequest(api);
+      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+      expect(req.request.body.listeners[0].cors).toStrictEqual({
+        enabled: true,
+        allowMethods: ['POST'],
+        allowOrigin: ['https://console.example.com'],
+        allowHeaders: [],
+        allowCredentials: false,
+        exposeHeaders: [],
+        maxAge: -1,
+        allowPrivateNetwork: false,
+        runPolicies: false,
+      });
+    });
+
     it('should enable and set CORS config with a warning', async () => {
       const api = fakeApiV4({
         id: API_ID,
