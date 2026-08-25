@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.env;
 
+import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import ch.qos.logback.classic.Level;
@@ -22,9 +23,12 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import java.util.List;
+import java.util.Locale;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
@@ -106,5 +110,70 @@ class RequestConfigurationTest {
             .element(0)
             .extracting(ILoggingEvent::getMessage, ILoggingEvent::getLevel)
             .containsExactly("Http request timeout cannot be unset. Setting it to default value: 30_000 ms", Level.WARN);
+    }
+
+    @Nested
+    @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+    class Reading_the_path_handling_mode {
+
+        @ParameterizedTest(name = "{0}")
+        @ValueSource(strings = { "RAW", "REJECT", "NORMALIZE", "normalize", "  NORMALIZE  ", "NoRmAlIzE" })
+        void should_accept_a_known_value_whatever_its_case_or_padding(String configured) {
+            final RequestPathConfiguration result = cut.httpRequestPathConfiguration(configured);
+
+            assertThat(result.getHandling()).isEqualTo(RequestPathHandling.valueOf(configured.trim().toUpperCase(Locale.ROOT)));
+            assertThat(warnings()).isEmpty();
+        }
+
+        @ParameterizedTest(name = "[{index}] \"{0}\"")
+        @ValueSource(strings = { "NORMALISE", "REJEKT", "", "  ", "true" })
+        void should_fall_back_to_raw_on_an_unknown_value_and_say_so(String configured) {
+            // A security control that degrades has to be loud about it: the operator believes they
+            // enabled something. We do not refuse to start — the sibling timeout bean above sets the
+            // house rule — but the warning is the only signal they will get.
+            final RequestPathConfiguration result = cut.httpRequestPathConfiguration(configured);
+
+            assertThat(result.getHandling()).isEqualTo(RequestPathHandling.RAW);
+            assertThat(warnings())
+                .singleElement()
+                .satisfies(warning -> assertThat(warning).contains("http.pathHandling"));
+        }
+
+        @Test
+        void should_survive_a_jvm_whose_default_locale_uppercases_i_to_a_dotted_capital() {
+            // Turkish: "normalize".toUpperCase() is "NORMALİZE", valueOf throws, and the control
+            // silently turns itself off. RAW and REJECT carry no "i", so only the safe modes would
+            // have kept working — the failure is invisible until someone deploys in Istanbul.
+            final Locale previous = Locale.getDefault();
+            try {
+                Locale.setDefault(Locale.forLanguageTag("tr"));
+
+                assertThat(cut.httpRequestPathConfiguration("normalize").getHandling()).isEqualTo(RequestPathHandling.NORMALIZE);
+            } finally {
+                Locale.setDefault(previous);
+            }
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @ValueSource(strings = { "RAW", "REJECT", "NORMALIZE" })
+        void should_state_the_active_mode_at_startup_including_the_default(String configured) {
+            // The operator's only positive confirmation of which mode came up, and the counterpart
+            // of the warning above: without it, a mistyped value looks exactly like a correct RAW.
+            cut.httpRequestPathConfiguration(configured);
+
+            assertThat(listAppender.list)
+                .filteredOn(event -> event.getLevel() == Level.INFO)
+                .singleElement()
+                .extracting(ILoggingEvent::getFormattedMessage, as(InstanceOfAssertFactories.STRING))
+                .contains(configured);
+        }
+
+        private List<String> warnings() {
+            return listAppender.list
+                .stream()
+                .filter(event -> event.getLevel() == Level.WARN)
+                .map(ILoggingEvent::getFormattedMessage)
+                .toList();
+        }
     }
 }

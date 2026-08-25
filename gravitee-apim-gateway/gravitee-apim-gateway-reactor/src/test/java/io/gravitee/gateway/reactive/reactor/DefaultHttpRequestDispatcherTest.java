@@ -31,6 +31,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -49,6 +50,7 @@ import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
 import io.gravitee.gateway.reactive.http.vertx.ClientCloseClassifier;
 import io.gravitee.gateway.reactive.reactor.handler.HttpAcceptorResolver;
+import io.gravitee.gateway.reactive.reactor.path.RequestPathRejection;
 import io.gravitee.gateway.reactive.reactor.processor.DefaultPlatformProcessorChainFactory;
 import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
@@ -81,10 +83,17 @@ import io.vertx.rxjava3.core.http.HttpServerResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -240,6 +249,88 @@ class DefaultHttpRequestDispatcherTest {
         lenient().when(httpServerConnection.channel()).thenReturn(channel);
         lenient().when(channel.attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))).thenReturn(attribute);
         lenient().when(attribute.get()).thenReturn(System.currentTimeMillis());
+    }
+
+    /**
+     * Which paths the dispatcher refuses, checked against an oracle rather than against itself.
+     *
+     * <p>{@code dispatch} decides inline whether a path is refused, inside the single scan it
+     * already pays for. {@link RequestPathRejection#applies} states the same rule a second time,
+     * written independently and living in the test tree because nothing in production calls it.
+     * This drives the <b>dispatcher</b> over a table of modes and paths and asserts it refused
+     * exactly what the oracle announces.
+     *
+     * <p>The independence is the whole point. An oracle derived from the production code — asserting
+     * the predicate against the normalizer it is built from, as an earlier version of this did —
+     * passes whatever the dispatcher does. This table is what caught {@code OPTIONS *} and the null
+     * target being refused when they should be dispatched.
+     */
+    @Nested
+    @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+    class The_rejection_decision {
+
+        /**
+         * One table, walked by both readings. Every path that is refused under some mode, and a few
+         * that never are, so a predicate stuck on {@code true} fails too.
+         */
+        static Stream<Arguments> modesAndPaths() {
+            final String[] paths = {
+                "/alpha/api/echo",
+                "/alpha/api/../../beta/api/echo",
+                "/alpha/api/%2e%2e/%2e%2e/beta",
+                "/alpha/api/..;/..;/beta",
+                "/alpha/api/%zz",
+                "/alpha/api/%+41",
+                "/alpha//api/echo",
+                "/",
+                // Request targets that are not origin-form paths. They must be dispatched, not
+                // refused, whatever the mode: OPTIONS * is legal and a null target is what an
+                // HTTP/2 stream without a :path pseudo-header produces.
+                "*",
+                null,
+            };
+            return Stream.of(RequestPathHandling.values()).flatMap(mode -> Stream.of(paths).map(path -> Arguments.of(mode, path)));
+        }
+
+        @ParameterizedTest(name = "{0} on {1}")
+        @MethodSource("modesAndPaths")
+        void should_be_the_one_the_predicate_announces(RequestPathHandling mode, String path) {
+            // Given a dispatcher in that mode, and nothing to route to — the acceptor is irrelevant
+            // here, since the decision under test is taken before it is consulted.
+            final RequestPathConfiguration configuration = new RequestPathConfiguration(mode);
+            when(rxRequest.path()).thenReturn(path);
+            lenient().when(httpAcceptorResolver.resolve(any(), any(), any())).thenReturn(null);
+            lenient().when(notFoundProcessorChainFactory.processorChain()).thenReturn(new ProcessorChain("not-found", List.of()));
+            lenient()
+                .when(notFoundProcessorChainFactory.rejectedPathProcessorChain())
+                .thenReturn(new ProcessorChain("rejected", List.of()));
+
+            // When the request is dispatched.
+            dispatcherWith(configuration).dispatch(rxRequest, SERVER_ID).test().awaitDone(10, TimeUnit.SECONDS);
+
+            // Then the rejected chain was reached exactly when the predicate said it would be.
+            final boolean predicted = RequestPathRejection.applies(configuration, path);
+            verify(notFoundProcessorChainFactory, times(predicted ? 1 : 0)).rejectedPathProcessorChain();
+        }
+
+        private DefaultHttpRequestDispatcher dispatcherWith(final RequestPathConfiguration configuration) {
+            return new DefaultHttpRequestDispatcher(
+                gatewayConfiguration,
+                httpAcceptorResolver,
+                idGenerator,
+                globalComponentProvider,
+                new RequestProcessorChainFactory(),
+                responseProcessorChainFactory,
+                platformProcessorChainFactory,
+                notFoundProcessorChainFactory,
+                tracingContext,
+                requestTimeoutConfiguration,
+                requestClientAuthConfiguration,
+                configuration,
+                vertx,
+                true
+            );
+        }
     }
 
     @Nested

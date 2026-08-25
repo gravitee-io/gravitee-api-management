@@ -89,18 +89,22 @@ class RequestPathRejectionTest {
     }
 
     @Nested
-    class Against_the_normalizer {
+    class Dot_segments_carrying_path_parameters {
 
-        @ParameterizedTest
-        @ValueSource(strings = { CANONICAL, WITH_DOT_SEGMENTS, WITH_ENCODED_DOT_SEGMENTS, MALFORMED_PERCENT })
-        void should_agree_with_what_normalization_can_produce(final String path) {
-            // Restating the rule from the other side: a rejection under NORMALIZE happens if and
-            // only if the normalizer cannot produce a path. If someone changes one and not the
-            // other, this is what fails.
-            boolean rejected = RequestPathRejection.applies(configured(RequestPathHandling.NORMALIZE), path);
-            boolean hasNoNormalizedForm = RequestPathNormalizer.needsNormalization(path) && RequestPathNormalizer.normalize(path) == null;
+        @Test
+        void should_be_refused_like_any_other_dot_segment() {
+            // A servlet container strips the ;params before resolving, so this is a traversal to
+            // every receiver that matters — and REJECT exists to refuse traversals.
+            assertThat(RequestPathRejection.applies(configured(RequestPathHandling.REJECT), "/alpha/api/..;/..;/beta")).isTrue();
+        }
 
-            assertThat(rejected).isEqualTo(hasNoNormalizedForm);
+        @Test
+        void should_be_resolvable_rather_than_refused_under_normalize() {
+            assertThat(RequestPathRejection.applies(configured(RequestPathHandling.NORMALIZE), "/alpha/api/..;/..;/beta")).isFalse();
         }
     }
 }
+// The drift this predicate exists to prevent — between it and the copy inlined in
+// DefaultHttpRequestDispatcher.dispatch — is guarded by DefaultHttpRequestDispatcherTest, which
+// drives the dispatcher itself. Asserting the predicate against RequestPathNormalizer here would
+// only restate the predicate's own body.

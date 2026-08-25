@@ -19,10 +19,9 @@ import io.gravitee.gateway.env.RequestPathConfiguration;
 import io.gravitee.gateway.env.RequestPathHandling;
 
 /**
- * Answers whether the gateway will refuse to route on a path, for a caller that needs to know it
- * before the request is dispatched.
+ * States, for the tests alone, which paths the gateway refuses to route on.
  *
- * <p>There are two ways a request is refused, and only stating both keeps a caller correct:
+ * <p>Two ways a request is refused, and only stating both makes the oracle correct:
  *
  * <ul>
  *   <li>{@link RequestPathHandling#REJECT} meeting a path that is not already in its normalized
@@ -32,13 +31,20 @@ import io.gravitee.gateway.env.RequestPathHandling;
  *       cannot know which octets the client meant, so there is nothing to decide on.
  * </ul>
  *
- * <p><b>Why this exists next to the dispatcher rather than inside it.</b> {@code
- * DefaultHttpRequestDispatcher.dispatch} runs on every request the gateway serves, and deliberately
- * inlines this decision so it can reuse the single scan it already pays for and allocate nothing.
- * Calling this method there would scan the path a second time. The duplication is intentional and
- * bounded, and it is pinned by {@code RequestPathRejectionTest}, which walks the same table of modes
- * and paths the dispatcher tests use — two readings of one rule drift silently, and this one would
- * drift open.
+ * <p><b>This is a test oracle, not production code, and it lives here for that reason.</b> The rule
+ * is written once in production, inlined in {@code DefaultHttpRequestDispatcher.dispatch} so that it
+ * reuses the single scan that method already pays for and allocates nothing. This class restates the
+ * same rule independently, and {@code DefaultHttpRequestDispatcherTest.The_rejection_decision} drives
+ * the <b>dispatcher</b> over a table of modes and paths, asserting it refused exactly what is
+ * announced here.
+ *
+ * <p>Two independent readings compared against each other is what gives that test its value. One
+ * restating the other would pass whatever the dispatcher did — which is what an earlier version of
+ * this guard actually did, by asserting this class against the normalizer it is built from.
+ *
+ * <p>It was briefly production code, called by the debug dispatcher to predict a rejection before
+ * delegating. That dispatcher now hooks into the rejection instead of predicting it, so no caller
+ * remains. Promote it back the day one appears — with the caller, not in anticipation.
  *
  * @author GraviteeSource Team
  */
