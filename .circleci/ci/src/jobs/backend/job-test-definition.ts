@@ -18,6 +18,7 @@ import { config } from '../../config';
 import { OpenJdkExecutor } from '../../executors';
 import { AbstractTestJob } from './abstract-job-test';
 import { CircleCIEnvironment } from '../../pipelines';
+import { mavenParallelism } from '../../utils';
 
 export class TestDefinitionJob extends AbstractTestJob {
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
@@ -27,7 +28,7 @@ export class TestDefinitionJob extends AbstractTestJob {
       'job-test-definition',
       new commands.Run({
         name: `Run definition tests`,
-        command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -Ddefinition-modules -Dskip.validation=true -T 2C`,
+        command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -Ddefinition-modules -Dskip.validation=true ${mavenParallelism('small')}`,
       }),
       OpenJdkExecutor.create('small'),
       ['gravitee-apim-definition/gravitee-apim-definition-coverage/target/site/jacoco-aggregate/'],
