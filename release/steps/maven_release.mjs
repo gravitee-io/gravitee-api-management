@@ -1,13 +1,15 @@
 #!/usr/bin/env zx
 
 import { checkToken } from '../helpers/circleci-helper.mjs';
-import { computeVersion, extractVersion } from '../helpers/version-helper.mjs';
+import { assertVersionMatchesPom, computeVersion, extractVersion } from '../helpers/version-helper.mjs';
 import { getTargetBranch } from '../helpers/option-helper.mjs';
 
 await checkToken();
 
 const releasingVersion = await extractVersion();
 const versions = computeVersion(releasingVersion);
+const targetBranch = getTargetBranch(versions);
+await assertVersionMatchesPom(releasingVersion, targetBranch);
 
 console.log(chalk.green(`💪 Triggering Maven Central Release Pipeline!\n`));
 
@@ -22,7 +24,6 @@ if (hasRemovedAlpha === 'n') {
   }
 }
 
-const targetBranch = getTargetBranch(versions);
 if (argv.branch && argv.branch !== versions.branch) {
   const confirmBranch = await question(
     chalk.yellow(`⚠️ Releasing ${releasingVersion} from non-default branch '${targetBranch}'. Should we continue? (y/n)\n`),
