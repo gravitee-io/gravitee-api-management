@@ -1323,9 +1323,19 @@ public class UserServiceTest {
         });
     }
 
+    private static User activeGraviteeUser() {
+        User user = new User();
+        user.setId(USER_NAME);
+        user.setSource("gravitee");
+        user.setStatus(UserStatus.ACTIVE);
+        return user;
+    }
+
     @Test
-    public void shouldRejectResetPageUrlWhenPortalWhitelistIsNotConfigured() throws TechnicalException {
+    public void shouldRejectResetPageUrlWhenPortalWhitelistIsNotConfiguredAndNoFallbackPortalUrl() throws TechnicalException {
         setField(userService, "portalWhitelist", List.of());
+        when(installationAccessQueryService.getPortalUrl(ENVIRONMENT)).thenReturn(null);
+        when(userRepository.findBySource(any(), any(), any())).thenReturn(Optional.of(activeGraviteeUser()));
 
         assertThrows(UrlForbiddenException.class, () ->
             userService.resetPasswordFromSourceId(EXECUTION_CONTEXT, "my@email.com", "https://attacker.example.com/reset")
@@ -1335,8 +1345,9 @@ public class UserServiceTest {
     }
 
     @Test
-    public void shouldRejectConfirmationPageUrlWhenPortalWhitelistIsNotConfigured() throws TechnicalException {
+    public void shouldRejectConfirmationPageUrlWhenPortalWhitelistIsNotConfiguredAndNoFallbackPortalUrl() throws TechnicalException {
         setField(userService, "portalWhitelist", List.of());
+        when(installationAccessQueryService.getPortalUrl(ENVIRONMENT)).thenReturn(null);
         NewExternalUserEntity newExternalUserEntity = mock(NewExternalUserEntity.class);
 
         assertThrows(UrlForbiddenException.class, () ->
@@ -1344,6 +1355,54 @@ public class UserServiceTest {
         );
 
         verifyNoInteractions(emailService);
+    }
+
+    @Test
+    public void shouldRejectResetPageUrlWhenPortalWhitelistIsNotConfiguredAndUrlDoesNotMatchFallbackPortalUrl() throws TechnicalException {
+        setField(userService, "portalWhitelist", List.of());
+        when(installationAccessQueryService.getPortalUrl(ENVIRONMENT)).thenReturn("https://portal.example.com");
+        when(userRepository.findBySource(any(), any(), any())).thenReturn(Optional.of(activeGraviteeUser()));
+
+        assertThrows(UrlForbiddenException.class, () ->
+            userService.resetPasswordFromSourceId(EXECUTION_CONTEXT, "my@email.com", "https://attacker.example.com/reset")
+        );
+
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    public void shouldRejectResetPageUrlWhenPortalWhitelistIsNotConfiguredAndContextHasNoEnvironment() throws TechnicalException {
+        setField(userService, "portalWhitelist", List.of());
+        ExecutionContext organizationOnlyContext = new ExecutionContext(ORGANIZATION);
+        when(userRepository.findBySource(any(), any(), any())).thenReturn(Optional.of(activeGraviteeUser()));
+
+        assertThrows(UrlForbiddenException.class, () ->
+            userService.resetPasswordFromSourceId(organizationOnlyContext, "my@email.com", "https://attacker.example.com/reset")
+        );
+
+        verifyNoInteractions(emailService);
+        verifyNoInteractions(installationAccessQueryService);
+    }
+
+    @Test
+    public void shouldAllowResetPageUrlWhenPortalWhitelistIsNotConfiguredButUrlMatchesFallbackPortalUrl() throws TechnicalException {
+        assertThrows(UserNotFoundException.class, () -> {
+            setField(userService, "portalWhitelist", List.of());
+            when(installationAccessQueryService.getPortalUrl(ENVIRONMENT)).thenReturn("https://portal.example.com");
+            when(userRepository.findBySource(any(), any(), any())).thenReturn(Optional.of(activeGraviteeUser()));
+            userService.resetPasswordFromSourceId(EXECUTION_CONTEXT, "my@email.com", "https://portal.example.com/reset");
+        });
+    }
+
+    @Test
+    public void shouldAllowConfirmationPageUrlWhenPortalWhitelistIsNotConfiguredButUrlMatchesFallbackPortalUrl() throws TechnicalException {
+        setField(userService, "portalWhitelist", List.of());
+        when(installationAccessQueryService.getPortalUrl(ENVIRONMENT)).thenReturn("https://portal.example.com");
+        NewExternalUserEntity newExternalUserEntity = mock(NewExternalUserEntity.class);
+
+        assertThrows(UserRegistrationUnavailableException.class, () ->
+            userService.register(EXECUTION_CONTEXT, newExternalUserEntity, "https://portal.example.com/confirm")
+        );
     }
 
     @Test

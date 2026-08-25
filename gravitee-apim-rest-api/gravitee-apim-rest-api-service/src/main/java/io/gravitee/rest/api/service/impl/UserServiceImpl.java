@@ -313,17 +313,26 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     /**
      * Registration confirmation and password reset links embed a signed token in the caller-supplied redirect
-     * URL. Without an explicit whitelist, that URL must be rejected outright rather than allowed by default,
-     * otherwise the token can be exfiltrated to an attacker-controlled domain.
+     * URL. Without an explicit whitelist, that URL must only be accepted if it matches the installation's own
+     * resolved portal URL, otherwise the token can be exfiltrated to an attacker-controlled domain.
      */
-    private void checkPortalRedirectUrlAllowed(String url) {
-        if (url == null) {
+    private void checkPortalRedirectUrlAllowed(ExecutionContext executionContext, String url) {
+        if (url == null || url.isBlank()) {
             return;
         }
-        if (portalWhitelist.isEmpty()) {
+        List<String> effectiveWhitelist = portalWhitelist.isEmpty() ? fallbackPortalWhitelist(executionContext) : portalWhitelist;
+        if (effectiveWhitelist.isEmpty()) {
             throw new UrlForbiddenException();
         }
-        UrlSanitizerUtils.checkAllowed(url, portalWhitelist, true);
+        UrlSanitizerUtils.checkAllowed(url, effectiveWhitelist, true);
+    }
+
+    private List<String> fallbackPortalWhitelist(ExecutionContext executionContext) {
+        if (!executionContext.hasEnvironmentId()) {
+            return List.of();
+        }
+        String portalUrl = installationAccessQueryService.getPortalUrl(executionContext.getEnvironmentId());
+        return portalUrl == null ? List.of() : List.of(portalUrl);
     }
 
     @Override
@@ -856,7 +865,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     ) {
         final ReferenceContext currentContext = executionContext.getReferenceContext();
 
-        checkPortalRedirectUrlAllowed(confirmationPageUrl);
+        checkPortalRedirectUrlAllowed(executionContext, confirmationPageUrl);
 
         checkUserRegistrationEnabled(executionContext);
         boolean autoRegistrationEnabled = isAutoRegistrationEnabled(executionContext, currentContext);
@@ -1497,9 +1506,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     @Override
     public void resetPassword(ExecutionContext executionContext, final String id, final String resetPageUrl) {
-        if (resetPageUrl != null && !resetPageUrl.isBlank()) {
-            UrlSanitizerUtils.checkAllowed(resetPageUrl, portalWhitelist, true);
-        }
+        checkPortalRedirectUrlAllowed(executionContext, resetPageUrl);
         doResetPassword(executionContext, id, resetPageUrl);
     }
 
