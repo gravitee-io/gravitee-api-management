@@ -22,6 +22,7 @@ import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes
 
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.common.http.RequestPathNormalizer;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.api.context.SimpleExecutionContext;
 import io.gravitee.gateway.api.handler.Handler;
@@ -50,7 +51,6 @@ import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.http.vertx.ClientCloseClassifier;
 import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest;
 import io.gravitee.gateway.reactive.reactor.handler.HttpAcceptorResolver;
-import io.gravitee.gateway.reactive.reactor.path.RequestPathNormalizer;
 import io.gravitee.gateway.reactive.reactor.processor.DefaultPlatformProcessorChainFactory;
 import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
