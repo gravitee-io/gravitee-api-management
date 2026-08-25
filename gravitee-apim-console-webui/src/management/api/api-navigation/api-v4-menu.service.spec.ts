@@ -161,15 +161,16 @@ describe('ApiV4MenuService', () => {
       expect(entrypoints.routerLink).toBe('v4/entrypoints');
     });
 
-    it('should render a single Entrypoints route (no tabs) for LLM_PROXY', () => {
+    it('should expose Entrypoints and CORS tabs for LLM_PROXY (no MCP Entrypoint, no Response Templates)', () => {
+      TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: ['api-response_templates-r'] });
       service = TestBed.inject(ApiV4MenuService);
 
       const api = fakeApiV4({ type: 'LLM_PROXY', listeners: [httpListener] });
       const menu = service.getMenu(api);
       const entrypoints = menu.subMenuItems.find(item => item.displayName === 'Entrypoints');
 
-      expect(entrypoints.tabs).toBeUndefined();
-      expect(entrypoints.routerLink).toBe('v4/entrypoints');
+      expect(entrypoints.tabs?.map(t => t.displayName)).toEqual(['Entrypoints', 'CORS']);
+      expect(entrypoints.tabs?.map(t => t.routerLink)).toEqual(['v4/entrypoints', 'v4/cors']);
     });
   });
 
