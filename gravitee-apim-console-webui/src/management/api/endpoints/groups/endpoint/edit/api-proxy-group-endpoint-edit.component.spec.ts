@@ -235,7 +235,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
                   inherit: false,
                   headers: [],
                   httpClientOptions: {
-                    clearTextUpgrade: undefined,
+                    clearTextUpgrade: false,
                     connectTimeout: 5000,
                     followRedirects: undefined,
                     idleTimeout: 60000,
@@ -385,7 +385,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
                   username: undefined,
                 },
                 httpClientOptions: {
-                  clearTextUpgrade: undefined,
+                  clearTextUpgrade: false,
                   connectTimeout: 5000,
                   followRedirects: undefined,
                   idleTimeout: 60000,
@@ -498,7 +498,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
                   username: undefined,
                 },
                 httpClientOptions: {
-                  clearTextUpgrade: undefined,
+                  clearTextUpgrade: false,
                   connectTimeout: 5000,
                   followRedirects: undefined,
                   idleTimeout: 60000,
@@ -616,7 +616,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
                   username: undefined,
                 },
                 httpClientOptions: {
-                  clearTextUpgrade: undefined,
+                  clearTextUpgrade: false,
                   connectTimeout: 5000,
                   followRedirects: undefined,
                   idleTimeout: 60000,
