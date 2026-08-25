@@ -16,6 +16,9 @@
 package io.gravitee.apim.core.portal.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import inmemory.PortalListingCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
@@ -25,6 +28,7 @@ import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator;
 import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyncPlanExecutor;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.PortalArea;
@@ -66,6 +70,7 @@ class PortalNavigationSyncDomainServiceTest {
     private final PortalPageContentCrudServiceInMemory pageContentCrud = new PortalPageContentCrudServiceInMemory();
     private final PortalPageContentQueryServiceInMemory pageContentQuery = new PortalPageContentQueryServiceInMemory();
     private final PortalListingCrudServiceInMemory portalListingCrud = new PortalListingCrudServiceInMemory();
+    private PortalNavigationValidator validator;
     private PortalNavigationSyncDomainService syncService;
 
     @BeforeEach
@@ -74,10 +79,12 @@ class PortalNavigationSyncDomainServiceTest {
         pageContentCrud.reset();
         pageContentQuery.reset();
         portalListingCrud.reset();
+        validator = mock(PortalNavigationValidator.class);
         syncService = new PortalNavigationSyncDomainService(
             query,
             new AutomationManagedNavigationItemsQueryService(portalListingCrud, pageContentQuery, query),
-            new NavigationSyncPlanExecutor(crud, query, pageContentCrud)
+            new NavigationSyncPlanExecutor(crud, query, pageContentCrud),
+            validator
         );
     }
 
@@ -485,6 +492,58 @@ class PortalNavigationSyncDomainServiceTest {
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
             .build();
+    }
+
+    @Test
+    void validate_for_conflicts_routes_new_folders_as_creates_and_no_updates_when_db_is_empty() {
+        syncService.validateForConflicts(
+            AUDIT_INFO,
+            PORTAL_ID,
+            PortalNavigationStructure.empty(),
+            PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/a", null), new NavigationPath("/a/b", null)))
+        );
+
+        @SuppressWarnings("unchecked")
+        var creates = (List<io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem>) verifyValidateAll();
+        assertThat(creates)
+            .extracting(io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem::getSegment)
+            .containsExactly("a", "b");
+        assertThat(verifyValidateAllUpdates()).isEmpty();
+    }
+
+    @Test
+    void validate_for_conflicts_routes_existing_folders_as_updates_and_no_creates() {
+        syncService.sync(
+            AUDIT_INFO,
+            PORTAL_ID,
+            PortalNavigationStructure.empty(),
+            PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/a", null), new NavigationPath("/a/b", null)))
+        );
+
+        syncService.validateForConflicts(
+            AUDIT_INFO,
+            PORTAL_ID,
+            PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/a", null), new NavigationPath("/a/b", null))),
+            PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/a", null), new NavigationPath("/a/b", null)))
+        );
+
+        @SuppressWarnings("unchecked")
+        var creates = (List<io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem>) verifyValidateAll();
+        assertThat(creates).isEmpty();
+        assertThat(verifyValidateAllUpdates()).hasSize(2);
+    }
+
+    private List<?> verifyValidateAll() {
+        var captor = org.mockito.ArgumentCaptor.forClass(List.class);
+        verify(validator).validateAll(captor.capture(), anyString());
+        return captor.getValue();
+    }
+
+    private List<PortalNavigationValidator.PendingUpdate> verifyValidateAllUpdates() {
+        @SuppressWarnings("unchecked")
+        var captor = org.mockito.ArgumentCaptor.forClass((Class<List<PortalNavigationValidator.PendingUpdate>>) (Class<?>) List.class);
+        verify(validator).validateAllUpdates(captor.capture());
+        return captor.getValue();
     }
 
     private Optional<PortalNavigationItem> findByPath(String path) {

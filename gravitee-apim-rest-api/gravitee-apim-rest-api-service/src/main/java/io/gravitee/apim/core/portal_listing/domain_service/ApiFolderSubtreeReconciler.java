@@ -19,21 +19,29 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationTreeWalker;
+import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator.PendingUpdate;
 import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationVisitor;
+import io.gravitee.apim.core.portal.domain_service.navigation.actions.FolderActions;
 import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationOwnership;
 import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyncPlanExecutor;
 import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyncPlanner;
 import io.gravitee.apim.core.portal.model.NavigationPath;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
+import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
@@ -67,6 +75,73 @@ class ApiFolderSubtreeReconciler {
         var safeDesired = desired == null ? List.<NavigationPath>of() : desired;
         var ownership = ownership(auditInfo, apiId, safeDesired);
         NavigationSyncPlanner.plan(safeDesired, currentFolders, safeDesired, ownership);
+    }
+
+    ValidationItems itemsForValidation(
+        AuditInfo auditInfo,
+        String apiId,
+        PortalNavigationApi navApi,
+        List<PortalNavigationItem> currentFolders
+    ) {
+        var desired = desiredPaths(apiId);
+        var ownership = ownership(auditInfo, apiId, desired);
+        var plan = NavigationSyncPlanner.plan(desired, currentFolders, List.of(), ownership);
+        Function<String, PortalNavigationItemId> idFactory = path -> apiFolderId(auditInfo, apiId, path);
+        var creates = plan
+            .actions()
+            .stream()
+            .filter(FolderActions.CreateFolder.class::isInstance)
+            .map(FolderActions.CreateFolder.class::cast)
+            .map(FolderActions.CreateFolder::desired)
+            .map(df -> toCreateItem(df, navApi.getArea(), idFactory, navApi.getId(), apiId))
+            .toList();
+        var updates = plan
+            .actions()
+            .stream()
+            .filter(FolderActions.UpdateFolder.class::isInstance)
+            .map(FolderActions.UpdateFolder.class::cast)
+            .map(action -> new PendingUpdate(toUpdateItem(action.desired(), idFactory, navApi.getId()), action.existing()))
+            .toList();
+        return new ValidationItems(creates, updates);
+    }
+
+    record ValidationItems(List<CreatePortalNavigationItem> creates, List<PendingUpdate> updates) {}
+
+    private static CreatePortalNavigationItem toCreateItem(
+        FolderActions.DesiredFolder df,
+        PortalArea area,
+        Function<String, PortalNavigationItemId> idFactory,
+        PortalNavigationItemId navApiId,
+        String apiId
+    ) {
+        return CreatePortalNavigationItem.builder()
+            .id(idFactory.apply(df.path()))
+            .title(df.title())
+            .segment(df.segment().value())
+            .area(area)
+            .type(PortalNavigationItemType.FOLDER)
+            .order(df.order())
+            .parentId(df.parentPath() == null ? navApiId : idFactory.apply(df.parentPath()))
+            .visibility(PortalVisibility.PUBLIC)
+            .published(true)
+            .automationMetadata(
+                new AutomationMetadata(AutomationMetadata.ReferenceType.API, apiId, null, Optional.of(df.path()), Optional.empty())
+            )
+            .build();
+    }
+
+    private static UpdatePortalNavigationItem toUpdateItem(
+        FolderActions.DesiredFolder df,
+        Function<String, PortalNavigationItemId> idFactory,
+        PortalNavigationItemId navApiId
+    ) {
+        return UpdatePortalNavigationItem.builder()
+            .title(df.title())
+            .segment(df.segment().value())
+            .type(PortalNavigationItemType.FOLDER)
+            .order(df.order())
+            .parentId(df.parentPath() == null ? navApiId : idFactory.apply(df.parentPath()))
+            .build();
     }
 
     List<PortalNavigationItem> loadAllFoldersInEnv(String environmentId) {

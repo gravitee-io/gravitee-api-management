@@ -17,15 +17,21 @@ package io.gravitee.apim.core.portal_listing.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator.PendingUpdate;
 import io.gravitee.apim.core.portal.exception.PathConflictException;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal_listing.domain_service.ApiFolderSubtreeReconciler.ValidationItems;
 import io.gravitee.apim.core.portal_listing.model.PortalListing;
 import io.gravitee.apim.core.portal_listing.model.PortalListingApiEntry;
 import io.gravitee.apim.core.portal_page.domain_service.ApiDocumentationSyncDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
+import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -44,6 +50,7 @@ public class PortalListingSyncDomainService {
     private final ApiDocumentationSyncDomainService apiDocumentationSyncDomainService;
     private final NavigationItemEntryMaterializer navigationItemEntryMaterializer;
     private final ApiFolderSubtreeReconciler apiFolderSubtreeReconciler;
+    private final PortalNavigationItemValidatorService validatorService;
 
     public void sync(AuditInfo auditInfo, PortalId portalId, List<PortalListingApiEntry> previousEntries, PortalListing listing) {
         Set<String> newHrids = listing.getApis().stream().map(PortalListingApiEntry::apiHrid).collect(Collectors.toSet());
@@ -89,22 +96,41 @@ public class PortalListingSyncDomainService {
     public void validateForConflicts(AuditInfo auditInfo, PortalId portalId, PortalListing listing) {
         if (listing.getApis().isEmpty()) return;
         var envFolders = apiFolderSubtreeReconciler.loadAllFoldersInEnv(auditInfo.environmentId());
+        List<CreatePortalNavigationItem> creates = new ArrayList<>();
+        List<PendingUpdate> updates = new ArrayList<>();
         for (var entry : listing.getApis()) {
-            var apiId = entry.apiId(auditInfo);
-            var existing = navigationItemEntryMaterializer.findExistingRow(
-                auditInfo,
-                navigationItemEntryMaterializer.rowId(auditInfo, portalId, apiId)
-            );
-            if (existing != null && !(existing instanceof PortalNavigationApi)) {
-                throw PathConflictException.navigationIdTaken(PathConflictException.EntryKind.LISTING, entry.location());
-            }
-            navigationItemEntryMaterializer.validateUpsertConflict(auditInfo, portalId, apiId, entry);
-            if (existing instanceof PortalNavigationApi navApi) {
-                var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, navApi.getId());
-                var desired = apiFolderSubtreeReconciler.desiredPaths(apiId);
-                apiFolderSubtreeReconciler.validateConflicts(auditInfo, apiId, desired, currentFolders);
-            }
+            var items = itemsForEntry(auditInfo, portalId, envFolders, entry);
+            creates.addAll(items.creates());
+            updates.addAll(items.updates());
         }
+        validatorService.validateAll(creates, auditInfo.environmentId());
+        validatorService.validateAllUpdates(updates);
+    }
+
+    private ValidationItems itemsForEntry(
+        AuditInfo auditInfo,
+        PortalId portalId,
+        List<PortalNavigationItem> envFolders,
+        PortalListingApiEntry entry
+    ) {
+        var apiId = entry.apiId(auditInfo);
+        var existing = navigationItemEntryMaterializer.findExistingRow(
+            auditInfo,
+            navigationItemEntryMaterializer.rowId(auditInfo, portalId, apiId)
+        );
+        return switch (existing) {
+            case null -> new ValidationItems(
+                List.of(navigationItemEntryMaterializer.itemForValidation(auditInfo, portalId, apiId, entry)),
+                List.of()
+            );
+            case PortalNavigationApi navApi -> apiFolderSubtreeReconciler.itemsForValidation(
+                auditInfo,
+                apiId,
+                navApi,
+                apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, navApi.getId())
+            );
+            default -> throw PathConflictException.navigationIdTaken(PathConflictException.EntryKind.LISTING, entry.location());
+        };
     }
 
     public void validateApiFolderConflictsForApi(AuditInfo auditInfo, String apiId, List<NavigationPath> desired) {
