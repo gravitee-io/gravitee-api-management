@@ -33,6 +33,7 @@ import {
     ShieldIcon,
     UsersIcon,
     UsersRoundIcon,
+    WorkflowIcon,
 } from '@gravitee/graphene-core/icons';
 import type { ElementType } from 'react';
 
@@ -67,6 +68,10 @@ export const NAV_SECTIONS: PlatformNavSection[] = [
                         icon: RadioIcon,
                     },
                 ],
+            },
+            {
+                label: 'Design',
+                items: [{ key: 'policy-studio', title: ROUTES['policy-studio'].label, icon: WorkflowIcon }],
             },
             {
                 label: 'System & Security',
