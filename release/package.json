@@ -17,13 +17,6 @@
     "full_release": "zx steps/full_release.mjs",
     "prepare_hotfix": "zx steps/prepare_hotfix.mjs",
     "maven_release": "zx steps/maven_release.mjs",
-    "release": "zx steps/1-release.mjs",
-    "package_zip": "zx steps/2-package_zip.mjs",
-    "docker": "zx steps/3-docker.mjs",
-    "rpms": "zx steps/4-rpms.mjs",
-    "helm_chart": "zx steps/5-helm-chart.mjs",
-    "release_notes": "zx steps/6-generate_release_notes.mjs",
-    "nexus_sync": "zx steps/7-nexus_sync.mjs",
     "zx": "zx --quiet"
   },
   "packageManager": "yarn@4.1.1"
