@@ -18,7 +18,7 @@ import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GioFormJsonSchemaComponent, GioJsonSchema } from '@gravitee/ui-particles-angular';
-import { AbstractControl, UntypedFormControl, UntypedFormGroup, ValidationErrors, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { isEqual } from 'lodash';
 
@@ -49,6 +49,8 @@ export class ApiLlmProviderComponent implements OnInit {
   public formGroup: UntypedFormGroup;
   public providerSchema: { config: GioJsonSchema | null; sharedConfig: GioJsonSchema | null };
   public initialFormValue: any;
+  /** Set when the group's endpoints would not share the same alias list after this save — advisory only. */
+  public aliasWarning: { endpointName: string; aliases: string[] }[] | null = null;
   public backPath = '../../';
 
   private readonly router = inject(Router);
@@ -210,20 +212,26 @@ export class ApiLlmProviderComponent implements OnInit {
         break;
     }
 
-    this.formGroup = new UntypedFormGroup(
-      {
-        name: new UntypedFormControl({ value: nameValue, disabled: this.isReadOnly }, [
-          Validators.required,
-          Validators.pattern(/^[^:]*$/),
-          isEndpointNameUniqueAndDoesNotMatchDefaultValue(this.api, this.retrieveDisplayName()),
-        ]),
-        configuration: new UntypedFormControl({ value: configurationValue, disabled: this.isReadOnly }, [Validators.required]),
-        sharedConfigurationOverride: new UntypedFormControl({ value: sharedConfigValue, disabled: this.isReadOnly }, [Validators.required]),
-      },
-      this.getProviderConsistencyValidators(),
-    );
+    this.formGroup = new UntypedFormGroup({
+      name: new UntypedFormControl({ value: nameValue, disabled: this.isReadOnly }, [
+        Validators.required,
+        Validators.pattern(/^[^:]*$/),
+        isEndpointNameUniqueAndDoesNotMatchDefaultValue(this.api, this.retrieveDisplayName()),
+      ]),
+      configuration: new UntypedFormControl({ value: configurationValue, disabled: this.isReadOnly }, [Validators.required]),
+      sharedConfigurationOverride: new UntypedFormControl({ value: sharedConfigValue, disabled: this.isReadOnly }, [Validators.required]),
+    });
 
     this.initialFormValue = this.formGroup.getRawValue();
+
+    // Alias consistency across the group is advisory, never blocking: the screen edits one endpoint
+    // at a time, so introducing an alias necessarily goes through a divergent intermediate state —
+    // a blocking rule would forbid ever reaching consistency (APIM-15005). The gateway tolerates the
+    // divergence: an alias only routes to the endpoints that declare it.
+    this.refreshAliasWarning(this.formGroup.getRawValue());
+    this.formGroup.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.refreshAliasWarning(this.formGroup.getRawValue()));
   }
 
   private retrieveDisplayName() {
@@ -341,33 +349,34 @@ export class ApiLlmProviderComponent implements OnInit {
     };
   }
 
-  private getProviderConsistencyValidators(): ((control: AbstractControl) => ValidationErrors | null)[] {
+  /**
+   * Recomputes {@link aliasWarning} against the group as it would stand after this save: the edited
+   * endpoint substituted in (or the new one appended), every endpoint considered. Each endpoint's
+   * alias set is compared, sorted, against the first one — the warning lists every endpoint with its
+   * aliases whenever they differ, so the user sees exactly what to align for failover to apply.
+   */
+  private refreshAliasWarning(formValue: any): void {
     if (this.mode !== 'create-endpoint' && this.mode !== 'edit-endpoint') {
-      return [];
+      this.aliasWarning = null;
+      return;
     }
     const existingEndpoints = this.provider?.endpoints || [];
-    if (existingEndpoints.length === 0) {
-      return [];
+    const editedName = String(formValue?.name ?? '').trim() || '(this endpoint)';
+    const editedAliases = this.collectAliases(formValue?.configuration?.models);
+
+    const resulting: { endpointName: string; aliases: Set<string> }[] = existingEndpoints
+      .filter((_, i) => !(this.mode === 'edit-endpoint' && i === this.endpointIndex))
+      .map(ep => ({ endpointName: ep.name, aliases: this.collectAliases(ep.configuration?.models) }));
+    resulting.push({ endpointName: editedName, aliases: editedAliases });
+
+    if (resulting.length < 2) {
+      this.aliasWarning = null;
+      return;
     }
-    // Skip consistency checks when editing the only endpoint in a group
-    if (this.mode === 'edit-endpoint' && existingEndpoints.length < 2) {
-      return [];
-    }
-    const expectedAliases = this.collectAliases(existingEndpoints[0]?.configuration?.models);
-    return [
-      (control: AbstractControl): ValidationErrors | null => {
-        const aliases = this.collectAliases(control.value?.configuration?.models);
-        if (
-          !isEqual(
-            Array.from(aliases).sort((a, b) => a.localeCompare(b)),
-            Array.from(expectedAliases).sort((a, b) => a.localeCompare(b)),
-          )
-        ) {
-          return { aliasesMismatch: { expected: Array.from(expectedAliases), actual: Array.from(aliases) } };
-        }
-        return null;
-      },
-    ];
+    const sorted = (aliases: Set<string>) => Array.from(aliases).sort((a, b) => a.localeCompare(b));
+    const reference = sorted(resulting[0].aliases);
+    const allEqual = resulting.every(entry => isEqual(sorted(entry.aliases), reference));
+    this.aliasWarning = allEqual ? null : resulting.map(entry => ({ endpointName: entry.endpointName, aliases: sorted(entry.aliases) }));
   }
 
   private collectAliases(models: any[]): Set<string> {
