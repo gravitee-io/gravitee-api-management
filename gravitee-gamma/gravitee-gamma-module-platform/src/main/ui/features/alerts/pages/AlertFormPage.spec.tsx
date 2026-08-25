@@ -20,6 +20,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { AlertFormPage } from './AlertFormPage';
+import { useConsoleSettings } from '../../../shared/console-settings';
 import { createPlatformAlert, listPlatformAlerts, updatePlatformAlertFromForm } from '../services/alerts';
 import type { AlertTrigger } from '../types';
 
@@ -33,6 +34,21 @@ jest.mock('@gravitee/graphene-core/icons', () => new Proxy({}, { get: () => () =
 jest.mock('../../../shared/notify', () => ({
     notify: { success: jest.fn(), error: jest.fn() },
 }));
+
+jest.mock('../../../shared/console-settings', () => ({
+    useConsoleSettings: jest.fn(() => ({})),
+}));
+
+jest.mock('../hooks/useAlertLookupOptions', () => ({
+    useAlertLookupOptions: () => ({ tenants: [], apis: [] }),
+}));
+
+beforeAll(() => {
+    Element.prototype.hasPointerCapture = jest.fn();
+    Element.prototype.setPointerCapture = jest.fn();
+    Element.prototype.releasePointerCapture = jest.fn();
+    Element.prototype.scrollIntoView = jest.fn();
+});
 
 jest.mock('@tanstack/react-query', () => ({
     useQuery: jest.fn(config => {
@@ -59,6 +75,7 @@ jest.mock('../services/alerts', () => ({
     listPlatformAlertEvents: jest.fn(() => Promise.resolve({ content: [], totalElements: 0 })),
     createPlatformAlert: jest.fn(() => Promise.resolve({ id: 'new-id', name: 'My Alert' })),
     updatePlatformAlertFromForm: jest.fn(() => Promise.resolve({ id: 'alert-1', name: 'High Response Time' })),
+    associatePlatformAlert: jest.fn(() => Promise.resolve()),
     alertTriggerToFormData: jest.requireActual('../services/alerts').alertTriggerToFormData,
 }));
 
@@ -67,6 +84,7 @@ const mockUseQuery = useQuery as jest.Mock;
 const mockListPlatformAlerts = listPlatformAlerts as jest.Mock;
 const mockCreatePlatformAlert = createPlatformAlert as jest.Mock;
 const mockUpdatePlatformAlertFromForm = updatePlatformAlertFromForm as jest.Mock;
+const mockUseConsoleSettings = useConsoleSettings as jest.Mock;
 
 const EXISTING_ALERT: AlertTrigger = {
     id: 'alert-1',
@@ -111,9 +129,20 @@ function renderEditPage(alert: AlertTrigger = EXISTING_ALERT) {
     );
 }
 
+async function selectRequestSimpleRule(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(screen.getByLabelText(/^rule/i));
+    await user.click(await screen.findByRole('option', { name: /metric of the request validates a condition/i }));
+}
+
+async function clearAndTypeName(user: ReturnType<typeof userEvent.setup>, name: string) {
+    await user.clear(screen.getByLabelText(/name/i));
+    await user.type(screen.getByLabelText(/name/i), name);
+}
+
 beforeEach(() => {
     jest.clearAllMocks();
     mockUseHasPermission.mockReturnValue(true);
+    mockUseConsoleSettings.mockReturnValue({});
     mockCreatePlatformAlert.mockResolvedValue({ id: 'new-id', name: 'My Alert' });
     mockUpdatePlatformAlertFromForm.mockResolvedValue({ id: 'alert-1', name: 'High Response Time' });
     mockUseQuery.mockImplementation(config => {
@@ -124,38 +153,53 @@ beforeEach(() => {
     });
 });
 
-it('renders create form with name field and Create button', () => {
+it('renders create form with Classic name, Enable off, and empty rule', () => {
     renderCreatePage();
 
     expect(screen.getByRole('heading', { name: /create new alert/i })).not.toBeNull();
-    expect(screen.getByLabelText(/name/i)).not.toBeNull();
-    expect(screen.getByRole('button', { name: /^create$/i })).not.toBeNull();
+    expect((screen.getByLabelText(/name/i) as HTMLInputElement).value).toBe('New alert');
+    expect(screen.getByRole('switch', { name: /enable alert/i }).getAttribute('aria-checked')).toBe('false');
+    expect(screen.getByText(/select a rule before setting the condition/i)).not.toBeNull();
+    expect(screen.queryByText('When')).toBeNull();
+    expect(screen.getByRole('button', { name: /^create$/i })).toHaveProperty('disabled', true);
 });
 
-it('shows name validation error when saving without a name', async () => {
+it('shows Classic template and When after a request rule is selected', async () => {
     const user = userEvent.setup();
     renderCreatePage();
 
-    await user.click(screen.getByRole('button', { name: /^create$/i }));
+    await selectRequestSimpleRule(user);
 
-    expect(screen.getByText(/name is required/i)).not.toBeNull();
+    expect(screen.getByLabelText(/define as template/i)).not.toBeNull();
+    expect(screen.getByText('When')).not.toBeNull();
+    expect(screen.getByText('Condition')).not.toBeNull();
+    expect((screen.getByLabelText(/description/i) as HTMLTextAreaElement).value).toMatch(/metric of the request validates/i);
 });
 
-it('shows validation error when name is too short', async () => {
+it('disables Create when name is empty or too short', async () => {
     const user = userEvent.setup();
     renderCreatePage();
+
+    await user.clear(screen.getByLabelText(/name/i));
+    expect(screen.getByRole('button', { name: /^create$/i })).toHaveProperty('disabled', true);
 
     await user.type(screen.getByLabelText(/name/i), 'AB');
-    await user.click(screen.getByRole('button', { name: /^create$/i }));
+    expect(screen.getByRole('button', { name: /^create$/i })).toHaveProperty('disabled', true);
+});
 
-    expect(screen.getByText(/at least 3 characters/i)).not.toBeNull();
+it('disables Create until a rule is selected', () => {
+    renderCreatePage();
+
+    expect(screen.getByRole('button', { name: /^create$/i })).toHaveProperty('disabled', true);
+    expect(mockCreatePlatformAlert).not.toHaveBeenCalled();
 });
 
 it('calls createPlatformAlert with correct payload when form is valid and submitted', async () => {
     const user = userEvent.setup();
     renderCreatePage();
 
-    await user.type(screen.getByLabelText(/name/i), 'My Alert');
+    await clearAndTypeName(user, 'My Alert');
+    await selectRequestSimpleRule(user);
     await user.type(screen.getByPlaceholderText('e.g. 500'), '500');
     await user.click(screen.getByRole('button', { name: /^create$/i }));
 
@@ -165,26 +209,123 @@ it('calls createPlatformAlert with correct payload when form is valid and submit
     expect(sentData.name).toBe('My Alert');
     expect(sentData.source).toBe('REQUEST');
     expect(sentData.type).toBe('METRICS_SIMPLE_CONDITION');
+    expect(sentData.enabled).toBe(false);
     expect(sentData.conditions[0].threshold).toBe(500);
     expect(sentData.notifications).toEqual([]);
+    expect(sentData.event_rules).toEqual([]);
 });
 
-it('does not create when the threshold is empty', async () => {
+it('POSTs API_CREATE event_rules when auto-create on new APIs is checked', async () => {
     const user = userEvent.setup();
     renderCreatePage();
 
-    await user.type(screen.getByLabelText(/name/i), 'My Alert');
+    await clearAndTypeName(user, 'My Alert');
+    await selectRequestSimpleRule(user);
+    await user.type(screen.getByPlaceholderText('e.g. 500'), '500');
+    await user.click(screen.getByLabelText(/define as template/i));
+    await user.click(screen.getByLabelText(/automatically create this alert for every new api/i));
     await user.click(screen.getByRole('button', { name: /^create$/i }));
 
-    expect(screen.getByText(/required condition fields/i)).not.toBeNull();
-    expect(mockCreatePlatformAlert).not.toHaveBeenCalled();
+    await waitFor(() => expect(mockCreatePlatformAlert).toHaveBeenCalledTimes(1));
+    expect(mockCreatePlatformAlert.mock.calls[0][1].event_rules).toEqual([{ event: 'API_CREATE' }]);
+});
+
+it('does not POST API_CREATE event_rules when the template is not auto-created on new APIs', async () => {
+    const user = userEvent.setup();
+    renderCreatePage();
+
+    await clearAndTypeName(user, 'My Alert');
+    await selectRequestSimpleRule(user);
+    await user.type(screen.getByPlaceholderText('e.g. 500'), '500');
+    await user.click(screen.getByLabelText(/define as template/i));
+    await user.click(screen.getByRole('button', { name: /^create$/i }));
+
+    await waitFor(() => expect(mockCreatePlatformAlert).toHaveBeenCalledTimes(1));
+    expect(mockCreatePlatformAlert.mock.calls[0][1].event_rules).toEqual([]);
+});
+
+it('disables Create until the condition threshold is filled', async () => {
+    const user = userEvent.setup();
+    renderCreatePage();
+
+    await selectRequestSimpleRule(user);
+    expect(screen.getByRole('button', { name: /^create$/i })).toHaveProperty('disabled', true);
+
+    await user.type(screen.getByPlaceholderText('e.g. 500'), '500');
+    expect(screen.getByRole('button', { name: /^create$/i })).toHaveProperty('disabled', false);
+});
+
+it('disables Create after adding an incomplete filter and enables it when the filter is filled', async () => {
+    const user = userEvent.setup();
+    renderCreatePage();
+
+    await selectRequestSimpleRule(user);
+    await user.type(screen.getByPlaceholderText('e.g. 500'), '500');
+    expect(screen.getByRole('button', { name: /^create$/i })).toHaveProperty('disabled', false);
+
+    await user.click(screen.getByRole('button', { name: /add filter/i }));
+    expect(screen.getByRole('button', { name: /^create$/i })).toHaveProperty('disabled', true);
+
+    await user.type(screen.getAllByPlaceholderText('e.g. 500')[1]!, '200');
+    expect(screen.getByRole('button', { name: /^create$/i })).toHaveProperty('disabled', false);
+});
+
+it('disables Create for aggregation until threshold and duration are filled', async () => {
+    const user = userEvent.setup();
+    renderCreatePage();
+
+    await user.click(screen.getByLabelText(/^rule/i));
+    await user.click(await screen.findByRole('option', { name: /aggregated value of a request metric/i }));
+    expect(screen.getByRole('button', { name: /^create$/i })).toHaveProperty('disabled', true);
+
+    await user.type(screen.getByPlaceholderText('e.g. 500'), '500');
+    expect(screen.getByRole('button', { name: /^create$/i })).toHaveProperty('disabled', true);
+
+    await user.type(screen.getByPlaceholderText('e.g. 1'), '1');
+    expect(screen.getByRole('button', { name: /^create$/i })).toHaveProperty('disabled', false);
+});
+
+it('sends Classic hidden STRING conditions when creating a node lifecycle alert', async () => {
+    const user = userEvent.setup();
+    renderCreatePage();
+
+    await user.click(screen.getByLabelText(/^rule/i));
+    await user.click(await screen.findByRole('option', { name: /lifecycle status of a node has changed/i }));
+    expect(screen.getByRole('button', { name: /^create$/i })).toHaveProperty('disabled', false);
+    await user.click(screen.getByRole('button', { name: /^create$/i }));
+
+    await waitFor(() => expect(mockCreatePlatformAlert).toHaveBeenCalledTimes(1));
+    const [, sentData] = mockCreatePlatformAlert.mock.calls[0];
+    expect(sentData.source).toBe('NODE_LIFECYCLE');
+    expect(sentData.conditions).toEqual([
+        {
+            type: 'STRING',
+            operator: 'MATCHES',
+            property: 'node.event',
+            pattern: 'NODE_START|NODE_STOP',
+        },
+    ]);
+});
+
+it('hides Node rules when the organization is cloud-hosted', async () => {
+    mockUseConsoleSettings.mockReturnValue({ cloudHosted: { enabled: true } });
+    const user = userEvent.setup();
+    renderCreatePage();
+
+    await user.click(screen.getByLabelText(/^rule/i));
+
+    expect(screen.queryByRole('option', { name: /lifecycle status of a node/i })).toBeNull();
+    expect(screen.getByRole('option', { name: /metric of the request validates/i })).not.toBeNull();
 });
 
 it('disables Create after a notification is added until a channel and required schema fields are set', async () => {
     const user = userEvent.setup();
     renderCreatePage();
 
-    await user.type(screen.getByLabelText(/name/i), 'My Alert');
+    await selectRequestSimpleRule(user);
+    await user.type(screen.getByPlaceholderText('e.g. 500'), '500');
+    expect(screen.getByRole('button', { name: /^create$/i })).toHaveProperty('disabled', false);
+
     await user.click(screen.getByRole('tab', { name: /notifications/i }));
     await user.click(screen.getByRole('button', { name: /^add$/i }));
 
@@ -306,6 +447,8 @@ it('does not allow saving a template alert opened by id', () => {
 
     expect(screen.getByRole('heading', { name: /update alert/i })).not.toBeNull();
     expect(screen.queryByRole('button', { name: /^save$/i })).toBeNull();
+    expect(screen.queryByRole('tab', { name: /history/i })).toBeNull();
+    expect(screen.getByRole('button', { name: /associate the alert to existing apis/i })).not.toBeNull();
 });
 
 it('keeps the original source and type when the rule is unrecognized', async () => {

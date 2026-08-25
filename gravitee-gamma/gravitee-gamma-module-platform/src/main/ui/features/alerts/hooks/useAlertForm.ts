@@ -19,14 +19,19 @@ import type { Dispatch, SetStateAction } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
+import { useConsoleSettings } from '../../../shared/console-settings';
 import { notify } from '../../../shared/notify';
 import {
     ALERT_RULES,
     type AlertMetricDefinition,
+    type AlertRuleCategory,
     type AlertRuleDefinition,
+    canDefineAlertTemplate,
+    getAlertRuleCategoriesForEnvironment,
     getAlertRuleLabel,
+    getAlertRulesForEnvironment,
+    getFilterMetricsForRuleId,
     getMetricsForRuleId,
-    isInfoOnlyRule,
     ruleIdToSourceType,
     sourceTypeToRuleId,
 } from '../constants/alertConstants';
@@ -36,54 +41,16 @@ import {
     createPlatformAlert,
     listPlatformAlertEvents,
     listPlatformAlerts,
+    associatePlatformAlert,
     updatePlatformAlertFromForm,
 } from '../services/alerts';
 import { getNotifierSchema } from '../services/notifiers';
 import type { AlertFormCondition, AlertFormNotification, AlertFormTimeframe, AlertHistoryPage, AlertRuleId, AlertSeverity } from '../types';
-import { defaultFilterCondition, isAlertConditionComplete, isAlertDampeningComplete } from '../utils/alertConditionComplete';
+import { defaultFilterCondition, collectAlertFormErrors, isAlertFormReady } from '../utils/alertConditionComplete';
+import { getDefaultCondition } from '../utils/alertDefaults';
 import { ENVIRONMENT_ALERT_CREATE_PERMISSION, ENVIRONMENT_ALERT_UPDATE_PERMISSION } from '../utils/alertPermissions';
 import { alertNotificationsIncompleteReason, areAlertNotificationsComplete } from '../utils/notifierSchema';
 import { platformAlertKeys } from '../utils/queryKeys';
-
-function getDefaultCondition(ruleId: AlertRuleId): AlertFormCondition[] {
-    switch (ruleId) {
-        case 'REQUEST@METRICS_SIMPLE_CONDITION':
-            return [{ type: 'THRESHOLD', property: 'response.response_time', operator: 'GT' }];
-        case 'REQUEST@MISSING_DATA':
-            return [{ type: 'MISSING_DATA', timeUnit: 'MINUTES' }];
-        case 'REQUEST@METRICS_AGGREGATION':
-            return [
-                {
-                    type: 'AGGREGATION',
-                    property: 'response.response_time',
-                    aggregationFunction: 'AVG',
-                    operator: 'GT',
-                    timeUnit: 'MINUTES',
-                },
-            ];
-        case 'REQUEST@METRICS_RATE':
-            return [{ type: 'RATE', property: 'response.status', operator: 'GTE', rateOperator: 'GT', timeUnit: 'MINUTES' }];
-        case 'NODE_HEARTBEAT@METRICS_SIMPLE_CONDITION':
-            return [{ type: 'THRESHOLD', property: 'os.cpu.percent', operator: 'GT' }];
-        case 'NODE_HEARTBEAT@METRICS_AGGREGATION':
-            return [
-                {
-                    type: 'AGGREGATION',
-                    property: 'os.cpu.percent',
-                    aggregationFunction: 'AVG',
-                    operator: 'GT',
-                    timeUnit: 'MINUTES',
-                },
-            ];
-        case 'NODE_HEARTBEAT@METRICS_RATE':
-            return [{ type: 'RATE', property: 'os.cpu.percent', operator: 'GTE', rateOperator: 'GT', timeUnit: 'MINUTES' }];
-        case 'ENDPOINT_HEALTH_CHECK@API_HC_ENDPOINT_STATUS_CHANGED':
-        case 'NODE_LIFECYCLE@NODE_LIFECYCLE_CHANGED':
-        case 'NODE_HEALTHCHECK@NODE_HEALTHCHECK':
-        default:
-            return [];
-    }
-}
 
 export interface UseAlertFormReturn {
     alertId: string | undefined;
@@ -94,7 +61,7 @@ export interface UseAlertFormReturn {
     description: string;
     severity: AlertSeverity;
     enabled: boolean;
-    ruleId: AlertRuleId;
+    ruleId: AlertRuleId | undefined;
     conditions: AlertFormCondition[];
     filters: AlertFormCondition[];
     notifications: AlertFormNotification[];
@@ -105,17 +72,33 @@ export interface UseAlertFormReturn {
     isDirty: boolean;
     saveError: string | null;
     historyPage: AlertHistoryPage | undefined;
+    historyPageNumber: number;
+    historyPageSize: number;
+    setHistoryPageNumber: Dispatch<SetStateAction<number>>;
+    setHistoryPageSize: Dispatch<SetStateAction<number>>;
     isRefreshingHistory: boolean;
     isLoadingAlert: boolean;
     isAlertListError: boolean;
     hydrateError: boolean;
     alertNotFound: boolean;
     isPending: boolean;
+    canSubmit: boolean;
     notificationsComplete: boolean;
     notificationsIncompleteReason: string | null;
     selectedRule: AlertRuleDefinition | undefined;
+    visibleRules: AlertRuleDefinition[];
+    visibleRuleCategories: AlertRuleCategory[];
     ruleLabel: string;
     metricsForRule: AlertMetricDefinition[];
+    filterMetrics: AlertMetricDefinition[];
+
+    template: boolean;
+    associateOnApiCreate: boolean;
+    setTemplate: Dispatch<SetStateAction<boolean>>;
+    setAssociateOnApiCreate: Dispatch<SetStateAction<boolean>>;
+    associateToApis: () => void;
+    isAssociating: boolean;
+    isTemplateAlert: boolean;
 
     setName: Dispatch<SetStateAction<string>>;
     setDescription: Dispatch<SetStateAction<string>>;
@@ -154,24 +137,29 @@ export function useAlertForm(): UseAlertFormReturn {
     const env = useEnvironment();
     const queryClient = useQueryClient();
     const environmentId = env?.id ?? '';
+    const consoleSettings = useConsoleSettings();
+    const cloudHostedEnabled = consoleSettings?.cloudHosted?.enabled === true;
 
     const isUpdate = !!alertId;
     const canCreate = useHasPermission({ anyOf: [ENVIRONMENT_ALERT_CREATE_PERMISSION] });
     const canUpdate = useHasPermission({ anyOf: [ENVIRONMENT_ALERT_UPDATE_PERMISSION] });
 
-    const defaultSourceType = ruleIdToSourceType('REQUEST@METRICS_SIMPLE_CONDITION');
-    const [name, setName] = useState('');
+    const [name, setName] = useState('New alert');
     const [description, setDescription] = useState('');
     const [severity, setSeverity] = useState<AlertSeverity>('INFO');
-    const [enabled, setEnabled] = useState(true);
-    const [ruleId, setRuleId] = useState<AlertRuleId>('REQUEST@METRICS_SIMPLE_CONDITION');
-    const [source, setSource] = useState(defaultSourceType.source);
-    const [type, setType] = useState(defaultSourceType.type);
-    const [conditions, setConditions] = useState<AlertFormCondition[]>(getDefaultCondition('REQUEST@METRICS_SIMPLE_CONDITION'));
+    const [enabled, setEnabled] = useState(false);
+    const [ruleId, setRuleId] = useState<AlertRuleId | undefined>(undefined);
+    const [source, setSource] = useState('');
+    const [type, setType] = useState('');
+    const [conditions, setConditions] = useState<AlertFormCondition[]>([]);
     const [filters, setFilters] = useState<AlertFormCondition[]>([]);
     const [notifications, setNotifications] = useState<AlertFormNotification[]>([]);
     const [timeframes, setTimeframes] = useState<AlertFormTimeframe[]>([]);
     const [dampening, setDampening] = useState<AlertFormData['dampening']>({ mode: 'STRICT_COUNT', trueEvaluations: 1 });
+    const [template, setTemplate] = useState(false);
+    const [associateOnApiCreate, setAssociateOnApiCreate] = useState(false);
+    const [historyPageNumber, setHistoryPageNumber] = useState(1);
+    const [historyPageSize, setHistoryPageSize] = useState(10);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const allowedTabs = isUpdate ? ['alerts', 'notifications', 'history'] : ['alerts', 'notifications'];
     const tabFromUrl = searchParams.get('tab');
@@ -220,6 +208,10 @@ export function useAlertForm(): UseAlertFormReturn {
             setNotifications(fd.notifications);
             setTimeframes(fd.timeframes);
             setDampening(fd.dampening ?? { mode: 'STRICT_COUNT', trueEvaluations: 1 });
+            setTemplate(!!fd.template);
+            setAssociateOnApiCreate(
+                Array.isArray(fd.event_rules) && fd.event_rules.some(rule => (rule as { event?: string }).event === 'API_CREATE'),
+            );
             setHydrateError(false);
         } catch {
             setHydrateError(true);
@@ -227,14 +219,20 @@ export function useAlertForm(): UseAlertFormReturn {
         initializedForRef.current = alertId;
     }, [existingAlert, alertId]);
 
+    useEffect(() => {
+        if (existingAlert?.template && activeTab === 'history') {
+            setActiveTab('alerts');
+        }
+    }, [existingAlert?.template, activeTab]);
+
     const {
         data: historyPage,
         refetch: refetchHistory,
         isFetching: isRefreshingHistory,
     } = useQuery({
-        queryKey: platformAlertKeys.history(environmentId, alertId ?? ''),
-        queryFn: () => listPlatformAlertEvents(environmentId, alertId!),
-        enabled: isUpdate && activeTab === 'history' && !!environmentId && !!alertId,
+        queryKey: platformAlertKeys.history(environmentId, alertId ?? '', historyPageNumber, historyPageSize),
+        queryFn: () => listPlatformAlertEvents(environmentId, alertId!, historyPageNumber - 1, historyPageSize),
+        enabled: isUpdate && activeTab === 'history' && !!environmentId && !!alertId && !existingAlert?.template,
     });
 
     const notifierTypes = useMemo(() => [...new Set(notifications.map(n => n.type).filter(Boolean))], [notifications]);
@@ -308,35 +306,75 @@ export function useAlertForm(): UseAlertFormReturn {
         },
     });
 
+    const associateMutation = useMutation({
+        mutationFn: () => associatePlatformAlert(environmentId, alertId!),
+        onSuccess: () => {
+            notify.success(`Alert "${name}" has been associated to all APIs`);
+        },
+        onError: (e: Error) => {
+            notify.error(e, 'Failed to associate alert to APIs.');
+        },
+    });
+
     const selectedRule = useMemo(() => ALERT_RULES.find(r => r.source === source && r.type === type), [source, type]);
+    const visibleRules = useMemo(
+        () => getAlertRulesForEnvironment(cloudHostedEnabled, selectedRule?.id),
+        [cloudHostedEnabled, selectedRule?.id],
+    );
+    const visibleRuleCategories = useMemo(
+        () => getAlertRuleCategoriesForEnvironment(cloudHostedEnabled, selectedRule?.category),
+        [cloudHostedEnabled, selectedRule?.category],
+    );
     const metricsForRule = useMemo(() => (selectedRule ? getMetricsForRuleId(selectedRule.id) : []), [selectedRule]);
+    const filterMetrics = useMemo(() => (selectedRule ? getFilterMetricsForRuleId(selectedRule.id) : []), [selectedRule]);
     const ruleLabel = selectedRule?.description ?? getAlertRuleLabel(source, type);
 
+    const canSubmit = useMemo(
+        () =>
+            isAlertFormReady({
+                name,
+                isUpdate,
+                ruleId: selectedRule?.id,
+                conditions,
+                filters,
+                notifications,
+                notificationsComplete,
+                dampening,
+            }),
+        [name, isUpdate, selectedRule?.id, conditions, filters, notifications, notificationsComplete, dampening],
+    );
+
     const handleSave = () => {
-        const errs: Record<string, string> = {};
-        if (!name.trim()) errs.name = 'Name is required.';
-        else if (name.length < 3) errs.name = 'Name has to be at least 3 characters long.';
-        else if (name.length > 50) errs.name = 'Name length must not exceed 50 characters.';
-        if (notifications.some(n => !n.type)) {
-            errs.notifications = 'Channel is required for each notification.';
-        } else if (!notificationsComplete) {
-            errs.notifications = 'Fill in the required fields for each notification.';
-        }
-        if (selectedRule && !isInfoOnlyRule(selectedRule.id) && conditions.some(c => !isAlertConditionComplete(c))) {
-            errs.conditions = 'Fill in the required condition fields.';
-        }
-        if (filters.some(c => !isAlertConditionComplete(c))) {
-            errs.filters = 'Fill in the required filter fields.';
-        }
-        if (!isAlertDampeningComplete(dampening)) {
-            errs.dampening = 'Fill in the required dampening fields.';
-        }
+        const errs = collectAlertFormErrors({
+            name,
+            isUpdate,
+            ruleId: selectedRule?.id,
+            conditions,
+            filters,
+            notifications,
+            notificationsComplete,
+            dampening,
+        });
         setErrors(errs);
         if (Object.keys(errs).length > 0) {
-            setActiveTab(errs.name || errs.conditions || errs.filters ? 'alerts' : 'notifications');
+            setActiveTab(errs.name || errs.rule || errs.conditions || errs.filters ? 'alerts' : 'notifications');
             return;
         }
-        mutation.mutate({ name, description, severity, enabled, source, type, conditions, filters, notifications, timeframes, dampening });
+        mutation.mutate({
+            name,
+            description,
+            severity,
+            enabled: template ? false : enabled,
+            source,
+            type,
+            conditions,
+            filters,
+            notifications,
+            timeframes,
+            dampening,
+            template,
+            event_rules: template && associateOnApiCreate ? [{ event: 'API_CREATE' }] : [],
+        });
     };
 
     const handleCancel = () => navigate('..');
@@ -348,6 +386,12 @@ export function useAlertForm(): UseAlertFormReturn {
         setType(nextSourceType.type);
         setConditions(getDefaultCondition(newRuleId));
         setFilters([]);
+        const nextRule = ALERT_RULES.find(r => r.id === newRuleId);
+        setDescription(nextRule?.description ?? '');
+        if (!canDefineAlertTemplate(nextRule?.category)) {
+            setTemplate(false);
+            setAssociateOnApiCreate(false);
+        }
         markDirty();
     };
 
@@ -360,7 +404,7 @@ export function useAlertForm(): UseAlertFormReturn {
     );
 
     const addFilter = () => {
-        const defaultProperty = metricsForRule[0]?.key ?? 'response.response_time';
+        const defaultProperty = filterMetrics[0]?.key ?? 'response.response_time';
         setFilters(prev => [...prev, defaultFilterCondition(defaultProperty)]);
         markDirty();
     };
@@ -459,17 +503,34 @@ export function useAlertForm(): UseAlertFormReturn {
         isDirty,
         saveError,
         historyPage,
+        historyPageNumber,
+        historyPageSize,
+        setHistoryPageNumber,
+        setHistoryPageSize,
         isRefreshingHistory,
         isLoadingAlert,
         isAlertListError,
         hydrateError,
         alertNotFound,
         isPending: mutation.isPending,
+        canSubmit,
         notificationsComplete,
         notificationsIncompleteReason,
         selectedRule,
+        visibleRules,
+        visibleRuleCategories,
         ruleLabel,
         metricsForRule,
+        filterMetrics,
+        template,
+        associateOnApiCreate,
+        setTemplate,
+        setAssociateOnApiCreate,
+        associateToApis: () => {
+            void associateMutation.mutate();
+        },
+        isAssociating: associateMutation.isPending,
+        isTemplateAlert: !!existingAlert?.template,
         setName,
         setDescription,
         setSeverity,

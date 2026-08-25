@@ -15,28 +15,34 @@
  */
 import { Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@gravitee/graphene-core';
 
+import { StringValueField } from './StringValueField';
 import {
     ALERT_OPERATORS,
     ALERT_STRING_OPERATORS,
+    getCompareTargetMetrics,
     getConditionTypesForMetric,
     isStringMetric,
     type AlertMetricDefinition,
 } from '../constants/alertConstants';
 import type { AlertConditionType, AlertFormCondition, AlertOperator, AlertStringOperator } from '../types';
 import { conditionWithType } from '../utils/alertConditionComplete';
+import { getMetricValueChoices, sanitizePatternForOperator, type AlertMetricLookups } from '../utils/alertMetricValues';
 import { ALERT_POSITIVE_NUMBER_MIN, nextAlertPositiveNumber } from '../utils/alertPositiveNumber';
 
 interface Props {
     condition: AlertFormCondition;
     metrics: AlertMetricDefinition[];
     onChange: (c: AlertFormCondition) => void;
+    lookups?: AlertMetricLookups;
 }
 
-export function SimpleConditionForm({ condition, metrics, onChange }: Props) {
+export function SimpleConditionForm({ condition, metrics, onChange, lookups = {} }: Props) {
     const selectedMetric = condition.property ?? metrics[0]?.key ?? '';
     const availableTypes = getConditionTypesForMetric(selectedMetric, metrics);
     const condType: AlertConditionType =
         availableTypes.length === 0 || availableTypes.includes(condition.type) ? condition.type : (availableTypes[0] ?? condition.type);
+    const metricDefinition = metrics.find(m => m.key === selectedMetric);
+    const valueChoices = getMetricValueChoices(metricDefinition, lookups);
 
     const handleMetricChange = (val: string) => {
         const newTypes = getConditionTypesForMetric(val, metrics);
@@ -54,11 +60,14 @@ export function SimpleConditionForm({ condition, metrics, onChange }: Props) {
             thresholdLow: undefined,
             thresholdHigh: undefined,
             pattern: undefined,
+            property2: undefined,
+            multiplier: undefined,
         });
     };
 
     return (
         <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">When</p>
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                     <Label className="text-xs">Metric</Label>
@@ -76,14 +85,18 @@ export function SimpleConditionForm({ condition, metrics, onChange }: Props) {
                     </Select>
                 </div>
 
-                {availableTypes.length > 1 && (
+                {availableTypes.length >= 1 && (
                     <div className="space-y-1.5">
-                        <Label className="text-xs">Condition type</Label>
+                        <Label htmlFor="alert-condition-type" className="text-xs">
+                            Type
+                        </Label>
                         <Select
                             value={condType}
-                            onValueChange={(val: AlertConditionType) => onChange(conditionWithType(condition, val, metrics[0]?.key))}
+                            onValueChange={(val: AlertConditionType) =>
+                                onChange(conditionWithType(condition, val, getCompareTargetMetrics(metrics, selectedMetric)[0]?.key))
+                            }
                         >
-                            <SelectTrigger>
+                            <SelectTrigger id="alert-condition-type">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -104,7 +117,13 @@ export function SimpleConditionForm({ condition, metrics, onChange }: Props) {
                         <Label className="text-xs">Operator</Label>
                         <Select
                             value={(condition.operator as string) || 'EQUALS'}
-                            onValueChange={(val: AlertStringOperator) => onChange({ ...condition, operator: val })}
+                            onValueChange={(val: AlertStringOperator) =>
+                                onChange({
+                                    ...condition,
+                                    operator: val,
+                                    pattern: sanitizePatternForOperator(condition.pattern, valueChoices, val),
+                                })
+                            }
                         >
                             <SelectTrigger>
                                 <SelectValue />
@@ -118,14 +137,13 @@ export function SimpleConditionForm({ condition, metrics, onChange }: Props) {
                             </SelectContent>
                         </Select>
                     </div>
-                    <div className="space-y-1.5">
-                        <Label className="text-xs">Pattern</Label>
-                        <Input
-                            placeholder="e.g. API_KEY_MISSING"
-                            value={condition.pattern ?? ''}
-                            onChange={e => onChange({ ...condition, pattern: e.target.value })}
-                        />
-                    </div>
+                    <StringValueField
+                        id="alert-condition-pattern"
+                        operator={condition.operator as string}
+                        pattern={condition.pattern}
+                        options={valueChoices}
+                        onPatternChange={pattern => onChange({ ...condition, pattern })}
+                    />
                 </div>
             ) : condType === 'THRESHOLD_RANGE' ? (
                 <div className="grid grid-cols-2 gap-4">
@@ -151,15 +169,23 @@ export function SimpleConditionForm({ condition, metrics, onChange }: Props) {
                             min={condition.thresholdLow ?? ALERT_POSITIVE_NUMBER_MIN}
                             placeholder="e.g. 500"
                             value={condition.thresholdHigh ?? ''}
+                            aria-invalid={
+                                typeof condition.thresholdLow === 'number' &&
+                                typeof condition.thresholdHigh === 'number' &&
+                                condition.thresholdHigh < condition.thresholdLow
+                            }
                             onChange={e =>
                                 onChange({
                                     ...condition,
-                                    thresholdHigh: nextAlertPositiveNumber(e.target.value, condition.thresholdHigh, {
-                                        min: condition.thresholdLow ?? ALERT_POSITIVE_NUMBER_MIN,
-                                    }),
+                                    thresholdHigh: nextAlertPositiveNumber(e.target.value, condition.thresholdHigh),
                                 })
                             }
                         />
+                        {typeof condition.thresholdLow === 'number' &&
+                            typeof condition.thresholdHigh === 'number' &&
+                            condition.thresholdHigh < condition.thresholdLow && (
+                                <p className="text-xs text-destructive">High threshold must be greater than or equal to low threshold.</p>
+                            )}
                     </div>
                 </div>
             ) : condType === 'COMPARE' ? (
@@ -183,7 +209,7 @@ export function SimpleConditionForm({ condition, metrics, onChange }: Props) {
                         </Select>
                     </div>
                     <div className="space-y-1.5">
-                        <Label className="text-xs">Multiplier (%)</Label>
+                        <Label className="text-xs">Multiplier</Label>
                         <Input
                             type="number"
                             min={ALERT_POSITIVE_NUMBER_MIN}
@@ -198,13 +224,13 @@ export function SimpleConditionForm({ condition, metrics, onChange }: Props) {
                         />
                     </div>
                     <div className="space-y-1.5">
-                        <Label className="text-xs">Property to compare</Label>
+                        <Label className="text-xs">Property</Label>
                         <Select value={condition.property2} onValueChange={val => onChange({ ...condition, property2: val })}>
                             <SelectTrigger>
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                {metrics.map(m => (
+                                {getCompareTargetMetrics(metrics, selectedMetric).map(m => (
                                     <SelectItem key={m.key} value={m.key}>
                                         {m.label}
                                     </SelectItem>

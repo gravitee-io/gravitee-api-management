@@ -169,8 +169,15 @@ export function NotificationsTab({
                             </Label>
                             <Input
                                 type="number"
+                                min={dampening?.trueEvaluations ?? 1}
+                                max={100}
                                 disabled={!canEdit}
                                 value={dampening?.totalEvaluations ?? ''}
+                                aria-invalid={
+                                    typeof dampening?.trueEvaluations === 'number' &&
+                                    typeof dampening?.totalEvaluations === 'number' &&
+                                    dampening.totalEvaluations < dampening.trueEvaluations
+                                }
                                 onChange={e => {
                                     setDampening(d => ({
                                         ...d!,
@@ -179,7 +186,15 @@ export function NotificationsTab({
                                     markDirty();
                                 }}
                             />
-                            <p className="text-xs text-muted-foreground">The number of total evaluations.</p>
+                            {typeof dampening?.trueEvaluations === 'number' &&
+                            typeof dampening?.totalEvaluations === 'number' &&
+                            dampening.totalEvaluations < dampening.trueEvaluations ? (
+                                <p className="text-xs text-destructive">
+                                    Number of total evaluations must be at least as high as the number of true evaluations.
+                                </p>
+                            ) : (
+                                <p className="text-xs text-muted-foreground">The number of total evaluations.</p>
+                            )}
                         </div>
                     )}
 
@@ -191,6 +206,8 @@ export function NotificationsTab({
                                 </Label>
                                 <Input
                                     type="number"
+                                    min={1}
+                                    max={100}
                                     disabled={!canEdit}
                                     value={dampening?.duration ?? ''}
                                     onChange={e => {

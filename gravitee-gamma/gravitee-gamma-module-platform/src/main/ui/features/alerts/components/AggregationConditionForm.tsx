@@ -15,6 +15,7 @@
  */
 import { Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@gravitee/graphene-core';
 
+import { AggregationProjectionSection } from './AggregationProjectionSection';
 import { AGGREGATION_FUNCTIONS, ALERT_OPERATORS, TIME_UNITS, type AlertMetricDefinition } from '../constants/alertConstants';
 import type { AlertAggregationFunction, AlertFormCondition, AlertOperator, AlertTimeUnit } from '../types';
 import { ALERT_POSITIVE_NUMBER_MIN, nextAlertPositiveNumber } from '../utils/alertPositiveNumber';
@@ -22,32 +23,21 @@ import { ALERT_POSITIVE_NUMBER_MIN, nextAlertPositiveNumber } from '../utils/ale
 interface Props {
     condition: AlertFormCondition;
     metrics: AlertMetricDefinition[];
+    projectionMetrics?: AlertMetricDefinition[];
     onChange: (c: AlertFormCondition) => void;
 }
 
-export function AggregationConditionForm({ condition, metrics, onChange }: Props) {
+export function AggregationConditionForm({ condition, metrics, projectionMetrics = [], onChange }: Props) {
+    const aggregationFunction = condition.aggregationFunction || 'AVG';
+    const isCount = aggregationFunction === 'COUNT';
     return (
         <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                    <Label className="text-xs">Metric</Label>
-                    <Select value={condition.property ?? metrics[0]?.key} onValueChange={val => onChange({ ...condition, property: val })}>
-                        <SelectTrigger>
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {metrics.map(m => (
-                                <SelectItem key={m.key} value={m.key}>
-                                    {m.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="space-y-1.5">
+            <div className="flex flex-wrap items-end gap-3">
+                <p className="pb-2 text-sm text-muted-foreground">Calculate</p>
+                <div className="min-w-[10rem] flex-1 space-y-1.5">
                     <Label className="text-xs">Function</Label>
                     <Select
-                        value={condition.aggregationFunction || 'AVG'}
+                        value={aggregationFunction}
                         onValueChange={(val: AlertAggregationFunction) => onChange({ ...condition, aggregationFunction: val })}
                     >
                         <SelectTrigger>
@@ -62,7 +52,29 @@ export function AggregationConditionForm({ condition, metrics, onChange }: Props
                         </SelectContent>
                     </Select>
                 </div>
+                {!isCount && <p className="pb-2 text-sm text-muted-foreground">on</p>}
+                {!isCount && (
+                    <div className="min-w-[10rem] flex-1 space-y-1.5">
+                        <Label className="text-xs">Metric</Label>
+                        <Select
+                            value={condition.property ?? metrics[0]?.key}
+                            onValueChange={val => onChange({ ...condition, property: val })}
+                        >
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {metrics.map(m => (
+                                    <SelectItem key={m.key} value={m.key}>
+                                        {m.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                )}
             </div>
+            <p className="text-sm text-muted-foreground">If result is</p>
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                     <Label className="text-xs">Operator</Label>
@@ -98,6 +110,7 @@ export function AggregationConditionForm({ condition, metrics, onChange }: Props
                     />
                 </div>
             </div>
+            <p className="text-sm text-muted-foreground">For</p>
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                     <Label className="text-xs">Duration</Label>
@@ -133,6 +146,7 @@ export function AggregationConditionForm({ condition, metrics, onChange }: Props
                     </Select>
                 </div>
             </div>
+            <AggregationProjectionSection condition={condition} metrics={projectionMetrics} onChange={onChange} />
         </div>
     );
 }

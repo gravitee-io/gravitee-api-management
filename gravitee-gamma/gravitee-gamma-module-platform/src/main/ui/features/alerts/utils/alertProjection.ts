@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { AlertPropertyProjection } from '../types';
 
-/**
- * Subset of GET /organizations/{orgId}/console (ConsoleConfigEntity; Angular `entities/consoleSettings`).
- * Extend here when platform features need more org settings fields.
- */
-export interface ConsoleSettings {
-    userGroup?: {
-        required?: {
-            enabled?: boolean;
-        };
-    };
-    cloudHosted?: {
-        enabled?: boolean;
-    };
+export function propertyProjection(property: string): AlertPropertyProjection {
+    return { type: 'PROPERTY', property };
+}
+
+export function projectionPropertyKey(projections: unknown[] | undefined): string | undefined {
+    const first = projections?.[0];
+    if (!first || typeof first !== 'object' || Array.isArray(first)) {
+        return undefined;
+    }
+    const property = (first as { property?: unknown }).property;
+    return typeof property === 'string' && property.length > 0 ? property : undefined;
 }

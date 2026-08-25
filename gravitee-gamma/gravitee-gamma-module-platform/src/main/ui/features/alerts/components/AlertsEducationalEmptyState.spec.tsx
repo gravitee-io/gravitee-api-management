@@ -16,8 +16,19 @@
 import { render, screen } from '@testing-library/react';
 
 import { AlertsEducationalEmptyState } from './AlertsEducationalEmptyState';
+import { useConsoleSettings } from '../../../shared/console-settings';
+
+jest.mock('../../../shared/console-settings', () => ({
+    useConsoleSettings: jest.fn(() => ({})),
+}));
+
+const mockUseConsoleSettings = useConsoleSettings as jest.Mock;
 
 describe('AlertsEducationalEmptyState', () => {
+    beforeEach(() => {
+        mockUseConsoleSettings.mockReturnValue({});
+    });
+
     it('renders the why/how-it-works/capabilities content with classic env rules', () => {
         render(<AlertsEducationalEmptyState />);
 
@@ -30,5 +41,13 @@ describe('AlertsEducationalEmptyState', () => {
         expect(screen.getByText(/Alert when the lifecycle status of a node has changed/)).not.toBeNull();
         expect(screen.getByText('Send notifications via email, Slack, or webhook')).not.toBeNull();
         expect(screen.getByText('How it works').closest('div')?.className).toMatch(/border-primary/);
+    });
+
+    it('hides Node rules when the organization is cloud-hosted', () => {
+        mockUseConsoleSettings.mockReturnValue({ cloudHosted: { enabled: true } });
+
+        render(<AlertsEducationalEmptyState />);
+
+        expect(screen.queryByText(/Alert when the lifecycle status of a node has changed/)).toBeNull();
     });
 });

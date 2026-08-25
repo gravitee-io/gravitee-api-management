@@ -20,6 +20,7 @@ import {
     CardDescription,
     CardHeader,
     CardTitle,
+    Checkbox,
     Input,
     Label,
     Select,
@@ -36,17 +37,22 @@ import { ArrowRightIcon, ClockIcon, XIcon } from '@gravitee/graphene-core/icons'
 import type { Dispatch, MouseEvent, SetStateAction } from 'react';
 
 import { AggregationConditionForm } from './AggregationConditionForm';
+import { AggregationProjectionSection } from './AggregationProjectionSection';
 import { FilterRow } from './FilterRow';
 import { MissingDataConditionForm } from './MissingDataConditionForm';
 import { RateConditionForm } from './RateConditionForm';
 import { SimpleConditionForm } from './SimpleConditionForm';
 import {
     ALERT_RULES,
+    ALERT_RULE_CATEGORY_ORDER,
     type AlertMetricDefinition,
     type AlertRuleCategory,
     type AlertRuleDefinition,
+    canDefineAlertTemplate,
+    getProjectionMetricsForRuleId,
     isInfoOnlyRule,
 } from '../constants/alertConstants';
+import { useAlertLookupOptions } from '../hooks/useAlertLookupOptions';
 import type { AlertFormCondition, AlertFormTimeframe, AlertRuleId, AlertSeverity } from '../types';
 import {
     END_OF_DAY_SECONDS,
@@ -56,9 +62,6 @@ import {
     secondsSinceMidnightToTimeInput,
     timeInputToSecondsSinceMidnight,
 } from '../utils/timeframeTime';
-
-/** Classic-style rule dropdown groups; order requested: Node → API → Health-check. */
-const RULE_CATEGORY_ORDER: AlertRuleCategory[] = ['Node', 'API metrics', 'Health-check'];
 
 function infoOnlyMessage(ruleId: AlertRuleId): string {
     switch (ruleId) {
@@ -121,12 +124,21 @@ export interface AlertsTabProps {
     conditions: AlertFormCondition[];
     updateCondition: (index: number, c: AlertFormCondition) => void;
     metricsForRule: AlertMetricDefinition[];
+    filterMetrics: AlertMetricDefinition[];
     filters: AlertFormCondition[];
     addFilter: () => void;
     updateFilter: (index: number, f: AlertFormCondition) => void;
     removeFilter: (index: number) => void;
     selectedRule: AlertRuleDefinition | undefined;
     ruleLabel: string;
+    rules?: AlertRuleDefinition[];
+    ruleCategories?: AlertRuleCategory[];
+    template: boolean;
+    setTemplate: Dispatch<SetStateAction<boolean>>;
+    associateOnApiCreate: boolean;
+    setAssociateOnApiCreate: Dispatch<SetStateAction<boolean>>;
+    onAssociateToApis?: () => void;
+    isAssociating?: boolean;
 }
 
 export function AlertsTab({
@@ -154,14 +166,26 @@ export function AlertsTab({
     conditions,
     updateCondition,
     metricsForRule,
+    filterMetrics,
     filters,
     addFilter,
     updateFilter,
     removeFilter,
     selectedRule,
     ruleLabel,
+    rules = ALERT_RULES,
+    ruleCategories = ALERT_RULE_CATEGORY_ORDER,
+    template,
+    setTemplate,
+    associateOnApiCreate,
+    setAssociateOnApiCreate,
+    onAssociateToApis,
+    isAssociating = false,
 }: AlertsTabProps) {
+    const lookups = useAlertLookupOptions();
     const conditionRuleId = selectedRule?.id;
+    const projectionMetrics = conditionRuleId ? getProjectionMetricsForRuleId(conditionRuleId) : [];
+    const showTemplate = canDefineAlertTemplate(selectedRule?.category);
     return (
         <div className="mt-6 space-y-6">
             {/* General */}
@@ -190,43 +214,52 @@ export function AlertsTab({
                             {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
                         </div>
                         <div className="flex items-center gap-2 pb-1">
-                            <Label htmlFor="alert-enabled" className="text-xs text-muted-foreground">
-                                Enable alert
-                            </Label>
-                            <Switch
-                                id="alert-enabled"
-                                checked={enabled}
-                                disabled={!canEdit}
-                                onCheckedChange={v => {
-                                    setEnabled(v);
-                                    markDirty();
-                                }}
-                            />
+                            {!template && (
+                                <>
+                                    <Label htmlFor="alert-enabled" className="text-xs text-muted-foreground">
+                                        Enable alert
+                                    </Label>
+                                    <Switch
+                                        id="alert-enabled"
+                                        checked={enabled}
+                                        disabled={!canEdit}
+                                        onCheckedChange={v => {
+                                            setEnabled(v);
+                                            markDirty();
+                                        }}
+                                    />
+                                </>
+                            )}
                         </div>
                     </div>
 
                     <div className="flex items-start gap-4">
                         <div className="min-w-0 flex-1 space-y-1.5">
-                            <Label className="text-xs">
+                            <Label htmlFor="alert-rule" className="text-xs">
                                 Rule <span className="text-destructive">*</span>
                             </Label>
-                            {selectedRule ? (
+                            {isUpdate && !selectedRule ? (
+                                <Input value={ruleLabel} disabled className="opacity-60" />
+                            ) : (
                                 <Select
-                                    value={selectedRule.id}
+                                    value={selectedRule?.id}
                                     disabled={isUpdate || !canEdit}
-                                    onValueChange={val => handleRuleChange(val as AlertRuleId)}
+                                    onValueChange={val => {
+                                        handleRuleChange(val as AlertRuleId);
+                                        if (errors.rule) setErrors(p => ({ ...p, rule: '' }));
+                                    }}
                                 >
-                                    <SelectTrigger className={isUpdate ? 'w-full min-w-0 opacity-60' : 'w-full min-w-0'}>
-                                        <SelectValue />
+                                    <SelectTrigger id="alert-rule" className={isUpdate ? 'w-full min-w-0 opacity-60' : 'w-full min-w-0'}>
+                                        <SelectValue placeholder="Select a rule" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {RULE_CATEGORY_ORDER.map(category => {
-                                            const rules = ALERT_RULES.filter(rule => rule.category === category);
-                                            if (rules.length === 0) return null;
+                                        {ruleCategories.map(category => {
+                                            const categoryRules = rules.filter(rule => rule.category === category);
+                                            if (categoryRules.length === 0) return null;
                                             return (
                                                 <SelectGroup key={category}>
                                                     <SelectLabel>{category.toUpperCase()}</SelectLabel>
-                                                    {rules.map(rule => (
+                                                    {categoryRules.map(rule => (
                                                         <SelectItem key={rule.id} value={rule.id}>
                                                             {rule.description}
                                                         </SelectItem>
@@ -236,9 +269,8 @@ export function AlertsTab({
                                         })}
                                     </SelectContent>
                                 </Select>
-                            ) : (
-                                <Input value={ruleLabel} disabled className="opacity-60" />
                             )}
+                            {errors.rule && <p className="text-xs text-destructive">{errors.rule}</p>}
                         </div>
                         <div className="w-40 shrink-0 space-y-1.5">
                             <Label className="text-xs">
@@ -284,6 +316,55 @@ export function AlertsTab({
                     </div>
                 </CardContent>
             </Card>
+
+            {showTemplate && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base">Template</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        <div className="flex items-center gap-2">
+                            <Checkbox
+                                id="alert-template"
+                                checked={template}
+                                disabled={isUpdate || !canEdit}
+                                onCheckedChange={checked => {
+                                    const next = checked === true;
+                                    setTemplate(next);
+                                    if (!next) {
+                                        setAssociateOnApiCreate(false);
+                                    }
+                                    markDirty();
+                                }}
+                            />
+                            <Label htmlFor="alert-template" className="text-sm font-normal">
+                                Define as template
+                            </Label>
+                        </div>
+                        {template && (
+                            <div className="flex items-center gap-2">
+                                <Checkbox
+                                    id="alert-template-api-create"
+                                    checked={associateOnApiCreate}
+                                    disabled={!canEdit}
+                                    onCheckedChange={checked => {
+                                        setAssociateOnApiCreate(checked === true);
+                                        markDirty();
+                                    }}
+                                />
+                                <Label htmlFor="alert-template-api-create" className="text-sm font-normal">
+                                    Automatically create this alert for every new API
+                                </Label>
+                            </div>
+                        )}
+                        {isUpdate && template && onAssociateToApis && (
+                            <Button type="button" variant="outline" size="sm" disabled={isAssociating} onClick={onAssociateToApis}>
+                                {isAssociating ? 'Associating…' : 'Associate the alert to existing APIs'}
+                            </Button>
+                        )}
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Timeframes */}
             <Card>
@@ -423,46 +504,64 @@ export function AlertsTab({
             {/* Conditions */}
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-base">Conditions</CardTitle>
+                    <CardTitle className="text-base">Condition</CardTitle>
                     <CardDescription>Field metrics and condition for the rule</CardDescription>
                 </CardHeader>
                 <CardContent>
                     {errors.conditions && <p className="mb-3 text-xs text-destructive">{errors.conditions}</p>}
-                    <fieldset disabled={!canEdit} className="contents">
-                        {(conditionRuleId === 'REQUEST@METRICS_SIMPLE_CONDITION' ||
-                            conditionRuleId === 'NODE_HEARTBEAT@METRICS_SIMPLE_CONDITION') &&
-                            conditions[0] && (
-                                <SimpleConditionForm
-                                    condition={conditions[0]}
-                                    metrics={metricsForRule}
-                                    onChange={c => updateCondition(0, c)}
-                                />
+                    {!selectedRule ? (
+                        <p className="text-sm text-muted-foreground">Select a rule before setting the condition.</p>
+                    ) : (
+                        <fieldset disabled={!canEdit} className="contents">
+                            {(conditionRuleId === 'REQUEST@METRICS_SIMPLE_CONDITION' ||
+                                conditionRuleId === 'NODE_HEARTBEAT@METRICS_SIMPLE_CONDITION') &&
+                                conditions[0] && (
+                                    <SimpleConditionForm
+                                        condition={conditions[0]}
+                                        metrics={metricsForRule}
+                                        lookups={lookups}
+                                        onChange={c => updateCondition(0, c)}
+                                    />
+                                )}
+                            {conditionRuleId === 'REQUEST@MISSING_DATA' && conditions[0] && (
+                                <MissingDataConditionForm condition={conditions[0]} onChange={c => updateCondition(0, c)} />
                             )}
-                        {conditionRuleId === 'REQUEST@MISSING_DATA' && conditions[0] && (
-                            <MissingDataConditionForm condition={conditions[0]} onChange={c => updateCondition(0, c)} />
-                        )}
-                        {(conditionRuleId === 'REQUEST@METRICS_AGGREGATION' || conditionRuleId === 'NODE_HEARTBEAT@METRICS_AGGREGATION') &&
-                            conditions[0] && (
-                                <AggregationConditionForm
-                                    condition={conditions[0]}
-                                    metrics={metricsForRule}
-                                    onChange={c => updateCondition(0, c)}
-                                />
+                            {(conditionRuleId === 'REQUEST@METRICS_AGGREGATION' ||
+                                conditionRuleId === 'NODE_HEARTBEAT@METRICS_AGGREGATION') &&
+                                conditions[0] && (
+                                    <AggregationConditionForm
+                                        condition={conditions[0]}
+                                        metrics={metricsForRule}
+                                        projectionMetrics={projectionMetrics}
+                                        onChange={c => updateCondition(0, c)}
+                                    />
+                                )}
+                            {(conditionRuleId === 'REQUEST@METRICS_RATE' || conditionRuleId === 'NODE_HEARTBEAT@METRICS_RATE') &&
+                                conditions[0] && (
+                                    <RateConditionForm
+                                        condition={conditions[0]}
+                                        metrics={metricsForRule}
+                                        projectionMetrics={projectionMetrics}
+                                        lookups={lookups}
+                                        onChange={c => updateCondition(0, c)}
+                                    />
+                                )}
+                            {conditionRuleId && isInfoOnlyRule(conditionRuleId) && (
+                                <div className="space-y-4">
+                                    <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
+                                        {infoOnlyMessage(conditionRuleId)}
+                                    </div>
+                                    {projectionMetrics.length > 0 && conditions[0] && (
+                                        <AggregationProjectionSection
+                                            condition={conditions[0]}
+                                            metrics={projectionMetrics}
+                                            onChange={c => updateCondition(0, c)}
+                                        />
+                                    )}
+                                </div>
                             )}
-                        {(conditionRuleId === 'REQUEST@METRICS_RATE' || conditionRuleId === 'NODE_HEARTBEAT@METRICS_RATE') &&
-                            conditions[0] && (
-                                <RateConditionForm
-                                    condition={conditions[0]}
-                                    metrics={metricsForRule}
-                                    onChange={c => updateCondition(0, c)}
-                                />
-                            )}
-                        {conditionRuleId && isInfoOnlyRule(conditionRuleId) && (
-                            <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
-                                {infoOnlyMessage(conditionRuleId)}
-                            </div>
-                        )}
-                    </fieldset>
+                        </fieldset>
+                    )}
                 </CardContent>
             </Card>
 
@@ -496,7 +595,8 @@ export function AlertsTab({
                                     key={idx}
                                     filter={f}
                                     index={idx}
-                                    metrics={metricsForRule}
+                                    metrics={filterMetrics}
+                                    lookups={lookups}
                                     onChange={updateFilter}
                                     onRemove={removeFilter}
                                 />

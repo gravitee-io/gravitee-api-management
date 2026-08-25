@@ -22,6 +22,7 @@ import type {
     AlertStringOperator,
     AlertTimeUnit,
 } from '../types';
+import { GATEWAY_ERROR_KEY_OPTIONS } from './gatewayErrorKeys';
 
 export type AlertRuleCategory = 'API metrics' | 'Health-check' | 'Node';
 
@@ -106,10 +107,55 @@ export const ALERT_RULES: AlertRuleDefinition[] = [
     },
 ];
 
+export interface AlertMetricValueOption {
+    value: string;
+    label: string;
+}
+
+export type AlertMetricValueSource = 'tenants' | 'apis' | 'empty';
+
 export interface AlertMetricDefinition {
     key: string;
     label: string;
     conditionTypes: AlertConditionType[];
+    /** Classic `Metrics.supportPropertyProjection` — group-by Aggregation properties. */
+    supportPropertyProjection?: boolean;
+    /** Classic static `Metrics.loader` tuples. */
+    valueOptions?: AlertMetricValueOption[];
+    /** Classic async / empty loaders. `empty` still shows Value for EQUALS. */
+    valueSource?: AlertMetricValueSource;
+}
+
+export const NODE_APPLICATION_VALUES: AlertMetricValueOption[] = [
+    { value: 'gio-apim-gateway', label: 'API Gateway' },
+    { value: 'gio-apim-management', label: 'Management API' },
+];
+
+export const NODE_EVENT_VALUES: AlertMetricValueOption[] = [
+    { value: 'NODE_START', label: 'Start' },
+    { value: 'NODE_STOP', label: 'Stop' },
+];
+
+export const NODE_STATUS_VALUES: AlertMetricValueOption[] = [
+    { value: 'true', label: 'Healthy' },
+    { value: 'false', label: 'Unhealthy' },
+];
+
+export const HEALTHCHECK_STATUS_VALUES: AlertMetricValueOption[] = [
+    { value: 'DOWN', label: 'Down' },
+    { value: 'TRANSITIONALLY_DOWN', label: 'Transitionally down' },
+    { value: 'TRANSITIONALLY_UP', label: 'Transitionally up' },
+    { value: 'UP', label: 'Up' },
+];
+
+export const ALERT_RULE_CATEGORY_ORDER: AlertRuleCategory[] = ['Node', 'API metrics', 'Health-check'];
+
+export function getAlertRulesForEnvironment(cloudHostedEnabled: boolean, keepRuleId?: AlertRuleId): AlertRuleDefinition[] {
+    return ALERT_RULES.filter(rule => rule.category !== 'Node' || !cloudHostedEnabled || rule.id === keepRuleId);
+}
+
+export function getAlertRuleCategoriesForEnvironment(cloudHostedEnabled: boolean, keepCategory?: AlertRuleCategory): AlertRuleCategory[] {
+    return ALERT_RULE_CATEGORY_ORDER.filter(category => category !== 'Node' || !cloudHostedEnabled || keepCategory === 'Node');
 }
 
 export const API_METRICS: AlertMetricDefinition[] = [
@@ -119,14 +165,20 @@ export const API_METRICS: AlertMetricDefinition[] = [
         label: 'Upstream Response Time (ms)',
         conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE', 'COMPARE'],
     },
-    { key: 'response.status', label: 'Status Code', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE'] },
+    { key: 'response.status', label: 'Status Code', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE'], supportPropertyProjection: true },
     { key: 'request.content_length', label: 'Request Content-Length', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE', 'COMPARE'] },
     { key: 'response.content_length', label: 'Response Content-Length', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE', 'COMPARE'] },
-    { key: 'error.key', label: 'Error Key', conditionTypes: ['STRING'] },
-    { key: 'tenant', label: 'Tenant', conditionTypes: ['STRING'] },
-    { key: 'api', label: 'API', conditionTypes: ['STRING'] },
-    { key: 'application', label: 'Application', conditionTypes: ['STRING'] },
-    { key: 'plan', label: 'Plan', conditionTypes: ['STRING'] },
+    {
+        key: 'error.key',
+        label: 'Error Key',
+        conditionTypes: ['STRING'],
+        supportPropertyProjection: true,
+        valueOptions: GATEWAY_ERROR_KEY_OPTIONS,
+    },
+    { key: 'tenant', label: 'Tenant', conditionTypes: ['STRING'], supportPropertyProjection: true, valueSource: 'tenants' },
+    { key: 'api', label: 'API', conditionTypes: ['STRING'], supportPropertyProjection: true, valueSource: 'apis' },
+    { key: 'application', label: 'Application', conditionTypes: ['STRING'], supportPropertyProjection: true, valueSource: 'empty' },
+    { key: 'plan', label: 'Plan', conditionTypes: ['STRING'], supportPropertyProjection: true, valueSource: 'empty' },
 ];
 
 export const AGGREGATION_METRICS: AlertMetricDefinition[] = [
@@ -142,23 +194,63 @@ export const AGGREGATION_METRICS: AlertMetricDefinition[] = [
 
 /** Node heartbeat metrics from classic `node.metrics.ts`. */
 export const NODE_METRICS: AlertMetricDefinition[] = [
-    { key: 'node.hostname', label: 'Hostname', conditionTypes: ['STRING'] },
-    { key: 'node.application', label: 'Type', conditionTypes: ['STRING'] },
-    { key: 'os.cpu.percent', label: 'OS CPU (%)', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE'] },
-    { key: 'process.cpu.percent', label: 'Process CPU (%)', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE'] },
-    { key: 'process.cpu.total', label: 'Process CPU (total)', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE'] },
-    { key: 'jvm.mem.heap.used', label: 'JVM Heap used', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE'] },
-    { key: 'jvm.mem.heap.max', label: 'JVM Heap max', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE'] },
-    { key: 'jvm.mem.heap.percent', label: 'JVM Heap (%)', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE'] },
+    { key: 'node.hostname', label: 'Hostname', conditionTypes: ['STRING'], supportPropertyProjection: true },
+    {
+        key: 'node.application',
+        label: 'Type',
+        conditionTypes: ['STRING'],
+        supportPropertyProjection: true,
+        valueOptions: NODE_APPLICATION_VALUES,
+    },
+    { key: 'os.cpu.percent', label: 'OS CPU (%)', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE', 'COMPARE'] },
+    { key: 'process.cpu.percent', label: 'Process CPU (%)', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE', 'COMPARE'] },
+    { key: 'process.cpu.total', label: 'Process CPU (total)', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE', 'COMPARE'] },
+    { key: 'jvm.mem.heap.used', label: 'JVM Heap used', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE', 'COMPARE'] },
+    { key: 'jvm.mem.heap.max', label: 'JVM Heap max', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE', 'COMPARE'] },
+    { key: 'jvm.mem.heap.percent', label: 'JVM Heap (%)', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE', 'COMPARE'] },
 ];
 
-export const NODE_AGGREGATION_METRICS: AlertMetricDefinition[] = [
-    { key: 'os.cpu.percent', label: 'OS CPU (%)', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE'] },
-    { key: 'process.cpu.percent', label: 'Process CPU (%)', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE'] },
-    { key: 'process.cpu.total', label: 'Process CPU (total)', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE'] },
-    { key: 'jvm.mem.heap.used', label: 'JVM Heap used', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE'] },
-    { key: 'jvm.mem.heap.max', label: 'JVM Heap max', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE'] },
-    { key: 'jvm.mem.heap.percent', label: 'JVM Heap (%)', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE'] },
+/** Classic `HealthcheckMetrics` — env health-check filters, not API request metrics. */
+export const HEALTHCHECK_METRICS: AlertMetricDefinition[] = [
+    { key: 'status.old', label: 'Old Status', conditionTypes: ['STRING'], valueOptions: HEALTHCHECK_STATUS_VALUES },
+    { key: 'status.new', label: 'New Status', conditionTypes: ['STRING'], valueOptions: HEALTHCHECK_STATUS_VALUES },
+    { key: 'endpoint.name', label: 'Endpoint name', conditionTypes: ['STRING'], supportPropertyProjection: true },
+    { key: 'response_time', label: 'Response Time (ms)', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE', 'COMPARE'] },
+    { key: 'tenant', label: 'Tenant', conditionTypes: ['STRING'], valueSource: 'tenants' },
+];
+
+/** Classic `NodeLifecycleMetrics`. */
+export const NODE_LIFECYCLE_METRICS: AlertMetricDefinition[] = [
+    { key: 'node.hostname', label: 'Hostname', conditionTypes: ['STRING'], supportPropertyProjection: true },
+    {
+        key: 'node.application',
+        label: 'Type',
+        conditionTypes: ['STRING'],
+        supportPropertyProjection: true,
+        valueOptions: NODE_APPLICATION_VALUES,
+    },
+    {
+        key: 'node.event',
+        label: 'Event',
+        conditionTypes: ['STRING'],
+        supportPropertyProjection: true,
+        valueOptions: NODE_EVENT_VALUES,
+    },
+];
+
+/** Classic `NodeHealthcheckMetrics`. */
+export const NODE_HEALTHCHECK_METRICS: AlertMetricDefinition[] = [
+    { key: 'node.hostname', label: 'Hostname', conditionTypes: ['STRING'] },
+    { key: 'node.application', label: 'Type', conditionTypes: ['STRING'], valueOptions: NODE_APPLICATION_VALUES },
+    { key: 'node.healthy', label: 'Status', conditionTypes: ['STRING'], valueOptions: NODE_STATUS_VALUES },
+];
+
+const ALL_KNOWN_METRICS: AlertMetricDefinition[] = [
+    ...API_METRICS,
+    ...NODE_METRICS,
+    ...HEALTHCHECK_METRICS,
+    ...NODE_LIFECYCLE_METRICS,
+    ...NODE_HEALTHCHECK_METRICS,
 ];
 
 export const ALERT_OPERATORS: { value: AlertOperator; label: string }[] = [
@@ -205,10 +297,40 @@ export function getConditionTypesForMetric(metricKey: string, metrics: AlertMetr
     return metrics.find(m => m.key === metricKey)?.conditionTypes ?? [];
 }
 
+/** Classic compare `property2` list: other COMPARE metrics, not the left-hand property. */
+export function getCompareTargetMetrics(metrics: AlertMetricDefinition[], property: string): AlertMetricDefinition[] {
+    return metrics.filter(m => m.conditionTypes.includes('COMPARE') && m.key !== property);
+}
+
 export function isStringMetric(metricKey: string): boolean {
-    const all = [...API_METRICS, ...NODE_METRICS];
-    const m = all.find(met => met.key === metricKey);
+    const m = ALL_KNOWN_METRICS.find(met => met.key === metricKey);
     return !!m && m.conditionTypes.includes('STRING') && !m.conditionTypes.includes('THRESHOLD');
+}
+
+export function ruleSupportsProjections(ruleId: AlertRuleId): boolean {
+    return (
+        ruleId === 'REQUEST@METRICS_AGGREGATION' ||
+        ruleId === 'REQUEST@METRICS_RATE' ||
+        ruleId === 'NODE_HEARTBEAT@METRICS_AGGREGATION' ||
+        ruleId === 'NODE_HEARTBEAT@METRICS_RATE' ||
+        ruleId === 'ENDPOINT_HEALTH_CHECK@API_HC_ENDPOINT_STATUS_CHANGED'
+    );
+}
+
+/** Classic projection metrics (`supportPropertyProjection`), not the aggregation function metric. */
+export function getProjectionMetricsForRuleId(ruleId: AlertRuleId): AlertMetricDefinition[] {
+    if (!ruleSupportsProjections(ruleId)) {
+        return [];
+    }
+    if (ruleId === 'ENDPOINT_HEALTH_CHECK@API_HC_ENDPOINT_STATUS_CHANGED') {
+        return HEALTHCHECK_METRICS.filter(m => m.supportPropertyProjection);
+    }
+    const source = ruleId.startsWith('NODE_HEARTBEAT@') ? NODE_METRICS : API_METRICS;
+    return source.filter(m => m.supportPropertyProjection);
+}
+
+export function canDefineAlertTemplate(category: AlertRuleCategory | undefined): boolean {
+    return category === 'API metrics' || category === 'Health-check';
 }
 
 export function getMetricsForRuleId(ruleId: AlertRuleId): AlertMetricDefinition[] {
@@ -216,12 +338,29 @@ export function getMetricsForRuleId(ruleId: AlertRuleId): AlertMetricDefinition[
         case 'REQUEST@METRICS_AGGREGATION':
             return AGGREGATION_METRICS;
         case 'NODE_HEARTBEAT@METRICS_AGGREGATION':
-            return NODE_AGGREGATION_METRICS;
         case 'NODE_HEARTBEAT@METRICS_SIMPLE_CONDITION':
         case 'NODE_HEARTBEAT@METRICS_RATE':
             return NODE_METRICS;
         default:
             return API_METRICS;
+    }
+}
+
+/** Classic filter metrics follow the trigger source, not the condition metric subset. */
+export function getFilterMetricsForRuleId(ruleId: AlertRuleId): AlertMetricDefinition[] {
+    switch (ruleIdToSourceType(ruleId).source) {
+        case 'REQUEST':
+            return API_METRICS;
+        case 'NODE_HEARTBEAT':
+            return NODE_METRICS;
+        case 'ENDPOINT_HEALTH_CHECK':
+            return HEALTHCHECK_METRICS;
+        case 'NODE_LIFECYCLE':
+            return NODE_LIFECYCLE_METRICS;
+        case 'NODE_HEALTHCHECK':
+            return NODE_HEALTHCHECK_METRICS;
+        default:
+            return [];
     }
 }
 

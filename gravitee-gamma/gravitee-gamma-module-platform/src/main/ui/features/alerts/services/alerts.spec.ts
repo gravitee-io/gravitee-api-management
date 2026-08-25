@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 import {
+    apiConditionToForm,
     apiNotifToForm,
+    associatePlatformAlert,
     createPlatformAlert,
     deletePlatformAlert,
     formConditionToApi,
@@ -97,6 +99,19 @@ describe('platform alerts service', () => {
             expect(body.template).toBe(false);
         });
 
+        it('POSTs template and API_CREATE event_rules when defining a template', async () => {
+            mockApimFetchJsonV1Env.mockResolvedValue({ ...ALERT, id: 'created' });
+            await createPlatformAlert('env-1', {
+                ...FORM_DATA,
+                template: true,
+                event_rules: [{ event: 'API_CREATE' }],
+            });
+
+            const body = JSON.parse((mockApimFetchJsonV1Env.mock.calls[0][2] as { body: string }).body);
+            expect(body.template).toBe(true);
+            expect(body.event_rules).toEqual([{ event: 'API_CREATE' }]);
+        });
+
         it('omits notifications that have no channel type', async () => {
             mockApimFetchJsonV1Env.mockResolvedValue({ ...ALERT, id: 'created' });
             await createPlatformAlert('env-1', {
@@ -172,6 +187,19 @@ describe('platform alerts service', () => {
             expect(body.event_rules).toEqual([{ event: 'API_CREATE' }]);
         });
 
+        it('does not restore event_rules when the form cleared auto-create on API create', async () => {
+            await updatePlatformAlertFromForm(
+                'env-1',
+                'tpl-1',
+                { ...FORM_DATA, template: true, event_rules: [] },
+                { template: true, event_rules: [{ event: 'API_CREATE' }] },
+            );
+
+            const body = JSON.parse((mockApimFetchJsonV1Env.mock.calls[0][2] as { body: string }).body);
+            expect(body.template).toBe(true);
+            expect(body.event_rules).toEqual([]);
+        });
+
         it('preserves classic group-by projections from the existing trigger', async () => {
             await updatePlatformAlertFromForm('env-1', 'alert-1', FORM_DATA, {
                 projections: [{ type: 'PROPERTY', property: 'api' }],
@@ -187,6 +215,17 @@ describe('platform alerts service', () => {
             await deletePlatformAlert('env-1', 'alert-1');
 
             expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('env-1', '/platform/alerts/alert-1', { method: 'DELETE' });
+        });
+    });
+
+    describe('associatePlatformAlert', () => {
+        it('POSTs /platform/alerts/{id}?type=api like Classic associate', async () => {
+            await associatePlatformAlert('env-1', 'tpl-1');
+
+            expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('env-1', '/platform/alerts/tpl-1?type=api', {
+                method: 'POST',
+                body: '{}',
+            });
         });
     });
 
@@ -237,6 +276,51 @@ describe('platform alerts service', () => {
             });
         });
 
+        it('maps a Classic RATE comparison that is a threshold range or compare', () => {
+            expect(
+                formConditionToApi({
+                    type: 'RATE',
+                    comparisonType: 'THRESHOLD_RANGE',
+                    property: 'os.cpu.percent',
+                    thresholdLow: 10,
+                    thresholdHigh: 80,
+                    rateOperator: 'GT',
+                    rateThreshold: 50,
+                    duration: 1,
+                    timeUnit: 'MINUTES',
+                }).comparison,
+            ).toEqual({
+                type: 'THRESHOLD_RANGE',
+                property: 'os.cpu.percent',
+                operator: 'BETWEEN',
+                operatorLow: 'INCLUSIVE',
+                thresholdLow: 10,
+                operatorHigh: 'INCLUSIVE',
+                thresholdHigh: 80,
+            });
+
+            expect(
+                formConditionToApi({
+                    type: 'RATE',
+                    comparisonType: 'COMPARE',
+                    property: 'os.cpu.percent',
+                    operator: 'GT',
+                    multiplier: 150,
+                    property2: 'process.cpu.percent',
+                    rateOperator: 'GT',
+                    rateThreshold: 50,
+                    duration: 1,
+                    timeUnit: 'MINUTES',
+                }).comparison,
+            ).toEqual({
+                type: 'COMPARE',
+                property: 'os.cpu.percent',
+                operator: 'GT',
+                multiplier: 150,
+                property2: 'process.cpu.percent',
+            });
+        });
+
         it('round-trips group-by projections on a THRESHOLD condition', () => {
             expect(
                 formConditionToApi({
@@ -267,6 +351,61 @@ describe('platform alerts service', () => {
                 property: 'response.response_time',
                 operator: 'GT',
                 threshold: 10,
+            });
+        });
+
+        it('maps Classic health-check STRING_COMPARE', () => {
+            expect(
+                formConditionToApi({
+                    type: 'STRING_COMPARE',
+                    property: 'status.old',
+                    property2: 'status.new',
+                    operator: 'NOT_EQUALS',
+                }),
+            ).toEqual({
+                type: 'STRING_COMPARE',
+                property: 'status.old',
+                property2: 'status.new',
+                operator: 'NOT_EQUALS',
+            });
+        });
+
+        it('round-trips RATE comparison type and range fields', () => {
+            const form = apiConditionToForm({
+                type: 'RATE',
+                operator: 'GT',
+                threshold: 50,
+                duration: 1,
+                timeUnit: 'MINUTES',
+                comparison: {
+                    type: 'THRESHOLD_RANGE',
+                    property: 'os.cpu.percent',
+                    operator: 'BETWEEN',
+                    operatorLow: 'INCLUSIVE',
+                    thresholdLow: 10,
+                    operatorHigh: 'INCLUSIVE',
+                    thresholdHigh: 80,
+                },
+            });
+            expect(form).toEqual(
+                expect.objectContaining({
+                    type: 'RATE',
+                    comparisonType: 'THRESHOLD_RANGE',
+                    property: 'os.cpu.percent',
+                    thresholdLow: 10,
+                    thresholdHigh: 80,
+                    rateOperator: 'GT',
+                    rateThreshold: 50,
+                }),
+            );
+            expect(formConditionToApi(form).comparison).toEqual({
+                type: 'THRESHOLD_RANGE',
+                property: 'os.cpu.percent',
+                operator: 'BETWEEN',
+                operatorLow: 'INCLUSIVE',
+                thresholdLow: 10,
+                operatorHigh: 'INCLUSIVE',
+                thresholdHigh: 80,
             });
         });
 
