@@ -395,7 +395,12 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             // Then
             long nbBuckets = Duration.between(from, to).dividedBy(interval);
-            assertThat(requireNonNull(result).getAverageBy().entrySet()).hasSize((int) nbBuckets + 1).haveAtMost(2, STRICT_POSITIVE);
+            // Three buckets carry traffic: the V2 samples of the previous day, the metrics sample hardcoded at
+            // 14:08, and the V2 samples of the current day. The last of those falls in the bucket the window
+            // closes on, which spans the interval starting at `to` — a point of the series like any other.
+            // 245.0 is their average, and it is only in range because TimeProvider.TRAFFIC_SAMPLE_TIME sits
+            // inside that interval. Move the constant past it and this value disappears.
+            assertThat(requireNonNull(result).getAverageBy().entrySet()).hasSize((int) nbBuckets + 1).haveAtMost(3, STRICT_POSITIVE);
             double[] array = result
                 .getAverageBy()
                 .values()
@@ -403,12 +408,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 .mapToDouble(l -> l)
                 .filter(d -> d > 0)
                 .toArray();
-            // Depending on the exact timestamps of test data relative to the 10-minute bucket boundaries,
-            // the same underlying response times can be aggregated either into two separate buckets
-            // (values [36.25, 20.0]) or into a single bucket (value [33.0]). Both outcomes are valid
-            // representations of the same dataset with slightly different time bucketing, so we accept
-            // either result to avoid making this test flaky while still asserting on the actual values.
-            assertThat(array).satisfiesAnyOf(c -> assertThat(c).containsOnly(36.25, 20.0), c -> assertThat(c).containsOnly(33.0));
+            assertThat(array).containsOnly(36.25, 20.0, 245.0);
         }
 
         private static Condition<Map.Entry<String, Double>> bucketOfTimeHaveValue(String timeSuffix, double value) {
@@ -503,9 +503,9 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         class WindowBoundaries {
 
             // The V2 sample documents for these two APIs all sit on the very same instant, one day before the
-            // shared reference. Deriving the windows from that instant keeps these cases independent of the hour
-            // the build runs at, while pinning what the window is supposed to include and exclude.
-            private static final Instant DOCUMENTS_AT = TimeProvider.now().minus(1, ChronoUnit.DAYS);
+            // traffic sample instant. Deriving the windows from that instant keeps these cases independent of
+            // the hour the build runs at, while pinning what the window is supposed to include and exclude.
+            private static final Instant DOCUMENTS_AT = TimeProvider.trafficSampleInstant().minus(1, ChronoUnit.DAYS);
             private static final Duration INTERVAL = Duration.ofMinutes(10);
 
             private ResponseStatusOverTimeAggregate search(Instant from, Instant to) {
