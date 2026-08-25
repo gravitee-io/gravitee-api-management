@@ -39,14 +39,6 @@ public class VertxHttp2ServerRequest extends VertxHttpServerRequest {
         this(httpServerRequest, idGenerator, VertxHttpServerRequestOptions.builder().build());
     }
 
-    /**
-     * @deprecated see {@link #VertxHttp2ServerRequest(HttpServerRequest, IdGenerator)}.
-     */
-    @Deprecated
-    public VertxHttp2ServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator, String path) {
-        this(httpServerRequest, idGenerator, VertxHttpServerRequestOptions.builder().path(path).build());
-    }
-
     public VertxHttp2ServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator, VertxHttpServerRequestOptions options) {
         super(httpServerRequest, idGenerator, options);
     }
