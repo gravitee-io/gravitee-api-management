@@ -24,11 +24,17 @@ import { parse } from '../utils';
 export class PublishRpmPackagesJob {
   private static jobName = 'job-publish-rpm-packages';
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
-    const parsedGraviteeioVersion = parse(environment.graviteeioVersion);
+    const { qualifier } = parse(environment.graviteeioVersion);
+
+    // These RPMs go to the production repository, and rpm has no notion of a pre-release: an alpha
+    // of the next version outranks the current release, so a plain `dnf update` would install it.
+    // A hotfix is the exception. It packages the released version with a higher release number, so
+    // it sits above the release it fixes and below the next patch — where it belongs.
+    const isPrerelease = qualifier.full.length > 0 && qualifier.name !== 'hotfix';
 
     let steps: Command[];
 
-    if (parsedGraviteeioVersion.qualifier.full && parsedGraviteeioVersion.qualifier.full.length > 0) {
+    if (isPrerelease) {
       steps = [
         new commands.Run({
           name: 'Publishing RPMs is not supported for prerelease version',
