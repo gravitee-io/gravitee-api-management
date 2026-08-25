@@ -61,21 +61,35 @@ export function AlertFormPage() {
         isDirty,
         saveError,
         historyPage,
+        historyPageNumber,
+        historyPageSize,
+        setHistoryPageNumber,
+        setHistoryPageSize,
         isRefreshingHistory,
         isLoadingAlert,
         isAlertListError,
         hydrateError,
         alertNotFound,
         isPending,
-        notificationsComplete,
+        canSubmit,
         notificationsIncompleteReason,
         selectedRule,
         metricsForRule,
+        filterMetrics,
         handleSave,
         handleCancel,
         markDirty,
         refreshHistory,
         ruleLabel,
+        visibleRules,
+        visibleRuleCategories,
+        template,
+        setTemplate,
+        associateOnApiCreate,
+        setAssociateOnApiCreate,
+        associateToApis,
+        isAssociating,
+        isTemplateAlert,
     } = useAlertForm();
 
     if (isUpdate && isLoadingAlert) {
@@ -142,25 +156,26 @@ export function AlertFormPage() {
                 <div>
                     {/* ── Tab bar ──────────────────────────────────────────────── */}
                     <div role="tablist" className="flex gap-1 border-b">
-                        {(isUpdate ? (['alerts', 'notifications', 'history'] as const) : (['alerts', 'notifications'] as const)).map(
-                            tab => (
-                                <button
-                                    key={tab}
-                                    role="tab"
-                                    type="button"
-                                    aria-selected={activeTab === tab}
-                                    onClick={() => setActiveTab(tab)}
-                                    className={cn(
-                                        '-mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors',
-                                        activeTab === tab
-                                            ? 'border-primary text-foreground'
-                                            : 'border-transparent text-muted-foreground hover:border-muted-foreground hover:text-foreground',
-                                    )}
-                                >
-                                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                                </button>
-                            ),
-                        )}
+                        {(isUpdate && !isTemplateAlert
+                            ? (['alerts', 'notifications', 'history'] as const)
+                            : (['alerts', 'notifications'] as const)
+                        ).map(tab => (
+                            <button
+                                key={tab}
+                                role="tab"
+                                type="button"
+                                aria-selected={activeTab === tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={cn(
+                                    '-mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors',
+                                    activeTab === tab
+                                        ? 'border-primary text-foreground'
+                                        : 'border-transparent text-muted-foreground hover:border-muted-foreground hover:text-foreground',
+                                )}
+                            >
+                                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                            </button>
+                        ))}
                     </div>
 
                     {/* ── Tab panels ───────────────────────────────────────────── */}
@@ -190,12 +205,21 @@ export function AlertFormPage() {
                             conditions={conditions}
                             updateCondition={updateCondition}
                             metricsForRule={metricsForRule}
+                            filterMetrics={filterMetrics}
                             filters={filters}
                             addFilter={addFilter}
                             updateFilter={updateFilter}
                             removeFilter={removeFilter}
                             selectedRule={selectedRule}
                             ruleLabel={ruleLabel}
+                            rules={visibleRules}
+                            ruleCategories={visibleRuleCategories}
+                            template={template}
+                            setTemplate={setTemplate}
+                            associateOnApiCreate={associateOnApiCreate}
+                            setAssociateOnApiCreate={setAssociateOnApiCreate}
+                            onAssociateToApis={associateToApis}
+                            isAssociating={isAssociating}
                         />
                     )}
 
@@ -215,8 +239,19 @@ export function AlertFormPage() {
                         />
                     )}
 
-                    {isUpdate && activeTab === 'history' && (
-                        <HistoryTab historyPage={historyPage} onRefresh={refreshHistory} isRefreshing={isRefreshingHistory} />
+                    {isUpdate && !isTemplateAlert && activeTab === 'history' && (
+                        <HistoryTab
+                            historyPage={historyPage}
+                            onRefresh={refreshHistory}
+                            isRefreshing={isRefreshingHistory}
+                            page={historyPageNumber}
+                            pageSize={historyPageSize}
+                            onPageChange={setHistoryPageNumber}
+                            onPageSizeChange={size => {
+                                setHistoryPageSize(size);
+                                setHistoryPageNumber(1);
+                            }}
+                        />
                     )}
                 </div>
 
@@ -229,7 +264,7 @@ export function AlertFormPage() {
                         <Button variant="outline" onClick={handleCancel}>
                             Cancel
                         </Button>
-                        <Button onClick={handleSave} disabled={isPending || !notificationsComplete}>
+                        <Button onClick={handleSave} disabled={isPending || !canSubmit}>
                             {isPending ? 'Saving…' : isUpdate ? 'Save' : 'Create'}
                         </Button>
                     </div>
@@ -243,7 +278,7 @@ export function AlertFormPage() {
                         <Button variant="outline" onClick={handleCancel}>
                             Cancel
                         </Button>
-                        <Button onClick={handleSave} disabled={isPending || !notificationsComplete}>
+                        <Button onClick={handleSave} disabled={isPending || !canSubmit}>
                             {isPending ? 'Creating…' : 'Create'}
                         </Button>
                     </div>

@@ -26,39 +26,42 @@ interface Props {
 
 export function MissingDataConditionForm({ condition, onChange }: Props) {
     return (
-        <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-                <Label className="text-xs">Duration</Label>
-                <Input
-                    type="number"
-                    min={ALERT_POSITIVE_NUMBER_MIN}
-                    placeholder="e.g. 5"
-                    value={condition.duration ?? ''}
-                    onChange={e =>
-                        onChange({
-                            ...condition,
-                            duration: nextAlertPositiveNumber(e.target.value, condition.duration),
-                        })
-                    }
-                />
-            </div>
-            <div className="space-y-1.5">
-                <Label className="text-xs">Time unit</Label>
-                <Select
-                    value={condition.timeUnit || 'MINUTES'}
-                    onValueChange={(val: AlertTimeUnit) => onChange({ ...condition, timeUnit: val })}
-                >
-                    <SelectTrigger>
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {TIME_UNITS.map(tu => (
-                            <SelectItem key={tu.value} value={tu.value}>
-                                {tu.label}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+        <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">No event for</p>
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                    <Label className="text-xs">Duration</Label>
+                    <Input
+                        type="number"
+                        min={ALERT_POSITIVE_NUMBER_MIN}
+                        placeholder="e.g. 5"
+                        value={condition.duration ?? ''}
+                        onChange={e =>
+                            onChange({
+                                ...condition,
+                                duration: nextAlertPositiveNumber(e.target.value, condition.duration),
+                            })
+                        }
+                    />
+                </div>
+                <div className="space-y-1.5">
+                    <Label className="text-xs">Time unit</Label>
+                    <Select
+                        value={condition.timeUnit || 'MINUTES'}
+                        onValueChange={(val: AlertTimeUnit) => onChange({ ...condition, timeUnit: val })}
+                    >
+                        <SelectTrigger>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {TIME_UNITS.map(tu => (
+                                <SelectItem key={tu.value} value={tu.value}>
+                                    {tu.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
         </div>
     );

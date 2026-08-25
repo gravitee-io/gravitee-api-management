@@ -25,7 +25,8 @@ import {
 } from '@gravitee/graphene-core/icons';
 import type { ComponentType } from 'react';
 
-import { ALERT_RULES } from '../constants/alertRules';
+import { useConsoleSettings } from '../../../shared/console-settings';
+import { getAlertRulesForEnvironment } from '../constants/alertRules';
 
 const CAPABILITIES = [
     'Send notifications via email, Slack, or webhook',
@@ -50,6 +51,10 @@ function FlowNode({
 }
 
 export function AlertsEducationalEmptyState() {
+    const consoleSettings = useConsoleSettings();
+    const cloudHostedEnabled = consoleSettings?.cloudHosted?.enabled === true;
+    const visibleRules = getAlertRulesForEnvironment(cloudHostedEnabled);
+
     return (
         <Card className="space-y-6 p-6">
             <div className="space-y-1">
@@ -88,7 +93,7 @@ export function AlertsEducationalEmptyState() {
                 <div className="space-y-3">
                     <p className="text-xs font-semibold">Available alert rules</p>
                     <ul className="space-y-2.5">
-                        {ALERT_RULES.map(rule => (
+                        {visibleRules.map(rule => (
                             <li key={rule.id} className="flex items-start gap-2">
                                 <BellIcon className="mt-0.5 size-3.5 shrink-0 text-primary" aria-hidden="true" />
                                 <span className="text-xs text-muted-foreground">

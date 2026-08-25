@@ -20,6 +20,7 @@ import {
     CardDescription,
     CardHeader,
     CardTitle,
+    DataTablePagination,
     Table,
     TableBody,
     TableCell,
@@ -39,9 +40,24 @@ export interface HistoryTabProps {
     historyPage: AlertHistoryPage | undefined;
     onRefresh?: () => void;
     isRefreshing?: boolean;
+    page?: number;
+    pageSize?: number;
+    onPageChange?: (page: number) => void;
+    onPageSizeChange?: (pageSize: number) => void;
 }
 
-export function HistoryTab({ historyPage, onRefresh, isRefreshing = false }: HistoryTabProps) {
+const HISTORY_PAGE_SIZE_OPTIONS = [10, 25, 50, 75, 100];
+
+export function HistoryTab({
+    historyPage,
+    onRefresh,
+    isRefreshing = false,
+    page = 1,
+    pageSize = 10,
+    onPageChange,
+    onPageSizeChange,
+}: HistoryTabProps) {
+    const totalCount = historyPage?.totalElements ?? 0;
     return (
         <div className="mt-6">
             <Card>
@@ -89,6 +105,18 @@ export function HistoryTab({ historyPage, onRefresh, isRefreshing = false }: His
                         </TooltipProvider>
                     ) : (
                         <div className="py-8 text-center text-sm text-muted-foreground">No data to display.</div>
+                    )}
+                    {onPageChange && onPageSizeChange && totalCount > 0 && (
+                        <div className="mt-4">
+                            <DataTablePagination
+                                page={page}
+                                pageSize={pageSize}
+                                totalCount={totalCount}
+                                pageSizeOptions={HISTORY_PAGE_SIZE_OPTIONS}
+                                onPageChange={onPageChange}
+                                onPageSizeChange={onPageSizeChange}
+                            />
+                        </div>
                     )}
                 </CardContent>
             </Card>

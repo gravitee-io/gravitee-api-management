@@ -242,6 +242,7 @@ describe('AlertsPage', () => {
         renderPage();
 
         await waitFor(() => expect(screen.getByText('API template')).not.toBeNull());
+        expect(screen.getByText('[Template]')).not.toBeNull();
         const toggle = screen.getByRole('switch');
         expect(toggle).toHaveProperty('disabled', true);
         fireEvent.click(toggle);

@@ -15,117 +15,86 @@
  */
 import { Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@gravitee/graphene-core';
 
-import {
-    ALERT_OPERATORS,
-    ALERT_STRING_OPERATORS,
-    TIME_UNITS,
-    isStringMetric,
-    type AlertMetricDefinition,
-} from '../constants/alertConstants';
-import type { AlertFormCondition, AlertOperator, AlertStringOperator, AlertTimeUnit } from '../types';
+import { AggregationProjectionSection } from './AggregationProjectionSection';
+import { SimpleConditionForm } from './SimpleConditionForm';
+import { ALERT_OPERATORS, TIME_UNITS, isStringMetric, type AlertMetricDefinition } from '../constants/alertConstants';
+import type { AlertComparisonType, AlertFormCondition, AlertOperator, AlertTimeUnit } from '../types';
+import type { AlertMetricLookups } from '../utils/alertMetricValues';
 import { ALERT_POSITIVE_NUMBER_MIN, ALERT_RATE_PERCENT_MAX, nextAlertPositiveNumber } from '../utils/alertPositiveNumber';
 
 interface Props {
     condition: AlertFormCondition;
     metrics: AlertMetricDefinition[];
+    projectionMetrics?: AlertMetricDefinition[];
     onChange: (c: AlertFormCondition) => void;
+    lookups?: AlertMetricLookups;
 }
 
-export function rateConditionWithMetric(condition: AlertFormCondition, metricKey: string): AlertFormCondition {
+function isComparisonType(type: AlertFormCondition['type']): type is AlertComparisonType {
+    return type === 'STRING' || type === 'THRESHOLD' || type === 'THRESHOLD_RANGE' || type === 'COMPARE';
+}
+
+export function rateComparisonFrom(rate: AlertFormCondition): AlertFormCondition {
     return {
-        ...condition,
-        property: metricKey,
-        operator: isStringMetric(metricKey) ? 'EQUALS' : 'GTE',
-        threshold: undefined,
-        pattern: undefined,
+        type: rate.comparisonType ?? (isStringMetric(rate.property ?? '') ? 'STRING' : 'THRESHOLD'),
+        property: rate.property,
+        operator: rate.operator,
+        threshold: rate.threshold,
+        thresholdLow: rate.thresholdLow,
+        thresholdHigh: rate.thresholdHigh,
+        pattern: rate.pattern,
+        property2: rate.property2,
+        multiplier: rate.multiplier,
     };
 }
 
-export function RateConditionForm({ condition, metrics, onChange }: Props) {
-    const selectedMetric = condition.property ?? metrics[0]?.key ?? '';
-    const isStr = isStringMetric(selectedMetric);
+export function applyRateComparison(rate: AlertFormCondition, comparison: AlertFormCondition): AlertFormCondition {
+    return {
+        ...rate,
+        type: 'RATE',
+        comparisonType: isComparisonType(comparison.type) ? comparison.type : 'THRESHOLD',
+        property: comparison.property,
+        operator: comparison.operator,
+        threshold: comparison.threshold,
+        thresholdLow: comparison.thresholdLow,
+        thresholdHigh: comparison.thresholdHigh,
+        pattern: comparison.pattern,
+        property2: comparison.property2,
+        multiplier: comparison.multiplier,
+    };
+}
 
+export function RateConditionForm({ condition, metrics, projectionMetrics = [], onChange, lookups }: Props) {
     return (
         <div className="space-y-4">
+            <SimpleConditionForm
+                condition={rateComparisonFrom(condition)}
+                metrics={metrics}
+                lookups={lookups}
+                onChange={comparison => onChange(applyRateComparison(condition, comparison))}
+            />
+            <p className="text-sm text-muted-foreground">If rate is</p>
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                    <Label className="text-xs">Comparison metric</Label>
-                    <Select value={selectedMetric} onValueChange={val => onChange(rateConditionWithMetric(condition, val))}>
+                    <Label className="text-xs">Operator</Label>
+                    <Select
+                        value={(condition.rateOperator as string) || 'GT'}
+                        onValueChange={(val: AlertOperator) => onChange({ ...condition, rateOperator: val })}
+                    >
                         <SelectTrigger>
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            {metrics.map(m => (
-                                <SelectItem key={m.key} value={m.key}>
-                                    {m.label}
+                            {ALERT_OPERATORS.map(op => (
+                                <SelectItem key={op.value} value={op.value}>
+                                    {op.label}
                                 </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
                 </div>
                 <div className="space-y-1.5">
-                    <Label className="text-xs">{isStr ? 'Pattern' : 'Threshold value'}</Label>
-                    {isStr ? (
-                        <Input
-                            placeholder="e.g. API_KEY_MISSING"
-                            value={condition.pattern ?? ''}
-                            onChange={e => onChange({ ...condition, pattern: e.target.value })}
-                        />
-                    ) : (
-                        <Input
-                            type="number"
-                            min={ALERT_POSITIVE_NUMBER_MIN}
-                            placeholder="e.g. 500"
-                            value={condition.threshold ?? ''}
-                            onChange={e =>
-                                onChange({
-                                    ...condition,
-                                    threshold: nextAlertPositiveNumber(e.target.value, condition.threshold),
-                                })
-                            }
-                        />
-                    )}
-                </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                    <Label className="text-xs">{isStr ? 'Operator' : 'Comparison operator'}</Label>
-                    {isStr ? (
-                        <Select
-                            value={(condition.operator as string) || 'EQUALS'}
-                            onValueChange={(val: AlertStringOperator) => onChange({ ...condition, operator: val })}
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {ALERT_STRING_OPERATORS.map(op => (
-                                    <SelectItem key={op.value} value={op.value}>
-                                        {op.label}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    ) : (
-                        <Select
-                            value={(condition.operator as string) || 'GTE'}
-                            onValueChange={(val: AlertOperator) => onChange({ ...condition, operator: val })}
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {ALERT_OPERATORS.map(op => (
-                                    <SelectItem key={op.value} value={op.value}>
-                                        {op.label}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    )}
-                </div>
-                <div className="space-y-1.5">
-                    <Label className="text-xs">Rate threshold (%)</Label>
+                    <Label className="text-xs">Threshold (%)</Label>
                     <Input
                         type="number"
                         min={ALERT_POSITIVE_NUMBER_MIN}
@@ -143,25 +112,8 @@ export function RateConditionForm({ condition, metrics, onChange }: Props) {
                     />
                 </div>
             </div>
-            <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-1.5">
-                    <Label className="text-xs">Rate operator</Label>
-                    <Select
-                        value={(condition.rateOperator as string) || 'GT'}
-                        onValueChange={(val: AlertOperator) => onChange({ ...condition, rateOperator: val })}
-                    >
-                        <SelectTrigger>
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {ALERT_OPERATORS.map(op => (
-                                <SelectItem key={op.value} value={op.value}>
-                                    {op.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
+            <p className="text-sm text-muted-foreground">For</p>
+            <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                     <Label className="text-xs">Duration</Label>
                     <Input
@@ -196,6 +148,7 @@ export function RateConditionForm({ condition, metrics, onChange }: Props) {
                     </Select>
                 </div>
             </div>
+            <AggregationProjectionSection condition={condition} metrics={projectionMetrics} onChange={onChange} />
         </div>
     );
 }

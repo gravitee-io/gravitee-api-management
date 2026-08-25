@@ -235,4 +235,22 @@ describe('NotificationsTab', () => {
         expect(screen.queryByRole('option', { name: 'Slack' })).toBeNull();
         expect(screen.queryByRole('option', { name: 'Webhook' })).toBeNull();
     });
+
+    it('shows an error when RELAXED_COUNT total evaluations is below true evaluations', () => {
+        render(
+            <NotificationsTab
+                dampening={{ mode: 'RELAXED_COUNT', trueEvaluations: 5, totalEvaluations: 2 }}
+                setDampening={() => undefined}
+                notifications={[]}
+                addNotification={() => undefined}
+                removeNotification={() => undefined}
+                setNotificationType={() => undefined}
+                updateNotification={() => undefined}
+                canEdit
+                markDirty={() => undefined}
+            />,
+        );
+
+        expect(screen.getByText('Number of total evaluations must be at least as high as the number of true evaluations.')).not.toBeNull();
+    });
 });

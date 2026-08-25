@@ -13,7 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { conditionWithType, defaultFilterCondition, isAlertConditionComplete, isAlertDampeningComplete } from './alertConditionComplete';
+import {
+    collectAlertFormErrors,
+    conditionWithType,
+    defaultFilterCondition,
+    isAlertConditionComplete,
+    isAlertDampeningComplete,
+    isAlertFormReady,
+} from './alertConditionComplete';
 
 describe('defaultFilterCondition', () => {
     it('uses STRING for node hostname instead of THRESHOLD', () => {
@@ -30,6 +37,12 @@ describe('defaultFilterCondition', () => {
             property: 'response.response_time',
             operator: 'GT',
         });
+    });
+
+    it('uses STRING for Classic health-check and node event filters', () => {
+        expect(defaultFilterCondition('status.old')).toEqual({ type: 'STRING', property: 'status.old', operator: 'EQUALS' });
+        expect(defaultFilterCondition('node.event')).toEqual({ type: 'STRING', property: 'node.event', operator: 'EQUALS' });
+        expect(defaultFilterCondition('node.healthy')).toEqual({ type: 'STRING', property: 'node.healthy', operator: 'EQUALS' });
     });
 });
 
@@ -90,6 +103,56 @@ describe('isAlertConditionComplete', () => {
             true,
         );
     });
+
+    it('requires both the When comparison and the rate threshold', () => {
+        expect(
+            isAlertConditionComplete({
+                type: 'RATE',
+                comparisonType: 'THRESHOLD',
+                property: 'os.cpu.percent',
+                operator: 'GT',
+                rateOperator: 'GT',
+                rateThreshold: 10,
+                duration: 1,
+            }),
+        ).toBe(false);
+        expect(
+            isAlertConditionComplete({
+                type: 'RATE',
+                comparisonType: 'THRESHOLD',
+                property: 'os.cpu.percent',
+                operator: 'GT',
+                threshold: 50,
+                rateOperator: 'GT',
+                rateThreshold: 10,
+                duration: 1,
+                timeUnit: 'MINUTES',
+            }),
+        ).toBe(true);
+    });
+
+    it('requires duration and threshold for aggregation', () => {
+        expect(
+            isAlertConditionComplete({
+                type: 'AGGREGATION',
+                property: 'response.response_time',
+                aggregationFunction: 'AVG',
+                operator: 'GT',
+                timeUnit: 'MINUTES',
+            }),
+        ).toBe(false);
+        expect(
+            isAlertConditionComplete({
+                type: 'AGGREGATION',
+                property: 'response.response_time',
+                aggregationFunction: 'AVG',
+                operator: 'GT',
+                threshold: 500,
+                duration: 1,
+                timeUnit: 'MINUTES',
+            }),
+        ).toBe(true);
+    });
 });
 
 describe('isAlertDampeningComplete', () => {
@@ -103,10 +166,111 @@ describe('isAlertDampeningComplete', () => {
         expect(isAlertDampeningComplete({ mode: 'RELAXED_COUNT', trueEvaluations: 1, totalEvaluations: 5 })).toBe(true);
     });
 
+    it('rejects RELAXED_COUNT when totalEvaluations is below trueEvaluations (Classic min="{{trueEvaluations}}")', () => {
+        expect(isAlertDampeningComplete({ mode: 'RELAXED_COUNT', trueEvaluations: 5, totalEvaluations: 2 })).toBe(false);
+        expect(isAlertDampeningComplete({ mode: 'RELAXED_COUNT', trueEvaluations: 5, totalEvaluations: 5 })).toBe(true);
+    });
+
     it('requires duration for time-based modes', () => {
         expect(isAlertDampeningComplete({ mode: 'STRICT_TIME', timeUnit: 'MINUTES' })).toBe(false);
         expect(isAlertDampeningComplete({ mode: 'STRICT_TIME', duration: 1, timeUnit: 'MINUTES' })).toBe(true);
         expect(isAlertDampeningComplete({ mode: 'RELAXED_TIME', trueEvaluations: 1, timeUnit: 'MINUTES' })).toBe(false);
         expect(isAlertDampeningComplete({ mode: 'RELAXED_TIME', trueEvaluations: 1, duration: 2, timeUnit: 'MINUTES' })).toBe(true);
+    });
+});
+
+const READY_CREATE = {
+    name: 'New alert',
+    isUpdate: false,
+    ruleId: 'REQUEST@METRICS_SIMPLE_CONDITION' as const,
+    conditions: [{ type: 'THRESHOLD' as const, property: 'response.response_time', operator: 'GT' as const, threshold: 500 }],
+    filters: [] as [],
+    notifications: [] as [],
+    notificationsComplete: true,
+    dampening: { mode: 'STRICT_COUNT' as const, trueEvaluations: 1 },
+};
+
+describe('isAlertFormReady', () => {
+    it('blocks create until a rule is selected', () => {
+        expect(collectAlertFormErrors({ ...READY_CREATE, ruleId: undefined }).rule).toBe('Rule is required.');
+        expect(isAlertFormReady({ ...READY_CREATE, ruleId: undefined })).toBe(false);
+    });
+
+    it('blocks create when the threshold is empty', () => {
+        expect(
+            isAlertFormReady({
+                ...READY_CREATE,
+                conditions: [{ type: 'THRESHOLD', property: 'response.response_time', operator: 'GT' }],
+            }),
+        ).toBe(false);
+    });
+
+    it('blocks create when an added filter has no value', () => {
+        expect(
+            isAlertFormReady({
+                ...READY_CREATE,
+                filters: [{ type: 'THRESHOLD', property: 'response.response_time', operator: 'GT' }],
+            }),
+        ).toBe(false);
+    });
+
+    it('blocks create when aggregation duration or threshold is missing', () => {
+        expect(
+            isAlertFormReady({
+                ...READY_CREATE,
+                ruleId: 'REQUEST@METRICS_AGGREGATION',
+                conditions: [
+                    {
+                        type: 'AGGREGATION',
+                        property: 'response.response_time',
+                        aggregationFunction: 'AVG',
+                        operator: 'GT',
+                        timeUnit: 'MINUTES',
+                    },
+                ],
+            }),
+        ).toBe(false);
+    });
+
+    it('allows info-only node lifecycle without filling When fields', () => {
+        expect(
+            isAlertFormReady({
+                ...READY_CREATE,
+                ruleId: 'NODE_LIFECYCLE@NODE_LIFECYCLE_CHANGED',
+                conditions: [{ type: 'STRING', operator: 'MATCHES', property: 'node.event', pattern: 'NODE_START|NODE_STOP' }],
+            }),
+        ).toBe(true);
+    });
+
+    it('blocks info-only create when a filter pattern is empty', () => {
+        expect(
+            isAlertFormReady({
+                ...READY_CREATE,
+                ruleId: 'NODE_LIFECYCLE@NODE_LIFECYCLE_CHANGED',
+                conditions: [{ type: 'STRING', operator: 'MATCHES', property: 'node.event', pattern: 'NODE_START|NODE_STOP' }],
+                filters: [{ type: 'STRING', property: 'node.hostname', operator: 'EQUALS' }],
+            }),
+        ).toBe(false);
+    });
+
+    it('allows create when name, rule, condition, and dampening are filled', () => {
+        expect(isAlertFormReady(READY_CREATE)).toBe(true);
+    });
+
+    it('blocks create when a notification channel or schema field is missing', () => {
+        expect(
+            isAlertFormReady({
+                ...READY_CREATE,
+                notifications: [{ type: '' }],
+                notificationsComplete: false,
+            }),
+        ).toBe(false);
+        expect(
+            isAlertFormReady({
+                ...READY_CREATE,
+                notifications: [{ type: 'webhook-notifier' }],
+                notificationsComplete: false,
+            }),
+        ).toBe(false);
     });
 });

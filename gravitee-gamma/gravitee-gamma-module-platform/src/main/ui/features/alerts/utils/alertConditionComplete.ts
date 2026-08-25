@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { isStringMetric } from '../constants/alertConstants';
-import type { AlertConditionType, AlertDampening, AlertFormCondition } from '../types';
+import { isInfoOnlyRule, isStringMetric } from '../constants/alertConstants';
+import type { AlertConditionType, AlertDampening, AlertFormCondition, AlertRuleId } from '../types';
 
 /** Default filter for the given metric — string metrics must not start as THRESHOLD. */
 export function defaultFilterCondition(property: string): AlertFormCondition {
@@ -58,21 +58,30 @@ export function isAlertConditionComplete(condition: AlertFormCondition): boolean
         case 'COMPARE':
             return !!condition.operator && hasPositiveNumber(condition.multiplier) && !!condition.property2;
         case 'AGGREGATION':
-            return !!condition.operator && hasPositiveNumber(condition.threshold) && hasPositiveNumber(condition.duration);
+            return (
+                !!condition.operator &&
+                hasPositiveNumber(condition.threshold) &&
+                hasPositiveNumber(condition.duration) &&
+                !!condition.timeUnit
+            );
         case 'RATE': {
-            const comparisonFilled = isStringMetric(condition.property ?? '')
-                ? !!condition.pattern?.trim()
-                : hasPositiveNumber(condition.threshold);
+            const comparisonType = condition.comparisonType ?? (isStringMetric(condition.property ?? '') ? 'STRING' : 'THRESHOLD');
+            const comparisonFilled = isAlertConditionComplete({
+                ...condition,
+                type: comparisonType,
+            });
             return (
                 comparisonFilled &&
-                !!condition.operator &&
                 hasPositiveNumber(condition.rateThreshold) &&
                 !!condition.rateOperator &&
-                hasPositiveNumber(condition.duration)
+                hasPositiveNumber(condition.duration) &&
+                !!condition.timeUnit
             );
         }
+        case 'STRING_COMPARE':
+            return !!condition.operator && !!condition.property && !!condition.property2;
         case 'MISSING_DATA':
-            return hasPositiveNumber(condition.duration);
+            return hasPositiveNumber(condition.duration) && !!condition.timeUnit;
         default:
             return true;
     }
@@ -86,7 +95,11 @@ export function isAlertDampeningComplete(dampening: AlertDampening | undefined):
         case 'STRICT_COUNT':
             return hasPositiveNumber(dampening.trueEvaluations);
         case 'RELAXED_COUNT':
-            return hasPositiveNumber(dampening.trueEvaluations) && hasPositiveNumber(dampening.totalEvaluations);
+            return (
+                hasPositiveNumber(dampening.trueEvaluations) &&
+                hasPositiveNumber(dampening.totalEvaluations) &&
+                dampening.totalEvaluations >= dampening.trueEvaluations
+            );
         case 'RELAXED_TIME':
             return hasPositiveNumber(dampening.trueEvaluations) && hasPositiveNumber(dampening.duration) && !!dampening.timeUnit;
         case 'STRICT_TIME':
@@ -94,4 +107,49 @@ export function isAlertDampeningComplete(dampening: AlertDampening | undefined):
         default:
             return false;
     }
+}
+
+/** Same required-field set Classic uses to set `formAlert.$invalid` (Create disabled). */
+export interface AlertFormReadinessInput {
+    name: string;
+    isUpdate: boolean;
+    ruleId: AlertRuleId | undefined;
+    conditions: AlertFormCondition[];
+    filters: AlertFormCondition[];
+    notifications: ReadonlyArray<{ type: string }>;
+    notificationsComplete: boolean;
+    dampening: AlertDampening | undefined;
+}
+
+export function collectAlertFormErrors(form: AlertFormReadinessInput): Record<string, string> {
+    const errs: Record<string, string> = {};
+    if (!form.name.trim()) {
+        errs.name = 'Name is required.';
+    } else if (form.name.length < 3) {
+        errs.name = 'Name has to be at least 3 characters long.';
+    } else if (form.name.length > 50) {
+        errs.name = 'Name length must not exceed 50 characters.';
+    }
+    if (!form.isUpdate && !form.ruleId) {
+        errs.rule = 'Rule is required.';
+    }
+    if (form.notifications.some(n => !n.type)) {
+        errs.notifications = 'Channel is required for each notification.';
+    } else if (!form.notificationsComplete) {
+        errs.notifications = 'Fill in the required fields for each notification.';
+    }
+    if (form.ruleId && !isInfoOnlyRule(form.ruleId) && form.conditions.some(c => !isAlertConditionComplete(c))) {
+        errs.conditions = 'Fill in the required condition fields.';
+    }
+    if (form.filters.some(c => !isAlertConditionComplete(c))) {
+        errs.filters = 'Fill in the required filter fields.';
+    }
+    if (!isAlertDampeningComplete(form.dampening)) {
+        errs.dampening = 'Fill in the required dampening fields.';
+    }
+    return errs;
+}
+
+export function isAlertFormReady(form: AlertFormReadinessInput): boolean {
+    return Object.keys(collectAlertFormErrors(form)).length === 0;
 }

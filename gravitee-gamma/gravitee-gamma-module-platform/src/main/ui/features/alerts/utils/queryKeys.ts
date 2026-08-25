@@ -17,8 +17,11 @@
 export const platformAlertKeys = {
     all: ['platform-alerts'] as const,
     list: (envId: string) => [...platformAlertKeys.all, 'list', envId] as const,
-    history: (envId: string, alertId: string) => [...platformAlertKeys.all, 'history', envId, alertId] as const,
+    history: (envId: string, alertId: string, page = 1, size = 10) =>
+        [...platformAlertKeys.all, 'history', envId, alertId, page, size] as const,
     notifiers: (envId: string) => [...platformAlertKeys.all, 'notifiers', envId] as const,
     notifierSchema: (envId: string, notifierId: string) => [...platformAlertKeys.all, 'notifier-schema', envId, notifierId] as const,
     analytics: (envId: string, rangeId: string) => [...platformAlertKeys.all, 'analytics', envId, rangeId] as const,
+    tenants: () => [...platformAlertKeys.all, 'tenants'] as const,
+    apis: (envId: string) => [...platformAlertKeys.all, 'apis', envId] as const,
 } as const;

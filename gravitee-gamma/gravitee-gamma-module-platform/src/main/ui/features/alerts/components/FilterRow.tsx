@@ -29,15 +29,18 @@ import {
 } from '@gravitee/graphene-core';
 import { Trash2Icon } from '@gravitee/graphene-core/icons';
 
+import { StringValueField } from './StringValueField';
 import {
     ALERT_OPERATORS,
     ALERT_STRING_OPERATORS,
+    getCompareTargetMetrics,
     getConditionTypesForMetric,
     isStringMetric,
     type AlertMetricDefinition,
 } from '../constants/alertConstants';
 import type { AlertConditionType, AlertFormCondition, AlertOperator, AlertStringOperator } from '../types';
 import { conditionWithType } from '../utils/alertConditionComplete';
+import { getMetricValueChoices, sanitizePatternForOperator, type AlertMetricLookups } from '../utils/alertMetricValues';
 import { ALERT_POSITIVE_NUMBER_MIN, nextAlertPositiveNumber } from '../utils/alertPositiveNumber';
 
 interface Props {
@@ -46,14 +49,17 @@ interface Props {
     metrics: AlertMetricDefinition[];
     onChange: (index: number, f: AlertFormCondition) => void;
     onRemove: (index: number) => void;
+    lookups?: AlertMetricLookups;
 }
 
-export function FilterRow({ filter, index, metrics, onChange, onRemove }: Props) {
+export function FilterRow({ filter, index, metrics, onChange, onRemove, lookups = {} }: Props) {
     const selectedMetric = filter.property ?? metrics[0]?.key ?? '';
     const isStr = isStringMetric(selectedMetric);
     const availableTypes = getConditionTypesForMetric(selectedMetric, metrics);
     const condType: AlertConditionType =
         availableTypes.length === 0 || availableTypes.includes(filter.type) ? filter.type : (availableTypes[0] ?? filter.type);
+    const metricDefinition = metrics.find(m => m.key === selectedMetric);
+    const valueChoices = getMetricValueChoices(metricDefinition, lookups);
 
     const handleMetricChange = (val: string) => {
         const newTypes = getConditionTypesForMetric(val, metrics);
@@ -103,16 +109,21 @@ export function FilterRow({ filter, index, metrics, onChange, onRemove }: Props)
                             </SelectContent>
                         </Select>
                     </div>
-                    {availableTypes.length > 1 && (
+                    {availableTypes.length >= 1 && (
                         <div className="space-y-1.5">
-                            <Label className="text-xs">Condition type</Label>
+                            <Label htmlFor={`alert-filter-type-${index}`} className="text-xs">
+                                Type
+                            </Label>
                             <Select
                                 value={condType}
                                 onValueChange={(val: AlertConditionType) =>
-                                    onChange(index, conditionWithType(filter, val, metrics[0]?.key))
+                                    onChange(
+                                        index,
+                                        conditionWithType(filter, val, getCompareTargetMetrics(metrics, selectedMetric)[0]?.key),
+                                    )
                                 }
                             >
-                                <SelectTrigger>
+                                <SelectTrigger id={`alert-filter-type-${index}`}>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -133,7 +144,13 @@ export function FilterRow({ filter, index, metrics, onChange, onRemove }: Props)
                             <Label className="text-xs">Operator</Label>
                             <Select
                                 value={(filter.operator as string) || 'EQUALS'}
-                                onValueChange={(val: AlertStringOperator) => onChange(index, { ...filter, operator: val })}
+                                onValueChange={(val: AlertStringOperator) =>
+                                    onChange(index, {
+                                        ...filter,
+                                        operator: val,
+                                        pattern: sanitizePatternForOperator(filter.pattern, valueChoices, val),
+                                    })
+                                }
                             >
                                 <SelectTrigger>
                                     <SelectValue />
@@ -147,14 +164,14 @@ export function FilterRow({ filter, index, metrics, onChange, onRemove }: Props)
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="space-y-1.5">
-                            <Label className="text-xs">Pattern</Label>
-                            <Input
-                                placeholder="Value to match"
-                                value={filter.pattern ?? ''}
-                                onChange={e => onChange(index, { ...filter, pattern: e.target.value })}
-                            />
-                        </div>
+                        <StringValueField
+                            id={`alert-filter-pattern-${index}`}
+                            operator={filter.operator as string}
+                            pattern={filter.pattern}
+                            options={valueChoices}
+                            onPatternChange={pattern => onChange(index, { ...filter, pattern })}
+                            patternPlaceholder="Value to match"
+                        />
                     </div>
                 ) : condType === 'THRESHOLD_RANGE' ? (
                     <div className="grid grid-cols-2 gap-3">
@@ -181,16 +198,26 @@ export function FilterRow({ filter, index, metrics, onChange, onRemove }: Props)
                                 min={filter.thresholdLow ?? ALERT_POSITIVE_NUMBER_MIN}
                                 placeholder="e.g. 500"
                                 value={filter.thresholdHigh ?? ''}
+                                aria-invalid={
+                                    typeof filter.thresholdLow === 'number' &&
+                                    typeof filter.thresholdHigh === 'number' &&
+                                    filter.thresholdHigh < filter.thresholdLow
+                                }
                                 onChange={e =>
                                     onChange(index, {
                                         ...filter,
                                         type: 'THRESHOLD_RANGE',
-                                        thresholdHigh: nextAlertPositiveNumber(e.target.value, filter.thresholdHigh, {
-                                            min: filter.thresholdLow ?? ALERT_POSITIVE_NUMBER_MIN,
-                                        }),
+                                        thresholdHigh: nextAlertPositiveNumber(e.target.value, filter.thresholdHigh),
                                     })
                                 }
                             />
+                            {typeof filter.thresholdLow === 'number' &&
+                                typeof filter.thresholdHigh === 'number' &&
+                                filter.thresholdHigh < filter.thresholdLow && (
+                                    <p className="text-xs text-destructive">
+                                        High threshold must be greater than or equal to low threshold.
+                                    </p>
+                                )}
                         </div>
                     </div>
                 ) : condType === 'COMPARE' ? (
@@ -214,7 +241,7 @@ export function FilterRow({ filter, index, metrics, onChange, onRemove }: Props)
                             </Select>
                         </div>
                         <div className="space-y-1.5">
-                            <Label className="text-xs">Multiplier (%)</Label>
+                            <Label className="text-xs">Multiplier</Label>
                             <Input
                                 type="number"
                                 min={ALERT_POSITIVE_NUMBER_MIN}
@@ -229,13 +256,13 @@ export function FilterRow({ filter, index, metrics, onChange, onRemove }: Props)
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <Label className="text-xs">Property to compare</Label>
+                            <Label className="text-xs">Property</Label>
                             <Select value={filter.property2} onValueChange={val => onChange(index, { ...filter, property2: val })}>
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {metrics.map(m => (
+                                    {getCompareTargetMetrics(metrics, selectedMetric).map(m => (
                                         <SelectItem key={m.key} value={m.key}>
                                             {m.label}
                                         </SelectItem>

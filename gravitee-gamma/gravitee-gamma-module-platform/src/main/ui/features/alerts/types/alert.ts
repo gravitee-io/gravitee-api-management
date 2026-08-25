@@ -28,13 +28,28 @@ export type AlertRuleId =
     | 'NODE_HEARTBEAT@METRICS_RATE'
     | 'NODE_HEALTHCHECK@NODE_HEALTHCHECK';
 
-export type AlertConditionType = 'STRING' | 'THRESHOLD' | 'THRESHOLD_RANGE' | 'COMPARE' | 'AGGREGATION' | 'RATE' | 'MISSING_DATA';
+export type AlertConditionType =
+    | 'STRING'
+    | 'STRING_COMPARE'
+    | 'THRESHOLD'
+    | 'THRESHOLD_RANGE'
+    | 'COMPARE'
+    | 'AGGREGATION'
+    | 'RATE'
+    | 'MISSING_DATA';
+
+export type AlertComparisonType = 'STRING' | 'THRESHOLD' | 'THRESHOLD_RANGE' | 'COMPARE';
 
 export type AlertOperator = 'LT' | 'LTE' | 'GTE' | 'GT';
 export type AlertStringOperator = 'EQUALS' | 'NOT_EQUALS' | 'STARTS_WITH' | 'ENDS_WITH' | 'CONTAINS' | 'MATCHES';
 export type AlertAggregationFunction = 'COUNT' | 'AVG' | 'MIN' | 'MAX' | 'P50' | 'P90' | 'P95' | 'P99';
 export type AlertTimeUnit = 'SECONDS' | 'MINUTES' | 'HOURS';
 export type AlertDampeningMode = 'STRICT_COUNT' | 'RELAXED_COUNT' | 'RELAXED_TIME' | 'STRICT_TIME';
+
+export interface AlertPropertyProjection {
+    type: 'PROPERTY';
+    property: string;
+}
 
 export interface AlertFormCondition {
     type: AlertConditionType;
@@ -49,6 +64,8 @@ export interface AlertFormCondition {
     duration?: number;
     timeUnit?: AlertTimeUnit;
     aggregationFunction?: AlertAggregationFunction;
+    /** Classic rate `conditions[0].comparison.type`. */
+    comparisonType?: AlertComparisonType;
     rateOperator?: AlertOperator;
     rateThreshold?: number;
     projections?: unknown[];

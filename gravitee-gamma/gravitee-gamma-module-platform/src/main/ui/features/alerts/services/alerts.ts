@@ -35,20 +35,18 @@ function withProjections(form: AlertFormCondition, api: AlertApiCondition): Aler
 
 export function formConditionToApi(c: AlertFormCondition): AlertApiCondition {
     if (c.type === 'RATE') {
-        const isStr = isStringMetric(c.property ?? '');
-        const comparison: AlertApiCondition = isStr
-            ? {
-                  type: 'STRING',
-                  property: c.property,
-                  operator: (c.operator as AlertStringOperator) || 'EQUALS',
-                  pattern: c.pattern,
-              }
-            : {
-                  type: 'THRESHOLD',
-                  property: c.property,
-                  operator: (c.operator as AlertOperator) || 'GT',
-                  threshold: c.threshold,
-              };
+        const comparisonType = c.comparisonType ?? (isStringMetric(c.property ?? '') ? 'STRING' : 'THRESHOLD');
+        const comparison = formConditionToApi({
+            type: comparisonType,
+            property: c.property,
+            operator: c.operator,
+            threshold: c.threshold,
+            thresholdLow: c.thresholdLow,
+            thresholdHigh: c.thresholdHigh,
+            pattern: c.pattern,
+            property2: c.property2,
+            multiplier: c.multiplier,
+        });
         return withProjections(c, {
             type: 'RATE',
             operator: c.rateOperator || 'GT',
@@ -89,12 +87,29 @@ export function formConditionToApi(c: AlertFormCondition): AlertApiCondition {
             pattern: c.pattern,
         });
     }
+    if (c.type === 'STRING_COMPARE') {
+        return withProjections(c, {
+            type: 'STRING_COMPARE',
+            property: c.property,
+            property2: c.property2,
+            operator: (c.operator as AlertStringOperator) || 'NOT_EQUALS',
+        });
+    }
     if (c.type === 'THRESHOLD') {
         return withProjections(c, {
             type: 'THRESHOLD',
             property: c.property,
             operator: (c.operator as AlertOperator) || 'GT',
             threshold: c.threshold,
+        });
+    }
+    if (c.type === 'COMPARE') {
+        return withProjections(c, {
+            type: 'COMPARE',
+            property: c.property,
+            property2: c.property2,
+            operator: (c.operator as AlertOperator) || 'GT',
+            multiplier: c.multiplier,
         });
     }
     return withProjections(c, {
@@ -118,12 +133,24 @@ function apiOperatorToForm(operator: AlertApiCondition['operator']): AlertOperat
 export function apiConditionToForm(c: AlertApiCondition): AlertFormCondition {
     if (c.type === 'RATE') {
         const cmp = (c.comparison ?? {}) as AlertApiCondition;
+        const comparison = apiConditionToForm(cmp);
         return {
             type: 'RATE',
-            property: cmp.property,
-            operator: apiOperatorToForm(cmp.operator),
-            threshold: cmp.threshold,
-            pattern: cmp.pattern,
+            comparisonType:
+                comparison.type === 'STRING' ||
+                comparison.type === 'THRESHOLD' ||
+                comparison.type === 'THRESHOLD_RANGE' ||
+                comparison.type === 'COMPARE'
+                    ? comparison.type
+                    : undefined,
+            property: comparison.property,
+            operator: comparison.operator,
+            threshold: comparison.threshold,
+            thresholdLow: comparison.thresholdLow,
+            thresholdHigh: comparison.thresholdHigh,
+            pattern: comparison.pattern,
+            property2: comparison.property2,
+            multiplier: comparison.multiplier,
             rateOperator: apiOperatorToForm(c.operator) as AlertOperator | undefined,
             rateThreshold: c.threshold,
             duration: c.duration,
@@ -226,6 +253,8 @@ export interface AlertFormData {
     notifications: AlertFormNotification[];
     timeframes: AlertFormTimeframe[];
     dampening: AlertTrigger['dampening'];
+    template?: boolean;
+    event_rules?: unknown[];
 }
 
 export function alertTriggerToFormData(alert: AlertTrigger): AlertFormData {
@@ -241,6 +270,8 @@ export function alertTriggerToFormData(alert: AlertTrigger): AlertFormData {
         notifications: (alert.notifications ?? []).map(apiNotifToForm),
         timeframes: (alert.notificationPeriods ?? []).map(apiTimeframeToForm),
         dampening: alert.dampening ?? { mode: 'STRICT_COUNT', trueEvaluations: 1 },
+        template: !!alert.template,
+        event_rules: alert.event_rules,
     };
 }
 
@@ -257,6 +288,9 @@ export function formDataToAlertTrigger(data: AlertFormData): Omit<AlertTrigger, 
         notifications: data.notifications.filter(n => n.type).map(formNotifToApi),
         notificationPeriods: data.timeframes.map(formTimeframeToApi),
         dampening: data.dampening,
+        template: data.template ?? false,
+        ...(data.event_rules ? { event_rules: data.event_rules } : {}),
+        ...(data.conditions[0]?.projections ? { projections: data.conditions[0].projections } : {}),
     };
 }
 
@@ -269,7 +303,6 @@ export async function createPlatformAlert(environmentId: string, data: AlertForm
         ...formDataToAlertTrigger(data),
         reference_type: 'ENVIRONMENT',
         reference_id: environmentId,
-        template: false,
     };
     return apimFetchJsonV1Env<AlertTrigger>(environmentId, '/platform/alerts', {
         method: 'POST',
@@ -294,13 +327,13 @@ export async function updatePlatformAlertFromForm(
     preserved?: Pick<AlertTrigger, 'template' | 'event_rules' | 'projections'>,
 ): Promise<AlertTrigger> {
     const payload: Omit<AlertTrigger, 'id'> & { id: string } = { ...formDataToAlertTrigger(data), id: alertId };
-    if (preserved?.template) {
+    if (data.template === undefined && preserved?.template) {
         payload.template = true;
     }
-    if (preserved?.event_rules) {
+    if (data.event_rules === undefined && preserved?.event_rules) {
         payload.event_rules = preserved.event_rules;
     }
-    if (preserved?.projections) {
+    if (data.conditions[0]?.projections === undefined && preserved?.projections) {
         payload.projections = preserved.projections;
     }
     return apimFetchJsonV1Env<AlertTrigger>(environmentId, `/platform/alerts/${encodeURIComponent(alertId)}`, {
@@ -312,6 +345,13 @@ export async function updatePlatformAlertFromForm(
 export async function deletePlatformAlert(environmentId: string, alertId: string): Promise<void> {
     await apimFetchJsonV1Env<void>(environmentId, `/platform/alerts/${encodeURIComponent(alertId)}`, {
         method: 'DELETE',
+    });
+}
+
+export async function associatePlatformAlert(environmentId: string, alertId: string, type = 'api'): Promise<void> {
+    await apimFetchJsonV1Env<void>(environmentId, `/platform/alerts/${encodeURIComponent(alertId)}?type=${type}`, {
+        method: 'POST',
+        body: JSON.stringify({}),
     });
 }
 

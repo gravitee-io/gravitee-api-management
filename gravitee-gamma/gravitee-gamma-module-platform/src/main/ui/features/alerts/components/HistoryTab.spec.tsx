@@ -83,4 +83,23 @@ describe('HistoryTab', () => {
         expect(error.mock.calls.flat().join(' ')).not.toMatch(/same key/);
         error.mockRestore();
     });
+
+    it('paginates history like Classic (10 / 25 / 50 / 75 / 100)', () => {
+        const onPageChange = jest.fn();
+        const onPageSizeChange = jest.fn();
+        render(
+            <HistoryTab
+                historyPage={{
+                    content: [{ message: 'Health check failed', created_at: Date.now() }],
+                    totalElements: 40,
+                }}
+                page={1}
+                pageSize={10}
+                onPageChange={onPageChange}
+                onPageSizeChange={onPageSizeChange}
+            />,
+        );
+
+        expect(screen.getByText(/of 40/)).not.toBeNull();
+    });
 });

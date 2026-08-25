@@ -204,7 +204,10 @@ export function AlertsPage() {
                                     return (
                                         <TableRow key={alert.id}>
                                             <TableCell>
-                                                <p className="text-sm font-medium">{alert.name}</p>
+                                                <p className="text-sm font-medium">
+                                                    {alert.template ? <span className="text-muted-foreground">[Template] </span> : null}
+                                                    <span>{alert.name}</span>
+                                                </p>
                                             </TableCell>
                                             <TableCell>
                                                 <span className="text-sm text-muted-foreground">
