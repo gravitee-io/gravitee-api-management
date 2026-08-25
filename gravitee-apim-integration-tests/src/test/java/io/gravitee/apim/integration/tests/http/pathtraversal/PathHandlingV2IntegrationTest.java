@@ -57,10 +57,14 @@ class PathHandlingV2IntegrationTest {
 
     abstract static class PathHandlingV2Test extends AbstractGatewayTest {
 
+        /**
+         * Left to the nested classes rather than fixed here. When this base pinned the mode to
+         * {@code NORMALIZE}, no V2 definition was ever run under {@code REJECT} — and whether that
+         * mode answers before any API is selected, on every definition version, is precisely the
+         * question this file exists to settle.
+         */
         @Override
-        public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
-            configurationBuilder.set("http.pathHandling", "NORMALIZE");
-        }
+        public abstract void configureGateway(GatewayConfigurationBuilder configurationBuilder);
 
         protected void assertStatus(final HttpClient httpClient, final String rawPath, final int expectedStatus)
             throws InterruptedException {
@@ -89,6 +93,11 @@ class PathHandlingV2IntegrationTest {
     @DeployApi("/apis/http/pathtraversal/api-v2-alpha.json")
     class With_v4_emulation extends PathHandlingV2Test {
 
+        @Override
+        public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
+            configurationBuilder.set("http.pathHandling", "NORMALIZE");
+        }
+
         @Test
         void should_serve_a_regular_path(HttpClient httpClient) throws InterruptedException {
             wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
@@ -114,6 +123,11 @@ class PathHandlingV2IntegrationTest {
     @GatewayTest(v2ExecutionMode = ExecutionMode.V3)
     @DeployApi("/apis/http/pathtraversal/api-v2-alpha.json")
     class With_the_legacy_v3_engine extends PathHandlingV2Test {
+
+        @Override
+        public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
+            configurationBuilder.set("http.pathHandling", "NORMALIZE");
+        }
 
         @Test
         void should_serve_a_regular_path(HttpClient httpClient) throws InterruptedException {
@@ -143,6 +157,62 @@ class PathHandlingV2IntegrationTest {
             assertStatus(httpClient, "/alpha/api/../../alpha/api/echo", 200);
 
             assertThat(singleUpstreamRequestUrl()).isEqualTo("/alpha/api/echo");
+        }
+    }
+
+    @Nested
+    @GatewayTest
+    @DeployApi("/apis/http/pathtraversal/api-v2-alpha.json")
+    class With_reject_under_v4_emulation extends PathHandlingV2Test {
+
+        @Override
+        public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
+            configurationBuilder.set("http.pathHandling", "REJECT");
+        }
+
+        @Test
+        void should_refuse_before_any_api_is_selected(HttpClient httpClient) throws InterruptedException {
+            wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
+
+            assertStatus(httpClient, TRAVERSAL, 400);
+
+            assertThat(wiremock.findAll(getRequestedFor(anyUrl()))).isEmpty();
+        }
+
+        @Test
+        void should_serve_a_regular_path(HttpClient httpClient) throws InterruptedException {
+            wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
+
+            assertStatus(httpClient, REGULAR, 200);
+        }
+    }
+
+    @Nested
+    @GatewayTest(v2ExecutionMode = ExecutionMode.V3)
+    @DeployApi("/apis/http/pathtraversal/api-v2-alpha.json")
+    class With_reject_on_the_legacy_v3_engine extends PathHandlingV2Test {
+
+        @Override
+        public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
+            configurationBuilder.set("http.pathHandling", "REJECT");
+        }
+
+        @Test
+        void should_refuse_before_any_api_is_selected(HttpClient httpClient) throws InterruptedException {
+            wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
+
+            // The refusal happens upstream of the acceptor, so it cannot depend on the engine. That
+            // is an argument until a test makes it an observation.
+            assertStatus(httpClient, TRAVERSAL, 400);
+
+            assertThat(wiremock.findAll(getRequestedFor(anyUrl()))).isEmpty();
+        }
+
+        @Test
+        void should_serve_a_regular_path(HttpClient httpClient) throws InterruptedException {
+            wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
+
+            assertStatus(httpClient, REGULAR, 200);
         }
     }
 }

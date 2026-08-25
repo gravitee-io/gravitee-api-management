@@ -1214,7 +1214,10 @@ gateway:
     #   NORMALIZE resolves the dot segments and routes, enforces and forwards on the result.
     # Beyond dot segments, REJECT and NORMALIZE also decode percent-encoded unreserved
     # characters, merge duplicate slashes, and answer 400 on a malformed percent sequence.
-    # Encoded slashes are never decoded.
+    # Encoded slashes are never decoded, and segment parameters on an ordinary segment are
+    # left alone: /a/admin;x/b is canonical here and forwarded as sent, while a Servlet
+    # receiver strips the ;x and serves /a/admin/b. An allow or deny rule written against
+    # /admin/** therefore still needs its own guard against that spelling.
     pathHandling: RAW
     requestTimeout: 30000
     requestTimeoutGraceDelay: 30

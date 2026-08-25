@@ -39,14 +39,43 @@ package io.gravitee.gateway.reactive.reactor.path;
  *       stack.
  *   <li>A malformed percent sequence has no normalized form. {@link #normalize(String)} answers
  *       {@code null} for it rather than throwing, leaving the caller to reject the request.
+ *   <li>A dot segment carrying path parameters, {@code ..;x}, is treated as a dot segment. RFC 3986
+ *       says it is an ordinary segment; the Servlet specification says a container strips
+ *       {@code ;params} first, which makes it a dot segment. Tomcat, Jetty and Spring follow the
+ *       latter. The gateway takes the most permissive reading any receiver could, because being
+ *       stricter than the receiver costs a refused request while being laxer re-opens the very
+ *       bypass this class closes. See {@link #stripDotSegmentParameters(StringBuilder)}.
  * </ul>
+ *
+ * <p><b>What the modes assume of the receiver.</b> The rules above describe a receiver that decodes
+ * percent sequences once, per RFC 3986 §2.3, and treats only {@code /} as a separator. Reserved
+ * characters are deliberately left encoded, so {@code /a/..%2f../b} and {@code /a/%252e%252e/b} are
+ * canonical here and are neither resolved nor refused. A receiver configured to decode {@code %2F}
+ * into a separator (nginx with a URI in {@code proxy_pass}, Apache with {@code AllowEncodedSlashes
+ * On}) or to accept {@code \} as one resolves paths this class does not, and neither mode protects
+ * against that. {@code REJECT} refuses paths that are not canonical; it is not traversal hardening
+ * for an arbitrary receiver.
+ *
+ * <p><b>And the Servlet reading above is applied to dot segments only.</b> {@code /a/admin;x/b} is
+ * canonical here and forwarded byte for byte, while a container strips {@code ;x} and serves
+ * {@code /a/admin/b} — so a policy matching on {@code /admin/**} sees one path and the backend
+ * another. That is deliberate, and the asymmetry with {@code ..;x} is the whole point: a dot segment
+ * carrying parameters is never legitimate, so treating it as a dot segment refuses and rewrites
+ * nothing anyone sends. An ordinary segment carrying parameters <em>is</em> legitimate — matrix
+ * parameters, {@code ;jsessionid} — so refusing them under {@code REJECT} would turn away well
+ * formed traffic, and stripping them under {@code NORMALIZE} would forward a path the client did
+ * not ask for, which toward a receiver that keeps them means serving a different resource rather
+ * than merely a stricter one. Closing that gap is a decision about matrix parameters, not about
+ * traversal, and it is not taken here.
  *
  * @author GraviteeSource Team
  */
 public final class RequestPathNormalizer {
 
     private static final char SEGMENT_SEPARATOR = '/';
+    private static final char PARAM_SEPARATOR = ';';
     private static final String ROOT = "/";
+    private static final String ASTERISK_FORM = "*";
 
     private RequestPathNormalizer() {}
 
@@ -58,7 +87,11 @@ public final class RequestPathNormalizer {
      * claims to be, and is refused without ever being rewritten. {@code NORMALIZE} uses it as its
      * fast path, so an ordinary request pays one scan instead of a full resolution.
      *
-     * <p>A path needs normalizing when any of these holds:
+     * <p>A request target that is not in origin-form — {@code null}, or the asterisk-form of
+     * {@code OPTIONS *} — never needs normalizing and is answered {@code false} before anything
+     * else. There are no segments to resolve there, and no receiver could read them differently.
+     *
+     * <p>Otherwise a path needs normalizing when any of these holds:
      *
      * <ul>
      *   <li>it is empty, or does not start with {@code /} — {@link #normalize(String)} forces both
@@ -87,7 +120,11 @@ public final class RequestPathNormalizer {
      * @return {@code true} when normalizing would change the path, or when it cannot be normalized
      */
     public static boolean needsNormalization(final String path) {
-        if (path == null || path.isEmpty() || path.charAt(0) != SEGMENT_SEPARATOR) {
+        if (isNotOriginForm(path)) {
+            return false;
+        }
+        // Not null by here: isNotOriginForm answered for that case above.
+        if (path.isEmpty() || path.charAt(0) != SEGMENT_SEPARATOR) {
             return true;
         }
 
@@ -123,9 +160,34 @@ public final class RequestPathNormalizer {
     }
 
     /**
-     * @return whether the segment starting at {@code start} is exactly {@code .} or {@code ..}.
-     *     Encoded spellings are not looked for here: they are already caught by the unreserved
-     *     decoding rule, whatever their position.
+     * @return whether this request target is one of the forms that is not a path at all, and that
+     *     neither mode has any business inspecting.
+     *     <p>Two targets qualify, and only two. The asterisk-form of {@code OPTIONS *}, which RFC
+     *     9110 §7.1 allows and which proxies and health probes do send: it has no segments to
+     *     resolve, nothing to compare against a context path, and no receiver that could read it
+     *     differently from us. Left to the general scan it would be answered 400 under
+     *     {@code REJECT} — a legal request refused — and rewritten to {@code /*} under
+     *     {@code NORMALIZE}, then routed to whatever sits on the root context path. And
+     *     {@code null}, which is what an HTTP/2 stream carrying no {@code :path} pseudo-header
+     *     produces.
+     *     <p>Authority-form is <b>not</b> exempted, despite arriving on the same kind of request. A
+     *     {@code CONNECT} over HTTP/2 has no {@code :path} and is therefore covered by the
+     *     {@code null} case above, but over HTTP/1 it reaches {@code path()} as {@code host:443},
+     *     fails the leading-slash test and is answered 400 under {@code REJECT}. That is left as is
+     *     on purpose: a gateway is not a forward proxy, and the request had nowhere to go.
+     */
+    private static boolean isNotOriginForm(final String path) {
+        // Null belongs here too: the Vert.x API declares path() nullable, and an HTTP/2 stream
+        // without a :path pseudo-header — a CONNECT — produces exactly that. Such a request reached
+        // the acceptor before this class existed, and must keep doing so in every mode.
+        return path == null || ASTERISK_FORM.equals(path);
+    }
+
+    /**
+     * @return whether the segment starting at {@code start} is a dot segment. Encoded spellings are
+     *     not looked for here: they are already caught by the unreserved decoding rule, whatever
+     *     their position. A path-parameter suffix does not disqualify one — see
+     *     {@link #stripDotSegmentParameters(StringBuilder)}.
      */
     private static boolean isDotSegment(final String path, final int start, final int length) {
         if (start >= length || path.charAt(start) != '.') {
@@ -135,15 +197,78 @@ public final class RequestPathNormalizer {
         if (end < length && path.charAt(end) == '.') {
             end++;
         }
-        return end == length || path.charAt(end) == SEGMENT_SEPARATOR;
+        return end == length || path.charAt(end) == SEGMENT_SEPARATOR || path.charAt(end) == PARAM_SEPARATOR;
     }
 
     /**
-     * @return the octet the two characters spell, or {@code -1} when they are not hexadecimal
+     * Drops the path-parameter suffix of any segment whose content is exactly {@code .} or
+     * {@code ..}, so that {@link #removeDotSegments(CharSequence)} sees the dot segment the receiver
+     * downstream is going to see.
+     *
+     * <p><b>Why this is not RFC 3986.</b> The specification is clear that a segment may carry
+     * parameters after a {@code ;} (§3.3) and that {@code remove_dot_segments} matches only the
+     * exact strings {@code .} and {@code ..} (§5.2.4). By that reading {@code ..;x} is an ordinary
+     * segment and this method is wrong. The Servlet specification is equally clear that a container
+     * strips {@code ;params} from every segment <em>before</em> resolving anything, which is what
+     * Tomcat, Jetty and Spring do. By that reading {@code ..;x} is a dot segment.
+     *
+     * <p>Both are right, and that disagreement is the whole bug this class exists to close. A
+     * gateway cannot know what sits behind it, so it decides on the most permissive reading any
+     * plausible receiver could take. Being stricter than a receiver costs an over-refused request;
+     * being laxer authorises one resource and lets another be served, which is the escalation that
+     * started this.
+     *
+     * <p>Only segments that are <em>entirely</em> dots before the {@code ;} are touched, so an
+     * ordinary {@code /orders;v=2} or a session id on a real segment is left alone.
+     */
+    private static void stripDotSegmentParameters(final StringBuilder path) {
+        int segmentStart = 0;
+        while (segmentStart <= path.length()) {
+            int segmentEnd = segmentStart;
+            while (segmentEnd < path.length() && path.charAt(segmentEnd) != SEGMENT_SEPARATOR) {
+                segmentEnd++;
+            }
+            int afterDots = segmentStart;
+            while (afterDots < segmentEnd && path.charAt(afterDots) == '.') {
+                afterDots++;
+            }
+            final int dots = afterDots - segmentStart;
+            if ((dots == 1 || dots == 2) && afterDots < segmentEnd && path.charAt(afterDots) == PARAM_SEPARATOR) {
+                path.delete(afterDots, segmentEnd);
+                segmentEnd = afterDots;
+            }
+            segmentStart = segmentEnd + 1;
+        }
+    }
+
+    /**
+     * @return the value of a single <b>ASCII</b> hexadecimal digit, or {@code -1}.
+     *     <p>Deliberately not {@link Character#digit(char, int)}, which is Unicode-aware:
+     *     {@code Character.digit('٢', 16)} answers 2, so {@code %٢e} would decode to a dot that no
+     *     receiver on earth resolves, and the gateway would route somewhere the raw path never
+     *     named. A percent sequence is ASCII by definition (RFC 3986 §2.1).
+     */
+    private static int hexDigit(final char c) {
+        if (c >= '0' && c <= '9') {
+            return c - '0';
+        }
+        if (c >= 'A' && c <= 'F') {
+            return c - 'A' + 10;
+        }
+        if (c >= 'a' && c <= 'f') {
+            return c - 'a' + 10;
+        }
+        return -1;
+    }
+
+    /**
+     * @return the octet the two characters spell, or {@code -1} when they are not hexadecimal.
+     *     Shared by both implementations on purpose: when they each had their own reading of what a
+     *     hexadecimal digit is, they disagreed on {@code %+41}.
      */
     private static int hexValue(final char high, final char low) {
-        final int h = Character.digit(high, 16);
-        final int l = Character.digit(low, 16);
+        final int h = hexDigit(high);
+        final int l = hexDigit(low);
         return h < 0 || l < 0 ? -1 : (h << 4) + l;
     }
 
@@ -152,10 +277,15 @@ public final class RequestPathNormalizer {
      * @return the normalized path, the very same instance when there is nothing to resolve so
      *     callers can rely on {@code ==}, or {@code null} when the path carries a malformed percent
      *     sequence and therefore cannot be normalized at all.
+     *     <p>A target that is not in origin-form is answered unchanged, {@code null} included — see
+     *     {@link #needsNormalization(String)}. A {@code null} answer therefore means "malformed"
+     *     only for a path that was not {@code null} to begin with, which is why callers pair this
+     *     method with the scan rather than calling it alone.
      */
     public static String normalize(final String path) {
-        if (path == null) {
-            return null;
+        if (isNotOriginForm(path)) {
+            // Answered unchanged rather than turned into "/*": see isNotOriginForm.
+            return path;
         }
         if (path.isEmpty()) {
             return ROOT;
@@ -191,50 +321,56 @@ public final class RequestPathNormalizer {
         if (firstPercent != -1) {
             decodeUnreservedChars(buffer, firstPercent);
         }
+        // After decoding, so that %2e%2e; is stripped too — otherwise this method would itself
+        // produce the ..; shape that a servlet receiver resolves and this one would not.
+        stripDotSegmentParameters(buffer);
         return removeDotSegments(buffer);
     }
 
     /**
      * RFC 3986 §5.2.4, plus the merging of duplicate slashes inherited from Vert.x.
      */
-    private static String removeDotSegments(CharSequence path) {
+    private static String removeDotSegments(final CharSequence path) {
         final StringBuilder out = new StringBuilder(path.length());
+        // The input buffer of §5.2.4, kept apart from the parameter so the path the caller handed us
+        // stays readable while the algorithm rewrites its own working copy.
+        CharSequence remaining = path;
         int i = 0;
 
-        while (i < path.length()) {
-            if (matches(path, i, "./")) {
+        while (i < remaining.length()) {
+            if (matches(remaining, i, "./")) {
                 i += 2;
-            } else if (matches(path, i, "../")) {
+            } else if (matches(remaining, i, "../")) {
                 i += 3;
-            } else if (matches(path, i, "/./")) {
+            } else if (matches(remaining, i, "/./")) {
                 // Preserve the trailing slash.
                 i += 2;
-            } else if (matches(path, i, "/.", true)) {
-                path = ROOT;
+            } else if (matches(remaining, i, "/.", true)) {
+                remaining = ROOT;
                 i = 0;
-            } else if (matches(path, i, "/../")) {
+            } else if (matches(remaining, i, "/../")) {
                 i += 3;
                 removeLastSegment(out);
-            } else if (matches(path, i, "/..", true)) {
-                path = ROOT;
+            } else if (matches(remaining, i, "/..", true)) {
+                remaining = ROOT;
                 i = 0;
                 removeLastSegment(out);
-            } else if (matches(path, i, ".", true) || matches(path, i, "..", true)) {
+            } else if (matches(remaining, i, ".", true) || matches(remaining, i, "..", true)) {
                 break;
             } else {
-                if (path.charAt(i) == SEGMENT_SEPARATOR) {
+                if (remaining.charAt(i) == SEGMENT_SEPARATOR) {
                     i++;
                     // Not standard, but every hop around us collapses "//" into "/".
                     if (out.length() == 0 || out.charAt(out.length() - 1) != SEGMENT_SEPARATOR) {
                         out.append(SEGMENT_SEPARATOR);
                     }
                 }
-                final int nextSlash = indexOfSlash(path, i);
+                final int nextSlash = indexOfSlash(remaining, i);
                 if (nextSlash != -1) {
-                    out.append(path, i, nextSlash);
+                    out.append(remaining, i, nextSlash);
                     i = nextSlash;
                 } else {
-                    out.append(path, i, path.length());
+                    out.append(remaining, i, remaining.length());
                     break;
                 }
             }
@@ -275,12 +411,24 @@ public final class RequestPathNormalizer {
         return -1;
     }
 
-    private static void decodeUnreservedChars(final StringBuilder path, int start) {
-        while (start < path.length()) {
-            if (path.charAt(start) == '%') {
-                decodeUnreserved(path, start);
+    /**
+     * Decodes in place, which is quadratic in the worst case: every decoded escape deletes two
+     * characters from the middle of the buffer and shifts the suffix behind them.
+     *
+     * <p>Kept that way deliberately. The input is a request line, which Vert.x caps at
+     * {@code maxInitialLineLength} — 4096 bytes by default — so the worst case an attacker can reach
+     * is a full line of {@code %41}, measured at around 60 µs. A single-pass rewrite would be faster
+     * on paper and would also be a rewrite of vendored resolution logic on the one code path where a
+     * mistake is a security defect, which is a poor trade at this size. Revisit if that cap is ever
+     * raised.
+     */
+    private static void decodeUnreservedChars(final StringBuilder path, final int start) {
+        int cursor = start;
+        while (cursor < path.length()) {
+            if (path.charAt(cursor) == '%') {
+                decodeUnreserved(path, cursor);
             }
-            start++;
+            cursor++;
         }
     }
 
@@ -295,15 +443,9 @@ public final class RequestPathNormalizer {
             throw new IllegalArgumentException("Invalid position for escape character: " + start);
         }
 
-        final String escapeSequence = path.substring(start + 1, start + 3);
-        final int unescaped;
-        try {
-            unescaped = Integer.parseInt(escapeSequence, 16);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid escape sequence: %" + escapeSequence, e);
-        }
+        final int unescaped = hexValue(path.charAt(start + 1), path.charAt(start + 2));
         if (unescaped < 0) {
-            throw new IllegalArgumentException("Invalid escape sequence: %" + escapeSequence);
+            throw new IllegalArgumentException("Invalid escape sequence: %" + path.substring(start + 1, start + 3));
         }
 
         if (isUnreserved(unescaped)) {

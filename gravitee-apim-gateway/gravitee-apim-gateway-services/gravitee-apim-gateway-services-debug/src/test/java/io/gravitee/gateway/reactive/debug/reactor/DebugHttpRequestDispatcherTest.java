@@ -17,17 +17,22 @@ package io.gravitee.gateway.reactive.debug.reactor;
 
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API;
 import static io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest.NETTY_ATTR_CONNECTION_TIME;
+import static io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.debug.definition.DebugApiV2;
 import io.gravitee.gateway.debug.definition.ReactableDebugApi;
+import io.gravitee.gateway.debug.handlers.api.DebugApiReactorHandler;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestClientAuthConfiguration;
 import io.gravitee.gateway.env.RequestPathConfiguration;
@@ -41,9 +46,16 @@ import io.gravitee.gateway.reactive.debug.reactor.processor.DebugPlatformProcess
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
 import io.gravitee.gateway.reactive.reactor.handler.HttpAcceptorResolver;
 import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFactory;
+import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessorFactory;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
+import io.gravitee.gateway.report.ReporterService;
+import io.gravitee.node.api.Node;
+import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.model.ApiDebugStatus;
+import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.EventType;
 import io.netty.channel.Channel;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
@@ -58,7 +70,9 @@ import io.vertx.rxjava3.core.MultiMap;
 import io.vertx.rxjava3.core.http.HttpConnection;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.core.http.HttpServerResponse;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -70,6 +84,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.env.StandardEnvironment;
 
 /**
  * What happens to a debug session whose path the gateway refuses to route on.
@@ -89,6 +104,7 @@ class DebugHttpRequestDispatcherTest {
     private static final String CANONICAL_PATH = "/event-id-proxyv4/b";
     private static final String PATH_WITH_DOT_SEGMENTS = "/event-id-proxyv4/a/../b";
     private static final String SERVER_ID = null;
+    private static final String EVENT_ID = "event-id";
 
     @Spy
     private final Vertx vertx = Vertx.vertx();
@@ -138,6 +154,15 @@ class DebugHttpRequestDispatcherTest {
     @Mock
     private ReactableDebugApi<?> debugApi;
 
+    @Mock
+    private ReporterService reporterService;
+
+    @Mock
+    private EventRepository eventRepository;
+
+    @Mock
+    private Node node;
+
     @BeforeEach
     void init() {
         lenient().when(rxRequest.host()).thenReturn(HOST);
@@ -168,6 +193,10 @@ class DebugHttpRequestDispatcherTest {
         lenient().when(platformProcessorChainFactory.preProcessorChain()).thenReturn(new ProcessorChain("pre", List.of()));
         lenient().when(platformProcessorChainFactory.postProcessorChain()).thenReturn(new ProcessorChain("post", List.of()));
         lenient().when(debugCompletionProcessor.execute(any())).thenReturn(Completable.complete());
+
+        // Contextual logging resolves a Node through the component provider, and the rejection path
+        // logs on the branch where no debug API matched.
+        lenient().when(globalComponentProvider.getComponent(Node.class)).thenReturn(node);
 
         mockConnectionCreationTimestamp();
     }
@@ -250,6 +279,29 @@ class DebugHttpRequestDispatcherTest {
         }
 
         @Test
+        void should_close_the_session_of_an_api_running_in_v3_execution_mode() {
+            // Given a V2 API whose executionMode is V3. It is not deployed behind an ApiReactor:
+            // ApiReactorHandlerFactory branches into getApiReactorHandler, which the debug service
+            // overrides to DebugApiReactorHandler — a ReactorHandler, never an ApiReactor.
+            when(rxRequest.path()).thenReturn(PATH_WITH_DOT_SEGMENTS);
+            final DebugApiReactorHandler handler = mock(DebugApiReactorHandler.class);
+            final HttpAcceptor acceptor = mock(HttpAcceptor.class);
+            lenient()
+                .when(handler.debugApi())
+                .thenAnswer(invocation -> debugApi);
+            lenient().when(acceptor.reactor()).thenReturn(handler);
+            lenient().when(httpAcceptorResolver.resolve(HOST, PATH_WITH_DOT_SEGMENTS, SERVER_ID)).thenReturn(acceptor);
+
+            // When the request is refused on its path.
+            dispatcher(RequestPathHandling.REJECT).dispatch(rxRequest, SERVER_ID).test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
+
+            // Then the session is closed for this engine too. Matching only ApiReactor left the
+            // console spinning on exactly the dead end this override exists to remove, and the only
+            // clue was a warning saying no debug API matched — while the acceptor had matched.
+            verify(debugCompletionProcessor).execute(any());
+        }
+
+        @Test
         void should_still_answer_when_no_debug_api_matches_the_path() {
             // Given a refused path that matches no acceptor: there is no session to close, but the
             // request must still be answered rather than hang.
@@ -259,6 +311,91 @@ class DebugHttpRequestDispatcherTest {
             dispatcher(RequestPathHandling.REJECT).dispatch(rxRequest, SERVER_ID).test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
             verify(debugCompletionProcessor, never()).execute(any());
+        }
+    }
+
+    /**
+     * The wiring tests above replace the rejected chain with an empty one and the completion
+     * processor with a mock, so they pin that the dispatcher calls the right things. They would pass
+     * unchanged if the response never carried a 400, or if the debug event were never moved out of
+     * {@code DEBUGGING} — which is the entire behaviour this class exists to deliver. This runs the
+     * real chain and the real processor, and asks the two questions a user would.
+     */
+    @Nested
+    class End_to_end_on_the_debug_port {
+
+        @Test
+        void should_answer_400_and_move_the_event_out_of_debugging() throws Exception {
+            // Given a real rejected chain and a real completion processor over a stored debug event.
+            // A real debug API rather than a mock: the completion processor converts the definition
+            // into the payload, so a hollow stub only proves that the failure branch is reachable.
+            when(rxRequest.path()).thenReturn(PATH_WITH_DOT_SEGMENTS);
+            resolveRealDebugApi();
+
+            final Event stored = new Event();
+            stored.setId(EVENT_ID);
+            stored.setProperties(new HashMap<>());
+            stored.setType(EventType.DEBUG_API);
+            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
+
+            // The real chain actually writes the body, which the stubbed-empty chain never does.
+            lenient().when(rxResponse.rxSend(any(Flowable.class))).thenReturn(Completable.complete());
+
+            final DebugHttpRequestDispatcher dispatcher = dispatcherWithRealChain();
+
+            // When a path the gateway refuses to route on arrives on the debug port.
+            dispatcher.dispatch(rxRequest, SERVER_ID).test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
+
+            // Then the caller got a 400...
+            verify(rxResponse).setStatusCode(400);
+
+            // ...and the session was closed, so the console stops waiting.
+            final ArgumentCaptor<Event> captor = ArgumentCaptor.forClass(Event.class);
+            verify(eventRepository, timeout(5_000)).update(captor.capture());
+            assertThat(captor.getValue().getProperties()).containsEntry(API_DEBUG_STATUS.getValue(), ApiDebugStatus.SUCCESS.name());
+        }
+
+        private void resolveRealDebugApi() {
+            final io.gravitee.definition.model.debug.DebugApiV2 definition = new io.gravitee.definition.model.debug.DebugApiV2();
+            definition.setId("api-id");
+            definition.setName("alpha");
+            definition.setVersion("1.0");
+            final DebugApiV2 realDebugApi = new DebugApiV2(EVENT_ID, definition);
+
+            final ApiReactor<?> apiReactor = mock(ApiReactor.class);
+            final HttpAcceptor acceptor = mock(HttpAcceptor.class);
+            lenient()
+                .when(apiReactor.api())
+                .thenAnswer(invocation -> realDebugApi);
+            lenient().when(acceptor.reactor()).thenReturn(apiReactor);
+            lenient().when(httpAcceptorResolver.resolve(HOST, PATH_WITH_DOT_SEGMENTS, SERVER_ID)).thenReturn(acceptor);
+        }
+
+        private DebugHttpRequestDispatcher dispatcherWithRealChain() {
+            final NotFoundProcessorChainFactory realChainFactory = new NotFoundProcessorChainFactory(
+                new TransactionPreProcessorFactory(null, null),
+                new StandardEnvironment(),
+                reporterService,
+                false,
+                true,
+                gatewayConfiguration
+            );
+            return new DebugHttpRequestDispatcher(
+                gatewayConfiguration,
+                httpAcceptorResolver,
+                idGenerator,
+                globalComponentProvider,
+                new RequestProcessorChainFactory(),
+                responseProcessorChainFactory,
+                platformProcessorChainFactory,
+                realChainFactory,
+                requestTimeoutConfiguration,
+                requestClientAuthConfiguration,
+                new RequestPathConfiguration(RequestPathHandling.REJECT),
+                new DebugCompletionProcessor(eventRepository, new ObjectMapper()),
+                vertx,
+                true
+            );
         }
     }
 

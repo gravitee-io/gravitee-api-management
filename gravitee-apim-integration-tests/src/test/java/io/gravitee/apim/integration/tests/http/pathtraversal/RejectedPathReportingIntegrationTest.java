@@ -32,12 +32,14 @@ import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
 import io.gravitee.reporter.api.v4.metric.Metrics;
+import io.reactivex.rxjava3.observers.TestObserver;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -59,7 +61,13 @@ class RejectedPathReportingIntegrationTest extends AbstractGatewayTest {
 
     private static final String TRAVERSAL = "/alpha/api/../../beta/api/echo";
 
-    private final List<Metrics> reported = new CopyOnWriteArrayList<>();
+    /**
+     * A subject rather than a list read straight after the call. {@code ReporterProcessor} is the
+     * last processor of the rejected chain and runs after the response has been ended, so the client
+     * can observe the 400 before anything has been reported — asserting on a collection at that
+     * moment passes or fails with the machine's load.
+     */
+    private final BehaviorSubject<Metrics> reported = BehaviorSubject.create();
 
     @Override
     public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
@@ -78,10 +86,9 @@ class RejectedPathReportingIntegrationTest extends AbstractGatewayTest {
 
     @BeforeEach
     void captureReports() {
-        reported.clear();
         getBean(FakeReporter.class).setReportableHandler(reportable -> {
             if (reportable instanceof Metrics metrics) {
-                reported.add(metrics);
+                reported.onNext(metrics);
             }
         });
     }
@@ -89,6 +96,8 @@ class RejectedPathReportingIntegrationTest extends AbstractGatewayTest {
     @Test
     void should_report_a_rejected_request(HttpClient httpClient) throws InterruptedException {
         wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
+
+        final TestObserver<Metrics> metrics = reported.firstOrError().test();
 
         httpClient
             .rxRequest(HttpMethod.GET, TRAVERSAL)
@@ -102,9 +111,14 @@ class RejectedPathReportingIntegrationTest extends AbstractGatewayTest {
             })
             .assertNoErrors();
 
-        assertThat(reported).as("a rejected request must produce a metric").hasSize(1);
-        assertThat(reported.get(0).getStatus()).isEqualTo(400);
-        // The operator needs to see what was actually asked for, not a sanitized version of it.
-        assertThat(reported.get(0).getUri()).isEqualTo(TRAVERSAL);
+        metrics
+            .awaitDone(30, TimeUnit.SECONDS)
+            .assertComplete()
+            .assertValue(reportable -> {
+                assertThat(reportable.getStatus()).isEqualTo(400);
+                // The operator needs to see what was actually asked for, not a sanitized version.
+                assertThat(reportable.getUri()).isEqualTo(TRAVERSAL);
+                return true;
+            });
     }
 }

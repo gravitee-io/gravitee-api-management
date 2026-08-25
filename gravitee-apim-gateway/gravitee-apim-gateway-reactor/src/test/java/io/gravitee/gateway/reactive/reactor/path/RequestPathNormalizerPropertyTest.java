@@ -81,6 +81,21 @@ class RequestPathNormalizerPropertyTest {
         "%2",
         "%",
         "",
+        // The shapes the threat model names. They were absent while the vocabulary was written from
+        // what the implementation handles rather than from what an attacker sends, which is why the
+        // %+41 disagreement between the two hex readings survived 20 000 generated paths.
+        "%252e",
+        "%c0%ae",
+        "%00",
+        "%5c",
+        "%+41",
+        "%-41",
+        "..;",
+        ".;",
+        "..;jsessionid=1",
+        "orders;v=2",
+        "..%2f",
+        "%٢e",
     };
 
     @Test
@@ -109,6 +124,24 @@ class RequestPathNormalizerPropertyTest {
         // exercising it. Both branches have to be walked for the property to mean anything.
         assertThat(needing).as("paths needing normalization in the corpus").isGreaterThan(1_000);
         assertThat(canonical).as("already canonical paths in the corpus").isGreaterThan(1_000);
+    }
+
+    @Test
+    void should_produce_a_path_that_never_needs_normalizing_again() {
+        // The agreement property alone is not enough, and this is the gap it leaves: a normalize
+        // that left a ".." segment behind would satisfy it perfectly, as long as the scan agreed
+        // that the result still needed work. That is the same fail-open shape the property exists to
+        // prevent, so the output has to be asserted canonical in its own right.
+        final List<String> notFixedPoints = new ArrayList<>();
+
+        for (final String path : generatePaths()) {
+            final String normalized = RequestPathNormalizer.normalize(path);
+            if (normalized != null && RequestPathNormalizer.needsNormalization(normalized)) {
+                notFixedPoints.add(path + "  -> " + normalized + ", which still needs normalizing");
+            }
+        }
+
+        assertThat(notFixedPoints).as("normalize must be idempotent: its output is already canonical").isEmpty();
     }
 
     /**
