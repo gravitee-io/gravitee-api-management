@@ -26,6 +26,7 @@ import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
 import io.gravitee.elasticsearch.version.Version;
+import io.gravitee.repository.elasticsearch.utils.HistogramGrid;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
 import java.time.Duration;
 import java.time.Instant;
@@ -67,12 +68,19 @@ class ResponseTimeRangeQueryAdapterTest {
             .toIterable()
             .extracting(JsonNode::asText)
             .contains("MyAPI");
-        assertThat(Instant.ofEpochMilli(jsonQuery.at("/query/bool/filter/1/range/@timestamp/gte").asLong()))
-            .isBeforeOrEqualTo(start)
-            .isCloseTo(start, within(interval.toMillis(), ChronoUnit.MILLIS));
-        assertThat(Instant.ofEpochMilli(jsonQuery.at("/query/bool/filter/1/range/@timestamp/lte").asLong()))
-            .isAfterOrEqualTo(end)
-            .isCloseTo(end, within(interval.toMillis(), ChronoUnit.MILLIS));
+        // The bucket grid is shifted onto the window, so the filter starts exactly at `from`: nothing that
+        // happened before it can be counted.
+        assertThat(Instant.ofEpochMilli(jsonQuery.at("/query/bool/filter/1/range/@timestamp/gte").asLong())).isEqualTo(
+            start.truncatedTo(ChronoUnit.MILLIS)
+        );
+        // The upper bound is exclusive and reaches the end of the last bucket, so that bucket is complete and
+        // a document exactly on the bound cannot open one beyond the window.
+        assertThat(Instant.ofEpochMilli(jsonQuery.at("/query/bool/filter/1/range/@timestamp/lt").asLong())).isEqualTo(
+            HistogramGrid.endOfLastBucket(start.truncatedTo(ChronoUnit.MILLIS), end.truncatedTo(ChronoUnit.MILLIS), interval)
+        );
+        assertThat(jsonQuery.at("/aggregations/by_date/date_histogram/offset").asText()).isEqualTo(
+            HistogramGrid.offsetMillis(start, interval) + "ms"
+        );
         // aggs
         assertThat(jsonQuery.at("/aggregations/by_date/date_histogram/field").asText()).isEqualTo("@timestamp");
         assertThat(jsonQuery.at("/aggregations/by_date/date_histogram/fixed_interval").asText()).isEqualTo("1800000ms");
@@ -112,12 +120,19 @@ class ResponseTimeRangeQueryAdapterTest {
             .toIterable()
             .extracting(JsonNode::asText)
             .contains("MyAPI");
-        assertThat(Instant.ofEpochMilli(jsonQuery.at("/query/bool/filter/1/range/@timestamp/gte").asLong()))
-            .isBeforeOrEqualTo(start)
-            .isCloseTo(start, within(interval.toMillis(), ChronoUnit.MILLIS));
-        assertThat(Instant.ofEpochMilli(jsonQuery.at("/query/bool/filter/1/range/@timestamp/lte").asLong()))
-            .isAfterOrEqualTo(end)
-            .isCloseTo(end, within(interval.toMillis(), ChronoUnit.MILLIS));
+        // The bucket grid is shifted onto the window, so the filter starts exactly at `from`: nothing that
+        // happened before it can be counted.
+        assertThat(Instant.ofEpochMilli(jsonQuery.at("/query/bool/filter/1/range/@timestamp/gte").asLong())).isEqualTo(
+            start.truncatedTo(ChronoUnit.MILLIS)
+        );
+        // The upper bound is exclusive and reaches the end of the last bucket, so that bucket is complete and
+        // a document exactly on the bound cannot open one beyond the window.
+        assertThat(Instant.ofEpochMilli(jsonQuery.at("/query/bool/filter/1/range/@timestamp/lt").asLong())).isEqualTo(
+            HistogramGrid.endOfLastBucket(start.truncatedTo(ChronoUnit.MILLIS), end.truncatedTo(ChronoUnit.MILLIS), interval)
+        );
+        assertThat(jsonQuery.at("/aggregations/by_date/date_histogram/offset").asText()).isEqualTo(
+            HistogramGrid.offsetMillis(start, interval) + "ms"
+        );
         // aggs
         assertThat(jsonQuery.at("/aggregations/by_date/date_histogram/field").asText()).isEqualTo("@timestamp");
         assertThat(jsonQuery.at("/aggregations/by_date/date_histogram/interval").asText()).isEqualTo("1800000ms");
