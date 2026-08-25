@@ -20,7 +20,6 @@ import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_TRACING_ERROR;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_TRACING_ROOT_SPAN;
 
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.ExecutionMode;
@@ -176,29 +175,45 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         // pays for the resolution when there is something to resolve.
         final boolean needsNormalization = requestPathConfiguration.isEnabled() && RequestPathNormalizer.needsNormalization(rawPath);
 
-        if (needsNormalization && requestPathConfiguration.getHandling() == RequestPathHandling.REJECT) {
-            return handleRejectedPath(httpServerRequest, serverId, receivedAt);
-        }
-
-        final String normalizedPath = needsNormalization ? RequestPathNormalizer.normalize(rawPath) : rawPath;
-
-        // No normalized form at all: the path carries a malformed percent sequence.
-        if (normalizedPath == null) {
-            return handleRejectedPath(httpServerRequest, serverId, receivedAt);
-        }
-
-        final boolean pathWasNormalized = normalizedPath != rawPath;
-        if (pathWasNormalized) {
+        final String normalizedPath;
+        if (needsNormalization) {
+            if (requestPathConfiguration.getHandling() == RequestPathHandling.REJECT) {
+                return handleRejectedPath(httpServerRequest, serverId, receivedAt);
+            }
+            normalizedPath = RequestPathNormalizer.normalize(rawPath);
+            // No normalized form at all: the path carries a malformed percent sequence. Inside this
+            // branch on purpose. Under RAW nothing is inspected, and a null path — which the Vert.x
+            // API declares and an HTTP/2 request without a :path pseudo-header actually produces —
+            // must keep reaching the acceptor exactly as it did before this setting existed.
+            if (normalizedPath == null) {
+                return handleRejectedPath(httpServerRequest, serverId, receivedAt);
+            }
             // Both forms, deliberately: the point of this line is to answer "what did the client
             // actually send" once the gateway has started deciding on something else.
             log.debug("Path normalized from [{}] to [{}]", rawPath, normalizedPath);
+        } else {
+            normalizedPath = rawPath;
         }
+
+        // Exactly needsNormalization: the normalizer answers the same instance if and only if there
+        // was nothing to resolve, and the property test holds the two methods to that. Reusing the
+        // flag rather than comparing references makes that coupling explicit at the call site.
+        final boolean pathWasNormalized = needsNormalization;
 
         final HttpAcceptor httpAcceptor = httpAcceptorResolver.resolve(host, normalizedPath, serverId);
         Context vertxContext = VertxContext.createNewDuplicatedContext(vertx.getOrCreateContext());
         if (httpAcceptor == null || httpAcceptor.reactor() == null) {
-            log.debug("No acceptor found for host {} and path {}, handling as not found", host, httpServerRequest.path());
-            MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest, serverId, null, receivedAt);
+            log.debug("No acceptor found for host {} and path {}, handling as not found", host, normalizedPath);
+            // The resolved path, like the API branch below. The lookup that just failed was made on
+            // it, so an operator investigating a 404 has to see it — reporting the received path
+            // would send them looking for a context path the gateway never tried. Nothing is lost:
+            // uri() still carries the bytes the client sent.
+            MutableExecutionContext mutableCtx = prepareExecutionContext(
+                httpServerRequest,
+                serverId,
+                pathWasNormalized ? normalizedPath : null,
+                receivedAt
+            );
             mutableCtx.tracer(
                 new io.gravitee.gateway.reactive.api.tracing.Tracer(vertxContext, gatewayTracingContext.opentelemetryTracer())
             );
@@ -397,20 +412,90 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
      * Refuses the request before any API is selected, through a processor chain rather than on the
      * raw response, so that it is measured and reported like any other request the gateway answers
      * on its own.
+     *
+     * <p>The platform pre-processor chain runs first, exactly as it does for a not-found. It is not
+     * decoration: {@code XForwardProcessor} is what rewrites the remote address from
+     * {@code X-Forwarded-For}, and without it a gateway behind an ingress reports every rejection
+     * with the load balancer's address instead of the prober's — which would defeat the reason
+     * {@code handlers.rejected.analytics.enabled} defaults to on. The same chain carries the
+     * connection drain and the W3C trace context.
+     *
+     * <p>A subclass needing to do something around a rejection hooks into
+     * {@link #afterRejectedPath(Completable, MutableExecutionContext)} rather than restating this
+     * flow. That is not a preference: while the debug dispatcher carried its own copy, this method
+     * gained the pre-processor chain and the whole tracing block in a single review round, and the
+     * copy silently kept neither.
      */
     private Completable handleRejectedPath(final HttpServerRequest httpServerRequest, final String serverId, final long receivedAt) {
         // Nothing is rewritten here, so the path stays the one received — which is what the report
         // has to carry for an operator to see what was actually sent.
         final MutableExecutionContext ctx = prepareExecutionContext(httpServerRequest, serverId, null, receivedAt);
         ctx.request().contextPath("/");
-        final ProcessorChain processorChain = notFoundProcessorChainFactory.rejectedPathProcessorChain();
-        return HookHelper.hook(
-            () -> processorChain.execute(ctx, ExecutionPhase.RESPONSE),
-            processorChain.getId(),
-            List.of(),
+
+        final Context vertxContext = VertxContext.createNewDuplicatedContext(vertx.getOrCreateContext());
+        ctx.tracer(new io.gravitee.gateway.reactive.api.tracing.Tracer(vertxContext, gatewayTracingContext.opentelemetryTracer()));
+        // No route was resolved and none will be, so the span is bucketed like a not-found rather
+        // than under the unbounded raw request URI a prober chose.
+        markTracingRoute(vertxContext, "/");
+
+        final List<ProcessorHook> processHooks = gatewayTracingContext.isVerbose() ? List.of(tracingHook) : List.of();
+        final ProcessorChain preProcessorChain = platformProcessorChainFactory.preProcessorChain();
+        final ProcessorChain rejectedChain = notFoundProcessorChainFactory.rejectedPathProcessorChain();
+
+        final Completable rejected = HookHelper.hook(
+            () -> preProcessorChain.execute(ctx, ExecutionPhase.REQUEST),
+            preProcessorChain.getId(),
+            processHooks,
             ctx,
-            ExecutionPhase.RESPONSE
+            ExecutionPhase.REQUEST
+        ).andThen(
+            HookHelper.hook(
+                () -> rejectedChain.execute(ctx, ExecutionPhase.RESPONSE),
+                rejectedChain.getId(),
+                processHooks,
+                ctx,
+                ExecutionPhase.RESPONSE
+            )
         );
+
+        if (!gatewayTracingContext.isEnabled()) {
+            return afterRejectedPath(rejected, ctx);
+        }
+        return afterRejectedPath(
+            rejected
+                .doOnSubscribe(disposable -> {
+                    final Span rootSpan = ctx
+                        .getTracer()
+                        .startRootSpanFrom(new ObservableHttpServerRequest(httpServerRequest.getDelegate()));
+                    ctx.putInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN, rootSpan);
+                })
+                .doOnError(throwable -> ctx.putInternalAttribute(ATTR_INTERNAL_TRACING_ERROR, throwable))
+                .doFinally(() -> {
+                    final Span rootSpan = ctx.getInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN);
+                    final Throwable throwable = ctx.getInternalAttribute(ATTR_INTERNAL_TRACING_ERROR);
+                    ctx
+                        .getTracer()
+                        .endWithResponseAndError(
+                            rootSpan,
+                            new ObservableHttpServerResponse(httpServerRequest.getDelegate().response()),
+                            throwable
+                        );
+                }),
+            ctx
+        );
+    }
+
+    /**
+     * The extension point for a dispatcher that must do something once a rejection has been handled.
+     *
+     * <p>It receives the rejection and the context it ran on, so a subclass can wrap the former
+     * without rebuilding the latter — which is the whole point, since the context is precisely what
+     * a second copy of this flow had to recreate, and what made that copy drift.
+     *
+     * <p>Answers the rejection untouched by default.
+     */
+    protected Completable afterRejectedPath(final Completable rejection, final MutableExecutionContext ctx) {
+        return rejection;
     }
 
     private Completable handleNotFound(final MutableExecutionContext ctx, final List<ProcessorHook> notFoundProcessorHook) {
@@ -534,18 +619,6 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
      *     {@link #createV3Request(HttpServerRequest, IdGenerator, VertxHttpServerRequestOptions)},
      *     which is the signature {@link #handleV3Request} invokes and which absorbs new fields
      *     without ever moving again.
-     */
-    @Deprecated
-    protected io.gravitee.gateway.http.vertx.VertxHttpServerRequest createV3Request(
-        HttpServerRequest httpServerRequest,
-        IdGenerator idGenerator,
-        String path
-    ) {
-        return createV3Request(httpServerRequest, idGenerator, VertxHttpServerRequestOptions.builder().path(path).build());
-    }
-
-    /**
-     * @deprecated see {@link #createV3Request(HttpServerRequest, IdGenerator, String)}.
      */
     @Deprecated
     protected io.gravitee.gateway.http.vertx.VertxHttpServerRequest createV3Request(

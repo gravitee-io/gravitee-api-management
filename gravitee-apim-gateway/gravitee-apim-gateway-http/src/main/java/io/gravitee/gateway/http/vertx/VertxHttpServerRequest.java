@@ -69,14 +69,6 @@ public class VertxHttpServerRequest implements Request {
         this(httpServerRequest, idGenerator, VertxHttpServerRequestOptions.builder().build());
     }
 
-    /**
-     * @deprecated see {@link #VertxHttpServerRequest(HttpServerRequest, IdGenerator)}.
-     */
-    @Deprecated
-    public VertxHttpServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator, String path) {
-        this(httpServerRequest, idGenerator, VertxHttpServerRequestOptions.builder().path(path).build());
-    }
-
     public VertxHttpServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator, VertxHttpServerRequestOptions options) {
         this.path = options.getPath();
         this.serverRequest = httpServerRequest;

@@ -77,6 +77,16 @@ class PathHandlingV4IntegrationTest {
     private static final String DECODED_UNRESERVED = "/alpha/api/AB/~tilde";
 
     /**
+     * A traversal that climbs and comes back down inside {@code alpha}, so the request is served
+     * rather than refused. That is what makes the resolved path observable at the upstream: every
+     * other traversal here is answered 401 or 404 before anything is forwarded.
+     */
+    private static final String INTERNAL_TRAVERSAL = "/alpha/api/orders/../echo";
+
+    /** Path parameters on a dot segment. A servlet container strips them before resolving. */
+    private static final String PARAMETERISED_TRAVERSAL = "/alpha/api/orders/..;/echo";
+
+    /**
      * Base wiring shared by the three modes. Only {@link #configureGateway} differs between them,
      * which is the whole point of the comparison.
      */
@@ -279,6 +289,60 @@ class PathHandlingV4IntegrationTest {
             assertStatus(httpClient, "/alpha/api/../../elsewhere/resource", 404);
 
             assertThat(wiremock.findAll(getRequestedFor(anyUrl()))).isEmpty();
+        }
+
+        @Test
+        void should_forward_the_resolved_path_upstream(HttpClient httpClient) throws InterruptedException {
+            wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
+
+            // The headline behaviour of the mode, and the only case here where it is observable:
+            // every other traversal is refused before anything is forwarded, so the upstream sees
+            // nothing. This one climbs and comes back down inside alpha, so the request is served
+            // and the backend can be asked what it actually received.
+            assertStatus(httpClient, INTERNAL_TRAVERSAL, 200);
+
+            assertThat(singleUpstreamRequestUrl()).isEqualTo("/alpha/api/echo").doesNotContain("..");
+        }
+
+        @Test
+        void should_resolve_a_dot_segment_carrying_path_parameters(HttpClient httpClient) throws InterruptedException {
+            wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
+
+            // RFC 3986 calls "..;" an ordinary segment; a servlet container strips the parameters
+            // first and calls it a dot segment. The gateway takes the second reading, because the
+            // first one authorises one resource and lets another be served.
+            assertStatus(httpClient, PARAMETERISED_TRAVERSAL, 200);
+
+            assertThat(singleUpstreamRequestUrl()).isEqualTo("/alpha/api/echo");
+        }
+    }
+
+    @Nested
+    @GatewayTest
+    @DeployApi({ "/apis/v4/http/pathtraversal/api-alpha.json", "/apis/v4/http/pathtraversal/api-beta.json" })
+    class With_reject_handling_on_parameterised_dot_segments extends PathHandlingTest {
+
+        @Override
+        public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
+            configurationBuilder.set("http.pathHandling", "REJECT");
+        }
+
+        @Test
+        void should_refuse_them_like_any_other_dot_segment(HttpClient httpClient) throws InterruptedException {
+            wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
+
+            assertStatus(httpClient, PARAMETERISED_TRAVERSAL, 400);
+
+            assertThat(wiremock.findAll(getRequestedFor(anyUrl()))).isEmpty();
+        }
+
+        @Test
+        void should_still_serve_an_ordinary_segment_that_carries_parameters(HttpClient httpClient) throws InterruptedException {
+            wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
+
+            // Only a segment that is entirely dots before the ';' is a dot segment. If this ever
+            // starts failing, REJECT has begun refusing perfectly well formed traffic.
+            assertStatus(httpClient, "/alpha/api/orders;v=2/echo", 200);
         }
     }
 }

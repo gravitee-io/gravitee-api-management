@@ -18,13 +18,26 @@ package io.gravitee.gateway.debug.vertx;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.http.vertx.VertxHttpServerRequest;
+import io.gravitee.gateway.http.vertx.VertxHttpServerRequestOptions;
 
 public class VertxHttpServerRequestDebugDecorator extends VertxHttpServerRequest {
 
     private final VertxHttpServerRequest delegate;
 
+    /**
+     * Rebuilds itself from the native request, so anything the dispatcher decided about the delegate
+     * has to be carried across explicitly — otherwise this decorator silently reverts it.
+     *
+     * <p>That is not hypothetical: the path is resolved before the listener is chosen, and until the
+     * options below were passed on, a debug session running in V3 execution mode reported the path
+     * as received while the request it described had been routed on the resolved one.
+     */
     public VertxHttpServerRequestDebugDecorator(VertxHttpServerRequest delegate, IdGenerator idGenerator) {
-        super(delegate.getNativeServerRequest(), idGenerator);
+        super(
+            delegate.getNativeServerRequest(),
+            idGenerator,
+            VertxHttpServerRequestOptions.builder().path(delegate.path()).timestamp(delegate.timestamp()).build()
+        );
         this.delegate = delegate;
     }
 
