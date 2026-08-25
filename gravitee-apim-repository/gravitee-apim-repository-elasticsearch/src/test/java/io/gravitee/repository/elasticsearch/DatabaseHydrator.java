@@ -113,6 +113,8 @@ public class DatabaseHydrator {
                         Map.entry("dateYesterday", this.timeProvider.getDateYesterday()),
                         Map.entry("dateTimeToday", this.timeProvider.getDateTimeToday()),
                         Map.entry("dateTimeYesterday", this.timeProvider.getDateTimeYesterday()),
+                        Map.entry("trafficDateTimeToday", this.timeProvider.getTrafficDateTimeToday()),
+                        Map.entry("trafficDateTimeYesterday", this.timeProvider.getTrafficDateTimeYesterday()),
                         Map.entry("indexNameToday", indexTemplate(type, this.timeProvider.getTodayWithDot())),
                         Map.entry("indexNameTodayEntrypoint", indexTemplate(type, this.timeProvider.getTodayWithDot(), "entrypoint")),
                         Map.entry("indexNameTodayEndpoint", indexTemplate(type, this.timeProvider.getTodayWithDot(), "endpoint")),
