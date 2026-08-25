@@ -18,11 +18,12 @@ import { generateBuildRpmConfig } from '../pipeline-build-rpm';
 
 describe('Build RPM workflow tests', () => {
   it.each`
-    graviteeioVersion  | isDryRun | dockerTagAsLatest | apimVersionPath                                           | expectedFileName
-    ${'4.2.0-alpha.1'} | ${true}  | ${false}          | ${'./src/pipelines/tests/resources/common/pom-alpha.xml'} | ${'build-rpm-prerelease-dry-run.yml'}
-    ${'4.2.0-alpha.1'} | ${false} | ${false}          | ${'./src/pipelines/tests/resources/common/pom-alpha.xml'} | ${'build-rpm-prerelease-no-dry-run.yml'}
-    ${'4.2.0'}         | ${true}  | ${false}          | ${'./src/pipelines/tests/resources/common/pom.xml'}       | ${'build-rpm-release-dry-run.yml'}
-    ${'4.2.0'}         | ${false} | ${false}          | ${'./src/pipelines/tests/resources/common/pom.xml'}       | ${'build-rpm-release-no-dry-run.yml'}
+    graviteeioVersion   | isDryRun | dockerTagAsLatest | apimVersionPath                                            | expectedFileName
+    ${'4.2.0-alpha.1'}  | ${true}  | ${false}          | ${'./src/pipelines/tests/resources/common/pom-alpha.xml'}  | ${'build-rpm-prerelease-dry-run.yml'}
+    ${'4.2.0-alpha.1'}  | ${false} | ${false}          | ${'./src/pipelines/tests/resources/common/pom-alpha.xml'}  | ${'build-rpm-prerelease-no-dry-run.yml'}
+    ${'4.2.0'}          | ${true}  | ${false}          | ${'./src/pipelines/tests/resources/common/pom.xml'}        | ${'build-rpm-release-dry-run.yml'}
+    ${'4.2.0'}          | ${false} | ${false}          | ${'./src/pipelines/tests/resources/common/pom.xml'}        | ${'build-rpm-release-no-dry-run.yml'}
+    ${'4.2.0-hotfix.1'} | ${false} | ${false}          | ${'./src/pipelines/tests/resources/common/pom-hotfix.xml'} | ${'build-rpm-hotfix-no-dry-run.yml'}
   `(
     'should build RPM with $graviteeioVersion and dry run as $isDryRun',
     ({ graviteeioVersion, isDryRun, dockerTagAsLatest, apimVersionPath, expectedFileName }) => {
