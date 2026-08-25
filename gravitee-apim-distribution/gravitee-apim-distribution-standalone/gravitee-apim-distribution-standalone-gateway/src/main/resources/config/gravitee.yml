@@ -92,7 +92,11 @@ secrets:
 #              so /alpha/api/../../beta/api is read as the call to beta that it is.
 #  Beyond dot segments, both REJECT and NORMALIZE also decode percent-encoded unreserved
 #  characters, merge duplicate slashes, and answer 400 on a malformed percent sequence.
-#  Encoded slashes are never decoded. RAW is the default for backward compatibility.
+#  Encoded slashes are never decoded, and segment parameters on an ordinary segment are left
+#  alone: /a/admin;x/b is canonical here and forwarded as sent, while a Servlet receiver strips
+#  the ;x and serves /a/admin/b. An allow or deny rule written against /admin/** therefore still
+#  needs its own guard against that spelling.
+#  RAW is the default for backward compatibility.
 #  pathHandling: RAW
 #  secured: false
 #  alpn: false
@@ -856,9 +860,9 @@ services:
 #    analytics:
 #      enabled: false
 #  rejected:
-#    Reporting of the requests refused by http.pathHandling: REJECT. Enabled by default, so that a
-#    platform being probed with traversal paths leaves a trace, and deliberately independent from
-#    the notfound flag above, which is disabled by default.
+#    # Reporting of the requests refused by http.pathHandling: REJECT. Enabled by default, so that
+#    # a platform being probed with traversal paths leaves a trace, and deliberately independent
+#    # from the notfound flag above, which is disabled by default.
 #    analytics:
 #      enabled: true
 
