@@ -133,6 +133,10 @@ jest.mock('../pages/RegisterApplicationPage', () => ({
     RegisterApplicationPage: () => <div data-testid="register-application-page" />,
 }));
 
+jest.mock('../pages/OrganizationPolicyStudioPage', () => ({
+    OrganizationPolicyStudioPage: () => <div data-testid="organization-policy-studio-page" />,
+}));
+
 jest.mock('../pages/TenantsPage', () => ({
     TenantsPage: () => <div data-testid="tenants-page" />,
 }));
@@ -613,6 +617,32 @@ describe('AppRoutes', () => {
 
         expect(screen.queryByTestId('tenants-page')).toBeNull();
         expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('routes to the organization Policy Studio under the platform module', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'policy-studio',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        renderPlatform('/policy-studio');
+
+        expect(screen.getByTestId('organization-policy-studio-page')).not.toBeNull();
+        expect(visibleNavKeys()).toContain('policy-studio');
+    });
+
+    // The organization GET refuses READ, so `-r` alone must not open the page: it would 403 on load.
+    it('hides the organization Policy Studio from a user who only holds the read permission', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => {
+            const platformPolicyChecks = anyOf.filter(permission => permission.startsWith('organization-policies-'));
+            return platformPolicyChecks.length === 0 || platformPolicyChecks.includes('organization-policies-r');
+        });
+
+        renderPlatform('/policy-studio');
+
+        expect(screen.queryByTestId('organization-policy-studio-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+        expect(visibleNavKeys()).not.toContain('policy-studio');
     });
 
     it('routes to the Organization Audit page under the platform module', () => {

@@ -14,5 +14,16 @@
  * limitations under the License.
  */
 
-export const ORGANIZATION_POLICIES_READ_PERMISSION = 'organization-policies-r' as const;
+/**
+ * `GET /organizations/{orgId}` is annotated `ORGANIZATION_POLICIES` with CREATE, DELETE and UPDATE, and
+ * does not accept READ. Gating the page on `-r` would open a studio whose very first request answers 403,
+ * so the route mirrors the acls the API actually accepts. Serving read-only users takes a backend change
+ * first, tracked separately.
+ */
+export const ORGANIZATION_POLICIES_ACCESS_PERMISSIONS = [
+    'organization-policies-c',
+    'organization-policies-d',
+    'organization-policies-u',
+] as const;
+
 export const ORGANIZATION_POLICIES_UPDATE_PERMISSION = 'organization-policies-u' as const;

@@ -41,6 +41,10 @@ describe('platform navigation config', () => {
         expect(sectionKeys('Organization', 'Assets')).toEqual(['tenants', 'entrypoints-and-sharding-tags']);
     });
 
+    it('places Policy Studio under Organization / Design', () => {
+        expect(sectionKeys('Organization', 'Design')).toEqual(['policy-studio']);
+    });
+
     it('places Access Management, Management & Schedulers, CORS, SMTP, then Audit under Organization / System & Security', () => {
         expect(sectionKeys('Organization', 'System & Security')).toEqual([
             'access-management',

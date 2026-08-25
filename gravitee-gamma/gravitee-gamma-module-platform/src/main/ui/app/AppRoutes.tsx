@@ -52,6 +52,7 @@ import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEn
 import { GatewayInstanceDetailLayout } from '../features/gateway-instances/components/GatewayInstanceDetailLayout';
 import { ENVIRONMENT_GROUP_READ_PERMISSION } from '../features/groups/utils/groupPermissions';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
+import { ORGANIZATION_POLICIES_ACCESS_PERMISSIONS } from '../features/platform-policies/utils/platformPolicyPermissions';
 import { SecurityPlanTypesPage } from '../features/security-plan-types/SecurityPlanTypesPage';
 import { SharedPolicyGroupDetailLayout } from '../features/shared-policy-groups/components/SharedPolicyGroupDetailLayout';
 import { ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION } from '../features/shared-policy-groups/utils/sharedPolicyGroupPermissions';
@@ -75,6 +76,7 @@ import { GroupDetailPage } from '../pages/GroupDetailPage';
 import { GroupsPage } from '../pages/GroupsPage';
 import { ManagementAndSchedulersPage } from '../pages/ManagementAndSchedulersPage';
 import { MetadataPage } from '../pages/MetadataPage';
+import { OrganizationPolicyStudioPage } from '../pages/OrganizationPolicyStudioPage';
 import { OrgAuditLogsPage } from '../pages/OrgAuditLogsPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
 import { SharedPolicyGroupHistoryPage } from '../pages/SharedPolicyGroupHistoryPage';
@@ -134,6 +136,7 @@ interface PlatformNavVisibility {
     readonly canReadSharedPolicyGroups: boolean;
     readonly canReadAlerts: boolean;
     readonly canReadTenants: boolean;
+    readonly canAccessPlatformPolicies: boolean;
     readonly canReadOrgAudit: boolean;
     readonly canReadEnvAudit: boolean;
     readonly canReadOrgSettings: boolean;
@@ -152,6 +155,7 @@ function isNavItemVisible(itemKey: string, visibility: PlatformNavVisibility): b
         canReadSharedPolicyGroups,
         canReadAlerts,
         canReadTenants,
+        canAccessPlatformPolicies,
         canReadOrgAudit,
         canReadEnvAudit,
         canReadOrgSettings,
@@ -183,6 +187,9 @@ function isNavItemVisible(itemKey: string, visibility: PlatformNavVisibility): b
     }
     if (itemKey === 'tenants') {
         return !permissionsReady || canReadTenants;
+    }
+    if (itemKey === 'policy-studio') {
+        return !permissionsReady || canAccessPlatformPolicies;
     }
     if (itemKey === 'organization-audit') {
         return !permissionsReady || canReadOrgAudit;
@@ -280,6 +287,7 @@ function ModuleLayout() {
     const canReadSharedPolicyGroups = useHasPermission({ anyOf: [ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION] });
     const canReadAlerts = useHasPermission({ anyOf: [ENVIRONMENT_ALERT_READ_PERMISSION] });
     const canReadTenants = useHasPermission({ anyOf: ['organization-tenant-r', 'environment-tenant-r'] });
+    const canAccessPlatformPolicies = useHasPermission({ anyOf: [...ORGANIZATION_POLICIES_ACCESS_PERMISSIONS] });
     const canReadOrgAudit = useHasPermission({ anyOf: [...ORGANIZATION_AUDIT_READ_PERMISSIONS] });
     const canReadEnvAudit = useHasPermission({ anyOf: [...ENVIRONMENT_AUDIT_READ_PERMISSIONS] });
     const canReadOrgSettings = useHasPermission({ anyOf: ['organization-settings-r'] });
@@ -301,6 +309,7 @@ function ModuleLayout() {
                     canReadSharedPolicyGroups,
                     canReadAlerts,
                     canReadTenants,
+                    canAccessPlatformPolicies,
                     canReadOrgAudit,
                     canReadEnvAudit,
                     canReadOrgSettings,
@@ -318,6 +327,7 @@ function ModuleLayout() {
             canReadSharedPolicyGroups,
             canReadAlerts,
             canReadTenants,
+            canAccessPlatformPolicies,
             canReadOrgAudit,
             canReadEnvAudit,
             canReadOrgSettings,
@@ -592,6 +602,14 @@ export function AppRoutes() {
                                 }
                             />
                             <Route path="entrypoints-and-sharding-tags" element={<EntrypointsGuard />} />
+                            <Route
+                                path="policy-studio"
+                                element={
+                                    <PermissionPageGuard anyOf={ORGANIZATION_POLICIES_ACCESS_PERMISSIONS} unauthorizedTo="../applications">
+                                        <OrganizationPolicyStudioPage />
+                                    </PermissionPageGuard>
+                                }
+                            />
                             <Route path="security-plan-types" element={<SecurityPlanTypesPage />} />
                             <Route
                                 path="alerts"
