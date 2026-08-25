@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.reactive.reactor.path.benchmark;
 
+import io.gravitee.common.http.RequestPathNormalizer;
 import io.gravitee.gateway.env.RequestPathHandling;
-import io.gravitee.gateway.reactive.reactor.path.RequestPathNormalizer;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
