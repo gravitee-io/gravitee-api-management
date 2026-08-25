@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.reactor.path;
 
+import io.gravitee.common.http.RequestPathNormalizer;
 import io.gravitee.gateway.env.RequestPathConfiguration;
 import io.gravitee.gateway.env.RequestPathHandling;
 
