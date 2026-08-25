@@ -18,7 +18,7 @@ Three things, and they are not the same thing.
 | After releasing, the branch is bumped to the next version. `4.12.18` leaves it at `4.12.19-SNAPSHOT`; a qualified version like `4.13.0-alpha.1` leaves it at `4.13.0-alpha.2-SNAPSHOT`.
 |===
 
-The second row is the one that surprises people. If a branch's poms and the `--version` you pass disagree, the tag will say one thing and the artefacts another, without failing.
+The second row is the one that surprises people, so the command checks it: before triggering anything it reads the root pom of the branch it is about to release from, and refuses when the two disagree. Without that check the tag would say one thing and the artefacts another, and nothing downstream would notice.
 
 == Setup
 
@@ -36,7 +36,7 @@ Create the token at https://app.circleci.com/settings/user/tokens. Every command
 
 == Releasing
 
-=== The whole thing at once
+One command:
 
 [source,shell]
 ----
@@ -45,29 +45,33 @@ yarn full_release --version=4.12.18
 
 It asks for confirmation on the JIRA release and on leftover alpha qualifiers, then runs every step. Add `--latest` to tag the Docker images as `latest`, or it will ask.
 
-=== Step by step
+`yarn maven_release --version=4.12.18` publishes to Maven Central on its own, outside that path.
 
-The older path, still there for when a single step has to be replayed. Each command prints the next one to run.
+=== If a release stops halfway
+
+Nothing resumes it. In the CircleCI workflow, *Rerun from failed* restarts the failed job **and everything that depends on it** — which is not always what you want.
+
+Most of what publishes is a leaf, or close to one: the bundle, the RPMs, the Helm chart, the Nexus sync, the API docs ingestion. A failure there replays little more than itself.
+
+A failure in a build job is the one to look at twice. `Backend build and publish on download website` and the three UI builds feed the Docker images, their chainguard and FIPS variants, and — through them — the job that commits the version and pushes the tag. Rerunning from failed replays the lot.
+
+To replay one job and nothing else, use the API rather than the button:
 
 [source,shell]
 ----
-yarn release       --version=4.12.18
-yarn package_zip   --version=4.12.18
-yarn docker        --version=4.12.18   # --latest to also tag as latest
-yarn rpms          --version=4.12.18
-yarn helm_chart    --version=4.12.18
-yarn release_notes --version=4.12.18
-yarn nexus_sync    --version=4.12.18
+curl -X POST -H "Circle-Token: $CIRCLECI_TOKEN" \
+  https://circleci.com/api/v2/workflow/<workflow-id>/rerun \
+  -d '{"jobs": ["<job-id>"]}'
 ----
 
-`yarn maven_release --version=4.12.18` publishes to Maven Central on its own, outside both paths.
+Either way, look at what the job actually did before replaying it. None of the steps is idempotent: the release commits and tags, the Docker step retags, the Nexus step publishes.
 
 === Flags
 
 [cols="1,3"]
 |===
 | `--version` | Required, everywhere.
-| `--dry-run` | Runs the pipeline without publishing. Not supported by `nexus_sync`.
+| `--dry-run` | Runs the pipeline without publishing.
 | `--latest` | Docker images also get the `latest` tag.
 | `--branch` | Release from a branch other than the derived one. The version commit and the tag are pushed there.
 |===
@@ -92,7 +96,7 @@ yarn full_release --version=4.12.17-hotfix.1
 
 The support branch is untouched throughout, and the Docker `4.12` and `latest` tags are left where they were — a qualified version never claims them.
 
-No `--branch` to pass: a hotfix version names the branch it comes from. `4.12.17-hotfix.1` is released from `hotfix/4.12.17`, the way `4.12.18` is released from `4.12.x`. A branch that contradicts the version is refused — by the command, and again by the pipeline.
+No `--branch` to pass: a hotfix version names the branch it comes from. `4.12.17-hotfix.1` is released from `hotfix/4.12.17`, the way `4.12.18` is released from `4.12.x`. The command refuses a branch that contradicts the version.
 
 One thing is on you afterwards: cherry-pick the fix into the support branch, so the next patch carries it too. What belongs in that patch is a judgement call, not a step that can be automated.
 
