@@ -36,6 +36,7 @@
 
         <!-- Property used by the publication job in CI-->
         <publish-folder-path>graviteeio-apim/plugins/repositories</publish-folder-path>
+
     </properties>
 
     <dependencies>
@@ -270,6 +271,33 @@
 
         </resources>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!--
+                        The sample data under src/test/resources/freemarker spells its timestamps out in UTC,
+                        while production resolves daily index names from the default zone
+                        (IndexNameGenerator#getTodayIndexName, DateUtils#rangedIndices). Running the fork in UTC
+                        keeps the two on the same day whatever the developer's zone; without it, repositories
+                        that carry no time range of their own read a different day than the fixtures were
+                        written to, and fail for anyone whose local date differs from the UTC date.
+
+                        The add-opens flags below repeat gravitee-apim-parent's surefire argLine: that
+                        configuration sits in <build><plugins>, so declaring argLine here replaces it rather
+                        than adding to it. Keep the two in sync.
+                    -->
+                    <argLine>
+                        @{argLine}
+                        -Duser.timezone=UTC
+                        --add-opens java.base/java.lang=ALL-UNNAMED
+                        --add-opens java.base/java.util=ALL-UNNAMED
+                        --add-opens java.base/java.util.regex=ALL-UNNAMED
+                        --add-opens java.base/java.util.stream=ALL-UNNAMED
+                        --add-opens java.base/java.net=ALL-UNNAMED
+                    </argLine>
+                </configuration>
+            </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
             </plugin>
