@@ -17,12 +17,16 @@
 import {
     createSharedPolicyGroup,
     deleteSharedPolicyGroup,
+    deploySharedPolicyGroup,
     getSharedPolicyGroup,
+    listSharedPolicyGroupHistories,
     listSharedPolicyGroupsPaged,
+    restoreSharedPolicyGroup,
+    undeploySharedPolicyGroup,
     updateSharedPolicyGroup,
 } from './sharedPolicyGroups';
 import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
-import type { CreateSharedPolicyGroupPayload, UpdateSharedPolicyGroupPayload } from '../types/sharedPolicyGroup';
+import type { CreateSharedPolicyGroupPayload, SharedPolicyGroup, UpdateSharedPolicyGroupPayload } from '../types/sharedPolicyGroup';
 
 jest.mock('../../../shared/api/apimClient', () => ({
     apimFetchJsonV2: jest.fn(),
@@ -87,6 +91,54 @@ describe('shared policy groups service', () => {
 
         expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', '/shared-policy-groups/group%2F1', {
             method: 'DELETE',
+        });
+    });
+
+    it.each([
+        ['deploys', deploySharedPolicyGroup, '_deploy'],
+        ['undeploys', undeploySharedPolicyGroup, '_undeploy'],
+    ])('%s the encoded group resource', async (_, action, endpoint) => {
+        await action('env-1', 'group/1');
+
+        expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', `/shared-policy-groups/group%2F1/${endpoint}`, {
+            method: 'POST',
+        });
+    });
+
+    it('lists history with pagination and sorting', async () => {
+        await listSharedPolicyGroupHistories('env-1', 'group/1', { page: 2, perPage: 50, sortBy: '-version' });
+
+        expect(mockApimFetchJsonV2).toHaveBeenCalledWith(
+            'env-1',
+            '/shared-policy-groups/group%2F1/histories?page=2&perPage=50&sortBy=-version',
+        );
+    });
+
+    it('restores only mutable fields through the update endpoint', async () => {
+        const history = {
+            id: 'group/1',
+            crossId: 'cross-id',
+            name: 'Authentication',
+            description: 'Historical description',
+            prerequisiteMessage: 'Historical prerequisite',
+            apiType: 'PROXY',
+            phase: 'REQUEST',
+            steps: [{ name: 'jwt' }],
+            lifecycleState: 'DEPLOYED',
+            version: 2,
+        } satisfies SharedPolicyGroup;
+
+        await restoreSharedPolicyGroup('env-1', history);
+
+        expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', '/shared-policy-groups/group%2F1', {
+            method: 'PUT',
+            body: JSON.stringify({
+                crossId: 'cross-id',
+                name: 'Authentication',
+                description: 'Historical description',
+                prerequisiteMessage: 'Historical prerequisite',
+                steps: [{ name: 'jwt' }],
+            }),
         });
     });
 });

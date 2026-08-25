@@ -19,6 +19,7 @@ import {
     DataTable,
     DataTableColumnHeader,
     DataTableEmptyState,
+    DateCell,
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -90,6 +91,28 @@ function buildColumns({
             cell: ({ row }: ColCell<SharedPolicyGroup>) => <span className="text-sm">{toReadableFlowPhase(row.original.phase)}</span>,
         },
         {
+            id: 'updatedAt',
+            accessorKey: 'updatedAt',
+            header: ({ column }: ColHeader<SharedPolicyGroup>) => <DataTableColumnHeader column={column} title="Last updated" />,
+            cell: ({ row }: ColCell<SharedPolicyGroup>) =>
+                row.original.updatedAt ? (
+                    <DateCell value={new Date(row.original.updatedAt)} format="absolute" />
+                ) : (
+                    <span className="text-sm text-muted-foreground">—</span>
+                ),
+        },
+        {
+            id: 'deployedAt',
+            accessorKey: 'deployedAt',
+            header: ({ column }: ColHeader<SharedPolicyGroup>) => <DataTableColumnHeader column={column} title="Last deployed" />,
+            cell: ({ row }: ColCell<SharedPolicyGroup>) =>
+                row.original.deployedAt ? (
+                    <DateCell value={new Date(row.original.deployedAt)} format="absolute" />
+                ) : (
+                    <span className="text-sm text-muted-foreground">—</span>
+                ),
+        },
+        {
             id: 'actions',
             header: () => <span className="sr-only">Actions</span>,
             size: 100,
@@ -99,7 +122,7 @@ function buildColumns({
                 const sharedPolicyGroup = row.original;
                 const kubernetesOrigin = isKubernetesOrigin(sharedPolicyGroup);
                 const showEdit = canEdit && !kubernetesOrigin;
-                const showDelete = canDelete && !kubernetesOrigin;
+                const showDelete = canEdit && canDelete && !kubernetesOrigin;
                 return (
                     <div className="flex items-center justify-end gap-1">
                         {kubernetesOrigin && (

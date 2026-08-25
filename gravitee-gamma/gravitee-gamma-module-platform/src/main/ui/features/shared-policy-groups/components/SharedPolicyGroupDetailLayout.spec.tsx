@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
@@ -22,7 +23,11 @@ import { createMemoryRouter, MemoryRouter, Route, RouterProvider, Routes } from 
 import { SharedPolicyGroupDetailLayout } from './SharedPolicyGroupDetailLayout';
 import { ApimApiError } from '../../../shared/api/apimClient';
 import { useForbiddenResourceRedirect } from '../../../shared/hooks/useForbiddenResourceRedirect';
-import { useUpdateSharedPolicyGroup } from '../hooks/useSharedPolicyGroupMutations';
+import {
+    useDeleteSharedPolicyGroup,
+    useUndeploySharedPolicyGroup,
+    useUpdateSharedPolicyGroup,
+} from '../hooks/useSharedPolicyGroupMutations';
 import { useSharedPolicyGroupDetail } from '../hooks/useSharedPolicyGroups';
 import type { SharedPolicyGroup } from '../types/sharedPolicyGroup';
 
@@ -44,18 +49,25 @@ jest.mock('@gravitee/graphene-core', () => ({
 jest.mock('../hooks/useSharedPolicyGroups');
 jest.mock('../hooks/useSharedPolicyGroupMutations');
 jest.mock('../../../shared/hooks/useForbiddenResourceRedirect');
+jest.mock('@gravitee/gamma-modules-sdk');
 
 const mockUseDetail = jest.mocked(useSharedPolicyGroupDetail);
 const mockUseUpdateSharedPolicyGroup = jest.mocked(useUpdateSharedPolicyGroup);
+const mockUseUndeploySharedPolicyGroup = jest.mocked(useUndeploySharedPolicyGroup);
+const mockUseDeleteSharedPolicyGroup = jest.mocked(useDeleteSharedPolicyGroup);
 const mockUseForbiddenResourceRedirect = jest.mocked(useForbiddenResourceRedirect);
+const mockUseHasPermission = jest.mocked(useHasPermission);
 
 const SPG: SharedPolicyGroup = {
     id: 'spg-1',
     name: 'Auth Bundle',
     description: 'Reusable auth policies',
+    prerequisiteMessage: 'Configure an identity provider',
     lifecycleState: 'DEPLOYED',
     apiType: 'PROXY',
     phase: 'REQUEST',
+    updatedAt: '2026-08-24T10:15:00.000Z',
+    deployedAt: '2026-08-25T11:30:00.000Z',
 };
 
 function renderLayout(path = '/shared-policy-groups/spg-1/studio') {
@@ -64,7 +76,6 @@ function renderLayout(path = '/shared-policy-groups/spg-1/studio') {
             <Routes>
                 <Route path="/shared-policy-groups">
                     <Route path=":sharedPolicyGroupId" element={<SharedPolicyGroupDetailLayout />}>
-                        <Route path="overview" element={<div>Overview content</div>} />
                         <Route path="studio" element={<div>Studio content</div>} />
                         <Route path="history" element={<div>History content</div>} />
                     </Route>
@@ -88,14 +99,18 @@ function StatefulOutlet() {
 
 describe('SharedPolicyGroupDetailLayout', () => {
     beforeEach(() => {
+        mockUseHasPermission.mockReturnValue(true);
         mockUseUpdateSharedPolicyGroup.mockReturnValue({ mutateAsync: jest.fn() } as never);
+        mockUseUndeploySharedPolicyGroup.mockReturnValue({ mutateAsync: jest.fn(), isPending: false } as never);
+        mockUseDeleteSharedPolicyGroup.mockReturnValue({ mutateAsync: jest.fn(), isPending: false } as never);
     });
 
     afterEach(() => {
         jest.clearAllMocks();
     });
 
-    it('renders header, status badge, tabs, and outlet content', () => {
+    it('renders the header, overflow actions, and studio without tabs', async () => {
+        const user = userEvent.setup();
         mockUseDetail.mockReturnValue({ data: SPG, isLoading: false, isError: false } as never);
         renderLayout();
 
@@ -104,25 +119,28 @@ describe('SharedPolicyGroupDetailLayout', () => {
         expect(screen.getByText('Deployed')).not.toBeNull();
         expect(screen.getByText('Reusable auth policies')).not.toBeNull();
         expect(screen.getByText('Proxy · Request')).not.toBeNull();
-        expect(screen.getByRole('button', { name: 'Edit' })).not.toBeNull();
-        expect(screen.getByRole('link', { name: 'Overview' })).not.toBeNull();
-        expect(screen.getByRole('link', { name: 'Studio' }).getAttribute('aria-current')).toBe('page');
-        expect(screen.getByRole('link', { name: 'History' })).not.toBeNull();
+        expect(screen.getByText('Configure an identity provider')).not.toBeNull();
+        expect(screen.getByText('Last updated')).not.toBeNull();
+        expect(screen.getByText('Last deployed')).not.toBeNull();
+        expect(screen.queryByRole('navigation', { name: 'Shared Policy Group sections' })).toBeNull();
+        await user.click(screen.getByRole('button', { name: 'Shared Policy Group actions' }));
+        expect(screen.getByRole('menuitem', { name: 'Edit' })).not.toBeNull();
+        expect(screen.getByRole('menuitem', { name: 'Version History' })).not.toBeNull();
         expect(screen.getByText('Studio content')).not.toBeNull();
         expect(capturedLayoutConfig).toMatchObject({
             breadcrumbs: [{ label: 'Shared Policy Groups', href: '/shared-policy-groups' }, { label: 'Auth Bundle' }],
         });
     });
 
-    it('builds route links correctly when the Shared Policy Group id is encoded', async () => {
+    it('opens version history from the overflow menu', async () => {
+        const user = userEvent.setup();
         mockUseDetail.mockReturnValue({ data: SPG, isLoading: false, isError: false } as never);
-        renderLayout('/shared-policy-groups/shared%20policy/studio');
+        renderLayout();
 
-        const overviewLink = screen.getByRole('link', { name: 'Overview' });
-        expect((overviewLink as HTMLAnchorElement).pathname).toBe('/shared-policy-groups/shared%20policy/overview');
-        await userEvent.setup().click(overviewLink);
+        await user.click(screen.getByRole('button', { name: 'Shared Policy Group actions' }));
+        await user.click(screen.getByRole('menuitem', { name: 'Version History' }));
 
-        expect(screen.getByText('Overview content')).not.toBeNull();
+        expect(mockNavigate).toHaveBeenCalledWith('/shared-policy-groups/spg-1/history');
     });
 
     it('navigates back to the shared policy groups list', () => {
@@ -163,7 +181,7 @@ describe('SharedPolicyGroupDetailLayout', () => {
         expect(screen.queryByTestId('shared-policy-group-detail')).toBeNull();
     });
 
-    it('resets tab state when navigating to a different Shared Policy Group', async () => {
+    it('resets outlet state when navigating to a different Shared Policy Group', async () => {
         mockUseDetail.mockImplementation(
             sharedPolicyGroupId =>
                 ({
@@ -177,16 +195,16 @@ describe('SharedPolicyGroupDetailLayout', () => {
                 {
                     path: '/shared-policy-groups/:sharedPolicyGroupId',
                     element: <SharedPolicyGroupDetailLayout />,
-                    children: [{ path: 'overview', element: <StatefulOutlet /> }],
+                    children: [{ path: 'studio', element: <StatefulOutlet /> }],
                 },
             ],
-            { initialEntries: ['/shared-policy-groups/spg-1/overview'] },
+            { initialEntries: ['/shared-policy-groups/spg-1/studio'] },
         );
         render(<RouterProvider router={router} />);
         fireEvent.click(screen.getByRole('button', { name: 'Mark dirty' }));
         expect(screen.getByText('Dirty')).not.toBeNull();
 
-        await act(() => router.navigate('/shared-policy-groups/spg-2/overview'));
+        await act(() => router.navigate('/shared-policy-groups/spg-2/studio'));
 
         expect(screen.getByText('Clean')).not.toBeNull();
     });

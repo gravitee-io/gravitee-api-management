@@ -96,10 +96,10 @@ describe('SharedPolicyGroupsTable', () => {
         expect(screen.queryByText('Request')).not.toBeNull();
     });
 
-    it('does not render timestamp columns', () => {
+    it('renders the Last updated and Last deployed columns', () => {
         renderTable();
-        expect(screen.queryByRole('columnheader', { name: 'Last updated' })).toBeNull();
-        expect(screen.queryByRole('columnheader', { name: 'Last deployed' })).toBeNull();
+        expect(screen.queryByRole('columnheader', { name: 'Last updated' })).not.toBeNull();
+        expect(screen.queryByRole('columnheader', { name: 'Last deployed' })).not.toBeNull();
     });
 
     describe('sorting', () => {
@@ -120,6 +120,16 @@ describe('SharedPolicyGroupsTable', () => {
             fireEvent.click(screen.getByRole('button', { name: 'API Type' }));
 
             expect(onSortingChange).toHaveBeenCalled();
+        });
+
+        it('sorts by Last updated and Last deployed', () => {
+            const onSortingChange = jest.fn();
+            renderTable({ onSortingChange });
+
+            fireEvent.click(screen.getByRole('button', { name: 'Last updated' }));
+            fireEvent.click(screen.getByRole('button', { name: 'Last deployed' }));
+
+            expect(onSortingChange).toHaveBeenCalledTimes(2);
         });
 
         it('does not offer sorting by status because the Management API does not support it', () => {
@@ -164,8 +174,15 @@ describe('SharedPolicyGroupsTable', () => {
             expect(screen.queryByRole('menuitem', { name: 'Delete' })).toBeNull();
         });
 
-        it('shows Delete when the user has delete permission', async () => {
-            renderTable({ canDelete: true });
+        it('hides Delete when the user has delete permission without update permission', async () => {
+            renderTable({ canEdit: false, canDelete: true });
+            await openRowMenu();
+            expect(await screen.findByRole('menuitem', { name: 'View' })).not.toBeNull();
+            expect(screen.queryByRole('menuitem', { name: 'Delete' })).toBeNull();
+        });
+
+        it('shows Delete when the user has update and delete permissions', async () => {
+            renderTable({ canEdit: true, canDelete: true });
             await openRowMenu();
             expect(await screen.findByRole('menuitem', { name: 'View' })).not.toBeNull();
             expect(screen.queryByRole('menuitem', { name: 'Delete' })).not.toBeNull();
@@ -180,7 +197,7 @@ describe('SharedPolicyGroupsTable', () => {
 
         it('shows Delete with delete permission and calls onDelete', async () => {
             const onDelete = jest.fn();
-            renderTable({ canDelete: true, onDelete });
+            renderTable({ canEdit: true, canDelete: true, onDelete });
             const user = await openRowMenu();
             await user.click(await screen.findByRole('menuitem', { name: 'Delete' }));
             expect(onDelete).toHaveBeenCalledWith(SPG);

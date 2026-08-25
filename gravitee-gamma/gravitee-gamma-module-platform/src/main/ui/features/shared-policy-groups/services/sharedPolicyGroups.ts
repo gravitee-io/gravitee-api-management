@@ -66,3 +66,46 @@ export async function deleteSharedPolicyGroup(environmentId: string, sharedPolic
         method: 'DELETE',
     });
 }
+
+export async function deploySharedPolicyGroup(environmentId: string, sharedPolicyGroupId: string): Promise<SharedPolicyGroup> {
+    return apimFetchJsonV2<SharedPolicyGroup>(environmentId, `/shared-policy-groups/${encodeURIComponent(sharedPolicyGroupId)}/_deploy`, {
+        method: 'POST',
+    });
+}
+
+export async function undeploySharedPolicyGroup(environmentId: string, sharedPolicyGroupId: string): Promise<SharedPolicyGroup> {
+    return apimFetchJsonV2<SharedPolicyGroup>(environmentId, `/shared-policy-groups/${encodeURIComponent(sharedPolicyGroupId)}/_undeploy`, {
+        method: 'POST',
+    });
+}
+
+export async function listSharedPolicyGroupHistories(
+    environmentId: string,
+    sharedPolicyGroupId: string,
+    params: { page: number; perPage: number; sortBy?: string },
+): Promise<SharedPolicyGroupsPagedResponse> {
+    const searchParams = new URLSearchParams();
+    searchParams.set('page', String(params.page));
+    searchParams.set('perPage', String(params.perPage));
+    if (params.sortBy) {
+        searchParams.set('sortBy', params.sortBy);
+    }
+    return apimFetchJsonV2<SharedPolicyGroupsPagedResponse>(
+        environmentId,
+        `/shared-policy-groups/${encodeURIComponent(sharedPolicyGroupId)}/histories?${searchParams.toString()}`,
+    );
+}
+
+export async function restoreSharedPolicyGroup(environmentId: string, history: SharedPolicyGroup): Promise<SharedPolicyGroup> {
+    const payload: UpdateSharedPolicyGroupPayload = {
+        crossId: history.crossId,
+        name: history.name,
+        description: history.description,
+        prerequisiteMessage: history.prerequisiteMessage,
+        steps: history.steps,
+    };
+    return apimFetchJsonV2<SharedPolicyGroup>(environmentId, `/shared-policy-groups/${encodeURIComponent(history.id)}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+    });
+}

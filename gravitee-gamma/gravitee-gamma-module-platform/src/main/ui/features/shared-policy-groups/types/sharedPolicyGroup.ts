@@ -83,6 +83,7 @@ export interface SharedPolicyGroup {
     deployedAt?: string;
     createdAt?: string;
     updatedAt?: string;
+    version?: number;
     originContext?: OriginContext;
 }
 
@@ -96,13 +97,14 @@ export interface CreateSharedPolicyGroupPayload {
 }
 
 export interface UpdateSharedPolicyGroupPayload {
+    crossId?: string;
     name: string;
     description?: string;
     prerequisiteMessage?: string;
     steps?: SharedPolicyGroupStep[];
 }
 
-interface SharedPolicyGroupsPagination {
+export interface SharedPolicyGroupsPagination {
     page: number;
     perPage: number;
     pageCount: number;

@@ -26,7 +26,10 @@ import {
 } from '../features/shared-policy-groups/hooks/useSharedPolicyGroupMutations';
 import { useSharedPolicyGroupsPaged } from '../features/shared-policy-groups/hooks/useSharedPolicyGroups';
 import type { SharedPolicyGroup } from '../features/shared-policy-groups/types/sharedPolicyGroup';
-import { ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION } from '../features/shared-policy-groups/utils/sharedPolicyGroupPermissions';
+import {
+    ENVIRONMENT_SHARED_POLICY_GROUP_DELETE_PERMISSION,
+    ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION,
+} from '../features/shared-policy-groups/utils/sharedPolicyGroupPermissions';
 import { ApimApiError } from '../shared/api/apimClient';
 import { useForbiddenResourceRedirect } from '../shared/hooks/useForbiddenResourceRedirect';
 import { notify } from '../shared/notify';
@@ -86,6 +89,12 @@ jest.mock('../features/shared-policy-groups/components/SharedPolicyGroupsTable',
                 <button type="button" onClick={() => onSortingChange([{ id: 'name', desc: true }])}>
                     Sort by Name
                 </button>
+                <button type="button" onClick={() => onSortingChange([{ id: 'updatedAt', desc: true }])}>
+                    Sort by Last updated
+                </button>
+                <button type="button" onClick={() => onSortingChange([{ id: 'deployedAt', desc: false }])}>
+                    Sort by Last deployed
+                </button>
                 {sharedPolicyGroups.map(s => (
                     <div key={s.id} data-testid={`row-${s.id}`}>
                         <span>{s.name}</span>
@@ -97,7 +106,7 @@ jest.mock('../features/shared-policy-groups/components/SharedPolicyGroupsTable',
                                 Edit {s.name}
                             </button>
                         )}
-                        {canDelete && (
+                        {canEdit && canDelete && (
                             <button type="button" onClick={() => onDelete(s)}>
                                 Delete {s.name}
                             </button>
@@ -266,6 +275,18 @@ describe('SharedPolicyGroupsPage', () => {
 
             expect(mockUseSharedPolicyGroupsPaged).toHaveBeenCalledWith(expect.objectContaining({ page: 1, sortBy: '-name' }));
         });
+
+        it('uses updatedAt and deployedAt as the date column sort fields', () => {
+            renderPage();
+
+            mockUseSharedPolicyGroupsPaged.mockClear();
+            fireEvent.click(screen.getByRole('button', { name: 'Sort by Last updated' }));
+            expect(mockUseSharedPolicyGroupsPaged).toHaveBeenCalledWith(expect.objectContaining({ page: 1, sortBy: '-updatedAt' }));
+
+            mockUseSharedPolicyGroupsPaged.mockClear();
+            fireEvent.click(screen.getByRole('button', { name: 'Sort by Last deployed' }));
+            expect(mockUseSharedPolicyGroupsPaged).toHaveBeenCalledWith(expect.objectContaining({ page: 1, sortBy: 'deployedAt' }));
+        });
     });
 
     describe('create flow', () => {
@@ -334,6 +355,16 @@ describe('SharedPolicyGroupsPage', () => {
     });
 
     describe('delete flow', () => {
+        it('hides Delete unless the user has both update and delete permissions', () => {
+            mockUseHasPermission.mockImplementation(({ anyOf }) => !anyOf?.includes(ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION));
+            renderPage();
+            expect(screen.queryByRole('button', { name: 'Delete Auth Bundle' })).toBeNull();
+
+            mockUseHasPermission.mockImplementation(({ anyOf }) => !anyOf?.includes(ENVIRONMENT_SHARED_POLICY_GROUP_DELETE_PERMISSION));
+            renderPage();
+            expect(screen.queryByRole('button', { name: 'Delete Auth Bundle' })).toBeNull();
+        });
+
         it('deletes the selected shared policy group and shows a success toast', async () => {
             const deleteMutateAsync = jest.fn().mockResolvedValue(undefined);
             mockUseDeleteSharedPolicyGroup.mockReturnValue(makeDeleteMutation(deleteMutateAsync));

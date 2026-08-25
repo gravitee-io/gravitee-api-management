@@ -22,7 +22,10 @@ import { useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 
 import { SharedPolicyGroupPolicyStudio } from '../features/shared-policy-groups/components/SharedPolicyGroupPolicyStudio';
-import { useUpdateSharedPolicyGroup } from '../features/shared-policy-groups/hooks/useSharedPolicyGroupMutations';
+import {
+    useDeploySharedPolicyGroup,
+    useUpdateSharedPolicyGroup,
+} from '../features/shared-policy-groups/hooks/useSharedPolicyGroupMutations';
 import { getPolicyDocumentation, getPolicySchema, listPolicies } from '../features/shared-policy-groups/services/sharedPolicyGroupPolicies';
 import type { SharedPolicyGroup, SharedPolicyGroupStep } from '../features/shared-policy-groups/types/sharedPolicyGroup';
 import { sharedPolicyGroupKeys } from '../features/shared-policy-groups/utils/queryKeys';
@@ -36,6 +39,8 @@ export function SharedPolicyGroupStudioPage() {
     const sharedPolicyGroup = useOutletContext<SharedPolicyGroup>();
     const canUpdate = useHasPermission({ anyOf: [ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION] });
     const updateMutation = useUpdateSharedPolicyGroup();
+    const deployMutation = useDeploySharedPolicyGroup();
+    const kubernetesOrigin = isKubernetesOrigin(sharedPolicyGroup);
     const protocolType = getProtocolType(sharedPolicyGroup.apiType);
     const policiesQuery = useQuery({
         queryKey: sharedPolicyGroupKeys.policies(),
@@ -47,7 +52,7 @@ export function SharedPolicyGroupStudioPage() {
     const handleSave = useCallback(
         async (steps: SharedPolicyGroupStep[]) => {
             try {
-                await updateMutation.mutateAsync({
+                const updatedSharedPolicyGroup = await updateMutation.mutateAsync({
                     id: sharedPolicyGroup.id,
                     payload: {
                         name: sharedPolicyGroup.name,
@@ -57,6 +62,7 @@ export function SharedPolicyGroupStudioPage() {
                     },
                 });
                 notify.success('Shared Policy Group updated');
+                return updatedSharedPolicyGroup;
             } catch (error) {
                 notify.error(error, 'Error during Shared Policy Group update!');
                 throw error;
@@ -64,6 +70,15 @@ export function SharedPolicyGroupStudioPage() {
         },
         [sharedPolicyGroup, updateMutation],
     );
+
+    async function handleDeploy() {
+        try {
+            await deployMutation.mutateAsync(sharedPolicyGroup.id);
+            notify.success('Shared Policy Group deployed successfully');
+        } catch (error) {
+            notify.error(error, 'Error during Shared Policy Group deployment!');
+        }
+    }
 
     if (policiesQuery.isLoading) {
         return <Skeleton className="h-[32rem] w-full rounded-lg" />;
@@ -78,8 +93,10 @@ export function SharedPolicyGroupStudioPage() {
             key={sharedPolicyGroup.id}
             sharedPolicyGroup={sharedPolicyGroup}
             policies={policiesQuery.data}
-            readOnly={!canUpdate || isKubernetesOrigin(sharedPolicyGroup)}
+            readOnly={!canUpdate || kubernetesOrigin}
+            isDeploying={deployMutation.isPending}
             onSave={handleSave}
+            onDeploy={handleDeploy}
             onFetchPolicySchema={onFetchPolicySchema}
             onFetchPolicyDocumentation={onFetchPolicyDocumentation}
         />

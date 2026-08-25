@@ -17,7 +17,7 @@
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
-import { getSharedPolicyGroup, listSharedPolicyGroupsPaged } from '../services/sharedPolicyGroups';
+import { getSharedPolicyGroup, listSharedPolicyGroupHistories, listSharedPolicyGroupsPaged } from '../services/sharedPolicyGroups';
 import { sharedPolicyGroupKeys } from '../utils/queryKeys';
 
 export function useSharedPolicyGroupsPaged({
@@ -49,5 +49,26 @@ export function useSharedPolicyGroupDetail(sharedPolicyGroupId: string | undefin
         queryKey: sharedPolicyGroupKeys.detail(env?.id ?? '', sharedPolicyGroupId ?? ''),
         queryFn: () => getSharedPolicyGroup(env!.id, sharedPolicyGroupId!),
         enabled: Boolean(env) && Boolean(sharedPolicyGroupId),
+    });
+}
+
+export function useSharedPolicyGroupHistories({
+    sharedPolicyGroupId,
+    page,
+    perPage,
+    sortBy,
+}: {
+    sharedPolicyGroupId: string;
+    page: number;
+    perPage: number;
+    sortBy?: string;
+}) {
+    const env = useEnvironment();
+
+    return useQuery({
+        queryKey: sharedPolicyGroupKeys.histories(env?.id ?? '', sharedPolicyGroupId, page, perPage, sortBy),
+        queryFn: () => listSharedPolicyGroupHistories(env!.id, sharedPolicyGroupId, { page, perPage, sortBy }),
+        enabled: Boolean(env) && Boolean(sharedPolicyGroupId),
+        placeholderData: keepPreviousData,
     });
 }

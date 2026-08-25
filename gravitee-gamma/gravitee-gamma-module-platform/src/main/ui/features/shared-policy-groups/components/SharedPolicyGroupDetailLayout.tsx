@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-import { Button, Skeleton, cn, useLayoutConfig } from '@gravitee/graphene-core';
+import { Button, DateCell, Skeleton, useLayoutConfig } from '@gravitee/graphene-core';
 import { ArrowLeftIcon, LayersIcon } from '@gravitee/graphene-core/icons';
-import { NavLink, Outlet, useNavigate, useParams, useResolvedPath } from 'react-router-dom';
+import { Outlet, useNavigate, useParams, useResolvedPath } from 'react-router-dom';
 
-import { SharedPolicyGroupEditAction } from './SharedPolicyGroupEditAction';
+import { SharedPolicyGroupActions } from './SharedPolicyGroupActions';
 import { SharedPolicyGroupStatusBadge } from './SharedPolicyGroupStatusBadge';
 import { useForbiddenResourceRedirect } from '../../../shared/hooks/useForbiddenResourceRedirect';
 import { isForbiddenApiError } from '../../../shared/utils/apiErrors';
 import { useSharedPolicyGroupDetail } from '../hooks/useSharedPolicyGroups';
 import { type SharedPolicyGroup, toReadableApiType, toReadableFlowPhase } from '../types/sharedPolicyGroup';
-import { SHARED_POLICY_GROUP_DETAIL_TABS } from '../utils/sharedPolicyGroupDetailNavigation';
 import { ENVIRONMENT_SHARED_POLICY_GROUP_PERMISSION_PREFIX } from '../utils/sharedPolicyGroupPermissions';
 
-function SharedPolicyGroupHeader({ sharedPolicyGroup }: Readonly<{ sharedPolicyGroup: SharedPolicyGroup }>) {
+function SharedPolicyGroupHeader({ sharedPolicyGroup, listHref }: Readonly<{ sharedPolicyGroup: SharedPolicyGroup; listHref: string }>) {
     return (
         <div className="flex items-start gap-3">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-highlight text-highlight-foreground">
@@ -42,9 +41,37 @@ function SharedPolicyGroupHeader({ sharedPolicyGroup }: Readonly<{ sharedPolicyG
                 <p className="text-sm text-muted-foreground">
                     {toReadableApiType(sharedPolicyGroup.apiType)} · {toReadableFlowPhase(sharedPolicyGroup.phase)}
                 </p>
+                {sharedPolicyGroup.prerequisiteMessage ? (
+                    <p className="text-sm text-muted-foreground">
+                        <span className="font-medium">Prerequisite: </span>
+                        {sharedPolicyGroup.prerequisiteMessage}
+                    </p>
+                ) : null}
+                <dl className="flex flex-wrap gap-4 gap-y-1 text-xs text-muted-foreground">
+                    <div className="flex gap-1">
+                        <dt className="font-medium">Last updated</dt>
+                        <dd>
+                            {sharedPolicyGroup.updatedAt ? (
+                                <DateCell value={new Date(sharedPolicyGroup.updatedAt)} format="absolute" />
+                            ) : (
+                                '—'
+                            )}
+                        </dd>
+                    </div>
+                    <div className="flex gap-1">
+                        <dt className="font-medium">Last deployed</dt>
+                        <dd>
+                            {sharedPolicyGroup.deployedAt ? (
+                                <DateCell value={new Date(sharedPolicyGroup.deployedAt)} format="absolute" />
+                            ) : (
+                                '—'
+                            )}
+                        </dd>
+                    </div>
+                </dl>
             </div>
             <div className="ml-auto shrink-0">
-                <SharedPolicyGroupEditAction key={sharedPolicyGroup.id} sharedPolicyGroup={sharedPolicyGroup} />
+                <SharedPolicyGroupActions key={sharedPolicyGroup.id} sharedPolicyGroup={sharedPolicyGroup} listHref={listHref} />
             </div>
         </div>
     );
@@ -85,7 +112,6 @@ export function SharedPolicyGroupDetailLayout() {
                         <Skeleton className="h-4 w-96" />
                     </div>
                 </div>
-                <Skeleton className="h-10 w-72" />
                 <Skeleton className="h-64 w-full" />
             </div>
         );
@@ -110,28 +136,7 @@ export function SharedPolicyGroupDetailLayout() {
                 Back to Shared Policy Groups
             </Button>
 
-            <SharedPolicyGroupHeader sharedPolicyGroup={sharedPolicyGroup} />
-
-            <div className="border-b">
-                <nav className="flex items-center gap-6" aria-label="Shared Policy Group sections">
-                    {SHARED_POLICY_GROUP_DETAIL_TABS.map(tab => (
-                        <NavLink
-                            key={tab.path}
-                            to={tab.path}
-                            className={({ isActive }) =>
-                                cn(
-                                    '-mb-px border-b-2 px-0.5 pb-3 text-sm transition-colors',
-                                    isActive
-                                        ? 'border-foreground font-semibold text-foreground'
-                                        : 'border-transparent text-muted-foreground hover:text-foreground',
-                                )
-                            }
-                        >
-                            {tab.label}
-                        </NavLink>
-                    ))}
-                </nav>
-            </div>
+            <SharedPolicyGroupHeader sharedPolicyGroup={sharedPolicyGroup} listHref={listHref} />
 
             <Outlet key={sharedPolicyGroupId} context={sharedPolicyGroup} />
         </div>
