@@ -1440,16 +1440,22 @@ gateway:
     # How dot segments in the request path are treated, before the listener context path is
     # resolved and therefore before any plan is enforced. One value for the whole gateway:
     # it cannot be set per server or per API.
-    #   RAW       (default) the path is used, and forwarded, exactly as received.
+    #   RAW       the path is used, and forwarded, exactly as received.
     #   REJECT    answers 400 when the normalized path differs from the one received.
-    #   NORMALIZE resolves the dot segments and routes, enforces and forwards on the result.
+    #   NORMALIZE (default since 4.13) resolves the dot segments and routes, enforces and
+    #             forwards on the result. The default was RAW up to 4.12: an upgrading deployment
+    #             changes how it routes paths carrying dot segments. Set RAW to keep the old one.
     # Beyond dot segments, REJECT and NORMALIZE also decode percent-encoded unreserved
     # characters, merge duplicate slashes, and answer 400 on a malformed percent sequence.
     # Encoded slashes are never decoded, and segment parameters on an ordinary segment are
     # left alone: /a/admin;x/b is canonical here and forwarded as sent, while a Servlet
     # receiver strips the ;x and serves /a/admin/b. An allow or deny rule written against
     # /admin/** therefore still needs its own guard against that spelling.
-    pathHandling: RAW
+    # Under NORMALIZE, {#request.path} and {#request.pathInfo} carry the resolved path while
+    # {#request.uri} still carries the bytes as received, because request signing depends on
+    # them. Write security rules on {#request.path}: a condition on {#request.uri} is evaded by
+    # the very traversal being resolved.
+    pathHandling: NORMALIZE
     requestTimeout: 30000
     requestTimeoutGraceDelay: 30
 

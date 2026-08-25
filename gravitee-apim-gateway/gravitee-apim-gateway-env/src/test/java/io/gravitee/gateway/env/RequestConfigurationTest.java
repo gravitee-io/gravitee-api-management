@@ -22,6 +22,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Locale;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -34,6 +35,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -127,13 +129,13 @@ class RequestConfigurationTest {
 
         @ParameterizedTest(name = "[{index}] \"{0}\"")
         @ValueSource(strings = { "NORMALISE", "REJEKT", "", "  ", "true" })
-        void should_fall_back_to_raw_on_an_unknown_value_and_say_so(String configured) {
-            // A security control that degrades has to be loud about it: the operator believes they
-            // enabled something. We do not refuse to start — the sibling timeout bean above sets the
-            // house rule — but the warning is the only signal they will get.
+        void should_fall_back_to_the_default_on_an_unknown_value_and_say_so(String configured) {
+            // The default, not RAW. An operator who mistypes has to be told — we do not refuse to
+            // start, the sibling timeout bean above sets the house rule, and the warning is the only
+            // signal they get — but an unreadable value must not be a way to reach the raw path.
             final RequestPathConfiguration result = cut.httpRequestPathConfiguration(configured);
 
-            assertThat(result.getHandling()).isEqualTo(RequestPathHandling.RAW);
+            assertThat(result.getHandling()).isEqualTo(RequestPathHandling.NORMALIZE);
             assertThat(warnings())
                 .singleElement()
                 .satisfies(warning -> assertThat(warning).contains("http.pathHandling"));
@@ -141,9 +143,9 @@ class RequestConfigurationTest {
 
         @Test
         void should_survive_a_jvm_whose_default_locale_uppercases_i_to_a_dotted_capital() {
-            // Turkish: "normalize".toUpperCase() is "NORMALİZE", valueOf throws, and the control
-            // silently turns itself off. RAW and REJECT carry no "i", so only the safe modes would
-            // have kept working — the failure is invisible until someone deploys in Istanbul.
+            // Turkish: "normalize".toUpperCase() is "NORMALİZE" and valueOf throws, so a mode the
+            // operator spelled correctly is read as unknown. The failure is invisible until someone
+            // deploys in Istanbul, and no other accepted value carries an "i" to expose it.
             final Locale previous = Locale.getDefault();
             try {
                 Locale.setDefault(Locale.forLanguageTag("tr"));
@@ -154,11 +156,23 @@ class RequestConfigurationTest {
             }
         }
 
+        @Test
+        void should_normalize_when_nothing_is_configured() throws NoSuchMethodException {
+            // The bean is handed an already-resolved String, so every other test here runs past the
+            // placeholder. This is the only assertion covering what a gateway with no http.pathHandling
+            // in its configuration actually does — and getting it wrong ships the fix switched off
+            // while the whole suite stays green.
+            final Method bean = RequestConfiguration.class.getMethod("httpRequestPathConfiguration", String.class);
+            final Value annotation = (Value) bean.getParameterAnnotations()[0][0];
+
+            assertThat(annotation.value()).isEqualTo("${http.pathHandling:NORMALIZE}");
+        }
+
         @ParameterizedTest(name = "{0}")
         @ValueSource(strings = { "RAW", "REJECT", "NORMALIZE" })
         void should_state_the_active_mode_at_startup_including_the_default(String configured) {
             // The operator's only positive confirmation of which mode came up, and the counterpart
-            // of the warning above: without it, a mistyped value looks exactly like a correct RAW.
+            // of the warning above: without it, a mistyped value looks exactly like the default.
             cut.httpRequestPathConfiguration(configured);
 
             assertThat(listAppender.list)

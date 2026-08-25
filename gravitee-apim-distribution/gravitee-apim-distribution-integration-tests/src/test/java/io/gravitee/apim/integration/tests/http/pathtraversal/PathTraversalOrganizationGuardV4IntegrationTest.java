@@ -25,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployOrganization;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
+import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
@@ -63,6 +64,11 @@ import org.junit.jupiter.api.Test;
  * route it to the API the resolved path actually designates. Reaching that behaviour requires
  * normalizing before listener resolution, which is a gateway-level change.
  *
+ * <p>That change shipped in 4.13.0 and NORMALIZE is now the default, so this class sets RAW
+ * explicitly: the workaround it documents is what a deployment that deliberately stays on RAW still
+ * needs. Left on the default, the gateway would resolve the path first and these tests would be
+ * measuring the fix rather than the guard.
+ *
  * @author GraviteeSource Team
  */
 @GatewayTest
@@ -97,6 +103,14 @@ class PathTraversalOrganizationGuardV4IntegrationTest extends AbstractGatewayTes
         if (isV4Api(definitionClass) && "beta".equals(api.getId())) {
             configurePlans((Api) api.getDefinition(), Set.of("api-key"));
         }
+    }
+
+    @Override
+    public void configureGateway(GatewayConfigurationBuilder configurationBuilder) {
+        // Explicit, because this class describes RAW, not "whatever the default happens to be".
+        // The guard it documents is the answer for a deployment that stays on RAW; under the
+        // NORMALIZE default the gateway resolves the path before the flow ever runs.
+        configurationBuilder.set("http.pathHandling", "RAW");
     }
 
     @Test
