@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.ProtocolVersion;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -169,6 +170,18 @@ public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
         JsonNode inheritNode = node.get("inherit");
         if (inheritNode != null) {
             endpoint.setInherit(inheritNode.asBoolean());
+        }
+
+        // h2c cleartext upgrade is an HTTP/2-only mechanism; it has no meaning for HTTP/1.1 (APIM-14613, APIM-14964).
+        // The endpoint's raw "http" config below is preserved verbatim in `configuration` (bypassing the typed
+        // HttpClientOptions model, whose own isClearTextUpgrade() masking never applies to this per-endpoint
+        // override), so the invariant must be enforced here, directly on the raw JSON, before it is persisted.
+        JsonNode httpNode = node.get("http");
+        if (httpNode != null && httpNode.isObject() && httpNode.path("clearTextUpgrade").asBoolean(false)) {
+            String version = httpNode.path("version").asText(ProtocolVersion.HTTP_1_1.name());
+            if (ProtocolVersion.HTTP_1_1.name().equals(version)) {
+                ((ObjectNode) httpNode).put("clearTextUpgrade", false);
+            }
         }
 
         // For extendable connector architecture, preserve the whole endpoint's configuration inlined
