@@ -22,16 +22,9 @@ export function initDynamicConfig(): Config {
    */
   dynamicConfig.defineParameter('gio_action', 'string', 'pull_requests', '', [
     'full_release',
-    'release',
-    'package_bundle',
-    'nexus_staging',
     'pull_requests',
-    'build_rpm',
-    'build_docker_images',
-    'release_notes_apim',
     'bridge_compatibility_tests',
     'publish_docker_images',
-    'release_helm',
     'repositories_tests',
     'run_e2e_tests',
   ]);
