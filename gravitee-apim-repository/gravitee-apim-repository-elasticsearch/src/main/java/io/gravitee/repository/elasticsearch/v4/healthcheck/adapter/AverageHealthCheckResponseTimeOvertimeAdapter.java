@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
+import io.gravitee.repository.elasticsearch.utils.HistogramGrid;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertime;
 import io.gravitee.repository.healthcheck.v4.model.AverageHealthCheckResponseTimeOvertimeQuery;
 import io.reactivex.rxjava3.core.Maybe;
@@ -64,11 +65,15 @@ public class AverageHealthCheckResponseTimeOvertimeAdapter
 
     private ObjectNode query(AverageHealthCheckResponseTimeOvertimeQuery query) {
         JsonNode termFilter = json().set("term", json().put("api", query.apiId()));
-        // we just ensure to fetch full bucket interval
-        Instant from = query.from().minus(query.interval());
-        Instant to = query.to().plus(query.interval());
+        // Align the bucket grid on the window itself. With the default epoch-aligned grid the bucket holding
+        // `from` starts before it, so the filter would have to reach back past `from` to fill it — and anything
+        // admitted there comes back as a bucket outside the window, because extended_bounds extends the
+        // returned range without clamping it. The upper bound stays open to the end of the last bucket so that
+        // bucket is complete, and stops at the end of that bucket so nothing can open one beyond the window.
+        Instant from = query.from();
+        Instant to = HistogramGrid.endOfLastBucket(query.from(), query.to(), query.interval());
 
-        ObjectNode timestamp = json().put("gte", from.toEpochMilli()).put("lte", to.toEpochMilli());
+        ObjectNode timestamp = json().put("gte", from.toEpochMilli()).put("lt", to.toEpochMilli());
         JsonNode rangeFilter = json().set("range", json().set(TIME_FIELD, timestamp));
 
         var bool = json().set("filter", array().add(termFilter).add(rangeFilter));
@@ -80,6 +85,7 @@ public class AverageHealthCheckResponseTimeOvertimeAdapter
         ObjectNode histogram = json()
             .put("field", TIME_FIELD)
             .put(intervalFieldName, query.interval().toMillis() + "ms")
+            .put("offset", HistogramGrid.offsetMillis(query.from(), query.interval()) + "ms")
             .put("min_doc_count", 0)
             .set(
                 "extended_bounds",
