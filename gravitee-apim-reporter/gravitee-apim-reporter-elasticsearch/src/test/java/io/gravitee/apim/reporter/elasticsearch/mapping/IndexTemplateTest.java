@@ -24,11 +24,14 @@ import io.gravitee.apim.reporter.elasticsearch.mapping.es8.ES8IndexPreparer;
 import io.gravitee.apim.reporter.elasticsearch.mapping.es9.ES9IndexPreparer;
 import io.gravitee.common.templating.FreeMarkerComponent;
 import io.gravitee.elasticsearch.utils.Type;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Asserts what the es{@code 7,8,9}x index templates actually render: the configured lifecycle property names
@@ -87,6 +90,48 @@ class IndexTemplateTest {
             .contains("\"index.lifecycle.rollover_alias\"")
             .doesNotContain("\"\":")
             .doesNotContain("\"  index.lifecycle.rollover_alias  \"");
+    }
+
+    /**
+     * Every rendered template whose dynamic templates map {@code additional-metrics.keyword_*}. OpenSearch has
+     * no preparer this harness can drive, so its templates are covered by the sibling test that reads them off
+     * the classpath.
+     */
+    static Stream<Arguments> es_trees_and_types_carrying_additional_keyword_metrics() {
+        return Stream.of("es7x", "es8x", "es9x").flatMap(esDir ->
+            Stream.of(Type.REQUEST, Type.V4_METRICS, Type.V4_MESSAGE_METRICS).map(type -> Arguments.of(esDir, type))
+        );
+    }
+
+    @ParameterizedTest(name = "{0} {1} bounds additional-metrics.keyword_* with ignore_above")
+    @MethodSource("es_trees_and_types_carrying_additional_keyword_metrics")
+    void should_bound_additional_keyword_metrics_so_one_oversized_value_cannot_break_indexing(String esDir, Type type) {
+        // additional-metrics.keyword_* carries values a client controls — the Kafka client.id arrives before
+        // authentication and the wire format allows 32767 bytes of it. Lucene's term limit is 32766, so an
+        // unbounded keyword makes Elasticsearch reject the bulk item and the connection record is lost.
+        // Defence in depth: the gateway bounds client.id at the source, this covers every keyword_* metric,
+        // including ones other plugins add later.
+        assertThat(preparerFor(esDir, configurationWithPolicies()).generateIndexTemplate(type))
+            .contains("\"additional-metrics.keyword_*\"")
+            .contains("\"ignore_above\"");
+    }
+
+    @ParameterizedTest(name = "{0} templates bound additional-metrics.keyword_* with ignore_above")
+    @ValueSource(strings = { "es7x", "es8x", "es9x", "opensearch" })
+    void should_bound_additional_keyword_metrics_in_every_template_family(String esDir) throws Exception {
+        // Read off the classpath rather than rendered, so OpenSearch — which has no preparer to drive — is
+        // covered by the same invariant as the rest.
+        var templates = List.of("index-template-request.ftl", "index-template-v4-metrics.ftl", "index-template-v4-message-metrics.ftl");
+
+        for (var template : templates) {
+            var path = "/freemarker/" + esDir + "/mapping/" + template;
+            try (var in = IndexTemplateTest.class.getResourceAsStream(path)) {
+                assertThat(in).as("%s is on the classpath", path).isNotNull();
+                var body = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+                assertThat(body).as("%s maps additional-metrics.keyword_*", path).contains("\"additional-metrics.keyword_*\"");
+                assertThat(body).as("%s bounds it with ignore_above", path).contains("\"ignore_above\"");
+            }
+        }
     }
 
     @Test
