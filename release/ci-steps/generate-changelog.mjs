@@ -1,7 +1,7 @@
 import { syncProcessCwd } from 'zx';
 import { computeVersion, extractVersion } from '../helpers/version-helper.mjs';
 import { getJiraIssuesOfVersions, getJiraVersions } from '../helpers/jira-helper.mjs';
-import { ChangelogSections, ComponentTypes, getTicketsFor, getTicketsForProduct, productKeysOf } from '../helpers/changelog-helper.mjs';
+import { ChangelogSections, getTicketSections } from '../helpers/changelog-helper.mjs';
 
 syncProcessCwd(); // restores legacy v7 behavior
 
@@ -42,22 +42,8 @@ let changelogPatchTemplate = `
 ## Gravitee API Management ${releasingVersion} - ${new Date().toLocaleDateString('en-US', dateOptions)}
 `;
 
-const productKeys = productKeysOf(issues);
-
 ChangelogSections.forEach((section) => {
-  let changelogSection = '';
-  [...ComponentTypes, 'Other'].forEach((componentType) => {
-    const ticketsForComponent = getTicketsFor(issues, componentType, section.ticketType);
-    if (ticketsForComponent) {
-      changelogSection += ticketsForComponent;
-    }
-  });
-  productKeys.forEach((projectKey) => {
-    const ticketsForProduct = getTicketsForProduct(issues, projectKey, section.ticketType);
-    if (ticketsForProduct) {
-      changelogSection += ticketsForProduct;
-    }
-  });
+  const changelogSection = getTicketSections(issues, section.ticketType).join('');
   if (changelogSection) {
     changelogPatchTemplate += `<details>
 
