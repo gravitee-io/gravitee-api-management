@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
+import io.gravitee.repository.elasticsearch.utils.HistogramGrid;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.ResponseTimeRangeQuery;
 import io.reactivex.rxjava3.core.Maybe;
@@ -89,11 +90,15 @@ public class ResponseTimeRangeQueryAdapter {
         var v2orv4 = json().put("minimum_should_match", 1).set("should", apiFilter);
         var filterQuery = json().set("bool", v2orv4);
 
-        // we just ensure to fetch full bucket interval (a bit too)
-        var from = query.from().minus(query.interval());
-        var to = query.to().plus(query.interval());
+        // Align the bucket grid on the window itself. With the default epoch-aligned grid the bucket holding
+        // `from` starts before it, so the filter would have to reach back past `from` to fill it — and anything
+        // admitted there comes back as a bucket outside the window, because extended_bounds extends the
+        // returned range without clamping it. The upper bound stays open to the end of the last bucket so that
+        // bucket is complete, and stops at the end of that bucket so nothing can open one beyond the window.
+        var from = query.from();
+        var to = HistogramGrid.endOfLastBucket(query.from(), query.to(), query.interval());
 
-        ObjectNode timestamp = json().put("gte", from.toEpochMilli()).put("lte", to.toEpochMilli());
+        ObjectNode timestamp = json().put("gte", from.toEpochMilli()).put("lt", to.toEpochMilli());
         JsonNode rangeFilter = json().set("range", json().set(TIME_FIELD, timestamp));
 
         var bool = json().set("filter", array().add(filterQuery).add(rangeFilter));
@@ -105,6 +110,7 @@ public class ResponseTimeRangeQueryAdapter {
         ObjectNode histogram = json()
             .put("field", TIME_FIELD)
             .put(intervalFieldName, query.interval().toMillis() + "ms")
+            .put("offset", HistogramGrid.offsetMillis(query.from(), query.interval()) + "ms")
             .put("min_doc_count", 0)
             .set(
                 "extended_bounds",
