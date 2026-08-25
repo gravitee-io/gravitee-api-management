@@ -1,13 +1,15 @@
 #!/usr/bin/env zx
 
 import { checkToken } from '../helpers/circleci-helper.mjs';
-import { computeVersion, extractVersion } from '../helpers/version-helper.mjs';
+import { assertVersionMatchesPom, computeVersion, extractVersion } from '../helpers/version-helper.mjs';
 import { isDryRun, getTargetBranch } from '../helpers/option-helper.mjs';
 
 await checkToken();
 
 const releasingVersion = await extractVersion();
 const versions = computeVersion(releasingVersion);
+const targetBranch = getTargetBranch(versions);
+await assertVersionMatchesPom(releasingVersion, targetBranch);
 
 console.log(chalk.green(`💪 Triggering Release Pipeline!\n`));
 
@@ -43,7 +45,6 @@ if (argv.latest) {
   }
 }
 
-const targetBranch = getTargetBranch(versions);
 if (argv.branch && argv.branch !== versions.branch) {
   const confirmBranch = await question(
     chalk.yellow(
