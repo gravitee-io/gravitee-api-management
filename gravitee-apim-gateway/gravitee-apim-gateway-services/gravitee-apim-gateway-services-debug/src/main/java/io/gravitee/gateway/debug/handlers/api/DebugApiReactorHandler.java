@@ -21,6 +21,7 @@ import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.debug.core.invoker.InvokerDebugDecorator;
 import io.gravitee.gateway.debug.definition.DebugApiV2;
+import io.gravitee.gateway.debug.definition.ReactableDebugApi;
 import io.gravitee.gateway.debug.reactor.handler.http.ContextualizedDebugHttpServerRequest;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.ApiReactorHandler;
@@ -45,6 +46,19 @@ public class DebugApiReactorHandler extends ApiReactorHandler {
         TracingContext tracingContext
     ) {
         super(configuration, api, accessPointManager, eventManager, httpAcceptorFactory, tracingContext);
+    }
+
+    /**
+     * The debug session this handler was deployed for.
+     *
+     * <p>Exposed because a caller holding only the {@code ReactorHandler} has no other way to reach
+     * it: {@code reactable} is protected and the interface declares no accessor. The dispatcher
+     * needs it to close the session of a request it refused before any reactor could run — and an
+     * API in V3 execution mode is served by this class rather than by an {@code ApiReactor}, so
+     * matching on that interface alone silently leaves this engine out.
+     */
+    public ReactableDebugApi<?> debugApi() {
+        return (ReactableDebugApi<?>) reactable;
     }
 
     @Override

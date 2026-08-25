@@ -150,20 +150,17 @@ class VertxHttpServerRequestOptionsTest {
     }
 
     @Nested
-    class The_deprecated_constructors {
+    class The_deprecated_constructor {
 
+        /**
+         * The two-argument form is the only one this branch inherited, so it is the only one a
+         * plugin can have been compiled against and the only one worth keeping alive.
+         */
         @Test
         void should_still_report_the_native_path() {
             var request = new VertxHttpServerRequest(serverRequest, idGenerator);
 
             assertThat(request.path()).isEqualTo(NATIVE_PATH);
-        }
-
-        @Test
-        void should_still_honour_a_supplied_path() {
-            var request = new VertxHttpServerRequest(serverRequest, idGenerator, RESOLVED_PATH);
-
-            assertThat(request.path()).isEqualTo(RESOLVED_PATH);
         }
     }
 }

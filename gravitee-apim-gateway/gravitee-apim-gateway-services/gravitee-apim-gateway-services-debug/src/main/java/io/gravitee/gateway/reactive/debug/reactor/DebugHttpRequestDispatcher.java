@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.debug.reactor;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.debug.definition.ReactableDebugApi;
+import io.gravitee.gateway.debug.handlers.api.DebugApiReactorHandler;
 import io.gravitee.gateway.debug.vertx.VertxHttpServerRequestDebugDecorator;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestClientAuthConfiguration;
@@ -38,7 +39,6 @@ import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
 import io.gravitee.gateway.reactive.reactor.DefaultHttpRequestDispatcher;
 import io.gravitee.gateway.reactive.reactor.handler.HttpAcceptorResolver;
-import io.gravitee.gateway.reactive.reactor.path.RequestPathRejection;
 import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
@@ -121,42 +121,59 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
      * failing to match an acceptor means something is wrong well upstream of this decision.
      */
     @Override
-    public Completable dispatch(final HttpServerRequest httpServerRequest, final String serverId) {
-        if (!RequestPathRejection.applies(requestPathConfiguration, httpServerRequest.path())) {
-            return super.dispatch(httpServerRequest, serverId);
-        }
-        return dispatchRejected(httpServerRequest, serverId, System.currentTimeMillis());
-    }
-
-    private Completable dispatchRejected(final HttpServerRequest httpServerRequest, final String serverId, final long receivedAt) {
-        final MutableExecutionContext ctx = prepareExecutionContext(httpServerRequest, serverId, null, receivedAt);
-        ctx.request().contextPath("/");
-
-        // Resolving here decides nothing about routing — the request is refused either way. It only
-        // names the session to close. The raw path still matches: the acceptor compares prefixes and
-        // the debug context path the daemon prepends sits ahead of whatever the user typed.
-        final ReactableDebugApi<?> debugApi = resolveDebugApi(httpServerRequest, serverId);
-        if (debugApi != null) {
-            ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, debugApi);
-        }
-
-        final ProcessorChain rejectedChain = notFoundProcessorChainFactory.rejectedPathProcessorChain();
-        final Completable reject = rejectedChain.execute(ctx, ExecutionPhase.RESPONSE);
+    protected Completable afterRejectedPath(final Completable rejection, final MutableExecutionContext ctx) {
+        // Resolving here decides nothing about routing — the request has already been refused. It
+        // only names the session to close. The raw path still matches: the acceptor compares
+        // prefixes and the debug context path the daemon prepends sits ahead of whatever was typed.
+        final ReactableDebugApi<?> debugApi = resolveDebugApi(ctx);
 
         if (debugApi == null) {
             // Nothing identifies the session, so there is nothing to close. Answering is still right.
-            log.warn("Rejected debug request on path {} could not be matched to a debug API", httpServerRequest.path());
-            return reject;
+            ctx.withLogger(log).warn("Rejected debug request on path {} could not be matched to a debug API", ctx.request().path());
+            return rejection;
         }
-        return reject.andThen(Completable.defer(() -> debugCompletionProcessor.execute((HttpExecutionContextInternal) ctx)));
+
+        // doFinally rather than andThen, and for one reason: the session must be closed on failure
+        // and on cancellation too. Ending the response throws when the client has already gone, and
+        // the debug verticle disposes this chain when the connection closes — either would otherwise
+        // leave the event in DEBUGGING and the console spinning, which is the dead end this exists
+        // to close.
+        return rejection.doFinally(() -> {
+            // Set here rather than before the rejected chain: two of its processors read this same
+            // attribute to decide whether to report, and finding it set would make them follow the
+            // API's own analytics configuration instead of handlers.rejected.analytics.enabled.
+            ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, debugApi);
+            debugCompletionProcessor
+                .execute((HttpExecutionContextInternal) ctx)
+                .subscribe(
+                    () -> {},
+                    throwable -> ctx.withLogger(log).error("Failed to close the debug session for a rejected path", throwable)
+                );
+        });
     }
 
-    private ReactableDebugApi<?> resolveDebugApi(final HttpServerRequest httpServerRequest, final String serverId) {
-        final HttpAcceptor acceptor = httpAcceptorResolver.resolve(httpServerRequest.host(), httpServerRequest.path(), serverId);
-        if (acceptor != null && acceptor.reactor() instanceof ApiReactor<?> apiReactor) {
-            return apiReactor.api() instanceof ReactableDebugApi<?> reactableDebugApi ? reactableDebugApi : null;
+    /**
+     * Both engines, deliberately. A v4 definition — and a v2 one under emulation — is deployed
+     * behind an {@link ApiReactor}, but a v2 definition whose execution mode is {@code V3} is served
+     * by a {@link DebugApiReactorHandler}, which is a plain {@code ReactorHandler} and never an
+     * {@code ApiReactor}. Matching the interface alone left that engine with the endless spinner
+     * this class exists to remove, and said so in a warning claiming no debug API had matched —
+     * while the acceptor had matched perfectly well.
+     */
+    private ReactableDebugApi<?> resolveDebugApi(final MutableExecutionContext ctx) {
+        final HttpAcceptor acceptor = httpAcceptorResolver.resolve(
+            ctx.request().host(),
+            ctx.request().path(),
+            ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SERVER_ID)
+        );
+        if (acceptor == null) {
+            return null;
         }
-        return null;
+        return switch (acceptor.reactor()) {
+            case ApiReactor<?> apiReactor when apiReactor.api() instanceof ReactableDebugApi<?> api -> api;
+            case DebugApiReactorHandler handler -> handler.debugApi();
+            case null, default -> null;
+        };
     }
 
     @Override
