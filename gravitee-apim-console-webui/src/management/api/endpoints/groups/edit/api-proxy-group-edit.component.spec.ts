@@ -129,7 +129,7 @@ describe('ApiProxyGroupEditComponent', () => {
               },
             },
             httpClientOptions: {
-              clearTextUpgrade: undefined,
+              clearTextUpgrade: false,
               connectTimeout: 5000,
               followRedirects: false,
               idleTimeout: 60000,
@@ -189,7 +189,7 @@ describe('ApiProxyGroupEditComponent', () => {
               },
             },
             httpClientOptions: {
-              clearTextUpgrade: undefined,
+              clearTextUpgrade: false,
               connectTimeout: 5000,
               followRedirects: false,
               idleTimeout: 60000,

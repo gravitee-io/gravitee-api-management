@@ -138,6 +138,17 @@ describe('ApiPropertiesComponent', () => {
     });
   });
 
+  it('should default clearTextUpgrade to false for a brand-new HTTP/1.1 endpoint with no httpClientOptions', async () => {
+    const newEndpointFormGroup = EndpointHttpConfigComponent.getHttpConfigFormGroup({}, false);
+    const newEndpointFixture = TestBed.createComponent(EndpointHttpConfigComponent);
+    newEndpointFixture.componentInstance.httpConfigFormGroup = newEndpointFormGroup;
+    newEndpointFixture.componentInstance.ngOnChanges();
+    newEndpointFixture.detectChanges();
+
+    expect(EndpointHttpConfigComponent.getHttpConfigValue(newEndpointFormGroup).httpClientOptions.version).toEqual('HTTP_1_1');
+    expect(EndpointHttpConfigComponent.getHttpConfigValue(newEndpointFormGroup).httpClientOptions.clearTextUpgrade).toEqual(false);
+  });
+
   it('should set useCompression=false and propagateClientAcceptEncoding=true', async () => {
     const propagateClientAcceptEncoding = await endpointHttpConfigHarness.getMatSlideToggle('propagateClientAcceptEncoding');
     expect(await propagateClientAcceptEncoding.isDisabled()).toEqual(true);
