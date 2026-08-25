@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { sharedPolicyGroupDetailHref, sharedPolicyGroupHistoryHref } from './sharedPolicyGroupDetailNavigation';
+/*
+ * The design system ships a prebuilt stylesheet, so arbitrary-value utilities such as
+ * `w-[min(90rem,calc(100vw-4rem))]` are never compiled and silently do nothing.
+ * Dialogs that need more room than the default therefore size themselves inline.
+ */
 
-describe('sharedPolicyGroupDetailNavigation', () => {
-    it('opens the studio directly because detail tabs are not displayed', () => {
-        expect(sharedPolicyGroupDetailHref('spg-1')).toBe('spg-1/studio');
-    });
+/** Width for dialogs showing JSON source or diffs, capped so the page stays visible around it. */
+export const WIDE_DIALOG_STYLE = { width: '90rem', maxWidth: 'calc(100vw - 4rem)' } as const;
 
-    it('keeps the Shared Policy Group id in the version history href', () => {
-        expect(sharedPolicyGroupHistoryHref('spg-1')).toBe('spg-1/history');
-    });
-});
+/** Height of the scrollable area inside a wide dialog. */
+export const WIDE_DIALOG_CONTENT_STYLE = { height: '58vh', maxHeight: '32rem' } as const;

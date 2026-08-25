@@ -29,6 +29,7 @@ import {
     SharedPolicyGroupEditSheet,
     type SharedPolicyGroupEditFormValues,
 } from '../features/shared-policy-groups/components/SharedPolicyGroupEditSheet';
+import { SharedPolicyGroupRemoveDialog } from '../features/shared-policy-groups/components/SharedPolicyGroupRemoveDialog';
 import { SharedPolicyGroupsTable } from '../features/shared-policy-groups/components/SharedPolicyGroupsTable';
 import {
     useCreateSharedPolicyGroup,
@@ -49,7 +50,6 @@ import {
     ENVIRONMENT_SHARED_POLICY_GROUP_PERMISSION_PREFIX,
     ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION,
 } from '../features/shared-policy-groups/utils/sharedPolicyGroupPermissions';
-import { ConfirmDialog } from '../shared/components/ConfirmDialog';
 import { useForbiddenResourceRedirect } from '../shared/hooks/useForbiddenResourceRedirect';
 import { notify } from '../shared/notify';
 import { isForbiddenApiError } from '../shared/utils/apiErrors';
@@ -229,24 +229,9 @@ export function SharedPolicyGroupsPage() {
                 />
             ) : null}
 
-            <ConfirmDialog
+            <SharedPolicyGroupRemoveDialog
                 open={sheet.type === 'delete'}
                 onOpenChange={isOpen => !isOpen && closeSheet()}
-                title="Remove Shared Policy Group"
-                description={
-                    <span className="block space-y-2">
-                        <span className="block">Are you sure you want to remove this Shared Policy Group?</span>
-                        <span className="block">
-                            If this Shared Policy Group is used in API flows, be sure to inform API publishers before making this change.
-                        </span>
-                        <span className="block">
-                            If an API flow still uses this Shared Policy Group, the API flow will ignore it and continue to run.
-                        </span>
-                    </span>
-                }
-                confirmLabel="Remove"
-                pendingLabel="Removing…"
-                destructive
                 isPending={deleteMutation.isPending}
                 onConfirm={handleDelete}
             />

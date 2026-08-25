@@ -109,10 +109,6 @@ jest.mock('../features/shared-policy-groups/components/SharedPolicyGroupDetailLa
     };
 });
 
-jest.mock('../pages/SharedPolicyGroupDetailPage', () => ({
-    SharedPolicyGroupDetailPage: () => <div data-testid="shared-policy-group-overview-page" />,
-}));
-
 jest.mock('../pages/SharedPolicyGroupStudioPage', () => ({
     SharedPolicyGroupStudioPage: () => <div data-testid="shared-policy-group-studio-page" />,
 }));
@@ -447,17 +443,24 @@ describe('AppRoutes', () => {
         expect(screen.getByTestId('shared-policy-group-studio-page')).not.toBeNull();
     });
 
-    it.each([
-        ['overview', 'shared-policy-group-overview-page'],
-        ['history', 'shared-policy-group-history-page'],
-    ])('routes to the shared policy group %s tab', (tab, testId) => {
+    it('redirects the removed overview route to the studio', () => {
         render(
-            <MemoryRouter initialEntries={[`/shared-policy-groups/spg-1/${tab}`]}>
+            <MemoryRouter initialEntries={['/shared-policy-groups/spg-1/overview']}>
                 <AppRoutes />
             </MemoryRouter>,
         );
 
-        expect(screen.getByTestId(testId)).not.toBeNull();
+        expect(screen.getByTestId('shared-policy-group-studio-page')).not.toBeNull();
+    });
+
+    it('routes to Shared Policy Group version history from the overflow action', () => {
+        render(
+            <MemoryRouter initialEntries={['/shared-policy-groups/spg-1/history']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('shared-policy-group-history-page')).not.toBeNull();
     });
 
     it('redirects unknown shared policy group detail routes to the studio tab', () => {

@@ -20,7 +20,10 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Outlet, Route, Routes } from 'react-router-dom';
 
 import { SharedPolicyGroupStudioPage } from './SharedPolicyGroupStudioPage';
-import { useUpdateSharedPolicyGroup } from '../features/shared-policy-groups/hooks/useSharedPolicyGroupMutations';
+import {
+    useDeploySharedPolicyGroup,
+    useUpdateSharedPolicyGroup,
+} from '../features/shared-policy-groups/hooks/useSharedPolicyGroupMutations';
 import type { SharedPolicyGroup } from '../features/shared-policy-groups/types/sharedPolicyGroup';
 import { notify } from '../shared/notify';
 
@@ -39,14 +42,19 @@ jest.mock('../features/shared-policy-groups/components/SharedPolicyGroupPolicySt
     SharedPolicyGroupPolicyStudio: ({
         readOnly,
         onSave,
+        onDeploy,
     }: {
         readOnly: boolean;
-        onSave: (steps: Array<{ policy: string }>) => Promise<void>;
+        onSave: (steps: Array<{ policy: string }>) => Promise<SharedPolicyGroup>;
+        onDeploy: () => Promise<void>;
     }) => (
         <div>
             <span>{readOnly ? 'Read only studio' : 'Editable studio'}</span>
             <button type="button" onClick={() => void onSave([{ policy: 'jwt' }])}>
                 Save studio
+            </button>
+            <button type="button" onClick={() => void onDeploy()}>
+                Deploy studio
             </button>
         </div>
     ),
@@ -55,6 +63,7 @@ jest.mock('../features/shared-policy-groups/components/SharedPolicyGroupPolicySt
 const mockUseHasPermission = jest.mocked(useHasPermission);
 const mockUseQuery = jest.mocked(useQuery);
 const mockUseUpdateSharedPolicyGroup = jest.mocked(useUpdateSharedPolicyGroup);
+const mockUseDeploySharedPolicyGroup = jest.mocked(useDeploySharedPolicyGroup);
 
 const BASE: SharedPolicyGroup = {
     id: 'spg-1',
@@ -76,7 +85,8 @@ function renderPage(sharedPolicyGroup: SharedPolicyGroup) {
 }
 
 describe('SharedPolicyGroupStudioPage', () => {
-    const mutateAsync = jest.fn();
+    const updateAsync = jest.fn();
+    const deployAsync = jest.fn();
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -87,9 +97,14 @@ describe('SharedPolicyGroupStudioPage', () => {
             isError: false,
         } as ReturnType<typeof useQuery>);
         mockUseUpdateSharedPolicyGroup.mockReturnValue({
-            mutateAsync,
+            mutateAsync: updateAsync,
         } as unknown as ReturnType<typeof useUpdateSharedPolicyGroup>);
-        mutateAsync.mockResolvedValue(BASE);
+        mockUseDeploySharedPolicyGroup.mockReturnValue({
+            mutateAsync: deployAsync,
+            isPending: false,
+        } as unknown as ReturnType<typeof useDeploySharedPolicyGroup>);
+        updateAsync.mockResolvedValue(BASE);
+        deployAsync.mockResolvedValue(BASE);
     });
 
     it('loads an editable Policy Studio and saves steps through the Shared Policy Group update endpoint', async () => {
@@ -99,7 +114,7 @@ describe('SharedPolicyGroupStudioPage', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Save studio' }));
 
         await waitFor(() =>
-            expect(mutateAsync).toHaveBeenCalledWith({
+            expect(updateAsync).toHaveBeenCalledWith({
                 id: 'spg-1',
                 payload: {
                     name: 'Auth Bundle',
@@ -110,6 +125,22 @@ describe('SharedPolicyGroupStudioPage', () => {
             }),
         );
         expect(notify.success).toHaveBeenCalledWith('Shared Policy Group updated');
+    });
+
+    it('deploys through the lifecycle endpoint', async () => {
+        renderPage(BASE);
+
+        fireEvent.click(screen.getByRole('button', { name: 'Deploy studio' }));
+        await waitFor(() => expect(deployAsync).toHaveBeenCalledWith('spg-1'));
+        expect(notify.success).toHaveBeenCalledWith('Shared Policy Group deployed successfully');
+    });
+
+    it('reports deploy failures', async () => {
+        deployAsync.mockRejectedValueOnce(new Error('Deploy failed'));
+        renderPage(BASE);
+
+        fireEvent.click(screen.getByRole('button', { name: 'Deploy studio' }));
+        await waitFor(() => expect(notify.error).toHaveBeenCalledWith(expect.any(Error), 'Error during Shared Policy Group deployment!'));
     });
 
     it.each([

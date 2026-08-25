@@ -17,7 +17,14 @@
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { createSharedPolicyGroup, deleteSharedPolicyGroup, updateSharedPolicyGroup } from '../services/sharedPolicyGroups';
+import {
+    createSharedPolicyGroup,
+    deleteSharedPolicyGroup,
+    deploySharedPolicyGroup,
+    restoreSharedPolicyGroup,
+    undeploySharedPolicyGroup,
+    updateSharedPolicyGroup,
+} from '../services/sharedPolicyGroups';
 import type { CreateSharedPolicyGroupPayload, SharedPolicyGroup, UpdateSharedPolicyGroupPayload } from '../types/sharedPolicyGroup';
 import { sharedPolicyGroupKeys } from '../utils/queryKeys';
 
@@ -52,4 +59,16 @@ export function useUpdateSharedPolicyGroup() {
 
 export function useDeleteSharedPolicyGroup() {
     return useSharedPolicyGroupMutation<string, void>(deleteSharedPolicyGroup);
+}
+
+export function useDeploySharedPolicyGroup() {
+    return useSharedPolicyGroupMutation<string, SharedPolicyGroup>(deploySharedPolicyGroup);
+}
+
+export function useUndeploySharedPolicyGroup() {
+    return useSharedPolicyGroupMutation<string, SharedPolicyGroup>(undeploySharedPolicyGroup);
+}
+
+export function useRestoreSharedPolicyGroup() {
+    return useSharedPolicyGroupMutation<SharedPolicyGroup, SharedPolicyGroup>(restoreSharedPolicyGroup);
 }

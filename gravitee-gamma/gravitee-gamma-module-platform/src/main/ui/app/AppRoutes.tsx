@@ -78,7 +78,6 @@ import { MetadataPage } from '../pages/MetadataPage';
 import { OrganizationGroupsPage } from '../pages/OrganizationGroupsPage';
 import { OrgAuditLogsPage } from '../pages/OrgAuditLogsPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
-import { SharedPolicyGroupDetailPage } from '../pages/SharedPolicyGroupDetailPage';
 import { SharedPolicyGroupHistoryPage } from '../pages/SharedPolicyGroupHistoryPage';
 import { SharedPolicyGroupsPage } from '../pages/SharedPolicyGroupsPage';
 import { SharedPolicyGroupStudioPage } from '../pages/SharedPolicyGroupStudioPage';
@@ -571,7 +570,6 @@ export function AppRoutes() {
                                     }
                                 >
                                     <Route index element={<Navigate to="studio" replace />} />
-                                    <Route path="overview" element={<SharedPolicyGroupDetailPage />} />
                                     <Route path="studio" element={<SharedPolicyGroupStudioPage />} />
                                     <Route path="history" element={<SharedPolicyGroupHistoryPage />} />
                                     <Route path="*" element={<Navigate to="../studio" replace />} />

@@ -14,24 +14,10 @@
  * limitations under the License.
  */
 
-/** Child routes under `shared-policy-groups/:sharedPolicyGroupId`. */
-export const SHARED_POLICY_GROUP_DETAIL_TABS = [
-    { path: 'overview', label: 'Overview' },
-    { path: 'studio', label: 'Studio' },
-    { path: 'history', label: 'History' },
-] as const;
-
-export type SharedPolicyGroupDetailTabPath = (typeof SHARED_POLICY_GROUP_DETAIL_TABS)[number]['path'];
-
-export const SHARED_POLICY_GROUP_DEFAULT_TAB: SharedPolicyGroupDetailTabPath = 'studio';
-
-export function isSharedPolicyGroupDetailTabPath(value: string): value is SharedPolicyGroupDetailTabPath {
-    return SHARED_POLICY_GROUP_DETAIL_TABS.some(tab => tab.path === value);
+export function sharedPolicyGroupDetailHref(sharedPolicyGroupId: string): string {
+    return `${sharedPolicyGroupId}/studio`;
 }
 
-export function sharedPolicyGroupDetailHref(
-    sharedPolicyGroupId: string,
-    tab: SharedPolicyGroupDetailTabPath = SHARED_POLICY_GROUP_DEFAULT_TAB,
-): string {
-    return `${sharedPolicyGroupId}/${tab}`;
+export function sharedPolicyGroupHistoryHref(sharedPolicyGroupId: string): string {
+    return `${sharedPolicyGroupId}/history`;
 }
