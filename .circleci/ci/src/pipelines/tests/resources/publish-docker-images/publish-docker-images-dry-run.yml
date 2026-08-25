@@ -149,6 +149,7 @@ jobs:
             BUILD_ID: "1234"
             BUILD_NUMBER: "1234"
             GIT_COMMIT: 784ff35ca
+            MAVEN_OPTS: -Xmx2048m
       - cmd-notify-on-failure
       - save_cache:
           paths:
