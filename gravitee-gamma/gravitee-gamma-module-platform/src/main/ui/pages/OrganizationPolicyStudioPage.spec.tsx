@@ -149,6 +149,13 @@ describe('OrganizationPolicyStudioPage', () => {
         expect(screen.getByText('flow mode: DEFAULT')).toBeTruthy();
     });
 
+    it('says which phases the platform flows reach, without shouting it at screen readers', async () => {
+        await renderLoadedPage();
+
+        expect(screen.getByRole('region', { name: 'Platform flows scope' })).toBeTruthy();
+        expect(screen.getByText(/run on the request and response phases of every API in this organization/, { exact: false })).toBeTruthy();
+    });
+
     it('offers the organization sharding tags to the flow form', async () => {
         await renderLoadedPage();
 

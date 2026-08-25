@@ -16,6 +16,7 @@
 
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Alert, AlertDescription, Skeleton, useLayoutConfig } from '@gravitee/graphene-core';
+import { InfoIcon } from '@gravitee/graphene-core/icons';
 import { PolicyStudio, type ApiProtocolType, type Policy, type SaveOutput } from '@gravitee/graphene-policy-studio';
 import { useCallback, useState } from 'react';
 
@@ -28,7 +29,7 @@ import { getPolicyDocumentation, getPolicySchema } from '../shared/services/poli
 /** Platform flows run around every HTTP API, so they belong to no plan and to no connector. */
 const EMPTY_LIST = [] as const;
 
-/** Platform flows only run around HTTP proxies, so schemas and docs are always asked for that protocol. */
+/** Platform flows are designed on the HTTP request/response phases: schemas and docs are asked for that protocol. */
 const PLATFORM_PROTOCOL_TYPE: ApiProtocolType = 'HTTP_PROXY';
 
 interface PendingDeployment {
@@ -92,22 +93,38 @@ export function OrganizationPolicyStudioPage() {
 
     return (
         <>
-            <PolicyStudio
-                scope="ORGANIZATION"
-                apiType="PROXY"
-                policies={studioData.policies}
-                organizationTags={studioData.organizationTags}
-                commonFlows={studioData.commonFlows}
-                flowExecution={studioData.flowExecution}
-                sharedPolicyGroups={EMPTY_LIST}
-                plans={EMPTY_LIST}
-                entrypointsInfo={EMPTY_LIST}
-                endpointsInfo={EMPTY_LIST}
-                readOnly={!canUpdate}
-                onSave={onSave}
-                onFetchPolicySchema={onFetchPolicySchema}
-                onFetchPolicyDocumentation={onFetchPolicyDocumentation}
-            />
+            <div className="flex h-full min-h-0 flex-col">
+                {/* Same inset as the studio's own chrome: its sidebar toolbar and info bar both sit at px-2.5 py-2. */}
+                <div className="shrink-0 px-2.5 py-2">
+                    {/* A standing statement of scope, not an interruption — override Alert's assertive `role="alert"`. */}
+                    <Alert role="region" aria-label="Platform flows scope">
+                        <InfoIcon className="size-4" aria-hidden />
+                        <AlertDescription>
+                            Platform flows run on the request and response phases of every API in this organization, before and after each
+                            API&apos;s own flows. Native Kafka APIs have no such phases and are left untouched.
+                        </AlertDescription>
+                    </Alert>
+                </div>
+                {/* The studio draws no outer edge of its own: it expects to own the whole content area. */}
+                <div className="min-h-0 flex-1 border-t">
+                    <PolicyStudio
+                        scope="ORGANIZATION"
+                        apiType="PROXY"
+                        policies={studioData.policies}
+                        organizationTags={studioData.organizationTags}
+                        commonFlows={studioData.commonFlows}
+                        flowExecution={studioData.flowExecution}
+                        sharedPolicyGroups={EMPTY_LIST}
+                        plans={EMPTY_LIST}
+                        entrypointsInfo={EMPTY_LIST}
+                        endpointsInfo={EMPTY_LIST}
+                        readOnly={!canUpdate}
+                        onSave={onSave}
+                        onFetchPolicySchema={onFetchPolicySchema}
+                        onFetchPolicyDocumentation={onFetchPolicyDocumentation}
+                    />
+                </div>
+            </div>
             <DeployPlatformPoliciesDialog
                 open={pendingDeployment !== null}
                 isDeploying={saveMutation.isPending}
