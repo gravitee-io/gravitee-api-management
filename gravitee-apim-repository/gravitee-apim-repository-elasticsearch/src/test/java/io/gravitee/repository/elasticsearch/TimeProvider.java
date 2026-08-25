@@ -17,6 +17,7 @@ package io.gravitee.repository.elasticsearch;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -56,6 +57,36 @@ public class TimeProvider {
     private static final Duration START_OF_DAY_MARGIN = Duration.ofMinutes(30);
 
     /**
+     * Time of day the traffic samples sit at.
+     *
+     * <p>A sample may follow the clock, as the health-check and monitoring ones do, as long as every assertion
+     * made about it follows too — those tests query a window built from the same reference, so the two never
+     * drift apart. The traffic samples are different: some of their documents carry an hour written into the
+     * template while others interpolate the reference, so a moving reference changes the distance between the
+     * two. Documents that fall in distinct time buckets at one hour of the day then merge into a single bucket
+     * at another, and any assertion that counts buckets becomes a function of when the build runs.
+     *
+     * <p>The value is squeezed between two bounds, both measured rather than assumed:
+     *
+     * <ul>
+     *   <li>after 00:01, because the day-sized windows in {@code MetricsElasticsearchRepositoryTest} open at
+     *       {@code withHour(0).withMinute(1)}. Set to midnight, two of them stop seeing these samples;</li>
+     *   <li>before the moment the build starts, because {@code ElasticsearchAnalyticsRepositoryTest} queries
+     *       {@code lastDays(30)}, whose upper bound is the wall clock: a sample dated later is invisible to it.
+     *       The nightly of 2026-08-24 started at 00:16 UTC, which leaves room but not much.</li>
+     * </ul>
+     *
+     * <p>No constant closes that band completely: a build reaching {@code testCountWithTwoApis} in the four
+     * minutes between 00:01 and this value would count four documents instead of seven. Closing it for good
+     * means moving those two lower bounds off 00:01, which is a change to tests this one does not touch.
+     *
+     * <p>It also has to stay below the ten minute interval used by
+     * {@code should_return_response_status_for_api_v2_and_v4}: that test reads the current day's samples in
+     * the bucket its window closes on, and expects the average they produce.
+     */
+    private static final LocalTime TRAFFIC_SAMPLE_TIME = LocalTime.of(0, 5);
+
+    /**
      * Reference instant shared by the whole Elasticsearch test module, frozen for the lifetime of the JVM.
      *
      * <p>Sample data is indexed once against this instant, and every test asserting on it must resolve
@@ -80,6 +111,8 @@ public class TimeProvider {
     private final String dateYesterday;
     private final String dateTimeToday;
     private final String dateTimeYesterday;
+    private final String trafficDateTimeToday;
+    private final String trafficDateTimeYesterday;
     private final String todayWithDot;
     private final String yesterdayWithDot;
 
@@ -93,8 +126,20 @@ public class TimeProvider {
         dateTimeToday = DATE_TIME_FORMATTER_WITH_DASH.format(now);
         dateTimeYesterday = DATE_TIME_FORMATTER_WITH_DASH.format(yesterday);
 
+        final Instant trafficToday = trafficSampleInstant();
+        trafficDateTimeToday = DATE_TIME_FORMATTER_WITH_DASH.format(trafficToday);
+        trafficDateTimeYesterday = DATE_TIME_FORMATTER_WITH_DASH.format(trafficToday.minus(1, ChronoUnit.DAYS));
+
         todayWithDot = DATE_FORMATTER_WITH_DOT.format(now);
         yesterdayWithDot = DATE_FORMATTER_WITH_DOT.format(yesterday);
+    }
+
+    /**
+     * @return the instant the traffic samples sit at, today. Tests asserting on them must build their windows
+     *         from this rather than from {@link #now()}.
+     */
+    public static Instant trafficSampleInstant() {
+        return REFERENCE.atZone(ZONE).toLocalDate().atTime(TRAFFIC_SAMPLE_TIME).atZone(ZONE).toInstant();
     }
 
     /**
