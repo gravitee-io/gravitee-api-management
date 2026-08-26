@@ -131,6 +131,18 @@ jest.mock('../pages/GroupDetailPage', () => ({
     GroupDetailPage: () => <div data-testid="group-detail-page" />,
 }));
 
+jest.mock('../pages/RolesPage', () => ({
+    RolesPage: () => <div data-testid="roles-page" />,
+}));
+
+jest.mock('../pages/RoleFormPage', () => ({
+    RoleFormPage: () => <div data-testid="role-form-page" />,
+}));
+
+jest.mock('../pages/RoleMembersPage', () => ({
+    RoleMembersPage: () => <div data-testid="role-members-page" />,
+}));
+
 jest.mock('../pages/SharedPolicyGroupsPage', () => ({
     SharedPolicyGroupsPage: () => <div data-testid="shared-policy-groups-page" />,
 }));
@@ -381,6 +393,35 @@ describe('AppRoutes', () => {
         expect(screen.getByTestId('group-detail-page')).not.toBeNull();
     });
 
+    it('routes to the Roles page under the platform module', () => {
+        render(
+            <MemoryRouter initialEntries={['/roles']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('roles-page')).not.toBeNull();
+    });
+
+    it('routes to the Role form page for create and edit', () => {
+        render(
+            <MemoryRouter initialEntries={['/roles/API']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+        expect(screen.getByTestId('role-form-page')).not.toBeNull();
+    });
+
+    it('routes to the Role members page', () => {
+        render(
+            <MemoryRouter initialEntries={['/roles/ORGANIZATION/ADMIN/members']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('role-members-page')).not.toBeNull();
+    });
+
     it('shows Organization, Environment, and Team in the primary sidebar', () => {
         renderPlatform();
 
@@ -425,6 +466,30 @@ describe('AppRoutes', () => {
         renderPlatform('/groups');
 
         expect(visibleNavKeys()).not.toContain('groups');
+    });
+
+    it('shows the Roles nav item when the user has read permission', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'roles',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        renderPlatform('/roles');
+
+        expect(visibleNavKeys()).toContain('roles');
+    });
+
+    it('hides the Roles nav item when the user lacks organization-role-r', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'roles',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('organization-role-r'));
+
+        renderPlatform('/roles');
+
+        expect(visibleNavKeys()).not.toContain('roles');
     });
 
     it('shows the Dictionaries nav item when the user has read permission', () => {

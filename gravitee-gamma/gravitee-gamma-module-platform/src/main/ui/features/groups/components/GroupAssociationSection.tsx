@@ -15,7 +15,7 @@
  */
 
 import { GroupMembershipTable } from './GroupMembershipTable';
-import { SectionError } from './SectionError';
+import { SectionError } from '../../../shared/components/SectionError';
 import type { GroupMembershipItem } from '../types/group';
 
 interface GroupAssociationSectionProps {

@@ -55,7 +55,6 @@ import { GroupRemoveMemberDialog } from '../features/groups/components/GroupRemo
 import { GroupSettingsSection } from '../features/groups/components/GroupSettingsSection';
 import { GroupSheet, type GroupFormValues } from '../features/groups/components/GroupSheet';
 import { GroupTooManyUsersDialog } from '../features/groups/components/GroupTooManyUsersDialog';
-import { SectionError } from '../features/groups/components/SectionError';
 import { useCurrentUserIsGroupAdmin } from '../features/groups/hooks/useCurrentUserGroupAdmin';
 import {
     useEnvironmentSettings,
@@ -77,6 +76,7 @@ import {
     ENVIRONMENT_GROUP_UPDATE_PERMISSION,
 } from '../features/groups/utils/groupPermissions';
 import { ConfirmDialog } from '../shared/components/ConfirmDialog';
+import { SectionError } from '../shared/components/SectionError';
 import { notify } from '../shared/notify';
 
 interface AssociationCopy {

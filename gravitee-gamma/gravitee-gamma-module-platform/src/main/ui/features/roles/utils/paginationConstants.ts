@@ -14,25 +14,4 @@
  * limitations under the License.
  */
 
-/**
- * Subset of GET /organizations/{orgId}/console (ConsoleConfigEntity; Angular `entities/consoleSettings`).
- * Extend here when platform features need more org settings fields.
- */
-export interface ConsoleSettings {
-    userGroup?: {
-        required?: {
-            enabled?: boolean;
-        };
-    };
-    cloudHosted?: {
-        enabled?: boolean;
-    };
-    alert?: {
-        enabled?: boolean;
-    };
-    management?: {
-        systemRoleEdition?: {
-            enabled?: boolean;
-        };
-    };
-}
+export const ROLE_SEARCH_DEBOUNCE_MS = 300;

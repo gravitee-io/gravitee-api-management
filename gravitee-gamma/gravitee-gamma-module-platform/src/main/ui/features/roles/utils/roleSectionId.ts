@@ -13,26 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { RoleScope } from '../types/role';
 
-/**
- * Subset of GET /organizations/{orgId}/console (ConsoleConfigEntity; Angular `entities/consoleSettings`).
- * Extend here when platform features need more org settings fields.
- */
-export interface ConsoleSettings {
-    userGroup?: {
-        required?: {
-            enabled?: boolean;
-        };
-    };
-    cloudHosted?: {
-        enabled?: boolean;
-    };
-    alert?: {
-        enabled?: boolean;
-    };
-    management?: {
-        systemRoleEdition?: {
-            enabled?: boolean;
-        };
-    };
+/** Anchor id for a scope's card, shared between RolesPage and RolesTableOfContents. */
+export function roleSectionId(scope: RoleScope): string {
+    return `role-scope-${scope}`;
 }

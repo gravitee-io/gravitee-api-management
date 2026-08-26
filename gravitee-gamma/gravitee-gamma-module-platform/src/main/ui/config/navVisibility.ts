@@ -21,6 +21,7 @@ import { ENVIRONMENT_AUDIT_READ_PERMISSION, ORGANIZATION_AUDIT_READ_PERMISSION }
 import { ENVIRONMENT_GROUP_READ_PERMISSION } from '../features/groups/utils/groupPermissions';
 import { ORGANIZATION_NOTIFICATION_TEMPLATES_READ } from '../features/notification-templates/utils/permissions';
 import { ORGANIZATION_POLICIES_ACCESS_PERMISSIONS } from '../features/platform-policies/utils/platformPolicyPermissions';
+import { ORGANIZATION_ROLE_READ_PERMISSION } from '../features/roles/utils/rolePermissionConstants';
 import { ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION } from '../features/shared-policy-groups/utils/sharedPolicyGroupPermissions';
 import { ORGANIZATION_USER_ACCESS_PERMISSIONS } from '../features/users/utils/userPermissions';
 
@@ -81,6 +82,7 @@ export const NAV_ITEM_PERMISSIONS: Readonly<Record<string, readonly string[]>> =
     'environment-audit': [ENVIRONMENT_AUDIT_READ_PERMISSION],
     users: ORGANIZATION_USER_ACCESS_PERMISSIONS,
     groups: [ENVIRONMENT_GROUP_READ_PERMISSION],
+    roles: [ORGANIZATION_ROLE_READ_PERMISSION],
 };
 
 const MODULE_LEAF_KEYS: ReadonlySet<string> = new Set(ROUTE_KEYS);

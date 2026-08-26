@@ -39,3 +39,9 @@ export const organizationKeys = {
     all: ['organization'] as const,
     detail: () => [...organizationKeys.all, 'detail'] as const,
 } as const;
+
+/** Shared across every "add member" search field — one cache entry per query regardless of feature. */
+export const organizationUserSearchKeys = {
+    all: ['org-user-search'] as const,
+    search: (query: string) => [...organizationUserSearchKeys.all, query] as const,
+} as const;

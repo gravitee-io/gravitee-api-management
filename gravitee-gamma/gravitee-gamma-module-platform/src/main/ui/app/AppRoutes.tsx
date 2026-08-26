@@ -56,6 +56,7 @@ import { APIM_AUDIT_TRAIL_FEATURE } from '../features/audit-logs/license/auditTr
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
 import { GatewayInstanceDetailLayout } from '../features/gateway-instances/components/GatewayInstanceDetailLayout';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
+import { ORGANIZATION_ROLE_UPDATE_PERMISSION } from '../features/roles/utils/rolePermissionConstants';
 import { SecurityPlanTypesPage } from '../features/security-plan-types/SecurityPlanTypesPage';
 import { usePermissionServiceSnapshot } from '../features/shared/hooks/usePermissionServiceSnapshot';
 import { SharedPolicyGroupDetailLayout } from '../features/shared-policy-groups/components/SharedPolicyGroupDetailLayout';
@@ -86,6 +87,9 @@ import { OrganizationPolicyStudioPage } from '../pages/OrganizationPolicyStudioP
 import { OrgAuditLogsPage } from '../pages/OrgAuditLogsPage';
 import { PlatformNoAccessPage } from '../pages/PlatformNoAccessPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
+import { RoleFormPage } from '../pages/RoleFormPage';
+import { RoleMembersPage } from '../pages/RoleMembersPage';
+import { RolesPage } from '../pages/RolesPage';
 import { SharedPolicyGroupHistoryPage } from '../pages/SharedPolicyGroupHistoryPage';
 import { SharedPolicyGroupsPage } from '../pages/SharedPolicyGroupsPage';
 import { SharedPolicyGroupStudioPage } from '../pages/SharedPolicyGroupStudioPage';
@@ -534,6 +538,40 @@ export function AppRoutes() {
                                         <NavPermissionGuard itemKey="groups">
                                             <GroupDetailPage />
                                         </NavPermissionGuard>
+                                    }
+                                />
+                            </Route>
+                            <Route path="roles">
+                                <Route
+                                    index
+                                    element={
+                                        <NavPermissionGuard itemKey="roles">
+                                            <RolesPage />
+                                        </NavPermissionGuard>
+                                    }
+                                />
+                                <Route
+                                    path=":roleScope"
+                                    element={
+                                        <PermissionPageGuard anyOf={[ORGANIZATION_ROLE_UPDATE_PERMISSION]} unauthorizedTo="..">
+                                            <RoleFormPage />
+                                        </PermissionPageGuard>
+                                    }
+                                />
+                                <Route
+                                    path=":roleScope/:roleName"
+                                    element={
+                                        <PermissionPageGuard anyOf={[ORGANIZATION_ROLE_UPDATE_PERMISSION]} unauthorizedTo="..">
+                                            <RoleFormPage />
+                                        </PermissionPageGuard>
+                                    }
+                                />
+                                <Route
+                                    path=":roleScope/:roleName/members"
+                                    element={
+                                        <PermissionPageGuard anyOf={[ORGANIZATION_ROLE_UPDATE_PERMISSION]} unauthorizedTo="..">
+                                            <RoleMembersPage />
+                                        </PermissionPageGuard>
                                     }
                                 />
                             </Route>

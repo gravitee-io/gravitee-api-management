@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CloudIcon, FileTextIcon, GlobeIcon, MailIcon, UsersIcon, UsersRoundIcon } from '@gravitee/graphene-core/icons';
+import { CloudIcon, FileTextIcon, GlobeIcon, MailIcon, ShieldIcon, UsersIcon, UsersRoundIcon } from '@gravitee/graphene-core/icons';
 
 import { filterNavSections, findNavSectionKey, firstNavItemKey, lockNavItem, NAV_SECTIONS, platformPrimaryNavItems } from './navigation';
 import { PLATFORM_ROUTE_CONFIG, ROUTES } from './routes';
@@ -77,13 +77,15 @@ describe('platform navigation config', () => {
         ]);
     });
 
-    it('places Users and Groups under Team', () => {
+    it('places Users, Groups, and Roles under Team', () => {
         const teamGroup = NAV_SECTIONS.find(section => section.key === 'team')?.groups.find(group => group.label === 'Team');
-        expect(teamGroup?.items.map(item => item.key)).toEqual(['users', 'groups']);
+        expect(teamGroup?.items.map(item => item.key)).toEqual(['users', 'groups', 'roles']);
         expect(teamGroup?.items[0]?.title).toBe('Users');
         expect(teamGroup?.items[0]?.icon).toBe(UsersIcon);
         expect(teamGroup?.items[1]?.title).toBe('Groups');
         expect(teamGroup?.items[1]?.icon).toBe(UsersRoundIcon);
+        expect(teamGroup?.items[2]?.title).toBe('Roles');
+        expect(teamGroup?.items[2]?.icon).toBe(ShieldIcon);
     });
 
     it('builds unlabeled primary items from visible sections', () => {
@@ -142,6 +144,12 @@ describe('platform navigation config', () => {
     it('declares the groups route in platform routing config', () => {
         expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('groups');
         expect(ROUTES.groups).toEqual({ path: 'groups', label: 'Groups' });
+    });
+
+    it('declares the roles route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('roles');
+        expect(ROUTES.roles).toEqual({ path: 'roles', label: 'Roles' });
+        expect(findNavSectionKey(NAV_SECTIONS, 'roles')).toBe('team');
     });
 
     it('declares the tenants route in platform routing config', () => {

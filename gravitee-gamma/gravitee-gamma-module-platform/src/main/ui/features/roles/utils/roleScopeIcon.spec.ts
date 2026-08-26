@@ -13,26 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { getRoleScopeIcon } from './roleScopeIcon';
 
-/**
- * Subset of GET /organizations/{orgId}/console (ConsoleConfigEntity; Angular `entities/consoleSettings`).
- * Extend here when platform features need more org settings fields.
- */
-export interface ConsoleSettings {
-    userGroup?: {
-        required?: {
-            enabled?: boolean;
-        };
-    };
-    cloudHosted?: {
-        enabled?: boolean;
-    };
-    alert?: {
-        enabled?: boolean;
-    };
-    management?: {
-        systemRoleEdition?: {
-            enabled?: boolean;
-        };
-    };
-}
+describe('getRoleScopeIcon', () => {
+    it.each(['API', 'APPLICATION', 'ENVIRONMENT', 'ORGANIZATION', 'INTEGRATION', 'API_PRODUCT', 'AI_WORKSPACE'] as const)(
+        'returns an icon for %s',
+        scope => {
+            expect(getRoleScopeIcon(scope)).toBeDefined();
+        },
+    );
+
+    it.each(['CLUSTER', 'EXPLORER'] as const)('returns no icon for %s, matching the Angular default case', scope => {
+        expect(getRoleScopeIcon(scope)).toBeUndefined();
+    });
+});
