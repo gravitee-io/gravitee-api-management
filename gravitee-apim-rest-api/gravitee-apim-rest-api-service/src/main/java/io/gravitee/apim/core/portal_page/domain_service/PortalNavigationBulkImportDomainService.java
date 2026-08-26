@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
+import io.gravitee.apim.core.portal_page.domain_service.validation.ValidationDepth;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.ImportedFileContentType;
@@ -299,6 +300,20 @@ public class PortalNavigationBulkImportDomainService {
         boolean fromManifest
     ) {
         try {
+            // Fails closed rather than creating a page the tree can no longer protect: past this many
+            // levels the walk looking for a sourced ancestor gives up, and the imported page stops
+            // being recognised as source-managed and read-only.
+            if (destinationDepthOf(entry.destinationPath()) >= ValidationDepth.MAX_TREE_DEPTH) {
+                return BulkImportResult.FileImportResult.failure(
+                    entry.title(),
+                    "Destination %s of %s nests more than %d levels below the imported folder.".formatted(
+                        entry.destinationPath(),
+                        entry.sourcePath(),
+                        ValidationDepth.MAX_TREE_DEPTH - 1
+                    )
+                );
+            }
+
             // Nothing is looked up or created before the file is known to be a document: resolving the
             // destination creates the folders along the way, and a repository's .github/workflows has
             // no business showing up in the navigation tree.
@@ -468,6 +483,17 @@ public class PortalNavigationBulkImportDomainService {
                 itemsToVisit.addAll(queryService.findByParentIdAndEnvironmentId(rootFolder.getEnvironmentId(), item.getId()));
             }
         }
+    }
+
+    /** Number of folder levels the destination adds below the imported root folder. */
+    private static int destinationDepthOf(String destinationPath) {
+        var depth = 0;
+        for (var pathElement : destinationPath.split("/")) {
+            if (!pathElement.isBlank()) {
+                depth++;
+            }
+        }
+        return depth;
     }
 
     private static String unsupportedDocumentError(String sourcePath) {

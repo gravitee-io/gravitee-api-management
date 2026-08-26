@@ -20,12 +20,13 @@ import lombok.CustomLog;
 
 /**
  * Navigation trees are shallow by design; this bound only exists so that a corrupted parent chain
- * cannot loop forever.
+ * cannot loop forever. Anything that builds a chain — the repository import — must stay under it,
+ * because the walks give up rather than fail when they reach it.
  */
 @CustomLog
-final class ValidationDepth {
+public final class ValidationDepth {
 
-    static final int MAX_TREE_DEPTH = 50;
+    public static final int MAX_TREE_DEPTH = 50;
 
     private ValidationDepth() {}
 
