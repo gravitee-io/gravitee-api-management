@@ -127,6 +127,9 @@ class IndexPreparerIntegrationTest {
                     new Endpoint("http://" + openSearchContainer.getHost() + ":" + openSearchContainer.getMappedPort(9200))
                 )
             );
+            // Without a policy the lifecycle block never renders, so nothing would prove the cluster accepts it.
+            configuration.setIndexLifecyclePolicyEventMetrics("policy-event-metrics");
+            configuration.setIndexLifecyclePolicyAuthzDecisions("policy-authz-decisions");
             return configuration;
         }
 

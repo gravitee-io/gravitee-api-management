@@ -1522,6 +1522,80 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         }
 
         @Nested
+        class AuthzDecisions {
+
+            private static final String AUTHZ_API = "authz-api-001";
+
+            private static Filter api() {
+                return new Filter(Filter.Name.API, Filter.Operator.IN, List.of(AUTHZ_API));
+            }
+
+            @Test
+            void should_count_decisions_from_the_authz_decisions_data_stream() {
+                var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)));
+
+                var result = cut.searchAuthzMeasures(QUERY_CONTEXT, new MeasuresQuery(buildTimeRange(), List.of(api()), metrics));
+
+                assertThat(result.measures()).hasSize(1);
+                assertThat(result.measures().getFirst().measures().get(Measure.COUNT).longValue()).isEqualTo(6L);
+            }
+
+            @Test
+            void should_facet_decisions_on_a_keyword_field() {
+                var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)));
+
+                var result = cut.searchAuthzFacets(
+                    QUERY_CONTEXT,
+                    new FacetsQuery(buildTimeRange(), List.of(api()), metrics, List.of(Facet.AUTHZ_ACTION))
+                );
+
+                assertThat(result.metrics()).hasSize(1);
+                assertThat(result.metrics().getFirst().metric()).isEqualTo(Metric.AUTHZ_DECISIONS);
+                assertThat(result.metrics().getFirst().buckets()).satisfiesExactlyInAnyOrder(
+                    bucket -> {
+                        assertThat(bucket.key()).isEqualTo("read");
+                        assertThat(bucket.measures().get(Measure.COUNT).longValue()).isEqualTo(4L);
+                    },
+                    bucket -> {
+                        assertThat(bucket.key()).isEqualTo("write");
+                        assertThat(bucket.measures().get(Measure.COUNT).longValue()).isEqualTo(1L);
+                    },
+                    bucket -> {
+                        assertThat(bucket.key()).isEqualTo("delete");
+                        assertThat(bucket.measures().get(Measure.COUNT).longValue()).isEqualTo(1L);
+                    }
+                );
+            }
+
+            @Test
+            void should_bucket_decisions_over_time() {
+                var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)));
+
+                var result = cut.searchAuthzTimeSeries(
+                    QUERY_CONTEXT,
+                    new TimeSeriesQuery(buildTimeRange(), List.of(api()), Duration.ofHours(1).toMillis(), metrics)
+                );
+
+                assertThat(result.metrics()).hasSize(1);
+                assertThat(result.metrics().getFirst().metric()).isEqualTo(Metric.AUTHZ_DECISIONS);
+
+                var buckets = result.metrics().getFirst().buckets();
+                assertThat(buckets)
+                    .isNotEmpty()
+                    .allSatisfy(bucket -> assertThat(bucket.timestamp()).isNotNull());
+
+                var counts = buckets
+                    .stream()
+                    .map(bucket -> bucket.measures().get(Measure.COUNT).longValue())
+                    .toList();
+                assertThat(counts.stream().mapToLong(Long::longValue).sum()).isEqualTo(6L);
+                // The fixture spans three minutes, so it straddles at most one hourly boundary, and which side
+                // each document falls on moves with the clock: TimeProvider backdates from Instant.now().
+                assertThat(counts.stream().filter(count -> count > 0)).hasSizeBetween(1, 2);
+            }
+        }
+
+        @Nested
         class HTTPMeasures {
 
             static MeasuresQuery buildQuery() {

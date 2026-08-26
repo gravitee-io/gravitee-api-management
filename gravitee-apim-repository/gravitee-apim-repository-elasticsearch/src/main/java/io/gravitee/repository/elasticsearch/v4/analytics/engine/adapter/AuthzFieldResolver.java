@@ -22,9 +22,6 @@ import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.Fiel
 
 public class AuthzFieldResolver implements FieldResolver {
 
-    public static final String DOC_TYPE_FIELD = "doc-type";
-    public static final String DOC_TYPE_AUTHZ = "authz";
-
     private static final String DECISION = "decision";
     private static final String STATUS = "status";
     private static final String STATUS_SUCCESS = "success";

@@ -68,20 +68,6 @@ class AuthzFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
     }
 
     @Test
-    void should_keep_the_doc_type_filter_on_a_faceted_query() {
-        var query = new FacetsQuery(
-            buildTimeRange(),
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT))),
-            List.of(Facet.AUTHZ_ACTION)
-        );
-
-        var filters = new JsonObject(adapter.adapt(query)).getJsonObject("query").getJsonObject("bool").getJsonArray("filter");
-
-        assertThat(filters.encode()).contains("\"doc-type\":\"authz\"");
-    }
-
-    @Test
     void should_nest_a_decision_scoped_metric_filter_inside_the_terms_bucket() {
         var query = new FacetsQuery(
             buildTimeRange(),

@@ -23,7 +23,6 @@ package io.gravitee.repository.elasticsearch.v4.log.adapter.authz;
  */
 final class AuthzDecisionLogFields {
 
-    static final String DOC_TYPE = "doc-type";
     static final String API_ID = "api-id";
     static final String ORG_ID = "org-id";
     static final String ENV_ID = "env-id";

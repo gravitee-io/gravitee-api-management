@@ -23,7 +23,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Optional;
 
 /**
- * Reads authorization outcomes from the event-metrics data stream. Separate from
+ * Reads authorization outcomes from the authz-decisions data stream. Separate from
  * {@link ConnectionLogsCrudService} because a decision is not an HTTP exchange and lives in a
  * different index.
  *

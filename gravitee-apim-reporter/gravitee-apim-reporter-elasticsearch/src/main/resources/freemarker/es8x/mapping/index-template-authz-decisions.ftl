@@ -4,17 +4,17 @@
     "data_stream": {},
     "template": {
         "settings": {
-            <#if indexLifecyclePolicyEventMetrics?has_content>"${indexLifecyclePolicyPropertyName?json_string}": "${indexLifecyclePolicyEventMetrics?json_string}",</#if>
+            <#if indexLifecyclePolicyAuthzDecisions?has_content>"${indexLifecyclePolicyPropertyName?json_string}": "${indexLifecyclePolicyAuthzDecisions?json_string}",</#if>
             "index.number_of_shards":${numberOfShards},
             "index.number_of_replicas":${numberOfReplicas},
             "index.refresh_interval": "${refreshInterval}"
         },
         "mappings": {
-            <#include "../../common/mapping/event-metrics-mapping.ftl">
+            <#include "../../common/mapping/authz-decisions-mapping.ftl">
         }
     },
     "priority": 9344593,
     "_meta": {
-        "description": "Template for event metrics time series data stream"
+        "description": "Template for authorization decisions time series data stream"
     }
 }

@@ -34,7 +34,6 @@ class FindAuthzDecisionLogQueryAdapterTest {
               "query": {
                 "bool": {
                   "filter": [
-                    { "term": { "doc-type": "authz" } },
                     { "term": { "api-id": "api-1" } },
                     { "term": { "event-id": "evt-9" } }
                   ]
@@ -50,14 +49,14 @@ class FindAuthzDecisionLogQueryAdapterTest {
     void scopes_by_api_so_an_event_id_from_another_api_cannot_be_read() {
         var result = FindAuthzDecisionLogQueryAdapter.adapt("api-1", "evt-9");
 
-        assertThatJson(result).inPath("$.query.bool.filter[1].term.api-id").isEqualTo("api-1");
+        assertThatJson(result).inPath("$.query.bool.filter[0].term.api-id").isEqualTo("api-1");
     }
 
     @Test
     void keys_on_event_id_because_a_batch_shares_one_request_id() {
         var result = FindAuthzDecisionLogQueryAdapter.adapt("api-1", "evt-9");
 
-        assertThatJson(result).inPath("$.query.bool.filter[2].term.event-id").isEqualTo("evt-9");
-        assertThatJson(result).node("query.bool.filter").isArray().hasSize(3);
+        assertThatJson(result).inPath("$.query.bool.filter[1].term.event-id").isEqualTo("evt-9");
+        assertThatJson(result).node("query.bool.filter").isArray().hasSize(2);
     }
 }

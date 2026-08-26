@@ -42,7 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *   <li>{@code conn-disconnect-001}   @T10:30 — DISCONNECTED after 30 minutes, app-001/plan-001/sub-A</li>
  * </ul>
  */
-public class MetricsElasticsearchRepositoryTest_FindNativeApiMetrics extends AbstractElasticsearchRepositoryTest {
+public class MetricsElasticsearchRepositoryFindNativeApiMetricsTest extends AbstractElasticsearchRepositoryTest {
 
     /** Window [today 09:00 UTC, today 11:00 UTC) covering all native fixture events. */
     private static final long FROM_MILLIS =

@@ -41,7 +41,6 @@ class SearchAuthzDecisionLogsQueryAdapterTest {
               "query": {
                 "bool": {
                   "filter": [
-                    { "term": { "doc-type": "authz" } },
                     { "terms": { "api-id": ["api-1"] } },
                     { "range": { "@timestamp": { "gte": 1000, "lte": 2000 } } }
                   ]
@@ -57,15 +56,6 @@ class SearchAuthzDecisionLogsQueryAdapterTest {
             }
             """
         );
-    }
-
-    @Test
-    void pins_doc_type_so_the_shared_event_metrics_stream_yields_decisions_only() {
-        var query = AuthzDecisionLogQuery.builder().apiIds(Set.of("api-1")).build();
-
-        var result = SearchAuthzDecisionLogsQueryAdapter.adapt(query);
-
-        assertThatJson(result).inPath("$.query.bool.filter[0].term.doc-type").isEqualTo("authz");
     }
 
     @Test
@@ -89,7 +79,7 @@ class SearchAuthzDecisionLogsQueryAdapterTest {
 
         var result = SearchAuthzDecisionLogsQueryAdapter.adapt(query);
 
-        assertThatJson(result).inPath("$.query.bool.filter").isArray().hasSize(2);
+        assertThatJson(result).inPath("$.query.bool.filter").isArray().hasSize(1);
         assertThatJson(result).inPath("$.from").isEqualTo(0);
         assertThatJson(result).inPath("$.size").isEqualTo(20);
     }
@@ -101,7 +91,7 @@ class SearchAuthzDecisionLogsQueryAdapterTest {
         var result = SearchAuthzDecisionLogsQueryAdapter.adapt(query);
 
         assertThatJson(result)
-            .inPath("$.query.bool.filter[2].range.@timestamp")
+            .inPath("$.query.bool.filter[1].range.@timestamp")
             .isEqualTo(
                 """
                 { "gte": 1000 }
@@ -116,7 +106,7 @@ class SearchAuthzDecisionLogsQueryAdapterTest {
         var result = SearchAuthzDecisionLogsQueryAdapter.adapt(query);
 
         assertThatJson(result)
-            .inPath("$.query.bool.filter[2].terms.decision")
+            .inPath("$.query.bool.filter[1].terms.decision")
             .isEqualTo(
                 """
                 [ "FORBID" ]
@@ -137,27 +127,27 @@ class SearchAuthzDecisionLogsQueryAdapterTest {
         var result = SearchAuthzDecisionLogsQueryAdapter.adapt(query);
 
         assertThatJson(result)
-            .inPath("$.query.bool.filter[2].terms.subject-id")
+            .inPath("$.query.bool.filter[1].terms.subject-id")
             .isEqualTo(
                 """
                 [ "alice" ]
                 """
             );
         assertThatJson(result)
-            .inPath("$.query.bool.filter[3].terms.action")
+            .inPath("$.query.bool.filter[2].terms.action")
             .isEqualTo(
                 """
                 [ "read" ]
                 """
             );
         assertThatJson(result)
-            .inPath("$.query.bool.filter[4].terms.resource-id")
+            .inPath("$.query.bool.filter[3].terms.resource-id")
             .isEqualTo(
                 """
                 [ "doc-1" ]
                 """
             );
-        assertThatJson(result).inPath("$.query.bool.filter[5].terms.caller").isArray().hasSize(2);
+        assertThatJson(result).inPath("$.query.bool.filter[4].terms.caller").isArray().hasSize(2);
     }
 
     @Test
@@ -166,8 +156,8 @@ class SearchAuthzDecisionLogsQueryAdapterTest {
 
         var result = SearchAuthzDecisionLogsQueryAdapter.adapt(query);
 
-        // doc-type + api-id only: an empty terms clause would match nothing and silently empty the table.
-        assertThatJson(result).inPath("$.query.bool.filter").isArray().hasSize(2);
+        // api-id only: an empty terms clause would match nothing and silently empty the table.
+        assertThatJson(result).inPath("$.query.bool.filter").isArray().hasSize(1);
     }
 
     @Test
@@ -176,7 +166,7 @@ class SearchAuthzDecisionLogsQueryAdapterTest {
 
         var result = SearchAuthzDecisionLogsQueryAdapter.adapt(query);
 
-        assertThatJson(result).inPath("$.query.bool.filter").isArray().hasSize(2);
+        assertThatJson(result).inPath("$.query.bool.filter").isArray().hasSize(1);
     }
 
     @Test
@@ -242,9 +232,9 @@ class SearchAuthzDecisionLogsQueryAdapterTest {
         var result = SearchAuthzDecisionLogsQueryAdapter.adapt(query);
 
         // Nested objects are separate Lucene documents: without the wrapper this matches nothing.
-        assertThatJson(result).inPath("$.query.bool.filter[2].nested.path").isEqualTo("\"matched-policies\"");
+        assertThatJson(result).inPath("$.query.bool.filter[1].nested.path").isEqualTo("\"matched-policies\"");
         assertThatJson(result)
-            .inPath("$.query.bool.filter[2].nested.query.terms['matched-policies.name']")
+            .inPath("$.query.bool.filter[1].nested.query.terms['matched-policies.name']")
             .isEqualTo(
                 """
                 [ "forbid-delete" ]

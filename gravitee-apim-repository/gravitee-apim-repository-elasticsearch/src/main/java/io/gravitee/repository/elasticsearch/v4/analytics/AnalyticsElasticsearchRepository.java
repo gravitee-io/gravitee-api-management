@@ -384,7 +384,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public MeasuresResult searchAuthzMeasures(QueryContext queryContext, MeasuresQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.EVENT_METRICS, clusters);
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.AUTHZ_DECISIONS, clusters);
         var esQuery = authzMeasuresQueryAdapter.adapt(query);
 
         log.debug("Authz measures query: {}", esQuery);
@@ -397,7 +397,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public FacetsResult searchAuthzFacets(QueryContext queryContext, FacetsQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.EVENT_METRICS, clusters);
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.AUTHZ_DECISIONS, clusters);
         var esQuery = authzFacetsQueryAdapter.adapt(query);
 
         log.debug("Authz facets query: {}", esQuery);
@@ -410,7 +410,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public TimeSeriesResult searchAuthzTimeSeries(QueryContext queryContext, TimeSeriesQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.EVENT_METRICS, clusters);
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.AUTHZ_DECISIONS, clusters);
         var esQuery = authzTimeSeriesQueryAdapter.adapt(query);
 
         log.debug("Authz time series query: {}", esQuery);

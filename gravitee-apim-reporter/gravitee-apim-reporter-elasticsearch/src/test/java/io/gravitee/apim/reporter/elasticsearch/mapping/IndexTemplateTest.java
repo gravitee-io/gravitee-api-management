@@ -42,9 +42,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 class IndexTemplateTest {
 
     /**
-     * Every type whose template can render lifecycle settings. EVENT_METRICS is excluded because
-     * {@link AbstractIndexPreparer#getTemplateData()} never puts its policy into the model, so its
-     * lifecycle block cannot render whatever the configuration says. es7x is kept alongside es8x/es9x
+     * Every dated-index type. The two data streams are covered separately: they render a policy but must
+     * not carry a rollover alias, so they cannot share these assertions. es7x is kept alongside es8x/es9x
      * because it is the odd one out structurally — its settings sit at the root rather than under
      * {@code template} — and it is pushed through the legacy template API.
      */
@@ -154,12 +153,53 @@ class IndexTemplateTest {
             .contains("\"bad\\\"policy\"");
     }
 
+    static Stream<Arguments> es_trees_and_data_stream_types() {
+        return Stream.of("es7x", "es8x", "es9x").flatMap(esDir ->
+            Stream.of(Type.EVENT_METRICS, Type.AUTHZ_DECISIONS).map(type -> Arguments.of(esDir, type))
+        );
+    }
+
+    @ParameterizedTest(name = "{0} {1} renders the configured lifecycle policy")
+    @MethodSource("es_trees_and_data_stream_types")
+    void should_render_the_lifecycle_policy_of_a_data_stream(String esDir, Type type) {
+        assertThat(preparerFor(esDir, configurationWithPolicies()).generateIndexTemplate(type)).contains(
+            "\"index.lifecycle.name\": \"policy-" + type.getType() + "\""
+        );
+    }
+
+    @ParameterizedTest(name = "{0} {1} sets no rollover alias")
+    @MethodSource("es_trees_and_data_stream_types")
+    void should_not_set_a_rollover_alias_on_a_data_stream(String esDir, Type type) {
+        // A data stream rolls over on its own; Elasticsearch rejects the alias ILM uses for dated indexes.
+        assertThat(preparerFor(esDir, configurationWithPolicies()).generateIndexTemplate(type)).doesNotContain("rollover_alias");
+    }
+
+    @ParameterizedTest(name = "{0} data stream templates escape the policy they interpolate")
+    @ValueSource(strings = { "es7x", "es8x", "es9x", "opensearch" })
+    void should_escape_the_lifecycle_policy_in_every_data_stream_template(String esDir) throws Exception {
+        // Read off the classpath so OpenSearch, which has no preparer to drive here, is held to the same rule.
+        for (var template : List.of("index-template-event-metrics.ftl", "index-template-authz-decisions.ftl")) {
+            var path = "/freemarker/" + esDir + "/mapping/" + template;
+            try (var in = IndexTemplateTest.class.getResourceAsStream(path)) {
+                assertThat(in).as("%s is on the classpath", path).isNotNull();
+                var body = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+                assertThat(body)
+                    .as("%s escapes the policy name", path)
+                    .doesNotContain("${indexLifecyclePolicyEventMetrics}")
+                    .doesNotContain("${indexLifecyclePolicyAuthzDecisions}");
+                assertThat(body).as("%s sets no rollover alias", path).doesNotContain("rollover_alias");
+            }
+        }
+    }
+
     private static ReporterConfiguration configurationWithPolicies() {
         var configuration = new ReporterConfiguration();
         configuration.setIndexLifecyclePolicyHealth("policy-health");
         configuration.setIndexLifecyclePolicyMonitor("policy-monitor");
         configuration.setIndexLifecyclePolicyRequest("policy-request");
         configuration.setIndexLifecyclePolicyLog("policy-log");
+        configuration.setIndexLifecyclePolicyEventMetrics("policy-event-metrics");
+        configuration.setIndexLifecyclePolicyAuthzDecisions("policy-authz-decisions");
         return configuration;
     }
 

@@ -23,6 +23,7 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.buffer.Buffer;
 import jakarta.annotation.PostConstruct;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,7 +59,8 @@ public class DatabaseHydrator {
             "v4-metrics",
             "v4-message-log",
             "v4-message-metrics",
-            "event-metrics"
+            "event-metrics",
+            "authz-decisions"
         );
         createTemplate(indexTypes).andThen(Single.defer(() -> client.bulk(prepareData(indexTypes), true))).ignoreElement().blockingAwait();
     }
@@ -84,10 +86,7 @@ public class DatabaseHydrator {
             })
             .flatMapCompletable(entry -> {
                 if (this.anatlyticsDatabase.getDatabaseType() == AnatlyticsDatabase.DatabaseType.ELASTICSEARCH) {
-                    if (
-                        this.anatlyticsDatabase.getDatabaseMajorVersion().equals("7") &&
-                        !entry.getKey().contains(Type.EVENT_METRICS.getType())
-                    ) {
+                    if (this.anatlyticsDatabase.getDatabaseMajorVersion().equals("7") && !isDataStream(entry.getKey())) {
                         return client.putTemplate(entry.getKey(), entry.getValue());
                     }
                     return client.putIndexTemplate(entry.getKey(), entry.getValue());
@@ -104,7 +103,7 @@ public class DatabaseHydrator {
             .map(type -> {
                 Map<String, Object> data = new HashMap<>();
 
-                if (Type.EVENT_METRICS.getType().equals(type)) {
+                if (isDataStream(type)) {
                     data.putIfAbsent("index", indexTemplate(type, this.timeProvider.getTodayWithDot()));
                     this.timeProvider.setTimestamps(data);
                 } else {
@@ -131,6 +130,10 @@ public class DatabaseHydrator {
             })
             .map(Buffer::buffer)
             .toList();
+    }
+
+    private static boolean isDataStream(String typeOrIndexName) {
+        return Arrays.stream(Type.TYPES).filter(Type::isDataStream).map(Type::getType).anyMatch(typeOrIndexName::contains);
     }
 
     private String indexTemplate(String type, String date) {

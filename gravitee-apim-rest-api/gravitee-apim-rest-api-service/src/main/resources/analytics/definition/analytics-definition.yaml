@@ -1536,7 +1536,7 @@ spec:
               - PLAN
               - NATIVE_OPERATION
 
-        # Authorization decision events, from the authz event-metrics doc-type (see AuthzFieldResolver).
+        # Authorization decision events, from the authz-decisions data stream (see AuthzFieldResolver).
         - name: AUTHZ_DECISIONS
           label: Decisions
           apis:
