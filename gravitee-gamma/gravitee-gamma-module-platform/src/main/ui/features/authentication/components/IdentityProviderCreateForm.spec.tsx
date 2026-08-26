@@ -152,6 +152,8 @@ describe('IdentityProviderCreateForm', () => {
         });
     });
 
+    // Types across 6 fields (~80 chars) plus 4 button clicks — the most sequential user-event work of any test
+    // in this file, which pushed it past the default 5000ms timeout under loaded CI runners.
     it('wires the OpenID Connect scopes error to the scopes field', async () => {
         renderForm();
         fireEvent.click(screen.getByRole('radio', { name: /OpenID Connect/i }));
@@ -172,5 +174,5 @@ describe('IdentityProviderCreateForm', () => {
         expect(scopes.getAttribute('aria-describedby')).toBe('idp-oidc-scopes-error');
         expect(scopes.getAttribute('aria-required')).toBe('true');
         expect(mutateAsync).not.toHaveBeenCalled();
-    });
+    }, 10000);
 });

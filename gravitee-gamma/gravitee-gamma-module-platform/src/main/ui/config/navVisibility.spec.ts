@@ -125,9 +125,9 @@ describe('platform nav visibility', () => {
         expect(isNavItemVisible('missing', visibility(['environment-application-r']))).toBe(false);
     });
 
-    it('shows Applications, Shared Policy Groups, and Groups for ENVIRONMENT:USER with org USER', () => {
+    it('shows Applications, Shared Policy Groups, Groups, and Roles for ENVIRONMENT:USER with org USER', () => {
         const keys = visibleNavItemKeys(visibility([...ORGANIZATION_USER, ...ENVIRONMENT_USER]));
-        expect(keys.sort()).toEqual(['applications', 'groups', 'shared-policy-groups']);
+        expect(keys.sort()).toEqual(['applications', 'groups', 'roles', 'shared-policy-groups']);
         expect(
             firstVisibleNavItemKey(NAV_SECTIONS, itemKey =>
                 isNavItemVisible(itemKey, visibility([...ORGANIZATION_USER, ...ENVIRONMENT_USER])),
@@ -135,11 +135,13 @@ describe('platform nav visibility', () => {
         ).toBe('applications');
     });
 
-    it('shows no Platform items for FEDERATION_AGENT with org USER', () => {
+    it('shows only Roles for FEDERATION_AGENT with org USER', () => {
+        // FEDERATION_AGENT itself grants no environment-scoped Platform item; Roles is visible purely on
+        // ORGANIZATION_USER's own organization-role-r, which every org member already carries.
         const input = visibility([...ORGANIZATION_USER, ...FEDERATION_AGENT]);
-        expect(visibleNavItemKeys(input)).toEqual([]);
-        expect(firstVisibleNavItemKey(NAV_SECTIONS, itemKey => isNavItemVisible(itemKey, input))).toBeUndefined();
-        expect(landingNavItemKey(input)).toBeUndefined();
+        expect(visibleNavItemKeys(input)).toEqual(['roles']);
+        expect(firstVisibleNavItemKey(NAV_SECTIONS, itemKey => isNavItemVisible(itemKey, input))).toBe('roles');
+        expect(landingNavItemKey(input)).toBe('roles');
     });
 
     it('lands on Applications when that item is visible, even if Organization is first in the nav', () => {
@@ -202,7 +204,7 @@ describe('platform nav visibility', () => {
     it('shows Access Management for GAMMA_IDENTITY_ADMIN or env ADMIN without org settings', () => {
         expect(requiresOrganizationSettingsGate('access-management')).toBe(false);
         expect(pageGuardForNavItem('access-management')).toEqual({ anyOf: ['environment-am_configuration-r'] });
-        expect(visibleNavItemKeys(visibility([...ORGANIZATION_USER, ...GAMMA_IDENTITY_ADMIN]))).toEqual(['access-management']);
+        expect(visibleNavItemKeys(visibility([...ORGANIZATION_USER, ...GAMMA_IDENTITY_ADMIN]))).toEqual(['access-management', 'roles']);
         expect(isNavItemVisible('access-management', visibility(['environment-am_configuration-r']))).toBe(true);
         expect(isNavItemVisible('access-management', visibility([...ORGANIZATION_USER, ...ENVIRONMENT_USER]))).toBe(false);
         expect(isNavItemVisible('access-management', visibility([...ORGANIZATION_USER, ...FEDERATION_AGENT]))).toBe(false);

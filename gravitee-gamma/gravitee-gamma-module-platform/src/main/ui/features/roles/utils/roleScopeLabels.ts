@@ -13,26 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { RoleScope } from '../types/role';
 
-/**
- * Subset of GET /organizations/{orgId}/console (ConsoleConfigEntity; Angular `entities/consoleSettings`).
- * Extend here when platform features need more org settings fields.
- */
-export interface ConsoleSettings {
-    userGroup?: {
-        required?: {
-            enabled?: boolean;
-        };
-    };
-    cloudHosted?: {
-        enabled?: boolean;
-    };
-    alert?: {
-        enabled?: boolean;
-    };
-    management?: {
-        systemRoleEdition?: {
-            enabled?: boolean;
-        };
-    };
-}
+/** Mirrors the `scope` labels in OrgSettingsRolesComponent.ngOnInit's rolesByScope array. */
+export const ROLE_SCOPE_LABELS: Record<RoleScope, string> = {
+    ORGANIZATION: 'Organization',
+    ENVIRONMENT: 'Environment',
+    API: 'API',
+    APPLICATION: 'Application',
+    INTEGRATION: 'Integration',
+    CLUSTER: 'Cluster',
+    EXPLORER: 'Explorer',
+    API_PRODUCT: 'API Product',
+    AI_WORKSPACE: 'AI Workspace',
+};

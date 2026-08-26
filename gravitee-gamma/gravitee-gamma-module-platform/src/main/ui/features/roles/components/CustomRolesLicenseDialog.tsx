@@ -13,26 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { FeatureLicenseDialog } from '../../../shared/components/FeatureLicenseDialog';
+import { CUSTOM_ROLES_UPGRADE } from '../license/customRolesLicense';
 
-/**
- * Subset of GET /organizations/{orgId}/console (ConsoleConfigEntity; Angular `entities/consoleSettings`).
- * Extend here when platform features need more org settings fields.
- */
-export interface ConsoleSettings {
-    userGroup?: {
-        required?: {
-            enabled?: boolean;
-        };
-    };
-    cloudHosted?: {
-        enabled?: boolean;
-    };
-    alert?: {
-        enabled?: boolean;
-    };
-    management?: {
-        systemRoleEdition?: {
-            enabled?: boolean;
-        };
-    };
+export function CustomRolesLicenseDialog({
+    open,
+    onOpenChange,
+}: Readonly<{
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+}>) {
+    return <FeatureLicenseDialog upgrade={CUSTOM_ROLES_UPGRADE} open={open} onOpenChange={onOpenChange} />;
 }
