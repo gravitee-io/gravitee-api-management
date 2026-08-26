@@ -19,6 +19,7 @@ import {
     buildGenericPolicies,
     type Policy,
     PolicyCatalogPane,
+    type PolicyDocumentation,
     PolicyConfigPanel,
     PolicyStudioProvider,
     resolveStep,
@@ -49,7 +50,7 @@ interface SharedPolicyGroupPolicyStudioProps {
     readonly onSave?: (steps: SharedPolicyGroupStep[]) => Promise<SharedPolicyGroup>;
     readonly onDeploy?: () => Promise<void>;
     readonly onFetchPolicySchema: (policy: Policy) => Promise<unknown>;
-    readonly onFetchPolicyDocumentation: (policy: Policy) => Promise<string>;
+    readonly onFetchPolicyDocumentation: (policy: Policy) => Promise<PolicyDocumentation>;
 }
 
 export function SharedPolicyGroupPolicyStudio({

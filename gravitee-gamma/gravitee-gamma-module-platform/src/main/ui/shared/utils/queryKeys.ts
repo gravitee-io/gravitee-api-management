@@ -28,3 +28,9 @@ export const organizationGroupKeys = {
     all: ['organization-groups'] as const,
     list: () => [...organizationGroupKeys.all, 'list'] as const,
 } as const;
+
+/** The installed policy plugins: one catalog for every Policy Studio host, so one cache entry. */
+export const policyPluginKeys = {
+    all: ['policy-plugins'] as const,
+    list: () => [...policyPluginKeys.all, 'list'] as const,
+} as const;

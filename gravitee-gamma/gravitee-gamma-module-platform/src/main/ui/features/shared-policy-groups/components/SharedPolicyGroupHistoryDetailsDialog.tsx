@@ -33,9 +33,9 @@ import { useQuery } from '@tanstack/react-query';
 import { useCallback, useId } from 'react';
 
 import { SharedPolicyGroupPolicyStudio } from './SharedPolicyGroupPolicyStudio';
-import { getPolicyDocumentation, getPolicySchema, listPolicies } from '../services/sharedPolicyGroupPolicies';
+import { getPolicyDocumentation, getPolicySchema, listPolicies } from '../../../shared/services/policyPlugins';
+import { policyPluginKeys } from '../../../shared/utils/queryKeys';
 import type { SharedPolicyGroup } from '../types/sharedPolicyGroup';
-import { sharedPolicyGroupKeys } from '../utils/queryKeys';
 
 interface SharedPolicyGroupHistoryDetailsDialogProps {
     readonly sharedPolicyGroup?: SharedPolicyGroup;
@@ -76,7 +76,7 @@ function SharedPolicyGroupHistoryDetailsDialogContent({
     const prerequisiteId = useId();
     const protocolType = getProtocolType(sharedPolicyGroup.apiType);
     const policiesQuery = useQuery({
-        queryKey: sharedPolicyGroupKeys.policies(),
+        queryKey: policyPluginKeys.list(),
         queryFn: listPolicies,
         staleTime: 5 * 60 * 1000,
     });
