@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { useNavigate } from 'react-router-dom';
 
@@ -22,15 +22,20 @@ import { SharedPolicyGroupsPage } from './SharedPolicyGroupsPage';
 import {
     useCreateSharedPolicyGroup,
     useDeleteSharedPolicyGroup,
+    useDeploySharedPolicyGroup,
+    useUndeploySharedPolicyGroup,
     useUpdateSharedPolicyGroup,
 } from '../features/shared-policy-groups/hooks/useSharedPolicyGroupMutations';
 import { useSharedPolicyGroupsPaged } from '../features/shared-policy-groups/hooks/useSharedPolicyGroups';
+import { getSharedPolicyGroup } from '../features/shared-policy-groups/services/sharedPolicyGroups';
 import type { SharedPolicyGroup } from '../features/shared-policy-groups/types/sharedPolicyGroup';
 import {
+    ENVIRONMENT_SHARED_POLICY_GROUP_CREATE_PERMISSION,
     ENVIRONMENT_SHARED_POLICY_GROUP_DELETE_PERMISSION,
     ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION,
 } from '../features/shared-policy-groups/utils/sharedPolicyGroupPermissions';
 import { ApimApiError } from '../shared/api/apimClient';
+import { useHasEnvironmentPermission } from '../shared/hooks/useEnvironmentPermissions';
 import { useForbiddenResourceRedirect } from '../shared/hooks/useForbiddenResourceRedirect';
 import { notify } from '../shared/notify';
 import { installFormActionTestEnvironment } from '../shared/testing/formAction';
@@ -38,14 +43,16 @@ import { installFormActionTestEnvironment } from '../shared/testing/formAction';
 let restoreTestEnvironment: () => void;
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
-    useHasPermission: jest.fn(),
+    useEnvironment: jest.fn(),
 }));
+jest.mock('../shared/hooks/useEnvironmentPermissions');
 jest.mock('react-router-dom', () => ({
     ...jest.requireActual('react-router-dom'),
     useNavigate: jest.fn(),
 }));
 jest.mock('../features/shared-policy-groups/hooks/useSharedPolicyGroups');
 jest.mock('../features/shared-policy-groups/hooks/useSharedPolicyGroupMutations');
+jest.mock('../features/shared-policy-groups/services/sharedPolicyGroups');
 jest.mock('../shared/hooks/useForbiddenResourceRedirect');
 jest.mock('../shared/notify', () => ({
     notify: { success: jest.fn(), error: jest.fn(), warning: jest.fn() },
@@ -56,71 +63,70 @@ jest.mock('../shared/notify', () => ({
 jest.mock('../features/shared-policy-groups/components/SharedPolicyGroupsTable', () => ({
     SharedPolicyGroupsTable: ({
         sharedPolicyGroups,
-        isFirstUse,
         canEdit,
         canDelete,
-        onView,
+        onDeploy,
+        onUndeploy,
+        onHistory,
         onEdit,
         onDelete,
-        onCreateSharedPolicyGroup,
         onSortingChange,
     }: {
         sharedPolicyGroups: SharedPolicyGroup[];
-        isFirstUse: boolean;
         canEdit: boolean;
         canDelete: boolean;
-        onView: (s: SharedPolicyGroup) => void;
+        onDeploy: (s: SharedPolicyGroup) => void;
+        onUndeploy: (s: SharedPolicyGroup) => void;
+        onHistory: (s: SharedPolicyGroup) => void;
         onEdit: (s: SharedPolicyGroup) => void;
         onDelete: (s: SharedPolicyGroup) => void;
-        onCreateSharedPolicyGroup?: () => void;
         onSortingChange: (sorting: { id: string; desc: boolean }[]) => void;
-    }) =>
-        isFirstUse ? (
-            <div>
-                <p>No Shared Policy Groups</p>
-                {onCreateSharedPolicyGroup && (
-                    <button type="button" onClick={onCreateSharedPolicyGroup}>
-                        Add Shared Policy Group
+    }) => (
+        <div>
+            <button type="button" onClick={() => onSortingChange([{ id: 'name', desc: true }])}>
+                Sort by Name
+            </button>
+            <button type="button" onClick={() => onSortingChange([{ id: 'updatedAt', desc: true }])}>
+                Sort by Last updated
+            </button>
+            <button type="button" onClick={() => onSortingChange([{ id: 'deployedAt', desc: false }])}>
+                Sort by Last deployed
+            </button>
+            {sharedPolicyGroups.map(s => (
+                <div key={s.id} data-testid={`row-${s.id}`}>
+                    <span>{s.name}</span>
+                    <button type="button" onClick={() => onHistory(s)}>
+                        History {s.name}
                     </button>
-                )}
-            </div>
-        ) : (
-            <div>
-                <button type="button" onClick={() => onSortingChange([{ id: 'name', desc: true }])}>
-                    Sort by Name
-                </button>
-                <button type="button" onClick={() => onSortingChange([{ id: 'updatedAt', desc: true }])}>
-                    Sort by Last updated
-                </button>
-                <button type="button" onClick={() => onSortingChange([{ id: 'deployedAt', desc: false }])}>
-                    Sort by Last deployed
-                </button>
-                {sharedPolicyGroups.map(s => (
-                    <div key={s.id} data-testid={`row-${s.id}`}>
-                        <span>{s.name}</span>
-                        <button type="button" onClick={() => onView(s)}>
-                            View {s.name}
+                    {canEdit && (
+                        <button type="button" onClick={() => onEdit(s)}>
+                            Edit {s.name}
                         </button>
-                        {canEdit && (
-                            <button type="button" onClick={() => onEdit(s)}>
-                                Edit {s.name}
-                            </button>
-                        )}
-                        {canEdit && canDelete && (
-                            <button type="button" onClick={() => onDelete(s)}>
-                                Delete {s.name}
-                            </button>
-                        )}
-                    </div>
-                ))}
-            </div>
-        ),
+                    )}
+                    {canEdit && (
+                        <button type="button" onClick={() => (s.lifecycleState === 'UNDEPLOYED' ? onDeploy(s) : onUndeploy(s))}>
+                            {s.lifecycleState === 'UNDEPLOYED' ? 'Deploy' : 'Undeploy'} {s.name}
+                        </button>
+                    )}
+                    {canEdit && canDelete && (
+                        <button type="button" onClick={() => onDelete(s)}>
+                            Delete {s.name}
+                        </button>
+                    )}
+                </div>
+            ))}
+        </div>
+    ),
 }));
-const mockUseHasPermission = jest.mocked(useHasPermission);
+const mockUseHasEnvironmentPermission = jest.mocked(useHasEnvironmentPermission);
+const mockUseEnvironment = jest.mocked(useEnvironment);
+const mockGetSharedPolicyGroup = jest.mocked(getSharedPolicyGroup);
 const mockUseNavigate = jest.mocked(useNavigate);
 const mockUseSharedPolicyGroupsPaged = jest.mocked(useSharedPolicyGroupsPaged);
 const mockUseCreateSharedPolicyGroup = jest.mocked(useCreateSharedPolicyGroup);
 const mockUseUpdateSharedPolicyGroup = jest.mocked(useUpdateSharedPolicyGroup);
+const mockUseDeploySharedPolicyGroup = jest.mocked(useDeploySharedPolicyGroup);
+const mockUseUndeploySharedPolicyGroup = jest.mocked(useUndeploySharedPolicyGroup);
 const mockUseDeleteSharedPolicyGroup = jest.mocked(useDeleteSharedPolicyGroup);
 const mockUseForbiddenResourceRedirect = jest.mocked(useForbiddenResourceRedirect);
 
@@ -139,6 +145,14 @@ function makeDeleteMutation(mutateAsync = jest.fn()) {
 
 function makeUpdateMutation(mutateAsync = jest.fn()) {
     return { mutateAsync } as unknown as ReturnType<typeof useUpdateSharedPolicyGroup>;
+}
+
+function makeDeployMutation(mutateAsync = jest.fn()) {
+    return { mutateAsync } as unknown as ReturnType<typeof useDeploySharedPolicyGroup>;
+}
+
+function makeUndeployMutation(mutateAsync = jest.fn()) {
+    return { mutateAsync } as unknown as ReturnType<typeof useUndeploySharedPolicyGroup>;
 }
 
 function makeSpgsResult(data: SharedPolicyGroup[] = SAMPLE_SPGS, totalCount = data.length) {
@@ -163,11 +177,15 @@ describe('SharedPolicyGroupsPage', () => {
     });
 
     beforeEach(() => {
-        mockUseHasPermission.mockReturnValue(true);
+        mockUseHasEnvironmentPermission.mockReturnValue(true);
+        mockUseEnvironment.mockReturnValue({ id: 'env-1' });
+        mockGetSharedPolicyGroup.mockResolvedValue({ ...SAMPLE_SPGS[0], steps: [] });
         mockUseNavigate.mockReturnValue(jest.fn());
         mockUseSharedPolicyGroupsPaged.mockReturnValue(makeSpgsResult());
         mockUseCreateSharedPolicyGroup.mockReturnValue(makeCreateMutation());
         mockUseUpdateSharedPolicyGroup.mockReturnValue(makeUpdateMutation());
+        mockUseDeploySharedPolicyGroup.mockReturnValue(makeDeployMutation());
+        mockUseUndeploySharedPolicyGroup.mockReturnValue(makeUndeployMutation());
         mockUseDeleteSharedPolicyGroup.mockReturnValue(makeDeleteMutation());
     });
 
@@ -187,7 +205,7 @@ describe('SharedPolicyGroupsPage', () => {
         });
 
         it('hides the Add Shared Policy Group button when user lacks create permission', () => {
-            mockUseHasPermission.mockReturnValue(false);
+            mockUseHasEnvironmentPermission.mockImplementation(anyOf => !anyOf.includes(ENVIRONMENT_SHARED_POLICY_GROUP_CREATE_PERMISSION));
             renderPage();
             expect(screen.queryByRole('button', { name: 'Add Shared Policy Group' })).toBeNull();
         });
@@ -259,7 +277,7 @@ describe('SharedPolicyGroupsPage', () => {
         });
 
         it('hides the first-use create action for a user without create permission', () => {
-            mockUseHasPermission.mockReturnValue(false);
+            mockUseHasEnvironmentPermission.mockImplementation(anyOf => !anyOf.includes(ENVIRONMENT_SHARED_POLICY_GROUP_CREATE_PERMISSION));
             mockUseSharedPolicyGroupsPaged.mockReturnValue(makeSpgsResult([], 0));
             renderPage();
 
@@ -356,11 +374,11 @@ describe('SharedPolicyGroupsPage', () => {
 
     describe('delete flow', () => {
         it('hides Delete unless the user has both update and delete permissions', () => {
-            mockUseHasPermission.mockImplementation(({ anyOf }) => !anyOf?.includes(ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION));
+            mockUseHasEnvironmentPermission.mockImplementation(anyOf => !anyOf.includes(ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION));
             renderPage();
             expect(screen.queryByRole('button', { name: 'Delete Auth Bundle' })).toBeNull();
 
-            mockUseHasPermission.mockImplementation(({ anyOf }) => !anyOf?.includes(ENVIRONMENT_SHARED_POLICY_GROUP_DELETE_PERMISSION));
+            mockUseHasEnvironmentPermission.mockImplementation(anyOf => !anyOf.includes(ENVIRONMENT_SHARED_POLICY_GROUP_DELETE_PERMISSION));
             renderPage();
             expect(screen.queryByRole('button', { name: 'Delete Auth Bundle' })).toBeNull();
         });
@@ -395,13 +413,17 @@ describe('SharedPolicyGroupsPage', () => {
 
     describe('edit flow', () => {
         it('hides Edit when the user lacks update permission', () => {
-            mockUseHasPermission.mockImplementation(({ anyOf }) => !anyOf.includes(ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION));
+            mockUseHasEnvironmentPermission.mockImplementation(anyOf => !anyOf.includes(ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION));
             renderPage();
 
             expect(screen.queryByRole('button', { name: 'Edit Auth Bundle' })).toBeNull();
         });
 
-        it('updates metadata without sending policy steps and shows a success toast', async () => {
+        it('updates metadata while preserving the current policy steps and shows a success toast', async () => {
+            // The list row only carries a summary (steps is always []) — the fix must fetch the
+            // real detail first, or this update would blank out the policy group's steps.
+            const steps = [{ policy: 'rate-limit', name: 'Rate Limit', enabled: true, configuration: {} }];
+            mockGetSharedPolicyGroup.mockResolvedValue({ ...SAMPLE_SPGS[0], steps });
             const updateMutateAsync = jest.fn().mockResolvedValue({ id: 'spg-1', name: 'Updated Auth' });
             mockUseUpdateSharedPolicyGroup.mockReturnValue(makeUpdateMutation(updateMutateAsync));
             renderPage();
@@ -420,6 +442,7 @@ describe('SharedPolicyGroupsPage', () => {
                         name: 'Updated Auth',
                         description: '',
                         prerequisiteMessage: '',
+                        steps,
                     },
                 });
             });
@@ -437,16 +460,68 @@ describe('SharedPolicyGroupsPage', () => {
 
             await waitFor(() => expect(notify.error).toHaveBeenCalledWith(error, 'Error during Shared Policy Group update!'));
         });
+
+        it('fails the save instead of wiping steps when there is no active environment', async () => {
+            mockUseEnvironment.mockReturnValue(undefined);
+            const updateMutateAsync = jest.fn();
+            mockUseUpdateSharedPolicyGroup.mockReturnValue(makeUpdateMutation(updateMutateAsync));
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Edit Auth Bundle' }));
+            await screen.findByRole('heading', { name: 'Edit Shared Policy Group' });
+            fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+            await waitFor(() => expect(notify.error).toHaveBeenCalledWith(expect.any(Error), 'Error during Shared Policy Group update!'));
+            expect(mockGetSharedPolicyGroup).not.toHaveBeenCalled();
+            expect(updateMutateAsync).not.toHaveBeenCalled();
+        });
     });
 
-    describe('view navigation', () => {
-        it('navigates to the shared policy group studio tab', () => {
+    describe('version history navigation', () => {
+        it('navigates to the shared policy group history tab', () => {
             const navigate = jest.fn();
             mockUseNavigate.mockReturnValue(navigate);
             renderPage();
 
-            fireEvent.click(screen.getByRole('button', { name: 'View Auth Bundle' }));
-            expect(navigate).toHaveBeenCalledWith('spg-1/studio');
+            fireEvent.click(screen.getByRole('button', { name: 'History Auth Bundle' }));
+            expect(navigate).toHaveBeenCalledWith('spg-1/history');
+        });
+    });
+
+    describe('deploy/undeploy flow', () => {
+        it('undeploys a deployed group and shows a success toast', async () => {
+            const undeployMutateAsync = jest.fn().mockResolvedValue(undefined);
+            mockUseUndeploySharedPolicyGroup.mockReturnValue(makeUndeployMutation(undeployMutateAsync));
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Undeploy Auth Bundle' }));
+
+            await waitFor(() => expect(undeployMutateAsync).toHaveBeenCalledWith('spg-1'));
+            expect(notify.success).toHaveBeenCalledWith('Shared Policy Group undeployed successfully');
+        });
+
+        it('deploys an undeployed group and shows a success toast', async () => {
+            const deployMutateAsync = jest.fn().mockResolvedValue(undefined);
+            mockUseDeploySharedPolicyGroup.mockReturnValue(makeDeployMutation(deployMutateAsync));
+            mockUseSharedPolicyGroupsPaged.mockReturnValue(
+                makeSpgsResult([{ ...SAMPLE_SPGS[0], lifecycleState: 'UNDEPLOYED' }, SAMPLE_SPGS[1]]),
+            );
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Deploy Auth Bundle' }));
+
+            await waitFor(() => expect(deployMutateAsync).toHaveBeenCalledWith('spg-1'));
+            expect(notify.success).toHaveBeenCalledWith('Shared Policy Group deployed successfully');
+        });
+
+        it('shows an error toast when undeploy fails', async () => {
+            const error = new Error('undeploy failed');
+            mockUseUndeploySharedPolicyGroup.mockReturnValue(makeUndeployMutation(jest.fn().mockRejectedValue(error)));
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Undeploy Auth Bundle' }));
+
+            await waitFor(() => expect(notify.error).toHaveBeenCalledWith(error, 'Error during Shared Policy Group undeployment!'));
         });
     });
 });

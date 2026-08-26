@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Skeleton } from '@gravitee/graphene-core';
 import { getProtocolType, type Policy } from '@gravitee/graphene-policy-studio';
 import { useQuery } from '@tanstack/react-query';
@@ -31,13 +30,14 @@ import {
     ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION,
     isKubernetesOrigin,
 } from '../features/shared-policy-groups/utils/sharedPolicyGroupPermissions';
+import { useHasEnvironmentPermission } from '../shared/hooks/useEnvironmentPermissions';
 import { notify } from '../shared/notify';
 import { getPolicyDocumentation, getPolicySchema, listPolicies } from '../shared/services/policyPlugins';
 import { policyPluginKeys } from '../shared/utils/queryKeys';
 
 export function SharedPolicyGroupStudioPage() {
     const sharedPolicyGroup = useOutletContext<SharedPolicyGroup>();
-    const canUpdate = useHasPermission({ anyOf: [ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION] });
+    const canUpdate = useHasEnvironmentPermission([ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION]);
     const updateMutation = useUpdateSharedPolicyGroup();
     const deployMutation = useDeploySharedPolicyGroup();
     const kubernetesOrigin = isKubernetesOrigin(sharedPolicyGroup);

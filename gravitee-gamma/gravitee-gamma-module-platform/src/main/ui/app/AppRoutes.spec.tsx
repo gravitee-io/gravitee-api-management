@@ -54,9 +54,12 @@ jest.mock('../shared/console-settings', () => ({
     ConsoleSettingsProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
+const mockUseHasEnvironmentPermission = jest.fn().mockReturnValue(true);
+
 jest.mock('../shared/hooks/useEnvironmentPermissions', () => ({
     useEnvironmentPermissions: jest.fn(),
     useEnvironmentPermissionsReady: jest.fn().mockReturnValue(true),
+    useHasEnvironmentPermission: (anyOf: string[]) => mockUseHasEnvironmentPermission(anyOf),
 }));
 
 const mockUseHasPermission = jest.fn().mockReturnValue(true);
@@ -256,6 +259,7 @@ describe('AppRoutes', () => {
         });
         mockUseHasPermission.mockReset().mockReturnValue(true);
         mockUseHasFeature.mockReset().mockReturnValue(true);
+        mockUseHasEnvironmentPermission.mockReset().mockReturnValue(true);
         mockUseEnvironmentDictionaries.mockReturnValue({
             data: [],
             isLoading: false,
@@ -461,7 +465,9 @@ describe('AppRoutes', () => {
     });
 
     it('redirects away from Shared Policy Groups when the user lacks environment-shared_policy_group-r', () => {
-        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-shared_policy_group-r'));
+        // The route guard reads this module's own live permission query, not the SDK's useHasPermission —
+        // see useEnvironmentPermissions.ts.
+        mockUseHasEnvironmentPermission.mockImplementation((anyOf: string[]) => !anyOf.includes('environment-shared_policy_group-r'));
 
         render(
             <MemoryRouter initialEntries={['/shared-policy-groups']}>
@@ -479,7 +485,7 @@ describe('AppRoutes', () => {
     });
 
     it('hides the Shared Policy Groups nav item when the user lacks environment-shared_policy_group-r', () => {
-        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-shared_policy_group-r'));
+        mockUseHasEnvironmentPermission.mockImplementation((anyOf: string[]) => !anyOf.includes('environment-shared_policy_group-r'));
 
         renderPlatform();
 

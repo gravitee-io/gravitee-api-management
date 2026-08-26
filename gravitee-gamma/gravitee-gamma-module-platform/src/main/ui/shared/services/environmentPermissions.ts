@@ -22,6 +22,6 @@ import { apimFetchJsonV1Env } from '../api/apimClient';
  * normalized flat strings ready for `permissionService.load('environment', ...)`.
  */
 export async function getEnvironmentPermissions(environmentId: string): Promise<string[]> {
-    const raw = await apimFetchJsonV1Env<Record<string, string[] | string>>(environmentId, '/permissions');
+    const raw = await apimFetchJsonV1Env<Record<string, string[] | string>>(environmentId, '/permissions', { cache: 'no-store' });
     return normalizeCrudMapRecord('environment', raw);
 }

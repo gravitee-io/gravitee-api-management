@@ -67,6 +67,11 @@ export function SharedPolicyGroupPolicyStudio({
     const [panel, setPanel] = useState<StudioPanel>(null);
     const [hasChanges, setHasChanges] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    // Per-step validity, mirroring PolicyConfigPanel's own `onValidityChange` contract (the same
+    // one the API-level Policy Studio relies on). Indexed in parallel with `steps`; a freshly
+    // added or duplicated step defaults to `true` until its panel reports otherwise, since it
+    // mounts open and reports its real validity on the next render.
+    const [stepValidity, setStepValidity] = useState<boolean[]>(() => (sharedPolicyGroup.steps ?? []).map(() => true));
     const serverRevision = serverStepsRevision(sharedPolicyGroup);
     const [syncedServerRevision, setSyncedServerRevision] = useState(serverRevision);
     const [savedLifecycle, setSavedLifecycle] = useState<{
@@ -76,6 +81,7 @@ export function SharedPolicyGroupPolicyStudio({
 
     if (!hasChanges && syncedServerRevision !== serverRevision) {
         setSteps(sharedPolicyGroup.steps ?? []);
+        setStepValidity((sharedPolicyGroup.steps ?? []).map(() => true));
         setPanel(null);
         setSyncedServerRevision(serverRevision);
     }
@@ -90,6 +96,7 @@ export function SharedPolicyGroupPolicyStudio({
     const lifecyclePending = isDeploying;
     const lifecycleState =
         savedLifecycle?.sourceRevision === serverRevision ? savedLifecycle.lifecycleState : sharedPolicyGroup.lifecycleState;
+    const hasInvalidStep = stepValidity.some(isValid => !isValid);
 
     function replaceSteps(nextSteps: Step[]) {
         setSteps(nextSteps);
@@ -99,6 +106,7 @@ export function SharedPolicyGroupPolicyStudio({
     function handleAddPolicy(policy: Policy) {
         const stepIndex = steps.length;
         replaceSteps([...steps, { policy: policy.id, name: policy.name, enabled: true, configuration: {} }]);
+        setStepValidity(current => [...current, true]);
         setPanel({ type: 'configuration', stepIndex });
     }
 
@@ -110,11 +118,18 @@ export function SharedPolicyGroupPolicyStudio({
         const [movedStep] = reorderedSteps.splice(oldIndex, 1);
         reorderedSteps.splice(newIndex, 0, movedStep);
         replaceSteps(reorderedSteps);
+        setStepValidity(current => {
+            const reordered = [...current];
+            const [movedValidity] = reordered.splice(oldIndex, 1);
+            reordered.splice(newIndex, 0, movedValidity);
+            return reordered;
+        });
         setPanel(null);
     }
 
     function handleRemoveStep(stepIndex: number) {
         replaceSteps(steps.filter((_, index) => index !== stepIndex));
+        setStepValidity(current => current.filter((_, index) => index !== stepIndex));
         setPanel(null);
     }
 
@@ -125,11 +140,16 @@ export function SharedPolicyGroupPolicyStudio({
         }
         const duplicatedStep = { ...step, name: step.name ? `${step.name} copy` : undefined };
         replaceSteps([...steps.slice(0, stepIndex + 1), duplicatedStep, ...steps.slice(stepIndex + 1)]);
+        setStepValidity(current => [...current.slice(0, stepIndex + 1), current[stepIndex] ?? true, ...current.slice(stepIndex + 1)]);
         setPanel({ type: 'configuration', stepIndex: stepIndex + 1 });
     }
 
     function handleStepChange(stepIndex: number, patch: Partial<Step>) {
         replaceSteps(steps.map((step, index) => (index === stepIndex ? { ...step, ...patch } : step)));
+    }
+
+    function handleStepValidityChange(stepIndex: number, isValid: boolean) {
+        setStepValidity(current => current.map((value, index) => (index === stepIndex ? isValid : value)));
     }
 
     async function handleSave() {
@@ -177,7 +197,7 @@ export function SharedPolicyGroupPolicyStudio({
                                             type="button"
                                             size="sm"
                                             variant="outline"
-                                            disabled={!hasChanges || isSaving}
+                                            disabled={!hasChanges || isSaving || hasInvalidStep}
                                             onClick={() => void handleSave()}
                                         >
                                             {isSaving ? 'Saving…' : 'Save policies'}
@@ -185,7 +205,9 @@ export function SharedPolicyGroupPolicyStudio({
                                     </span>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    Don&apos;t forget to ensure that the Prerequisite message is updated with the latest changes.
+                                    {hasInvalidStep
+                                        ? 'Fix the highlighted policy step(s) before saving.'
+                                        : "Don't forget to ensure that the Prerequisite message is updated with the latest changes."}
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
@@ -226,6 +248,7 @@ export function SharedPolicyGroupPolicyStudio({
                             onDuplicate={readOnly ? undefined : () => handleDuplicateStep(panel.stepIndex)}
                             onToggleEnabled={readOnly ? undefined : enabled => handleStepChange(panel.stepIndex, { enabled })}
                             onStepChange={readOnly ? undefined : patch => handleStepChange(panel.stepIndex, patch)}
+                            onValidityChange={readOnly ? undefined : isValid => handleStepValidityChange(panel.stepIndex, isValid)}
                         />
                     ) : null}
                     {!panel ? (

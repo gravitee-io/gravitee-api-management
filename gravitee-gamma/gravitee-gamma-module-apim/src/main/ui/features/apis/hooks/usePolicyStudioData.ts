@@ -135,11 +135,17 @@ export function usePolicyStudioData(apiId: string | undefined): PolicyStudioData
         staleTime: 300_000,
     });
 
+    // Shared Policy Group names/descriptions are edited from a separate module (the Shared
+    // Policy Groups admin pages), which caches that data under its own React Query key and has
+    // no way to invalidate this module's cache on save. Without `refetchOnMount: 'always'`, a
+    // rename made there and then viewed here (within the 5-minute staleTime) would keep showing
+    // the old name on every already-added shared-policy-group step.
     const spgQuery = useQuery({
         queryKey: policyStudioKeys.sharedPolicyGroups(envId),
         queryFn: () => listSharedPolicyGroupPlugins(envId),
         enabled: Boolean(env),
         staleTime: 300_000,
+        refetchOnMount: 'always',
     });
 
     const api = apiQuery.data;

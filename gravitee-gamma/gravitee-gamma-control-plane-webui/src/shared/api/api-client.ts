@@ -93,7 +93,7 @@ export class ApiError extends Error {
 
 function createClient(backend: Backend) {
     return {
-        get: <T>(path: string) => request<T>(backend, path),
+        get: <T>(path: string, init?: RequestInit) => request<T>(backend, path, init),
 
         post: <T>(path: string, body?: unknown, extraHeaders?: Record<string, string>) =>
             request<T>(backend, path, {

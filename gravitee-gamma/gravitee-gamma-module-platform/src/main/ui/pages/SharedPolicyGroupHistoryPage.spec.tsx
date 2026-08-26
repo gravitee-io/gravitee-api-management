@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Outlet, Route, Routes } from 'react-router-dom';
 
@@ -22,9 +21,10 @@ import { SharedPolicyGroupHistoryPage } from './SharedPolicyGroupHistoryPage';
 import { useRestoreSharedPolicyGroup } from '../features/shared-policy-groups/hooks/useSharedPolicyGroupMutations';
 import { useSharedPolicyGroupHistories } from '../features/shared-policy-groups/hooks/useSharedPolicyGroups';
 import type { SharedPolicyGroup } from '../features/shared-policy-groups/types/sharedPolicyGroup';
+import { useHasEnvironmentPermission } from '../shared/hooks/useEnvironmentPermissions';
 import { notify } from '../shared/notify';
 
-jest.mock('@gravitee/gamma-modules-sdk');
+jest.mock('../shared/hooks/useEnvironmentPermissions');
 jest.mock('../features/shared-policy-groups/hooks/useSharedPolicyGroups');
 jest.mock('../features/shared-policy-groups/hooks/useSharedPolicyGroupMutations');
 jest.mock('../shared/notify', () => ({
@@ -66,7 +66,7 @@ const HISTORIES: SharedPolicyGroup[] = [
     { ...CURRENT, version: 1, name: 'Original Auth Bundle', lifecycleState: 'DEPLOYED', deployedAt: '2026-08-19T10:00:00.000Z' },
 ];
 
-const mockUseHasPermission = jest.mocked(useHasPermission);
+const mockUseHasEnvironmentPermission = jest.mocked(useHasEnvironmentPermission);
 const mockUseSharedPolicyGroupHistories = jest.mocked(useSharedPolicyGroupHistories);
 const mockUseRestoreSharedPolicyGroup = jest.mocked(useRestoreSharedPolicyGroup);
 
@@ -88,7 +88,7 @@ describe('SharedPolicyGroupHistoryPage', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockUseHasPermission.mockReturnValue(true);
+        mockUseHasEnvironmentPermission.mockReturnValue(true);
         mockUseSharedPolicyGroupHistories.mockReturnValue({
             data: {
                 data: HISTORIES,
@@ -155,13 +155,13 @@ describe('SharedPolicyGroupHistoryPage', () => {
     });
 
     it('does not offer restore without update permission or for Kubernetes-managed groups', () => {
-        mockUseHasPermission.mockReturnValue(false);
+        mockUseHasEnvironmentPermission.mockReturnValue(false);
         const readOnlyView = renderPage();
         fireEvent.click(screen.getByRole('button', { name: 'View or restore version 1' }));
         expect(screen.queryByRole('button', { name: 'Restore version' })).toBeNull();
         readOnlyView.unmount();
 
-        mockUseHasPermission.mockReturnValue(true);
+        mockUseHasEnvironmentPermission.mockReturnValue(true);
         renderPage({ ...CURRENT, originContext: { origin: 'KUBERNETES' } });
         fireEvent.click(screen.getByRole('button', { name: 'View or restore version 1' }));
         expect(screen.queryByRole('button', { name: 'Restore version' })).toBeNull();

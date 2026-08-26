@@ -32,9 +32,19 @@ import {
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
+    TruncatedCell,
     type DataTableProps,
 } from '@gravitee/graphene-core';
-import { EyeIcon, KubernetesIcon, LayersIcon, MoreVerticalIcon, PencilIcon, SearchIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
+import {
+    ClockIcon,
+    KubernetesIcon,
+    LayersIcon,
+    MoreVerticalIcon,
+    PencilIcon,
+    RocketIcon,
+    SearchIcon,
+    Trash2Icon,
+} from '@gravitee/graphene-core/icons';
 import { Link } from 'react-router-dom';
 
 import { SharedPolicyGroupStatusBadge } from './SharedPolicyGroupStatusBadge';
@@ -47,13 +57,17 @@ import { isKubernetesOrigin } from '../utils/sharedPolicyGroupPermissions';
 function buildColumns({
     canEdit,
     canDelete,
-    onView,
+    onDeploy,
+    onUndeploy,
+    onHistory,
     onEdit,
     onDelete,
 }: {
     canEdit: boolean;
     canDelete: boolean;
-    onView: (sharedPolicyGroup: SharedPolicyGroup) => void;
+    onDeploy: (sharedPolicyGroup: SharedPolicyGroup) => void;
+    onUndeploy: (sharedPolicyGroup: SharedPolicyGroup) => void;
+    onHistory: (sharedPolicyGroup: SharedPolicyGroup) => void;
     onEdit: (sharedPolicyGroup: SharedPolicyGroup) => void;
     onDelete: (sharedPolicyGroup: SharedPolicyGroup) => void;
 }): DataTableProps<SharedPolicyGroup>['columns'] {
@@ -63,11 +77,13 @@ function buildColumns({
             accessorKey: 'name',
             header: ({ column }: ColHeader<SharedPolicyGroup>) => <DataTableColumnHeader column={column} title="Name" />,
             cell: ({ row }: ColCell<SharedPolicyGroup>) => (
-                <div className="flex flex-col items-start gap-1 text-left">
+                <div className="flex min-w-0 flex-col items-start gap-1 text-left">
                     <Link className="text-sm font-medium text-foreground hover:underline" to={row.original.id}>
                         {row.original.name}
                     </Link>
-                    {row.original.description && <span className="text-xs text-muted-foreground">{row.original.description}</span>}
+                    {row.original.description && (
+                        <TruncatedCell className="max-w-md text-xs text-muted-foreground" value={row.original.description} />
+                    )}
                 </div>
             ),
         },
@@ -122,6 +138,7 @@ function buildColumns({
                 const sharedPolicyGroup = row.original;
                 const kubernetesOrigin = isKubernetesOrigin(sharedPolicyGroup);
                 const showEdit = canEdit && !kubernetesOrigin;
+                const showDeployToggle = canEdit && !kubernetesOrigin;
                 const showDelete = canEdit && canDelete && !kubernetesOrigin;
                 return (
                     <div className="flex items-center justify-end gap-1">
@@ -144,16 +161,28 @@ function buildColumns({
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                <DropdownMenuItem onSelect={() => onView(sharedPolicyGroup)}>
-                                    <EyeIcon className="size-4 mr-2" aria-hidden />
-                                    View
-                                </DropdownMenuItem>
                                 {showEdit && (
                                     <DropdownMenuItem onSelect={() => onEdit(sharedPolicyGroup)}>
                                         <PencilIcon className="size-4 mr-2" aria-hidden />
                                         Edit
                                     </DropdownMenuItem>
                                 )}
+                                {showDeployToggle && sharedPolicyGroup.lifecycleState !== 'DEPLOYED' && (
+                                    <DropdownMenuItem onSelect={() => onDeploy(sharedPolicyGroup)}>
+                                        <RocketIcon className="size-4 mr-2" aria-hidden />
+                                        Deploy
+                                    </DropdownMenuItem>
+                                )}
+                                {showDeployToggle && sharedPolicyGroup.lifecycleState !== 'UNDEPLOYED' && (
+                                    <DropdownMenuItem onSelect={() => onUndeploy(sharedPolicyGroup)}>
+                                        <RocketIcon className="size-4 mr-2" aria-hidden />
+                                        Undeploy
+                                    </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem onSelect={() => onHistory(sharedPolicyGroup)}>
+                                    <ClockIcon className="size-4 mr-2" aria-hidden />
+                                    Version History
+                                </DropdownMenuItem>
                                 {showDelete && (
                                     <>
                                         <DropdownMenuSeparator />
@@ -176,7 +205,6 @@ interface SharedPolicyGroupsTableProps {
     readonly sharedPolicyGroups: SharedPolicyGroup[];
     readonly totalCount: number;
     readonly loading: boolean;
-    readonly isFirstUse: boolean;
     readonly search: string;
     readonly page: number;
     readonly pageSize: number;
@@ -187,17 +215,17 @@ interface SharedPolicyGroupsTableProps {
     readonly onPageChange: (page: number) => void;
     readonly onPageSizeChange: (size: number) => void;
     readonly onSortingChange: (updater: TableSortingState | ((previous: TableSortingState) => TableSortingState)) => void;
-    readonly onView: (sharedPolicyGroup: SharedPolicyGroup) => void;
+    readonly onDeploy: (sharedPolicyGroup: SharedPolicyGroup) => void;
+    readonly onUndeploy: (sharedPolicyGroup: SharedPolicyGroup) => void;
+    readonly onHistory: (sharedPolicyGroup: SharedPolicyGroup) => void;
     readonly onEdit: (sharedPolicyGroup: SharedPolicyGroup) => void;
     readonly onDelete: (sharedPolicyGroup: SharedPolicyGroup) => void;
-    readonly onCreateSharedPolicyGroup?: () => void;
 }
 
 export function SharedPolicyGroupsTable({
     sharedPolicyGroups,
     totalCount,
     loading,
-    isFirstUse,
     search,
     page,
     pageSize,
@@ -208,28 +236,13 @@ export function SharedPolicyGroupsTable({
     onPageChange,
     onPageSizeChange,
     onSortingChange,
-    onView,
+    onDeploy,
+    onUndeploy,
+    onHistory,
     onEdit,
     onDelete,
-    onCreateSharedPolicyGroup,
 }: SharedPolicyGroupsTableProps) {
-    const columns = buildColumns({ canEdit, canDelete, onView, onEdit, onDelete });
-
-    if (isFirstUse) {
-        return (
-            <div className="rounded-lg border">
-                <DataTableEmptyState
-                    variant="first-use"
-                    icon={<LayersIcon className="size-8" aria-hidden />}
-                    title="No Shared Policy Groups"
-                    description="Shared Policy Groups let you create reusable policy bundles and apply them across multiple API flows."
-                    primaryAction={
-                        onCreateSharedPolicyGroup ? <Button onClick={onCreateSharedPolicyGroup}>Add Shared Policy Group</Button> : undefined
-                    }
-                />
-            </div>
-        );
-    }
+    const columns = buildColumns({ canEdit, canDelete, onDeploy, onUndeploy, onHistory, onEdit, onDelete });
 
     return (
         <DataTable

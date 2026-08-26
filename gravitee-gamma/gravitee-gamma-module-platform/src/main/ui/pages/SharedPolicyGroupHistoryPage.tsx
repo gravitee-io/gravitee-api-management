@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Button, Skeleton } from '@gravitee/graphene-core';
 import { GitBranchIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
@@ -33,6 +32,7 @@ import {
     isKubernetesOrigin,
 } from '../features/shared-policy-groups/utils/sharedPolicyGroupPermissions';
 import { ConfirmDialog } from '../shared/components/ConfirmDialog';
+import { useHasEnvironmentPermission } from '../shared/hooks/useEnvironmentPermissions';
 import { notify } from '../shared/notify';
 
 type CompareState = { left: SharedPolicyGroup; right: SharedPolicyGroup; rightIsPending?: boolean } | null;
@@ -53,7 +53,7 @@ function getCompareSelectedLabel(selected: SharedPolicyGroup[]): string {
 
 export function SharedPolicyGroupHistoryPage() {
     const sharedPolicyGroup = useOutletContext<SharedPolicyGroup>();
-    const canUpdate = useHasPermission({ anyOf: [ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION] });
+    const canUpdate = useHasEnvironmentPermission([ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION]);
     const navigate = useNavigate();
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(25);

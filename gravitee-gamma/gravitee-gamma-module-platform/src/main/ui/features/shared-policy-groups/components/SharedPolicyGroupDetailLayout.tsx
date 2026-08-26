@@ -16,7 +16,7 @@
 
 import { Button, DateCell, Skeleton, useLayoutConfig } from '@gravitee/graphene-core';
 import { ArrowLeftIcon, LayersIcon } from '@gravitee/graphene-core/icons';
-import { Outlet, useNavigate, useParams, useResolvedPath } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate, useParams, useResolvedPath } from 'react-router-dom';
 
 import { SharedPolicyGroupActions } from './SharedPolicyGroupActions';
 import { SharedPolicyGroupStatusBadge } from './SharedPolicyGroupStatusBadge';
@@ -37,7 +37,11 @@ function SharedPolicyGroupHeader({ sharedPolicyGroup, listHref }: Readonly<{ sha
                     <h1 className="truncate text-2xl font-semibold tracking-tight">{sharedPolicyGroup.name}</h1>
                     <SharedPolicyGroupStatusBadge lifecycleState={sharedPolicyGroup.lifecycleState} />
                 </div>
-                {sharedPolicyGroup.description ? <p className="text-sm text-muted-foreground">{sharedPolicyGroup.description}</p> : null}
+                {sharedPolicyGroup.description ? (
+                    <p className="truncate text-sm text-muted-foreground" title={sharedPolicyGroup.description}>
+                        {sharedPolicyGroup.description}
+                    </p>
+                ) : null}
                 <p className="text-sm text-muted-foreground">
                     {toReadableApiType(sharedPolicyGroup.apiType)} · {toReadableFlowPhase(sharedPolicyGroup.phase)}
                 </p>
@@ -80,7 +84,12 @@ function SharedPolicyGroupHeader({ sharedPolicyGroup, listHref }: Readonly<{ sha
 export function SharedPolicyGroupDetailLayout() {
     const { sharedPolicyGroupId } = useParams<{ sharedPolicyGroupId: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
     const listHref = useResolvedPath('..').pathname;
+    const studioHref = useResolvedPath('studio').pathname;
+    const isHistoryTab = location.pathname.endsWith('/history');
+    const backHref = isHistoryTab ? studioHref : listHref;
+    const backLabel = isHistoryTab ? 'Back to Shared Policy Group' : 'Back to Shared Policy Group list';
     const { data: sharedPolicyGroup, isLoading, isError, error } = useSharedPolicyGroupDetail(sharedPolicyGroupId);
     const isForbidden = isForbiddenApiError(isError, error);
 
@@ -122,7 +131,7 @@ export function SharedPolicyGroupDetailLayout() {
             <div className="space-y-4">
                 <Button type="button" variant="ghost" className="gap-1.5 px-0" onClick={() => navigate(listHref)}>
                     <ArrowLeftIcon className="size-4" aria-hidden />
-                    Back to Shared Policy Groups
+                    Back to Shared Policy Group list
                 </Button>
                 <p className="text-sm text-muted-foreground">Shared Policy Group not found or failed to load.</p>
             </div>
@@ -131,9 +140,9 @@ export function SharedPolicyGroupDetailLayout() {
 
     return (
         <div className="space-y-6" data-testid="shared-policy-group-detail">
-            <Button type="button" variant="ghost" className="gap-1.5 px-0" onClick={() => navigate(listHref)}>
+            <Button type="button" variant="ghost" className="gap-1.5 px-0" onClick={() => navigate(backHref)}>
                 <ArrowLeftIcon className="size-4" aria-hidden />
-                Back to Shared Policy Groups
+                {backLabel}
             </Button>
 
             <SharedPolicyGroupHeader sharedPolicyGroup={sharedPolicyGroup} listHref={listHref} />

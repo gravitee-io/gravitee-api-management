@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { Button } from '@gravitee/graphene-core';
-import { PlusIcon } from '@gravitee/graphene-core/icons';
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
+import { Button, DataTableEmptyState } from '@gravitee/graphene-core';
+import { LayersIcon, PlusIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useState, type SetStateAction } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -30,19 +30,26 @@ import {
     type SharedPolicyGroupEditFormValues,
 } from '../features/shared-policy-groups/components/SharedPolicyGroupEditSheet';
 import { SharedPolicyGroupRemoveDialog } from '../features/shared-policy-groups/components/SharedPolicyGroupRemoveDialog';
+import { SharedPolicyGroupsEmptyState } from '../features/shared-policy-groups/components/SharedPolicyGroupsEmptyState';
 import { SharedPolicyGroupsTable } from '../features/shared-policy-groups/components/SharedPolicyGroupsTable';
 import {
     useCreateSharedPolicyGroup,
     useDeleteSharedPolicyGroup,
+    useDeploySharedPolicyGroup,
+    useUndeploySharedPolicyGroup,
     useUpdateSharedPolicyGroup,
 } from '../features/shared-policy-groups/hooks/useSharedPolicyGroupMutations';
 import { useSharedPolicyGroupsPaged } from '../features/shared-policy-groups/hooks/useSharedPolicyGroups';
+import { getSharedPolicyGroup } from '../features/shared-policy-groups/services/sharedPolicyGroups';
 import type { SharedPolicyGroup } from '../features/shared-policy-groups/types/sharedPolicyGroup';
 import {
     DEFAULT_SHARED_POLICY_GROUP_LIST_PAGE_SIZE,
     SHARED_POLICY_GROUP_SEARCH_DEBOUNCE_MS,
 } from '../features/shared-policy-groups/utils/paginationConstants';
-import { sharedPolicyGroupDetailHref } from '../features/shared-policy-groups/utils/sharedPolicyGroupDetailNavigation';
+import {
+    sharedPolicyGroupDetailHref,
+    sharedPolicyGroupHistoryHref,
+} from '../features/shared-policy-groups/utils/sharedPolicyGroupDetailNavigation';
 import { toUpdateSharedPolicyGroupPayload } from '../features/shared-policy-groups/utils/sharedPolicyGroupPayload';
 import {
     ENVIRONMENT_SHARED_POLICY_GROUP_CREATE_PERMISSION,
@@ -50,6 +57,7 @@ import {
     ENVIRONMENT_SHARED_POLICY_GROUP_PERMISSION_PREFIX,
     ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION,
 } from '../features/shared-policy-groups/utils/sharedPolicyGroupPermissions';
+import { useHasEnvironmentPermission } from '../shared/hooks/useEnvironmentPermissions';
 import { useForbiddenResourceRedirect } from '../shared/hooks/useForbiddenResourceRedirect';
 import { notify } from '../shared/notify';
 import { isForbiddenApiError } from '../shared/utils/apiErrors';
@@ -62,9 +70,10 @@ type SheetState =
 
 export function SharedPolicyGroupsPage() {
     const navigate = useNavigate();
-    const canCreate = useHasPermission({ anyOf: [ENVIRONMENT_SHARED_POLICY_GROUP_CREATE_PERMISSION] });
-    const canEdit = useHasPermission({ anyOf: [ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION] });
-    const canDelete = useHasPermission({ anyOf: [ENVIRONMENT_SHARED_POLICY_GROUP_DELETE_PERMISSION] });
+    const env = useEnvironment();
+    const canCreate = useHasEnvironmentPermission([ENVIRONMENT_SHARED_POLICY_GROUP_CREATE_PERMISSION]);
+    const canEdit = useHasEnvironmentPermission([ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION]);
+    const canDelete = useHasEnvironmentPermission([ENVIRONMENT_SHARED_POLICY_GROUP_DELETE_PERMISSION]);
 
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -101,6 +110,8 @@ export function SharedPolicyGroupsPage() {
 
     const createMutation = useCreateSharedPolicyGroup();
     const updateMutation = useUpdateSharedPolicyGroup();
+    const deployMutation = useDeploySharedPolicyGroup();
+    const undeployMutation = useUndeploySharedPolicyGroup();
     const deleteMutation = useDeleteSharedPolicyGroup();
 
     const sharedPolicyGroups = data?.data ?? [];
@@ -145,9 +156,18 @@ export function SharedPolicyGroupsPage() {
     async function handleEdit(values: SharedPolicyGroupEditFormValues) {
         if (sheet.type !== 'edit') return;
         try {
+            // The list row only carries summary fields, so `sheet.sharedPolicyGroup.steps` here
+            // is `[]`, not `null`. On the Java side a `null` `steps` field would leave the
+            // existing steps untouched, but an empty array is a real value and replaces them —
+            // so we can't just omit the field. Fetch the current detail and send its real steps
+            // back instead.
+            if (!env?.id) {
+                throw new Error('No active environment');
+            }
+            const current = await getSharedPolicyGroup(env.id, sheet.sharedPolicyGroup.id);
             await updateMutation.mutateAsync({
                 id: sheet.sharedPolicyGroup.id,
-                payload: toUpdateSharedPolicyGroupPayload(values),
+                payload: { ...toUpdateSharedPolicyGroupPayload(values), steps: current.steps },
             });
             notify.success('Shared Policy Group updated');
             closeSheet();
@@ -164,6 +184,24 @@ export function SharedPolicyGroupsPage() {
             closeSheet();
         } catch (error) {
             notify.error(error, 'An error occurred while removing the Shared Policy Group');
+        }
+    }
+
+    async function handleDeploy(sharedPolicyGroup: SharedPolicyGroup) {
+        try {
+            await deployMutation.mutateAsync(sharedPolicyGroup.id);
+            notify.success('Shared Policy Group deployed successfully');
+        } catch (error) {
+            notify.error(error, 'Error during Shared Policy Group deployment!');
+        }
+    }
+
+    async function handleUndeploy(sharedPolicyGroup: SharedPolicyGroup) {
+        try {
+            await undeployMutation.mutateAsync(sharedPolicyGroup.id);
+            notify.success('Shared Policy Group undeployed successfully');
+        } catch (error) {
+            notify.error(error, 'Error during Shared Policy Group undeployment!');
         }
     }
 
@@ -188,7 +226,7 @@ export function SharedPolicyGroupsPage() {
                         Shared Policy Groups let you apply reusable policies to your API event phases.
                     </p>
                 </div>
-                {canCreate && !isLoading && !isFirstUse ? (
+                {canCreate && !isLoading ? (
                     <Button className="shrink-0" size="sm" onClick={openCreateSheet}>
                         <PlusIcon className="size-4" aria-hidden />
                         Add Shared Policy Group
@@ -196,26 +234,39 @@ export function SharedPolicyGroupsPage() {
                 ) : null}
             </div>
 
-            <SharedPolicyGroupsTable
-                sharedPolicyGroups={sharedPolicyGroups}
-                totalCount={totalCount}
-                loading={isLoading}
-                isFirstUse={isFirstUse}
-                search={search}
-                page={page}
-                pageSize={pageSize}
-                sorting={sorting}
-                canEdit={canEdit}
-                canDelete={canDelete}
-                onSearchChange={handleSearchChange}
-                onPageChange={setPage}
-                onPageSizeChange={setPageSize}
-                onSortingChange={handleSortingChange}
-                onView={sharedPolicyGroup => navigate(sharedPolicyGroupDetailHref(sharedPolicyGroup.id))}
-                onEdit={handleOpenEdit}
-                onDelete={sharedPolicyGroup => setSheet({ type: 'delete', sharedPolicyGroup })}
-                onCreateSharedPolicyGroup={canCreate ? openCreateSheet : undefined}
-            />
+            {isFirstUse ? (
+                <div className="rounded-lg border">
+                    <DataTableEmptyState
+                        variant="first-use"
+                        icon={<LayersIcon className="size-8" aria-hidden />}
+                        title="No Shared Policy Groups"
+                        description="Shared Policy Groups let you create reusable policy bundles and apply them across multiple API flows."
+                    >
+                        <SharedPolicyGroupsEmptyState />
+                    </DataTableEmptyState>
+                </div>
+            ) : (
+                <SharedPolicyGroupsTable
+                    sharedPolicyGroups={sharedPolicyGroups}
+                    totalCount={totalCount}
+                    loading={isLoading}
+                    search={search}
+                    page={page}
+                    pageSize={pageSize}
+                    sorting={sorting}
+                    canEdit={canEdit}
+                    canDelete={canDelete}
+                    onSearchChange={handleSearchChange}
+                    onPageChange={setPage}
+                    onPageSizeChange={setPageSize}
+                    onSortingChange={handleSortingChange}
+                    onDeploy={sharedPolicyGroup => void handleDeploy(sharedPolicyGroup)}
+                    onUndeploy={sharedPolicyGroup => void handleUndeploy(sharedPolicyGroup)}
+                    onHistory={sharedPolicyGroup => navigate(sharedPolicyGroupHistoryHref(sharedPolicyGroup.id))}
+                    onEdit={handleOpenEdit}
+                    onDelete={sharedPolicyGroup => setSheet({ type: 'delete', sharedPolicyGroup })}
+                />
+            )}
 
             {sheet.type === 'create' ? <SharedPolicyGroupCreateSheet open onClose={closeSheet} onSubmit={handleCreate} /> : null}
 
