@@ -23,6 +23,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.put;
+import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.request;
 import static com.github.tomakehurst.wiremock.client.WireMock.requestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
@@ -95,6 +97,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -105,6 +108,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -554,6 +558,33 @@ class HttpConnectorTest {
                 .withHeader(TRANSFER_ENCODING, new EqualToPattern("chunked"))
                 .withRequestBody(new EqualToPattern(REQUEST_BODY.trim()))
         );
+    }
+
+    @Test
+    void should_execute_post_request_when_only_the_http2_version_announces_the_body() throws InterruptedException {
+        // Given an HTTP/2 POST request that streams a body via Data frames, with no Content-Length or
+        // Transfer-Encoding header set — leaving the headers unset is what makes the protocol alone drive
+        // the decision to forward the body.
+        when(request.method()).thenReturn(HttpMethod.POST);
+        when(request.version()).thenReturn(HttpVersion.HTTP_2);
+        when(request.chunks()).thenReturn(
+            Flowable.just(Buffer.buffer(REQUEST_BODY_CHUNK1), Buffer.buffer(REQUEST_BODY_CHUNK2), Buffer.buffer(REQUEST_BODY_CHUNK3))
+        );
+
+        wiremock.stubFor(post(urlPathEqualTo("/team")).willReturn(ok(BACKEND_RESPONSE_BODY)));
+
+        // When the connector executes the request.
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+
+        // Then it completes successfully...
+        assertNoTimeout(obs);
+        obs.assertComplete();
+        verify(response).status(HttpStatusCode.OK_200);
+
+        // ...and the streamed body reached the backend intact.
+        final List<LoggedRequest> attempts = wiremock.findAll(postRequestedFor(urlPathEqualTo("/team")));
+        assertThat(attempts).hasSize(1);
+        assertThat(attempts.get(0).getBodyAsString()).isEqualTo(REQUEST_BODY_CHUNK1 + REQUEST_BODY_CHUNK2 + REQUEST_BODY_CHUNK3);
     }
 
     @Test
@@ -1149,51 +1180,201 @@ class HttpConnectorTest {
     }
 
     @Test
-    void should_not_resend_a_body_less_post_when_the_pooled_connection_was_closed_by_the_peer() throws InterruptedException {
-        when(request.method()).thenReturn(HttpMethod.POST);
+    void should_retry_a_body_less_idempotent_put_request_with_content_length_zero() throws InterruptedException {
+        // Given a body-less, idempotent PUT declaring Content-Length: 0 — what virtually every real client sends
+        // on a body-less PUT or DELETE, and as safe to re-send as a request with no body header at all — whose
+        // pooled connection will be closed by the peer before it answers.
+        when(request.method()).thenReturn(HttpMethod.PUT);
+        requestHeaders.set(CONTENT_LENGTH, "0");
+        // Identifies the failed attempt and its retry in the request journal below; the priming request never carries it.
+        final String traceId = "9a2e5f74";
+        requestHeaders.set("X-Test-Trace-Id", traceId);
 
-        wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
-        wiremock.stubFor(post("/team").willReturn(aResponse().withFault(Fault.EMPTY_RESPONSE)));
+        // The priming request always uses GET (see primePooledConnection), so this transitional stub matches any
+        // method to consume it and drive the scenario into the peer-closed state before the request under test begins.
+        wiremock.stubFor(
+            any(urlPathEqualTo("/team"))
+                .inScenario(POOLED_CONNECTION_SCENARIO)
+                .whenScenarioStateIs(Scenario.STARTED)
+                .willReturn(ok())
+                .willSetStateTo(PEER_CLOSED_THE_POOLED_CONNECTION)
+        );
+        wiremock.stubFor(
+            request(HttpMethod.PUT.name(), urlPathEqualTo("/team"))
+                .inScenario(POOLED_CONNECTION_SCENARIO)
+                .whenScenarioStateIs(PEER_CLOSED_THE_POOLED_CONNECTION)
+                .willReturn(aResponse().withFault(Fault.EMPTY_RESPONSE))
+                .willSetStateTo(PEER_ACCEPTS_A_FRESH_CONNECTION)
+        );
+        wiremock.stubFor(
+            request(HttpMethod.PUT.name(), urlPathEqualTo("/team"))
+                .inScenario(POOLED_CONNECTION_SCENARIO)
+                .whenScenarioStateIs(PEER_ACCEPTS_A_FRESH_CONNECTION)
+                .willReturn(ok())
+        );
 
         primePooledConnection();
 
-        final AtomicReference<Throwable> connectFailure = new AtomicReference<>();
-        final TestObserver<Void> obs = cut.connect(ctx).doOnError(connectFailure::set).test();
+        // When the connector executes the request.
+        final TestObserver<Void> obs = cut.connect(ctx).test();
 
+        // Then it completes successfully by retrying once on a fresh connection...
         assertNoTimeout(obs);
-        obs.assertNotComplete();
-        assertThat(ConnectionFailureClassifier.classify(connectFailure.get()).key()).isEqualTo("GATEWAY_CLIENT_CONNECTION_CLOSED");
-        wiremock.verify(1, postRequestedFor(urlPathEqualTo("/team")));
+        obs.assertComplete();
+        verify(response).status(HttpStatusCode.OK_200);
+
+        // ...and both the failed attempt and the retry carried the same method, URL, and headers.
+        final List<LoggedRequest> retriableAttempts = wiremock
+            .findAll(requestedFor(HttpMethod.PUT.name(), urlPathEqualTo("/team")))
+            .stream()
+            .filter(loggedRequest -> loggedRequest.containsHeader("X-Test-Trace-Id"))
+            .collect(Collectors.toList());
+        assertThat(retriableAttempts).hasSize(2);
+        assertThat(retriableAttempts).allSatisfy(attempt -> {
+            assertThat(attempt.getMethod().getName()).isEqualTo(HttpMethod.PUT.name());
+            assertThat(attempt.getUrl()).isEqualTo("/team");
+            assertThat(attempt.getHeader("X-Test-Trace-Id")).isEqualTo(traceId);
+            assertThat(attempt.getHeader(CONTENT_LENGTH)).isEqualTo("0");
+        });
     }
 
     @Test
-    void should_not_resend_the_request_when_the_connection_failed_after_the_body_was_streamed() throws InterruptedException {
-        when(request.method()).thenReturn(HttpMethod.POST);
-        when(request.headers()).thenReturn(HttpHeaders.create().add(TRANSFER_ENCODING, "chunked"));
-        when(request.chunks()).thenReturn(
-            Flowable.just(Buffer.buffer(REQUEST_BODY_CHUNK1), Buffer.buffer(REQUEST_BODY_CHUNK2), Buffer.buffer(REQUEST_BODY_CHUNK3))
+    void should_read_the_client_request_body_once_for_a_body_less_put_declaring_content_length_zero() throws InterruptedException {
+        // Given a PUT declaring Content-Length: 0, whose client body stream is instrumented to count
+        // subscriptions — the gateway's chunks are a single Vert.x request stream that throws "Request has
+        // already been read" on a second subscription, so counting them here is what a plain Flowable.empty()
+        // stub would silently tolerate.
+        when(request.method()).thenReturn(HttpMethod.PUT);
+        requestHeaders.set(CONTENT_LENGTH, "0");
+        final AtomicInteger chunksSubscriptions = new AtomicInteger();
+        when(request.chunks()).thenReturn(Flowable.<Buffer>empty().doOnSubscribe(subscription -> chunksSubscriptions.incrementAndGet()));
+
+        wiremock.stubFor(put("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
+
+        // When the connector executes the request.
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+
+        // Then it completes successfully with the backend's response...
+        assertNoTimeout(obs);
+        obs.assertComplete();
+        verify(response).status(HttpStatusCode.OK_200);
+        assertThat(drainChunks(response).values().stream().map(Buffer::toString).collect(Collectors.joining())).isEqualTo(
+            BACKEND_RESPONSE_BODY
         );
 
+        // ...the backend received an empty body...
+        final List<LoggedRequest> attempts = wiremock.findAll(putRequestedFor(urlPathEqualTo("/team")));
+        assertThat(attempts).hasSize(1);
+        assertThat(attempts.get(0).getHeader(CONTENT_LENGTH)).isEqualTo("0");
+        assertThat(attempts.get(0).getBodyAsString()).isEmpty();
+        // ...and the client's body stream was drained exactly once, never sent.
+        assertThat(chunksSubscriptions.get())
+            .as("Client body should be read exactly once: a declared length of zero bytes is drained, never sent")
+            .isEqualTo(1);
+    }
+
+    private record NonResendableRequest(
+        String description,
+        HttpMethod method,
+        String contentLengthHeader,
+        boolean chunkedTransferEncoding,
+        List<String> bodyChunks,
+        String expectedRequestBody,
+        String expectedContentLengthHeader
+    ) {
+        @Override
+        public String toString() {
+            return description;
+        }
+    }
+
+    private static Stream<NonResendableRequest> nonResendableRequests() {
+        final String chunkedBody = REQUEST_BODY_CHUNK1 + REQUEST_BODY_CHUNK2 + REQUEST_BODY_CHUNK3;
+        return Stream.of(
+            // PUT is idempotent, so a declared length of exactly as many bytes as are streamed is the only thing
+            // keeping this request off the retry path: those bytes reached the backend, which may already have
+            // acted on them.
+            new NonResendableRequest(
+                "PUT declaring a non-zero Content-Length",
+                HttpMethod.PUT,
+                Integer.toString(REQUEST_BODY_LENGTH),
+                false,
+                List.of(REQUEST_BODY),
+                REQUEST_BODY,
+                Integer.toString(REQUEST_BODY_LENGTH)
+            ),
+            new NonResendableRequest("body-less POST", HttpMethod.POST, null, false, List.of(), null, null),
+            // A declared body of exactly zero bytes reaches the backend as no body at all, so the method's
+            // non-idempotence is the only thing left keeping this request off the retry path.
+            new NonResendableRequest("POST declaring an empty body", HttpMethod.POST, "0", false, List.of(), null, "0"),
+            // PUT is idempotent, so the method no longer excludes the resend on its own: a body announced with
+            // Transfer-Encoding is what has to keep this failure off the retry path.
+            new NonResendableRequest(
+                "idempotent PUT whose chunked body was streamed",
+                HttpMethod.PUT,
+                null,
+                true,
+                List.of(REQUEST_BODY_CHUNK1, REQUEST_BODY_CHUNK2, REQUEST_BODY_CHUNK3),
+                chunkedBody,
+                null
+            ),
+            // The peer takes the whole body, then ends the connection without answering: the bytes of a
+            // non-idempotent request have already reached the backend, so this failure is not the pre-write
+            // pool-reuse race and must never be answered by sending the request a second time.
+            new NonResendableRequest(
+                "POST whose chunked body was streamed",
+                HttpMethod.POST,
+                null,
+                true,
+                List.of(REQUEST_BODY_CHUNK1, REQUEST_BODY_CHUNK2, REQUEST_BODY_CHUNK3),
+                chunkedBody,
+                null
+            )
+        );
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("nonResendableRequests")
+    void should_not_resend_a_request_when_the_pooled_connection_was_closed_by_the_peer(final NonResendableRequest testCase)
+        throws InterruptedException {
+        // Given a request whose body — declared, streamed, or its method's non-idempotence — makes it unsafe to
+        // resend, and whose pooled connection will be closed by the peer before it answers.
+        when(request.method()).thenReturn(testCase.method());
+        if (testCase.chunkedTransferEncoding()) {
+            when(request.headers()).thenReturn(HttpHeaders.create().add(TRANSFER_ENCODING, "chunked"));
+        } else if (testCase.contentLengthHeader() != null) {
+            requestHeaders.set(CONTENT_LENGTH, testCase.contentLengthHeader());
+        }
+        if (!testCase.bodyChunks().isEmpty()) {
+            when(request.chunks()).thenReturn(Flowable.fromIterable(testCase.bodyChunks()).map(Buffer::buffer));
+        }
+
         wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
-        // The peer takes the whole body, then ends the connection without answering: the bytes of a non-idempotent
-        // request have already reached the backend, so this failure is not the pre-write pool-reuse race and must
-        // never be answered by sending the request a second time.
-        wiremock.stubFor(post("/team").willReturn(aResponse().withFault(Fault.EMPTY_RESPONSE)));
+        wiremock.stubFor(
+            request(testCase.method().name(), urlPathEqualTo("/team")).willReturn(aResponse().withFault(Fault.EMPTY_RESPONSE))
+        );
 
         primePooledConnection();
 
+        // When the connector executes the request.
         final AtomicReference<Throwable> connectFailure = new AtomicReference<>();
         final TestObserver<Void> obs = cut.connect(ctx).doOnError(connectFailure::set).test();
 
+        // Then it fails as a client-connection-closed error, never as a resend...
         assertNoTimeout(obs);
         obs.assertNotComplete();
         assertThat(ConnectionFailureClassifier.classify(connectFailure.get()).key()).isEqualTo("GATEWAY_CLIENT_CONNECTION_CLOSED");
-        wiremock.verify(
-            1,
-            postRequestedFor(urlPathEqualTo("/team")).withRequestBody(
-                new EqualToPattern(REQUEST_BODY_CHUNK1 + REQUEST_BODY_CHUNK2 + REQUEST_BODY_CHUNK3)
-            )
-        );
+
+        // ...and the backend received exactly one attempt.
+        final RequestPatternBuilder pattern = requestedFor(testCase.method().name(), urlPathEqualTo("/team"));
+        if (testCase.expectedRequestBody() != null) {
+            pattern.withRequestBody(new EqualToPattern(testCase.expectedRequestBody()));
+        }
+        final List<LoggedRequest> attempts = wiremock.findAll(pattern);
+        assertThat(attempts).hasSize(1);
+        if (testCase.expectedContentLengthHeader() != null) {
+            assertThat(attempts.get(0).getHeader(CONTENT_LENGTH)).isEqualTo(testCase.expectedContentLengthHeader());
+        }
     }
 
     @Test
