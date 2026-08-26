@@ -27,8 +27,17 @@ import lombok.ToString;
 
 /**
  * {@code human} — a human-in-the-loop gate: renders {@code ask} from the scope ({@code {{key}}}), reads the reply
- * and writes it to {@code outputs} (inherited). {@code channel} describes how the human is reached. It implements
- * {@link Workflow} so a workflow may be a single human gate.
+ * and writes it to {@code outputs} (inherited). It implements {@link Workflow} so a workflow may be a single human gate.
+ *
+ * <p>{@code channel} chooses which of two gates this is, and they behave differently enough to be worth naming:</p>
+ * <ul>
+ *   <li><b>in-conversation</b> ({@code channel} absent) — whoever is already talking to the agent is asked, and
+ *       answers in place, the way a tool approval does. Bounded by the turn that opened it, so it takes no timeout
+ *       and no resume mode;</li>
+ *   <li><b>delegated</b> ({@code channel} present, with a {@code ref}) — the ask is pushed out-of-band so that
+ *       <em>somebody else</em> decides. The asker may disconnect, so the run is resumable and the wait is bounded.
+ *       See {@link HumanChannel} for what that entails.</li>
+ * </ul>
  */
 @NoArgsConstructor
 @AllArgsConstructor
