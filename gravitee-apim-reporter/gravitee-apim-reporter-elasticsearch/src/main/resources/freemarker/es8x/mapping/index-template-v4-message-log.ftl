@@ -1,4 +1,5 @@
 <#ftl output_format="JSON">
+<#import "../../common/mapping/log-body-field.ftl" as bodyField>
 {
     "index_patterns": ["${indexName}*"],
     "template": {
@@ -61,10 +62,7 @@
                         "id": {
                             "type": "keyword"
                         },
-                        "payload":{
-                            "type": "text",
-                            "analyzer": "gravitee_body_analyzer"
-                        },
+                        "payload": <@bodyField.mapping analyzer="gravitee_body_analyzer"/>,
                         "headers":{
                             "enabled": false,
                             "type": "object"

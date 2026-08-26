@@ -1,4 +1,5 @@
 <#ftl output_format="JSON">
+<#import "../../common/mapping/log-body-field.ftl" as bodyField>
 {
     "index_patterns": ["${indexName}*"],
     "settings": {
@@ -47,9 +48,7 @@
                     "id": {
                         "type": "keyword"
                     },
-                    "payload":{
-                        "type": "text"
-                    },
+                    "payload": <@bodyField.mapping/>,
                     "headers":{
                         "enabled": false,
                         "type": "object"
