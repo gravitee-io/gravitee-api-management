@@ -50,7 +50,8 @@ import lombok.RequiredArgsConstructor;
  * Imports a remote documentation tree behind a {@code FilesFetcher} source into the subtree of the
  * folder carrying that source. The folder owns the sync: imported children carry no source of their
  * own and are read-only by inheritance. Re-running the import re-lists the files, updates matched
- * pages, creates new ones and removes the previously imported items that no longer exist remotely.
+ * pages, creates new ones and — when every entry imported successfully — removes the previously
+ * imported items that no longer exist remotely.
  */
 @DomainService
 @CustomLog
@@ -144,7 +145,20 @@ public class PortalNavigationBulkImportDomainService {
             );
             return failListing(rootFolder, "The source of type %s listed no importable files.".formatted(source.getSourceType()));
         }
-        deleteOrphans(rootFolder, touchedItemIds);
+        if (results.stream().allMatch(BulkImportResult.FileImportResult::success)) {
+            deleteOrphans(rootFolder, touchedItemIds);
+        } else {
+            // A partial run has an incomplete picture of the remote tree: an entry that failed touched
+            // nothing, so the page it stands for looks orphaned. Deleting it would lose content the run
+            // never proved gone remotely — a manifest renaming a.md from "Old" to "New" while the fetch
+            // transiently fails wipes the last good "Old" page. Stale items are kept until a run
+            // reconciles the whole subtree successfully.
+            log.warn(
+                "Portal navigation folder [id={}, sourceType={}] imported partially: keeping the items no longer backed by the source",
+                rootFolder.getId().json(),
+                source.getSourceType()
+            );
+        }
 
         stampFetchOutcome(source, results);
         crudService.update(rootFolder);
