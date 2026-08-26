@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_listing.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_listing.model.PortalListingApiEntry;
@@ -30,6 +31,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.slug.model.Slug;
 import java.util.Optional;
@@ -83,31 +85,53 @@ class NavigationItemEntryMaterializer {
         return navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), navApiId);
     }
 
+    PortalNavigationValidator.PendingUpdate updateForValidation(
+        AuditInfo auditInfo,
+        PortalId portalId,
+        PortalListingApiEntry entry,
+        PortalNavigationApi existing
+    ) {
+        var toUpdate = UpdatePortalNavigationItem.builder()
+            .type(PortalNavigationItemType.API)
+            .title(entry.apiHrid())
+            .segment(Slug.from(entry.apiHrid()).value())
+            .order(entry.order() != null ? entry.order() : 0)
+            .parentId(resolveParentId(auditInfo, portalId, entry.location()))
+            .visibility(PortalVisibility.PUBLIC)
+            .published(true)
+            .build();
+        return new PortalNavigationValidator.PendingUpdate(toUpdate, existing);
+    }
+
     CreatePortalNavigationItem itemForValidation(AuditInfo auditInfo, PortalId portalId, String apiId, PortalListingApiEntry entry) {
-        var navApiId = rowId(auditInfo, portalId, apiId);
-        var parent = resolveParent(auditInfo, portalId.toString(), entry.location());
-        var parentId = Optional.ofNullable(parent).map(PortalNavigationItemContainer::getId).orElse(null);
         return CreatePortalNavigationItem.builder()
-            .id(navApiId)
+            .id(rowId(auditInfo, portalId, apiId))
             .title(entry.apiHrid())
             .segment(Slug.from(entry.apiHrid()).value())
             .area(AREA)
             .type(PortalNavigationItemType.API)
             .order(entry.order() != null ? entry.order() : 0)
             .apiId(apiId)
-            .parentId(parentId)
+            .parentId(resolveParentId(auditInfo, portalId, entry.location()))
             .visibility(PortalVisibility.PUBLIC)
             .published(true)
-            .automationMetadata(
-                new AutomationMetadata(
-                    AutomationMetadata.ReferenceType.PORTAL,
-                    portalId.toString(),
-                    null,
-                    Optional.ofNullable(entry.location()),
-                    Optional.empty()
-                )
-            )
+            .automationMetadata(portalAutomationMetadata(portalId, entry.location()))
             .build();
+    }
+
+    private PortalNavigationItemId resolveParentId(AuditInfo auditInfo, PortalId portalId, String location) {
+        var parent = resolveParent(auditInfo, portalId.toString(), location);
+        return Optional.ofNullable(parent).map(PortalNavigationItemContainer::getId).orElse(null);
+    }
+
+    private static AutomationMetadata portalAutomationMetadata(PortalId portalId, String location) {
+        return new AutomationMetadata(
+            AutomationMetadata.ReferenceType.PORTAL,
+            portalId.toString(),
+            null,
+            Optional.ofNullable(location),
+            Optional.empty()
+        );
     }
 
     private static void applyUpdate(
