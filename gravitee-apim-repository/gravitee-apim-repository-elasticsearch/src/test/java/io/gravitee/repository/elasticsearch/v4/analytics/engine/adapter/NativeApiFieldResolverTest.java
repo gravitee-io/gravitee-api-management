@@ -70,6 +70,22 @@ class NativeApiFieldResolverTest {
     }
 
     @Test
+    void resolves_client_software_name_facet_to_additional_metrics_keyword() {
+        // The fleet dimension: where client.id is caller-chosen and near-unique per pod, the library is a
+        // handful of values across a whole estate — which is what makes it groupable at all.
+        assertThat(fieldResolver.fromFacet(Facet.NATIVE_CLIENT_SOFTWARE_NAME)).isEqualTo(
+            "additional-metrics." + NativeApiMetricKeys.CLIENT_SOFTWARE_NAME
+        );
+    }
+
+    @Test
+    void resolves_client_software_name_filter_to_additional_metrics_keyword() {
+        assertThat(
+            fieldResolver.fromFilter(new Filter(Filter.Name.NATIVE_CLIENT_SOFTWARE_NAME, Filter.Operator.EQ, "librdkafka"))
+        ).isEqualTo("additional-metrics." + NativeApiMetricKeys.CLIENT_SOFTWARE_NAME);
+    }
+
+    @Test
     void resolves_failure_side_filter_to_additional_metrics_keyword() {
         assertThat(
             fieldResolver.fromFilter(new Filter(Filter.Name.NATIVE_FAILURE_SIDE, Filter.Operator.IN, List.of("DOWNSTREAM")))

@@ -89,7 +89,8 @@ public class FilterAdapter {
         Filter.Name.PLAN,
         Filter.Name.NATIVE_CONNECTION_STATUS,
         Filter.Name.NATIVE_FAILURE_SIDE,
-        Filter.Name.NATIVE_CLIENT_ID
+        Filter.Name.NATIVE_CLIENT_ID,
+        Filter.Name.NATIVE_CLIENT_SOFTWARE_NAME
     );
 
     /**

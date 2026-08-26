@@ -47,6 +47,13 @@ public class NativeApiFieldResolver implements FieldResolver {
      */
     private static final String CLIENT_ID_FIELD = RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_ID;
 
+    /**
+     * KIP-511 client library name. Where {@code client.id} is caller-chosen and near-unique per pod, this is a
+     * handful of values across a fleet — the cardinality a breakdown actually wants.
+     */
+    private static final String CLIENT_SOFTWARE_NAME_FIELD =
+        RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_SOFTWARE_NAME;
+
     @Override
     public String fromMetric(Metric metric) {
         return switch (metric) {
@@ -66,10 +73,11 @@ public class NativeApiFieldResolver implements FieldResolver {
             case NATIVE_CONNECTION_STATUS -> CONNECTION_STATUS_FIELD;
             case NATIVE_FAILURE_SIDE -> FAILURE_SIDE_FIELD;
             case NATIVE_CLIENT_ID -> CLIENT_ID_FIELD;
+            case NATIVE_CLIENT_SOFTWARE_NAME -> CLIENT_SOFTWARE_NAME_FIELD;
             default -> throw new UnsupportedOperationException(
                 "NativeApiFieldResolver does not support filter '" +
                     filter.name() +
-                    "' — supported names: API, APPLICATION, PLAN, NATIVE_CONNECTION_STATUS, NATIVE_FAILURE_SIDE, NATIVE_CLIENT_ID"
+                    "' — supported names: API, APPLICATION, PLAN, NATIVE_CONNECTION_STATUS, NATIVE_FAILURE_SIDE, NATIVE_CLIENT_ID, NATIVE_CLIENT_SOFTWARE_NAME"
             );
         };
     }
@@ -94,10 +102,11 @@ public class NativeApiFieldResolver implements FieldResolver {
             case NATIVE_CONNECTION_STATUS -> CONNECTION_STATUS_FIELD;
             case NATIVE_FAILURE_SIDE -> FAILURE_SIDE_FIELD;
             case NATIVE_CLIENT_ID -> CLIENT_ID_FIELD;
+            case NATIVE_CLIENT_SOFTWARE_NAME -> CLIENT_SOFTWARE_NAME_FIELD;
             default -> throw new UnsupportedOperationException(
                 "NativeApiFieldResolver does not support facet '" +
                     facet +
-                    "' — supported facets: API, APPLICATION, PLAN, NATIVE_CONNECTION_STATUS, NATIVE_FAILURE_SIDE, NATIVE_CLIENT_ID"
+                    "' — supported facets: API, APPLICATION, PLAN, NATIVE_CONNECTION_STATUS, NATIVE_FAILURE_SIDE, NATIVE_CLIENT_ID, NATIVE_CLIENT_SOFTWARE_NAME"
             );
         };
     }

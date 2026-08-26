@@ -221,6 +221,21 @@ class SpiFilterRegistryTest {
     }
 
     @Test
+    void should_advertise_the_kafka_client_dimensions_on_the_analytics_signal() {
+        // Both are backed by a dimension the core engine can group by (NativeApiFieldResolver), and Gamma
+        // runs that same engine through ObservabilityAnalyticsDataPortAdapter. Nothing else pins the
+        // ANALYTICS axis for native filters, so dropping a signal here would silently make a filter that
+        // works through management-v2 fail in Gamma — which is the state this replaced.
+        List<FilterSpec> result = registryWith().getFilters(Set.of(Signal.ANALYTICS), Set.of(ApiType.NATIVE));
+
+        assertThat(result)
+            .extracting(FilterSpec::name)
+            .contains("NATIVE_CLIENT_ID", "NATIVE_CLIENT_SOFTWARE_NAME")
+            // Derived from the error key rather than stored, so the analytics engine cannot group by it.
+            .doesNotContain("FAILURE_ORIGIN");
+    }
+
+    @Test
     void should_apply_both_axes_to_host_and_contributor_filters() {
         FilterRegistry registry = registryWith(filtersContributor(llmModel()));
 

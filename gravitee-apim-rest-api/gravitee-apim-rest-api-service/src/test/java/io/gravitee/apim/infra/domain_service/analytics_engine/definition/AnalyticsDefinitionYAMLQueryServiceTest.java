@@ -28,6 +28,8 @@ import io.gravitee.apim.core.observability.model.Signal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
@@ -100,6 +102,87 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
                 .toList();
 
             assertThat(declaredButUnadvertised).isEmpty();
+        }
+    }
+
+    @Nested
+    class MetricDimensionParity {
+
+        /**
+         * Dimensions a metric lists that the top-level catalog does not declare, so {@code getFacets} /
+         * {@code getFilters} drop them. All predate this contract, all sit on EDGE and MESSAGE metrics, and
+         * whether each is an omission or a deliberate withholding is for the teams that own them — silently
+         * cataloguing them here would surface pickers someone may have removed on purpose.
+         *
+         * <p>Pinned as an exact set rather than a floor: fixing one fails this test until it is struck off,
+         * so the list can only shrink. Nothing may be added to it.
+         */
+        private static final List<String> KNOWN_UNCATALOGUED_FACETS = List.of(
+            "EDGE_HEARTBEAT_COUNT -> EDGE_VERSION",
+            "EDGE_TOKENS_IN -> EDGE_MODEL",
+            "EDGE_TOKENS_IN -> EDGE_TOOL",
+            "EDGE_TOKENS_OUT -> EDGE_MODEL",
+            "EDGE_TOKENS_OUT -> EDGE_TOOL"
+        );
+
+        private static final List<String> KNOWN_UNCATALOGUED_FILTERS = List.of(
+            "EDGE_HEARTBEAT_COUNT -> EDGE_VERSION",
+            "EDGE_TOKENS_IN -> EDGE_MODEL",
+            "EDGE_TOKENS_IN -> EDGE_TOOL",
+            "EDGE_TOKENS_OUT -> EDGE_MODEL",
+            "EDGE_TOKENS_OUT -> EDGE_TOOL",
+            "MESSAGES -> MESSAGE_CONNECTOR_ID",
+            "MESSAGE_ERRORS -> MESSAGE_CONNECTOR_ID",
+            "MESSAGE_GATEWAY_LATENCY -> MESSAGE_CONNECTOR_ID",
+            "MESSAGE_PAYLOAD_SIZE -> MESSAGE_CONNECTOR_ID"
+        );
+
+        /**
+         * getFacets intersects the metric's own list with the top-level {@code facets:} catalog, so a name
+         * listed on a metric but absent from the catalog is dropped there — the breakdown picker never offers
+         * it, and nothing complains. Comparing the two through the public accessor measures that loss
+         * directly rather than the state behind it.
+         *
+         * <p>The gap survives manual testing because it fails silently in both directions:
+         * AnalyticsQueryValidator checks the metric's list rather than the catalog, so a hand-crafted request
+         * still works while the UI never offers the dimension.
+         */
+        @Test
+        void should_surface_every_facet_a_metric_lists() {
+            assertThat(
+                droppedDimensions(MetricSpec::facets, (service, name) -> service.getFacets(name).stream().map(FacetSpec::name).toList())
+            )
+                .as("facets listed on a metric but missing from the facets catalog are silently dropped by getFacets")
+                .containsExactlyInAnyOrderElementsOf(KNOWN_UNCATALOGUED_FACETS);
+        }
+
+        /** Same contract on the filter side, which getFilters intersects the same way. */
+        @Test
+        void should_surface_every_filter_a_metric_lists() {
+            assertThat(
+                droppedDimensions(MetricSpec::filters, (service, name) -> service.getFilters(name).stream().map(FilterSpec::name).toList())
+            ).containsExactlyInAnyOrderElementsOf(KNOWN_UNCATALOGUED_FILTERS);
+        }
+
+        private static <T> List<String> droppedDimensions(
+            Function<MetricSpec, List<T>> declared,
+            BiFunction<AnalyticsDefinitionYAMLQueryService, MetricSpec.Name, List<T>> surfaced
+        ) {
+            var service = new AnalyticsDefinitionYAMLQueryService();
+            return Arrays.stream(ApiSpec.Name.values())
+                .flatMap(api -> service.getMetrics(api).stream())
+                .distinct()
+                .flatMap(metric -> {
+                    var visible = surfaced.apply(service, metric.name());
+                    return declared
+                        .apply(metric)
+                        .stream()
+                        .filter(dimension -> !visible.contains(dimension))
+                        .map(dimension -> metric.name() + " -> " + dimension);
+                })
+                .distinct()
+                .sorted()
+                .toList();
         }
     }
 
