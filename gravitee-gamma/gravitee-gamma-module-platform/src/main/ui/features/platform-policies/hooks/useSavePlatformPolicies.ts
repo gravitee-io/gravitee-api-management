@@ -18,10 +18,10 @@ import type { SaveOutput } from '@gravitee/graphene-policy-studio';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { notify } from '../../../shared/notify';
-import { getOrganization, updateOrganization } from '../services/platformPolicies';
-import type { Organization } from '../types/platformPolicies';
+import { getOrganization, updateOrganization } from '../../../shared/services/organization';
+import type { Organization } from '../../../shared/types/organization';
+import { organizationKeys } from '../../../shared/utils/queryKeys';
 import { toFlowMode, toPlatformFlows } from '../utils/platformFlowAdapter';
-import { platformPolicyKeys } from '../utils/queryKeys';
 
 /**
  * Saving is a full-entity PUT on the organization. The entity is re-read first so fields the studio
@@ -42,7 +42,8 @@ export function useSavePlatformPolicies() {
             return updateOrganization(updated);
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: platformPolicyKeys.organization() });
+            // The PUT replaces the whole entity, so every read of the organization is stale, not just ours.
+            queryClient.invalidateQueries({ queryKey: organizationKeys.all });
             notify.success('Platform policies successfully updated!');
         },
         onError: error => notify.error(error, 'An error occurred while updating the platform policies.'),

@@ -34,3 +34,8 @@ export const policyPluginKeys = {
     all: ['policy-plugins'] as const,
     list: () => [...policyPluginKeys.all, 'list'] as const,
 } as const;
+
+export const organizationKeys = {
+    all: ['organization'] as const,
+    detail: () => [...organizationKeys.all, 'detail'] as const,
+} as const;

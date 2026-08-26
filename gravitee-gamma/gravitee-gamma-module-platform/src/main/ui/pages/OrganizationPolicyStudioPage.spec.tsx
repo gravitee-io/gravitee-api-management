@@ -21,9 +21,9 @@ import type { ReactNode } from 'react';
 
 import { OrganizationPolicyStudioPage } from './OrganizationPolicyStudioPage';
 import { listOrgTags } from '../features/entrypoints/services/tags';
-import { getOrganization, updateOrganization } from '../features/platform-policies/services/platformPolicies';
-import type { Organization } from '../features/platform-policies/types/platformPolicies';
+import { getOrganization, updateOrganization } from '../shared/services/organization';
 import { listPolicies } from '../shared/services/policyPlugins';
+import type { Organization } from '../shared/types/organization';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     useHasPermission: jest.fn(),
@@ -80,7 +80,7 @@ jest.mock('@gravitee/graphene-policy-studio', () => ({
     ),
 }));
 
-jest.mock('../features/platform-policies/services/platformPolicies', () => ({
+jest.mock('../shared/services/organization', () => ({
     getOrganization: jest.fn(),
     updateOrganization: jest.fn(),
 }));
