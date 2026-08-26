@@ -58,17 +58,11 @@ public class AuthzMeasuresQueryAdapter {
     }
 
     JsonObject adaptQuery(Query query) {
-        var bool = boolAdapter.adaptForAuthz(query);
-        bool.getJsonObject("bool").getJsonArray("filter").add(docTypeTerm());
-        return bool;
+        return boolAdapter.adaptForAuthz(query);
     }
 
     boolean isScoped(Metric metric) {
         return scopeFilter(metric) != null;
-    }
-
-    static JsonObject docTypeTerm() {
-        return new JsonObject().put("term", new JsonObject().put(AuthzFieldResolver.DOC_TYPE_FIELD, AuthzFieldResolver.DOC_TYPE_AUTHZ));
     }
 
     JsonObject adaptMetrics(List<MetricMeasuresQuery> metrics) {

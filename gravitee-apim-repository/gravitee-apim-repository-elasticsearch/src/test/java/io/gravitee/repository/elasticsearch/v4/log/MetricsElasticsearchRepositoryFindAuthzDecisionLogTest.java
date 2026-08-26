@@ -45,7 +45,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class MetricsElasticsearchRepositoryTest_FindAuthzDecisionLog {
+class MetricsElasticsearchRepositoryFindAuthzDecisionLogTest {
 
     private static final QueryContext QUERY_CONTEXT = new QueryContext("org#1", "env#1");
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -58,7 +58,7 @@ class MetricsElasticsearchRepositoryTest_FindAuthzDecisionLog {
     void setUp() {
         client = mock(Client.class);
         indexNameGenerator = mock(IndexNameGenerator.class);
-        when(indexNameGenerator.getWildcardIndexName(any(), any(), any())).thenReturn("gravitee-event-metrics-*");
+        when(indexNameGenerator.getWildcardIndexName(any(), any(), any())).thenReturn("gravitee-authz-decisions-*");
 
         repository = new MetricsElasticsearchRepository(mock(RepositoryConfiguration.class));
         ReflectionTestUtils.setField(repository, "client", client);
@@ -67,7 +67,7 @@ class MetricsElasticsearchRepositoryTest_FindAuthzDecisionLog {
 
     @Test
     @SneakyThrows
-    void reads_the_decision_from_the_event_metrics_data_stream() {
+    void reads_the_decision_from_the_authz_decisions_data_stream() {
         when(client.search(any(), any(), any())).thenReturn(
             Single.just(
                 responseWith(
@@ -83,8 +83,7 @@ class MetricsElasticsearchRepositoryTest_FindAuthzDecisionLog {
         assertThat(decision).isPresent();
         assertThat(decision.get().eventId()).isEqualTo("evt-1");
         assertThat(decision.get().decision()).isEqualTo("PERMIT");
-        // Decisions live in the event-metrics data stream, not in the request-shaped v4 metrics index.
-        verify(indexNameGenerator).getWildcardIndexName(any(), eq(Type.EVENT_METRICS), any());
+        verify(indexNameGenerator).getWildcardIndexName(any(), eq(Type.AUTHZ_DECISIONS), any());
     }
 
     @Test
@@ -95,7 +94,7 @@ class MetricsElasticsearchRepositoryTest_FindAuthzDecisionLog {
         repository.findAuthzDecisionLog(QUERY_CONTEXT, "api-1", "evt-1");
 
         var query = ArgumentCaptor.forClass(String.class);
-        verify(client).search(eq("gravitee-event-metrics-*"), eq(null), query.capture());
+        verify(client).search(eq("gravitee-authz-decisions-*"), eq(null), query.capture());
         assertThat(query.getValue()).contains("evt-1").contains("api-1");
     }
 

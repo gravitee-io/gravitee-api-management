@@ -111,6 +111,8 @@ public abstract class AbstractIndexPreparer implements IndexPreparer {
         data.put("indexLifecyclePolicyMonitor", this.configuration.getIndexLifecyclePolicyMonitor());
         data.put("indexLifecyclePolicyRequest", this.configuration.getIndexLifecyclePolicyRequest());
         data.put("indexLifecyclePolicyLog", this.configuration.getIndexLifecyclePolicyLog());
+        data.put("indexLifecyclePolicyEventMetrics", this.configuration.getIndexLifecyclePolicyEventMetrics());
+        data.put("indexLifecyclePolicyAuthzDecisions", this.configuration.getIndexLifecyclePolicyAuthzDecisions());
         data.put("extendedRequestMappingTemplate", this.configuration.getExtendedRequestMappingTemplate());
         data.put("extendedSettingsTemplate", this.configuration.getExtendedSettingsTemplate());
         return data;

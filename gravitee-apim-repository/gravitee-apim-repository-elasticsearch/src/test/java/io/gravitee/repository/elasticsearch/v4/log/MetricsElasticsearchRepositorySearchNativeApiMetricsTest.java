@@ -33,9 +33,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * Integration tests for {@link MetricsElasticsearchRepository#searchNativeApiMetrics} against a real testcontainers ES,
  * seeded by {@code freemarker-v4-analytics/v4-metrics.ftl}. Same fixture window as
- * {@link MetricsElasticsearchRepositoryTest_FindNativeApiMetrics}; tests focus on filter discrimination, pagination, and sort order.
+ * {@link MetricsElasticsearchRepositoryFindNativeApiMetricsTest}; tests focus on filter discrimination, pagination, and sort order.
  */
-public class MetricsElasticsearchRepositoryTest_SearchNativeApiMetrics extends AbstractElasticsearchRepositoryTest {
+public class MetricsElasticsearchRepositorySearchNativeApiMetricsTest extends AbstractElasticsearchRepositoryTest {
 
     private static final long FROM_MILLIS =
         ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())

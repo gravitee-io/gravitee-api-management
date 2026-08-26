@@ -34,27 +34,6 @@ class AuthzMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
     private final AuthzMeasuresQueryAdapter adapter = new AuthzMeasuresQueryAdapter();
 
     @Test
-    void should_pin_every_query_to_the_authz_doc_type() {
-        var query = new MeasuresQuery(
-            buildTimeRange(),
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)))
-        );
-
-        var json = new JsonObject(adapter.adapt(query));
-
-        var filters = json.getJsonObject("query").getJsonObject("bool").getJsonArray("filter");
-        assertThat(
-            filters
-                .stream()
-                .map(JsonObject.class::cast)
-                .map(f -> f.getJsonObject("term"))
-                .filter(Objects::nonNull)
-                .toList()
-        ).anySatisfy(term -> assertThat(term.getString("doc-type")).isEqualTo("authz"));
-    }
-
-    @Test
     void should_count_decisions_with_a_value_count_on_the_decision_field() {
         var query = new MeasuresQuery(
             buildTimeRange(),

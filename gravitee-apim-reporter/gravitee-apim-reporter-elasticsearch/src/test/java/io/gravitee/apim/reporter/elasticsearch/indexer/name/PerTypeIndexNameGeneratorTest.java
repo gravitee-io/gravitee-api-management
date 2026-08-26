@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.indexer.PerTypeIndexNameGenerator;
+import io.gravitee.reporter.api.v4.metric.event.ApiEventMetrics;
+import io.gravitee.reporter.api.v4.metric.event.AuthzEventMetrics;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,5 +40,29 @@ public class PerTypeIndexNameGeneratorTest {
     public void generate_should_generate_index_name_with_type_and_no_date() {
         String indexName = cut.generate("indextype", Instant.parse("2018-04-28T18:35:24.00Z"));
         assertThat(indexName).isEqualTo("indexName-indextype");
+    }
+
+    @Test
+    public void generate_should_route_authorization_decisions_to_their_own_index() {
+        assertThat(
+            cut.generate(
+                AuthzEventMetrics.builder()
+                    .gatewayId("gw")
+                    .organizationId("org")
+                    .environmentId("env")
+                    .apiId("api")
+                    .operation(AuthzEventMetrics.OPERATION_EVALUATE)
+                    .eventId("evt-1")
+                    .status(AuthzEventMetrics.STATUS_SUCCESS)
+                    .build()
+            )
+        ).isEqualTo("indexName-authz-decisions");
+    }
+
+    @Test
+    public void generate_should_keep_the_other_event_metrics_on_the_shared_index() {
+        assertThat(
+            cut.generate(ApiEventMetrics.builder().gatewayId("gw").organizationId("org").environmentId("env").apiId("api").build())
+        ).isEqualTo("indexName-event-metrics");
     }
 }

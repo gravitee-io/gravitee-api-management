@@ -69,10 +69,9 @@ public final class SearchAuthzDecisionLogsQueryAdapter {
      * Nested objects are indexed as separate Lucene documents, so a plain terms clause on the
      * sub-field matches nothing at all — the wrapper is what makes the field reachable.
      *
-     * <p>{@code ignore_unmapped} matters because the search spans every dated event-metrics index,
+     * <p>{@code ignore_unmapped} matters because the search spans every backing index of the stream,
      * including ones written before decisions carried policy names. Without it those shards fail the
      * whole query, and the response model carries no {@code _shards}, so the failure would be silent.
-     * The sort clause below guards the same mixed-index reality with {@code unmapped_type}.
      */
     private static void addNestedTermsIfAny(ArrayNode filters, String path, String field, Set<String> values) {
         if (values == null || values.isEmpty()) {
@@ -111,10 +110,6 @@ public final class SearchAuthzDecisionLogsQueryAdapter {
 
     public static String adapt(AuthzDecisionLogQuery query) {
         ArrayNode filters = MAPPER.createArrayNode();
-        // The event-metrics data stream is shared by every BaseEventMetrics subtype (api, application,
-        // topic, operation, authz), so this term is what makes the result set decisions and nothing else.
-        filters.add(MAPPER.createObjectNode().set(TERM, MAPPER.createObjectNode().put(AuthzDecisionLogFields.DOC_TYPE, "authz")));
-
         ArrayNode apiIds = MAPPER.createArrayNode();
         query.getApiIds().forEach(apiIds::add);
         filters.add(MAPPER.createObjectNode().set(TERMS, MAPPER.createObjectNode().set(AuthzDecisionLogFields.API_ID, apiIds)));

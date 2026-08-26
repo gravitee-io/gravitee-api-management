@@ -40,7 +40,6 @@ public final class FindAuthzDecisionLogQueryAdapter {
 
     public static String adapt(String apiId, String eventId) {
         ArrayNode filters = MAPPER.createArrayNode();
-        filters.add(MAPPER.createObjectNode().set(TERM, MAPPER.createObjectNode().put(AuthzDecisionLogFields.DOC_TYPE, "authz")));
         filters.add(MAPPER.createObjectNode().set(TERM, MAPPER.createObjectNode().put(AuthzDecisionLogFields.API_ID, apiId)));
         filters.add(MAPPER.createObjectNode().set(TERM, MAPPER.createObjectNode().put(AuthzDecisionLogFields.EVENT_ID, eventId)));
 
