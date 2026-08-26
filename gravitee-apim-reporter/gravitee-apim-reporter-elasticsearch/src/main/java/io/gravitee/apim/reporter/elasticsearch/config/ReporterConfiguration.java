@@ -52,6 +52,7 @@ public class ReporterConfiguration {
     public static final int DEFAULT_NUMBER_OF_SHARDS = 1;
     public static final int DEFAULT_NUMBER_OF_REPLICAS = 1;
     public static final String DEFAULT_REFRESH_INTERVAL = "5s";
+    public static final boolean DEFAULT_INDEX_BODY = true;
     public static final boolean DEFAULT_ENABLED = true;
     public static final String DEFAULT_INDEX_LIFECYCLE_POLICY_PROPERTY_NAME = "index.lifecycle.name";
     public static final String DEFAULT_INDEX_LIFECYCLE_ROLLOVER_ALIAS_PROPERTY_NAME = "index.lifecycle.rollover_alias";
@@ -179,6 +180,17 @@ public class ReporterConfiguration {
      */
     @Value("${reporters.elasticsearch.settings.refresh_interval:" + DEFAULT_REFRESH_INTERVAL + "}")
     private String refreshInterval = DEFAULT_REFRESH_INTERVAL;
+
+    /**
+     * Settings: index the request, response and message bodies captured by the logging policy.
+     *
+     * <p>Indexing them is what makes the "search in payloads" filter of the Logs UI work, and it is also the
+     * heaviest thing the reporter asks Elasticsearch to do: a gateway capturing 256KB payloads hands the
+     * cluster up to four analysed bodies per request. Turning it off keeps the bodies in {@code _source}, so
+     * the Logs UI still displays them, but no longer matches them.
+     */
+    @Value("${reporters.elasticsearch.settings.index_body:" + DEFAULT_INDEX_BODY + "}")
+    private boolean indexBody = DEFAULT_INDEX_BODY;
 
     @Value("${reporters.elasticsearch.enabled:" + DEFAULT_ENABLED + "}")
     private boolean enabled = DEFAULT_ENABLED;
@@ -387,6 +399,14 @@ public class ReporterConfiguration {
 
     public void setRefreshInterval(String refreshInterval) {
         this.refreshInterval = refreshInterval;
+    }
+
+    public boolean isIndexBody() {
+        return indexBody;
+    }
+
+    public void setIndexBody(boolean indexBody) {
+        this.indexBody = indexBody;
     }
 
     public boolean isEnabled() {

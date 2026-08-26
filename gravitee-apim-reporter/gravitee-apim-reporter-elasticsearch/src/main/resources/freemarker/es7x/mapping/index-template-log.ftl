@@ -1,4 +1,5 @@
 <#ftl output_format="JSON">
+<#import "../../common/mapping/log-body-field.ftl" as bodyField>
 {
     "index_patterns": ["${indexName}*"],
     "settings": {
@@ -36,10 +37,7 @@
                 "client-request": {
                     "type": "object",
                     "properties": {
-                        "body":{
-                            "type": "text",
-                            "analyzer": "gravitee_body_analyzer"
-                        },
+                        "body": <@bodyField.mapping analyzer="gravitee_body_analyzer"/>,
                         "headers":  {
                            "enabled":  false,
                            "type": "object"
@@ -49,10 +47,7 @@
                 "client-response": {
                     "type": "object",
                     "properties": {
-                        "body":{
-                            "type": "text",
-                            "analyzer": "gravitee_body_analyzer"
-                        },
+                        "body": <@bodyField.mapping analyzer="gravitee_body_analyzer"/>,
                         "headers":  {
                            "enabled":  false,
                            "type": "object"
@@ -62,10 +57,7 @@
                 "proxy-request": {
                     "type": "object",
                     "properties": {
-                        "body":{
-                            "type": "text",
-                            "analyzer": "gravitee_body_analyzer"
-                        },
+                        "body": <@bodyField.mapping analyzer="gravitee_body_analyzer"/>,
                         "headers":  {
                            "enabled":  false,
                            "type": "object"
@@ -75,10 +67,7 @@
                 "proxy-response": {
                     "type": "object",
                     "properties": {
-                        "body":{
-                            "type": "text",
-                            "analyzer": "gravitee_body_analyzer"
-                        },
+                        "body": <@bodyField.mapping analyzer="gravitee_body_analyzer"/>,
                         "headers": {
                             "enabled":  false,
                             "type": "object"
