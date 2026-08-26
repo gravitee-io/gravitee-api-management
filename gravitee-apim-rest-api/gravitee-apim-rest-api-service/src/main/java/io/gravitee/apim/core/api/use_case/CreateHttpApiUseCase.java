@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api.use_case;
 import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.oneShotIndexation;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
@@ -33,6 +34,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import java.util.List;
 import java.util.Set;
 import org.jspecify.annotations.NonNull;
@@ -52,15 +54,18 @@ public class CreateHttpApiUseCase {
     private final ValidateApiDomainService validateApiDomainService;
     private final ApiPrimaryOwnerFactory apiPrimaryOwnerFactory;
     private final CreateApiDomainService createApiDomainService;
+    private final ApiCrudService apiCrudService;
 
     public CreateHttpApiUseCase(
         ValidateApiDomainService validateApiDomainService,
         ApiPrimaryOwnerFactory apiPrimaryOwnerFactory,
-        CreateApiDomainService createApiDomainService
+        CreateApiDomainService createApiDomainService,
+        ApiCrudService apiCrudService
     ) {
         this.validateApiDomainService = validateApiDomainService;
         this.apiPrimaryOwnerFactory = apiPrimaryOwnerFactory;
         this.createApiDomainService = createApiDomainService;
+        this.apiCrudService = apiCrudService;
     }
 
     public record Input(NewHttpApi newHttpApi, AuditInfo auditInfo) {
@@ -75,6 +80,7 @@ public class CreateHttpApiUseCase {
 
     public Output execute(Input input) {
         var auditInfo = input.auditInfo;
+        ensureSuppliedIdIsFree(input.newHttpApi.getId());
 
         var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(
             auditInfo.organizationId(),
@@ -102,6 +108,13 @@ public class CreateHttpApiUseCase {
         );
 
         return new Output(created);
+    }
+
+    /** A caller-supplied id is created verbatim, so it must be free; a generated id (null here) cannot collide. */
+    private void ensureSuppliedIdIsFree(String suppliedId) {
+        if (suppliedId != null && apiCrudService.existsById(suppliedId)) {
+            throw new ApiAlreadyExistsException(suppliedId);
+        }
     }
 
     private static @NonNull List<Flow> defaultFlowsLlmProxy() {

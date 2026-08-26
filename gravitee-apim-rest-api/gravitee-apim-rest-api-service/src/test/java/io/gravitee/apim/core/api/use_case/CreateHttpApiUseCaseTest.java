@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.NewApiFixtures;
 import inmemory.ApiCategoryQueryServiceInMemory;
@@ -84,6 +85,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.impl.NotifierServiceImpl;
 import java.time.Clock;
 import java.time.Instant;
@@ -186,7 +188,7 @@ class CreateHttpApiUseCaseTest {
             workflowCrudService,
             createCategoryApiDomainService
         );
-        useCase = new CreateHttpApiUseCase(validateApiDomainService, apiPrimaryOwnerFactory, createApiDomainService);
+        useCase = new CreateHttpApiUseCase(validateApiDomainService, apiPrimaryOwnerFactory, createApiDomainService, apiCrudService);
 
         when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())).thenAnswer(invocation ->
             invocation.getArgument(0)
@@ -419,6 +421,37 @@ class CreateHttpApiUseCaseTest {
                     )
                 );
         });
+    }
+
+    @Test
+    void should_create_the_api_with_the_supplied_id() {
+        // Given
+        var newApi = NewApiFixtures.aProxyApiV4().toBuilder().id("supplied-id").build();
+
+        // When
+        var output = useCase.execute(new Input(newApi, AUDIT_INFO));
+
+        // Then
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(output.api().getId()).isEqualTo("supplied-id");
+            soft.assertThat(output.api().getApiDefinitionHttpV4().getId()).isEqualTo("supplied-id");
+            soft.assertThat(apiCrudService.storage()).extracting(Api::getId).containsExactly("supplied-id");
+            soft.assertThat(auditCrudService.storage()).isNotEmpty().extracting(AuditEntity::getReferenceId).containsOnly("supplied-id");
+        });
+    }
+
+    @Test
+    void should_reject_a_supplied_id_an_api_already_uses() {
+        // Given
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id("existing-id").build()));
+        var newApi = NewApiFixtures.aProxyApiV4().toBuilder().id("existing-id").build();
+
+        // When
+        var throwable = catchThrowable(() -> useCase.execute(new Input(newApi, AUDIT_INFO)));
+
+        // Then
+        assertThat(throwable).isInstanceOf(ApiAlreadyExistsException.class);
+        assertThat(apiCrudService.storage()).hasSize(1);
     }
 
     @Test

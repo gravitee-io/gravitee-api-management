@@ -38,6 +38,12 @@ import lombok.experimental.SuperBuilder;
 @Setter(lombok.AccessLevel.NONE)
 public class NewHttpApi extends AbstractNewApi {
 
+    /**
+     * Optional caller-supplied API id; null lets the platform generate one. Lets id-deterministic callers — the
+     * Automation API derives ids from HRIDs — create the API under the id they will resolve it by.
+     */
+    private String id;
+
     private List<Listener> listeners;
 
     private List<EndpointGroup> endpointGroups;
