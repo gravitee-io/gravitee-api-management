@@ -15,25 +15,19 @@
  */
 package io.gravitee.rest.api.management.rest.provider;
 
-import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.exception.ConflictDomainException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.Map;
 
-public class ValidationDomainExceptionMapper extends AbstractExceptionMapper<ValidationDomainException> {
+public class ConflictDomainExceptionMapper extends AbstractExceptionMapper<ConflictDomainException> {
 
     @Override
-    public Response toResponse(ValidationDomainException exception) {
-        final Response.Status error = Response.Status.BAD_REQUEST;
+    public Response toResponse(ConflictDomainException exception) {
+        final Response.Status error = Response.Status.CONFLICT;
         return Response.status(error)
             .type(MediaType.APPLICATION_JSON_TYPE)
-            .entity(
-                convert(
-                    exception,
-                    error.getStatusCode(),
-                    exception.getTechnicalCode(),
-                    exception.getParameters().isEmpty() ? null : exception.getParameters()
-                )
-            )
+            .entity(convert(exception, error.getStatusCode(), null, exception.getId() == null ? null : Map.of("id", exception.getId())))
             .build();
     }
 }
