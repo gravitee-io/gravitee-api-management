@@ -2566,17 +2566,20 @@ components:
         navigationItemId:
           type: string
           format: uuid
-          description: The unique ID of the fetched PAGE navigation item.
+          description: >
+            The unique ID of the fetched PAGE navigation item. Absent when the failure is not tied to
+            an item: a repository import reports a file it could not import, or a listing that failed
+            before any item was reached.
           example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
         title:
           type: string
-          description: The title of the fetched PAGE navigation item.
+          description: The title of the fetched PAGE navigation item, or of the file the import failed on.
         success:
           type: boolean
         error:
           type: string
           description: Why the fetch failed. Absent when the fetch succeeded.
-      required: [ navigationItemId, title, success ]
+      required: [ title, success ]
     PortalNavigationPage:
       description: Portal navigation item of type PAGE
       allOf:
