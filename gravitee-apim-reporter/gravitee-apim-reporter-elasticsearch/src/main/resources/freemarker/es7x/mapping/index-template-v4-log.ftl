@@ -1,4 +1,5 @@
 <#ftl output_format="JSON">
+<#import "../../common/mapping/log-body-field.ftl" as bodyField>
 {
     "index_patterns": ["${indexName}*"],
     "settings": {
@@ -41,9 +42,7 @@
             "entrypoint-request": {
                 "type": "object",
                 "properties": {
-                    "body":{
-                        "type": "text"
-                    },
+                    "body": <@bodyField.mapping/>,
                     "headers":  {
                        "enabled":  false,
                        "type": "object"
@@ -53,9 +52,7 @@
             "entrypoint-response": {
                 "type": "object",
                 "properties": {
-                    "body":{
-                        "type": "text"
-                    },
+                    "body": <@bodyField.mapping/>,
                     "headers":  {
                        "enabled":  false,
                        "type": "object"
@@ -65,9 +62,7 @@
             "endpoint-request": {
                 "type": "object",
                 "properties": {
-                    "body":{
-                        "type": "text"
-                    },
+                    "body": <@bodyField.mapping/>,
                     "headers":  {
                        "enabled":  false,
                        "type": "object"
@@ -77,9 +72,7 @@
             "endpoint-response": {
                 "type": "object",
                 "properties": {
-                    "body":{
-                        "type": "text"
-                    },
+                    "body": <@bodyField.mapping/>,
                     "headers": {
                         "enabled":  false,
                         "type": "object"

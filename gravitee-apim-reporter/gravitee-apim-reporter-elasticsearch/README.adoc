@@ -54,6 +54,28 @@ Then you can activate the ILM feature by adding these settings in the gravitee.y
     index_mode: ilm         # "daily" indexes, suffixed with date. Or "ilm" managed indexes, without date
 ```
 
+=== Body indexing
+
+The logging policy can capture request, response and message bodies, and the reporter indexes them so the
+Logs UI can search inside payloads. That indexing is by far the heaviest work the reporter gives the cluster:
+with `logging.max_size` at 256KB a single v4 log document carries up to four analysed bodies. On a gateway
+running thousands of requests per minute it is the first thing to look at when Elasticsearch falls behind.
+
+Bodies are indexed for prefix search only — no positions, no norms — because that is all the Logs UI query
+needs. A cluster that still cannot keep up can stop indexing them altogether:
+
+```yaml
+  elasticsearch:
+    settings:
+      index_body: false # default: true
+```
+
+Bodies then stay in `_source`, so the Logs UI keeps displaying them in the log detail view, but its
+"search in payloads" filter no longer matches them.
+
+Both are mapping settings, so they only apply to indexes created after the change. Existing indexes keep the
+mapping they were created with until the next daily index or ILM rollover.
+
 == Testing
 
 By default, unit tests are run with a TestContainer version of ElasticSearch 8.5.2, but sometimes it can be useful to run them against other version of ElasticSearch.
