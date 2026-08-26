@@ -59,3 +59,26 @@ export function useEnvironmentPermissionsReady(): boolean {
 
     return isSuccess;
 }
+
+/**
+ * True once at least one of `anyOf` is present among the current environment's
+ * permissions. Reads the same query as {@link useEnvironmentPermissions} (deduped
+ * by React Query), so it reflects a live 403 the moment {@link useForbiddenResourceRedirect}
+ * strips the permission from the cache — unlike `useHasPermission` from the SDK's
+ * federation stub, which isn't wired to this module's own permission fetch.
+ */
+export function useHasEnvironmentPermission(anyOf: readonly string[]): boolean {
+    const env = useEnvironment();
+
+    const { data: permissions } = useQuery({
+        queryKey: environmentPermissionKeys.detail(env?.id ?? ''),
+        queryFn: () => getEnvironmentPermissions(env!.id),
+        enabled: Boolean(env?.id),
+        staleTime: 0,
+        refetchOnMount: 'always',
+    });
+
+    if (!permissions) return false;
+    const granted = new Set(permissions);
+    return anyOf.some(permission => granted.has(permission));
+}

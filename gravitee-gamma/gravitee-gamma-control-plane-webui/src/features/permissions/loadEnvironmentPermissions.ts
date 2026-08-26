@@ -21,7 +21,7 @@ import { managementApi } from '../../shared/api/api-client';
  * Loads environment-scoped permissions for the current user and merges them into {@link permissionService}.
  */
 export async function loadEnvironmentPermissions(envId: string): Promise<void> {
-    const raw = await managementApi.get<Record<string, string[] | string>>(`/environments/${envId}/permissions`);
+    const raw = await managementApi.get<Record<string, string[] | string>>(`/environments/${envId}/permissions`, { cache: 'no-store' });
     const normalized = normalizeCrudMapRecord('environment', raw);
     permissionService.load('environment', normalized);
 }

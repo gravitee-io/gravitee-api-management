@@ -13,12 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ComponentProps, ReactNode } from 'react';
 
 import { SharedPolicyGroupPolicyStudio } from './SharedPolicyGroupPolicyStudio';
 import type { SharedPolicyGroup } from '../types/sharedPolicyGroup';
+
+// The step list reorders via @dnd-kit drag-and-drop (see SharedPolicyGroupPolicySteps). Simulating a real
+// pointer drag in JSDOM is unreliable, so DndContext is stubbed to capture its onDragEnd handler, which
+// tests invoke directly with a synthetic { active, over } pair — the same shape a real drag produces.
+let capturedOnDragEnd: ((event: { active: { id: string }; over: { id: string } | null }) => void) | undefined;
+jest.mock('@dnd-kit/core', () => {
+    const actual = jest.requireActual('@dnd-kit/core');
+    return {
+        ...actual,
+        DndContext: ({
+            children,
+            onDragEnd,
+        }: {
+            children: ReactNode;
+            onDragEnd: (event: { active: { id: string }; over: { id: string } | null }) => void;
+        }) => {
+            capturedOnDragEnd = onDragEnd;
+            return children;
+        },
+    };
+});
 
 // Only the panes are stubbed — step/policy resolution comes from the real package so the test exercises
 // the same matching rules the studio uses in production.
@@ -247,8 +268,7 @@ describe('SharedPolicyGroupPolicyStudio', () => {
         const user = userEvent.setup();
         const { onSave } = renderStudio();
 
-        await user.click(screen.getByRole('button', { name: 'JWT actions' }));
-        await user.click(await screen.findByRole('menuitem', { name: 'Move down' }));
+        act(() => capturedOnDragEnd?.({ active: { id: 'step-0' }, over: { id: 'step-1' } }));
         fireEvent.click(screen.getByRole('button', { name: '2 JWT' }));
         fireEvent.click(screen.getByRole('button', { name: 'Update configuration' }));
         fireEvent.click(screen.getByRole('button', { name: 'Back to flow' }));
@@ -319,12 +339,10 @@ describe('SharedPolicyGroupPolicyStudio', () => {
     });
 
     it('preserves unsaved steps when a lifecycle refetch updates the server entity', async () => {
-        const user = userEvent.setup();
         const { rerenderStudio } = renderStudio({
             sharedPolicyGroup: { ...SHARED_POLICY_GROUP, updatedAt: '2026-08-25T08:00:00.000Z' },
         });
-        await user.click(screen.getByRole('button', { name: 'JWT actions' }));
-        await user.click(await screen.findByRole('menuitem', { name: 'Move down' }));
+        capturedOnDragEnd?.({ active: { id: 'step-0' }, over: { id: 'step-1' } });
 
         rerenderStudio({
             sharedPolicyGroup: {
@@ -349,14 +367,12 @@ describe('SharedPolicyGroupPolicyStudio', () => {
     });
 
     it('requires pending edits to be saved before deployment', async () => {
-        const user = userEvent.setup();
         const { onSave, onDeploy } = renderStudio({
             sharedPolicyGroup: { ...SHARED_POLICY_GROUP, lifecycleState: 'PENDING' },
         });
 
         expect(screen.getByRole('button', { name: 'Deploy' })).toHaveProperty('disabled', false);
-        await user.click(screen.getByRole('button', { name: 'JWT actions' }));
-        await user.click(await screen.findByRole('menuitem', { name: 'Move down' }));
+        act(() => capturedOnDragEnd?.({ active: { id: 'step-0' }, over: { id: 'step-1' } }));
         expect(screen.getByRole('button', { name: 'Deploy' })).toHaveProperty('disabled', true);
 
         fireEvent.click(screen.getByRole('button', { name: 'Save policies' }));
@@ -367,15 +383,13 @@ describe('SharedPolicyGroupPolicyStudio', () => {
     });
 
     it('enables deployment after saving a deployed group when the update returns pending', async () => {
-        const user = userEvent.setup();
         const onSave = jest.fn().mockResolvedValue({ ...SHARED_POLICY_GROUP, lifecycleState: 'PENDING' });
         renderStudio({
             sharedPolicyGroup: { ...SHARED_POLICY_GROUP, lifecycleState: 'DEPLOYED' },
             onSave,
         });
 
-        await user.click(screen.getByRole('button', { name: 'JWT actions' }));
-        await user.click(await screen.findByRole('menuitem', { name: 'Move down' }));
+        act(() => capturedOnDragEnd?.({ active: { id: 'step-0' }, over: { id: 'step-1' } }));
         expect(screen.getByRole('button', { name: 'Deploy' })).toHaveProperty('disabled', true);
 
         fireEvent.click(screen.getByRole('button', { name: 'Save policies' }));

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import {
     Button,
     DropdownMenu,
@@ -28,9 +27,11 @@ import { useNavigate } from 'react-router-dom';
 
 import { SharedPolicyGroupEditSheet, type SharedPolicyGroupEditFormValues } from './SharedPolicyGroupEditSheet';
 import { SharedPolicyGroupRemoveDialog } from './SharedPolicyGroupRemoveDialog';
+import { useHasEnvironmentPermission } from '../../../shared/hooks/useEnvironmentPermissions';
 import { notify } from '../../../shared/notify';
 import {
     useDeleteSharedPolicyGroup,
+    useDeploySharedPolicyGroup,
     useUndeploySharedPolicyGroup,
     useUpdateSharedPolicyGroup,
 } from '../hooks/useSharedPolicyGroupMutations';
@@ -49,10 +50,11 @@ interface SharedPolicyGroupActionsProps {
 }
 
 export function SharedPolicyGroupActions({ sharedPolicyGroup, listHref }: SharedPolicyGroupActionsProps) {
-    const canUpdate = useHasPermission({ anyOf: [ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION] });
-    const canDelete = useHasPermission({ anyOf: [ENVIRONMENT_SHARED_POLICY_GROUP_DELETE_PERMISSION] });
+    const canUpdate = useHasEnvironmentPermission([ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION]);
+    const canDelete = useHasEnvironmentPermission([ENVIRONMENT_SHARED_POLICY_GROUP_DELETE_PERMISSION]);
     const navigate = useNavigate();
     const updateMutation = useUpdateSharedPolicyGroup();
+    const deployMutation = useDeploySharedPolicyGroup();
     const undeployMutation = useUndeploySharedPolicyGroup();
     const deleteMutation = useDeleteSharedPolicyGroup();
     const [editOpen, setEditOpen] = useState(false);
@@ -63,14 +65,27 @@ export function SharedPolicyGroupActions({ sharedPolicyGroup, listHref }: Shared
 
     async function handleEdit(values: SharedPolicyGroupEditFormValues) {
         try {
+            // The edit sheet only touches name/description/prerequisite. `sharedPolicyGroup.steps`
+            // here is the group's real, already-loaded steps, so send it back explicitly rather
+            // than omitting the field — the backend only leaves existing steps alone when `steps`
+            // is `null`, and an accidental `[]` here would wipe the policies instead.
             await updateMutation.mutateAsync({
                 id: sharedPolicyGroup.id,
-                payload: toUpdateSharedPolicyGroupPayload(values),
+                payload: { ...toUpdateSharedPolicyGroupPayload(values), steps: sharedPolicyGroup.steps },
             });
             notify.success('Shared Policy Group updated');
             setEditOpen(false);
         } catch (error) {
             notify.error(error, 'Error during Shared Policy Group update!');
+        }
+    }
+
+    async function handleDeploy() {
+        try {
+            await deployMutation.mutateAsync(sharedPolicyGroup.id);
+            notify.success('Shared Policy Group deployed successfully');
+        } catch (error) {
+            notify.error(error, 'Error during Shared Policy Group deployment!');
         }
     }
 
@@ -107,6 +122,12 @@ export function SharedPolicyGroupActions({ sharedPolicyGroup, listHref }: Shared
                         <DropdownMenuItem onSelect={() => setEditOpen(true)}>
                             <PencilIcon className="mr-2 size-4" aria-hidden />
                             Edit
+                        </DropdownMenuItem>
+                    ) : null}
+                    {canUpdate && canMutate && sharedPolicyGroup.lifecycleState !== 'DEPLOYED' ? (
+                        <DropdownMenuItem disabled={deployMutation.isPending} onSelect={() => void handleDeploy()}>
+                            <RocketIcon className="mr-2 size-4" aria-hidden />
+                            {deployMutation.isPending ? 'Deploying…' : 'Deploy'}
                         </DropdownMenuItem>
                     ) : null}
                     {canUpdate && canMutate && sharedPolicyGroup.lifecycleState !== 'UNDEPLOYED' ? (

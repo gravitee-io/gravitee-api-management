@@ -39,7 +39,6 @@ function renderTable(overrides: Partial<React.ComponentProps<typeof SharedPolicy
                 sharedPolicyGroups={[SPG]}
                 totalCount={1}
                 loading={false}
-                isFirstUse={false}
                 search=""
                 page={1}
                 pageSize={25}
@@ -50,7 +49,9 @@ function renderTable(overrides: Partial<React.ComponentProps<typeof SharedPolicy
                 onPageChange={jest.fn()}
                 onPageSizeChange={jest.fn()}
                 onSortingChange={jest.fn()}
-                onView={jest.fn()}
+                onDeploy={jest.fn()}
+                onUndeploy={jest.fn()}
+                onHistory={jest.fn()}
                 onEdit={jest.fn()}
                 onDelete={jest.fn()}
                 {...overrides}
@@ -80,6 +81,14 @@ describe('SharedPolicyGroupsTable', () => {
     it('renders the description', () => {
         renderTable();
         expect(screen.queryByText('Reusable auth policies')).not.toBeNull();
+    });
+
+    it('truncates a long description instead of letting it distort the row', () => {
+        const longDescription = 'B'.repeat(400);
+        renderTable({ sharedPolicyGroups: [{ ...SPG, description: longDescription }] });
+
+        const description = screen.getByText(longDescription);
+        expect(description.className).toContain('truncate');
     });
 
     it('renders the lifecycle state badge in its own Status column, not the Name column', () => {
@@ -146,52 +155,70 @@ describe('SharedPolicyGroupsTable', () => {
             return user;
         }
 
-        it('shows only View when the user cannot update metadata', async () => {
+        it('shows only Version History when the user cannot update metadata', async () => {
             renderTable({ canEdit: false });
             await openRowMenu();
-            expect(await screen.findByRole('menuitem', { name: 'View' })).not.toBeNull();
+            expect(await screen.findByRole('menuitem', { name: 'Version History' })).not.toBeNull();
             expect(screen.queryByRole('menuitem', { name: 'Edit' })).toBeNull();
+            expect(screen.queryByRole('menuitem', { name: 'Undeploy' })).toBeNull();
+            expect(screen.queryByRole('menuitem', { name: 'Deploy' })).toBeNull();
         });
 
-        it('shows View and Edit when the user can update', async () => {
+        it('shows Edit and Undeploy (the group is deployed) when the user can update', async () => {
             renderTable({ canEdit: true });
             await openRowMenu();
-            expect(await screen.findByRole('menuitem', { name: 'View' })).not.toBeNull();
-            expect(screen.queryByRole('menuitem', { name: 'Edit' })).not.toBeNull();
+            expect(await screen.findByRole('menuitem', { name: 'Edit' })).not.toBeNull();
+            expect(screen.queryByRole('menuitem', { name: 'Undeploy' })).not.toBeNull();
+            expect(screen.queryByRole('menuitem', { name: 'Deploy' })).toBeNull();
         });
 
-        it('shows only View — never Edit — for a Kubernetes-origin row, even with update permission', async () => {
+        it('offers Deploy instead of Undeploy once the group is undeployed', async () => {
+            renderTable({ canEdit: true, sharedPolicyGroups: [{ ...SPG, lifecycleState: 'UNDEPLOYED' }] });
+            await openRowMenu();
+            expect(await screen.findByRole('menuitem', { name: 'Deploy' })).not.toBeNull();
+            expect(screen.queryByRole('menuitem', { name: 'Undeploy' })).toBeNull();
+        });
+
+        it('offers both Deploy and Undeploy while the group has undeployed edits (PENDING)', async () => {
+            renderTable({ canEdit: true, sharedPolicyGroups: [{ ...SPG, lifecycleState: 'PENDING' }] });
+            await openRowMenu();
+            expect(await screen.findByRole('menuitem', { name: 'Deploy' })).not.toBeNull();
+            expect(screen.queryByRole('menuitem', { name: 'Undeploy' })).not.toBeNull();
+        });
+
+        it('shows only Version History — never Edit or the deploy toggle — for a Kubernetes-origin row, even with update permission', async () => {
             renderTable({ canEdit: true, sharedPolicyGroups: [{ ...SPG, originContext: { origin: 'KUBERNETES' } }] });
             await openRowMenu();
-            expect(await screen.findByRole('menuitem', { name: 'View' })).not.toBeNull();
+            expect(await screen.findByRole('menuitem', { name: 'Version History' })).not.toBeNull();
             expect(screen.queryByRole('menuitem', { name: 'Edit' })).toBeNull();
+            expect(screen.queryByRole('menuitem', { name: 'Undeploy' })).toBeNull();
         });
 
         it('hides Delete without delete permission', async () => {
             renderTable({ canDelete: false });
             await openRowMenu();
-            expect(await screen.findByRole('menuitem', { name: 'View' })).not.toBeNull();
+            expect(await screen.findByRole('menuitem', { name: 'Version History' })).not.toBeNull();
             expect(screen.queryByRole('menuitem', { name: 'Delete' })).toBeNull();
         });
 
         it('hides Delete when the user has delete permission without update permission', async () => {
             renderTable({ canEdit: false, canDelete: true });
             await openRowMenu();
-            expect(await screen.findByRole('menuitem', { name: 'View' })).not.toBeNull();
+            expect(await screen.findByRole('menuitem', { name: 'Version History' })).not.toBeNull();
             expect(screen.queryByRole('menuitem', { name: 'Delete' })).toBeNull();
         });
 
         it('shows Delete when the user has update and delete permissions', async () => {
             renderTable({ canEdit: true, canDelete: true });
             await openRowMenu();
-            expect(await screen.findByRole('menuitem', { name: 'View' })).not.toBeNull();
+            expect(await screen.findByRole('menuitem', { name: 'Version History' })).not.toBeNull();
             expect(screen.queryByRole('menuitem', { name: 'Delete' })).not.toBeNull();
         });
 
         it('hides Delete for a read-only (Kubernetes-origin) row, even with delete permission', async () => {
             renderTable({ canDelete: true, sharedPolicyGroups: [{ ...SPG, originContext: { origin: 'KUBERNETES' } }] });
             await openRowMenu();
-            expect(await screen.findByRole('menuitem', { name: 'View' })).not.toBeNull();
+            expect(await screen.findByRole('menuitem', { name: 'Version History' })).not.toBeNull();
             expect(screen.queryByRole('menuitem', { name: 'Delete' })).toBeNull();
         });
 
@@ -203,12 +230,12 @@ describe('SharedPolicyGroupsTable', () => {
             expect(onDelete).toHaveBeenCalledWith(SPG);
         });
 
-        it('calls onView when View is clicked', async () => {
-            const onView = jest.fn();
-            renderTable({ onView });
+        it('calls onHistory when Version History is clicked', async () => {
+            const onHistory = jest.fn();
+            renderTable({ onHistory });
             const user = await openRowMenu();
-            await user.click(await screen.findByRole('menuitem', { name: 'View' }));
-            expect(onView).toHaveBeenCalledWith(SPG);
+            await user.click(await screen.findByRole('menuitem', { name: 'Version History' }));
+            expect(onHistory).toHaveBeenCalledWith(SPG);
         });
 
         it('calls onEdit when Edit is clicked', async () => {
@@ -217,6 +244,22 @@ describe('SharedPolicyGroupsTable', () => {
             const user = await openRowMenu();
             await user.click(await screen.findByRole('menuitem', { name: 'Edit' }));
             expect(onEdit).toHaveBeenCalledWith(SPG);
+        });
+
+        it('calls onUndeploy when Undeploy is clicked', async () => {
+            const onUndeploy = jest.fn();
+            renderTable({ canEdit: true, onUndeploy });
+            const user = await openRowMenu();
+            await user.click(await screen.findByRole('menuitem', { name: 'Undeploy' }));
+            expect(onUndeploy).toHaveBeenCalledWith(SPG);
+        });
+
+        it('calls onDeploy when Deploy is clicked', async () => {
+            const onDeploy = jest.fn();
+            renderTable({ canEdit: true, onDeploy, sharedPolicyGroups: [{ ...SPG, lifecycleState: 'UNDEPLOYED' }] });
+            const user = await openRowMenu();
+            await user.click(await screen.findByRole('menuitem', { name: 'Deploy' }));
+            expect(onDeploy).toHaveBeenCalledWith({ ...SPG, lifecycleState: 'UNDEPLOYED' });
         });
 
         it('explains that Kubernetes-origin groups are externally managed', async () => {
@@ -244,25 +287,6 @@ describe('SharedPolicyGroupsTable', () => {
     });
 
     describe('empty state', () => {
-        it('shows the Create CTA on first use, replacing the table and its search box', () => {
-            const onCreateSharedPolicyGroup = jest.fn();
-            renderTable({ isFirstUse: true, sharedPolicyGroups: [], totalCount: 0, onCreateSharedPolicyGroup });
-
-            expect(screen.queryByText('No Shared Policy Groups')).not.toBeNull();
-            expect(screen.queryByRole('table')).toBeNull();
-            expect(screen.queryByRole('textbox', { name: 'Search Shared Policy Groups' })).toBeNull();
-
-            fireEvent.click(screen.getByRole('button', { name: 'Add Shared Policy Group' }));
-            expect(onCreateSharedPolicyGroup).toHaveBeenCalled();
-        });
-
-        it('hides the Create CTA on first use when the callback is not provided (read-only user)', () => {
-            renderTable({ isFirstUse: true, sharedPolicyGroups: [], totalCount: 0, onCreateSharedPolicyGroup: undefined });
-
-            expect(screen.queryByText('No Shared Policy Groups')).not.toBeNull();
-            expect(screen.queryByRole('button', { name: 'Add Shared Policy Group' })).toBeNull();
-        });
-
         it('does not blame the search when the page is empty and nothing was searched', () => {
             renderTable({ sharedPolicyGroups: [], totalCount: 26, search: '' });
 

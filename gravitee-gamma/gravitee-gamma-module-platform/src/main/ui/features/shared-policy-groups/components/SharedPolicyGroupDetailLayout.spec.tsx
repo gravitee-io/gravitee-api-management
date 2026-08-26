@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
@@ -22,6 +21,7 @@ import { createMemoryRouter, MemoryRouter, Route, RouterProvider, Routes } from 
 
 import { SharedPolicyGroupDetailLayout } from './SharedPolicyGroupDetailLayout';
 import { ApimApiError } from '../../../shared/api/apimClient';
+import { useHasEnvironmentPermission } from '../../../shared/hooks/useEnvironmentPermissions';
 import { useForbiddenResourceRedirect } from '../../../shared/hooks/useForbiddenResourceRedirect';
 import {
     useDeleteSharedPolicyGroup,
@@ -49,14 +49,14 @@ jest.mock('@gravitee/graphene-core', () => ({
 jest.mock('../hooks/useSharedPolicyGroups');
 jest.mock('../hooks/useSharedPolicyGroupMutations');
 jest.mock('../../../shared/hooks/useForbiddenResourceRedirect');
-jest.mock('@gravitee/gamma-modules-sdk');
+jest.mock('../../../shared/hooks/useEnvironmentPermissions');
 
 const mockUseDetail = jest.mocked(useSharedPolicyGroupDetail);
 const mockUseUpdateSharedPolicyGroup = jest.mocked(useUpdateSharedPolicyGroup);
 const mockUseUndeploySharedPolicyGroup = jest.mocked(useUndeploySharedPolicyGroup);
 const mockUseDeleteSharedPolicyGroup = jest.mocked(useDeleteSharedPolicyGroup);
 const mockUseForbiddenResourceRedirect = jest.mocked(useForbiddenResourceRedirect);
-const mockUseHasPermission = jest.mocked(useHasPermission);
+const mockUseHasEnvironmentPermission = jest.mocked(useHasEnvironmentPermission);
 
 const SPG: SharedPolicyGroup = {
     id: 'spg-1',
@@ -99,7 +99,7 @@ function StatefulOutlet() {
 
 describe('SharedPolicyGroupDetailLayout', () => {
     beforeEach(() => {
-        mockUseHasPermission.mockReturnValue(true);
+        mockUseHasEnvironmentPermission.mockReturnValue(true);
         mockUseUpdateSharedPolicyGroup.mockReturnValue({ mutateAsync: jest.fn() } as never);
         mockUseUndeploySharedPolicyGroup.mockReturnValue({ mutateAsync: jest.fn(), isPending: false } as never);
         mockUseDeleteSharedPolicyGroup.mockReturnValue({ mutateAsync: jest.fn(), isPending: false } as never);
@@ -143,11 +143,28 @@ describe('SharedPolicyGroupDetailLayout', () => {
         expect(mockNavigate).toHaveBeenCalledWith('/shared-policy-groups/spg-1/history');
     });
 
-    it('navigates back to the shared policy groups list', () => {
+    it('navigates back to the shared policy group list from the studio tab', () => {
         mockUseDetail.mockReturnValue({ data: SPG, isLoading: false, isError: false } as never);
-        renderLayout();
-        fireEvent.click(screen.getByRole('button', { name: /Back to Shared Policy Groups/i }));
+        renderLayout('/shared-policy-groups/spg-1/studio');
+        fireEvent.click(screen.getByRole('button', { name: 'Back to Shared Policy Group list' }));
         expect(mockNavigate).toHaveBeenCalledWith('/shared-policy-groups');
+    });
+
+    it('navigates back to the studio tab from the history tab', () => {
+        mockUseDetail.mockReturnValue({ data: SPG, isLoading: false, isError: false } as never);
+        renderLayout('/shared-policy-groups/spg-1/history');
+        fireEvent.click(screen.getByRole('button', { name: 'Back to Shared Policy Group' }));
+        expect(mockNavigate).toHaveBeenCalledWith('/shared-policy-groups/spg-1/studio');
+    });
+
+    it('truncates a long description instead of letting it distort the header, keeping the full text available via title', () => {
+        const longDescription = 'A'.repeat(400);
+        mockUseDetail.mockReturnValue({ data: { ...SPG, description: longDescription }, isLoading: false, isError: false } as never);
+        renderLayout();
+
+        const description = screen.getByTitle(longDescription);
+        expect(description.textContent).toBe(longDescription);
+        expect(description.className).toContain('truncate');
     });
 
     it('shows not-found state when the detail query fails', () => {

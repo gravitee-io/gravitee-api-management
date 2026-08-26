@@ -91,7 +91,11 @@ import { UserDetailPage } from '../pages/UserDetailPage';
 import { UsersPage } from '../pages/UsersPage';
 import { retryTransientRequest } from '../shared/api/queryRetry';
 import { ConsoleSettingsProvider } from '../shared/console-settings';
-import { useEnvironmentPermissions, useEnvironmentPermissionsReady } from '../shared/hooks/useEnvironmentPermissions';
+import {
+    useEnvironmentPermissions,
+    useEnvironmentPermissionsReady,
+    useHasEnvironmentPermission,
+} from '../shared/hooks/useEnvironmentPermissions';
 import { isForbiddenApiError } from '../shared/utils/apiErrors';
 
 const queryClient = new QueryClient({
@@ -132,6 +136,18 @@ function RequireAlertEngineLicense({ children }: { readonly children: ReactEleme
     if (!hasFeature) {
         return <Navigate to="../applications" replace />;
     }
+    return children;
+}
+
+// Shared Policy Groups gates on useHasEnvironmentPermission (this module's own live permission
+// fetch) rather than PermissionPageGuard's SDK-backed useHasPermission, so a permission revoked
+// mid-session is reflected here the same way it already is in the nav link — see
+// useEnvironmentPermissions.ts.
+function SharedPolicyGroupPageGuard({ unauthorizedTo, children }: Readonly<{ unauthorizedTo: string; children: ReactElement }>) {
+    const permissionsReady = useEnvironmentPermissionsReady();
+    const canAccess = useHasEnvironmentPermission([ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION]);
+    if (!permissionsReady) return null;
+    if (!canAccess) return <Navigate to={unauthorizedTo} replace />;
     return children;
 }
 
@@ -294,7 +310,7 @@ function ModuleLayout() {
     const canReadGateways = useHasPermission({ anyOf: ['environment-instance-r'] });
     const canReadEntrypoints = useHasPermission({ anyOf: ['environment-entrypoint-r', 'organization-entrypoint-r'] });
     const canReadGroups = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_READ_PERMISSION] });
-    const canReadSharedPolicyGroups = useHasPermission({ anyOf: [ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION] });
+    const canReadSharedPolicyGroups = useHasEnvironmentPermission([ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION]);
     const canReadAlerts = useHasPermission({ anyOf: [ENVIRONMENT_ALERT_READ_PERMISSION] });
     const hasAlertEngine = useHasFeature(ALERT_ENGINE_FEATURE);
     const canReadTenants = useHasPermission({ anyOf: ['organization-tenant-r', 'environment-tenant-r'] });
@@ -562,23 +578,17 @@ export function AppRoutes() {
                                 <Route
                                     index
                                     element={
-                                        <PermissionPageGuard
-                                            permission={ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION}
-                                            unauthorizedTo="../applications"
-                                        >
+                                        <SharedPolicyGroupPageGuard unauthorizedTo="../applications">
                                             <SharedPolicyGroupsPage />
-                                        </PermissionPageGuard>
+                                        </SharedPolicyGroupPageGuard>
                                     }
                                 />
                                 <Route
                                     path=":sharedPolicyGroupId"
                                     element={
-                                        <PermissionPageGuard
-                                            permission={ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION}
-                                            unauthorizedTo="../../applications"
-                                        >
+                                        <SharedPolicyGroupPageGuard unauthorizedTo="../../applications">
                                             <SharedPolicyGroupDetailLayout />
-                                        </PermissionPageGuard>
+                                        </SharedPolicyGroupPageGuard>
                                     }
                                 >
                                     <Route index element={<Navigate to="studio" replace />} />

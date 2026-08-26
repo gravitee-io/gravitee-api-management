@@ -13,22 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Outlet, Route, Routes } from 'react-router-dom';
 
 import { SharedPolicyGroupActions } from './SharedPolicyGroupActions';
 import type { SharedPolicyGroupEditFormValues } from './SharedPolicyGroupEditSheet';
+import { useHasEnvironmentPermission } from '../../../shared/hooks/useEnvironmentPermissions';
 import { notify } from '../../../shared/notify';
 import {
     useDeleteSharedPolicyGroup,
+    useDeploySharedPolicyGroup,
     useUndeploySharedPolicyGroup,
     useUpdateSharedPolicyGroup,
 } from '../hooks/useSharedPolicyGroupMutations';
 import type { SharedPolicyGroup } from '../types/sharedPolicyGroup';
 
-jest.mock('@gravitee/gamma-modules-sdk');
+jest.mock('../../../shared/hooks/useEnvironmentPermissions');
 jest.mock('../hooks/useSharedPolicyGroupMutations');
 jest.mock('../../../shared/notify', () => ({ notify: { success: jest.fn(), error: jest.fn() } }));
 jest.mock('./SharedPolicyGroupEditSheet', () => ({
@@ -42,8 +43,9 @@ jest.mock('./SharedPolicyGroupEditSheet', () => ({
     ),
 }));
 
-const mockUseHasPermission = jest.mocked(useHasPermission);
+const mockUseHasEnvironmentPermission = jest.mocked(useHasEnvironmentPermission);
 const mockUseUpdateSharedPolicyGroup = jest.mocked(useUpdateSharedPolicyGroup);
+const mockUseDeploySharedPolicyGroup = jest.mocked(useDeploySharedPolicyGroup);
 const mockUseUndeploySharedPolicyGroup = jest.mocked(useUndeploySharedPolicyGroup);
 const mockUseDeleteSharedPolicyGroup = jest.mocked(useDeleteSharedPolicyGroup);
 
@@ -79,15 +81,18 @@ function renderActions(sharedPolicyGroup: SharedPolicyGroup = SHARED_POLICY_GROU
 
 describe('SharedPolicyGroupActions', () => {
     const updateAsync = jest.fn();
+    const deployAsync = jest.fn();
     const undeployAsync = jest.fn();
     const deleteAsync = jest.fn();
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockUseHasPermission.mockReturnValue(true);
+        mockUseHasEnvironmentPermission.mockReturnValue(true);
         mockUseUpdateSharedPolicyGroup.mockReturnValue({ mutateAsync: updateAsync, isPending: false } as never);
+        mockUseDeploySharedPolicyGroup.mockReturnValue({ mutateAsync: deployAsync, isPending: false } as never);
         mockUseUndeploySharedPolicyGroup.mockReturnValue({ mutateAsync: undeployAsync, isPending: false } as never);
         mockUseDeleteSharedPolicyGroup.mockReturnValue({ mutateAsync: deleteAsync, isPending: false } as never);
+        deployAsync.mockResolvedValue(SHARED_POLICY_GROUP);
         undeployAsync.mockResolvedValue(SHARED_POLICY_GROUP);
         deleteAsync.mockResolvedValue(undefined);
     });
@@ -125,6 +130,23 @@ describe('SharedPolicyGroupActions', () => {
         expect(screen.getByRole('heading', { name: 'Edit Shared Policy Group' })).not.toBeNull();
     });
 
+    it('preserves the existing policy steps when submitting a metadata-only edit', async () => {
+        const user = userEvent.setup();
+        const steps = [{ policy: 'rate-limit', name: 'Rate Limit', enabled: true, configuration: {} }];
+        renderActions({ ...SHARED_POLICY_GROUP, steps });
+
+        await user.click(screen.getByRole('button', { name: 'Shared Policy Group actions' }));
+        await user.click(screen.getByRole('menuitem', { name: 'Edit' }));
+        await user.click(screen.getByRole('button', { name: 'Save' }));
+
+        await waitFor(() =>
+            expect(updateAsync).toHaveBeenCalledWith({
+                id: 'spg-1',
+                payload: expect.objectContaining({ steps }),
+            }),
+        );
+    });
+
     it('reports edit failures and keeps the edit sheet open', async () => {
         const user = userEvent.setup();
         const error = new Error('Update failed');
@@ -148,6 +170,48 @@ describe('SharedPolicyGroupActions', () => {
         await user.click(screen.getByRole('menuitem', { name: 'Undeploy' }));
 
         await waitFor(() => expect(notify.error).toHaveBeenCalledWith(expect.any(Error), 'Error during Shared Policy Group undeployment!'));
+    });
+
+    it('offers deploy instead of undeploy once the group is undeployed', async () => {
+        const user = userEvent.setup();
+        renderActions({ ...SHARED_POLICY_GROUP, lifecycleState: 'UNDEPLOYED' });
+
+        await user.click(screen.getByRole('button', { name: 'Shared Policy Group actions' }));
+
+        expect(screen.getByRole('menuitem', { name: 'Deploy' })).not.toBeNull();
+        expect(screen.queryByRole('menuitem', { name: 'Undeploy' })).toBeNull();
+    });
+
+    it('offers both Deploy and Undeploy while the group has undeployed edits (PENDING)', async () => {
+        const user = userEvent.setup();
+        renderActions({ ...SHARED_POLICY_GROUP, lifecycleState: 'PENDING' });
+
+        await user.click(screen.getByRole('button', { name: 'Shared Policy Group actions' }));
+
+        expect(screen.getByRole('menuitem', { name: 'Deploy' })).not.toBeNull();
+        expect(screen.getByRole('menuitem', { name: 'Undeploy' })).not.toBeNull();
+    });
+
+    it('deploys from the overflow menu', async () => {
+        const user = userEvent.setup();
+        renderActions({ ...SHARED_POLICY_GROUP, lifecycleState: 'UNDEPLOYED' });
+
+        await user.click(screen.getByRole('button', { name: 'Shared Policy Group actions' }));
+        await user.click(screen.getByRole('menuitem', { name: 'Deploy' }));
+
+        await waitFor(() => expect(deployAsync).toHaveBeenCalledWith('spg-1'));
+        expect(notify.success).toHaveBeenCalledWith('Shared Policy Group deployed successfully');
+    });
+
+    it('reports deploy failures', async () => {
+        const user = userEvent.setup();
+        deployAsync.mockRejectedValueOnce(new Error('Deploy failed'));
+        renderActions({ ...SHARED_POLICY_GROUP, lifecycleState: 'UNDEPLOYED' });
+
+        await user.click(screen.getByRole('button', { name: 'Shared Policy Group actions' }));
+        await user.click(screen.getByRole('menuitem', { name: 'Deploy' }));
+
+        await waitFor(() => expect(notify.error).toHaveBeenCalledWith(expect.any(Error), 'Error during Shared Policy Group deployment!'));
     });
 
     it('navigates to version history', async () => {
@@ -174,7 +238,7 @@ describe('SharedPolicyGroupActions', () => {
 
     it('offers only the actions the user is allowed to perform', async () => {
         const user = userEvent.setup();
-        mockUseHasPermission.mockImplementation(({ anyOf }) => anyOf?.includes('environment-shared_policy_group-u') === true);
+        mockUseHasEnvironmentPermission.mockImplementation(anyOf => anyOf.includes('environment-shared_policy_group-u'));
         renderActions();
 
         await user.click(screen.getByRole('button', { name: 'Shared Policy Group actions' }));
@@ -185,7 +249,7 @@ describe('SharedPolicyGroupActions', () => {
 
     it('requires update permission before offering detail-page deletion', async () => {
         const user = userEvent.setup();
-        mockUseHasPermission.mockImplementation(({ anyOf }) => anyOf?.includes('environment-shared_policy_group-d') === true);
+        mockUseHasEnvironmentPermission.mockImplementation(anyOf => anyOf.includes('environment-shared_policy_group-d'));
         renderActions();
 
         await user.click(screen.getByRole('button', { name: 'Shared Policy Group actions' }));
@@ -196,11 +260,12 @@ describe('SharedPolicyGroupActions', () => {
 
     it('keeps Kubernetes-origin groups read-only while retaining version history', async () => {
         const user = userEvent.setup();
-        renderActions({ ...SHARED_POLICY_GROUP, originContext: { origin: 'KUBERNETES' } });
+        renderActions({ ...SHARED_POLICY_GROUP, lifecycleState: 'UNDEPLOYED', originContext: { origin: 'KUBERNETES' } });
 
         await user.click(screen.getByRole('button', { name: 'Shared Policy Group actions' }));
 
         expect(screen.queryByRole('menuitem', { name: 'Edit' })).toBeNull();
+        expect(screen.queryByRole('menuitem', { name: 'Deploy' })).toBeNull();
         expect(screen.queryByRole('menuitem', { name: 'Undeploy' })).toBeNull();
         expect(screen.getByRole('menuitem', { name: 'Version History' })).not.toBeNull();
         expect(screen.queryByRole('menuitem', { name: 'Delete' })).toBeNull();

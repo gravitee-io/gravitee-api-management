@@ -24,6 +24,7 @@ import {
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
+    TruncatedCell,
     type DataTableProps,
 } from '@gravitee/graphene-core';
 import { ClockIcon, Code2Icon, EyeIcon } from '@gravitee/graphene-core/icons';
@@ -95,11 +96,11 @@ function buildColumns({
             enableSorting: false,
             header: ({ column }: ColHeader<SharedPolicyGroup>) => <DataTableColumnHeader column={column} title="Name" />,
             cell: ({ row }: ColCell<SharedPolicyGroup>) => (
-                <div className="flex items-start justify-between gap-3">
-                    <div className="flex flex-col gap-1">
+                <div className="flex min-w-0 items-start justify-between gap-3">
+                    <div className="flex min-w-0 flex-col gap-1">
                         <span className="text-sm font-medium">{row.original.name}</span>
                         {row.original.description ? (
-                            <span className="text-xs text-muted-foreground">{row.original.description}</span>
+                            <TruncatedCell className="max-w-md text-xs text-muted-foreground" value={row.original.description} />
                         ) : null}
                     </div>
                     <SharedPolicyGroupStatusBadge lifecycleState={row.original.lifecycleState} />

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useQuery } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Outlet, Route, Routes } from 'react-router-dom';
@@ -25,9 +24,10 @@ import {
     useUpdateSharedPolicyGroup,
 } from '../features/shared-policy-groups/hooks/useSharedPolicyGroupMutations';
 import type { SharedPolicyGroup } from '../features/shared-policy-groups/types/sharedPolicyGroup';
+import { useHasEnvironmentPermission } from '../shared/hooks/useEnvironmentPermissions';
 import { notify } from '../shared/notify';
 
-jest.mock('@gravitee/gamma-modules-sdk');
+jest.mock('../shared/hooks/useEnvironmentPermissions');
 jest.mock('@tanstack/react-query', () => ({
     useQuery: jest.fn(),
 }));
@@ -60,7 +60,7 @@ jest.mock('../features/shared-policy-groups/components/SharedPolicyGroupPolicySt
     ),
 }));
 
-const mockUseHasPermission = jest.mocked(useHasPermission);
+const mockUseHasEnvironmentPermission = jest.mocked(useHasEnvironmentPermission);
 const mockUseQuery = jest.mocked(useQuery);
 const mockUseUpdateSharedPolicyGroup = jest.mocked(useUpdateSharedPolicyGroup);
 const mockUseDeploySharedPolicyGroup = jest.mocked(useDeploySharedPolicyGroup);
@@ -90,7 +90,7 @@ describe('SharedPolicyGroupStudioPage', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockUseHasPermission.mockReturnValue(true);
+        mockUseHasEnvironmentPermission.mockReturnValue(true);
         mockUseQuery.mockReturnValue({
             data: [{ id: 'jwt', name: 'JWT' }],
             isLoading: false,
@@ -147,7 +147,7 @@ describe('SharedPolicyGroupStudioPage', () => {
         ['missing update permission', false, undefined],
         ['Kubernetes origin', true, { origin: 'KUBERNETES' as const }],
     ])('makes the Policy Studio read-only for %s', (_, canUpdate, originContext) => {
-        mockUseHasPermission.mockReturnValue(canUpdate);
+        mockUseHasEnvironmentPermission.mockReturnValue(canUpdate);
 
         renderPage({ ...BASE, originContext });
 

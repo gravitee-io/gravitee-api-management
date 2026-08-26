@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { DndContext, type DragEndEvent, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core';
+import { SortableContext, rectSortingStrategy, sortableKeyboardCoordinates, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import {
     Badge,
     Button,
@@ -25,11 +28,10 @@ import {
 } from '@gravitee/graphene-core';
 import {
     ArrowRightIcon,
-    ChevronDownIcon,
-    ChevronUpIcon,
     CircleCheckIcon,
     CopyIcon,
     EyeOffIcon,
+    GripVerticalIcon,
     MonitorIcon,
     MoreVerticalIcon,
     PlusIcon,
@@ -50,7 +52,7 @@ import {
     PolicyQuickInsert,
     type ResolvedStep,
 } from '@gravitee/graphene-policy-studio';
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, useMemo, useRef, useState } from 'react';
 
 interface SharedPolicyGroupPolicyStepsProps {
     readonly apiType: ApiType;
@@ -90,6 +92,42 @@ export function SharedPolicyGroupPolicySteps({
     onRemove,
 }: SharedPolicyGroupPolicyStepsProps) {
     const [quickInsertOpen, setQuickInsertOpen] = useState(false);
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    );
+    // Ids must stay stable across reorders — dnd-kit tracks a dragged item by id for the whole
+    // gesture, and an id derived from array position would silently point at a different step
+    // the moment the array is reordered. Keyed by step object identity, which reorders preserve
+    // (only add/duplicate/server-resync create new step objects).
+    const stepIdsRef = useRef(new WeakMap<ResolvedStep['step'], string>());
+    const nextStepIdRef = useRef(0);
+    const stepIds = useMemo(
+        () =>
+            resolvedSteps.map(({ step }) => {
+                let id = stepIdsRef.current.get(step);
+                if (!id) {
+                    id = `step-${nextStepIdRef.current++}`;
+                    stepIdsRef.current.set(step, id);
+                }
+                return id;
+            }),
+        [resolvedSteps],
+    );
+
+    function handleDragEnd(event: DragEndEvent) {
+        const { active, over } = event;
+        if (!over || active.id === over.id) {
+            return;
+        }
+        const oldIndex = stepIds.indexOf(String(active.id));
+        const newIndex = stepIds.indexOf(String(over.id));
+        if (oldIndex === -1 || newIndex === -1) {
+            return;
+        }
+        onMove(oldIndex, newIndex);
+    }
+
     const phaseConfig = getPhaseConfig(phase, apiType);
     const compatiblePolicies = useMemo(() => filterPoliciesForPhase(policies, apiType, phase), [apiType, phase, policies]);
     const availableCategories = useMemo(() => getAvailablePolicyCategories(compatiblePolicies), [compatiblePolicies]);
@@ -111,95 +149,60 @@ export function SharedPolicyGroupPolicySteps({
                     <div className="flex flex-wrap items-center gap-2">
                         <ActorPill label={phaseConfig.startActorLabel} role={phaseConfig.startConnectorRole} />
                         <ArrowRightIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                        <ol className="flex flex-wrap items-center gap-2">
-                            {resolvedSteps.map((resolvedStep, index) => {
-                                const label = stepLabel(resolvedStep);
-                                const stepEnabled = resolvedStep.step.enabled !== false;
-                                return (
-                                    <Fragment key={`${resolvedStep.step.policy ?? 'policy'}-${index}`}>
-                                        {index > 0 ? (
-                                            <li aria-hidden>
-                                                <ArrowRightIcon className="size-4 shrink-0 text-muted-foreground" />
-                                            </li>
-                                        ) : null}
-                                        <li
-                                            className={cn(
-                                                'flex max-w-64 shrink-0 items-center rounded-xl border bg-background pr-1 shadow-sm',
-                                                selectedStepIndex === index && 'border-primary ring-2 ring-primary/15',
-                                                !stepEnabled && 'opacity-60',
-                                            )}
-                                        >
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                title={label}
-                                                className="h-auto min-w-0 flex-1 justify-start gap-2 whitespace-normal px-3 py-2"
-                                                disabled={resolvedStep.unresolved}
-                                                onClick={() => onSelect(index)}
-                                            >
-                                                <PolicyIcon category={resolvedStep.policy?.category} size="sm" />
-                                                <span className="flex min-w-0 flex-col items-start gap-0.5 text-left">
-                                                    <span className="line-clamp-2">
-                                                        <span className="text-muted-foreground">{index + 1}</span> {label}
-                                                    </span>
-                                                    {!stepEnabled ? (
-                                                        <Badge variant="secondary" className="font-normal">
-                                                            Disabled
-                                                        </Badge>
-                                                    ) : null}
-                                                    {resolvedStep.step.condition ? (
-                                                        <span className="line-clamp-1 text-xs font-normal text-muted-foreground">
-                                                            Condition: {resolvedStep.step.condition}
-                                                        </span>
-                                                    ) : null}
-                                                    {resolvedStep.unresolved ? (
-                                                        <span className="line-clamp-2 text-xs font-normal text-muted-foreground">
-                                                            {resolvedStep.unresolvedMessage ??
-                                                                'This policy is not available in this environment.'}
-                                                        </span>
-                                                    ) : null}
-                                                </span>
-                                            </Button>
-                                            {!readOnly ? (
-                                                <PolicyStepActions
-                                                    label={label}
+                        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                            <SortableContext items={stepIds} strategy={rectSortingStrategy}>
+                                <ol className="flex flex-wrap items-center gap-2">
+                                    {resolvedSteps.map((resolvedStep, index) => {
+                                        const label = stepLabel(resolvedStep);
+                                        const stepEnabled = resolvedStep.step.enabled !== false;
+                                        return (
+                                            <Fragment key={`${resolvedStep.step.policy ?? 'policy'}-${index}`}>
+                                                {index > 0 ? (
+                                                    <li aria-hidden>
+                                                        <ArrowRightIcon className="size-4 shrink-0 text-muted-foreground" />
+                                                    </li>
+                                                ) : null}
+                                                <SortableStepItem
+                                                    id={stepIds[index]}
                                                     index={index}
-                                                    lastIndex={resolvedSteps.length - 1}
-                                                    unresolved={resolvedStep.unresolved}
-                                                    enabled={stepEnabled}
-                                                    onMove={onMove}
+                                                    label={label}
+                                                    resolvedStep={resolvedStep}
+                                                    stepEnabled={stepEnabled}
+                                                    selected={selectedStepIndex === index}
+                                                    readOnly={readOnly}
+                                                    onSelect={onSelect}
                                                     onDuplicate={onDuplicate}
                                                     onToggleEnabled={onToggleEnabled}
                                                     onRemove={onRemove}
                                                 />
+                                            </Fragment>
+                                        );
+                                    })}
+                                    {!readOnly ? (
+                                        <>
+                                            {resolvedSteps.length > 0 ? (
+                                                <li aria-hidden>
+                                                    <ArrowRightIcon className="size-4 shrink-0 text-muted-foreground" />
+                                                </li>
                                             ) : null}
-                                        </li>
-                                    </Fragment>
-                                );
-                            })}
-                            {!readOnly ? (
-                                <>
-                                    {resolvedSteps.length > 0 ? (
-                                        <li aria-hidden>
-                                            <ArrowRightIcon className="size-4 shrink-0 text-muted-foreground" />
-                                        </li>
+                                            <li>
+                                                <PolicyQuickInsert
+                                                    policies={compatiblePolicies}
+                                                    open={quickInsertOpen}
+                                                    onOpenChange={setQuickInsertOpen}
+                                                    onAddPolicy={onQuickAdd}
+                                                    onBrowseCatalog={onBrowseCatalog}
+                                                >
+                                                    <Button type="button" size="icon" variant="outline" aria-label="Add policy">
+                                                        <PlusIcon className="size-4" aria-hidden />
+                                                    </Button>
+                                                </PolicyQuickInsert>
+                                            </li>
+                                        </>
                                     ) : null}
-                                    <li>
-                                        <PolicyQuickInsert
-                                            policies={compatiblePolicies}
-                                            open={quickInsertOpen}
-                                            onOpenChange={setQuickInsertOpen}
-                                            onAddPolicy={onQuickAdd}
-                                            onBrowseCatalog={onBrowseCatalog}
-                                        >
-                                            <Button type="button" size="icon" variant="outline" aria-label="Add policy">
-                                                <PlusIcon className="size-4" aria-hidden />
-                                            </Button>
-                                        </PolicyQuickInsert>
-                                    </li>
-                                </>
-                            ) : null}
-                        </ol>
+                                </ol>
+                            </SortableContext>
+                        </DndContext>
                         <ArrowRightIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
                         <ActorPill label={phaseConfig.endActorLabel} role={phaseConfig.endConnectorRole} />
                     </div>
@@ -251,6 +254,104 @@ function getEmptyPhaseOutcome(
     return text && fallback ? { ...fallback, text } : fallback;
 }
 
+function SortableStepItem({
+    id,
+    index,
+    label,
+    resolvedStep,
+    stepEnabled,
+    selected,
+    readOnly,
+    onSelect,
+    onDuplicate,
+    onToggleEnabled,
+    onRemove,
+}: {
+    readonly id: string;
+    readonly index: number;
+    readonly label: string;
+    readonly resolvedStep: ResolvedStep;
+    readonly stepEnabled: boolean;
+    readonly selected: boolean;
+    readonly readOnly: boolean;
+    readonly onSelect: (stepIndex: number) => void;
+    readonly onDuplicate: (stepIndex: number) => void;
+    readonly onToggleEnabled: (stepIndex: number, enabled: boolean) => void;
+    readonly onRemove: (stepIndex: number) => void;
+}) {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, disabled: readOnly });
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    };
+
+    return (
+        <li
+            ref={setNodeRef}
+            style={style}
+            className={cn(
+                'flex max-w-64 shrink-0 items-center rounded-xl border bg-background pr-1 shadow-sm',
+                selected && 'border-primary ring-2 ring-primary/15',
+                !stepEnabled && 'opacity-60',
+                isDragging && 'z-10 opacity-80 shadow-md',
+            )}
+        >
+            {!readOnly ? (
+                <button
+                    type="button"
+                    className="flex shrink-0 cursor-grab touch-none items-center self-stretch px-1 text-muted-foreground hover:text-foreground active:cursor-grabbing"
+                    aria-label={`Reorder ${label}`}
+                    {...attributes}
+                    {...listeners}
+                >
+                    <GripVerticalIcon className="size-4" aria-hidden />
+                </button>
+            ) : null}
+            <Button
+                type="button"
+                variant="ghost"
+                title={label}
+                className="h-auto min-w-0 flex-1 justify-start gap-2 whitespace-normal px-3 py-2"
+                disabled={resolvedStep.unresolved}
+                onClick={() => onSelect(index)}
+            >
+                <PolicyIcon category={resolvedStep.policy?.category} size="sm" />
+                <span className="flex min-w-0 flex-col items-start gap-0.5 text-left">
+                    <span className="line-clamp-2">
+                        <span className="text-muted-foreground">{index + 1}</span> {label}
+                    </span>
+                    {!stepEnabled ? (
+                        <Badge variant="secondary" className="font-normal">
+                            Disabled
+                        </Badge>
+                    ) : null}
+                    {resolvedStep.step.condition ? (
+                        <span className="line-clamp-1 text-xs font-normal text-muted-foreground">
+                            Condition: {resolvedStep.step.condition}
+                        </span>
+                    ) : null}
+                    {resolvedStep.unresolved ? (
+                        <span className="line-clamp-2 text-xs font-normal text-muted-foreground">
+                            {resolvedStep.unresolvedMessage ?? 'This policy is not available in this environment.'}
+                        </span>
+                    ) : null}
+                </span>
+            </Button>
+            {!readOnly ? (
+                <PolicyStepActions
+                    label={label}
+                    index={index}
+                    unresolved={resolvedStep.unresolved}
+                    enabled={stepEnabled}
+                    onDuplicate={onDuplicate}
+                    onToggleEnabled={onToggleEnabled}
+                    onRemove={onRemove}
+                />
+            ) : null}
+        </li>
+    );
+}
+
 function ActorPill({ label, role }: { readonly label: string; readonly role: ConnectorRole }) {
     const Icon = role === 'entrypoint' ? MonitorIcon : ServerIcon;
     return (
@@ -264,20 +365,16 @@ function ActorPill({ label, role }: { readonly label: string; readonly role: Con
 function PolicyStepActions({
     label,
     index,
-    lastIndex,
     unresolved,
     enabled,
-    onMove,
     onDuplicate,
     onToggleEnabled,
     onRemove,
 }: {
     readonly label: string;
     readonly index: number;
-    readonly lastIndex: number;
     readonly unresolved: boolean;
     readonly enabled: boolean;
-    readonly onMove: (oldIndex: number, newIndex: number) => void;
     readonly onDuplicate: (stepIndex: number) => void;
     readonly onToggleEnabled: (stepIndex: number, enabled: boolean) => void;
     readonly onRemove: (stepIndex: number) => void;
@@ -290,14 +387,6 @@ function PolicyStepActions({
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuItem disabled={index === 0} onSelect={() => onMove(index, index - 1)}>
-                    <ChevronUpIcon className="mr-2 size-4" aria-hidden />
-                    Move up
-                </DropdownMenuItem>
-                <DropdownMenuItem disabled={index === lastIndex} onSelect={() => onMove(index, index + 1)}>
-                    <ChevronDownIcon className="mr-2 size-4" aria-hidden />
-                    Move down
-                </DropdownMenuItem>
                 <DropdownMenuItem disabled={unresolved} onSelect={() => onDuplicate(index)}>
                     <CopyIcon className="mr-2 size-4" aria-hidden />
                     Duplicate
