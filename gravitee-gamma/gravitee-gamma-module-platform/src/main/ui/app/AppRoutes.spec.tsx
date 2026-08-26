@@ -254,7 +254,7 @@ describe('AppRoutes', () => {
 
     it('routes to the Groups page under the platform module', () => {
         render(
-            <MemoryRouter initialEntries={['/user-groups']}>
+            <MemoryRouter initialEntries={['/groups']}>
                 <AppRoutes />
             </MemoryRouter>,
         );
@@ -264,7 +264,7 @@ describe('AppRoutes', () => {
 
     it('routes to the Group detail page under the platform module', () => {
         render(
-            <MemoryRouter initialEntries={['/user-groups/group-1']}>
+            <MemoryRouter initialEntries={['/groups/group-1']}>
                 <AppRoutes />
             </MemoryRouter>,
         );
@@ -296,26 +296,26 @@ describe('AppRoutes', () => {
 
     it('shows the User Groups nav item when the user has read permission', () => {
         mockUseModuleRouting.mockReturnValue({
-            activeNavKey: 'user-groups',
+            activeNavKey: 'groups',
             navigateToKey: jest.fn(),
             rootPath: '/platform',
         });
-        renderPlatform('/user-groups');
+        renderPlatform('/groups');
 
-        expect(visibleNavKeys()).toContain('user-groups');
+        expect(visibleNavKeys()).toContain('groups');
     });
 
     it('hides the Groups nav item when the user lacks environment-group-r', () => {
         mockUseModuleRouting.mockReturnValue({
-            activeNavKey: 'user-groups',
+            activeNavKey: 'groups',
             navigateToKey: jest.fn(),
             rootPath: '/platform',
         });
         mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-group-r'));
 
-        renderPlatform('/user-groups');
+        renderPlatform('/groups');
 
-        expect(visibleNavKeys()).not.toContain('user-groups');
+        expect(visibleNavKeys()).not.toContain('groups');
     });
 
     it('shows the Dictionaries nav item when the user has read permission', () => {

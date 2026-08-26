@@ -160,7 +160,7 @@ function isNavItemVisible(itemKey: string, visibility: PlatformNavVisibility): b
     if (itemKey === 'users') {
         return !permissionsReady || canAccessUsers;
     }
-    if (itemKey === 'user-groups') {
+    if (itemKey === 'groups') {
         return !permissionsReady || canReadGroups;
     }
     if (itemKey === 'metadata') {
@@ -471,7 +471,7 @@ export function AppRoutes() {
                                     }
                                 />
                             </Route>
-                            <Route path="user-groups">
+                            <Route path="groups">
                                 <Route
                                     index
                                     element={
