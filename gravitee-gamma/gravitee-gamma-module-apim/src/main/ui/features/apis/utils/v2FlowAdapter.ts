@@ -13,23 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ConnectorInfo, Flow, Selector, Step } from '@gravitee/graphene-policy-studio';
+import type { ConnectorInfo, Flow, Selector } from '@gravitee/graphene-policy-studio';
 
-import type { FlowExecution, FlowV2, StepV2 } from '../types/policyStudio';
-
-/**
- * Converts a V2 flow step (`pre`/`post`) to the V4 step shape expected by the policy studio.
- */
-function mapStepV2ToV4(step: StepV2): Step {
-    return {
-        policy: step.policy,
-        name: step.name,
-        description: step.description,
-        enabled: step.enabled,
-        configuration: step.configuration,
-        condition: step.condition,
-    };
-}
+import { toStudioStep } from '../../../shared/v2-flows';
+import type { FlowV2 } from '../types/policyStudio';
 
 /**
  * Converts a V2 flow to the V4 Flow shape expected by `@gravitee/graphene-policy-studio`.
@@ -61,8 +48,8 @@ export function mapFlowV2ToV4(flow: FlowV2): Flow {
         name: flow.name,
         enabled: flow.enabled ?? true,
         selectors: selectors.length > 0 ? selectors : undefined,
-        request: flow.pre?.map(mapStepV2ToV4),
-        response: flow.post?.map(mapStepV2ToV4),
+        request: flow.pre?.map(toStudioStep),
+        response: flow.post?.map(toStudioStep),
     };
 }
 
@@ -71,13 +58,6 @@ export function mapFlowV2ToV4(flow: FlowV2): Flow {
  */
 export function mapFlowsV2ToV4(flows: FlowV2[]): Flow[] {
     return flows.map(mapFlowV2ToV4);
-}
-
-/**
- * Converts V2 `flowMode` to V4 `FlowExecution`.
- */
-export function mapFlowModeToExecution(flowMode?: 'DEFAULT' | 'BEST_MATCH'): FlowExecution {
-    return { mode: flowMode ?? 'DEFAULT' };
 }
 
 /**

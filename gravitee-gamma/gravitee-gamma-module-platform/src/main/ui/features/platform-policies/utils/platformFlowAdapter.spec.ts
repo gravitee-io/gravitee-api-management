@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { toFlowExecution, toFlowMode, toPlatformFlow, toStudioFlow } from './platformFlowAdapter';
+import { toFlowMode, toPlatformFlow, toStudioFlow } from './platformFlowAdapter';
+import { toFlowExecution } from '../../../shared/v2-flows';
 import type { PlatformFlow } from '../types/platformPolicies';
 
 const STORED_FLOW: PlatformFlow = {

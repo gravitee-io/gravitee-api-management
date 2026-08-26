@@ -15,21 +15,11 @@
  */
 import type { ConditionSelector, Flow, FlowExecution, HttpMethod, HttpSelector, Selector, Step } from '@gravitee/graphene-policy-studio';
 
+import { toStudioStep } from '../../../shared/v2-flows';
 import type { PlatformFlow, PlatformFlowMode, PlatformFlowStep } from '../types/platformPolicies';
 
 /** The organization flow schema always carries a path operator; a flow saved without one would never match. */
 const DEFAULT_PATH_OPERATOR = { path: '/', operator: 'STARTS_WITH' } as const;
-
-function toStudioStep(step: PlatformFlowStep): Step {
-    return {
-        policy: step.policy,
-        name: step.name,
-        description: step.description,
-        enabled: step.enabled,
-        configuration: step.configuration,
-        condition: step.condition,
-    };
-}
 
 function toPlatformStep(step: Step): PlatformFlowStep {
     return {
@@ -103,11 +93,6 @@ export function toStudioFlows(flows: readonly PlatformFlow[]): Flow[] {
 
 export function toPlatformFlows(flows: readonly Flow[]): PlatformFlow[] {
     return flows.map(toPlatformFlow);
-}
-
-/** The organization entity holds a `flowMode`; the studio reads a `FlowExecution`. */
-export function toFlowExecution(flowMode: PlatformFlowMode | undefined): FlowExecution {
-    return { mode: flowMode ?? 'DEFAULT' };
 }
 
 export function toFlowMode(flowExecution: FlowExecution): PlatformFlowMode {

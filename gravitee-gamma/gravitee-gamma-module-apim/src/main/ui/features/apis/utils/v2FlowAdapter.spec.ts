@@ -13,13 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    mapFlowModeToExecution,
-    mapFlowsV2ToV4,
-    mapFlowV2ToV4,
-    V2_DEFAULT_ENDPOINTS_INFO,
-    V2_DEFAULT_ENTRYPOINTS_INFO,
-} from './v2FlowAdapter';
+import { mapFlowsV2ToV4, mapFlowV2ToV4, V2_DEFAULT_ENDPOINTS_INFO, V2_DEFAULT_ENTRYPOINTS_INFO } from './v2FlowAdapter';
+import { toFlowExecution } from '../../../shared/v2-flows';
 import type { FlowV2, StepV2 } from '../types/policyStudio';
 
 const STEP_PRE: StepV2 = {
@@ -156,17 +151,17 @@ describe('mapFlowsV2ToV4', () => {
     });
 });
 
-describe('mapFlowModeToExecution', () => {
+describe('toFlowExecution', () => {
     it('maps DEFAULT mode', () => {
-        expect(mapFlowModeToExecution('DEFAULT')).toEqual({ mode: 'DEFAULT' });
+        expect(toFlowExecution('DEFAULT')).toEqual({ mode: 'DEFAULT' });
     });
 
     it('maps BEST_MATCH mode', () => {
-        expect(mapFlowModeToExecution('BEST_MATCH')).toEqual({ mode: 'BEST_MATCH' });
+        expect(toFlowExecution('BEST_MATCH')).toEqual({ mode: 'BEST_MATCH' });
     });
 
     it('defaults to DEFAULT when undefined', () => {
-        expect(mapFlowModeToExecution(undefined)).toEqual({ mode: 'DEFAULT' });
+        expect(toFlowExecution(undefined)).toEqual({ mode: 'DEFAULT' });
     });
 });
 

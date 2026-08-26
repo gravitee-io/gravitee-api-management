@@ -18,6 +18,7 @@ import type { ApiType as PSApiType, ConnectorInfo, Flow, Plan, Policy, SharedPol
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
+import { toFlowExecution } from '../../../shared/v2-flows';
 import {
     getFullApiDetail,
     listEndpointPlugins,
@@ -27,7 +28,7 @@ import {
     listSharedPolicyGroupPlugins,
 } from '../services/policyStudioService';
 import type { FlowExecution, FlowV2, PolicyStudioApiDetail } from '../types/policyStudio';
-import { mapFlowModeToExecution, mapFlowsV2ToV4, V2_DEFAULT_ENDPOINTS_INFO, V2_DEFAULT_ENTRYPOINTS_INFO } from '../utils/v2FlowAdapter';
+import { mapFlowsV2ToV4, V2_DEFAULT_ENDPOINTS_INFO, V2_DEFAULT_ENTRYPOINTS_INFO } from '../utils/v2FlowAdapter';
 
 const policyStudioKeys = {
     all: ['policy-studio'] as const,
@@ -197,7 +198,7 @@ export function usePolicyStudioData(apiId: string | undefined): PolicyStudioData
     }, [api, endpointsQuery.data, isV2]);
 
     const flowExecution: FlowExecution = useMemo(() => {
-        if (isV2) return mapFlowModeToExecution(api?.flowMode);
+        if (isV2) return toFlowExecution(api?.flowMode);
         return api?.flowExecution ?? { mode: 'DEFAULT' };
     }, [api?.flowExecution, api?.flowMode, isV2]);
 
