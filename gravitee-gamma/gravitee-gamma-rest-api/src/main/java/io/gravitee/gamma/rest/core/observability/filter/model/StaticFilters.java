@@ -200,11 +200,21 @@ public enum StaticFilters {
      * <p>Values include the literal {@code unknown} the gateway writes for a client that advertised
      * none — that is a real population to be able to select, not an absence.
      *
-     * <p>LOGS-only, like {@link #FAILURE_ORIGIN}: the analytics definition does not declare this
-     * dimension yet, and advertising an ANALYTICS filter the engine cannot translate would accept a
-     * request and then quietly drop the predicate.
+     * <p>Served by both signals, like {@link #NATIVE_CLIENT_ID}: the analytics definition now declares
+     * the dimension and NativeApiFieldResolver translates it, so an ANALYTICS query filtering on it is
+     * evaluated rather than accepted and quietly dropped. Gamma runs the same core engine through
+     * ObservabilityAnalyticsDataPortAdapter, so leaving this LOGS-only would have made the same filter
+     * work through management-v2 and fail here.
      */
-    NATIVE_CLIENT_SOFTWARE_NAME("Kafka Client Library", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Set.of(ApiType.NATIVE)),
+    NATIVE_CLIENT_SOFTWARE_NAME(
+        "Kafka Client Library",
+        FilterType.KEYWORD,
+        Defs.EQ_IN,
+        null,
+        null,
+        Defs.LOGS_ANALYTICS,
+        Set.of(ApiType.NATIVE)
+    ),
     /**
      * Dimensions of the Kafka event metrics, ANALYTICS-only: they live in the {@code event-metrics} data
      * stream, which the logs signal does not read. Both are KEYWORD rather than ENUM — a topic name

@@ -1151,6 +1151,9 @@ spec:
               # can actually group by.
               - NATIVE_FAILURE_SIDE
               - NATIVE_CLIENT_ID
+              # The fleet question, and the one client.id cannot answer: an id is near-unique per pod,
+              # so grouping by it yields thousands of bars, while the library is a handful of values.
+              - NATIVE_CLIENT_SOFTWARE_NAME
           filters:
               - API
               - APPLICATION
@@ -1158,6 +1161,7 @@ spec:
               - NATIVE_CONNECTION_STATUS
               - NATIVE_FAILURE_SIDE
               - NATIVE_CLIENT_ID
+              - NATIVE_CLIENT_SOFTWARE_NAME
 
         # --- Native Kafka event metrics ---------------------------------------------------------
         # Served from the `event-metrics` data stream, where the native Kafka reactor flushes its
@@ -2221,6 +2225,7 @@ spec:
           label: Kafka Client Library
           signals:
               - LOGS
+              - ANALYTICS
           type: KEYWORD
           operators:
               - EQ
@@ -2454,6 +2459,10 @@ spec:
 
         - name: NATIVE_CLIENT_ID
           label: Kafka Client ID
+          type: KEYWORD
+
+        - name: NATIVE_CLIENT_SOFTWARE_NAME
+          label: Kafka Client Library
           type: KEYWORD
 
         - name: NATIVE_TOPIC
