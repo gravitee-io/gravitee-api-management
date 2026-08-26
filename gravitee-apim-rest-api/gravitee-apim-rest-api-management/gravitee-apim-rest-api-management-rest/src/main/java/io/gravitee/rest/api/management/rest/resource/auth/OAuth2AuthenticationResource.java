@@ -248,10 +248,11 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             ? identityProvider.getTokenEndpointAuthMethod()
             : endpointDefault;
 
-        // Switched rather than decided by exclusion: token_endpoint_auth_method has values such as none and
-        // private_key_jwt that must not fall through to putting the secret in the body, so adding a constant has to be
-        // a deliberate decision here rather than a silent change on a credential path.
+        // The null label makes this an enhanced switch (JLS 14.11.2), so the compiler requires it to be exhaustive:
+        // adding a token_endpoint_auth_method constant such as none or private_key_jwt fails the build here instead of
+        // silently doing nothing, or worse falling through to putting the secret in the body, on a credential path.
         switch (method) {
+            case null -> throw new IllegalArgumentException("No client authentication method resolved for " + identityProvider.getId());
             case CLIENT_SECRET_BASIC -> request.header(HttpHeaders.AUTHORIZATION, basicAuthorization(identityProvider));
             case CLIENT_SECRET_POST -> {
                 // The authorization-code flow already carries the client_id supplied by the caller. add() registers the
