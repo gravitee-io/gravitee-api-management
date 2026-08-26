@@ -18,7 +18,7 @@ import type { ModuleRouteConfig } from '@gravitee/gamma-modules-sdk/routing';
 export const ROUTE_KEYS: readonly string[] = [
     'applications',
     'users',
-    'user-groups',
+    'groups',
     'access-management',
     'authentication',
     'metadata',
@@ -43,7 +43,7 @@ const DEFAULT_ROUTE_KEY: RouteKey = 'applications';
 export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: string }> = {
     applications: { path: 'applications', label: 'Applications' },
     users: { path: 'users', label: 'Users' },
-    'user-groups': { path: 'user-groups', label: 'Groups' },
+    groups: { path: 'groups', label: 'Groups' },
     'access-management': { path: 'access-management', label: 'Access Management' },
     authentication: { path: 'authentication', label: 'Authentication' },
     'security-plan-types': { path: 'security-plan-types', label: 'Security Plan Types' },

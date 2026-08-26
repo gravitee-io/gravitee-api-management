@@ -70,7 +70,7 @@ describe('platform navigation config', () => {
 
     it('places Users and Groups under Team', () => {
         const teamGroup = NAV_SECTIONS.find(section => section.key === 'team')?.groups.find(group => group.label === 'Team');
-        expect(teamGroup?.items.map(item => item.key)).toEqual(['users', 'user-groups']);
+        expect(teamGroup?.items.map(item => item.key)).toEqual(['users', 'groups']);
         expect(teamGroup?.items[0]?.title).toBe('Users');
         expect(teamGroup?.items[0]?.icon).toBe(UsersIcon);
         expect(teamGroup?.items[1]?.title).toBe('Groups');
@@ -118,9 +118,9 @@ describe('platform navigation config', () => {
         expect(ROUTES.users).toEqual({ path: 'users', label: 'Users' });
     });
 
-    it('declares the user-groups route in platform routing config', () => {
-        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('user-groups');
-        expect(ROUTES['user-groups']).toEqual({ path: 'user-groups', label: 'Groups' });
+    it('declares the groups route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('groups');
+        expect(ROUTES.groups).toEqual({ path: 'groups', label: 'Groups' });
     });
 
     it('declares the tenants route in platform routing config', () => {
