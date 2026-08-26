@@ -16,12 +16,15 @@
 package io.gravitee.apim.reporter.elasticsearch.mapping;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.mapping.es7.ES7IndexPreparer;
 import io.gravitee.apim.reporter.elasticsearch.mapping.es8.ES8IndexPreparer;
 import io.gravitee.apim.reporter.elasticsearch.mapping.es9.ES9IndexPreparer;
+import io.gravitee.apim.reporter.elasticsearch.mapping.opensearch.OpenSearchIndexPreparer;
 import io.gravitee.common.templating.FreeMarkerComponent;
 import io.gravitee.elasticsearch.utils.Type;
 import java.util.stream.Stream;
@@ -31,19 +34,23 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 /**
- * Asserts what the es{@code 7,8,9}x index templates actually render: the configured lifecycle property names
+ * Asserts what the es{@code 7,8,9}x and {@code opensearch} index templates actually render: the configured lifecycle property names
  * when they are overridden, the Elasticsearch defaults when they are blank, and JSON-safe output when a name
  * is malformed. Runs without the OpenSearch container {@link IndexPreparerIntegrationTest} needs, which
  * proves the complementary half — that a cluster accepts the rendered body.
  */
 class IndexTemplateTest {
 
+    private static final ObjectMapper JSON = new ObjectMapper();
+
     /**
-     * Every type whose template can render lifecycle settings. EVENT_METRICS is excluded because
-     * {@link AbstractIndexPreparer#getTemplateData()} never puts its policy into the model, so its
-     * lifecycle block cannot render whatever the configuration says. es7x is kept alongside es8x/es9x
-     * because it is the odd one out structurally — its settings sit at the root rather than under
-     * {@code template} — and it is pushed through the legacy template API.
+     * Every alias-managed type whose template can render lifecycle settings. es7x is kept alongside
+     * es8x/es9x because it is the odd one out structurally — its settings sit at the root rather than
+     * under {@code template} — and it is pushed through the legacy template API.
+     *
+     * <p>EVENT_METRICS is covered separately: it is the only data-stream template, so neither of those
+     * two statements holds for it, and a data stream rolls itself over, so it must carry no rollover
+     * alias at all.
      */
     static Stream<Arguments> es_trees_and_lifecycle_types() {
         return Stream.of("es7x", "es8x", "es9x").flatMap(esDir ->
@@ -89,6 +96,108 @@ class IndexTemplateTest {
             .doesNotContain("\"  index.lifecycle.rollover_alias  \"");
     }
 
+    static Stream<Arguments> es_trees() {
+        return Stream.of("es7x", "es8x", "es9x").map(Arguments::of);
+    }
+
+    /** Every tree that ships an event-metrics template, with the lifecycle key that tree writes. */
+    static Stream<Arguments> all_trees_and_policy_keys() {
+        return Stream.of(
+            Arguments.of("es7x", "index.lifecycle.name"),
+            Arguments.of("es8x", "index.lifecycle.name"),
+            Arguments.of("es9x", "index.lifecycle.name"),
+            Arguments.of("opensearch", "index.plugins.index_state_management.policy_id")
+        );
+    }
+
+    static Stream<Arguments> all_trees() {
+        return all_trees_and_policy_keys().map(args -> Arguments.of(args.get()[0]));
+    }
+
+    @ParameterizedTest(name = "{0} event-metrics template carries the configured lifecycle policy as {1}")
+    @MethodSource("all_trees_and_policy_keys")
+    void should_attach_the_configured_lifecycle_policy_to_the_event_metrics_data_stream(String esDir, String policyKey) {
+        assertThat(preparerFor(esDir, configurationWithPolicies()).generateIndexTemplate(Type.EVENT_METRICS)).contains(
+            "\"" + policyKey + "\": \"policy-event-metrics\""
+        );
+    }
+
+    @ParameterizedTest(name = "{0} event-metrics template carries no rollover alias")
+    @MethodSource("all_trees")
+    void should_not_render_a_rollover_alias_on_the_event_metrics_data_stream(String esDir) {
+        // A data stream rolls itself over: ILM/ISM resolve the rollover target from the parent data
+        // stream and never read this setting, so writing it is spec-noise on a "data_stream" template.
+        assertThat(preparerFor(esDir, configurationWithPolicies()).generateIndexTemplate(Type.EVENT_METRICS)).doesNotContain(
+            "rollover_alias"
+        );
+    }
+
+    @ParameterizedTest(name = "{0} event-metrics template escapes a malformed policy name")
+    @MethodSource("all_trees")
+    void should_escape_the_event_metrics_policy_so_a_malformed_one_cannot_break_the_json_body(String esDir) {
+        var configuration = configurationWithPolicies();
+        configuration.setIndexLifecyclePolicyEventMetrics("bad\"policy");
+
+        assertThat(preparerFor(esDir, configuration).generateIndexTemplate(Type.EVENT_METRICS)).contains("\"bad\\\"policy\"");
+    }
+
+    @ParameterizedTest(name = "{0} event-metrics template honours the configured ISM property name")
+    @MethodSource("es_trees")
+    void should_attach_the_event_metrics_policy_under_the_configured_property_name(String esDir) {
+        var configuration = configurationWithPolicies();
+        configuration.setIndexLifecyclePolicyPropertyName("index.plugins.index_state_management.policy_id");
+
+        assertThat(preparerFor(esDir, configuration).generateIndexTemplate(Type.EVENT_METRICS)).contains(
+            "\"index.plugins.index_state_management.policy_id\": \"policy-event-metrics\""
+        );
+    }
+
+    @ParameterizedTest(name = "{0} event-metrics template renders no lifecycle settings when unset")
+    @MethodSource("all_trees_and_policy_keys")
+    void should_render_no_lifecycle_settings_for_the_event_metrics_data_stream_when_no_policy_is_set(String esDir, String policyKey) {
+        // The default deployment: the key is documented but unset, and must stay entirely absent.
+        assertThat(preparerFor(esDir, new ReporterConfiguration()).generateIndexTemplate(Type.EVENT_METRICS))
+            .doesNotContain(policyKey)
+            .doesNotContain("rollover_alias");
+    }
+
+    /**
+     * Both configurations, because they render different bodies: a policy adds a settings entry, and a
+     * separator that only works in one of the two arrangements leaves the other invalid. The unset case
+     * is the state most installations are in.
+     */
+    @ParameterizedTest(name = "{0} {1} template is valid JSON with policies {2}")
+    @MethodSource("all_trees_and_all_types_and_policy_state")
+    void should_render_a_body_that_parses_as_json(String esDir, Type type, String policyState) {
+        // Every other assertion here is a substring match, which cannot see a body broken into invalid
+        // JSON by a stray separator — the failure mode a cluster reports only as a parse error.
+        var configuration = "set".equals(policyState) ? configurationWithPolicies() : new ReporterConfiguration();
+
+        assertThatNoException().isThrownBy(() -> JSON.readTree(preparerFor(esDir, configuration).generateIndexTemplate(type)));
+    }
+
+    /** Every type that has a template, listed explicitly: mining a tree-specific source would silently
+     * assert an es-only type against the opensearch tree. */
+    static Stream<Type> all_types() {
+        return Stream.of(
+            Type.REQUEST,
+            Type.HEALTH_CHECK,
+            Type.LOG,
+            Type.MONITOR,
+            Type.V4_LOG,
+            Type.V4_METRICS,
+            Type.V4_MESSAGE_LOG,
+            Type.V4_MESSAGE_METRICS,
+            Type.EVENT_METRICS
+        );
+    }
+
+    static Stream<Arguments> all_trees_and_all_types_and_policy_state() {
+        return all_trees().flatMap(tree ->
+            all_types().flatMap(type -> Stream.of("set", "unset").map(policyState -> Arguments.of(tree.get()[0], type, policyState)))
+        );
+    }
+
     @Test
     void should_render_default_ilm_keys_for_an_untouched_elasticsearch_configuration() {
         assertThat(preparerFor("es8x", configurationWithPolicies()).generateIndexTemplate(Type.LOG))
@@ -115,6 +224,7 @@ class IndexTemplateTest {
         configuration.setIndexLifecyclePolicyMonitor("policy-monitor");
         configuration.setIndexLifecyclePolicyRequest("policy-request");
         configuration.setIndexLifecyclePolicyLog("policy-log");
+        configuration.setIndexLifecyclePolicyEventMetrics("policy-event-metrics");
         return configuration;
     }
 
@@ -130,6 +240,7 @@ class IndexTemplateTest {
             case "es7x" -> new ES7IndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, null);
             case "es8x" -> new ES8IndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, null);
             case "es9x" -> new ES9IndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, null);
+            case "opensearch" -> new OpenSearchIndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, null);
             default -> throw new IllegalArgumentException("Unknown es dir: " + esDir);
         };
     }
