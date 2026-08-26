@@ -18,13 +18,13 @@ import type { Flow, FlowExecution, OrganizationTag, Policy } from '@gravitee/gra
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
+import { getOrganization } from '../../../shared/services/organization';
 import { listPolicies } from '../../../shared/services/policyPlugins';
+import { organizationKeys, policyPluginKeys } from '../../../shared/utils/queryKeys';
 import { toFlowExecution } from '../../../shared/v2-flows';
 import { listOrgTags } from '../../entrypoints/services/tags';
 import { orgTagKeys } from '../../entrypoints/utils/queryKeys';
-import { getOrganization } from '../services/platformPolicies';
 import { toStudioFlows } from '../utils/platformFlowAdapter';
-import { platformPolicyKeys } from '../utils/queryKeys';
 
 const CATALOG_STALE_TIME = 5 * 60 * 1000;
 const EMPTY_POLICIES: readonly Policy[] = [];
@@ -41,12 +41,12 @@ export interface PlatformPolicyStudioData {
 /** Everything the organization Policy Studio renders: the platform flows, the policy catalog and the sharding tags. */
 export function usePlatformPolicies(): PlatformPolicyStudioData {
     const organizationQuery = useQuery({
-        queryKey: platformPolicyKeys.organization(),
+        queryKey: organizationKeys.detail(),
         queryFn: getOrganization,
     });
 
     const policiesQuery = useQuery({
-        queryKey: platformPolicyKeys.policies(),
+        queryKey: policyPluginKeys.list(),
         queryFn: listPolicies,
         staleTime: CATALOG_STALE_TIME,
     });

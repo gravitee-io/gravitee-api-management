@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { toFlowMode, toPlatformFlow, toStudioFlow } from './platformFlowAdapter';
+import type { PlatformFlow } from '../../../shared/types/organization';
 import { toFlowExecution } from '../../../shared/v2-flows';
-import type { PlatformFlow } from '../types/platformPolicies';
 
 const STORED_FLOW: PlatformFlow = {
     id: 'flow-1',

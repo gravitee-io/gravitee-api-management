@@ -19,10 +19,10 @@ import type { ReactNode } from 'react';
 
 import { useSavePlatformPolicies } from './useSavePlatformPolicies';
 import { notify } from '../../../shared/notify';
-import { getOrganization, updateOrganization } from '../services/platformPolicies';
-import type { Organization } from '../types/platformPolicies';
+import { getOrganization, updateOrganization } from '../../../shared/services/organization';
+import type { Organization } from '../../../shared/types/organization';
 
-jest.mock('../services/platformPolicies', () => ({
+jest.mock('../../../shared/services/organization', () => ({
     getOrganization: jest.fn(),
     updateOrganization: jest.fn(),
 }));

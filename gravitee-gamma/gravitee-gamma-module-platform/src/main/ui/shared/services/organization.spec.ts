@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getOrganization, updateOrganization } from './platformPolicies';
-import { apimFetchJsonOrg } from '../../../shared/api/apimClient';
+import { getOrganization, updateOrganization } from './organization';
+import { apimFetchJsonOrg } from '../api/apimClient';
 
-jest.mock('../../../shared/api/apimClient', () => ({
+jest.mock('../api/apimClient', () => ({
     apimFetchJsonOrg: jest.fn(),
 }));
 
