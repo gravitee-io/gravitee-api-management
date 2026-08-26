@@ -28,6 +28,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyncPlanExecutor;
+import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_listing.model.PortalListing;
@@ -237,6 +238,35 @@ class PortalListingSyncDomainServiceTest {
     @Test
     void validate_for_conflicts_is_a_noop_on_empty_listing() {
         syncService.validateForConflicts(AUDIT_INFO, PORTAL_ID, aListing(List.of()));
+
+        org.mockito.Mockito.verifyNoInteractions(validator);
+    }
+
+    @Test
+    void validate_api_folder_conflicts_routes_desired_paths_through_the_shared_validator() {
+        // First materialize a nav-api row for this api so validateApiFolderConflictsForApi finds a target navApi
+        var listing = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), listing);
+        org.mockito.Mockito.reset(validator);
+
+        var apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
+        var desired = List.of(new NavigationPath("/guides", "Guides"), new NavigationPath("/reference", "Reference"));
+
+        syncService.validateApiFolderConflictsForApi(AUDIT_INFO, apiId, desired);
+
+        var createsCaptor = org.mockito.ArgumentCaptor.forClass(List.class);
+        org.mockito.Mockito.verify(validator).validateAll(createsCaptor.capture(), org.mockito.ArgumentMatchers.anyString());
+        assertThat(createsCaptor.getValue()).hasSize(2);
+        var updatesCaptor = org.mockito.ArgumentCaptor.forClass(List.class);
+        org.mockito.Mockito.verify(validator).validateAllUpdates(updatesCaptor.capture());
+        assertThat(updatesCaptor.getValue()).isEmpty();
+    }
+
+    @Test
+    void validate_api_folder_conflicts_is_a_noop_when_no_nav_api_row_exists_for_the_api() {
+        var apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
+
+        syncService.validateApiFolderConflictsForApi(AUDIT_INFO, apiId, List.of(new NavigationPath("/guides", null)));
 
         org.mockito.Mockito.verifyNoInteractions(validator);
     }

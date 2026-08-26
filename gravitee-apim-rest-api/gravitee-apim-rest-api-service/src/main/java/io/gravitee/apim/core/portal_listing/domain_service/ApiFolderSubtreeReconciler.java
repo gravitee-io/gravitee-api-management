@@ -71,19 +71,22 @@ class ApiFolderSubtreeReconciler {
         planExecutor.execute(plan, auditInfo, navApi.getArea(), navApi, idMapper, deleteStrategy);
     }
 
-    void validateConflicts(AuditInfo auditInfo, String apiId, List<NavigationPath> desired, List<PortalNavigationItem> currentFolders) {
-        var safeDesired = desired == null ? List.<NavigationPath>of() : desired;
-        var ownership = ownership(auditInfo, apiId, safeDesired);
-        NavigationSyncPlanner.plan(safeDesired, currentFolders, safeDesired, ownership);
-    }
-
     ValidationItems itemsForValidation(
         AuditInfo auditInfo,
         String apiId,
         PortalNavigationApi navApi,
         List<PortalNavigationItem> currentFolders
     ) {
-        var desired = desiredPaths(apiId);
+        return itemsForValidation(auditInfo, apiId, navApi, desiredPaths(apiId), currentFolders);
+    }
+
+    ValidationItems itemsForValidation(
+        AuditInfo auditInfo,
+        String apiId,
+        PortalNavigationApi navApi,
+        List<NavigationPath> desired,
+        List<PortalNavigationItem> currentFolders
+    ) {
         var ownership = ownership(auditInfo, apiId, desired);
         var plan = NavigationSyncPlanner.plan(desired, currentFolders, List.of(), ownership);
         Function<String, PortalNavigationItemId> idFactory = path -> apiFolderId(auditInfo, apiId, path);
