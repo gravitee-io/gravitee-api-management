@@ -154,6 +154,51 @@ class PortalNavigationItemsResource_ImportTest extends AbstractResourceTest {
     }
 
     @Test
+    void should_report_a_file_failure_without_a_navigation_item_id() {
+        // A failed file reached no item: the result carries no id, and the response must still be
+        // valid against the contract generated clients are built from
+        var sourceDomainService = (PortalNavigationItemSourceDomainServiceInMemory) portalNavigationItemSourceDomainService;
+        sourceDomainService.givenRemoteFile("/docs/guide.md", "# Guide");
+        sourceDomainService.givenRemoteFile("/docs/broken.md", "# Broken");
+        sourceDomainService.failFileFetch("/docs/broken.md");
+
+        Response response = importNavigation(aRequest());
+
+        assertThat(response).hasStatus(OK_200);
+        var summary = response.readEntity(ImportPortalNavigationResponse.class).getSummary();
+        assertThat(summary.getSucceeded()).isEqualTo(1);
+        assertThat(summary.getFailed()).isEqualTo(1);
+        assertThat(summary.getResults())
+            .filteredOn(result -> !result.getSuccess())
+            .singleElement()
+            .satisfies(result -> {
+                assertThat(result.getNavigationItemId()).isNull();
+                assertThat(result.getTitle()).isEqualTo("broken");
+                assertThat(result.getError()).isNotBlank();
+            });
+    }
+
+    @Test
+    void should_report_a_listing_failure_as_an_item_less_result() {
+        var sourceDomainService = (PortalNavigationItemSourceDomainServiceInMemory) portalNavigationItemSourceDomainService;
+        sourceDomainService.givenRemoteFile("/docs/guide.md", "# Guide");
+        sourceDomainService.failNextListFilesWith(new RuntimeException("cannot reach repository"));
+
+        Response response = importNavigation(aRequest());
+
+        assertThat(response).hasStatus(OK_200);
+        var summary = response.readEntity(ImportPortalNavigationResponse.class).getSummary();
+        assertThat(summary.getFailed()).isEqualTo(1);
+        assertThat(summary.getResults())
+            .singleElement()
+            .satisfies(result -> {
+                assertThat(result.getSuccess()).isFalse();
+                assertThat(result.getNavigationItemId()).isNull();
+                assertThat(result.getError()).contains("Unable to list files");
+            });
+    }
+
+    @Test
     void should_return_400_when_the_source_cannot_list_files() {
         // The in-memory source only supports file listing once a remote file is registered
         assertThat(importNavigation(aRequest())).hasStatus(BAD_REQUEST_400);

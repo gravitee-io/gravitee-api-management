@@ -124,5 +124,6 @@ public class FetchPortalNavigationItemUseCase {
         }
     }
 
-    public record PageFetchResult(UUID navigationItemId, String title, boolean success, @Nullable String error) {}
+    /** A repository import reports failures that reached no item at all: their id is null. */
+    public record PageFetchResult(@Nullable UUID navigationItemId, String title, boolean success, @Nullable String error) {}
 }
