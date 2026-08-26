@@ -108,6 +108,7 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
             new ApiItemUpdateRule(apiProductQueryService),
             new ApiProductItemUpdateRule(),
             parentRule,
+            segmentConflictRule,
             linkUrlRule,
             externalSourceItemTypeRule,
             sourceConfigurationRule,

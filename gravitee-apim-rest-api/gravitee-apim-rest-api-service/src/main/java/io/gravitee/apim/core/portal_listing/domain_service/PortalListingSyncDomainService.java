@@ -123,14 +123,23 @@ public class PortalListingSyncDomainService {
                 List.of(navigationItemEntryMaterializer.itemForValidation(auditInfo, portalId, apiId, entry)),
                 List.of()
             );
-            case PortalNavigationApi navApi -> apiFolderSubtreeReconciler.itemsForValidation(
-                auditInfo,
-                apiId,
-                navApi,
-                apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, navApi.getId())
+            case PortalNavigationApi navApi -> mergeRowUpdate(
+                apiFolderSubtreeReconciler.itemsForValidation(
+                    auditInfo,
+                    apiId,
+                    navApi,
+                    apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, navApi.getId())
+                ),
+                navigationItemEntryMaterializer.updateForValidation(auditInfo, portalId, entry, navApi)
             );
             default -> throw PathConflictException.navigationIdTaken(PathConflictException.EntryKind.LISTING, entry.location());
         };
+    }
+
+    private static ValidationItems mergeRowUpdate(ValidationItems subtreeItems, PendingUpdate rowUpdate) {
+        var updates = new ArrayList<>(subtreeItems.updates());
+        updates.add(rowUpdate);
+        return new ValidationItems(subtreeItems.creates(), updates);
     }
 
     public void validateApiFolderConflictsForApi(AuditInfo auditInfo, String apiId, List<NavigationPath> desired) {
