@@ -35,12 +35,12 @@ import jakarta.ws.rs.ext.Provider;
  * response that names one — so a client whose user chooses to reload has the validator for its next save without a
  * second request.
  *
- * <p>Domain-specific rather than a generic mapper for the exception's base type, for two reasons.
- * The platform registers no {@code ConflictDomainException} mapper at all in
- * {@code GammaModuleApplication} — management-rest ships none — so without this a refused save would
- * surface through {@code ThrowableMapper} as a 500, telling the author their work failed for an
- * unknown reason. And the body has to carry the current dashboard, which the shared error shape
- * cannot express.
+ * <p>Domain-specific rather than a generic mapper for the exception's base type. {@code GammaModuleApplication} does
+ * register a {@code ConflictDomainExceptionMapper} for the base type, so the fallback is a 409 rather than the 500 it
+ * once was; JAX-RS still resolves to this mapper because it matches the more specific type. Both reasons for keeping
+ * it are therefore about the answer, not about avoiding a crash: the status has to be 412, since the caller stated an
+ * {@code If-Match} precondition, and the body has to carry the current dashboard, which the shared error shape cannot
+ * express. Removing this class would silently turn a conditional save into a 409 with no dashboard in the body.
  *
  * @author GraviteeSource Team
  */

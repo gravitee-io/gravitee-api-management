@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import io.gravitee.rest.api.management.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.management.rest.provider.BadRequestExceptionMapper;
 import io.gravitee.rest.api.management.rest.provider.ByteArrayOutputStreamWriter;
+import io.gravitee.rest.api.management.rest.provider.ConflictDomainExceptionMapper;
 import io.gravitee.rest.api.management.rest.provider.ConstraintValidationExceptionMapper;
 import io.gravitee.rest.api.management.rest.provider.EnumParamConverterProvider;
 import io.gravitee.rest.api.management.rest.provider.JsonMappingExceptionMapper;
@@ -116,6 +117,7 @@ public class GraviteeManagementApplication extends ResourceConfig {
         register(BadRequestExceptionMapper.class);
         register(EnumParamConverterProvider.class);
         register(ValidationDomainExceptionMapper.class);
+        register(ConflictDomainExceptionMapper.class);
         register(NotAllowedDomainExceptionMapper.class);
         register(NotFoundDomainExceptionMapper.class);
         register(TechnicalDomainExceptionMapper.class);
