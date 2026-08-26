@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getPolicyDocumentation, getPolicySchema, listPolicies } from './sharedPolicyGroupPolicies';
-import { apimFetchJsonV2Org } from '../../../shared/api/apimClient';
+import { getPolicyDocumentation, getPolicySchema, listPolicies } from './policyPlugins';
+import { apimFetchJsonV2Org } from '../api/apimClient';
 
-jest.mock('../../../shared/api/apimClient', () => ({
+jest.mock('../api/apimClient', () => ({
     apimFetchJsonV2Org: jest.fn(),
 }));
 
 const mockApimFetchJsonV2Org = jest.mocked(apimFetchJsonV2Org);
 
-describe('shared policy group policy catalog service', () => {
+describe('policy plugin catalog service', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockApimFetchJsonV2Org.mockResolvedValue(undefined);
@@ -34,13 +34,13 @@ describe('shared policy group policy catalog service', () => {
         expect(mockApimFetchJsonV2Org).toHaveBeenCalledWith('/plugins/policies');
     });
 
-    it('loads an encoded policy schema for the Shared Policy Group API protocol', async () => {
+    it('loads an encoded policy schema for the protocol the caller asks for', async () => {
         await getPolicySchema('policy/with spaces', 'HTTP_PROXY');
 
         expect(mockApimFetchJsonV2Org).toHaveBeenCalledWith('/plugins/policies/policy%2Fwith%20spaces/schema?apiProtocolType=HTTP_PROXY');
     });
 
-    it('loads encoded policy documentation for the Shared Policy Group API protocol', async () => {
+    it('loads encoded policy documentation for the protocol the caller asks for', async () => {
         await getPolicyDocumentation('policy/with spaces', 'HTTP_MESSAGE');
 
         expect(mockApimFetchJsonV2Org).toHaveBeenCalledWith(

@@ -21,5 +21,4 @@ export const sharedPolicyGroupKeys = {
     detail: (envId: string, sharedPolicyGroupId: string) => [...sharedPolicyGroupKeys.all, 'detail', envId, sharedPolicyGroupId] as const,
     histories: (envId: string, sharedPolicyGroupId: string, page: number, perPage: number, sortBy: string | undefined) =>
         [...sharedPolicyGroupKeys.all, 'histories', envId, sharedPolicyGroupId, page, perPage, sortBy] as const,
-    policies: () => [...sharedPolicyGroupKeys.all, 'policies'] as const,
 } as const;

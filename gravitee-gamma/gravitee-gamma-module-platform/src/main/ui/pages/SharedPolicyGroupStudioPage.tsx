@@ -26,14 +26,14 @@ import {
     useDeploySharedPolicyGroup,
     useUpdateSharedPolicyGroup,
 } from '../features/shared-policy-groups/hooks/useSharedPolicyGroupMutations';
-import { getPolicyDocumentation, getPolicySchema, listPolicies } from '../features/shared-policy-groups/services/sharedPolicyGroupPolicies';
 import type { SharedPolicyGroup, SharedPolicyGroupStep } from '../features/shared-policy-groups/types/sharedPolicyGroup';
-import { sharedPolicyGroupKeys } from '../features/shared-policy-groups/utils/queryKeys';
 import {
     ENVIRONMENT_SHARED_POLICY_GROUP_UPDATE_PERMISSION,
     isKubernetesOrigin,
 } from '../features/shared-policy-groups/utils/sharedPolicyGroupPermissions';
 import { notify } from '../shared/notify';
+import { getPolicyDocumentation, getPolicySchema, listPolicies } from '../shared/services/policyPlugins';
+import { policyPluginKeys } from '../shared/utils/queryKeys';
 
 export function SharedPolicyGroupStudioPage() {
     const sharedPolicyGroup = useOutletContext<SharedPolicyGroup>();
@@ -43,7 +43,7 @@ export function SharedPolicyGroupStudioPage() {
     const kubernetesOrigin = isKubernetesOrigin(sharedPolicyGroup);
     const protocolType = getProtocolType(sharedPolicyGroup.apiType);
     const policiesQuery = useQuery({
-        queryKey: sharedPolicyGroupKeys.policies(),
+        queryKey: policyPluginKeys.list(),
         queryFn: listPolicies,
         staleTime: 5 * 60 * 1000,
     });
