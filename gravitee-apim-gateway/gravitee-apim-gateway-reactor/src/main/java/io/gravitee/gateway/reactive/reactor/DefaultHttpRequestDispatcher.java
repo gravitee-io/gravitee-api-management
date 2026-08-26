@@ -178,6 +178,12 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         final String normalizedPath;
         if (needsNormalization) {
             if (requestPathConfiguration.getHandling() == RequestPathHandling.REJECT) {
+                // Before the acceptor is resolved, and that order is the point. Resolving first
+                // would answer 404 when the host or context path does not exist and 400 when it
+                // does, so appending a dot segment to a guess would tell a prober which APIs are
+                // deployed. Refusing first makes every dot-segment path answer 400 alike, whether
+                // or not it targets anything. The visible cost is that a traversal aimed at an
+                // unknown context path, a 404 under RAW, is a 400 here.
                 return handleRejectedPath(httpServerRequest, serverId, receivedAt);
             }
             normalizedPath = RequestPathNormalizer.normalize(rawPath);
