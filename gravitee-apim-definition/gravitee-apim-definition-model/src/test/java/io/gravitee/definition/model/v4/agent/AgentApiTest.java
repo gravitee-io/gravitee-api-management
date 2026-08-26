@@ -23,7 +23,10 @@ import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.agent.definition.AgentInput;
+import io.gravitee.definition.model.v4.agent.definition.AgentJudge;
 import io.gravitee.definition.model.v4.agent.definition.AgentOutput;
+import io.gravitee.definition.model.v4.agent.definition.JudgeScore;
+import io.gravitee.definition.model.v4.agent.evaluation.Dataset;
 import io.gravitee.definition.model.v4.agent.workflow.AgentRefItem;
 import io.gravitee.definition.model.v4.agent.workflow.ConditionalItem;
 import io.gravitee.definition.model.v4.agent.workflow.ExternalAgentItem;
@@ -284,6 +287,94 @@ class AgentApiTest {
         // NON_NULL: an unbound input must not gain a null `binding`, which would churn every stored definition.
         assertThat(serialized).doesNotContain("\"binding\":null");
         assertThat(mapper.readValue(serialized, AbstractApi.class)).isEqualTo(api);
+    }
+
+    @Test
+    void should_round_trip_a_judge_block_and_omit_it_when_absent() throws Exception {
+        // A judge declares the scale it scores on; the criteria are not here, they arrive per call.
+        // language=JSON
+        String json = """
+            { "definitionVersion": "V4", "type": "agent", "id": "relevance", "name": "Relevance", "apiVersion": "1.0.0",
+              "kind": "standalone", "composable": true,
+              "standalone": {
+                "role": "You are an impartial evaluator.",
+                "model": { "type": "openai", "configuration": { "model": "gpt-5-mini" } },
+                "judge": { "score": { "type": "categorical", "labels": [ "pass", "fail" ] }, "variables": [ "input", "output" ] }
+              } }
+            """;
+        AgentApi api = (AgentApi) mapper.readValue(json, AbstractApi.class);
+        AgentJudge judge = api.getStandalone().getJudge();
+
+        assertThat(judge.getScore().getType()).isEqualTo(JudgeScore.TYPE_CATEGORICAL);
+        assertThat(judge.getScore().getLabels()).containsExactly("pass", "fail");
+        assertThat(judge.getVariables()).containsExactly("input", "output");
+        // Defaults are the runtime's to apply, not the model's — an undeclared field stays undeclared here.
+        assertThat(judge.getExplanation()).isNull();
+        // The block is written instead of the contract, not beside it.
+        assertThat(api.getStandalone().getOutputs()).isNull();
+
+        String serialized = mapper.writeValueAsString(api);
+        assertThat(serialized).contains("\"labels\":[\"pass\",\"fail\"]");
+        assertThat(serialized).doesNotContain("\"explanation\":null");
+        assertThat(mapper.readValue(serialized, AbstractApi.class)).isEqualTo(api);
+
+        // NON_NULL again: an ordinary agent must not gain a null `judge`, which would churn every stored definition.
+        AgentApi researcher = (AgentApi) mapper.readValue(RESEARCHER, AbstractApi.class);
+        assertThat(researcher.getStandalone().getJudge()).isNull();
+        assertThat(mapper.writeValueAsString(researcher)).doesNotContain("\"judge\"");
+    }
+
+    @Test
+    void should_deserialize_an_evaluation_over_recorded_runs() throws Exception {
+        // A third kind beside standalone and workflow: it serves no traffic, it scores runs another agent finished.
+        // language=JSON
+        String json = """
+            { "definitionVersion": "V4", "type": "agent", "id": "nightly-eval", "name": "Nightly Eval",
+              "apiVersion": "1.0.0", "kind": "evaluation",
+              "evaluation": {
+                "dataset": { "agent": "support-agent", "since": "24h", "outcome": "error", "limit": 500 },
+                "schedule": "24h",
+                "store": "eval-store",
+                "evaluators": [ "quality", "groundedness" ]
+              } }
+            """;
+        AgentApi api = (AgentApi) mapper.readValue(json, AbstractApi.class);
+        Dataset dataset = api.getEvaluation().getDataset();
+
+        assertThat(api.getKind()).isEqualTo("evaluation");
+        assertThat(dataset.getAgent()).isEqualTo("support-agent");
+        assertThat(dataset.getSince()).isEqualTo("24h");
+        assertThat(dataset.getOutcome()).isEqualTo(Dataset.OUTCOME_ERROR);
+        assertThat(dataset.getLimit()).isEqualTo(500);
+        assertThat(api.getEvaluation().getStore()).isEqualTo("eval-store");
+        assertThat(api.getEvaluation().getEvaluators()).containsExactly("quality", "groundedness");
+        // The bodies are mutually exclusive by kind, not by validation — an evaluation carries neither of the others.
+        assertThat(api.getStandalone()).isNull();
+        assertThat(api.getWorkflow()).isNull();
+
+        assertThat(mapper.readValue(mapper.writeValueAsString(api), AbstractApi.class)).isEqualTo(api);
+    }
+
+    @Test
+    void should_round_trip_recording_and_omit_it_when_absent() throws Exception {
+        // Recording persists prompts and answers, so it is declared per agent rather than switched on globally.
+        // language=JSON
+        String json = """
+            { "definitionVersion": "V4", "type": "agent", "id": "support", "name": "Support", "apiVersion": "1.0.0",
+              "kind": "standalone",
+              "standalone": { "instructions": "Help.", "recording": { "ref": "eval-store" } } }
+            """;
+        AgentApi api = (AgentApi) mapper.readValue(json, AbstractApi.class);
+
+        assertThat(api.getStandalone().getRecording().getRef()).isEqualTo("eval-store");
+        // Declaring the block is the opt-in; `enabled` exists only to suspend it.
+        assertThat(api.getStandalone().getRecording().getEnabled()).isNull();
+        assertThat(mapper.readValue(mapper.writeValueAsString(api), AbstractApi.class)).isEqualTo(api);
+
+        // NON_NULL: an agent that records nothing must not gain a null `recording`, which would churn every definition.
+        AgentApi researcher = (AgentApi) mapper.readValue(RESEARCHER, AbstractApi.class);
+        assertThat(researcher.getStandalone().getRecording()).isNull();
+        assertThat(mapper.writeValueAsString(researcher)).doesNotContain("\"recording\"");
     }
 
     @Test

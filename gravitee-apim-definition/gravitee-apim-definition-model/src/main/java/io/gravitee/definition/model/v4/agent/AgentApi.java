@@ -48,7 +48,9 @@ import lombok.experimental.SuperBuilder;
  * <ul>
  *   <li>{@code standalone} → {@link StandaloneAgentDefinition} {@code standalone} (a single task agent);</li>
  *   <li>{@code workflow} → {@link Workflow} {@code workflow} (an orchestration whose agent leaves are
- *       <b>references</b> by id to independently-deployed agents — never embedded).</li>
+ *       <b>references</b> by id to independently-deployed agents — never embedded);</li>
+ *   <li>{@code evaluation} → {@link EvaluationDefinition} {@code evaluation} (a scoring of another agent's recorded
+ *       runs, on a schedule or on demand — it serves no traffic of its own).</li>
  * </ul>
  */
 @NoArgsConstructor
@@ -71,7 +73,10 @@ public class AgentApi extends AbstractApi {
     /** How the agent is exposed — HTTP listeners carrying agent entrypoints. */
     private List<@NotNull Listener> listeners;
 
-    /** {@code standalone} (a single agent) | {@code workflow} (an orchestration over referenced agents). */
+    /**
+     * {@code standalone} (a single agent) | {@code workflow} (an orchestration over referenced agents) |
+     * {@code evaluation} (a scoring of another agent's recorded runs).
+     */
     @JsonProperty(required = true)
     @NotNull
     private String kind;
@@ -81,6 +86,15 @@ public class AgentApi extends AbstractApi {
 
     /** The orchestration root (a control) — present when {@code kind=workflow}. Type-locked to {@link Workflow}. */
     private Workflow workflow;
+
+    /**
+     * The evaluation body — present when {@code kind=evaluation}.
+     *
+     * <p>An evaluation answers no request of its own: it scores runs another agent already finished. It is modelled
+     * as a {@code kind} beside the other two so it inherits listeners, plans, resources and the deploy lifecycle
+     * rather than needing a second kind of deployable.</p>
+     */
+    private EvaluationDefinition evaluation;
 
     /** Exposure plans (e.g. a keyless plan) — reuses the Gravitee {@link Plan}. */
     private List<Plan> plans;
