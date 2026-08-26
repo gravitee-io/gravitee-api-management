@@ -214,6 +214,20 @@ class PathHandlingV4IntegrationTest {
 
             assertThat(wiremock.findAll(getRequestedFor(anyUrl()))).isEmpty();
         }
+
+        @Test
+        void should_answer_the_same_whether_the_context_path_exists_or_not(HttpClient httpClient) throws InterruptedException {
+            wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
+
+            // 400 and not 404, which is what pins the order: the rejection happens before the
+            // acceptor is resolved, so a dot segment appended to a guessed context path answers the
+            // same here as it does on /alpha above. Were it the other way round, the pair of codes
+            // would enumerate the deployed APIs. Its counterpart under NORMALIZE, where resolution
+            // does happen first, is should_answer_not_found_when_the_resolved_path_matches_no_api.
+            assertStatus(httpClient, "/nowhere/api/../../beta/api/echo", 400);
+
+            assertThat(wiremock.findAll(getRequestedFor(anyUrl()))).isEmpty();
+        }
     }
 
     @Nested
