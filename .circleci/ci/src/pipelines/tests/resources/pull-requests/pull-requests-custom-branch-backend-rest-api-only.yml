@@ -404,10 +404,10 @@ jobs:
       - cmd-workspace-install
       - run:
           name: Run Prettier, ESLint and license check
-          command: yarn nx run-many --target=lint --projects=gravitee-gamma-module-apim,gravitee-gamma-module-platform
+          command: yarn nx run-many --target=lint --projects=gravitee-gamma-module-apim,gravitee-gamma-module-platform,gravitee-gamma-module-portals
       - run:
           name: Run unit tests
-          command: yarn nx run-many --target=test --projects=gravitee-gamma-module-apim,gravitee-gamma-module-platform --maxWorkers=2 --coverage
+          command: yarn nx run-many --target=test --projects=gravitee-gamma-module-apim,gravitee-gamma-module-platform,gravitee-gamma-module-portals --maxWorkers=2 --coverage
       - cmd-notify-on-failure
       - store_test_results:
           path: gravitee-gamma/gravitee-gamma-module-apim/coverage/junit.xml
@@ -417,6 +417,10 @@ jobs:
           path: gravitee-gamma/gravitee-gamma-module-platform/coverage/junit.xml
       - store_artifacts:
           path: gravitee-gamma/gravitee-gamma-module-platform/coverage/lcov.info
+      - store_test_results:
+          path: gravitee-gamma/gravitee-gamma-module-portals/coverage/junit.xml
+      - store_artifacts:
+          path: gravitee-gamma/gravitee-gamma-module-portals/coverage/lcov.info
   job-validate-workflow-status:
     docker:
       - image: cimg/base:stable

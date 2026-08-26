@@ -17,6 +17,7 @@ export const MODULE_LABELS: Record<string, string> = {
     aim: 'Agent Management',
     apim: 'API Management',
     platform: 'Platform Management',
+    portals: 'Developer Portals',
     authz: 'Authorization Management',
     esm: 'Event Stream Management',
 };

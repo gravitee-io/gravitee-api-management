@@ -11,3 +11,4 @@ Gamma is the modular control plane that extends the APIM Management API with `ga
 | Host app: module loading, federation, routes | [`gravitee-gamma-control-plane-webui/docs/gamma-module-loading.md`](gravitee-gamma-control-plane-webui/docs/gamma-module-loading.md) |
 | APIM Gamma module (example local workflow) | [`gravitee-gamma-module-apim/README.md`](gravitee-gamma-module-apim/README.md) |
 | Platform Gamma module | [`gravitee-gamma-module-platform/README.md`](gravitee-gamma-module-platform/README.md) |
+| Developer Portals Gamma module | [`gravitee-gamma-module-portals/README.md`](gravitee-gamma-module-portals/README.md) |

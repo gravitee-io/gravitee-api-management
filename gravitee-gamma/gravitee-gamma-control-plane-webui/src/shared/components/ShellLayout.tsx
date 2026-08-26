@@ -54,6 +54,7 @@ const MODULE_DESCRIPTIONS: Record<string, { label: string; description: string }
     aim: { label: 'Agent Management', description: 'Govern AI agents, MCPs, and LLMs' },
     apim: { label: 'API Management', description: 'Design, deploy, and govern HTTP APIs' },
     platform: { label: 'Platform Management', description: 'Apps, subscriptions, and usage' },
+    portals: { label: 'Developer Portals', description: 'Design and manage developer portal experiences' },
     authz: { label: 'Authorization Management', description: 'Fine-grained authorization policies' },
     esm: { label: 'Event Stream Management', description: 'Manage Kafka clusters, services, and event mesh' },
     edge: { label: 'Edge Management', description: 'Monitor and manage Edge Daemons' },

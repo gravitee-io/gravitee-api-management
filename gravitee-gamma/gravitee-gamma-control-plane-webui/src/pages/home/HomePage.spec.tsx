@@ -26,6 +26,7 @@ const ALL_MODULES: readonly GammaModule[] = [
     { id: 'apim', name: 'APIM Module', version: '1.0.0', remoteName: 'gravitee_gamma_module_apim', exposedModule: 'App' },
     { id: 'aim', name: 'AIM Module', version: '1.0.0', remoteName: 'gravitee_gamma_module_aim', exposedModule: 'App' },
     { id: 'platform', name: 'Platform Management', version: '1.0.0', remoteName: 'gravitee_gamma_module_platform', exposedModule: 'App' },
+    { id: 'portals', name: 'Developer Portals', version: '1.0.0', remoteName: 'gravitee_gamma_module_portals', exposedModule: 'App' },
     {
         id: 'authz',
         name: 'Authorization',
@@ -101,6 +102,7 @@ describe('HomePage', () => {
                 'Agent Management',
                 'API Management',
                 'Platform Management',
+                'Developer Portals',
                 'Authorization Management',
                 'Event Stream Management',
             ]) {
@@ -190,12 +192,16 @@ describe('HomePage', () => {
             expect(within(appsSection).getAllByText('Add Integration')).toHaveLength(1);
             expect(within(appsSection).getByText('Create your first API')).toBeTruthy();
             expect(within(appsSection).getByText('Register an application')).toBeTruthy();
+            expect(within(appsSection).getByText('Open Developer Portals')).toBeTruthy();
             expect(within(appsSection).getByText('Create your first policy')).toBeTruthy();
         });
 
         // Agent Management empty-state CTA links to the aim module home, not a removed sub-route.
         const aimCta = within(appsSection).getByText('Add Integration').closest('a');
         expect(aimCta?.getAttribute('href')).toBe('/environments/env-1/aim');
+
+        const portalsCta = within(appsSection).getByText('Open Developer Portals').closest('a');
+        expect(portalsCta?.getAttribute('href')).toBe('/environments/env-1/portals');
     });
 
     it('should show metric view with Open CTA when module has data', async () => {

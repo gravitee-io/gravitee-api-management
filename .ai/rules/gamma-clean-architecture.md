@@ -4,6 +4,7 @@ layer: local
 dirs:
   - gravitee-gamma/gravitee-gamma-module-apim
   - gravitee-gamma/gravitee-gamma-module-platform
+  - gravitee-gamma/gravitee-gamma-module-portals
   - gravitee-gamma/gravitee-gamma-rest-api
 description: The Clean Architecture conventions shared by all gamma modules - package layout, naming, use cases, core independence, adapters, REST, and the fixtures-first testing stack
 # Maintainer note (source-only): the hub's gamma product rule carries an outline of this

@@ -23,7 +23,7 @@ import { CircleCIEnvironment } from '../../pipelines';
 // the two halves are tested here rather than there.
 export class TestGammaUiJob {
   private static jobName = 'job-test-gamma-ui';
-  private static projects = ['gravitee-gamma-module-apim', 'gravitee-gamma-module-platform'];
+  private static projects = ['gravitee-gamma-module-apim', 'gravitee-gamma-module-platform', 'gravitee-gamma-module-portals'];
 
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     const installYarnCmd = InstallYarnCommand.get();
