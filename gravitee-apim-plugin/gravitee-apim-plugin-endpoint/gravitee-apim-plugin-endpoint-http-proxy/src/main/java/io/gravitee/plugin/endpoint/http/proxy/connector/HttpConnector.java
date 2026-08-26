@@ -244,7 +244,7 @@ public class HttpConnector implements ProxyConnector {
         final Single<HttpClientResponse> endpointExchange,
         final AtomicBoolean cancelled
     ) {
-        if (sendsRequestBody(request)) {
+        if (sendsRequestBodyBytes(request)) {
             return endpointExchange;
         }
         // The chunks are consumed even though no body is forwarded, to release their resources and update the metrics.
@@ -351,7 +351,7 @@ public class HttpConnector implements ProxyConnector {
                     return httpClientRequest.rxSend(new io.vertx.rxjava3.core.buffer.Buffer(BufferImpl.buffer(body.getNativeBuffer())));
                 });
         }
-        if (sendsRequestBody(request)) {
+        if (sendsRequestBodyBytes(request)) {
             return httpClientRequest.rxSend(
                 request.chunks().map(buffer -> new io.vertx.rxjava3.core.buffer.Buffer(BufferImpl.buffer(buffer.getNativeBuffer())))
             );
@@ -361,12 +361,31 @@ public class HttpConnector implements ProxyConnector {
     }
 
     /**
-     * For HTTP1.1, the presence of a message body in a request is signaled by a Content-Length or Transfer-Encoding
-     * header (https://www.rfc-editor.org/rfc/rfc9112#section-6-4). For HTTP2, Data frames are used
-     * (https://www.rfc-editor.org/rfc/rfc9113#section-8.1-7).
+     * Whether any body byte can reach the backend. Reading the framing headers alone is not enough: a body-less PUT or
+     * DELETE from a real client declares {@code Content-Length: 0} and writes nothing, so it carries no body to send
+     * upstream and stays as safe to re-send as a request with no body header at all. Transfer-Encoding (byte count
+     * unknown upfront, https://www.rfc-editor.org/rfc/rfc9112#section-6-4) and HTTP/2 (Data frames, no header to read,
+     * https://www.rfc-editor.org/rfc/rfc9113#section-8.1-7) announce a body on their own.
+     * <p>
+     * Both call sites must agree on this answer: the client request is a single stream that can only be read once, so
+     * a request whose body is drained by {@link #retryOnceOnConnectionClosedByPeer} must never be read again by
+     * {@link #sendEndpointRequestChunks}.
      */
-    private static boolean sendsRequestBody(final HttpRequest request) {
-        return hasBodyHeaders(request) || request.version() == io.gravitee.common.http.HttpVersion.HTTP_2;
+    private static boolean sendsRequestBodyBytes(final HttpRequest request) {
+        if (hasTransferEncoding(request) || request.version() == io.gravitee.common.http.HttpVersion.HTTP_2) {
+            return true;
+        }
+        final String contentLength = request.headers().get(HttpHeaderNames.CONTENT_LENGTH);
+        if (contentLength == null) {
+            return false;
+        }
+        try {
+            return Long.parseLong(contentLength.trim()) != 0;
+        } catch (NumberFormatException e) {
+            // A Content-Length we cannot read says nothing about how many bytes were written: assume a body and
+            // keep the failure off the retry path.
+            return true;
+        }
     }
 
     private static boolean isIdempotentMethod(final HttpRequest request) {
@@ -546,10 +565,6 @@ public class HttpConnector implements ProxyConnector {
         if (parametersToAdd != null && !parametersToAdd.isEmpty()) {
             parametersToAdd.forEach((key, values) -> parameters.computeIfAbsent(key, k -> new ArrayList<>()).addAll(values));
         }
-    }
-
-    private static boolean hasBodyHeaders(HttpRequest request) {
-        return hasTransferEncoding(request) || hasContentLength(request);
     }
 
     private static boolean hasContentLength(HttpRequest request) {
