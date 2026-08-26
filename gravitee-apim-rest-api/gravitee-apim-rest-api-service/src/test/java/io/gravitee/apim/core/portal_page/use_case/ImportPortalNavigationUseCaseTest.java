@@ -575,6 +575,53 @@ class ImportPortalNavigationUseCaseTest {
         }
 
         @Test
+        void should_keep_the_last_good_page_when_a_renamed_entry_fails_to_fetch() {
+            sourceDomainService.givenRemoteFile("/.gravitee.json", "{manifest}");
+            sourceDomainService.givenRemoteFile("/docs/a.md", "# A");
+            manifestParser.willParse(List.of(new PortalNavigationManifestParser.ManifestPage("/docs/a.md", "Old", "/guides")));
+            var root = execute("Imported Docs").rootFolder();
+            var guidesFolder = childFolder(root.getId(), "guides");
+            var lastGoodPageId = childPage(guidesFolder.getId(), "Old").getId();
+
+            // The manifest renames the page and fetching the file transiently fails on that same run:
+            // nothing is touched under either title, and pruning would delete the last good page
+            manifestParser.willParse(List.of(new PortalNavigationManifestParser.ManifestPage("/docs/a.md", "New", "/guides")));
+            sourceDomainService.failFileFetch("/docs/a.md");
+
+            var result = reimportSubtree(root.getId());
+
+            assertThat(result.files())
+                .singleElement()
+                .satisfies(file -> assertThat(file.success()).isFalse());
+            assertThat(childPage(guidesFolder.getId(), "Old").getId()).isEqualTo(lastGoodPageId);
+        }
+
+        @Test
+        void should_defer_pruning_until_every_entry_imported_successfully() {
+            sourceDomainService.givenRemoteFile("/docs/kept.md", "# Kept");
+            sourceDomainService.givenRemoteFile("/docs/flaky.md", "# Flaky");
+            sourceDomainService.givenRemoteFile("/docs/removed.md", "# Removed");
+            var root = execute("Imported Docs").rootFolder();
+            var docsFolder = childFolder(root.getId(), "docs");
+
+            sourceDomainService.removeRemoteFile("/docs/removed.md");
+            sourceDomainService.failFileFetch("/docs/flaky.md");
+
+            var result = reimportSubtree(root.getId());
+
+            assertThat(result.files())
+                .filteredOn(file -> !file.success())
+                .hasSize(1);
+            assertThat(childPage(docsFolder.getId(), "removed")).isNotNull();
+
+            // The next clean run reconciles the subtree and prunes what the remote no longer holds
+            var cleanResult = reimportSubtree(root.getId());
+
+            assertThat(cleanResult.files()).allMatch(file -> file.success());
+            assertThat(findChild(docsFolder.getId(), "removed")).isNull();
+        }
+
+        @Test
         void should_keep_the_imported_pages_when_a_re_import_lists_no_files() {
             sourceDomainService.givenRemoteFile("/docs/kept.md", "# Kept");
             var root = execute("Imported Docs").rootFolder();
