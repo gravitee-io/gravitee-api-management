@@ -19,10 +19,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import { listPolicies } from '../../../shared/services/policyPlugins';
+import { toFlowExecution } from '../../../shared/v2-flows';
 import { listOrgTags } from '../../entrypoints/services/tags';
 import { orgTagKeys } from '../../entrypoints/utils/queryKeys';
 import { getOrganization } from '../services/platformPolicies';
-import { toFlowExecution, toStudioFlows } from '../utils/platformFlowAdapter';
+import { toStudioFlows } from '../utils/platformFlowAdapter';
 import { platformPolicyKeys } from '../utils/queryKeys';
 
 const CATALOG_STALE_TIME = 5 * 60 * 1000;
