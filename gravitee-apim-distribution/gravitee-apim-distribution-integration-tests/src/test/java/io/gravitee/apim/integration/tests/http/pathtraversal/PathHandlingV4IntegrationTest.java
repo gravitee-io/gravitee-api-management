@@ -214,6 +214,21 @@ class PathHandlingV4IntegrationTest {
 
             assertThat(wiremock.findAll(getRequestedFor(anyUrl()))).isEmpty();
         }
+
+        @Test
+        void should_reject_before_looking_for_an_acceptor(HttpClient httpClient) throws InterruptedException {
+            wiremock.stubFor(get(anyUrl()).willReturn(ok("response from backend")));
+
+            // No API in this suite is deployed on /nowhere, so resolving before rejecting would find
+            // no acceptor and answer 404. The 400 is what pins the order: the request is validated
+            // first, and only then does the gateway look for somewhere to send it. Reversing the two
+            // would let a caller sending a dot segment tell a deployed context path from an unknown
+            // one by the status code alone. Its NORMALIZE counterpart, which does answer 404, is
+            // should_answer_not_found_when_the_resolved_path_matches_no_api.
+            assertStatus(httpClient, "/nowhere/api/../../beta/api/echo", 400);
+
+            assertThat(wiremock.findAll(getRequestedFor(anyUrl()))).isEmpty();
+        }
     }
 
     @Nested
