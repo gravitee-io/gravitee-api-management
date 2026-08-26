@@ -31,6 +31,8 @@ import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationBulkImportDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.domain_service.validation.SourcedAncestorFinder;
+import io.gravitee.apim.core.portal_page.domain_service.validation.ValidationDepth;
 import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemSourceException;
@@ -475,6 +477,60 @@ class ImportPortalNavigationUseCaseTest {
             assertThat(output.result().files())
                 .singleElement()
                 .satisfies(file -> assertThat(file.success()).isFalse());
+        }
+    }
+
+    @Nested
+    class DestinationDepth {
+
+        @Test
+        void should_still_protect_a_page_imported_at_the_deepest_allowed_destination() {
+            var output = importAtDestinationDepth(ValidationDepth.MAX_TREE_DEPTH - 1);
+
+            assertThat(output.result().files())
+                .singleElement()
+                .satisfies(file -> assertThat(file.success()).isTrue());
+            // The invariant the bound exists for: the read-only walk must still reach the sourced root
+            var importedPage = deepestPageOf(output.rootFolder());
+            assertThat(new SourcedAncestorFinder(queryService).findSourcedAncestor(ENV_ID, importedPage)).hasValueSatisfying(ancestor ->
+                assertThat(ancestor.getId()).isEqualTo(output.rootFolder().getId())
+            );
+        }
+
+        @Test
+        void should_reject_a_destination_that_reaches_the_sourced_ancestor_limit() {
+            // One level deeper the walk gives up before reaching the root: the page would silently
+            // stop being source-managed, so the entry fails instead of being created
+            var output = importAtDestinationDepth(ValidationDepth.MAX_TREE_DEPTH);
+
+            assertThat(output.result().files())
+                .singleElement()
+                .satisfies(file -> {
+                    assertThat(file.success()).isFalse();
+                    assertThat(file.error()).contains("nests more than");
+                });
+            assertThat(findChild(output.rootFolder().getId(), "level-1")).isNull();
+        }
+
+        private ImportPortalNavigationUseCase.Output importAtDestinationDepth(int depth) {
+            var destination = new StringBuilder();
+            for (var level = 1; level <= depth; level++) {
+                destination.append("/level-").append(level);
+            }
+            sourceDomainService.givenRemoteFile("/.gravitee.json", "{manifest}");
+            sourceDomainService.givenRemoteFile("/docs/deep.md", "# Deep");
+            manifestParser.willParse(
+                List.of(new PortalNavigationManifestParser.ManifestPage("/docs/deep.md", "Deep", destination.toString()))
+            );
+            return execute("Imported Docs");
+        }
+
+        private PortalNavigationPage deepestPageOf(PortalNavigationFolder rootFolder) {
+            PortalNavigationItem current = rootFolder;
+            while (current instanceof PortalNavigationFolder folder) {
+                current = queryService.findByParentIdAndEnvironmentId(ENV_ID, folder.getId()).getFirst();
+            }
+            return (PortalNavigationPage) current;
         }
     }
 
