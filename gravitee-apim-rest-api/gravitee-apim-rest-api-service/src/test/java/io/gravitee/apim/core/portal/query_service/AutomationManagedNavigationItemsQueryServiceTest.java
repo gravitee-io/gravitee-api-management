@@ -138,9 +138,7 @@ class AutomationManagedNavigationItemsQueryServiceTest {
         pageContentQuery.initWith(List.of(apiDoc(contentId, apiId)));
         var result = queryService.automationManagedApiDocPages(AUDIT_INFO, apiId);
 
-        assertThat(result).containsExactly(
-            HRIDToUUID.navigation().context(AUDIT_INFO).api(apiId).documentation(contentId).modelId()
-        );
+        assertThat(result).containsExactly(HRIDToUUID.navigation().context(AUDIT_INFO).api(apiId).documentation(contentId).modelId());
     }
 
     @Test
