@@ -114,42 +114,56 @@ public class PortalListingSyncDomainService {
         PortalListingApiEntry entry
     ) {
         var apiId = entry.apiId(auditInfo);
-        var existing = navigationItemEntryMaterializer.findExistingRow(
-            auditInfo,
-            navigationItemEntryMaterializer.rowId(auditInfo, portalId, apiId)
-        );
+        var existing = findExistingRow(auditInfo, portalId, apiId);
         return switch (existing) {
-            case null -> new ValidationItems(
-                List.of(navigationItemEntryMaterializer.itemForValidation(auditInfo, portalId, apiId, entry)),
-                List.of()
-            );
-            case PortalNavigationApi navApi -> mergeRowUpdate(
-                apiFolderSubtreeReconciler.itemsForValidation(
-                    auditInfo,
-                    apiId,
-                    navApi,
-                    apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, navApi.getId())
-                ),
-                navigationItemEntryMaterializer.updateForValidation(auditInfo, portalId, entry, navApi)
-            );
+            case null -> validationItemsForNewRow(auditInfo, portalId, apiId, entry);
+            case PortalNavigationApi navApi -> validationItemsForExistingRow(auditInfo, portalId, apiId, entry, navApi, envFolders);
             default -> throw PathConflictException.navigationIdTaken(PathConflictException.EntryKind.LISTING, entry.location());
         };
     }
 
-    private static ValidationItems mergeRowUpdate(ValidationItems subtreeItems, PendingUpdate rowUpdate) {
-        var updates = new ArrayList<>(subtreeItems.updates());
+    private PortalNavigationItem findExistingRow(AuditInfo auditInfo, PortalId portalId, String apiId) {
+        return navigationItemEntryMaterializer.findExistingRow(
+            auditInfo,
+            navigationItemEntryMaterializer.rowId(auditInfo, portalId, apiId)
+        );
+    }
+
+    private ValidationItems validationItemsForNewRow(AuditInfo auditInfo, PortalId portalId, String apiId, PortalListingApiEntry entry) {
+        var create = navigationItemEntryMaterializer.itemForValidation(auditInfo, portalId, apiId, entry);
+        return new ValidationItems(List.of(create), List.of());
+    }
+
+    private ValidationItems validationItemsForExistingRow(
+        AuditInfo auditInfo,
+        PortalId portalId,
+        String apiId,
+        PortalListingApiEntry entry,
+        PortalNavigationApi navApi,
+        List<PortalNavigationItem> envFolders
+    ) {
+        var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, navApi.getId());
+        var subtree = apiFolderSubtreeReconciler.itemsForValidation(auditInfo, apiId, navApi, currentFolders);
+        var rowUpdate = navigationItemEntryMaterializer.updateForValidation(auditInfo, portalId, entry, navApi);
+        var updates = new ArrayList<>(subtree.updates());
         updates.add(rowUpdate);
-        return new ValidationItems(subtreeItems.creates(), updates);
+        return new ValidationItems(subtree.creates(), updates);
     }
 
     public void validateApiFolderConflictsForApi(AuditInfo auditInfo, String apiId, List<NavigationPath> desired) {
         var navApis = apiFolderSubtreeReconciler.navApiRowsFor(auditInfo, apiId);
         if (navApis.isEmpty()) return;
         var envFolders = apiFolderSubtreeReconciler.loadAllFoldersInEnv(auditInfo.environmentId());
+        List<CreatePortalNavigationItem> creates = new ArrayList<>();
+        List<PendingUpdate> updates = new ArrayList<>();
         for (var navApi : navApis) {
             var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, navApi.getId());
-            apiFolderSubtreeReconciler.validateConflicts(auditInfo, apiId, desired, currentFolders);
+            var items = apiFolderSubtreeReconciler.itemsForValidation(auditInfo, apiId, navApi, desired, currentFolders);
+            creates.addAll(items.creates());
+            updates.addAll(items.updates());
         }
+        validatorService.validateAll(creates, auditInfo.environmentId());
+        validatorService.validateAllUpdates(updates);
     }
 
     private void materializeApiDocs(AuditInfo auditInfo, String apiId) {
