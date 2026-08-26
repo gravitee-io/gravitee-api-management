@@ -180,6 +180,11 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         final String normalizedPath;
         if (needsNormalization) {
             if (requestPathConfiguration.getHandling() == RequestPathHandling.REJECT) {
+                // Before the acceptor is resolved, deliberately: the request is validated first,
+                // and only then does the gateway decide what to do with it. So under REJECT an
+                // unknown host answers 400 rather than the 404 it used to, and that is the point
+                // — resolving first would let a caller sending a dot segment tell a known host
+                // from an unknown one by the status code, and enumerate the deployed APIs.
                 return handleRejectedPath(httpServerRequest, serverId, receivedAt);
             }
             normalizedPath = RequestPathNormalizer.normalize(rawPath);
