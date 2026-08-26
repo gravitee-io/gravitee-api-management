@@ -353,6 +353,9 @@ public interface ApiMapper {
     @Mapping(target = "services", expression = "java(mapApiV4Services(api))")
     ApiExport toApiExport(ApiV4 api);
 
+    // The Console wire model carries no id: the platform generates one. Only id-deterministic
+    // callers (the Automation API) supply it, through the builder.
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
     NewHttpApi mapToNewHttpApi(CreateApiV4 api);
 

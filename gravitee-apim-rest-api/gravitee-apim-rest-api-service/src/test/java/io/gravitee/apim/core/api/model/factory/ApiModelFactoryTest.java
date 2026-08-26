@@ -17,6 +17,7 @@ package io.gravitee.apim.core.api.model.factory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import fixtures.core.model.NewApiFixtures;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
@@ -40,6 +41,27 @@ import org.junit.jupiter.api.Test;
 class ApiModelFactoryTest {
 
     private static final String ENVIRONMENT_ID = "environment-id";
+
+    @Test
+    void fromNewHttpApi_should_generate_an_id_when_none_is_supplied() {
+        var newHttpApi = NewApiFixtures.aProxyApiV4();
+        assertThat(newHttpApi.getId()).isNull();
+
+        Api api = ApiModelFactory.fromNewHttpApi(newHttpApi, ENVIRONMENT_ID);
+
+        assertThat(api.getId()).isNotBlank();
+        assertThat(api.getApiDefinitionHttpV4().getId()).isEqualTo(api.getId());
+    }
+
+    @Test
+    void fromNewHttpApi_should_use_the_supplied_id_on_the_api_and_its_definition() {
+        var newHttpApi = NewApiFixtures.aProxyApiV4().toBuilder().id("supplied-id").build();
+
+        Api api = ApiModelFactory.fromNewHttpApi(newHttpApi, ENVIRONMENT_ID);
+
+        assertThat(api.getId()).isEqualTo("supplied-id");
+        assertThat(api.getApiDefinitionHttpV4().getId()).isEqualTo("supplied-id");
+    }
 
     @Test
     void fromApiExport_should_leave_allowedInApiProducts_null_for_v4_http_proxy_export_when_flag_missing() {

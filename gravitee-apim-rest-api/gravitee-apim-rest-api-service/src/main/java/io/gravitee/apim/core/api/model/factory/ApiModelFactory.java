@@ -46,7 +46,7 @@ public class ApiModelFactory {
     private ApiModelFactory() {}
 
     public static Api fromNewHttpApi(NewHttpApi newHttpApi, String environmentId) {
-        var id = UuidString.generateRandom();
+        var id = newHttpApi.getId() != null ? newHttpApi.getId() : UuidString.generateRandom();
         var now = TimeProvider.now();
         return newHttpApi
             .toApiBuilder()
