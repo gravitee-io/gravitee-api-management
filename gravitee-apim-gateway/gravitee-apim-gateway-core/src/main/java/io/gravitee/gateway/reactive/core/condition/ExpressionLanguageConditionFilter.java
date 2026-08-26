@@ -16,7 +16,6 @@
 package io.gravitee.gateway.reactive.core.condition;
 
 import io.gravitee.definition.model.ConditionSupplier;
-import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.gateway.reactive.api.ExecutionWarn;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.reactivex.rxjava3.core.Maybe;
@@ -44,22 +43,16 @@ public class ExpressionLanguageConditionFilter<T extends ConditionSupplier> impl
             .eval(condition, Boolean.class)
             .filter(Boolean::booleanValue)
             .map(aBoolean -> elt)
-            .onErrorComplete(throwable -> {
-                if (throwable instanceof ExpressionEvaluationException elException) {
-                    // Report the EL exception as a warning.
-                    ctx.withLogger(log).warn("Error parsing condition {}", condition, throwable);
-                    ctx.warnWith(
-                        new ExecutionWarn("EXPRESSION_EVALUATION_ERROR")
-                            .message("Unable to execute EL condition " + condition)
-                            .cause(elException)
-                    );
-
-                    // And let the execution continues.
-                    return true;
-                }
-
-                // Don't complete, propagate to interrupt the execution.
-                return false;
-            });
+            .doOnError(throwable -> {
+                ctx.withLogger(log).warn("Error parsing condition {}", condition, throwable);
+                ctx.warnWith(
+                    new ExecutionWarn("EXPRESSION_EVALUATION_ERROR").message("Unable to execute EL condition " + condition).cause(throwable)
+                );
+            })
+            // A condition the gateway cannot evaluate is a configuration defect, and the element simply does not pass
+            // the filter — it is never a reason to fail live traffic. Which failures qualify cannot be decided from the
+            // exception type: the template engine reports a parse failure as a bare IllegalArgumentException built by
+            // ExpressionEvaluationException#buildCause, which drops the original cause on the way.
+            .onErrorComplete();
     }
 }
