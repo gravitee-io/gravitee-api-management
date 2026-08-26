@@ -173,18 +173,12 @@ public class ImportExportApiMapperTest extends AbstractMapperTest {
         definitionResponseTemplate.setBody("I am a teapot");
         // A promoted API definition is serialized from the definition model, which writes the
         // status under "status" while this REST model names the property "statusCode".
-        var promotedDefinition = new ObjectMapper()
-            .writeValueAsString(
-                Map.of(
-                    "api",
-                    Map.of(
-                        "definitionVersion",
-                        "V4",
-                        "responseTemplates",
-                        Map.of("DEFAULT", Map.of("*/*", definitionResponseTemplate))
-                    )
-                )
-            );
+        var promotedDefinition = new ObjectMapper().writeValueAsString(
+            Map.of(
+                "api",
+                Map.of("definitionVersion", "V4", "responseTemplates", Map.of("DEFAULT", Map.of("*/*", definitionResponseTemplate)))
+            )
+        );
 
         var exportApiV4 = importExportApiMapper.definitionToExportApiV4(promotedDefinition);
 
