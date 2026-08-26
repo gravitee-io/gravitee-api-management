@@ -1449,6 +1449,11 @@ gateway:
     # left alone: /a/admin;x/b is canonical here and forwarded as sent, while a Servlet
     # receiver strips the ;x and serves /a/admin/b. An allow or deny rule written against
     # /admin/** therefore still needs its own guard against that spelling.
+    # Under NORMALIZE, uri() keeps reporting the bytes as received: a flow condition or a
+    # policy written on {#request.uri} sees the path the client sent, while routing, plan
+    # enforcement and the upstream call all work on the resolved one. Request signing depends
+    # on that, but a rule written against {#request.uri} is evaded exactly the way the ;x
+    # spelling above is.
     pathHandling: RAW
     requestTimeout: 30000
     requestTimeoutGraceDelay: 30
