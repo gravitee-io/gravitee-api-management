@@ -42,10 +42,9 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
     private static final String ORG = "org";
     private static final String ENV = "env";
     private static final String API_ID = "api-1";
-    // apiLink()'s builder has no String-context overload — that overload exists only on
-    // NavigationBuilder, for production code that never computes a link id at all (a legacy link's id
-    // never changes). Test fixtures still need to derive it, so they use a real AuditInfo like every
-    // other navigation test.
+    // apiLink()'s builder has no String-context overload — only NavigationBuilder got one, for
+    // production code that never computes a link id at all (a legacy link's id never changes). Test
+    // fixtures still need to derive it, so they use a real AuditInfo like every other navigation test.
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder()
         .organizationId(ORG)
         .environmentId(ENV)

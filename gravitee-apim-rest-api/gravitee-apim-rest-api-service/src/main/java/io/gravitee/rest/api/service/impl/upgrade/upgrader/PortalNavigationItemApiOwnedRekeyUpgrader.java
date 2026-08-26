@@ -249,9 +249,8 @@ public class PortalNavigationItemApiOwnedRekeyUpgrader implements Upgrader {
 
     /**
      * Applied to folders and doc pages, where the identity itself changes. If {@code newId} already
-     * matches, nothing was ever legacy-keyed here and there is nothing to do — the write paths that
-     * create these rows already set parent/root/reference correctly together whenever they set the id
-     * correctly. If a row
+     * matches, nothing was ever legacy-keyed here and there is nothing to do — the current write paths
+     * already set parent/root/reference correctly together whenever they set the id correctly. If a row
      * already exists at {@code newId}, this source is a duplicate that lost the race — created by a
      * different, already-processed nav-api row's copy of the same subtree — so only the source is
      * deleted; skipping the redundant insert and always deleting the source is what makes two legacy

@@ -23,11 +23,15 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.use_case.CreateOrUpdatePortalLinkUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ValidatePortalLinkUseCase;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.apim.rest.api.automation.model.PortalLinkSpec;
 import io.gravitee.apim.rest.api.automation.model.PortalLinkState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
@@ -148,7 +152,9 @@ class PortalLinksResourceTest extends AbstractResourceTest {
 
         @Test
         void should_create_or_update_portal_link() {
-            when(createOrUpdatePortalLinkUseCase.execute(any())).thenReturn(new CreateOrUpdatePortalLinkUseCase.Output(null, List.of()));
+            when(createOrUpdatePortalLinkUseCase.execute(any())).thenReturn(
+                new CreateOrUpdatePortalLinkUseCase.Output(aPersistedLink("External Docs"), List.of())
+            );
 
             try (
                 var response = rootTarget().request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON("portal-link.json")))
@@ -162,6 +168,23 @@ class PortalLinksResourceTest extends AbstractResourceTest {
                     soft.assertThat(state.getHrid()).isEqualTo("external-docs");
                     soft.assertThat(state.getPortalHrid()).isEqualTo(PORTAL_HRID);
                 });
+            }
+        }
+
+        @Test
+        void should_build_the_response_from_the_persisted_link_not_from_the_submitted_spec() {
+            when(createOrUpdatePortalLinkUseCase.execute(any())).thenReturn(
+                new CreateOrUpdatePortalLinkUseCase.Output(aPersistedLink("Normalized Name"), List.of())
+            );
+
+            try (
+                var response = rootTarget()
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(aLinkSpec("  Normalized Name  ")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(200);
+                assertThat(response.readEntity(PortalLinkState.class).getName()).isEqualTo("Normalized Name");
             }
         }
 
@@ -182,5 +205,24 @@ class PortalLinksResourceTest extends AbstractResourceTest {
                 assertThat(state.getErrors().getSevere().get(0)).contains("href");
             }
         }
+    }
+
+    private static PortalLinkSpec aLinkSpec(String name) {
+        return new PortalLinkSpec().hrid("external-docs").name(name).href("https://docs.example.com");
+    }
+
+    private static PortalNavigationLink aPersistedLink(String name) {
+        return PortalNavigationLink.builder()
+            .id(LINK_ID)
+            .organizationId(ORGANIZATION)
+            .environmentId(ENVIRONMENT)
+            .title(name)
+            .segment("external-docs")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(3)
+            .url("https://docs.example.com")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
     }
 }
