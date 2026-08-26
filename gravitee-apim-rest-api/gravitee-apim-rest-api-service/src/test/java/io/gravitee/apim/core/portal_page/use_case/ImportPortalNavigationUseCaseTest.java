@@ -189,6 +189,47 @@ class ImportPortalNavigationUseCaseTest {
         }
 
         @Test
+        void should_leave_out_mirrored_files_that_are_not_documents() {
+            // Sharing an extension with a spec is not enough: these used to be imported as broken
+            // OpenAPI pages, and reporting them as failures on every run would be just as wrong
+            sourceDomainService.givenRemoteFile("/docs/intro.md", "# Intro");
+            sourceDomainService.givenRemoteFile("/package.json", "{\"name\": \"docs\", \"version\": \"1.0.0\"}");
+            sourceDomainService.givenRemoteFile("/.github/workflows/ci.yml", "name: build\non:\n  push:\n    branches: [master]");
+
+            var output = execute("Imported Docs");
+
+            assertThat(output.result().files())
+                .extracting(
+                    PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::title,
+                    PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::success
+                )
+                .containsExactly(tuple("intro", true));
+            assertThat(findChild(output.rootFolder().getId(), "package")).isNull();
+            // Nor the folders that only existed to hold them
+            assertThat(findChild(output.rootFolder().getId(), ".github")).isNull();
+            // A clean import, not a partial one: nothing was left to report
+            assertThat(output.rootFolder().getSource().getLastFetchError()).isNull();
+            assertThat(output.rootFolder().getSource().getLastFetchedAt()).isNotNull();
+        }
+
+        @Test
+        void should_record_a_listing_whose_files_hold_no_document_as_a_failure() {
+            // Every listed file has a spec extension but none is a spec: importing "successfully
+            // nothing" would empty the subtree on a re-import
+            sourceDomainService.givenRemoteFile("/package.json", "{\"name\": \"docs\"}");
+            sourceDomainService.givenRemoteFile("/ci.yml", "name: build");
+
+            var output = execute("Imported Docs");
+
+            var source = output.rootFolder().getSource();
+            assertThat(source.getLastFetchError()).contains("no importable files");
+            assertThat(source.getLastFetchedAt()).isNull();
+            assertThat(output.result().files())
+                .singleElement()
+                .satisfies(file -> assertThat(file.success()).isFalse());
+        }
+
+        @Test
         void should_detect_asyncapi_specs_from_their_content() {
             sourceDomainService.givenRemoteFile("/specs/events.yaml", "asyncapi: 3.0.0");
 
@@ -357,6 +398,33 @@ class ImportPortalNavigationUseCaseTest {
             var source = output.rootFolder().getSource();
             assertThat(source.getLastFetchedAt()).isNotNull();
             assertThat(source.getLastFetchError()).contains("Failed to import 1 of 2");
+        }
+
+        @Test
+        void should_fail_a_manifest_page_pointing_at_a_file_that_is_not_a_document() {
+            // Mirror mode leaves such a file out silently; a manifest named it, so the author must see it
+            sourceDomainService.givenRemoteFile("/.gravitee.json", "{manifest}");
+            sourceDomainService.givenRemoteFile("/config.json", "{\"name\": \"docs\"}");
+            sourceDomainService.givenRemoteFile("/docs/intro.md", "# Intro");
+            manifestParser.willParse(
+                List.of(
+                    new PortalNavigationManifestParser.ManifestPage("/config.json", "Config", "/guides"),
+                    new PortalNavigationManifestParser.ManifestPage("/docs/intro.md", "Introduction", "/guides")
+                )
+            );
+
+            var output = execute("Imported Docs");
+
+            assertThat(output.result().files())
+                .extracting(
+                    PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::title,
+                    PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult::success
+                )
+                .containsExactlyInAnyOrder(tuple("Config", false), tuple("Introduction", true));
+            assertThat(output.result().files())
+                .filteredOn(file -> !file.success())
+                .singleElement()
+                .satisfies(file -> assertThat(file.error()).contains("Cannot determine the type of /config.json"));
         }
 
         @Test
@@ -534,6 +602,26 @@ class ImportPortalNavigationUseCaseTest {
             // The remote tree now only carries unsupported types (e.g. every page moved to .adoc)
             sourceDomainService.removeRemoteFile("/docs/kept.md");
             sourceDomainService.givenRemoteFile("/docs/kept.adoc", "= Kept");
+
+            var result = reimportSubtree(root.getId());
+
+            assertThat(result.files())
+                .singleElement()
+                .satisfies(file -> assertThat(file.success()).isFalse());
+            assertThat(childPage(docsFolder.getId(), "kept")).isNotNull();
+            var refreshedRoot = (PortalNavigationFolder) queryService.findByIdAndEnvironmentId(ENV_ID, root.getId());
+            assertThat(refreshedRoot.getSource().getLastFetchError()).contains("no importable files");
+        }
+
+        @Test
+        void should_keep_the_imported_pages_when_a_re_import_holds_no_document() {
+            sourceDomainService.givenRemoteFile("/docs/kept.md", "# Kept");
+            var root = execute("Imported Docs").rootFolder();
+            var docsFolder = childFolder(root.getId(), "docs");
+
+            // The listing is no longer empty, but nothing in it is a document
+            sourceDomainService.removeRemoteFile("/docs/kept.md");
+            sourceDomainService.givenRemoteFile("/package.json", "{\"name\": \"docs\"}");
 
             var result = reimportSubtree(root.getId());
 

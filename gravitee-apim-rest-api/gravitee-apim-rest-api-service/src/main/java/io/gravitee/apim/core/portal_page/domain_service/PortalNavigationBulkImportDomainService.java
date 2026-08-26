@@ -132,7 +132,18 @@ public class PortalNavigationBulkImportDomainService {
         }
 
         var touchedItemIds = new HashSet<PortalNavigationItemId>();
-        var results = importEntries(rootFolder, entries, touchedItemIds);
+        var results = importEntries(rootFolder, entries, touchedItemIds, resolved.fromManifest());
+        if (results.isEmpty()) {
+            // Every mirrored entry turned out not to be a document once fetched — a repository whose
+            // only JSON and YAML are package.json, lock files and CI workflows. Same wipe risk as an
+            // empty listing: deleteOrphans would empty the subtree.
+            log.warn(
+                "Portal navigation folder [id={}, sourceType={}] holds no importable document: leaving its subtree untouched",
+                rootFolder.getId().json(),
+                source.getSourceType()
+            );
+            return failListing(rootFolder, "The source of type %s listed no importable files.".formatted(source.getSourceType()));
+        }
         deleteOrphans(rootFolder, touchedItemIds);
 
         stampFetchOutcome(source, results);
@@ -164,7 +175,8 @@ public class PortalNavigationBulkImportDomainService {
     private List<BulkImportResult.FileImportResult> importEntries(
         PortalNavigationFolder rootFolder,
         List<ImportEntry> entries,
-        Set<PortalNavigationItemId> touchedItemIds
+        Set<PortalNavigationItemId> touchedItemIds,
+        boolean fromManifest
     ) {
         var folderIdsByPath = new HashMap<String, PortalNavigationItemId>();
         var results = new ArrayList<BulkImportResult.FileImportResult>();
@@ -186,7 +198,10 @@ public class PortalNavigationBulkImportDomainService {
                 );
                 continue;
             }
-            results.add(importEntry(rootFolder, entry, folderIdsByPath, touchedItemIds));
+            var result = importEntry(rootFolder, entry, folderIdsByPath, touchedItemIds, fromManifest);
+            if (result != null) {
+                results.add(result);
+            }
         }
         return results;
     }
@@ -250,36 +265,51 @@ public class PortalNavigationBulkImportDomainService {
         return new ResolvedEntries(
             files
                 .stream()
-                .filter(file -> ImportedFileContentType.from(file, null).isPresent())
+                .filter(ImportedFileContentType::isImportable)
                 .map(file -> new ImportEntry(file, baseNameOf(file), parentPathOf(file)))
                 .toList(),
             false
         );
     }
 
+    /**
+     * @return the outcome to report, or {@code null} when the entry holds no document and is left
+     *         out of the import altogether.
+     */
+    @Nullable
     private BulkImportResult.FileImportResult importEntry(
         PortalNavigationFolder rootFolder,
         ImportEntry entry,
         Map<String, PortalNavigationItemId> folderIdsByPath,
-        Set<PortalNavigationItemId> touchedItemIds
+        Set<PortalNavigationItemId> touchedItemIds,
+        boolean fromManifest
     ) {
         try {
+            // Nothing is looked up or created before the file is known to be a document: resolving the
+            // destination creates the folders along the way, and a repository's .github/workflows has
+            // no business showing up in the navigation tree.
+            var content = sourceDomainService.fetchFileContent(rootFolder.getSource(), entry.sourcePath());
+            var contentType = ImportedFileContentType.from(entry.sourcePath(), content).orElse(null);
+            if (contentType == null) {
+                if (fromManifest) {
+                    // The manifest named this file: not importing it is a failure the author must see
+                    return BulkImportResult.FileImportResult.failure(entry.title(), unsupportedDocumentError(entry.sourcePath()));
+                }
+                // A mirrored file that merely shares an extension with a spec — package.json, a CI
+                // workflow. It is not a document, so it is left out of the import rather than reported
+                // as a failure on every run.
+                log.debug(
+                    "Skipping non-document file [{}] below portal navigation folder [id={}]",
+                    entry.sourcePath(),
+                    rootFolder.getId().json()
+                );
+                return null;
+            }
+
             var parentId = resolveTargetFolder(rootFolder, entry.destinationPath(), folderIdsByPath, touchedItemIds);
             var existingPage = findChildPageByTitle(rootFolder.getEnvironmentId(), parentId, entry.title());
             if (existingPage != null) {
                 touchedItemIds.add(existingPage.getId());
-            }
-
-            var content = sourceDomainService.fetchFileContent(rootFolder.getSource(), entry.sourcePath());
-            var contentType = ImportedFileContentType.from(entry.sourcePath(), content).orElse(null);
-            if (contentType == null) {
-                return BulkImportResult.FileImportResult.failure(
-                    entry.title(),
-                    "Unsupported file extension for %s.".formatted(entry.sourcePath())
-                );
-            }
-
-            if (existingPage != null) {
                 updatePageContent(existingPage, contentType, content);
                 return BulkImportResult.FileImportResult.success(existingPage.getId().id(), entry.title());
             }
@@ -424,6 +454,12 @@ public class PortalNavigationBulkImportDomainService {
                 itemsToVisit.addAll(queryService.findByParentIdAndEnvironmentId(rootFolder.getEnvironmentId(), item.getId()));
             }
         }
+    }
+
+    private static String unsupportedDocumentError(String sourcePath) {
+        return "Cannot determine the type of %s: expected a .md file, or a document declaring a root \"openapi\", \"swagger\" or \"asyncapi\" property.".formatted(
+            sourcePath
+        );
     }
 
     private static String baseNameOf(String filePath) {
