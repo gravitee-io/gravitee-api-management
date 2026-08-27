@@ -896,7 +896,7 @@ components:
   schemas:
     Hrid:
       type: string
-      pattern: '^[a-zA-Z0-9][a-zA-Z0-9_-]+[a-zA-Z0-9]$'
+      pattern: '^[a-zA-Z0-9][a-zA-Z0-9_.-]+[a-zA-Z0-9]$'
       description: A unique human readable id identifying this resource
       examples:
         - demo_api

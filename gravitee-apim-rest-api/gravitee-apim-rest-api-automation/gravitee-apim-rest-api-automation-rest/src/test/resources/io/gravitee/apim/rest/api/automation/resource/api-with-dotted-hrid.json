@@ -1,0 +1,69 @@
+{
+    "name": "api-v4-with-apikey",
+    "hrid": "api-hrid.dotted",
+    "description": "API v4 CRD  with dotted hrid",
+    "version": "1.0",
+    "type": "PROXY",
+    "listeners": [
+        {
+            "type": "HTTP",
+            "paths": [
+                {
+                    "path": "/test-hrid"
+                }
+            ],
+            "entrypoints": [
+                {
+                    "type": "http-proxy",
+                    "qos": "AUTO"
+                }
+            ]
+        }
+    ],
+    "endpointGroups": [
+        {
+            "name": "Default HTTP proxy group",
+            "type": "http-proxy",
+            "endpoints": [
+                {
+                    "name": "Default HTTP proxy",
+                    "type": "http-proxy",
+                    "inheritConfiguration": false,
+                    "configuration": {
+                        "target": "https://api.gravitee.io/echo"
+                    },
+                    "secondary": false
+                }
+            ]
+        }
+    ],
+    "flowExecution": {
+        "mode": "DEFAULT",
+        "matchRequired": false
+    },
+    "state": "STARTED",
+    "lifecycleState": "PUBLISHED",
+    "visibility": "PUBLIC",
+    "pages": [
+        {
+            "hrid": "default-page",
+            "name": "Default page",
+            "type": "MARKDOWN",
+            "content": "Default page content"
+        }
+    ],
+    "plans": [
+        {
+            "name": "Keyless plan",
+            "hrid": "KEY_LESS",
+            "description": "No authentication",
+            "type": "API",
+            "status": "PUBLISHED",
+            "validation": "AUTO",
+            "mode": "STANDARD",
+            "security": {
+                "type": "KEY_LESS"
+            }
+        }
+    ]
+}
