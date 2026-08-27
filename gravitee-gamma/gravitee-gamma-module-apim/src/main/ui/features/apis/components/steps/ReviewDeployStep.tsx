@@ -21,7 +21,8 @@ import { useState } from 'react';
 import { SecurityPlanFields } from './SecurityPlanFields';
 import { useGatewayPrefix } from '../../hooks/useGatewayPrefix';
 import { useApiCreation } from '../../store/apiCreationStore';
-import { buildPlanName, buildPreviewGatewayUrl } from '../../utils/apiProxyMapper';
+import { buildPlanName, buildPreviewGatewayUrl, buildPreviewUpstream } from '../../utils/apiProxyMapper';
+import { isTcpForm } from '../../utils/protocol';
 import { AUTH_LABEL } from '../../utils/securityFormatters';
 import { ReviewRow } from '../ReviewRow';
 
@@ -70,7 +71,9 @@ export function ReviewDeployStep() {
 
     const gatewayPrefix = useGatewayPrefix();
     const gatewayUrl = buildPreviewGatewayUrl(form, gatewayPrefix);
+    const upstream = buildPreviewUpstream(form);
     const planName = buildPlanName(form);
+    const isTcp = isTcpForm(form);
 
     // template: step 0 = Essentials (covers details + proxy + security)
     // scratch: step 0 = Details, step 1 = Entrypoints, step 2 = Security
@@ -94,9 +97,16 @@ export function ReviewDeployStep() {
                     {form.apiDescription && <ReviewRow label="Description" value={form.apiDescription} />}
                     <ReviewRow label="Protocol">
                         <Badge variant="secondary" className="text-xs">
-                            REST
+                            {isTcp ? 'TCP' : 'REST'}
                         </Badge>
                     </ReviewRow>
+                    {isTcp && (
+                        <ReviewRow label="Type">
+                            <Badge variant="secondary" className="text-xs">
+                                TCP Proxy
+                            </Badge>
+                        </ReviewRow>
+                    )}
                 </div>
 
                 {/* Proxy Configuration */}
@@ -105,7 +115,7 @@ export function ReviewDeployStep() {
                     <div className="flex items-start justify-between gap-4 px-4 py-2.5 border-b">
                         <span className="text-xs text-muted-foreground shrink-0 flex items-center gap-1.5">
                             <GlobeIcon className="size-3" aria-hidden />
-                            Gateway path
+                            {isTcp ? 'Gateway host' : 'Gateway path'}
                         </span>
                         <span
                             className="text-xs font-medium font-mono text-right"
@@ -123,7 +133,7 @@ export function ReviewDeployStep() {
                             className="text-xs font-medium font-mono text-right"
                             style={{ maxWidth: '60%', wordBreak: 'break-word', overflowWrap: 'break-word' }}
                         >
-                            {form.targetUrl || <span className="text-muted-foreground font-sans italic">Not set</span>}
+                            {upstream || <span className="text-muted-foreground font-sans italic">Not set</span>}
                         </span>
                     </div>
                 </div>
@@ -135,7 +145,7 @@ export function ReviewDeployStep() {
                         icon={<ShieldIcon className="size-3.5 text-primary" aria-hidden />}
                         onEdit={securityStep !== null ? () => goToStep(securityStep) : undefined}
                         trailing={
-                            isTemplate ? (
+                            isTemplate && !isTcp ? (
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -159,7 +169,7 @@ export function ReviewDeployStep() {
                     </div>
                     <ReviewRow label="Plan name" value={planName} />
 
-                    {isTemplate && customizeSecurity && (
+                    {isTemplate && !isTcp && customizeSecurity && (
                         <div className="px-4 pb-4 pt-3 border-t">
                             <SecurityPlanFields showAuthSelector={true} />
                         </div>

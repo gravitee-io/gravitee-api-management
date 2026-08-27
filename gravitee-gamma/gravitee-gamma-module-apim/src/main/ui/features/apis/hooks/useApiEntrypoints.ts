@@ -19,7 +19,7 @@ import { useParams } from 'react-router-dom';
 
 import { useApiDetailContext } from '../context/ApiDetailContext';
 import { getExposedEntrypoints, updateApiListeners } from '../services/entrypoints';
-import type { HttpListener } from '../types';
+import type { HttpListener, TcpListener } from '../types';
 import { apiDetailKeys, apiEntrypointKeys } from '../utils/queryKeys';
 
 export function useApiEntrypoints(showConfig: boolean) {
@@ -35,7 +35,7 @@ export function useApiEntrypoints(showConfig: boolean) {
     });
 
     const saveMutation = useMutation({
-        mutationFn: (listeners: HttpListener[]) => updateApiListeners(env!.id, apiId!, api!, listeners),
+        mutationFn: (listeners: (HttpListener | TcpListener)[]) => updateApiListeners(env!.id, apiId!, api!, listeners),
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env?.id ?? '', apiId ?? '') });
             void queryClient.invalidateQueries({ queryKey: apiEntrypointKeys.exposed(env?.id ?? '', apiId ?? '') });

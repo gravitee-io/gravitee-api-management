@@ -17,10 +17,12 @@ import {
     buildApiResources,
     buildPlanName,
     buildPreviewGatewayUrl,
+    buildPreviewUpstream,
     GATEWAY_URL_PLACEHOLDER,
     mapFormToCreateRequest,
     mapFormToPlanRequest,
     OAUTH2_RESOURCE_NAME,
+    TCP_HOST_PLACEHOLDER,
 } from './apiProxyMapper';
 import type { ApiProxyDraft } from '../types/apiCreation';
 
@@ -28,10 +30,15 @@ const BASE: ApiProxyDraft = {
     apiName: 'My API',
     apiVersion: '1.0.0',
     apiDescription: 'A test API',
+    protocol: 'HTTP',
     contextPath: '/my-api',
     virtualHostsEnabled: false,
     virtualHosts: [{ id: '1', host: 'api.example.com', path: '/v1', overrideAccess: false }],
     targetUrl: 'https://backend.example.com',
+    tcpHosts: [{ id: '1', host: 'tcp.example.com' }],
+    tcpTargetHost: 'backend.example.com',
+    tcpTargetPort: '9090',
+    tcpTargetSecured: false,
     authType: 'keyless',
     apiKeyPlanName: 'API Key Plan',
     jwtPlanName: 'JWT Plan',
@@ -76,6 +83,36 @@ describe('buildPreviewGatewayUrl', () => {
     it('falls back to "/your-api" placeholder when contextPath is empty and virtual hosts are disabled', () => {
         expect(buildPreviewGatewayUrl(form({ contextPath: '' }))).toBe(`${GATEWAY_URL_PLACEHOLDER}/your-api`);
     });
+
+    it('returns the first TCP host when protocol is TCP', () => {
+        expect(buildPreviewGatewayUrl(form({ protocol: 'TCP' }))).toBe('tcp.example.com');
+    });
+
+    it('falls back to the TCP host placeholder when no TCP host is set', () => {
+        expect(buildPreviewGatewayUrl(form({ protocol: 'TCP', tcpHosts: [{ id: '1', host: '' }] }))).toBe(TCP_HOST_PLACEHOLDER);
+    });
+});
+
+describe('buildPreviewUpstream', () => {
+    it('returns the target URL for HTTP', () => {
+        expect(buildPreviewUpstream(form())).toBe('https://backend.example.com');
+    });
+
+    it('falls back to the "upstream:port" placeholder when the HTTP target URL is empty', () => {
+        expect(buildPreviewUpstream(form({ targetUrl: '' }))).toBe('upstream:port');
+    });
+
+    it('returns host:port for TCP', () => {
+        expect(buildPreviewUpstream(form({ protocol: 'TCP' }))).toBe('backend.example.com:9090');
+    });
+
+    it('falls back to the "port" placeholder when no TCP port is set', () => {
+        expect(buildPreviewUpstream(form({ protocol: 'TCP', tcpTargetPort: '' }))).toBe('backend.example.com:port');
+    });
+
+    it('falls back to the "upstream" placeholder when no TCP target host is set', () => {
+        expect(buildPreviewUpstream(form({ protocol: 'TCP', tcpTargetHost: '' }))).toBe('upstream:9090');
+    });
 });
 
 describe('mapFormToCreateRequest', () => {
@@ -104,6 +141,49 @@ describe('mapFormToCreateRequest', () => {
     it('defaults visibility to PRIVATE so the classic console can read the created API', () => {
         expect(mapFormToCreateRequest(form()).visibility).toBe('PRIVATE');
     });
+
+    it('produces a TCP listener and tcp-proxy endpoint group when protocol is TCP', () => {
+        const req = mapFormToCreateRequest(form({ protocol: 'TCP', tcpTargetSecured: true }));
+
+        expect(req.listeners[0]).toEqual({ type: 'TCP', hosts: ['tcp.example.com'], entrypoints: [{ type: 'tcp-proxy' }] });
+        expect(req.endpointGroups[0]).toEqual({
+            name: 'Default TCP Proxy group',
+            type: 'tcp-proxy',
+            sharedConfiguration: {},
+            endpoints: [
+                {
+                    name: 'Default TCP Proxy',
+                    type: 'tcp-proxy',
+                    weight: 1,
+                    inheritConfiguration: false,
+                    configuration: { target: { host: 'backend.example.com', port: 9090, secured: true } },
+                },
+            ],
+        });
+    });
+
+    it('sends every TCP host, mapped to trimmed plain hostnames with blanks filtered out', () => {
+        const req = mapFormToCreateRequest(
+            form({
+                protocol: 'TCP',
+                tcpHosts: [
+                    { id: '1', host: ' a.example.com ' },
+                    { id: '2', host: '' },
+                    { id: '3', host: 'b.example.com' },
+                ],
+            }),
+        );
+        expect(req.listeners[0]).toMatchObject({ hosts: ['a.example.com', 'b.example.com'] });
+    });
+
+    it('trims the TCP target host and parses the port as a number', () => {
+        const req = mapFormToCreateRequest(form({ protocol: 'TCP', tcpTargetHost: ' backend.example.com ', tcpTargetPort: ' 9090 ' }));
+        expect(req.endpointGroups[0].endpoints[0].configuration.target).toEqual({
+            host: 'backend.example.com',
+            port: 9090,
+            secured: false,
+        });
+    });
 });
 
 describe('mapFormToPlanRequest', () => {
@@ -123,6 +203,10 @@ describe('mapFormToPlanRequest', () => {
         const oauth2Security = mapFormToPlanRequest(form({ authType: 'oauth2' })).security;
         expect(oauth2Security.type).toBe('OAUTH2');
         expect(oauth2Security.configuration).toMatchObject({ oauthResource: OAUTH2_RESOURCE_NAME });
+    });
+
+    it('always maps TCP APIs to KEY_LESS security, even if authType somehow differs', () => {
+        expect(mapFormToPlanRequest(form({ protocol: 'TCP', authType: 'jwt' })).security).toEqual({ type: 'KEY_LESS' });
     });
 });
 
@@ -147,6 +231,10 @@ describe('buildApiResources', () => {
     it('returns no resources when no OAuth2 provider has been selected', () => {
         expect(buildApiResources(form({ authType: 'oauth2', oauth2ResourceType: '' }))).toEqual([]);
     });
+
+    it('returns no resources for TCP APIs even if oauth2 fields are somehow set', () => {
+        expect(buildApiResources(form({ protocol: 'TCP', authType: 'oauth2' }))).toEqual([]);
+    });
 });
 
 describe('buildPlanName', () => {
@@ -156,5 +244,9 @@ describe('buildPlanName', () => {
         expect(buildPlanName(form({ authType: 'jwt' }))).toBe('JWT Plan');
         expect(buildPlanName(form({ authType: 'oauth2' }))).toBe('OAuth2 Plan');
         expect(buildPlanName(form({ authType: 'mtls' }))).toBe('mTLS Plan');
+    });
+
+    it('flags TCP APIs as unsecured regardless of auth type', () => {
+        expect(buildPlanName(form({ protocol: 'TCP' }))).toBe('Default Keyless (UNSECURED)');
     });
 });

@@ -193,6 +193,18 @@ const API_WITH_VIRTUAL_HOSTS = {
     ],
 };
 
+const API_TCP = {
+    id: 'api-2',
+    name: 'TCP API',
+    listeners: [
+        {
+            type: 'TCP' as const,
+            hosts: ['tcp.example.com'],
+            entrypoints: [{ type: 'tcp-proxy' }],
+        },
+    ],
+};
+
 function makeClient() {
     return new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
 }
@@ -331,6 +343,52 @@ describe('ApiEntrypointsPage', () => {
         fireEvent.click(screen.getByRole('button', { name: /switch/i }));
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
         expect(screen.getByText(/entrypoint context-paths/i)).toBeInTheDocument();
+    });
+
+    // ── TCP entrypoints ────────────────────────────────────────────────────────
+
+    describe('tcp-proxy entrypoints', () => {
+        beforeEach(() => {
+            mockUseApiDetailContext.mockReturnValue({ api: API_TCP, isLoading: false, permissionsReady: true });
+            mockUpdateApiListeners.mockResolvedValue(API_TCP);
+        });
+
+        it('shows the TCP hosts card instead of context paths / virtual hosts', () => {
+            renderPage('api-2');
+            expect(screen.getByText(/entrypoint hosts/i)).toBeInTheDocument();
+            expect(screen.queryByText(/entrypoint context-paths/i)).not.toBeInTheDocument();
+            expect(screen.queryByText(/why configure entrypoints/i)).not.toBeInTheDocument();
+        });
+
+        it('seeds the host input from the existing TCP listener', () => {
+            renderPage('api-2');
+            expect(screen.getByRole('textbox', { name: /^host$/i })).toHaveValue('tcp.example.com');
+        });
+
+        it('adds a new empty host row when "Add host" is clicked', () => {
+            renderPage('api-2');
+            fireEvent.click(screen.getByRole('button', { name: /add host/i }));
+            expect(screen.getAllByRole('textbox', { name: /^host$/i })).toHaveLength(2);
+        });
+
+        it('disables the delete button when only one host remains', () => {
+            renderPage('api-2');
+            expect(screen.getByRole('button', { name: /delete host/i })).toBeDisabled();
+        });
+
+        it('saves an updated TCP listener with the edited hosts on Save', async () => {
+            renderPage('api-2');
+
+            fireEvent.change(screen.getByRole('textbox', { name: /^host$/i }), { target: { value: 'new-tcp.example.com' } });
+            fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+            await waitFor(() => expect(mockUpdateApiListeners).toHaveBeenCalledTimes(1));
+
+            const [, , , listeners] = mockUpdateApiListeners.mock.calls[0];
+            expect(listeners).toEqual([
+                expect.objectContaining({ type: 'TCP', hosts: ['new-tcp.example.com'], entrypoints: [{ type: 'tcp-proxy' }] }),
+            ]);
+        });
     });
 
     // ── permission guard tests ──────────────────────────────────────────────────

@@ -13,11 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ApiDetailDto } from '../types';
+import type { ApiDetailDto, TcpTarget } from '../types';
+
+/** Structural — matches both `ApiDetailDto` and the narrower `PolicyStudioApiDetail`. */
+interface ApiWithListeners {
+    listeners?: { type?: string }[];
+}
+
+export function hasTcpListeners(api: ApiWithListeners | null | undefined): boolean {
+    return Boolean(api?.listeners?.some(l => l.type === 'TCP'));
+}
 
 /** HTTP PROXY API without TCP listeners — health-check is available (legacy console rule). */
 export function isHttpProxyApi(api: ApiDetailDto | null | undefined): boolean {
     if (!api) return false;
     if (api.type !== 'PROXY') return false;
-    return !api.listeners?.some(l => (l as { type?: string }).type === 'TCP');
+    return !hasTcpListeners(api);
+}
+
+/** An endpoint's `configuration.target` is a plain URL for http-proxy, or a {host,port,secured} object for tcp-proxy. */
+export function formatEndpointTarget(target: string | TcpTarget | undefined): string | undefined {
+    if (target === undefined) return undefined;
+    if (typeof target === 'string') return target;
+    return `${target.host}:${target.port}`;
 }

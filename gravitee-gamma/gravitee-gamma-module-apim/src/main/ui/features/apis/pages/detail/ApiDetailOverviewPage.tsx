@@ -20,6 +20,7 @@ import { ApiOverviewGatewayCards } from './overview/ApiOverviewGatewayCards';
 import { ApiOverviewTrafficCards } from './overview/ApiOverviewTrafficCards';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiOverviewData } from '../../hooks/useApiOverviewData';
+import { formatEndpointTarget } from '../../utils/apiHttpProxy';
 
 export function ApiDetailOverviewPage() {
     const { apiId } = useParams<{ apiId: string }>();
@@ -37,7 +38,7 @@ export function ApiDetailOverviewPage() {
     } = useApiOverviewData(apiId);
 
     const gatewayUrl = exposedEntrypoints?.[0]?.value;
-    const upstreamUrl = api?.endpointGroups?.[0]?.endpoints?.[0]?.configuration?.target;
+    const upstreamUrl = formatEndpointTarget(api?.endpointGroups?.[0]?.endpoints?.[0]?.configuration?.target);
 
     return (
         <div className="space-y-6">

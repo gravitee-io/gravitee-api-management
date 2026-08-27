@@ -261,8 +261,8 @@ export function CreateApiProxyPage() {
                         <div className="min-w-0 flex-1 space-y-1">
                             <p className="text-base font-semibold text-foreground">Start from scratch</p>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                                Full four-step wizard: details, entrypoints, security, and review. No preset plans — you choose everything
-                                explicitly.
+                                Full four-step wizard for an HTTP or TCP proxy: details, entrypoints, security, and review. No preset plans
+                                — you choose everything explicitly.
                             </p>
                         </div>
                         <ArrowRightIcon

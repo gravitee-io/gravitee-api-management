@@ -136,6 +136,45 @@ describe('EndpointGroupList', () => {
         });
     });
 
+    // ── TCP groups ────────────────────────────────────────────────────────────
+
+    describe('tcp-proxy groups', () => {
+        const TCP_EP = {
+            name: 'default-tcp',
+            type: 'tcp-proxy',
+            weight: 1,
+            configuration: { target: { host: 'backend.example.com', port: 9090, secured: false } },
+        };
+        const TCP_GROUP: EndpointGroupDto = {
+            name: 'tcp-group',
+            type: 'tcp-proxy',
+            loadBalancer: { type: 'ROUND_ROBIN' },
+            endpoints: [TCP_EP],
+        };
+
+        it('shows the "TCP proxy" type label', () => {
+            render(<EndpointGroupList {...makeProps({ groups: [TCP_GROUP] })} />);
+            expect(screen.getByText('TCP proxy')).toBeInTheDocument();
+        });
+
+        it('does not render a Target URL column or value for tcp-proxy groups', () => {
+            render(<EndpointGroupList {...makeProps({ groups: [TCP_GROUP] })} />);
+            expect(screen.queryByText('Target URL')).not.toBeInTheDocument();
+            expect(screen.queryByText('backend.example.com:9090')).not.toBeInTheDocument();
+        });
+
+        it('still renders the endpoint name and weight for tcp-proxy groups', () => {
+            render(<EndpointGroupList {...makeProps({ groups: [TCP_GROUP] })} />);
+            expect(screen.getByText('default-tcp')).toBeInTheDocument();
+            expect(screen.getByText('1')).toBeInTheDocument();
+        });
+
+        it('still renders the Target URL column for http-proxy groups alongside a tcp-proxy group', () => {
+            render(<EndpointGroupList {...makeProps({ groups: [GROUP_1, TCP_GROUP] })} />);
+            expect(screen.getByText('Target URL')).toBeInTheDocument();
+        });
+    });
+
     // ── Read-only mode ────────────────────────────────────────────────────────
 
     describe('read-only mode', () => {

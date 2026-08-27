@@ -17,14 +17,26 @@ import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useParams } from 'react-router-dom';
 
 import { PlansPage } from './PlansPage';
+import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import type { PlanContext } from '../../../types/plan';
+import { hasTcpListeners } from '../../../utils/apiHttpProxy';
 
 export function ApiPlansPage() {
     const { apiId } = useParams<{ apiId: string }>();
+    const { api } = useApiDetailContext();
     const ctx: PlanContext = { type: 'api', entityId: apiId ?? '' };
     const canRead = useHasPermission({ anyOf: ['api-plan-r'] });
     const canCreate = useHasPermission({ anyOf: ['api-plan-c'] });
     const canUpdate = useHasPermission({ anyOf: ['api-plan-u'] });
     const canDelete = useHasPermission({ anyOf: ['api-plan-d'] });
-    return <PlansPage ctx={ctx} canRead={canRead} canCreate={canCreate} canUpdate={canUpdate} canDelete={canDelete} />;
+    return (
+        <PlansPage
+            ctx={ctx}
+            canRead={canRead}
+            canCreate={canCreate}
+            canUpdate={canUpdate}
+            canDelete={canDelete}
+            isTcpApi={hasTcpListeners(api)}
+        />
+    );
 }

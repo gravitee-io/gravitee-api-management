@@ -23,6 +23,7 @@ import { usePolicyStudioData } from '../../hooks/usePolicyStudioData';
 import { usePolicyStudioSave } from '../../hooks/usePolicyStudioSave';
 import { getPolicyDocumentation, getPolicySchema } from '../../services/policyStudioService';
 import { getApiProtocolType } from '../../types/policyStudio';
+import { hasTcpListeners } from '../../utils/apiHttpProxy';
 
 export function PolicyStudioPage() {
     const { apiId } = useParams<{ apiId: string }>();
@@ -54,6 +55,17 @@ export function PolicyStudioPage() {
         return (
             <div className="flex items-center justify-center p-8">
                 <p className="text-sm text-destructive">Failed to load Policy Studio data. Please try again.</p>
+            </div>
+        );
+    }
+
+    if (hasTcpListeners(studioData.apiDetail)) {
+        return (
+            <div className="flex items-center justify-center p-8">
+                <div className="text-center space-y-2">
+                    <p className="text-sm font-medium">Policy Studio is not available for TCP Proxy APIs</p>
+                    <p className="text-sm text-muted-foreground">TCP Proxy APIs forward raw traffic and do not support policy flows.</p>
+                </div>
             </div>
         );
     }

@@ -68,6 +68,7 @@ describe('ApiCreationProvider — initial state', () => {
         expect(state.creationMode).toBe('picker');
         expect(state.step).toBe(0);
         expect(state.form.apiName).toBe('');
+        expect(state.form.protocol).toBe('HTTP');
         expect(state.form.authType).toBe('keyless');
         expect(state.form.deployImmediately).toBe(true);
         expect(state.validationErrors).toEqual({});
@@ -104,6 +105,19 @@ describe('ApiCreationProvider — reducer actions', () => {
         expect(result.current.state.form.authType).toBe('api-key');
         expect(result.current.state.form.apiKeyPlanName).toBe('Template API Key Plan');
         expect(result.current.state.step).toBe(0);
+    });
+
+    it('SELECT_TEMPLATE resets protocol to HTTP even if TCP was previously selected', () => {
+        const { result } = renderHook(() => useApiCreation(), { wrapper: defaultWrapper });
+
+        act(() => {
+            result.current.dispatch({ type: 'UPDATE_FORM', patch: { protocol: 'TCP' } });
+        });
+        act(() => {
+            result.current.dispatch({ type: 'SELECT_TEMPLATE', template: MOCK_TEMPLATE });
+        });
+
+        expect(result.current.state.form.protocol).toBe('HTTP');
     });
 
     it('SELECT_SCRATCH resets to scratch mode and clears the template', () => {
@@ -221,6 +235,183 @@ describe('ApiCreationProvider — reducer actions', () => {
 
         expect(result.current.state.form.virtualHosts[0]!.host).toBe('api.example.com');
         expect(result.current.state.form.virtualHosts[1]!.host).toBe('');
+    });
+
+    it('UPDATE_FORM with protocol clears HTTP and TCP field errors but keeps others', () => {
+        const { result } = renderHook(() => useApiCreation(), { wrapper: defaultWrapper });
+
+        act(() => {
+            result.current.dispatch({
+                type: 'SET_VALIDATION_ERRORS',
+                errors: {
+                    targetUrl: 'Required',
+                    contextPath: 'Required',
+                    tcpHosts: 'Required',
+                    tcpTargetHost: 'Required',
+                    apiName: 'Required',
+                },
+            });
+        });
+        act(() => {
+            result.current.dispatch({ type: 'UPDATE_FORM', patch: { protocol: 'TCP' } });
+        });
+
+        expect(result.current.state.validationErrors).not.toHaveProperty('targetUrl');
+        expect(result.current.state.validationErrors).not.toHaveProperty('contextPath');
+        expect(result.current.state.validationErrors).not.toHaveProperty('tcpHosts');
+        expect(result.current.state.validationErrors).not.toHaveProperty('tcpTargetHost');
+        expect(result.current.state.validationErrors).toHaveProperty('apiName');
+    });
+
+    it('UPDATE_FORM with protocol: TCP forces authType to keyless, even if patched together with another authType', () => {
+        const { result } = renderHook(() => useApiCreation(), { wrapper: defaultWrapper });
+
+        act(() => {
+            result.current.dispatch({ type: 'UPDATE_FORM', patch: { authType: 'jwt' } });
+        });
+        expect(result.current.state.form.authType).toBe('jwt');
+
+        act(() => {
+            result.current.dispatch({ type: 'UPDATE_FORM', patch: { protocol: 'TCP' } });
+        });
+
+        expect(result.current.state.form.protocol).toBe('TCP');
+        expect(result.current.state.form.authType).toBe('keyless');
+    });
+
+    it('UPDATE_FORM with protocol: HTTP does not force authType', () => {
+        const { result } = renderHook(() => useApiCreation(), { wrapper: defaultWrapper });
+
+        act(() => {
+            result.current.dispatch({ type: 'UPDATE_FORM', patch: { authType: 'jwt' } });
+        });
+        act(() => {
+            result.current.dispatch({ type: 'UPDATE_FORM', patch: { protocol: 'HTTP' } });
+        });
+
+        expect(result.current.state.form.authType).toBe('jwt');
+    });
+
+    it('switching HTTP → TCP resets stale HTTP field values back to their defaults', () => {
+        const { result } = renderHook(() => useApiCreation(), { wrapper: defaultWrapper });
+
+        act(() => {
+            result.current.dispatch({
+                type: 'UPDATE_FORM',
+                patch: { targetUrl: 'https://old-http-target.example.com', contextPath: '/old-path' },
+            });
+        });
+        act(() => {
+            result.current.dispatch({ type: 'UPDATE_FORM', patch: { protocol: 'TCP' } });
+        });
+
+        expect(result.current.state.form.targetUrl).toBe('');
+        expect(result.current.state.form.contextPath).toBe('/');
+    });
+
+    it('switching TCP → HTTP resets stale TCP field values back to their defaults', () => {
+        const { result } = renderHook(() => useApiCreation(), { wrapper: defaultWrapper });
+
+        act(() => {
+            result.current.dispatch({ type: 'UPDATE_FORM', patch: { protocol: 'TCP' } });
+        });
+        act(() => {
+            result.current.dispatch({ type: 'UPDATE_TCP_HOST', index: 0, patch: { host: 'old-tcp-host.example.com' } });
+            result.current.dispatch({
+                type: 'UPDATE_FORM',
+                patch: { tcpTargetHost: 'old-target.internal', tcpTargetPort: '5432', tcpTargetSecured: true },
+            });
+        });
+        act(() => {
+            result.current.dispatch({ type: 'UPDATE_FORM', patch: { protocol: 'HTTP' } });
+        });
+
+        expect(result.current.state.form.tcpHosts).toEqual([{ id: expect.any(String), host: '' }]);
+        expect(result.current.state.form.tcpTargetHost).toBe('');
+        expect(result.current.state.form.tcpTargetPort).toBe('');
+        expect(result.current.state.form.tcpTargetSecured).toBe(false);
+    });
+
+    it('an explicit value in the same UPDATE_FORM patch wins over the protocol-switch reset', () => {
+        const { result } = renderHook(() => useApiCreation(), { wrapper: defaultWrapper });
+
+        act(() => {
+            result.current.dispatch({ type: 'UPDATE_FORM', patch: { protocol: 'TCP', tcpTargetHost: 'db.internal.example.com' } });
+        });
+
+        expect(result.current.state.form.tcpTargetHost).toBe('db.internal.example.com');
+    });
+
+    it('ADD_TCP_HOST appends a blank row', () => {
+        const { result } = renderHook(() => useApiCreation(), { wrapper: defaultWrapper });
+        const initialCount = result.current.state.form.tcpHosts.length;
+
+        act(() => {
+            result.current.dispatch({ type: 'ADD_TCP_HOST' });
+        });
+
+        expect(result.current.state.form.tcpHosts).toHaveLength(initialCount + 1);
+        expect(result.current.state.form.tcpHosts[initialCount]!.host).toBe('');
+    });
+
+    it('REMOVE_TCP_HOST removes the row at the given index but never the last one', () => {
+        const { result } = renderHook(() => useApiCreation(), { wrapper: defaultWrapper });
+
+        act(() => {
+            result.current.dispatch({ type: 'ADD_TCP_HOST' });
+        });
+        const countBefore = result.current.state.form.tcpHosts.length;
+
+        act(() => {
+            result.current.dispatch({ type: 'REMOVE_TCP_HOST', index: 0 });
+        });
+        expect(result.current.state.form.tcpHosts).toHaveLength(countBefore - 1);
+
+        act(() => {
+            result.current.dispatch({ type: 'REMOVE_TCP_HOST', index: 0 });
+        });
+        expect(result.current.state.form.tcpHosts).toHaveLength(1);
+    });
+
+    it('REMOVE_TCP_HOST clears a tcpHosts validation error', () => {
+        const { result } = renderHook(() => useApiCreation(), { wrapper: defaultWrapper });
+
+        act(() => {
+            result.current.dispatch({ type: 'ADD_TCP_HOST' });
+            result.current.dispatch({ type: 'SET_VALIDATION_ERRORS', errors: { tcpHosts: 'Duplicated hosts not allowed' } });
+        });
+        act(() => {
+            result.current.dispatch({ type: 'REMOVE_TCP_HOST', index: 0 });
+        });
+
+        expect(result.current.state.validationErrors).not.toHaveProperty('tcpHosts');
+    });
+
+    it('UPDATE_TCP_HOST patches only the row at the given index', () => {
+        const { result } = renderHook(() => useApiCreation(), { wrapper: defaultWrapper });
+
+        act(() => {
+            result.current.dispatch({ type: 'ADD_TCP_HOST' });
+        });
+        act(() => {
+            result.current.dispatch({ type: 'UPDATE_TCP_HOST', index: 0, patch: { host: 'tcp.example.com' } });
+        });
+
+        expect(result.current.state.form.tcpHosts[0]!.host).toBe('tcp.example.com');
+        expect(result.current.state.form.tcpHosts[1]!.host).toBe('');
+    });
+
+    it('UPDATE_TCP_HOST clears a tcpHosts validation error', () => {
+        const { result } = renderHook(() => useApiCreation(), { wrapper: defaultWrapper });
+
+        act(() => {
+            result.current.dispatch({ type: 'SET_VALIDATION_ERRORS', errors: { tcpHosts: 'Host is not valid' } });
+        });
+        act(() => {
+            result.current.dispatch({ type: 'UPDATE_TCP_HOST', index: 0, patch: { host: 'tcp.example.com' } });
+        });
+
+        expect(result.current.state.validationErrors).not.toHaveProperty('tcpHosts');
     });
 
     it('SET_MODE switches creation mode and resets step to 0', () => {

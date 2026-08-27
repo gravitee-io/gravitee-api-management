@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { cn, Skeleton } from '@gravitee/graphene-core';
+import { cn, Skeleton, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@gravitee/graphene-core';
 import {
     ActivityIcon,
     BellIcon,
     ChevronDownIcon,
     ChevronRightIcon,
+    FlaskConicalIcon,
     GlobeIcon,
     LayoutDashboardIcon,
     ListIcon,
@@ -43,11 +44,15 @@ import { NavLink, useLocation } from 'react-router-dom';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+const DEFAULT_COMING_SOON_REASON = 'Coming soon';
+
 export interface DetailNavChild {
     path: string;
     label: string;
-    /** When true, renders as a non-navigable item with a lab icon and "Coming soon" tooltip. */
+    /** When true, renders as a non-navigable item with a lab icon and tooltip instead of a link. */
     comingSoon?: boolean;
+    /** Tooltip text for a `comingSoon` item. Defaults to "Coming soon". */
+    comingSoonReason?: string;
 }
 
 export interface DetailNavItem {
@@ -57,8 +62,10 @@ export interface DetailNavItem {
     /** When false, matches any sub-path (prefix match). Defaults to true (exact match). */
     end?: boolean;
     children?: DetailNavChild[];
-    /** When true, renders as a non-navigable item with a lab icon and "Coming soon" tooltip. */
+    /** When true, renders as a non-navigable item with a lab icon and tooltip instead of a link. */
     comingSoon?: boolean;
+    /** Tooltip text for a `comingSoon` item. Defaults to "Coming soon". */
+    comingSoonReason?: string;
 }
 
 export interface DetailNavGroup {
@@ -141,6 +148,61 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
     },
 ];
 
+/** Classic console parity (`api-v4-menu.service.ts`, `hasTcpListeners`) — TCP has no HTTP policy-chain semantics. */
+const TCP_UNSUPPORTED_PATHS = new Set(['policy-studio', 'cors']);
+const TCP_UNSUPPORTED_REASON = 'Coming soon for V4 APIs';
+
+/** Classic console never adds these menu entries for TCP APIs at all — omitted, not just disabled. */
+const TCP_OMITTED_CHILD_PATHS = new Set(['failover', 'health-check-dashboard']);
+
+/** Overlays `comingSoon` on the items TCP Proxy APIs don't support, and omits child routes that don't exist for TCP — matching classic console. */
+export function withTcpRestrictions(groups: DetailNavGroup[], apiHasTcpListeners: boolean): DetailNavGroup[] {
+    if (!apiHasTcpListeners) return groups;
+    return groups.map(group => ({
+        ...group,
+        items: group.items.map(item => {
+            const disabled = TCP_UNSUPPORTED_PATHS.has(item.path)
+                ? { ...item, comingSoon: true, comingSoonReason: TCP_UNSUPPORTED_REASON }
+                : item;
+            if (!disabled.children) return disabled;
+            return { ...disabled, children: disabled.children.filter(child => !TCP_OMITTED_CHILD_PATHS.has(child.path)) };
+        }),
+    }));
+}
+
+// ─── "Coming soon" row ────────────────────────────────────────────────────────
+
+interface ComingSoonRowProps {
+    icon?: ComponentType<{ className?: string }>;
+    label: string;
+    reason: string;
+    indented?: boolean;
+}
+
+function ComingSoonRow({ icon: Icon, label, reason, indented }: ComingSoonRowProps) {
+    return (
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <div
+                    className={cn(
+                        'flex w-full items-center gap-2.5 rounded-lg px-3 text-sm text-muted-foreground/50 cursor-default',
+                        indented ? 'py-1.5' : 'py-2',
+                    )}
+                    role="button"
+                    tabIndex={0}
+                    aria-disabled="true"
+                    title={reason}
+                >
+                    {Icon && <Icon className="size-4 shrink-0" aria-hidden />}
+                    <span className="flex-1 text-left">{label}</span>
+                    <FlaskConicalIcon className="size-3.5 shrink-0" aria-hidden />
+                </div>
+            </TooltipTrigger>
+            <TooltipContent side="right">{reason}</TooltipContent>
+        </Tooltip>
+    );
+}
+
 // ─── Collapsible item ─────────────────────────────────────────────────────────
 
 interface CollapsibleNavItemProps {
@@ -181,10 +243,15 @@ function CollapsibleNavItem({ item, basePath }: CollapsibleNavItemProps) {
             </button>
             {open && (
                 <div className="ml-4 border-l border-border pl-2 space-y-0.5">
-                    {/* "Coming soon" children are hidden until their feature ships. */}
-                    {item.children
-                        .filter(child => !child.comingSoon)
-                        .map(child => (
+                    {item.children.map(child =>
+                        child.comingSoon ? (
+                            <ComingSoonRow
+                                key={child.path}
+                                label={child.label}
+                                reason={child.comingSoonReason ?? DEFAULT_COMING_SOON_REASON}
+                                indented
+                            />
+                        ) : (
                             <NavLink
                                 end
                                 key={child.path}
@@ -198,7 +265,8 @@ function CollapsibleNavItem({ item, basePath }: CollapsibleNavItemProps) {
                             >
                                 {child.label}
                             </NavLink>
-                        ))}
+                        ),
+                    )}
                 </div>
             )}
         </div>
@@ -228,14 +296,22 @@ export function ApiDetailSidebarNav({ groups, basePath, permissionsReady = true 
     }
 
     return (
-        <div className="space-y-0.5 px-2 py-2">
-            {groups.map(group => (
-                <div key={group.label} className="pt-4 first:pt-0">
-                    <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group.label}</p>
-                    {/* "Coming soon" items are hidden until their feature ships. */}
-                    {group.items
-                        .filter(item => !item.comingSoon)
-                        .map(item => {
+        <TooltipProvider delayDuration={200}>
+            <div className="space-y-0.5 px-2 py-2">
+                {groups.map(group => (
+                    <div key={group.label} className="pt-4 first:pt-0">
+                        <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group.label}</p>
+                        {group.items.map(item => {
+                            if (item.comingSoon) {
+                                return (
+                                    <ComingSoonRow
+                                        key={item.path}
+                                        icon={item.icon}
+                                        label={item.label}
+                                        reason={item.comingSoonReason ?? DEFAULT_COMING_SOON_REASON}
+                                    />
+                                );
+                            }
                             if (item.children && item.children.length > 0) {
                                 return (
                                     <CollapsibleNavItem
@@ -265,8 +341,9 @@ export function ApiDetailSidebarNav({ groups, basePath, permissionsReady = true 
                                 </NavLink>
                             );
                         })}
-                </div>
-            ))}
-        </div>
+                    </div>
+                ))}
+            </div>
+        </TooltipProvider>
     );
 }
