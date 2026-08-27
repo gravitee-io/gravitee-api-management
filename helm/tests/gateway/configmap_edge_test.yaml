@@ -17,6 +17,50 @@ tests:
             edge:
               server:
                 port: 18093
+  - it: Enable Edge reactor with the canonical port
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        edge:
+          enabled: true
+          port: 18093
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            edge:
+              port: 18093
+  - it: Enable Edge reactor with TLS and client authentication
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        edge:
+          enabled: true
+          port: 18093
+          secured: true
+          ssl:
+            clientAuth: required
+            keystore:
+              type: pem
+              path: /opt/certs/edge-server.pem
+            truststore:
+              type: pem
+              path: /opt/certs/edge-fleet-ca.pem
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            edge:
+              port: 18093
+              secured: true
+              ssl:
+                clientAuth: required
+                keystore:
+                  path: /opt/certs/edge-server.pem
+                  type: pem
+                truststore:
+                  path: /opt/certs/edge-fleet-ca.pem
+                  type: pem
   - it: Disabled Edge reactor does not inject edge config
     template: gateway/gateway-configmap.yaml
     set:
