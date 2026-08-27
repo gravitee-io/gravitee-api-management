@@ -19,14 +19,17 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.ListenerModelFixtures;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.MembershipMemberType;
 import io.gravitee.rest.api.management.v2.rest.model.PrimaryOwner;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
@@ -161,5 +164,24 @@ public class ImportExportApiMapperTest extends AbstractMapperTest {
         assertThat(importDefinition.getApiExport()).isNotNull();
         // The metadata Map in GenericApi (expand field) must be null — not an empty map
         assertThat(api.getMetadata()).isNull();
+    }
+
+    @Test
+    void shouldKeepResponseTemplateStatusWhenParsingAPromotedApiDefinition() throws Exception {
+        var definitionResponseTemplate = new ResponseTemplate();
+        definitionResponseTemplate.setStatusCode(418);
+        definitionResponseTemplate.setBody("I am a teapot");
+        // A promoted API definition is serialized from the definition model, which writes the
+        // status under "status" while this REST model names the property "statusCode".
+        var promotedDefinition = new ObjectMapper().writeValueAsString(
+            Map.of(
+                "api",
+                Map.of("definitionVersion", "V4", "responseTemplates", Map.of("DEFAULT", Map.of("*/*", definitionResponseTemplate)))
+            )
+        );
+
+        var exportApiV4 = importExportApiMapper.definitionToExportApiV4(promotedDefinition);
+
+        assertThat(exportApiV4.getApi().getResponseTemplates().get("DEFAULT").get("*/*").getStatusCode()).isEqualTo(418);
     }
 }
