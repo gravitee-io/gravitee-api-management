@@ -31,7 +31,7 @@ export default {
         css: false,
     },
     devServer: {
-        port: 3003,
+        port: 3004,
         headers: {
             'Access-Control-Allow-Origin': '*',
         },
