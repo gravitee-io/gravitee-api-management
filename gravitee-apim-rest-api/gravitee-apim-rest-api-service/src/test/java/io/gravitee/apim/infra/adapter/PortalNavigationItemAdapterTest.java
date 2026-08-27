@@ -191,6 +191,43 @@ class PortalNavigationItemAdapterTest {
             assertThat(((PortalNavigationFolder) entity).getRootId()).isEqualTo(PortalNavigationItemId.zero());
         }
 
+        /**
+         * Items persisted before visibility was mandatory (e.g. MongoDB, which has no NOT NULL
+         * constraint) can still have a null visibility. Defaulting to PUBLIC preserves the pre-existing
+         * behaviour where all items were visible.
+         */
+        @Test
+        void should_default_null_visibility_to_public_for_every_type() {
+            // Given
+            var folder = PortalNavigationItemsRepositoryFixtures.aFolder("550e8400-e29b-41d4-a716-446655440040", "My Folder", null);
+            folder.setVisibility(null);
+            var page = PortalNavigationItemsRepositoryFixtures.aPage(
+                "550e8400-e29b-41d4-a716-446655440041",
+                "My Page",
+                PortalPageContentId.random().toString(),
+                null
+            );
+            page.setVisibility(null);
+            var link = PortalNavigationItemsRepositoryFixtures.aLink("550e8400-e29b-41d4-a716-446655440042", "My Link", null, null);
+            link.setVisibility(null);
+            var api = PortalNavigationItemsRepositoryFixtures.anApi("550e8400-e29b-41d4-a716-446655440043", "My Api", "apiId", null);
+            api.setVisibility(null);
+            var apiProduct = PortalNavigationItemsRepositoryFixtures.anApiProduct(
+                "550e8400-e29b-41d4-a716-446655440044",
+                "My API Product",
+                "apiProductId",
+                null
+            );
+            apiProduct.setVisibility(null);
+
+            // Then
+            assertThat(adapter.toEntity(folder).getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
+            assertThat(adapter.toEntity(page).getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
+            assertThat(adapter.toEntity(link).getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
+            assertThat(adapter.toEntity(api).getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
+            assertThat(adapter.toEntity(apiProduct).getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
+        }
+
         @Test
         void should_throw_when_page_configuration_is_missing() {
             // Given
