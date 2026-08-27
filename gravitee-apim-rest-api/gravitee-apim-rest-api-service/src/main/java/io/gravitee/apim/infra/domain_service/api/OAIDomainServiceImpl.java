@@ -97,9 +97,12 @@ public class OAIDomainServiceImpl implements OAIDomainService {
             var importWithEndpointGroupsSharedConfiguration = addEndpointGroupSharedConfiguration(importDefinition);
             var importWithGroups = replaceGroupNamesWithIds(environmentId, importWithEndpointGroupsSharedConfiguration);
             var importWithTags = replaceTagsNamesWithIds(organizationId, importWithGroups);
-            var importWithDocumentation = addOAIDocumentation(withDocumentation, payload, importWithTags);
+            // Both consumers below store their argument as an OpenAPI document, so a URL payload has to be
+            // resolved first. Skip the work when neither of them is going to keep it.
+            var specContent = (withDocumentation || withOASValidationPolicy) ? resolveSpecContent(payload, descriptor) : payload;
+            var importWithDocumentation = addOAIDocumentation(withDocumentation, specContent, importWithTags);
             boolean deferResponseValidation = shouldDeferResponseValidation(importSwaggerDescriptor);
-            return addOASValidationPolicy(withOASValidationPolicy, payload, importWithDocumentation, deferResponseValidation);
+            return addOASValidationPolicy(withOASValidationPolicy, specContent, importWithDocumentation, deferResponseValidation);
         }
 
         return null;
@@ -215,7 +218,26 @@ public class OAIDomainServiceImpl implements OAIDomainService {
             .build();
     }
 
-    private ImportDefinition addOAIDocumentation(boolean withDocumentation, String payload, ImportDefinition importWithTags) {
+    /**
+     * Returns the OpenAPI document to persist for the imported API.
+     *
+     * <p>For an inline import the payload already is the document and is kept verbatim, preserving the
+     * user's original formatting. For a URL import the payload is only a locator, so the document parsed
+     * from it is serialized instead. Note that the parse above runs with {@code resolveFully}, so a
+     * URL-imported document is stored with its {@code $ref}s inlined.
+     */
+    private String resolveSpecContent(String payload, OAIDescriptor descriptor) {
+        if (!UrlSanitizerUtils.isUrl(payload)) {
+            return payload;
+        }
+        try {
+            return descriptor.toJson();
+        } catch (JsonProcessingException e) {
+            throw new TechnicalManagementException("Error while serializing the OpenAPI specification fetched from " + payload, e);
+        }
+    }
+
+    private ImportDefinition addOAIDocumentation(boolean withDocumentation, String specContent, ImportDefinition importWithTags) {
         if (!withDocumentation) {
             return importWithTags;
         }
@@ -223,7 +245,7 @@ public class OAIDomainServiceImpl implements OAIDomainService {
             .name(DEFAULT_IMPORT_PAGE_NAME)
             .type(io.gravitee.apim.core.documentation.model.Page.Type.SWAGGER)
             .homepage(false)
-            .content(payload)
+            .content(specContent)
             .referenceType(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API)
             .published(true)
             .visibility(Page.Visibility.PUBLIC)
@@ -234,7 +256,7 @@ public class OAIDomainServiceImpl implements OAIDomainService {
 
     private ImportDefinition addOASValidationPolicy(
         boolean withOASValidationPolicy,
-        String payload,
+        String specContent,
         ImportDefinition importDefinition,
         boolean deferResponseValidation
     ) {
@@ -251,7 +273,7 @@ public class OAIDomainServiceImpl implements OAIDomainService {
             Resource resource = Resource.builder()
                 .name("OpenAPI Specification")
                 .type("content-provider-inline-resource")
-                .configuration(new ObjectMapper().writeValueAsString(new LinkedHashMap<>(Map.of("content", payload))))
+                .configuration(new ObjectMapper().writeValueAsString(new LinkedHashMap<>(Map.of("content", specContent))))
                 .build();
             importDefinition.getApiExport().setResources(List.of(resource));
 

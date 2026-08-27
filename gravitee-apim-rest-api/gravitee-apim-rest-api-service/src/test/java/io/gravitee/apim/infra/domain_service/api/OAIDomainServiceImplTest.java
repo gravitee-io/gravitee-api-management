@@ -15,15 +15,21 @@
  */
 package io.gravitee.apim.infra.domain_service.api;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.PolicyPluginCrudServiceInMemory;
 import inmemory.TagQueryServiceInMemory;
+import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -200,6 +206,108 @@ class OAIDomainServiceImplTest {
             assertThat(oasFlows).hasSize(1);
             assertThat(oasFlows.getFirst().getRequest()).hasSize(1);
             assertThat(oasFlows.getFirst().getResponse()).hasSize(1);
+        }
+    }
+
+    @Nested
+    @WireMockTest
+    class RemoteUrlPayload {
+
+        private static final String REMOTE_SPEC = """
+            {
+              "openapi": "3.0.3",
+              "info": { "title": "Remote", "version": "1.0.0" },
+              "servers": [ { "url": "https://api.example.com/remote" } ],
+              "paths": {
+                "/pets": {
+                  "get": {
+                    "operationId": "listPets",
+                    "responses": {
+                      "200": {
+                        "description": "ok",
+                        "content": {
+                          "application/json": {
+                            "schema": { "$ref": "#/components/schemas/Pet" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "components": {
+                "schemas": {
+                  "Pet": { "type": "object", "properties": { "name": { "type": "string" } } }
+                }
+              }
+            }
+            """;
+
+        private OAIDomainServiceImpl service;
+
+        @BeforeEach
+        void setUp() {
+            var importConfig = mock(ImportConfiguration.class);
+            when(importConfig.getImportWhitelist()).thenReturn(List.of());
+            // the stub server listens on localhost, which is a private address
+            when(importConfig.isAllowImportFromPrivate()).thenReturn(true);
+
+            var policyPluginCrudService = new PolicyPluginCrudServiceInMemory();
+            policyPluginCrudService.initWith(List.of(PolicyPlugin.builder().id("oas-validation").name("OAS Validation").build()));
+            var endpointConnectorPluginService = mock(EndpointConnectorPluginDomainService.class);
+            when(endpointConnectorPluginService.getDefaultSharedConfiguration(anyString())).thenReturn("{}");
+
+            service = new OAIDomainServiceImpl(
+                new PolicyOperationVisitorManagerImpl(),
+                new GroupQueryServiceInMemory(),
+                new TagQueryServiceInMemory(),
+                endpointConnectorPluginService,
+                policyPluginCrudService,
+                importConfig
+            );
+        }
+
+        private String stubSpecUrl(WireMockRuntimeInfo wm) {
+            wm.getWireMock().register(get(urlEqualTo("/openapi.json")).willReturn(aResponse().withStatus(200).withBody(REMOTE_SPEC)));
+            return wm.getHttpBaseUrl() + "/openapi.json";
+        }
+
+        @Test
+        void should_store_the_fetched_specification_as_documentation_rather_than_the_url(WireMockRuntimeInfo wm) {
+            var url = stubSpecUrl(wm);
+            var descriptor = ImportSwaggerDescriptorEntity.builder().payload(url).build();
+
+            var result = service.convert(ORGANIZATION_ID, ENVIRONMENT_ID, descriptor, true, false);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getPages()).hasSize(1);
+            var page = result.getPages().getFirst();
+            assertThat(page.getType()).isEqualTo(Page.Type.SWAGGER);
+            assertThat(page.getContent()).isNotEqualTo(url).contains("\"openapi\"").contains("listPets");
+        }
+
+        @Test
+        void should_give_the_oas_validation_policy_the_fetched_specification_rather_than_the_url(WireMockRuntimeInfo wm) {
+            var url = stubSpecUrl(wm);
+            var descriptor = ImportSwaggerDescriptorEntity.builder().payload(url).build();
+
+            var result = service.convert(ORGANIZATION_ID, ENVIRONMENT_ID, descriptor, false, true);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getApiExport().getResources()).hasSize(1);
+            var configuration = result.getApiExport().getResources().getFirst().getConfiguration();
+            assertThat(configuration).isNotNull();
+            assertThat(configuration.toString()).doesNotContain(url).contains("listPets");
+        }
+
+        @Test
+        void should_keep_an_inline_payload_verbatim(WireMockRuntimeInfo wm) {
+            var descriptor = ImportSwaggerDescriptorEntity.builder().payload(REMOTE_SPEC).build();
+
+            var result = service.convert(ORGANIZATION_ID, ENVIRONMENT_ID, descriptor, true, false);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getPages().getFirst().getContent()).isEqualTo(REMOTE_SPEC);
         }
     }
 }
