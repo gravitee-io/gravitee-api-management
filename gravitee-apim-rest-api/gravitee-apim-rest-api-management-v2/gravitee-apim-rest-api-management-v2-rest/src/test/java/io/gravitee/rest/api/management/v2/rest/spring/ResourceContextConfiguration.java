@@ -59,6 +59,7 @@ import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateHealthCheckScheduleDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
@@ -582,7 +583,8 @@ public class ResourceContextConfiguration {
                 new ValidatePlanDomainService(
                     new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService)
                 ),
-                new ValidatePortalNotificationDomainService(groupsValidator)
+                new ValidatePortalNotificationDomainService(groupsValidator),
+                new ValidateHealthCheckScheduleDomainService(new ObjectMapper())
             )
         );
     }

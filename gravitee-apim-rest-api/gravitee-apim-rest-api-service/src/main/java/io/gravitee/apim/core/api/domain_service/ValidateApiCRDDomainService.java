@@ -71,6 +71,8 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
 
     private final ValidatePortalNotificationDomainService portalNotificationValidator;
 
+    private final ValidateHealthCheckScheduleDomainService healthCheckScheduleValidator;
+
     @Override
     public Validator.Result<ValidateApiCRDDomainService.Input> validateAndSanitize(ValidateApiCRDDomainService.Input input) {
         var errors = new ArrayList<Error>();
@@ -99,6 +101,7 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
             validateAndSanitizeNativeV4ForCreation(input, sanitizedBuilder, errors);
         } else {
             validateAndSanitizeHttpV4ForCreation(input, sanitizedBuilder, errors);
+            healthCheckScheduleValidator.validate(input.spec().getEndpointGroups(), errors);
         }
 
         categoryIdsValidator
