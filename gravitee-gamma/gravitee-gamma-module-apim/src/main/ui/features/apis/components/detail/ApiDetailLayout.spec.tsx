@@ -106,6 +106,7 @@ jest.mock('@gravitee/graphene-core/icons', () => new Proxy({}, { get: () => () =
 jest.mock('./ApiDetailSidebarNav', () => ({
     API_PROXY_NAV_GROUPS: [],
     ApiDetailSidebarNav: () => <div />,
+    withTcpRestrictions: (groups: unknown[]) => groups,
 }));
 
 import { ApiDetailIndexRedirect, ApiDetailLayout } from './ApiDetailLayout';

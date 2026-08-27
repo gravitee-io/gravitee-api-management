@@ -230,6 +230,25 @@ const API_TWO_GROUPS = { ...HTTP_PROXY_API_BASE, endpointGroups: [GROUP_1, GROUP
 const API_NO_GROUPS = { ...HTTP_PROXY_API_BASE, endpointGroups: [] };
 const API_TWO_ENDPOINTS = { ...HTTP_PROXY_API_BASE, endpointGroups: [GROUP_TWO_ENDPOINTS] };
 
+// ─── TCP stub data ────────────────────────────────────────────────────────────
+
+const TCP_ENDPOINT = {
+    name: 'default-tcp',
+    type: 'tcp-proxy',
+    weight: 1,
+    configuration: { target: { host: 'backend.example.com', port: 9090, secured: false } },
+};
+
+const TCP_GROUP: EndpointGroupDto = {
+    name: 'tcp-group',
+    type: 'tcp-proxy',
+    loadBalancer: { type: 'ROUND_ROBIN' },
+    endpoints: [TCP_ENDPOINT],
+};
+
+const TCP_API_BASE = { id: 'api-2', type: 'PROXY' as const, listeners: [{ type: 'TCP' as const, hosts: ['tcp.example.com'] }] };
+const API_TCP = { ...TCP_API_BASE, endpointGroups: [TCP_GROUP] };
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const mockMutate = jest.fn();
@@ -463,6 +482,61 @@ describe('ApiEndpointsPage', () => {
             renderPage();
             fireEvent.click(screen.getByRole('button', { name: 'Edit endpoint ep-a' }));
             expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Edit endpoint');
+        });
+    });
+
+    // ── TCP endpoints ──────────────────────────────────────────────────────────
+
+    describe('tcp-proxy endpoint editing', () => {
+        it('shows Host/Port/Secured fields instead of Target URL when editing a tcp-proxy endpoint', () => {
+            mockUseApiDetailContext.mockReturnValue({ api: API_TCP, isLoading: false });
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Edit endpoint default-tcp' }));
+
+            expect(screen.getByLabelText(/^host/i)).toHaveValue('backend.example.com');
+            expect(screen.getByPlaceholderText('5432')).toHaveValue('9090');
+            expect(screen.queryByLabelText(/^target url/i)).not.toBeInTheDocument();
+        });
+
+        it('does not show the Configuration or Health-check steps for a tcp-proxy endpoint', () => {
+            mockUseApiDetailContext.mockReturnValue({ api: API_TCP, isLoading: false });
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Edit endpoint default-tcp' }));
+
+            expect(screen.queryByRole('button', { name: /^next$/i })).not.toBeInTheDocument();
+            expect(screen.getByRole('button', { name: /save endpoint/i })).toBeInTheDocument();
+        });
+
+        it('saves a tcp-proxy endpoint with a {host, port, secured} configuration.target object', () => {
+            mockUseApiDetailContext.mockReturnValue({ api: API_TCP, isLoading: false });
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Edit endpoint default-tcp' }));
+            fireEvent.change(screen.getByLabelText(/^host/i), { target: { value: 'new-backend.example.com' } });
+            fireEvent.change(screen.getByPlaceholderText('5432'), { target: { value: '5432' } });
+            fireEvent.click(screen.getByRole('button', { name: /save endpoint/i }));
+
+            const savedGroups: EndpointGroupDto[] = mockMutate.mock.calls[0][0];
+            const savedEndpoint = savedGroups[0].endpoints?.[0];
+            expect(savedEndpoint?.configuration?.target).toEqual({ host: 'new-backend.example.com', port: 5432, secured: false });
+        });
+
+        it('defaults a newly-added endpoint in an existing tcp-proxy group to type tcp-proxy', () => {
+            mockUseApiDetailContext.mockReturnValue({ api: API_TCP, isLoading: false });
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Add endpoint' }));
+            fireEvent.change(screen.getByPlaceholderText('my-endpoint'), { target: { value: 'second-tcp' } });
+            fireEvent.change(screen.getByLabelText(/^host/i), { target: { value: 'db2.example.com' } });
+            fireEvent.change(screen.getByPlaceholderText('5432'), { target: { value: '5433' } });
+            fireEvent.click(screen.getByRole('button', { name: /add endpoint/i }));
+
+            const savedGroups: EndpointGroupDto[] = mockMutate.mock.calls[0][0];
+            const newEndpoint = savedGroups[0].endpoints?.find(e => e.name === 'second-tcp');
+            expect(newEndpoint?.type).toBe('tcp-proxy');
+            expect(newEndpoint?.configuration?.target).toEqual({ host: 'db2.example.com', port: 5433, secured: false });
         });
     });
 

@@ -16,7 +16,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router-dom';
 
-import { API_PROXY_NAV_GROUPS, ApiDetailSidebarNav } from './ApiDetailSidebarNav';
+import { API_PROXY_NAV_GROUPS, ApiDetailSidebarNav, withTcpRestrictions } from './ApiDetailSidebarNav';
 
 const GROUPS = API_PROXY_NAV_GROUPS;
 const BASE = '/env/apis/abc-123';
@@ -79,11 +79,71 @@ describe('ApiDetailSidebarNav — flat links', () => {
         expect(screen.getByRole('link', { name: /^resources$/i })).toHaveAttribute('href', `${BASE}/resources`);
     });
 
-    it('hides "coming soon" items (API Score, Response Templates, Authorization)', () => {
+    it('renders "coming soon" items (API Score, Response Templates, Authorization) as disabled, non-navigable rows', () => {
         renderNav(`${BASE}/overview`);
-        expect(screen.queryByText('API Score')).not.toBeInTheDocument();
-        expect(screen.queryByText('Response Templates')).not.toBeInTheDocument();
-        expect(screen.queryByText('Authorization')).not.toBeInTheDocument();
+        for (const label of ['API Score', 'Response Templates', 'Authorization']) {
+            expect(screen.getByText(label)).toBeInTheDocument();
+            expect(screen.queryByRole('link', { name: new RegExp(`^${label}$`, 'i') })).not.toBeInTheDocument();
+        }
+    });
+
+    it('makes "coming soon" rows reachable by keyboard, with their reason exposed for assistive tech', () => {
+        renderNav(`${BASE}/overview`);
+        const row = screen.getByText('API Score').closest('[tabindex]');
+        expect(row).not.toBeNull();
+        expect(row).toHaveAttribute('tabindex', '0');
+        expect(row).toHaveAttribute('aria-disabled', 'true');
+        expect(row).toHaveAttribute('title');
+    });
+});
+
+// ─── TCP restrictions ─────────────────────────────────────────────────────────
+
+describe('withTcpRestrictions', () => {
+    it('returns the groups unchanged when the API has no TCP listeners', () => {
+        expect(withTcpRestrictions(GROUPS, false)).toBe(GROUPS);
+    });
+
+    it('marks Policy Studio and CORS as comingSoon when the API has TCP listeners', () => {
+        const restricted = withTcpRestrictions(GROUPS, true);
+        const policyStudio = restricted.find(g => g.label === 'Design')!.items.find(i => i.path === 'policy-studio')!;
+        const cors = restricted.find(g => g.label === 'General')!.items.find(i => i.path === 'cors')!;
+
+        expect(policyStudio.comingSoon).toBe(true);
+        expect(policyStudio.comingSoonReason).toBe('Coming soon for V4 APIs');
+        expect(cors.comingSoon).toBe(true);
+        expect(cors.comingSoonReason).toBe('Coming soon for V4 APIs');
+    });
+
+    it('does not affect unrelated items', () => {
+        const restricted = withTcpRestrictions(GROUPS, true);
+        const plans = restricted.find(g => g.label === 'Consumer Access')!.items.find(i => i.path === 'plans')!;
+        expect(plans.comingSoon).toBeUndefined();
+    });
+
+    it('omits Failover and Health Check Dashboard from the Endpoints children for TCP APIs', () => {
+        const restricted = withTcpRestrictions(GROUPS, true);
+        const endpoints = restricted.find(g => g.label === 'Gateway')!.items.find(i => i.path === 'endpoints')!;
+        expect(endpoints.children!.map(c => c.path)).toEqual(['list']);
+    });
+
+    it('keeps Failover and Health Check Dashboard in the Endpoints children for non-TCP APIs', () => {
+        const endpoints = GROUPS.find(g => g.label === 'Gateway')!.items.find(i => i.path === 'endpoints')!;
+        expect(endpoints.children!.map(c => c.path)).toEqual(['list', 'failover', 'health-check-dashboard']);
+    });
+});
+
+describe('ApiDetailSidebarNav — TCP restrictions', () => {
+    it('renders Policy Studio as a disabled row instead of a link for a TCP API', () => {
+        const groups = withTcpRestrictions(GROUPS, true);
+        render(
+            <MemoryRouter initialEntries={[`${BASE}/overview`]}>
+                <ApiDetailSidebarNav groups={groups} basePath={BASE} />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByText('Policy Studio')).toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: /^policy studio$/i })).not.toBeInTheDocument();
     });
 });
 

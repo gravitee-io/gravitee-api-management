@@ -78,6 +78,33 @@ export interface HttpEndpointGroup {
     endpoints: HttpEndpoint[];
 }
 
+export interface TcpListener {
+    type: 'TCP';
+    hosts: string[];
+    entrypoints?: { type: string }[];
+}
+
+export interface TcpTarget {
+    host: string;
+    port: number;
+    secured: boolean;
+}
+
+export interface TcpEndpoint {
+    name: string;
+    type: 'tcp-proxy';
+    weight: number;
+    inheritConfiguration: boolean;
+    configuration: { target: TcpTarget };
+}
+
+export interface TcpEndpointGroup {
+    name: string;
+    type: 'tcp-proxy';
+    sharedConfiguration: Record<string, unknown>;
+    endpoints: TcpEndpoint[];
+}
+
 export interface CreateApiProxyRequest {
     name: string;
     apiVersion: string;
@@ -86,8 +113,8 @@ export interface CreateApiProxyRequest {
     definitionVersion: 'V4';
     visibility: ApiVisibility;
     allowedInApiProducts: boolean;
-    listeners: HttpListener[];
-    endpointGroups: HttpEndpointGroup[];
+    listeners: (HttpListener | TcpListener)[];
+    endpointGroups: (HttpEndpointGroup | TcpEndpointGroup)[];
 }
 
 export interface ApiProxyCreated {
@@ -177,7 +204,7 @@ export interface ApiSearchQuery {
 export interface ApiHttpEndpoint {
     name: string;
     type: string;
-    configuration?: { target?: string };
+    configuration?: { target?: string | TcpTarget };
 }
 
 export interface ApiEndpointGroup {
@@ -276,7 +303,7 @@ export interface EndpointDto {
     weight?: number;
     backup?: boolean;
     inheritConfiguration?: boolean;
-    configuration?: { target?: string; [key: string]: unknown };
+    configuration?: { target?: string | TcpTarget; [key: string]: unknown };
     tenants?: string[];
     sharedConfigurationOverride?: Record<string, unknown>;
     services?: EndpointServices;
@@ -341,7 +368,7 @@ export interface ApiDetailDto {
 
     services?: { dynamicProperty?: DynamicPropertyConfig };
     analytics?: Analytics;
-    listeners?: HttpListener[];
+    listeners?: (HttpListener | TcpListener)[];
     endpointGroups?: EndpointGroupDto[];
     failover?: Failover;
     allowMultiJwtOauth2Subscriptions?: boolean;

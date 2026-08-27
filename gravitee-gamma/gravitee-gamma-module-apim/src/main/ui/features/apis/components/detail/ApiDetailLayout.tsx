@@ -40,13 +40,14 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useId, useState } from 'react';
 import { Navigate, Outlet, useParams } from 'react-router-dom';
 
-import { API_PROXY_NAV_GROUPS, ApiDetailSidebarNav } from './ApiDetailSidebarNav';
+import { API_PROXY_NAV_GROUPS, ApiDetailSidebarNav, withTcpRestrictions } from './ApiDetailSidebarNav';
 import { useDetailBasePath } from '../../../../shared/hooks/useDetailBasePath';
 import { ApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDetail } from '../../hooks/useApiDetail';
 import { useApiPermissions } from '../../hooks/useApiPermissions';
 import { deployApi } from '../../services/apis';
 import type { ApiDetailDto } from '../../types';
+import { hasTcpListeners } from '../../utils/apiHttpProxy';
 import { apiDetailKeys } from '../../utils/queryKeys';
 
 /** Classic console caps the deployment label at 32 characters. */
@@ -232,7 +233,7 @@ function ApiInfoHeader({ api, isLoading }: { api: ApiDetailDto | null; isLoading
             <div className="flex flex-wrap items-center gap-1">
                 {api.type ? (
                     <Badge variant="secondary" className="text-xs px-1.5 py-0 h-5">
-                        {api.type === 'PROXY' ? 'HTTP Proxy' : 'Event-driven'}
+                        {api.type === 'PROXY' ? (hasTcpListeners(api) ? 'TCP Proxy' : 'HTTP Proxy') : 'Event-driven'}
                     </Badge>
                 ) : null}
                 {api.apiVersion ? (
@@ -270,6 +271,7 @@ export function ApiDetailLayout() {
     });
 
     const showDeployBanner = !isError && api?.deploymentState === 'NEED_REDEPLOY' && canDeploy;
+    const navGroups = withTcpRestrictions(API_PROXY_NAV_GROUPS, hasTcpListeners(api));
 
     useLayoutConfig(
         {
@@ -277,7 +279,7 @@ export function ApiDetailLayout() {
             contextExpanded,
             contextSidebar: (
                 <ContextSidebar header={<ApiInfoHeader api={api ?? null} isLoading={isLoading} />}>
-                    <ApiDetailSidebarNav groups={API_PROXY_NAV_GROUPS} basePath={basePath} permissionsReady={permissionsReady} />
+                    <ApiDetailSidebarNav groups={navGroups} basePath={basePath} permissionsReady={permissionsReady} />
                 </ContextSidebar>
             ),
             leading: <ContextToggleButton expanded={contextExpanded} onToggle={() => setContextExpanded(v => !v)} />,

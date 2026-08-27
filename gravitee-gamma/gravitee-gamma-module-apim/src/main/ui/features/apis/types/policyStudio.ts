@@ -33,6 +33,9 @@ export interface ConnectorPlugin {
     name: string;
     icon?: string;
     supportedModes: string[];
+    /** Whether the plugin is installed/licensed in this environment (classic console `ConnectorPlugin.deployed`). */
+    deployed?: boolean;
+    supportedApiType?: string;
 }
 
 export interface SharedPolicyGroupPlugin {

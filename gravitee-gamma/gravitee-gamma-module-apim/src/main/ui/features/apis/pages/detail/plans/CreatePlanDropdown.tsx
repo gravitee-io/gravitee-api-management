@@ -22,11 +22,13 @@ import { PLAN_SECURITY_LABELS, PLAN_TYPES_BY_CTX } from '../../../types/plan';
 
 interface CreatePlanDropdownProps {
     ctx: PlanContext;
+    /** TCP Proxy APIs have no HTTP-level auth — only a Keyless plan makes sense (classic console parity). */
+    restrictToKeyless?: boolean;
 }
 
-export function CreatePlanDropdown({ ctx }: Readonly<CreatePlanDropdownProps>) {
+export function CreatePlanDropdown({ ctx, restrictToKeyless = false }: Readonly<CreatePlanDropdownProps>) {
     const navigate = useNavigate();
-    const types: PlanSecurityType[] = PLAN_TYPES_BY_CTX[ctx.type];
+    const types: PlanSecurityType[] = restrictToKeyless ? ['KEY_LESS'] : PLAN_TYPES_BY_CTX[ctx.type];
 
     return (
         <DropdownMenu>

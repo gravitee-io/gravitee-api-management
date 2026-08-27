@@ -13,17 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { validateContextPath, validateDetails, validateEntrypoints, validateEssentials, validateSecurity } from './apiCreationValidation';
+import {
+    validateContextPath,
+    validateDetails,
+    validateEntrypoints,
+    validateEssentials,
+    validateSecurity,
+    validateTcpHosts,
+    validateTcpPort,
+} from './apiCreationValidation';
 import type { ApiProxyDraft } from '../types/apiCreation';
 
 const BASE: ApiProxyDraft = {
     apiName: 'My API',
     apiVersion: '1.0.0',
     apiDescription: '',
+    protocol: 'HTTP',
     contextPath: '/my-api',
     virtualHostsEnabled: false,
     virtualHosts: [{ id: '1', host: 'api.example.com', path: '/v1', overrideAccess: false }],
     targetUrl: 'https://backend.example.com',
+    tcpHosts: [{ id: '1', host: 'tcp.example.com' }],
+    tcpTargetHost: 'backend.example.com',
+    tcpTargetPort: '9090',
+    tcpTargetSecured: false,
     authType: 'keyless',
     apiKeyPlanName: 'Default API Key plan',
     jwtPlanName: 'Default JWT plan',
@@ -112,6 +125,95 @@ describe('validateEntrypoints', () => {
                 }),
             ),
         ).toEqual({});
+    });
+});
+
+describe('validateTcpHosts', () => {
+    it('rejects an empty or invalid host value', () => {
+        expect(validateTcpHosts([{ id: '1', host: '' }])).toBe('Host is required.');
+        expect(validateTcpHosts([{ id: '1', host: 'not a host!' }])).toBe('Host is not valid');
+    });
+
+    it('rejects duplicated hosts across the list', () => {
+        expect(
+            validateTcpHosts([
+                { id: '1', host: 'tcp.example.com' },
+                { id: '2', host: 'tcp.example.com' },
+            ]),
+        ).toBe('Duplicated hosts not allowed');
+    });
+
+    it('returns null when all hosts are valid and unique', () => {
+        expect(
+            validateTcpHosts([
+                { id: '1', host: 'tcp.example.com' },
+                { id: '2', host: 'localhost' },
+            ]),
+        ).toBeNull();
+    });
+
+    it('ignores a blank extra row added via "Add host" as long as another row is filled in', () => {
+        expect(
+            validateTcpHosts([
+                { id: '1', host: 'tcp.example.com' },
+                { id: '2', host: '' },
+            ]),
+        ).toBeNull();
+    });
+
+    it('still requires at least one non-blank host when every row is blank', () => {
+        expect(
+            validateTcpHosts([
+                { id: '1', host: '' },
+                { id: '2', host: '  ' },
+            ]),
+        ).toBe('Host is required.');
+    });
+
+    it('validates format only on non-blank rows, ignoring blank ones', () => {
+        expect(
+            validateTcpHosts([
+                { id: '1', host: 'tcp.example.com' },
+                { id: '2', host: '' },
+                { id: '3', host: 'not a host!' },
+            ]),
+        ).toBe('Host is not valid');
+    });
+});
+
+describe('validateTcpPort', () => {
+    it('requires a port value', () => {
+        expect(validateTcpPort('')).toBe('Port is required.');
+    });
+
+    it('rejects out-of-range or non-integer ports', () => {
+        expect(validateTcpPort('70000')).toContain('between 0 and 65535');
+        expect(validateTcpPort('-1')).toContain('between 0 and 65535');
+        expect(validateTcpPort('abc')).toContain('between 0 and 65535');
+        expect(validateTcpPort('8080.5')).toContain('between 0 and 65535');
+    });
+
+    it('accepts a valid port, including 0', () => {
+        expect(validateTcpPort('8080')).toBeNull();
+        expect(validateTcpPort('0')).toBeNull();
+        expect(validateTcpPort('65535')).toBeNull();
+    });
+});
+
+describe('validateEntrypoints — TCP protocol', () => {
+    it('validates TCP hosts, target host, and target port instead of HTTP fields', () => {
+        const errors = validateEntrypoints(
+            form({ protocol: 'TCP', tcpHosts: [{ id: '1', host: '' }], tcpTargetHost: '', tcpTargetPort: '' }),
+        );
+        expect(errors).toHaveProperty('tcpHosts');
+        expect(errors).toHaveProperty('tcpTargetHost');
+        expect(errors).toHaveProperty('tcpTargetPort');
+        expect(errors).not.toHaveProperty('targetUrl');
+        expect(errors).not.toHaveProperty('contextPath');
+    });
+
+    it('returns no errors for a fully configured TCP entrypoint', () => {
+        expect(validateEntrypoints(form({ protocol: 'TCP' }))).toEqual({});
     });
 });
 

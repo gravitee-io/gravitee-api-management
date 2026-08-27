@@ -42,6 +42,7 @@ import { ApiProductPlansPage } from '../features/api-products/pages/detail/plans
 import { ApiProductUserPermissionsPage } from '../features/api-products/pages/detail/user-permissions/ApiProductUserPermissionsPage';
 import { ApiDetailIndexRedirect, ApiDetailLayout } from '../features/apis/components/detail/ApiDetailLayout';
 import { ApisPage } from '../features/apis/pages/ApisPage';
+import { CreateApiGate } from '../features/apis/pages/CreateApiGate';
 import { CreateApiProxyPage } from '../features/apis/pages/CreateApiProxyPage';
 import { AlertFormPage } from '../features/apis/pages/detail/alerts/AlertFormPage';
 import { ApiAlertsPage } from '../features/apis/pages/detail/alerts/ApiAlertsPage';
@@ -204,7 +205,7 @@ export function AppRoutes() {
                         <Route path="quick-start" element={<QuickStartPage />} />
                         <Route path="apis">
                             <Route index element={<ApisPage />} />
-                            <Route path="new">
+                            <Route path="new" element={<CreateApiGate />}>
                                 <Route index element={<CreateApiProxyPage />} />
                                 <Route path="scratch" element={<ScratchWizardPage />} />
                                 <Route path="template/:id" element={<TemplateWizardPage />} />

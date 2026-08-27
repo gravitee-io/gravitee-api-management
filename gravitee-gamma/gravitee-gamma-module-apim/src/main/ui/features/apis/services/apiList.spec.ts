@@ -32,7 +32,7 @@ describe('searchApis', () => {
         await searchApis('DEFAULT', { query: 'my-api' }, 1, 10);
 
         expect(tracker.callCount).toBe(1);
-        expect(tracker.lastCall?.body).toEqual({ query: 'my-api', apiTypes: ['V4_HTTP_PROXY'] });
+        expect(tracker.lastCall?.body).toEqual({ query: 'my-api', apiTypes: ['V4_HTTP_PROXY', 'V4_TCP_PROXY'] });
     });
 
     it('overrides any caller-supplied apiTypes so the filter cannot be widened', async () => {
@@ -40,7 +40,7 @@ describe('searchApis', () => {
 
         await searchApis('DEFAULT', { apiTypes: ['V4_KAFKA', 'V2'] }, 1, 10);
 
-        expect(tracker.lastCall?.body).toEqual({ apiTypes: ['V4_HTTP_PROXY'] });
+        expect(tracker.lastCall?.body).toEqual({ apiTypes: ['V4_HTTP_PROXY', 'V4_TCP_PROXY'] });
     });
 
     it('passes pagination and sort as query params', async () => {

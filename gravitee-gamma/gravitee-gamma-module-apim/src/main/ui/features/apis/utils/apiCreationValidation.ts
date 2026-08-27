@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ApiProxyDraft, ValidationErrors } from '../types/apiCreation';
+import { validateDuplicateHost } from './duplicateDialogValidation';
+import { isTcpForm } from './protocol';
+import type { ApiProxyDraft, TcpHostEntry, ValidationErrors } from '../types/apiCreation';
 
 const CONTEXT_PATH_PATTERN = /^\/[/.a-zA-Z0-9\-_]*$/;
 
@@ -44,7 +46,44 @@ export function validateDetails(form: ApiProxyDraft): ValidationErrors {
     return errors;
 }
 
+export function validateTcpHosts(hosts: TcpHostEntry[]): string | null {
+    // Extra rows added via "Add host" are allowed to sit blank until filled in — only rows
+    // the user has actually typed into are validated as hostnames. At least one non-blank
+    // host is still required overall.
+    const nonEmptyHosts = hosts.filter(h => h.host.trim() !== '');
+    if (nonEmptyHosts.length === 0) return 'Host is required.';
+
+    const firstError = nonEmptyHosts.map(h => validateDuplicateHost(h.host)).find(message => message !== null);
+    if (firstError) return firstError;
+
+    const hostValues = nonEmptyHosts.map(h => h.host.trim());
+    if (new Set(hostValues).size !== hostValues.length) return 'Duplicated hosts not allowed';
+    return null;
+}
+
+export function validateTcpPort(value: string): string | null {
+    const trimmed = value.trim();
+    if (!trimmed) return 'Port is required.';
+    if (!/^\d+$/.test(trimmed)) return 'Port must be a number between 0 and 65535.';
+    const port = Number(trimmed);
+    if (port < 0 || port > 65535) return 'Port must be a number between 0 and 65535.';
+    return null;
+}
+
+function validateTcpEntrypoint(form: ApiProxyDraft): ValidationErrors {
+    const errors: ValidationErrors = {};
+    const hostsError = validateTcpHosts(form.tcpHosts);
+    if (hostsError) errors['tcpHosts'] = hostsError;
+    const targetHostError = validateDuplicateHost(form.tcpTargetHost);
+    if (targetHostError) errors['tcpTargetHost'] = targetHostError;
+    const portError = validateTcpPort(form.tcpTargetPort);
+    if (portError) errors['tcpTargetPort'] = portError;
+    return errors;
+}
+
 export function validateEntrypoints(form: ApiProxyDraft): ValidationErrors {
+    if (isTcpForm(form)) return validateTcpEntrypoint(form);
+
     const errors: ValidationErrors = {};
     const urlError = validateTargetUrl(form.targetUrl);
     if (urlError) errors['targetUrl'] = urlError;

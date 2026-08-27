@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
-import type { ApiDetailDto, ExposedEntrypoint, HttpListener } from '../types';
+import type { ApiDetailDto, ExposedEntrypoint, HttpListener, TcpListener } from '../types';
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
@@ -26,7 +26,7 @@ export async function updateApiListeners(
     environmentId: string,
     apiId: string,
     current: ApiDetailDto,
-    listeners: HttpListener[],
+    listeners: (HttpListener | TcpListener)[],
 ): Promise<ApiDetailDto> {
     return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/${encodeURIComponent(apiId)}`, {
         method: 'PUT',

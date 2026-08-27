@@ -17,12 +17,18 @@ import type { LucideIcon } from '@gravitee/graphene-core/icons';
 
 export type AuthType = 'keyless' | 'api-key' | 'jwt' | 'oauth2' | 'mtls';
 export type ApiCreationMode = 'picker' | 'template' | 'scratch';
+export type ApiProtocol = 'HTTP' | 'TCP';
 
 export interface VirtualHostEntry {
     id: string;
     host: string;
     path: string;
     overrideAccess: boolean;
+}
+
+export interface TcpHostEntry {
+    id: string;
+    host: string;
 }
 
 export interface ProxyTemplateDefaults {
@@ -56,10 +62,15 @@ export interface ApiProxyDraft {
     apiName: string;
     apiVersion: string;
     apiDescription: string;
+    protocol: ApiProtocol;
     contextPath: string;
     virtualHostsEnabled: boolean;
     virtualHosts: VirtualHostEntry[];
     targetUrl: string;
+    tcpHosts: TcpHostEntry[];
+    tcpTargetHost: string;
+    tcpTargetPort: string;
+    tcpTargetSecured: boolean;
     authType: AuthType;
     apiKeyPlanName: string;
     jwtPlanName: string;

@@ -23,7 +23,12 @@ export interface EndpointFormState {
     /** Local row id for React key management — not sent to backend. */
     _id: string;
     name: string;
+    /** http-proxy (and other string-target types) upstream URL. Unused for tcp-proxy. */
     target: string;
+    /** tcp-proxy target host/port/secured — unused for http-proxy. */
+    tcpTargetHost: string;
+    tcpTargetPort: string;
+    tcpTargetSecured: boolean;
     weight: number;
     backup: boolean;
     inheritConfiguration: boolean;
@@ -213,6 +218,9 @@ export function newEndpointRow(groupHealthCheck?: HealthCheckFormState): Endpoin
         _id: Math.random().toString(36).slice(2, 10),
         name: '',
         target: '',
+        tcpTargetHost: '',
+        tcpTargetPort: '',
+        tcpTargetSecured: false,
         weight: 1,
         backup: false,
         inheritConfiguration: true,

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
-import { Button, Input, Label } from '@gravitee/graphene-core';
+import { Button, Input, Label, Switch } from '@gravitee/graphene-core';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 
@@ -22,6 +22,8 @@ import { TenantSelectInput } from './TenantSelectInput';
 import { WizardStepIndicator } from '../../../../components/WizardStepIndicator';
 import { getTenants } from '../../../../services/tenants';
 import type { Tenant } from '../../../../types';
+import { validateTcpPort } from '../../../../utils/apiCreationValidation';
+import { validateDuplicateHost } from '../../../../utils/duplicateDialogValidation';
 import { validateHttpProxyOptions } from '../../../../utils/endpointSharedConfiguration';
 import type { HealthCheckConfigFormState, HealthCheckFormState } from '../../../../utils/healthCheckForm';
 import { validateHealthCheckForm } from '../../../../utils/healthCheckForm';
@@ -46,10 +48,18 @@ interface GeneralStepProps {
     existingNames: string[];
     tenantsLoading: boolean;
     availableTenants: Tenant[];
+    isTcp?: boolean;
     onChange: <K extends keyof EndpointFormState>(key: K, value: EndpointFormState[K]) => void;
 }
 
-function EndpointGeneralStep({ form, existingNames, tenantsLoading, availableTenants, onChange }: Readonly<GeneralStepProps>) {
+function EndpointGeneralStep({
+    form,
+    existingNames,
+    tenantsLoading,
+    availableTenants,
+    isTcp = false,
+    onChange,
+}: Readonly<GeneralStepProps>) {
     const nameError = (() => {
         const base = validateEndpointName(form.name);
         if (base) return base;
@@ -63,6 +73,8 @@ function EndpointGeneralStep({ form, existingNames, tenantsLoading, availableTen
         : /\s/.test(form.target)
           ? 'Target URL must not contain whitespace.'
           : null;
+    const tcpHostError = validateDuplicateHost(form.tcpTargetHost);
+    const tcpPortError = validateTcpPort(form.tcpTargetPort);
     const weightError = form.weight < 1 ? 'Weight must be at least 1.' : null;
 
     return (
@@ -76,18 +88,61 @@ function EndpointGeneralStep({ form, existingNames, tenantsLoading, availableTen
                 <p className="text-xs text-muted-foreground">Must be unique in this group. Colons are not allowed.</p>
             </div>
 
-            <div className="space-y-2">
-                <Label htmlFor="ep-target" className="text-sm">
-                    Target URL <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                    id="ep-target"
-                    value={form.target}
-                    onChange={e => onChange('target', e.target.value)}
-                    placeholder="https://backend.example.com"
-                />
-                {targetError && <p className="text-xs text-destructive">{targetError}</p>}
-            </div>
+            {isTcp ? (
+                <>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="ep-tcp-host" className="text-sm">
+                                Host <span className="text-destructive">*</span>
+                            </Label>
+                            <Input
+                                id="ep-tcp-host"
+                                value={form.tcpTargetHost}
+                                onChange={e => onChange('tcpTargetHost', e.target.value)}
+                                placeholder="postgres.internal.example.com"
+                            />
+                            {tcpHostError && <p className="text-xs text-destructive">{tcpHostError}</p>}
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="ep-tcp-port" className="text-sm">
+                                Port <span className="text-destructive">*</span>
+                            </Label>
+                            <Input
+                                id="ep-tcp-port"
+                                inputMode="numeric"
+                                value={form.tcpTargetPort}
+                                onChange={e => onChange('tcpTargetPort', e.target.value)}
+                                placeholder="5432"
+                            />
+                            {tcpPortError && <p className="text-xs text-destructive">{tcpPortError}</p>}
+                        </div>
+                    </div>
+                    <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+                        <div>
+                            <p className="text-sm font-medium">Secured (TLS)</p>
+                            <p className="text-xs text-muted-foreground">Connect to the backend over TLS.</p>
+                        </div>
+                        <Switch
+                            checked={form.tcpTargetSecured}
+                            onCheckedChange={v => onChange('tcpTargetSecured', v)}
+                            aria-label="Enable TLS to the backend"
+                        />
+                    </div>
+                </>
+            ) : (
+                <div className="space-y-2">
+                    <Label htmlFor="ep-target" className="text-sm">
+                        Target URL <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                        id="ep-target"
+                        value={form.target}
+                        onChange={e => onChange('target', e.target.value)}
+                        placeholder="https://backend.example.com"
+                    />
+                    {targetError && <p className="text-xs text-destructive">{targetError}</p>}
+                </div>
+            )}
 
             <div className="space-y-2">
                 <Label htmlFor="ep-weight" className="text-sm">
@@ -126,6 +181,8 @@ interface EndpointFormProps {
     initial?: EndpointFormState;
     existingNames: string[];
     showHealthCheck?: boolean;
+    /** tcp-proxy endpoints have no shared-configuration or health-check step — just General (host/port/secured). */
+    isTcp?: boolean;
     groupHealthCheck?: HealthCheckFormState;
     isReadOnly?: boolean;
     isSaving?: boolean;
@@ -138,6 +195,7 @@ export function EndpointForm({
     initial,
     existingNames,
     showHealthCheck = false,
+    isTcp = false,
     groupHealthCheck,
     isReadOnly = false,
     isSaving = false,
@@ -145,7 +203,10 @@ export function EndpointForm({
     onCancel,
 }: Readonly<EndpointFormProps>) {
     const env = useEnvironment();
-    const steps = useMemo(() => (showHealthCheck ? [...BASE_STEPS, HEALTH_CHECK_STEP] : [...BASE_STEPS]), [showHealthCheck]);
+    const steps = useMemo(
+        () => (isTcp ? [BASE_STEPS[0]] : showHealthCheck ? [...BASE_STEPS, HEALTH_CHECK_STEP] : [...BASE_STEPS]),
+        [isTcp, showHealthCheck],
+    );
 
     const [currentStep, setCurrentStep] = useState<StepId>('general');
     const [form, setForm] = useState<EndpointFormState>(initial ?? newEndpointRow(groupHealthCheck));
@@ -201,8 +262,13 @@ export function EndpointForm({
         return null;
     })();
 
-    const generalValid = !nameError && form.target.trim().length > 0 && !/\s/.test(form.target) && form.weight >= 1;
-    const configurationValid = form.inheritConfiguration || validateHttpProxyOptions(configOverride.proxy) === null;
+    const generalValid = isTcp
+        ? !nameError &&
+          validateDuplicateHost(form.tcpTargetHost) === null &&
+          validateTcpPort(form.tcpTargetPort) === null &&
+          form.weight >= 1
+        : !nameError && form.target.trim().length > 0 && !/\s/.test(form.target) && form.weight >= 1;
+    const configurationValid = isTcp || form.inheritConfiguration || validateHttpProxyOptions(configOverride.proxy) === null;
     const healthCheckValid = !showHealthCheck || Object.keys(validateHealthCheckForm(form.healthCheck)).length === 0;
 
     const currentStepIndex = steps.findIndex(s => s.id === currentStep);
@@ -270,6 +336,7 @@ export function EndpointForm({
                         existingNames={existingNames}
                         tenantsLoading={tenantsLoading}
                         availableTenants={availableTenants}
+                        isTcp={isTcp}
                         onChange={setField}
                     />
                 )}

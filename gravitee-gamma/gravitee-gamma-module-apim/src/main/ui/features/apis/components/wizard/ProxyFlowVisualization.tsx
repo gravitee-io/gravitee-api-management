@@ -17,7 +17,7 @@ import { cn } from '@gravitee/graphene-core';
 
 import { useGatewayPrefix } from '../../hooks/useGatewayPrefix';
 import { useApiCreation } from '../../store/apiCreationStore';
-import { buildPreviewGatewayUrl } from '../../utils/apiProxyMapper';
+import { buildPreviewGatewayUrl, buildPreviewUpstream } from '../../utils/apiProxyMapper';
 import { AUTH_LABEL } from '../../utils/securityFormatters';
 
 type NodeState = 'active' | 'muted' | 'complete';
@@ -126,7 +126,7 @@ export function ProxyFlowVisualization({ mode }: ProxyFlowVisualizationProps) {
 
     // Strip protocol prefix — URL is already clear from context
     const gatewayDisplay = buildPreviewGatewayUrl(form, gatewayPrefix).replace(/^https?:\/\//, '');
-    const upstreamDisplay = form.targetUrl.trim() || 'upstream:port';
+    const upstreamDisplay = buildPreviewUpstream(form);
     const securityLabel = AUTH_LABEL[form.authType];
     const caption = stepCaption(mode, step);
 
