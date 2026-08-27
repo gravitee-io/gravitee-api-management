@@ -31,6 +31,11 @@ annotations:
   ###########
   artifacthub.io/changes: |
     - kind: added
+      description: "`gateway.edge` exposes the Edge Reactor server configuration: `port`, `host`, `secured` and `ssl.*` (clientAuth, keystore, truststore). `gateway.edge.server.port` is deprecated in favour of `gateway.edge.port`"
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/19435
+    - kind: added
       description: "`gateway.kafka.routingHostMode.virtualClusterBrokerDomainPattern` sets a broker domain pattern for Kafka APIs backed by a Virtual Cluster only, leaving the other Kafka APIs' domains untouched"
       links:
         - name: Github PR
