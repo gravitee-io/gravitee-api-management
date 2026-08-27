@@ -357,9 +357,9 @@ data:
       {{- if .Values.gateway.edge.ssl }}
       ssl:{{ toYaml .Values.gateway.edge.ssl | nindent 8 }}
       {{- end }}
+      {{- /* Deprecated: prefer `gateway.edge.port`. Kept so existing values files keep rendering. */}}
       {{- if hasKey .Values.gateway.edge "server" }}
       {{- if hasKey .Values.gateway.edge.server "port" }}
-      # Deprecated, prefer `gateway.edge.port`
       server:
         port: {{ .Values.gateway.edge.server.port }}
       {{- end }}
