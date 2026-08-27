@@ -14,50 +14,105 @@
  * limitations under the License.
  */
 import { permissionService, useEnvironment } from '@gravitee/gamma-modules-sdk';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
 import { getEnvironmentPermissions } from '../services/environmentPermissions';
 import { environmentPermissionKeys } from '../utils/queryKeys';
 
+function useEnvironmentPermissionsQuery() {
+    const env = useEnvironment();
+
+    return useQuery({
+        queryKey: environmentPermissionKeys.detail(env?.id ?? ''),
+        queryFn: () => getEnvironmentPermissions(env!.id),
+        enabled: Boolean(env?.id),
+        staleTime: Infinity,
+        gcTime: Infinity,
+        refetchOnMount: false,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+    });
+}
+
 /**
  * Fetches environment-scoped permissions and merges them into the shared
  * `permissionService` while the module layout is mounted.
  *
- * When federated, the host permission-sync also loads this scope; duplicate
- * loads are harmless. Does not clear on unmount — the host owns that scope.
+ * The query key is only the environment id, so a previous login's cache is
+ * dropped when the host permission service resets — not when this layout
+ * remounts. Remounts must keep a live 403 patch; refetching would restore a
+ * stale grant and re-arm the allow → 403 → redirect loop.
+ *
+ * This module cache is the source of truth while mounted: a host refetch that
+ * writes a stripped grant back into permissionService is overwritten from cache.
+ * Does not clear on unmount — the host owns teardown of that scope.
  */
 export function useEnvironmentPermissions(): void {
-    const env = useEnvironment();
+    const queryClient = useQueryClient();
 
-    const { data: permissions } = useQuery({
-        queryKey: environmentPermissionKeys.detail(env?.id ?? ''),
-        queryFn: () => getEnvironmentPermissions(env!.id),
-        enabled: Boolean(env?.id),
-        staleTime: 60_000,
-    });
+    // The host clears every scope on logout, so an observable drop to zero permissions is the signal
+    // that this cache belongs to a previous login — see permissionService.reset() in permission-sync.ts.
+    useEffect(() => {
+        let previousCount = permissionService.getAllPermissions().length;
+        return permissionService.subscribe(() => {
+            const nextCount = permissionService.getAllPermissions().length;
+            if (previousCount > 0 && nextCount === 0) {
+                void queryClient.resetQueries({ queryKey: environmentPermissionKeys.all });
+            }
+            previousCount = nextCount;
+        });
+    }, [queryClient]);
+
+    const { data: permissions, isSuccess } = useEnvironmentPermissionsQuery();
 
     useEffect(() => {
-        if (!permissions) return;
-        permissionService.load('environment', permissions);
-    }, [permissions]);
+        if (!isSuccess || permissions === undefined || permissions === null) return;
+        let applying = false;
+        const applyFromCache = () => {
+            applying = true;
+            try {
+                permissionService.load('environment', permissions);
+            } finally {
+                applying = false;
+            }
+        };
+        applyFromCache();
+        return permissionService.subscribe(() => {
+            if (applying) return;
+            const hostRestoredStrippedGrant = permissionService
+                .getAllPermissions()
+                .some(permission => permission.startsWith('environment-') && !permissions.includes(permission));
+            if (hostRestoredStrippedGrant) {
+                applyFromCache();
+            }
+        });
+    }, [isSuccess, permissions]);
 }
 
 /**
- * True once environment-scoped permissions are loaded into {@link permissionService}.
+ * True once environment-scoped permissions are in cache for this login, or the
+ * fetch failed (fail closed with whatever the host already loaded).
  * Shares the query with {@link useEnvironmentPermissions} (deduped by React Query).
  */
 export function useEnvironmentPermissionsReady(): boolean {
-    const env = useEnvironment();
+    const { isSuccess, isError } = useEnvironmentPermissionsQuery();
+    return isSuccess || isError;
+}
 
-    const { isSuccess } = useQuery({
-        queryKey: environmentPermissionKeys.detail(env?.id ?? ''),
-        queryFn: () => getEnvironmentPermissions(env!.id),
-        enabled: Boolean(env?.id),
-        staleTime: 60_000,
-    });
-
-    return isSuccess;
+/**
+ * Whether this module's own permission cache grants any of `anyOf`, or `undefined` when the cache
+ * holds no answer (still loading, or the fetch failed).
+ *
+ * Route guards need that third state. Treating "no answer" as a denial while the sidebar and the
+ * landing key read `permissionService` puts the two on different sources of truth, and the
+ * disagreement becomes a redirect loop: landing sends the user to a page whose guard denies it,
+ * and the denial sends them back to landing.
+ */
+export function useEnvironmentPermissionGrant(anyOf: readonly string[]): boolean | undefined {
+    const { data: permissions } = useEnvironmentPermissionsQuery();
+    if (permissions === undefined || permissions === null) return undefined;
+    return anyOf.some(permission => permissions.includes(permission));
 }
 
 /**
@@ -66,19 +121,13 @@ export function useEnvironmentPermissionsReady(): boolean {
  * by React Query), so it reflects a live 403 the moment {@link useForbiddenResourceRedirect}
  * strips the permission from the cache — unlike `useHasPermission` from the SDK's
  * federation stub, which isn't wired to this module's own permission fetch.
+ *
+ * Must keep this observer on the shared query options. A second `useQuery` on the
+ * same key with `refetchOnMount: 'always'` would overwrite the 403 patch and
+ * re-arm the allow → 403 → redirect loop.
  */
 export function useHasEnvironmentPermission(anyOf: readonly string[]): boolean {
-    const env = useEnvironment();
-
-    const { data: permissions } = useQuery({
-        queryKey: environmentPermissionKeys.detail(env?.id ?? ''),
-        queryFn: () => getEnvironmentPermissions(env!.id),
-        enabled: Boolean(env?.id),
-        staleTime: 0,
-        refetchOnMount: 'always',
-    });
-
-    if (!permissions) return false;
-    const granted = new Set(permissions);
-    return anyOf.some(permission => granted.has(permission));
+    const { data: permissions } = useEnvironmentPermissionsQuery();
+    if (permissions === undefined || permissions === null) return false;
+    return anyOf.some(permission => permissions.includes(permission));
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
+import { permissionService, useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -46,9 +46,15 @@ export function useForbiddenResourceRedirect({
         const prefixesToStrip = prefixKey === '' ? [] : prefixKey.split('\0');
         if (env?.id) {
             const permissionsKey = environmentPermissionKeys.detail(env.id);
-            queryClient.setQueryData<string[]>(permissionsKey, previous =>
-                (previous ?? []).filter(permission => !prefixesToStrip.some(prefix => permission.startsWith(prefix))),
-            );
+            // Nothing cached means there is no grant of ours to strip. Writing a filtered empty list
+            // would push an empty environment scope into the permission service and revoke grants the
+            // host had loaded, dropping the user to the no-access page.
+            const previous = queryClient.getQueryData<string[]>(permissionsKey);
+            if (previous !== undefined) {
+                const next = previous.filter(permission => !prefixesToStrip.some(prefix => permission.startsWith(prefix)));
+                queryClient.setQueryData<string[]>(permissionsKey, next);
+                permissionService.load('environment', next);
+            }
         }
         navigate(redirectTo, { replace: true });
     }, [isForbidden, prefixKey, redirectTo, env?.id, queryClient, navigate]);

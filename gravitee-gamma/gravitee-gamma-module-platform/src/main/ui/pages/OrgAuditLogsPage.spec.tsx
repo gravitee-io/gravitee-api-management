@@ -42,6 +42,7 @@ jest.mock('react-router-dom', () => ({
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     useHasFeature: jest.fn(),
     useEnvironment: () => ({ id: 'env-1' }),
+    permissionService: { load: jest.fn() },
 }));
 
 jest.mock('../features/audit-logs/hooks/useAuditLogs');

@@ -33,6 +33,7 @@ jest.mock('react-router-dom', () => ({
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     useEnvironment: jest.fn(),
+    permissionService: { load: jest.fn() },
 }));
 
 jest.mock('../hooks/useGatewayInstanceDetail');

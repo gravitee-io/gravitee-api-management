@@ -45,9 +45,8 @@ describe('platform navigation config', () => {
         expect(sectionKeys('Organization', 'Design')).toEqual(['policy-studio']);
     });
 
-    it('places Access Management, Management & Schedulers, CORS, SMTP, Templates, then Audit under Organization / System & Security', () => {
+    it('places Authentication, Management & Schedulers, CORS, SMTP, Templates, then Audit under Organization / System & Security', () => {
         expect(sectionKeys('Organization', 'System & Security')).toEqual([
-            'access-management',
             'authentication',
             'management-and-schedulers',
             'cors',
@@ -55,6 +54,7 @@ describe('platform navigation config', () => {
             'templates',
             'organization-audit',
         ]);
+        expect(sectionKeys('Organization', 'System & Security')).not.toContain('access-management');
         const systemItems =
             NAV_SECTIONS.find(section => section.key === 'organization')?.groups.find(group => group.label === 'System & Security')
                 ?.items ?? [];
@@ -66,8 +66,14 @@ describe('platform navigation config', () => {
         expect(sectionKeys('Environment', 'APIs & Assets')).toEqual(['applications', 'metadata', 'dictionaries', 'shared-policy-groups']);
     });
 
-    it('places Gateways, Alerts, Security Plan Types, and Audit under Environment / System & Security', () => {
-        expect(sectionKeys('Environment', 'System & Security')).toEqual(['gateways', 'alerts', 'security-plan-types', 'environment-audit']);
+    it('places Access Management, Gateways, Alerts, Security Plan Types, and Audit under Environment / System & Security', () => {
+        expect(sectionKeys('Environment', 'System & Security')).toEqual([
+            'access-management',
+            'gateways',
+            'alerts',
+            'security-plan-types',
+            'environment-audit',
+        ]);
     });
 
     it('places Users and Groups under Team', () => {
@@ -89,8 +95,9 @@ describe('platform navigation config', () => {
     it('resolves the section that owns a nav item', () => {
         expect(findNavSectionKey(NAV_SECTIONS, 'applications')).toBe('environment');
         expect(findNavSectionKey(NAV_SECTIONS, 'users')).toBe('team');
-        expect(findNavSectionKey(NAV_SECTIONS, 'access-management')).toBe('organization');
+        expect(findNavSectionKey(NAV_SECTIONS, 'access-management')).toBe('environment');
         expect(findNavSectionKey(NAV_SECTIONS, 'tenants')).toBe('organization');
+        expect(findNavSectionKey(NAV_SECTIONS, 'policy-studio')).toBe('organization');
         expect(findNavSectionKey(NAV_SECTIONS, 'authentication')).toBe('organization');
         expect(findNavSectionKey(NAV_SECTIONS, 'organization-audit')).toBe('organization');
         expect(findNavSectionKey(NAV_SECTIONS, 'environment-audit')).toBe('environment');
@@ -170,5 +177,12 @@ describe('platform navigation config', () => {
     it('declares the authentication route in platform routing config', () => {
         expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('authentication');
         expect(ROUTES.authentication).toEqual({ path: 'authentication', label: 'Authentication' });
+    });
+
+    it('does not expose no-access as a sidebar item', () => {
+        expect(sectionKeys('Organization', 'System & Security')).not.toContain('no-access');
+        expect(sectionKeys('Environment', 'System & Security')).not.toContain('no-access');
+        expect(sectionKeys('Team', 'Team')).not.toContain('no-access');
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('no-access');
     });
 });
