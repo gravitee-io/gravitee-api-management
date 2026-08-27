@@ -5841,9 +5841,11 @@ components:
         ResponseTemplate:
             type: object
             properties:
-                #                TODO: How to specify that json output is "status"?
+                # The definition model writes this field as "status" (@JsonProperty). A promoted API
+                # definition is serialized from that model, so it must be readable under both names.
                 statusCode:
                     type: integer
+                    x-field-extra-annotation: '@com.fasterxml.jackson.annotation.JsonAlias("status")'
                 headers:
                     type: object
                     additionalProperties:
