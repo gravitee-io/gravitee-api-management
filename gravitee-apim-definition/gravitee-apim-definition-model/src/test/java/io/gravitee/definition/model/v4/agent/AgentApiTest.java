@@ -26,7 +26,6 @@ import io.gravitee.definition.model.v4.agent.definition.AgentInput;
 import io.gravitee.definition.model.v4.agent.definition.AgentJudge;
 import io.gravitee.definition.model.v4.agent.definition.AgentOutput;
 import io.gravitee.definition.model.v4.agent.definition.JudgeScore;
-import io.gravitee.definition.model.v4.agent.evaluation.Dataset;
 import io.gravitee.definition.model.v4.agent.workflow.AgentRefItem;
 import io.gravitee.definition.model.v4.agent.workflow.ConditionalItem;
 import io.gravitee.definition.model.v4.agent.workflow.ExternalAgentItem;
@@ -325,27 +324,18 @@ class AgentApiTest {
     }
 
     @Test
-    void should_deserialize_an_evaluation_over_recorded_runs() throws Exception {
-        // A third kind beside standalone and workflow: it serves no traffic, it scores runs another agent finished.
+    void should_deserialize_an_evaluation_that_says_how_to_score_but_not_what() throws Exception {
+        // A third kind beside standalone and workflow. It carries only the durable half — which store, which
+        // evaluators — because which runs to score arrives per invocation from whoever curates evaluation sets.
         // language=JSON
         String json = """
             { "definitionVersion": "V4", "type": "agent", "id": "nightly-eval", "name": "Nightly Eval",
               "apiVersion": "1.0.0", "kind": "evaluation",
-              "evaluation": {
-                "dataset": { "agent": "support-agent", "since": "24h", "outcome": "error", "limit": 500 },
-                "schedule": "24h",
-                "store": "eval-store",
-                "evaluators": [ "quality", "groundedness" ]
-              } }
+              "evaluation": { "store": "eval-store", "evaluators": [ "quality", "groundedness" ] } }
             """;
         AgentApi api = (AgentApi) mapper.readValue(json, AbstractApi.class);
-        Dataset dataset = api.getEvaluation().getDataset();
 
         assertThat(api.getKind()).isEqualTo("evaluation");
-        assertThat(dataset.getAgent()).isEqualTo("support-agent");
-        assertThat(dataset.getSince()).isEqualTo("24h");
-        assertThat(dataset.getOutcome()).isEqualTo(Dataset.OUTCOME_ERROR);
-        assertThat(dataset.getLimit()).isEqualTo(500);
         assertThat(api.getEvaluation().getStore()).isEqualTo("eval-store");
         assertThat(api.getEvaluation().getEvaluators()).containsExactly("quality", "groundedness");
         // The bodies are mutually exclusive by kind, not by validation — an evaluation carries neither of the others.
