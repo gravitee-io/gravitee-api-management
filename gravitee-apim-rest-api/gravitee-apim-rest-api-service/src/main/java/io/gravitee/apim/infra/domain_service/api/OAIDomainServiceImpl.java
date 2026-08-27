@@ -42,6 +42,7 @@ import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorMa
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIOperationVisitor;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.swagger.v3.parser.core.models.ParseOptions;
+import java.net.URI;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -81,8 +82,11 @@ public class OAIDomainServiceImpl implements OAIDomainService {
             var importWithEndpointGroupsSharedConfiguration = addEndpointGroupSharedConfiguration(importDefinition);
             var importWithGroups = replaceGroupNamesWithIds(environmentId, importWithEndpointGroupsSharedConfiguration);
             var importWithTags = replaceTagsNamesWithIds(organizationId, importWithGroups);
-            var importWithDocumentation = addOAIDocumentation(withDocumentation, payload, importWithTags);
-            return addOASValidationPolicy(withOASValidationPolicy, payload, importWithDocumentation);
+            // Both consumers below store their argument as an OpenAPI document, so a URL payload has to be
+            // resolved first. Skip the work when neither of them is going to keep it.
+            var specContent = (withDocumentation || withOASValidationPolicy) ? resolveSpecContent(payload, descriptor) : payload;
+            var importWithDocumentation = addOAIDocumentation(withDocumentation, specContent, importWithTags);
+            return addOASValidationPolicy(withOASValidationPolicy, specContent, importWithDocumentation);
         }
 
         return null;
@@ -198,7 +202,38 @@ public class OAIDomainServiceImpl implements OAIDomainService {
             .build();
     }
 
-    private ImportDefinition addOAIDocumentation(boolean withDocumentation, String payload, ImportDefinition importWithTags) {
+    /**
+     * Returns the OpenAPI document to persist for the imported API.
+     *
+     * <p>For an inline import the payload already is the document and is kept verbatim, preserving the
+     * user's original formatting. For a URL import the payload is only a locator, so the document parsed
+     * from it is serialized instead. Note that the parse above runs with {@code resolveFully}, so a
+     * URL-imported document is stored with its {@code $ref}s inlined.
+     */
+    private String resolveSpecContent(String payload, OAIDescriptor descriptor) {
+        if (!isUrl(payload)) {
+            return payload;
+        }
+        try {
+            return descriptor.toJson();
+        } catch (JsonProcessingException e) {
+            throw new TechnicalManagementException("Error while serializing the OpenAPI specification fetched from " + payload, e);
+        }
+    }
+
+    private static boolean isUrl(String content) {
+        if (content == null || content.isBlank()) {
+            return false;
+        }
+        try {
+            var uri = new URI(content);
+            return uri.getScheme() != null && uri.getHost() != null;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private ImportDefinition addOAIDocumentation(boolean withDocumentation, String specContent, ImportDefinition importWithTags) {
         if (!withDocumentation) {
             return importWithTags;
         }
@@ -206,7 +241,7 @@ public class OAIDomainServiceImpl implements OAIDomainService {
             .name(DEFAULT_IMPORT_PAGE_NAME)
             .type(io.gravitee.apim.core.documentation.model.Page.Type.SWAGGER)
             .homepage(false)
-            .content(payload)
+            .content(specContent)
             .referenceType(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API)
             .published(true)
             .visibility(Page.Visibility.PUBLIC)
@@ -215,7 +250,11 @@ public class OAIDomainServiceImpl implements OAIDomainService {
         return importWithTags.toBuilder().pages(List.of(page)).build();
     }
 
-    private ImportDefinition addOASValidationPolicy(boolean withOASValidationPolicy, String payload, ImportDefinition importDefinition) {
+    private ImportDefinition addOASValidationPolicy(
+        boolean withOASValidationPolicy,
+        String specContent,
+        ImportDefinition importDefinition
+    ) {
         if (!withOASValidationPolicy) {
             return importDefinition;
         }
@@ -229,7 +268,7 @@ public class OAIDomainServiceImpl implements OAIDomainService {
             Resource resource = Resource.builder()
                 .name("OpenAPI Specification")
                 .type("content-provider-inline-resource")
-                .configuration(new ObjectMapper().writeValueAsString(new LinkedHashMap<>(Map.of("content", payload))))
+                .configuration(new ObjectMapper().writeValueAsString(new LinkedHashMap<>(Map.of("content", specContent))))
                 .build();
             importDefinition.getApiExport().setResources(List.of(resource));
 
