@@ -119,6 +119,11 @@
 
 		<!-- Gravitee Dependencies -->
 		<dependency>
+			<groupId>io.gravitee.common</groupId>
+			<artifactId>gravitee-common</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>io.gravitee.apim.definition</groupId>
 			<artifactId>gravitee-apim-definition-jackson</artifactId>
 			<version>${project.version}</version>

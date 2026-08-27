@@ -18,11 +18,13 @@ package io.gravitee.apim.core.api.domain_service;
 import static fixtures.core.model.ApiCRDFixtures.API_CROSS_ID;
 import static fixtures.core.model.ApiCRDFixtures.API_HRID;
 import static io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.core.model.ApiCRDFixtures;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
@@ -35,8 +37,11 @@ import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificat
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.notification.NotificationConfigType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import java.util.List;
@@ -75,6 +80,10 @@ class ValidateApiCRDDomainServiceTest {
 
     ValidatePortalNotificationDomainService portalNotificationValidator = mock(ValidatePortalNotificationDomainService.class);
 
+    ValidateHealthCheckScheduleDomainService healthCheckScheduleValidator = new ValidateHealthCheckScheduleDomainService(
+        new ObjectMapper()
+    );
+
     ValidateApiCRDDomainService cut = new ValidateApiCRDDomainService(
         categoryIdsValidator,
         pathValidator,
@@ -84,7 +93,8 @@ class ValidateApiCRDDomainServiceTest {
         resourceValidator,
         pagesValidator,
         planValidator,
-        portalNotificationValidator
+        portalNotificationValidator,
+        healthCheckScheduleValidator
     );
 
     PortalNotificationConfigEntity consoleNotificationConfiguration = new PortalNotificationConfigEntity();
@@ -246,6 +256,70 @@ class ValidateApiCRDDomainServiceTest {
                 sanitized -> Assertions.assertThat(sanitized.spec()).isEqualTo(expected),
                 errors -> Assertions.assertThat(errors).isEmpty()
             );
+    }
+
+    @Test
+    void should_return_severe_error_for_invalid_health_check_schedule() {
+        var group = (EndpointGroup) ApiCRDFixtures.newBaseSpec().build().getEndpointGroups().getFirst();
+        group.setServices(
+            EndpointGroupServices.builder()
+                .healthCheck(
+                    Service.builder()
+                        .type(ValidateHealthCheckScheduleDomainService.HTTP_HEALTH_CHECK_TYPE)
+                        .enabled(true)
+                        .overrideConfiguration(false)
+                        .configuration("{\"schedule\":\"*/30 * * * *\"}")
+                        .build()
+                )
+                .build()
+        );
+        var spec = ApiCRDFixtures.newBaseSpec()
+            .endpointGroups(List.of(group))
+            .consoleNotificationConfiguration(consoleNotificationConfiguration)
+            .build();
+        var input = new ValidateApiCRDDomainService.Input(AuditInfo.builder().environmentId(ENV_ID).organizationId(ORG_ID).build(), spec);
+
+        when(categoryIdsValidator.validateAndSanitize(new ValidateCategoryIdsDomainService.Input(ENV_ID, spec.getCategories()))).thenAnswer(
+            call -> Validator.Result.ofValue(call.getArgument(0))
+        );
+
+        when(
+            membersValidator.validateAndSanitize(
+                new ValidateCRDMembersDomainService.Input(AUDIT_INFO, MembershipReferenceType.APPLICATION, any())
+            )
+        ).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+        when(
+            groupsValidator.validateAndSanitize(new ValidateGroupsDomainService.Input(ENV_ID, any(), null, null, API_CREATE, true))
+        ).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+        when(resourceValidator.validateAndSanitize(new ValidateResourceDomainService.Input(ENV_ID, any()))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+
+        when(
+            pagesValidator.validateAndSanitize(new ValidatePagesDomainService.Input(AUDIT_INFO, spec.getId(), spec.getHrid(), any()))
+        ).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+        when(planValidator.validateAndSanitize(any(ValidatePlanDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+
+        when(
+            portalNotificationValidator.validateAndSanitize(
+                new ValidatePortalNotificationDomainService.Input(consoleNotificationConfiguration, any(), null, null, AUDIT_INFO)
+            )
+        ).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
+
+        var severeErrors = cut.validateAndSanitize(input).severe();
+
+        assertThat(severeErrors).isPresent();
+        assertThat(severeErrors.get()).hasSize(1);
+        assertThat(severeErrors.get().getFirst().isSevere()).isTrue();
+        assertThat(severeErrors.get().getFirst().getMessage())
+            .contains("*/30 * * * *")
+            .contains("6 fields")
+            .contains("endpointGroups[default-group].services.healthCheck.configuration.schedule");
     }
 
     @Test

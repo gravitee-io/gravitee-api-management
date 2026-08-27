@@ -90,6 +90,7 @@ import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateNativeApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateHealthCheckScheduleDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
@@ -400,7 +401,8 @@ class ImportApiCRDUseCaseTest {
             validateResourceDomainService,
             new ValidatePagesDomainService(pageSourceValidator, accessControlValidator, validationDomainService),
             new ValidatePlanDomainService(planValidatorService, verifyPlanPortRanges),
-            new ValidatePortalNotificationDomainService(new ValidateGroupsDomainService(groupQueryService))
+            new ValidatePortalNotificationDomainService(new ValidateGroupsDomainService(groupQueryService)),
+            new ValidateHealthCheckScheduleDomainService(new ObjectMapper())
         );
 
         planQueryService = new PlanQueryServiceInMemory(planCrudService);
