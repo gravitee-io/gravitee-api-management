@@ -22,33 +22,41 @@
  * Permission stubs default to granted so feature tests render normally.
  * To test denied states, mock `useHasPermission` or `permissionService` per-test.
  */
-import type { PermissionCheck } from '@gravitee/gamma-modules-sdk/types';
-import type { ReactNode } from 'react';
+import type {
+    ILicenseService,
+    IPermissionService,
+    NormalizeCrudMapRecordFn,
+    PermissionGateFn,
+    UseEnvironmentFn,
+    UseHasFeatureFn,
+    UseHasPermissionFn,
+} from '@gravitee/gamma-modules-sdk/types';
+import { createElement, Fragment } from 'react';
 
 // ─── License ──────────────────────────────────────────────────────────────────
 
 /** Test stub — defaults to granted. Mock `useHasFeature` per-test for denied states. */
-export const useHasFeature = (_feature: string): boolean => true;
+export const useHasFeature: UseHasFeatureFn = (_feature: string): boolean => true;
 
-export const licenseService = {
-    setLicense: (_license: unknown): void => {},
-    getLicense: (): null => null,
+export const licenseService: ILicenseService = {
+    setLicense: (_license): void => {},
+    getLicense: () => null,
     hasFeature: (_feature: string): boolean => true,
     hasPack: (_pack: string): boolean => true,
     isExpired: (): boolean => false,
     subscribe:
         (_listener: () => void): (() => void) =>
         () => {},
-    getSnapshot: (): null => null,
+    getSnapshot: () => null,
 };
 
 // ─── Permissions ──────────────────────────────────────────────────────────────
 
-export const useHasPermission = (_options: PermissionCheck): boolean => true;
+export const useHasPermission: UseHasPermissionFn = (_options): boolean => true;
 
-export const permissionService = {
-    load: (_scope: string, _permissions: string[]): void => {},
-    clear: (_scope: string): void => {},
+export const permissionService: IPermissionService = {
+    load: (_scope, _permissions: string[]): void => {},
+    clear: (_scope): void => {},
     reset: (): void => {},
     getAllPermissions: (): string[] => [],
     hasAnyOf: (_required?: string[]): boolean => true,
@@ -59,23 +67,15 @@ export const permissionService = {
     getSnapshot: (): number => 0,
 };
 
-export function PermissionGate({
-    children,
-    fallback = null,
-}: {
-    children: ReactNode;
-    fallback?: ReactNode;
-    anyOf?: string[];
-    allOf?: string[];
-}): ReactNode {
-    return children ?? fallback;
-}
+export const PermissionGate: PermissionGateFn = ({ children, fallback = null }) => {
+    return createElement(Fragment, null, children ?? fallback);
+};
 
 /**
  * Normalizes a CRUD permission map from the backend into flat permission strings.
  * e.g. `normalizeCrudMapRecord('api', { DEFINITION: ['R','U'] })` → `['api-definition-r', 'api-definition-u']`
  */
-export function normalizeCrudMapRecord(scope: string, record: Record<string, string[] | string>): string[] {
+export const normalizeCrudMapRecord: NormalizeCrudMapRecordFn = (scope, record) => {
     return Object.entries(record).flatMap(([key, crudValues]) => {
         const keyPart = key.toLowerCase();
         if (Array.isArray(crudValues)) {
@@ -83,8 +83,8 @@ export function normalizeCrudMapRecord(scope: string, record: Record<string, str
         }
         return crudValues.split('').map(letter => `${scope}-${keyPart}-${letter.toLowerCase()}`);
     });
-}
+};
 
 // ─── Environment ──────────────────────────────────────────────────────────────
 
-export const useEnvironment = () => ({ id: 'DEFAULT' });
+export const useEnvironment: UseEnvironmentFn = () => ({ id: 'DEFAULT', organizationId: 'DEFAULT' });
