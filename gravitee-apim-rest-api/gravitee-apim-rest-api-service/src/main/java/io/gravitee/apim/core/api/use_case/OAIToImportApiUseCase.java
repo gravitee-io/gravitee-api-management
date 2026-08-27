@@ -98,14 +98,16 @@ public class OAIToImportApiUseCase {
             var importWithEndpointGroupsSharedConfiguration = addEndpointGroupSharedConfiguration(importDefinition);
             var importWithGroups = replaceGroupNamesWithIds(environmentId, importWithEndpointGroupsSharedConfiguration);
             var importWithTags = replaceTagsNamesWithIds(organizationId, importWithGroups);
-            var importWithDocumentation = addOAIDocumentation(
-                input.withDocumentation(),
-                input.importSwaggerDescriptor.getPayload(),
-                importWithTags
-            );
+            // Both consumers below store their argument as an OpenAPI document, so a URL payload has to be
+            // resolved first. Skip the work when neither of them is going to keep it.
+            var payload = input.importSwaggerDescriptor.getPayload();
+            var specContent = (input.withDocumentation() || input.withOASValidationPolicy())
+                ? oaiDomainService.resolveSpecificationContent(payload)
+                : payload;
+            var importWithDocumentation = addOAIDocumentation(input.withDocumentation(), specContent, importWithTags);
             var importWithOASValidationPolicy = addOASValidationPolicy(
                 input.withOASValidationPolicy(),
-                input.importSwaggerDescriptor.getPayload(),
+                specContent,
                 importWithDocumentation
             );
 
@@ -193,7 +195,7 @@ public class OAIToImportApiUseCase {
             .build();
     }
 
-    private ImportDefinition addOAIDocumentation(boolean withDocumentation, String payload, ImportDefinition importWithTags) {
+    private ImportDefinition addOAIDocumentation(boolean withDocumentation, String specContent, ImportDefinition importWithTags) {
         if (!withDocumentation) {
             return importWithTags;
         }
@@ -201,7 +203,7 @@ public class OAIToImportApiUseCase {
             .name(DEFAULT_IMPORT_PAGE_NAME)
             .type(io.gravitee.apim.core.documentation.model.Page.Type.SWAGGER)
             .homepage(false)
-            .content(payload)
+            .content(specContent)
             .referenceType(io.gravitee.apim.core.documentation.model.Page.ReferenceType.API)
             .published(true)
             .visibility(Page.Visibility.PUBLIC)
@@ -210,7 +212,11 @@ public class OAIToImportApiUseCase {
         return importWithTags.toBuilder().pages(List.of(page)).build();
     }
 
-    private ImportDefinition addOASValidationPolicy(boolean withOASValidationPolicy, String payload, ImportDefinition importDefinition) {
+    private ImportDefinition addOASValidationPolicy(
+        boolean withOASValidationPolicy,
+        String specContent,
+        ImportDefinition importDefinition
+    ) {
         if (!withOASValidationPolicy) {
             return importDefinition;
         }
@@ -224,7 +230,7 @@ public class OAIToImportApiUseCase {
             Resource resource = Resource.builder()
                 .name("OpenAPI Specification")
                 .type("content-provider-inline-resource")
-                .configuration(new ObjectMapper().writeValueAsString(new LinkedHashMap<>(Map.of("content", payload))))
+                .configuration(new ObjectMapper().writeValueAsString(new LinkedHashMap<>(Map.of("content", specContent))))
                 .build();
             importDefinition.getApiExport().setResources(List.of(resource));
 

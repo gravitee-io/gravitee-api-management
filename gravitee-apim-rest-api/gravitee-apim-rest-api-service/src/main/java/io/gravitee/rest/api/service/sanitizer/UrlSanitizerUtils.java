@@ -23,12 +23,27 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.CustomLog;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class UrlSanitizerUtils {
+
+    public static boolean isUrl(String content) {
+        if (content == null || content.isBlank()) {
+            return false;
+        }
+        try {
+            var uri = new URI(content);
+            return uri.getScheme() != null && uri.getHost() != null;
+        } catch (Exception e) {
+            log.debug("Content is not a valid URL: {}", e.getMessage());
+            return false;
+        }
+    }
 
     public static void checkAllowed(String url, List<String> whitelist, boolean allowPrivate) {
         checkUrlForbiddenCharacters(url);

@@ -15,14 +15,17 @@
  */
 package io.gravitee.apim.infra.domain_service.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.infra.converter.oai.OAIToImportDefinitionConverter;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.swagger.parser.OAIParser;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIOperationVisitor;
+import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import java.util.Collection;
@@ -41,6 +44,18 @@ public class OAIDomainServiceImpl implements OAIDomainService {
         var descriptor = toOAIDescriptor(importSwaggerDescriptor.getPayload());
         var visitors = getVisitors(importSwaggerDescriptor);
         return OAIToImportDefinitionConverter.INSTANCE.toImportDefinition(descriptor.getSpecification(), visitors);
+    }
+
+    @Override
+    public String resolveSpecificationContent(String payload) {
+        if (!UrlSanitizerUtils.isUrl(payload)) {
+            return payload;
+        }
+        try {
+            return toOAIDescriptor(payload).toJson();
+        } catch (JsonProcessingException e) {
+            throw new TechnicalManagementException("Error while serializing the OpenAPI specification fetched from " + payload, e);
+        }
     }
 
     private OAIDescriptor toOAIDescriptor(String payload) {

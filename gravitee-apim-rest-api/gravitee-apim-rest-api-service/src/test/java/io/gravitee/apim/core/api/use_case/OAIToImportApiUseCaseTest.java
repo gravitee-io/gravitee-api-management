@@ -15,6 +15,9 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static io.gravitee.apim.core.api.use_case.OAIToImportApiUseCase.DEFAULT_IMPORT_PAGE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
@@ -23,6 +26,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import fixtures.core.model.AuditInfoFixtures;
@@ -341,6 +346,83 @@ class OAIToImportApiUseCaseTest {
             );
             // Check that the Resource is not added
             assertThat(importDefinition.getApiDefinitionHttpV4().getResources()).isEmpty();
+        }
+    }
+
+    @Nested
+    @WireMockTest
+    class RemoteUrlPayload {
+
+        private static final String REMOTE_SPEC = """
+            {
+              "openapi": "3.0.3",
+              "info": { "title": "Remote", "version": "1.0.0" },
+              "servers": [ { "url": "https://api.example.com/remote" } ],
+              "paths": {
+                "/pets": {
+                  "get": {
+                    "operationId": "listPets",
+                    "responses": {
+                      "200": {
+                        "description": "ok",
+                        "content": {
+                          "application/json": {
+                            "schema": { "$ref": "#/components/schemas/Pet" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "components": {
+                "schemas": {
+                  "Pet": { "type": "object", "properties": { "name": { "type": "string" } } }
+                }
+              }
+            }
+            """;
+
+        private String stubSpecUrl(WireMockRuntimeInfo wm) {
+            wm.getWireMock().register(get(urlEqualTo("/openapi.json")).willReturn(aResponse().withStatus(200).withBody(REMOTE_SPEC)));
+            return wm.getHttpBaseUrl() + "/openapi.json";
+        }
+
+        @Test
+        void should_store_the_fetched_specification_as_documentation_rather_than_the_url(WireMockRuntimeInfo wm) {
+            // Given
+            var url = stubSpecUrl(wm);
+            var importSwaggerDescriptor = ImportSwaggerDescriptorEntity.builder().payload(url).build();
+
+            // When
+            var output = useCase.execute(new OAIToImportApiUseCase.Input(importSwaggerDescriptor, true, false, AUDIT_INFO));
+
+            // Then
+            assertThat(output).isNotNull();
+            assertThat(importDefinitionCreateDomainServiceTestInitializer.pageCrudService.storage())
+                .hasSize(1)
+                .first()
+                .satisfies(page -> assertThat(page.getContent()).isNotEqualTo(url).contains("\"openapi\"").contains("listPets"));
+        }
+
+        @Test
+        void should_give_the_oas_validation_policy_the_fetched_specification_rather_than_the_url(WireMockRuntimeInfo wm) {
+            // Given
+            var url = stubSpecUrl(wm);
+            var importSwaggerDescriptor = ImportSwaggerDescriptorEntity.builder().payload(url).build();
+            policyPluginCrudService.initWith(
+                List.of(PolicyPlugin.builder().id("oas-validation").name("OpenAPI Specification Validation").build())
+            );
+
+            // When
+            var output = useCase.execute(new OAIToImportApiUseCase.Input(importSwaggerDescriptor, false, true, AUDIT_INFO));
+
+            // Then
+            assertThat(output).isNotNull();
+            assertThat(output.apiWithFlows().getApiDefinitionHttpV4().getResources())
+                .hasSize(1)
+                .first()
+                .satisfies(resource -> assertThat(resource.getConfiguration()).doesNotContain(url).contains("listPets"));
         }
     }
 }

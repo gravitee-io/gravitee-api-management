@@ -20,4 +20,14 @@ import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 
 public interface OAIDomainService {
     ImportDefinition convert(String organizationId, String environmentId, ImportSwaggerDescriptorEntity importSwaggerDescriptor);
+
+    /**
+     * Returns the OpenAPI document to persist for the imported API.
+     *
+     * <p>For an inline import the payload already is the document and is kept verbatim, preserving the
+     * user's original formatting. For a URL import the payload is only a locator, so the document parsed
+     * from it is serialized instead. Note that the parse runs with {@code resolveFully}, so a
+     * URL-imported document is stored with its {@code $ref}s inlined.
+     */
+    String resolveSpecificationContent(String payload);
 }
