@@ -87,6 +87,18 @@ class ApisResourceTest extends AbstractResourceTest {
             });
         }
 
+        @Test
+        void should_return_state_from_dotted_hrid() {
+            var state = expectEntity("api-with-dotted-hrid.json");
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(state.getCrossId()).isEqualTo("api-cross-id");
+                soft.assertThat(state.getId()).isEqualTo("api-id");
+                soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
+                soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
+                soft.assertThat(state.getHrid()).isEqualTo("api-hrid.dotted");
+            });
+        }
+
         @ParameterizedTest
         @ValueSource(booleans = { false, true })
         void should_accept_lowercase_enum_values(boolean dryRun) {
