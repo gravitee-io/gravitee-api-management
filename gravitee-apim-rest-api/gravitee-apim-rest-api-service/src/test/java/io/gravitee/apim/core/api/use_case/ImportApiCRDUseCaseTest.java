@@ -89,6 +89,7 @@ import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateNativeApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateHealthCheckScheduleDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
@@ -399,8 +400,14 @@ class ImportApiCRDUseCaseTest {
             new ValidateGroupsDomainService(groupQueryService),
             validateResourceDomainService,
             new ValidatePagesDomainService(pageSourceValidator, accessControlValidator, validationDomainService),
+<<<<<<< HEAD
             new ValidatePlanDomainService(planValidatorDomainService),
             new ValidatePortalNotificationDomainService(new ValidateGroupsDomainService(groupQueryService))
+=======
+            new ValidatePlanDomainService(planValidatorService, verifyPlanPortRanges),
+            new ValidatePortalNotificationDomainService(new ValidateGroupsDomainService(groupQueryService)),
+            new ValidateHealthCheckScheduleDomainService(new ObjectMapper())
+>>>>>>> 2183936 (fix(GKO-3207): reject invalid v4 health-check cron on CRD validation)
         );
 
         planQueryService = new PlanQueryServiceInMemory(planCrudService);
