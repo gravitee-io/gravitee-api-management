@@ -1,0 +1,18 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "outDir": "../../dist/out-tsc",
+        "module": "commonjs",
+        "moduleResolution": "node10",
+        "jsx": "react-jsx",
+        "types": ["jest", "node", "@nx/react/typings/cssmodule.d.ts", "@nx/react/typings/image.d.ts"]
+    },
+    "include": [
+        "jest.config.ts",
+        "src/main/ui/**/*.test.ts",
+        "src/main/ui/**/*.spec.ts",
+        "src/main/ui/**/*.test.tsx",
+        "src/main/ui/**/*.spec.tsx",
+        "src/main/ui/**/*.d.ts"
+    ]
+}

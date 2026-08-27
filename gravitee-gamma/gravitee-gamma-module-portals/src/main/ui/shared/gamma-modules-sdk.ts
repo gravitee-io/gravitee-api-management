@@ -1,0 +1,90 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * Test stub for `@gravitee/gamma-modules-sdk`.
+ * Replaced at runtime by the MF singleton from the host shell.
+ * Individual tests mock specific exports via jest.mock().
+ *
+ * Permission stubs default to granted so feature tests render normally.
+ * To test denied states, mock `useHasPermission` or `permissionService` per-test.
+ */
+import type {
+    ILicenseService,
+    IPermissionService,
+    NormalizeCrudMapRecordFn,
+    PermissionGateFn,
+    UseEnvironmentFn,
+    UseHasFeatureFn,
+    UseHasPermissionFn,
+} from '@gravitee/gamma-modules-sdk/types';
+import { createElement, Fragment } from 'react';
+
+// ─── License ──────────────────────────────────────────────────────────────────
+
+/** Test stub — defaults to granted. Mock `useHasFeature` per-test for denied states. */
+export const useHasFeature: UseHasFeatureFn = (_feature: string): boolean => true;
+
+export const licenseService: ILicenseService = {
+    setLicense: (_license): void => {},
+    getLicense: () => null,
+    hasFeature: (_feature: string): boolean => true,
+    hasPack: (_pack: string): boolean => true,
+    isExpired: (): boolean => false,
+    subscribe:
+        (_listener: () => void): (() => void) =>
+        () => {},
+    getSnapshot: () => null,
+};
+
+// ─── Permissions ──────────────────────────────────────────────────────────────
+
+export const useHasPermission: UseHasPermissionFn = (_options): boolean => true;
+
+export const permissionService: IPermissionService = {
+    load: (_scope, _permissions: string[]): void => {},
+    clear: (_scope): void => {},
+    reset: (): void => {},
+    getAllPermissions: (): string[] => [],
+    hasAnyOf: (_required?: string[]): boolean => true,
+    hasAllOf: (_required?: string[]): boolean => true,
+    subscribe:
+        (_listener: () => void): (() => void) =>
+        () => {},
+    getSnapshot: (): number => 0,
+};
+
+export const PermissionGate: PermissionGateFn = ({ children, fallback = null }) => {
+    return createElement(Fragment, null, children ?? fallback);
+};
+
+/**
+ * Normalizes a CRUD permission map from the backend into flat permission strings.
+ * e.g. `normalizeCrudMapRecord('api', { DEFINITION: ['R','U'] })` → `['api-definition-r', 'api-definition-u']`
+ */
+export const normalizeCrudMapRecord: NormalizeCrudMapRecordFn = (scope, record) => {
+    return Object.entries(record).flatMap(([key, crudValues]) => {
+        const keyPart = key.toLowerCase();
+        if (Array.isArray(crudValues)) {
+            return crudValues.map(letter => `${scope}-${keyPart}-${letter.toLowerCase()}`);
+        }
+        return crudValues.split('').map(letter => `${scope}-${keyPart}-${letter.toLowerCase()}`);
+    });
+};
+
+// ─── Environment ──────────────────────────────────────────────────────────────
+
+export const useEnvironment: UseEnvironmentFn = () => ({ id: 'DEFAULT', organizationId: 'DEFAULT' });

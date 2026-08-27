@@ -1,0 +1,13 @@
+{
+    "name": "gravitee-gamma-module-portals",
+    "private": true,
+    "dependencies": {
+        "@gravitee/gamma-modules-sdk": "1.2.0",
+        "@gravitee/graphene-core": "3.14.0",
+        "@tanstack/react-query": "5.100.14",
+        "react": "19.2.6",
+        "react-dom": "19.2.6",
+        "react-hook-form": "7.76.1",
+        "react-router-dom": "7.15.1"
+    }
+}
