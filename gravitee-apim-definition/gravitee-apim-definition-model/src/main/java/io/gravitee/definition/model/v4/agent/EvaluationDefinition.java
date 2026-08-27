@@ -16,7 +16,6 @@
 package io.gravitee.definition.model.v4.agent;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.gravitee.definition.model.v4.agent.evaluation.Dataset;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,16 +26,18 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * The body of a {@code kind:evaluation} definition — a scheduled or on-demand scoring of an agent's recorded runs.
+ * The body of a {@code kind:evaluation} definition — how an agent's recorded runs are scored, but never <em>which</em>
+ * ones.
  *
  * <p>Deployed the same way an agent is, and for the same reasons: it wants a listener so someone can trigger it, a
  * plan so that trigger is protected, resources so its evaluators and its store are declared where everything else is
  * declared, and a deploy lifecycle so editing it takes effect. Making it a {@code kind} rather than a new sort of
  * thing means none of that had to be built twice.</p>
  *
- * <p>What it runs is one loop: resolve the {@link #dataset} to a set of recorded runs, put every run through every
- * evaluator, write what they answer. Both the schedule and the trigger run exactly that, so nothing is only reachable
- * one way.</p>
+ * <p>Deliberately only the durable half. Which runs to score arrives per invocation, in a run configuration, because
+ * that decision belongs to whoever curates evaluation sets — it involves datasets, golden sets, versions and who may
+ * see what, none of which a gateway should model. What is left here is the two things that could not travel in a
+ * payload anyway, since both name resources that have to be deployed.</p>
  */
 @NoArgsConstructor
 @AllArgsConstructor
@@ -47,18 +48,6 @@ import lombok.ToString;
 @Builder(toBuilder = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EvaluationDefinition {
-
-    /** Which recorded runs to score. */
-    private Dataset dataset;
-
-    /**
-     * How often to run unprompted, as a duration: {@code 1h}, {@code 24h}. Absent ⇒ never — the trigger is the only
-     * way in, which is what you want while an evaluator is still being tuned.
-     *
-     * <p>Note this schedules per gateway node. Two nodes means two evaluations of the same runs, and twice the model
-     * spend if a judge is attached.</p>
-     */
-    private String schedule;
 
     /**
      * The {@code name} of the resource holding recorded runs and receiving scores — the same store the agent under
