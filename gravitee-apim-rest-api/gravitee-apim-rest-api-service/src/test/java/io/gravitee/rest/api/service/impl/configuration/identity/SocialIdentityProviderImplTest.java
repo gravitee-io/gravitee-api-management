@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.configuration.identity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -26,11 +27,14 @@ import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivat
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderType;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
+import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService.ActivationTarget;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,8 +46,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Covers the collapse of the free-form {@code tokenEndpointAuthMethod} configuration string into the typed enum. The
- * resources only ever see the enum, so this is the only place the string is interpreted.
+ * Covers the collapse of the free-form {@code tokenEndpointAuthMethod} configuration string into the typed enum, and
+ * that a disabled IdP is rejected for both organization (Console) and environment (Portal) login.
  *
  * @author GraviteeSource Team
  */
@@ -52,6 +56,15 @@ class SocialIdentityProviderImplTest {
 
     private static final String PROVIDER_ID = "oidc-provider";
     private static final String ORGANIZATION_ID = "DEFAULT";
+    private static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext(ORGANIZATION_ID, ORGANIZATION_ID);
+    private static final ActivationTarget ORGANIZATION_TARGET = new ActivationTarget(
+        ORGANIZATION_ID,
+        IdentityProviderActivationReferenceType.ORGANIZATION
+    );
+    private static final ActivationTarget ENVIRONMENT_TARGET = new ActivationTarget(
+        ORGANIZATION_ID,
+        IdentityProviderActivationReferenceType.ENVIRONMENT
+    );
 
     @Mock
     private IdentityProviderService identityProviderService;
@@ -103,6 +116,67 @@ class SocialIdentityProviderImplTest {
         assertThatCode(() -> assertThat(findProvider().getTokenEndpointAuthMethod()).isNull()).doesNotThrowAnyException();
     }
 
+    @Test
+    void find_all_should_exclude_disabled_idp_for_organization_target() {
+        givenActivatedIdps(ORGANIZATION_TARGET, googleIdp("enabled-idp", "Enabled", true), googleIdp("disabled-idp", "Disabled", false));
+
+        assertThat(socialIdentityProvider.findAll(EXECUTION_CONTEXT, ORGANIZATION_TARGET))
+            .extracting(SocialIdentityProviderEntity::getId)
+            .containsExactly("enabled-idp");
+    }
+
+    @Test
+    void find_all_should_exclude_disabled_idp_for_environment_target() {
+        givenActivatedIdps(ENVIRONMENT_TARGET, googleIdp("enabled-idp", "Enabled", true), googleIdp("disabled-idp", "Disabled", false));
+
+        assertThat(socialIdentityProvider.findAll(EXECUTION_CONTEXT, ENVIRONMENT_TARGET))
+            .extracting(SocialIdentityProviderEntity::getId)
+            .containsExactly("enabled-idp");
+    }
+
+    @Test
+    void find_all_should_include_enabled_idp_for_organization_target() {
+        givenActivatedIdps(ORGANIZATION_TARGET, googleIdp("enabled-idp", "Enabled", true));
+
+        assertThat(socialIdentityProvider.findAll(EXECUTION_CONTEXT, ORGANIZATION_TARGET))
+            .extracting(SocialIdentityProviderEntity::getId)
+            .containsExactly("enabled-idp");
+    }
+
+    @Test
+    void find_by_id_should_return_enabled_idp_for_organization_target() {
+        givenActivatedIdp(ORGANIZATION_TARGET, googleIdp("enabled-idp", "Enabled", true));
+
+        assertThat(socialIdentityProvider.findById("enabled-idp", ORGANIZATION_TARGET).getId()).isEqualTo("enabled-idp");
+    }
+
+    @Test
+    void find_by_id_should_reject_disabled_idp_for_organization_target() {
+        givenActivatedIdp(ORGANIZATION_TARGET, googleIdp("disabled-idp", "Disabled", false));
+
+        assertThatThrownBy(() -> socialIdentityProvider.findById("disabled-idp", ORGANIZATION_TARGET)).isInstanceOf(
+            IdentityProviderNotFoundException.class
+        );
+    }
+
+    @Test
+    void find_by_id_should_reject_disabled_idp_for_environment_target() {
+        givenActivatedIdp(ENVIRONMENT_TARGET, googleIdp("disabled-idp", "Disabled", false));
+
+        assertThatThrownBy(() -> socialIdentityProvider.findById("disabled-idp", ENVIRONMENT_TARGET)).isInstanceOf(
+            IdentityProviderNotFoundException.class
+        );
+    }
+
+    @Test
+    void find_by_id_should_reject_idp_not_activated_on_target() {
+        when(identityProviderActivationService.findAllByTarget(ORGANIZATION_TARGET)).thenReturn(Set.of());
+
+        assertThatThrownBy(() -> socialIdentityProvider.findById("missing-idp", ORGANIZATION_TARGET)).isInstanceOf(
+            IdentityProviderNotFoundException.class
+        );
+    }
+
     private SocialIdentityProviderEntity findProvider() {
         IdentityProviderEntity identityProvider = new IdentityProviderEntity();
         identityProvider.setId(PROVIDER_ID);
@@ -121,5 +195,35 @@ class SocialIdentityProviderImplTest {
             PROVIDER_ID,
             new IdentityProviderActivationService.ActivationTarget(ORGANIZATION_ID, IdentityProviderActivationReferenceType.ORGANIZATION)
         );
+    }
+
+    private void givenActivatedIdps(ActivationTarget target, IdentityProviderEntity... identityProviders) {
+        Set<IdentityProviderActivationEntity> activations = Set.of(identityProviders)
+            .stream()
+            .map(idp -> activation(idp.getId()))
+            .collect(Collectors.toSet());
+        when(identityProviderActivationService.findAllByTarget(target)).thenReturn(activations);
+        when(identityProviderService.findAll(EXECUTION_CONTEXT)).thenReturn(Set.of(identityProviders));
+    }
+
+    private void givenActivatedIdp(ActivationTarget target, IdentityProviderEntity identityProvider) {
+        when(identityProviderActivationService.findAllByTarget(target)).thenReturn(Set.of(activation(identityProvider.getId())));
+        when(identityProviderService.findById(identityProvider.getId())).thenReturn(identityProvider);
+    }
+
+    private static IdentityProviderActivationEntity activation(String identityProviderId) {
+        IdentityProviderActivationEntity activation = new IdentityProviderActivationEntity();
+        activation.setIdentityProvider(identityProviderId);
+        return activation;
+    }
+
+    private static IdentityProviderEntity googleIdp(String id, String name, boolean enabled) {
+        IdentityProviderEntity identityProvider = new IdentityProviderEntity();
+        identityProvider.setId(id);
+        identityProvider.setName(name);
+        identityProvider.setType(IdentityProviderType.GOOGLE);
+        identityProvider.setEnabled(enabled);
+        identityProvider.setConfiguration(Map.of("clientId", "client-id", "clientSecret", "client-secret"));
+        return identityProvider;
     }
 }

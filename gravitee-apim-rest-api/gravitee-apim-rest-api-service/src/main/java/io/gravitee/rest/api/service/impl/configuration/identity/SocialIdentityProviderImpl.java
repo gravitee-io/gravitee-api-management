@@ -83,11 +83,8 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
             Stream<IdentityProviderEntity> identityProviderEntityStream = identityProviderService
                 .findAll(executionContext)
                 .stream()
-                .filter(idp -> allIdpByTarget.contains(idp.getId()));
-
-            if (target.getReferenceType() == IdentityProviderActivationReferenceType.ENVIRONMENT) {
-                identityProviderEntityStream = identityProviderEntityStream.filter(IdentityProviderEntity::isEnabled);
-            }
+                .filter(idp -> allIdpByTarget.contains(idp.getId()))
+                .filter(IdentityProviderEntity::isEnabled);
 
             return identityProviderEntityStream
                 .sorted((idp1, idp2) -> String.CASE_INSENSITIVE_ORDER.compare(idp1.getName(), idp2.getName()))
@@ -115,7 +112,7 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
 
             IdentityProviderEntity identityProvider = identityProviderService.findById(id);
 
-            if (target.getReferenceType() == IdentityProviderActivationReferenceType.ENVIRONMENT && !identityProvider.isEnabled()) {
+            if (!identityProvider.isEnabled()) {
                 throw new IdentityProviderNotFoundException(identityProvider.getId());
             }
 
