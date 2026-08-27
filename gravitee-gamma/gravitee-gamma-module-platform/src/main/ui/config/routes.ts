@@ -36,10 +36,11 @@ export const ROUTE_KEYS: readonly string[] = [
     'cors',
     'smtp',
     'templates',
+    'no-access',
 ];
 export type RouteKey = (typeof ROUTE_KEYS)[number];
 
-const DEFAULT_ROUTE_KEY: RouteKey = 'applications';
+export const DEFAULT_ROUTE_KEY: RouteKey = 'applications';
 
 export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: string }> = {
     applications: { path: 'applications', label: 'Applications' },
@@ -62,6 +63,7 @@ export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: s
     cors: { path: 'cors', label: 'CORS' },
     smtp: { path: 'smtp', label: 'SMTP' },
     templates: { path: 'templates', label: 'Templates' },
+    'no-access': { path: 'no-access', label: 'No access' },
 };
 
 export const PLATFORM_ROUTE_CONFIG: ModuleRouteConfig<RouteKey> = {
