@@ -345,12 +345,25 @@ data:
     {{- if hasKey .Values.gateway "edge" }}
     {{- if .Values.gateway.edge.enabled }}
     edge:
+      {{- if hasKey .Values.gateway.edge "port" }}
+      port: {{ .Values.gateway.edge.port }}
+      {{- end }}
+      {{- if hasKey .Values.gateway.edge "host" }}
+      host: {{ .Values.gateway.edge.host }}
+      {{- end }}
+      {{- if .Values.gateway.edge.secured }}
+      secured: true
+      {{- end }}
+      {{- if .Values.gateway.edge.ssl }}
+      ssl:{{ toYaml .Values.gateway.edge.ssl | nindent 8 }}
+      {{- end }}
+      {{- if hasKey .Values.gateway.edge "server" }}
+      {{- if hasKey .Values.gateway.edge.server "port" }}
+      # Deprecated, prefer `gateway.edge.port`
       server:
-        {{- if hasKey .Values.gateway.edge "server" }}
-        {{- if hasKey .Values.gateway.edge.server "port" }}
         port: {{ .Values.gateway.edge.server.port }}
-        {{- end }}
-        {{- end }}
+      {{- end }}
+      {{- end }}
     {{- end }}
     {{- end }}
     repositories:

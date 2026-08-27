@@ -193,9 +193,31 @@ secrets:
 #    proxyProtocolTimeout: 10000
 
 # Edge Reactor HTTP server
+# Private server: it is not registered in the node ServerManager, so no API listener is ever routed on it.
 #edge:
-#  server:
-#    port: 18093
+#  port: 18093
+#  host: 0.0.0.0
+#  # 'server.port' is the former name of 'port'. Still honoured as the default port, but deprecated: a warning is
+#  # logged at startup and 'port' wins when both are set.
+#  #server:
+#  #  port: 18093
+#  secured: false
+#  ssl:
+#    # Supports none, request, required.
+#    # With 'none' no client certificate is ever requested: an mTLS plan on the Edge API can never match, so calls
+#    # fall through to the keyless plan and are served unauthenticated - or get a 401 if no keyless plan remains.
+#    # Use 'request' on dev/test, 'required' on production.
+#    clientAuth: none
+#    keystore:
+#      type: pem # Supports jks, pem, pkcs12, self-signed
+#      path: ${gravitee.home}/security/edge-keystore.jks
+#      password: secret
+#    # The Edge truststore holds the certificate authority of the Edge fleet, not the enrolled leaf certificates:
+#    # per-subscription trust material is registered against ServerManager servers, which this one is not part of.
+#    # TLS validates the chain, the mTLS policy still does the exact thumbprint match against the subscription.
+#    truststore:
+#      type: pem # Supports jks, pem, pkcs12
+#      path: ${gravitee.home}/security/edge-fleet-ca.pem
 
 # Gateway Kafka server
 #kafka:
