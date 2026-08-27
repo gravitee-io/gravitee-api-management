@@ -61,6 +61,21 @@ tests:
                 truststore:
                   path: /opt/certs/edge-fleet-ca.pem
                   type: pem
+  - it: Render an explicit secured false rather than omitting it
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        edge:
+          enabled: true
+          port: 18093
+          secured: false
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            edge:
+              port: 18093
+              secured: false
   - it: Disabled Edge reactor does not inject edge config
     template: gateway/gateway-configmap.yaml
     set:

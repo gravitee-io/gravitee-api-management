@@ -351,8 +351,8 @@ data:
       {{- if hasKey .Values.gateway.edge "host" }}
       host: {{ .Values.gateway.edge.host }}
       {{- end }}
-      {{- if .Values.gateway.edge.secured }}
-      secured: true
+      {{- if hasKey .Values.gateway.edge "secured" }}
+      secured: {{ .Values.gateway.edge.secured }}
       {{- end }}
       {{- if .Values.gateway.edge.ssl }}
       ssl:{{ toYaml .Values.gateway.edge.ssl | nindent 8 }}

@@ -1477,9 +1477,12 @@ gateway:
 #      # remains. Use `request` on dev/test, `required` on production.
 #      clientAuth: none
 #      keystore:
-#        type: pem # Supports jks, pem, pkcs12, self-signed
-#        path: /opt/graviteeio-gateway/security/edge-keystore.jks
+#        type: jks # Supports jks, pem, pkcs12, self-signed
+#        path: /opt/graviteeio-gateway/security/edge-keystore.jks # Required when type is jks or pkcs12
 #        password: secret
+#        # certificates: # Required when type is pem
+#        #   - cert: /opt/graviteeio-gateway/security/edge-server.pem
+#        #     key: /opt/graviteeio-gateway/security/edge-server.key
 #        # secret: secret://kubernetes/apim-gateway-edge-tls
 #        watch: true
 #      # The Edge truststore holds the certificate authority of the Edge fleet, not the enrolled leaf

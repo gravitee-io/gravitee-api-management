@@ -209,8 +209,11 @@ secrets:
 #    # Use 'request' on dev/test, 'required' on production.
 #    clientAuth: none
 #    keystore:
-#      type: pem # Supports jks, pem, pkcs12, self-signed
-#      path: ${gravitee.home}/security/edge-keystore.jks
+#      type: jks # Supports jks, pem, pkcs12, self-signed
+#      path: ${gravitee.home}/security/edge-keystore.jks # A path is required if the type is jks or pkcs12
+#      certificates: # Certificates are required if the type is pem
+#        - cert: ${gravitee.home}/security/edge-server.pem
+#          key: ${gravitee.home}/security/edge-server.key
 #      password: secret
 #    # The Edge truststore holds the certificate authority of the Edge fleet, not the enrolled leaf certificates:
 #    # per-subscription trust material is registered against ServerManager servers, which this one is not part of.
