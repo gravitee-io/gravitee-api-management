@@ -57,12 +57,6 @@ export class PortalNavigationService {
       permissions: ['environment-settings-r', 'environment-settings-u'],
     },
     {
-      displayName: 'Banner',
-      routerLink: 'banner',
-      icon: 'gio:chat-lines',
-      permissions: ['environment-settings-r', 'environment-settings-u'],
-    },
-    {
       displayName: 'Theme',
       routerLink: 'theme',
       icon: 'gio:color-picker',
