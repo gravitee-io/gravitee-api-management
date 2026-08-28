@@ -29,7 +29,6 @@
   &__filters {
     display: flex;
     flex-wrap: wrap;
-    max-width: 50rem;
     align-items: center;
     margin-bottom: 24px;
     gap: 16px;
@@ -37,6 +36,10 @@
 
   &__filter {
     flex: 1 1 200px;
+
+    &--status {
+      flex-grow: 0;
+    }
   }
 
   &__count {
