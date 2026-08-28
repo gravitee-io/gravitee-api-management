@@ -18,19 +18,19 @@ package io.gravitee.apim.core.portal_page.domain_service.validation;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
-import java.util.List;
-import java.util.Map;
+import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 
 /**
- * Context built once per create validation (single or bulk) to hold shared data and avoid repeated fetches.
+ * A (parent, segment) slot that a create or update in the current validation batch intends to occupy.
+ * Shared between {@link CreateValidationContext} and {@link UpdateValidationContext} so that segment-conflict
+ * detection can spot collisions across the two sides of a single mixed batch.
  */
-public record CreateValidationContext(
-    List<PortalNavigationItem> navigationItems,
-    Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
-    Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById,
-    List<PendingSegmentClaim> pendingSegmentClaims
-) {
-    public static CreateValidationContext empty() {
-        return new CreateValidationContext(List.of(), Map.of(), Map.of(), List.of());
+public record PendingSegmentClaim(PortalNavigationItemId id, PortalNavigationItemId parentId, String segment) {
+    public static PendingSegmentClaim forCreate(CreatePortalNavigationItem create) {
+        return new PendingSegmentClaim(create.getId(), create.getParentId(), create.getSegment());
+    }
+
+    public static PendingSegmentClaim forUpdate(PortalNavigationItem existing, UpdatePortalNavigationItem update) {
+        return new PendingSegmentClaim(existing.getId(), update.getParentId(), update.getSegment());
     }
 }

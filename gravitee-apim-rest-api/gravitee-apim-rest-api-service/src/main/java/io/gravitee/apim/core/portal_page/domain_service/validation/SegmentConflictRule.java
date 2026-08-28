@@ -16,12 +16,15 @@
 package io.gravitee.apim.core.portal_page.domain_service.validation;
 
 import io.gravitee.apim.core.portal.exception.PathConflictException;
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +52,10 @@ public class SegmentConflictRule implements CreatePortalNavigationItemValidation
 
     @Override
     public void validate(CreatePortalNavigationItem item, String environmentId, CreateValidationContext ctx) {
-        if (collidesWithPendingBatch(item, ctx) || collidesWithPersistedSibling(item, environmentId)) {
+        if (
+            collidesWithPendingBatch(item.getId(), item.getParentId(), item.getSegment(), ctx.pendingSegmentClaims()) ||
+            collidesWithPersistedSibling(item.getId(), item.getParentId(), item.getSegment(), environmentId)
+        ) {
             throw exceptionFor(item);
         }
     }
@@ -65,6 +71,7 @@ public class SegmentConflictRule implements CreatePortalNavigationItemValidation
     @Override
     public void validate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
         if (
+            collidesWithPendingBatch(existingItem.getId(), toUpdate.getParentId(), toUpdate.getSegment(), ctx.pendingSegmentClaims()) ||
             collidesWithPersistedSibling(
                 existingItem.getId(),
                 toUpdate.getParentId(),
@@ -76,26 +83,25 @@ public class SegmentConflictRule implements CreatePortalNavigationItemValidation
         }
     }
 
-    private static boolean collidesWithPendingBatch(CreatePortalNavigationItem item, CreateValidationContext ctx) {
-        return ctx
-            .pendingItemsById()
-            .values()
+    private static boolean collidesWithPendingBatch(
+        PortalNavigationItemId itemId,
+        PortalNavigationItemId parentId,
+        String segment,
+        List<PendingSegmentClaim> claims
+    ) {
+        return claims
             .stream()
             .anyMatch(
-                other ->
-                    !Objects.equals(other.getId(), item.getId()) &&
-                    Objects.equals(other.getParentId(), item.getParentId()) &&
-                    Objects.equals(other.getSegment(), item.getSegment())
+                claim ->
+                    !Objects.equals(claim.id(), itemId) &&
+                    Objects.equals(claim.parentId(), parentId) &&
+                    Objects.equals(claim.segment(), segment)
             );
     }
 
-    private boolean collidesWithPersistedSibling(CreatePortalNavigationItem item, String environmentId) {
-        return collidesWithPersistedSibling(item.getId(), item.getParentId(), item.getSegment(), environmentId);
-    }
-
     private boolean collidesWithPersistedSibling(
-        io.gravitee.apim.core.portal_page.model.PortalNavigationItemId itemId,
-        io.gravitee.apim.core.portal_page.model.PortalNavigationItemId parentId,
+        PortalNavigationItemId itemId,
+        PortalNavigationItemId parentId,
         String segment,
         String environmentId
     ) {
@@ -106,17 +112,15 @@ public class SegmentConflictRule implements CreatePortalNavigationItemValidation
     }
 
     private static PathConflictException exceptionFor(CreatePortalNavigationItem item) {
-        var location = item.getAutomationMetadata() != null
-            ? item.getAutomationMetadata().location().orElse(item.getSegment())
-            : item.getSegment();
-        return exceptionFor(item.getType(), location);
+        return exceptionFor(item.getType(), resolveLocation(item.getAutomationMetadata(), item.getSegment()));
     }
 
     private static PathConflictException exceptionFor(PortalNavigationItem existing) {
-        var location = existing.getAutomationMetadata() != null
-            ? existing.getAutomationMetadata().location().orElse(existing.getSegment())
-            : existing.getSegment();
-        return exceptionFor(existing.getType(), location);
+        return exceptionFor(existing.getType(), resolveLocation(existing.getAutomationMetadata(), existing.getSegment()));
+    }
+
+    private static String resolveLocation(AutomationMetadata automationMetadata, String segment) {
+        return automationMetadata != null ? automationMetadata.location().orElse(segment) : segment;
     }
 
     private static PathConflictException exceptionFor(PortalNavigationItemType type, String location) {

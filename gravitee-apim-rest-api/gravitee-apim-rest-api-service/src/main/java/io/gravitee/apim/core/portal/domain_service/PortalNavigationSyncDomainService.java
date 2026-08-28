@@ -84,8 +84,7 @@ public class PortalNavigationSyncDomainService {
             creates.addAll(foldersToCreate(plan, area, idFactory, portalId));
             updates.addAll(foldersToUpdate(plan, idFactory));
         }
-        validatorService.validateAll(creates, auditInfo.environmentId());
-        validatorService.validateAllUpdates(updates);
+        validatorService.validate(creates, updates, auditInfo.environmentId());
     }
 
     private void syncArea(

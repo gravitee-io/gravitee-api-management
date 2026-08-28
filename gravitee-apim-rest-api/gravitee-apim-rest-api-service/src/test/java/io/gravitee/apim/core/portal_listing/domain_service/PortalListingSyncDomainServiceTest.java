@@ -27,6 +27,7 @@ import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator;
 import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyncPlanExecutor;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.PortalId;
@@ -74,7 +75,7 @@ class PortalListingSyncDomainServiceTest {
     private final PortalPageContentCrudServiceInMemory pageContentCrud = new PortalPageContentCrudServiceInMemory();
     private final ApiCrudServiceInMemory apiCrud = new ApiCrudServiceInMemory();
 
-    private PortalNavigationItemValidatorService validator;
+    private PortalNavigationValidator validator;
     private PortalListingSyncDomainService syncService;
 
     @BeforeEach
@@ -91,7 +92,7 @@ class PortalListingSyncDomainServiceTest {
             mock(PortalNavigationItemValidatorService.class)
         );
         var automationManaged = new AutomationManagedNavigationItemsQueryService(portalListingCrud, pageContentQuery, navItemQuery);
-        validator = mock(PortalNavigationItemValidatorService.class);
+        validator = mock(PortalNavigationValidator.class);
         syncService = new PortalListingSyncDomainService(
             pageContentQuery,
             apiDocSync,
@@ -228,10 +229,13 @@ class PortalListingSyncDomainServiceTest {
         syncService.validateForConflicts(AUDIT_INFO, PORTAL_ID, listing);
 
         var createsCaptor = org.mockito.ArgumentCaptor.forClass(List.class);
-        org.mockito.Mockito.verify(validator).validateAll(createsCaptor.capture(), org.mockito.ArgumentMatchers.anyString());
-        assertThat(createsCaptor.getValue()).hasSize(1);
         var updatesCaptor = org.mockito.ArgumentCaptor.forClass(List.class);
-        org.mockito.Mockito.verify(validator).validateAllUpdates(updatesCaptor.capture());
+        org.mockito.Mockito.verify(validator).validate(
+            createsCaptor.capture(),
+            updatesCaptor.capture(),
+            org.mockito.ArgumentMatchers.anyString()
+        );
+        assertThat(createsCaptor.getValue()).hasSize(1);
         assertThat(updatesCaptor.getValue()).isEmpty();
     }
 
@@ -255,10 +259,52 @@ class PortalListingSyncDomainServiceTest {
         syncService.validateApiFolderConflictsForApi(AUDIT_INFO, apiId, desired);
 
         var createsCaptor = org.mockito.ArgumentCaptor.forClass(List.class);
-        org.mockito.Mockito.verify(validator).validateAll(createsCaptor.capture(), org.mockito.ArgumentMatchers.anyString());
-        assertThat(createsCaptor.getValue()).hasSize(2);
         var updatesCaptor = org.mockito.ArgumentCaptor.forClass(List.class);
-        org.mockito.Mockito.verify(validator).validateAllUpdates(updatesCaptor.capture());
+        org.mockito.Mockito.verify(validator).validate(
+            createsCaptor.capture(),
+            updatesCaptor.capture(),
+            org.mockito.ArgumentMatchers.anyString()
+        );
+        assertThat(createsCaptor.getValue()).hasSize(2);
+        assertThat(updatesCaptor.getValue()).isEmpty();
+    }
+
+    @Test
+    void validate_for_conflicts_includes_folder_subtree_creates_for_new_nav_api_rows() {
+        var apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
+        apiCrud.initWith(
+            List.of(
+                io.gravitee.apim.core.api.model.Api.builder()
+                    .id(apiId)
+                    .name(API_HRID)
+                    .environmentId(AUDIT_INFO.environmentId())
+                    .portalNavigation(List.of(new NavigationPath("/reports", "Reports")))
+                    .build()
+            )
+        );
+        var listing = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
+
+        syncService.validateForConflicts(AUDIT_INFO, PORTAL_ID, listing);
+
+        var expectedNavigationApiId = PortalNavigationItemId.of(
+            HRIDToUUID.navigation().context(AUDIT_INFO).portal(PORTAL_ID.toString()).listingApi(apiId).id()
+        );
+        var createsCaptor = org.mockito.ArgumentCaptor.forClass(List.class);
+        var updatesCaptor = org.mockito.ArgumentCaptor.forClass(List.class);
+        org.mockito.Mockito.verify(validator).validate(
+            createsCaptor.capture(),
+            updatesCaptor.capture(),
+            org.mockito.ArgumentMatchers.anyString()
+        );
+        assertThat(createsCaptor.getValue())
+            .extracting("type", "parentId", "segment")
+            .contains(
+                org.assertj.core.groups.Tuple.tuple(
+                    io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.FOLDER,
+                    expectedNavigationApiId,
+                    "reports"
+                )
+            );
         assertThat(updatesCaptor.getValue()).isEmpty();
     }
 

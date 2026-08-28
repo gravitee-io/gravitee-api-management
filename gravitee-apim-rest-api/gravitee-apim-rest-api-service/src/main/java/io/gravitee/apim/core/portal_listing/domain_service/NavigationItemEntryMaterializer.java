@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_listing.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator;
+import io.gravitee.apim.core.portal.exception.PathConflictException;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_listing.model.PortalListingApiEntry;
@@ -57,6 +58,7 @@ class NavigationItemEntryMaterializer {
             applyUpdate(navApi, apiId, entry, parent);
             return (PortalNavigationApi) navigationItemCrudService.update(navApi);
         }
+        rejectIfSegmentTakenByForeignItem(auditInfo, parent, Slug.from(entry.apiHrid()).value(), navApiId, entry.location());
         var create = CreatePortalNavigationItem.builder()
             .id(navApiId)
             .title(entry.apiHrid())
@@ -122,6 +124,22 @@ class NavigationItemEntryMaterializer {
     private PortalNavigationItemId resolveParentId(AuditInfo auditInfo, PortalId portalId, String location) {
         var parent = resolveParent(auditInfo, portalId.toString(), location);
         return Optional.ofNullable(parent).map(PortalNavigationItemContainer::getId).orElse(null);
+    }
+
+    private void rejectIfSegmentTakenByForeignItem(
+        AuditInfo auditInfo,
+        PortalNavigationItemContainer parent,
+        String segment,
+        PortalNavigationItemId expectedId,
+        String location
+    ) {
+        var parentId = Optional.ofNullable(parent).map(PortalNavigationItemContainer::getId).orElse(null);
+        navigationItemsQueryService
+            .findByParentIdAndSegment(auditInfo.environmentId(), parentId, segment)
+            .filter(sibling -> !sibling.getId().equals(expectedId))
+            .ifPresent(squatter -> {
+                throw PathConflictException.segmentTaken(PathConflictException.EntryKind.LISTING, location);
+            });
     }
 
     private static AutomationMetadata portalAutomationMetadata(PortalId portalId, String location) {
