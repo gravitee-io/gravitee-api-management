@@ -138,6 +138,7 @@ import io.gravitee.rest.api.service.exceptions.PasswordFormatInvalidException;
 import io.gravitee.rest.api.service.exceptions.ServiceAccountNotManageableException;
 import io.gravitee.rest.api.service.exceptions.StillPrimaryOwnerException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.UrlForbiddenException;
 import io.gravitee.rest.api.service.exceptions.UserAlreadyFinalizedException;
 import io.gravitee.rest.api.service.exceptions.UserNotActiveException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
@@ -308,6 +309,59 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             portalWhitelist.add(whitelistUrl);
             i++;
         }
+    }
+
+    /**
+     * Registration confirmation and password reset links embed a signed token in the caller-supplied redirect
+     * URL. Without an explicit whitelist, that URL is only trusted when it matches the installation's own
+     * resolved portal URL; any other URL is dropped (returning {@code null}) so {@link #getTokenRegistrationParams}
+     * falls back to its default link instead of exfiltrating the token to an attacker-controlled domain.
+     * Only {@link #register} and the caller-facing {@link #resetPassword(ExecutionContext, String, String)}
+     * receive an externally-supplied redirect URL; other callers of {@code getTokenRegistrationParams} (gamma
+     * reset target, registration-approval flow) build their target page URL themselves from trusted installation
+     * configuration and must not be sanitized here.
+     */
+    private String sanitizePortalRedirectUrl(ExecutionContext executionContext, String url) {
+        if (url == null || url.isBlank()) {
+            return null;
+        }
+        String environmentId = executionContext.hasEnvironmentId() ? executionContext.getEnvironmentId() : null;
+        List<String> configuredWhitelist = portalWhitelist == null ? List.of() : portalWhitelist;
+        List<String> effectiveWhitelist = configuredWhitelist.isEmpty() ? fallbackPortalWhitelist(executionContext) : configuredWhitelist;
+        if (effectiveWhitelist.isEmpty()) {
+            log.warn(
+                "Rejected redirect URL '{}' for environment {}: no 'portal.whitelist' is configured and no portal URL could be resolved for this environment. Falling back to the default link.",
+                url,
+                environmentId
+            );
+            return null;
+        }
+        try {
+            UrlSanitizerUtils.checkAllowed(url, effectiveWhitelist, true);
+            return url;
+        } catch (UrlForbiddenException e) {
+            log.warn(
+                "Rejected redirect URL '{}' for environment {}: not part of the allowed whitelist {}. Falling back to the default link.",
+                url,
+                environmentId,
+                effectiveWhitelist
+            );
+            return null;
+        }
+    }
+
+    private List<String> fallbackPortalWhitelist(ExecutionContext executionContext) {
+        if (!executionContext.hasEnvironmentId()) {
+            return List.of();
+        }
+        List<String> portalUrls = installationAccessQueryService.getPortalUrls(executionContext.getEnvironmentId());
+        if (portalUrls == null) {
+            return List.of();
+        }
+        return portalUrls
+            .stream()
+            .filter(portalUrl -> !isEmpty(portalUrl) && !DEFAULT_PORTAL_URL.equals(portalUrl))
+            .toList();
     }
 
     @Override
@@ -840,10 +894,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     ) {
         final ReferenceContext currentContext = executionContext.getReferenceContext();
 
-        if (confirmationPageUrl != null) {
-            UrlSanitizerUtils.checkAllowed(confirmationPageUrl, portalWhitelist, true);
-        }
-
         checkUserRegistrationEnabled(executionContext);
         boolean autoRegistrationEnabled = isAutoRegistrationEnabled(executionContext, currentContext);
 
@@ -851,7 +901,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             executionContext,
             newExternalUserEntity,
             USER_REGISTRATION,
-            confirmationPageUrl,
+            sanitizePortalRedirectUrl(executionContext, confirmationPageUrl),
             autoRegistrationEnabled,
             false
         );
@@ -1483,10 +1533,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     @Override
     public void resetPassword(ExecutionContext executionContext, final String id, final String resetPageUrl) {
-        if (resetPageUrl != null && !resetPageUrl.isBlank()) {
-            UrlSanitizerUtils.checkAllowed(resetPageUrl, portalWhitelist, true);
-        }
-        doResetPassword(executionContext, id, resetPageUrl);
+        doResetPassword(executionContext, id, sanitizePortalRedirectUrl(executionContext, resetPageUrl));
     }
 
     @Override

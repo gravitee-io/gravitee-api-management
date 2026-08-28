@@ -631,7 +631,8 @@ email:
 #  themes:
 #    path: ${gravitee.home}/themes
   # Allows domains to be used while generating some emails from the portal. ie. registration, forget password
-  # Empty whitelist means all urls are allowed.
+  # Empty whitelist means only the installation's own portal URL is allowed (see installation.standalone.portal.url below);
+  # any other URL is ignored and the email falls back to the default link.
 #  whitelist:
 #    - https://portal.domain.com
 #    - https://private-portal.domain.com

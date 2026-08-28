@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService.DEFAULT_PORTAL_URL;
 import static io.gravitee.repository.management.model.User.AuditEvent.PASSWORD_CHANGED;
 import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.RESET_PASSWORD;
 import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.USER_REGISTRATION;
@@ -25,6 +26,7 @@ import static java.util.Optional.of;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.invokeMethod;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.auth0.jwt.JWT;
@@ -1318,6 +1320,144 @@ public class UserServiceTest {
 
             userService.resetPasswordFromSourceId(EXECUTION_CONTEXT, "my@email.com", "HTTP://MY-RESET-PAGE");
         });
+    }
+
+    private static User activeGraviteeUser() {
+        User user = new User();
+        user.setId(USER_NAME);
+        user.setSource("gravitee");
+        user.setStatus(UserStatus.ACTIVE);
+        return user;
+    }
+
+    @Test
+    public void shouldNotBlockPasswordResetOnRedirectUrlNotMatchingWhitelist() throws TechnicalException {
+        setField(userService, "portalWhitelist", List.of());
+        when(installationAccessQueryService.getPortalUrls(ENVIRONMENT)).thenReturn(List.of());
+        when(userRepository.findBySource(any(), any(), any())).thenReturn(Optional.of(activeGraviteeUser()));
+
+        // proceeds past the redirect URL and fails at the (unstubbed) user lookup inside doResetPassword,
+        // proving the mismatched URL itself is no longer rejected
+        assertThrows(UserNotFoundException.class, () ->
+            userService.resetPasswordFromSourceId(EXECUTION_CONTEXT, "my@email.com", "https://attacker.example.com/reset")
+        );
+    }
+
+    @Test
+    public void shouldNotBlockRegistrationOnRedirectUrlNotMatchingWhitelist() throws TechnicalException {
+        setField(userService, "portalWhitelist", List.of());
+        NewExternalUserEntity newExternalUserEntity = mock(NewExternalUserEntity.class);
+
+        // proceeds past the redirect URL and fails because registration is disabled by default in this test setup,
+        // proving the mismatched URL itself is no longer rejected
+        assertThrows(UserRegistrationUnavailableException.class, () ->
+            userService.register(EXECUTION_CONTEXT, newExternalUserEntity, "https://attacker.example.com/confirm")
+        );
+
+        verifyNoInteractions(emailService);
+        verifyNoInteractions(installationAccessQueryService);
+    }
+
+    @Test
+    public void shouldUseRedirectUrlWhenItMatchesConfiguredWhitelist() {
+        setField(userService, "portalWhitelist", List.of("https://portal.example.com"));
+
+        String sanitizedUrl = invokeMethod(userService, "sanitizePortalRedirectUrl", EXECUTION_CONTEXT, "https://portal.example.com/reset");
+
+        assertEquals("https://portal.example.com/reset", sanitizedUrl);
+        verify(installationAccessQueryService, never()).getPortalUrls(any());
+    }
+
+    @Test
+    public void shouldDropRedirectUrlWhenItDoesNotMatchConfiguredWhitelist() {
+        setField(userService, "portalWhitelist", List.of("https://portal.example.com"));
+
+        String sanitizedUrl = invokeMethod(
+            userService,
+            "sanitizePortalRedirectUrl",
+            EXECUTION_CONTEXT,
+            "https://attacker.example.com/reset"
+        );
+
+        assertNull(sanitizedUrl);
+    }
+
+    @Test
+    public void shouldDropRedirectUrlWhenWhitelistIsEmptyAndNoPortalUrlIsResolvable() {
+        setField(userService, "portalWhitelist", List.of());
+        when(installationAccessQueryService.getPortalUrls(ENVIRONMENT)).thenReturn(List.of());
+
+        String sanitizedUrl = invokeMethod(
+            userService,
+            "sanitizePortalRedirectUrl",
+            EXECUTION_CONTEXT,
+            "https://attacker.example.com/reset"
+        );
+
+        assertNull(sanitizedUrl);
+    }
+
+    @Test
+    public void shouldDropRedirectUrlWhenExecutionContextHasNoEnvironment() {
+        setField(userService, "portalWhitelist", List.of());
+        ExecutionContext organizationOnlyContext = new ExecutionContext(ORGANIZATION);
+
+        String sanitizedUrl = invokeMethod(
+            userService,
+            "sanitizePortalRedirectUrl",
+            organizationOnlyContext,
+            "https://attacker.example.com/reset"
+        );
+
+        assertNull(sanitizedUrl);
+        verify(installationAccessQueryService, never()).getPortalUrls(any());
+    }
+
+    @Test
+    public void shouldDropRedirectUrlWhenFallbackPortalUrlIsStillTheDefaultSentinel() {
+        setField(userService, "portalWhitelist", List.of());
+        when(installationAccessQueryService.getPortalUrls(ENVIRONMENT)).thenReturn(List.of(DEFAULT_PORTAL_URL));
+
+        String sanitizedUrl = invokeMethod(
+            userService,
+            "sanitizePortalRedirectUrl",
+            EXECUTION_CONTEXT,
+            "https://attacker.example.com/reset"
+        );
+
+        assertNull(sanitizedUrl);
+    }
+
+    @Test
+    public void shouldUseRedirectUrlWhenItMatchesFallbackPortalUrlOnNestedPath() {
+        setField(userService, "portalWhitelist", List.of());
+        when(installationAccessQueryService.getPortalUrls(ENVIRONMENT)).thenReturn(List.of("https://portal.example.com"));
+
+        String sanitizedUrl = invokeMethod(
+            userService,
+            "sanitizePortalRedirectUrl",
+            EXECUTION_CONTEXT,
+            "https://portal.example.com/some/nested/path/reset"
+        );
+
+        assertEquals("https://portal.example.com/some/nested/path/reset", sanitizedUrl);
+    }
+
+    @Test
+    public void shouldUseRedirectUrlWhenItMatchesNonFirstFallbackPortalUrl() {
+        setField(userService, "portalWhitelist", List.of());
+        when(installationAccessQueryService.getPortalUrls(ENVIRONMENT)).thenReturn(
+            List.of("https://portal-one.example.com", "https://portal-two.example.com")
+        );
+
+        String sanitizedUrl = invokeMethod(
+            userService,
+            "sanitizePortalRedirectUrl",
+            EXECUTION_CONTEXT,
+            "https://portal-two.example.com/reset"
+        );
+
+        assertEquals("https://portal-two.example.com/reset", sanitizedUrl);
     }
 
     @Test
