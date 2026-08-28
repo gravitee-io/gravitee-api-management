@@ -25,9 +25,10 @@ import java.util.Map;
  */
 public record UpdateValidationContext(
     List<PortalNavigationItem> navigationItems,
-    Map<PortalNavigationItemId, PortalNavigationItem> itemsById
+    Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
+    List<PendingSegmentClaim> pendingSegmentClaims
 ) {
     public static UpdateValidationContext empty() {
-        return new UpdateValidationContext(List.of(), Map.of());
+        return new UpdateValidationContext(List.of(), Map.of(), List.of());
     }
 }

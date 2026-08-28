@@ -58,7 +58,8 @@ class AncestorValidationTest {
         return new CreateValidationContext(
             List.of(),
             Map.of(),
-            Map.of(firstFolder.getId(), firstFolder, secondFolder.getId(), secondFolder)
+            Map.of(firstFolder.getId(), firstFolder, secondFolder.getId(), secondFolder),
+            List.of()
         );
     }
 

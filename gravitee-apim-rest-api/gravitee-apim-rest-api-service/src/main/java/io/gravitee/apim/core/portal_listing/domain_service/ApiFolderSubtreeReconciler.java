@@ -74,16 +74,18 @@ class ApiFolderSubtreeReconciler {
     ValidationItems itemsForValidation(
         AuditInfo auditInfo,
         String apiId,
-        PortalNavigationApi navApi,
+        PortalNavigationItemId navApiId,
+        PortalArea area,
         List<PortalNavigationItem> currentFolders
     ) {
-        return itemsForValidation(auditInfo, apiId, navApi, desiredPaths(apiId), currentFolders);
+        return itemsForValidation(auditInfo, apiId, navApiId, area, desiredPaths(apiId), currentFolders);
     }
 
     ValidationItems itemsForValidation(
         AuditInfo auditInfo,
         String apiId,
-        PortalNavigationApi navApi,
+        PortalNavigationItemId navApiId,
+        PortalArea area,
         List<NavigationPath> desired,
         List<PortalNavigationItem> currentFolders
     ) {
@@ -96,14 +98,14 @@ class ApiFolderSubtreeReconciler {
             .filter(FolderActions.CreateFolder.class::isInstance)
             .map(FolderActions.CreateFolder.class::cast)
             .map(FolderActions.CreateFolder::desired)
-            .map(df -> toCreateItem(df, navApi.getArea(), idFactory, navApi.getId(), apiId))
+            .map(df -> toCreateItem(df, area, idFactory, navApiId, apiId))
             .toList();
         var updates = plan
             .actions()
             .stream()
             .filter(FolderActions.UpdateFolder.class::isInstance)
             .map(FolderActions.UpdateFolder.class::cast)
-            .map(action -> new PendingUpdate(toUpdateItem(action.desired(), idFactory, navApi.getId()), action.existing()))
+            .map(action -> new PendingUpdate(toUpdateItem(action.desired(), idFactory, navApiId), action.existing()))
             .toList();
         return new ValidationItems(creates, updates);
     }

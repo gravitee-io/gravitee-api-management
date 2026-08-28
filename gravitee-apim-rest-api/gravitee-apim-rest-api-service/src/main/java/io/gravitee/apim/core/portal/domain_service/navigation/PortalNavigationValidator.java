@@ -22,17 +22,13 @@ import java.util.List;
 
 /** Runs the shared rule set over desired items and updates before any mutation. */
 public interface PortalNavigationValidator {
+    void validate(List<CreatePortalNavigationItem> creates, List<PendingUpdate> updates, String environmentId);
+
     void validateAll(List<CreatePortalNavigationItem> items, String environmentId);
 
     void validateOne(CreatePortalNavigationItem item, String environmentId);
 
     void validateToUpdate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existing);
-
-    default void validateAllUpdates(List<PendingUpdate> updates) {
-        for (var update : updates) {
-            validateToUpdate(update.toUpdate(), update.existing());
-        }
-    }
 
     record PendingUpdate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existing) {}
 }

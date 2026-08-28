@@ -129,7 +129,7 @@ class ParentRuleTest {
     void create_uses_pending_parent_from_same_batch() {
         var pendingParent = folderCreate(FOLDER_ID, PortalArea.TOP_NAVBAR);
         var child = pageCreate(FOLDER_ID, PortalArea.TOP_NAVBAR, null);
-        var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(FOLDER_ID, pendingParent));
+        var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(FOLDER_ID, pendingParent), List.of());
 
         assertThatCode(() -> rule.validate(child, ENV_ID, ctx)).doesNotThrowAnyException();
     }
@@ -138,7 +138,7 @@ class ParentRuleTest {
     void create_pending_parent_area_mismatch_throws() {
         var pendingParent = folderCreate(FOLDER_ID, PortalArea.HOMEPAGE);
         var child = pageCreate(FOLDER_ID, PortalArea.TOP_NAVBAR, null);
-        var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(FOLDER_ID, pendingParent));
+        var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(FOLDER_ID, pendingParent), List.of());
 
         assertThatThrownBy(() -> rule.validate(child, ENV_ID, ctx)).isInstanceOf(ParentAreaMismatchException.class);
     }

@@ -503,12 +503,11 @@ class PortalNavigationSyncDomainServiceTest {
             PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/a", null), new NavigationPath("/a/b", null)))
         );
 
-        @SuppressWarnings("unchecked")
-        var creates = (List<io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem>) verifyValidateAll();
-        assertThat(creates)
+        var captured = verifyValidate();
+        assertThat(captured.creates())
             .extracting(io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem::getSegment)
             .containsExactly("a", "b");
-        assertThat(verifyValidateAllUpdates()).isEmpty();
+        assertThat(captured.updates()).isEmpty();
     }
 
     @Test
@@ -527,23 +526,27 @@ class PortalNavigationSyncDomainServiceTest {
             PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/a", null), new NavigationPath("/a/b", null)))
         );
 
-        @SuppressWarnings("unchecked")
-        var creates = (List<io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem>) verifyValidateAll();
-        assertThat(creates).isEmpty();
-        assertThat(verifyValidateAllUpdates()).hasSize(2);
+        var captured = verifyValidate();
+        assertThat(captured.creates()).isEmpty();
+        assertThat(captured.updates()).hasSize(2);
     }
 
-    private List<?> verifyValidateAll() {
-        var captor = org.mockito.ArgumentCaptor.forClass(List.class);
-        verify(validator).validateAll(captor.capture(), anyString());
-        return captor.getValue();
-    }
+    private record CapturedValidate(
+        List<io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem> creates,
+        List<PortalNavigationValidator.PendingUpdate> updates
+    ) {}
 
-    private List<PortalNavigationValidator.PendingUpdate> verifyValidateAllUpdates() {
+    private CapturedValidate verifyValidate() {
         @SuppressWarnings("unchecked")
-        var captor = org.mockito.ArgumentCaptor.forClass((Class<List<PortalNavigationValidator.PendingUpdate>>) (Class<?>) List.class);
-        verify(validator).validateAllUpdates(captor.capture());
-        return captor.getValue();
+        var createsCaptor = (org.mockito.ArgumentCaptor<
+            List<io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem>
+        >) (org.mockito.ArgumentCaptor<?>) org.mockito.ArgumentCaptor.forClass(List.class);
+        @SuppressWarnings("unchecked")
+        var updatesCaptor = (org.mockito.ArgumentCaptor<List<PortalNavigationValidator.PendingUpdate>>) (org.mockito.ArgumentCaptor<
+            ?
+        >) org.mockito.ArgumentCaptor.forClass(List.class);
+        verify(validator).validate(createsCaptor.capture(), updatesCaptor.capture(), anyString());
+        return new CapturedValidate(createsCaptor.getValue(), updatesCaptor.getValue());
     }
 
     private Optional<PortalNavigationItem> findByPath(String path) {

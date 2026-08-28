@@ -34,6 +34,7 @@ import io.gravitee.apim.core.portal_page.domain_service.validation.HomepageUniqu
 import io.gravitee.apim.core.portal_page.domain_service.validation.LinkUrlRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.PageContentExistsRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ParentRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.PendingSegmentClaim;
 import io.gravitee.apim.core.portal_page.domain_service.validation.SegmentConflictRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.SourceAutomationExclusivityRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.SourceConfigurationRule;
@@ -57,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @DomainService
 public class PortalNavigationItemValidatorService implements PortalNavigationValidator {
@@ -119,53 +121,60 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
     }
 
     @Override
-    public void validateAll(List<CreatePortalNavigationItem> items, String environmentId) {
-        List<PortalNavigationItem> navigationItems = hasApiOrApiProductItems(items) ? fetchAllNavigationItems(environmentId) : List.of();
+    public void validate(List<CreatePortalNavigationItem> creates, List<PendingUpdate> updates, String environmentId) {
+        List<PortalNavigationItem> navigationItems = shouldFetch(creates, updates) ? fetchAllNavigationItems(environmentId) : List.of();
         Map<PortalNavigationItemId, PortalNavigationItem> itemsById = navigationItems
             .stream()
             .collect(Collectors.toMap(PortalNavigationItem::getId, Function.identity()));
-        Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById = items
+        Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById = creates
             .stream()
             .filter(item -> item.getId() != null)
             .collect(Collectors.toMap(CreatePortalNavigationItem::getId, Function.identity(), (first, ignored) -> first));
-        CreateValidationContext ctx = new CreateValidationContext(navigationItems, itemsById, pendingItemsById);
+        List<PendingSegmentClaim> pendingSegmentClaims = collectPendingSegmentClaims(creates, updates);
+
+        CreateValidationContext createCtx = new CreateValidationContext(navigationItems, itemsById, pendingItemsById, pendingSegmentClaims);
+        UpdateValidationContext updateCtx = new UpdateValidationContext(navigationItems, itemsById, pendingSegmentClaims);
 
         for (BulkCreatePortalNavigationItemValidationRule rule : bulkCreateRules) {
-            rule.validate(items, environmentId, ctx);
+            rule.validate(creates, environmentId, createCtx);
         }
+        for (CreatePortalNavigationItem item : creates) {
+            applyValidationRules(item, createCtx, environmentId);
+        }
+        for (PendingUpdate pending : updates) {
+            applyValidationRules(pending, updateCtx);
+        }
+    }
 
-        for (CreatePortalNavigationItem item : items) {
-            for (CreatePortalNavigationItemValidationRule rule : createRules) {
-                if (rule.appliesTo(item)) {
-                    rule.validate(item, environmentId, ctx);
-                }
-            }
-        }
+    @Override
+    public void validateAll(List<CreatePortalNavigationItem> items, String environmentId) {
+        validate(items, List.of(), environmentId);
     }
 
     @Override
     public void validateOne(CreatePortalNavigationItem item, String environmentId) {
-        validateAll(List.of(item), environmentId);
+        validate(List.of(item), List.of(), environmentId);
     }
 
     @Override
     public void validateToUpdate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem) {
-        List<PortalNavigationItem> navigationItems;
-        Map<PortalNavigationItemId, PortalNavigationItem> itemsById;
-        if (existingItem instanceof PortalNavigationItemContainer) {
-            navigationItems = fetchAllNavigationItems(existingItem.getEnvironmentId());
-            itemsById = navigationItems.stream().collect(Collectors.toMap(PortalNavigationItem::getId, Function.identity()));
-        } else {
-            navigationItems = List.of();
-            itemsById = Map.of();
-        }
-        UpdateValidationContext ctx = new UpdateValidationContext(navigationItems, itemsById);
+        validate(List.of(), List.of(new PendingUpdate(toUpdate, existingItem)), existingItem.getEnvironmentId());
+    }
 
-        for (UpdatePortalNavigationItemValidationRule rule : updateRules) {
-            if (rule.appliesTo(toUpdate, existingItem)) {
-                rule.validate(toUpdate, existingItem, ctx);
-            }
-        }
+    private static List<PendingSegmentClaim> collectPendingSegmentClaims(
+        List<CreatePortalNavigationItem> creates,
+        List<PendingUpdate> updates
+    ) {
+        var fromCreates = creates
+            .stream()
+            .filter(c -> c.getId() != null)
+            .map(PendingSegmentClaim::forCreate);
+        var fromUpdates = updates.stream().map(u -> PendingSegmentClaim.forUpdate(u.existing(), u.toUpdate()));
+        return Stream.concat(fromCreates, fromUpdates).toList();
+    }
+
+    private static boolean shouldFetch(List<CreatePortalNavigationItem> creates, List<PendingUpdate> updates) {
+        return (hasApiOrApiProductItems(creates) || updates.stream().anyMatch(u -> u.existing() instanceof PortalNavigationItemContainer));
     }
 
     private List<PortalNavigationItem> fetchAllNavigationItems(String environmentId) {
@@ -173,9 +182,25 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
         return navigationItemsQueryService.search(criteria);
     }
 
-    private boolean hasApiOrApiProductItems(List<CreatePortalNavigationItem> items) {
+    private static boolean hasApiOrApiProductItems(List<CreatePortalNavigationItem> items) {
         return items
             .stream()
             .anyMatch(item -> item.getType() == PortalNavigationItemType.API || item.getType() == PortalNavigationItemType.API_PRODUCT);
+    }
+
+    private void applyValidationRules(PendingUpdate pending, UpdateValidationContext updateCtx) {
+        for (UpdatePortalNavigationItemValidationRule rule : updateRules) {
+            if (rule.appliesTo(pending.toUpdate(), pending.existing())) {
+                rule.validate(pending.toUpdate(), pending.existing(), updateCtx);
+            }
+        }
+    }
+
+    private void applyValidationRules(CreatePortalNavigationItem item, CreateValidationContext createCtx, String environmentId) {
+        for (CreatePortalNavigationItemValidationRule rule : createRules) {
+            if (rule.appliesTo(item)) {
+                rule.validate(item, environmentId, createCtx);
+            }
+        }
     }
 }
