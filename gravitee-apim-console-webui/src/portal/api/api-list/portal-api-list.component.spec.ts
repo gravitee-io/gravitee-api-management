@@ -28,7 +28,6 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ApiPortalHeader } from '../../../entities/apiPortalHeader';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
-import { PortalBannerComponent } from '../../banner/portal-banner.component';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 describe('PortalApiListComponent', () => {
@@ -88,7 +87,7 @@ describe('PortalApiListComponent', () => {
   }
   const init = async (apiPortalHeaders: ApiPortalHeader[]) => {
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioTestingModule, PortalBannerComponent],
+      imports: [NoopAnimationsModule, GioTestingModule, PortalApiListComponent],
       providers: [
         {
           provide: GioTestingPermissionProvider,
