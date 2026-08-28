@@ -17,7 +17,6 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
 import { PortalNavigationComponent } from './navigation/portal-navigation.component';
-import { PortalBannerComponent } from './banner/portal-banner.component';
 import { PortalThemeComponent } from './theme/portal-theme.component';
 import { PortalNavigationItemsComponent } from './navigation-items/portal-navigation-items.component';
 import { PortalCatalogComponent } from './catalog/portal-catalog.component';
@@ -82,15 +81,6 @@ const portalRoutes: Routes = [
             },
           },
         ],
-      },
-      {
-        path: 'banner',
-        component: PortalBannerComponent,
-        data: {
-          permissions: {
-            anyOf: ['environment-settings-r', 'environment-settings-u'],
-          },
-        },
       },
       {
         path: 'api',
