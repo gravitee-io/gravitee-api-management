@@ -64,11 +64,6 @@ describe('PortalNavigationService', () => {
           icon: 'gio:cloud-settings',
         },
         {
-          displayName: 'Banner',
-          routerLink: 'banner',
-          icon: 'gio:chat-lines',
-        },
-        {
           displayName: 'Theme',
           routerLink: 'theme',
           icon: 'gio:color-picker',
@@ -84,7 +79,7 @@ describe('PortalNavigationService', () => {
           icon: 'gio:list-check',
         },
       ]);
-      expect(permissionService.hasAnyMatching).toHaveBeenCalledTimes(7);
+      expect(permissionService.hasAnyMatching).toHaveBeenCalledTimes(6);
     });
 
     it('should return only allowed menu items when some permissions are not granted', () => {
@@ -100,7 +95,7 @@ describe('PortalNavigationService', () => {
           icon: 'gio:report-columns',
         },
       ]);
-      expect(permissionService.hasAnyMatching).toHaveBeenCalledTimes(7);
+      expect(permissionService.hasAnyMatching).toHaveBeenCalledTimes(6);
     });
 
     it('should include menu items with empty permission list', () => {
@@ -133,7 +128,7 @@ describe('PortalNavigationService', () => {
 
       const menuItems = service.getMainMenuItems();
       expect(menuItems).toEqual([]);
-      expect(permissionService.hasAnyMatching).toHaveBeenCalledTimes(7);
+      expect(permissionService.hasAnyMatching).toHaveBeenCalledTimes(6);
     });
 
     it('should call hasAnyMatching with the correct permissions for each menu item', () => {
