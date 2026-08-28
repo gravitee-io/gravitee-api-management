@@ -71,7 +71,7 @@ public interface PortalNavigationItemAdapter {
 
     @Mapping(target = "url", expression = "java(parseUrl(portalNavigationItem.getConfiguration()))")
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
-    @Mapping(target = "visibility", source = "visibility", qualifiedByName = "repositoryVisibilityToDomain")
+    @Mapping(target = "visibility", expression = "java(repositoryVisibilityToDomain(portalNavigationItem))")
     @Mapping(target = "reference", expression = "java(referenceFromRepository(portalNavigationItem))")
     @Mapping(
         target = "automationMetadata",
@@ -82,7 +82,7 @@ public interface PortalNavigationItemAdapter {
     );
 
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
-    @Mapping(target = "visibility", source = "visibility", qualifiedByName = "repositoryVisibilityToDomain")
+    @Mapping(target = "visibility", expression = "java(repositoryVisibilityToDomain(portalNavigationItem))")
     @Mapping(target = "reference", expression = "java(referenceFromRepository(portalNavigationItem))")
     @Mapping(
         target = "automationMetadata",
@@ -93,7 +93,7 @@ public interface PortalNavigationItemAdapter {
     );
 
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
-    @Mapping(target = "visibility", source = "visibility", qualifiedByName = "repositoryVisibilityToDomain")
+    @Mapping(target = "visibility", expression = "java(repositoryVisibilityToDomain(portalNavigationItem))")
     @Mapping(target = "reference", expression = "java(referenceFromRepository(portalNavigationItem))")
     @Mapping(
         target = "automationMetadata",
@@ -105,7 +105,7 @@ public interface PortalNavigationItemAdapter {
 
     @Mapping(target = "portalPageContentId", expression = "java(parsePortalPageContentId(portalNavigationItem.getConfiguration()))")
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
-    @Mapping(target = "visibility", source = "visibility", qualifiedByName = "repositoryVisibilityToDomain")
+    @Mapping(target = "visibility", expression = "java(repositoryVisibilityToDomain(portalNavigationItem))")
     @Mapping(target = "source", expression = "java(sourceFromRepository(portalNavigationItem))")
     @Mapping(target = "reference", expression = "java(referenceFromRepository(portalNavigationItem))")
     @Mapping(
@@ -356,22 +356,25 @@ public interface PortalNavigationItemAdapter {
         return PortalNavigationItemId.zero();
     }
 
-    @Named("repositoryVisibilityToDomain")
     default PortalVisibility repositoryVisibilityToDomain(
-        io.gravitee.repository.management.model.PortalNavigationItem.Visibility visibility
+        io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     ) {
+        var visibility = portalNavigationItem.getVisibility();
         if (visibility != null) {
             return switch (visibility) {
                 case PUBLIC -> PortalVisibility.PUBLIC;
                 case PRIVATE -> PortalVisibility.PRIVATE;
             };
         }
-        log.warn("Portal navigation item has null visibility; defaulting to PUBLIC.");
+        log.warn(
+            "Portal navigation item [{}] has null visibility; defaulting to PUBLIC. This is unexpected after visibility backfill.",
+            portalNavigationItem.getId()
+        );
         return PortalVisibility.PUBLIC;
     }
 
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
-    @Mapping(target = "visibility", source = "visibility", qualifiedByName = "repositoryVisibilityToDomain")
+    @Mapping(target = "visibility", expression = "java(repositoryVisibilityToDomain(portalNavigationItem))")
     @Mapping(target = "source", expression = "java(sourceFromRepository(portalNavigationItem))")
     @Mapping(target = "reference", expression = "java(referenceFromRepository(portalNavigationItem))")
     @Mapping(
