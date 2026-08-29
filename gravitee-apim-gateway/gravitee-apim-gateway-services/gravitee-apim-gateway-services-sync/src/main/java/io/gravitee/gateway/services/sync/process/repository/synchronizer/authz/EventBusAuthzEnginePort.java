@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiPredicate;
 import lombok.CustomLog;
 
 @CustomLog
@@ -159,10 +160,13 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
     ) {
         // The PDP consumer reads docId and schemaText and nothing else; name stays on the deployable
         // for gateway-side logging.
+        // Routed by engine identity, not by routing scope: a schema belongs to the engine, and the engine
+        // is the base with the tag stripped, so a node hosting "stock@eu" must take a schema bound to
+        // "stock". Tag-gated serves() would drop it there. Policies and entities keep serves().
         JsonObject command = new JsonObject().put("op", OP_ADD_OR_UPDATE_SCHEMA).put("docId", docId).put("schemaText", schemaText);
         Set<String> scopes = expandWildcardWithoutBootstrap(environmentId, targetPdpIds);
         warnOnceIfWildcardReachesNothing(environmentId, docId, targetPdpIds, scopes, updatedAt);
-        return routeGated(environmentId, command, scopes, docId, updatedAt);
+        return routeGated(environmentId, command, scopes, docId, updatedAt, hostedScopes::hostsEngine);
     }
 
     @Override
@@ -171,7 +175,8 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
             environmentId,
             new JsonObject().put("op", OP_REMOVE_SCHEMA).put("docId", docId),
             expandWildcardWithoutBootstrap(environmentId, targetPdpIds),
-            docId
+            docId,
+            hostedScopes::hostsEngine
         );
     }
 
@@ -259,12 +264,23 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
     }
 
     private Completable routeGated(String environmentId, JsonObject command, Set<String> scopes, String docId, long updatedAt) {
+        return routeGated(environmentId, command, scopes, docId, updatedAt, hostedScopes::serves);
+    }
+
+    private Completable routeGated(
+        String environmentId,
+        JsonObject command,
+        Set<String> scopes,
+        String docId,
+        long updatedAt,
+        BiPredicate<String, String> locality
+    ) {
         if (scopes.isEmpty()) {
             return Completable.complete();
         }
         List<Completable> sends = new ArrayList<>();
         for (String scope : scopes) {
-            if (!hostedScopes.serves(environmentId, scope)) {
+            if (!locality.test(environmentId, scope)) {
                 continue;
             }
             if (!revisions.shouldApply(environmentId, scope, docId, updatedAt)) {
@@ -289,12 +305,22 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
     }
 
     private Completable routeForget(String environmentId, JsonObject command, Set<String> scopes, String docId) {
+        return routeForget(environmentId, command, scopes, docId, hostedScopes::serves);
+    }
+
+    private Completable routeForget(
+        String environmentId,
+        JsonObject command,
+        Set<String> scopes,
+        String docId,
+        BiPredicate<String, String> locality
+    ) {
         if (scopes.isEmpty()) {
             return Completable.complete();
         }
         List<Completable> sends = new ArrayList<>();
         for (String scope : scopes) {
-            if (!hostedScopes.serves(environmentId, scope)) {
+            if (!locality.test(environmentId, scope)) {
                 continue;
             }
             String address = addressFor(environmentId, scope);

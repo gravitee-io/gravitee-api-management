@@ -84,6 +84,18 @@ public class AuthzHostedScopes {
         return hostedByBase.containsKey(key(environmentId, baseOf(targetPdpId)));
     }
 
+    /**
+     * Whether this node hosts the engine a scope names, ignoring the sharding tag. An engine is
+     * {@code environmentId:targetPdpId} with the tag stripped, which is what
+     * {@code EventBusAuthzEnginePort#addressFor} already computes, so {@code stock@eu} and {@code stock@us}
+     * are one engine. A document bound to the engine rather than to a routing scope is therefore served
+     * wherever that engine runs, whatever tags this node carries. Schema documents route this way;
+     * policies and entities keep the tag-gated {@link #serves(String, String)}.
+     */
+    public boolean hostsEngine(String environmentId, String scope) {
+        return DEFAULT_SCOPE.equals(baseOf(scope)) || isHosted(environmentId, scope);
+    }
+
     /** The routing scopes whose engine is provisioned on this node for the given environment.
      *  A wildcard ("*") document expands to these (plus the always-on default) so it is routed per-scope to
      *  exactly the engines this node hosts, rather than via a fire-and-forget broadcast. */

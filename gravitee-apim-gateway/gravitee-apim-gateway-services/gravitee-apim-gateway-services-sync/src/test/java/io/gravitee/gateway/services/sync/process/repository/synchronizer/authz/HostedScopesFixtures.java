@@ -31,6 +31,11 @@ final class HostedScopesFixtures {
             public boolean serves(String environmentId, String targetPdpId) {
                 return true;
             }
+
+            @Override
+            public boolean hostsEngine(String environmentId, String scope) {
+                return true;
+            }
         };
     }
 }
