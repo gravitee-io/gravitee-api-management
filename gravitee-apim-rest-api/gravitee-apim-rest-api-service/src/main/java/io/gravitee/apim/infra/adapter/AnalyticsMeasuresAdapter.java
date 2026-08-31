@@ -112,6 +112,9 @@ public interface AnalyticsMeasuresAdapter {
     @ValueMapping(source = "REQUEST_ID", target = MappingConstants.THROW_EXCEPTION)
     @ValueMapping(source = "TRANSACTION_ID", target = MappingConstants.THROW_EXCEPTION)
     @ValueMapping(source = "PAYLOAD", target = MappingConstants.THROW_EXCEPTION)
+    // LOGS-only in the catalog: a version detached from its library is not a readable grouping, so the
+    // engine has no dimension for it. AnalyticsQueryValidator rejects it with a 400 before reaching here.
+    @ValueMapping(source = "NATIVE_CLIENT_SOFTWARE_VERSION", target = MappingConstants.THROW_EXCEPTION)
     Filter.Name toFilterName(io.gravitee.apim.core.analytics_engine.model.FilterSpec.Name name);
 
     @ValueMapping(source = "CONTAINS", target = MappingConstants.THROW_EXCEPTION)

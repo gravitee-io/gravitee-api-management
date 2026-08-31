@@ -48,6 +48,7 @@ public record SearchLogsFilters(
     Set<String> nativeConnectionStatuses,
     Set<String> nativeClientIds,
     Set<String> nativeClientSoftwareNames,
+    Set<String> nativeClientSoftwareVersions,
     Set<String> failureOrigins,
     Set<String> tenants
 ) {

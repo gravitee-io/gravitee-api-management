@@ -210,7 +210,10 @@ class AnalyticsQueryValidatorTest {
                 FilterSpec.Name.PAYLOAD,
                 FilterSpec.Name.ERROR_KEY,
                 FilterSpec.Name.REQUEST_ID,
-                FilterSpec.Name.TRANSACTION_ID
+                FilterSpec.Name.TRANSACTION_ID,
+                // A version detached from its library is not a readable grouping — several clients share
+                // version numbers — so it narrows a library on the logs screen and has no analytics dimension.
+                FilterSpec.Name.NATIVE_CLIENT_SOFTWARE_VERSION
             );
         }
 

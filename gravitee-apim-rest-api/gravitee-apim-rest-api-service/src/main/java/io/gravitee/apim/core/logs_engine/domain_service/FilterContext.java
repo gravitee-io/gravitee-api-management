@@ -42,6 +42,7 @@ public final class FilterContext {
     private Set<String> errorKeys;
     private Set<String> nativeClientIds;
     private Set<String> nativeClientSoftwareNames;
+    private Set<String> nativeClientSoftwareVersions;
     private Set<String> apiProductIds;
     private Set<String> tenants;
     private String bodyText;
@@ -121,6 +122,10 @@ public final class FilterContext {
 
     public void limitByNativeClientSoftwareNames(Set<String> nativeClientSoftwareNames) {
         this.nativeClientSoftwareNames = limitBy(this.nativeClientSoftwareNames, nativeClientSoftwareNames);
+    }
+
+    public void limitByNativeClientSoftwareVersions(Set<String> nativeClientSoftwareVersions) {
+        this.nativeClientSoftwareVersions = limitBy(this.nativeClientSoftwareVersions, nativeClientSoftwareVersions);
     }
 
     public void limitByApiProductIds(Set<String> apiProductIds) {
@@ -229,6 +234,10 @@ public final class FilterContext {
 
     public Optional<Set<String>> nativeClientSoftwareNames() {
         return Optional.ofNullable(nativeClientSoftwareNames);
+    }
+
+    public Optional<Set<String>> nativeClientSoftwareVersions() {
+        return Optional.ofNullable(nativeClientSoftwareVersions);
     }
 
     public Optional<Set<String>> apiProductIds() {

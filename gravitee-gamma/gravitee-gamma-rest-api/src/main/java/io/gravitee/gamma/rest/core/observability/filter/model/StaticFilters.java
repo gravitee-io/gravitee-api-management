@@ -194,8 +194,8 @@ public enum StaticFilters {
     NATIVE_CLIENT_ID("Kafka Client ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.NATIVE)),
     /**
      * KIP-511 client library name, e.g. {@code librdkafka} or {@code apache-kafka-java}. Answers the
-     * fleet question ("who is still on this client?"); the version is not a filter of its own because
-     * comparing versions is a range over an unordered keyword.
+     * fleet question ("who is still on this client?"). {@link #NATIVE_CLIENT_SOFTWARE_VERSION} narrows it
+     * further — ordering a version keyword is meaningless, but selecting one is not.
      *
      * <p>Values include the literal {@code unknown} the gateway writes for a client that advertised
      * none — that is a real population to be able to select, not an absence.
@@ -213,6 +213,21 @@ public enum StaticFilters {
         null,
         null,
         Defs.LOGS_ANALYTICS,
+        Set.of(ApiType.NATIVE)
+    ),
+    /**
+     * KIP-511 client library version, e.g. {@code 2.6.1}. LOGS-only on purpose: several clients share
+     * version numbers, so a version detached from its library identifies nothing and would make a
+     * meaningless grouping. Combined with {@link #NATIVE_CLIENT_SOFTWARE_NAME} it answers "who is on
+     * librdkafka 1.8", which the library filter alone cannot.
+     */
+    NATIVE_CLIENT_SOFTWARE_VERSION(
+        "Kafka Client Library Version",
+        FilterType.KEYWORD,
+        Defs.EQ_IN,
+        null,
+        null,
+        Defs.LOGS,
         Set.of(ApiType.NATIVE)
     ),
     /**

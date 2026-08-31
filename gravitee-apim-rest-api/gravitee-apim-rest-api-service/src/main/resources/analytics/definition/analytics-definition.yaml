@@ -2221,6 +2221,19 @@ spec:
               - EQ
               - IN
 
+        # KIP-511 client library version, e.g. 2.6.1. LOGS only, deliberately: grouping by a version
+        # without its library gives buckets nobody can read — several clients share version numbers —
+        # so this narrows a library rather than standing on its own. Combined with the library filter it
+        # answers "who is on librdkafka 1.8", which the library filter alone cannot.
+        - name: NATIVE_CLIENT_SOFTWARE_VERSION
+          label: Kafka Client Library Version
+          signals:
+              - LOGS
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
         # Kafka topic name, unbounded, so KEYWORD rather than ENUM. Values are not resolvable from
         # the management database — a value lookup would have to aggregate the event-metrics index.
         - name: NATIVE_TOPIC

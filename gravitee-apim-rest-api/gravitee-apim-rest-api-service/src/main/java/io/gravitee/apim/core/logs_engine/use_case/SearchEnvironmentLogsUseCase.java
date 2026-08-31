@@ -249,6 +249,7 @@ public class SearchEnvironmentLogsUseCase {
         builder.errorKeys(filterContext.errorKeys().orElseGet(Collections::emptySet));
         builder.nativeClientIds(filterContext.nativeClientIds().orElseGet(Collections::emptySet));
         builder.nativeClientSoftwareNames(filterContext.nativeClientSoftwareNames().orElseGet(Collections::emptySet));
+        builder.nativeClientSoftwareVersions(filterContext.nativeClientSoftwareVersions().orElseGet(Collections::emptySet));
         builder.apiProductIds(filterContext.apiProductIds().orElseGet(Collections::emptySet));
         builder.tenants(filterContext.tenants().orElseGet(Collections::emptySet));
         builder.bodyText(filterContext.bodyText().orElse(null));
@@ -400,6 +401,7 @@ public class SearchEnvironmentLogsUseCase {
             // which the Elasticsearch adapter handles; here they are plain keyword sets like the rest.
             case NATIVE_CLIENT_ID -> filterContext.limitByNativeClientIds(ids);
             case NATIVE_CLIENT_SOFTWARE_NAME -> filterContext.limitByNativeClientSoftwareNames(ids);
+            case NATIVE_CLIENT_SOFTWARE_VERSION -> filterContext.limitByNativeClientSoftwareVersions(ids);
             case API_PRODUCT -> filterContext.limitByApiProductIds(ids);
             case TENANT -> filterContext.limitByTenants(ids);
             case HTTP_STATUS_CODE_GROUP -> filterContext.limitByStatusCodeGroups(validateStatusCodeGroups(ids));

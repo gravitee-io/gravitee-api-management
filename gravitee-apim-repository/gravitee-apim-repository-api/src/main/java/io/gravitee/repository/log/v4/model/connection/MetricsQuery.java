@@ -62,6 +62,7 @@ public class MetricsQuery {
         private Set<String> nativeConnectionStatuses;
         private Set<String> nativeClientIds;
         private Set<String> nativeClientSoftwareNames;
+        private Set<String> nativeClientSoftwareVersions;
         private Set<String> failureOrigins;
         private Set<String> tenants;
 

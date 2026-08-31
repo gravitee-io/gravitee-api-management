@@ -539,6 +539,16 @@ class ObservabilityLogsDataPortAdapterTest {
         }
 
         @Test
+        void should_translate_kafka_client_library_version_filter() {
+            stubEmptySearchResult();
+            var query = queryWith(new FilterCondition("NATIVE_CLIENT_SOFTWARE_VERSION", FilterOperator.IN, List.of("1.8.2", "2.6.1")));
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().nativeClientSoftwareVersions()).containsExactlyInAnyOrder("1.8.2", "2.6.1");
+        }
+
+        @Test
         void should_translate_failure_origin_filter() {
             stubEmptySearchResult();
             var query = queryWith(new FilterCondition("FAILURE_ORIGIN", FilterOperator.IN, List.of("GATEWAY_TO_BROKER", "NONE")));

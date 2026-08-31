@@ -123,6 +123,7 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
             // switch on a stale path, and the values dropdown would quietly return an empty page.
             case NATIVE_CLIENT_ID -> ADDITIONAL_METRICS_PREFIX + NativeApiMetricKeys.CLIENT_ID;
             case NATIVE_CLIENT_SOFTWARE_NAME -> ADDITIONAL_METRICS_PREFIX + NativeApiMetricKeys.CLIENT_SOFTWARE_NAME;
+            case NATIVE_CLIENT_SOFTWARE_VERSION -> ADDITIONAL_METRICS_PREFIX + NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION;
             case ENTRYPOINT -> "entrypoint-id";
             case ERROR_KEY -> "error-key";
             case REQUEST_ID -> "request-id";
