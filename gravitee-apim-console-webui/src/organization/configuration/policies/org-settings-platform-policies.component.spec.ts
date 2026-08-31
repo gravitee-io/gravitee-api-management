@@ -31,6 +31,7 @@ import { fakePolicyListItem } from '../../../entities/policy';
 import { fakeOrganization } from '../../../entities/organization/organization.fixture';
 import { fakePlatformFlowSchema } from '../../../entities/flow/platformFlowSchema.fixture';
 import { fakeFlow } from '../../../entities/flow/flow.fixture';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('OrgSettingsPlatformPoliciesComponent', () => {
   let fixture: ComponentFixture<OrgSettingsPlatformPoliciesComponent>;
@@ -59,9 +60,10 @@ describe('OrgSettingsPlatformPoliciesComponent', () => {
     flowMode: 'BEST_MATCH',
   });
 
-  beforeEach(() => {
+  const createComponent = (permissions: string[]) => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule, GioLicenseTestingModule],
+      providers: [{ provide: GioTestingPermissionProvider, useValue: permissions }],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -84,9 +86,11 @@ describe('OrgSettingsPlatformPoliciesComponent', () => {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/resources?expand=schema&expand=icon`).flush(organization);
 
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}`).flush(organization);
-  });
+  };
 
   describe('onSave', () => {
+    beforeEach(() => createComponent(['organization-policies-r', 'organization-policies-u']));
+
     it('should call the API with updated organization', async () => {
       component.definitionToSave = {
         flow_mode: 'DEFAULT',
@@ -154,6 +158,26 @@ describe('OrgSettingsPlatformPoliciesComponent', () => {
         ],
       });
       // no flush to stop test here
+      httpTestingController.match(`${CONSTANTS_TESTING.env.baseURL}/configuration/spel/grammar`);
+    });
+  });
+
+  describe('save button', () => {
+    const saveButton = () => fixture.nativeElement.querySelector('.header__nav__saveButton');
+
+    it('should be offered to a user holding the update permission', () => {
+      createComponent(['organization-policies-r', 'organization-policies-u']);
+
+      expect(saveButton()).not.toBeNull();
+
+      httpTestingController.match(`${CONSTANTS_TESTING.env.baseURL}/configuration/spel/grammar`);
+    });
+
+    it('should be withheld from a user holding only the read permission', () => {
+      createComponent(['organization-policies-r']);
+
+      expect(saveButton()).toBeNull();
+
       httpTestingController.match(`${CONSTANTS_TESTING.env.baseURL}/configuration/spel/grammar`);
     });
   });

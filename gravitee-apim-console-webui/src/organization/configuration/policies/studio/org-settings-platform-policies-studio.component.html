@@ -16,25 +16,29 @@
 
 -->
 <div class="policy-studio-design">
-  <gv-design
-    *ngIf="!isLoading"
-    #gvDesignComponent
-    flowsTitle="Platform flows"
-    can-add
-    has-policy-filter
-    has-conditional-steps
-    sortable
-    [flowSchema]="platformFlowSchema"
-    [policies]="policies"
-    [definition]="definition"
-    [resourceTypes]="resourceTypes"
-    [selectedFlowsId]="selectedFlowsIds"
-    [documentation]="policyDocumentation"
-    (:gv-design:change)="onChange($any($event))"
-    (:gv-design:fetch-documentation)="fetchPolicyDocumentation($any($event).detail)"
-    (:gv-design:display-policy-cta)="displayPolicyCTA()"
-    (:gv-design:select-flows)="onFlowSelectionChanged($any($event).detail)"
-    (:gv-expression-language:ready)="fetchSpelGrammar($any($event).detail)"
-  ></gv-design>
+  @if (loadError) {
+    {{ loadError }}
+  } @else if (isLoading) {
+    Loading...
+  } @else {
+    <gv-design
+      #gvDesignComponent
+      flowsTitle="Platform flows"
+      can-add
+      has-policy-filter
+      has-conditional-steps
+      sortable
+      [flowSchema]="platformFlowSchema"
+      [policies]="policies"
+      [definition]="definition"
+      [resourceTypes]="resourceTypes"
+      [selectedFlowsId]="selectedFlowsIds"
+      [documentation]="policyDocumentation"
+      (:gv-design:change)="onChange($any($event))"
+      (:gv-design:fetch-documentation)="fetchPolicyDocumentation($any($event).detail)"
+      (:gv-design:display-policy-cta)="displayPolicyCTA()"
+      (:gv-design:select-flows)="onFlowSelectionChanged($any($event).detail)"
+      (:gv-expression-language:ready)="fetchSpelGrammar($any($event).detail)"
+    ></gv-design>
+  }
 </div>
-<ng-container *ngIf="isLoading"> Loading... </ng-container>
