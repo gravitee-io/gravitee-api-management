@@ -32,11 +32,6 @@ stateDiagram-v2
     sonarConsole: Sonar - gravitee-apim-console-webui
     webUILintConsole --> sonarConsole
 
-    storybook: Build Console Storybook
-    chromatic: console-webui-chromatic-deployment
-    setup --> storybook
-    storybook --> chromatic
-
     webUIConsole: Build APIM Console
     setup --> webUIConsole
     deployAzure: console-webui-deploy-on-azure-storage
@@ -104,11 +99,6 @@ stateDiagram-v2
     setup --> webUILintConsole
     sonarConsole: Sonar - gravitee-apim-console-webui
     webUILintConsole --> sonarConsole
-
-    storybook: Build Console Storybook
-    chromatic: console-webui-chromatic-deployment
-    setup --> storybook
-    storybook --> chromatic
 
     webUIConsole: Build APIM Console
     setup --> webUIConsole
@@ -213,11 +203,6 @@ stateDiagram-v2
     setup --> webUILintConsole
     sonarConsole: Sonar - gravitee-apim-console-webui
     webUILintConsole --> sonarConsole
-
-    storybook: Build Console Storybook
-    chromatic: console-webui-chromatic-deployment
-    setup --> storybook
-    storybook --> chromatic
 
     webUIConsole: Build APIM Console
     setup --> webUIConsole
