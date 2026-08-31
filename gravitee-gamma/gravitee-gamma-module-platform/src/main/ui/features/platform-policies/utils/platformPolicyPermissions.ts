@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-/**
- * `GET /organizations/{orgId}` is annotated `ORGANIZATION_POLICIES` with CREATE, DELETE and UPDATE, and
- * does not accept READ. Gating the page on `-r` would open a studio whose very first request answers 403,
- * so the route mirrors the acls the API actually accepts. Serving read-only users takes a backend change
- * first, tracked separately.
- */
+/** Mirrors the acls `GET /organizations/{orgId}` accepts, so every user the API will serve is offered the page. */
 export const ORGANIZATION_POLICIES_ACCESS_PERMISSIONS = [
+    'organization-policies-r',
     'organization-policies-c',
     'organization-policies-d',
     'organization-policies-u',
