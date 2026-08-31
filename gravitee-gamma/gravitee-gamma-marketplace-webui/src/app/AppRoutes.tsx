@@ -15,6 +15,7 @@
  */
 import { Route, Routes } from 'react-router-dom';
 
+import { AgentDetailPage } from './agent-detail/AgentDetailPage';
 import { ForceLoginRoute, LoginPage, ProtectedRoute, PublicOnlyRoute } from './auth';
 import { CatalogPage } from './catalog/CatalogPage';
 import { HomePage } from './home/HomePage';
@@ -34,7 +35,7 @@ export function AppRoutes() {
                 <Route element={<ForceLoginRoute />}>
                     <Route index element={<HomePage />} />
                     <Route path="/catalog" element={<CatalogPage />} />
-                    <Route path="/catalog/:apiId" element={<h1>Agent</h1>} />
+                    <Route path="/catalog/:apiId/:tab?" element={<AgentDetailPage />} />
                 </Route>
                 <Route element={<ProtectedRoute />}>
                     <Route path="/dashboard" element={<DashboardPlaceholder />} />

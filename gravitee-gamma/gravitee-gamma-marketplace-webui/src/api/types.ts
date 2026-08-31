@@ -70,14 +70,31 @@ export interface CategoriesResponse {
 
 export type ApiType = 'A2A_PROXY' | 'AUTHZ' | 'EDGE' | 'LLM_PROXY' | 'MCP_PROXY' | 'PROXY' | 'MESSAGE' | 'NATIVE';
 
+export interface McpToolDefinition {
+    name?: string;
+    description?: string;
+}
+
 export interface Mcp {
     mcpPath?: string;
     tools?: Array<{
-        toolDefinition?: {
-            name?: string;
-            description?: string;
-        };
+        toolDefinition?: McpToolDefinition;
     }>;
+}
+
+export type PageType = 'ASCIIDOC' | 'ASYNCAPI' | 'SWAGGER' | 'MARKDOWN' | 'FOLDER' | 'ROOT' | 'LINK';
+
+export interface Page {
+    id: string;
+    name: string;
+    type: PageType;
+    order: number;
+    parent?: string | null;
+    content?: string;
+}
+
+export interface PagesResponse {
+    data?: Page[];
 }
 
 export interface Api {
