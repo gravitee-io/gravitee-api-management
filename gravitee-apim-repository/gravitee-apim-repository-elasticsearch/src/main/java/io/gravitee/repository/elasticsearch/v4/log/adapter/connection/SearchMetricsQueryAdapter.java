@@ -33,6 +33,8 @@ public class SearchMetricsQueryAdapter {
     private static final String NATIVE_CLIENT_ID_FIELD = RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_ID;
     private static final String NATIVE_CLIENT_SOFTWARE_NAME_FIELD =
         RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_SOFTWARE_NAME;
+    private static final String NATIVE_CLIENT_SOFTWARE_VERSION_FIELD =
+        RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION;
 
     private SearchMetricsQueryAdapter() {}
 
@@ -102,6 +104,7 @@ public class SearchMetricsQueryAdapter {
         addNativeConnectionStatusesFilter(filter, mustFilterList);
         addNativeClientIdsFilter(filter, mustFilterList);
         addNativeClientSoftwareNamesFilter(filter, mustFilterList);
+        addNativeClientSoftwareVersionsFilter(filter, mustFilterList);
 
         addFailureOriginsFilter(filter, mustFilterList);
 
@@ -280,14 +283,28 @@ public class SearchMetricsQueryAdapter {
     }
 
     /**
-     * KIP-511 client library name. The version is deliberately not filterable: comparing versions is a
-     * range over an unordered string, and the fleet question ("who is still on librdkafka?") is about
-     * the library.
+     * KIP-511 client library name — the fleet question, "who is still on librdkafka?". Equality only, like
+     * the version below: ordering a version string is meaningless on a keyword, but selecting one is not.
      */
     private static void addNativeClientSoftwareNamesFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getNativeClientSoftwareNames())) {
             mustFilterList.add(
                 JsonObject.of("terms", JsonObject.of(NATIVE_CLIENT_SOFTWARE_NAME_FIELD, filter.getNativeClientSoftwareNames().toArray()))
+            );
+        }
+    }
+
+    /**
+     * KIP-511 client library version. Narrows a library rather than standing on its own: several clients
+     * share version numbers, so a version alone identifies nothing.
+     */
+    private static void addNativeClientSoftwareVersionsFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getNativeClientSoftwareVersions())) {
+            mustFilterList.add(
+                JsonObject.of(
+                    "terms",
+                    JsonObject.of(NATIVE_CLIENT_SOFTWARE_VERSION_FIELD, filter.getNativeClientSoftwareVersions().toArray())
+                )
             );
         }
     }

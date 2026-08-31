@@ -74,13 +74,14 @@ class ObservabilityFiltersDefinitionResourceTest extends AbstractResourceTest {
             .satisfies(filters -> {
                 // The bare count keeps every catalog addition a deliberate decision. On its own it
                 // says nothing about what broke, so the names of the last additions come with it.
-                assertThat(filters).hasSize(59);
+                assertThat(filters).hasSize(60);
                 assertThat(filters)
                     .extracting(filter -> filter.getName().getValue())
                     .contains(
                         "NATIVE_FAILURE_SIDE",
                         "NATIVE_CLIENT_ID",
                         "NATIVE_CLIENT_SOFTWARE_NAME",
+                        "NATIVE_CLIENT_SOFTWARE_VERSION",
                         "NATIVE_TOPIC",
                         "NATIVE_OPERATION",
                         "AUTHZ_DECISION",
@@ -219,7 +220,8 @@ class ObservabilityFiltersDefinitionResourceTest extends AbstractResourceTest {
                     "PAYLOAD",
                     "TENANT",
                     "NATIVE_CLIENT_ID",
-                    "NATIVE_CLIENT_SOFTWARE_NAME"
+                    "NATIVE_CLIENT_SOFTWARE_NAME",
+                    "NATIVE_CLIENT_SOFTWARE_VERSION"
                 );
                 // The filters APIM-14817 reported as offered-but-ignored on the logs screen.
                 assertThat(names(filters)).doesNotContain("GATEWAY", "HTTP_ENDPOINT_RESPONSE_TIME", "GEO_IP_COUNTRY");

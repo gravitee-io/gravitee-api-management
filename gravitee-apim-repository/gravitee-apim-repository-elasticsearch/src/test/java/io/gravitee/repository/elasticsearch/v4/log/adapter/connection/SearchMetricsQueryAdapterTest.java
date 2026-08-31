@@ -1050,6 +1050,8 @@ class SearchMetricsQueryAdapterTest {
         private static final String CLIENT_ID_FIELD = RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_ID;
         private static final String SOFTWARE_NAME_FIELD =
             RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_SOFTWARE_NAME;
+        private static final String SOFTWARE_VERSION_FIELD =
+            RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_SOFTWARE_VERSION;
 
         @Test
         void should_add_kafka_client_id_terms_filter_on_additional_metrics() {
@@ -1070,18 +1072,41 @@ class SearchMetricsQueryAdapterTest {
         }
 
         @Test
+        void should_add_kafka_client_software_version_terms_filter_on_additional_metrics() {
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().nativeClientSoftwareVersions(Set.of("1.8.2")).build())
+                .build();
+
+            assertThat(hasTermsOn(query, SOFTWARE_VERSION_FIELD)).isTrue();
+        }
+
+        @Test
         void should_not_add_native_client_filters_when_null_or_empty() {
             var nullQuery = MetricsQuery.builder()
-                .filter(MetricsQuery.Filter.builder().nativeClientIds(null).nativeClientSoftwareNames(null).build())
+                .filter(
+                    MetricsQuery.Filter.builder()
+                        .nativeClientIds(null)
+                        .nativeClientSoftwareNames(null)
+                        .nativeClientSoftwareVersions(null)
+                        .build()
+                )
                 .build();
             var emptyQuery = MetricsQuery.builder()
-                .filter(MetricsQuery.Filter.builder().nativeClientIds(Set.of()).nativeClientSoftwareNames(Set.of()).build())
+                .filter(
+                    MetricsQuery.Filter.builder()
+                        .nativeClientIds(Set.of())
+                        .nativeClientSoftwareNames(Set.of())
+                        .nativeClientSoftwareVersions(Set.of())
+                        .build()
+                )
                 .build();
 
             assertThat(hasTermsOn(nullQuery, CLIENT_ID_FIELD)).isFalse();
             assertThat(hasTermsOn(nullQuery, SOFTWARE_NAME_FIELD)).isFalse();
+            assertThat(hasTermsOn(nullQuery, SOFTWARE_VERSION_FIELD)).isFalse();
             assertThat(hasTermsOn(emptyQuery, CLIENT_ID_FIELD)).isFalse();
             assertThat(hasTermsOn(emptyQuery, SOFTWARE_NAME_FIELD)).isFalse();
+            assertThat(hasTermsOn(emptyQuery, SOFTWARE_VERSION_FIELD)).isFalse();
         }
     }
 

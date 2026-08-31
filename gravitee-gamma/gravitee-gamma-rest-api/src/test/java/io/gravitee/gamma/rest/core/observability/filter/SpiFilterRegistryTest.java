@@ -231,8 +231,11 @@ class SpiFilterRegistryTest {
         assertThat(result)
             .extracting(FilterSpec::name)
             .contains("NATIVE_CLIENT_ID", "NATIVE_CLIENT_SOFTWARE_NAME")
-            // Derived from the error key rather than stored, so the analytics engine cannot group by it.
-            .doesNotContain("FAILURE_ORIGIN");
+            // FAILURE_ORIGIN is derived from the error key rather than stored, so the engine cannot group by
+            // it. NATIVE_CLIENT_SOFTWARE_VERSION is stored but not groupable on its own — several clients
+            // share version numbers — and the core AnalyticsQueryValidator rejects it, so advertising it here
+            // would make Gamma offer a filter that answers with a 400.
+            .doesNotContain("FAILURE_ORIGIN", "NATIVE_CLIENT_SOFTWARE_VERSION");
     }
 
     @Test
@@ -257,6 +260,7 @@ class SpiFilterRegistryTest {
                 "FAILURE_ORIGIN",
                 "NATIVE_CLIENT_ID",
                 "NATIVE_CLIENT_SOFTWARE_NAME",
+                "NATIVE_CLIENT_SOFTWARE_VERSION",
                 "API_TYPE",
                 "RECORD_TYPE"
             );

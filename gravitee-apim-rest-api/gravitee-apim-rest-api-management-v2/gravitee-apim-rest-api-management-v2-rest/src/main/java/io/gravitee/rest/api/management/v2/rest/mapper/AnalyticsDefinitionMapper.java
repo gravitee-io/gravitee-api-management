@@ -60,6 +60,8 @@ public interface AnalyticsDefinitionMapper {
     @ValueMapping(source = "ERROR_KEY", target = MappingConstants.THROW_EXCEPTION)
     @ValueMapping(source = "REQUEST_ID", target = MappingConstants.THROW_EXCEPTION)
     @ValueMapping(source = "TRANSACTION_ID", target = MappingConstants.THROW_EXCEPTION)
+    // LOGS-only, like the four above: no analytics dimension, so it must never appear on a metric filter list.
+    @ValueMapping(source = "NATIVE_CLIENT_SOFTWARE_VERSION", target = MappingConstants.THROW_EXCEPTION)
     FilterName mapAnalyticsFilterName(io.gravitee.apim.core.analytics_engine.model.FilterSpec.Name name);
 
     List<MetricSpec> mapMetricSpecs(List<io.gravitee.apim.core.analytics_engine.model.MetricSpec> metricSpecs);

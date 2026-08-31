@@ -460,6 +460,7 @@ components:
         - TENANT
         - NATIVE_CLIENT_ID
         - NATIVE_CLIENT_SOFTWARE_NAME
+        - NATIVE_CLIENT_SOFTWARE_VERSION
         - MCP_METHOD
         - URI
         - RESPONSE_TIME
