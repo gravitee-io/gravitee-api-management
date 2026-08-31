@@ -241,7 +241,7 @@
     <gravitee-resource-storage-azure-blob.version>1.1.0</gravitee-resource-storage-azure-blob.version>
     <gravitee-reactor-message.version>11.0.0</gravitee-reactor-message.version>
     <gravitee-reactor-native-kafka.version>7.1.0-alpha.13</gravitee-reactor-native-kafka.version>
-    <gravitee-reactor-mcp-proxy.version>3.3.1</gravitee-reactor-mcp-proxy.version>
+    <gravitee-reactor-mcp-proxy.version>4.0.0</gravitee-reactor-mcp-proxy.version>
     <gravitee-reactor-llm-proxy.version>4.2.0-alpha.7</gravitee-reactor-llm-proxy.version>
     <gravitee-reactor-a2a-proxy.version>2.1.1</gravitee-reactor-a2a-proxy.version>
     <gravitee-reactor-authz.version>1.2.0</gravitee-reactor-authz.version>
@@ -267,7 +267,7 @@
     <gravitee-policy-offloading.version>1.1.0</gravitee-policy-offloading.version>
     <gravitee-policy-token-ratelimit.version>1.1.0</gravitee-policy-token-ratelimit.version>
     <gravitee-policy-cost-ratelimit.version>1.1.1</gravitee-policy-cost-ratelimit.version>
-    <gravitee-policy-mcp-acl.version>1.0.4</gravitee-policy-mcp-acl.version>
+    <gravitee-policy-mcp-acl.version>2.0.0</gravitee-policy-mcp-acl.version>
     <gravitee-policy-pii-filtering.version>2.2.0</gravitee-policy-pii-filtering.version>
     <gravitee-policy-native-ipfiltering.version>1.0.1</gravitee-policy-native-ipfiltering.version>
     <gravitee-resource-ai-model-token-classification.version>1.0.0</gravitee-resource-ai-model-token-classification.version>
