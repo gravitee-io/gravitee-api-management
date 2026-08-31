@@ -73,6 +73,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
   public environments: SelectorItem[] = [];
 
   public currentEnv: Environment;
+  private envHrid: string;
   public licenseExpirationDate$: Observable<Date>;
   public licenseExpirationNotificationEnabled = true;
 
@@ -91,7 +92,12 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
       .pipe(
         map(p => p.envHrid),
         distinctUntilChanged(),
-        switchMap(_ => {
+        switchMap(envHrid => {
+          // The segment the URL actually carries. Building absolute paths from it keeps them in
+          // agreement with router.url by construction: hrids are optional, an environment can hold
+          // several, and the guard accepts the id as well -- so anything re-derived from currentEnv
+          // can name the environment differently from the address bar the user is on.
+          this.envHrid = envHrid;
           this.environments = this.constants.org.environments.map(env => ({ value: env.id, displayValue: env.name }));
           this.currentEnv = this.constants.org.currentEnv;
 
@@ -201,7 +207,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
       permissions: ['environment-cluster-r'],
       licenseOptions: clusterLicenseOptions,
       iconRight$: clusterIconRight$,
-      routerBasePath: `/${this.currentEnv.hrids}/clusters`,
+      routerBasePath: `/${this.envHrid}/clusters`,
       items: [
         {
           displayName: 'Standalone',
@@ -236,7 +242,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
       displayName: 'Observability',
       category: 'Observability',
       permissions: ['environment-platform-r'],
-      routerBasePath: `/${this.currentEnv.hrids}/observability`,
+      routerBasePath: `/${this.envHrid}/observability`,
       items: [
         {
           displayName: 'Overview',
@@ -261,7 +267,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
       displayName: 'Analytics',
       category: 'Analytics',
       permissions: ['environment-platform-r'],
-      routerBasePath: `/${this.currentEnv.hrids}/analytics`,
+      routerBasePath: `/${this.envHrid}/analytics`,
       iconRight$: of('gio:info'),
       iconRightTooltip: 'This interface supports API V2 only. For API V4, switch to the new Observability interface.',
       items: [
@@ -382,7 +388,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
       .map(item => {
         return {
           name: item.displayName,
-          routerLink: `/${this.currentEnv.hrids}/${cleanRouterLink(item.routerLink)}`,
+          routerLink: `/${this.envHrid}/${cleanRouterLink(item.routerLink)}`,
           category: item.category,
           groupIds: [SIDE_NAV_GROUP_ID],
         };
