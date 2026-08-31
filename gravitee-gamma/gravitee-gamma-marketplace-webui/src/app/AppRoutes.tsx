@@ -13,26 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Card, CardContent, CardHeader } from '@gravitee/graphene-core';
 import { Route, Routes } from 'react-router-dom';
 
-function HomePage() {
-    return (
-        <Card>
-            <CardHeader>
-                <h1>Hello World</h1>
-            </CardHeader>
-            <CardContent>
-                <p>Marketplace portal</p>
-            </CardContent>
-        </Card>
-    );
+import { ForceLoginRoute, LoginPage, ProtectedRoute, PublicOnlyRoute } from './auth';
+import { HomePage } from './home/HomePage';
+
+function CatalogPlaceholder() {
+    return <h1>Catalog</h1>;
+}
+
+function DashboardPlaceholder() {
+    return <h1>Dashboard</h1>;
 }
 
 export function AppRoutes() {
     return (
         <Routes>
-            <Route index element={<HomePage />} />
+            <Route element={<PublicOnlyRoute />}>
+                <Route path="/login" element={<LoginPage />} />
+            </Route>
+            <Route element={<ForceLoginRoute />}>
+                <Route index element={<HomePage />} />
+                <Route path="/catalog" element={<CatalogPlaceholder />} />
+            </Route>
+            <Route element={<ProtectedRoute />}>
+                <Route path="/dashboard" element={<DashboardPlaceholder />} />
+            </Route>
         </Routes>
     );
 }

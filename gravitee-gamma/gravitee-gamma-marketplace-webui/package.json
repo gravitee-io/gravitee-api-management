@@ -3,8 +3,10 @@
     "private": true,
     "dependencies": {
         "@gravitee/graphene-core": "3.14.0",
+        "oidc-client-ts": "2.4.1",
         "react": "19.2.6",
         "react-dom": "19.2.6",
-        "react-router-dom": "7.15.1"
+        "react-router-dom": "7.15.1",
+        "zustand": "5.0.12"
     }
 }

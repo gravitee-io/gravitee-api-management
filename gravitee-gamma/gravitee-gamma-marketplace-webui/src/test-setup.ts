@@ -13,7 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// jsdom ships no matchMedia; graphene's ThemeProvider needs it to resolve the "system" theme.
+import { act } from '@testing-library/react';
+
+import { resetAllStores, seedBootstrap } from './testing/helpers';
+import { server } from './testing/server';
+
 window.matchMedia ??= (query: string): MediaQueryList =>
     ({
         matches: false,
@@ -25,3 +29,15 @@ window.matchMedia ??= (query: string): MediaQueryList =>
         removeListener: () => undefined,
         dispatchEvent: () => false,
     }) as MediaQueryList;
+
+beforeAll(() => {
+    server.listen({ onUnhandledRequest: 'error' });
+});
+beforeEach(() => seedBootstrap());
+afterEach(() => {
+    server.resetHandlers();
+    act(() => {
+        resetAllStores();
+    });
+});
+afterAll(() => server.close());
