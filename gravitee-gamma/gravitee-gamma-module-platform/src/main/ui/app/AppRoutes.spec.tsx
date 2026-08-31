@@ -45,6 +45,7 @@ jest.mock('@gravitee/graphene-core', () => {
         useLayoutConfig: (config: unknown, deps: unknown) => mockUseLayoutConfig(config, deps),
         ContextSidebar: () => null,
         ContextToggleButton: () => null,
+        SidebarNavigation: () => null,
         buildLinearBreadcrumbs: () => [],
     };
 });
@@ -59,9 +60,16 @@ jest.mock('../shared/hooks/useEnvironmentPermissions', () => ({
 }));
 
 const mockUseHasPermission = jest.fn().mockReturnValue(true);
+const mockUseHasFeature = jest.fn().mockReturnValue(true);
 
 jest.mock('../shared/gamma-modules-sdk', () => ({
     useHasPermission: (options: unknown) => mockUseHasPermission(options),
+    useHasFeature: (feature: unknown) => mockUseHasFeature(feature),
+}));
+
+jest.mock('@gravitee/gamma-modules-sdk', () => ({
+    useHasPermission: (options: unknown) => mockUseHasPermission(options),
+    useHasFeature: (feature: unknown) => mockUseHasFeature(feature),
 }));
 
 jest.mock('../features/dictionaries/hooks/useEnvironmentDictionaries');
@@ -190,9 +198,17 @@ function renderPlatform(path = '/applications') {
     );
 }
 
+type NavGroupProps = { items: { key: string; access?: string }[] };
+
 type LayoutConfig = {
     navigation?: { props?: { items?: { key: string; title: string }[]; onItemSelect?: (key: string) => void } };
-    contextSidebar?: { props?: { groups?: { items: { key: string }[] }[]; onItemSelect?: (key: string) => void } };
+    contextSidebar?: {
+        props?: {
+            groups?: NavGroupProps[];
+            onItemSelect?: (key: string) => void;
+            children?: { props?: { groups?: NavGroupProps[]; onItemSelect?: (key: string) => void } };
+        };
+    };
 };
 
 function layoutConfigs(): LayoutConfig[] {
@@ -207,9 +223,23 @@ function contextSidebar() {
     return layoutConfigs().findLast(config => config.contextSidebar)?.contextSidebar;
 }
 
+function contextNav() {
+    const sidebar = contextSidebar();
+    return sidebar?.props?.children ?? sidebar;
+}
+
+function contextGroups(): NavGroupProps[] {
+    return contextNav()?.props?.groups ?? [];
+}
+
 function visibleNavKeys(): string[] {
-    const groups = contextSidebar()?.props?.groups ?? [];
-    return groups.flatMap(group => group.items.map(item => item.key));
+    return contextGroups().flatMap(group => group.items.map(item => item.key));
+}
+
+function navItemAccess(key: string): string | undefined {
+    return contextGroups()
+        .flatMap(group => group.items)
+        .find(item => item.key === key)?.access;
 }
 
 function primaryNavKeys(): string[] {
@@ -225,6 +255,7 @@ describe('AppRoutes', () => {
             rootPath: '/platform',
         });
         mockUseHasPermission.mockReset().mockReturnValue(true);
+        mockUseHasFeature.mockReset().mockReturnValue(true);
         mockUseEnvironmentDictionaries.mockReturnValue({
             data: [],
             isLoading: false,
@@ -502,7 +533,7 @@ describe('AppRoutes', () => {
         });
         renderPlatform();
 
-        contextSidebar()?.props?.onItemSelect?.('metadata');
+        contextNav()?.props?.onItemSelect?.('metadata');
 
         expect(navigateToKey).toHaveBeenCalledWith('metadata');
     });
@@ -560,6 +591,29 @@ describe('AppRoutes', () => {
         renderPlatform();
 
         expect(visibleNavKeys()).toContain('alerts');
+        expect(navItemAccess('alerts')).toBeUndefined();
+    });
+
+    it('locks the Alerts nav item when Alert Engine is unlicensed', () => {
+        mockUseHasFeature.mockImplementation((feature: string) => feature !== 'alert-engine');
+
+        renderPlatform();
+
+        expect(visibleNavKeys()).toContain('alerts');
+        expect(navItemAccess('alerts')).toBe('locked');
+    });
+
+    it('redirects Alerts pages to applications when Alert Engine is unlicensed', () => {
+        mockUseHasFeature.mockImplementation((feature: string) => feature !== 'alert-engine');
+
+        render(
+            <MemoryRouter initialEntries={['/alerts']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.queryByTestId('alerts-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
     });
 
     it('hides the Alerts nav item when the user lacks environment-alert-r', () => {

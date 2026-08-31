@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+/** Must match classic console `ApimFeature.ALERT_ENGINE` / backend license feature id. */
+export const ALERT_ENGINE_FEATURE = 'alert-engine';
 /** Mirrors classic Console's environment alerts route guard (management-routing.module.ts / gio-side-nav). */
 export const ENVIRONMENT_ALERT_READ_PERMISSION = 'environment-alert-r' as const;
 export const ENVIRONMENT_ALERT_CREATE_PERMISSION = 'environment-alert-c' as const;

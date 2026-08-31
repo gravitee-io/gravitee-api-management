@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useHasFeature, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
 import {
     buildLinearBreadcrumbs,
@@ -24,6 +25,7 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    SidebarNavigation,
     useLayoutConfig,
 } from '@gravitee/graphene-core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -37,6 +39,7 @@ import {
     filterNavSections,
     findNavSectionKey,
     firstNavItemKey,
+    lockNavItem,
     NAV_SECTIONS,
     platformPrimaryNavItems,
     type PlatformNavSection,
@@ -45,7 +48,7 @@ import { PLATFORM_ROUTE_CONFIG } from '../config/routes';
 import { AlertsLayout } from '../features/alerts/components/AlertsLayout';
 import { AlertFormPage } from '../features/alerts/pages/AlertFormPage';
 import { AlertsActivityPage } from '../features/alerts/pages/AlertsActivityPage';
-import { ENVIRONMENT_ALERT_READ_PERMISSION } from '../features/alerts/utils/alertPermissions';
+import { ALERT_ENGINE_FEATURE, ENVIRONMENT_ALERT_READ_PERMISSION } from '../features/alerts/utils/alertPermissions';
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
 import { ENVIRONMENT_AUDIT_READ_PERMISSIONS, ORGANIZATION_AUDIT_READ_PERMISSIONS } from '../features/audit-logs/utils/auditPermissions';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
@@ -88,7 +91,6 @@ import { UserDetailPage } from '../pages/UserDetailPage';
 import { UsersPage } from '../pages/UsersPage';
 import { retryTransientRequest } from '../shared/api/queryRetry';
 import { ConsoleSettingsProvider } from '../shared/console-settings';
-import { useHasPermission } from '../shared/gamma-modules-sdk';
 import { useEnvironmentPermissions, useEnvironmentPermissionsReady } from '../shared/hooks/useEnvironmentPermissions';
 import { isForbiddenApiError } from '../shared/utils/apiErrors';
 
@@ -122,6 +124,14 @@ function PermissionPageGuard({
     const canAccess = useHasPermission({ anyOf: [...required] });
     if (!permissionsReady) return null;
     if (!canAccess) return <Navigate to={unauthorizedTo} replace />;
+    return children;
+}
+
+function RequireAlertEngineLicense({ children }: { readonly children: ReactElement }) {
+    const hasFeature = useHasFeature(ALERT_ENGINE_FEATURE);
+    if (!hasFeature) {
+        return <Navigate to="../applications" replace />;
+    }
     return children;
 }
 
@@ -286,6 +296,7 @@ function ModuleLayout() {
     const canReadGroups = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_READ_PERMISSION] });
     const canReadSharedPolicyGroups = useHasPermission({ anyOf: [ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION] });
     const canReadAlerts = useHasPermission({ anyOf: [ENVIRONMENT_ALERT_READ_PERMISSION] });
+    const hasAlertEngine = useHasFeature(ALERT_ENGINE_FEATURE);
     const canReadTenants = useHasPermission({ anyOf: ['organization-tenant-r', 'environment-tenant-r'] });
     const canAccessPlatformPolicies = useHasPermission({ anyOf: [...ORGANIZATION_POLICIES_ACCESS_PERMISSIONS] });
     const canReadOrgAudit = useHasPermission({ anyOf: [...ORGANIZATION_AUDIT_READ_PERMISSIONS] });
@@ -297,24 +308,28 @@ function ModuleLayout() {
 
     const visibleNavSections = useMemo(
         () =>
-            filterNavSections(NAV_SECTIONS, itemKey =>
-                isNavItemVisible(itemKey, {
-                    permissionsReady,
-                    canReadMetadata,
-                    canReadDictionaries,
-                    canAccessUsers,
-                    canReadGateways,
-                    canReadEntrypoints,
-                    canReadGroups,
-                    canReadSharedPolicyGroups,
-                    canReadAlerts,
-                    canReadTenants,
-                    canAccessPlatformPolicies,
-                    canReadOrgAudit,
-                    canReadEnvAudit,
-                    canReadOrgSettings,
-                    canReadIdentityProviders,
-                }),
+            lockNavItem(
+                filterNavSections(NAV_SECTIONS, itemKey =>
+                    isNavItemVisible(itemKey, {
+                        permissionsReady,
+                        canReadMetadata,
+                        canReadDictionaries,
+                        canAccessUsers,
+                        canReadGateways,
+                        canReadEntrypoints,
+                        canReadGroups,
+                        canReadSharedPolicyGroups,
+                        canReadAlerts,
+                        canReadTenants,
+                        canAccessPlatformPolicies,
+                        canReadOrgAudit,
+                        canReadEnvAudit,
+                        canReadOrgSettings,
+                        canReadIdentityProviders,
+                    }),
+                ),
+                'alerts',
+                !hasAlertEngine,
             ),
         [
             permissionsReady,
@@ -332,6 +347,7 @@ function ModuleLayout() {
             canReadEnvAudit,
             canReadOrgSettings,
             canReadIdentityProviders,
+            hasAlertEngine,
         ],
     );
 
@@ -386,6 +402,7 @@ function ModuleLayout() {
 function PlatformSectionLayout() {
     const { activeNavKey, activeSection, navigateToKey, contextExpanded, toggleContext } = usePlatformNavContext();
     const navigate = useNavigate();
+    const groups = activeSection?.groups ?? [];
     const breadcrumbs = useMemo(
         () => buildLinearBreadcrumbs(navigate, [{ label: PLATFORM_ROUTE_CONFIG.routes[activeNavKey].label }]),
         [activeNavKey, navigate],
@@ -396,12 +413,14 @@ function PlatformSectionLayout() {
             viewMode: 'context',
             contextExpanded,
             contextSidebar: (
-                <ContextSidebar groups={activeSection?.groups ?? []} activeItemKey={activeNavKey} onItemSelect={navigateToKey} />
+                <ContextSidebar>
+                    <SidebarNavigation groups={groups} activeItemKey={activeNavKey} onItemSelect={navigateToKey} />
+                </ContextSidebar>
             ),
             leading: <ContextToggleButton expanded={contextExpanded} onToggle={toggleContext} />,
             breadcrumbs,
         },
-        [activeNavKey, activeSection, breadcrumbs, contextExpanded, navigateToKey, toggleContext],
+        [activeNavKey, breadcrumbs, contextExpanded, groups, navigateToKey, toggleContext],
     );
 
     return <Outlet />;
@@ -615,7 +634,9 @@ export function AppRoutes() {
                                 path="alerts"
                                 element={
                                     <PermissionPageGuard permission={ENVIRONMENT_ALERT_READ_PERMISSION} unauthorizedTo="../applications">
-                                        <Outlet />
+                                        <RequireAlertEngineLicense>
+                                            <Outlet />
+                                        </RequireAlertEngineLicense>
                                     </PermissionPageGuard>
                                 }
                             >
