@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { combineLatest, Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import { UntypedFormControl } from '@angular/forms';
@@ -35,6 +35,9 @@ export class OrgSettingsPlatformPoliciesConfigComponent implements OnInit, OnDes
 
   formControl: UntypedFormControl;
   isLoading = true;
+
+  @Input()
+  isReadonly = false;
 
   @Output()
   change = new EventEmitter<DefinitionVM['flow_mode']>();
@@ -57,6 +60,9 @@ export class OrgSettingsPlatformPoliciesConfigComponent implements OnInit, OnDes
           this.formControl = new UntypedFormControl({
             flow_mode: organization.flowMode,
           });
+          if (this.isReadonly) {
+            this.formControl.disable();
+          }
 
           this.formControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => {
             this.change.emit(value.flow_mode);
