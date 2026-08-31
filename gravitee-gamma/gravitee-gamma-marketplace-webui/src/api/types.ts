@@ -55,3 +55,15 @@ export interface PortalConfiguration {
 export interface IdentityProvidersResponse {
     data?: IdentityProvider[];
 }
+
+export interface Category {
+    id: string;
+    name?: string;
+    description?: string;
+    order?: number;
+    total_apis?: number;
+}
+
+export interface CategoriesResponse {
+    data?: Category[];
+}

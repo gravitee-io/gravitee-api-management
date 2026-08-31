@@ -30,6 +30,24 @@ window.matchMedia ??= (query: string): MediaQueryList =>
         dispatchEvent: () => false,
     }) as MediaQueryList;
 
+if (typeof Element !== 'undefined' && typeof Element.prototype.hasPointerCapture !== 'function') {
+    Element.prototype.hasPointerCapture = () => false;
+    Element.prototype.setPointerCapture = () => undefined;
+    Element.prototype.releasePointerCapture = () => undefined;
+}
+
+window.ResizeObserver ??= class {
+    observe() {
+        return undefined;
+    }
+    unobserve() {
+        return undefined;
+    }
+    disconnect() {
+        return undefined;
+    }
+};
+
 beforeAll(() => {
     server.listen({ onUnhandledRequest: 'error' });
 });

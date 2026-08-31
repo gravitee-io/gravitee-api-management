@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { authHandlers } from './auth.handlers';
-import { bootstrapHandlers } from './bootstrap.handlers';
-import { categoriesHandlers } from './categories.handlers';
+import { http, HttpResponse } from 'msw';
 
-export const defaultHandlers = [...bootstrapHandlers, ...authHandlers, ...categoriesHandlers];
+import { TEST_PORTAL_API } from '../factories';
+
+export const categoriesHandlers = [
+    http.get(`${TEST_PORTAL_API}/apis/categories`, () => HttpResponse.json({ data: [] })),
+];
