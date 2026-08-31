@@ -36,7 +36,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.ArrayList;
@@ -127,7 +126,6 @@ class ApiFolderSubtreeReconciler {
             .type(PortalNavigationItemType.FOLDER)
             .order(df.order())
             .parentId(df.parentPath() == null ? navApiId : idFactory.apply(df.parentPath()))
-            .visibility(PortalVisibility.PUBLIC)
             .published(true)
             .automationMetadata(
                 new AutomationMetadata(AutomationMetadata.ReferenceType.API, apiId, null, Optional.of(df.path()), Optional.empty())

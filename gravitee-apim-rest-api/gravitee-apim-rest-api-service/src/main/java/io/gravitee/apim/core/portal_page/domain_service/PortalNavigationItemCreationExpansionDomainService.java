@@ -78,7 +78,7 @@ public class PortalNavigationItemCreationExpansionDomainService {
             .filter(product -> environmentId.equals(product.getEnvironmentId()))
             .orElseThrow(() -> new ApiProductNotFoundException(apiProductId));
         var apis = resolveApis(apiProduct, environmentId);
-        var visibility = root.getVisibility() != null ? root.getVisibility() : PortalVisibility.PUBLIC;
+        var visibility = PortalVisibility.resolve(root.getVisibility(), PortalVisibility.PUBLIC);
 
         var children = new ArrayList<CreatePortalNavigationItem>(apis.size());
         for (int order = 0; order < apis.size(); order++) {

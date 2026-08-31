@@ -67,7 +67,6 @@ class NavigationItemEntryMaterializer {
             .type(PortalNavigationItemType.API)
             .order(entry.order() != null ? entry.order() : 0)
             .apiId(apiId)
-            .visibility(PortalVisibility.PUBLIC)
             .published(true)
             .build();
         return (PortalNavigationApi) navigationItemCrudService.create(
@@ -93,19 +92,23 @@ class NavigationItemEntryMaterializer {
         PortalListingApiEntry entry,
         PortalNavigationApi existing
     ) {
+        var parent = resolveParent(auditInfo, portalId.toString(), entry.location());
+        var visibility = PortalVisibility.inheritedFrom(parent);
         var toUpdate = UpdatePortalNavigationItem.builder()
             .type(PortalNavigationItemType.API)
             .title(entry.apiHrid())
             .segment(Slug.from(entry.apiHrid()).value())
             .order(entry.order() != null ? entry.order() : 0)
-            .parentId(resolveParentId(auditInfo, portalId, entry.location()))
-            .visibility(PortalVisibility.PUBLIC)
+            .parentId(parent != null ? parent.getId() : null)
+            .visibility(visibility)
             .published(true)
             .build();
         return new PortalNavigationValidator.PendingUpdate(toUpdate, existing);
     }
 
     CreatePortalNavigationItem itemForValidation(AuditInfo auditInfo, PortalId portalId, String apiId, PortalListingApiEntry entry) {
+        var parent = resolveParent(auditInfo, portalId.toString(), entry.location());
+        var visibility = PortalVisibility.inheritedFrom(parent);
         return CreatePortalNavigationItem.builder()
             .id(rowId(auditInfo, portalId, apiId))
             .title(entry.apiHrid())
@@ -114,16 +117,11 @@ class NavigationItemEntryMaterializer {
             .type(PortalNavigationItemType.API)
             .order(entry.order() != null ? entry.order() : 0)
             .apiId(apiId)
-            .parentId(resolveParentId(auditInfo, portalId, entry.location()))
-            .visibility(PortalVisibility.PUBLIC)
+            .parentId(parent != null ? parent.getId() : null)
+            .visibility(visibility)
             .published(true)
             .automationMetadata(portalAutomationMetadata(portalId, entry.location()))
             .build();
-    }
-
-    private PortalNavigationItemId resolveParentId(AuditInfo auditInfo, PortalId portalId, String location) {
-        var parent = resolveParent(auditInfo, portalId.toString(), location);
-        return Optional.ofNullable(parent).map(PortalNavigationItemContainer::getId).orElse(null);
     }
 
     private void rejectIfSegmentTakenByForeignItem(
@@ -158,11 +156,12 @@ class NavigationItemEntryMaterializer {
         PortalListingApiEntry entry,
         PortalNavigationItemContainer parent
     ) {
+        var visibility = PortalVisibility.inheritedFrom(parent);
         navApi.setApiId(apiId);
         navApi.setOrder(entry.order() != null ? entry.order() : 0);
         navApi.setTitle(entry.apiHrid());
         navApi.setSegment(Slug.from(entry.apiHrid()).value());
-        navApi.setVisibility(PortalVisibility.PUBLIC);
+        navApi.setVisibility(visibility);
         navApi.setPublished(true);
         if (parent == null) {
             navApi.markAsRoot();
