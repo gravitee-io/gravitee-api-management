@@ -691,12 +691,32 @@ describe('AppRoutes', () => {
         expect(visibleNavKeys()).toContain('policy-studio');
     });
 
-    // The organization GET refuses READ, so `-r` alone must not open the page: it would 403 on load.
-    it('hides the organization Policy Studio from a user who only holds the read permission', () => {
-        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => {
-            const platformPolicyChecks = anyOf.filter(permission => permission.startsWith('organization-policies-'));
-            return platformPolicyChecks.length === 0 || platformPolicyChecks.includes('organization-policies-r');
-        });
+    // The organization GET accepts READ, CREATE, DELETE and UPDATE, so every acl that can reach the
+    // endpoint must also reach the page.
+    it.each(['organization-policies-r', 'organization-policies-c', 'organization-policies-d', 'organization-policies-u'])(
+        'opens the organization Policy Studio for a user who only holds %s',
+        heldPermission => {
+            mockUseModuleRouting.mockReturnValue({
+                activeNavKey: 'policy-studio',
+                navigateToKey: jest.fn(),
+                rootPath: '/platform',
+            });
+            mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => {
+                const platformPolicyChecks = anyOf.filter(permission => permission.startsWith('organization-policies-'));
+                return platformPolicyChecks.length === 0 || platformPolicyChecks.includes(heldPermission);
+            });
+
+            renderPlatform('/policy-studio');
+
+            expect(screen.getByTestId('organization-policy-studio-page')).not.toBeNull();
+            expect(visibleNavKeys()).toContain('policy-studio');
+        },
+    );
+
+    it('hides the organization Policy Studio from a user who holds no platform policy permission', () => {
+        mockUseHasPermission.mockImplementation(
+            ({ anyOf }: { anyOf: string[] }) => !anyOf.some(permission => permission.startsWith('organization-policies-')),
+        );
 
         renderPlatform('/policy-studio');
 
