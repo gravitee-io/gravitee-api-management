@@ -61,9 +61,11 @@ import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.Base64;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -2116,6 +2118,66 @@ public class UserServiceTest {
 
         assertNotNull(user.getIdpClaims());
         assertEquals("foobar", user.getIdpClaims().get("custom_access_token"));
+    }
+
+    @Test
+    public void should_prefer_the_id_token_value_when_a_claim_is_in_both_tokens() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository);
+        mockDefaultEnvironment();
+
+        User user = mockUser();
+        when(userRepository.findBySource(null, user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
+        when(identityProvider.getPersistedClaimsWhitelist()).thenReturn(Collections.singletonList("org_id"));
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        // The lookup order is id_token, then access_token, then userinfo. The shared JWT fixtures carry no claim whose
+        // value differs between the two tokens, and only a differing value can tell the first two apart, so the tokens
+        // are built here rather than by editing fixtures other tests assert on.
+        String idToken = unsignedJwt("{\"sub\":\"janedoe@example.com\",\"org_id\":\"from-id-token\"}");
+        String accessToken = unsignedJwt("{\"sub\":\"janedoe@example.com\",\"org_id\":\"from-access-token\"}");
+
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+
+        assertNotNull(user.getIdpClaims());
+        assertEquals("from-id-token", user.getIdpClaims().get("org_id"));
+    }
+
+    @Test
+    public void should_prefer_the_access_token_value_over_userinfo_when_there_is_no_id_token() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository);
+        mockDefaultEnvironment();
+
+        User user = mockUser();
+        when(userRepository.findBySource(null, user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
+        when(identityProvider.getPersistedClaimsWhitelist()).thenReturn(Collections.singletonList("org_id"));
+
+        // The lower rung of the same ladder: with no id_token, access_token must beat userinfo. The shared fixtures
+        // cannot express this — shouldPersistClaimFromAccessTokenSource whitelists a claim absent from userinfo, so it
+        // would pass just as well if userinfo were consulted first — hence a userinfo body carrying the same claim.
+        String userInfo =
+            "{\"sub\":\"janedoe@example.com\",\"email\":\"janedoe@example.com\",\"given_name\":\"Jane\"," +
+            "\"family_name\":\"Doe\",\"picture\":\"http://example.com/janedoe/me.jpg\",\"org_id\":\"from-userinfo\"}";
+        String accessToken = unsignedJwt("{\"sub\":\"janedoe@example.com\",\"org_id\":\"from-access-token\"}");
+
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, null);
+
+        assertNotNull(user.getIdpClaims());
+        assertEquals("from-access-token", user.getIdpClaims().get("org_id"));
+    }
+
+    /** A structurally valid JWT carrying the given payload. The login path decodes but never verifies the signature. */
+    private String unsignedJwt(String payloadJson) {
+        Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
+        return (
+            encoder.encodeToString("{\"alg\":\"none\"}".getBytes(StandardCharsets.UTF_8)) +
+            "." +
+            encoder.encodeToString(payloadJson.getBytes(StandardCharsets.UTF_8)) +
+            ".signature"
+        );
     }
 
     @Test
