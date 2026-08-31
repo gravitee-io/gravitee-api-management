@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@gravitee/graphene-core';
+import { type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
 import { isMcpAgent, protocolLabel } from './protocol';
 import type { Api } from '../../api/types';
 
-export function AgentCard({ api }: { api: Api }) {
+export function AgentCard({ api, footer }: { api: Api; footer?: ReactNode }) {
     return (
-        <Link
-            to={`/catalog/${api.id}`}
-            className="block h-full rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-            <Card className="h-full transition-colors hover:bg-accent/40">
+        <Card className="flex h-full flex-col transition-colors hover:bg-accent/40">
+            <Link
+                to={`/catalog/${api.id}`}
+                aria-label={api.name}
+                className="flex flex-1 flex-col rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
                 <CardHeader className="space-y-2">
                     <div className="flex items-start justify-between gap-2">
                         <CardTitle className="text-base">{api.name}</CardTitle>
@@ -51,7 +53,8 @@ export function AgentCard({ api }: { api: Api }) {
                         ))}
                     </div>
                 </CardContent>
-            </Card>
-        </Link>
+            </Link>
+            {footer}
+        </Card>
     );
 }

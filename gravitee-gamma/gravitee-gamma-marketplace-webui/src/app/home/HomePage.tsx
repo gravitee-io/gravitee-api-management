@@ -13,23 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Card, CardContent, CardHeader } from '@gravitee/graphene-core';
-import { Link } from 'react-router-dom';
+import { Card, CardContent } from '@gravitee/graphene-core';
 
-import { useIsAuthenticated } from '../auth';
+import { CategoryGrid } from './CategoryGrid';
+import { FeaturedAgents } from './FeaturedAgents';
+import { HeroSearch } from './HeroSearch';
+import { useFeaturedAgents } from './useFeaturedAgents';
+import { useCategories } from '../layout/useCategories';
 
 export function HomePage() {
-    const isAuthenticated = useIsAuthenticated();
+    const { agents, loading, error } = useFeaturedAgents();
+    const categories = useCategories();
 
     return (
-        <Card>
-            <CardHeader>
-                <h1>Hello World</h1>
-            </CardHeader>
-            <CardContent>
-                <p>Marketplace portal</p>
-                {isAuthenticated ? <Link to="/dashboard">Dashboard</Link> : <Link to="/login">Sign in</Link>}
-            </CardContent>
-        </Card>
+        <div className="space-y-8">
+            <Card>
+                <CardContent className="space-y-4 pt-6">
+                    <h1 className="text-2xl font-semibold">Discover agents</h1>
+                    <HeroSearch />
+                </CardContent>
+            </Card>
+            <FeaturedAgents agents={agents} loading={loading} error={error} />
+            <CategoryGrid categories={categories} />
+        </div>
     );
 }
