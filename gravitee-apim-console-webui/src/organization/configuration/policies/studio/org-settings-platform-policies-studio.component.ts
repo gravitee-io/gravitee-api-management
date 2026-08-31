@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { combineLatest, Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import { ComponentCustomEvent } from '@gravitee/ui-components/src/lib/events';
@@ -52,6 +52,9 @@ export class OrgSettingsPlatformPoliciesStudioComponent implements OnInit, OnDes
   resourceTypes: ResourceListItem[];
   selectedFlowsIds: string[] = [];
   policyDocumentation!: { id: string; image: string; content: string };
+
+  @Input()
+  isReadonly = false;
 
   @Output()
   change = new EventEmitter<DefinitionVM['flows']>();
