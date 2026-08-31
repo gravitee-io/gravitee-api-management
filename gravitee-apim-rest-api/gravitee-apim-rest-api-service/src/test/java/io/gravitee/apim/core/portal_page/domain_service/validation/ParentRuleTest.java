@@ -129,7 +129,7 @@ class ParentRuleTest {
     void create_uses_pending_parent_from_same_batch() {
         var pendingParent = folderCreate(FOLDER_ID, PortalArea.TOP_NAVBAR);
         var child = pageCreate(FOLDER_ID, PortalArea.TOP_NAVBAR, null);
-        var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(FOLDER_ID, pendingParent), List.of());
+        var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(FOLDER_ID, pendingParent), Map.of(), List.of());
 
         assertThatCode(() -> rule.validate(child, ENV_ID, ctx)).doesNotThrowAnyException();
     }
@@ -138,7 +138,7 @@ class ParentRuleTest {
     void create_pending_parent_area_mismatch_throws() {
         var pendingParent = folderCreate(FOLDER_ID, PortalArea.HOMEPAGE);
         var child = pageCreate(FOLDER_ID, PortalArea.TOP_NAVBAR, null);
-        var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(FOLDER_ID, pendingParent), List.of());
+        var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(FOLDER_ID, pendingParent), Map.of(), List.of());
 
         assertThatThrownBy(() -> rule.validate(child, ENV_ID, ctx)).isInstanceOf(ParentAreaMismatchException.class);
     }
@@ -171,7 +171,7 @@ class ParentRuleTest {
     void update_uses_pending_parent_from_same_batch() {
         var pendingParent = folderCreate(FOLDER_ID, PortalArea.TOP_NAVBAR);
         var existing = pageExisting(ITEM_ID, PortalArea.TOP_NAVBAR, null);
-        var ctx = new UpdateValidationContext(List.of(), Map.of(), Map.of(FOLDER_ID, pendingParent), List.of());
+        var ctx = new UpdateValidationContext(List.of(), Map.of(), Map.of(FOLDER_ID, pendingParent), Map.of(), List.of());
 
         assertThatCode(() -> rule.validate(pageUpdate(FOLDER_ID), existing, ctx)).doesNotThrowAnyException();
     }
@@ -180,7 +180,7 @@ class ParentRuleTest {
     void update_pending_parent_area_mismatch_throws() {
         var pendingParent = folderCreate(FOLDER_ID, PortalArea.HOMEPAGE);
         var existing = pageExisting(ITEM_ID, PortalArea.TOP_NAVBAR, null);
-        var ctx = new UpdateValidationContext(List.of(), Map.of(), Map.of(FOLDER_ID, pendingParent), List.of());
+        var ctx = new UpdateValidationContext(List.of(), Map.of(), Map.of(FOLDER_ID, pendingParent), Map.of(), List.of());
 
         assertThatThrownBy(() -> rule.validate(pageUpdate(FOLDER_ID), existing, ctx)).isInstanceOf(ParentAreaMismatchException.class);
     }
@@ -189,9 +189,28 @@ class ParentRuleTest {
     void update_pending_parent_public_under_private_throws() {
         var pendingParent = folderCreate(FOLDER_ID, PortalArea.TOP_NAVBAR).toBuilder().visibility(PortalVisibility.PRIVATE).build();
         var existing = pageExisting(ITEM_ID, PortalArea.TOP_NAVBAR, null);
-        var ctx = new UpdateValidationContext(List.of(), Map.of(), Map.of(FOLDER_ID, pendingParent), List.of());
+        var ctx = new UpdateValidationContext(List.of(), Map.of(), Map.of(FOLDER_ID, pendingParent), Map.of(), List.of());
 
         assertThatThrownBy(() -> rule.validate(pageUpdate(FOLDER_ID), existing, ctx))
+            .isInstanceOf(io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException.class)
+            .hasMessageContaining("must be PUBLIC");
+    }
+
+    @Test
+    void create_public_child_under_persisted_private_parent_throws() {
+        navigationItemsQueryService.storage().add(privatePublishedFolder(FOLDER_ID, PortalArea.TOP_NAVBAR));
+
+        assertThatThrownBy(() -> rule.validate(pageCreate(FOLDER_ID, PortalArea.TOP_NAVBAR, null), ENV_ID, CreateValidationContext.empty()))
+            .isInstanceOf(io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException.class)
+            .hasMessageContaining("must be PUBLIC");
+    }
+
+    @Test
+    void update_public_child_under_persisted_private_parent_throws() {
+        navigationItemsQueryService.storage().add(privatePublishedFolder(FOLDER_ID, PortalArea.TOP_NAVBAR));
+        var existing = pageExisting(ITEM_ID, PortalArea.TOP_NAVBAR, null);
+
+        assertThatThrownBy(() -> rule.validate(pageUpdate(FOLDER_ID), existing, UpdateValidationContext.empty()))
             .isInstanceOf(io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException.class)
             .hasMessageContaining("must be PUBLIC");
     }
@@ -239,6 +258,14 @@ class ParentRuleTest {
     }
 
     private static PortalNavigationFolder publicPublishedFolder(PortalNavigationItemId id, PortalArea area) {
+        return folder(id, area, PortalVisibility.PUBLIC);
+    }
+
+    private static PortalNavigationFolder privatePublishedFolder(PortalNavigationItemId id, PortalArea area) {
+        return folder(id, area, PortalVisibility.PRIVATE);
+    }
+
+    private static PortalNavigationFolder folder(PortalNavigationItemId id, PortalArea area, PortalVisibility visibility) {
         return PortalNavigationFolder.builder()
             .id(id)
             .organizationId(ORG_ID)
@@ -248,7 +275,7 @@ class ParentRuleTest {
             .area(area)
             .order(0)
             .published(true)
-            .visibility(PortalVisibility.PUBLIC)
+            .visibility(visibility)
             .build();
     }
 

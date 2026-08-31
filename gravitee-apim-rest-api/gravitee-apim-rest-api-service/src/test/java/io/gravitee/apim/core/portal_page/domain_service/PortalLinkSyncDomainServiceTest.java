@@ -302,6 +302,38 @@ class PortalLinkSyncDomainServiceTest {
         assertThat(link.getReference()).isEqualTo(new NavigationItemReference.PortalReference(PortalId.of(PORTAL_ID)));
     }
 
+    @Test
+    void materialize_inherits_private_visibility_from_persisted_parent_folder() {
+        var parentFolderId = expectedFolderId("/private-guides");
+        navItemCrud.initWith(
+            List.of(
+                PortalNavigationFolder.builder()
+                    .id(parentFolderId)
+                    .organizationId(AUDIT_INFO.organizationId())
+                    .environmentId(AUDIT_INFO.environmentId())
+                    .title("private-guides")
+                    .segment("private-guides")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .published(true)
+                    .visibility(PortalVisibility.PRIVATE)
+                    .build()
+            )
+        );
+
+        var link = syncService.materialize(
+            AUDIT_INFO,
+            PORTAL_ID,
+            "internal-docs",
+            "Internal Docs",
+            "https://internal.example.com",
+            "/private-guides",
+            0
+        );
+
+        assertThat(link.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
+    }
+
     private static PortalNavigationItemId expectedLinkId() {
         return PortalNavigationItemId.of(HRIDToUUID.portalLink().context(AUDIT_INFO).portal(PORTAL_ID).hrid("external-docs").id());
     }

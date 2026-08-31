@@ -426,7 +426,28 @@ class PortalNavigationSyncDomainServiceTest {
         assertThat(findByPath("/a")).isPresent();
     }
 
+    @Test
+    void re_sync_re_derives_stale_folder_visibility_from_inheritance() {
+        var input = List.of(new NavigationPath("/root", null));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, PortalNavigationStructure.empty(), PortalNavigationStructure.ofTopNavbar(input));
+
+        // External drift: someone flips the folder to PRIVATE outside the automation flow.
+        var root = (PortalNavigationFolder) findByPath("/root").orElseThrow();
+        root.setVisibility(PortalVisibility.PRIVATE);
+        crud.update(root);
+
+        // Next sync should re-derive the folder's visibility from its (null) parent → PUBLIC.
+        syncService.sync(AUDIT_INFO, PORTAL_ID, PortalNavigationStructure.ofTopNavbar(input), PortalNavigationStructure.ofTopNavbar(input));
+
+        var reSynced = (PortalNavigationFolder) findByPath("/root").orElseThrow();
+        assertThat(reSynced.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
+    }
+
     private PortalNavigationFolder folderRow(String title, PortalNavigationItemId parentId, int order) {
+        return folderRow(title, parentId, order, PortalVisibility.PUBLIC);
+    }
+
+    private PortalNavigationFolder folderRow(String title, PortalNavigationItemId parentId, int order, PortalVisibility visibility) {
         return PortalNavigationFolder.builder()
             .id(PortalNavigationItemId.random())
             .organizationId(AUDIT_INFO.organizationId())
@@ -437,7 +458,7 @@ class PortalNavigationSyncDomainServiceTest {
             .order(order)
             .parentId(parentId)
             .published(true)
-            .visibility(PortalVisibility.PUBLIC)
+            .visibility(visibility)
             .build();
     }
 

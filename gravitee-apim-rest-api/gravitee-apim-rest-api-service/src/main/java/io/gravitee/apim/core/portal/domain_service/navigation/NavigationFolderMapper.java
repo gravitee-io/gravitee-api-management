@@ -18,7 +18,7 @@ package io.gravitee.apim.core.portal.domain_service.navigation;
 import io.gravitee.apim.core.portal.domain_service.navigation.actions.FolderActions;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import jakarta.annotation.Nullable;
 import java.util.Objects;
 
@@ -29,13 +29,14 @@ public final class NavigationFolderMapper {
     public static boolean matches(
         PortalNavigationFolder existing,
         FolderActions.DesiredFolder desired,
-        @Nullable PortalNavigationItemId parentId
+        @Nullable PortalNavigationItemContainer parent
     ) {
         return (
             Objects.equals(existing.getTitle(), desired.title()) &&
             Objects.equals(existing.getSegment(), desired.segment().value()) &&
             existing.getOrder() == desired.order() &&
-            Objects.equals(existing.getParentId(), parentId)
+            Objects.equals(existing.getParentId(), parent == null ? null : parent.getId()) &&
+            Objects.equals(existing.getVisibility(), PortalVisibility.inheritedFrom(parent))
         );
     }
 
@@ -43,6 +44,7 @@ public final class NavigationFolderMapper {
         target.setTitle(source.title());
         target.setSegment(source.segment().value());
         target.setOrder(source.order());
+        target.setVisibility(PortalVisibility.inheritedFrom(parent));
         if (parent == null) {
             target.markAsRoot();
         } else {

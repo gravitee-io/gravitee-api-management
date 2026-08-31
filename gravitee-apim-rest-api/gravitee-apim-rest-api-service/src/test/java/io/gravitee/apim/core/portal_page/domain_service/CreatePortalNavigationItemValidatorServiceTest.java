@@ -888,4 +888,131 @@ class CreatePortalNavigationItemValidatorServiceTest {
             assertDoesNotThrow(() -> validatorService.validateOne(aPageUnder(folder.getId()).build(), ENV_ID));
         }
     }
+
+    @Nested
+    class PhantomThenPrivateParent {
+
+        @Test
+        void should_reject_when_new_private_folder_has_pre_existing_public_descendant() {
+            var folderId = PortalNavigationItemId.of("cafecafe-cafe-cafe-cafe-cafecafecafe");
+            var preExistingChild = PortalNavigationItemFixtures.aPage("Setup", folderId);
+            navigationItemsQueryService.storage().add(preExistingChild);
+
+            var newPrivateFolder = CreatePortalNavigationItem.builder()
+                .id(folderId)
+                .title("Private Guides")
+                .segment("private-guides")
+                .type(PortalNavigationItemType.FOLDER)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PRIVATE)
+                .build();
+
+            Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
+                validatorService.validateAll(List.of(newPrivateFolder), ENV_ID)
+            );
+            assertThat(exception.getMessage()).contains("must be PUBLIC");
+        }
+
+        @Test
+        void should_accept_when_new_private_folder_has_pre_existing_private_descendant() {
+            var folderId = PortalNavigationItemId.of("deaddead-dead-dead-dead-deaddeaddead");
+            var preExistingChild = PortalNavigationItemFixtures.aPage("Setup", folderId);
+            preExistingChild.setVisibility(PortalVisibility.PRIVATE);
+            navigationItemsQueryService.storage().add(preExistingChild);
+
+            var newPrivateFolder = CreatePortalNavigationItem.builder()
+                .id(folderId)
+                .title("Private Guides")
+                .segment("private-guides")
+                .type(PortalNavigationItemType.FOLDER)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PRIVATE)
+                .build();
+
+            assertDoesNotThrow(() -> validatorService.validateAll(List.of(newPrivateFolder), ENV_ID));
+        }
+
+        @Test
+        void should_accept_when_new_public_folder_has_pre_existing_public_descendant() {
+            var folderId = PortalNavigationItemId.of("beefbeef-beef-beef-beef-beefbeefbeef");
+            var preExistingChild = PortalNavigationItemFixtures.aPage("Setup", folderId);
+            navigationItemsQueryService.storage().add(preExistingChild);
+
+            var newPublicFolder = CreatePortalNavigationItem.builder()
+                .id(folderId)
+                .title("Public Guides")
+                .segment("public-guides")
+                .type(PortalNavigationItemType.FOLDER)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
+
+            assertDoesNotThrow(() -> validatorService.validateAll(List.of(newPublicFolder), ENV_ID));
+        }
+    }
+
+    @Nested
+    class UpdateContainerVisibility {
+
+        @Test
+        void should_reject_when_folder_is_updated_to_private_with_pre_existing_public_descendant() {
+            var folder = PortalNavigationItemFixtures.aFolder("public-folder");
+            folder.markAsRoot();
+            navigationItemsQueryService.storage().add(folder);
+            var preExistingChild = PortalNavigationItemFixtures.aPage("Setup", folder.getId());
+            navigationItemsQueryService.storage().add(preExistingChild);
+
+            var toUpdate = io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem.builder()
+                .type(folder.getType())
+                .title(folder.getTitle())
+                .segment(folder.getSegment())
+                .order(folder.getOrder())
+                .parentId(folder.getParentId())
+                .visibility(PortalVisibility.PRIVATE)
+                .published(folder.getPublished())
+                .build();
+            var pendingUpdate = new io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator.PendingUpdate(
+                toUpdate,
+                folder
+            );
+
+            Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
+                validatorService.validate(List.of(), List.of(pendingUpdate), ENV_ID)
+            );
+            assertThat(exception.getMessage()).contains("must be PUBLIC");
+        }
+
+        @Test
+        void should_accept_when_folder_is_updated_to_public_with_pre_existing_private_descendant() {
+            var folder = PortalNavigationItemFixtures.aFolder("public-folder");
+            folder.markAsRoot();
+            folder.setVisibility(PortalVisibility.PRIVATE);
+            navigationItemsQueryService.storage().add(folder);
+            var preExistingChild = PortalNavigationItemFixtures.aPage("Setup", folder.getId());
+            preExistingChild.setVisibility(PortalVisibility.PRIVATE);
+            navigationItemsQueryService.storage().add(preExistingChild);
+
+            var toUpdate = io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem.builder()
+                .type(folder.getType())
+                .title(folder.getTitle())
+                .segment(folder.getSegment())
+                .order(folder.getOrder())
+                .parentId(folder.getParentId())
+                .visibility(PortalVisibility.PUBLIC)
+                .published(folder.getPublished())
+                .build();
+            var pendingUpdate = new io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator.PendingUpdate(
+                toUpdate,
+                folder
+            );
+
+            assertDoesNotThrow(() -> validatorService.validate(List.of(), List.of(pendingUpdate), ENV_ID));
+        }
+    }
 }
