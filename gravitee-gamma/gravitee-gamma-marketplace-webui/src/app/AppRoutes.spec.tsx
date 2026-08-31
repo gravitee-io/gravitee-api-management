@@ -18,15 +18,50 @@ import { screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 import { AppRoutes } from './AppRoutes';
+import { useAuthStore } from './auth/auth.store';
+import { buildUser } from '../testing/factories';
+import { seedBootstrap } from '../testing/helpers';
+
+function renderApp(path = '/') {
+    return renderWithGraphene(
+        <MemoryRouter initialEntries={[path]}>
+            <AppRoutes />
+        </MemoryRouter>,
+    );
+}
 
 describe('AppRoutes', () => {
-    it('renders Hello World on the home route', () => {
-        renderWithGraphene(
-            <MemoryRouter>
-                <AppRoutes />
-            </MemoryRouter>,
-        );
+    it('renders Hello World on the home route without logging in', () => {
+        renderApp('/');
 
         expect(screen.getByRole('heading', { name: 'Hello World' })).toBeTruthy();
+        expect(screen.getByRole('link', { name: 'Sign in' })).toBeTruthy();
+    });
+
+    it('renders catalog without logging in', () => {
+        renderApp('/catalog');
+
+        expect(screen.getByRole('heading', { name: 'Catalog' })).toBeTruthy();
+    });
+
+    it('redirects dashboard to login when unauthenticated', () => {
+        renderApp('/dashboard');
+
+        expect(screen.getByText('Sign in to continue')).toBeTruthy();
+        expect(screen.getByRole('button', { name: 'Sign in' })).toBeTruthy();
+    });
+
+    it('renders dashboard when authenticated', () => {
+        useAuthStore.setState({ user: buildUser(), initialized: true });
+        renderApp('/dashboard');
+
+        expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeTruthy();
+    });
+
+    it('redirects home and catalog to login when forceLogin is enabled', () => {
+        seedBootstrap({ forceLoginEnabled: true });
+        renderApp('/catalog');
+
+        expect(screen.getByText('Sign in to continue')).toBeTruthy();
     });
 });

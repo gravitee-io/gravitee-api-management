@@ -1,0 +1,56 @@
+/*
+ * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import type { IdentityProvider, User } from '../api/types';
+import type { BootstrapConfig } from '../shared/config/bootstrap.store';
+
+export const TEST_CONFIG: BootstrapConfig = {
+    portalBaseURL: 'http://portal.test/portal',
+    environmentId: 'DEFAULT',
+    organizationId: 'DEFAULT',
+    identityProviders: [],
+    localLoginEnabled: true,
+    forceLoginEnabled: false,
+};
+
+export const TEST_PORTAL_API = `${TEST_CONFIG.portalBaseURL}/environments/${TEST_CONFIG.environmentId}`;
+
+export function buildUser(overrides: Partial<User> = {}): User {
+    return {
+        id: 'user-1',
+        display_name: 'Jane Doe',
+        first_name: 'Jane',
+        last_name: 'Doe',
+        email: 'jane@example.com',
+        ...overrides,
+    };
+}
+
+export function buildBootstrapConfig(overrides: Partial<BootstrapConfig> = {}): BootstrapConfig {
+    return { ...TEST_CONFIG, ...overrides };
+}
+
+export function buildIdentityProvider(overrides: Partial<IdentityProvider> = {}): IdentityProvider {
+    return {
+        id: 'google-idp',
+        name: 'Google',
+        client_id: 'google-client-id',
+        type: 'GOOGLE',
+        authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
+        scopes: ['openid', 'profile', 'email'],
+        color: '#4285F4',
+        ...overrides,
+    };
+}

@@ -13,25 +13,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ThemeProvider } from '@gravitee/graphene-core';
-import { StrictMode } from 'react';
+import { Spinner, ThemeProvider } from '@gravitee/graphene-core';
+import { StrictMode, Suspense } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 
 import { AppRoutes } from './app/AppRoutes';
+import { runApplicationBootstrap } from './bootstrap-initialize';
+import { ErrorBoundary } from './shared/components/ErrorBoundary';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
     throw new Error('Root element #root not found');
 }
 
-const root = ReactDOM.createRoot(rootElement);
-root.render(
-    <StrictMode>
-        <BrowserRouter>
-            <ThemeProvider defaultMode="system">
-                <AppRoutes />
-            </ThemeProvider>
-        </BrowserRouter>
-    </StrictMode>,
-);
+runApplicationBootstrap().then(() => {
+    const root = ReactDOM.createRoot(rootElement);
+    root.render(
+        <StrictMode>
+            <BrowserRouter>
+                <ThemeProvider defaultMode="system">
+                    <ErrorBoundary
+                        fallback={(error, retry) => (
+                            <div>
+                                <h2>Bootstrap Failed</h2>
+                                <p>{error.message}</p>
+                                <button type="button" onClick={retry}>
+                                    Retry
+                                </button>
+                            </div>
+                        )}
+                    >
+                        <Suspense
+                            fallback={
+                                <div className="flex min-h-screen items-center justify-center">
+                                    <Spinner className="size-8" aria-label="Loading application" />
+                                </div>
+                            }
+                        >
+                            <AppRoutes />
+                        </Suspense>
+                    </ErrorBoundary>
+                </ThemeProvider>
+            </BrowserRouter>
+        </StrictMode>,
+    );
+});
