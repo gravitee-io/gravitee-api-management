@@ -267,6 +267,10 @@
         "gamma-console:test:ci": "nx test gamma-console --coverage --maxWorkers=4",
         "gamma-console:storybook": "nx storybook gamma-console",
         "gamma-console:build-storybook": "nx build-storybook gamma-console",
+        "marketplace:serve": "nx serve marketplace",
+        "marketplace:build": "nx build marketplace",
+        "marketplace:build:prod": "nx build marketplace --configuration=production",
+        "marketplace:test": "nx test marketplace",
         "postinstall": "yarn clean"
     },
     "scarfSettings": {

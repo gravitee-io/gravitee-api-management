@@ -9,5 +9,6 @@ module.exports = {
         '<rootDir>/gravitee-apim-webui-libs/gravitee-markdown/jest.config.js',
         '<rootDir>/gravitee-apim-webui-libs/gravitee-kafka-explorer/jest.config.js',
         '<rootDir>/gravitee-gamma/gravitee-gamma-control-plane-webui/jest.config.ts',
+        '<rootDir>/gravitee-gamma/gravitee-gamma-marketplace-webui/jest.config.ts',
     ],
 };
