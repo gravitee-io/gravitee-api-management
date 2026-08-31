@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
@@ -24,6 +24,7 @@ import { OrganizationService } from '../../../services-ngx/organization.service'
 import { Organization } from '../../../entities/organization/organization';
 import { PathOperator, Step } from '../../../entities/flow/flow';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 interface FlowVM {
   name?: string;
@@ -48,6 +49,14 @@ export interface DefinitionVM {
   standalone: false,
 })
 export class OrgSettingsPlatformPoliciesComponent implements OnInit, OnDestroy {
+  private readonly permissionService = inject(GioPermissionService);
+
+  readonly isReadonly = !this.permissionService.hasAnyMatching([
+    'organization-policies-c',
+    'organization-policies-u',
+    'organization-policies-d',
+  ]);
+
   isLoading = true;
   activeTab: 'design' | 'config' = 'design';
 
