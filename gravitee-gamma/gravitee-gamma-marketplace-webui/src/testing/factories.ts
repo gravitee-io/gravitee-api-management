@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { Api, Category, IdentityProvider, User } from '../api/types';
+import type { Api, Category, IdentityProvider, Page, User } from '../api/types';
 import type { BootstrapConfig } from '../shared/config/bootstrap.store';
 
 export const TEST_CONFIG: BootstrapConfig = {
@@ -92,4 +92,19 @@ export function buildApisResponse(apis: Api[], total = apis.length, page = 1, si
             },
         },
     };
+}
+
+export function buildPage(overrides: Partial<Page> = {}): Page {
+    return {
+        id: 'page-overview',
+        name: 'Overview',
+        type: 'MARKDOWN',
+        order: 0,
+        content: '# Getting started\n\nSubscribe to a plan, then copy the A2A endpoint.',
+        ...overrides,
+    };
+}
+
+export function buildPagesResponse(pages: Page[]) {
+    return { data: pages };
 }
