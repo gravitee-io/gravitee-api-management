@@ -142,7 +142,7 @@ When adding or changing HTTP endpoints under `gravitee-apim-rest-api/`:
 
 | Area | Module path (under `gravitee-apim-rest-api/`) | OpenAPI spec(s) |
 | --- | --- | --- |
-| **Management API v2** | `gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-model` | `src/main/resources/openapi/openapi-*.yaml` (split by area) |
+| **Management API v2** | `gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-rest` | `src/main/resources/openapi/openapi-*.yaml` (split by area) |
 | **Kafka Explorer** | `gravitee-apim-rest-api-kafka-explorer` | `src/main/resources/openapi/openapi-kafka-explorer.yaml` |
 | **Portal API** | `gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest` | `src/main/resources/portal-openapi.yaml` |
 | **Automation API** | `gravitee-apim-rest-api-automation/gravitee-apim-rest-api-automation-rest` | `src/main/resources/open-api.yaml` |
@@ -188,13 +188,12 @@ Consequences for any Maven command:
 - A root `mvn clean install` builds the engine and stops there. It does **not** refresh `target/distribution`, the folder run configurations use as `GRAVITEE_HOME`.
 - `mvn -pl gravitee-apim-distribution/…` from the root fails with *Could not find the selected project in the reactor*. Use `-f gravitee-apim-distribution/pom.xml`; inside that reactor, `-pl` paths are relative to it.
 - Building the distribution takes two phases: install the engine first, then assemble against it. `task build-quick` does both.
-- After a `clean install` fails or is interrupted (especially with `-T`, parallel reactor builds), a later scoped `mvn test`/`mvn -pl <module> test` **without `clean`** silently compiles against stale `target/classes` left by modules that never finished rebuilding — producing "cannot find symbol"/"constructor cannot be applied" errors that look like a broken annotation processor (e.g. Lombok) but aren't. Re-run a full `clean install` covering every changed reactor module before trusting a scoped test run.
 
 The distribution assembles a **pinned released** engine unless `-Pengine-snapshot` is passed. Leaving the profile out does not fail — it produces a distribution without the change under test. `task which-engine` prints which engine actually got bundled.
 
 # Modules
 
-Before working on files under any of these directories, read that directory's `AGENTS.md` first: `gravitee-apim-common/`, `gravitee-apim-console-webui/`, `gravitee-apim-definition/`, `gravitee-apim-distribution/`, `gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/`, `gravitee-apim-gateway/`, `gravitee-apim-plugin/`, `gravitee-apim-portal-webui/`, `gravitee-apim-portal-webui-next/`, `gravitee-apim-reporter/`, `gravitee-apim-repository/`, `gravitee-apim-rest-api/`, `gravitee-apim-webui-libs/gravitee-dashboard/`, `gravitee-apim-webui-libs/gravitee-kafka-explorer/`, `gravitee-apim-webui-libs/gravitee-markdown/`, `gravitee-gamma/gravitee-gamma-control-plane-webui/`, `gravitee-gamma/gravitee-gamma-definition-model/`, `gravitee-gamma/gravitee-gamma-module-apim/`, `gravitee-gamma/gravitee-gamma-module-platform/`, `gravitee-gamma/gravitee-gamma-module-portals/`, `gravitee-gamma/gravitee-gamma-plugin/`, `gravitee-gamma/gravitee-gamma-rest-api/`, `.ai/`.
+Before working on files under any of these directories, read that directory's `AGENTS.md` first: `gravitee-apim-common/`, `gravitee-apim-console-webui/`, `gravitee-apim-definition/`, `gravitee-apim-distribution/`, `gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/`, `gravitee-apim-gateway/`, `gravitee-apim-plugin/`, `gravitee-apim-portal-webui/`, `gravitee-apim-portal-webui-next/`, `gravitee-apim-reporter/`, `gravitee-apim-repository/`, `gravitee-apim-rest-api/`, `gravitee-apim-webui-libs/gravitee-dashboard/`, `gravitee-apim-webui-libs/gravitee-kafka-explorer/`, `gravitee-apim-webui-libs/gravitee-markdown/`, `gravitee-gamma/gravitee-gamma-control-plane-webui/`, `gravitee-gamma/gravitee-gamma-definition-model/`, `gravitee-gamma/gravitee-gamma-marketplace-webui/`, `gravitee-gamma/gravitee-gamma-module-apim/`, `gravitee-gamma/gravitee-gamma-module-platform/`, `gravitee-gamma/gravitee-gamma-module-portals/`, `gravitee-gamma/gravitee-gamma-plugin/`, `gravitee-gamma/gravitee-gamma-rest-api/`, `.ai/`.
 
 # Skills
 

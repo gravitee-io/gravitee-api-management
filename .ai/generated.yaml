@@ -2,6 +2,194 @@
 # Every generated file with its content fingerprint; setup and check use
 # this for ownership, incremental runs, and tamper evidence.
 version: 1
+generatedBy: "checkout"
+inputs:
+  - { path: ".ai/manifest.yaml", hash: "sha256:636629d3c28ea1f239ec618f990fca9e781380165f693f3923823568f7caa1b6" }
+  - { path: ".ai/rules/ai-context-authoring.md", hash: "sha256:da3b2d09f7c8e8f34d4dba3550038cc1db089751ebf641aef27c8ad8f33d83d4" }
+  - { path: ".ai/rules/apim-angular.md", hash: "sha256:9e7472cc16201f62230b0de128c0c47c370fffe517cf1b0482dd43a584f17850" }
+  - { path: ".ai/rules/apim-automation-api.md", hash: "sha256:2fb3523317ece500892026c92f4f4949323047766088a82665078ec3f1cf6e2f" }
+  - { path: ".ai/rules/apim-automation-signpost-definition.md", hash: "sha256:e855c57a8a9492a406a97a0c310ce995734d9e7ef69b6bcb50f815a94d99f9de" }
+  - { path: ".ai/rules/apim-automation-signpost-repository.md", hash: "sha256:7e989bd60fed34f02f1e4766e9d5716c069d424576d87306b13d45e0a29a4f47" }
+  - { path: ".ai/rules/apim-automation-signpost-restapi.md", hash: "sha256:037be833b5ab453ab884d81bd73de22414c9f0862d8880f22ff025d6ecb61ef7" }
+  - { path: ".ai/rules/apim-distribution-build.md", hash: "sha256:aba060dffe8ac43ade4a7e8e7c360aecf183238605df77066079b030155ef2ae" }
+  - { path: ".ai/rules/apim-java.md", hash: "sha256:037362a2a791c844ecefd9e990020d1b857dd1ed81a2158c0cf59c2b174c8695" }
+  - { path: ".ai/rules/apim-jsonnode.md", hash: "sha256:0dbaec902740b64b750be53ff03062a59e4de0171a4a52576253e20ed6e2b777" }
+  - { path: ".ai/rules/apim-two-reactors.md", hash: "sha256:9dded2d38b70ac3e1595c2aa457cc60279b8fafdc2fdbc27a229549f81e8edc8" }
+  - { path: ".ai/rules/console-webui.md", hash: "sha256:f5df442c57cde991ba1da02536893fd59659522f2af65a145c1c91bc13aad13c" }
+  - { path: ".ai/rules/gamma-clean-architecture.md", hash: "sha256:44b5a27cd1ff3f11333e94ca9ddf6ed3a040c3f291fd6403ff138092d9a22db0" }
+  - { path: ".ai/rules/gamma-host.md", hash: "sha256:5179639bea40e70ed1d9c082736ca1a65d261d909af49eda94fe0aab979c31da" }
+  - { path: ".ai/rules/gravitee-dashboard.md", hash: "sha256:3d416de9c07b05e834fd79402679d27cdf0892f015a79936205c980af47320ff" }
+  - { path: ".ai/rules/gravitee-kafka-explorer.md", hash: "sha256:d170ed705912f5ea0989dc4a0abb78b1816eb78f729afb92091bba14aae1e397" }
+  - { path: ".ai/rules/gravitee-markdown.md", hash: "sha256:e951338ee4033d3ddff3e95b3f658edb2a4cf3dafecbea43bdcb938d4b966906" }
+  - { path: ".ai/rules/portal-webui-next.md", hash: "sha256:8730b8d2cf98160e77eba0e6a294aa018849bc6fd2ea0125a06faa990b608f62" }
+  - { path: "angular.json", present: false }
+  - { path: "build.gradle", present: false }
+  - { path: "build.gradle.kts", present: false }
+  - { path: "gravitee-apim-common/angular.json", present: false }
+  - { path: "gravitee-apim-common/build.gradle", present: false }
+  - { path: "gravitee-apim-common/build.gradle.kts", present: false }
+  - { path: "gravitee-apim-common/ng-package.json", present: false }
+  - { path: "gravitee-apim-common/package.json", present: false }
+  - { path: "gravitee-apim-common/pom.xml", present: true }
+  - { path: "gravitee-apim-common/project.json", present: false }
+  - { path: "gravitee-apim-console-webui/angular.json", present: false }
+  - { path: "gravitee-apim-console-webui/build.gradle", present: false }
+  - { path: "gravitee-apim-console-webui/build.gradle.kts", present: false }
+  - { path: "gravitee-apim-console-webui/ng-package.json", present: false }
+  - { path: "gravitee-apim-console-webui/package.json", present: false }
+  - { path: "gravitee-apim-console-webui/pom.xml", present: false }
+  - { path: "gravitee-apim-console-webui/project.json", hash: "sha256:52d94e2cb5816a2f8e70cad9319751bbdc48a40c366542da50994a5e6916c1a5" }
+  - { path: "gravitee-apim-definition/angular.json", present: false }
+  - { path: "gravitee-apim-definition/build.gradle", present: false }
+  - { path: "gravitee-apim-definition/build.gradle.kts", present: false }
+  - { path: "gravitee-apim-definition/ng-package.json", present: false }
+  - { path: "gravitee-apim-definition/package.json", present: false }
+  - { path: "gravitee-apim-definition/pom.xml", present: true }
+  - { path: "gravitee-apim-definition/project.json", present: false }
+  - { path: "gravitee-apim-distribution/angular.json", present: false }
+  - { path: "gravitee-apim-distribution/build.gradle", present: false }
+  - { path: "gravitee-apim-distribution/build.gradle.kts", present: false }
+  - { path: "gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/angular.json", present: false }
+  - { path: "gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/build.gradle", present: false }
+  - { path: "gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/build.gradle.kts", present: false }
+  - { path: "gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/ng-package.json", present: false }
+  - { path: "gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/package.json", present: false }
+  - { path: "gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/pom.xml", present: true }
+  - { path: "gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/project.json", present: false }
+  - { path: "gravitee-apim-distribution/ng-package.json", present: false }
+  - { path: "gravitee-apim-distribution/package.json", present: false }
+  - { path: "gravitee-apim-distribution/pom.xml", present: true }
+  - { path: "gravitee-apim-distribution/project.json", present: false }
+  - { path: "gravitee-apim-gateway/angular.json", present: false }
+  - { path: "gravitee-apim-gateway/build.gradle", present: false }
+  - { path: "gravitee-apim-gateway/build.gradle.kts", present: false }
+  - { path: "gravitee-apim-gateway/ng-package.json", present: false }
+  - { path: "gravitee-apim-gateway/package.json", present: false }
+  - { path: "gravitee-apim-gateway/pom.xml", present: true }
+  - { path: "gravitee-apim-gateway/project.json", present: false }
+  - { path: "gravitee-apim-plugin/angular.json", present: false }
+  - { path: "gravitee-apim-plugin/build.gradle", present: false }
+  - { path: "gravitee-apim-plugin/build.gradle.kts", present: false }
+  - { path: "gravitee-apim-plugin/ng-package.json", present: false }
+  - { path: "gravitee-apim-plugin/package.json", present: false }
+  - { path: "gravitee-apim-plugin/pom.xml", present: true }
+  - { path: "gravitee-apim-plugin/project.json", present: false }
+  - { path: "gravitee-apim-portal-webui-next/angular.json", present: false }
+  - { path: "gravitee-apim-portal-webui-next/build.gradle", present: false }
+  - { path: "gravitee-apim-portal-webui-next/build.gradle.kts", present: false }
+  - { path: "gravitee-apim-portal-webui-next/ng-package.json", present: false }
+  - { path: "gravitee-apim-portal-webui-next/package.json", present: false }
+  - { path: "gravitee-apim-portal-webui-next/pom.xml", present: false }
+  - { path: "gravitee-apim-portal-webui-next/project.json", hash: "sha256:06c05bf9d5df193a3cddd52ab0d85163d084ce075540790f074b97612e891bc5" }
+  - { path: "gravitee-apim-portal-webui/angular.json", present: true }
+  - { path: "gravitee-apim-portal-webui/build.gradle", present: false }
+  - { path: "gravitee-apim-portal-webui/build.gradle.kts", present: false }
+  - { path: "gravitee-apim-portal-webui/ng-package.json", present: false }
+  - { path: "gravitee-apim-portal-webui/package.json", present: true }
+  - { path: "gravitee-apim-portal-webui/pom.xml", present: false }
+  - { path: "gravitee-apim-portal-webui/project.json", present: false }
+  - { path: "gravitee-apim-reporter/angular.json", present: false }
+  - { path: "gravitee-apim-reporter/build.gradle", present: false }
+  - { path: "gravitee-apim-reporter/build.gradle.kts", present: false }
+  - { path: "gravitee-apim-reporter/ng-package.json", present: false }
+  - { path: "gravitee-apim-reporter/package.json", present: false }
+  - { path: "gravitee-apim-reporter/pom.xml", present: true }
+  - { path: "gravitee-apim-reporter/project.json", present: false }
+  - { path: "gravitee-apim-repository/angular.json", present: false }
+  - { path: "gravitee-apim-repository/build.gradle", present: false }
+  - { path: "gravitee-apim-repository/build.gradle.kts", present: false }
+  - { path: "gravitee-apim-repository/ng-package.json", present: false }
+  - { path: "gravitee-apim-repository/package.json", present: false }
+  - { path: "gravitee-apim-repository/pom.xml", present: true }
+  - { path: "gravitee-apim-repository/project.json", present: false }
+  - { path: "gravitee-apim-rest-api/angular.json", present: false }
+  - { path: "gravitee-apim-rest-api/build.gradle", present: false }
+  - { path: "gravitee-apim-rest-api/build.gradle.kts", present: false }
+  - { path: "gravitee-apim-rest-api/ng-package.json", present: false }
+  - { path: "gravitee-apim-rest-api/package.json", present: false }
+  - { path: "gravitee-apim-rest-api/pom.xml", present: true }
+  - { path: "gravitee-apim-rest-api/project.json", present: false }
+  - { path: "gravitee-apim-webui-libs/gravitee-dashboard/angular.json", present: false }
+  - { path: "gravitee-apim-webui-libs/gravitee-dashboard/build.gradle", present: false }
+  - { path: "gravitee-apim-webui-libs/gravitee-dashboard/build.gradle.kts", present: false }
+  - { path: "gravitee-apim-webui-libs/gravitee-dashboard/ng-package.json", present: true }
+  - { path: "gravitee-apim-webui-libs/gravitee-dashboard/package.json", present: true }
+  - { path: "gravitee-apim-webui-libs/gravitee-dashboard/pom.xml", present: false }
+  - { path: "gravitee-apim-webui-libs/gravitee-dashboard/project.json", hash: "sha256:8654cdccb1ef2c24eeeb1a2f3776f3c82cb3009321e26b870c2321b069ffd1fa" }
+  - { path: "gravitee-apim-webui-libs/gravitee-kafka-explorer/angular.json", present: false }
+  - { path: "gravitee-apim-webui-libs/gravitee-kafka-explorer/build.gradle", present: false }
+  - { path: "gravitee-apim-webui-libs/gravitee-kafka-explorer/build.gradle.kts", present: false }
+  - { path: "gravitee-apim-webui-libs/gravitee-kafka-explorer/ng-package.json", present: true }
+  - { path: "gravitee-apim-webui-libs/gravitee-kafka-explorer/package.json", present: true }
+  - { path: "gravitee-apim-webui-libs/gravitee-kafka-explorer/pom.xml", present: false }
+  - { path: "gravitee-apim-webui-libs/gravitee-kafka-explorer/project.json", hash: "sha256:ce2317d584b45428274e1c4c5f44bc0f3a01f2cec8d46028eac440e4f63fb423" }
+  - { path: "gravitee-apim-webui-libs/gravitee-markdown/angular.json", present: false }
+  - { path: "gravitee-apim-webui-libs/gravitee-markdown/build.gradle", present: false }
+  - { path: "gravitee-apim-webui-libs/gravitee-markdown/build.gradle.kts", present: false }
+  - { path: "gravitee-apim-webui-libs/gravitee-markdown/ng-package.json", present: true }
+  - { path: "gravitee-apim-webui-libs/gravitee-markdown/package.json", present: true }
+  - { path: "gravitee-apim-webui-libs/gravitee-markdown/pom.xml", present: false }
+  - { path: "gravitee-apim-webui-libs/gravitee-markdown/project.json", hash: "sha256:1b0ad60d0fd3bbb21d714b6e194a98c636ba0e74ae3a0b6aa2b0721db2991c8c" }
+  - { path: "gravitee-gamma/gravitee-gamma-control-plane-webui/angular.json", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-control-plane-webui/build.gradle", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-control-plane-webui/build.gradle.kts", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-control-plane-webui/ng-package.json", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-control-plane-webui/package.json", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-control-plane-webui/pom.xml", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-control-plane-webui/project.json", hash: "sha256:70fd903be5c9e0426dbd6d83f1a374b4a7852ad06c04dcfe63a88201fc30e5f1" }
+  - { path: "gravitee-gamma/gravitee-gamma-definition-model/angular.json", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-definition-model/build.gradle", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-definition-model/build.gradle.kts", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-definition-model/ng-package.json", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-definition-model/package.json", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-definition-model/pom.xml", present: true }
+  - { path: "gravitee-gamma/gravitee-gamma-definition-model/project.json", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-marketplace-webui/angular.json", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-marketplace-webui/build.gradle", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-marketplace-webui/build.gradle.kts", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-marketplace-webui/ng-package.json", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-marketplace-webui/package.json", present: true }
+  - { path: "gravitee-gamma/gravitee-gamma-marketplace-webui/pom.xml", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-marketplace-webui/project.json", hash: "sha256:fa1504aa8b38b6d9de97435b3959c4147be934bf652014d89c686b308a2ab340" }
+  - { path: "gravitee-gamma/gravitee-gamma-module-apim/angular.json", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-module-apim/build.gradle", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-module-apim/build.gradle.kts", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-module-apim/ng-package.json", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-module-apim/package.json", present: true }
+  - { path: "gravitee-gamma/gravitee-gamma-module-apim/pom.xml", present: true }
+  - { path: "gravitee-gamma/gravitee-gamma-module-apim/project.json", hash: "sha256:b0c6d1a502ad2a4138a9e9ee68a248482cde1a1bb4c75c97ec366a6edf7f855b" }
+  - { path: "gravitee-gamma/gravitee-gamma-module-platform/angular.json", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-module-platform/build.gradle", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-module-platform/build.gradle.kts", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-module-platform/ng-package.json", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-module-platform/package.json", present: true }
+  - { path: "gravitee-gamma/gravitee-gamma-module-platform/pom.xml", present: true }
+  - { path: "gravitee-gamma/gravitee-gamma-module-platform/project.json", hash: "sha256:90be49af03bd78c037c81ae4a73faed6c32949b9a4ca1b4dced015b001a4f10a" }
+  - { path: "gravitee-gamma/gravitee-gamma-module-portals/angular.json", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-module-portals/build.gradle", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-module-portals/build.gradle.kts", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-module-portals/ng-package.json", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-module-portals/package.json", present: true }
+  - { path: "gravitee-gamma/gravitee-gamma-module-portals/pom.xml", present: true }
+  - { path: "gravitee-gamma/gravitee-gamma-module-portals/project.json", hash: "sha256:2c15ad09d5007c0e912a69d12aa551675dbe7d305db1b33b913fe7bdefe68f68" }
+  - { path: "gravitee-gamma/gravitee-gamma-plugin/angular.json", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-plugin/build.gradle", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-plugin/build.gradle.kts", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-plugin/ng-package.json", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-plugin/package.json", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-plugin/pom.xml", present: true }
+  - { path: "gravitee-gamma/gravitee-gamma-plugin/project.json", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-rest-api/angular.json", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-rest-api/build.gradle", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-rest-api/build.gradle.kts", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-rest-api/ng-package.json", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-rest-api/package.json", present: false }
+  - { path: "gravitee-gamma/gravitee-gamma-rest-api/pom.xml", present: true }
+  - { path: "gravitee-gamma/gravitee-gamma-rest-api/project.json", present: false }
+  - { path: "ng-package.json", present: false }
+  - { path: "package.json", present: true }
+  - { path: "pom.xml", present: true }
+  - { path: "project.json", present: false }
 entries:
   - path: ".agents/skills/analyze-test-coverage/SKILL.md"
     hash: sha256:35f5bf7a4c37d9b7377a1c481ca8a9219b90929494b3120f7597bf38f58b6e83
@@ -28,15 +216,15 @@ entries:
     status: generated
     scope: local
   - path: ".agents/skills/peer-code-review/SKILL.md"
-    hash: sha256:84f8c2762eff50f6301513f852cb9af2adb5e71f8de54064047ab3791a13d5b5
+    hash: sha256:f7505efb0bc11d5ce9de53e97e07d3840d9f21fada640483a235b955378ea109
     status: generated
     scope: local
   - path: ".agents/skills/planning/SKILL.md"
-    hash: sha256:dfadf4c50b9414f7dba9614a1755107e81eb48c7b5d2a0d8c7988cc470f54147
+    hash: sha256:fb3654c7cc678256a345159a955e31fa665f3bbaf71205e8c0950e809191a911
     status: generated
     scope: local
   - path: ".agents/skills/self-code-review/SKILL.md"
-    hash: sha256:c6dee3fb46286cf5bfa3f0e484b198e67a9cc4f98c41a2bd038aaa4662f598ad
+    hash: sha256:70545e88dd54c9fd298fa2efbe8ae19901d5418205d6264f33af5b606e77e267
     status: generated
     scope: local
   - path: ".agents/skills/write-tests/SKILL.md"
@@ -80,15 +268,15 @@ entries:
     status: generated
     scope: local
   - path: ".claude/skills/peer-code-review/SKILL.md"
-    hash: sha256:84f8c2762eff50f6301513f852cb9af2adb5e71f8de54064047ab3791a13d5b5
+    hash: sha256:f7505efb0bc11d5ce9de53e97e07d3840d9f21fada640483a235b955378ea109
     status: generated
     scope: local
   - path: ".claude/skills/planning/SKILL.md"
-    hash: sha256:dfadf4c50b9414f7dba9614a1755107e81eb48c7b5d2a0d8c7988cc470f54147
+    hash: sha256:fb3654c7cc678256a345159a955e31fa665f3bbaf71205e8c0950e809191a911
     status: generated
     scope: local
   - path: ".claude/skills/self-code-review/SKILL.md"
-    hash: sha256:c6dee3fb46286cf5bfa3f0e484b198e67a9cc4f98c41a2bd038aaa4662f598ad
+    hash: sha256:70545e88dd54c9fd298fa2efbe8ae19901d5418205d6264f33af5b606e77e267
     status: generated
     scope: local
   - path: ".claude/skills/write-tests/SKILL.md"
@@ -103,8 +291,12 @@ entries:
     hash: sha256:099ebc0d75d677d12cdc8e55aca4241a24551a3b76a9b47fde81f3742848c2e9
     status: generated
     scope: committed
+  - path: ".github/scripts/verify-ai-context.mjs"
+    hash: sha256:1fbffd50268128116ade96f2dc0fedffe9c9c11dbf28534b9d215d52f79cce4e
+    status: generated
+    scope: committed
   - path: "AGENTS.md"
-    hash: sha256:86cb313afd2ab68b21c56fdf325aca368f1d61aab587c32df3ac396d55e60d17
+    hash: sha256:0eff157f3db33557f0149a60ca4e3cd9368fc32db5f779b443501294c14409a6
     status: generated
     scope: committed
   - path: "CLAUDE.md"
@@ -247,6 +439,14 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
+  - path: "gravitee-gamma/gravitee-gamma-marketplace-webui/AGENTS.md"
+    hash: sha256:53335edeed91cb8b07dfb3bde065000b96de7e3d0ca3c66a1433517461080038
+    status: generated
+    scope: committed
+  - path: "gravitee-gamma/gravitee-gamma-marketplace-webui/CLAUDE.md"
+    hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
+    status: generated
+    scope: committed
   - path: "gravitee-gamma/gravitee-gamma-module-apim/AGENTS.md"
     hash: sha256:d18028e7c28dfbe092256fe1ec1688f08919810bea04c5ebf36bdeeb28467d39
     status: generated
@@ -260,6 +460,14 @@ entries:
     status: generated
     scope: committed
   - path: "gravitee-gamma/gravitee-gamma-module-platform/CLAUDE.md"
+    hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
+    status: generated
+    scope: committed
+  - path: "gravitee-gamma/gravitee-gamma-module-portals/AGENTS.md"
+    hash: sha256:d18028e7c28dfbe092256fe1ec1688f08919810bea04c5ebf36bdeeb28467d39
+    status: generated
+    scope: committed
+  - path: "gravitee-gamma/gravitee-gamma-module-portals/CLAUDE.md"
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
@@ -279,4 +487,4 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
-record: sha256:058a1e48b43ee752f62e2adc30b7ddc1b332fd6552efb03a6611e858aa2023a2
+record: sha256:51ecec8f2af9934547a825e4848948a50bcafc22e46c25b4e933fc47dbc7ddfc
