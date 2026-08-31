@@ -54,19 +54,10 @@ describe('OrgSettingsPlatformPoliciesStudioComponent', () => {
     flowMode: 'BEST_MATCH',
   });
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule, GioLicenseTestingModule],
-    })
-      .overrideProvider(InteractivityChecker, {
-        useValue: {
-          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
-        },
-      })
-      .compileComponents();
-
+  const createComponent = (isReadonly = false) => {
     fixture = TestBed.createComponent(OrgSettingsPlatformPoliciesStudioComponent);
     component = fixture.componentInstance;
+    component.isReadonly = isReadonly;
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
@@ -78,10 +69,26 @@ describe('OrgSettingsPlatformPoliciesStudioComponent', () => {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/resources?expand=schema&expand=icon`).flush(organization);
 
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}`).flush(organization);
+
+    fixture.detectChanges();
+  };
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule, GioLicenseTestingModule],
+    })
+      .overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+        },
+      })
+      .compileComponents();
   });
 
   describe('ngOnInit', () => {
     it('should setup properties', async () => {
+      createComponent();
+
       expect(component.policies).toStrictEqual(policies);
       expect(component.platformFlowSchema).toStrictEqual(platformFlowSchema);
       expect(component.organization).toStrictEqual(organization);
@@ -99,6 +106,20 @@ describe('OrgSettingsPlatformPoliciesStudioComponent', () => {
           },
         ],
       });
+    });
+  });
+
+  describe('readonly mode', () => {
+    it('should let the design be edited when not readonly', async () => {
+      createComponent();
+
+      expect(fixture.nativeElement.querySelector('gv-design').hasAttribute('readonly')).toEqual(false);
+    });
+
+    it('should make the design readonly when readonly', async () => {
+      createComponent(true);
+
+      expect(fixture.nativeElement.querySelector('gv-design').hasAttribute('readonly')).toEqual(true);
     });
   });
 
