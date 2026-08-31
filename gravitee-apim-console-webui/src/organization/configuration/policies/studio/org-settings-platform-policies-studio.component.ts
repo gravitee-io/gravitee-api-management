@@ -15,8 +15,8 @@
  */
 
 import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
-import { combineLatest, Subject } from 'rxjs';
-import { takeUntil, tap } from 'rxjs/operators';
+import { combineLatest, EMPTY, Subject } from 'rxjs';
+import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { ComponentCustomEvent } from '@gravitee/ui-components/src/lib/events';
 import { Location } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
@@ -44,6 +44,8 @@ export class OrgSettingsPlatformPoliciesStudioComponent implements OnInit, OnDes
   get isLoading() {
     return !this.definition;
   }
+
+  loadError: string;
 
   organization: Organization;
   definition: DefinitionVM;
@@ -87,6 +89,10 @@ export class OrgSettingsPlatformPoliciesStudioComponent implements OnInit, OnDes
           };
 
           this.resourceTypes = resourceTypes;
+        }),
+        catchError(({ error }) => {
+          this.loadError = error?.message ?? 'Platform policies could not be loaded.';
+          return EMPTY;
         }),
         takeUntil(this.unsubscribe$),
       )

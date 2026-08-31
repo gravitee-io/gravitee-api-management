@@ -15,7 +15,7 @@
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController, TestRequest } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
 
@@ -70,17 +70,28 @@ describe('OrgSettingsPlatformPoliciesStudioComponent', () => {
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
+  });
 
+  const expectLoadRequests = (respondToOrganization: (request: TestRequest) => void) => {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/flows/flow-schema`).flush(platformFlowSchema);
 
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/policies?expand=schema&expand=icon`).flush(policies);
 
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/resources?expand=schema&expand=icon`).flush(organization);
 
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}`).flush(organization);
-  });
+    respondToOrganization(httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}`));
+  };
 
   describe('ngOnInit', () => {
+    beforeEach(() => {
+      expectLoadRequests(request => request.flush(organization));
+      fixture.detectChanges();
+    });
+
+    it('should render the studio', () => {
+      expect(fixture.nativeElement.querySelector('gv-design')).not.toBeNull();
+    });
+
     it('should setup properties', async () => {
       expect(component.policies).toStrictEqual(policies);
       expect(component.platformFlowSchema).toStrictEqual(platformFlowSchema);
@@ -99,6 +110,28 @@ describe('OrgSettingsPlatformPoliciesStudioComponent', () => {
           },
         ],
       });
+    });
+  });
+
+  describe('when the load fails', () => {
+    it('should report the error instead of loading forever', async () => {
+      expectLoadRequests(request =>
+        request.flush({ message: 'You do not have sufficient rights to access this resource' }, { status: 403, statusText: 'Forbidden' }),
+      );
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain('You do not have sufficient rights to access this resource');
+      expect(fixture.nativeElement.textContent).not.toContain('Loading...');
+      expect(fixture.nativeElement.querySelector('gv-design')).toBeNull();
+    });
+
+    it('should report a fallback message when the failure carries none', async () => {
+      expectLoadRequests(request => request.error(new ProgressEvent('error')));
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain('Platform policies could not be loaded');
+      expect(fixture.nativeElement.textContent).not.toContain('Loading...');
+      expect(fixture.nativeElement.querySelector('gv-design')).toBeNull();
     });
   });
 

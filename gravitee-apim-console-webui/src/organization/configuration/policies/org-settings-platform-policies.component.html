@@ -21,6 +21,7 @@
     <a mat-tab-link [active]="activeTab === 'config'" (click)="activeTab = 'config'"> Configuration </a>
     <!-- save button -->
     <button
+      *gioPermission="{ anyOf: ['organization-policies-u'] }"
       class="header__nav__saveButton"
       mat-flat-button
       color="primary"
