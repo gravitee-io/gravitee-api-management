@@ -41,7 +41,6 @@ import lombok.RequiredArgsConstructor;
 public class PortalDocumentationSyncDomainService {
 
     private static final PortalNavigationItemType TYPE = PortalNavigationItemType.PAGE;
-    private static final PortalVisibility DEFAULT_VISIBILITY = PortalVisibility.PUBLIC;
     private static final int DEFAULT_ORDER = 0;
     private static final boolean DEFAULT_PUBLISHED = true;
 
@@ -87,13 +86,14 @@ public class PortalDocumentationSyncDomainService {
         if (isUpdatableInPlace(existing, targetArea)) {
             var page = (PortalNavigationPage) existing;
             final var segment = Slug.from(meta.name(), siblingsSlugs(envId, parentId, navigationItemId));
+            var visibility = PortalVisibility.inheritedFrom(parent);
             var update = UpdatePortalNavigationItem.builder()
                 .title(meta.name())
                 .segment(segment.value())
                 .type(TYPE)
                 .order(meta.order().orElse(DEFAULT_ORDER))
                 .parentId(parentId)
-                .visibility(DEFAULT_VISIBILITY)
+                .visibility(visibility)
                 .published(DEFAULT_PUBLISHED)
                 .build();
             validatorService.validateToUpdate(update, page);
@@ -119,7 +119,6 @@ public class PortalDocumentationSyncDomainService {
             .portalPageContentId(pageContent.getId())
             .parentId(parentId)
             .reference(meta.reference())
-            .visibility(DEFAULT_VISIBILITY)
             .published(DEFAULT_PUBLISHED)
             .automationMetadata(meta.trimmedForNavItem())
             .build();

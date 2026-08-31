@@ -26,6 +26,8 @@ public interface PortalNavigationItemContainer {
 
     PortalNavigationItemId getRootId();
 
+    PortalVisibility getVisibility();
+
     /**
      * Placeholder parent used by materializers when the actual folder hasn't been persisted yet.
      * Returns {@code null} when the given id is {@code null}.
@@ -41,6 +43,11 @@ public interface PortalNavigationItemContainer {
             @Override
             public PortalNavigationItemId getRootId() {
                 return id;
+            }
+
+            @Override
+            public PortalVisibility getVisibility() {
+                return PortalVisibility.PUBLIC;
             }
         };
     }

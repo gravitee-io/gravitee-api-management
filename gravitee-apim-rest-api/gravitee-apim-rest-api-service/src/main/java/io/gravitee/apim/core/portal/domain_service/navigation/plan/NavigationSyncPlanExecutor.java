@@ -30,7 +30,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import jakarta.annotation.Nullable;
 import java.util.HashMap;
@@ -123,7 +122,6 @@ public final class NavigationSyncPlanExecutor {
             .area(area)
             .type(PortalNavigationItemType.FOLDER)
             .order(df.order())
-            .visibility(PortalVisibility.PUBLIC)
             .published(true)
             .build();
         return (PortalNavigationFolder) crudService.create(

@@ -62,7 +62,6 @@ public class ApiDocumentationSyncDomainService {
     private static final int MAX_CASCADE_DEPTH = 50;
     private static final PortalArea API_DOCUMENTATION_AREA = PortalArea.TOP_NAVBAR;
     private static final PortalNavigationItemType TYPE = PortalNavigationItemType.PAGE;
-    private static final PortalVisibility DEFAULT_VISIBILITY = PortalVisibility.PUBLIC;
     private static final int DEFAULT_ORDER = 0;
     private static final boolean DEFAULT_PUBLISHED = true;
 
@@ -190,13 +189,14 @@ public class ApiDocumentationSyncDomainService {
 
         if (existing instanceof PortalNavigationPage page && page.getArea() == API_DOCUMENTATION_AREA) {
             var segment = Slug.from(meta.name(), siblingSlugs(envId, parentId, pageId));
+            var visibility = PortalVisibility.inheritedFrom(parent);
             var update = UpdatePortalNavigationItem.builder()
                 .title(meta.name())
                 .segment(segment.value())
                 .type(TYPE)
                 .order(meta.order().orElse(DEFAULT_ORDER))
                 .parentId(parentId)
-                .visibility(DEFAULT_VISIBILITY)
+                .visibility(visibility)
                 .published(DEFAULT_PUBLISHED)
                 .build();
             validatorService.validateToUpdate(update, page);
@@ -219,7 +219,6 @@ public class ApiDocumentationSyncDomainService {
             .portalPageContentId(contentId)
             .parentId(parentId)
             .reference(meta.reference())
-            .visibility(DEFAULT_VISIBILITY)
             .published(DEFAULT_PUBLISHED)
             .automationMetadata(meta.trimmedForNavItem())
             .build();

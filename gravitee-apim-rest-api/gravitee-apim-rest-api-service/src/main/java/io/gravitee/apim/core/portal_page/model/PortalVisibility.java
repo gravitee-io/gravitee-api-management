@@ -15,7 +15,24 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
+import jakarta.annotation.Nullable;
+import java.util.Optional;
+
 public enum PortalVisibility {
     PUBLIC,
-    PRIVATE,
+    PRIVATE;
+
+    public static PortalVisibility inheritedFrom(@Nullable PortalNavigationItemContainer parent) {
+        return Optional.ofNullable(parent).map(PortalNavigationItemContainer::getVisibility).orElse(PUBLIC);
+    }
+
+    public static PortalVisibility resolve(@Nullable PortalVisibility callerVisibility, @Nullable PortalNavigationItemContainer parent) {
+        return Optional.ofNullable(callerVisibility).orElseGet(() -> inheritedFrom(parent));
+    }
+
+    public static PortalVisibility resolve(@Nullable PortalVisibility callerVisibility, @Nullable PortalVisibility parentVisibility) {
+        return Optional.ofNullable(callerVisibility)
+            .or(() -> Optional.ofNullable(parentVisibility))
+            .orElse(PUBLIC);
+    }
 }

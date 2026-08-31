@@ -82,9 +82,9 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
             throw InvalidPortalNavigationItemDataException.parentMustBePublished(parentId);
         }
 
-        var itemVisibility = item.getVisibility() != null ? item.getVisibility() : PortalVisibility.PUBLIC;
-        var parentVisibility = parentItem.getVisibility() != null ? parentItem.getVisibility() : PortalVisibility.PUBLIC;
-        if (PortalVisibility.PUBLIC.equals(itemVisibility) && PortalVisibility.PRIVATE.equals(parentVisibility)) {
+        var parentVisibility = Optional.ofNullable(parentItem.getVisibility()).orElse(PortalVisibility.PUBLIC);
+        var effectiveVisibility = PortalVisibility.resolve(item.getVisibility(), parentVisibility);
+        if (PortalVisibility.PUBLIC.equals(effectiveVisibility) && PortalVisibility.PRIVATE.equals(parentVisibility)) {
             throw InvalidPortalNavigationItemDataException.parentMustBePublic(parentId);
         }
     }
@@ -173,7 +173,8 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
         if (itemPublished && !parentItem.getPublished()) {
             throw InvalidPortalNavigationItemDataException.parentMustBePublished(parentId.toString());
         }
-        if (PortalVisibility.PUBLIC.equals(itemVisibility) && PortalVisibility.PRIVATE.equals(parentItem.getVisibility())) {
+        var effectiveVisibility = PortalVisibility.resolve(itemVisibility, parentItem.getVisibility());
+        if (PortalVisibility.PUBLIC.equals(effectiveVisibility) && PortalVisibility.PRIVATE.equals(parentItem.getVisibility())) {
             throw InvalidPortalNavigationItemDataException.parentMustBePublic(parentId.toString());
         }
     }

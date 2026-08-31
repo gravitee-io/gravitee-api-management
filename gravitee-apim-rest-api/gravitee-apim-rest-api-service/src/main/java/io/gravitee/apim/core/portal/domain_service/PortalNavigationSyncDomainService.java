@@ -35,7 +35,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.ArrayList;
@@ -159,7 +158,6 @@ public class PortalNavigationSyncDomainService {
             .type(PortalNavigationItemType.FOLDER)
             .order(df.order())
             .parentId(df.parentPath() == null ? null : idFactory.apply(df.parentPath()))
-            .visibility(PortalVisibility.PUBLIC)
             .published(true)
             .automationMetadata(
                 new AutomationMetadata(

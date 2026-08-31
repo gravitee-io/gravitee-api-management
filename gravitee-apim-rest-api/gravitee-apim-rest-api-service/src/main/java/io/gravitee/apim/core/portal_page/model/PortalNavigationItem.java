@@ -174,7 +174,7 @@ public abstract sealed class PortalNavigationItem
         final var apiProductId = item.getApiProductId();
         final var categoryIds = item.getCategoryIds();
         final var order = item.getOrder();
-        final var visibility = null != item.getVisibility() ? item.getVisibility() : PortalVisibility.PUBLIC;
+        final var visibility = PortalVisibility.resolve(item.getVisibility(), parent);
         final var published = null != item.getPublished() ? item.getPublished() : false;
 
         final PortalNavigationItem newItem = switch (item.getType()) {

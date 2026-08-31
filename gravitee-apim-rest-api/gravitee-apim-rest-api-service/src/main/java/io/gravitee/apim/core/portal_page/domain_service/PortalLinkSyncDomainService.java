@@ -99,12 +99,13 @@ public class PortalLinkSyncDomainService {
         }
 
         if (existingLink != null) {
+            var visibility = PortalVisibility.inheritedFrom(parent);
             var toUpdate = UpdatePortalNavigationItem.builder()
                 .title(name)
                 .segment(segment)
                 .order(order != null ? order : 0)
                 .url(href)
-                .visibility(PortalVisibility.PUBLIC)
+                .visibility(visibility)
                 .published(true)
                 .build();
             existingLink.update(toUpdate, automationMetadata);
@@ -126,7 +127,6 @@ public class PortalLinkSyncDomainService {
             .url(href)
             .reference(automationMetadata.reference())
             .automationMetadata(automationMetadata)
-            .visibility(PortalVisibility.PUBLIC)
             .published(true)
             .build();
 
