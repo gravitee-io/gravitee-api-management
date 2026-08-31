@@ -158,3 +158,17 @@ export function filterNavSections(sections: readonly PlatformNavSection[], isVis
         }))
         .filter(section => section.groups.length > 0);
 }
+
+/** Marks a visible nav item as license-locked (`access: 'locked'`) so Graphene shows the Upgrade pill. */
+export function lockNavItem(sections: PlatformNavSection[], itemKey: string, locked: boolean): PlatformNavSection[] {
+    if (!locked) {
+        return sections;
+    }
+    return sections.map(section => ({
+        ...section,
+        groups: section.groups.map(group => ({
+            ...group,
+            items: group.items.map(item => (item.key === itemKey ? { ...item, access: 'locked' as const } : item)),
+        })),
+    }));
+}

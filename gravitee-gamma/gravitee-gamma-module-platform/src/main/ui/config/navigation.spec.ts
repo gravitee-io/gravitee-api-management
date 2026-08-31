@@ -15,7 +15,7 @@
  */
 import { CloudIcon, GlobeIcon, UsersIcon, UsersRoundIcon } from '@gravitee/graphene-core/icons';
 
-import { filterNavSections, findNavSectionKey, firstNavItemKey, NAV_SECTIONS, platformPrimaryNavItems } from './navigation';
+import { filterNavSections, findNavSectionKey, firstNavItemKey, lockNavItem, NAV_SECTIONS, platformPrimaryNavItems } from './navigation';
 import { PLATFORM_ROUTE_CONFIG, ROUTES } from './routes';
 
 function sectionKeys(label: string, groupLabel: string): string[] {
@@ -111,6 +111,17 @@ describe('platform navigation config', () => {
                 items: [expect.objectContaining({ key: 'users' })],
             }),
         ]);
+    });
+
+    it('locks a visible nav item without hiding it', () => {
+        const findAlerts = (sections: { groups: { items: { key: string; access?: string }[] }[] }[]) =>
+            sections
+                .flatMap(section => section.groups)
+                .flatMap(group => group.items)
+                .find(item => item.key === 'alerts');
+
+        expect(findAlerts(lockNavItem([...NAV_SECTIONS], 'alerts', true))?.access).toBe('locked');
+        expect(findAlerts(lockNavItem([...NAV_SECTIONS], 'alerts', false))?.access).toBeUndefined();
     });
 
     it('declares the users route in platform routing config', () => {
