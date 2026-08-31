@@ -16,6 +16,8 @@
 package io.gravitee.apim.core.portal_listing.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.model.PortalId;
@@ -25,10 +27,13 @@ import io.gravitee.apim.core.portal_listing.model.PortalListingId;
 import io.gravitee.apim.core.validation.Validator;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Validates Portal Listing input. Format checks only — no reference-existence checks.
+ * Validates Portal Listing input. Format checks, plus API-reference-existence checks — the referenced
+ * portal itself is not existence-checked (that reference is allowed to arrive out of order).
  *
  * @author GraviteeSource Team
  */
@@ -37,6 +42,7 @@ import lombok.RequiredArgsConstructor;
 public class ValidatePortalListingDomainService implements Validator<ValidatePortalListingDomainService.Input> {
 
     private final PortalAutomationScopeDomainService portalAutomationScopeEnforcer;
+    private final ApiCrudService apiCrudService;
 
     public record Input(AuditInfo auditInfo, PortalListingId listingId, PortalId portalId, List<PortalListingApiEntry> apis) implements
         Validator.Input {}
@@ -46,8 +52,17 @@ public class ValidatePortalListingDomainService implements Validator<ValidatePor
         var errors = new ArrayList<Error>();
         errors.addAll(portalAutomationScopeEnforcer.validate(input.auditInfo(), input.portalId(), "portalHrid"));
         List<PortalListingApiEntry> apis = input.apis() == null ? List.of() : input.apis();
+        var apiIds = apis
+            .stream()
+            .map(entry -> entry.apiId(input.auditInfo()))
+            .toList();
+        Set<String> existingApiIds = apiCrudService.findByIds(apiIds).stream().map(Api::getId).collect(Collectors.toSet());
         for (int i = 0; i < apis.size(); i++) {
-            errors.addAll(NavigationPathValidator.validate(apis.get(i).location(), "apis[" + i + "].location"));
+            var entry = apis.get(i);
+            errors.addAll(NavigationPathValidator.validate(entry.location(), "apis[" + i + "].location"));
+            if (!existingApiIds.contains(apiIds.get(i))) {
+                errors.add(Error.severe("apis[%d]: API [%s] not found", i, entry.apiHrid()));
+            }
         }
         return Result.ofBoth(input, errors);
     }

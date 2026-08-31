@@ -17,7 +17,6 @@ package io.gravitee.apim.core.portal_listing.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
-import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator;
 import io.gravitee.apim.core.portal.exception.PathConflictException;
@@ -55,7 +54,7 @@ class NavigationItemEntryMaterializer {
     PortalNavigationApi upsert(AuditInfo auditInfo, PortalId portalId, String apiId, PortalListingApiEntry entry) {
         var navApiId = rowId(auditInfo, portalId, apiId);
         var parent = resolveParent(auditInfo, portalId.toString(), entry.location());
-        var title = apiCrudService.findById(apiId).map(Api::getName).orElse(entry.apiHrid());
+        var title = apiCrudService.get(apiId).getName();
 
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), navApiId);
         if (existing instanceof PortalNavigationApi navApi) {
