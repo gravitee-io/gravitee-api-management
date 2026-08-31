@@ -13,9 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { authHandlers } from './auth.handlers';
-import { bootstrapHandlers } from './bootstrap.handlers';
-import { catalogHandlers } from './catalog.handlers';
-import { categoriesHandlers } from './categories.handlers';
+import { http, HttpResponse } from 'msw';
 
-export const defaultHandlers = [...bootstrapHandlers, ...authHandlers, ...categoriesHandlers, ...catalogHandlers];
+import { TEST_PORTAL_API } from '../factories';
+
+function isCatalogSearch(request: Request): boolean {
+    const url = new URL(request.url);
+    return `${url.origin}${url.pathname}` === `${TEST_PORTAL_API}/apis/_search`;
+}
+
+export const catalogHandlers = [
+    http.post(
+        ({ request }) => isCatalogSearch(request),
+        () =>
+            HttpResponse.json({
+                data: [],
+                metadata: { pagination: { current_page: 1, size: 12, total: 0, total_pages: 0 } },
+            }),
+    ),
+];
