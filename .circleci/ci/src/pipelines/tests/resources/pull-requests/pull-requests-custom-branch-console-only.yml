@@ -172,79 +172,6 @@ jobs:
           root: .
           paths:
             - gravitee-apim-console-webui/dist
-  job-console-webui-build-storybook:
-    docker:
-      - image: cimg/node:20.11.1
-    resource_class: large
-    steps:
-      - checkout
-      - cmd-install-yarn
-      - cmd-webui-install:
-          apim-ui-project: gravitee-apim-console-webui
-      - run:
-          name: Build
-          command: yarn build-storybook
-          working_directory: gravitee-apim-console-webui
-          environment:
-            NODE_OPTIONS: --max_old_space_size=8192
-      - cmd-notify-on-failure
-      - persist_to_workspace:
-          root: .
-          paths:
-            - gravitee-apim-console-webui/storybook-static
-            - gravitee-apim-console-webui/dist-lib
-  job-console-webui-chromatic-deployment:
-    docker:
-      - image: cimg/node:20.11.1
-    resource_class: small
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - cmd-install-yarn
-      - cmd-webui-install:
-          apim-ui-project: gravitee-apim-console-webui
-      - keeper/env-export:
-          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
-          var-name: GITHUB_TOKEN
-      - keeper/env-export:
-          secret-url: keeper://Hp1bFl5s0doxnQgqkMdCdg/field/password
-          var-name: CHROMATIC_PROJECT_TOKEN
-      - run:
-          name: Running Chromatic
-          command: |-
-            SB_URL=$(cd gravitee-apim-console-webui && npx chromatic --project-token=$CHROMATIC_PROJECT_TOKEN --exit-once-uploaded -d=storybook-static | grep -o "View your Storybook at https:\/\/[0-9a-z-]*\.chromatic\.com" | grep -o "https:.*")
-            echo "export SB_URL=$SB_URL" >> $BASH_ENV
-      - gh/setup
-      - run:
-          name: Edit Pull Request Description
-          command: |-
-            # First check there is an associated pull request, otherwise just stop the job here
-            if ! gh pr view --json title;
-            then
-              echo "No PR found for this branch, stopping the job here."
-              exit 0
-            fi
-
-            # If PR state is different from OPEN
-            if [ "$(gh pr view --json state --jq .state)" != "OPEN" ];
-            then
-              echo "PR is not opened, stopping the job here."
-              exit 0
-            fi
-
-            export PR_BODY_STORYBOOK_SECTION="
-            <!-- Storybook placeholder -->
-            ---
-
-            📚&nbsp;&nbsp;View the storybook of this branch [here](${SB_URL})
-            <!-- Storybook placeholder end -->
-            "
-
-            export CLEAN_BODY=$(gh pr view --json body --jq .body | sed '/Storybook placeholder -->/,/Storybook placeholder end -->/d')
-
-            gh pr edit --body "$CLEAN_BODY$PR_BODY_STORYBOOK_SECTION"
-      - cmd-notify-on-failure
   job-sonarcloud-analysis:
     parameters:
       working_directory:
@@ -308,16 +235,6 @@ workflows:
           name: Build APIM Console
           context:
             - cicd-orchestrator
-      - job-console-webui-build-storybook:
-          name: Build Console Storybook
-          context:
-            - cicd-orchestrator
-      - job-console-webui-chromatic-deployment:
-          name: Deploy console in chromatic
-          context:
-            - cicd-orchestrator
-          requires:
-            - Build Console Storybook
       - job-sonarcloud-analysis:
           name: Sonar - gravitee-apim-console-webui
           context:
@@ -334,4 +251,3 @@ workflows:
 orbs:
   keeper: gravitee-io/keeper@0.7.0
   slack: circleci/slack@4.12.5
-  gh: circleci/github-cli@1.0.5
