@@ -28,9 +28,7 @@ import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.Simp
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleP90Builder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleP95Builder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleP99Builder;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -66,22 +64,9 @@ public class MessageMeasuresQueryAdapter {
 
     private JsonObject json(MeasuresQuery query, Set<String> requestIDs) {
         var boolQuery = queryAdapter.messageFilter(query);
-
-        if (requestIDs != null && !requestIDs.isEmpty()) {
-            var filters = boolQuery.getJsonArray("filter");
-            if (filters == null) {
-                filters = new JsonArray();
-                boolQuery.put("filter", filters);
-            }
-            filters.add(buildRequestIDFilter(requestIDs));
-        }
+        MessageFacetsQueryAdapter.MessageRequestIdFilter.restrictTo(boolQuery, requestIDs);
 
         return new JsonObject().put("size", 0).put("query", JsonObject.of("bool", boolQuery)).put("aggs", adaptMetrics(query.metrics()));
-    }
-
-    private JsonObject buildRequestIDFilter(Set<String> requestIDs) {
-        var requestIDsList = new ArrayList<>(requestIDs);
-        return JsonObject.of("terms", JsonObject.of("request-id", new JsonArray(requestIDsList)));
     }
 
     /**
@@ -105,14 +90,7 @@ public class MessageMeasuresQueryAdapter {
     JsonObject adaptMetrics(List<MetricMeasuresQuery> metrics) {
         var aggs = new JsonObject();
         for (var metric : metrics) {
-            for (var measure : metric.measures()) {
-                var field = fieldResolver.fromMetric(metric.metric());
-                var aggName = AggregationAdapter.adaptName(metric.metric(), measure);
-
-                aggregate(aggName, field, measure).ifPresent(agg -> {
-                    aggs.put(agg.keySet().iterator().next(), agg.values().iterator().next());
-                });
-            }
+            aggs.mergeIn(adaptMeasures(metric));
         }
         return aggs;
     }
