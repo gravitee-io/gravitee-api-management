@@ -37,6 +37,7 @@ import { GioPermissionService } from '../../shared/components/gio-permission/gio
 import { CONSTANTS_TESTING, GioTestingModule } from '../../shared/testing';
 import { Constants } from '../../entities/Constants';
 import { EnvironmentSettingsService } from '../../services-ngx/environment-settings.service';
+import { Environment } from '../../entities/environment/environment';
 
 const PORTAL_SETTINGS_PERMISSIONS_SET = new Set(PORTAL_SETTINGS_PERMISSIONS);
 
@@ -114,7 +115,7 @@ describe('GioSideNavComponent', () => {
           },
         },
         { provide: 'LicenseConfiguration', useValue: LICENSE_CONFIGURATION_TESTING },
-        { provide: ActivatedRoute, useValue: { params: of({ envId: 'DEFAULT' }) } },
+        { provide: ActivatedRoute, useValue: { params: of({ envHrid: 'DEFAULT' }) } },
         { provide: GioMenuSearchService, useValue: menuSearchService },
       ],
     })
@@ -355,6 +356,81 @@ describe('GioSideNavComponent', () => {
       expect(kafka?.routerBasePath).toBe(`/${envHrid}/clusters`);
 
       ctrl.verify();
+    });
+  });
+
+  describe('environment segment in menu paths (APIM-14748)', () => {
+    const buildMenuForEnvironment = async (environment: Environment, envHrid: string) => {
+      await TestBed.configureTestingModule({
+        declarations: [GioSideNavComponent],
+        imports: [NoopAnimationsModule, GioTestingModule, GioSideNavModule, MatIconTestingModule],
+        providers: [
+          { provide: GioPermissionService, useValue: { hasAnyMatching: () => true } },
+          {
+            provide: Constants,
+            useFactory: () => ({
+              ...CONSTANTS_TESTING,
+              org: {
+                ...CONSTANTS_TESTING.org,
+                settings: { ...CONSTANTS_TESTING.org.settings, licenseExpirationNotification: { enabled: true } },
+                currentEnv: environment,
+                environments: [environment],
+              },
+            }),
+          },
+          {
+            provide: EnvironmentSettingsService,
+            useValue: { get: () => of({ apiScore: { enabled: true }, portalNext: { access: { enabled: true } } }) },
+          },
+          { provide: 'LicenseConfiguration', useValue: LICENSE_CONFIGURATION_TESTING },
+          { provide: ActivatedRoute, useValue: { params: of({ envHrid }) } },
+          { provide: GioMenuSearchService, useValue: menuSearchService },
+        ],
+      })
+        .overrideProvider(InteractivityChecker, {
+          useValue: { isFocusable: () => true, isTabbable: () => true },
+        })
+        .compileComponents();
+
+      const fix = TestBed.createComponent(GioSideNavComponent);
+      httpTestingController = TestBed.inject(HttpTestingController);
+
+      fix.detectChanges();
+      httpTestingController
+        .expectOne(`${LICENSE_CONFIGURATION_TESTING.resourceURL}`)
+        .flush({ tier: '', features: [], packs: [], expiresAt: new Date() });
+      fix.detectChanges();
+
+      return fix;
+    };
+
+    // The guard resolves the segment to either an hrid or the environment id, so the menu must mirror
+    // whichever one the URL carries rather than re-deriving one from the environment.
+    it.each([
+      ['no hrids', undefined, 'DEFAULT'],
+      ['empty hrids', [], 'DEFAULT'],
+      ['a single hrid', ['my-env'], 'my-env'],
+    ])('should build group base paths from the URL segment when the environment has %s', async (_label, hrids, envHrid) => {
+      const fix = await buildMenuForEnvironment({ id: 'DEFAULT', name: 'default', hrids, organizationId: 'org' }, envHrid);
+
+      const basePathOf = (displayName: string) =>
+        fix.componentInstance.mainMenuItems.find(i => i.displayName === displayName)?.routerBasePath;
+
+      expect(basePathOf('Observability')).toBe(`/${envHrid}/observability`);
+      expect(basePathOf('Analytics')).toBe(`/${envHrid}/analytics`);
+      expect(basePathOf('Kafka')).toBe(`/${envHrid}/clusters`);
+    });
+
+    it('should build menu search router links from the URL segment', async () => {
+      const addMenuSearchItems = jest.spyOn(menuSearchService, 'addMenuSearchItems');
+      addMenuSearchItems.mockClear();
+
+      await buildMenuForEnvironment({ id: 'DEFAULT', name: 'default', hrids: undefined, organizationId: 'org' }, 'DEFAULT');
+
+      const searchItems: { name: string; routerLink: string }[] = addMenuSearchItems.mock.calls[0][0];
+      expect(searchItems.find(i => i.name === 'Dashboard')?.routerLink).toBe('/DEFAULT/home');
+
+      addMenuSearchItems.mockRestore();
     });
   });
 
