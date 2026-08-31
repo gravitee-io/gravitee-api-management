@@ -140,12 +140,7 @@ public class OrganizationResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions(
-        @Permission(
-            value = RolePermission.ORGANIZATION_POLICIES,
-            acls = { RolePermissionAction.CREATE, RolePermissionAction.DELETE, RolePermissionAction.UPDATE }
-        )
-    )
+    @Permissions(@Permission(value = RolePermission.ORGANIZATION_POLICIES, acls = RolePermissionAction.READ))
     @Operation(summary = "GET organization", tags = { "Organization" })
     @ApiResponse(
         responseCode = "200",
