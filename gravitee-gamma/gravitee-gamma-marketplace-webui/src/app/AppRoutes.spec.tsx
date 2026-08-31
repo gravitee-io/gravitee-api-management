@@ -64,4 +64,12 @@ describe('AppRoutes', () => {
 
         expect(screen.getByText('Sign in to continue')).toBeTruthy();
     });
+
+    it('does not wrap login in the portal shell', () => {
+        renderApp('/login');
+
+        expect(screen.getByText('Sign in to continue')).toBeTruthy();
+        expect(screen.queryByPlaceholderText('Search agents...')).toBeNull();
+        expect(screen.queryByRole('button', { name: 'Catalog' })).toBeNull();
+    });
 });

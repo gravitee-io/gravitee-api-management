@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { IdentityProvider, User } from '../api/types';
+import type { Category, IdentityProvider, User } from '../api/types';
 import type { BootstrapConfig } from '../shared/config/bootstrap.store';
 
 export const TEST_CONFIG: BootstrapConfig = {
@@ -51,6 +51,16 @@ export function buildIdentityProvider(overrides: Partial<IdentityProvider> = {})
         authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
         scopes: ['openid', 'profile', 'email'],
         color: '#4285F4',
+        ...overrides,
+    };
+}
+
+export function buildCategory(overrides: Partial<Category> = {}): Category {
+    return {
+        id: 'it',
+        name: 'IT',
+        description: 'IT agents',
+        total_apis: 12,
         ...overrides,
     };
 }

@@ -17,6 +17,7 @@ import { Route, Routes } from 'react-router-dom';
 
 import { ForceLoginRoute, LoginPage, ProtectedRoute, PublicOnlyRoute } from './auth';
 import { HomePage } from './home/HomePage';
+import { PortalLayout } from './layout/PortalLayout';
 
 function CatalogPlaceholder() {
     return <h1>Catalog</h1>;
@@ -32,12 +33,14 @@ export function AppRoutes() {
             <Route element={<PublicOnlyRoute />}>
                 <Route path="/login" element={<LoginPage />} />
             </Route>
-            <Route element={<ForceLoginRoute />}>
-                <Route index element={<HomePage />} />
-                <Route path="/catalog" element={<CatalogPlaceholder />} />
-            </Route>
-            <Route element={<ProtectedRoute />}>
-                <Route path="/dashboard" element={<DashboardPlaceholder />} />
+            <Route element={<PortalLayout />}>
+                <Route element={<ForceLoginRoute />}>
+                    <Route index element={<HomePage />} />
+                    <Route path="/catalog" element={<CatalogPlaceholder />} />
+                </Route>
+                <Route element={<ProtectedRoute />}>
+                    <Route path="/dashboard" element={<DashboardPlaceholder />} />
+                </Route>
             </Route>
         </Routes>
     );
