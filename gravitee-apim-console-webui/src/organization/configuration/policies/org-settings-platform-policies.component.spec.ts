@@ -27,6 +27,7 @@ import { OrgSettingsPlatformPoliciesComponent } from './org-settings-platform-po
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { fakePolicyListItem } from '../../../entities/policy';
 import { fakeOrganization } from '../../../entities/organization/organization.fixture';
 import { fakePlatformFlowSchema } from '../../../entities/flow/platformFlowSchema.fixture';
@@ -37,6 +38,7 @@ describe('OrgSettingsPlatformPoliciesComponent', () => {
   let component: OrgSettingsPlatformPoliciesComponent;
   let httpTestingController: HttpTestingController;
   let rootLoader: HarnessLoader;
+  let loader: HarnessLoader;
 
   const platformFlowSchema = fakePlatformFlowSchema();
   const policies = [fakePolicyListItem()];
@@ -59,9 +61,15 @@ describe('OrgSettingsPlatformPoliciesComponent', () => {
     flowMode: 'BEST_MATCH',
   });
 
-  beforeEach(() => {
+  const createComponent = (permissions: string[] = ['organization-policies-r', 'organization-policies-u']) => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule, GioLicenseTestingModule],
+      providers: [
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: permissions,
+        },
+      ],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -73,6 +81,7 @@ describe('OrgSettingsPlatformPoliciesComponent', () => {
     fixture = TestBed.createComponent(OrgSettingsPlatformPoliciesComponent);
     component = fixture.componentInstance;
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+    loader = TestbedHarnessEnvironment.loader(fixture);
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
@@ -84,9 +93,39 @@ describe('OrgSettingsPlatformPoliciesComponent', () => {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/resources?expand=schema&expand=icon`).flush(organization);
 
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}`).flush(organization);
+  };
+
+  describe('save button', () => {
+    describe('when the user can update policies', () => {
+      beforeEach(() => {
+        createComponent(['organization-policies-r', 'organization-policies-u']);
+      });
+
+      it('should be displayed', async () => {
+        expect(await loader.getAllHarnesses(MatButtonHarness.with({ text: /^Save$/ }))).toHaveLength(1);
+
+        httpTestingController.match(`${CONSTANTS_TESTING.env.baseURL}/configuration/spel/grammar`);
+      });
+    });
+
+    describe('when the user can only read policies', () => {
+      beforeEach(() => {
+        createComponent(['organization-policies-r']);
+      });
+
+      it('should be hidden', async () => {
+        expect(await loader.getAllHarnesses(MatButtonHarness.with({ text: /^Save$/ }))).toHaveLength(0);
+
+        httpTestingController.match(`${CONSTANTS_TESTING.env.baseURL}/configuration/spel/grammar`);
+      });
+    });
   });
 
   describe('onSave', () => {
+    beforeEach(() => {
+      createComponent();
+    });
+
     it('should call the API with updated organization', async () => {
       component.definitionToSave = {
         flow_mode: 'DEFAULT',
