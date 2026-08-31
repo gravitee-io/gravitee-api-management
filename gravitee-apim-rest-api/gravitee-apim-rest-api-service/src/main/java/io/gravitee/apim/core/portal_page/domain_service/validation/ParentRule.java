@@ -24,11 +24,9 @@ import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -71,7 +69,7 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
         ParentHierarchyValidation.ensureAcyclic(item.getId(), item.getParentId(), ctx.itemsById(), ctx.pendingItemsById());
 
         var parentId = parentItem.getId().toString();
-        if (!isContainer(parentItem.getType())) {
+        if (!parentItem.getType().isContainer()) {
             throw new ParentTypeMismatchException(parentId);
         }
         if (!Objects.equals(parentItem.getArea(), item.getArea())) {
@@ -91,12 +89,6 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
         }
     }
 
-    private boolean isContainer(PortalNavigationItemType type) {
-        return (
-            type == PortalNavigationItemType.FOLDER || type == PortalNavigationItemType.API || type == PortalNavigationItemType.API_PRODUCT
-        );
-    }
-
     @Override
     public boolean appliesTo(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem) {
         return toUpdate.getParentId() != null;
@@ -104,7 +96,13 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
 
     @Override
     public void validate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
-        ParentHierarchyValidation.ensureAcyclic(existingItem.getId(), toUpdate.getParentId(), ctx.itemsById(), Map.of());
+        ParentHierarchyValidation.ensureAcyclic(existingItem.getId(), toUpdate.getParentId(), ctx.itemsById(), ctx.pendingItemsById());
+
+        var pendingParent = ctx.pendingItemsById().get(toUpdate.getParentId());
+        if (pendingParent != null) {
+            validatePendingParent(toUpdate, existingItem, pendingParent);
+            return;
+        }
 
         validateParent(
             toUpdate.getParentId(),
@@ -114,6 +112,32 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
             toUpdate.getVisibility(),
             existingItem.getAutomationMetadata() != null
         );
+    }
+
+    private void validatePendingParent(
+        UpdatePortalNavigationItem toUpdate,
+        PortalNavigationItem existingItem,
+        CreatePortalNavigationItem parentItem
+    ) {
+        var parentId = parentItem.getId().toString();
+        if (!parentItem.getType().isContainer()) {
+            throw new ParentTypeMismatchException(parentId);
+        }
+        if (!Objects.equals(parentItem.getArea(), existingItem.getArea())) {
+            throw new ParentAreaMismatchException(parentId);
+        }
+
+        boolean itemPublished = Boolean.TRUE.equals(toUpdate.getPublished());
+        boolean parentPublished = Boolean.TRUE.equals(parentItem.getPublished());
+        if (itemPublished && !parentPublished) {
+            throw InvalidPortalNavigationItemDataException.parentMustBePublished(parentId);
+        }
+
+        var itemVisibility = toUpdate.getVisibility() != null ? toUpdate.getVisibility() : PortalVisibility.PUBLIC;
+        var parentVisibility = parentItem.getVisibility() != null ? parentItem.getVisibility() : PortalVisibility.PUBLIC;
+        if (PortalVisibility.PUBLIC.equals(itemVisibility) && PortalVisibility.PRIVATE.equals(parentVisibility)) {
+            throw InvalidPortalNavigationItemDataException.parentMustBePublic(parentId);
+        }
     }
 
     /**

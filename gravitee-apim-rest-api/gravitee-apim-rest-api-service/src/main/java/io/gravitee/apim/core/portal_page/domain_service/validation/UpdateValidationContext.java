@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.domain_service.validation;
 
+import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import java.util.List;
@@ -26,9 +27,10 @@ import java.util.Map;
 public record UpdateValidationContext(
     List<PortalNavigationItem> navigationItems,
     Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
+    Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById,
     List<PendingSegmentClaim> pendingSegmentClaims
 ) {
     public static UpdateValidationContext empty() {
-        return new UpdateValidationContext(List.of(), Map.of(), List.of());
+        return new UpdateValidationContext(List.of(), Map.of(), Map.of(), List.of());
     }
 }

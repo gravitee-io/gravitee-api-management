@@ -133,7 +133,7 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
         List<PendingSegmentClaim> pendingSegmentClaims = collectPendingSegmentClaims(creates, updates);
 
         CreateValidationContext createCtx = new CreateValidationContext(navigationItems, itemsById, pendingItemsById, pendingSegmentClaims);
-        UpdateValidationContext updateCtx = new UpdateValidationContext(navigationItems, itemsById, pendingSegmentClaims);
+        UpdateValidationContext updateCtx = new UpdateValidationContext(navigationItems, itemsById, pendingItemsById, pendingSegmentClaims);
 
         for (BulkCreatePortalNavigationItemValidationRule rule : bulkCreateRules) {
             rule.validate(creates, environmentId, createCtx);
