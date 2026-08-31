@@ -1,0 +1,36 @@
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { ComponentHarness } from '@angular/cdk/testing';
+
+export class GioSideNavHarness extends ComponentHarness {
+  public static readonly hostSelector = 'gio-side-nav';
+
+  private readonly getGroupHeaders = this.locatorForAll('mat-expansion-panel-header');
+
+  /**
+   * Clicks the header of a collapsible menu group, which navigates to the group's base path.
+   * Matches the title exactly: several groups share a word, so a substring match picks whichever
+   * happens to render first.
+   */
+  async clickGroup(title: string): Promise<void> {
+    for (const header of await this.getGroupHeaders()) {
+      if ((await header.text()).trim() === title) {
+        return header.click();
+      }
+    }
+    throw new Error(`No sidebar group titled "${title}"`);
+  }
+}
