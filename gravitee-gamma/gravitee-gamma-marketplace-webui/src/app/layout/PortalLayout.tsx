@@ -22,12 +22,24 @@ import {
     useLayoutConfig,
     useLayoutSlots,
 } from '@gravitee/graphene-core';
+import { GioCatalogIcon } from '@gravitee/graphene-core/icons';
 import { useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { Header } from './Header';
 import { breadcrumbSegments } from './nav';
 import { Sidebar } from './Sidebar';
+
+function MarketplaceAppContext() {
+    return (
+        <div className="flex items-center gap-1.5 px-1.5">
+            <span className="flex size-5 shrink-0 items-center justify-center [&_svg]:size-5" aria-hidden>
+                <GioCatalogIcon className="size-5" />
+            </span>
+            <span className="max-w-48 truncate text-sm font-semibold">Agent Marketplace</span>
+        </div>
+    );
+}
 
 function PortalLayoutInner() {
     const { slots } = useLayoutSlots();
@@ -52,6 +64,7 @@ function PortalLayoutInner() {
             subheader={
                 <ContentHeader
                     leading={slots.leading}
+                    appContext={<MarketplaceAppContext />}
                     breadcrumbs={slots.breadcrumbs.length > 0 ? slots.breadcrumbs : defaultBreadcrumbs}
                     trailing={<Header />}
                 />

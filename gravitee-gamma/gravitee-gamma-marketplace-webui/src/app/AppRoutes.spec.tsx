@@ -31,11 +31,15 @@ function renderApp(path = '/') {
 }
 
 describe('AppRoutes', () => {
-    it('renders Hello World on the home route without logging in', () => {
+    it('renders the home hero without logging in', () => {
         renderApp('/');
 
-        expect(screen.getByRole('heading', { name: 'Hello World' })).toBeTruthy();
-        expect(screen.getByRole('link', { name: 'Sign in' })).toBeTruthy();
+        expect(
+            screen.getByRole('heading', {
+                name: 'Discover agents',
+            }),
+        ).toBeTruthy();
+        expect(screen.getByRole('button', { name: 'Sign in' })).toBeTruthy();
     });
 
     it('renders catalog without logging in', async () => {

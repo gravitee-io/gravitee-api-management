@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { renderWithGraphene } from '@gravitee/graphene-core/testing';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useSearchParams } from 'react-router-dom';
 
@@ -53,6 +53,25 @@ describe('PortalLayout', () => {
         expect(screen.getByRole('button', { name: 'Home' })).toBeTruthy();
         expect(screen.getByRole('button', { name: 'Catalog' })).toBeTruthy();
         expect(screen.getByPlaceholderText('Search agents...')).toBeTruthy();
+        expect(await screen.findByRole('heading', { name: 'Home' })).toBeTruthy();
+    });
+
+    it('should show Agent Marketplace in the header beside page breadcrumbs', () => {
+        renderLayout('/catalog');
+
+        expect(screen.getByText('Agent Marketplace')).toBeTruthy();
+        const breadcrumbs = screen.getByRole('navigation', { name: 'breadcrumb' });
+        expect(breadcrumbs).toBeTruthy();
+        expect(breadcrumbs.textContent).toContain('Catalog');
+        expect(breadcrumbs.textContent).not.toContain('Agent Marketplace');
+    });
+
+    it('should navigate home from catalog via breadcrumbs', async () => {
+        const user = userEvent.setup();
+        renderLayout('/catalog');
+
+        await user.click(within(screen.getByRole('navigation', { name: 'breadcrumb' })).getByRole('button', { name: 'Home' }));
+
         expect(await screen.findByRole('heading', { name: 'Home' })).toBeTruthy();
     });
 
