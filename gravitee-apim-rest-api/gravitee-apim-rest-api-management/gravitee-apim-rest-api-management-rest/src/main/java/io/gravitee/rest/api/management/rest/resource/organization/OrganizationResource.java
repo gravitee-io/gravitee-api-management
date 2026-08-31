@@ -143,7 +143,7 @@ public class OrganizationResource extends AbstractResource {
     @Permissions(
         @Permission(
             value = RolePermission.ORGANIZATION_POLICIES,
-            acls = { RolePermissionAction.CREATE, RolePermissionAction.DELETE, RolePermissionAction.UPDATE }
+            acls = { RolePermissionAction.READ, RolePermissionAction.CREATE, RolePermissionAction.DELETE, RolePermissionAction.UPDATE }
         )
     )
     @Operation(summary = "GET organization", tags = { "Organization" })
