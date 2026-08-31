@@ -51,6 +51,21 @@ describe('OrgSettingsPlatformPoliciesConfigComponent', () => {
     flowMode: 'BEST_MATCH',
   });
 
+  const createComponent = (isReadonly = false) => {
+    fixture = TestBed.createComponent(OrgSettingsPlatformPoliciesConfigComponent);
+    component = fixture.componentInstance;
+    component.isReadonly = isReadonly;
+
+    httpTestingController = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+
+    httpTestingController
+      .expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/flows/configuration-schema`)
+      .flush(flowConfigurationSchema);
+
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}`).flush(organization);
+  };
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule],
@@ -61,26 +76,28 @@ describe('OrgSettingsPlatformPoliciesConfigComponent', () => {
         },
       })
       .compileComponents();
-
-    fixture = TestBed.createComponent(OrgSettingsPlatformPoliciesConfigComponent);
-    component = fixture.componentInstance;
-
-    httpTestingController = TestBed.inject(HttpTestingController);
-    fixture.detectChanges();
-
-    httpTestingController
-      .expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/flows/configuration-schema`)
-      .flush(flowConfigurationSchema);
-
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}`).flush(organization);
   });
 
   describe('ngOnInit', () => {
     it('should setup properties', async () => {
+      createComponent();
+
       expect(component.flowConfigurationSchema).toStrictEqual(flowConfigurationSchema);
       expect(component.formControl.value).toStrictEqual({
         flow_mode: 'BEST_MATCH',
       });
+    });
+
+    it('should enable the flow mode form when not readonly', async () => {
+      createComponent();
+
+      expect(component.formControl.enabled).toEqual(true);
+    });
+
+    it('should disable the flow mode form when readonly', async () => {
+      createComponent(true);
+
+      expect(component.formControl.disabled).toEqual(true);
     });
   });
 
