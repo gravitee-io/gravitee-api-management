@@ -21,7 +21,11 @@
     <a mat-tab-link [active]="activeTab === 'config'" (click)="activeTab = 'config'"> Configuration </a>
     <!-- save button -->
     <button
+<<<<<<< HEAD
       *gioPermission="{ anyOf: ['organization-policies-u'] }"
+=======
+      *ngIf="!isReadonly"
+>>>>>>> 2a437c6 (fix(console): show platform policies read-only without write permission)
       class="header__nav__saveButton"
       mat-flat-button
       color="primary"
@@ -36,11 +40,17 @@
 <mat-tab-nav-panel #tabPanel>
   <div class="content">
     <ng-container *ngIf="!isLoading && activeTab === 'design'">
-      <org-settings-platform-policies-studio (change)="onChangeStudio($event)"></org-settings-platform-policies-studio>
+      <org-settings-platform-policies-studio
+        [isReadonly]="isReadonly"
+        (change)="onChangeStudio($event)"
+      ></org-settings-platform-policies-studio>
     </ng-container>
 
     <ng-container *ngIf="!isLoading && activeTab === 'config'">
-      <org-settings-platform-policies-config (change)="onConfigChange($event)"></org-settings-platform-policies-config>
+      <org-settings-platform-policies-config
+        [isReadonly]="isReadonly"
+        (change)="onConfigChange($event)"
+      ></org-settings-platform-policies-config>
     </ng-container>
 
     <ng-container *ngIf="isLoading"> Loading... </ng-container>

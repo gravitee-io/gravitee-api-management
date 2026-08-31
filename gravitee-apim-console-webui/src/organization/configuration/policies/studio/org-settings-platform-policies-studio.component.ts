@@ -14,9 +14,15 @@
  * limitations under the License.
  */
 
+<<<<<<< HEAD
 import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
+=======
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { combineLatest, Subject } from 'rxjs';
+import { takeUntil, tap } from 'rxjs/operators';
+>>>>>>> 2a437c6 (fix(console): show platform policies read-only without write permission)
 import { ComponentCustomEvent } from '@gravitee/ui-components/src/lib/events';
 import { Location } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
@@ -54,6 +60,9 @@ export class OrgSettingsPlatformPoliciesStudioComponent implements OnInit, OnDes
   resourceTypes: ResourceListItem[];
   selectedFlowsIds: string[] = [];
   policyDocumentation!: { id: string; image: string; content: string };
+
+  @Input()
+  isReadonly = false;
 
   @Output()
   change = new EventEmitter<DefinitionVM['flows']>();

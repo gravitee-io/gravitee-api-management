@@ -54,19 +54,10 @@ describe('OrgSettingsPlatformPoliciesStudioComponent', () => {
     flowMode: 'BEST_MATCH',
   });
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule, GioLicenseTestingModule],
-    })
-      .overrideProvider(InteractivityChecker, {
-        useValue: {
-          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
-        },
-      })
-      .compileComponents();
-
+  const createComponent = (isReadonly = false) => {
     fixture = TestBed.createComponent(OrgSettingsPlatformPoliciesStudioComponent);
     component = fixture.componentInstance;
+    component.isReadonly = isReadonly;
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
@@ -79,8 +70,27 @@ describe('OrgSettingsPlatformPoliciesStudioComponent', () => {
 
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/resources?expand=schema&expand=icon`).flush(organization);
 
+<<<<<<< HEAD
     respondToOrganization(httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}`));
   };
+=======
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}`).flush(organization);
+
+    fixture.detectChanges();
+  };
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule, GioLicenseTestingModule],
+    })
+      .overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+        },
+      })
+      .compileComponents();
+  });
+>>>>>>> 2a437c6 (fix(console): show platform policies read-only without write permission)
 
   describe('ngOnInit', () => {
     beforeEach(() => {
@@ -93,6 +103,8 @@ describe('OrgSettingsPlatformPoliciesStudioComponent', () => {
     });
 
     it('should setup properties', async () => {
+      createComponent();
+
       expect(component.policies).toStrictEqual(policies);
       expect(component.platformFlowSchema).toStrictEqual(platformFlowSchema);
       expect(component.organization).toStrictEqual(organization);
@@ -113,6 +125,7 @@ describe('OrgSettingsPlatformPoliciesStudioComponent', () => {
     });
   });
 
+<<<<<<< HEAD
   describe('when the load fails', () => {
     it('should report the error instead of loading forever', async () => {
       expectLoadRequests(request =>
@@ -132,6 +145,19 @@ describe('OrgSettingsPlatformPoliciesStudioComponent', () => {
       expect(fixture.nativeElement.textContent).toContain('Platform policies could not be loaded');
       expect(fixture.nativeElement.textContent).not.toContain('Loading...');
       expect(fixture.nativeElement.querySelector('gv-design')).toBeNull();
+=======
+  describe('readonly mode', () => {
+    it('should let the design be edited when not readonly', async () => {
+      createComponent();
+
+      expect(fixture.nativeElement.querySelector('gv-design').hasAttribute('readonly')).toEqual(false);
+    });
+
+    it('should make the design readonly when readonly', async () => {
+      createComponent(true);
+
+      expect(fixture.nativeElement.querySelector('gv-design').hasAttribute('readonly')).toEqual(true);
+>>>>>>> 2a437c6 (fix(console): show platform policies read-only without write permission)
     });
   });
 
