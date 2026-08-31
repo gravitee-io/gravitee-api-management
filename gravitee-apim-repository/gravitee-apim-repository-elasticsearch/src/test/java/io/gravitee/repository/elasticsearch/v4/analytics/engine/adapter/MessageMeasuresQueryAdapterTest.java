@@ -60,13 +60,13 @@ class MessageMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         assertThat(filterArray).isNotNull();
         assertThat(filterArray.isArray()).isTrue();
 
-        var requestIdFilter = filterArray.findValue("terms");
-        assertThat(requestIdFilter).isNotNull();
-
-        var requestIdTerms = requestIdFilter.at("/request-id");
+        var requestIdTerms = requestIdTerms(jsonQuery);
         assertThat(requestIdTerms).isNotNull();
         assertThat(requestIdTerms.isArray()).isTrue();
         assertThat(requestIdTerms.size()).isEqualTo(3);
+
+        // The API scope is applied on the message documents too, not only on the connection phase.
+        assertThat(filterArray.toString()).contains("api-id");
 
         // Verify aggregations
         var aggs = jsonQuery.at("/aggs");
@@ -94,13 +94,15 @@ class MessageMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
 
         assertThat(jsonQuery.at("/size").asInt()).isEqualTo(0);
 
-        // Verify no request ID filter when requestIDs is null
+        // An empty join must match nothing, so the clause is emitted on an empty array rather than
+        // dropped — dropping it would widen the query to every message in the window.
         var filterArray = jsonQuery.at("/query/bool/filter");
         assertThat(filterArray).isNotNull();
         assertThat(filterArray.isArray()).isTrue();
 
-        var requestIdFilter = filterArray.findValue("terms");
-        assertThat(requestIdFilter).isNull();
+        var requestIdTerms = requestIdTerms(jsonQuery);
+        assertThat(requestIdTerms).isNotNull();
+        assertThat(requestIdTerms.isEmpty()).isTrue();
     }
 
     @Test
@@ -115,13 +117,15 @@ class MessageMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
 
         assertThat(jsonQuery.at("/size").asInt()).isEqualTo(0);
 
-        // Verify no request ID filter when requestIDs is empty
+        // An empty join must match nothing, so the clause is emitted on an empty array rather than
+        // dropped — dropping it would widen the query to every message in the window.
         var filterArray = jsonQuery.at("/query/bool/filter");
         assertThat(filterArray).isNotNull();
         assertThat(filterArray.isArray()).isTrue();
 
-        var requestIdFilter = filterArray.findValue("terms");
-        assertThat(requestIdFilter).isNull();
+        var requestIdTerms = requestIdTerms(jsonQuery);
+        assertThat(requestIdTerms).isNotNull();
+        assertThat(requestIdTerms.isEmpty()).isTrue();
     }
 
     @Test
@@ -217,5 +221,20 @@ class MessageMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
 
         var p50Agg = aggs.at("/MESSAGE_GATEWAY_LATENCY#P50/percentiles/percents/0").asDouble();
         assertThat(p50Agg).isEqualTo(50.0);
+    }
+
+    /**
+     * Addresses the request-id clause by its field rather than taking the first {@code terms} in the
+     * tree: the query now also carries a {@code terms} on {@code api-id}, and a loose lookup would
+     * silently assert against whichever one came first.
+     */
+    private com.fasterxml.jackson.databind.JsonNode requestIdTerms(com.fasterxml.jackson.databind.JsonNode jsonQuery) {
+        for (var clause : jsonQuery.at("/query/bool/filter")) {
+            var terms = clause.at("/terms/request-id");
+            if (!terms.isMissingNode()) {
+                return terms;
+            }
+        }
+        return null;
     }
 }
