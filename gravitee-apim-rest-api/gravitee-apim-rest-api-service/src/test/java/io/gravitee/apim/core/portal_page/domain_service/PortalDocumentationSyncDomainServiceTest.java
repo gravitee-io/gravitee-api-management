@@ -38,11 +38,14 @@ import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsExceptio
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -168,6 +171,36 @@ class PortalDocumentationSyncDomainServiceTest {
         var page = (PortalNavigationPage) navItemCrud.storage().get(0);
         assertThat(page.getParentId()).isNull();
         assertThat(page.getRootId()).isEqualTo(page.getId());
+    }
+
+    @Test
+    void materialize_inherits_private_visibility_from_persisted_parent_folder() {
+        var parentFolderId = expectedFolderId("/private-guides");
+        navItemCrud.initWith(
+            List.of(
+                PortalNavigationFolder.builder()
+                    .id(parentFolderId)
+                    .organizationId(AUDIT_INFO.organizationId())
+                    .environmentId(AUDIT_INFO.environmentId())
+                    .title("private-guides")
+                    .segment("private-guides")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .published(true)
+                    .visibility(PortalVisibility.PRIVATE)
+                    .build()
+            )
+        );
+
+        syncService.materialize(AUDIT_INFO, markdownDoc("Setup", "/private-guides", 0));
+
+        var page = (PortalNavigationPage) navItemCrud
+            .storage()
+            .stream()
+            .filter(PortalNavigationPage.class::isInstance)
+            .findFirst()
+            .orElseThrow();
+        assertThat(page.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
     }
 
     @Test

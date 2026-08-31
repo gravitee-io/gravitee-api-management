@@ -59,6 +59,7 @@ class AncestorValidationTest {
             List.of(),
             Map.of(),
             Map.of(firstFolder.getId(), firstFolder, secondFolder.getId(), secondFolder),
+            Map.of(),
             List.of()
         );
     }

@@ -104,6 +104,12 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
             return;
         }
 
+        var pendingParentUpdate = ctx.pendingUpdatesByExistingId().get(toUpdate.getParentId());
+        if (pendingParentUpdate != null && !Objects.equals(pendingParentUpdate.existing().getId(), existingItem.getId())) {
+            validatePendingParentUpdate(toUpdate, existingItem, pendingParentUpdate);
+            return;
+        }
+
         validateParent(
             toUpdate.getParentId(),
             existingItem.getArea(),
@@ -112,6 +118,36 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
             toUpdate.getVisibility(),
             existingItem.getAutomationMetadata() != null
         );
+    }
+
+    private void validatePendingParentUpdate(
+        UpdatePortalNavigationItem toUpdate,
+        PortalNavigationItem existingItem,
+        io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator.PendingUpdate parentUpdate
+    ) {
+        var parentExisting = parentUpdate.existing();
+        var parentToUpdate = parentUpdate.toUpdate();
+        var parentId = parentExisting.getId().toString();
+        if (!parentExisting.getType().isContainer()) {
+            throw new ParentTypeMismatchException(parentId);
+        }
+        if (!Objects.equals(parentExisting.getArea(), existingItem.getArea())) {
+            throw new ParentAreaMismatchException(parentId);
+        }
+
+        boolean itemPublished = Boolean.TRUE.equals(toUpdate.getPublished());
+        boolean parentPublished = Boolean.TRUE.equals(
+            parentToUpdate.getPublished() != null ? parentToUpdate.getPublished() : parentExisting.getPublished()
+        );
+        if (itemPublished && !parentPublished) {
+            throw InvalidPortalNavigationItemDataException.parentMustBePublished(parentId);
+        }
+
+        var parentVisibility = Optional.ofNullable(parentToUpdate.getVisibility()).orElse(parentExisting.getVisibility());
+        var effectiveVisibility = PortalVisibility.resolve(toUpdate.getVisibility(), parentVisibility);
+        if (PortalVisibility.PUBLIC.equals(effectiveVisibility) && PortalVisibility.PRIVATE.equals(parentVisibility)) {
+            throw InvalidPortalNavigationItemDataException.parentMustBePublic(parentId);
+        }
     }
 
     private void validatePendingParent(
@@ -133,9 +169,9 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
             throw InvalidPortalNavigationItemDataException.parentMustBePublished(parentId);
         }
 
-        var itemVisibility = toUpdate.getVisibility() != null ? toUpdate.getVisibility() : PortalVisibility.PUBLIC;
-        var parentVisibility = parentItem.getVisibility() != null ? parentItem.getVisibility() : PortalVisibility.PUBLIC;
-        if (PortalVisibility.PUBLIC.equals(itemVisibility) && PortalVisibility.PRIVATE.equals(parentVisibility)) {
+        var parentVisibility = Optional.ofNullable(parentItem.getVisibility()).orElse(PortalVisibility.PUBLIC);
+        var effectiveVisibility = PortalVisibility.resolve(toUpdate.getVisibility(), parentVisibility);
+        if (PortalVisibility.PUBLIC.equals(effectiveVisibility) && PortalVisibility.PRIVATE.equals(parentVisibility)) {
             throw InvalidPortalNavigationItemDataException.parentMustBePublic(parentId);
         }
     }

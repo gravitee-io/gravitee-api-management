@@ -89,7 +89,7 @@ class ApiProductItemCreateRuleTest {
     void should_reject_nested_product_in_pending_payload() {
         var parent = apiProductItem().toBuilder().id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000103")).build();
         var nested = apiProductItem().toBuilder().parentId(parent.getId()).build();
-        var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(parent.getId(), parent), List.of());
+        var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(parent.getId(), parent), Map.of(), List.of());
 
         assertThatThrownBy(() -> rule.validate(nested, ENVIRONMENT_ID, ctx)).isInstanceOf(InvalidPortalNavigationItemDataException.class);
     }
@@ -97,7 +97,7 @@ class ApiProductItemCreateRuleTest {
     @Test
     void should_reject_existing_product_reference() {
         var existing = PortalNavigationItemFixtures.anApiProduct("00000000-0000-0000-0000-000000000104", "Product", null, API_PRODUCT_ID);
-        var ctx = new CreateValidationContext(List.of(existing), Map.of(existing.getId(), existing), Map.of(), List.of());
+        var ctx = new CreateValidationContext(List.of(existing), Map.of(existing.getId(), existing), Map.of(), Map.of(), List.of());
 
         assertThatThrownBy(() -> rule.validate(apiProductItem(), ENVIRONMENT_ID, ctx)).isInstanceOf(
             ApiProductNavigationItemAlreadyExistsException.class
@@ -112,6 +112,7 @@ class ApiProductItemCreateRuleTest {
             List.of(existing),
             Map.of(existing.getId(), existing),
             Map.of(parent.getId(), parent),
+            Map.of(),
             List.of()
         );
 

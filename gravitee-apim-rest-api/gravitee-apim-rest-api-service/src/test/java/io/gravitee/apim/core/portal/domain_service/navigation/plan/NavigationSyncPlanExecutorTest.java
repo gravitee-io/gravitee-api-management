@@ -176,6 +176,50 @@ class NavigationSyncPlanExecutorTest {
     }
 
     @Test
+    void create_folder_inherits_private_visibility_from_parent() {
+        var privateRoot = folderRow(PortalNavigationItemId.random(), "root", null, 0, PortalVisibility.PRIVATE);
+        privateRoot.markAsRoot();
+        crud.initWith(List.of(privateRoot));
+        var plan = new NavigationSyncPlan(List.of(new FolderActions.CreateFolder(desired("/a", null, "a", 0))));
+
+        executor.execute(plan, AUDIT_INFO, PortalArea.TOP_NAVBAR, privateRoot, path -> FIXED_ID, new DeleteStrategy(item -> false, false));
+
+        var created = (PortalNavigationFolder) crud
+            .storage()
+            .stream()
+            .filter(item -> item.getId().equals(FIXED_ID))
+            .findFirst()
+            .orElseThrow();
+        assertThat(created.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
+    }
+
+    @Test
+    void update_folder_re_derives_visibility_when_stored_visibility_is_stale() {
+        var privateParent = folderRow(PortalNavigationItemId.random(), "parent", null, 0, PortalVisibility.PRIVATE);
+        privateParent.markAsRoot();
+        var stalePublicChild = folderRow(FIXED_ID, "a", privateParent.getId(), 0, PortalVisibility.PUBLIC);
+        crud.initWith(List.of(privateParent, stalePublicChild));
+        var plan = new NavigationSyncPlan(List.of(new FolderActions.UpdateFolder(stalePublicChild, desired("/a", null, "a", 0))));
+
+        executor.execute(
+            plan,
+            AUDIT_INFO,
+            PortalArea.TOP_NAVBAR,
+            privateParent,
+            path -> PortalNavigationItemId.random(),
+            new DeleteStrategy(item -> false, false)
+        );
+
+        var updated = (PortalNavigationFolder) crud
+            .storage()
+            .stream()
+            .filter(item -> item.getId().equals(FIXED_ID))
+            .findFirst()
+            .orElseThrow();
+        assertThat(updated.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
+    }
+
+    @Test
     void skip_filter_short_circuits_subtree() {
         var parent = folderRow(PortalNavigationItemId.random(), "parent", null, 0);
         parent.markAsRoot();
@@ -204,6 +248,16 @@ class NavigationSyncPlanExecutorTest {
     }
 
     private PortalNavigationFolder folderRow(PortalNavigationItemId id, String title, PortalNavigationItemId parentId, int order) {
+        return folderRow(id, title, parentId, order, PortalVisibility.PUBLIC);
+    }
+
+    private PortalNavigationFolder folderRow(
+        PortalNavigationItemId id,
+        String title,
+        PortalNavigationItemId parentId,
+        int order,
+        PortalVisibility visibility
+    ) {
         return PortalNavigationFolder.builder()
             .id(id)
             .organizationId(AUDIT_INFO.organizationId())
@@ -214,7 +268,7 @@ class NavigationSyncPlanExecutorTest {
             .order(order)
             .parentId(parentId)
             .published(true)
-            .visibility(PortalVisibility.PUBLIC)
+            .visibility(visibility)
             .build();
     }
 }

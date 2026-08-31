@@ -123,7 +123,7 @@ class SegmentConflictRuleTest {
     @Test
     void validate_throws_when_another_item_in_the_pending_batch_claims_same_parent_and_segment() {
         var pendingClaim = new PendingSegmentClaim(OTHER_ID, PARENT_ID, "docs");
-        var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(), List.of(pendingClaim));
+        var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of(pendingClaim));
         var item = item(ITEM_ID, "docs", PortalNavigationItemType.FOLDER, folderLocation("/docs"));
 
         assertThatThrownBy(() -> rule.validate(item, ENV_ID, ctx))
@@ -135,7 +135,7 @@ class SegmentConflictRuleTest {
     void validate_throws_when_a_pending_update_in_the_same_batch_targets_the_same_parent_and_segment() {
         // A create at (PARENT_ID, "docs") collides with a pending update moving another item to the same slot.
         var pendingUpdateClaim = new PendingSegmentClaim(OTHER_ID, PARENT_ID, "docs");
-        var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(), List.of(pendingUpdateClaim));
+        var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of(pendingUpdateClaim));
         var newItem = item(ITEM_ID, "docs", PortalNavigationItemType.FOLDER, folderLocation("/docs"));
 
         assertThatThrownBy(() -> rule.validate(newItem, ENV_ID, ctx))

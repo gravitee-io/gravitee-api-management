@@ -216,11 +216,45 @@ class ApiDocumentationSyncDomainServiceTest {
             .doesNotContain(removedNavApiId, pageId);
     }
 
+    @Test
+    void materialize_inherits_private_visibility_from_private_nav_api_row() {
+        seedNavApi(PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), API_ID, PortalVisibility.PRIVATE);
+
+        var meta = new AutomationMetadata(
+            AutomationMetadata.ReferenceType.API,
+            API_ID,
+            "Getting Started",
+            Optional.empty(),
+            Optional.of(1)
+        );
+        var doc = new GraviteeMarkdownPageContent(
+            DOC_ID,
+            AUDIT_INFO.organizationId(),
+            AUDIT_INFO.environmentId(),
+            GraviteeMarkdown.of("# Hello"),
+            meta
+        );
+        syncService.materialize(AUDIT_INFO, doc);
+
+        var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
+        var page = (PortalNavigationPage) navItemCrud
+            .storage()
+            .stream()
+            .filter(item -> item.getId().equals(pageId))
+            .findFirst()
+            .orElseThrow();
+        assertThat(page.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
+    }
+
     private PortalNavigationApi seedNavApi(PortalNavigationItemId id) {
-        return seedNavApi(id, API_ID);
+        return seedNavApi(id, API_ID, PortalVisibility.PUBLIC);
     }
 
     private PortalNavigationApi seedNavApi(PortalNavigationItemId id, String apiId) {
+        return seedNavApi(id, apiId, PortalVisibility.PUBLIC);
+    }
+
+    private PortalNavigationApi seedNavApi(PortalNavigationItemId id, String apiId, PortalVisibility visibility) {
         var create = CreatePortalNavigationItem.builder()
             .id(id)
             .title("api")
@@ -229,7 +263,7 @@ class ApiDocumentationSyncDomainServiceTest {
             .type(PortalNavigationItemType.API)
             .order(0)
             .apiId(apiId)
-            .visibility(PortalVisibility.PUBLIC)
+            .visibility(visibility)
             .published(true)
             .build();
         var navApi = (PortalNavigationApi) PortalNavigationItem.from(create, AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId(), null);

@@ -149,7 +149,7 @@ public final class NavigationSyncPlanExecutor {
         FolderActions.DesiredFolder desired,
         PortalNavigationItemContainer parent
     ) {
-        if (NavigationFolderMapper.matches(existing, desired, parent == null ? null : parent.getId())) return existing;
+        if (NavigationFolderMapper.matches(existing, desired, parent)) return existing;
         NavigationFolderMapper.apply(desired, parent, existing);
         return (PortalNavigationFolder) crudService.update(existing);
     }

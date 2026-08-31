@@ -130,10 +130,28 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
             .stream()
             .filter(item -> item.getId() != null)
             .collect(Collectors.toMap(CreatePortalNavigationItem::getId, Function.identity(), (first, ignored) -> first));
-        List<PendingSegmentClaim> pendingSegmentClaims = collectPendingSegmentClaims(creates, updates);
 
-        CreateValidationContext createCtx = new CreateValidationContext(navigationItems, itemsById, pendingItemsById, pendingSegmentClaims);
-        UpdateValidationContext updateCtx = new UpdateValidationContext(navigationItems, itemsById, pendingItemsById, pendingSegmentClaims);
+        List<PendingUpdate> augmentedUpdates = withDescendantsOfPendingContainers(creates, updates, environmentId);
+        List<PendingSegmentClaim> pendingSegmentClaims = collectPendingSegmentClaims(creates, augmentedUpdates);
+        Map<PortalNavigationItemId, PendingUpdate> pendingUpdatesByExistingId = updates
+            .stream()
+            .filter(u -> u.existing() != null && u.existing().getId() != null)
+            .collect(Collectors.toMap(u -> u.existing().getId(), Function.identity(), (first, ignored) -> first));
+
+        CreateValidationContext createCtx = new CreateValidationContext(
+            navigationItems,
+            itemsById,
+            pendingItemsById,
+            pendingUpdatesByExistingId,
+            pendingSegmentClaims
+        );
+        UpdateValidationContext updateCtx = new UpdateValidationContext(
+            navigationItems,
+            itemsById,
+            pendingItemsById,
+            pendingUpdatesByExistingId,
+            pendingSegmentClaims
+        );
 
         for (BulkCreatePortalNavigationItemValidationRule rule : bulkCreateRules) {
             rule.validate(creates, environmentId, createCtx);
@@ -141,9 +159,67 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
         for (CreatePortalNavigationItem item : creates) {
             applyValidationRules(item, createCtx, environmentId);
         }
-        for (PendingUpdate pending : updates) {
+        for (PendingUpdate pending : augmentedUpdates) {
             applyValidationRules(pending, updateCtx);
         }
+    }
+
+    // Include pre-existing descendants of pending container creates and of pending container updates that change visibility.
+    private List<PendingUpdate> withDescendantsOfPendingContainers(
+        List<CreatePortalNavigationItem> creates,
+        List<PendingUpdate> updates,
+        String environmentId
+    ) {
+        var descendantsOfCreates = creates
+            .stream()
+            .filter(PortalNavigationItemValidatorService::isPendingContainer)
+            .flatMap(container -> descendantsOf(container.getId(), environmentId).stream());
+        var descendantsOfUpdates = updates
+            .stream()
+            .filter(PortalNavigationItemValidatorService::isContainerVisibilityChange)
+            .flatMap(update -> descendantsOf(update.existing().getId(), environmentId).stream());
+        var descendantUpdates = Stream.concat(descendantsOfCreates, descendantsOfUpdates).map(
+            PortalNavigationItemValidatorService::asUnchangedUpdate
+        );
+        return Stream.concat(updates.stream(), descendantUpdates).toList();
+    }
+
+    private static boolean isPendingContainer(CreatePortalNavigationItem item) {
+        return item.getId() != null && item.getType().isContainer();
+    }
+
+    private static boolean isContainerVisibilityChange(PendingUpdate update) {
+        var existing = update.existing();
+        var toUpdate = update.toUpdate();
+        return (
+            existing != null &&
+            existing.getId() != null &&
+            existing.getType().isContainer() &&
+            toUpdate.getVisibility() != null &&
+            toUpdate.getVisibility() != existing.getVisibility()
+        );
+    }
+
+    private List<PortalNavigationItem> descendantsOf(PortalNavigationItemId containerId, String environmentId) {
+        return navigationItemsQueryService.findByParentIdAndEnvironmentId(environmentId, containerId);
+    }
+
+    // Wraps a persisted descendant as a no-op update so the update rules re-run against the pending parent.
+    private static PendingUpdate asUnchangedUpdate(PortalNavigationItem descendant) {
+        return new PendingUpdate(unchangedUpdateFor(descendant), descendant);
+    }
+
+    private static UpdatePortalNavigationItem unchangedUpdateFor(PortalNavigationItem item) {
+        return UpdatePortalNavigationItem.builder()
+            .type(item.getType())
+            .title(item.getTitle())
+            .segment(item.getSegment())
+            .order(item.getOrder())
+            .parentId(item.getParentId())
+            .visibility(item.getVisibility())
+            .published(item.getPublished())
+            .source(item.getSource())
+            .build();
     }
 
     @Override
