@@ -67,3 +67,44 @@ export interface Category {
 export interface CategoriesResponse {
     data?: Category[];
 }
+
+export type ApiType = 'A2A_PROXY' | 'AUTHZ' | 'EDGE' | 'LLM_PROXY' | 'MCP_PROXY' | 'PROXY' | 'MESSAGE' | 'NATIVE';
+
+export interface Mcp {
+    mcpPath?: string;
+    tools?: Array<{
+        toolDefinition?: {
+            name?: string;
+            description?: string;
+        };
+    }>;
+}
+
+export interface Api {
+    id: string;
+    name: string;
+    version: string;
+    description: string;
+    owner: User;
+    type?: ApiType;
+    labels?: string[];
+    categories?: string[];
+    mcp?: Mcp;
+    entrypoints?: string[];
+}
+
+export interface PaginationMetadata {
+    current_page?: number;
+    first?: number;
+    last?: number;
+    size?: number;
+    total?: number;
+    total_pages?: number;
+}
+
+export interface ApisResponse {
+    data?: Api[];
+    metadata?: {
+        pagination?: PaginationMetadata;
+    };
+}

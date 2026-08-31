@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { Category, IdentityProvider, User } from '../api/types';
+import type { Api, Category, IdentityProvider, User } from '../api/types';
 import type { BootstrapConfig } from '../shared/config/bootstrap.store';
 
 export const TEST_CONFIG: BootstrapConfig = {
@@ -62,5 +62,34 @@ export function buildCategory(overrides: Partial<Category> = {}): Category {
         description: 'IT agents',
         total_apis: 12,
         ...overrides,
+    };
+}
+
+export function buildApi(overrides: Partial<Api> = {}): Api {
+    return {
+        id: 'api-helpdesk',
+        name: 'IT Helpdesk Agent',
+        version: '1.2',
+        description: 'Triage and route IT tickets to the right queue.',
+        type: 'A2A_PROXY',
+        labels: ['ticketing', 'triage'],
+        categories: ['it'],
+        owner: buildUser({ id: 'owner-1', display_name: 'Acme Platform' }),
+        entrypoints: ['https://gw.example/a2a/it-helpdesk'],
+        ...overrides,
+    };
+}
+
+export function buildApisResponse(apis: Api[], total = apis.length, page = 1, size = 12) {
+    return {
+        data: apis,
+        metadata: {
+            pagination: {
+                current_page: page,
+                size,
+                total,
+                total_pages: Math.max(1, Math.ceil(total / size)),
+            },
+        },
     };
 }

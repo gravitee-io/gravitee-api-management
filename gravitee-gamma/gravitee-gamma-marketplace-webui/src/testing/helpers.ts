@@ -15,7 +15,7 @@
  */
 import { http, HttpResponse, type JsonBodyType } from 'msw';
 
-import { buildBootstrapConfig } from './factories';
+import { buildBootstrapConfig, TEST_PORTAL_API } from './factories';
 import { server } from './server';
 import { useAuthStore } from '../app/auth/auth.store';
 import { useBootstrapStore } from '../shared/config/bootstrap.store';
@@ -74,6 +74,66 @@ export function respondWith(method: 'get' | 'post' | 'put' | 'delete', url: stri
 
 export function respondWithError(method: 'get' | 'post' | 'put' | 'delete', url: string, status: number) {
     server.use(http[method](url, () => HttpResponse.json({ message: `Error ${status}` }, { status })));
+}
+
+function matchesPortalPath(request: Request, path: string): boolean {
+    const url = new URL(request.url);
+    return `${url.origin}${url.pathname}` === `${TEST_PORTAL_API}${path}`;
+}
+
+export function trackPortalPath(
+    method: 'get' | 'post' | 'put' | 'delete',
+    path: string,
+    responseBody: JsonBodyType = undefined,
+    status = 200,
+): RequestTracker {
+    const requests: TrackedRequest[] = [];
+
+    server.use(
+        http[method](
+            ({ request }) => matchesPortalPath(request, path),
+            async ({ request }) => {
+                const cloned = request.clone();
+                requests.push({
+                    url: request.url,
+                    method: request.method,
+                    headers: new Headers(request.headers),
+                    body: request.method !== 'GET' ? await cloned.json().catch(() => null) : null,
+                });
+                return status === 204 ? new HttpResponse(null, { status }) : HttpResponse.json(responseBody, { status });
+            },
+        ),
+    );
+
+    return {
+        get calls() {
+            return requests;
+        },
+        get callCount() {
+            return requests.length;
+        },
+        get lastCall() {
+            return requests[requests.length - 1] ?? null;
+        },
+    };
+}
+
+export function respondToPortalPath(method: 'get' | 'post' | 'put' | 'delete', path: string, body: JsonBodyType, status = 200) {
+    server.use(
+        http[method](
+            ({ request }) => matchesPortalPath(request, path),
+            () => (status === 204 ? new HttpResponse(null, { status }) : HttpResponse.json(body, { status })),
+        ),
+    );
+}
+
+export function respondToPortalPathError(method: 'get' | 'post' | 'put' | 'delete', path: string, status: number) {
+    server.use(
+        http[method](
+            ({ request }) => matchesPortalPath(request, path),
+            () => HttpResponse.json({ message: `Error ${status}` }, { status }),
+        ),
+    );
 }
 
 export function resetAllStores() {

@@ -38,10 +38,10 @@ describe('AppRoutes', () => {
         expect(screen.getByRole('link', { name: 'Sign in' })).toBeTruthy();
     });
 
-    it('renders catalog without logging in', () => {
+    it('renders catalog without logging in', async () => {
         renderApp('/catalog');
 
-        expect(screen.getByRole('heading', { name: 'Catalog' })).toBeTruthy();
+        expect(await screen.findByRole('heading', { name: 'Catalog' })).toBeTruthy();
     });
 
     it('redirects dashboard to login when unauthenticated', () => {

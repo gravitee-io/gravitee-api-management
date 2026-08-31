@@ -16,12 +16,9 @@
 import { Route, Routes } from 'react-router-dom';
 
 import { ForceLoginRoute, LoginPage, ProtectedRoute, PublicOnlyRoute } from './auth';
+import { CatalogPage } from './catalog/CatalogPage';
 import { HomePage } from './home/HomePage';
 import { PortalLayout } from './layout/PortalLayout';
-
-function CatalogPlaceholder() {
-    return <h1>Catalog</h1>;
-}
 
 function DashboardPlaceholder() {
     return <h1>Dashboard</h1>;
@@ -36,7 +33,8 @@ export function AppRoutes() {
             <Route element={<PortalLayout />}>
                 <Route element={<ForceLoginRoute />}>
                     <Route index element={<HomePage />} />
-                    <Route path="/catalog" element={<CatalogPlaceholder />} />
+                    <Route path="/catalog" element={<CatalogPage />} />
+                    <Route path="/catalog/:apiId" element={<h1>Agent</h1>} />
                 </Route>
                 <Route element={<ProtectedRoute />}>
                     <Route path="/dashboard" element={<DashboardPlaceholder />} />
