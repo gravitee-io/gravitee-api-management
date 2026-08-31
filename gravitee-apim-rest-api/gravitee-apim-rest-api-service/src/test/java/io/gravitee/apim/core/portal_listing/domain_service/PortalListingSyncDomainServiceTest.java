@@ -24,6 +24,7 @@ import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
@@ -96,7 +97,7 @@ class PortalListingSyncDomainServiceTest {
         syncService = new PortalListingSyncDomainService(
             pageContentQuery,
             apiDocSync,
-            new NavigationItemEntryMaterializer(navItemCrud, navItemQuery, apiDocSync),
+            new NavigationItemEntryMaterializer(navItemCrud, navItemQuery, apiDocSync, apiCrud),
             new ApiFolderSubtreeReconciler(
                 navItemQuery,
                 apiCrud,
@@ -121,6 +122,47 @@ class PortalListingSyncDomainServiceTest {
             .filteredOn(PortalNavigationApi.class::isInstance)
             .extracting(PortalNavigationItem::getId)
             .containsExactly(expectedNavApiId);
+    }
+
+    @Test
+    void should_use_api_name_as_title_when_api_exists() {
+        var apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
+        apiCrud.initWith(List.of(Api.builder().id(apiId).name("Echo API Declarative").environmentId(AUDIT_INFO.environmentId()).build()));
+        var listing = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
+
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), listing);
+
+        assertThat(navItemCrud.storage())
+            .filteredOn(PortalNavigationApi.class::isInstance)
+            .extracting(PortalNavigationItem::getTitle)
+            .containsExactly("Echo API Declarative");
+    }
+
+    @Test
+    void should_fall_back_to_hrid_as_title_when_api_not_yet_synced() {
+        var listing = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
+
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), listing);
+
+        assertThat(navItemCrud.storage())
+            .filteredOn(PortalNavigationApi.class::isInstance)
+            .extracting(PortalNavigationItem::getTitle)
+            .containsExactly(API_HRID);
+    }
+
+    @Test
+    void should_refresh_title_on_resync_once_api_exists() {
+        var apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
+        var listing = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), listing);
+
+        apiCrud.initWith(List.of(Api.builder().id(apiId).name("Echo API Declarative").environmentId(AUDIT_INFO.environmentId()).build()));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, listing.getApis(), listing);
+
+        assertThat(navItemCrud.storage())
+            .filteredOn(PortalNavigationApi.class::isInstance)
+            .extracting(PortalNavigationItem::getTitle)
+            .containsExactly("Echo API Declarative");
     }
 
     @Test
