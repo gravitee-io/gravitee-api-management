@@ -19,6 +19,21 @@ export class GioSideNavHarness extends ComponentHarness {
   public static readonly hostSelector = 'gio-side-nav';
 
   private readonly getAllAnchors = this.locatorForAll('a');
+  private readonly getGroupHeaders = this.locatorForAll('mat-expansion-panel-header');
+
+  /**
+   * Clicks the header of a collapsible menu group, which navigates to the group's base path.
+   * Matches the title exactly: several groups share a word, so a substring match picks whichever
+   * happens to render first.
+   */
+  async clickGroup(title: string): Promise<void> {
+    for (const header of await this.getGroupHeaders()) {
+      if ((await header.text()).trim() === title) {
+        return header.click();
+      }
+    }
+    throw new Error(`No sidebar group titled "${title}"`);
+  }
 
   async getAnchorsWithTarget(target: string): Promise<TestElement[]> {
     const result: TestElement[] = [];
