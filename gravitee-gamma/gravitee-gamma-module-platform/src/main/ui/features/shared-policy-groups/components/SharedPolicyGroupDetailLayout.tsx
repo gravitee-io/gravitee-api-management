@@ -46,7 +46,7 @@ function SharedPolicyGroupHeader({ sharedPolicyGroup, listHref }: Readonly<{ sha
                     {toReadableApiType(sharedPolicyGroup.apiType)} · {toReadableFlowPhase(sharedPolicyGroup.phase)}
                 </p>
                 {sharedPolicyGroup.prerequisiteMessage ? (
-                    <p className="text-sm text-muted-foreground">
+                    <p className="truncate text-sm text-muted-foreground" title={sharedPolicyGroup.prerequisiteMessage}>
                         <span className="font-medium">Prerequisite: </span>
                         {sharedPolicyGroup.prerequisiteMessage}
                     </p>
