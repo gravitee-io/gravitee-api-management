@@ -140,12 +140,16 @@ public class OrganizationResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+<<<<<<< HEAD
     @Permissions(
         @Permission(
             value = RolePermission.ORGANIZATION_POLICIES,
             acls = { RolePermissionAction.READ, RolePermissionAction.CREATE, RolePermissionAction.DELETE, RolePermissionAction.UPDATE }
         )
     )
+=======
+    @Permissions(@Permission(value = RolePermission.ORGANIZATION_POLICIES, acls = RolePermissionAction.READ))
+>>>>>>> eff65d4 (fix(rest-api): require POLICIES[READ] to get the organization)
     @Operation(summary = "GET organization", tags = { "Organization" })
     @ApiResponse(
         responseCode = "200",
