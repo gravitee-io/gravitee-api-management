@@ -92,9 +92,6 @@ export default {
     template: `<gio-api-import-dialog-story [policies]="policies" [apiId]="apiId"></gio-api-import-dialog-story>`,
     props: { ...args },
   }),
-  parameters: {
-    chromatic: { delay: 1000 },
-  },
 } as Meta;
 
 export const Default: StoryObj = {
