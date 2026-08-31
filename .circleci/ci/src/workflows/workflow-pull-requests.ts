@@ -24,7 +24,6 @@ import {
   BuildBackendJob,
   BuildDockerBackendImageJob,
   BuildDockerWebUiImageJob,
-  ChromaticConsoleJob,
   CommunityBuildBackendJob,
   ConsoleWebuiBuildJob,
   DangerJsJob,
@@ -40,7 +39,6 @@ import {
   ReleaseHelmJob,
   SetupJob,
   SonarCloudAnalysisJob,
-  StorybookConsoleJob,
   TestApimChartsJob,
   TestDefinitionJob,
   TestGatewayJob,
@@ -336,12 +334,6 @@ export class PullRequestsWorkflow {
       const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(consoleWebuiBuildJob);
 
-      const storybookConsoleJob = StorybookConsoleJob.create(dynamicConfig, environment);
-      dynamicConfig.addJob(storybookConsoleJob);
-
-      const chromaticConsoleJob = ChromaticConsoleJob.create(dynamicConfig, environment);
-      dynamicConfig.addJob(chromaticConsoleJob);
-
       const sonarCloudAnalysisJob = SonarCloudAnalysisJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(sonarCloudAnalysisJob);
 
@@ -379,15 +371,6 @@ export class PullRequestsWorkflow {
       }
 
       jobs.push(
-        new workflow.WorkflowJob(storybookConsoleJob, {
-          name: 'Build Console Storybook',
-          context: config.jobContext,
-        }),
-        new workflow.WorkflowJob(chromaticConsoleJob, {
-          name: 'Deploy console in chromatic',
-          context: config.jobContext,
-          requires: ['Build Console Storybook'],
-        }),
         new workflow.WorkflowJob(sonarCloudAnalysisJob, {
           name: 'Sonar - gravitee-apim-console-webui',
           context: config.jobContext,
