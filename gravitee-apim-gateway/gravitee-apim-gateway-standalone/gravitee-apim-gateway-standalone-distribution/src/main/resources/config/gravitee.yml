@@ -102,6 +102,16 @@ secrets:
 #  alpn: false
 #  ssl:
 #    clientAuth: none # Supports none, request, required
+#    Whether the configured truststore is sent to clients as the list of acceptable certificate authorities during
+#    the TLS handshake, so a client holding several certificates can pick the right one. Disabled by default: the
+#    list is sent to every client of the listener, including consumers of non-mTLS APIs, and an empty list simply
+#    means "no constraint" so clients keep presenting their certificate.
+#    Only enable it when every expected client certificate is issued by an authority present in the truststore
+#    configured below. A non-empty list is a constraint, not a hint: a client whose issuer is absent from it
+#    withholds its certificate entirely. In particular, client certificates registered at runtime by mTLS plan
+#    subscriptions are never sent, so enabling this cuts off every subscription whose certificate is not issued
+#    by an authority of the configured truststore.
+#    sendClientCertificateAuthorities: false
 #    The following allows to configure a header to extract the certificate from. Only works for header processed by NGINX in the front of the Gateway.
 #    clientAuthHeader:
 #      name: # empty by default
@@ -157,6 +167,9 @@ secrets:
 #    # TCP REQUIRES SNI to be setup to match APIs
 #    sni: true
 #    clientAuth: none # Supports none, request, required
+#    # Not sent by default. See http.ssl.sendClientCertificateAuthorities above for what enabling it implies:
+#    # a non-empty list is a constraint, and certificates registered by mTLS plan subscriptions are never sent.
+#    sendClientCertificateAuthorities: false
 #    tlsProtocols: TLSv1.2, TLSv1.3
 #    tlsCiphers: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
 #    keystore:
@@ -252,6 +265,9 @@ secrets:
 #    # Forced to `true` when routingMode is `host`
 #    sni: true
 #    clientAuth: none # Supports none, request, required
+#    # Not sent by default. See http.ssl.sendClientCertificateAuthorities above for what enabling it implies:
+#    # a non-empty list is a constraint, and certificates registered by mTLS plan subscriptions are never sent.
+#    sendClientCertificateAuthorities: false
 #    tlsProtocols: TLSv1.2, TLSv1.3
 #    tlsCiphers: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
 #    keystore:

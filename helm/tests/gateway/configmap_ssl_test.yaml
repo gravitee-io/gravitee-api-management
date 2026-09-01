@@ -166,3 +166,94 @@ tests:
             \s   crl:
             \s     path: \$\{gravitee\.home\}/security/crl\.pem
             \s     watch: true
+
+  - it: Client certificate authorities not sent by default
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        ssl:
+          enabled: true
+          keystore:
+            type: jks
+          clientAuth: required
+          truststore:
+            type: jks
+            path: ${gravitee.home}/security/truststore.jks
+            password: secret
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "sendClientCertificateAuthorities"
+
+  - it: Client certificate authorities sent when explicitly enabled
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        ssl:
+          enabled: true
+          keystore:
+            type: jks
+          clientAuth: required
+          sendClientCertificateAuthorities: true
+          truststore:
+            type: jks
+            path: ${gravitee.home}/security/truststore.jks
+            password: secret
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \s   clientAuth: required
+            \s   sendClientCertificateAuthorities: true
+
+  - it: Client certificate authorities sent on a server of the servers list
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        servers:
+          - type: http
+            port: 8082
+            secured: true
+            ssl:
+              keystore:
+                type: jks
+              clientAuth: required
+              sendClientCertificateAuthorities: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \s     clientAuth: required
+            \s     sendClientCertificateAuthorities: true
+
+  - it: Client certificate authorities sent on the Kafka listener
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          ssl:
+            clientAuth: required
+            sendClientCertificateAuthorities: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \s   clientAuth: required
+            \s   sendClientCertificateAuthorities: true
