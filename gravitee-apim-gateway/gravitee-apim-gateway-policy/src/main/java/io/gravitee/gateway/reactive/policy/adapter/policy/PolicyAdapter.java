@@ -25,6 +25,7 @@ import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapt
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Scheduler;
+import io.reactivex.rxjava3.functions.Action;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -103,7 +104,23 @@ public class PolicyAdapter implements HttpPolicy {
             completable = completable.andThen(this.policyStream(adaptedCtx, phase));
         }
 
-        return completable.doFinally(adaptedCtx::restore);
+        // APIM-14749: restore must land BEFORE the terminal event reaches the downstream, so this is deliberately not a
+        // doFinally. Every v3 policy of the chain shares this ExecutionContextAdapter, and doFinally runs after the next
+        // policy has been subscribed - and, since the PEN-88 worker offload, is already running on another thread -
+        // so a late restore would replay the previous policy's backup over the variables of the next one.
+        // doOnTerminate runs before the terminal event is propagated; doOnDispose covers the cancelled request
+        // (client abort, timeout). Unlike doFinally, the two legs do not guard each other, hence the at-most-once
+        // guard: a dispose arriving after termination must not restore a second time, for the same reason as above.
+        // Consequence, shared with InvokerAdapter: an exception thrown by restore() fails the request instead of
+        // being reported to RxJavaPlugins.onError as it was under doFinally.
+        final AtomicBoolean restored = new AtomicBoolean();
+        final Action restoreOnce = () -> {
+            if (restored.compareAndSet(false, true)) {
+                adaptedCtx.restore();
+            }
+        };
+
+        return completable.doOnTerminate(restoreOnce).doOnDispose(restoreOnce);
     }
 
     private Completable policyExecute(ExecutionContextAdapter adaptedCtx) {

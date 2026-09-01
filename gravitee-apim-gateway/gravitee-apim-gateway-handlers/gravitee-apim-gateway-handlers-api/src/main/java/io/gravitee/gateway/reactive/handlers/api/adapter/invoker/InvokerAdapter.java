@@ -29,7 +29,9 @@ import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailur
 import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.functions.Action;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.CustomLog;
 
 /**
@@ -72,6 +74,16 @@ public class InvokerAdapter implements HttpInvoker, Invoker, io.gravitee.gateway
     @Override
     public Completable invoke(HttpExecutionContext ctx) {
         final ExecutionContextAdapter adaptedCtx = ExecutionContextAdapter.create(ctx);
+
+        // APIM-14749: restore must land BEFORE the terminal event reaches the downstream (doOnTerminate, not doFinally),
+        // as the adapted context is shared with the v3 policies of the chain. The two legs below do not guard each
+        // other like doFinally does, so make sure a dispose arriving after termination does not restore a second time.
+        final AtomicBoolean restored = new AtomicBoolean();
+        final Action restoreOnce = () -> {
+            if (restored.compareAndSet(false, true)) {
+                adaptedCtx.restore();
+            }
+        };
         return Completable.create(nextEmitter -> {
             ctx.withLogger(log).debug("Executing invoker {}", id);
 
@@ -94,7 +106,7 @@ public class InvokerAdapter implements HttpInvoker, Invoker, io.gravitee.gateway
                 nextEmitter.tryOnError(new Exception("An error occurred while trying to execute invoker " + id, t));
             }
         })
-            .doOnTerminate(adaptedCtx::restore)
+            .doOnTerminate(restoreOnce)
             .doOnDispose(() -> {
                 if (ctx.response().status() == 0) {
                     ctx.response().status(499);
@@ -115,7 +127,7 @@ public class InvokerAdapter implements HttpInvoker, Invoker, io.gravitee.gateway
                         }
                     }
                 }
-                adaptedCtx.restore();
+                restoreOnce.run();
             })
             .onErrorResumeNext(throwable -> {
                 // In case of any error, make sure to reset the response content.
