@@ -53,7 +53,9 @@ public class ApiDocumentationResource extends AbstractResource {
         var documentationId = PortalPageContentId.of(HRIDToUUID.apiDocumentation().context(auditInfo).api(apiHrid).hrid(docHrid).id());
         try {
             var output = getApiDocumentationUseCase.execute(new GetApiDocumentationUseCase.Input(auditInfo, documentationId));
-            return Response.ok(ApiDocumentationMapper.INSTANCE.toDocumentationState(output.pageContent(), docHrid, apiHrid)).build();
+            return Response.ok(
+                ApiDocumentationMapper.INSTANCE.toDocumentationState(output.pageContent(), output.visibility(), docHrid, apiHrid)
+            ).build();
         } catch (PageContentNotFoundException e) {
             throw new HRIDNotFoundException(docHrid);
         }

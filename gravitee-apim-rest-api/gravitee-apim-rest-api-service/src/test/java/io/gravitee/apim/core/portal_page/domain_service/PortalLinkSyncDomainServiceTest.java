@@ -74,7 +74,8 @@ class PortalLinkSyncDomainServiceTest {
             "External Docs",
             "https://docs.example.com",
             "/projects/alpha",
-            3
+            3,
+            null
         );
 
         assertThat(navItemCrud.storage()).hasSize(1);
@@ -98,7 +99,8 @@ class PortalLinkSyncDomainServiceTest {
             "External Docs",
             "https://docs.example.com",
             "/unknown",
-            1
+            1,
+            null
         );
 
         assertThat(link.getParentId()).isEqualTo(expectedFolderId("/unknown"));
@@ -106,8 +108,26 @@ class PortalLinkSyncDomainServiceTest {
 
     @Test
     void materialize_is_idempotent_on_reapply() {
-        var first = syncService.materialize(AUDIT_INFO, PORTAL_ID, "external-docs", "External Docs", "https://docs.example.com", null, 1);
-        var second = syncService.materialize(AUDIT_INFO, PORTAL_ID, "external-docs", "External Docs", "https://docs.example.com", null, 1);
+        var first = syncService.materialize(
+            AUDIT_INFO,
+            PORTAL_ID,
+            "external-docs",
+            "External Docs",
+            "https://docs.example.com",
+            null,
+            1,
+            null
+        );
+        var second = syncService.materialize(
+            AUDIT_INFO,
+            PORTAL_ID,
+            "external-docs",
+            "External Docs",
+            "https://docs.example.com",
+            null,
+            1,
+            null
+        );
 
         assertThat(second.getId()).isEqualTo(first.getId());
         assertThat(navItemCrud.storage()).hasSize(1);
@@ -115,7 +135,16 @@ class PortalLinkSyncDomainServiceTest {
 
     @Test
     void materialize_updates_the_link_when_it_changes() {
-        syncService.materialize(AUDIT_INFO, PORTAL_ID, "external-docs", "External Docs", "https://docs.example.com", "/projects/alpha", 1);
+        syncService.materialize(
+            AUDIT_INFO,
+            PORTAL_ID,
+            "external-docs",
+            "External Docs",
+            "https://docs.example.com",
+            "/projects/alpha",
+            1,
+            null
+        );
 
         var updated = syncService.materialize(
             AUDIT_INFO,
@@ -124,7 +153,8 @@ class PortalLinkSyncDomainServiceTest {
             "Renamed",
             "https://renamed.example.com",
             "/projects/beta",
-            2
+            2,
+            null
         );
 
         assertThat(navItemCrud.storage()).hasSize(1);
@@ -155,13 +185,22 @@ class PortalLinkSyncDomainServiceTest {
         );
 
         assertThatThrownBy(() ->
-            syncService.materialize(AUDIT_INFO, PORTAL_ID, "external-docs", "External Docs", "https://docs.example.com", null, 1)
+            syncService.materialize(AUDIT_INFO, PORTAL_ID, "external-docs", "External Docs", "https://docs.example.com", null, 1, null)
         ).isInstanceOf(PathConflictException.class);
     }
 
     @Test
     void materialize_rejects_relocation_to_a_segment_already_taken_by_a_foreign_item() {
-        syncService.materialize(AUDIT_INFO, PORTAL_ID, "external-docs", "External Docs", "https://docs.example.com", "/projects/alpha", 1);
+        syncService.materialize(
+            AUDIT_INFO,
+            PORTAL_ID,
+            "external-docs",
+            "External Docs",
+            "https://docs.example.com",
+            "/projects/alpha",
+            1,
+            null
+        );
 
         var squatter = PortalNavigationFolder.builder()
             .id(PortalNavigationItemId.of("33333333-3333-3333-3333-333333333333"))
@@ -185,7 +224,8 @@ class PortalLinkSyncDomainServiceTest {
                 "External Docs",
                 "https://docs.example.com",
                 "/projects/beta",
-                1
+                1,
+                null
             )
         ).isInstanceOf(PathConflictException.class);
 
@@ -196,7 +236,16 @@ class PortalLinkSyncDomainServiceTest {
 
     @Test
     void materialize_updating_a_link_without_moving_does_not_conflict_with_itself() {
-        syncService.materialize(AUDIT_INFO, PORTAL_ID, "external-docs", "External Docs", "https://docs.example.com", "/projects/alpha", 1);
+        syncService.materialize(
+            AUDIT_INFO,
+            PORTAL_ID,
+            "external-docs",
+            "External Docs",
+            "https://docs.example.com",
+            "/projects/alpha",
+            1,
+            null
+        );
 
         var updated = syncService.materialize(
             AUDIT_INFO,
@@ -205,7 +254,8 @@ class PortalLinkSyncDomainServiceTest {
             "Renamed",
             "https://renamed.example.com",
             "/projects/alpha",
-            2
+            2,
+            null
         );
 
         assertThat(navItemCrud.storage()).hasSize(1);
@@ -214,7 +264,7 @@ class PortalLinkSyncDomainServiceTest {
 
     @Test
     void dematerialize_removes_the_link() {
-        syncService.materialize(AUDIT_INFO, PORTAL_ID, "external-docs", "External Docs", "https://docs.example.com", null, 1);
+        syncService.materialize(AUDIT_INFO, PORTAL_ID, "external-docs", "External Docs", "https://docs.example.com", null, 1, null);
 
         syncService.dematerialize(AUDIT_INFO, expectedLinkId());
 
@@ -239,7 +289,8 @@ class PortalLinkSyncDomainServiceTest {
             "External Docs",
             "https://docs.example.com",
             "/guides",
-            3
+            3,
+            null
         );
 
         assertThat(navItemCrud.storage()).hasSize(1);
@@ -252,7 +303,7 @@ class PortalLinkSyncDomainServiceTest {
 
     @Test
     void materialize_for_api_makes_the_link_a_root_of_the_api_subtree_when_no_location_is_given() {
-        var link = syncService.materializeForApi(AUDIT_INFO, API_ID, "external-docs", "External Docs", "https://d.example", null, 0);
+        var link = syncService.materializeForApi(AUDIT_INFO, API_ID, "external-docs", "External Docs", "https://d.example", null, 0, null);
 
         assertThat(link.isRoot()).isTrue();
     }
@@ -260,7 +311,16 @@ class PortalLinkSyncDomainServiceTest {
     @Test
     void materialize_for_api_persists_the_link_even_when_the_api_is_not_listed_anywhere() {
         // No folder exists yet: the parent is a phantom, and the link still lands (D5).
-        var link = syncService.materializeForApi(AUDIT_INFO, API_ID, "external-docs", "External Docs", "https://d.example", "/guides", 0);
+        var link = syncService.materializeForApi(
+            AUDIT_INFO,
+            API_ID,
+            "external-docs",
+            "External Docs",
+            "https://d.example",
+            "/guides",
+            0,
+            null
+        );
 
         assertThat(navItemCrud.storage()).hasSize(1);
         assertThat(link.getParentId()).isEqualTo(PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/guides"));
@@ -268,8 +328,26 @@ class PortalLinkSyncDomainServiceTest {
 
     @Test
     void materialize_for_api_is_idempotent() {
-        var first = syncService.materializeForApi(AUDIT_INFO, API_ID, "external-docs", "External Docs", "https://d.example", "/guides", 1);
-        var second = syncService.materializeForApi(AUDIT_INFO, API_ID, "external-docs", "External Docs", "https://d.example", "/guides", 1);
+        var first = syncService.materializeForApi(
+            AUDIT_INFO,
+            API_ID,
+            "external-docs",
+            "External Docs",
+            "https://d.example",
+            "/guides",
+            1,
+            null
+        );
+        var second = syncService.materializeForApi(
+            AUDIT_INFO,
+            API_ID,
+            "external-docs",
+            "External Docs",
+            "https://d.example",
+            "/guides",
+            1,
+            null
+        );
 
         assertThat(navItemCrud.storage()).hasSize(1);
         assertThat(second.getId()).isEqualTo(first.getId());
@@ -282,7 +360,7 @@ class PortalLinkSyncDomainServiceTest {
         navItemCrud.create(squatter);
 
         var throwable = catchThrowable(() ->
-            syncService.materializeForApi(AUDIT_INFO, API_ID, "external-docs", "External Docs", "https://d.example", "/guides", 0)
+            syncService.materializeForApi(AUDIT_INFO, API_ID, "external-docs", "External Docs", "https://d.example", "/guides", 0, null)
         );
 
         assertThat(throwable).isInstanceOf(PathConflictException.class);
@@ -290,14 +368,14 @@ class PortalLinkSyncDomainServiceTest {
 
     @Test
     void materialize_for_api_stamps_an_api_reference_on_the_nav_item() {
-        var link = syncService.materializeForApi(AUDIT_INFO, API_ID, "external-docs", "External Docs", "https://d.example", null, 0);
+        var link = syncService.materializeForApi(AUDIT_INFO, API_ID, "external-docs", "External Docs", "https://d.example", null, 0, null);
 
         assertThat(link.getReference()).isEqualTo(new NavigationItemReference.ApiReference(API_ID));
     }
 
     @Test
     void materialize_stamps_a_portal_reference_on_a_portal_attached_link() {
-        var link = syncService.materialize(AUDIT_INFO, PORTAL_ID, "docs", "Docs", "https://d.example", null, 0);
+        var link = syncService.materialize(AUDIT_INFO, PORTAL_ID, "docs", "Docs", "https://d.example", null, 0, null);
 
         assertThat(link.getReference()).isEqualTo(new NavigationItemReference.PortalReference(PortalId.of(PORTAL_ID)));
     }
@@ -328,7 +406,8 @@ class PortalLinkSyncDomainServiceTest {
             "Internal Docs",
             "https://internal.example.com",
             "/private-guides",
-            0
+            0,
+            null
         );
 
         assertThat(link.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);

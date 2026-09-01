@@ -19,8 +19,12 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import lombok.RequiredArgsConstructor;
 
@@ -29,10 +33,11 @@ import lombok.RequiredArgsConstructor;
 public class GetApiDocumentationUseCase {
 
     private final PortalPageContentQueryService portalPageContentQueryService;
+    private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
 
     public record Input(AuditInfo auditInfo, PortalPageContentId portalPageContentId) {}
 
-    public record Output(PortalPageContent<?> pageContent) {}
+    public record Output(PortalPageContent<?> pageContent, PortalVisibility visibility) {}
 
     public Output execute(Input input) {
         var pageContent = portalPageContentQueryService
@@ -40,6 +45,10 @@ public class GetApiDocumentationUseCase {
             .filter(pc -> pc.getAutomationMetadata() != null)
             .filter(pc -> pc.getAutomationMetadata().referenceType() == AutomationMetadata.ReferenceType.API)
             .orElseThrow(() -> new PageContentNotFoundException(input.portalPageContentId().toString()));
-        return new Output(pageContent);
+        var apiId = pageContent.getAutomationMetadata().referenceId();
+        var navigationItemId = PortalNavigationItemId.forApiDocumentation(input.auditInfo(), apiId, pageContent.getId());
+        var navItem = portalNavigationItemsQueryService.findByIdAndEnvironmentId(input.auditInfo().environmentId(), navigationItemId);
+        var visibility = navItem instanceof PortalNavigationPage page ? page.getVisibility() : null;
+        return new Output(pageContent, visibility);
     }
 }

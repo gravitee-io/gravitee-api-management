@@ -18,6 +18,7 @@ package io.gravitee.apim.rest.api.automation.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.rest.api.automation.model.NavigationPath;
+import io.gravitee.apim.rest.api.automation.model.PortalVisibility;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -28,7 +29,7 @@ class ApiMapperTest {
 
     @Test
     void should_map_automation_navigation_path_to_core_with_all_fields() {
-        var automation = new NavigationPath().path("/reference").displayName("Reference").order(1);
+        var automation = new NavigationPath().path("/reference").displayName("Reference").order(1).visibility(PortalVisibility.PRIVATE);
 
         var core = ApiMapper.INSTANCE.map(automation);
 
@@ -36,6 +37,7 @@ class ApiMapperTest {
             soft.assertThat(core.path()).isEqualTo("/reference");
             soft.assertThat(core.displayName()).isEqualTo("Reference");
             soft.assertThat(core.order()).isEqualTo(1);
+            soft.assertThat(core.visibility()).isEqualTo(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
         });
     }
 
@@ -49,6 +51,7 @@ class ApiMapperTest {
             soft.assertThat(core.path()).isEqualTo("/guides");
             soft.assertThat(core.displayName()).isNull();
             soft.assertThat(core.order()).isNull();
+            soft.assertThat(core.visibility()).isNull();
         });
     }
 
@@ -59,7 +62,12 @@ class ApiMapperTest {
 
     @Test
     void should_map_core_navigation_path_to_automation_with_all_fields() {
-        var core = new io.gravitee.apim.core.portal.model.NavigationPath("/reference", "Reference", 1);
+        var core = new io.gravitee.apim.core.portal.model.NavigationPath(
+            "/reference",
+            "Reference",
+            1,
+            io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC
+        );
 
         var automation = ApiMapper.INSTANCE.mapNavigationPath(core);
 
@@ -67,6 +75,7 @@ class ApiMapperTest {
             soft.assertThat(automation.getPath()).isEqualTo("/reference");
             soft.assertThat(automation.getDisplayName()).isEqualTo("Reference");
             soft.assertThat(automation.getOrder()).isEqualTo(1);
+            soft.assertThat(automation.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
         });
     }
 
@@ -80,6 +89,7 @@ class ApiMapperTest {
             soft.assertThat(automation.getPath()).isEqualTo("/guides");
             soft.assertThat(automation.getDisplayName()).isNull();
             soft.assertThat(automation.getOrder()).isNull();
+            soft.assertThat(automation.getVisibility()).isNull();
         });
     }
 

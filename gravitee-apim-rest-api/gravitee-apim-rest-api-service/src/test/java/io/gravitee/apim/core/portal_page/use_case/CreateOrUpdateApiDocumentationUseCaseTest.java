@@ -235,6 +235,6 @@ class CreateOrUpdateApiDocumentationUseCaseTest {
         String location,
         Integer order
     ) {
-        return new CreateOrUpdateApiDocumentationUseCase.Input(AUDIT_INFO, DOC_ID, API_ID, name, type, content, location, order);
+        return new CreateOrUpdateApiDocumentationUseCase.Input(AUDIT_INFO, DOC_ID, API_ID, name, type, content, location, order, null);
     }
 }

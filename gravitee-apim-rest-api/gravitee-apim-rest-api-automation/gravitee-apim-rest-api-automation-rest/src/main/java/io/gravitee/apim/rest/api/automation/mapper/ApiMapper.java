@@ -201,6 +201,18 @@ public interface ApiMapper {
 
     io.gravitee.apim.rest.api.automation.model.NavigationPath mapNavigationPath(io.gravitee.apim.core.portal.model.NavigationPath src);
 
+    default io.gravitee.apim.core.portal.model.PortalVisibility toDomainVisibility(
+        io.gravitee.apim.rest.api.automation.model.PortalVisibility wire
+    ) {
+        return wire == null ? null : io.gravitee.apim.core.portal.model.PortalVisibility.valueOf(wire.getValue());
+    }
+
+    default io.gravitee.apim.rest.api.automation.model.PortalVisibility toWireVisibility(
+        io.gravitee.apim.core.portal.model.PortalVisibility domain
+    ) {
+        return domain == null ? null : io.gravitee.apim.rest.api.automation.model.PortalVisibility.fromValue(domain.name());
+    }
+
     default List<io.gravitee.rest.api.management.v2.rest.model.Selector> mapApiV4SpecSelectors(FlowV4 flowV4) {
         if (flowV4 == null || flowV4.getSelectors() == null) {
             return List.of();

@@ -75,7 +75,8 @@ class DeletePortalLinkUseCaseTest {
             "External Docs",
             "https://docs.example.com",
             null,
-            0
+            0,
+            null
         );
 
         useCase.execute(new DeletePortalLinkUseCase.Input(AUDIT_INFO, LINK_ID));

@@ -85,7 +85,8 @@ public class PortalDocumentationsResource extends AbstractResource {
             spec.getContent(),
             spec.getLocation(),
             spec.getOrder(),
-            PortalDocumentationMapper.INSTANCE.toDomainArea(spec.getArea())
+            PortalDocumentationMapper.INSTANCE.toDomainArea(spec.getArea()),
+            PortalDocumentationMapper.INSTANCE.toDomainVisibility(spec.getVisibility())
         );
         var output = dryRun ? validatePortalDocumentationUseCase.execute(input) : createOrUpdatePortalDocumentationUseCase.execute(input);
 

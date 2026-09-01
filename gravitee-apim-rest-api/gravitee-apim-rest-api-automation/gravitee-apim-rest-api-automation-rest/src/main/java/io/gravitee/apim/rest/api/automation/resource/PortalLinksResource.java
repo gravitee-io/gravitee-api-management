@@ -82,7 +82,8 @@ public class PortalLinksResource extends AbstractResource {
             spec.getName(),
             spec.getHref(),
             spec.getLocation(),
-            spec.getOrder()
+            spec.getOrder(),
+            PortalLinkMapper.INSTANCE.toDomainVisibility(spec.getVisibility())
         );
         var output = dryRun ? validatePortalLinkUseCase.execute(input) : createOrUpdatePortalLinkUseCase.execute(input);
 

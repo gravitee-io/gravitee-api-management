@@ -112,7 +112,8 @@ class CreateOrUpdateApiLinkUseCaseTest {
             "External Docs",
             "https://docs.example.com",
             location,
-            0
+            0,
+            null
         );
     }
 }

@@ -18,6 +18,7 @@ package io.gravitee.apim.rest.api.automation.mapper;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.rest.api.automation.model.Errors;
 import io.gravitee.apim.rest.api.automation.model.PortalNavigationPath;
@@ -120,7 +121,8 @@ public interface PortalMapper {
         for (int i = 0; i < navigation.size(); i++) {
             PortalNavigationPath n = navigation.get(i);
             if (isValidNavigationPath(n)) {
-                list.add(new NavigationPath(n.getPath(), n.getDisplayName(), i));
+                var domainVisibility = toDomainVisibility(n.getVisibility());
+                list.add(new NavigationPath(n.getPath(), n.getDisplayName(), i, domainVisibility == null ? null : domainVisibility.name()));
             }
         }
         return list;
@@ -134,11 +136,24 @@ public interface PortalMapper {
             .stream()
             .filter(Objects::nonNull)
             .sorted(Comparator.comparing(np -> np.order() == null ? 0 : np.order()))
-            .map(n -> new PortalNavigationPath().path(n.path()).displayName(n.displayName()))
+            .map(n ->
+                new PortalNavigationPath()
+                    .path(n.path())
+                    .displayName(n.displayName())
+                    .visibility(n.visibility() == null ? null : toWireVisibility(PortalVisibility.valueOf(n.visibility())))
+            )
             .toList();
     }
 
     private static boolean isValidNavigationPath(PortalNavigationPath n) {
         return n != null && !n.getPath().isBlank();
+    }
+
+    static PortalVisibility toDomainVisibility(io.gravitee.apim.rest.api.automation.model.PortalVisibility wire) {
+        return wire == null ? null : PortalVisibility.valueOf(wire.getValue());
+    }
+
+    static io.gravitee.apim.rest.api.automation.model.PortalVisibility toWireVisibility(PortalVisibility domain) {
+        return domain == null ? null : io.gravitee.apim.rest.api.automation.model.PortalVisibility.fromValue(domain.name());
     }
 }

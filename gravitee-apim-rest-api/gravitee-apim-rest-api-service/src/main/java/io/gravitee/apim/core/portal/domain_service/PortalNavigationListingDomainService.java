@@ -62,7 +62,14 @@ public class PortalNavigationListingDomainService {
         public void visitFolder(PortalNavigationFolder folder, NavigationPath parentPath) {
             final var nodePath = parentPath.descend(folder.getEffectiveSegment());
             final var displayName = !folder.getEffectiveSegment().equals(folder.getTitle()) ? folder.getTitle() : null;
-            paths.add(new NavigationPath(nodePath.path(), displayName));
+            paths.add(
+                new NavigationPath(
+                    nodePath.path(),
+                    displayName,
+                    null,
+                    folder.getVisibility() == null ? null : folder.getVisibility().name()
+                )
+            );
         }
     }
 }

@@ -141,6 +141,7 @@ public class PortalNavigationSyncDomainService {
             .type(PortalNavigationItemType.FOLDER)
             .order(df.order())
             .parentId(df.parentPath() == null ? null : idFactory.apply(df.parentPath()))
+            .visibility(df.visibility())
             .build();
     }
 
@@ -158,6 +159,7 @@ public class PortalNavigationSyncDomainService {
             .type(PortalNavigationItemType.FOLDER)
             .order(df.order())
             .parentId(df.parentPath() == null ? null : idFactory.apply(df.parentPath()))
+            .visibility(df.visibility())
             .published(true)
             .automationMetadata(
                 new AutomationMetadata(

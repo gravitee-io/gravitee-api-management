@@ -221,7 +221,7 @@ class PortalDocumentationSyncDomainServiceTest {
 
     @Test
     void materialize_creates_homepage_page_when_area_is_homepage() {
-        syncService.materialize(AUDIT_INFO, homepageDoc("Home", "/homepage"), PortalArea.HOMEPAGE);
+        syncService.materialize(AUDIT_INFO, homepageDoc("Home", "/homepage"), PortalArea.HOMEPAGE, null);
 
         assertThat(navItemCrud.storage()).hasSize(1);
         var page = (PortalNavigationPage) navItemCrud.storage().get(0);
@@ -235,7 +235,7 @@ class PortalDocumentationSyncDomainServiceTest {
         navItemCrud.create(stale);
         pageContentCrud.create(staleContent(stale));
 
-        syncService.materialize(AUDIT_INFO, homepageDoc("Home", "/homepage"), PortalArea.HOMEPAGE);
+        syncService.materialize(AUDIT_INFO, homepageDoc("Home", "/homepage"), PortalArea.HOMEPAGE, null);
 
         assertThat(navItemCrud.storage()).hasSize(1);
         assertThat(navItemCrud.storage().get(0).getId()).isEqualTo(expectedNavItemId());
@@ -250,7 +250,7 @@ class PortalDocumentationSyncDomainServiceTest {
         navItemCrud.create(seeded);
         pageContentCrud.create(staleContent(seeded));
 
-        syncService.materialize(AUDIT_INFO, homepageDoc("Home", "/homepage"), PortalArea.HOMEPAGE);
+        syncService.materialize(AUDIT_INFO, homepageDoc("Home", "/homepage"), PortalArea.HOMEPAGE, null);
 
         assertThat(navItemCrud.storage()).hasSize(1);
         assertThat(navItemCrud.storage().get(0).getReference()).isEqualTo(
@@ -276,7 +276,7 @@ class PortalDocumentationSyncDomainServiceTest {
         pageContentCrud.create(staleContent(existing));
 
         assertThatThrownBy(() ->
-            syncWithRealValidator.materialize(AUDIT_INFO, homepageDoc("Home", "/homepage"), PortalArea.HOMEPAGE)
+            syncWithRealValidator.materialize(AUDIT_INFO, homepageDoc("Home", "/homepage"), PortalArea.HOMEPAGE, null)
         ).isInstanceOf(HomepageAlreadyExistsException.class);
 
         assertThat(navItemCrud.storage()).hasSize(1);
@@ -301,7 +301,7 @@ class PortalDocumentationSyncDomainServiceTest {
             .build();
         navItemCrud.create(otherHomepage);
 
-        syncService.materialize(AUDIT_INFO, homepageDoc("Home", "/homepage"), PortalArea.HOMEPAGE);
+        syncService.materialize(AUDIT_INFO, homepageDoc("Home", "/homepage"), PortalArea.HOMEPAGE, null);
 
         assertThat(navItemCrud.storage()).hasSize(2);
     }

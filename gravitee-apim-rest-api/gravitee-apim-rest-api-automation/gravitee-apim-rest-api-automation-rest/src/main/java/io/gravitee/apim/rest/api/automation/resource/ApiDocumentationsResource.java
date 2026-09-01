@@ -88,7 +88,8 @@ public class ApiDocumentationsResource extends AbstractResource {
             ApiDocumentationMapper.INSTANCE.toDomainType(spec.getType()),
             spec.getContent(),
             spec.getLocation(),
-            spec.getOrder()
+            spec.getOrder(),
+            ApiDocumentationMapper.INSTANCE.toDomainVisibility(spec.getVisibility())
         );
         var output = dryRun ? validateApiDocumentationUseCase.execute(input) : createOrUpdateApiDocumentationUseCase.execute(input);
 

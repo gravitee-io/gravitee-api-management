@@ -18,13 +18,18 @@ package io.gravitee.apim.core.portal_page.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import java.util.List;
@@ -47,11 +52,12 @@ class GetApiDocumentationUseCaseTest {
     private static final String API_ID = "00000000-0000-0000-0000-0000000000a1";
 
     private final PortalPageContentQueryServiceInMemory queryService = new PortalPageContentQueryServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory();
     private GetApiDocumentationUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        useCase = new GetApiDocumentationUseCase(queryService);
+        useCase = new GetApiDocumentationUseCase(queryService, navigationItemsQueryService);
     }
 
     @AfterEach
@@ -74,6 +80,41 @@ class GetApiDocumentationUseCaseTest {
         assertThat(meta.order()).contains(1);
         assertThat(meta.referenceType()).isEqualTo(AutomationMetadata.ReferenceType.API);
         assertThat(meta.referenceId()).isEqualTo(API_ID);
+    }
+
+    @Test
+    void should_return_visibility_from_persisted_nav_item() {
+        queryService.initWith(List.of(anApiPageContent()));
+        var navItemId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
+        navigationItemsQueryService.initWith(
+            List.of(
+                PortalNavigationPage.builder()
+                    .id(navItemId)
+                    .organizationId(AUDIT_INFO.organizationId())
+                    .environmentId(AUDIT_INFO.environmentId())
+                    .title("Getting Started")
+                    .segment("getting-started")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(1)
+                    .portalPageContentId(DOC_ID)
+                    .published(true)
+                    .visibility(PortalVisibility.PRIVATE)
+                    .build()
+            )
+        );
+
+        var output = useCase.execute(new GetApiDocumentationUseCase.Input(AUDIT_INFO, DOC_ID));
+
+        assertThat(output.visibility()).isEqualTo(PortalVisibility.PRIVATE);
+    }
+
+    @Test
+    void should_return_null_visibility_when_persisted_nav_item_is_missing() {
+        queryService.initWith(List.of(anApiPageContent()));
+
+        var output = useCase.execute(new GetApiDocumentationUseCase.Input(AUDIT_INFO, DOC_ID));
+
+        assertThat(output.visibility()).isNull();
     }
 
     @Test

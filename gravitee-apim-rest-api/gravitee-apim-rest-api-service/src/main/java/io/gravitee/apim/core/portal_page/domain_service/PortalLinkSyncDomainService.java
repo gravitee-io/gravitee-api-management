@@ -59,7 +59,8 @@ public class PortalLinkSyncDomainService {
         String name,
         String href,
         String location,
-        Integer order
+        Integer order,
+        PortalVisibility callerVisibility
     ) {
         return upsert(
             auditInfo,
@@ -70,6 +71,7 @@ public class PortalLinkSyncDomainService {
             href,
             location,
             order,
+            callerVisibility,
             new AutomationMetadata(AutomationMetadata.ReferenceType.PORTAL, portalId, null, Optional.ofNullable(location), Optional.empty())
         );
     }
@@ -83,6 +85,7 @@ public class PortalLinkSyncDomainService {
         String href,
         String location,
         Integer order,
+        PortalVisibility callerVisibility,
         AutomationMetadata automationMetadata
     ) {
         var segment = Slug.from(linkHrid).value();
@@ -98,8 +101,9 @@ public class PortalLinkSyncDomainService {
             rejectIfSegmentTakenByForeignItem(auditInfo, parent, segment, linkId, location);
         }
 
+        var visibility = PortalVisibility.resolve(callerVisibility, parent);
+
         if (existingLink != null) {
-            var visibility = PortalVisibility.inheritedFrom(parent);
             var toUpdate = UpdatePortalNavigationItem.builder()
                 .title(name)
                 .segment(segment)
@@ -125,6 +129,7 @@ public class PortalLinkSyncDomainService {
             .type(PortalNavigationItemType.LINK)
             .order(order != null ? order : 0)
             .url(href)
+            .visibility(visibility)
             .reference(automationMetadata.reference())
             .automationMetadata(automationMetadata)
             .published(true)
@@ -157,7 +162,8 @@ public class PortalLinkSyncDomainService {
         String name,
         String href,
         String location,
-        Integer order
+        Integer order,
+        PortalVisibility callerVisibility
     ) {
         return upsert(
             auditInfo,
@@ -168,6 +174,7 @@ public class PortalLinkSyncDomainService {
             href,
             location,
             order,
+            callerVisibility,
             new AutomationMetadata(AutomationMetadata.ReferenceType.API, apiId, null, Optional.ofNullable(location), Optional.empty())
         );
     }

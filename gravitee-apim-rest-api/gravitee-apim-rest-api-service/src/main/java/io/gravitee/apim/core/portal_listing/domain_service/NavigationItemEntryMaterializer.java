@@ -55,10 +55,11 @@ class NavigationItemEntryMaterializer {
         var navApiId = rowId(auditInfo, portalId, apiId);
         var parent = resolveParent(auditInfo, portalId.toString(), entry.location());
         var title = apiCrudService.get(apiId).getName();
+        var visibility = PortalVisibility.resolve(entry.visibility(), parent);
 
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), navApiId);
         if (existing instanceof PortalNavigationApi navApi) {
-            applyUpdate(navApi, apiId, entry, parent, title);
+            applyUpdate(navApi, apiId, entry, parent, title, visibility);
             return (PortalNavigationApi) navigationItemCrudService.update(navApi);
         }
         rejectIfSegmentTakenByForeignItem(auditInfo, parent, Slug.from(entry.apiHrid()).value(), navApiId, entry.location());
@@ -70,6 +71,7 @@ class NavigationItemEntryMaterializer {
             .type(PortalNavigationItemType.API)
             .order(entry.order() != null ? entry.order() : 0)
             .apiId(apiId)
+            .visibility(visibility)
             .published(true)
             .build();
         return (PortalNavigationApi) navigationItemCrudService.create(
@@ -96,7 +98,7 @@ class NavigationItemEntryMaterializer {
         PortalNavigationApi existing
     ) {
         var parent = resolveParent(auditInfo, portalId.toString(), entry.location());
-        var visibility = PortalVisibility.inheritedFrom(parent);
+        var visibility = PortalVisibility.resolve(entry.visibility(), parent);
         var toUpdate = UpdatePortalNavigationItem.builder()
             .type(PortalNavigationItemType.API)
             .title(entry.apiHrid())
@@ -111,7 +113,7 @@ class NavigationItemEntryMaterializer {
 
     CreatePortalNavigationItem itemForValidation(AuditInfo auditInfo, PortalId portalId, String apiId, PortalListingApiEntry entry) {
         var parent = resolveParent(auditInfo, portalId.toString(), entry.location());
-        var visibility = PortalVisibility.inheritedFrom(parent);
+        var visibility = PortalVisibility.resolve(entry.visibility(), parent);
         return CreatePortalNavigationItem.builder()
             .id(rowId(auditInfo, portalId, apiId))
             .title(entry.apiHrid())
@@ -158,9 +160,9 @@ class NavigationItemEntryMaterializer {
         String apiId,
         PortalListingApiEntry entry,
         PortalNavigationItemContainer parent,
-        String title
+        String title,
+        PortalVisibility visibility
     ) {
-        var visibility = PortalVisibility.inheritedFrom(parent);
         navApi.setApiId(apiId);
         navApi.setOrder(entry.order() != null ? entry.order() : 0);
         navApi.setTitle(title);

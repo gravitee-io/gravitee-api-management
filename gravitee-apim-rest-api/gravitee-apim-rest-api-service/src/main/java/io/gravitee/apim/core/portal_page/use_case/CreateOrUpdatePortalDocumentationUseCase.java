@@ -35,6 +35,7 @@ import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.RedocConfiguration;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
@@ -64,7 +65,8 @@ public class CreateOrUpdatePortalDocumentationUseCase {
         String content,
         String location,
         Integer order,
-        PortalArea area
+        PortalArea area,
+        PortalVisibility visibility
     ) {}
 
     public record Output(PortalPageContentId id, List<Validator.Error> errors) {}
@@ -122,7 +124,7 @@ public class CreateOrUpdatePortalDocumentationUseCase {
 
         // Skip nav-tree materialization for non-default portals — app is not ready for that.
         if (portalAutomationScopeEnforcer.isDefaultPortal(input.auditInfo(), sanitized.portalId())) {
-            syncDomainService.materialize(input.auditInfo(), saved, area);
+            syncDomainService.materialize(input.auditInfo(), saved, area, input.visibility());
         }
 
         return new Output(saved.getId(), warnings);

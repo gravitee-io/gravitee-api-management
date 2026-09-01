@@ -267,6 +267,7 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
                     "# Hello",
                     "/projects/alpha",
                     1,
+                    null,
                     null
                 )
             )
@@ -295,6 +296,7 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
                 "# Hello",
                 "/projects/alpha",
                 1,
+                null,
                 null
             )
         );
@@ -320,6 +322,7 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
             content,
             location,
             order,
+            null,
             null
         );
     }

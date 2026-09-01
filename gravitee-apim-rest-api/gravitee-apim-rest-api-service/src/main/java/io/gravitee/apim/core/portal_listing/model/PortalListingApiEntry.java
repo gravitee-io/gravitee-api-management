@@ -16,11 +16,21 @@
 package io.gravitee.apim.core.portal_listing.model;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 
-public record PortalListingApiEntry(@Nonnull String apiHrid, @Nonnull String location, @Nullable Integer order) {
+public record PortalListingApiEntry(
+    @Nonnull String apiHrid,
+    @Nonnull String location,
+    @Nullable Integer order,
+    @Nullable PortalVisibility visibility
+) {
+    public PortalListingApiEntry(@Nonnull String apiHrid, @Nonnull String location, @Nullable Integer order) {
+        this(apiHrid, location, order, null);
+    }
+
     public String apiId(AuditInfo auditInfo) {
         return HRIDToUUID.api().context(auditInfo).hrid(apiHrid).id();
     }
