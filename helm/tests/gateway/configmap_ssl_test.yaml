@@ -257,3 +257,84 @@ tests:
           pattern: |
             \s   clientAuth: required
             \s   sendClientCertificateAuthorities: true
+
+  - it: PEM keystore certificates on the default listener
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        ssl:
+          enabled: true
+          keystore:
+            type: pem
+            certificates:
+              - cert: /mnt/cert/tls.crt
+                key: /mnt/cert/tls.key
+              - cert: /mnt/cert/second.crt
+                key: /mnt/cert/second.key
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \s   keystore:
+            \s     type: pem
+            \s     certificates:
+            \s       - cert: /mnt/cert/tls.crt
+            \s         key: /mnt/cert/tls.key
+            \s       - cert: /mnt/cert/second.crt
+            \s         key: /mnt/cert/second.key
+
+  - it: PEM keystore certificates on a server of the servers list
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        servers:
+          - type: http
+            port: 8082
+            secured: true
+            ssl:
+              clientAuth: required
+              keystore:
+                type: pem
+                certificates:
+                  - cert: /mnt/cert/tls.crt
+                    key: /mnt/cert/tls.key
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \s     keystore:
+            \s       type: pem
+            \s       certificates:
+            \s         - cert: /mnt/cert/tls.crt
+            \s           key: /mnt/cert/tls.key
+
+  - it: No certificates entry when the keystore declares none
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        ssl:
+          enabled: true
+          keystore:
+            type: jks
+            path: /opt/keystore.jks
+            password: changeme
+    asserts:
+      # Anchored on the keystore still rendering: without this the assertion would also pass
+      # if the whole block disappeared, which is not what it is guarding against.
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \s   keystore:
+            \s     type: jks
+            \s     path: /opt/keystore.jks
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "certificates:"
