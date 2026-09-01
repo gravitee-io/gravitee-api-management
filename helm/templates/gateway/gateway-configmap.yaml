@@ -92,6 +92,13 @@ data:
             {{- if $server.ssl.keystore.path }}
             path: {{ $server.ssl.keystore.path }}
             {{- end }}
+            {{- if $server.ssl.keystore.certificates }}
+            certificates:
+              {{- range $server.ssl.keystore.certificates }}
+              - cert: {{ .cert }}
+                key: {{ .key }}
+              {{- end }}
+            {{- end }}
             {{- if $server.ssl.keystore.password }}
             password: {{ $server.ssl.keystore.password | quote }}
             {{- end }}
@@ -167,6 +174,13 @@ data:
           {{- end }}
           {{- if .Values.gateway.ssl.keystore.path }}
           path: {{ .Values.gateway.ssl.keystore.path }}
+          {{- end }}
+          {{- if .Values.gateway.ssl.keystore.certificates }}
+          certificates:
+            {{- range .Values.gateway.ssl.keystore.certificates }}
+            - cert: {{ .cert }}
+              key: {{ .key }}
+            {{- end }}
           {{- end }}
           {{- if hasKey .Values.gateway.ssl.keystore "password" }}
           password: {{ .Values.gateway.ssl.keystore.password | quote }}
