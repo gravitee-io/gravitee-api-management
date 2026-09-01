@@ -21,16 +21,25 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 
 /**
- * A (parent, segment) slot that a create or update in the current validation batch intends to occupy.
- * Shared between {@link CreateValidationContext} and {@link UpdateValidationContext} so that segment-conflict
- * detection can spot collisions across the two sides of a single mixed batch.
+ * A (parent, segment) slot associated with a pending create or update in the current validation batch.
+ * {@link Intent#CLAIM} means the item intends to occupy the slot; {@link Intent#RELEASE} means an update is
+ * about to leave the slot free (recorded so a same-batch sibling can safely take it over).
  */
-public record PendingSegmentClaim(PortalNavigationItemId id, PortalNavigationItemId parentId, String segment) {
+public record PendingSegmentClaim(PortalNavigationItemId id, PortalNavigationItemId parentId, String segment, Intent intent) {
+    public enum Intent {
+        CLAIM,
+        RELEASE,
+    }
+
     public static PendingSegmentClaim forCreate(CreatePortalNavigationItem create) {
-        return new PendingSegmentClaim(create.getId(), create.getParentId(), create.getSegment());
+        return new PendingSegmentClaim(create.getId(), create.getParentId(), create.getSegment(), Intent.CLAIM);
     }
 
     public static PendingSegmentClaim forUpdate(PortalNavigationItem existing, UpdatePortalNavigationItem update) {
-        return new PendingSegmentClaim(existing.getId(), update.getParentId(), update.getSegment());
+        return new PendingSegmentClaim(existing.getId(), update.getParentId(), update.getSegment(), Intent.CLAIM);
+    }
+
+    public static PendingSegmentClaim forRelease(PortalNavigationItem existing) {
+        return new PendingSegmentClaim(existing.getId(), existing.getParentId(), existing.getSegment(), Intent.RELEASE);
     }
 }
