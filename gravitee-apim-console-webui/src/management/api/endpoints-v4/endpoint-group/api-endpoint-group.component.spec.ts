@@ -64,6 +64,21 @@ function expectApiSchemaGetRequests(api: ApiV4, fixture: ComponentFixture<any>, 
   fixture.detectChanges();
 }
 
+function expectSharedConfigurationSchemaGet(
+  api: ApiV4,
+  fixture: ComponentFixture<ApiEndpointGroupComponent>,
+  httpTestingController: HttpTestingController,
+  sharedConfigurationSchema: unknown,
+): void {
+  httpTestingController
+    .expectOne({
+      url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints/${api.endpointGroups[0].type}/shared-configuration-schema`,
+      method: 'GET',
+    })
+    .flush(sharedConfigurationSchema);
+  fixture.detectChanges();
+}
+
 /**
  * Expect that a single PUT request has been made which matches the specified URL
  *
@@ -101,18 +116,33 @@ describe('ApiEndpointGroupComponent', () => {
     },
     required: ['dummy'],
   };
+  const SHARED_CONFIGURATION_SCHEMA = {
+    $schema: 'http://json-schema.org/draft-07/schema#',
+    type: 'object',
+    properties: {
+      sharedDummy: {
+        title: 'Shared dummy',
+        type: 'string',
+        description: 'A dummy shared configuration string',
+      },
+    },
+  };
   let fixture: ComponentFixture<ApiEndpointGroupComponent>;
   let httpTestingController: HttpTestingController;
   let componentHarness: ApiEndpointGroupHarness;
   let api: ApiV4;
   let rootLoader: HarnessLoader;
 
-  const initComponent = async (api: ApiV4, routerParams: unknown = { apiId: API_ID, groupIndex: 0 }) => {
+  const initComponent = async (
+    api: ApiV4,
+    routerParams: unknown = { apiId: API_ID, groupIndex: 0 },
+    permissions: string[] = ['api-definition-u', 'api-definition-c', 'api-definition-r'],
+  ) => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, ApiEndpointGroupModule, MatIconTestingModule, FormsModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: routerParams } } },
-        { provide: GioTestingPermissionProvider, useValue: ['api-definition-u', 'api-definition-c', 'api-definition-r'] },
+        { provide: GioTestingPermissionProvider, useValue: permissions },
         { provide: SnackBarService, useValue: SnackBarService },
       ],
     }).overrideProvider(InteractivityChecker, {
@@ -136,6 +166,40 @@ describe('ApiEndpointGroupComponent', () => {
   afterEach(() => {
     jest.clearAllMocks();
     httpTestingController.verify();
+  });
+
+  describe('read-only mode', () => {
+    it('should disable endpoint group configuration if user can only read', async () => {
+      api = fakeProxyApiV4({
+        id: API_ID,
+        endpointGroups: [
+          fakeHTTPProxyEndpointGroupV4({
+            services: {
+              healthCheck: {
+                enabled: true,
+                overrideConfiguration: false,
+                type: 'http-health-check',
+                configuration: { dummy: 'Current health check value' },
+              },
+            },
+          }),
+        ],
+      });
+      await initComponent(api, { apiId: API_ID, groupIndex: 0 }, ['api-definition-r']);
+
+      await componentHarness.clickGeneralTab();
+      expectSharedConfigurationSchemaGet(api, fixture, httpTestingController, SHARED_CONFIGURATION_SCHEMA);
+      expect(await componentHarness.isEndpointGroupNameInputDisabled()).toEqual(true);
+      expect(await componentHarness.isEndpointGroupLoadBalancerSelectorDisabled()).toEqual(true);
+
+      await componentHarness.clickConfigurationTab();
+      expect(await componentHarness.isGroupConfigurationInputDisabled('sharedDummy')).toEqual(true);
+
+      await componentHarness.clickHealthCheckTab();
+      expectHealthCheckSchemaGet(fixture, httpTestingController, HEALTH_CHECK_SCHEMA);
+      expect(await componentHarness.isHealthCheckEnableInputDisabled()).toEqual(true);
+      expect(await componentHarness.isHealthCheckConfigurationInputDisabled('dummy')).toEqual(true);
+    });
   });
 
   describe('endpoint group update - configuration', () => {
