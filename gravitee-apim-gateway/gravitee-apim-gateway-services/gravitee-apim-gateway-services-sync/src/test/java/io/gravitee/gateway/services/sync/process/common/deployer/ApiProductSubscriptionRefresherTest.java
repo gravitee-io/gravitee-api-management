@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -118,6 +119,38 @@ class ApiProductSubscriptionRefresherTest {
             cut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
 
             verify(subscriptionService).register(gatewaySub);
+        }
+
+        /**
+         * Registering a client certificate links BouncyCastle classes lazily, so a mismatched provider on the
+         * classpath surfaces as an Error rather than an Exception. This runs inside a Completable.fromRunnable,
+         * which rethrows Errors instead of routing them to onError, so an uncaught one kills the sync thread and
+         * the node never turns ready. An API Product subscription reaches register() through quietly().
+         */
+        @Test
+        void keeps_going_when_an_item_fails_with_an_error() throws TechnicalException {
+            var repoSub1 = productSubscription(SUB_1, PLAN_1, ENV_1);
+            var repoSub2 = productSubscription("sub-2", PLAN_1, ENV_1);
+            var gatewaySub1 = Subscription.builder().id(SUB_1).api(API_1).plan(PLAN_1).build();
+            var gatewaySub2 = Subscription.builder().id("sub-2").api(API_1).plan(PLAN_1).build();
+            var repoKey = productApiKey(KEY_ID, ENV_1, SUB_1);
+            var gatewayKey = ApiKey.builder().id(KEY_ID).api(API_1).subscription(SUB_1).build();
+            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(repoSub1, repoSub2));
+            when(subscriptionMapper.to(repoSub1)).thenReturn(List.of(gatewaySub1));
+            when(subscriptionMapper.to(repoSub2)).thenReturn(List.of(gatewaySub2));
+            when(apiKeyRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(repoKey));
+            when(apiKeyMapper.to(repoKey, gatewaySub1)).thenReturn(gatewayKey);
+            doThrow(new NoSuchFieldError("BCObjectIdentifiers.sphincsPlus_sha2_128s_r3")).when(subscriptionService).register(gatewaySub1);
+            // BouncyCastle FIPS raises FipsUnapprovedOperationError, an AssertionError, which a LinkageError
+            // guard would let through. The API key branch of quietly() is otherwise never driven with an Error.
+            doThrow(new AssertionError("attempt to use unapproved algorithm")).when(apiKeyService).register(gatewayKey);
+
+            cut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
+
+            // The failing item costs itself and nothing else: the page keeps going.
+            verify(subscriptionService).register(gatewaySub1);
+            verify(subscriptionService).register(gatewaySub2);
+            verify(apiKeyService).register(gatewayKey);
         }
 
         @Test
@@ -242,6 +275,40 @@ class ApiProductSubscriptionRefresherTest {
             // Both caches index product subscriptions by product: no lookup needed to find them back
             verify(subscriptionRepository, never()).searchAfter(any(), any(), any(), any(int.class));
             verify(apiKeyRepository, never()).searchAfter(any(), any(), any(), any(int.class));
+        }
+
+        /**
+         * The eviction runs through {@code SyncIsolation.translateErrors}. Evicting a product subscription
+         * rebuilds the merged trust store, which is the mixed-BouncyCastle path, so the failure arrives as
+         * an Error. {@code ApiProductDeployer#undeploy} only catches Exception: left as an Error it would
+         * kill the sync thread, and swallowed it would let the undeploy report success and mark the product
+         * gone while its subscription certificates are still loaded. Translating is what keeps the caller
+         * stopping. The API key eviction must not run either — the product is not gone.
+         */
+        @Test
+        void translates_an_error_into_a_sync_exception_and_stops() {
+            var linkageError = new NoSuchFieldError("BCObjectIdentifiers.sphincsPlus_sha2_128s_r3");
+            doThrow(linkageError).when(subscriptionService).unregisterByApiProductId(PRODUCT_1);
+
+            var thrown = catchThrowable(() -> cut.unregisterByApiProduct(PRODUCT_1).blockingAwait());
+
+            assertThat(thrown).isInstanceOf(SyncException.class).hasMessageContaining(PRODUCT_1).hasCause(linkageError);
+            verify(apiKeyService, never()).unregisterByApiProductId(any());
+        }
+
+        /**
+         * Exceptions keep propagating in the shape the caller already handles: it wraps them into its own
+         * SyncException, so translating here too would only nest the message.
+         */
+        @Test
+        void lets_an_exception_propagate_untouched() {
+            var failure = new IllegalStateException("subscription cache unavailable");
+            doThrow(failure).when(subscriptionService).unregisterByApiProductId(PRODUCT_1);
+
+            var thrown = catchThrowable(() -> cut.unregisterByApiProduct(PRODUCT_1).blockingAwait());
+
+            assertThat(thrown).isSameAs(failure);
+            verify(apiKeyService, never()).unregisterByApiProductId(any());
         }
     }
 
