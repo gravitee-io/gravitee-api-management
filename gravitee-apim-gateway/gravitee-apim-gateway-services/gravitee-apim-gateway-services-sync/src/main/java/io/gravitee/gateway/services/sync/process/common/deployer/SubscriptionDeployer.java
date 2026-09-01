@@ -68,25 +68,30 @@ public class SubscriptionDeployer implements Deployer<SubscriptionDeployable> {
                     .subscriptions()
                     .stream()
                     .filter(subscription -> deployable.subscribablePlans().contains(subscription.getPlan()))
-                    .forEach(subscription -> {
-                        try {
-                            if (Subscription.Type.PUSH == subscription.getType()) {
-                                // Keyed by scope, not by API: a product subscription carries no API
-                                // of its own, and doAfterDeployment drains the same key.
-                                dispatchableSubscription.compute(SubscriptionScope.of(subscription), (scope, subscriptions) -> {
-                                    if (subscriptions == null) {
-                                        subscriptions = new ArrayList<>();
-                                    }
-                                    subscriptions.add(subscription);
-                                    return subscriptions;
-                                });
-                            }
-                            subscriptionService.register(subscription);
-                            log.debug("Subscription [{}] deployed for api [{}] ", subscription.getId(), subscription.getApi());
-                        } catch (Exception e) {
-                            log.warn("An error occurred when trying to deploy subscription [{}].", subscription.getId(), e);
-                        }
-                    });
+                    .forEach(subscription ->
+                        SyncIsolation.isolate(
+                            () -> "deploy subscription [%s]".formatted(subscription.getId()),
+                            () -> {
+                                subscriptionService.register(subscription);
+                                // Queued only once registration succeeded: a subscription that is dispatched while
+                                // absent from the cache, with no trust store loader behind it, is worse than one
+                                // that is simply not dispatched.
+                                if (Subscription.Type.PUSH == subscription.getType()) {
+                                    // Keyed by scope, not by API: a product subscription carries no API
+                                    // of its own, and doAfterDeployment drains the same key.
+                                    dispatchableSubscription.compute(SubscriptionScope.of(subscription), (scope, subscriptions) -> {
+                                        if (subscriptions == null) {
+                                            subscriptions = new ArrayList<>();
+                                        }
+                                        subscriptions.add(subscription);
+                                        return subscriptions;
+                                    });
+                                }
+                                log.debug("Subscription [{}] deployed for api [{}] ", subscription.getId(), subscription.getApi());
+                            },
+                            t -> log.warn("An error occurred when trying to deploy subscription [{}].", subscription.getId(), t)
+                        )
+                    );
             }
         });
     }
@@ -130,26 +135,29 @@ public class SubscriptionDeployer implements Deployer<SubscriptionDeployable> {
     }
 
     private Completable undeployForApi(final ApiReactorDeployable apiReactorDeployable) {
-        try {
-            subscriptionService.unregisterByApiId(apiReactorDeployable.apiId());
-            log.debug("Subscriptions undeployed for api [{}] ", apiReactorDeployable.apiId());
-        } catch (Exception e) {
-            log.warn("An error occurred when trying to undeploy subscriptions from api [{}].", apiReactorDeployable.apiId(), e);
-        }
+        SyncIsolation.isolate(
+            () -> "undeploy subscriptions of api [%s]".formatted(apiReactorDeployable.apiId()),
+            () -> {
+                subscriptionService.unregisterByApiId(apiReactorDeployable.apiId());
+                log.debug("Subscriptions undeployed for api [{}] ", apiReactorDeployable.apiId());
+            },
+            t -> log.warn("An error occurred when trying to undeploy subscriptions from api [{}].", apiReactorDeployable.apiId(), t)
+        );
         return Completable.complete();
     }
 
     private Completable undeploySingleSubscription(final SingleSubscriptionDeployable subscriptionDeployable) {
-        try {
-            Subscription subscription = subscriptionDeployable.subscription();
-            subscriptionService.unregister(subscription);
-            log.debug("Subscription [{}] undeployed for api [{}] ", subscriptionDeployable.id(), subscriptionDeployable.apiId());
-
-            if (Subscription.Type.PUSH == subscription.getType()) {
-                return dispatchSubscription(subscription);
-            }
-        } catch (Exception e) {
-            log.warn("An error occurred when trying to undeploy subscriptions [{}].", subscriptionDeployable.id(), e);
+        final Subscription subscription = subscriptionDeployable.subscription();
+        final boolean unregistered = SyncIsolation.isolate(
+            () -> "undeploy subscription [%s]".formatted(subscriptionDeployable.id()),
+            () -> {
+                subscriptionService.unregister(subscription);
+                log.debug("Subscription [{}] undeployed for api [{}] ", subscriptionDeployable.id(), subscriptionDeployable.apiId());
+            },
+            t -> log.warn("An error occurred when trying to undeploy subscriptions [{}].", subscriptionDeployable.id(), t)
+        );
+        if (unregistered && Subscription.Type.PUSH == subscription.getType()) {
+            return dispatchSubscription(subscription);
         }
         return Completable.complete();
     }
