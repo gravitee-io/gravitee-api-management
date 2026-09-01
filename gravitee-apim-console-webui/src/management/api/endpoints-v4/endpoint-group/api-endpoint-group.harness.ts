@@ -15,6 +15,7 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 import { MatTabHarness } from '@angular/material/tabs/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
@@ -30,6 +31,7 @@ export class ApiEndpointGroupHarness extends ComponentHarness {
   private getConfigurationTab = this.locatorFor(MatTabHarness.with({ label: 'Configuration' }));
   private getHealthCheckTab = this.locatorFor(MatTabHarness.with({ label: 'Health-check' }));
   private getEndpointGroupGeneralHarness = this.locatorFor(ApiEndpointGroupGeneralHarness);
+  private getGroupConfigurationInput = (id: string) => this.locatorFor(MatInputHarness.with({ selector: `[id*="${id}"]` }))();
   private getHealthCheckGeneralHarness = this.locatorFor(ApiHealthCheckV4FormHarness);
   private getEndpointGroupSubmissionBar = this.locatorFor(GioSaveBarHarness);
 
@@ -41,8 +43,16 @@ export class ApiEndpointGroupHarness extends ComponentHarness {
     return this.getGeneralTab().then(tab => tab.select());
   }
 
+  public async clickConfigurationTab() {
+    return this.getConfigurationTab().then(tab => tab.select());
+  }
+
   public async readEndpointGroupNameInput() {
     return this.getEndpointGroupGeneralHarness().then(harness => harness.getNameValue());
+  }
+
+  public async isEndpointGroupNameInputDisabled(): Promise<boolean> {
+    return this.getEndpointGroupGeneralHarness().then(harness => harness.isNameDisabled());
   }
 
   public writeToEndpointGroupNameInput(inputValue) {
@@ -58,6 +68,14 @@ export class ApiEndpointGroupHarness extends ComponentHarness {
 
   public async readEndpointGroupLoadBalancerSelector() {
     return this.getEndpointGroupGeneralHarness().then(harness => harness.getLoadBalancerValue());
+  }
+
+  public async isEndpointGroupLoadBalancerSelectorDisabled(): Promise<boolean> {
+    return this.getEndpointGroupGeneralHarness().then(harness => harness.isLoadBalancerDisabled());
+  }
+
+  public async isGroupConfigurationInputDisabled(inputId: string): Promise<boolean> {
+    return this.getGroupConfigurationInput(inputId).then(input => input.isDisabled());
   }
 
   public async writeToEndpointGroupLoadBalancerSelector(selectorValue) {
@@ -82,6 +100,10 @@ export class ApiEndpointGroupHarness extends ComponentHarness {
 
   public async toggleEnableHealthCheckInput() {
     return this.getHealthCheckGeneralHarness().then(harness => harness.toggleEnableInput());
+  }
+
+  public async isHealthCheckEnableInputDisabled(): Promise<boolean> {
+    return this.getHealthCheckGeneralHarness().then(harness => harness.isEnableToggleDisabled());
   }
 
   public async isHealthCheckConfigurationInputDisabled(inputId: string): Promise<boolean> {

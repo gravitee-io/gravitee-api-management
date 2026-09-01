@@ -122,7 +122,9 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-r']) || api.definitionContext?.origin === 'KUBERNETES';
+    const isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
+    const canUpdate = this.permissionService.hasAnyMatching(['api-definition-u']);
+    this.isReadOnly = isKubernetesOrigin || !canUpdate;
 
     this.generalForm = new UntypedFormGroup({
       name: new UntypedFormControl(
@@ -173,7 +175,7 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
       this.healthCheckForm.controls.enabled.valueChanges
         .pipe(startWith(this.healthCheckForm.controls.enabled.value), takeUntil(this.unsubscribe$))
         .subscribe(enabled => {
-          if (enabled) {
+          if (enabled && !this.isReadOnly) {
             this.healthCheckForm.controls.configuration.enable({ emitEvent: false });
           } else {
             this.healthCheckForm.controls.configuration.disable({ emitEvent: false });

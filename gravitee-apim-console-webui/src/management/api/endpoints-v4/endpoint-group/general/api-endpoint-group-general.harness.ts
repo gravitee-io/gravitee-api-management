@@ -27,12 +27,20 @@ export class ApiEndpointGroupGeneralHarness extends ComponentHarness {
     return this.getEndpointGroupNameInput().then(input => input.getValue());
   }
 
+  public async isNameDisabled(): Promise<boolean> {
+    return this.getEndpointGroupNameInput().then(input => input.isDisabled());
+  }
+
   public setNameValue(inputValue: string): Promise<void> {
     return this.getEndpointGroupNameInput().then(input => input.setValue(inputValue));
   }
 
   public async getLoadBalancerValue(): Promise<string> {
     return this.getEndpointGroupLoadBalancerSelector().then(selector => selector.getValueText());
+  }
+
+  public async isLoadBalancerDisabled(): Promise<boolean> {
+    return this.getEndpointGroupLoadBalancerSelector().then(selector => selector.isDisabled());
   }
 
   public async setLoadBalancerValue(selectorValue: string): Promise<void> {

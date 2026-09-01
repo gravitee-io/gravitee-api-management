@@ -28,6 +28,7 @@ export class ApiEndpointGroupsStandardHarness extends ComponentHarness {
   private getEditEndpointButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Edit endpoint"]' }));
   private getViewEndpointButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="View endpoint"]' }));
   private getEditEndpointGroupButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Edit endpoint group"]' }));
+  private getViewEndpointGroupButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="View endpoint group"]' }));
   private getAddEndpointGroupButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Add endpoint group"]' }));
   public getWarningFailoverBanner = this.locatorForAll(DivHarness.with({ selector: '.banner__wrapper__title' }));
 
@@ -113,6 +114,15 @@ export class ApiEndpointGroupsStandardHarness extends ComponentHarness {
   public async clickEditEndpointGroup(index: number) {
     const button = await this.getEditEndpointGroupButtons();
     return button[index].click();
+  }
+
+  public async isViewEndpointGroupButtonVisible(): Promise<boolean> {
+    return this.getViewEndpointGroupButtons().then(buttons => buttons.length > 0);
+  }
+
+  public async clickViewEndpointGroup(index: number): Promise<void> {
+    const buttons = await this.getViewEndpointGroupButtons();
+    return buttons[index].click();
   }
 
   public async isAddEndpointGroupDisplayed(): Promise<boolean> {

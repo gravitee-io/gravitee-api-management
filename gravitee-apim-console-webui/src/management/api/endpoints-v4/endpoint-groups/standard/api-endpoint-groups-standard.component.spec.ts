@@ -21,7 +21,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { deepClone } from '@gravitee/ui-components/src/lib/utils';
 import { cloneDeep } from 'lodash';
 
@@ -498,12 +498,21 @@ describe('ApiEndpointGroupsStandardComponent', () => {
   });
 
   describe('read-only mode', () => {
-    it('should not allow deleting, adding or editing endpoints if user can only read', async () => {
+    it('should allow viewing endpoint groups and endpoints without allowing updates if user can only read', async () => {
       const apiV4 = fakeApiV4({
         id: API_ID,
         endpointGroups: [group1, group2],
       });
       await initComponent(apiV4, ['api-definition-r']);
+
+      expect(await componentHarness.isEndpointGroupDeleteButtonVisible()).toEqual(false);
+      expect(await componentHarness.isAddEndpointGroupDisplayed()).toEqual(false);
+      expect(await componentHarness.isEditEndpointGroupNameFieldAvailable(0)).toEqual(false);
+      expect(await componentHarness.isViewEndpointGroupButtonVisible()).toEqual(true);
+
+      const navigateByUrl = jest.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+      await componentHarness.clickViewEndpointGroup(0);
+      expect(navigateByUrl).toHaveBeenCalled();
 
       expect(await componentHarness.isEndpointDeleteButtonVisible()).toEqual(false);
       expect(await componentHarness.isAddEndpointButtonVisible()).toEqual(false);
