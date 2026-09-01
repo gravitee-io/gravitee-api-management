@@ -25,6 +25,7 @@ import io.gravitee.reporter.api.v4.metric.MessageMetrics;
 import io.gravitee.reporter.api.v4.metric.event.ApiEventMetrics;
 import io.gravitee.reporter.api.v4.metric.event.ApplicationEventMetrics;
 import io.gravitee.reporter.api.v4.metric.event.AuthzEventMetrics;
+import io.gravitee.reporter.api.v4.metric.event.DecisionEventMetrics;
 import io.gravitee.reporter.api.v4.metric.event.OperationEventMetrics;
 import io.gravitee.reporter.api.v4.metric.event.TopicEventMetrics;
 
@@ -45,7 +46,8 @@ public enum MetricsType {
     TOPIC_EVENT_METRICS("topic-event-metrics", TopicEventMetrics.class),
     APPLICATION_EVENT_METRICS("application-event-metrics", ApplicationEventMetrics.class),
     API_EVENT_METRICS("api-event-metrics", ApiEventMetrics.class),
-    AUTHZ_EVENT_METRICS("authz-event-metrics", AuthzEventMetrics.class);
+    AUTHZ_EVENT_METRICS("authz-event-metrics", AuthzEventMetrics.class),
+    DECISION_EVENT_METRICS("decision-event-metrics", DecisionEventMetrics.class);
 
     private final String type;
     private final Class<? extends Reportable> clazz;
