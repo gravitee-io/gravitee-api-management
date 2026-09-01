@@ -130,6 +130,7 @@ class IndexPreparerIntegrationTest {
             // Without a policy the lifecycle block never renders, so nothing would prove the cluster accepts it.
             configuration.setIndexLifecyclePolicyEventMetrics("policy-event-metrics");
             configuration.setIndexLifecyclePolicyAuthzDecisions("policy-authz-decisions");
+            configuration.setIndexLifecyclePolicyDecisions("policy-decisions");
             return configuration;
         }
 
