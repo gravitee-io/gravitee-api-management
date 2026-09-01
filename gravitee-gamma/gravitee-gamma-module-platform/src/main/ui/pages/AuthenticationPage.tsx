@@ -73,6 +73,7 @@ export function AuthenticationPage() {
     const isForbidden = isForbiddenApiError(providersQuery.isError, providersQuery.error);
     useForbiddenResourceRedirect({
         isForbidden,
+        navItemKey: 'authentication',
         permissionPrefix: 'organization-identity_provider-',
         redirectTo: '../applications',
     });

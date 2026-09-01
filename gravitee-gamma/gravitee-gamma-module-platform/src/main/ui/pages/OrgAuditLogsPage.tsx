@@ -51,6 +51,7 @@ export function OrgAuditLogsPage() {
     const isForbidden = isForbiddenApiError(Boolean(logsQuery.isError), logsQuery.error);
     useForbiddenResourceRedirect({
         isForbidden,
+        navItemKey: 'organization-audit',
         permissionPrefix: 'organization-audit-',
         redirectTo: '../applications',
     });
@@ -61,7 +62,8 @@ export function OrgAuditLogsPage() {
     );
 
     if (!hasLicense) {
-        return <AuditTrailLicenseDialog open onOpenChange={open => !open && navigate('../applications')} />;
+        // The module index, not a fixed page: Applications is permission-guarded and can bounce back here.
+        return <AuditTrailLicenseDialog open onOpenChange={open => !open && navigate('..')} />;
     }
 
     if (isForbidden) {

@@ -48,7 +48,12 @@ export function DictionariesPage() {
     const deleteMutation = useDeleteDictionary();
 
     const isForbidden = isForbiddenApiError(isError, error);
-    useForbiddenResourceRedirect({ isForbidden, permissionPrefix: 'environment-dictionary-', redirectTo: '../applications' });
+    useForbiddenResourceRedirect({
+        isForbidden,
+        navItemKey: 'dictionaries',
+        permissionPrefix: 'environment-dictionary-',
+        redirectTo: '../applications',
+    });
 
     const [sheet, setSheet] = useState<SheetState>({ type: 'closed' });
     const editDictionaryId = sheet.type === 'edit' ? sheet.dictionaryId : undefined;

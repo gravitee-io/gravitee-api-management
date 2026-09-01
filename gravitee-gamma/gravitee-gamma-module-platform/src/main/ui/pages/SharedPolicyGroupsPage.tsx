@@ -104,6 +104,7 @@ export function SharedPolicyGroupsPage() {
     const isForbidden = isForbiddenApiError(isError, error);
     useForbiddenResourceRedirect({
         isForbidden,
+        navItemKey: 'shared-policy-groups',
         permissionPrefix: ENVIRONMENT_SHARED_POLICY_GROUP_PERMISSION_PREFIX,
         redirectTo: '../applications',
     });

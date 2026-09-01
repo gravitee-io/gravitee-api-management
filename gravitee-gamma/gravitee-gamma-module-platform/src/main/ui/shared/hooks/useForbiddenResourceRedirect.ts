@@ -19,6 +19,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { markNavItemDenied } from '../nav/deniedNavItems';
 import { environmentPermissionKeys } from '../utils/queryKeys';
 
 // A live 403 overrides the cached environment-permissions map, which can otherwise still say access is granted.
@@ -27,10 +28,12 @@ import { environmentPermissionKeys } from '../utils/queryKeys';
 // re-arming the same allow -> 403 -> redirect loop on the next visit.
 export function useForbiddenResourceRedirect({
     isForbidden,
+    navItemKey,
     permissionPrefix,
     redirectTo,
 }: {
     isForbidden: boolean;
+    navItemKey: string;
     permissionPrefix: string | readonly string[];
     redirectTo: string;
 }): void {
@@ -42,6 +45,9 @@ export function useForbiddenResourceRedirect({
 
     useEffect(() => {
         if (!isForbidden) return;
+        // Hides the item and moves the landing key off it. The strip below cannot do that on its own:
+        // it only rewrites the environment scope, so an organization-scoped grant survives it.
+        markNavItemDenied(navItemKey);
         // An empty prefix would match every permission via startsWith, so an empty list strips nothing.
         const prefixesToStrip = prefixKey === '' ? [] : prefixKey.split('\0');
         if (env?.id) {
@@ -57,5 +63,5 @@ export function useForbiddenResourceRedirect({
             }
         }
         navigate(redirectTo, { replace: true });
-    }, [isForbidden, prefixKey, redirectTo, env?.id, queryClient, navigate]);
+    }, [isForbidden, navItemKey, prefixKey, redirectTo, env?.id, queryClient, navigate]);
 }

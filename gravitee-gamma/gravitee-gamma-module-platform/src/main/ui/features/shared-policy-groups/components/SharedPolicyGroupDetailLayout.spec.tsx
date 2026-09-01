@@ -185,6 +185,7 @@ describe('SharedPolicyGroupDetailLayout', () => {
 
         expect(mockUseForbiddenResourceRedirect).toHaveBeenCalledWith({
             isForbidden: true,
+            navItemKey: 'shared-policy-groups',
             permissionPrefix: 'environment-shared_policy_group-',
             redirectTo: '../../applications',
         });

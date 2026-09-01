@@ -200,4 +200,16 @@ describe('OrgAuditLogsPage', () => {
         await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('../applications', { replace: true }));
         expect(queryClient.getQueryData(['environment-permissions', 'env-1'])).toEqual(['environment-audit-r']);
     });
+
+    // Applications is permission-guarded, so dismissing onto it can bounce the user back here and make
+    // the dialog undismissable. The module index resolves to whatever the user can actually open.
+    it('dismisses the unlicensed dialog to the module index rather than a guarded page', async () => {
+        mockUseHasFeature.mockReturnValue(false);
+
+        renderPage();
+
+        fireEvent.click(screen.getAllByRole('button', { name: /close/i })[0]);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('..'));
+    });
 });

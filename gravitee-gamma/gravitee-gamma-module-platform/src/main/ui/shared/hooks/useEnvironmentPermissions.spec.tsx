@@ -58,6 +58,12 @@ jest.mock('../services/environmentPermissions', () => ({
     getEnvironmentPermissions: jest.fn(),
 }));
 
+const mockNotifyError = jest.fn();
+
+jest.mock('../notify', () => ({
+    notify: { error: (error: unknown, fallback?: string) => mockNotifyError(error, fallback) },
+}));
+
 const mockUseEnvironment = jest.mocked(useEnvironment);
 const mockGetEnvironmentPermissions = jest.mocked(getEnvironmentPermissions);
 const mockLoad = jest.mocked(permissionService.load);
@@ -86,6 +92,7 @@ describe('useEnvironmentPermissions', () => {
         mockUseEnvironment.mockReturnValue({ id: ENV_ID } as ReturnType<typeof useEnvironment>);
         mockGetEnvironmentPermissions.mockResolvedValue(CURRENT_USER_PERMISSIONS);
         permissionServiceTest.__setGranted([]);
+        mockNotifyError.mockClear();
     });
 
     it('does not treat a previous login cache as ready after the permission service resets', async () => {
@@ -211,6 +218,28 @@ describe('useEnvironmentPermissions', () => {
 
         await waitFor(() => expect(result.current).toBe(true));
         expect(mockLoad).not.toHaveBeenCalled();
+    });
+
+    // An empty menu after a failed fetch otherwise reads as "your role grants nothing", which is the
+    // wrong advice. Classic draws the same line with a toast from its HTTP error interceptor.
+    it('reports a failed permission fetch as an error rather than silently emptying the menu', async () => {
+        const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+        mockGetEnvironmentPermissions.mockRejectedValue(new Error('unavailable'));
+
+        renderHook(() => useEnvironmentPermissions(), { wrapper: wrapperFor(queryClient) });
+
+        await waitFor(() => expect(mockNotifyError).toHaveBeenCalled());
+        expect(mockNotifyError.mock.calls[0]?.[1]).toBe('Your permissions could not be loaded. Some menu items may be missing.');
+    });
+
+    it('does not report an error when the permission fetch succeeds', async () => {
+        const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+        mockGetEnvironmentPermissions.mockResolvedValue(['environment-application-r']);
+
+        renderHook(() => useEnvironmentPermissions(), { wrapper: wrapperFor(queryClient) });
+
+        await waitFor(() => expect(mockLoad).toHaveBeenCalled());
+        expect(mockNotifyError).not.toHaveBeenCalled();
     });
 
     it('stays ready for a later observer without refetching', async () => {

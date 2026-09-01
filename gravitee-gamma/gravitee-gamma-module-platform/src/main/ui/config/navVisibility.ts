@@ -91,6 +91,8 @@ export interface NavVisibilityInput {
     readonly dictionariesForbidden?: boolean;
     /** Items shown but not enterable (missing license). Visible in the sidebar, never a landing target. */
     readonly lockedItemKeys?: readonly string[];
+    /** Items a live 403 denied at runtime, whichever permission scope still grants them. */
+    readonly deniedItemKeys?: ReadonlySet<string>;
 }
 
 export function requiresOrganizationSettingsGate(itemKey: string): boolean {
@@ -124,6 +126,9 @@ export function isNavItemVisible(itemKey: string, visibility: NavVisibilityInput
     }
     const itemPermissions = NAV_ITEM_PERMISSIONS[itemKey];
     if (!itemPermissions) {
+        return false;
+    }
+    if (visibility.deniedItemKeys?.has(itemKey)) {
         return false;
     }
     if (requiresOrganizationSettingsGate(itemKey) && !hasAny(visibility.has, ORGANIZATION_SETTINGS_GATE_PERMISSIONS)) {

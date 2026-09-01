@@ -22,6 +22,7 @@ import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEn
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
 import { ApimApiError } from '../shared/api/apimClient';
 import { useEnvironmentPermissionsReady } from '../shared/hooks/useEnvironmentPermissions';
+import { markNavItemDenied, resetDeniedNavItemsForEnvironment } from '../shared/nav/deniedNavItems';
 
 jest.mock('./PlatformToaster', () => ({
     PlatformToaster: () => <div data-testid="platform-toaster" />,
@@ -49,6 +50,8 @@ const mockPermissionListeners = new Set<() => void>();
 let mockPermissionStoreVersion = 0;
 
 const mockUseEnvironmentPermissionGrant = jest.fn<boolean | undefined, [string[]]>();
+
+let deniedNavItemResetCount = 0;
 
 function emitPermissionChange() {
     mockPermissionStoreVersion += 1;
@@ -79,6 +82,7 @@ jest.mock('../shared/hooks/useEnvironmentPermissions', () => ({
 }));
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
+    useEnvironment: () => ({ id: 'env-1' }),
     useHasPermission: (options: unknown) => mockUseHasPermission(options),
     useHasFeature: (feature: unknown) => mockUseHasFeature(feature),
     permissionService: {
@@ -320,6 +324,8 @@ describe('AppRoutes', () => {
         mockUseEnvironmentPermissionsReady.mockReturnValue(true);
         mockPermissionListeners.clear();
         mockPermissionStoreVersion = 0;
+        // The denial store is module state; a switch to an unused environment id clears it.
+        resetDeniedNavItemsForEnvironment(`reset-${(deniedNavItemResetCount += 1)}`);
         mockUseEnvironmentDictionaries.mockReturnValue({
             data: [],
             isLoading: false,
@@ -706,6 +712,17 @@ describe('AppRoutes', () => {
 
         expect(screen.queryByTestId('alerts-page')).toBeNull();
         expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    // The audit pages answer an unlicensed visit with an upsell dialog whose dismiss leaves the page.
+    // Landing on one makes it undismissable: every exit resolves back to the landing key.
+    it('does not land on an audit page when the Audit Trail is unlicensed', () => {
+        mockUseHasFeature.mockImplementation((feature: string) => feature !== 'apim-audit-trail');
+        grantOnlyPermissions('organization-settings-u', 'organization-audit-r');
+
+        renderPlatform('/');
+
+        expect(screen.queryByTestId('org-audit-logs-page')).toBeNull();
     });
 
     it('hides the Alerts nav item when the user lacks environment-alert-r', () => {
@@ -1178,6 +1195,22 @@ describe('AppRoutes', () => {
 
         expect(screen.queryByTestId('alerts-page')).toBeNull();
         expect(screen.getByTestId('platform-no-access-page')).not.toBeNull();
+    });
+
+    // Tenants is granted by the organization scope, which the 403 strip cannot rewrite. Without the
+    // denial it stays visible and stays the landing key, so the redirect out of it lands back on it.
+    it('drops an org-scoped item from the sidebar and the landing key once a 403 denies it', () => {
+        grantOnlyPermissions('organization-settings-r', 'organization-tenant-r');
+        renderPlatform('/');
+
+        expect(visibleNavKeys()).toContain('tenants');
+        expect(screen.getByTestId('tenants-page')).not.toBeNull();
+
+        act(() => markNavItemDenied('tenants'));
+
+        expect(visibleNavKeys()).not.toContain('tenants');
+        expect(screen.queryByTestId('tenants-page')).toBeNull();
+        expect(screen.getByTestId('management-and-schedulers-page')).not.toBeNull();
     });
 
     it('does not reserve a context sidebar when no Platform menus are visible', () => {

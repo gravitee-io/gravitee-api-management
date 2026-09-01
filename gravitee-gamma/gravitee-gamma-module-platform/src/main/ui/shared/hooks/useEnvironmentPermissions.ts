@@ -17,6 +17,7 @@ import { permissionService, useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
+import { notify } from '../notify';
 import { getEnvironmentPermissions } from '../services/environmentPermissions';
 import { environmentPermissionKeys } from '../utils/queryKeys';
 
@@ -64,7 +65,15 @@ export function useEnvironmentPermissions(): void {
         });
     }, [queryClient]);
 
-    const { data: permissions, isSuccess } = useEnvironmentPermissionsQuery();
+    const { data: permissions, error, isError, isSuccess } = useEnvironmentPermissionsQuery();
+
+    // An unreadable permission map is a server error, not a role decision. Without this the user only
+    // sees a menu filtered down to nothing, which reads as "you were not granted anything" — Classic
+    // draws the same distinction with a toast from its HTTP error interceptor.
+    useEffect(() => {
+        if (!isError) return;
+        notify.error(error, 'Your permissions could not be loaded. Some menu items may be missing.');
+    }, [error, isError]);
 
     useEffect(() => {
         if (!isSuccess || permissions === undefined || permissions === null) return;
