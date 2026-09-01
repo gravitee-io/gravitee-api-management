@@ -18,10 +18,14 @@ package io.gravitee.gateway.reactive.http.vertx;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.http.vertx.ClientCloseClassifier.ClientCloseReason;
 import io.gravitee.reporter.api.v4.metric.Diagnostic;
@@ -213,6 +217,33 @@ class ClientCloseClassifierTest {
 
         assertThat(metrics.getErrorKey()).isNull();
         assertThat(metrics.getFailure().getKey()).isEqualTo("GATEWAY_OAUTH2_ACCESS_DENIED");
+    }
+
+    @Test
+    void should_stash_the_close_cause_for_the_request_span() {
+        // A client abort cancels the chain instead of failing it, so it reaches no doOnError: the dispatcher ends the
+        // root span from this attribute, or reports a success for a stream that never finished.
+        HttpBaseExecutionContext ctx = mockContext();
+        when(ctx.metrics()).thenReturn(Metrics.builder().build());
+        IOException cause = new IOException("Connection reset by peer");
+
+        ClientCloseClassifier.decorate(ctx, cause);
+
+        verify(ctx).putInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_ERROR, cause);
+    }
+
+    @Test
+    void should_not_stash_a_close_cause_for_an_already_completed_request() {
+        // Same guard as the metrics: a close on a kept-alive connection between requests must not turn the span of
+        // the request that already completed on it into a failure.
+        HttpBaseExecutionContext ctx = mockContext();
+        Metrics metrics = Metrics.builder().build();
+        metrics.setRequestEnded(true);
+        when(ctx.metrics()).thenReturn(metrics);
+
+        ClientCloseClassifier.decorate(ctx, new IOException("Connection reset by peer"));
+
+        verify(ctx, never()).putInternalAttribute(eq(InternalContextAttributes.ATTR_INTERNAL_TRACING_ERROR), any());
     }
 
     private static HttpBaseExecutionContext mockContext() {
