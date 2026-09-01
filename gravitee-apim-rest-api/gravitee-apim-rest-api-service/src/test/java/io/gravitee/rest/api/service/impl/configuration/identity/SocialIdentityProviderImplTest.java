@@ -94,6 +94,7 @@ class SocialIdentityProviderImplTest {
     }
 
     @Test
+<<<<<<< HEAD
     void should_leave_the_method_unset_when_the_provider_declares_none() {
         assertThat(findProvider().getTokenEndpointAuthMethod()).isNull();
     }
@@ -123,6 +124,34 @@ class SocialIdentityProviderImplTest {
         assertThat(socialIdentityProvider.findAll(EXECUTION_CONTEXT, ORGANIZATION_TARGET))
             .extracting(SocialIdentityProviderEntity::getId)
             .containsExactly("enabled-idp");
+=======
+    public void find_all_should_include_disabled_idp_for_organization_target() {
+        givenActivatedIdps(ORGANIZATION_TARGET, googleIdp("enabled-idp", "Enabled", true), googleIdp("disabled-idp", "Disabled", false));
+
+        Set<String> ids = socialIdentityProvider
+            .findAll(EXECUTION_CONTEXT, ORGANIZATION_TARGET)
+            .stream()
+            .map(SocialIdentityProviderEntity::getId)
+            .collect(Collectors.toSet());
+
+        assertEquals(Set.of("enabled-idp", "disabled-idp"), ids);
+    }
+
+    @Test
+    public void find_all_should_exclude_idp_not_activated_on_organization_target() {
+        IdentityProviderEntity activated = googleIdp("activated-idp", "Activated", true);
+        IdentityProviderEntity deactivated = googleIdp("deactivated-idp", "Deactivated", true);
+        when(identityProviderActivationService.findAllByTarget(ORGANIZATION_TARGET)).thenReturn(Set.of(activation(activated.getId())));
+        when(identityProviderService.findAll(EXECUTION_CONTEXT)).thenReturn(Set.of(activated, deactivated));
+
+        Set<String> ids = socialIdentityProvider
+            .findAll(EXECUTION_CONTEXT, ORGANIZATION_TARGET)
+            .stream()
+            .map(SocialIdentityProviderEntity::getId)
+            .collect(Collectors.toSet());
+
+        assertEquals(Set.of("activated-idp"), ids);
+>>>>>>> 00d70b0 (fix(idp): scope the identity provider enabled flag back to portal login (#19529))
     }
 
     @Test
@@ -135,7 +164,44 @@ class SocialIdentityProviderImplTest {
     }
 
     @Test
+<<<<<<< HEAD
     void find_all_should_include_enabled_idp_for_organization_target() {
+=======
+    public void find_by_id_should_return_enabled_idp_for_organization_target() {
+        IdentityProviderEntity enabled = googleIdp("enabled-idp", "Enabled", true);
+        givenActivatedIdp(ORGANIZATION_TARGET, enabled);
+
+        SocialIdentityProviderEntity result = socialIdentityProvider.findById("enabled-idp", ORGANIZATION_TARGET);
+
+        assertEquals("enabled-idp", result.getId());
+    }
+
+    @Test
+    public void find_by_id_should_return_disabled_idp_for_organization_target() {
+        givenActivatedIdp(ORGANIZATION_TARGET, googleIdp("disabled-idp", "Disabled", false));
+
+        SocialIdentityProviderEntity result = socialIdentityProvider.findById("disabled-idp", ORGANIZATION_TARGET);
+
+        assertEquals("disabled-idp", result.getId());
+    }
+
+    @Test(expected = IdentityProviderNotFoundException.class)
+    public void find_by_id_should_reject_disabled_idp_for_environment_target() {
+        givenActivatedIdp(ENVIRONMENT_TARGET, googleIdp("disabled-idp", "Disabled", false));
+
+        socialIdentityProvider.findById("disabled-idp", ENVIRONMENT_TARGET);
+    }
+
+    @Test(expected = IdentityProviderNotFoundException.class)
+    public void find_by_id_should_reject_idp_not_activated_on_target() {
+        when(identityProviderActivationService.findAllByTarget(ORGANIZATION_TARGET)).thenReturn(Set.of());
+
+        socialIdentityProvider.findById("missing-idp", ORGANIZATION_TARGET);
+    }
+
+    @Test
+    public void find_all_should_include_enabled_idp_for_organization_target() {
+>>>>>>> 00d70b0 (fix(idp): scope the identity provider enabled flag back to portal login (#19529))
         givenActivatedIdps(ORGANIZATION_TARGET, googleIdp("enabled-idp", "Enabled", true));
 
         assertThat(socialIdentityProvider.findAll(EXECUTION_CONTEXT, ORGANIZATION_TARGET))
