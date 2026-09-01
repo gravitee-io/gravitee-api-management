@@ -17,13 +17,18 @@ package io.gravitee.gateway.reactive.policy.adapter.policy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.el.TemplateContext;
+import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
@@ -39,13 +44,20 @@ import io.gravitee.gateway.reactive.api.context.http.HttpPlainRequest;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainResponse;
 import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
 import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.invocation.InvocationOnMock;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -54,6 +66,16 @@ import org.mockito.ArgumentCaptor;
 class PolicyAdapterTest {
 
     protected static final String MOCK_EXCEPTION_MESSAGE = "Mock exception";
+
+    /**
+     * Best-effort head start given to the next policy before the previous one replays its backup, to reproduce the
+     * production timing where the restore runs on the event loop while the next policy already runs on a worker thread.
+     * With the fix applied this wait always times out: the restore lands before the next policy is even subscribed.
+     */
+    private static final long RESTORE_HEAD_START_MS = 200L;
+
+    /** How long the next policy waits for the restore of the previous one to land before evaluating its template. */
+    private static final long RESTORE_AWAIT_TIMEOUT_MS = 5_000L;
 
     @Test
     public void shouldCompleteInErrorWhenOnMessageRequest() {
@@ -458,6 +480,195 @@ class PolicyAdapterTest {
             .isTrue();
 
         releasePolicy.countDown();
+    }
+
+    @Test
+    void should_restore_context_before_completion_is_propagated_downstream() throws PolicyException {
+        final Policy policy = mock(Policy.class);
+        final HttpPlainExecutionContext ctx = mock(HttpPlainExecutionContext.class);
+        final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
+        final List<String> events = new ArrayList<>();
+
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(policy.isRunnable()).thenReturn(true);
+        mockPolicyExecution(policy);
+        doAnswer(invocation -> {
+            events.add("restore");
+            return null;
+        })
+            .when(adaptedExecutionContext)
+            .restore();
+
+        final PolicyAdapter cut = new PolicyAdapter(policy);
+
+        final TestObserver<Void> obs = cut
+            .onRequest(ctx)
+            .doOnComplete(() -> events.add("downstream"))
+            .test();
+
+        obs.assertComplete();
+        assertThat(events).containsExactly("restore", "downstream");
+    }
+
+    @Test
+    void should_restore_context_before_error_is_propagated_downstream() throws PolicyException {
+        final Policy policy = mock(Policy.class);
+        final HttpPlainExecutionContext ctx = mock(HttpPlainExecutionContext.class);
+        final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
+        final List<String> events = new ArrayList<>();
+
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(policy.isRunnable()).thenReturn(true);
+        doThrow(new PolicyException(MOCK_EXCEPTION_MESSAGE))
+            .when(policy)
+            .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
+        doAnswer(invocation -> {
+            events.add("restore");
+            return null;
+        })
+            .when(adaptedExecutionContext)
+            .restore();
+
+        final PolicyAdapter cut = new PolicyAdapter(policy);
+
+        final TestObserver<Void> obs = cut
+            .onRequest(ctx)
+            .doOnError(t -> events.add("downstream"))
+            .test();
+
+        obs.assertError(e -> e.getCause().getMessage().equals(MOCK_EXCEPTION_MESSAGE));
+        assertThat(events).containsExactly("restore", "downstream");
+    }
+
+    @Test
+    void should_restore_context_when_disposed_before_completion() throws PolicyException {
+        final Policy policy = mock(Policy.class);
+        final HttpPlainExecutionContext ctx = mock(HttpPlainExecutionContext.class);
+        final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
+
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(policy.isRunnable()).thenReturn(true);
+        // The policy never calls the chain back: the request is cancelled (client abort, timeout) while it is in flight.
+        doAnswer(invocation -> null)
+            .when(policy)
+            .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
+
+        final PolicyAdapter cut = new PolicyAdapter(policy);
+
+        final Disposable disposable = cut.onRequest(ctx).subscribe();
+        verify(adaptedExecutionContext, times(0)).restore();
+
+        disposable.dispose();
+
+        verify(adaptedExecutionContext, times(1)).restore();
+    }
+
+    @Test
+    void should_restore_context_only_once_when_disposed_after_completion() throws PolicyException {
+        final Policy policy = mock(Policy.class);
+        final HttpPlainExecutionContext ctx = mock(HttpPlainExecutionContext.class);
+        final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
+
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(policy.isRunnable()).thenReturn(true);
+        mockPolicyExecution(policy);
+
+        final PolicyAdapter cut = new PolicyAdapter(policy);
+
+        final TestObserver<Void> obs = cut.onRequest(ctx).test();
+        obs.assertComplete();
+
+        // A late dispose must not replay the backup a second time: by then it may hold the next policy's variables.
+        obs.dispose();
+
+        verify(adaptedExecutionContext, times(1)).restore();
+    }
+
+    @Test
+    void should_not_restore_context_of_previous_policy_while_next_policy_runs() throws Exception {
+        final String variableName = "group";
+        final String firstGroup = "/v1/hello";
+        final String secondGroup = "hello";
+
+        final Map<String, Object> variables = new ConcurrentHashMap<>();
+        final TemplateContext templateContext = mock(TemplateContext.class);
+        doAnswer(invocation -> {
+            variables.put(invocation.getArgument(0), invocation.getArgument(1));
+            return null;
+        })
+            .when(templateContext)
+            .setVariable(anyString(), any());
+        when(templateContext.lookupVariable(anyString())).thenAnswer(invocation -> variables.get(invocation.getArgument(0)));
+
+        final TemplateEngine templateEngine = mock(TemplateEngine.class);
+        when(templateEngine.getTemplateContext()).thenReturn(templateContext);
+
+        // The adapted context is cached on the execution context, so both policies share the same template context.
+        final AtomicReference<Object> cachedAdaptedContext = new AtomicReference<>();
+        final HttpPlainExecutionContext ctx = mock(HttpPlainExecutionContext.class);
+        when(ctx.getTemplateEngine()).thenReturn(templateEngine);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenAnswer(invocation ->
+            cachedAdaptedContext.get()
+        );
+        final ExecutionContextAdapter adaptedContext = spy(ExecutionContextAdapter.create(ctx));
+        cachedAdaptedContext.set(adaptedContext);
+
+        final CountDownLatch secondPolicyOverrodeGroup = new CountDownLatch(1);
+        final CountDownLatch previousPolicyRestored = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            // Best-effort head start for the second policy; it cannot be asserted because, once fixed, the restore runs
+            // before the second policy is subscribed and this await always times out. The await below carries the test.
+            secondPolicyOverrodeGroup.await(RESTORE_HEAD_START_MS, TimeUnit.MILLISECONDS);
+            invocation.callRealMethod();
+            previousPolicyRestored.countDown();
+            return null;
+        })
+            .when(adaptedContext)
+            .restore();
+
+        final Policy firstPolicy = mock(Policy.class);
+        when(firstPolicy.isRunnable()).thenReturn(true);
+        doAnswer(invocation -> {
+            templateContextOf(invocation).setVariable(variableName, firstGroup);
+            invocation.<PolicyChainAdapter>getArgument(0).doNext(mock(Request.class), mock(Response.class));
+            return null;
+        })
+            .when(firstPolicy)
+            .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
+
+        final AtomicBoolean previousPolicyRestoredBeforeLookup = new AtomicBoolean();
+        final AtomicReference<Object> groupSeenByTheSecondPolicy = new AtomicReference<>();
+        final Policy secondPolicy = mock(Policy.class);
+        when(secondPolicy.isRunnable()).thenReturn(true);
+        doAnswer(invocation -> {
+            final TemplateContext policyContext = templateContextOf(invocation);
+            policyContext.setVariable(variableName, secondGroup);
+            secondPolicyOverrodeGroup.countDown();
+            // Evaluate the template only once a restore of the previous policy could have landed.
+            previousPolicyRestoredBeforeLookup.set(previousPolicyRestored.await(RESTORE_AWAIT_TIMEOUT_MS, TimeUnit.MILLISECONDS));
+            groupSeenByTheSecondPolicy.set(policyContext.lookupVariable(variableName));
+            invocation.<PolicyChainAdapter>getArgument(0).doNext(mock(Request.class), mock(Response.class));
+            return null;
+        })
+            .when(secondPolicy)
+            .execute(any(PolicyChainAdapter.class), any(ExecutionContext.class));
+
+        final PolicyAdapter first = new PolicyAdapter(firstPolicy, Schedulers.io());
+        final PolicyAdapter second = new PolicyAdapter(secondPolicy, Schedulers.io());
+
+        first.onRequest(ctx).andThen(second.onRequest(ctx)).blockingAwait();
+
+        // Without this the test would pass vacuously if the restore never ran at all: nothing would clobber the variable.
+        assertThat(previousPolicyRestoredBeforeLookup)
+            .as("the previous policy must have restored before the template is evaluated")
+            .isTrue();
+        assertThat(groupSeenByTheSecondPolicy.get())
+            .as("the policy must evaluate its template with its own capture group")
+            .isEqualTo(secondGroup);
+    }
+
+    private TemplateContext templateContextOf(InvocationOnMock invocation) {
+        return invocation.<ExecutionContext>getArgument(1).getTemplateEngine().getTemplateContext();
     }
 
     private void mockPolicyExecution(Policy policy) throws PolicyException {
