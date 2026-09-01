@@ -369,6 +369,7 @@
     <system>GitHub Issues</system>
   </issueManagement>
 
+<<<<<<< HEAD
   <repositories>
     <repository>
       <id>sonatype-nexus-snapshots</id>
@@ -381,6 +382,139 @@
       </snapshots>
     </repository>
   </repositories>
+=======
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.mycila</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <configuration>
+                        <properties>
+                            <owner>The Gravitee team</owner>
+                            <email>http://gravitee.io</email>
+                        </properties>
+                        <licenseSets>
+                            <licenseSet>
+                                <header>com/mycila/maven/plugin/license/templates/APACHE-2.txt</header>
+                                <excludes>
+                                    <exclude>LICENSE.txt</exclude>
+                                    <exclude>**/README</exclude>
+                                    <exclude>src/main/packaging/**</exclude>
+                                    <exclude>src/test/resources/**</exclude>
+                                    <exclude>src/main/resources/**</exclude>
+                                    <exclude>src/main/resources-filtered/**</exclude>
+                                    <exclude>src/main/webapp/**</exclude>
+                                    <exclude>integrationApis/**</exclude>
+                                    <exclude>**/dist/**</exclude>
+                                    <exclude>**/.tmp/**</exclude>
+                                    <exclude>**/node_modules/**</exclude>
+                                    <exclude>**/.*</exclude>
+                                    <exclude>**/.*/**</exclude>
+                                    <exclude>**/*.adoc</exclude>
+                                    <exclude>**/LICENSE_TEMPLATE.txt</exclude>
+                                    <exclude>**/sonar-project.properties</exclude>
+                                    <exclude>gravitee-apim-portal-webui/**</exclude>
+                                    <exclude>gravitee-apim-portal-webui-next/**</exclude>
+                                    <exclude>gravitee-apim-console-webui/**</exclude>
+                                    <exclude>gravitee-apim-e2e/**</exclude>
+                                    <exclude>gravitee-apim-perf/**</exclude>
+                                    <exclude>helm/**</exclude>
+                                </excludes>
+                            </licenseSet>
+                        </licenseSets>
+                        <mapping>
+                            <ts>SLASHSTAR_STYLE</ts>
+                            <js>SLASHSTAR_STYLE</js>
+                        </mapping>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <!--
+                        The Central publishing plugin takes over the deploy phase from
+                        maven-deploy-plugin, so maven.deploy.skip never reaches it. excludeArtifacts
+                        is its own filter, and the only one honoured per module by the plugin version
+                        this branch inherits.
+                    -->
+                    <groupId>org.sonatype.central</groupId>
+                    <artifactId>central-publishing-maven-plugin</artifactId>
+                    <configuration>
+                        <excludeArtifacts>
+                            <excludeArtifact>gravitee-apim-definition-coverage</excludeArtifact>
+                            <excludeArtifact>gravitee-apim-gateway-coverage</excludeArtifact>
+                            <excludeArtifact>gravitee-apim-plugin-coverage</excludeArtifact>
+                            <excludeArtifact>gravitee-apim-reporter-coverage</excludeArtifact>
+                            <excludeArtifact>gravitee-apim-repository-coverage</excludeArtifact>
+                            <excludeArtifact>gravitee-apim-rest-api-coverage</excludeArtifact>
+                        </excludeArtifacts>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>com.hubspot.maven.plugins</groupId>
+                <artifactId>prettier-maven-plugin</artifactId>
+                <configuration>
+                    <prettierJavaVersion>${prettier-maven-plugin.prettierJavaVersion}</prettierJavaVersion>
+                    <skip>${skip.validation}</skip>
+                    <inputGlobs>
+                        <inputGlob>src/{main,test}/**/*.java</inputGlob>
+                        <inputGlob>docker/**/docker-compose.yml</inputGlob>
+                    </inputGlobs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>validate</phase>
+                        <configuration>
+                            <skip>${skip.validation}</skip>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>${flatten-maven-plugin.version}</version>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+>>>>>>> 8e89704 (fix(release): exclude coverage aggregates from the Maven Central bundle)
 
   <build>
     <pluginManagement>
