@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.http.vertx;
 
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
+import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.core.context.ComponentScope;
@@ -112,7 +113,8 @@ public final class ClientCloseClassifier {
     }
 
     /**
-     * Decorate the in-flight request {@link Metrics} with a client-close failure, going through
+     * Decorate the in-flight request {@link Metrics} with a client-close failure, and stash the cause for the request
+     * span so the trace and the analytics name the same failure. Goes through
      * {@link DiagnosticReportHelper} — the same path {@code AbstractExecutionContext.interruptWith} uses — so the
      * {@link Diagnostic} written here is <b>component-attributed</b> (the closing {@code ENDPOINT}/{@code SYSTEM}
      * component, via {@link ComponentScope}). No-op when there is no metrics yet, when the request already completed,
@@ -154,6 +156,13 @@ public final class ClientCloseClassifier {
         // Legacy flat fields kept in sync so dashboards reading error-key/error-message still work.
         metrics.setErrorKey(diagnostic.getKey());
         metrics.setErrorMessage(diagnostic.getMessage());
+        if (cause != null) {
+            // A client abort cancels the request chain rather than failing it, so it reaches no doOnError and the
+            // dispatcher would close the root span on the response code alone - a 200 for a stream the client left
+            // mid-flight. Stashing the cause where the dispatcher already looks records it as the exception it was,
+            // with the exception event and error.type an APM breaks errors down by.
+            ctx.putInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_ERROR, cause);
+        }
         ctx.withLogger(log).debug("Classified client close reason as {}", key);
     }
 

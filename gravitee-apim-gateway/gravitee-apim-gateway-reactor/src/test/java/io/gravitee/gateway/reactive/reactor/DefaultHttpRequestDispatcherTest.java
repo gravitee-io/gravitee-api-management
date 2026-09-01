@@ -218,6 +218,7 @@ class DefaultHttpRequestDispatcherTest {
         lenient().when(requestTimeoutConfiguration.getRequestTimeout()).thenReturn(0L);
         lenient().when(requestTimeoutConfiguration.getRequestTimeoutGraceDelay()).thenReturn(10L);
 
+        lenient().when(globalComponentProvider.getComponent(Node.class)).thenReturn(node);
         mockConnectionCreationTimestamp();
 
         spyNoopTracer = spy(new NoOpTracer());
@@ -419,6 +420,25 @@ class DefaultHttpRequestDispatcherTest {
                 .assertError(t -> MOCK_ERROR_MESSAGE.equals(t.getMessage()));
             verify(spyNoopTracer).startRootSpanFrom(any(), any());
             verify(spyNoopTracer, timeout(1000)).endWithResponseAndError(any(), any(), any(), any(Throwable.class));
+        }
+
+        @Test
+        void shouldEndTracingSpanInErrorWhenTheClientAbortedTheResponseStream() {
+            // The write failure is swallowed by VertxHttpServerResponse, so the dispatch completes normally and the
+            // span would otherwise be closed on the response code alone - a 200 for a stream that never finished.
+            final IOException clientClose = new IOException("Connection reset by peer");
+            when(apiReactor.handle(any(MutableExecutionContext.class))).thenAnswer(invocation -> {
+                MutableExecutionContext ctx = invocation.getArgument(0);
+                ctx.metrics(Metrics.builder().build());
+                ClientCloseClassifier.decorate(ctx, clientClose);
+                return Completable.complete();
+            });
+
+            cut.dispatch(rxRequest, SERVER_ID).test().assertComplete();
+
+            ArgumentCaptor<Throwable> endedWith = ArgumentCaptor.forClass(Throwable.class);
+            verify(spyNoopTracer, timeout(1000)).endWithResponseAndError(any(), any(), any(), endedWith.capture());
+            assertThat(endedWith.getValue()).isSameAs(clientClose);
         }
     }
 
