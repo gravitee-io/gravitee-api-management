@@ -510,8 +510,8 @@ cloud:
 
 cluster:
   plugins:
-    - https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-9.7.0.zip
-    - https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-9.7.0.zip
+    - https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-9.8.0.zip
+    - https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-9.8.0.zip
 
 api:
   enabled: true
@@ -1373,6 +1373,9 @@ gateway:
 #      alpn: false
 #      ssl:
 #        clientAuth: none # Supports none, request, required
+#        # Not sent by default. See gateway.ssl.sendClientCertificateAuthorities for what enabling it implies:
+#        # a non-empty list is a constraint, and certificates registered by mTLS plan subscriptions are never sent.
+#        sendClientCertificateAuthorities: false
 #        tlsProtocols: TLSv1.2, TLSv1.3
 #        tlsCiphers: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
 #        keystore:
@@ -1548,6 +1551,9 @@ gateway:
 #      # Forced to `true` when routingMode is `host`
 #      sni: true
 #      clientAuth: none # Supports none, request, required
+#      # Not sent by default. See gateway.ssl.sendClientCertificateAuthorities for what enabling it implies:
+#      # a non-empty list is a constraint, and certificates registered by mTLS plan subscriptions are never sent.
+#      sendClientCertificateAuthorities: false
 #      tlsProtocols: TLSv1.2, TLSv1.3
 #      tlsCiphers: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
 #      keystore:
@@ -1777,6 +1783,14 @@ gateway:
   #    type: jks # Supports jks, pem, pkcs12
   #    path: ${gravitee.home}/security/truststore.jks
   #    password: secret
+  #  # Send the configured truststore to clients as the list of acceptable certificate authorities, so a client
+  #  # holding several certificates can pick the right one. Disabled by default: the list reaches every client of
+  #  # the listener, and an empty list means "no constraint" so clients keep presenting their certificate.
+  #  # Only enable it when every expected client certificate is issued by an authority of the truststore above:
+  #  # a client whose issuer is absent from a non-empty list withholds its certificate entirely. Certificates
+  #  # registered at runtime by mTLS plan subscriptions are never sent, so enabling this cuts off every
+  #  # subscription whose certificate is not issued by an authority of the configured truststore.
+  #  sendClientCertificateAuthorities: false
   #  sni: true
   replicaCount: 1
   # One comma-separated sharding tag set per gateway Helm release (e.g. external, internal, aog).
