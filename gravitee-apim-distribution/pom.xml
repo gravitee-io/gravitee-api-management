@@ -33,7 +33,116 @@
 
     <name>Gravitee.io APIM - Distribution</name>
 
+<<<<<<< HEAD
     <!-- INSTRUCTIONS -->
+=======
+    <properties>
+        <!--
+            The distribution carries its own CI-friendly version properties: gravitee-parent does not
+            define them, and this reactor now sets its own version. Kept in step with the engine for
+            now — the two release together — which is what makes a later split of the two cadences a
+            change of these three lines rather than a restructuring.
+        -->
+        <revision>4.13.0</revision>
+        <sha1 />
+        <changelist>-SNAPSHOT</changelist>
+
+        <!--
+            The APIM engine this distribution assembles: a released version, so the distribution can
+            be built and released on its own — a plugin bump needs no engine release.
+
+            Advancing it is the deliberate act of shipping a new engine, reviewed like any other
+            change. Bump it when a new engine version is released.
+
+            Development and pull-request builds do not use this value: they activate the
+            engine-snapshot profile below to assemble the engine currently being worked on. Building
+            without that profile assembles the released engine, which is what a release does and
+            almost never what you want locally — the Taskfile handles it for you.
+        -->
+        <apim.server.version>4.12.14</apim.server.version>
+
+        <!--
+            Versions shared with the engine. They are declared here as well because the distribution
+            uses them directly and must keep resolving them once it no longer inherits the root pom.
+            Copies on purpose, not moves: the engine still needs its own. Keep them aligned when
+            bumping either side.
+        -->
+        <gravitee-connector-http.version>6.0.0</gravitee-connector-http.version>
+        <gravitee-node.version>9.4.1</gravitee-node.version>
+        <grpc-java.version>1.65.0</grpc-java.version>
+        <jna.version>5.16.0</jna.version>
+        <mariadb-java-client.version>3.5.6</mariadb-java-client.version>
+        <mongo.version>5.3.1</mongo.version>
+        <mssql-jdbc.version>12.10.2.jre11</mssql-jdbc.version>
+        <postgresql.version>42.7.11</postgresql.version>
+        <protobuf-java.version>3.25.5</protobuf-java.version>
+        <vertx.version>5.0.12</vertx.version>
+
+        <!--
+            Assembly poms are not published. They were deployed because the distribution happened to
+            sit in the product reactor, not because anyone consumes them. Previously published
+            versions stay where they are; this only stops new ones from appearing. Stated explicitly
+            so it reads as a decision rather than a side effect of leaving the reactor, and so a
+            future release job cannot publish them by accident.
+
+            es-index-mappings opts back in: it is the one module here that produces a real artifact.
+        -->
+        <maven.deploy.skip>true</maven.deploy.skip>
+
+        <!-- Build plugins the distribution drives itself -->
+        <maven-dependency-plugin.version>3.8.1</maven-dependency-plugin.version>
+        <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
+        <maven-clean-plugin.version>3.2.0</maven-clean-plugin.version>
+        <flatten-maven-plugin.version>1.7.2</flatten-maven-plugin.version>
+
+        <!-- ===== Bundled plugin version catalog (moved from the root pom) ===== -->
+        <!-- This is the plugin contract: bumping a bundled plugin = editing one line here. -->
+    <gravitee-alert-engine-connectors-ws.version>3.0.0</gravitee-alert-engine-connectors-ws.version>
+    <gravitee-policy-apikey.version>6.0.2</gravitee-policy-apikey.version>
+    <gravitee-policy-assign-attributes.version>3.2.0</gravitee-policy-assign-attributes.version>
+    <gravitee-policy-assign-content.version>3.1.1</gravitee-policy-assign-content.version>
+    <gravitee-policy-assign-metrics.version>5.0.0</gravitee-policy-assign-metrics.version>
+    <gravitee-policy-basic-authentication.version>1.6.0</gravitee-policy-basic-authentication.version>
+    <gravitee-policy-cache.version>4.0.0</gravitee-policy-cache.version>
+    <gravitee-policy-callout-http.version>7.0.0</gravitee-policy-callout-http.version>
+    <gravitee-policy-circuit-breaker.version>2.1.0</gravitee-policy-circuit-breaker.version>
+    <gravitee-policy-custom-query-parameters.version>2.0.0</gravitee-policy-custom-query-parameters.version>
+    <gravitee-policy-cloud-events.version>1.1.0</gravitee-policy-cloud-events.version>
+    <gravitee-policy-data-cache.version>2.0.0</gravitee-policy-data-cache.version>
+    <gravitee-policy-data-logging-masking.version>3.1.3</gravitee-policy-data-logging-masking.version>
+    <gravitee-policy-dynamic-routing.version>2.1.0</gravitee-policy-dynamic-routing.version>
+    <gravitee-policy-generate-http-signature.version>1.5.1</gravitee-policy-generate-http-signature.version>
+    <gravitee-policy-generate-jwt.version>1.9.0-alpha.3</gravitee-policy-generate-jwt.version>
+    <gravitee-policy-generate-wssecurity.version>1.0.0</gravitee-policy-generate-wssecurity.version>
+    <gravitee-policy-geoip-filtering.version>2.2.2</gravitee-policy-geoip-filtering.version>
+    <gravitee-policy-groovy.version>5.1.0</gravitee-policy-groovy.version>
+    <gravitee-policy-html-json.version>1.6.3</gravitee-policy-html-json.version>
+    <gravitee-policy-http-signature.version>1.7.0</gravitee-policy-http-signature.version>
+    <gravitee-policy-interrupt.version>2.2.1</gravitee-policy-interrupt.version>
+    <gravitee-policy-ipfiltering.version>3.0.1</gravitee-policy-ipfiltering.version>
+    <gravitee-policy-js.version>1.2.0</gravitee-policy-js.version>
+    <gravitee-policy-json-threat-protection.version>2.1.0</gravitee-policy-json-threat-protection.version>
+    <gravitee-policy-json-to-json.version>3.1.0</gravitee-policy-json-to-json.version>
+    <gravitee-policy-json-to-toon.version>1.0.2</gravitee-policy-json-to-toon.version>
+    <gravitee-policy-json-validation.version>3.0.0</gravitee-policy-json-validation.version>
+    <gravitee-policy-json-xml.version>3.0.3</gravitee-policy-json-xml.version>
+    <gravitee-policy-jws.version>2.0.0</gravitee-policy-jws.version>
+    <gravitee-policy-jwt.version>8.1.0</gravitee-policy-jwt.version>
+    <gravitee-policy-keyless.version>4.0.0</gravitee-policy-keyless.version>
+    <gravitee-policy-latency.version>2.0.1</gravitee-policy-latency.version>
+    <gravitee-policy-metrics-reporter.version>3.0.1</gravitee-policy-metrics-reporter.version>
+    <gravitee-policy-message-filtering.version>1.1.4</gravitee-policy-message-filtering.version>
+    <gravitee-policy-mock.version>1.15.0</gravitee-policy-mock.version>
+    <gravitee-policy-mtls.version>3.0.0</gravitee-policy-mtls.version>
+    <gravitee-policy-oauth2.version>5.3.0</gravitee-policy-oauth2.version>
+    <gravitee-policy-oas-validation.version>2.0.2</gravitee-policy-oas-validation.version>
+    <gravitee-policy-openid-connect-userinfo.version>1.7.0</gravitee-policy-openid-connect-userinfo.version>
+    <gravitee-policy-override-http-method.version>2.2.1</gravitee-policy-override-http-method.version>
+    <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest,
+    policy-token-bucket-ratelimit and gateway-services-ratelimit    -->
+    <!--    <gravitee-policy-quota.version>5.0.2</gravitee-policy-quota.version>    -->
+    <!--    <gravitee-policy-spikearrest.version>5.0.2</gravitee-policy-spikearrest.version>    -->
+>>>>>>> 07ef368 (chore: bump gravitee-policy-ipfiltering from 3.0.0 to 3.0.1)
     <!--
         TO CONFIGURE THE DISTRIBUTIONS
         This pom.xml is used to prepare the distribution of Management API & Gateway. It defines all dependencies that have to be bundled by default those components.
