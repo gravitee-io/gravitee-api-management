@@ -42,7 +42,12 @@ export function MetadataPage() {
     const deleteMutation = useDeleteMetadata();
 
     const isForbidden = isForbiddenApiError(isError, error);
-    useForbiddenResourceRedirect({ isForbidden, permissionPrefix: 'environment-metadata-', redirectTo: '../applications' });
+    useForbiddenResourceRedirect({
+        isForbidden,
+        navItemKey: 'metadata',
+        permissionPrefix: 'environment-metadata-',
+        redirectTo: '../applications',
+    });
 
     const [sheet, setSheet] = useState<SheetState>({ type: 'closed' });
 

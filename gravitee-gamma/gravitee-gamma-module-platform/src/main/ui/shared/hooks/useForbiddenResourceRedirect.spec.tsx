@@ -29,6 +29,11 @@ jest.mock('react-router-dom', () => ({
 }));
 
 const mockLoad = jest.fn();
+const mockMarkNavItemDenied = jest.fn();
+
+jest.mock('../nav/deniedNavItems', () => ({
+    markNavItemDenied: (itemKey: string) => mockMarkNavItemDenied(itemKey),
+}));
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     useEnvironment: jest.fn(),
@@ -43,6 +48,7 @@ function renderWithClient(
     isForbidden: boolean,
     seedPermissions: string[],
     permissionPrefix: string | readonly string[] = 'environment-dictionary-',
+    navItemKey = 'dictionaries',
 ) {
     const queryClient = new QueryClient();
     queryClient.setQueryData(['environment-permissions', 'env-1'], seedPermissions);
@@ -58,6 +64,7 @@ function renderWithClient(
         () =>
             useForbiddenResourceRedirect({
                 isForbidden,
+                navItemKey,
                 permissionPrefix,
                 redirectTo: '../applications',
             }),
@@ -71,6 +78,7 @@ describe('useForbiddenResourceRedirect', () => {
     beforeEach(() => {
         mockNavigate.mockClear();
         mockLoad.mockClear();
+        mockMarkNavItemDenied.mockClear();
         mockUseEnvironment.mockReturnValue({ id: 'env-1' } as ReturnType<typeof useEnvironment>);
     });
 
@@ -110,6 +118,7 @@ describe('useForbiddenResourceRedirect', () => {
             () =>
                 useForbiddenResourceRedirect({
                     isForbidden: true,
+                    navItemKey: 'dictionaries',
                     permissionPrefix: 'environment-dictionary-',
                     redirectTo: '../applications',
                 }),
@@ -138,6 +147,22 @@ describe('useForbiddenResourceRedirect', () => {
 
         await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
         expect(queryClient.getQueryData(['environment-permissions', 'env-1'])).toEqual(['environment-metadata-r']);
+    });
+
+    // The strip only rewrites the environment scope, so an organization-scoped grant survives it and the
+    // item stays visible — and stays the landing key that '../applications' bounces back to.
+    it('marks the nav item denied even when the strip leaves the permissions untouched', async () => {
+        const { queryClient } = renderWithClient(true, ['environment-metadata-r'], ['organization-tenant-'], 'tenants');
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalled());
+        expect(queryClient.getQueryData(['environment-permissions', 'env-1'])).toEqual(['environment-metadata-r']);
+        expect(mockMarkNavItemDenied).toHaveBeenCalledWith('tenants');
+    });
+
+    it('does not mark the nav item denied when the resource is allowed', () => {
+        renderWithClient(false, ['organization-tenant-r'], ['organization-tenant-'], 'tenants');
+
+        expect(mockMarkNavItemDenied).not.toHaveBeenCalled();
     });
 
     it('keeps every permission when no prefix is given, rather than stripping them all', async () => {

@@ -161,6 +161,15 @@ describe('platform nav visibility', () => {
         expect(landingNavItemKey(visibility(['environment-alert-r']))).toBe('alerts');
     });
 
+    // A 403 on an organization-scoped page strips nothing from the environment permissions, so without
+    // the denial the item stays visible and stays the landing key the page keeps redirecting back to.
+    it('hides a denied item and lands elsewhere, even while its permission is still granted', () => {
+        const denied = visibility([...ORGANIZATION_ADMIN], { deniedItemKeys: new Set(['tenants']) });
+        expect(visibleNavItemKeys(denied)).not.toContain('tenants');
+        expect(landingNavItemKey(denied)).not.toBe('tenants');
+        expect(landingNavItemKey(visibility([...ORGANIZATION_ADMIN]))).toBe('tenants');
+    });
+
     it('skips a locked item and lands on the next visible one', () => {
         const input = visibility(['environment-alert-r', 'environment-group-r'], { lockedItemKeys: ['alerts'] });
         expect(landingNavItemKey(input)).toBe('groups');

@@ -50,6 +50,7 @@ export function EditIdentityProviderPage() {
     const isForbidden = isForbiddenApiError(providerQuery.isError, providerQuery.error);
     useForbiddenResourceRedirect({
         isForbidden,
+        navItemKey: 'authentication',
         permissionPrefix: 'organization-identity_provider-',
         redirectTo: '..',
     });

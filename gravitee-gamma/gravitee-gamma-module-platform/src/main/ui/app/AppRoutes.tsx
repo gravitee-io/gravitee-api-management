@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { permissionService, useHasFeature, useHasPermission } from '@gravitee/gamma-modules-sdk';
+import { permissionService, useEnvironment, useHasFeature, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
 import {
     buildLinearBreadcrumbs,
@@ -30,7 +30,7 @@ import {
     useLayoutConfig,
 } from '@gravitee/graphene-core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { createContext, type ReactElement, useCallback, useContext, useMemo, useState } from 'react';
+import { createContext, type ReactElement, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
 import { PlatformToaster } from './PlatformToaster';
@@ -52,6 +52,7 @@ import { AlertFormPage } from '../features/alerts/pages/AlertFormPage';
 import { AlertsActivityPage } from '../features/alerts/pages/AlertsActivityPage';
 import { ALERT_ENGINE_FEATURE } from '../features/alerts/utils/alertPermissions';
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
+import { APIM_AUDIT_TRAIL_FEATURE } from '../features/audit-logs/license/auditTrailLicense';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
 import { GatewayInstanceDetailLayout } from '../features/gateway-instances/components/GatewayInstanceDetailLayout';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
@@ -98,6 +99,7 @@ import {
     useEnvironmentPermissions,
     useEnvironmentPermissionsReady,
 } from '../shared/hooks/useEnvironmentPermissions';
+import { resetDeniedNavItemsForEnvironment, useDeniedNavItemKeys } from '../shared/nav/deniedNavItems';
 import { isForbiddenApiError } from '../shared/utils/apiErrors';
 
 const queryClient = new QueryClient({
@@ -109,8 +111,8 @@ const queryClient = new QueryClient({
 
 const APPLICATION_DETAIL_TABS = flattenApplicationDetailNavItems(APPLICATION_NAV_GROUPS);
 const EMPTY_NAV_GROUPS: NavGroup[] = [];
-const NO_LOCKED_NAV_ITEMS: readonly string[] = [];
-const ALERT_ENGINE_LOCKED_NAV_ITEMS: readonly string[] = ['alerts'];
+const ALERT_ENGINE_NAV_ITEMS: readonly string[] = ['alerts'];
+const AUDIT_TRAIL_NAV_ITEMS: readonly string[] = ['organization-audit', 'environment-audit'];
 
 function resolveRequiredPermissions(permission?: string, anyOf?: readonly string[]): readonly string[] {
     if (anyOf) {
@@ -181,6 +183,12 @@ function NavPermissionGuard({
     children,
 }: Readonly<{ itemKey: string; unauthorizedTo?: string; children: ReactElement }>) {
     const { anyOf, alsoAnyOf } = pageGuardForNavItem(itemKey);
+    const deniedNavItemKeys = useDeniedNavItemKeys();
+    // A live 403 outranks the permission map, which can still grant the item from a scope this module
+    // does not own. Without this the page renders, 403s, and redirects on every visit.
+    if (deniedNavItemKeys.has(itemKey)) {
+        return <UnauthorizedRedirect />;
+    }
     return (
         <PermissionPageGuard anyOf={anyOf} alsoAnyOf={alsoAnyOf} unauthorizedTo={unauthorizedTo}>
             {children}
@@ -255,6 +263,12 @@ function usePlatformNavContext(): PlatformNavContextValue {
 function ModuleLayout() {
     useEnvironmentPermissions();
     const permissionVersion = usePermissionServiceSnapshot();
+    const env = useEnvironment();
+    const deniedNavItemKeys = useDeniedNavItemKeys();
+
+    useEffect(() => {
+        resetDeniedNavItemsForEnvironment(env?.id);
+    }, [env?.id]);
 
     const permissionsReady = useEnvironmentPermissionsReady();
     const [contextExpanded, setContextExpanded] = useState(true);
@@ -273,6 +287,14 @@ function ModuleLayout() {
 
     const { activeNavKey, navigateToKey } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
     const hasAlertEngine = useHasFeature(ALERT_ENGINE_FEATURE);
+    const hasAuditTrail = useHasFeature(APIM_AUDIT_TRAIL_FEATURE);
+
+    // Unlicensed pages redirect away or open an upsell dialog, so landing on one bounces the user
+    // straight back out. Alerts redirects; the audit pages show the dialog and cannot be dismissed.
+    const lockedItemKeys = useMemo(
+        () => [...(hasAlertEngine ? [] : ALERT_ENGINE_NAV_ITEMS), ...(hasAuditTrail ? [] : AUDIT_TRAIL_NAV_ITEMS)],
+        [hasAlertEngine, hasAuditTrail],
+    );
 
     // permissionService is an external store, so re-reading it has to be keyed on its version:
     // a 403 patch or a host reload changes the answers without changing any React state below.
@@ -284,9 +306,10 @@ function ModuleLayout() {
             has: hasPermission,
             metadataForbidden,
             dictionariesForbidden,
-            lockedItemKeys: hasAlertEngine ? NO_LOCKED_NAV_ITEMS : ALERT_ENGINE_LOCKED_NAV_ITEMS,
+            lockedItemKeys,
+            deniedItemKeys: deniedNavItemKeys,
         }),
-        [dictionariesForbidden, hasAlertEngine, hasPermission, metadataForbidden, permissionsReady],
+        [deniedNavItemKeys, dictionariesForbidden, hasPermission, lockedItemKeys, metadataForbidden, permissionsReady],
     );
 
     const visibleNavSections = useMemo(

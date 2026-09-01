@@ -39,6 +39,7 @@ export function GatewayInstancesPage() {
     const isForbidden = isForbiddenApiError(isError, error);
     useForbiddenResourceRedirect({
         isForbidden,
+        navItemKey: 'gateways',
         permissionPrefix: 'environment-instance-',
         redirectTo: '../applications',
     });
