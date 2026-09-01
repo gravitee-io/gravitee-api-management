@@ -55,6 +55,7 @@ import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEn
 import { GatewayInstanceDetailLayout } from '../features/gateway-instances/components/GatewayInstanceDetailLayout';
 import { ENVIRONMENT_GROUP_READ_PERMISSION } from '../features/groups/utils/groupPermissions';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
+import { ORGANIZATION_NOTIFICATION_TEMPLATES_READ } from '../features/notification-templates/utils/permissions';
 import { ORGANIZATION_POLICIES_ACCESS_PERMISSIONS } from '../features/platform-policies/utils/platformPolicyPermissions';
 import { SecurityPlanTypesPage } from '../features/security-plan-types/SecurityPlanTypesPage';
 import { SharedPolicyGroupDetailLayout } from '../features/shared-policy-groups/components/SharedPolicyGroupDetailLayout';
@@ -79,6 +80,8 @@ import { GroupDetailPage } from '../pages/GroupDetailPage';
 import { GroupsPage } from '../pages/GroupsPage';
 import { ManagementAndSchedulersPage } from '../pages/ManagementAndSchedulersPage';
 import { MetadataPage } from '../pages/MetadataPage';
+import { NotificationTemplateDetailPage } from '../pages/NotificationTemplateDetailPage';
+import { NotificationTemplatesPage } from '../pages/NotificationTemplatesPage';
 import { OrganizationPolicyStudioPage } from '../pages/OrganizationPolicyStudioPage';
 import { OrgAuditLogsPage } from '../pages/OrgAuditLogsPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
@@ -167,6 +170,7 @@ interface PlatformNavVisibility {
     readonly canReadEnvAudit: boolean;
     readonly canReadOrgSettings: boolean;
     readonly canReadIdentityProviders: boolean;
+    readonly canReadNotificationTemplates: boolean;
 }
 
 function isNavItemVisible(itemKey: string, visibility: PlatformNavVisibility): boolean {
@@ -186,6 +190,7 @@ function isNavItemVisible(itemKey: string, visibility: PlatformNavVisibility): b
         canReadEnvAudit,
         canReadOrgSettings,
         canReadIdentityProviders,
+        canReadNotificationTemplates,
     } = visibility;
     if (itemKey === 'users') {
         return !permissionsReady || canAccessUsers;
@@ -225,6 +230,9 @@ function isNavItemVisible(itemKey: string, visibility: PlatformNavVisibility): b
     }
     if (itemKey === 'management-and-schedulers' || itemKey === 'cors' || itemKey === 'smtp') {
         return !permissionsReady || canReadOrgSettings;
+    }
+    if (itemKey === 'templates') {
+        return !permissionsReady || canReadNotificationTemplates;
     }
     if (itemKey === 'authentication') {
         return !permissionsReady || canReadIdentityProviders;
@@ -319,6 +327,7 @@ function ModuleLayout() {
     const canReadEnvAudit = useHasPermission({ anyOf: [...ENVIRONMENT_AUDIT_READ_PERMISSIONS] });
     const canReadOrgSettings = useHasPermission({ anyOf: ['organization-settings-r'] });
     const canReadIdentityProviders = useHasPermission({ anyOf: ['organization-identity_provider-r'] });
+    const canReadNotificationTemplates = useHasPermission({ anyOf: [ORGANIZATION_NOTIFICATION_TEMPLATES_READ] });
 
     const { activeNavKey, navigateToKey } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
 
@@ -342,6 +351,7 @@ function ModuleLayout() {
                         canReadEnvAudit,
                         canReadOrgSettings,
                         canReadIdentityProviders,
+                        canReadNotificationTemplates,
                     }),
                 ),
                 'alerts',
@@ -363,6 +373,7 @@ function ModuleLayout() {
             canReadEnvAudit,
             canReadOrgSettings,
             canReadIdentityProviders,
+            canReadNotificationTemplates,
             hasAlertEngine,
         ],
     );
@@ -498,6 +509,30 @@ export function AppRoutes() {
                                     </PermissionPageGuard>
                                 }
                             />
+                            <Route path="templates">
+                                <Route
+                                    index
+                                    element={
+                                        <PermissionPageGuard
+                                            permission={ORGANIZATION_NOTIFICATION_TEMPLATES_READ}
+                                            unauthorizedTo="../applications"
+                                        >
+                                            <NotificationTemplatesPage />
+                                        </PermissionPageGuard>
+                                    }
+                                />
+                                <Route
+                                    path=":scope/:hook"
+                                    element={
+                                        <PermissionPageGuard
+                                            permission={ORGANIZATION_NOTIFICATION_TEMPLATES_READ}
+                                            unauthorizedTo="../../applications"
+                                        >
+                                            <NotificationTemplateDetailPage />
+                                        </PermissionPageGuard>
+                                    }
+                                />
+                            </Route>
                             <Route path="users">
                                 <Route
                                     index
