@@ -212,6 +212,17 @@ class InstallationAccessQueryServiceImplTest {
     }
 
     @Test
+    void should_build_gamma_url_from_gamma_console_configuration_when_installation_is_not_multi_tenant() {
+        when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
+        environment.withProperty("installation.standalone.gamma-console.url", "http://gamma.url");
+
+        cut.afterPropertiesSet();
+
+        assertThat(cut.getGammaUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://gamma.url");
+        assertThat(cut.getGammaUrls(DEFAULT_ORGANIZATION_ID)).containsOnly("http://gamma.url");
+    }
+
+    @Test
     void should_use_console_api_url_when_installation_is_not_multi_tenant_and_console_url_is_defined() {
         when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
         setValue("consoleApiUrl", "http://console.api.url");

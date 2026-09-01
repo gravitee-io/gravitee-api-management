@@ -107,6 +107,7 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
             consoleUrls.putAll(loadUrls("console", "orgId"));
             portalUrls.putAll(loadUrls("portal", "envId"));
             gammaUrls.putAll(loadUrls("gamma", "orgId"));
+            gammaUrls.putAll(loadUrls("gamma-console", "orgId"));
 
             // Handle legacy urls
             handleEnvironmentUrls();
