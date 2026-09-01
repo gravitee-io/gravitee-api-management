@@ -107,6 +107,9 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
                 unregisterApiProductPlans(deployable);
 
                 log.debug("API Product [{}] undeployed successfully", apiProductId);
+            } catch (SyncException e) {
+                // Already carries the step that failed — wrapping it again would only nest the message.
+                throw e;
             } catch (Exception e) {
                 throw new SyncException(
                     String.format(
