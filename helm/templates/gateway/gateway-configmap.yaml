@@ -171,6 +171,9 @@ data:
             secret: {{ $server.ssl.keystore.secret }}
             {{- end }}
           clientAuth: {{ $server.ssl.clientAuth }}
+          {{- if hasKey $server.ssl "sendClientCertificateAuthorities" }}
+          sendClientCertificateAuthorities: {{ $server.ssl.sendClientCertificateAuthorities }}
+          {{- end }}
           {{- if $server.ssl.truststore }}
           truststore:
             {{- if $server.ssl.truststore.type }}
@@ -244,6 +247,9 @@ data:
           secret: {{ .Values.gateway.ssl.keystore.secret }}
           {{- end }}
         clientAuth: {{ .Values.gateway.ssl.clientAuth }}
+        {{- if hasKey .Values.gateway.ssl "sendClientCertificateAuthorities" }}
+        sendClientCertificateAuthorities: {{ .Values.gateway.ssl.sendClientCertificateAuthorities }}
+        {{- end }}
         {{- if .Values.gateway.ssl.truststore }}
         truststore:
           {{- if .Values.gateway.ssl.truststore.type }}
@@ -337,6 +343,9 @@ data:
         {{- end}}
         {{- if hasKey .Values.gateway.kafka.ssl "clientAuth" }}
         clientAuth: {{ .Values.gateway.kafka.ssl.clientAuth }}
+        {{- end}}
+        {{- if hasKey .Values.gateway.kafka.ssl "sendClientCertificateAuthorities" }}
+        sendClientCertificateAuthorities: {{ .Values.gateway.kafka.ssl.sendClientCertificateAuthorities }}
         {{- end}}
         {{- if hasKey .Values.gateway.kafka.ssl "tlsProtocols" }}
         tlsProtocols: {{ .Values.gateway.kafka.ssl.tlsProtocols }}

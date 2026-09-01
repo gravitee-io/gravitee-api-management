@@ -3,6 +3,10 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.11.27
+- Bump the Gravitee node Hazelcast cache and cluster plugins to 8.3.0, to stay consistent with `gravitee-node.version` in the APIM `pom.xml`.
+- The gateway no longer sends its truststore as the list of acceptable certificate authorities during the TLS handshake (APIM-14863). Certificates registered at runtime by mTLS plan subscriptions were application leaves, not authorities, and advertising them told every caller of the listener which client identities are accepted. Validation is unchanged, so mTLS plan matching is unaffected, and an empty list means "no constraint": clients keep presenting their certificate. Only a client that *relied* on the list to choose which certificate to present is affected — typically a JDK client holding several client certificates. Those deployments can send the configured truststore again with the new `gateway.ssl.sendClientCertificateAuthorities` (also available per server under `gateway.servers[].ssl` and for the Kafka listener under `gateway.kafka.ssl`). **Do not enable it on a listener serving mTLS plans**: a non-empty advertised list is a constraint, not a hint, and subscription certificates are self-signed leaves that are never issued by an authority of the configured truststore — so every client presenting one withholds it and the subscription stops working. Only enable it when every expected client certificate is issued by an authority present in the configured truststore.
+
 ### 4.11.14
 - fix gateway requestTimeout ignored when gateway.servers is configured (APIM-14276)
 
