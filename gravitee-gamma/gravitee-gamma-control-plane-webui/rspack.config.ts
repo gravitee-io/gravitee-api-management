@@ -22,6 +22,9 @@ import { DefinePlugin } from '@rspack/core';
 
 import config from './module-federation.config';
 
+const devServerPort = process.env.PORT ? Number(process.env.PORT) : 4200;
+const mapiUrl = process.env.GAMMA_MAPI_URL ?? 'http://localhost:8083';
+
 /** Overrides the stub from @gravitee/gamma-modules-sdk package with the real implementation. */
 const gammaModulesSdkEntry = join(__dirname, 'src/shared/gamma-modules-sdk.ts');
 
@@ -39,17 +42,20 @@ export default {
         css: false,
     },
     devServer: {
-        port: 4200,
+        // PORT and GAMMA_MAPI_URL let several checkouts run side by side, each
+        // against its own Management API. Defaults keep a plain `nx serve` on
+        // 4200 against a default rest-api.
+        port: devServerPort,
         allowedHosts: 'all',
         proxy: [
             {
                 context: ['/management'],
-                target: 'http://localhost:8083',
+                target: mapiUrl,
                 changeOrigin: true,
             },
             {
                 context: ['/gamma'],
-                target: 'http://localhost:8083',
+                target: mapiUrl,
                 changeOrigin: true,
             },
         ],
