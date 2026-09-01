@@ -270,6 +270,22 @@ class InstallationAccessQueryServiceImplTest {
     }
 
     @Test
+    void should_build_gamma_urls_from_gamma_console_configuration_when_installation_is_not_multi_tenant() {
+        when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
+        environment.withProperty("installation.standalone.gamma-console.urls[0].orgId", "orgId");
+        environment.withProperty("installation.standalone.gamma-console.urls[0].url", "http://orgId.gamma.url");
+        environment.withProperty("installation.standalone.gamma-console.urls[1].orgId", "orgId1");
+        environment.withProperty("installation.standalone.gamma-console.urls[1].url", "http://orgId1.gamma.url");
+
+        cut.afterPropertiesSet();
+
+        assertThat(cut.getGammaUrl("orgId")).isEqualTo("http://orgId.gamma.url");
+        assertThat(cut.getGammaUrls("orgId")).containsOnly("http://orgId.gamma.url");
+        assertThat(cut.getGammaUrl("orgId1")).isEqualTo("http://orgId1.gamma.url");
+        assertThat(cut.getGammaUrls("orgId1")).containsOnly("http://orgId1.gamma.url");
+    }
+
+    @Test
     void should_do_nothing_when_installation_is_multi_tenant() {
         when(installationTypeDomainService.isMultiTenant()).thenReturn(true);
         cut.afterPropertiesSet();
