@@ -50,6 +50,9 @@ import org.springframework.stereotype.Component;
 public class UserDocumentTransformer implements DocumentTransformer<UserEntity> {
 
     public static final String FIELD_ID = "id";
+    // Doc-values companion of FIELD_ID, used only as a deterministic pagination tie-breaker
+    // (see UserDocumentSearcher) -- APIM-15027 / GitHub #11778.
+    public static final String FIELD_ID_SORTED = "id_sorted";
     public static final String FIELD_TYPE = "type";
     public static final String FIELD_TYPE_VALUE = "user";
     public static final String FIELD_DISPLAYNAME = "displayname";
@@ -83,6 +86,7 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
         Document doc = new Document();
 
         doc.add(new StringField(FIELD_ID, user.getId(), Field.Store.YES));
+        doc.add(new SortedDocValuesField(FIELD_ID_SORTED, new BytesRef(user.getId())));
         doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
 
         if (user.getReferenceId() != null) {

@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.UserDo
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.UserDocumentTransformer.FIELD_CUSTOM_SPLIT;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.UserDocumentTransformer.FIELD_DISPLAYNAME;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.UserDocumentTransformer.FIELD_EMAIL;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.UserDocumentTransformer.FIELD_ID_SORTED;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.UserDocumentTransformer.FIELD_LASTNAME_FIRSTNAME;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.UserDocumentTransformer.FIELD_LASTNAME_FIRSTNAME_SORTED;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.UserDocumentTransformer.FIELD_REFERENCE;
@@ -48,8 +49,12 @@ import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.TopFieldCollectorManager;
+import org.apache.lucene.search.TopFieldDocs;
 import org.apache.lucene.search.WildcardQuery;
 import org.springframework.stereotype.Component;
 
@@ -137,21 +142,35 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
             final Set<String> results = new LinkedHashSet<>();
 
             if (pageable != null) {
-                if (sort != null) {
-                    topDocs = searcher.search(query, pageable.getPageNumber() * pageable.getPageSize(), convert(sort));
-                } else {
-                    topDocs = searcher.search(query, Integer.MAX_VALUE);
-                }
+                Sort effectiveSort = withIdTieBreak(sort != null ? convert(sort) : null);
+                // page/size are client-controlled (page has no upper bound -- only size is capped
+                // at 200), so page * size can overflow int and, worse, TopFieldCollectorManager
+                // -- unlike IndexSearcher.search(query, n, sort) -- does not clamp numHits to the
+                // index size: it eagerly allocates a priority queue of that size per search slice.
+                // An unbounded `to` therefore risks an OutOfMemoryError on a small index rather
+                // than the empty/short page IndexSearcher would have returned. Clamp in long
+                // arithmetic to the index size (and at least 1, matching IndexSearcher's own
+                // handling of an empty index) before it reaches the collector.
+                long window = (long) pageable.getPageNumber() * pageable.getPageSize();
+                int to = (int) Math.max(1, Math.min(window, searcher.getIndexReader().maxDoc()));
+                // Plain searcher.search(query, to, sort) lets Lucene stop early (block-max WAND)
+                // once it's confident of the top `to` hits, which turns totalHits into a lower
+                // bound past ~1000 matches instead of an exact count -- silently breaking
+                // total_elements for large orgs. Disabling the early-termination threshold here
+                // keeps the count exact while still only asking for a bounded window of hits.
+                var collectorManager = new TopFieldCollectorManager(effectiveSort, to, null, Integer.MAX_VALUE);
+                TopFieldDocs allMatchingDocs = searcher.search(query, collectorManager);
+                long offset = (long) (pageable.getPageNumber() - 1) * pageable.getPageSize();
+                int from = (int) Math.min(offset, allMatchingDocs.scoreDocs.length);
+                int end = Math.min(to, allMatchingDocs.scoreDocs.length);
 
-                collectedDocs = Arrays.stream(topDocs.scoreDocs)
-                    .skip((long) (pageable.getPageNumber() - 1) * pageable.getPageSize())
-                    .limit(pageable.getPageSize())
-                    .collect(LinkedHashSet::new, Set::add, Set::addAll);
+                topDocs = allMatchingDocs;
+                collectedDocs = Arrays.stream(allMatchingDocs.scoreDocs, from, end).collect(LinkedHashSet::new, Set::add, Set::addAll);
             } else if (sort != null) {
-                topDocs = searcher.search(query, Integer.MAX_VALUE, convert(sort));
+                topDocs = searcher.search(query, Integer.MAX_VALUE, withIdTieBreak(convert(sort)));
                 collectedDocs = Arrays.stream(topDocs.scoreDocs).collect(LinkedHashSet::new, Set::add, Set::addAll);
             } else {
-                topDocs = searcher.search(query, Integer.MAX_VALUE);
+                topDocs = searcher.search(query, Integer.MAX_VALUE, withIdTieBreak(null));
                 collectedDocs = Arrays.stream(topDocs.scoreDocs).collect(LinkedHashSet::new, Set::add, Set::addAll);
             }
 
@@ -166,6 +185,27 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
             logger.error("An error occurs while getting documents from search result", ioe);
             throw new TechnicalException("An error occurs while getting documents from search result", ioe);
         }
+    }
+
+    /**
+     * Appends a deterministic tie-breaker (the user's own id) to a base sort, or builds one from
+     * relevance score alone when no explicit sort was requested. See APIM-15027.
+     *
+     * Always ties on FIELD_ID_SORTED, the doc-values field UserDocumentTransformer indexes for
+     * this purpose -- deriving the field name from the caller's fieldReference instead (e.g.
+     * FIELD_REFERENCE_ID via the inherited searchReference()) would silently produce a field with
+     * no doc values, degrading the tie-break to a no-op instead of failing loudly.
+     */
+    private Sort withIdTieBreak(Sort baseSort) {
+        SortField idTieBreak = new SortField(FIELD_ID_SORTED, SortField.Type.STRING, false);
+        idTieBreak.setMissingValue(SortField.STRING_LAST);
+        if (baseSort == null) {
+            return new Sort(SortField.FIELD_SCORE, idTieBreak);
+        }
+        SortField[] existing = baseSort.getSort();
+        SortField[] combined = Arrays.copyOf(existing, existing.length + 1);
+        combined[existing.length] = idTieBreak;
+        return new Sort(combined);
     }
 
     private boolean isUserIdFormat(io.gravitee.rest.api.service.search.query.Query<?> query) {
