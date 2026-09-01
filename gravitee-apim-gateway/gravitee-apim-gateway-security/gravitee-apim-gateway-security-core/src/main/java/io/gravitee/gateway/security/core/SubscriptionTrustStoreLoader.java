@@ -49,11 +49,21 @@ public class SubscriptionTrustStoreLoader extends AbstractKeyStoreLoader<Subscri
         try {
             // using hex for fingerprint, as uppercase letters found in base64 are lower cased in KeyStore aliases, cause unregistering issues
             this.id = formatLoaderId(subscriptionCertificate);
-            keystore = KeyStore.getInstance("PKCS12");
+            // Not a hardcoded PKCS12: under a BC-FIPS "approved only" JVM the PKCS12 key derivation has no
+            // provider, so KeyStoreUtils resolves the default to BCFKS there and to PKCS12 everywhere else.
+            keystore = KeyStore.getInstance(KeyStoreUtils.DEFAULT_KEYSTORE_TYPE);
             keystore.load(null, getPassword().toCharArray());
             keystore.setCertificateEntry("cert", subscriptionCertificate.certificate());
         } catch (Exception e) {
-            throw new MalformedCertificateException("An error occurred while processing certificate for loader %s".formatted(this.id()), e);
+            // Formatted from the subscription rather than this.id(): when formatLoaderId is what threw, the final
+            // field is still unset and the message reads "for loader null" — in the one place it has to identify
+            // which subscription failed. Definite assignment does not catch it, the read goes through a method.
+            throw new MalformedCertificateException(
+                "An error occurred while processing certificate for subscription %s".formatted(
+                    subscriptionCertificate.subscription().getId()
+                ),
+                e
+            );
         }
     }
 
