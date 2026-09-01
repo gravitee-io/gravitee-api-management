@@ -16,10 +16,13 @@
 package io.gravitee.apim.core.portal_listing.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.mock;
 
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalListingCrudServiceInMemory;
+import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
@@ -30,6 +33,7 @@ import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator;
 import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyncPlanExecutor;
 import io.gravitee.apim.core.portal.model.NavigationPath;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_listing.model.PortalListing;
@@ -44,12 +48,15 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
+import io.gravitee.apim.core.slug.model.Slug;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -315,6 +322,82 @@ class PortalListingSyncDomainServiceTest {
         syncService.validateApiFolderConflictsForApi(AUDIT_INFO, apiId, List.of(new NavigationPath("/guides", null)));
 
         org.mockito.Mockito.verifyNoInteractions(validator);
+    }
+
+    @Nested
+    class VacateAndFillSameSlotInOneBatch {
+
+        @BeforeEach
+        void wireInRealValidator() {
+            var realValidator = new PortalNavigationItemValidatorService(
+                navItemQuery,
+                pageContentQuery,
+                new ApiProductQueryServiceInMemory(),
+                new PortalNavigationItemSourceDomainServiceInMemory()
+            );
+            var portalListingCrud = new PortalListingCrudServiceInMemory();
+            var apiDocSync = new ApiDocumentationSyncDomainService(
+                navItemCrud,
+                navItemQuery,
+                pageContentQuery,
+                mock(PortalNavigationItemValidatorService.class)
+            );
+            var automationManaged = new AutomationManagedNavigationItemsQueryService(portalListingCrud, pageContentQuery, navItemQuery);
+            syncService = new PortalListingSyncDomainService(
+                pageContentQuery,
+                apiDocSync,
+                new NavigationItemEntryMaterializer(navItemCrud, navItemQuery, apiDocSync),
+                new ApiFolderSubtreeReconciler(
+                    navItemQuery,
+                    apiCrud,
+                    new NavigationSyncPlanExecutor(navItemCrud, navItemQuery, pageContentCrud),
+                    automationManaged
+                ),
+                realValidator
+            );
+        }
+
+        @Test
+        void accepts_a_new_entry_that_takes_the_slot_a_relocated_entry_is_vacating() {
+            // Two APIs whose hrids slugify to the same segment, so the incoming listing simultaneously
+            // vacates and fills (parentP, "pets-api") in one payload — the scenario Marek called out on
+            // the listing path in #19381 (SegmentConflictRule.java:102).
+            var apiHridA = "pets-api";
+            var apiHridB = "Pets-Api";
+            assertThat(Slug.from(apiHridA).value()).isEqualTo(Slug.from(apiHridB).value());
+            var apiIdA = HRIDToUUID.api().context(AUDIT_INFO).hrid(apiHridA).id();
+            var parentP = PortalNavigationItemId.forPortalFolder(AUDIT_INFO, PORTAL_ID.toString(), "/projects/alpha");
+
+            var existingA = PortalNavigationApi.builder()
+                .id(PortalNavigationItemId.forListingApi(AUDIT_INFO, PORTAL_ID.toString(), apiIdA))
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .title(apiHridA)
+                .segment(Slug.from(apiHridA).value())
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .apiId(apiIdA)
+                .parentId(parentP)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .automationMetadata(
+                    new AutomationMetadata(
+                        AutomationMetadata.ReferenceType.PORTAL,
+                        PORTAL_ID.toString(),
+                        null,
+                        Optional.of("/projects/alpha"),
+                        Optional.empty()
+                    )
+                )
+                .build();
+            navItemCrud.storage().add(existingA);
+
+            var listing = aListing(
+                List.of(new PortalListingApiEntry(apiHridA, "/projects/beta", 1), new PortalListingApiEntry(apiHridB, "/projects/alpha", 2))
+            );
+
+            assertThatCode(() -> syncService.validateForConflicts(AUDIT_INFO, PORTAL_ID, listing)).doesNotThrowAnyException();
+        }
     }
 
     private static GraviteeMarkdownPageContent anApiDocPageContent(PortalPageContentId id, String apiId) {

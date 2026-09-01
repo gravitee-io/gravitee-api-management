@@ -54,7 +54,7 @@ public class SegmentConflictRule implements CreatePortalNavigationItemValidation
     public void validate(CreatePortalNavigationItem item, String environmentId, CreateValidationContext ctx) {
         if (
             collidesWithPendingBatch(item.getId(), item.getParentId(), item.getSegment(), ctx.pendingSegmentClaims()) ||
-            collidesWithPersistedSibling(item.getId(), item.getParentId(), item.getSegment(), environmentId)
+            collidesWithPersistedSibling(item.getId(), item.getParentId(), item.getSegment(), environmentId, ctx.pendingSegmentClaims())
         ) {
             throw exceptionFor(item);
         }
@@ -76,7 +76,8 @@ public class SegmentConflictRule implements CreatePortalNavigationItemValidation
                 existingItem.getId(),
                 toUpdate.getParentId(),
                 toUpdate.getSegment(),
-                existingItem.getEnvironmentId()
+                existingItem.getEnvironmentId(),
+                ctx.pendingSegmentClaims()
             )
         ) {
             throw exceptionFor(existingItem);
@@ -93,6 +94,7 @@ public class SegmentConflictRule implements CreatePortalNavigationItemValidation
             .stream()
             .anyMatch(
                 claim ->
+                    claim.intent() == PendingSegmentClaim.Intent.CLAIM &&
                     !Objects.equals(claim.id(), itemId) &&
                     Objects.equals(claim.parentId(), parentId) &&
                     Objects.equals(claim.segment(), segment)
@@ -103,12 +105,31 @@ public class SegmentConflictRule implements CreatePortalNavigationItemValidation
         PortalNavigationItemId itemId,
         PortalNavigationItemId parentId,
         String segment,
-        String environmentId
+        String environmentId,
+        List<PendingSegmentClaim> claims
     ) {
         return navigationItemsQueryService
             .findByParentIdAndSegment(environmentId, parentId, segment)
             .filter(sibling -> !sibling.getId().equals(itemId))
+            .filter(sibling -> !isVacatedInBatch(sibling.getId(), parentId, segment, claims))
             .isPresent();
+    }
+
+    private static boolean isVacatedInBatch(
+        PortalNavigationItemId siblingId,
+        PortalNavigationItemId parentId,
+        String segment,
+        List<PendingSegmentClaim> claims
+    ) {
+        return claims
+            .stream()
+            .anyMatch(
+                claim ->
+                    claim.intent() == PendingSegmentClaim.Intent.RELEASE &&
+                    Objects.equals(claim.id(), siblingId) &&
+                    Objects.equals(claim.parentId(), parentId) &&
+                    Objects.equals(claim.segment(), segment)
+            );
     }
 
     private static PathConflictException exceptionFor(CreatePortalNavigationItem item) {

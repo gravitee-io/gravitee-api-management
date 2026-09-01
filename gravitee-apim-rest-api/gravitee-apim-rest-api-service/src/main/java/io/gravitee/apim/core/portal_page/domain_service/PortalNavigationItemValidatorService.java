@@ -56,6 +56,7 @@ import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQuer
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -246,7 +247,20 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
             .filter(c -> c.getId() != null)
             .map(PendingSegmentClaim::forCreate);
         var fromUpdates = updates.stream().map(u -> PendingSegmentClaim.forUpdate(u.existing(), u.toUpdate()));
-        return Stream.concat(fromCreates, fromUpdates).toList();
+        // Record the old slot when an update relocates or renames, so a same-batch sibling can safely take it over.
+        var released = updates
+            .stream()
+            .filter(PortalNavigationItemValidatorService::vacatesSlot)
+            .map(u -> PendingSegmentClaim.forRelease(u.existing()));
+        return Stream.concat(Stream.concat(fromCreates, fromUpdates), released).toList();
+    }
+
+    private static boolean vacatesSlot(PendingUpdate update) {
+        var existing = update.existing();
+        var toUpdate = update.toUpdate();
+        return (
+            !Objects.equals(existing.getParentId(), toUpdate.getParentId()) || !Objects.equals(existing.getSegment(), toUpdate.getSegment())
+        );
     }
 
     private static boolean shouldFetch(List<CreatePortalNavigationItem> creates, List<PendingUpdate> updates) {

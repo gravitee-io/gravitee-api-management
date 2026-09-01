@@ -28,6 +28,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -122,7 +123,7 @@ class SegmentConflictRuleTest {
 
     @Test
     void validate_throws_when_another_item_in_the_pending_batch_claims_same_parent_and_segment() {
-        var pendingClaim = new PendingSegmentClaim(OTHER_ID, PARENT_ID, "docs");
+        var pendingClaim = new PendingSegmentClaim(OTHER_ID, PARENT_ID, "docs", PendingSegmentClaim.Intent.CLAIM);
         var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of(pendingClaim));
         var item = item(ITEM_ID, "docs", PortalNavigationItemType.FOLDER, folderLocation("/docs"));
 
@@ -134,13 +135,45 @@ class SegmentConflictRuleTest {
     @Test
     void validate_throws_when_a_pending_update_in_the_same_batch_targets_the_same_parent_and_segment() {
         // A create at (PARENT_ID, "docs") collides with a pending update moving another item to the same slot.
-        var pendingUpdateClaim = new PendingSegmentClaim(OTHER_ID, PARENT_ID, "docs");
+        var pendingUpdateClaim = new PendingSegmentClaim(OTHER_ID, PARENT_ID, "docs", PendingSegmentClaim.Intent.CLAIM);
         var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of(pendingUpdateClaim));
         var newItem = item(ITEM_ID, "docs", PortalNavigationItemType.FOLDER, folderLocation("/docs"));
 
         assertThatThrownBy(() -> rule.validate(newItem, ENV_ID, ctx))
             .isInstanceOf(PathConflictException.class)
             .hasMessageContaining("/docs");
+    }
+
+    @Test
+    void validate_accepts_create_when_persisted_sibling_is_being_vacated_by_a_pending_update_in_the_same_batch() {
+        // A same-batch RELEASE claim frees the persisted sibling's slot for a new create.
+        navigationItemsQueryService.storage().add(existingFolder(OTHER_ID, PARENT_ID, "docs"));
+        var releaseClaim = new PendingSegmentClaim(OTHER_ID, PARENT_ID, "docs", PendingSegmentClaim.Intent.RELEASE);
+        var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of(releaseClaim));
+        var newItem = item(ITEM_ID, "docs", PortalNavigationItemType.FOLDER, folderLocation("/docs"));
+
+        assertThatCode(() -> rule.validate(newItem, ENV_ID, ctx)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void validate_accepts_update_when_persisted_sibling_is_being_vacated_by_a_pending_update_in_the_same_batch() {
+        // Update-side twin of the create-into-vacated-slot case: two updates swap slots in one batch,
+        // and the RELEASE claim excuses the collision the incoming update would otherwise hit.
+        navigationItemsQueryService.storage().add(existingFolder(OTHER_ID, PARENT_ID, "docs"));
+        var incomingExisting = existingFolder(ITEM_ID, PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), "docs");
+        var releaseClaim = new PendingSegmentClaim(OTHER_ID, PARENT_ID, "docs", PendingSegmentClaim.Intent.RELEASE);
+        var ctx = new UpdateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of(releaseClaim));
+        var toUpdate = UpdatePortalNavigationItem.builder()
+            .type(PortalNavigationItemType.FOLDER)
+            .title("docs")
+            .segment("docs")
+            .parentId(PARENT_ID)
+            .visibility(PortalVisibility.PUBLIC)
+            .published(true)
+            .order(0)
+            .build();
+
+        assertThatCode(() -> rule.validate(toUpdate, incomingExisting, ctx)).doesNotThrowAnyException();
     }
 
     @Test

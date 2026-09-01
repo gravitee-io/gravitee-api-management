@@ -33,6 +33,7 @@ import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
@@ -53,6 +54,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -1013,6 +1015,47 @@ class CreatePortalNavigationItemValidatorServiceTest {
             );
 
             assertDoesNotThrow(() -> validatorService.validate(List.of(), List.of(pendingUpdate), ENV_ID));
+        }
+    }
+
+    @Nested
+    class VacateAndFillSameSlotInOneBatch {
+
+        @Test
+        void should_accept_create_that_lands_in_a_slot_vacated_by_a_pending_update_in_the_same_batch() {
+            var parent = PortalNavigationItemFixtures.aFolder("root");
+            parent.markAsRoot();
+            var relocating = PortalNavigationItemFixtures.aFolder("docs", parent.getId());
+            navigationItemsQueryService.storage().add(parent);
+            navigationItemsQueryService.storage().add(relocating);
+
+            var otherParent = PortalNavigationItemFixtures.aFolder("archive");
+            otherParent.markAsRoot();
+            navigationItemsQueryService.storage().add(otherParent);
+
+            var relocatingUpdate = UpdatePortalNavigationItem.builder()
+                .type(relocating.getType())
+                .title(relocating.getTitle())
+                .segment(relocating.getSegment())
+                .order(relocating.getOrder())
+                .parentId(otherParent.getId())
+                .visibility(relocating.getVisibility())
+                .published(relocating.getPublished())
+                .build();
+            var pendingUpdate = new PortalNavigationValidator.PendingUpdate(relocatingUpdate, relocating);
+            var newItem = CreatePortalNavigationItem.builder()
+                .id(PortalNavigationItemId.random())
+                .title("docs")
+                .segment(relocating.getSegment())
+                .type(PortalNavigationItemType.FOLDER)
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .parentId(parent.getId())
+                .visibility(PortalVisibility.PUBLIC)
+                .published(true)
+                .build();
+
+            assertDoesNotThrow(() -> validatorService.validate(List.of(newItem), List.of(pendingUpdate), ENV_ID));
         }
     }
 }
