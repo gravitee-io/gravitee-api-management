@@ -27,6 +27,10 @@ export class ApiHealthCheckV4FormHarness extends ComponentHarness {
     return this.getEnableToggle().then(toggle => toggle.isChecked());
   }
 
+  public async isEnableToggleDisabled(): Promise<boolean> {
+    return this.getEnableToggle().then(toggle => toggle.isDisabled());
+  }
+
   public async toggleEnableInput(): Promise<void> {
     return this.getEnableToggle().then(toggle => toggle.toggle());
   }
