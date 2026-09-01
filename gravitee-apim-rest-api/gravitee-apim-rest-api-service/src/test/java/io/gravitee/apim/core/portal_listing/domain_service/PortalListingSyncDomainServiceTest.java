@@ -355,6 +355,47 @@ class PortalListingSyncDomainServiceTest {
     }
 
     @Test
+    void validate_for_conflicts_propagates_api_nav_visibility_to_folder_validation_items() {
+        var apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
+        apiCrud.initWith(
+            List.of(
+                io.gravitee.apim.core.api.model.Api.builder()
+                    .id(apiId)
+                    .name(API_HRID)
+                    .environmentId(AUDIT_INFO.environmentId())
+                    .portalNavigation(
+                        List.of(
+                            new NavigationPath("/internal", "Internal", null, PortalVisibility.PRIVATE),
+                            new NavigationPath("/internal/deep", "Deep", null, PortalVisibility.PUBLIC)
+                        )
+                    )
+                    .build()
+            )
+        );
+        var listing = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
+
+        syncService.validateForConflicts(AUDIT_INFO, PORTAL_ID, listing);
+
+        var createsCaptor = org.mockito.ArgumentCaptor.forClass(List.class);
+        org.mockito.Mockito.verify(validator).validate(
+            createsCaptor.capture(),
+            org.mockito.ArgumentMatchers.any(),
+            org.mockito.ArgumentMatchers.anyString()
+        );
+        assertThat(createsCaptor.getValue())
+            .filteredOn(
+                item ->
+                    item instanceof io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem c &&
+                    c.getType() == io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.FOLDER
+            )
+            .extracting("segment", "visibility")
+            .containsExactlyInAnyOrder(
+                org.assertj.core.groups.Tuple.tuple("internal", PortalVisibility.PRIVATE),
+                org.assertj.core.groups.Tuple.tuple("deep", PortalVisibility.PUBLIC)
+            );
+    }
+
+    @Test
     void validate_api_folder_conflicts_is_a_noop_when_no_nav_api_row_exists_for_the_api() {
         var apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
 

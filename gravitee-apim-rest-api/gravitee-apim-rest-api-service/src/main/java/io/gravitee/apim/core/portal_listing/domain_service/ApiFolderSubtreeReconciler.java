@@ -126,6 +126,7 @@ class ApiFolderSubtreeReconciler {
             .type(PortalNavigationItemType.FOLDER)
             .order(df.order())
             .parentId(df.parentPath() == null ? navApiId : idFactory.apply(df.parentPath()))
+            .visibility(df.visibility())
             .published(true)
             .automationMetadata(
                 new AutomationMetadata(AutomationMetadata.ReferenceType.API, apiId, null, Optional.of(df.path()), Optional.empty())
@@ -144,6 +145,7 @@ class ApiFolderSubtreeReconciler {
             .type(PortalNavigationItemType.FOLDER)
             .order(df.order())
             .parentId(df.parentPath() == null ? navApiId : idFactory.apply(df.parentPath()))
+            .visibility(df.visibility())
             .build();
     }
 

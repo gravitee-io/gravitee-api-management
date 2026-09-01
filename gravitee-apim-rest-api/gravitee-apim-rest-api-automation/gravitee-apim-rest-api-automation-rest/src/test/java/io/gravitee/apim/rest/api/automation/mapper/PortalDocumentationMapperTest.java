@@ -94,6 +94,7 @@ class PortalDocumentationMapperTest {
         var state = PortalDocumentationMapper.INSTANCE.toDocumentationState(
             pageContent,
             io.gravitee.apim.core.portal.model.PortalArea.TOP_NAVBAR,
+            null,
             "getting-started",
             "default-portal"
         );
@@ -124,6 +125,30 @@ class PortalDocumentationMapperTest {
     void enum_conversions_pass_null_through() {
         assertThat(PortalDocumentationMapper.INSTANCE.toDomainType(null)).isNull();
         assertThat(PortalDocumentationMapper.INSTANCE.toWireType(null)).isNull();
+    }
+
+    @Test
+    void wire_visibility_round_trips_through_domain() {
+        SoftAssertions.assertSoftly(soft -> {
+            var publicDomain = PortalDocumentationMapper.INSTANCE.toDomainVisibility(
+                io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC
+            );
+            soft.assertThat(publicDomain).isEqualTo(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC);
+            soft
+                .assertThat(PortalDocumentationMapper.INSTANCE.toWireVisibility(publicDomain))
+                .isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC);
+
+            var privateDomain = PortalDocumentationMapper.INSTANCE.toDomainVisibility(
+                io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE
+            );
+            soft.assertThat(privateDomain).isEqualTo(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
+            soft
+                .assertThat(PortalDocumentationMapper.INSTANCE.toWireVisibility(privateDomain))
+                .isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE);
+
+            soft.assertThat(PortalDocumentationMapper.INSTANCE.toDomainVisibility(null)).isNull();
+            soft.assertThat(PortalDocumentationMapper.INSTANCE.toWireVisibility(null)).isNull();
+        });
     }
 
     private static DocumentationSpec aSpec() {

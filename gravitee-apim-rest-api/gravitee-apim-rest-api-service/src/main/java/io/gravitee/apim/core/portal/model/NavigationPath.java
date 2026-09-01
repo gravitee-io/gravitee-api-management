@@ -21,13 +21,17 @@ import jakarta.annotation.Nullable;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-public record NavigationPath(@Nonnull String path, @Nullable String displayName, @Nullable Integer order) {
+public record NavigationPath(@Nonnull String path, @Nullable String displayName, @Nullable Integer order, @Nullable String visibility) {
     public NavigationPath {
         path = normalizePath(path);
     }
 
+    public NavigationPath(@Nonnull String path, @Nullable String displayName, @Nullable Integer order) {
+        this(path, displayName, order, null);
+    }
+
     public NavigationPath(@Nonnull String path, @Nullable String displayName) {
-        this(path, displayName, null);
+        this(path, displayName, null, null);
     }
 
     public NavigationPath descend(String childSegment) {

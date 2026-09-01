@@ -126,6 +126,7 @@ class ValidatePortalDocumentationUseCaseTest {
             content,
             location,
             order,
+            null,
             null
         );
     }

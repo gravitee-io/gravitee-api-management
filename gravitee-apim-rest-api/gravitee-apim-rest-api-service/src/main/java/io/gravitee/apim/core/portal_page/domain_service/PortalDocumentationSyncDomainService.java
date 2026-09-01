@@ -49,17 +49,22 @@ public class PortalDocumentationSyncDomainService {
     private final HomepageReconciler homepageReconciler;
     private final PortalNavigationItemValidatorService validatorService;
 
-    public void materialize(AuditInfo auditInfo, PortalPageContent<?> pageContent, PortalArea targetArea) {
+    public void materialize(
+        AuditInfo auditInfo,
+        PortalPageContent<?> pageContent,
+        PortalArea targetArea,
+        PortalVisibility callerVisibility
+    ) {
         var navigationItemId = PortalNavigationItemId.forPortalDocumentationContent(auditInfo, pageContent);
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), navigationItemId);
-        upsertNavigationPage(auditInfo, pageContent, navigationItemId, existing, targetArea);
+        upsertNavigationPage(auditInfo, pageContent, navigationItemId, existing, targetArea, callerVisibility);
     }
 
     public void materialize(AuditInfo auditInfo, PortalPageContent<?> pageContent) {
         var navigationItemId = PortalNavigationItemId.forPortalDocumentationContent(auditInfo, pageContent);
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), navigationItemId);
         var targetArea = existing instanceof PortalNavigationPage page ? page.getArea() : PortalArea.TOP_NAVBAR;
-        upsertNavigationPage(auditInfo, pageContent, navigationItemId, existing, targetArea);
+        upsertNavigationPage(auditInfo, pageContent, navigationItemId, existing, targetArea, null);
     }
 
     public void dematerialize(AuditInfo auditInfo, String portalId, PortalPageContentId pageContentId) {
@@ -75,18 +80,19 @@ public class PortalDocumentationSyncDomainService {
         PortalPageContent<?> pageContent,
         PortalNavigationItemId navigationItemId,
         PortalNavigationItem existing,
-        PortalArea targetArea
+        PortalArea targetArea,
+        PortalVisibility callerVisibility
     ) {
         final var envId = auditInfo.environmentId();
         final var orgId = auditInfo.organizationId();
         final var meta = pageContent.getAutomationMetadata();
         final var parent = resolveParent(auditInfo, meta.location().orElse(null), meta.referenceId());
         final var parentId = parent == null ? null : parent.getId();
+        final var visibility = PortalVisibility.resolve(callerVisibility, parent);
 
         if (isUpdatableInPlace(existing, targetArea)) {
             var page = (PortalNavigationPage) existing;
             final var segment = Slug.from(meta.name(), siblingsSlugs(envId, parentId, navigationItemId));
-            var visibility = PortalVisibility.inheritedFrom(parent);
             var update = UpdatePortalNavigationItem.builder()
                 .title(meta.name())
                 .segment(segment.value())
@@ -119,6 +125,7 @@ public class PortalDocumentationSyncDomainService {
             .portalPageContentId(pageContent.getId())
             .parentId(parentId)
             .reference(meta.reference())
+            .visibility(visibility)
             .published(DEFAULT_PUBLISHED)
             .automationMetadata(meta.trimmedForNavItem())
             .build();

@@ -45,6 +45,7 @@ public interface PortalLinkMapper {
         state.setHref(spec.getHref());
         state.setLocation(spec.getLocation());
         state.setOrder(spec.getOrder());
+        state.setVisibility(spec.getVisibility());
         return state;
     }
 
@@ -61,7 +62,20 @@ public interface PortalLinkMapper {
         state.setHref(link.getUrl());
         state.setOrder(link.getOrder());
         state.setLocation(link.getAutomationMetadata() != null ? link.getAutomationMetadata().location().orElse(null) : null);
+        state.setVisibility(toWireVisibility(link.getVisibility()));
         return state;
+    }
+
+    default io.gravitee.apim.core.portal_page.model.PortalVisibility toDomainVisibility(
+        io.gravitee.apim.rest.api.automation.model.PortalVisibility wire
+    ) {
+        return wire == null ? null : io.gravitee.apim.core.portal_page.model.PortalVisibility.valueOf(wire.getValue());
+    }
+
+    default io.gravitee.apim.rest.api.automation.model.PortalVisibility toWireVisibility(
+        io.gravitee.apim.core.portal_page.model.PortalVisibility domain
+    ) {
+        return domain == null ? null : io.gravitee.apim.rest.api.automation.model.PortalVisibility.fromValue(domain.name());
     }
 
     default Errors toErrors(List<Validator.Error> validationErrors) {

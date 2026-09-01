@@ -122,6 +122,7 @@ public final class NavigationSyncPlanExecutor {
             .area(area)
             .type(PortalNavigationItemType.FOLDER)
             .order(df.order())
+            .visibility(df.visibility())
             .published(true)
             .build();
         return (PortalNavigationFolder) crudService.create(

@@ -131,6 +131,30 @@ class PortalLinkMapperTest {
     }
 
     @Test
+    void wire_visibility_round_trips_through_domain() {
+        SoftAssertions.assertSoftly(soft -> {
+            var publicDomain = PortalLinkMapper.INSTANCE.toDomainVisibility(
+                io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC
+            );
+            soft.assertThat(publicDomain).isEqualTo(PortalVisibility.PUBLIC);
+            soft
+                .assertThat(PortalLinkMapper.INSTANCE.toWireVisibility(publicDomain))
+                .isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC);
+
+            var privateDomain = PortalLinkMapper.INSTANCE.toDomainVisibility(
+                io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE
+            );
+            soft.assertThat(privateDomain).isEqualTo(PortalVisibility.PRIVATE);
+            soft
+                .assertThat(PortalLinkMapper.INSTANCE.toWireVisibility(privateDomain))
+                .isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE);
+
+            soft.assertThat(PortalLinkMapper.INSTANCE.toDomainVisibility(null)).isNull();
+            soft.assertThat(PortalLinkMapper.INSTANCE.toWireVisibility(null)).isNull();
+        });
+    }
+
+    @Test
     void get_state_returns_null_location_when_automation_metadata_is_null() {
         var link = PortalNavigationLink.builder()
             .id(LINK_ID)

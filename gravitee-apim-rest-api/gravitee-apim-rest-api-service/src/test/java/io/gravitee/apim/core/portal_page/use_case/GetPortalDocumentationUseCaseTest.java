@@ -24,9 +24,12 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_documentation.exception.PortalDocumentationNotFoundException;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import java.util.List;
@@ -74,6 +77,42 @@ class GetPortalDocumentationUseCaseTest {
         assertThat(output.pageContent().getAutomationMetadata().location()).contains("/projects/alpha");
         assertThat(output.pageContent().getAutomationMetadata().order()).contains(1);
         assertThat(output.area()).isEqualTo(PortalArea.TOP_NAVBAR);
+    }
+
+    @Test
+    void should_return_visibility_from_persisted_nav_item() {
+        queryService.initWith(List.of(aPageContent()));
+        var pageContent = aPageContent();
+        var navItemId = PortalNavigationItemId.forPortalDocumentationContent(AUDIT_INFO, pageContent);
+        navigationItemsQueryService.initWith(
+            List.of(
+                PortalNavigationPage.builder()
+                    .id(navItemId)
+                    .organizationId(AUDIT_INFO.organizationId())
+                    .environmentId(AUDIT_INFO.environmentId())
+                    .title("Getting Started")
+                    .segment("getting-started")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(1)
+                    .portalPageContentId(DOC_ID)
+                    .published(true)
+                    .visibility(PortalVisibility.PRIVATE)
+                    .build()
+            )
+        );
+
+        var output = useCase.execute(new GetPortalDocumentationUseCase.Input(AUDIT_INFO, DOC_ID));
+
+        assertThat(output.visibility()).isEqualTo(PortalVisibility.PRIVATE);
+    }
+
+    @Test
+    void should_return_null_visibility_when_persisted_nav_item_is_missing() {
+        queryService.initWith(List.of(aPageContent()));
+
+        var output = useCase.execute(new GetPortalDocumentationUseCase.Input(AUDIT_INFO, DOC_ID));
+
+        assertThat(output.visibility()).isNull();
     }
 
     @Test

@@ -150,6 +150,6 @@ class ValidatePortalLinkUseCaseTest {
     }
 
     private static CreateOrUpdatePortalLinkUseCase.Input input(String name, String href, String location, Integer order) {
-        return new CreateOrUpdatePortalLinkUseCase.Input(AUDIT_INFO, PORTAL_ID, LINK_HRID, name, href, location, order);
+        return new CreateOrUpdatePortalLinkUseCase.Input(AUDIT_INFO, PORTAL_ID, LINK_HRID, name, href, location, order, null);
     }
 }

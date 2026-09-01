@@ -90,6 +90,7 @@ public interface PortalListingMapper {
         wire.setApiHrid(entry.apiHrid());
         wire.setLocation(entry.location());
         wire.setOrder(entry.order());
+        wire.setVisibility(toWireVisibility(entry.visibility()));
         return wire;
     }
 
@@ -101,6 +102,23 @@ public interface PortalListingMapper {
     }
 
     default PortalListingApiEntry toDomain(io.gravitee.apim.rest.api.automation.model.PortalListingApiEntry entry) {
-        return new PortalListingApiEntry(entry.getApiHrid(), entry.getLocation(), entry.getOrder());
+        return new PortalListingApiEntry(
+            entry.getApiHrid(),
+            entry.getLocation(),
+            entry.getOrder(),
+            toDomainVisibility(entry.getVisibility())
+        );
+    }
+
+    default io.gravitee.apim.core.portal_page.model.PortalVisibility toDomainVisibility(
+        io.gravitee.apim.rest.api.automation.model.PortalVisibility wire
+    ) {
+        return wire == null ? null : io.gravitee.apim.core.portal_page.model.PortalVisibility.valueOf(wire.getValue());
+    }
+
+    default io.gravitee.apim.rest.api.automation.model.PortalVisibility toWireVisibility(
+        io.gravitee.apim.core.portal_page.model.PortalVisibility domain
+    ) {
+        return domain == null ? null : io.gravitee.apim.rest.api.automation.model.PortalVisibility.fromValue(domain.name());
     }
 }

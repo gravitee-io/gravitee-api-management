@@ -3331,6 +3331,8 @@ components:
             Listing a path explicitly is the only way to attach an order.
           examples:
             - 1
+        visibility:
+          $ref: "#/components/schemas/PortalVisibility"
       required:
         - path
     PortalNavigationPath:
@@ -3352,8 +3354,20 @@ components:
             Listing a path explicitly is the only way to attach a displayName.
           examples:
             - Alpha
+        visibility:
+          $ref: "#/components/schemas/PortalVisibility"
       required:
         - path
+    PortalVisibility:
+      type: string
+      description: |
+        Whether the navigation entry is visible to anonymous portal visitors.
+        Optional in the Automation API for backward compatibility with clients that predate this field —
+        when omitted, the entry inherits from its parent (root entries default to PUBLIC).
+        A PUBLIC child under a PRIVATE parent is rejected.
+      enum:
+        - PUBLIC
+        - PRIVATE
     PortalNavigationStructure:
       description: Portal navigation grouped by area.
       type: object
@@ -3428,6 +3442,8 @@ components:
             Disambiguates ordering when APIs from multiple listings share a location.
           examples:
             - 1
+        visibility:
+          $ref: "#/components/schemas/PortalVisibility"
       required:
         - apiHrid
         - location
@@ -3510,6 +3526,8 @@ components:
           description: Display order relative to siblings at the same location
         area:
           $ref: "#/components/schemas/DocumentationArea"
+        visibility:
+          $ref: "#/components/schemas/PortalVisibility"
       required:
         - hrid
         - name
@@ -3565,6 +3583,8 @@ components:
         order:
           type: integer
           description: Display order relative to siblings at the same location
+        visibility:
+          $ref: "#/components/schemas/PortalVisibility"
       required:
         - hrid
         - name

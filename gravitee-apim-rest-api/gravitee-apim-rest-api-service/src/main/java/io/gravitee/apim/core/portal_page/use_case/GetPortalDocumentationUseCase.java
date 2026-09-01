@@ -23,6 +23,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,7 @@ public class GetPortalDocumentationUseCase {
 
     public record Input(AuditInfo auditInfo, PortalPageContentId portalPageContentId) {}
 
-    public record Output(PortalPageContent<?> pageContent, PortalArea area) {}
+    public record Output(PortalPageContent<?> pageContent, PortalArea area, PortalVisibility visibility) {}
 
     public Output execute(Input input) {
         var pageContent = portalPageContentQueryService
@@ -46,6 +47,7 @@ public class GetPortalDocumentationUseCase {
         var navigationItemId = PortalNavigationItemId.forPortalDocumentationContent(input.auditInfo(), pageContent);
         var navItem = portalNavigationItemsQueryService.findByIdAndEnvironmentId(input.auditInfo().environmentId(), navigationItemId);
         var area = navItem instanceof PortalNavigationPage page ? page.getArea() : PortalArea.TOP_NAVBAR;
-        return new Output(pageContent, area);
+        var visibility = navItem instanceof PortalNavigationPage page ? page.getVisibility() : null;
+        return new Output(pageContent, area, visibility);
     }
 }

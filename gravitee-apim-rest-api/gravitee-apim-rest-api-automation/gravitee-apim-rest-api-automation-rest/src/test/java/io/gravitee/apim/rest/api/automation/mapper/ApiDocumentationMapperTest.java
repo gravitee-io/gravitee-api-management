@@ -102,7 +102,7 @@ class ApiDocumentationMapperTest {
             meta
         );
 
-        var state = ApiDocumentationMapper.INSTANCE.toDocumentationState(doc, "getting-started", "pets-api");
+        var state = ApiDocumentationMapper.INSTANCE.toDocumentationState(doc, null, "getting-started", "pets-api");
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(state.getId()).isEqualTo(DOC_ID.toString());
@@ -130,6 +130,30 @@ class ApiDocumentationMapperTest {
     void enum_conversions_pass_null_through() {
         assertThat(ApiDocumentationMapper.INSTANCE.toDomainType(null)).isNull();
         assertThat(ApiDocumentationMapper.INSTANCE.toWireType(null)).isNull();
+    }
+
+    @Test
+    void wire_visibility_round_trips_through_domain() {
+        SoftAssertions.assertSoftly(soft -> {
+            var publicDomain = ApiDocumentationMapper.INSTANCE.toDomainVisibility(
+                io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC
+            );
+            soft.assertThat(publicDomain).isEqualTo(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC);
+            soft
+                .assertThat(ApiDocumentationMapper.INSTANCE.toWireVisibility(publicDomain))
+                .isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC);
+
+            var privateDomain = ApiDocumentationMapper.INSTANCE.toDomainVisibility(
+                io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE
+            );
+            soft.assertThat(privateDomain).isEqualTo(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
+            soft
+                .assertThat(ApiDocumentationMapper.INSTANCE.toWireVisibility(privateDomain))
+                .isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE);
+
+            soft.assertThat(ApiDocumentationMapper.INSTANCE.toDomainVisibility(null)).isNull();
+            soft.assertThat(ApiDocumentationMapper.INSTANCE.toWireVisibility(null)).isNull();
+        });
     }
 
     private static DocumentationSpec aSpec() {

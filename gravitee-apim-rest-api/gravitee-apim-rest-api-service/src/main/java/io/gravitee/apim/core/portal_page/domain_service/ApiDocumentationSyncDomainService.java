@@ -71,6 +71,10 @@ public class ApiDocumentationSyncDomainService {
     private final PortalNavigationItemValidatorService validatorService;
 
     public void materialize(AuditInfo auditInfo, PortalPageContent<?> pageContent) {
+        materialize(auditInfo, pageContent, null);
+    }
+
+    public void materialize(AuditInfo auditInfo, PortalPageContent<?> pageContent, PortalVisibility callerVisibility) {
         var meta = pageContent.getAutomationMetadata();
         var apiId = meta.referenceId();
         var contentId = pageContent.getId();
@@ -81,7 +85,7 @@ public class ApiDocumentationSyncDomainService {
         for (var navApi : navApiRows) {
             var pageId = PortalNavigationItemId.forApiDocumentation(auditInfo, apiId, contentId);
             var parent = resolveParent(auditInfo, navApi, meta.location().orElse(null));
-            upsertNavPage(auditInfo, pageId, contentId, parent, meta);
+            upsertNavPage(auditInfo, pageId, contentId, parent, meta, callerVisibility);
         }
     }
 
@@ -180,16 +184,17 @@ public class ApiDocumentationSyncDomainService {
         PortalNavigationItemId pageId,
         PortalPageContentId contentId,
         PortalNavigationItemContainer parent,
-        AutomationMetadata meta
+        AutomationMetadata meta,
+        PortalVisibility callerVisibility
     ) {
         final var envId = auditInfo.environmentId();
         final var orgId = auditInfo.organizationId();
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(envId, pageId);
         var parentId = parent == null ? null : parent.getId();
+        var visibility = PortalVisibility.resolve(callerVisibility, parent);
 
         if (existing instanceof PortalNavigationPage page && page.getArea() == API_DOCUMENTATION_AREA) {
             var segment = Slug.from(meta.name(), siblingSlugs(envId, parentId, pageId));
-            var visibility = PortalVisibility.inheritedFrom(parent);
             var update = UpdatePortalNavigationItem.builder()
                 .title(meta.name())
                 .segment(segment.value())
@@ -219,6 +224,7 @@ public class ApiDocumentationSyncDomainService {
             .portalPageContentId(contentId)
             .parentId(parentId)
             .reference(meta.reference())
+            .visibility(visibility)
             .published(DEFAULT_PUBLISHED)
             .automationMetadata(meta.trimmedForNavItem())
             .build();

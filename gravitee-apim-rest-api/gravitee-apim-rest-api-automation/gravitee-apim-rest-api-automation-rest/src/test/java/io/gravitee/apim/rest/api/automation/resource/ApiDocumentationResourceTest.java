@@ -67,7 +67,7 @@ class ApiDocumentationResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_api_documentation() {
-            when(getApiDocumentationUseCase.execute(any())).thenReturn(new GetApiDocumentationUseCase.Output(aDocumentation()));
+            when(getApiDocumentationUseCase.execute(any())).thenReturn(new GetApiDocumentationUseCase.Output(aDocumentation(), null));
 
             try (var response = rootTarget(DOC_HRID).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
                 assertThat(response.getStatus()).isEqualTo(200);

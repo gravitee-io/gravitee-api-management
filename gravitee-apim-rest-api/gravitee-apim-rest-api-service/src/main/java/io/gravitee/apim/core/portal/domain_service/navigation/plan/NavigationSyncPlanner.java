@@ -26,6 +26,7 @@ import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -166,11 +167,12 @@ public final class NavigationSyncPlanner {
 
     private static List<DesiredFolder> computeDesiredFolders(List<NavigationPath> input) {
         final var displayNames = explicitDisplayNames(input);
+        final var explicitVisibilities = explicitVisibilities(input);
         final var uniqueEntries = deduplicateByPath(input);
         final var orderByPath = assignSiblingOrder(uniqueEntries);
         return uniqueEntries
             .stream()
-            .map(pe -> buildDesiredFolder(pe, displayNames, orderByPath.get(pe.fullPath())))
+            .map(pe -> buildDesiredFolder(pe, displayNames, explicitVisibilities, orderByPath.get(pe.fullPath())))
             .toList();
     }
 
@@ -179,6 +181,13 @@ public final class NavigationSyncPlanner {
             .stream()
             .filter(e -> e.displayName() != null)
             .collect(Collectors.toMap(NavigationPath::path, NavigationPath::displayName, (first, second) -> first));
+    }
+
+    private static Map<String, PortalVisibility> explicitVisibilities(List<NavigationPath> input) {
+        return input
+            .stream()
+            .filter(e -> e.visibility() != null)
+            .collect(Collectors.toMap(NavigationPath::path, e -> PortalVisibility.valueOf(e.visibility()), (first, second) -> first));
     }
 
     private static Collection<PathExpander.PathEntry> deduplicateByPath(List<NavigationPath> input) {
@@ -199,13 +208,19 @@ public final class NavigationSyncPlanner {
         return orderByPath;
     }
 
-    private static DesiredFolder buildDesiredFolder(PathExpander.PathEntry pe, Map<String, String> displayNames, int order) {
+    private static DesiredFolder buildDesiredFolder(
+        PathExpander.PathEntry pe,
+        Map<String, String> displayNames,
+        Map<String, PortalVisibility> visibilities,
+        int order
+    ) {
         return new DesiredFolder(
             pe.fullPath(),
             pe.parentPath(),
             pe.segment(),
             displayNames.getOrDefault(pe.fullPath(), pe.segment().value()),
-            order
+            order,
+            visibilities.get(pe.fullPath())
         );
     }
 }

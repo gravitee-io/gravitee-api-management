@@ -27,6 +27,7 @@ import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.validation.Validator;
@@ -50,7 +51,8 @@ public class CreateOrUpdatePortalLinkUseCase {
         String name,
         String href,
         String location,
-        Integer order
+        Integer order,
+        PortalVisibility visibility
     ) {}
 
     public record Output(PortalNavigationLink link, List<Validator.Error> errors) {}
@@ -112,7 +114,8 @@ public class CreateOrUpdatePortalLinkUseCase {
                 sanitizedName,
                 sanitizedHref,
                 input.location(),
-                input.order()
+                input.order(),
+                input.visibility()
             );
         }
 

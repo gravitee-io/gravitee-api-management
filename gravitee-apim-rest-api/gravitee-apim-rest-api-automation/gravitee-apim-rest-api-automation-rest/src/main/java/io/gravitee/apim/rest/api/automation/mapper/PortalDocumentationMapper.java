@@ -22,6 +22,7 @@ import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.rest.api.automation.model.DocumentationSpec;
 import io.gravitee.apim.rest.api.automation.model.DocumentationState;
@@ -52,10 +53,17 @@ public interface PortalDocumentationMapper {
         state.setLocation(spec.getLocation());
         state.setOrder(spec.getOrder());
         state.setArea(spec.getArea());
+        state.setVisibility(spec.getVisibility());
         return state;
     }
 
-    default DocumentationState toDocumentationState(PortalPageContent<?> pageContent, PortalArea area, String hrid, String portalHrid) {
+    default DocumentationState toDocumentationState(
+        PortalPageContent<?> pageContent,
+        PortalArea area,
+        PortalVisibility visibility,
+        String hrid,
+        String portalHrid
+    ) {
         var meta = pageContent.getAutomationMetadata();
         String rawContent = switch (pageContent) {
             case GraviteeMarkdownPageContent gmd -> gmd.getContent().value();
@@ -77,7 +85,20 @@ public interface PortalDocumentationMapper {
         state.setLocation(meta.location().orElse(null));
         state.setOrder(meta.order().orElse(null));
         state.setArea(toWireArea(area));
+        state.setVisibility(toWireVisibility(visibility));
         return state;
+    }
+
+    default io.gravitee.apim.core.portal_page.model.PortalVisibility toDomainVisibility(
+        io.gravitee.apim.rest.api.automation.model.PortalVisibility wire
+    ) {
+        return wire == null ? null : io.gravitee.apim.core.portal_page.model.PortalVisibility.valueOf(wire.getValue());
+    }
+
+    default io.gravitee.apim.rest.api.automation.model.PortalVisibility toWireVisibility(
+        io.gravitee.apim.core.portal_page.model.PortalVisibility domain
+    ) {
+        return domain == null ? null : io.gravitee.apim.rest.api.automation.model.PortalVisibility.fromValue(domain.name());
     }
 
     default Errors toErrors(List<Validator.Error> validationErrors) {
