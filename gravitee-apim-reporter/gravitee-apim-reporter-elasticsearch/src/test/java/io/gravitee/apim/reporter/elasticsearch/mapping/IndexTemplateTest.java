@@ -155,7 +155,7 @@ class IndexTemplateTest {
 
     static Stream<Arguments> es_trees_and_data_stream_types() {
         return Stream.of("es7x", "es8x", "es9x").flatMap(esDir ->
-            Stream.of(Type.EVENT_METRICS, Type.AUTHZ_DECISIONS).map(type -> Arguments.of(esDir, type))
+            Stream.of(Type.EVENT_METRICS, Type.AUTHZ_DECISIONS, Type.DECISIONS).map(type -> Arguments.of(esDir, type))
         );
     }
 
@@ -178,7 +178,11 @@ class IndexTemplateTest {
     @ValueSource(strings = { "es7x", "es8x", "es9x", "opensearch" })
     void should_escape_the_lifecycle_policy_in_every_data_stream_template(String esDir) throws Exception {
         // Read off the classpath so OpenSearch, which has no preparer to drive here, is held to the same rule.
-        for (var template : List.of("index-template-event-metrics.ftl", "index-template-authz-decisions.ftl")) {
+        for (var template : List.of(
+            "index-template-event-metrics.ftl",
+            "index-template-authz-decisions.ftl",
+            "index-template-decisions.ftl"
+        )) {
             var path = "/freemarker/" + esDir + "/mapping/" + template;
             try (var in = IndexTemplateTest.class.getResourceAsStream(path)) {
                 assertThat(in).as("%s is on the classpath", path).isNotNull();
@@ -200,6 +204,7 @@ class IndexTemplateTest {
         configuration.setIndexLifecyclePolicyLog("policy-log");
         configuration.setIndexLifecyclePolicyEventMetrics("policy-event-metrics");
         configuration.setIndexLifecyclePolicyAuthzDecisions("policy-authz-decisions");
+        configuration.setIndexLifecyclePolicyDecisions("policy-decisions");
         return configuration;
     }
 

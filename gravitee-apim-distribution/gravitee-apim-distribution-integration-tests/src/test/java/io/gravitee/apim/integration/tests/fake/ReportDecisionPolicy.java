@@ -82,7 +82,9 @@ public class ReportDecisionPolicy implements Policy {
             .indeterminateCause(configuration.getIndeterminateCause())
             .confidence(0.94)
             .reasons(List.of("no_pii_detected", "within_policy"))
-            .matchedRules(List.of(new DecisionEventMetrics.MatchedRule("rule-1", "no-pii", DecisionEventMetrics.Outcome.ALLOW.getLabel(), Map.of())))
+            .matchedRules(
+                List.of(new DecisionEventMetrics.MatchedRule("rule-1", "no-pii", DecisionEventMetrics.Outcome.ALLOW.getLabel(), Map.of()))
+            )
             .status(DecisionEventMetrics.Status.SUCCESS)
             .durationNanos(1_234_000L)
             .additionalMetrics(

@@ -21,6 +21,7 @@ import io.gravitee.apim.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.indexer.PerTypeIndexNameGenerator;
 import io.gravitee.reporter.api.v4.metric.event.ApiEventMetrics;
 import io.gravitee.reporter.api.v4.metric.event.AuthzEventMetrics;
+import io.gravitee.reporter.api.v4.metric.event.DecisionEventMetrics;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,6 +58,27 @@ public class PerTypeIndexNameGeneratorTest {
                     .build()
             )
         ).isEqualTo("indexName-authz-decisions");
+    }
+
+    @Test
+    public void generate_should_route_decisions_to_their_own_index() {
+        assertThat(
+            cut.generate(
+                DecisionEventMetrics.builder()
+                    .gatewayId("gw")
+                    .organizationId("org")
+                    .environmentId("env")
+                    .apiId("api")
+                    .eventId("evt-1")
+                    .phase(DecisionEventMetrics.Phase.RESOLVED)
+                    .decisionPointType(DecisionEventMetrics.DECISION_POINT_GUARDIAN)
+                    .decisionPointId("prompt-guardian")
+                    .outcome(DecisionEventMetrics.Outcome.ALLOW)
+                    .enforced(DecisionEventMetrics.Enforced.ALLOW)
+                    .status(DecisionEventMetrics.Status.SUCCESS)
+                    .build()
+            )
+        ).isEqualTo("indexName-decisions");
     }
 
     @Test

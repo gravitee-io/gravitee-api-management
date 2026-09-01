@@ -19,6 +19,7 @@ import io.gravitee.apim.reporter.common.formatter.AbstractFormatter;
 import io.gravitee.apim.reporter.common.formatter.csv.v4.ApiEventMetricsFormatter;
 import io.gravitee.apim.reporter.common.formatter.csv.v4.ApplicationEventMetricsFormatter;
 import io.gravitee.apim.reporter.common.formatter.csv.v4.AuthzEventMetricsFormatter;
+import io.gravitee.apim.reporter.common.formatter.csv.v4.DecisionEventMetricsFormatter;
 import io.gravitee.apim.reporter.common.formatter.csv.v4.LogFormatter;
 import io.gravitee.apim.reporter.common.formatter.csv.v4.MessageLogFormatter;
 import io.gravitee.apim.reporter.common.formatter.csv.v4.MessageMetricsFormatter;
@@ -33,6 +34,7 @@ import io.gravitee.reporter.api.v4.metric.MessageMetrics;
 import io.gravitee.reporter.api.v4.metric.event.ApiEventMetrics;
 import io.gravitee.reporter.api.v4.metric.event.ApplicationEventMetrics;
 import io.gravitee.reporter.api.v4.metric.event.AuthzEventMetrics;
+import io.gravitee.reporter.api.v4.metric.event.DecisionEventMetrics;
 import io.gravitee.reporter.api.v4.metric.event.OperationEventMetrics;
 import io.gravitee.reporter.api.v4.metric.event.TopicEventMetrics;
 import io.vertx.core.buffer.Buffer;
@@ -60,6 +62,7 @@ public class CsvFormatter<T extends Reportable> extends AbstractFormatter<T> {
         FORMATTERS.put(ApiEventMetrics.class, new ApiEventMetricsFormatter());
         FORMATTERS.put(ApplicationEventMetrics.class, new ApplicationEventMetricsFormatter());
         FORMATTERS.put(AuthzEventMetrics.class, new AuthzEventMetricsFormatter());
+        FORMATTERS.put(DecisionEventMetrics.class, new DecisionEventMetricsFormatter());
     }
 
     @Override
