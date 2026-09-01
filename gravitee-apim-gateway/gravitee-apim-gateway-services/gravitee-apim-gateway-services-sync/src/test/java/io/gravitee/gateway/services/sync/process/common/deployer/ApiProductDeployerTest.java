@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
+import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductReactorDeployable;
@@ -220,6 +221,27 @@ class ApiProductDeployerTest {
             verify(subscriptionRefresher).unregisterByApiProduct("api-product-123");
             verify(apiProductManager).unregister("api-product-123");
             verify(planService).unregister(deployable);
+        }
+
+        /**
+         * The refresher translates an Error from the trust store rebuild into a SyncException, which is a
+         * RuntimeException, so {@code blockingAwait()} rethrows it as is and this method stops on it. The
+         * product must not be marked gone, nor its plans unregistered, while its subscription certificates
+         * are still loaded. The SyncException is rethrown untouched rather than wrapped a second time.
+         */
+        @Test
+        void should_stop_undeploying_when_evicting_the_subscriptions_fails() {
+            var failure = new SyncException("Failed to unregister subscriptions and API keys of API Product [api-product-123]");
+            when(subscriptionRefresher.unregisterByApiProduct("api-product-123")).thenReturn(Completable.error(failure));
+            ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
+                .syncAction(SyncAction.UNDEPLOY)
+                .apiProductId("api-product-123")
+                .build();
+
+            cut.undeploy(deployable).test().assertError(failure);
+
+            verify(apiProductManager, never()).unregister(any());
+            verify(planService, never()).unregister(any(ApiProductReactorDeployable.class));
         }
 
         @Test
