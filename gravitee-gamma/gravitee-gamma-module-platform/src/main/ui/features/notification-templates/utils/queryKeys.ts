@@ -14,20 +14,8 @@
  * limitations under the License.
  */
 
-/**
- * Subset of GET /organizations/{orgId}/console (ConsoleConfigEntity; Angular `entities/consoleSettings`).
- * Extend here when platform features need more org settings fields.
- */
-export interface ConsoleSettings {
-    userGroup?: {
-        required?: {
-            enabled?: boolean;
-        };
-    };
-    cloudHosted?: {
-        enabled?: boolean;
-    };
-    alert?: {
-        enabled?: boolean;
-    };
-}
+export const notificationTemplateKeys = {
+    all: ['org-notification-templates'] as const,
+    list: () => [...notificationTemplateKeys.all, 'list'] as const,
+    detail: (scope: string, hook: string) => [...notificationTemplateKeys.all, 'detail', scope, hook] as const,
+} as const;

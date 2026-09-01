@@ -164,6 +164,14 @@ jest.mock('../pages/SmtpSettingsPage', () => ({
     SmtpSettingsPage: () => <div data-testid="smtp-settings-page" />,
 }));
 
+jest.mock('../pages/NotificationTemplatesPage', () => ({
+    NotificationTemplatesPage: () => <div data-testid="notification-templates-page" />,
+}));
+
+jest.mock('../pages/NotificationTemplateDetailPage', () => ({
+    NotificationTemplateDetailPage: () => <div data-testid="notification-template-detail-page" />,
+}));
+
 jest.mock('../features/applications/components/detail', () => ({
     ApplicationDetailLayout: () => <div data-testid="application-detail-layout" />,
     ApplicationDetailIndexRedirect: () => null,
@@ -848,6 +856,39 @@ describe('AppRoutes', () => {
         expect(screen.getByTestId('smtp-settings-page')).not.toBeNull();
     });
 
+    it('routes to organization notification templates', () => {
+        renderPlatform('/templates');
+        expect(screen.getByTestId('notification-templates-page')).not.toBeNull();
+        renderPlatform('/templates/API/API_STARTED');
+        expect(screen.getByTestId('notification-template-detail-page')).not.toBeNull();
+    });
+
+    it('hides Templates without organization-notification_templates-r', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'smtp',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        mockUseHasPermission.mockImplementation(
+            ({ anyOf }: { anyOf: string[] }) => !anyOf.includes('organization-notification_templates-r'),
+        );
+        renderPlatform('/smtp');
+
+        expect(visibleNavKeys()).not.toContain('templates');
+        expect(visibleNavKeys()).toContain('smtp');
+    });
+
+    it('redirects away from Templates without organization-notification_templates-r', () => {
+        mockUseHasPermission.mockImplementation(
+            ({ anyOf }: { anyOf: string[] }) => !anyOf.includes('organization-notification_templates-r'),
+        );
+
+        renderPlatform('/templates');
+
+        expect(screen.queryByTestId('notification-templates-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
     it('shows Management & Schedulers, CORS, and SMTP when the user can read org settings', () => {
         mockUseModuleRouting.mockReturnValue({
             activeNavKey: 'management-and-schedulers',
@@ -857,9 +898,8 @@ describe('AppRoutes', () => {
         renderPlatform('/management-and-schedulers');
 
         expect(visibleNavKeys()).toEqual(
-            expect.arrayContaining(['access-management', 'authentication', 'management-and-schedulers', 'cors', 'smtp']),
+            expect.arrayContaining(['access-management', 'authentication', 'management-and-schedulers', 'cors', 'smtp', 'templates']),
         );
-        expect(visibleNavKeys()).not.toContain('templates');
     });
 
     it('hides organization console settings nav items without organization-settings-r', () => {

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import './monaco-setup';
 import '@gravitee/graphene-core/fonts';
 import '@gravitee/graphene-core/styles';
 

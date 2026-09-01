@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CloudIcon, GlobeIcon, UsersIcon, UsersRoundIcon } from '@gravitee/graphene-core/icons';
+import { CloudIcon, FileTextIcon, GlobeIcon, MailIcon, UsersIcon, UsersRoundIcon } from '@gravitee/graphene-core/icons';
 
 import { filterNavSections, findNavSectionKey, firstNavItemKey, lockNavItem, NAV_SECTIONS, platformPrimaryNavItems } from './navigation';
 import { PLATFORM_ROUTE_CONFIG, ROUTES } from './routes';
@@ -45,19 +45,21 @@ describe('platform navigation config', () => {
         expect(sectionKeys('Organization', 'Design')).toEqual(['policy-studio']);
     });
 
-    it('places Access Management, Management & Schedulers, CORS, SMTP, then Audit under Organization / System & Security', () => {
+    it('places Access Management, Management & Schedulers, CORS, SMTP, Templates, then Audit under Organization / System & Security', () => {
         expect(sectionKeys('Organization', 'System & Security')).toEqual([
             'access-management',
             'authentication',
             'management-and-schedulers',
             'cors',
             'smtp',
+            'templates',
             'organization-audit',
         ]);
-    });
-
-    it('does not add a Templates nav item', () => {
-        expect(sectionKeys('Organization', 'System & Security')).not.toContain('templates');
+        const systemItems =
+            NAV_SECTIONS.find(section => section.key === 'organization')?.groups.find(group => group.label === 'System & Security')
+                ?.items ?? [];
+        expect(systemItems.find(item => item.key === 'smtp')?.icon).toBe(MailIcon);
+        expect(systemItems.find(item => item.key === 'templates')?.icon).toBe(FileTextIcon);
     });
 
     it('places Applications, Metadata, Dictionaries, and Shared Policy Groups under Environment / APIs & Assets', () => {
@@ -155,13 +157,14 @@ describe('platform navigation config', () => {
     });
 
     it('declares organization console settings routes', () => {
-        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toEqual(expect.arrayContaining(['management-and-schedulers', 'cors', 'smtp']));
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toEqual(expect.arrayContaining(['management-and-schedulers', 'cors', 'smtp', 'templates']));
         expect(ROUTES['management-and-schedulers']).toEqual({
             path: 'management-and-schedulers',
             label: 'Management & Schedulers',
         });
         expect(ROUTES.cors).toEqual({ path: 'cors', label: 'CORS' });
         expect(ROUTES.smtp).toEqual({ path: 'smtp', label: 'SMTP' });
+        expect(ROUTES.templates).toEqual({ path: 'templates', label: 'Templates' });
     });
 
     it('declares the authentication route in platform routing config', () => {
