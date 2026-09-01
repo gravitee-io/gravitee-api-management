@@ -1381,6 +1381,9 @@ gateway:
 #        keystore:
 #          type: jks # Supports jks, pem, pkcs12, self-signed
 #          path: ${gravitee.home}/security/keystore.jks # A path is required if certificate's type is jks or pkcs12
+#          certificates: # Certificates are required if keystore's type is pem
+#            - cert: ${gravitee.home}/security/mycompany.org.pem
+#              key: ${gravitee.home}/security/mycompany.org.key
 #          password: secret
 #          watch: true # Watch for any updates on the keystore and reload it. Default is true.
 #          # The following is for type 'pem', report to 'secrets' section for other secret-provider plugins.
@@ -1777,6 +1780,9 @@ gateway:
   #  keystore:
   #    type: jks # Supports jks, pem, pkcs12
   #    path: ${gravitee.home}/security/keystore.jks
+  #    certificates: # Certificates are required if keystore's type is pem
+  #      - cert: ${gravitee.home}/security/mycompany.org.pem
+  #        key: ${gravitee.home}/security/mycompany.org.key
   #    password: secret
     clientAuth: false # Supports false/none, request, true/requires
   #  truststore:

@@ -29,4 +29,9 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: 
+  artifacthub.io/changes: |
+    - kind: added
+      description: "`gateway.ssl.keystore.certificates` and `gateway.servers[].ssl.keystore.certificates` declare a PEM keystore (list of `cert`/`key` pairs) on the gateway HTTP listeners, the only keystore format usable under BC-FIPS approved-only mode"
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/19547
