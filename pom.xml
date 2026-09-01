@@ -381,6 +381,26 @@
                         </mapping>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <!--
+                        The Central publishing plugin takes over the deploy phase from
+                        maven-deploy-plugin, so maven.deploy.skip never reaches it. excludeArtifacts
+                        is its own filter, and the only one honoured per module by the plugin version
+                        this branch inherits.
+                    -->
+                    <groupId>org.sonatype.central</groupId>
+                    <artifactId>central-publishing-maven-plugin</artifactId>
+                    <configuration>
+                        <excludeArtifacts>
+                            <excludeArtifact>gravitee-apim-definition-coverage</excludeArtifact>
+                            <excludeArtifact>gravitee-apim-gateway-coverage</excludeArtifact>
+                            <excludeArtifact>gravitee-apim-plugin-coverage</excludeArtifact>
+                            <excludeArtifact>gravitee-apim-reporter-coverage</excludeArtifact>
+                            <excludeArtifact>gravitee-apim-repository-coverage</excludeArtifact>
+                            <excludeArtifact>gravitee-apim-rest-api-coverage</excludeArtifact>
+                        </excludeArtifacts>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
