@@ -42,6 +42,7 @@ import io.gravitee.apim.core.api.service_provider.ApiTemplateModelProvider;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
 import io.gravitee.apim.core.environment.service_provider.EnvironmentTemplateModelProvider;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.DefaultContentRenderer;
 import io.gravitee.apim.core.portal_page.domain_service.GraviteeMarkdownContentRenderer;
 import io.gravitee.apim.core.portal_page.domain_service.OpenApiContentRenderer;
@@ -457,7 +458,7 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
             "00000000-0000-0000-0000-000000000092"
         );
         apiProduct.markAsRoot();
-        apiProduct.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        apiProduct.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
         var page = PortalNavigationItemFixtures.aPage(
             PAGE11_ID,
             "Product documentation",

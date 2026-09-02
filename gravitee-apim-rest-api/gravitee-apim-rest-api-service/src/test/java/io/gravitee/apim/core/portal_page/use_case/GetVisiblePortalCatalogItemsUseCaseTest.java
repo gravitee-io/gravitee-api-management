@@ -29,6 +29,7 @@ import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsD
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.domain_service.CheckTypoToleranceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalCatalogNavigationVisibilityDomainService;
@@ -44,7 +45,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.common.PageableImpl;

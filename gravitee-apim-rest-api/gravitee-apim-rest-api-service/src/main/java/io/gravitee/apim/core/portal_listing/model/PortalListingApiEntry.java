@@ -16,7 +16,7 @@
 package io.gravitee.apim.core.portal_listing.model;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;

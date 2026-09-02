@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
@@ -28,10 +29,10 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.slug.model.Slug;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -88,7 +89,11 @@ public class PortalDocumentationSyncDomainService {
         final var meta = pageContent.getAutomationMetadata();
         final var parent = resolveParent(auditInfo, meta.location().orElse(null), meta.referenceId());
         final var parentId = parent == null ? null : parent.getId();
-        final var visibility = PortalVisibility.resolve(callerVisibility, parent);
+        final var fallbackVisibility = Optional.ofNullable(existing)
+            .map(PortalNavigationItem::getVisibility)
+            .or(() -> Optional.ofNullable(parent).map(PortalNavigationItemContainer::getVisibility))
+            .orElse(null);
+        final var visibility = PortalVisibility.resolve(callerVisibility, fallbackVisibility);
 
         if (isUpdatableInPlace(existing, targetArea)) {
             var page = (PortalNavigationPage) existing;

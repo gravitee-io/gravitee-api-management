@@ -22,6 +22,7 @@ import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationVa
 import io.gravitee.apim.core.portal.exception.PathConflictException;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_listing.model.PortalListingApiEntry;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.ApiDocumentationSyncDomainService;
@@ -32,7 +33,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.slug.model.Slug;
@@ -55,7 +55,7 @@ class NavigationItemEntryMaterializer {
         var navApiId = rowId(auditInfo, portalId, apiId);
         var parent = resolveParent(auditInfo, portalId.toString(), entry.location());
         var title = apiCrudService.get(apiId).getName();
-        var visibility = PortalVisibility.resolve(entry.visibility(), parent);
+        var visibility = PortalVisibility.resolve(entry.visibility(), parent == null ? null : parent.getVisibility());
 
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), navApiId);
         if (existing instanceof PortalNavigationApi navApi) {
@@ -98,7 +98,7 @@ class NavigationItemEntryMaterializer {
         PortalNavigationApi existing
     ) {
         var parent = resolveParent(auditInfo, portalId.toString(), entry.location());
-        var visibility = PortalVisibility.resolve(entry.visibility(), parent);
+        var visibility = PortalVisibility.resolve(entry.visibility(), parent == null ? null : parent.getVisibility());
         var toUpdate = UpdatePortalNavigationItem.builder()
             .type(PortalNavigationItemType.API)
             .title(entry.apiHrid())
@@ -113,7 +113,7 @@ class NavigationItemEntryMaterializer {
 
     CreatePortalNavigationItem itemForValidation(AuditInfo auditInfo, PortalId portalId, String apiId, PortalListingApiEntry entry) {
         var parent = resolveParent(auditInfo, portalId.toString(), entry.location());
-        var visibility = PortalVisibility.resolve(entry.visibility(), parent);
+        var visibility = PortalVisibility.resolve(entry.visibility(), parent == null ? null : parent.getVisibility());
         return CreatePortalNavigationItem.builder()
             .id(rowId(auditInfo, portalId, apiId))
             .title(entry.apiHrid())

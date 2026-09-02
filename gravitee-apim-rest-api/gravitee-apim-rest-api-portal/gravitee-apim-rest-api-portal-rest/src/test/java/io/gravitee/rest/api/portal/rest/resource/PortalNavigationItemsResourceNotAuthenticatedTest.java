@@ -21,11 +21,11 @@ import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.rest.api.portal.rest.fixture.PortalNavigationFixtures;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
@@ -82,15 +82,15 @@ public class PortalNavigationItemsResourceNotAuthenticatedTest extends AbstractR
 
         var publishedAndPublicItem = items.getFirst();
         publishedAndPublicItem.setPublished(true);
-        publishedAndPublicItem.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC);
+        publishedAndPublicItem.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC);
 
         var unpublishedItem = items.get(1);
         unpublishedItem.setPublished(false);
-        unpublishedItem.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC);
+        unpublishedItem.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC);
 
         var privateItem = items.get(2);
         privateItem.setPublished(true);
-        privateItem.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        privateItem.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
 
         portalNavigationItemsQueryService.initWith(List.of(publishedAndPublicItem, unpublishedItem, privateItem));
 

@@ -530,7 +530,7 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         // And storage reflects the change
         var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
         assertThat(updated.getTitle()).isEqualTo("Updated Title");
-        assertThat(updated.getVisibility()).isEqualTo(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        assertThat(updated.getVisibility()).isEqualTo(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
     }
 
     @Test

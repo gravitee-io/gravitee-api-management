@@ -66,14 +66,14 @@ public interface PortalLinkMapper {
         return state;
     }
 
-    default io.gravitee.apim.core.portal_page.model.PortalVisibility toDomainVisibility(
+    default io.gravitee.apim.core.portal.model.PortalVisibility toDomainVisibility(
         io.gravitee.apim.rest.api.automation.model.PortalVisibility wire
     ) {
-        return wire == null ? null : io.gravitee.apim.core.portal_page.model.PortalVisibility.valueOf(wire.getValue());
+        return wire == null ? null : io.gravitee.apim.core.portal.model.PortalVisibility.valueOf(wire.getValue());
     }
 
     default io.gravitee.apim.rest.api.automation.model.PortalVisibility toWireVisibility(
-        io.gravitee.apim.core.portal_page.model.PortalVisibility domain
+        io.gravitee.apim.core.portal.model.PortalVisibility domain
     ) {
         return domain == null ? null : io.gravitee.apim.rest.api.automation.model.PortalVisibility.fromValue(domain.name());
     }

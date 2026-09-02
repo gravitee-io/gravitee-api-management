@@ -34,6 +34,7 @@ import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsD
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
@@ -44,7 +45,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -416,10 +416,10 @@ class ListPortalNavigationItemsUseCaseTest {
         // Given
         // Setup data for APIs, Guides, Support
         var privatePage = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().toString(), "Private Page", null);
-        privatePage.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        privatePage.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
 
         var publicPage = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().toString(), "Public Page", null);
-        publicPage.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC);
+        publicPage.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC);
 
         queryService.initWith(List.of(privatePage, publicPage));
 
@@ -449,7 +449,7 @@ class ListPortalNavigationItemsUseCaseTest {
             null,
             "private-api-id"
         );
-        apiNavItem.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        apiNavItem.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
         apiNavItem.setPublished(true);
 
         queryService.initWith(List.of(apiNavItem));
@@ -481,7 +481,7 @@ class ListPortalNavigationItemsUseCaseTest {
             null,
             "private-api-id"
         );
-        apiNavItem.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        apiNavItem.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
         apiNavItem.setPublished(true);
 
         queryService.initWith(List.of(apiNavItem));
@@ -523,7 +523,7 @@ class ListPortalNavigationItemsUseCaseTest {
             null,
             "private-api-id"
         );
-        apiNavItem.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        apiNavItem.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
         apiNavItem.setPublished(true);
 
         var childFolder = PortalNavigationItemFixtures.aFolder(
@@ -564,7 +564,7 @@ class ListPortalNavigationItemsUseCaseTest {
             null,
             "private-api-id"
         );
-        apiNavItem.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        apiNavItem.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
         apiNavItem.setPublished(true);
 
         var childPage = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().toString(), "API Overview", apiNavItem.getId());
@@ -598,7 +598,7 @@ class ListPortalNavigationItemsUseCaseTest {
             null,
             "private-api-id"
         );
-        apiNavItem.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        apiNavItem.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
         apiNavItem.setPublished(true);
 
         var childFolder = PortalNavigationItemFixtures.aFolder(
@@ -640,7 +640,7 @@ class ListPortalNavigationItemsUseCaseTest {
             rootFolder.getId(),
             "api-product-id"
         );
-        apiProduct.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        apiProduct.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
         apiProduct.updateParent(rootFolder);
         var childPage = PortalNavigationItemFixtures.aPage("Product overview", apiProduct.getId());
         childPage.updateParent(apiProduct);
@@ -671,7 +671,7 @@ class ListPortalNavigationItemsUseCaseTest {
             rootFolder.getId(),
             "first-api-product-id"
         );
-        firstApiProduct.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        firstApiProduct.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
         firstApiProduct.updateParent(rootFolder);
         var secondApiProduct = PortalNavigationItemFixtures.anApiProduct(
             PortalNavigationItemId.random().toString(),
@@ -679,7 +679,7 @@ class ListPortalNavigationItemsUseCaseTest {
             rootFolder.getId(),
             "second-api-product-id"
         );
-        secondApiProduct.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        secondApiProduct.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
         secondApiProduct.updateParent(rootFolder);
         queryService.initWith(List.of(rootFolder, firstApiProduct, secondApiProduct));
 
@@ -708,7 +708,7 @@ class ListPortalNavigationItemsUseCaseTest {
             rootFolder.getId(),
             "api-product-id"
         );
-        apiProduct.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        apiProduct.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
         apiProduct.updateParent(rootFolder);
         var childPage = PortalNavigationItemFixtures.aPage("Product overview", apiProduct.getId());
         childPage.updateParent(apiProduct);
@@ -759,7 +759,7 @@ class ListPortalNavigationItemsUseCaseTest {
             apiProduct.getId(),
             "api-id"
         );
-        privateApi.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        privateApi.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
         privateApi.updateParent(apiProduct);
         queryService.initWith(List.of(rootFolder, apiProduct, privateApi));
 

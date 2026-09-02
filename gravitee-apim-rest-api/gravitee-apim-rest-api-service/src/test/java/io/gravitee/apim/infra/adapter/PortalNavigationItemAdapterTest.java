@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.repository.model.PortalNavigationItemsRepositoryFixtures;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.model.*;
 import io.gravitee.repository.management.model.PortalNavigationItem;

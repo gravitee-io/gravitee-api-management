@@ -19,6 +19,7 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.exception.PathConflictException;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
@@ -27,7 +28,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.slug.model.Slug;
@@ -101,7 +101,7 @@ public class PortalLinkSyncDomainService {
             rejectIfSegmentTakenByForeignItem(auditInfo, parent, segment, linkId, location);
         }
 
-        var visibility = PortalVisibility.resolve(callerVisibility, parent);
+        var visibility = PortalVisibility.resolve(callerVisibility, parent == null ? null : parent.getVisibility());
 
         if (existingLink != null) {
             var toUpdate = UpdatePortalNavigationItem.builder()

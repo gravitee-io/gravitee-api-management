@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.model;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;

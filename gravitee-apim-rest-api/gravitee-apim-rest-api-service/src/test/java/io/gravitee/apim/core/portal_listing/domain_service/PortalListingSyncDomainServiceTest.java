@@ -38,6 +38,7 @@ import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyn
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_listing.model.PortalListing;
 import io.gravitee.apim.core.portal_listing.model.PortalListingApiEntry;
@@ -51,7 +52,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.slug.model.Slug;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.List;

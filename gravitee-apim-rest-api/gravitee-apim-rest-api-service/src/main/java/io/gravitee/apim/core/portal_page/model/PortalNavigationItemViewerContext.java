@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import jakarta.annotation.Nullable;
 import java.util.Optional;

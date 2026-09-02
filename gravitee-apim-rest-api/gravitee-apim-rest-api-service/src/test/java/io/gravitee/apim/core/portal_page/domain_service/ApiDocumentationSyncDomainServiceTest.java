@@ -28,6 +28,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
@@ -38,7 +39,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -237,6 +237,44 @@ class ApiDocumentationSyncDomainServiceTest {
         syncService.materialize(AUDIT_INFO, doc);
 
         var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
+        var page = (PortalNavigationPage) navItemCrud
+            .storage()
+            .stream()
+            .filter(item -> item.getId().equals(pageId))
+            .findFirst()
+            .orElseThrow();
+        assertThat(page.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
+    }
+
+    @Test
+    void materialize_preserves_stored_page_visibility_when_caller_visibility_is_absent() {
+        seedNavApi(PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), API_ID, PortalVisibility.PUBLIC);
+        var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
+        navItemCrud.create(
+            PortalNavigationPage.builder()
+                .id(pageId)
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .title("Guides")
+                .segment("guides")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(DOC_ID)
+                .published(true)
+                .visibility(PortalVisibility.PRIVATE)
+                .build()
+        );
+
+        var meta = new AutomationMetadata(AutomationMetadata.ReferenceType.API, API_ID, "Guides", Optional.empty(), Optional.of(0));
+        var doc = new GraviteeMarkdownPageContent(
+            DOC_ID,
+            AUDIT_INFO.organizationId(),
+            AUDIT_INFO.environmentId(),
+            GraviteeMarkdown.of("# Hello"),
+            meta
+        );
+        syncService.materialize(AUDIT_INFO, doc);
+
         var page = (PortalNavigationPage) navItemCrud
             .storage()
             .stream()

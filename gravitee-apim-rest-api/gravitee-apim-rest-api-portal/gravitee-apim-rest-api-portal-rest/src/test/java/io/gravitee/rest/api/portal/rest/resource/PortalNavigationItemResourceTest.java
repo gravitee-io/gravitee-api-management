@@ -126,7 +126,7 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
                 PortalNavigationFixtures.randomPageId()
             );
             publishedAndPublicItem.setPublished(true);
-            publishedAndPublicItem.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC);
+            publishedAndPublicItem.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC);
             publishedAndPublicItem.setEnvironmentId(ENV_ID);
 
             portalNavigationItemsQueryService.initWith(List.of(publishedAndPublicItem));
@@ -235,7 +235,7 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
                 UUID.randomUUID()
             );
             apiProduct.setEnvironmentId(ENV_ID);
-            apiProduct.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+            apiProduct.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
 
             var pageId = PortalNavigationFixtures.randomNavigationId();
             var contentId = PortalNavigationFixtures.randomPageId();
@@ -420,7 +420,7 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
 
             var publishedAndPublicPage = PortalNavigationFixtures.page(itemId, "Published Public Page", PortalArea.TOP_NAVBAR, contentId);
             publishedAndPublicPage.setPublished(true);
-            publishedAndPublicPage.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC);
+            publishedAndPublicPage.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC);
             publishedAndPublicPage.setEnvironmentId(ENV_ID);
 
             portalNavigationItemsQueryService.initWith(List.of(publishedAndPublicPage));

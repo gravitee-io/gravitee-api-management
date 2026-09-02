@@ -34,6 +34,7 @@ import io.gravitee.apim.core.api.service_provider.ApiTemplateModelProvider;
 import io.gravitee.apim.core.environment.service_provider.EnvironmentTemplateModelProvider;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
 import io.gravitee.apim.core.gravitee_markdown.exception.GraviteeMarkdownContentEmptyException;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.GraviteePortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationEnclosingApiDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
@@ -105,7 +106,7 @@ class UpdatePortalPageContentUseCaseTest {
             .order(0)
             .portalPageContentId(PortalPageContentId.of(CONTENT_ID))
             .published(true)
-            .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC)
+            .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
             .source(
                 io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource.builder()
                     .sourceType("http-fetcher")

@@ -15,9 +15,9 @@
  */
 package io.gravitee.apim.core.portal.domain_service.navigation.actions;
 
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.slug.model.Slug;
 import jakarta.annotation.Nullable;
 
