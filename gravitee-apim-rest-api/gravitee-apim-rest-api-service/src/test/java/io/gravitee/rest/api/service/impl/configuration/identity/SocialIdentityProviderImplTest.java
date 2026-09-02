@@ -60,7 +60,7 @@ public class SocialIdentityProviderImplTest {
     private IdentityProviderActivationService identityProviderActivationService;
 
     @Test
-    public void find_all_should_exclude_disabled_idp_for_organization_target() {
+    public void find_all_should_include_disabled_idp_for_organization_target() {
         givenActivatedIdps(ORGANIZATION_TARGET, googleIdp("enabled-idp", "Enabled", true), googleIdp("disabled-idp", "Disabled", false));
 
         Set<String> ids = socialIdentityProvider
@@ -69,7 +69,23 @@ public class SocialIdentityProviderImplTest {
             .map(SocialIdentityProviderEntity::getId)
             .collect(Collectors.toSet());
 
-        assertEquals(Set.of("enabled-idp"), ids);
+        assertEquals(Set.of("enabled-idp", "disabled-idp"), ids);
+    }
+
+    @Test
+    public void find_all_should_exclude_idp_not_activated_on_organization_target() {
+        IdentityProviderEntity activated = googleIdp("activated-idp", "Activated", true);
+        IdentityProviderEntity deactivated = googleIdp("deactivated-idp", "Deactivated", true);
+        when(identityProviderActivationService.findAllByTarget(ORGANIZATION_TARGET)).thenReturn(Set.of(activation(activated.getId())));
+        when(identityProviderService.findAll(EXECUTION_CONTEXT)).thenReturn(Set.of(activated, deactivated));
+
+        Set<String> ids = socialIdentityProvider
+            .findAll(EXECUTION_CONTEXT, ORGANIZATION_TARGET)
+            .stream()
+            .map(SocialIdentityProviderEntity::getId)
+            .collect(Collectors.toSet());
+
+        assertEquals(Set.of("activated-idp"), ids);
     }
 
     @Test
@@ -95,11 +111,13 @@ public class SocialIdentityProviderImplTest {
         assertEquals("enabled-idp", result.getId());
     }
 
-    @Test(expected = IdentityProviderNotFoundException.class)
-    public void find_by_id_should_reject_disabled_idp_for_organization_target() {
+    @Test
+    public void find_by_id_should_return_disabled_idp_for_organization_target() {
         givenActivatedIdp(ORGANIZATION_TARGET, googleIdp("disabled-idp", "Disabled", false));
 
-        socialIdentityProvider.findById("disabled-idp", ORGANIZATION_TARGET);
+        SocialIdentityProviderEntity result = socialIdentityProvider.findById("disabled-idp", ORGANIZATION_TARGET);
+
+        assertEquals("disabled-idp", result.getId());
     }
 
     @Test(expected = IdentityProviderNotFoundException.class)
