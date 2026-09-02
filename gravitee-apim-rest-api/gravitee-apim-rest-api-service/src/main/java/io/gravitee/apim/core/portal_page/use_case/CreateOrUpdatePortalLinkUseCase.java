@@ -19,11 +19,13 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.AbstractDomainException;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal.validation.NavigationPathValidator;
 import io.gravitee.apim.core.portal_page.domain_service.PortalLinkSyncDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
@@ -33,6 +35,7 @@ import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQuer
 import io.gravitee.apim.core.validation.Validator;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -74,6 +77,7 @@ public class CreateOrUpdatePortalLinkUseCase {
 
         var linkId = PortalNavigationItemId.forPortalLink(input.auditInfo(), input.portalId().toString(), input.linkHrid());
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(input.auditInfo().environmentId(), linkId);
+        var parentId = syncDomainService.parentIdFor(input.auditInfo(), input.portalId().toString(), input.location());
 
         // The shared validator throws on its first failing rule, so at most one error surfaces here.
         try {
@@ -82,6 +86,9 @@ public class CreateOrUpdatePortalLinkUseCase {
                     .type(PortalNavigationItemType.LINK)
                     .title(sanitizedName)
                     .url(sanitizedHref)
+                    .parentId(parentId)
+                    .visibility(input.visibility())
+                    .published(true)
                     .build();
                 navigationItemValidatorService.validateToUpdate(toUpdate, existingLink);
             } else {
@@ -90,6 +97,19 @@ public class CreateOrUpdatePortalLinkUseCase {
                     .type(PortalNavigationItemType.LINK)
                     .title(sanitizedName)
                     .url(sanitizedHref)
+                    .area(PortalArea.TOP_NAVBAR)
+                    .parentId(parentId)
+                    .visibility(input.visibility())
+                    .published(true)
+                    .automationMetadata(
+                        new AutomationMetadata(
+                            AutomationMetadata.ReferenceType.PORTAL,
+                            input.portalId().toString(),
+                            null,
+                            Optional.ofNullable(input.location()),
+                            Optional.empty()
+                        )
+                    )
                     .build();
                 navigationItemValidatorService.validateOne(toCreate, input.auditInfo().environmentId());
             }

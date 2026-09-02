@@ -24,10 +24,14 @@ import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.PortalLinkSyncDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.validation.Validator;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -78,6 +82,47 @@ class CreateOrUpdateApiLinkUseCaseTest {
         assertThat(output.link()).isNull();
         assertThat(output.errors()).anyMatch(Validator.Error::isSevere);
         assertThat(navItemCrud.storage()).isEmpty();
+    }
+
+    @Test
+    void reports_a_severe_error_when_public_link_is_placed_under_persisted_private_folder() {
+        // Spec (open-api.yaml PortalVisibility): "A PUBLIC child under a PRIVATE parent is rejected."
+        var parentFolderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/private-guides");
+        navItemCrud.initWith(
+            List.of(
+                PortalNavigationFolder.builder()
+                    .id(parentFolderId)
+                    .organizationId(AUDIT_INFO.organizationId())
+                    .environmentId(AUDIT_INFO.environmentId())
+                    .title("private-guides")
+                    .segment("private-guides")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .published(true)
+                    .visibility(PortalVisibility.PRIVATE)
+                    .build()
+            )
+        );
+
+        var output = useCase.execute(
+            new CreateOrUpdateApiLinkUseCase.Input(
+                AUDIT_INFO,
+                API_ID,
+                "external-docs",
+                "External Docs",
+                "https://docs.example.com",
+                "/private-guides",
+                0,
+                PortalVisibility.PUBLIC
+            )
+        );
+
+        assertThat(output.link()).isNull();
+        assertThat(output.errors()).anyMatch(Validator.Error::isSevere);
+        assertThat(output.errors())
+            .extracting(Validator.Error::getMessage)
+            .anyMatch(m -> m.contains("PUBLIC"));
+        assertThat(navItemCrud.storage()).hasSize(1);
     }
 
     @Test
