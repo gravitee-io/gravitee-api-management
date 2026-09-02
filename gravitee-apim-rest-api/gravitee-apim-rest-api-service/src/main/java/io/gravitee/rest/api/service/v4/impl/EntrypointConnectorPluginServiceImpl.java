@@ -23,6 +23,7 @@ import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.service.JsonSchemaService;
+import io.gravitee.rest.api.service.common.LegacySslConfigurationNormalizer;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import java.io.IOException;
@@ -79,6 +80,10 @@ public class EntrypointConnectorPluginServiceImpl
     public String validateEntrypointSubscriptionConfiguration(String entrypointId, String configuration) {
         // Only to check if plugin exists
         findById(entrypointId);
-        return validatePluginConfigurationAgainstSchema(entrypointId, ofNullable(configuration).orElse("{}"), this::getSubscriptionSchema);
+        String normalizedConfiguration = LegacySslConfigurationNormalizer.normalizeLegacySslNoneValues(
+            entrypointId,
+            ofNullable(configuration).orElse("{}")
+        );
+        return validatePluginConfigurationAgainstSchema(entrypointId, normalizedConfiguration, this::getSubscriptionSchema);
     }
 }
