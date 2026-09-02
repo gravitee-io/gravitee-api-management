@@ -23,9 +23,20 @@ export class ApiProxyEndpointListHarness extends ComponentHarness {
   static hostSelector = 'api-proxy-endpoint-list';
 
   private getAddEndpointGroupButton = this.locatorFor(MatButtonHarness.with({ text: /Add new endpoint group/ }));
+  private getAddEndpointGroupButtons = this.locatorForAll(MatButtonHarness.with({ text: /Add new endpoint group/ }));
+  private getAddEndpointButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Add new endpoint"]' }));
   private getEditEndpointGroupButton = this.locatorFor(MatButtonHarness.with({ selector: '[mattooltip="Edit group"]' }));
+  private getEditEndpointGroupButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Edit group"]' }));
   private getDeleteEndpointGroupButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Delete group"]' }));
+  private getDeleteEndpointGroupButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Delete group"]' }));
+  private getOpenEndpointGroupDetailButtons = this.locatorForAll(
+    MatButtonHarness.with({ selector: '[aria-label="Button to open group detail"]' }),
+  );
+  private getEditEndpointButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Button to edit an endpoint"]' }));
   private getDeleteEndpointButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Delete endpoint"]' }));
+  private getOpenEndpointDetailButtons = this.locatorForAll(
+    MatButtonHarness.with({ selector: '[aria-label="Button to open endpoint detail"]' }),
+  );
 
   public async getTable(index: number) {
     const table = this.locatorFor(MatTableHarness.with({ selector: `#endpointGroupsTable-${index}` }));
@@ -57,9 +68,46 @@ export class ApiProxyEndpointListHarness extends ComponentHarness {
     return button.click();
   }
 
+  public async isAddEndpointGroupButtonVisible(): Promise<boolean> {
+    return this.getAddEndpointGroupButtons().then(buttons => buttons.length > 0);
+  }
+
+  public async isAddEndpointButtonVisible(): Promise<boolean> {
+    return this.getAddEndpointButtons().then(buttons => buttons.length > 0);
+  }
+
   public async editEndpointGroup() {
     const button = await this.getEditEndpointGroupButton();
     return await button.click();
+  }
+
+  public async isEditEndpointGroupButtonVisible(): Promise<boolean> {
+    return this.getEditEndpointGroupButtons().then(buttons => buttons.length > 0);
+  }
+
+  public async isDeleteEndpointGroupButtonVisible(): Promise<boolean> {
+    return this.getDeleteEndpointGroupButtons().then(buttons => buttons.length > 0);
+  }
+
+  public async isOpenEndpointGroupDetailButtonVisible(): Promise<boolean> {
+    return this.getOpenEndpointGroupDetailButtons().then(buttons => buttons.length > 0);
+  }
+
+  public async clickOpenEndpointGroupDetail(index: number): Promise<void> {
+    const buttons = await this.getOpenEndpointGroupDetailButtons();
+    return buttons[index].click();
+  }
+
+  public async isEditEndpointButtonVisible(): Promise<boolean> {
+    return this.getEditEndpointButtons().then(buttons => buttons.length > 0);
+  }
+
+  public async isDeleteEndpointButtonVisible(): Promise<boolean> {
+    return this.getDeleteEndpointButtons().then(buttons => buttons.length > 0);
+  }
+
+  public async isOpenEndpointDetailButtonVisible(): Promise<boolean> {
+    return this.getOpenEndpointDetailButtons().then(buttons => buttons.length > 0);
   }
 
   public async deleteEndpointGroup(rootLoader: HarnessLoader) {
