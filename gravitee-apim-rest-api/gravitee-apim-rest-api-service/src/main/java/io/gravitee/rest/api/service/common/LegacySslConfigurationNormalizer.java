@@ -44,6 +44,9 @@ public class LegacySslConfigurationNormalizer {
      * therefore carry the legacy empty-string discriminator. Plugins declaring their own SSL schema
      * (kafka, native-kafka) never used that representation and must be left untouched, since
      * normalization drops the sibling fields of the store it rewrites.
+     * <p>
+     * {@code webhook} is listed for its <em>subscription</em> schema: no endpoint bears that type, and
+     * its classic portal form still submits the empty string.
      */
     private static final Set<String> SHARED_SSL_SCHEMA_TYPES = Set.of(
         "http-proxy",
@@ -51,7 +54,8 @@ public class LegacySslConfigurationNormalizer {
         "mcp-proxy",
         "llm-proxy",
         "a2a-proxy",
-        "http-dynamic-properties"
+        "http-dynamic-properties",
+        "webhook"
     );
 
     /**
