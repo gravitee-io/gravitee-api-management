@@ -2399,7 +2399,7 @@ components:
     PortalArea:
       type: string
       description: The portal area (used by portal navigation items)
-      enum: [ HOMEPAGE, TOP_NAVBAR ]
+      enum: [ HOMEPAGE, TOP_NAVBAR, SUBSCRIPTION_FORM ]
       example: TOP_NAVBAR
       default: TOP_NAVBAR
     PortalVisibility:
