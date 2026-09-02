@@ -8584,6 +8584,7 @@ components:
             enum:
                 - api
                 - api_product
+                - agent
         BasePortalNavigationItem:
             type: object
             description: Base portal navigation item
@@ -8617,6 +8618,7 @@ components:
                     LINK: "#/components/schemas/PortalNavigationLink"
                     API: "#/components/schemas/PortalNavigationApi"
                     API_PRODUCT: "#/components/schemas/PortalNavigationApiProduct"
+                    AGENT: "#/components/schemas/PortalNavigationAgent"
         PortalNavigationPage:
             allOf:
                 - $ref: "#/components/schemas/BasePortalNavigationItem"
@@ -8665,6 +8667,20 @@ components:
                     type: string
                     format: uuid
               required: [ apiProductId ]
+        PortalNavigationAgent:
+          allOf:
+            - $ref: "#/components/schemas/BasePortalNavigationItem"
+            - properties:
+                agentId:
+                  type: string
+                  description: The ID of the A2A proxy API that backs this agent
+                categoryIds:
+                  type: array
+                  description: The IDs of the Portal Next categories this agent navigation item is assigned to
+                  items:
+                    type: string
+                    format: uuid
+              required: [ agentId ]
         PortalNavigationItem:
             oneOf:
                 - $ref: "#/components/schemas/PortalNavigationPage"
@@ -8672,6 +8688,7 @@ components:
                 - $ref: "#/components/schemas/PortalNavigationLink"
                 - $ref: "#/components/schemas/PortalNavigationApi"
                 - $ref: "#/components/schemas/PortalNavigationApiProduct"
+                - $ref: "#/components/schemas/PortalNavigationAgent"
             discriminator:
                 propertyName: type
                 mapping:
@@ -8680,6 +8697,7 @@ components:
                     LINK: "#/components/schemas/PortalNavigationLink"
                     API: "#/components/schemas/PortalNavigationApi"
                     API_PRODUCT: "#/components/schemas/PortalNavigationApiProduct"
+                    AGENT: "#/components/schemas/PortalNavigationAgent"
 
         PortalPageContent:
             type: object

@@ -19,6 +19,7 @@ import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationAgent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
@@ -43,6 +44,7 @@ public class PortalNavigationItemFixtures {
     public static final String LINK_ID = "00000000-0000-0000-0000-000000000016";
     public static final String API_ID = "00000000-0000-0000-0000-000000000017";
     public static final String API_PRODUCT_ID = "00000000-0000-0000-0000-000000000018";
+    public static final String AGENT_ID = "00000000-0000-0000-0000-000000000019";
     public static final String API_TITLE = "My Api";
 
     public static final String APIS_ID = "00000000-0000-0000-0000-000000000001";
@@ -326,6 +328,37 @@ public class PortalNavigationItemFixtures {
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
             .parentId(parentId)
+            .build();
+    }
+
+    public static PortalNavigationAgent anAgent(String id, String title, PortalNavigationItemId parentId, String agentId) {
+        return PortalNavigationAgent.builder()
+            .id(PortalNavigationItemId.of(id))
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .title(title)
+            .segment(PortalNavigationItem.slugify(title).value())
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .agentId(agentId)
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .parentId(parentId)
+            .build();
+    }
+
+    public static PortalNavigationAgent anAgent() {
+        return PortalNavigationAgent.builder()
+            .id(PortalNavigationItemId.of(AGENT_ID))
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .title("My Agent")
+            .segment("my-agent")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(5)
+            .agentId("a2a-proxy-api-id")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
             .build();
     }
 

@@ -52,6 +52,10 @@ public final class PortalNavigationItemFixtures {
         return anItem(id, PortalNavigationItem.Type.API_PRODUCT).apiProductId(apiProductId).published(false);
     }
 
+    public static PortalNavigationItem.PortalNavigationItemBuilder anAgent(String id, String agentId) {
+        return anItem(id, PortalNavigationItem.Type.AGENT).agentId(agentId);
+    }
+
     public static PortalNavigationItem.PortalNavigationItemBuilder aPage(String id, String portalPageContentId) {
         return anItem(id, PortalNavigationItem.Type.PAGE).configuration("{ \"portalPageContentId\": \"" + portalPageContentId + "\" }");
     }

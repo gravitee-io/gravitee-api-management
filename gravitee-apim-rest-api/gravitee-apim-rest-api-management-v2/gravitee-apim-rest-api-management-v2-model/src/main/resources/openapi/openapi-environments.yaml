@@ -2920,7 +2920,7 @@ components:
       type: string
       description: The type of the navigation item
       example: FOLDER
-      enum: [ PAGE, FOLDER, LINK, API, API_PRODUCT ]
+      enum: [ PAGE, FOLDER, LINK, API, API_PRODUCT, AGENT ]
     BasePortalNavigationItem:
       type: object
       description: Base portal navigation item
@@ -2974,6 +2974,7 @@ components:
           LINK: "#/components/schemas/PortalNavigationLink"
           API: "#/components/schemas/PortalNavigationApi"
           API_PRODUCT: "#/components/schemas/PortalNavigationApiProduct"
+          AGENT: "#/components/schemas/PortalNavigationAgent"
     PortalNavigationItemSource:
       type: object
       description: External source of the item content.
@@ -3154,6 +3155,23 @@ components:
                 format: uuid
               example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
           required: [ apiProductId ]
+    PortalNavigationAgent:
+      description: Portal navigation item of type AGENT
+      allOf:
+        - $ref: "#/components/schemas/BasePortalNavigationItem"
+        - properties:
+            agentId:
+              type: string
+              description: The ID of the A2A proxy API that backs this agent
+              example: 3f2504e0-4f89-41d3-9a0c-0305e82c3301
+            categoryIds:
+              type: array
+              description: The IDs of the Portal Next categories this agent navigation item is assigned to
+              items:
+                type: string
+                format: uuid
+              example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
+          required: [ agentId ]
     PortalNavigationItem:
       oneOf:
         - $ref: "#/components/schemas/PortalNavigationPage"
@@ -3161,6 +3179,7 @@ components:
         - $ref: "#/components/schemas/PortalNavigationLink"
         - $ref: "#/components/schemas/PortalNavigationApi"
         - $ref: "#/components/schemas/PortalNavigationApiProduct"
+        - $ref: "#/components/schemas/PortalNavigationAgent"
       discriminator:
         propertyName: type
         mapping:
@@ -3169,6 +3188,7 @@ components:
           LINK: "#/components/schemas/PortalNavigationLink"
           API: "#/components/schemas/PortalNavigationApi"
           API_PRODUCT: "#/components/schemas/PortalNavigationApiProduct"
+          AGENT: "#/components/schemas/PortalNavigationAgent"
     PortalNavigationItemsResponseMetadata:
       type: object
       description: Sidecar data resolved for the returned navigation items, present only when requested via the `includes` query parameter.
@@ -3230,6 +3250,7 @@ components:
           LINK: "#/components/schemas/CreatePortalNavigationLink"
           API:  "#/components/schemas/CreatePortalNavigationApi"
           API_PRODUCT: "#/components/schemas/CreatePortalNavigationApiProduct"
+          AGENT: "#/components/schemas/CreatePortalNavigationAgent"
       required: [ title, type, area, visibility ]
     CreatePortalNavigationFolder:
       type: object
@@ -3308,6 +3329,25 @@ components:
                 format: uuid
               example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
           required: [ apiProductId ]
+    CreatePortalNavigationAgent:
+      type: object
+      title: "CreatePortalNavigationAgent"
+      description: Portal navigation agent item to create. Newly created items are unpublished by default.
+      allOf:
+        - $ref: "#/components/schemas/BaseCreatePortalNavigationItem"
+        - properties:
+            agentId:
+              type: string
+              description: The ID of the A2A proxy API that backs this agent
+              example: "3f2504e0-4f89-41d3-9a0c-0305e82c3301"
+            categoryIds:
+              type: array
+              description: The IDs of the Portal Next categories this agent navigation item is assigned to. Defaults to an empty list if not provided.
+              items:
+                type: string
+                format: uuid
+              example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
+          required: [ agentId ]
     CreatePortalNavigationItem:
       oneOf:
         - $ref: "#/components/schemas/CreatePortalNavigationPage"
@@ -3315,6 +3355,7 @@ components:
         - $ref: "#/components/schemas/CreatePortalNavigationLink"
         - $ref: "#/components/schemas/CreatePortalNavigationApi"
         - $ref: "#/components/schemas/CreatePortalNavigationApiProduct"
+        - $ref: "#/components/schemas/CreatePortalNavigationAgent"
 
       discriminator:
         propertyName: type
@@ -3324,6 +3365,7 @@ components:
           LINK: "#/components/schemas/CreatePortalNavigationLink"
           API: "#/components/schemas/CreatePortalNavigationApi"
           API_PRODUCT: "#/components/schemas/CreatePortalNavigationApiProduct"
+          AGENT: "#/components/schemas/CreatePortalNavigationAgent"
 
     CreatePortalNavigationItems:
       type: object
@@ -3391,6 +3433,7 @@ components:
           LINK: "#/components/schemas/UpdatePortalNavigationLink"
           API: "#/components/schemas/UpdatePortalNavigationApi"
           API_PRODUCT: "#/components/schemas/UpdatePortalNavigationApiProduct"
+          AGENT: "#/components/schemas/UpdatePortalNavigationAgent"
 
       required: [ type, title, order, published, visibility ]
     UpdatePortalNavigationFolder:
@@ -3456,6 +3499,20 @@ components:
                 type: string
                 format: uuid
               example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
+    UpdatePortalNavigationAgent:
+      type: object
+      title: "UpdatePortalNavigationAgent"
+      description: Portal navigation agent item to update. The linked agent is immutable; an agentId property supplied in an update payload is ignored.
+      allOf:
+        - $ref: "#/components/schemas/BaseUpdatePortalNavigationItem"
+        - properties:
+            categoryIds:
+              type: array
+              description: The IDs of the Portal Next categories this agent navigation item is assigned to. Defaults to an empty list if not provided.
+              items:
+                type: string
+                format: uuid
+              example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
     UpdatePortalNavigationItem:
       oneOf:
         - $ref: "#/components/schemas/UpdatePortalNavigationPage"
@@ -3463,6 +3520,7 @@ components:
         - $ref: "#/components/schemas/UpdatePortalNavigationLink"
         - $ref: "#/components/schemas/UpdatePortalNavigationApi"
         - $ref: "#/components/schemas/UpdatePortalNavigationApiProduct"
+        - $ref: "#/components/schemas/UpdatePortalNavigationAgent"
       discriminator:
         propertyName: type
         mapping:
@@ -3471,6 +3529,7 @@ components:
           LINK: "#/components/schemas/UpdatePortalNavigationLink"
           API: "#/components/schemas/UpdatePortalNavigationApi"
           API_PRODUCT: "#/components/schemas/UpdatePortalNavigationApiProduct"
+          AGENT: "#/components/schemas/UpdatePortalNavigationAgent"
 
     PortalCategory:
       type: object

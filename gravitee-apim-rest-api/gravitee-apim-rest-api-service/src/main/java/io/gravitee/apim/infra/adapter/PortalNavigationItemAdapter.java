@@ -52,6 +52,7 @@ public interface PortalNavigationItemAdapter {
             case LINK -> portalNavigationLinkFromRepository(portalNavigationItem);
             case API -> portalNavigationApiFromRepository(portalNavigationItem);
             case API_PRODUCT -> portalNavigationApiProductFromRepository(portalNavigationItem);
+            case AGENT -> portalNavigationAgentFromRepository(portalNavigationItem);
         };
     }
 
@@ -103,6 +104,17 @@ public interface PortalNavigationItemAdapter {
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
 
+    @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
+    @Mapping(target = "visibility", expression = "java(repositoryVisibilityToDomain(portalNavigationItem))")
+    @Mapping(target = "reference", expression = "java(referenceFromRepository(portalNavigationItem))")
+    @Mapping(
+        target = "automationMetadata",
+        expression = "java(automationMetadataFromRepository(portalNavigationItem.getAutomationMetadata()))"
+    )
+    PortalNavigationAgent portalNavigationAgentFromRepository(
+        io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
+    );
+
     @Mapping(target = "portalPageContentId", expression = "java(parsePortalPageContentId(portalNavigationItem.getConfiguration()))")
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
     @Mapping(target = "visibility", expression = "java(repositoryVisibilityToDomain(portalNavigationItem))")
@@ -151,6 +163,7 @@ public interface PortalNavigationItemAdapter {
         return switch (portalNavigationItem) {
             case PortalNavigationApi api -> toRepository(api);
             case PortalNavigationApiProduct apiProduct -> toRepository(apiProduct);
+            case PortalNavigationAgent agent -> toRepository(agent);
             case PortalNavigationPage page -> toRepository(page);
             case PortalNavigationLink link -> toRepository(link);
             case PortalNavigationFolder folder -> toRepository(folder);
@@ -209,6 +222,16 @@ public interface PortalNavigationItemAdapter {
     )
     io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationApiProduct portalNavigationItem);
 
+    @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
+    @Mapping(target = "configuration", expression = "java(configurationOf(portalNavigationItem))")
+    @Mapping(target = "referenceType", expression = "java(referenceTypeToRepository(portalNavigationItem.getReference()))")
+    @Mapping(target = "referenceId", expression = "java(referenceIdToRepository(portalNavigationItem.getReference()))")
+    @Mapping(
+        target = "automationMetadata",
+        expression = "java(automationMetadataToRepository(portalNavigationItem.getAutomationMetadata()))"
+    )
+    io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationAgent portalNavigationItem);
+
     default io.gravitee.repository.management.model.PortalNavigationItem.Type mapType(PortalNavigationItem portalNavigationItem) {
         return switch (portalNavigationItem) {
             case PortalNavigationFolder ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.FOLDER;
@@ -216,6 +239,7 @@ public interface PortalNavigationItemAdapter {
             case PortalNavigationLink ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.LINK;
             case PortalNavigationApi ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.API;
             case PortalNavigationApiProduct ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.API_PRODUCT;
+            case PortalNavigationAgent ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.AGENT;
         };
     }
 
@@ -231,6 +255,7 @@ public interface PortalNavigationItemAdapter {
                 case PortalNavigationFolder folder -> writeSource(config, folder.getSource());
                 case PortalNavigationApi ignored -> {}
                 case PortalNavigationApiProduct ignored -> {}
+                case PortalNavigationAgent ignored -> {}
             }
             return OBJECT_MAPPER.writeValueAsString(config);
         } catch (Exception e) {

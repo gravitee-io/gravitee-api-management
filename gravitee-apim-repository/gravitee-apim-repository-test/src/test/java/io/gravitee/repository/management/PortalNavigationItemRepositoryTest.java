@@ -1152,6 +1152,47 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
     }
 
     //////////////////////////////////////
+    ////   AGENT TYPE TESTS
+    //////////////////////////////////////
+
+    @Test
+    public void should_create_update_and_delete_agent_navigation_item() throws Exception {
+        PortalNavigationItem item = PortalNavigationItem.builder()
+            .id("new-agent-nav-item")
+            .organizationId("org-1")
+            .environmentId("env-1")
+            .title("My Agent")
+            .segment("my-agent")
+            .type(PortalNavigationItem.Type.AGENT)
+            .agentId("a2a-proxy-api-id-1")
+            .area(PortalNavigationItem.Area.TOP_NAVBAR)
+            .order(4)
+            .published(true)
+            .configuration("{}")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("new-agent-nav-item")
+            .build();
+
+        try {
+            PortalNavigationItem created = portalNavigationItemRepository.create(item);
+            assertThat(created.getType()).isEqualTo(PortalNavigationItem.Type.AGENT);
+            assertThat(created.getAgentId()).isEqualTo("a2a-proxy-api-id-1");
+            assertThat(created.isPublished()).isTrue();
+
+            created.setTitle("Updated Agent");
+            PortalNavigationItem updated = portalNavigationItemRepository.update(created);
+            assertThat(updated.getTitle()).isEqualTo("Updated Agent");
+            assertThat(updated.getAgentId()).isEqualTo("a2a-proxy-api-id-1");
+
+            var found = portalNavigationItemRepository.findById(item.getId());
+            assertThat(found).isPresent();
+            assertThat(found.orElseThrow().getAgentId()).isEqualTo("a2a-proxy-api-id-1");
+        } finally {
+            portalNavigationItemRepository.delete(item.getId());
+        }
+    }
+
+    //////////////////////////////////////
     ////   AUTOMATION METADATA TESTS
     //////////////////////////////////////
 

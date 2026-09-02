@@ -76,6 +76,7 @@ public class JdbcPortalNavigationItemRepository
             .addColumn("published", Types.BOOLEAN, boolean.class)
             .addColumn("apiId", Types.NVARCHAR, String.class)
             .addColumn("apiProductId", Types.NVARCHAR, String.class)
+            .addColumn("agentId", Types.NVARCHAR, String.class)
             .addColumn("visibility", Types.NVARCHAR, PortalNavigationItem.Visibility.class)
             .addColumn("use_auto_fetch", Types.BOOLEAN, boolean.class)
             .addColumn(

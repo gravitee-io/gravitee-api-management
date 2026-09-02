@@ -52,6 +52,7 @@ public class PortalNavigationItemMongo {
     private PortalNavigationItem.Visibility visibility;
     private String apiId;
     private String apiProductId;
+    private String agentId;
     private boolean useAutoFetch;
     private List<String> categoryIds = List.of();
 

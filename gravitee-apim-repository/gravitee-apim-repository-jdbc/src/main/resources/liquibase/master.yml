@@ -425,3 +425,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_13_0/18_add_performance_targets_table.yml
     - include:
         - file: liquibase/changelogs/v4_13_0/19_add_performance_target_evaluations_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_14_0/01_add_agent_id_to_portal_navigation_items.yml
