@@ -18,30 +18,25 @@ package io.gravitee.apim.infra.adapter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.subscription_form.model.Constraint;
-import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstraints;
-import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import java.util.List;
 import java.util.Map;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import org.mapstruct.factory.Mappers;
 
 /**
- * MapStruct adapter for converting between SubscriptionForm (domain) and repository model.
+ * (De)serialization of {@link SubscriptionFormFieldConstraints} to/from the JSON shape shared by
+ * the legacy {@code subscription_forms} table and the {@code validationConstraints} entry of a
+ * SUBSCRIPTION_FORM navigation item's {@code configuration} blob.
  *
  * @author Gravitee.io Team
  */
-@Mapper
-public interface SubscriptionFormAdapter {
-    SubscriptionFormAdapter INSTANCE = Mappers.getMapper(SubscriptionFormAdapter.class);
+public final class SubscriptionFormAdapter {
 
-    ObjectMapper FIELD_CONSTRAINTS_JSON = new ObjectMapper().findAndRegisterModules();
+    public static final ObjectMapper FIELD_CONSTRAINTS_JSON = new ObjectMapper().findAndRegisterModules();
 
-    static String writeFieldConstraintsJson(SubscriptionFormFieldConstraints constraints) {
+    private SubscriptionFormAdapter() {}
+
+    public static String writeFieldConstraintsJson(SubscriptionFormFieldConstraints constraints) {
         if (constraints == null || constraints.isEmpty()) {
             return "{}";
         }
@@ -54,7 +49,7 @@ public interface SubscriptionFormAdapter {
         }
     }
 
-    static SubscriptionFormFieldConstraints parseFieldConstraintsJson(String json) {
+    public static SubscriptionFormFieldConstraints parseFieldConstraintsJson(String json) {
         if (json == null || json.isBlank()) {
             return SubscriptionFormFieldConstraints.empty();
         }
@@ -64,45 +59,5 @@ public interface SubscriptionFormAdapter {
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("Failed to deserialize subscription form field constraints", e);
         }
-    }
-
-    @Mapping(target = "id", source = "id", qualifiedByName = "idToSubscriptionFormId")
-    @Mapping(target = "gmdContent", source = "gmdContent", qualifiedByName = "stringToGraviteeMarkdown")
-    @Mapping(target = "validationConstraints", source = "validationConstraints", qualifiedByName = "jsonToFieldConstraints")
-    SubscriptionForm toEntity(io.gravitee.repository.management.model.SubscriptionForm subscriptionForm);
-
-    @Mapping(target = "id", source = "id", qualifiedByName = "subscriptionFormIdToId")
-    @Mapping(target = "gmdContent", source = "gmdContent", qualifiedByName = "graviteeMarkdownToString")
-    @Mapping(target = "validationConstraints", source = "validationConstraints", qualifiedByName = "fieldConstraintsToJson")
-    io.gravitee.repository.management.model.SubscriptionForm toRepository(SubscriptionForm subscriptionForm);
-
-    @Named("idToSubscriptionFormId")
-    default SubscriptionFormId idToSubscriptionFormId(String id) {
-        return id != null ? SubscriptionFormId.of(id) : null;
-    }
-
-    @Named("subscriptionFormIdToId")
-    default String subscriptionFormIdToId(SubscriptionFormId id) {
-        return id != null ? id.toString() : null;
-    }
-
-    @Named("stringToGraviteeMarkdown")
-    default GraviteeMarkdown stringToGraviteeMarkdown(String value) {
-        return value != null ? GraviteeMarkdown.of(value) : null;
-    }
-
-    @Named("graviteeMarkdownToString")
-    default String graviteeMarkdownToString(GraviteeMarkdown gmd) {
-        return gmd != null ? gmd.value() : null;
-    }
-
-    @Named("jsonToFieldConstraints")
-    default SubscriptionFormFieldConstraints jsonToFieldConstraints(String json) {
-        return parseFieldConstraintsJson(json);
-    }
-
-    @Named("fieldConstraintsToJson")
-    default String fieldConstraintsToJson(SubscriptionFormFieldConstraints constraints) {
-        return writeFieldConstraintsJson(constraints);
     }
 }
