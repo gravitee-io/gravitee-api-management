@@ -446,12 +446,12 @@ class FilterAdapterTest {
             var entrypointIds = termsFilter.getJsonObject("terms").getJsonArray(ENTRYPOINT_FIELD);
 
             assertThat(entrypointIds.getList()).containsExactly(
-                HTTP_GET_ENTRYPOINT_ID,
-                HTTP_POST_ENTRYPOINT_ID,
-                HTTP_PROXY_ENTRYPOINT_ID,
-                LLM_PROXY_ENTRYPOINT_ID,
-                MCP_PROXY_ENTRYPOINT_ID,
-                A2A_PROXY_ENTRYPOINT_ID
+                "http-get",
+                "http-post",
+                "http-proxy",
+                "llm-proxy",
+                "mcp-proxy",
+                "a2a-proxy"
             );
         }
 

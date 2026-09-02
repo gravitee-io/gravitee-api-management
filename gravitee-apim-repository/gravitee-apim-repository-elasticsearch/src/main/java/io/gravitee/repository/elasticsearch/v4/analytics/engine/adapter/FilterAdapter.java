@@ -16,6 +16,7 @@
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
 import io.gravitee.repository.analytics.engine.api.query.Filter;
+import io.gravitee.repository.analytics.engine.api.query.ObservabilityEntrypoints;
 import io.gravitee.repository.analytics.engine.api.query.Query;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
 import io.gravitee.repository.elasticsearch.v4.shared.StatusCodeGroups;
@@ -30,13 +31,6 @@ import java.util.*;
 public class FilterAdapter {
 
     static final String ENTRYPOINT_FIELD = "entrypoint-id";
-    static final String HTTP_GET_ENTRYPOINT_ID = "http-get";
-    static final String HTTP_POST_ENTRYPOINT_ID = "http-post";
-    static final String HTTP_PROXY_ENTRYPOINT_ID = "http-proxy";
-    static final String LLM_PROXY_ENTRYPOINT_ID = "llm-proxy";
-    static final String MCP_PROXY_ENTRYPOINT_ID = "mcp-proxy";
-    static final String A2A_PROXY_ENTRYPOINT_ID = "a2a-proxy";
-    static final String EDGE_ENTRYPOINT_ID = "edge";
 
     static final List<Filter.Name> HTTP_FILTER_NAMES = List.of(
         Filter.Name.API,
@@ -263,17 +257,7 @@ public class FilterAdapter {
     public JsonObject httpFilter() {
         JsonObject termsFilter = JsonObject.of(
             "terms",
-            JsonObject.of(
-                ENTRYPOINT_FIELD,
-                JsonArray.of(
-                    HTTP_GET_ENTRYPOINT_ID,
-                    HTTP_POST_ENTRYPOINT_ID,
-                    HTTP_PROXY_ENTRYPOINT_ID,
-                    LLM_PROXY_ENTRYPOINT_ID,
-                    MCP_PROXY_ENTRYPOINT_ID,
-                    A2A_PROXY_ENTRYPOINT_ID
-                )
-            )
+            JsonObject.of(ENTRYPOINT_FIELD, new JsonArray(new ArrayList<>(ObservabilityEntrypoints.HTTP_SCOPE_IDS)))
         );
 
         // This is needed for now to get APIs that don't pass the security chain.
@@ -298,7 +282,7 @@ public class FilterAdapter {
     }
 
     public JsonObject edgeFilter() {
-        return JsonObject.of("term", JsonObject.of(ENTRYPOINT_FIELD, EDGE_ENTRYPOINT_ID));
+        return JsonObject.of("term", JsonObject.of(ENTRYPOINT_FIELD, ObservabilityEntrypoints.EDGE.id()));
     }
 
     private JsonObject filter(Filter filter) {

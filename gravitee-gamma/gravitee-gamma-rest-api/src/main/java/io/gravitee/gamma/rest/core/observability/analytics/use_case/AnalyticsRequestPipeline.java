@@ -23,6 +23,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
+import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.EntrypointScopeProvider;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -45,10 +46,9 @@ public class AnalyticsRequestPipeline {
 
     static final Set<ApiType> ANALYTICS_SUPPORTED_API_TYPES = ApiType.ALL;
 
-    static final Set<String> DEFAULT_ENTRYPOINT_IDS = Set.of("http-get", "http-post", "http-proxy", "llm-proxy", "mcp-proxy", "a2a-proxy");
-
     private final ObservabilityFilterValidator filterValidator;
     private final AccessibleApiScopeDomainService accessibleApiScope;
+    private final EntrypointScopeProvider entrypointScope;
 
     /**
      * Validated and RBAC-scoped request data, expressed entirely in Gamma-native types. The infra
@@ -118,13 +118,13 @@ public class AnalyticsRequestPipeline {
             .toList();
     }
 
-    private static List<FilterCondition> applyDefaultEntrypointScoping(List<FilterCondition> conditions) {
+    private List<FilterCondition> applyDefaultEntrypointScoping(List<FilterCondition> conditions) {
         boolean hasEntrypoint = conditions.stream().anyMatch(c -> "ENTRYPOINT".equals(c.name()));
         if (hasEntrypoint) {
             return conditions;
         }
         var result = new ArrayList<>(conditions);
-        result.add(new FilterCondition("ENTRYPOINT", FilterOperator.IN, List.copyOf(DEFAULT_ENTRYPOINT_IDS)));
+        result.add(new FilterCondition("ENTRYPOINT", FilterOperator.IN, entrypointScope.analyticsScope()));
         return List.copyOf(result);
     }
 

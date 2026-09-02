@@ -21,9 +21,11 @@ import io.gravitee.gamma.rest.core.observability.filter.domain_service.Observabi
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.ExtensibleFilters;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
+import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.EntrypointScopeProvider;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsPage;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
@@ -67,28 +69,10 @@ public class SearchObservabilityLogsUseCase {
         ApiType.AUTHZ
     );
 
-    /**
-     * Canonical entrypoints applied when no explicit entrypoint filter is set. The HTTP subset
-     * mirrors {@code FilterAdapter.httpFilter()} from the analytics ES adapter; {@code native-kafka}
-     * is additionally included so native connection documents are served by the LOGS signal.
-     * NOTE: the analytics default has NOT been widened to native yet, so in a mixed environment the
-     * unfiltered logs total includes native connections while dashboard totals do not — aligning
-     * the analytics side is a pending decision with the Gamma team. The ES query builder adds a
-     * field-missing fallback alongside these terms.
-     */
-    static final Set<String> DEFAULT_ENTRYPOINT_IDS = Set.of(
-        "http-get",
-        "http-post",
-        "http-proxy",
-        "llm-proxy",
-        "mcp-proxy",
-        "a2a-proxy",
-        "native-kafka"
-    );
-
     private final ObservabilityLogsDataPort logsDataPort;
     private final ObservabilityFilterValidator filterValidator;
     private final AccessibleApiScopeDomainService accessibleApiScope;
+    private final EntrypointScopeProvider entrypointScope;
 
     public record Input(
         String organizationId,
@@ -265,22 +249,19 @@ public class SearchObservabilityLogsUseCase {
     }
 
     /**
-     * If the caller didn't supply an explicit entrypoint filter, inject the canonical HTTP
-     * entrypoint set so the logs table matches the dashboard totals.
+     * If the caller didn't supply an explicit entrypoint filter, inject the canonical logs
+     * entrypoint scope. It is wider than the analytics one — native connections are served by the
+     * logs signal alone — so an unfiltered logs total exceeds the dashboard total on a mixed
+     * environment. The difference is deliberate and recorded on {@link EntrypointScopeProvider}.
+     * The ES query builder adds a field-missing fallback alongside these terms.
      */
-    private static List<FilterCondition> applyDefaultEntrypointScoping(List<FilterCondition> conditions) {
+    private List<FilterCondition> applyDefaultEntrypointScoping(List<FilterCondition> conditions) {
         boolean hasEntrypoint = conditions.stream().anyMatch(c -> "ENTRYPOINT".equals(c.name()));
         if (hasEntrypoint) {
             return conditions;
         }
         var result = new ArrayList<>(conditions);
-        result.add(
-            new FilterCondition(
-                "ENTRYPOINT",
-                io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator.IN,
-                List.copyOf(DEFAULT_ENTRYPOINT_IDS)
-            )
-        );
+        result.add(new FilterCondition("ENTRYPOINT", FilterOperator.IN, entrypointScope.logsScope()));
         return List.copyOf(result);
     }
 }
