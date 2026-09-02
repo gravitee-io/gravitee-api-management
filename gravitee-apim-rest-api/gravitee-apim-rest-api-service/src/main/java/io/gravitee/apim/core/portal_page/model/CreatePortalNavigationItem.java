@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.model;
 
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;

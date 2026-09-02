@@ -39,6 +39,7 @@ import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
@@ -261,7 +262,7 @@ class CreateOrUpdatePortalUseCaseTest {
             .area(PortalArea.TOP_NAVBAR)
             .order(1)
             .published(true)
-            .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC)
+            .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
             .build();
         unmanaged.markAsRoot();
         navCrudService.initWith(List.of(unmanaged));

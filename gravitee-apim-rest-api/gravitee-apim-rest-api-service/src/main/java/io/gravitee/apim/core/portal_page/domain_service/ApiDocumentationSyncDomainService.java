@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
@@ -30,12 +31,12 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.apim.core.slug.model.Slug;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -191,7 +192,11 @@ public class ApiDocumentationSyncDomainService {
         final var orgId = auditInfo.organizationId();
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(envId, pageId);
         var parentId = parent == null ? null : parent.getId();
-        var visibility = PortalVisibility.resolve(callerVisibility, parent);
+        var fallbackVisibility = Optional.ofNullable(existing)
+            .map(PortalNavigationItem::getVisibility)
+            .or(() -> Optional.ofNullable(parent).map(PortalNavigationItemContainer::getVisibility))
+            .orElse(null);
+        var visibility = PortalVisibility.resolve(callerVisibility, fallbackVisibility);
 
         if (existing instanceof PortalNavigationPage page && page.getArea() == API_DOCUMENTATION_AREA) {
             var segment = Slug.from(meta.name(), siblingSlugs(envId, parentId, pageId));

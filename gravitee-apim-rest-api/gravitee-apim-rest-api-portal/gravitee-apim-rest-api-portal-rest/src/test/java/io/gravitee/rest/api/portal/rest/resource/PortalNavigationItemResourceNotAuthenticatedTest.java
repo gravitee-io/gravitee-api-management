@@ -100,7 +100,7 @@ public class PortalNavigationItemResourceNotAuthenticatedTest extends AbstractRe
                 PortalNavigationFixtures.randomPageId()
             );
             publishedAndPublicItem.setPublished(true);
-            publishedAndPublicItem.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC);
+            publishedAndPublicItem.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC);
             publishedAndPublicItem.setEnvironmentId(ENV_ID);
 
             portalNavigationItemsQueryService.initWith(List.of(publishedAndPublicItem));
@@ -126,7 +126,7 @@ public class PortalNavigationItemResourceNotAuthenticatedTest extends AbstractRe
                 PortalNavigationFixtures.randomPageId()
             );
             privateItem.setPublished(true);
-            privateItem.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+            privateItem.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
             privateItem.setEnvironmentId(ENV_ID);
 
             portalNavigationItemsQueryService.initWith(List.of(privateItem));
@@ -161,7 +161,7 @@ public class PortalNavigationItemResourceNotAuthenticatedTest extends AbstractRe
                 contentId
             );
             publishedAndPublicPage.setPublished(true);
-            publishedAndPublicPage.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC);
+            publishedAndPublicPage.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC);
             publishedAndPublicPage.setEnvironmentId(ENV_ID);
 
             portalNavigationItemsQueryService.initWith(List.of(publishedAndPublicPage));
@@ -191,7 +191,7 @@ public class PortalNavigationItemResourceNotAuthenticatedTest extends AbstractRe
 
             var privatePage = PortalNavigationFixtures.page(privateItemId, "Private Page", PortalArea.TOP_NAVBAR, contentId);
             privatePage.setPublished(true);
-            privatePage.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+            privatePage.setVisibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
             privatePage.setEnvironmentId(ENV_ID);
 
             portalNavigationItemsQueryService.initWith(List.of(privatePage));

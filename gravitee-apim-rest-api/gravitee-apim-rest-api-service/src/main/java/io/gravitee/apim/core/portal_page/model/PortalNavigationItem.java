@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.model;
 
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.slug.model.Slug;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
@@ -174,7 +175,7 @@ public abstract sealed class PortalNavigationItem
         final var apiProductId = item.getApiProductId();
         final var categoryIds = item.getCategoryIds();
         final var order = item.getOrder();
-        final var visibility = PortalVisibility.resolve(item.getVisibility(), parent);
+        final var visibility = PortalVisibility.resolve(item.getVisibility(), parent == null ? null : parent.getVisibility());
         final var published = null != item.getPublished() ? item.getPublished() : false;
 
         final PortalNavigationItem newItem = switch (item.getType()) {

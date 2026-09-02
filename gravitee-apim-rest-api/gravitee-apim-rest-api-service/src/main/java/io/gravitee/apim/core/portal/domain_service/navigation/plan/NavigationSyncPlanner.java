@@ -23,10 +23,10 @@ import io.gravitee.apim.core.portal.domain_service.navigation.actions.FolderActi
 import io.gravitee.apim.core.portal.domain_service.navigation.actions.NavigationAction;
 import io.gravitee.apim.core.portal.exception.PathConflictException;
 import io.gravitee.apim.core.portal.model.NavigationPath;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -187,7 +187,7 @@ public final class NavigationSyncPlanner {
         return input
             .stream()
             .filter(e -> e.visibility() != null)
-            .collect(Collectors.toMap(NavigationPath::path, e -> PortalVisibility.valueOf(e.visibility()), (first, second) -> first));
+            .collect(Collectors.toMap(NavigationPath::path, NavigationPath::visibility, (first, second) -> first));
     }
 
     private static Collection<PathExpander.PathEntry> deduplicateByPath(List<NavigationPath> input) {

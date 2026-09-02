@@ -19,10 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.rest.api.automation.model.PortalLinkSpec;
 import java.util.List;

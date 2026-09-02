@@ -17,13 +17,13 @@ package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import jakarta.annotation.Nullable;
 import java.util.HashSet;

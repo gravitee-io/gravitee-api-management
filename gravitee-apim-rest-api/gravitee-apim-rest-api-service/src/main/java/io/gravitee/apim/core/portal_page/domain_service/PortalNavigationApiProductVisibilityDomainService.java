@@ -17,11 +17,11 @@ package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.HashSet;
 import java.util.Set;

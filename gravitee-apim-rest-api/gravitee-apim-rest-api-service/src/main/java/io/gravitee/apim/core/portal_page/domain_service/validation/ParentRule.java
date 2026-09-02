@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.domain_service.validation;
 
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.ParentAreaMismatchException;
 import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
@@ -24,7 +25,6 @@ import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.Objects;

@@ -19,6 +19,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.query_service.ApiPortalSearchQueryService;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityEvaluator;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityService;
@@ -33,7 +34,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.ArrayList;
 import java.util.HashMap;

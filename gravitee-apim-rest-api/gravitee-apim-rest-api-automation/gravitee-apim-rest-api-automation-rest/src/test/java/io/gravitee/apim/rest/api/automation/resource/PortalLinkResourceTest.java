@@ -23,10 +23,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.exception.PortalLinkNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.use_case.DeletePortalLinkUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalLinkUseCase;
 import io.gravitee.apim.rest.api.automation.model.PortalLinkState;

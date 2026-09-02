@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.model;
+package io.gravitee.apim.core.portal.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,31 +25,18 @@ import org.junit.jupiter.api.Test;
 class PortalVisibilityTest {
 
     @Test
-    void inheritedFrom_returns_parent_visibility_when_container_present() {
-        var phantom = PortalNavigationItemContainer.phantom(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000001"));
-        assertThat(PortalVisibility.inheritedFrom(phantom)).isEqualTo(PortalVisibility.PUBLIC);
-    }
-
-    @Test
-    void inheritedFrom_defaults_to_public_when_parent_is_null() {
-        assertThat(PortalVisibility.inheritedFrom(null)).isEqualTo(PortalVisibility.PUBLIC);
-    }
-
-    @Test
-    void resolve_with_visibilities_returns_caller_when_present() {
+    void resolve_returns_caller_when_present() {
         assertThat(PortalVisibility.resolve(PortalVisibility.PRIVATE, PortalVisibility.PUBLIC)).isEqualTo(PortalVisibility.PRIVATE);
         assertThat(PortalVisibility.resolve(PortalVisibility.PUBLIC, PortalVisibility.PRIVATE)).isEqualTo(PortalVisibility.PUBLIC);
     }
 
     @Test
-    void resolve_with_visibilities_falls_back_to_parent_when_caller_is_null() {
+    void resolve_falls_back_to_parent_when_caller_is_null() {
         assertThat(PortalVisibility.resolve(null, PortalVisibility.PRIVATE)).isEqualTo(PortalVisibility.PRIVATE);
     }
 
     @Test
-    void resolve_with_container_falls_back_to_inheritance() {
-        var phantom = PortalNavigationItemContainer.phantom(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000001"));
-        assertThat(PortalVisibility.resolve(null, phantom)).isEqualTo(PortalVisibility.PUBLIC);
-        assertThat(PortalVisibility.resolve(PortalVisibility.PRIVATE, phantom)).isEqualTo(PortalVisibility.PRIVATE);
+    void resolve_defaults_to_public_when_both_are_null() {
+        assertThat(PortalVisibility.resolve(null, null)).isEqualTo(PortalVisibility.PUBLIC);
     }
 }

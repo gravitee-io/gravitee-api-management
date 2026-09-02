@@ -33,6 +33,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
 import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
@@ -43,7 +44,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.List;
 import java.util.Optional;
@@ -204,6 +204,49 @@ class PortalDocumentationSyncDomainServiceTest {
     }
 
     @Test
+    void materialize_preserves_stored_page_visibility_when_caller_visibility_is_absent() {
+        var parentFolderId = expectedFolderId("/projects/alpha");
+        navItemCrud.initWith(
+            List.of(
+                PortalNavigationFolder.builder()
+                    .id(parentFolderId)
+                    .organizationId(AUDIT_INFO.organizationId())
+                    .environmentId(AUDIT_INFO.environmentId())
+                    .title("alpha")
+                    .segment("alpha")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .build(),
+                PortalNavigationPage.builder()
+                    .id(expectedNavItemId())
+                    .organizationId(AUDIT_INFO.organizationId())
+                    .environmentId(AUDIT_INFO.environmentId())
+                    .title("Setup")
+                    .segment("setup")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .parentId(parentFolderId)
+                    .portalPageContentId(DOC_ID)
+                    .published(true)
+                    .visibility(PortalVisibility.PRIVATE)
+                    .build()
+            )
+        );
+
+        syncService.materialize(AUDIT_INFO, markdownDoc("Setup", "/projects/alpha", 0));
+
+        var page = (PortalNavigationPage) navItemCrud
+            .storage()
+            .stream()
+            .filter(PortalNavigationPage.class::isInstance)
+            .findFirst()
+            .orElseThrow();
+        assertThat(page.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
+    }
+
+    @Test
     void materialize_points_at_deterministic_folder_id_even_when_folder_missing() {
         syncService.materialize(AUDIT_INFO, markdownDoc("Getting Started", "/unknown", 1));
 
@@ -297,7 +340,7 @@ class PortalDocumentationSyncDomainServiceTest {
             .order(0)
             .portalPageContentId(PortalPageContentId.random())
             .published(true)
-            .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC)
+            .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
             .build();
         navItemCrud.create(otherHomepage);
 
@@ -334,7 +377,7 @@ class PortalDocumentationSyncDomainServiceTest {
             .order(0)
             .portalPageContentId(PortalPageContentId.of("00000000-0000-0000-0000-00000000c0de"))
             .published(true)
-            .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC)
+            .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
             .build();
     }
 
@@ -350,7 +393,7 @@ class PortalDocumentationSyncDomainServiceTest {
             .order(0)
             .portalPageContentId(PortalPageContentId.of("00000000-0000-0000-0000-00000000c0da"))
             .published(true)
-            .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC)
+            .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
             .automationMetadata(
                 new AutomationMetadata(
                     AutomationMetadata.ReferenceType.PORTAL,
@@ -375,7 +418,7 @@ class PortalDocumentationSyncDomainServiceTest {
             .order(0)
             .portalPageContentId(PortalPageContentId.of("00000000-0000-0000-0000-00000000c0df"))
             .published(true)
-            .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC)
+            .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
             .build();
     }
 

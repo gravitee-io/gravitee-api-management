@@ -176,7 +176,7 @@ public class PortalNavigationItemsFixtures {
             .order(1)
             .portalPageContentId(PortalPageContentId.of("00000000-0000-0000-0000-000000000003"))
             .parentId(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000002"))
-            .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC)
+            .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
             .published(false)
             .build();
     }
@@ -191,7 +191,7 @@ public class PortalNavigationItemsFixtures {
             .area(PortalArea.TOP_NAVBAR)
             .order(2)
             .parentId(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000002"))
-            .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC)
+            .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
             .published(false)
             .build();
     }
@@ -207,7 +207,7 @@ public class PortalNavigationItemsFixtures {
             .order(3)
             .url("http://example.com")
             .parentId(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000002"))
-            .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC)
+            .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
             .published(false)
             .build();
     }
@@ -223,7 +223,7 @@ public class PortalNavigationItemsFixtures {
             .order(3)
             .apiId("apiId")
             .parentId(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000002"))
-            .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC)
+            .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
             .published(false)
             .build();
     }
@@ -239,7 +239,7 @@ public class PortalNavigationItemsFixtures {
             .order(4)
             .apiProductId("00000000-0000-0000-0000-000000000019")
             .parentId(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000002"))
-            .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC)
+            .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC)
             .published(false)
             .build();
     }
@@ -255,7 +255,7 @@ public class PortalNavigationItemsFixtures {
             .order(1)
             .portalPageContentId(PortalPageContentId.of("00000000-0000-0000-0000-000000000003"))
             .parentId(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000002"))
-            .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE)
+            .visibility(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE)
             .published(false)
             .build();
     }

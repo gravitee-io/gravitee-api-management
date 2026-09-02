@@ -204,7 +204,7 @@ public interface PortalNavigationItemsMapper {
             .build();
     }
 
-    io.gravitee.apim.core.portal_page.model.PortalVisibility map(io.gravitee.rest.api.management.v2.rest.model.PortalVisibility visibility);
+    io.gravitee.apim.core.portal.model.PortalVisibility map(io.gravitee.rest.api.management.v2.rest.model.PortalVisibility visibility);
 
     // Hand-built because the fetch state is readOnly in the OpenAPI spec: the generated model only
     // exposes it through its @JsonCreator constructor, which MapStruct cannot target.

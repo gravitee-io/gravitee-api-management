@@ -16,9 +16,9 @@
 package io.gravitee.apim.core.portal.domain_service.navigation;
 
 import io.gravitee.apim.core.portal.domain_service.navigation.actions.FolderActions;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import jakarta.annotation.Nullable;
 import java.util.Objects;
 
@@ -36,7 +36,10 @@ public final class NavigationFolderMapper {
             Objects.equals(existing.getSegment(), desired.segment().value()) &&
             existing.getOrder() == desired.order() &&
             Objects.equals(existing.getParentId(), parent == null ? null : parent.getId()) &&
-            Objects.equals(existing.getVisibility(), PortalVisibility.resolve(desired.visibility(), parent))
+            Objects.equals(
+                existing.getVisibility(),
+                PortalVisibility.resolve(desired.visibility(), parent == null ? null : parent.getVisibility())
+            )
         );
     }
 
@@ -44,7 +47,7 @@ public final class NavigationFolderMapper {
         target.setTitle(source.title());
         target.setSegment(source.segment().value());
         target.setOrder(source.order());
-        target.setVisibility(PortalVisibility.resolve(source.visibility(), parent));
+        target.setVisibility(PortalVisibility.resolve(source.visibility(), parent == null ? null : parent.getVisibility()));
         if (parent == null) {
             target.markAsRoot();
         } else {
