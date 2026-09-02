@@ -72,6 +72,7 @@ import { DictionaryDetailPage } from '../pages/DictionaryDetailPage';
 import { EditIdentityProviderPage } from '../pages/EditIdentityProviderPage';
 import { EntrypointsAndShardingTagsPage } from '../pages/EntrypointsAndShardingTagsPage';
 import { EnvAuditLogsPage } from '../pages/EnvAuditLogsPage';
+import { EnvironmentNotificationSettingsPage } from '../pages/EnvironmentNotificationSettingsPage';
 import { GatewayInstanceEnvironmentPage } from '../pages/GatewayInstanceEnvironmentPage';
 import { GatewayInstanceMonitoringPage } from '../pages/GatewayInstanceMonitoringPage';
 import { GatewayInstancesPage } from '../pages/GatewayInstancesPage';
@@ -670,6 +671,14 @@ export function AppRoutes() {
                                 <Route path="new" element={<AlertFormPage />} />
                                 <Route path=":alertId" element={<AlertFormPage />} />
                             </Route>
+                            <Route
+                                path="notification-settings"
+                                element={
+                                    <NavPermissionGuard itemKey="notification-settings">
+                                        <EnvironmentNotificationSettingsPage />
+                                    </NavPermissionGuard>
+                                }
+                            />
                             <Route
                                 path="organization-audit"
                                 element={

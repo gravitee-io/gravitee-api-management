@@ -76,6 +76,7 @@ export const NAV_ITEM_PERMISSIONS: Readonly<Record<string, readonly string[]>> =
     'shared-policy-groups': [ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION],
     gateways: ['environment-instance-r'],
     alerts: [ENVIRONMENT_ALERT_READ_PERMISSION],
+    'notification-settings': ['environment-notification-r'],
     'security-plan-types': [ENVIRONMENT_SETTINGS_READ_PERMISSION],
     'environment-audit': [ENVIRONMENT_AUDIT_READ_PERMISSION],
     users: ORGANIZATION_USER_ACCESS_PERMISSIONS,

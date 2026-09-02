@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { apimFetchJsonV1Env } from '../../../shared/api/apimClient';
+import { notificationSettingsUpdatePath } from '../../../shared/utils/notificationSettingsUpdatePath';
 import type {
     ApplicationMetadata,
     ApplicationNotificationHook,
@@ -61,10 +62,9 @@ export async function updateApplicationNotification(
     applicationId: string,
     notification: UpdateApplicationNotification,
 ): Promise<ApplicationNotificationSettings> {
-    const suffix = notification.config_type === 'PORTAL' ? '/' : `/${encodeURIComponent(notification.id ?? '')}`;
     return apimFetchJsonV1Env<ApplicationNotificationSettings>(
         environmentId,
-        `${applicationPath(applicationId)}/notificationsettings${suffix}`,
+        notificationSettingsUpdatePath(applicationPath(applicationId), notification),
         {
             method: 'PUT',
             headers: JSON_HEADERS,

@@ -247,6 +247,10 @@ jest.mock('../features/alerts/pages/AlertFormPage', () => ({
     AlertFormPage: () => <div data-testid="alert-form-page" />,
 }));
 
+jest.mock('../pages/EnvironmentNotificationSettingsPage', () => ({
+    EnvironmentNotificationSettingsPage: () => <div data-testid="environment-notification-settings-page" />,
+}));
+
 function renderPlatform(path = '/applications') {
     render(
         <MemoryRouter initialEntries={[path]}>
@@ -731,6 +735,43 @@ describe('AppRoutes', () => {
         renderPlatform();
 
         expect(visibleNavKeys()).not.toContain('alerts');
+    });
+
+    it('routes to the Notification settings page under the platform module', () => {
+        render(
+            <MemoryRouter initialEntries={['/notification-settings']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('environment-notification-settings-page')).not.toBeNull();
+    });
+
+    it('shows the Notification settings nav item when the user has read permission', () => {
+        renderPlatform();
+
+        expect(visibleNavKeys()).toContain('notification-settings');
+    });
+
+    it('hides the Notification settings nav item when the user lacks environment-notification-r', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-notification-r'));
+
+        renderPlatform();
+
+        expect(visibleNavKeys()).not.toContain('notification-settings');
+    });
+
+    it('redirects away from Notification settings when the user lacks environment-notification-r', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-notification-r'));
+
+        render(
+            <MemoryRouter initialEntries={['/notification-settings']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.queryByTestId('environment-notification-settings-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
     });
 
     // Alerts stays in the sidebar as a locked item, so it must not also be the landing target: the
