@@ -4,6 +4,7 @@
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
 ### 4.12.19
+- Bump the Gravitee node Hazelcast cache and cluster plugins to 9.9.0, to stay consistent with `gravitee-node.version` in the APIM `pom.xml`. That version adds `bcfks` to the keystore and truststore types the gateway accepts: under BC-FIPS approved-only mode it is the only container format that loads, PKCS12 having no usable key derivation there and JKS being answered read-only. The type needs a registered BouncyCastle provider: the FIPS images carry one, so on any other image the deployment has to add it or startup fails with a `KeyStoreProcessingException`.
 - Declare a PEM keystore on the gateway HTTP listeners with `gateway.ssl.keystore.certificates` and `gateway.servers[].ssl.keystore.certificates`, a list of `cert`/`key` pairs. The chart emitted only `type`, `path`, `password`, `kubernetes`, `watch` and `secret`, so a PEM keystore had to be configured outside the chart through raw indexed environment variables such as `gravitee_http_ssl_keystore_certificates_0_cert`. This matters most on the FIPS images: with BC-FIPS in approved-only mode PKCS12 has no usable key derivation and JKS relies on non-approved SHA-1 PBE, which leaves PEM as the only sound keystore format. Nothing is rendered unless `certificates` is set, so existing configmaps are untouched.
 
 ### 4.12.0

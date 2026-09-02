@@ -510,8 +510,8 @@ cloud:
 
 cluster:
   plugins:
-    - https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-9.8.0.zip
-    - https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-9.8.0.zip
+    - https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-9.9.0.zip
+    - https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-9.9.0.zip
 
 api:
   enabled: true
@@ -774,7 +774,7 @@ api:
       ssl:
         enabled: false
       #  keystore:
-      #    type: jks # Supports jks, pem, pkcs12
+      #    type: jks # Supports jks, pem, pkcs12, bcfks
       #    path: ${gravitee.home}/security/keystore.jks
       #    password: secret
       #    defaultAlias:
@@ -786,7 +786,7 @@ api:
       #        key: ${gravitee.home}/security/key.pem
       #  clientAuth: none
       #  truststore:
-      #    type: jks # Supports jks, pem, pkcs12
+      #    type: jks # Supports jks, pem, pkcs12, bcfks
       #    path: ${gravitee.home}/security/truststore.jks
       #    password: secret
       #    secret: secret://kubernetes/bridge-mtls:ca.crt
@@ -1379,7 +1379,7 @@ gateway:
 #        tlsProtocols: TLSv1.2, TLSv1.3
 #        tlsCiphers: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
 #        keystore:
-#          type: jks # Supports jks, pem, pkcs12, self-signed
+#          type: jks # Supports jks, pem, pkcs12, bcfks, self-signed
 #          path: ${gravitee.home}/security/keystore.jks # A path is required if certificate's type is jks or pkcs12
 #          certificates: # Certificates are required if keystore's type is pem
 #            - cert: ${gravitee.home}/security/mycompany.org.pem
@@ -1390,7 +1390,7 @@ gateway:
 #          # This method is now the preferred way for kubernetes: /namespace/secrets/my-tls-secret
 #          secret: secret://kubernetes/my-tls-secret
 #        truststore:
-#          type: jks # Supports jks, pem, pkcs12, pem-folder (for the latter watch supports added/updated/removed files)
+#          type: jks # Supports jks, pem, pkcs12, bcfks, pem-folder (for the latter watch supports added/updated/removed files)
 #          path: ${gravitee.home}/security/truststore.jks
 #          password: secret
 #          watch: true # Watch for any updates on the keystore and reload it. Default is true.
@@ -1560,7 +1560,7 @@ gateway:
 #      tlsProtocols: TLSv1.2, TLSv1.3
 #      tlsCiphers: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
 #      keystore:
-#        type: jks # Supports jks, pem, pkcs12, self-signed
+#        type: jks # Supports jks, pem, pkcs12, bcfks, self-signed
 #        path: ${gravitee.home}/security/keystore.jks # A path is required if certificate's type is jks or pkcs12
 #        certificates: # Certificates are required if keystore's type is pem
 #          - cert: ${gravitee.home}/security/mycompany.org.pem
@@ -1574,7 +1574,7 @@ gateway:
 #        # This method is now the preferred way for kubernetes: /namespace/secrets/my-tls-secret
 #        secret: secret://kubernetes/my-tls-secret
 #      truststore:
-#        type: jks # Supports jks, pem, pkcs12, pem-folder (for the latter watch supports added/updated/removed files)
+#        type: jks # Supports jks, pem, pkcs12, bcfks, pem-folder (for the latter watch supports added/updated/removed files)
 #        path: ${gravitee.home}/security/truststore.jks
 #        password: secret
 #        watch: true # Watch for any updates on the keystore/pem and reload it. Default is true.
@@ -1778,7 +1778,7 @@ gateway:
   ssl:
     enabled: false
   #  keystore:
-  #    type: jks # Supports jks, pem, pkcs12
+  #    type: jks # Supports jks, pem, pkcs12, bcfks
   #    path: ${gravitee.home}/security/keystore.jks
   #    certificates: # Certificates are required if keystore's type is pem
   #      - cert: ${gravitee.home}/security/mycompany.org.pem
@@ -1786,7 +1786,7 @@ gateway:
   #    password: secret
     clientAuth: false # Supports false/none, request, true/requires
   #  truststore:
-  #    type: jks # Supports jks, pem, pkcs12
+  #    type: jks # Supports jks, pem, pkcs12, bcfks
   #    path: ${gravitee.home}/security/truststore.jks
   #    password: secret
   #  # Send the configured truststore to clients as the list of acceptable certificate authorities, so a client
@@ -2047,7 +2047,7 @@ gateway:
       ssl:
         enabled: false
       #  keystore:
-      #    type: jks # Supports jks, pem, pkcs12
+      #    type: jks # Supports jks, pem, pkcs12, bcfks
       #    path: ${gravitee.home}/security/keystore.jks
       #    password: secret
       #    defaultAlias:
@@ -2059,7 +2059,7 @@ gateway:
       #        key: ${gravitee.home}/security/key.pem
       #  clientAuth: none
       #  truststore:
-      #    type: jks # Supports jks, pem, pkcs12
+      #    type: jks # Supports jks, pem, pkcs12, bcfks
       #    path: ${gravitee.home}/security/truststore.jks
       #    password: secret
       #    secret: secret://kubernetes/bridge-mtls:ca.crt
