@@ -31,6 +31,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.slug.model.Slug;
+import jakarta.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -150,6 +151,12 @@ public class PortalLinkSyncDomainService {
         );
     }
 
+    @Nullable
+    public PortalNavigationItemId parentIdFor(AuditInfo auditInfo, String portalId, String location) {
+        var parent = resolveParent(auditInfo, location, portalId);
+        return parent == null ? null : parent.getId();
+    }
+
     /**
      * The API-attached counterpart of {@link #materialize}. {@code location} resolves against the
      * API's own {@code portalNavigation} folder subtree — the same tree API-attached documentation
@@ -187,6 +194,12 @@ public class PortalLinkSyncDomainService {
             PortalNavigationItemId.forApiLink(auditInfo, apiId, linkHrid),
             location
         );
+    }
+
+    @Nullable
+    public PortalNavigationItemId parentIdForApi(AuditInfo auditInfo, String apiId, String location) {
+        var parent = resolveApiParent(auditInfo, location, apiId);
+        return parent == null ? null : parent.getId();
     }
 
     public void dematerialize(AuditInfo auditInfo, PortalNavigationItemId linkId) {

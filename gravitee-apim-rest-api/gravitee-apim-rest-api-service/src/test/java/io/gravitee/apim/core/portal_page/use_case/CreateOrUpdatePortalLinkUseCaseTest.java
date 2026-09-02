@@ -224,6 +224,48 @@ class CreateOrUpdatePortalLinkUseCaseTest {
         assertThat(navCrudService.storage()).isEmpty();
     }
 
+    @Test
+    void should_report_severe_error_when_public_link_is_placed_under_persisted_private_folder() {
+        // Spec (open-api.yaml PortalVisibility): "A PUBLIC child under a PRIVATE parent is rejected."
+        var parentFolderId = PortalNavigationItemId.forPortalFolder(AUDIT_INFO, PORTAL_ID.toString(), "/private-guides");
+        navCrudService.initWith(
+            List.of(
+                PortalNavigationFolder.builder()
+                    .id(parentFolderId)
+                    .organizationId(AUDIT_INFO.organizationId())
+                    .environmentId(AUDIT_INFO.environmentId())
+                    .title("private-guides")
+                    .segment("private-guides")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .published(true)
+                    .visibility(PortalVisibility.PRIVATE)
+                    .build()
+            )
+        );
+
+        var output = useCase.execute(
+            new CreateOrUpdatePortalLinkUseCase.Input(
+                AUDIT_INFO,
+                PORTAL_ID,
+                LINK_HRID,
+                "External Docs",
+                "https://docs.example.com",
+                "/private-guides",
+                0,
+                PortalVisibility.PUBLIC
+            )
+        );
+
+        assertThat(output.link()).isNull();
+        assertThat(output.errors()).anyMatch(Validator.Error::isSevere);
+        assertThat(output.errors())
+            .extracting(Validator.Error::getMessage)
+            .anyMatch(m -> m.contains("PUBLIC"));
+        // Persisted folder is untouched and no link row was written.
+        assertThat(navCrudService.storage()).hasSize(1);
+    }
+
     private static CreateOrUpdatePortalLinkUseCase.Input input(String name, String href, String location, Integer order) {
         return new CreateOrUpdatePortalLinkUseCase.Input(AUDIT_INFO, PORTAL_ID, LINK_HRID, name, href, location, order, null);
     }
