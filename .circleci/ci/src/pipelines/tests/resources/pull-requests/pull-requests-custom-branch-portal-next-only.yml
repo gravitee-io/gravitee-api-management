@@ -105,6 +105,9 @@ commands:
       - run:
           name: Exclude all APIM artefacts from cache.
           command: rm -rf ~/.m2/repository/io/gravitee/apim
+      - run:
+          name: Drop failed resolution markers from cache.
+          command: find ~/.m2 -name '*.lastUpdated' -delete
       - save_cache:
           key: gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
           paths:
