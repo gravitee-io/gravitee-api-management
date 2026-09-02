@@ -2411,7 +2411,7 @@ components:
       type: string
       description: The type of the navigation item
       example: FOLDER
-      enum: [ PAGE, FOLDER, LINK, API, API_PRODUCT ]
+      enum: [ PAGE, FOLDER, LINK, API, API_PRODUCT, SUBSCRIPTION_FORM ]
     BasePortalNavigationItem:
       type: object
       description: Base portal navigation item
@@ -2465,6 +2465,7 @@ components:
           LINK: "#/components/schemas/PortalNavigationLink"
           API: "#/components/schemas/PortalNavigationApi"
           API_PRODUCT: "#/components/schemas/PortalNavigationApiProduct"
+          SUBSCRIPTION_FORM: "#/components/schemas/PortalNavigationSubscriptionForm"
     PortalNavigationItemSource:
       type: object
       description: External source of the item content.
@@ -2645,6 +2646,17 @@ components:
                 format: uuid
               example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
           required: [ apiProductId ]
+    PortalNavigationSubscriptionForm:
+      description: Portal navigation item of type SUBSCRIPTION_FORM
+      allOf:
+        - $ref: "#/components/schemas/BasePortalNavigationItem"
+        - properties:
+            portalPageContentId:
+              type: string
+              format: uuid
+              description: The UUID of the portal page content backing this subscription form. Always GRAVITEE_MARKDOWN.
+              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+          required: [ portalPageContentId ]
     PortalNavigationItem:
       oneOf:
         - $ref: "#/components/schemas/PortalNavigationPage"
@@ -2652,6 +2664,7 @@ components:
         - $ref: "#/components/schemas/PortalNavigationLink"
         - $ref: "#/components/schemas/PortalNavigationApi"
         - $ref: "#/components/schemas/PortalNavigationApiProduct"
+        - $ref: "#/components/schemas/PortalNavigationSubscriptionForm"
       discriminator:
         propertyName: type
         mapping:
@@ -2660,6 +2673,7 @@ components:
           LINK: "#/components/schemas/PortalNavigationLink"
           API: "#/components/schemas/PortalNavigationApi"
           API_PRODUCT: "#/components/schemas/PortalNavigationApiProduct"
+          SUBSCRIPTION_FORM: "#/components/schemas/PortalNavigationSubscriptionForm"
     PortalNavigationItemsResponseMetadata:
       type: object
       description: Sidecar data resolved for the returned navigation items, present only when requested via the `includes` query parameter.
@@ -2882,6 +2896,7 @@ components:
           LINK: "#/components/schemas/UpdatePortalNavigationLink"
           API: "#/components/schemas/UpdatePortalNavigationApi"
           API_PRODUCT: "#/components/schemas/UpdatePortalNavigationApiProduct"
+          SUBSCRIPTION_FORM: "#/components/schemas/UpdatePortalNavigationSubscriptionForm"
 
       required: [ type, title, order, published, visibility ]
     UpdatePortalNavigationFolder:
@@ -2947,6 +2962,12 @@ components:
                 type: string
                 format: uuid
               example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
+    UpdatePortalNavigationSubscriptionForm:
+      type: object
+      title: "UpdatePortalNavigationSubscriptionForm"
+      description: Portal navigation subscription form to update. The linked page content is edited separately through the portal-page-contents endpoints; this only covers the navigation item's own fields (title, order, published, visibility).
+      allOf:
+        - $ref: "#/components/schemas/BaseUpdatePortalNavigationItem"
     UpdatePortalNavigationItem:
       oneOf:
         - $ref: "#/components/schemas/UpdatePortalNavigationPage"
@@ -2954,6 +2975,7 @@ components:
         - $ref: "#/components/schemas/UpdatePortalNavigationLink"
         - $ref: "#/components/schemas/UpdatePortalNavigationApi"
         - $ref: "#/components/schemas/UpdatePortalNavigationApiProduct"
+        - $ref: "#/components/schemas/UpdatePortalNavigationSubscriptionForm"
       discriminator:
         propertyName: type
         mapping:
@@ -2962,6 +2984,7 @@ components:
           LINK: "#/components/schemas/UpdatePortalNavigationLink"
           API: "#/components/schemas/UpdatePortalNavigationApi"
           API_PRODUCT: "#/components/schemas/UpdatePortalNavigationApiProduct"
+          SUBSCRIPTION_FORM: "#/components/schemas/UpdatePortalNavigationSubscriptionForm"
 
     PortalCategory:
       type: object

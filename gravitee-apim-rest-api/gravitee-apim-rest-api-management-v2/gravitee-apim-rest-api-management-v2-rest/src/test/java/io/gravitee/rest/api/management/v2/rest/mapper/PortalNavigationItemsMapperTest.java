@@ -29,6 +29,7 @@ import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPageContentType;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApi;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationSubscriptionForm;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -93,6 +94,22 @@ class PortalNavigationItemsMapperTest {
             assertThat(result.getOrder()).isEqualTo(2);
             assertThat(result.getParentId()).isNull();
             assertThat(result.getRootId()).isEqualTo(folder.getRootId().id());
+        }
+
+        @Test
+        void should_map_portal_navigation_subscription_form() {
+            var subscriptionForm = PortalNavigationItemFixtures.aSubscriptionForm(
+                PortalNavigationItemFixtures.PAGE_ID,
+                io.gravitee.apim.core.portal_page.model.PortalPageContentId.random()
+            );
+
+            var result = mapper.map(subscriptionForm);
+
+            assertThat(result.getId()).isEqualTo(UUID.fromString(PortalNavigationItemFixtures.PAGE_ID));
+            assertThat(result.getType()).isEqualTo(PortalNavigationItemType.SUBSCRIPTION_FORM);
+            assertThat(result.getArea()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.PortalArea.SUBSCRIPTION_FORM);
+            assertThat(result.getPortalPageContentId()).isEqualTo(subscriptionForm.getPortalPageContentId().id());
+            assertThat(result.getRootId()).isEqualTo(subscriptionForm.getRootId().id());
         }
 
         @Test
@@ -305,6 +322,24 @@ class PortalNavigationItemsMapperTest {
 
             assertThat(result.getType()).isEqualTo(io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.API);
             assertThat(result.getCategoryIds()).containsExactly(new PortalCategoryId(category1));
+        }
+
+        @Test
+        void should_map_update_portal_navigation_subscription_form() {
+            var subscriptionForm = new UpdatePortalNavigationSubscriptionForm();
+            subscriptionForm.type(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType.SUBSCRIPTION_FORM);
+            subscriptionForm.title("Subscription Form");
+            subscriptionForm.order(0);
+            subscriptionForm.published(true);
+            subscriptionForm.visibility(io.gravitee.rest.api.management.v2.rest.model.PortalVisibility.PUBLIC);
+
+            var result = mapper.map(subscriptionForm);
+
+            assertThat(result.getType()).isEqualTo(io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.SUBSCRIPTION_FORM);
+            assertThat(result.getTitle()).isEqualTo("Subscription Form");
+            assertThat(result.getOrder()).isEqualTo(0);
+            assertThat(result.getPublished()).isTrue();
+            assertThat(result.getVisibility()).isEqualTo(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC);
         }
 
         @Test
