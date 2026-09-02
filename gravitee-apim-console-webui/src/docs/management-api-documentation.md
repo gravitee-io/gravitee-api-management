@@ -5,7 +5,7 @@ At this date, two types of document are supported:
 * Swagger
 * Markdown (MD)
 
-You can access to your API data (name, version, description ...) on your API’s documentation by writing: `${api.name}` or `${api.metadata['foo-bar']}` in your documentation's content.
+In Markdown documentation pages, you can access your API data (name, version, description, and so on) by writing `${api.name}` or `${api.metadata['foo-bar']}` in the page content. OpenAPI documentation is treated as specification data and does not support these template expressions.
 
 By default, documentation pages are in staging mode and will be visible to API owners and API members with specific documentation roles.
 To make documentation visible for all users, you can switch on the *published* button.
