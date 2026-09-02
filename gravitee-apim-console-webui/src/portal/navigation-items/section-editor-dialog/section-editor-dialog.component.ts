@@ -57,7 +57,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 export type SectionEditorDialogMode = 'create' | 'edit';
 
-export type SectionEditorDialogItemType = Exclude<PortalNavigationItemType, 'API' | 'API_PRODUCT'>;
+export type SectionEditorDialogItemType = Exclude<PortalNavigationItemType, 'API' | 'API_PRODUCT' | 'SUBSCRIPTION_FORM'>;
 
 interface SectionEditorDialogCreateData {
   mode: 'create';
@@ -104,6 +104,9 @@ const TITLE_FIELD_LABEL_BY_TYPE: Record<PortalNavigationItemType, string> = {
   FOLDER: 'Folder Title',
   LINK: 'Link Title',
   PAGE: 'Page Title',
+  // SUBSCRIPTION_FORM items are never created or edited through this dialog (edited via the
+  // dedicated subscription-form screen instead); present for Record exhaustiveness only.
+  SUBSCRIPTION_FORM: 'Subscription Form Title',
 };
 
 interface SectionFormControls {
