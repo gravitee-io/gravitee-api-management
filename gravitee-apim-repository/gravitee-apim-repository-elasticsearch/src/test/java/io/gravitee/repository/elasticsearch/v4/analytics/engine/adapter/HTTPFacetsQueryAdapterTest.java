@@ -15,13 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
-import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FilterAdapter.A2A_PROXY_ENTRYPOINT_ID;
 import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FilterAdapter.ENTRYPOINT_FIELD;
-import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FilterAdapter.HTTP_GET_ENTRYPOINT_ID;
-import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FilterAdapter.HTTP_POST_ENTRYPOINT_ID;
-import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FilterAdapter.HTTP_PROXY_ENTRYPOINT_ID;
-import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FilterAdapter.LLM_PROXY_ENTRYPOINT_ID;
-import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FilterAdapter.MCP_PROXY_ENTRYPOINT_ID;
 import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.MessageFacetExtractor.REQUEST_ID_AGG_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -289,7 +283,7 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         var jsonQuery = JSON.readTree(adapter.adaptRequestIDsQuery(query, null));
 
         var filters = jsonQuery.at("/query/bool/filter").toString();
-        assertThat(filters).doesNotContain(HTTP_GET_ENTRYPOINT_ID).doesNotContain(HTTP_POST_ENTRYPOINT_ID);
+        assertThat(filters).doesNotContain("http-get").doesNotContain("http-post");
     }
 
     @Test

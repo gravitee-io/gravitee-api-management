@@ -33,6 +33,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
+import io.gravitee.gamma.rest.infra.adapter.EntrypointScopeProviderAdapter;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -64,7 +65,7 @@ class AnalyticsRequestPipelineTest {
     void setUp() {
         var accessibleApiScope = new AccessibleApiScopeDomainService();
         var filterValidator = new ObservabilityFilterValidator(filterRegistry);
-        pipeline = new AnalyticsRequestPipeline(filterValidator, accessibleApiScope);
+        pipeline = new AnalyticsRequestPipeline(filterValidator, accessibleApiScope, new EntrypointScopeProviderAdapter());
 
         when(filterRegistry.getFilters(any(), any())).thenReturn(
             List.of(
