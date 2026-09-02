@@ -1241,12 +1241,22 @@ describe('SubscribeToApiComponent', () => {
   }
 
   function expectGetSubscriptionForm(subscriptionForm: SubscriptionForm | null) {
-    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/${API_ID}/subscription-form`);
-    if (subscriptionForm) {
-      req.flush(subscriptionForm);
-    } else {
-      req.flush(null, { status: 404, statusText: 'Not Found' });
+    const navigationItemId = 'subscription-form-nav-item-id';
+    const listReq = httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-navigation-items?area=SUBSCRIPTION_FORM`);
+
+    if (!subscriptionForm) {
+      listReq.flush([]);
+      return;
     }
+    listReq.flush([{ id: navigationItemId }]);
+
+    httpTestingController
+      .expectOne(`${TESTING_BASE_URL}/portal-navigation-items/${navigationItemId}/content`)
+      .flush({ type: 'GRAVITEE_MARKDOWN', content: subscriptionForm.gmdContent });
+
+    httpTestingController
+      .expectOne(`${TESTING_BASE_URL}/apis/${API_ID}/subscription-form`)
+      .flush({ resolvedOptions: subscriptionForm.resolvedOptions });
   }
 
   function expectPostCreateSubscription(expectedCreateSubscription: CreateSubscription, response: Subscription = fakeSubscription()) {
