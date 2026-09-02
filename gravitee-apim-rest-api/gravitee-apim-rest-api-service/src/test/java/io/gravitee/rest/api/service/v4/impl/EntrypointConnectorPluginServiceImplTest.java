@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.v4.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.reactive.api.ApiType;
@@ -52,6 +53,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class EntrypointConnectorPluginServiceImplTest {
 
     private static final String CONNECTOR_ID = "connector-id";
+    private static final String WEBHOOK_ENTRYPOINT_ID = "webhook";
 
     private EntrypointConnectorPluginService cut;
 
@@ -157,6 +159,39 @@ public class EntrypointConnectorPluginServiceImplTest {
 
         final String result = cut.validateEntrypointSubscriptionConfiguration(CONNECTOR_ID, configuration);
         assertThat(result).isEqualTo(expectedConfiguration);
+    }
+
+    @Test
+    public void should_normalize_legacy_ssl_none_values_before_validating_webhook_subscription_configuration() throws IOException {
+        final String legacyConfiguration = "{\"ssl\":{\"trustStore\":{\"type\":\"\"},\"keyStore\":{\"type\":\"\"}}}";
+        final String normalizedConfiguration = "{\"ssl\":{\"trustStore\":{\"type\":\"NONE\"},\"keyStore\":{\"type\":\"NONE\"}}}";
+        final String expectedConfiguration = "validated_and_sanitized";
+
+        when(pluginManager.get(WEBHOOK_ENTRYPOINT_ID, true)).thenReturn(new FakePlugin());
+        when(pluginManager.getFactoryById(CONNECTOR_ID, true)).thenReturn(new FakeConnectorFactory());
+        when(pluginManager.getSubscriptionSchema(WEBHOOK_ENTRYPOINT_ID, true)).thenReturn("subscriptionConfiguration");
+        when(jsonSchemaService.validate("subscriptionConfiguration", normalizedConfiguration)).thenReturn(expectedConfiguration);
+
+        final String result = cut.validateEntrypointSubscriptionConfiguration(WEBHOOK_ENTRYPOINT_ID, legacyConfiguration);
+
+        assertThat(result).isEqualTo(expectedConfiguration);
+        verify(jsonSchemaService).validate("subscriptionConfiguration", normalizedConfiguration);
+    }
+
+    @Test
+    public void should_not_normalize_subscription_configuration_of_an_entrypoint_without_the_shared_ssl_schema() throws IOException {
+        final String legacyConfiguration = "{\"ssl\":{\"trustStore\":{\"type\":\"\"},\"keyStore\":{\"type\":\"\"}}}";
+        final String expectedConfiguration = "validated_and_sanitized";
+
+        when(pluginManager.get(CONNECTOR_ID, true)).thenReturn(new FakePlugin());
+        when(pluginManager.getFactoryById(CONNECTOR_ID, true)).thenReturn(new FakeConnectorFactory());
+        when(pluginManager.getSubscriptionSchema(CONNECTOR_ID, true)).thenReturn("subscriptionConfiguration");
+        when(jsonSchemaService.validate("subscriptionConfiguration", legacyConfiguration)).thenReturn(expectedConfiguration);
+
+        final String result = cut.validateEntrypointSubscriptionConfiguration(CONNECTOR_ID, legacyConfiguration);
+
+        assertThat(result).isEqualTo(expectedConfiguration);
+        verify(jsonSchemaService).validate("subscriptionConfiguration", legacyConfiguration);
     }
 
     private static class FakePlugin implements EntrypointConnectorPlugin {
