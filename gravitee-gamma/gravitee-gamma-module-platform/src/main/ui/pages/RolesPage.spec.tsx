@@ -134,7 +134,9 @@ describe('RolesPage', () => {
         const user = userEvent.setup();
         renderPage();
 
-        await user.click(screen.getByRole('button', { name: 'Button to see members with this role' }));
+        // ADMIN only has "see members", but it's still behind the row's "..." dropdown.
+        await user.click(screen.getByRole('button', { name: 'Actions for ADMIN' }));
+        await user.click(screen.getByRole('menuitem', { name: /See members/ }));
 
         expect(mockNavigate).toHaveBeenCalledWith('ORGANIZATION/ADMIN/members');
     });
