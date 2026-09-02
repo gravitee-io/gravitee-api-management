@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource.organization;
 
 import static jakarta.ws.rs.client.Entity.json;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -34,8 +34,8 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.stream.Stream;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class OrganizationResourceTest extends AbstractResourceTest {
 
@@ -48,7 +48,7 @@ public class OrganizationResourceTest extends AbstractResourceTest {
         return "";
     }
 
-    @Before
+    @BeforeEach
     public void setUpOrganization() {
         grantedPolicyActions = EnumSet.noneOf(RolePermissionAction.class);
         when(
