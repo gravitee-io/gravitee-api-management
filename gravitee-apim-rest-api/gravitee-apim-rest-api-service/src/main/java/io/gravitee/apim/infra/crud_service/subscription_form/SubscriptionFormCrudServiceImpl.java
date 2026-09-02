@@ -15,66 +15,135 @@
  */
 package io.gravitee.apim.infra.crud_service.subscription_form;
 
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
+import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
+import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
+import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
+import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.apim.core.subscription_form.crud_service.SubscriptionFormCrudService;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
-import io.gravitee.apim.infra.adapter.SubscriptionFormAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.SubscriptionFormRepository;
+import io.gravitee.repository.management.api.EnvironmentRepository;
+import io.gravitee.repository.management.model.Environment;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * Infrastructure implementation of SubscriptionFormCrudService.
+ * Infrastructure implementation of SubscriptionFormCrudService, writing the environment-default
+ * subscription form through the {@code PortalNavigationItem}/{@code PortalPageContent} model
+ * (PORTAL-164) instead of the retired {@code subscription_forms} table/collection. Every caller of
+ * this interface (Update/Enable/Disable use cases, {@code CreateDefaultSubscriptionFormUseCase})
+ * keeps working unchanged — only the storage underneath changed.
  *
  * @author Gravitee.io Team
  */
 @Component
 public class SubscriptionFormCrudServiceImpl implements SubscriptionFormCrudService {
 
-    private final SubscriptionFormRepository subscriptionFormRepository;
-    private static final SubscriptionFormAdapter subscriptionFormAdapter = SubscriptionFormAdapter.INSTANCE;
+    private final EnvironmentRepository environmentRepository;
+    private final PortalNavigationItemsQueryService navigationItemsQueryService;
+    private final PortalNavigationItemCrudService navigationItemCrudService;
+    private final PortalPageContentQueryService pageContentQueryService;
+    private final PortalPageContentCrudService pageContentCrudService;
 
-    public SubscriptionFormCrudServiceImpl(@Lazy SubscriptionFormRepository subscriptionFormRepository) {
-        this.subscriptionFormRepository = subscriptionFormRepository;
+    public SubscriptionFormCrudServiceImpl(
+        @Lazy EnvironmentRepository environmentRepository,
+        PortalNavigationItemsQueryService navigationItemsQueryService,
+        PortalNavigationItemCrudService navigationItemCrudService,
+        PortalPageContentQueryService pageContentQueryService,
+        PortalPageContentCrudService pageContentCrudService
+    ) {
+        this.environmentRepository = environmentRepository;
+        this.navigationItemsQueryService = navigationItemsQueryService;
+        this.navigationItemCrudService = navigationItemCrudService;
+        this.pageContentQueryService = pageContentQueryService;
+        this.pageContentCrudService = pageContentCrudService;
     }
 
     @Override
     public SubscriptionForm create(SubscriptionForm subscriptionForm) {
-        SubscriptionForm toCreate = subscriptionForm.getId() == null
-            ? SubscriptionForm.builder()
-                .id(SubscriptionFormId.random())
-                .environmentId(subscriptionForm.getEnvironmentId())
-                .gmdContent(subscriptionForm.getGmdContent())
-                .enabled(subscriptionForm.isEnabled())
-                .validationConstraints(subscriptionForm.getValidationConstraints())
-                .build()
-            : subscriptionForm;
-        try {
-            var result = subscriptionFormRepository.create(subscriptionFormAdapter.toRepository(toCreate));
-            return subscriptionFormAdapter.toEntity(result);
-        } catch (TechnicalException e) {
-            throw new TechnicalDomainException(
-                String.format("An error occurred while trying to create a SubscriptionForm for env: %s", toCreate.getEnvironmentId()),
-                e
-            );
-        }
+        var environmentId = subscriptionForm.getEnvironmentId();
+        var organizationId = findOrganizationId(environmentId);
+
+        var content = pageContentCrudService.create(
+            new GraviteeMarkdownPageContent(PortalPageContentId.random(), organizationId, environmentId, subscriptionForm.getGmdContent())
+        );
+
+        var auditInfo = AuditInfo.builder().organizationId(organizationId).environmentId(environmentId).build();
+        var createItem = CreatePortalNavigationItem.builder()
+            .id(PortalNavigationItemId.forSubscriptionFormDefault(auditInfo))
+            .type(PortalNavigationItemType.SUBSCRIPTION_FORM)
+            .title("Subscription Form")
+            .segment("subscription-form")
+            .area(PortalArea.SUBSCRIPTION_FORM)
+            .order(0)
+            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+            .portalPageContentId(content.getId())
+            .validationConstraints(subscriptionForm.getValidationConstraints())
+            .published(subscriptionForm.isEnabled())
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+        var createdItem = navigationItemCrudService.create(PortalNavigationItem.from(createItem, organizationId, environmentId, null));
+
+        return toSubscriptionForm((PortalNavigationSubscriptionForm) createdItem, subscriptionForm);
     }
 
     @Override
     public SubscriptionForm update(SubscriptionForm subscriptionForm) {
-        try {
-            var result = subscriptionFormRepository.update(subscriptionFormAdapter.toRepository(subscriptionForm));
-            return subscriptionFormAdapter.toEntity(result);
-        } catch (TechnicalException e) {
+        var environmentId = subscriptionForm.getEnvironmentId();
+        var navigationItemId = PortalNavigationItemId.of(subscriptionForm.getId().toString());
+        var existingItem = navigationItemsQueryService.findByIdAndEnvironmentId(environmentId, navigationItemId);
+        if (!(existingItem instanceof PortalNavigationSubscriptionForm subscriptionFormItem)) {
             throw new TechnicalDomainException(
-                String.format(
-                    "An error occurred while trying to update a SubscriptionForm with id: %s",
-                    subscriptionForm.getId().toString()
-                ),
-                e
+                "Subscription form navigation item [%s] not found for environment [%s]".formatted(navigationItemId, environmentId)
             );
         }
+
+        subscriptionFormItem.setPublished(subscriptionForm.isEnabled());
+        subscriptionFormItem.setValidationConstraints(subscriptionForm.getValidationConstraints());
+        var updatedItem = (PortalNavigationSubscriptionForm) navigationItemCrudService.update(subscriptionFormItem);
+
+        var content = pageContentQueryService
+            .findById(updatedItem.getPortalPageContentId())
+            .orElseThrow(() -> new PageContentNotFoundException(updatedItem.getPortalPageContentId().toString()));
+        content.update(UpdatePortalPageContent.builder().content(subscriptionForm.getGmdContent().value()).build());
+        pageContentCrudService.update(content);
+
+        return toSubscriptionForm(updatedItem, subscriptionForm);
+    }
+
+    private String findOrganizationId(String environmentId) {
+        try {
+            return environmentRepository
+                .findById(environmentId)
+                .map(Environment::getOrganizationId)
+                .orElseThrow(() -> new TechnicalDomainException("Unknown environment [%s]".formatted(environmentId)));
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurred while trying to find environment [%s]".formatted(environmentId), e);
+        }
+    }
+
+    private SubscriptionForm toSubscriptionForm(PortalNavigationSubscriptionForm navigationItem, SubscriptionForm source) {
+        return SubscriptionForm.builder()
+            .id(SubscriptionFormId.of(navigationItem.getId().toString()))
+            .environmentId(navigationItem.getEnvironmentId())
+            .gmdContent(source.getGmdContent())
+            .enabled(Boolean.TRUE.equals(navigationItem.getPublished()))
+            .validationConstraints(navigationItem.getValidationConstraints())
+            .build();
     }
 }
