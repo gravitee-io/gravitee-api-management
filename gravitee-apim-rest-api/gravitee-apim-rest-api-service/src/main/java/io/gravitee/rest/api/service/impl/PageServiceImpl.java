@@ -593,9 +593,10 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             );
             transformSwagger(executionContext, pageEntity, genericApiEntity);
         } else {
-            if (markdownSanitize && MARKDOWN.name().equalsIgnoreCase(pageEntity.getType())) {
+            String pageType = resolvePageType(pageEntity);
+            if (markdownSanitize && MARKDOWN.name().equalsIgnoreCase(pageType)) {
                 sanitizeMarkdown(pageEntity);
-            } else if (SWAGGER.name().equalsIgnoreCase(pageEntity.getType())) {
+            } else if (SWAGGER.name().equalsIgnoreCase(pageType)) {
                 SwaggerDescriptor<?> descriptor = swaggerService.parse(pageEntity.getContent());
                 Collection<SwaggerTransformer<OAIDescriptor>> transformers = new ArrayList<>();
                 transformers.add(new PageConfigurationOAITransformer(pageEntity));
@@ -607,12 +608,12 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     @Override
     public void transformSwagger(final ExecutionContext executionContext, PageEntity pageEntity, GenericApiEntity genericApiEntity) {
-        // First apply templating if required
-        transformWithTemplate(executionContext, pageEntity, genericApiEntity.getId());
+        String pageType = resolvePageType(pageEntity);
+        transformWithTemplate(executionContext, pageEntity, genericApiEntity.getId(), pageType);
 
-        if (markdownSanitize && MARKDOWN.name().equalsIgnoreCase(pageEntity.getType())) {
+        if (markdownSanitize && MARKDOWN.name().equalsIgnoreCase(pageType)) {
             sanitizeMarkdown(pageEntity);
-        } else if (SWAGGER.name().equalsIgnoreCase(pageEntity.getType())) {
+        } else if (SWAGGER.name().equalsIgnoreCase(pageType)) {
             // If swagger page, let's try to apply transformations
             SwaggerDescriptor<?> descriptor;
 
@@ -794,6 +795,20 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     @Override
     public void transformWithTemplate(final ExecutionContext executionContext, final PageEntity pageEntity, final String api) {
+        transformWithTemplate(executionContext, pageEntity, api, resolvePageType(pageEntity));
+    }
+
+    private void transformWithTemplate(
+        final ExecutionContext executionContext,
+        final PageEntity pageEntity,
+        final String api,
+        final String pageType
+    ) {
+        if (SWAGGER.name().equalsIgnoreCase(pageType)) {
+            // OpenAPI specifications are data and must not be interpreted as FreeMarker templates.
+            return;
+        }
+
         if (pageEntity.getContent() != null) {
             final Map<String, Object> model = new HashMap<>();
             if (api == null) {
@@ -2573,22 +2588,10 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     @Override
     public List<String> validateSafeContent(ExecutionContext executionContext, PageEntity pageEntity, String apiId) {
         if (pageEntity != null) {
-            var pageType = pageEntity.getType();
+            var pageType = resolvePageType(pageEntity);
 
-            if (pageEntity.getParentId() != null && TRANSLATION.name().equals(pageType)) {
-                final Optional<Page> optParent;
-                try {
-                    optParent = pageRepository.findById(pageEntity.getParentId());
-                    if (optParent.isPresent()) {
-                        pageType = optParent.get().getType();
-                    }
-                } catch (TechnicalException e) {
-                    log.error("An error occurs while trying to fetch parent page of page '{}'", pageEntity.getId(), e);
-                }
-            }
-
-            if (markdownSanitize && MARKDOWN.name().equals(pageType)) {
-                this.transformWithTemplate(executionContext, pageEntity, apiId);
+            if (markdownSanitize && MARKDOWN.name().equalsIgnoreCase(pageType)) {
+                this.transformWithTemplate(executionContext, pageEntity, apiId, pageType);
                 HtmlSanitizer.SanitizeInfos sanitizeInfos = this.htmlSanitizer.isSafe(pageEntity.getContent());
                 if (!sanitizeInfos.isSafe()) {
                     throw new PageContentUnsafeException(sanitizeInfos.getRejectedMessage());
@@ -2596,7 +2599,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 if (!CollectionUtils.isEmpty(pageEntity.getMessages())) {
                     return asList(pageEntity.getMessages().toString());
                 }
-            } else if (swaggerValidateSafeContent && SWAGGER.name().equals(pageEntity.getType()) && pageEntity.getContent() != null) {
+            } else if (swaggerValidateSafeContent && SWAGGER.name().equalsIgnoreCase(pageType) && pageEntity.getContent() != null) {
                 OAIDescriptor openApiDescriptor = new OAIParser().parse(pageEntity.getContent());
                 if (openApiDescriptor != null && openApiDescriptor.getMessages() != null) {
                     return openApiDescriptor.getMessages();
@@ -2604,6 +2607,21 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             }
         }
         return new ArrayList<>();
+    }
+
+    private String resolvePageType(PageEntity pageEntity) {
+        String pageType = pageEntity.getType();
+        if (pageEntity.getParentId() != null && TRANSLATION.name().equalsIgnoreCase(pageType)) {
+            try {
+                Optional<Page> parent = pageRepository.findById(pageEntity.getParentId());
+                if (parent.isPresent()) {
+                    pageType = parent.get().getType();
+                }
+            } catch (TechnicalException e) {
+                log.error("An error occurs while trying to fetch parent page of page '{}'", pageEntity.getId(), e);
+            }
+        }
+        return pageType;
     }
 
     private void validateSafeSource(PageSourceEntity source) {
