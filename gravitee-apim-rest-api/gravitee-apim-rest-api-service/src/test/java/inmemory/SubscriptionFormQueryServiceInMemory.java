@@ -16,7 +16,6 @@
 package inmemory;
 
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
-import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.apim.core.subscription_form.query_service.SubscriptionFormQueryService;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,14 +30,6 @@ import java.util.Optional;
 public class SubscriptionFormQueryServiceInMemory implements SubscriptionFormQueryService, InMemoryAlternative<SubscriptionForm> {
 
     final List<SubscriptionForm> storage = new ArrayList<>();
-
-    @Override
-    public Optional<SubscriptionForm> findByIdAndEnvironmentId(String environmentId, SubscriptionFormId subscriptionFormId) {
-        return storage
-            .stream()
-            .filter(form -> form.getEnvironmentId().equals(environmentId) && form.getId().equals(subscriptionFormId))
-            .findFirst();
-    }
 
     @Override
     public Optional<SubscriptionForm> findDefaultForEnvironmentId(String environmentId) {
