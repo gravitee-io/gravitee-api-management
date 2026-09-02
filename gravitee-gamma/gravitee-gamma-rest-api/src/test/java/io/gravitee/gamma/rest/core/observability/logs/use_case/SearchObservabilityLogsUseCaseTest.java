@@ -43,6 +43,7 @@ import io.gravitee.gamma.rest.core.observability.logs.model.LogsPage;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
+import io.gravitee.gamma.rest.infra.adapter.EntrypointScopeProviderAdapter;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
@@ -79,7 +80,12 @@ class SearchObservabilityLogsUseCaseTest {
     void setUp() {
         accessibleApiScope = new AccessibleApiScopeDomainService();
         var filterValidator = new ObservabilityFilterValidator(filterRegistry);
-        useCase = new SearchObservabilityLogsUseCase(logsDataPort, filterValidator, accessibleApiScope);
+        useCase = new SearchObservabilityLogsUseCase(
+            logsDataPort,
+            filterValidator,
+            accessibleApiScope,
+            new EntrypointScopeProviderAdapter()
+        );
 
         when(filterRegistry.getFilters(any(), any())).thenReturn(
             List.of(
