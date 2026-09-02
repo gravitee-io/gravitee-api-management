@@ -20,7 +20,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconHarness, MatIconTestingModule } from '@angular/material/icon/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiProxyEndpointListComponent } from './api-proxy-endpoint-list.component';
 import { ApiProxyEndpointListHarness } from './api-proxy-endpoint-list.harness';
@@ -38,13 +38,13 @@ describe('ApiProxyEndpointListComponent', () => {
   let httpTestingController: HttpTestingController;
   let endpointsGroupHarness: ApiProxyEndpointListHarness;
 
-  const initComponent = async (api: ApiV2) => {
+  const initComponent = async (api: ApiV2, permissions: string[] = ['api-definition-u', 'api-definition-r']) => {
     TestBed.configureTestingModule({
       declarations: [ApiProxyEndpointListComponent],
       imports: [NoopAnimationsModule, GioTestingModule, ApiEndpointsModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
-        { provide: GioTestingPermissionProvider, useValue: ['api-definition-u', 'api-definition-r'] },
+        { provide: GioTestingPermissionProvider, useValue: permissions },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
@@ -195,6 +195,40 @@ describe('ApiProxyEndpointListComponent', () => {
               '(_MatIconHarness with host element matching selector: ".mat-icon" satisfying the constraints: host matches selector "[mattooltip="Health check is enabled"]")',
           ),
         );
+    });
+  });
+
+  describe('read-only mode', () => {
+    it('should allow viewing endpoint groups and endpoints without allowing updates if user can only read', async () => {
+      await initComponent(fakeApiV2({ id: API_ID }), ['api-definition-r']);
+
+      expect(await endpointsGroupHarness.isAddEndpointGroupButtonVisible()).toEqual(false);
+      expect(await endpointsGroupHarness.isAddEndpointButtonVisible()).toEqual(false);
+      expect(await endpointsGroupHarness.isEditEndpointGroupButtonVisible()).toEqual(false);
+      expect(await endpointsGroupHarness.isDeleteEndpointGroupButtonVisible()).toEqual(false);
+      expect(await endpointsGroupHarness.isOpenEndpointGroupDetailButtonVisible()).toEqual(true);
+
+      const navigateByUrl = jest.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+      await endpointsGroupHarness.clickOpenEndpointGroupDetail(0);
+      expect(navigateByUrl).toHaveBeenCalled();
+
+      expect(await endpointsGroupHarness.isEditEndpointButtonVisible()).toEqual(false);
+      expect(await endpointsGroupHarness.isDeleteEndpointButtonVisible()).toEqual(false);
+      expect(await endpointsGroupHarness.isOpenEndpointDetailButtonVisible()).toEqual(true);
+    });
+
+    it('should keep update actions available if user can update', async () => {
+      await initComponent(fakeApiV2({ id: API_ID }));
+
+      expect(await endpointsGroupHarness.isAddEndpointGroupButtonVisible()).toEqual(true);
+      expect(await endpointsGroupHarness.isAddEndpointButtonVisible()).toEqual(true);
+      expect(await endpointsGroupHarness.isEditEndpointGroupButtonVisible()).toEqual(true);
+      expect(await endpointsGroupHarness.isDeleteEndpointGroupButtonVisible()).toEqual(true);
+      expect(await endpointsGroupHarness.isOpenEndpointGroupDetailButtonVisible()).toEqual(false);
+
+      expect(await endpointsGroupHarness.isEditEndpointButtonVisible()).toEqual(true);
+      expect(await endpointsGroupHarness.isDeleteEndpointButtonVisible()).toEqual(true);
+      expect(await endpointsGroupHarness.isOpenEndpointDetailButtonVisible()).toEqual(false);
     });
   });
 
