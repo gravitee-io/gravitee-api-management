@@ -49,7 +49,7 @@
 
             Do not add @{argLine} here. It is surefire's late-replacement syntax for the property
             Jacoco's prepare-agent sets, and Jacoco left the chain with gravitee-apim-parent —
-            gravitee-parent 24.0.2 does not configure it, and no pom in this tree does either. With
+            gravitee-parent 25.1.2 does not configure it, and no pom in this tree does either. With
             nothing defining the property, surefire passes the token through literally and the fork
             dies on `could not open '{argLine}'` before a single test starts. Restoring coverage
             means declaring jacoco-maven-plugin here first; that is a separate decision.
