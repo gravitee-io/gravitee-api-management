@@ -66,11 +66,12 @@ describe('platform navigation config', () => {
         expect(sectionKeys('Environment', 'APIs & Assets')).toEqual(['applications', 'metadata', 'dictionaries', 'shared-policy-groups']);
     });
 
-    it('places Access Management, Gateways, Alerts, Security Plan Types, and Audit under Environment / System & Security', () => {
+    it('places Access Management, Gateways, Alerts, Notification settings, Security Plan Types, and Audit under Environment / System & Security', () => {
         expect(sectionKeys('Environment', 'System & Security')).toEqual([
             'access-management',
             'gateways',
             'alerts',
+            'notification-settings',
             'security-plan-types',
             'environment-audit',
         ]);

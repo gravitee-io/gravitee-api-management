@@ -43,7 +43,7 @@ import type {
     UpdateApplicationNotification,
 } from '../../types/applicationNotification';
 import { RequiredLabel } from '../notification-settings/RequiredLabel';
-import { WIDE_SHEET_WIDTH } from '../sheetLayout';
+import { STANDARD_SHEET_WIDTH, WIDE_SHEET_WIDTH } from '../sheetLayout';
 
 export type NotificationSheetCreatePayload = {
     name: string;
@@ -62,6 +62,7 @@ export function EditNotificationSheet({
     onCancel,
     onSave,
     onCreate,
+    layout = 'wide',
 }: Readonly<{
     row: ApplicationNotificationRow | null;
     notifiers: ApplicationNotifier[];
@@ -71,6 +72,8 @@ export function EditNotificationSheet({
     onCancel: () => void;
     onSave: (notification: UpdateApplicationNotification) => void;
     onCreate: (payload: NotificationSheetCreatePayload) => void;
+    /** `wide` is the application default; `standard` matches Groups (480px) for environment settings. */
+    layout?: 'wide' | 'standard';
 }>) {
     const isCreate = isCreateNotificationRow(row);
     const notification = row?.notification ?? null;
@@ -170,13 +173,14 @@ export function EditNotificationSheet({
         [onCancel],
     );
 
+    const sheetWidth = layout === 'standard' ? STANDARD_SHEET_WIDTH : WIDE_SHEET_WIDTH;
+    const sheetWidthStyle = layout === 'standard' ? { maxWidth: sheetWidth } : { maxWidth: sheetWidth, width: `min(100vw, ${sheetWidth})` };
+    const createFieldsClassName = layout === 'standard' ? 'grid gap-4' : 'grid gap-4 md:grid-cols-2';
+    const hookGridClassName = layout === 'standard' ? 'grid gap-2' : 'grid gap-2 sm:grid-cols-2 xl:grid-cols-4';
+
     return (
         <Sheet open={row !== null} onOpenChange={handleOpenChange}>
-            <SheetContent
-                side="right"
-                className="flex max-h-full flex-col"
-                style={{ maxWidth: WIDE_SHEET_WIDTH, width: `min(100vw, ${WIDE_SHEET_WIDTH})` }}
-            >
+            <SheetContent side="right" className="flex max-h-full flex-col" style={sheetWidthStyle}>
                 <SheetHeader>
                     <SheetTitle>Edit Console Notification</SheetTitle>
                     <SheetDescription>Configure notifier settings and subscribed events for {sheetSubject}.</SheetDescription>
@@ -186,7 +190,7 @@ export function EditNotificationSheet({
                     <ScrollArea className="min-h-0 flex-1">
                         <div className="space-y-5 px-4 pb-4">
                             {isCreate ? (
-                                <div className="grid gap-4 md:grid-cols-2">
+                                <div className={createFieldsClassName}>
                                     <div className="space-y-2">
                                         <RequiredLabel htmlFor="notification-name">Name</RequiredLabel>
                                         <Input
@@ -261,6 +265,7 @@ export function EditNotificationSheet({
                                             groupHookIds={groupHookIds}
                                             disabled={disabled}
                                             onToggle={toggleHook}
+                                            gridClassName={hookGridClassName}
                                         />
                                     ))
                                 )}

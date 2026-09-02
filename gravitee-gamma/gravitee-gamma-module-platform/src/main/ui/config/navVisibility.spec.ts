@@ -70,6 +70,7 @@ const ENVIRONMENT_ADMIN = [
     'environment-dictionary-r',
     'environment-instance-r',
     'environment-alert-r',
+    'environment-notification-r',
     'environment-settings-r',
     'environment-audit-r',
     'environment-am_configuration-r',
@@ -185,6 +186,7 @@ describe('platform nav visibility', () => {
                 'shared-policy-groups',
                 'gateways',
                 'alerts',
+                'notification-settings',
                 'security-plan-types',
                 'environment-audit',
                 'access-management',
@@ -286,6 +288,13 @@ describe('platform nav visibility', () => {
             anyOf: ['organization-tenant-r'],
             alsoAnyOf: ['organization-settings-r', 'organization-settings-u'],
         });
+    });
+
+    it('gates Notification settings on environment-notification-r without the org settings gate', () => {
+        expect(requiresOrganizationSettingsGate('notification-settings')).toBe(false);
+        expect(pageGuardForNavItem('notification-settings')).toEqual({ anyOf: ['environment-notification-r'] });
+        expect(isNavItemVisible('notification-settings', visibility(['environment-notification-r']))).toBe(true);
+        expect(isNavItemVisible('notification-settings', visibility([...ORGANIZATION_USER, ...ENVIRONMENT_USER]))).toBe(false);
     });
 
     it('does not require the org settings gate for env Groups', () => {

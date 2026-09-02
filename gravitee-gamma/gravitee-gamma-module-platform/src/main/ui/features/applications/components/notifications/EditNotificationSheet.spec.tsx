@@ -195,4 +195,17 @@ describe('EditNotificationSheet', () => {
         expect((screen.getByLabelText(/^Name/) as HTMLInputElement).value).toBe('');
         expect(screen.getByRole('button', { name: 'Add notification' })).not.toBeNull();
     });
+
+    it('uses the standard Groups sheet width when layout is standard', () => {
+        renderSheet({ layout: 'standard' });
+        const content = document.querySelector('[data-slot="sheet-content"]') as HTMLElement | null;
+        expect(content?.style.maxWidth).toBe('480px');
+        expect(content?.style.width).toBe('');
+    });
+
+    it('keeps the wide sheet width by default', () => {
+        renderSheet();
+        const content = document.querySelector('[data-slot="sheet-content"]') as HTMLElement | null;
+        expect(content?.style.maxWidth).toBe('48rem');
+    });
 });
