@@ -47,7 +47,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Covers the collapse of the free-form {@code tokenEndpointAuthMethod} configuration string into the typed enum, and
- * that a disabled IdP is rejected for both organization (Console) and environment (Portal) login.
+ * that a disabled IdP is rejected for environment (Portal) login while staying available for organization (Console) login.
  *
  * @author GraviteeSource Team
  */
@@ -117,12 +117,24 @@ class SocialIdentityProviderImplTest {
     }
 
     @Test
-    void find_all_should_exclude_disabled_idp_for_organization_target() {
+    void find_all_should_include_disabled_idp_for_organization_target() {
         givenActivatedIdps(ORGANIZATION_TARGET, googleIdp("enabled-idp", "Enabled", true), googleIdp("disabled-idp", "Disabled", false));
 
         assertThat(socialIdentityProvider.findAll(EXECUTION_CONTEXT, ORGANIZATION_TARGET))
             .extracting(SocialIdentityProviderEntity::getId)
-            .containsExactly("enabled-idp");
+            .containsExactlyInAnyOrder("enabled-idp", "disabled-idp");
+    }
+
+    @Test
+    void find_all_should_exclude_idp_not_activated_on_organization_target() {
+        IdentityProviderEntity activated = googleIdp("activated-idp", "Activated", true);
+        IdentityProviderEntity deactivated = googleIdp("deactivated-idp", "Deactivated", true);
+        when(identityProviderActivationService.findAllByTarget(ORGANIZATION_TARGET)).thenReturn(Set.of(activation(activated.getId())));
+        when(identityProviderService.findAll(EXECUTION_CONTEXT)).thenReturn(Set.of(activated, deactivated));
+
+        assertThat(socialIdentityProvider.findAll(EXECUTION_CONTEXT, ORGANIZATION_TARGET))
+            .extracting(SocialIdentityProviderEntity::getId)
+            .containsExactly("activated-idp");
     }
 
     @Test
@@ -151,12 +163,10 @@ class SocialIdentityProviderImplTest {
     }
 
     @Test
-    void find_by_id_should_reject_disabled_idp_for_organization_target() {
+    void find_by_id_should_return_disabled_idp_for_organization_target() {
         givenActivatedIdp(ORGANIZATION_TARGET, googleIdp("disabled-idp", "Disabled", false));
 
-        assertThatThrownBy(() -> socialIdentityProvider.findById("disabled-idp", ORGANIZATION_TARGET)).isInstanceOf(
-            IdentityProviderNotFoundException.class
-        );
+        assertThat(socialIdentityProvider.findById("disabled-idp", ORGANIZATION_TARGET).getId()).isEqualTo("disabled-idp");
     }
 
     @Test

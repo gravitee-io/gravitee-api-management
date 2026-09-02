@@ -30,16 +30,18 @@ export const ROUTE_KEYS: readonly string[] = [
     'entrypoints-and-sharding-tags',
     'policy-studio',
     'alerts',
+    'notification-settings',
     'organization-audit',
     'environment-audit',
     'management-and-schedulers',
     'cors',
     'smtp',
     'templates',
+    'no-access',
 ];
 export type RouteKey = (typeof ROUTE_KEYS)[number];
 
-const DEFAULT_ROUTE_KEY: RouteKey = 'applications';
+export const DEFAULT_ROUTE_KEY: RouteKey = 'applications';
 
 export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: string }> = {
     applications: { path: 'applications', label: 'Applications' },
@@ -56,12 +58,14 @@ export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: s
     'entrypoints-and-sharding-tags': { path: 'entrypoints-and-sharding-tags', label: 'Entrypoints & Sharding Tags' },
     'policy-studio': { path: 'policy-studio', label: 'Policy Studio' },
     alerts: { path: 'alerts', label: 'Alerts' },
+    'notification-settings': { path: 'notification-settings', label: 'Notification settings' },
     'organization-audit': { path: 'organization-audit', label: 'Audit' },
     'environment-audit': { path: 'environment-audit', label: 'Audit' },
     'management-and-schedulers': { path: 'management-and-schedulers', label: 'Management & Schedulers' },
     cors: { path: 'cors', label: 'CORS' },
     smtp: { path: 'smtp', label: 'SMTP' },
     templates: { path: 'templates', label: 'Templates' },
+    'no-access': { path: 'no-access', label: 'No access' },
 };
 
 export const PLATFORM_ROUTE_CONFIG: ModuleRouteConfig<RouteKey> = {

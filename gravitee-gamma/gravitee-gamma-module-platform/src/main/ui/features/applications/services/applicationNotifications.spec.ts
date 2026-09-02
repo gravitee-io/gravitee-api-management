@@ -65,6 +65,17 @@ describe('applicationNotifications service', () => {
                 expect.objectContaining({ method: 'PUT' }),
             );
         });
+
+        it('does not PUT GENERIC updates to the PORTAL path when id is missing', async () => {
+            await expect(
+                updateApplicationNotification('DEFAULT', 'app-1', {
+                    config_type: 'GENERIC',
+                    name: 'Email alerts',
+                }),
+            ).rejects.toThrow('Cannot update a GENERIC notification without an id');
+
+            expect(mockApimFetchJsonV1Env).not.toHaveBeenCalled();
+        });
     });
 
     describe('deleteApplicationMetadata', () => {

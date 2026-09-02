@@ -50,6 +50,7 @@ export function EnvAuditLogsPage() {
     const isForbidden = isForbiddenApiError(Boolean(logsQuery.isError), logsQuery.error);
     useForbiddenResourceRedirect({
         isForbidden,
+        navItemKey: 'environment-audit',
         permissionPrefix: 'environment-audit-',
         redirectTo: '../applications',
     });
@@ -60,7 +61,8 @@ export function EnvAuditLogsPage() {
     );
 
     if (!hasLicense) {
-        return <AuditTrailLicenseDialog open onOpenChange={open => !open && navigate('../applications')} />;
+        // The module index, not a fixed page: Applications is permission-guarded and can bounce back here.
+        return <AuditTrailLicenseDialog open onOpenChange={open => !open && navigate('..')} />;
     }
 
     if (isForbidden) {

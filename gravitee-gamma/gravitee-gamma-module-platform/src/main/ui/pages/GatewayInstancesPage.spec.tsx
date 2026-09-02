@@ -26,6 +26,7 @@ import { ApimApiError } from '../shared/api/apimClient';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     useEnvironment: jest.fn(),
+    permissionService: { load: jest.fn() },
 }));
 
 const mockUseEnvironment = jest.mocked(useEnvironment);

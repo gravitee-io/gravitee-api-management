@@ -41,9 +41,9 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}
-            - gravitee-api-management-v14-<< parameters.jobName >>-master
+            - gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}
+            - gravitee-api-management-v15-<< parameters.jobName >>-master
     description: Restore Maven cache for a dedicated job
   cmd-save-maven-job-cache:
     parameters:
@@ -55,8 +55,11 @@ commands:
       - run:
           name: Exclude all APIM artefacts from cache.
           command: rm -rf ~/.m2/repository/io/gravitee/apim
+      - run:
+          name: Drop failed resolution markers from cache.
+          command: find ~/.m2 -name '*.lastUpdated' -delete
       - save_cache:
-          key: gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+          key: gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
           paths:
             - ~/.m2
           when: always
@@ -75,7 +78,7 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - gravitee-api-management-v14-temurin-25
+            - gravitee-api-management-v15-temurin-25
       - run:
           name: Install JDK 25
           command: |-
@@ -122,7 +125,7 @@ commands:
 
             java -version
       - save_cache:
-          key: gravitee-api-management-v14-temurin-25
+          key: gravitee-api-management-v15-temurin-25
           paths:
             - ~/.cache/temurin
           when: on_success
@@ -225,7 +228,7 @@ jobs:
           paths:
             - ~/.m2/repository/io/gravitee/apim
             - ~/.m2/repository/io/gravitee/gamma
-          key: gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          key: gravitee-api-management-v15-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
           when: on_success
       - run:
           name: Archive the compiled rest-api classes
@@ -233,7 +236,7 @@ jobs:
       - save_cache:
           paths:
             - /tmp/rest-api-classes.tar
-          key: gravitee-api-management-v14-rest-api-classes-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          key: gravitee-api-management-v15-rest-api-classes-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
           when: on_success
       - cmd-save-maven-job-cache:
           jobName: job-build
@@ -257,7 +260,7 @@ jobs:
           jobName: job-test-reporter
       - restore_cache:
           keys:
-            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+            - gravitee-api-management-v15-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run reporter tests
           command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dreporter-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C
@@ -299,7 +302,7 @@ jobs:
           at: .
       - restore_cache:
           keys:
-            - gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
+            - gravitee-api-management-v15-sonarcloud-analysis-<< parameters.cache_type >>
       - keeper/env-export:
           secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
           var-name: SONAR_TOKEN
@@ -312,7 +315,7 @@ jobs:
       - save_cache:
           paths:
             - /opt/sonar-scanner/.sonar/cache
-          key: gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
+          key: gravitee-api-management-v15-sonarcloud-analysis-<< parameters.cache_type >>
           when: always
   job-validate-workflow-status:
     docker:

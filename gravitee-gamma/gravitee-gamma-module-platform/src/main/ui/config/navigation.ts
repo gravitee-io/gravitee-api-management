@@ -77,7 +77,6 @@ export const NAV_SECTIONS: PlatformNavSection[] = [
             {
                 label: 'System & Security',
                 items: [
-                    { key: 'access-management', title: ROUTES['access-management'].label, icon: ShieldIcon },
                     { key: 'authentication', title: ROUTES.authentication.label, icon: FingerprintIcon },
                     { key: 'management-and-schedulers', title: ROUTES['management-and-schedulers'].label, icon: SettingsIcon },
                     { key: 'cors', title: ROUTES.cors.label, icon: GlobeIcon },
@@ -105,8 +104,10 @@ export const NAV_SECTIONS: PlatformNavSection[] = [
             {
                 label: 'System & Security',
                 items: [
+                    { key: 'access-management', title: ROUTES['access-management'].label, icon: ShieldIcon },
                     { key: 'gateways', title: ROUTES.gateways.label, icon: ServerIcon },
                     { key: 'alerts', title: ROUTES.alerts.label, icon: BellIcon },
+                    { key: 'notification-settings', title: ROUTES['notification-settings'].label, icon: MailIcon },
                     { key: 'security-plan-types', title: ROUTES['security-plan-types'].label, icon: KeyIcon },
                     { key: 'environment-audit', title: ROUTES['environment-audit'].label, icon: ScrollTextIcon },
                 ],

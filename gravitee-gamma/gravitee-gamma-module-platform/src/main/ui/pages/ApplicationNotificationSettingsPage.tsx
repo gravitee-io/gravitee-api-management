@@ -41,6 +41,7 @@ import {
 } from '../features/applications/hooks/useApplicationNotifications';
 import type {
     ApplicationNotificationRow,
+    ApplicationNotificationSettings,
     NewApplicationMetadata,
     UpdateApplicationNotification,
     UpdateApplicationMetadata,
@@ -92,8 +93,9 @@ export function ApplicationNotificationSettingsPage() {
         if (!applicationId) {
             return;
         }
+        let created: ApplicationNotificationSettings;
         try {
-            const created = await createNotificationMutation.mutateAsync({
+            created = await createNotificationMutation.mutateAsync({
                 name: payload.name,
                 notifier: payload.notifier,
                 referenceType: 'APPLICATION',
@@ -101,22 +103,29 @@ export function ApplicationNotificationSettingsPage() {
                 config_type: 'GENERIC',
                 hooks: payload.hooks,
             });
+        } catch (error: unknown) {
+            notify.error(error, 'Failed to create notification.');
+            return;
+        }
 
-            const needsFollowUpUpdate = Boolean(payload.config) || Boolean(payload.useSystemProxy);
-            if (needsFollowUpUpdate) {
+        const needsFollowUpUpdate = Boolean(payload.config) || Boolean(payload.useSystemProxy);
+        if (needsFollowUpUpdate) {
+            try {
                 await updateNotificationMutation.mutateAsync({
                     ...created,
                     config: payload.config ?? created.config,
                     useSystemProxy: payload.useSystemProxy ?? created.useSystemProxy,
                     hooks: payload.hooks,
                 });
+            } catch (error: unknown) {
+                notify.error(error, `"${created.name}" was created, but saving its configuration failed — edit it to finish setup.`);
+                setNotificationToEdit(null);
+                return;
             }
-
-            notify.success('Notification created successfully');
-            setNotificationToEdit(null);
-        } catch (error: unknown) {
-            notify.error(error, 'Failed to create notification.');
         }
+
+        notify.success('Notification created successfully');
+        setNotificationToEdit(null);
     }
 
     function handleUpdateNotification(notification: UpdateApplicationNotification) {

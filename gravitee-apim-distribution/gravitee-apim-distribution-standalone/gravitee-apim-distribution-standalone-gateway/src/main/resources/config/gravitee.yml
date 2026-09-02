@@ -697,6 +697,10 @@ reporters:
 #      number_of_shards: 1
 #      number_of_replicas: 1
 #      refresh_interval: 5s
+#      index_body: true         # Index request, response and message bodies captured by the logging policy.
+                                # Set to false to stop indexing them: the Logs UI still displays them, but its
+                                # "search in payloads" filter no longer matches. Applies to indexes created
+                                # after the change, not to existing ones.
 #    pipeline:
 #      plugins:
 #        ingest: geoip, user_agent      # geoip and user_agent are enabled by default

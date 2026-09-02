@@ -133,11 +133,11 @@ describe('toTaskView', () => {
         expect(view.to).toBe('/environments/prod/aim/mcp-proxy/api-mcp/consumers/sub-2');
     });
 
-    it('deep-links LLM subscriptions to the llm-router consumer page and A2A to the agent-runtime API page', () => {
+    it('deep-links LLM subscriptions to the llm-proxy consumer page and A2A to the agent-runtime API page', () => {
         const llm = toTaskView(subscription('api-llm'), metadata, resolveEnvHrid);
         expect(llm.area).toEqual({ key: 'llm', label: 'LLM' });
         expect(llm.toModuleId).toBe('aim');
-        expect(llm.to).toBe('/environments/prod/aim/llm-router/api-llm/consumers/sub-api-llm');
+        expect(llm.to).toBe('/environments/prod/aim/llm-proxy/api-llm/consumers/sub-api-llm');
 
         const a2a = toTaskView(subscription('api-a2a'), metadata, resolveEnvHrid);
         expect(a2a.area).toEqual({ key: 'ai', label: 'AI Agent' });
@@ -181,14 +181,14 @@ describe('toTaskView', () => {
         expect(view.toModuleId).toBe('apim');
     });
 
-    it('deep-links an LLM review task to the llm-router API page instead of the module root', () => {
+    it('deep-links an LLM review task to the llm-proxy API page instead of the module root', () => {
         const entity: TaskEntity = { type: 'IN_REVIEW', created_at: 1, data: { referenceId: 'api-llm' } };
 
         const view = toTaskView(entity, metadata, resolveEnvHrid);
 
         expect(view.area.key).toBe('llm');
         expect(view.toModuleId).toBe('aim');
-        expect(view.to).toBe('/environments/prod/aim/llm-router/api-llm');
+        expect(view.to).toBe('/environments/prod/aim/llm-proxy/api-llm');
     });
 
     it('deep-links an MCP review task to the mcp-proxy API page', () => {

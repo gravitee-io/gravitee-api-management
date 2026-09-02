@@ -23,17 +23,19 @@ export function NotificationHookCategorySection({
     groupHookIds,
     disabled,
     onToggle,
+    gridClassName = 'grid gap-2 sm:grid-cols-2 xl:grid-cols-4',
 }: Readonly<{
     category: ApplicationNotificationHookCategory;
     selectedHooks: Set<string>;
     groupHookIds: Set<string>;
     disabled: boolean;
     onToggle: (hookId: string) => void;
+    gridClassName?: string;
 }>) {
     return (
         <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{category.name}</p>
-            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            <div className={gridClassName}>
                 {category.hooks.map(hook => {
                     const isGroupHook = groupHookIds.has(hook.id);
                     const isDisabled = disabled || isGroupHook;

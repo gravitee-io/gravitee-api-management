@@ -37,14 +37,14 @@ commands:
       - restore_cache:
           name: Restore Yarn workspace cache
           keys:
-            - gravitee-api-management-v14-workspace-{{ .Branch }}-{{ checksum "yarn.lock" }}
-            - gravitee-api-management-v14-workspace-{{ .Branch }}
+            - gravitee-api-management-v15-workspace-{{ .Branch }}-{{ checksum "yarn.lock" }}
+            - gravitee-api-management-v15-workspace-{{ .Branch }}
       - run:
           name: Install workspace dependencies
           command: yarn install --frozen-lockfile
       - save_cache:
           name: Save Yarn workspace cache
-          key: gravitee-api-management-v14-workspace-{{ .Branch }}-{{ checksum "yarn.lock" }}
+          key: gravitee-api-management-v15-workspace-{{ .Branch }}-{{ checksum "yarn.lock" }}
           paths:
             - ./node_modules
   cmd-notify-on-failure:
@@ -134,9 +134,9 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}
-            - gravitee-api-management-v14-<< parameters.jobName >>-4.2.x
+            - gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}
+            - gravitee-api-management-v15-<< parameters.jobName >>-4.2.x
     description: Restore Maven cache for a dedicated job
   cmd-prepare-gpg:
     steps:
@@ -160,8 +160,11 @@ commands:
       - run:
           name: Exclude all APIM artefacts from cache.
           command: rm -rf ~/.m2/repository/io/gravitee/apim
+      - run:
+          name: Drop failed resolution markers from cache.
+          command: find ~/.m2 -name '*.lastUpdated' -delete
       - save_cache:
-          key: gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+          key: gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
           paths:
             - ~/.m2
           when: always

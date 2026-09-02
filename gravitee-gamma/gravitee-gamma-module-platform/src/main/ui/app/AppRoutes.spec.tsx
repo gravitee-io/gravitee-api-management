@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import type { ComponentType } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -21,6 +21,8 @@ import { AppRoutes } from './AppRoutes';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
 import { ApimApiError } from '../shared/api/apimClient';
+import { useEnvironmentPermissionsReady } from '../shared/hooks/useEnvironmentPermissions';
+import { markNavItemDenied, resetDeniedNavItemsForEnvironment } from '../shared/nav/deniedNavItems';
 
 jest.mock('./PlatformToaster', () => ({
     PlatformToaster: () => <div data-testid="platform-toaster" />,
@@ -37,13 +39,31 @@ jest.mock('@gravitee/gamma-modules-sdk/routing', () => ({
 }));
 
 const mockUseLayoutConfig = jest.fn();
+const mockUseHasPermission = jest.fn().mockReturnValue(true);
+const mockUseHasFeature = jest.fn().mockReturnValue(true);
+const mockUseHasEnvironmentPermission = jest.fn().mockReturnValue(true);
+
+// The permission store is an external store, not React state: nav visibility only stays correct if it
+// re-reads on every version bump. A stub with a no-op `subscribe` and a constant `getSnapshot` makes a
+// frozen memo indistinguishable from a reactive one, so the fake keeps real listeners and a real version.
+const mockPermissionListeners = new Set<() => void>();
+let mockPermissionStoreVersion = 0;
+
+const mockUseEnvironmentPermissionGrant = jest.fn<boolean | undefined, [string[]]>();
+
+let deniedNavItemResetCount = 0;
+
+function emitPermissionChange() {
+    mockPermissionStoreVersion += 1;
+    mockPermissionListeners.forEach(listener => listener());
+}
 
 jest.mock('@gravitee/graphene-core', () => {
     const actual = jest.requireActual('@gravitee/graphene-core') as object;
     return {
         ...actual,
         useLayoutConfig: (config: unknown, deps: unknown) => mockUseLayoutConfig(config, deps),
-        ContextSidebar: () => null,
+        ContextSidebar: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
         ContextToggleButton: () => null,
         SidebarNavigation: () => null,
         buildLinearBreadcrumbs: () => [],
@@ -54,25 +74,25 @@ jest.mock('../shared/console-settings', () => ({
     ConsoleSettingsProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-const mockUseHasEnvironmentPermission = jest.fn().mockReturnValue(true);
-
 jest.mock('../shared/hooks/useEnvironmentPermissions', () => ({
     useEnvironmentPermissions: jest.fn(),
     useEnvironmentPermissionsReady: jest.fn().mockReturnValue(true),
     useHasEnvironmentPermission: (anyOf: string[]) => mockUseHasEnvironmentPermission(anyOf),
-}));
-
-const mockUseHasPermission = jest.fn().mockReturnValue(true);
-const mockUseHasFeature = jest.fn().mockReturnValue(true);
-
-jest.mock('../shared/gamma-modules-sdk', () => ({
-    useHasPermission: (options: unknown) => mockUseHasPermission(options),
-    useHasFeature: (feature: unknown) => mockUseHasFeature(feature),
+    useEnvironmentPermissionGrant: (anyOf: string[]) => mockUseEnvironmentPermissionGrant(anyOf),
 }));
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
+    useEnvironment: () => ({ id: 'env-1' }),
     useHasPermission: (options: unknown) => mockUseHasPermission(options),
     useHasFeature: (feature: unknown) => mockUseHasFeature(feature),
+    permissionService: {
+        hasAnyOf: (required?: string[]) => mockUseHasPermission({ anyOf: required ?? [] }),
+        subscribe: (listener: () => void) => {
+            mockPermissionListeners.add(listener);
+            return () => mockPermissionListeners.delete(listener);
+        },
+        getSnapshot: () => mockPermissionStoreVersion,
+    },
 }));
 
 jest.mock('../features/dictionaries/hooks/useEnvironmentDictionaries');
@@ -80,6 +100,16 @@ jest.mock('../features/metadata/hooks/useEnvironmentMetadata');
 
 const mockUseEnvironmentDictionaries = jest.mocked(useEnvironmentDictionaries);
 const mockUseEnvironmentMetadata = jest.mocked(useEnvironmentMetadata);
+const mockUseEnvironmentPermissionsReady = jest.mocked(useEnvironmentPermissionsReady);
+
+function denyPermissions(...denied: string[]) {
+    mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.some(permission => denied.includes(permission)));
+}
+
+/** Grants exactly `allowed` and nothing else, to pin the landing item down to a single nav entry. */
+function grantOnlyPermissions(...allowed: string[]) {
+    mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => anyOf.some(permission => allowed.includes(permission)));
+}
 
 jest.mock('../pages/ApplicationsPage', () => ({
     ApplicationsPage: () => <div data-testid="applications-page" />,
@@ -172,6 +202,22 @@ jest.mock('../pages/NotificationTemplateDetailPage', () => ({
     NotificationTemplateDetailPage: () => <div data-testid="notification-template-detail-page" />,
 }));
 
+jest.mock('../pages/PlatformNoAccessPage', () => ({
+    PlatformNoAccessPage: () => <div data-testid="platform-no-access-page" />,
+}));
+
+jest.mock('../pages/EntrypointsAndShardingTagsPage', () => ({
+    EntrypointsAndShardingTagsPage: () => <div data-testid="entrypoints-page" />,
+}));
+
+jest.mock('../features/security-plan-types/SecurityPlanTypesPage', () => ({
+    SecurityPlanTypesPage: () => <div data-testid="security-plan-types-page" />,
+}));
+
+jest.mock('../pages/GatewayInstancesPage', () => ({
+    GatewayInstancesPage: () => <div data-testid="gateways-page" />,
+}));
+
 jest.mock('../features/applications/components/detail', () => ({
     ApplicationDetailLayout: () => <div data-testid="application-detail-layout" />,
     ApplicationDetailIndexRedirect: () => null,
@@ -201,6 +247,10 @@ jest.mock('../features/alerts/pages/AlertFormPage', () => ({
     AlertFormPage: () => <div data-testid="alert-form-page" />,
 }));
 
+jest.mock('../pages/EnvironmentNotificationSettingsPage', () => ({
+    EnvironmentNotificationSettingsPage: () => <div data-testid="environment-notification-settings-page" />,
+}));
+
 function renderPlatform(path = '/applications') {
     render(
         <MemoryRouter initialEntries={[path]}>
@@ -220,7 +270,13 @@ type LayoutConfig = {
             children?: { props?: { groups?: NavGroupProps[]; onItemSelect?: (key: string) => void } };
         };
     };
+    viewMode?: 'global' | 'context';
+    breadcrumbs?: unknown;
 };
+
+function sectionLayout(): LayoutConfig | undefined {
+    return layoutConfigs().findLast(config => 'breadcrumbs' in config);
+}
 
 function layoutConfigs(): LayoutConfig[] {
     return mockUseLayoutConfig.mock.calls.map(call => call[0] as LayoutConfig);
@@ -268,6 +324,12 @@ describe('AppRoutes', () => {
         mockUseHasPermission.mockReset().mockReturnValue(true);
         mockUseHasFeature.mockReset().mockReturnValue(true);
         mockUseHasEnvironmentPermission.mockReset().mockReturnValue(true);
+        mockUseEnvironmentPermissionGrant.mockReset().mockReturnValue(true);
+        mockUseEnvironmentPermissionsReady.mockReturnValue(true);
+        mockPermissionListeners.clear();
+        mockPermissionStoreVersion = 0;
+        // The denial store is module state; a switch to an unused environment id clears it.
+        resetDeniedNavItemsForEnvironment(`reset-${(deniedNavItemResetCount += 1)}`);
         mockUseEnvironmentDictionaries.mockReturnValue({
             data: [],
             isLoading: false,
@@ -473,9 +535,7 @@ describe('AppRoutes', () => {
     });
 
     it('redirects away from Shared Policy Groups when the user lacks environment-shared_policy_group-r', () => {
-        // The route guard reads this module's own live permission query, not the SDK's useHasPermission —
-        // see useEnvironmentPermissions.ts.
-        mockUseHasEnvironmentPermission.mockImplementation((anyOf: string[]) => !anyOf.includes('environment-shared_policy_group-r'));
+        mockUseEnvironmentPermissionGrant.mockImplementation((anyOf: string[]) => !anyOf.includes('environment-shared_policy_group-r'));
 
         render(
             <MemoryRouter initialEntries={['/shared-policy-groups']}>
@@ -483,6 +543,7 @@ describe('AppRoutes', () => {
             </MemoryRouter>,
         );
 
+        expect(screen.queryByTestId('shared-policy-groups-page')).toBeNull();
         expect(screen.getByTestId('applications-page')).not.toBeNull();
     });
 
@@ -492,8 +553,35 @@ describe('AppRoutes', () => {
         expect(visibleNavKeys()).toContain('shared-policy-groups');
     });
 
+    // permissionService is an external store: a 403 patch or a host reload bumps it without changing any
+    // React state the sidebar memo depends on, so the memo has to track the store's version explicitly.
+    it('recomputes the sidebar when the permission store changes after the first render', () => {
+        renderPlatform('/applications');
+        expect(visibleNavKeys()).toContain('gateways');
+
+        denyPermissions('environment-instance-r');
+        act(() => {
+            emitPermissionChange();
+        });
+
+        expect(visibleNavKeys()).not.toContain('gateways');
+    });
+
+    it('re-adds a nav item when the permission store grants it after the first render', () => {
+        denyPermissions('environment-instance-r');
+        renderPlatform('/applications');
+        expect(visibleNavKeys()).not.toContain('gateways');
+
+        mockUseHasPermission.mockReturnValue(true);
+        act(() => {
+            emitPermissionChange();
+        });
+
+        expect(visibleNavKeys()).toContain('gateways');
+    });
+
     it('hides the Shared Policy Groups nav item when the user lacks environment-shared_policy_group-r', () => {
-        mockUseHasEnvironmentPermission.mockImplementation((anyOf: string[]) => !anyOf.includes('environment-shared_policy_group-r'));
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-shared_policy_group-r'));
 
         renderPlatform();
 
@@ -630,12 +718,89 @@ describe('AppRoutes', () => {
         expect(screen.getByTestId('applications-page')).not.toBeNull();
     });
 
+    // The audit pages answer an unlicensed visit with an upsell dialog whose dismiss leaves the page.
+    // Landing on one makes it undismissable: every exit resolves back to the landing key.
+    it('does not land on an audit page when the Audit Trail is unlicensed', () => {
+        mockUseHasFeature.mockImplementation((feature: string) => feature !== 'apim-audit-trail');
+        grantOnlyPermissions('organization-settings-u', 'organization-audit-r');
+
+        renderPlatform('/');
+
+        expect(screen.queryByTestId('org-audit-logs-page')).toBeNull();
+    });
+
     it('hides the Alerts nav item when the user lacks environment-alert-r', () => {
         mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-alert-r'));
 
         renderPlatform();
 
         expect(visibleNavKeys()).not.toContain('alerts');
+    });
+
+    it('routes to the Notification settings page under the platform module', () => {
+        render(
+            <MemoryRouter initialEntries={['/notification-settings']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('environment-notification-settings-page')).not.toBeNull();
+    });
+
+    it('shows the Notification settings nav item when the user has read permission', () => {
+        renderPlatform();
+
+        expect(visibleNavKeys()).toContain('notification-settings');
+    });
+
+    it('hides the Notification settings nav item when the user lacks environment-notification-r', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-notification-r'));
+
+        renderPlatform();
+
+        expect(visibleNavKeys()).not.toContain('notification-settings');
+    });
+
+    it('redirects away from Notification settings when the user lacks environment-notification-r', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-notification-r'));
+
+        render(
+            <MemoryRouter initialEntries={['/notification-settings']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.queryByTestId('environment-notification-settings-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    // Alerts stays in the sidebar as a locked item, so it must not also be the landing target: the
+    // license redirect would bounce to applications, whose guard would bounce back to the landing key.
+    it('does not land on Alerts when Alert Engine is unlicensed, so the license redirect cannot loop', () => {
+        mockUseHasFeature.mockImplementation((feature: string) => feature !== 'alert-engine');
+        grantOnlyPermissions('environment-alert-r');
+
+        expect(() => renderPlatform('/')).not.toThrow();
+
+        expect(screen.queryByTestId('alerts-page')).toBeNull();
+        expect(screen.getByTestId('platform-no-access-page')).not.toBeNull();
+    });
+
+    it('does not loop when the permission store grants Shared Policy Groups but the module cache denies it', () => {
+        grantOnlyPermissions('environment-shared_policy_group-r');
+        mockUseEnvironmentPermissionGrant.mockReturnValue(false);
+
+        expect(() => renderPlatform('/')).not.toThrow();
+
+        expect(screen.queryByTestId('shared-policy-groups-page')).toBeNull();
+    });
+
+    it('defers to the permission store when the module permission cache has no data', () => {
+        mockUseEnvironmentPermissionGrant.mockReturnValue(undefined);
+
+        renderPlatform('/shared-policy-groups');
+
+        expect(screen.getByTestId('shared-policy-groups-page')).not.toBeNull();
     });
 
     it('routes to the Tenants page under the platform module', () => {
@@ -909,7 +1074,7 @@ describe('AppRoutes', () => {
         expect(screen.getByTestId('applications-page')).not.toBeNull();
     });
 
-    it('shows Management & Schedulers, CORS, and SMTP when the user can read org settings', () => {
+    it('shows Management & Schedulers, CORS, SMTP, and Templates when the user can read org settings', () => {
         mockUseModuleRouting.mockReturnValue({
             activeNavKey: 'management-and-schedulers',
             navigateToKey: jest.fn(),
@@ -918,23 +1083,40 @@ describe('AppRoutes', () => {
         renderPlatform('/management-and-schedulers');
 
         expect(visibleNavKeys()).toEqual(
-            expect.arrayContaining(['access-management', 'authentication', 'management-and-schedulers', 'cors', 'smtp', 'templates']),
+            expect.arrayContaining(['authentication', 'management-and-schedulers', 'cors', 'smtp', 'templates']),
         );
+        expect(visibleNavKeys()).not.toContain('access-management');
     });
 
     it('hides organization console settings nav items without organization-settings-r', () => {
         mockUseModuleRouting.mockReturnValue({
-            activeNavKey: 'access-management',
+            activeNavKey: 'management-and-schedulers',
             navigateToKey: jest.fn(),
             rootPath: '/platform',
         });
-        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('organization-settings-r'));
+        denyPermissions('organization-settings-r', 'organization-settings-u');
+        renderPlatform('/applications');
+
+        expect(visibleNavKeys()).not.toContain('management-and-schedulers');
+        expect(visibleNavKeys()).not.toContain('cors');
+        expect(visibleNavKeys()).not.toContain('smtp');
+        expect(visibleNavKeys()).not.toContain('templates');
+        expect(visibleNavKeys()).toContain('access-management');
+        expect(visibleNavKeys()).not.toContain('tenants');
+        expect(visibleNavKeys()).not.toContain('users');
+        expect(visibleNavKeys()).not.toContain('policy-studio');
+    });
+
+    it('hides Management, CORS, and SMTP when the user has organization-settings-u without -r', () => {
+        denyPermissions('organization-settings-r');
         renderPlatform('/access-management');
 
         expect(visibleNavKeys()).not.toContain('management-and-schedulers');
         expect(visibleNavKeys()).not.toContain('cors');
         expect(visibleNavKeys()).not.toContain('smtp');
-        expect(visibleNavKeys()).toContain('access-management');
+        renderPlatform('/cors');
+        expect(screen.queryByTestId('cors-settings-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
     });
 
     it('routes to Authentication and Create Identity Provider', () => {
@@ -974,5 +1156,162 @@ describe('AppRoutes', () => {
         renderPlatform('/authentication/google-idp');
         expect(screen.queryByTestId('edit-identity-provider-page')).toBeNull();
         expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('hides Applications without environment-application-r', () => {
+        denyPermissions('environment-application-r');
+        renderPlatform();
+
+        expect(visibleNavKeys()).not.toContain('applications');
+    });
+
+    it('does not render Applications for a pasted URL without environment-application-r', () => {
+        denyPermissions('environment-application-r');
+        renderPlatform('/applications');
+
+        expect(screen.queryByTestId('applications-page')).toBeNull();
+        expect(screen.getByTestId('tenants-page')).not.toBeNull();
+    });
+
+    it('does not render Alerts for a pasted URL without environment-alert-r', () => {
+        denyPermissions('environment-alert-r');
+        renderPlatform('/alerts');
+
+        expect(screen.queryByTestId('alerts-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('does not render Gateways for a pasted URL without environment-instance-r', () => {
+        denyPermissions('environment-instance-r');
+        renderPlatform('/gateways');
+
+        expect(screen.queryByTestId('gateways-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('does not render Security Plan Types for a pasted URL without environment-settings-r', () => {
+        denyPermissions('environment-settings-r');
+        renderPlatform('/security-plan-types');
+
+        expect(screen.queryByTestId('security-plan-types-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('hides Security Plan Types without environment-settings-r', () => {
+        denyPermissions('environment-settings-r');
+        renderPlatform();
+
+        expect(visibleNavKeys()).not.toContain('security-plan-types');
+    });
+
+    it('renders Access Management from a pasted URL without organization-settings', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'access-management',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        denyPermissions('organization-settings-r', 'organization-settings-u');
+        renderPlatform('/access-management');
+
+        expect(screen.getByTestId('access-management-page')).not.toBeNull();
+        expect(visibleNavKeys()).toContain('access-management');
+    });
+
+    it('does not render Access Management without environment-am_configuration-r', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'access-management',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        denyPermissions('environment-am_configuration-r');
+        renderPlatform('/access-management');
+
+        expect(screen.queryByTestId('access-management-page')).toBeNull();
+        expect(visibleNavKeys()).not.toContain('access-management');
+    });
+
+    it('shows a no-access page when the user has no Platform menus', () => {
+        mockUseHasPermission.mockReturnValue(false);
+        renderPlatform('/alerts');
+
+        expect(screen.queryByTestId('alerts-page')).toBeNull();
+        expect(screen.getByTestId('platform-no-access-page')).not.toBeNull();
+    });
+
+    // Tenants is granted by the organization scope, which the 403 strip cannot rewrite. Without the
+    // denial it stays visible and stays the landing key, so the redirect out of it lands back on it.
+    it('drops an org-scoped item from the sidebar and the landing key once a 403 denies it', () => {
+        grantOnlyPermissions('organization-settings-r', 'organization-tenant-r');
+        renderPlatform('/');
+
+        expect(visibleNavKeys()).toContain('tenants');
+        expect(screen.getByTestId('tenants-page')).not.toBeNull();
+
+        act(() => markNavItemDenied('tenants'));
+
+        expect(visibleNavKeys()).not.toContain('tenants');
+        expect(screen.queryByTestId('tenants-page')).toBeNull();
+        expect(screen.getByTestId('management-and-schedulers-page')).not.toBeNull();
+    });
+
+    it('does not reserve a context sidebar when no Platform menus are visible', () => {
+        mockUseHasPermission.mockReturnValue(false);
+        renderPlatform('/no-access');
+
+        expect(sectionLayout()?.contextSidebar).toBeUndefined();
+        expect(sectionLayout()?.viewMode).toBeUndefined();
+    });
+
+    it('keeps no-access when that URL is opened and nothing is visible', () => {
+        mockUseHasPermission.mockReturnValue(false);
+        renderPlatform('/no-access');
+
+        expect(screen.getByTestId('platform-no-access-page')).not.toBeNull();
+    });
+
+    it('leaves a leftover no-access URL when the user has Applications', () => {
+        renderPlatform('/no-access');
+
+        expect(screen.queryByTestId('platform-no-access-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('opens Applications from the platform index when the user can read them', () => {
+        renderPlatform('/');
+
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('hides all nav items until environment permissions are ready', () => {
+        mockUseEnvironmentPermissionsReady.mockReturnValue(false);
+        renderPlatform();
+
+        expect(visibleNavKeys()).toEqual([]);
+        expect(primaryNavKeys()).toEqual([]);
+    });
+
+    it('keeps a stable empty groups list for the section layout while nothing is visible', () => {
+        mockUseEnvironmentPermissionsReady.mockReturnValue(false);
+        const view = render(
+            <MemoryRouter initialEntries={['/applications']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        const groupsAfterFirst = mockUseLayoutConfig.mock.calls
+            .filter(call => call[0] !== undefined && typeof call[0] === 'object' && call[0] !== null && 'breadcrumbs' in call[0])
+            .at(-1)?.[1] as unknown[];
+
+        view.rerender(
+            <MemoryRouter initialEntries={['/applications']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        const groupsAfterRerender = mockUseLayoutConfig.mock.calls
+            .filter(call => call[0] !== undefined && typeof call[0] === 'object' && call[0] !== null && 'breadcrumbs' in call[0])
+            .at(-1)?.[1] as unknown[];
+
+        expect(groupsAfterFirst?.[3]).toBe(groupsAfterRerender?.[3]);
     });
 });

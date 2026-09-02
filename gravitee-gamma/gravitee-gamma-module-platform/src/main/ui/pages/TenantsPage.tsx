@@ -45,6 +45,7 @@ export function TenantsPage() {
     const isForbidden = isForbiddenApiError(isError, error);
     useForbiddenResourceRedirect({
         isForbidden,
+        navItemKey: 'tenants',
         permissionPrefix: ['organization-tenant-', 'environment-tenant-'],
         redirectTo: '../applications',
     });

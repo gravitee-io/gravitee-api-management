@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useHasFeature, useHasPermission } from '@gravitee/gamma-modules-sdk';
+import { permissionService, useEnvironment, useHasFeature, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
 import {
     buildLinearBreadcrumbs,
     ContextSidebar,
     ContextToggleButton,
+    type NavGroup,
     type NavItem,
     SidebarGroup,
     SidebarGroupContent,
@@ -29,8 +30,8 @@ import {
     useLayoutConfig,
 } from '@gravitee/graphene-core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { createContext, type ReactElement, useCallback, useContext, useMemo, useState } from 'react';
-import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom';
+import { createContext, type ReactElement, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
 import { PlatformToaster } from './PlatformToaster';
 import { APPLICATION_NAV_GROUPS, flattenApplicationDetailNavItems } from '../config/applicationDetailNavigation';
@@ -44,23 +45,21 @@ import {
     platformPrimaryNavItems,
     type PlatformNavSection,
 } from '../config/navigation';
+import { isNavItemVisible, landingNavItemKey, modulePathFor, NO_ACCESS_ROUTE_KEY, pageGuardForNavItem } from '../config/navVisibility';
 import { PLATFORM_ROUTE_CONFIG } from '../config/routes';
 import { AlertsLayout } from '../features/alerts/components/AlertsLayout';
 import { AlertFormPage } from '../features/alerts/pages/AlertFormPage';
 import { AlertsActivityPage } from '../features/alerts/pages/AlertsActivityPage';
-import { ALERT_ENGINE_FEATURE, ENVIRONMENT_ALERT_READ_PERMISSION } from '../features/alerts/utils/alertPermissions';
+import { ALERT_ENGINE_FEATURE } from '../features/alerts/utils/alertPermissions';
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
-import { ENVIRONMENT_AUDIT_READ_PERMISSIONS, ORGANIZATION_AUDIT_READ_PERMISSIONS } from '../features/audit-logs/utils/auditPermissions';
+import { APIM_AUDIT_TRAIL_FEATURE } from '../features/audit-logs/license/auditTrailLicense';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
 import { GatewayInstanceDetailLayout } from '../features/gateway-instances/components/GatewayInstanceDetailLayout';
-import { ENVIRONMENT_GROUP_READ_PERMISSION } from '../features/groups/utils/groupPermissions';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
-import { ORGANIZATION_NOTIFICATION_TEMPLATES_READ } from '../features/notification-templates/utils/permissions';
-import { ORGANIZATION_POLICIES_ACCESS_PERMISSIONS } from '../features/platform-policies/utils/platformPolicyPermissions';
 import { SecurityPlanTypesPage } from '../features/security-plan-types/SecurityPlanTypesPage';
+import { usePermissionServiceSnapshot } from '../features/shared/hooks/usePermissionServiceSnapshot';
 import { SharedPolicyGroupDetailLayout } from '../features/shared-policy-groups/components/SharedPolicyGroupDetailLayout';
 import { ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION } from '../features/shared-policy-groups/utils/sharedPolicyGroupPermissions';
-import { ORGANIZATION_USER_ACCESS_PERMISSIONS } from '../features/users/utils/userPermissions';
 import { AccessManagementPage } from '../pages/AccessManagementPage';
 import { AlertsPage } from '../pages/AlertsPage';
 import { ApplicationDetailSubscriptionPage } from '../pages/ApplicationDetailSubscriptionPage';
@@ -73,6 +72,7 @@ import { DictionaryDetailPage } from '../pages/DictionaryDetailPage';
 import { EditIdentityProviderPage } from '../pages/EditIdentityProviderPage';
 import { EntrypointsAndShardingTagsPage } from '../pages/EntrypointsAndShardingTagsPage';
 import { EnvAuditLogsPage } from '../pages/EnvAuditLogsPage';
+import { EnvironmentNotificationSettingsPage } from '../pages/EnvironmentNotificationSettingsPage';
 import { GatewayInstanceEnvironmentPage } from '../pages/GatewayInstanceEnvironmentPage';
 import { GatewayInstanceMonitoringPage } from '../pages/GatewayInstanceMonitoringPage';
 import { GatewayInstancesPage } from '../pages/GatewayInstancesPage';
@@ -84,6 +84,7 @@ import { NotificationTemplateDetailPage } from '../pages/NotificationTemplateDet
 import { NotificationTemplatesPage } from '../pages/NotificationTemplatesPage';
 import { OrganizationPolicyStudioPage } from '../pages/OrganizationPolicyStudioPage';
 import { OrgAuditLogsPage } from '../pages/OrgAuditLogsPage';
+import { PlatformNoAccessPage } from '../pages/PlatformNoAccessPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
 import { SharedPolicyGroupHistoryPage } from '../pages/SharedPolicyGroupHistoryPage';
 import { SharedPolicyGroupsPage } from '../pages/SharedPolicyGroupsPage';
@@ -95,10 +96,11 @@ import { UsersPage } from '../pages/UsersPage';
 import { retryTransientRequest } from '../shared/api/queryRetry';
 import { ConsoleSettingsProvider } from '../shared/console-settings';
 import {
+    useEnvironmentPermissionGrant,
     useEnvironmentPermissions,
     useEnvironmentPermissionsReady,
-    useHasEnvironmentPermission,
 } from '../shared/hooks/useEnvironmentPermissions';
+import { resetDeniedNavItemsForEnvironment, useDeniedNavItemKeys } from '../shared/nav/deniedNavItems';
 import { isForbiddenApiError } from '../shared/utils/apiErrors';
 
 const queryClient = new QueryClient({
@@ -109,6 +111,9 @@ const queryClient = new QueryClient({
 });
 
 const APPLICATION_DETAIL_TABS = flattenApplicationDetailNavItems(APPLICATION_NAV_GROUPS);
+const EMPTY_NAV_GROUPS: NavGroup[] = [];
+const ALERT_ENGINE_NAV_ITEMS: readonly string[] = ['alerts'];
+const AUDIT_TRAIL_NAV_ITEMS: readonly string[] = ['organization-audit', 'environment-audit'];
 
 function resolveRequiredPermissions(permission?: string, anyOf?: readonly string[]): readonly string[] {
     if (anyOf) {
@@ -123,129 +128,87 @@ function resolveRequiredPermissions(permission?: string, anyOf?: readonly string
 function PermissionPageGuard({
     permission,
     anyOf,
-    unauthorizedTo = 'applications',
+    alsoAnyOf,
+    unauthorizedTo,
     children,
-}: Readonly<{ permission?: string; anyOf?: readonly string[]; unauthorizedTo?: string; children: ReactElement }>) {
+}: Readonly<{
+    permission?: string;
+    anyOf?: readonly string[];
+    alsoAnyOf?: readonly string[];
+    unauthorizedTo?: string;
+    children: ReactElement;
+}>) {
     const required = resolveRequiredPermissions(permission, anyOf);
+    const extraAnyOf = alsoAnyOf ?? [];
     const permissionsReady = useEnvironmentPermissionsReady();
-    const canAccess = useHasPermission({ anyOf: [...required] });
+    const canAccessPrimary = useHasPermission({ anyOf: [...required] });
+    const canAccessExtra = useHasPermission({ anyOf: [...extraAnyOf] });
     if (!permissionsReady) return null;
-    if (!canAccess) return <Navigate to={unauthorizedTo} replace />;
+    if (required.length === 0 && extraAnyOf.length === 0) {
+        if (unauthorizedTo) return <Navigate to={unauthorizedTo} replace />;
+        return <UnauthorizedRedirect />;
+    }
+    if (!canAccessPrimary || (extraAnyOf.length > 0 && !canAccessExtra)) {
+        if (unauthorizedTo) return <Navigate to={unauthorizedTo} replace />;
+        return <UnauthorizedRedirect />;
+    }
     return children;
 }
 
+// Redirects out of a locked page go through UnauthorizedRedirect rather than a hardcoded
+// "../applications": applications is itself guarded now, so a fixed target can bounce the user
+// straight back here. UnauthorizedRedirect resolves the landing key, which excludes locked items.
 function RequireAlertEngineLicense({ children }: { readonly children: ReactElement }) {
     const hasFeature = useHasFeature(ALERT_ENGINE_FEATURE);
     if (!hasFeature) {
-        return <Navigate to="../applications" replace />;
+        return <UnauthorizedRedirect />;
     }
     return children;
 }
 
-// Shared Policy Groups gates on useHasEnvironmentPermission (this module's own live permission
-// fetch) rather than PermissionPageGuard's SDK-backed useHasPermission, so a permission revoked
-// mid-session is reflected here the same way it already is in the nav link — see
-// useEnvironmentPermissions.ts.
-function SharedPolicyGroupPageGuard({ unauthorizedTo, children }: Readonly<{ unauthorizedTo: string; children: ReactElement }>) {
+// Shared Policy Groups narrows on this module's own permission cache, so a permission revoked
+// mid-session closes the page the same way it already disappears from the nav link. It only narrows
+// when the cache actually holds an answer; "no answer" defers to the store-backed NavPermissionGuard
+// wrapping this route, which is the same source the sidebar and landing key read.
+function SharedPolicyGroupPageGuard({ children }: Readonly<{ children: ReactElement }>) {
     const permissionsReady = useEnvironmentPermissionsReady();
-    const canAccess = useHasEnvironmentPermission([ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION]);
+    const grant = useEnvironmentPermissionGrant([ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION]);
     if (!permissionsReady) return null;
-    if (!canAccess) return <Navigate to={unauthorizedTo} replace />;
+    if (grant === false) return <UnauthorizedRedirect />;
     return children;
 }
 
-interface PlatformNavVisibility {
-    readonly permissionsReady: boolean;
-    readonly canReadMetadata: boolean;
-    readonly canReadDictionaries: boolean;
-    readonly canAccessUsers: boolean;
-    readonly canReadGateways: boolean;
-    readonly canReadEntrypoints: boolean;
-    readonly canReadGroups: boolean;
-    readonly canReadSharedPolicyGroups: boolean;
-    readonly canReadAlerts: boolean;
-    readonly canReadTenants: boolean;
-    readonly canAccessPlatformPolicies: boolean;
-    readonly canReadOrgAudit: boolean;
-    readonly canReadEnvAudit: boolean;
-    readonly canReadOrgSettings: boolean;
-    readonly canReadIdentityProviders: boolean;
-    readonly canReadNotificationTemplates: boolean;
+function NavPermissionGuard({
+    itemKey,
+    unauthorizedTo,
+    children,
+}: Readonly<{ itemKey: string; unauthorizedTo?: string; children: ReactElement }>) {
+    const { anyOf, alsoAnyOf } = pageGuardForNavItem(itemKey);
+    const deniedNavItemKeys = useDeniedNavItemKeys();
+    // A live 403 outranks the permission map, which can still grant the item from a scope this module
+    // does not own. Without this the page renders, 403s, and redirects on every visit.
+    if (deniedNavItemKeys.has(itemKey)) {
+        return <UnauthorizedRedirect />;
+    }
+    return (
+        <PermissionPageGuard anyOf={anyOf} alsoAnyOf={alsoAnyOf} unauthorizedTo={unauthorizedTo}>
+            {children}
+        </PermissionPageGuard>
+    );
 }
 
-function isNavItemVisible(itemKey: string, visibility: PlatformNavVisibility): boolean {
-    const {
-        permissionsReady,
-        canReadMetadata,
-        canReadDictionaries,
-        canAccessUsers,
-        canReadGateways,
-        canReadEntrypoints,
-        canReadGroups,
-        canReadSharedPolicyGroups,
-        canReadAlerts,
-        canReadTenants,
-        canAccessPlatformPolicies,
-        canReadOrgAudit,
-        canReadEnvAudit,
-        canReadOrgSettings,
-        canReadIdentityProviders,
-        canReadNotificationTemplates,
-    } = visibility;
-    if (itemKey === 'users') {
-        return !permissionsReady || canAccessUsers;
-    }
-    if (itemKey === 'groups') {
-        return !permissionsReady || canReadGroups;
-    }
-    if (itemKey === 'metadata') {
-        return !permissionsReady || canReadMetadata;
-    }
-    if (itemKey === 'dictionaries') {
-        return !permissionsReady || canReadDictionaries;
-    }
-    if (itemKey === 'shared-policy-groups') {
-        return !permissionsReady || canReadSharedPolicyGroups;
-    }
-    if (itemKey === 'gateways') {
-        return !permissionsReady || canReadGateways;
-    }
-    if (itemKey === 'entrypoints-and-sharding-tags') {
-        return !permissionsReady || canReadEntrypoints;
-    }
-    if (itemKey === 'alerts') {
-        return !permissionsReady || canReadAlerts;
-    }
-    if (itemKey === 'tenants') {
-        return !permissionsReady || canReadTenants;
-    }
-    if (itemKey === 'policy-studio') {
-        return !permissionsReady || canAccessPlatformPolicies;
-    }
-    if (itemKey === 'organization-audit') {
-        return !permissionsReady || canReadOrgAudit;
-    }
-    if (itemKey === 'environment-audit') {
-        return !permissionsReady || canReadEnvAudit;
-    }
-    if (itemKey === 'management-and-schedulers' || itemKey === 'cors' || itemKey === 'smtp') {
-        return !permissionsReady || canReadOrgSettings;
-    }
-    if (itemKey === 'templates') {
-        return !permissionsReady || canReadNotificationTemplates;
-    }
-    if (itemKey === 'authentication') {
-        return !permissionsReady || canReadIdentityProviders;
-    }
-    return true;
+function UnauthorizedRedirect() {
+    const location = useLocation();
+    const { landingNavKey } = usePlatformNavContext();
+    return <Navigate to={modulePathFor(location.pathname, landingNavKey ?? NO_ACCESS_ROUTE_KEY)} replace />;
 }
 
-function EntrypointsGuard() {
-    const permissionsReady = useEnvironmentPermissionsReady();
-    const canRead = useHasPermission({ anyOf: ['environment-entrypoint-r', 'organization-entrypoint-r'] });
+function PlatformLandingOrNoAccess() {
+    const location = useLocation();
+    const { landingNavKey, permissionsReady } = usePlatformNavContext();
     if (!permissionsReady) return null;
-    if (!canRead) return <Navigate to="applications" replace />;
-    return <EntrypointsAndShardingTagsPage />;
+    if (!landingNavKey) return <PlatformNoAccessPage />;
+    return <Navigate to={modulePathFor(location.pathname, landingNavKey)} replace />;
 }
 
 function PlatformPrimaryNavigation({
@@ -284,6 +247,8 @@ interface PlatformNavContextValue {
     readonly navigateToKey: (key: string) => void;
     readonly contextExpanded: boolean;
     readonly toggleContext: () => void;
+    readonly permissionsReady: boolean;
+    readonly landingNavKey: string | undefined;
 }
 
 const PlatformNavContext = createContext<PlatformNavContextValue | null>(null);
@@ -298,6 +263,13 @@ function usePlatformNavContext(): PlatformNavContextValue {
 
 function ModuleLayout() {
     useEnvironmentPermissions();
+    const permissionVersion = usePermissionServiceSnapshot();
+    const env = useEnvironment();
+    const deniedNavItemKeys = useDeniedNavItemKeys();
+
+    useEffect(() => {
+        resetDeniedNavItemsForEnvironment(env?.id);
+    }, [env?.id]);
 
     const permissionsReady = useEnvironmentPermissionsReady();
     const [contextExpanded, setContextExpanded] = useState(true);
@@ -308,75 +280,49 @@ function ModuleLayout() {
     // page for every user, including those who already correctly lack access.
     const canReadMetadataPermission = useHasPermission({ anyOf: ['environment-metadata-r'] });
     const metadataQuery = useEnvironmentMetadata({ enabled: canReadMetadataPermission });
-    const canReadMetadata = canReadMetadataPermission && !isForbiddenApiError(metadataQuery.isError, metadataQuery.error);
+    const metadataForbidden = isForbiddenApiError(metadataQuery.isError, metadataQuery.error);
 
     const canReadDictionariesPermission = useHasPermission({ anyOf: ['environment-dictionary-r'] });
     const dictionariesQuery = useEnvironmentDictionaries({ enabled: canReadDictionariesPermission });
-    const canReadDictionaries = canReadDictionariesPermission && !isForbiddenApiError(dictionariesQuery.isError, dictionariesQuery.error);
-
-    const canAccessUsers = useHasPermission({ anyOf: [...ORGANIZATION_USER_ACCESS_PERMISSIONS] });
-    const canReadGateways = useHasPermission({ anyOf: ['environment-instance-r'] });
-    const canReadEntrypoints = useHasPermission({ anyOf: ['environment-entrypoint-r', 'organization-entrypoint-r'] });
-    const canReadGroups = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_READ_PERMISSION] });
-    const canReadSharedPolicyGroups = useHasEnvironmentPermission([ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION]);
-    const canReadAlerts = useHasPermission({ anyOf: [ENVIRONMENT_ALERT_READ_PERMISSION] });
-    const hasAlertEngine = useHasFeature(ALERT_ENGINE_FEATURE);
-    const canReadTenants = useHasPermission({ anyOf: ['organization-tenant-r', 'environment-tenant-r'] });
-    const canAccessPlatformPolicies = useHasPermission({ anyOf: [...ORGANIZATION_POLICIES_ACCESS_PERMISSIONS] });
-    const canReadOrgAudit = useHasPermission({ anyOf: [...ORGANIZATION_AUDIT_READ_PERMISSIONS] });
-    const canReadEnvAudit = useHasPermission({ anyOf: [...ENVIRONMENT_AUDIT_READ_PERMISSIONS] });
-    const canReadOrgSettings = useHasPermission({ anyOf: ['organization-settings-r'] });
-    const canReadIdentityProviders = useHasPermission({ anyOf: ['organization-identity_provider-r'] });
-    const canReadNotificationTemplates = useHasPermission({ anyOf: [ORGANIZATION_NOTIFICATION_TEMPLATES_READ] });
+    const dictionariesForbidden = isForbiddenApiError(dictionariesQuery.isError, dictionariesQuery.error);
 
     const { activeNavKey, navigateToKey } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
+    const hasAlertEngine = useHasFeature(ALERT_ENGINE_FEATURE);
+    const hasAuditTrail = useHasFeature(APIM_AUDIT_TRAIL_FEATURE);
+
+    // Unlicensed pages redirect away or open an upsell dialog, so landing on one bounces the user
+    // straight back out. Alerts redirects; the audit pages show the dialog and cannot be dismissed.
+    const lockedItemKeys = useMemo(
+        () => [...(hasAlertEngine ? [] : ALERT_ENGINE_NAV_ITEMS), ...(hasAuditTrail ? [] : AUDIT_TRAIL_NAV_ITEMS)],
+        [hasAlertEngine, hasAuditTrail],
+    );
+
+    // permissionService is an external store, so re-reading it has to be keyed on its version:
+    // a 403 patch or a host reload changes the answers without changing any React state below.
+    const hasPermission = useCallback((permission: string): boolean => permissionService.hasAnyOf([permission]), [permissionVersion]);
+
+    const navVisibility = useMemo(
+        () => ({
+            permissionsReady,
+            has: hasPermission,
+            metadataForbidden,
+            dictionariesForbidden,
+            lockedItemKeys,
+            deniedItemKeys: deniedNavItemKeys,
+        }),
+        [deniedNavItemKeys, dictionariesForbidden, hasPermission, lockedItemKeys, metadataForbidden, permissionsReady],
+    );
 
     const visibleNavSections = useMemo(
         () =>
             lockNavItem(
-                filterNavSections(NAV_SECTIONS, itemKey =>
-                    isNavItemVisible(itemKey, {
-                        permissionsReady,
-                        canReadMetadata,
-                        canReadDictionaries,
-                        canAccessUsers,
-                        canReadGateways,
-                        canReadEntrypoints,
-                        canReadGroups,
-                        canReadSharedPolicyGroups,
-                        canReadAlerts,
-                        canReadTenants,
-                        canAccessPlatformPolicies,
-                        canReadOrgAudit,
-                        canReadEnvAudit,
-                        canReadOrgSettings,
-                        canReadIdentityProviders,
-                        canReadNotificationTemplates,
-                    }),
-                ),
+                filterNavSections(NAV_SECTIONS, itemKey => isNavItemVisible(itemKey, navVisibility)),
                 'alerts',
                 !hasAlertEngine,
             ),
-        [
-            permissionsReady,
-            canReadMetadata,
-            canReadDictionaries,
-            canAccessUsers,
-            canReadGateways,
-            canReadEntrypoints,
-            canReadGroups,
-            canReadSharedPolicyGroups,
-            canReadAlerts,
-            canReadTenants,
-            canAccessPlatformPolicies,
-            canReadOrgAudit,
-            canReadEnvAudit,
-            canReadOrgSettings,
-            canReadIdentityProviders,
-            canReadNotificationTemplates,
-            hasAlertEngine,
-        ],
+        [hasAlertEngine, navVisibility],
     );
+    const landingNavKey = landingNavItemKey(navVisibility);
 
     const activeSectionKey = findNavSectionKey(visibleNavSections, activeNavKey) ?? visibleNavSections[0]?.key;
     const activeSection = visibleNavSections.find(section => section.key === activeSectionKey);
@@ -415,8 +361,16 @@ function ModuleLayout() {
     );
 
     const navContext = useMemo(
-        () => ({ activeNavKey, activeSection, navigateToKey, contextExpanded, toggleContext }),
-        [activeNavKey, activeSection, navigateToKey, contextExpanded, toggleContext],
+        () => ({
+            activeNavKey,
+            activeSection,
+            navigateToKey,
+            contextExpanded,
+            toggleContext,
+            permissionsReady,
+            landingNavKey,
+        }),
+        [activeNavKey, activeSection, contextExpanded, landingNavKey, navigateToKey, permissionsReady, toggleContext],
     );
 
     return (
@@ -429,25 +383,31 @@ function ModuleLayout() {
 function PlatformSectionLayout() {
     const { activeNavKey, activeSection, navigateToKey, contextExpanded, toggleContext } = usePlatformNavContext();
     const navigate = useNavigate();
-    const groups = activeSection?.groups ?? [];
+    const groups = activeSection?.groups ?? EMPTY_NAV_GROUPS;
     const breadcrumbs = useMemo(
-        () => buildLinearBreadcrumbs(navigate, [{ label: PLATFORM_ROUTE_CONFIG.routes[activeNavKey].label }]),
+        () => buildLinearBreadcrumbs(navigate, [{ label: PLATFORM_ROUTE_CONFIG.routes[activeNavKey]?.label ?? activeNavKey }]),
         [activeNavKey, navigate],
     );
 
+    const hasContextNav = Boolean(activeSection?.groups.some(group => group.items.length > 0));
+
     useLayoutConfig(
         {
-            viewMode: 'context',
-            contextExpanded,
-            contextSidebar: (
-                <ContextSidebar>
-                    <SidebarNavigation groups={groups} activeItemKey={activeNavKey} onItemSelect={navigateToKey} />
-                </ContextSidebar>
-            ),
-            leading: <ContextToggleButton expanded={contextExpanded} onToggle={toggleContext} />,
             breadcrumbs,
+            ...(hasContextNav && activeSection
+                ? {
+                      viewMode: 'context' as const,
+                      contextExpanded,
+                      contextSidebar: (
+                          <ContextSidebar>
+                              <SidebarNavigation groups={groups} activeItemKey={activeNavKey} onItemSelect={navigateToKey} />
+                          </ContextSidebar>
+                      ),
+                      leading: <ContextToggleButton expanded={contextExpanded} onToggle={toggleContext} />,
+                  }
+                : {}),
         },
-        [activeNavKey, breadcrumbs, contextExpanded, groups, navigateToKey, toggleContext],
+        [activeNavKey, breadcrumbs, contextExpanded, groups, hasContextNav, navigateToKey, toggleContext],
     );
 
     return <Outlet />;
@@ -462,16 +422,37 @@ export function AppRoutes() {
                 <Routes>
                     <Route element={<ModuleLayout />}>
                         <Route element={<PlatformSectionLayout />}>
-                            <Route index element={<Navigate to="applications" replace />} />
-                            <Route path="applications" element={<ApplicationsPage />} />
-                            <Route path="applications/new" element={<RegisterApplicationPage />} />
-                            <Route path="access-management" element={<AccessManagementPage />} />
+                            <Route index element={<PlatformLandingOrNoAccess />} />
+                            <Route
+                                path="applications"
+                                element={
+                                    <NavPermissionGuard itemKey="applications">
+                                        <ApplicationsPage />
+                                    </NavPermissionGuard>
+                                }
+                            />
+                            <Route
+                                path="applications/new"
+                                element={
+                                    <PermissionPageGuard permission="environment-application-c">
+                                        <RegisterApplicationPage />
+                                    </PermissionPageGuard>
+                                }
+                            />
+                            <Route
+                                path="access-management"
+                                element={
+                                    <NavPermissionGuard itemKey="access-management">
+                                        <AccessManagementPage />
+                                    </NavPermissionGuard>
+                                }
+                            />
                             <Route
                                 path="authentication"
                                 element={
-                                    <PermissionPageGuard permission="organization-identity_provider-r" unauthorizedTo="../applications">
+                                    <NavPermissionGuard itemKey="authentication">
                                         <Outlet />
-                                    </PermissionPageGuard>
+                                    </NavPermissionGuard>
                                 }
                             >
                                 <Route index element={<AuthenticationPage />} />
@@ -488,66 +469,53 @@ export function AppRoutes() {
                             <Route
                                 path="management-and-schedulers"
                                 element={
-                                    <PermissionPageGuard permission="organization-settings-r" unauthorizedTo="../applications">
+                                    <NavPermissionGuard itemKey="management-and-schedulers">
                                         <ManagementAndSchedulersPage />
-                                    </PermissionPageGuard>
+                                    </NavPermissionGuard>
                                 }
                             />
                             <Route
                                 path="cors"
                                 element={
-                                    <PermissionPageGuard permission="organization-settings-r" unauthorizedTo="../applications">
+                                    <NavPermissionGuard itemKey="cors">
                                         <CorsSettingsPage />
-                                    </PermissionPageGuard>
+                                    </NavPermissionGuard>
                                 }
                             />
                             <Route
                                 path="smtp"
                                 element={
-                                    <PermissionPageGuard permission="organization-settings-r" unauthorizedTo="../applications">
+                                    <NavPermissionGuard itemKey="smtp">
                                         <SmtpSettingsPage />
-                                    </PermissionPageGuard>
+                                    </NavPermissionGuard>
                                 }
                             />
-                            <Route path="templates">
-                                <Route
-                                    index
-                                    element={
-                                        <PermissionPageGuard
-                                            permission={ORGANIZATION_NOTIFICATION_TEMPLATES_READ}
-                                            unauthorizedTo="../applications"
-                                        >
-                                            <NotificationTemplatesPage />
-                                        </PermissionPageGuard>
-                                    }
-                                />
-                                <Route
-                                    path=":scope/:hook"
-                                    element={
-                                        <PermissionPageGuard
-                                            permission={ORGANIZATION_NOTIFICATION_TEMPLATES_READ}
-                                            unauthorizedTo="../../applications"
-                                        >
-                                            <NotificationTemplateDetailPage />
-                                        </PermissionPageGuard>
-                                    }
-                                />
+                            <Route
+                                path="templates"
+                                element={
+                                    <NavPermissionGuard itemKey="templates">
+                                        <Outlet />
+                                    </NavPermissionGuard>
+                                }
+                            >
+                                <Route index element={<NotificationTemplatesPage />} />
+                                <Route path=":scope/:hook" element={<NotificationTemplateDetailPage />} />
                             </Route>
                             <Route path="users">
                                 <Route
                                     index
                                     element={
-                                        <PermissionPageGuard anyOf={ORGANIZATION_USER_ACCESS_PERMISSIONS}>
+                                        <NavPermissionGuard itemKey="users">
                                             <UsersPage />
-                                        </PermissionPageGuard>
+                                        </NavPermissionGuard>
                                     }
                                 />
                                 <Route
                                     path=":userId"
                                     element={
-                                        <PermissionPageGuard anyOf={ORGANIZATION_USER_ACCESS_PERMISSIONS}>
+                                        <NavPermissionGuard itemKey="users">
                                             <UserDetailPage />
-                                        </PermissionPageGuard>
+                                        </NavPermissionGuard>
                                     }
                                 />
                             </Route>
@@ -555,41 +523,35 @@ export function AppRoutes() {
                                 <Route
                                     index
                                     element={
-                                        <PermissionPageGuard
-                                            permission={ENVIRONMENT_GROUP_READ_PERMISSION}
-                                            unauthorizedTo="../applications"
-                                        >
+                                        <NavPermissionGuard itemKey="groups">
                                             <GroupsPage />
-                                        </PermissionPageGuard>
+                                        </NavPermissionGuard>
                                     }
                                 />
                                 <Route
                                     path=":groupId"
                                     element={
-                                        <PermissionPageGuard
-                                            permission={ENVIRONMENT_GROUP_READ_PERMISSION}
-                                            unauthorizedTo="../../applications"
-                                        >
+                                        <NavPermissionGuard itemKey="groups">
                                             <GroupDetailPage />
-                                        </PermissionPageGuard>
+                                        </NavPermissionGuard>
                                     }
                                 />
                             </Route>
                             <Route
                                 path="metadata"
                                 element={
-                                    <PermissionPageGuard permission="environment-metadata-r">
+                                    <NavPermissionGuard itemKey="metadata">
                                         <MetadataPage />
-                                    </PermissionPageGuard>
+                                    </NavPermissionGuard>
                                 }
                             />
                             <Route path="dictionaries">
                                 <Route
                                     index
                                     element={
-                                        <PermissionPageGuard permission="environment-dictionary-r" unauthorizedTo="../applications">
+                                        <NavPermissionGuard itemKey="dictionaries">
                                             <DictionariesPage />
-                                        </PermissionPageGuard>
+                                        </NavPermissionGuard>
                                     }
                                 />
                                 <Route
@@ -602,18 +564,24 @@ export function AppRoutes() {
                                                 'environment-dictionary-u',
                                                 'environment-dictionary-d',
                                             ]}
-                                            unauthorizedTo="../../applications"
                                         >
                                             <DictionaryDetailPage />
                                         </PermissionPageGuard>
                                     }
                                 />
                             </Route>
-                            <Route path="shared-policy-groups">
+                            <Route
+                                path="shared-policy-groups"
+                                element={
+                                    <NavPermissionGuard itemKey="shared-policy-groups">
+                                        <Outlet />
+                                    </NavPermissionGuard>
+                                }
+                            >
                                 <Route
                                     index
                                     element={
-                                        <SharedPolicyGroupPageGuard unauthorizedTo="../applications">
+                                        <SharedPolicyGroupPageGuard>
                                             <SharedPolicyGroupsPage />
                                         </SharedPolicyGroupPageGuard>
                                     }
@@ -621,7 +589,7 @@ export function AppRoutes() {
                                 <Route
                                     path=":sharedPolicyGroupId"
                                     element={
-                                        <SharedPolicyGroupPageGuard unauthorizedTo="../../applications">
+                                        <SharedPolicyGroupPageGuard>
                                             <SharedPolicyGroupDetailLayout />
                                         </SharedPolicyGroupPageGuard>
                                     }
@@ -636,17 +604,17 @@ export function AppRoutes() {
                                 <Route
                                     index
                                     element={
-                                        <PermissionPageGuard permission="environment-instance-r" unauthorizedTo="../applications">
+                                        <NavPermissionGuard itemKey="gateways">
                                             <GatewayInstancesPage />
-                                        </PermissionPageGuard>
+                                        </NavPermissionGuard>
                                     }
                                 />
                                 <Route
                                     path=":instanceId"
                                     element={
-                                        <PermissionPageGuard permission="environment-instance-r" unauthorizedTo="../../applications">
+                                        <NavPermissionGuard itemKey="gateways">
                                             <GatewayInstanceDetailLayout />
-                                        </PermissionPageGuard>
+                                        </NavPermissionGuard>
                                     }
                                 >
                                     <Route index element={<Navigate to="environment" replace />} />
@@ -657,32 +625,43 @@ export function AppRoutes() {
                             <Route
                                 path="tenants"
                                 element={
-                                    <PermissionPageGuard
-                                        anyOf={['organization-tenant-r', 'environment-tenant-r']}
-                                        unauthorizedTo="../applications"
-                                    >
+                                    <NavPermissionGuard itemKey="tenants">
                                         <TenantsPage />
-                                    </PermissionPageGuard>
+                                    </NavPermissionGuard>
                                 }
                             />
-                            <Route path="entrypoints-and-sharding-tags" element={<EntrypointsGuard />} />
+                            <Route
+                                path="entrypoints-and-sharding-tags"
+                                element={
+                                    <NavPermissionGuard itemKey="entrypoints-and-sharding-tags">
+                                        <EntrypointsAndShardingTagsPage />
+                                    </NavPermissionGuard>
+                                }
+                            />
                             <Route
                                 path="policy-studio"
                                 element={
-                                    <PermissionPageGuard anyOf={ORGANIZATION_POLICIES_ACCESS_PERMISSIONS} unauthorizedTo="../applications">
+                                    <NavPermissionGuard itemKey="policy-studio">
                                         <OrganizationPolicyStudioPage />
-                                    </PermissionPageGuard>
+                                    </NavPermissionGuard>
                                 }
                             />
-                            <Route path="security-plan-types" element={<SecurityPlanTypesPage />} />
+                            <Route
+                                path="security-plan-types"
+                                element={
+                                    <NavPermissionGuard itemKey="security-plan-types">
+                                        <SecurityPlanTypesPage />
+                                    </NavPermissionGuard>
+                                }
+                            />
                             <Route
                                 path="alerts"
                                 element={
-                                    <PermissionPageGuard permission={ENVIRONMENT_ALERT_READ_PERMISSION} unauthorizedTo="../applications">
+                                    <NavPermissionGuard itemKey="alerts">
                                         <RequireAlertEngineLicense>
                                             <Outlet />
                                         </RequireAlertEngineLicense>
-                                    </PermissionPageGuard>
+                                    </NavPermissionGuard>
                                 }
                             >
                                 <Route element={<AlertsLayout />}>
@@ -693,23 +672,39 @@ export function AppRoutes() {
                                 <Route path=":alertId" element={<AlertFormPage />} />
                             </Route>
                             <Route
+                                path="notification-settings"
+                                element={
+                                    <NavPermissionGuard itemKey="notification-settings">
+                                        <EnvironmentNotificationSettingsPage />
+                                    </NavPermissionGuard>
+                                }
+                            />
+                            <Route
                                 path="organization-audit"
                                 element={
-                                    <PermissionPageGuard anyOf={[...ORGANIZATION_AUDIT_READ_PERMISSIONS]} unauthorizedTo="../applications">
+                                    <NavPermissionGuard itemKey="organization-audit">
                                         <OrgAuditLogsPage />
-                                    </PermissionPageGuard>
+                                    </NavPermissionGuard>
                                 }
                             />
                             <Route
                                 path="environment-audit"
                                 element={
-                                    <PermissionPageGuard anyOf={[...ENVIRONMENT_AUDIT_READ_PERMISSIONS]} unauthorizedTo="../applications">
+                                    <NavPermissionGuard itemKey="environment-audit">
                                         <EnvAuditLogsPage />
-                                    </PermissionPageGuard>
+                                    </NavPermissionGuard>
                                 }
                             />
+                            <Route path={NO_ACCESS_ROUTE_KEY} element={<PlatformLandingOrNoAccess />} />
                         </Route>
-                        <Route path="applications/:applicationId" element={<ApplicationDetailLayout />}>
+                        <Route
+                            path="applications/:applicationId"
+                            element={
+                                <NavPermissionGuard itemKey="applications">
+                                    <ApplicationDetailLayout />
+                                </NavPermissionGuard>
+                            }
+                        >
                             <Route index element={<ApplicationDetailIndexRedirect />} />
                             {APPLICATION_DETAIL_TABS.map(tab => (
                                 <Route key={tab.path} path={tab.path} element={applicationDetailTabElement(tab.path, tab.label)} />
