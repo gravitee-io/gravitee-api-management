@@ -91,11 +91,14 @@ describe('RolesByScopeSection', () => {
 
         const nameEl = screen.getByText(longName);
         expect(nameEl).toHaveClass('truncate');
+        // Button defaults to shrink-0; without an explicit override, truncate never gets a constrained box to clip.
+        expect(nameEl).toHaveClass('shrink');
+        expect(nameEl).not.toHaveClass('shrink-0');
         // The row must stay a single non-wrapping line with a bounded width, or `truncate` has nothing to clip against.
         expect(nameEl.parentElement).toHaveClass('min-w-0');
         expect(nameEl.parentElement).not.toHaveClass('flex-wrap');
         // The action button's column must not shrink so it stays fully visible next to a truncated name.
-        expect(screen.getByRole('button', { name: 'Button to delete a role' }).parentElement).toHaveClass('shrink-0');
+        expect(screen.getByRole('button', { name: `Actions for ${longName}` }).parentElement).toHaveClass('shrink-0');
     });
 
     it('shows a skeleton while loading and "No role" once loaded with none', () => {
@@ -117,7 +120,8 @@ describe('RolesByScopeSection', () => {
         const user = userEvent.setup();
         render(<RolesByScopeSection group={organizationGroup()} {...BASE_PROPS} />);
 
-        await user.click(screen.getByRole('button', { name: /ADMIN/ }));
+        // Exact match: a loose /ADMIN/ regex would also match the "Actions for ADMIN" row-actions trigger.
+        await user.click(screen.getByRole('button', { name: 'ADMIN' }));
 
         expect(BASE_PROPS.onSelectRole).toHaveBeenCalledWith('ORGANIZATION', 'ADMIN');
     });
@@ -148,7 +152,8 @@ describe('RolesByScopeSection', () => {
         expect(BASE_PROPS.onCreateRole).not.toHaveBeenCalled();
     });
 
-    it('only offers delete for roles that are neither system nor default', () => {
+    it('only offers delete for roles that are neither system nor default', async () => {
+        const user = userEvent.setup();
         render(
             <RolesByScopeSection
                 group={organizationGroup({
@@ -162,11 +167,21 @@ describe('RolesByScopeSection', () => {
             />,
         );
 
-        // ADMIN and DEFAULT_ROLE have only one available action (see members), rendered as a lone button.
-        expect(screen.getAllByRole('button', { name: 'Button to see members with this role' })).toHaveLength(2);
-        expect(screen.queryByRole('button', { name: 'Button to delete a role' })).not.toBeInTheDocument();
-        // CUSTOM has both actions, which collapses into a single dropdown trigger instead of two icon buttons.
-        expect(screen.getByRole('button', { name: 'Actions for CUSTOM' })).toBeInTheDocument();
+        // ADMIN and DEFAULT_ROLE only offer "see members" in their dropdown, no "Delete role".
+        await user.click(screen.getByRole('button', { name: 'Actions for ADMIN' }));
+        expect(screen.getByRole('menuitem', { name: /See members/ })).toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', { name: /Delete role/ })).not.toBeInTheDocument();
+        await user.keyboard('{Escape}');
+
+        await user.click(screen.getByRole('button', { name: 'Actions for DEFAULT_ROLE' }));
+        expect(screen.getByRole('menuitem', { name: /See members/ })).toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', { name: /Delete role/ })).not.toBeInTheDocument();
+        await user.keyboard('{Escape}');
+
+        // CUSTOM offers both.
+        await user.click(screen.getByRole('button', { name: 'Actions for CUSTOM' }));
+        expect(screen.getByRole('menuitem', { name: /See members/ })).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', { name: /Delete role/ })).toBeInTheDocument();
     });
 
     it('collapses two available row actions into a dropdown menu instead of two icon buttons', async () => {
@@ -187,7 +202,8 @@ describe('RolesByScopeSection', () => {
         expect(BASE_PROPS.onDeleteRole).toHaveBeenCalledWith('ORGANIZATION', { name: 'CUSTOM', scope: 'ORGANIZATION', permissions: {} });
     });
 
-    it('only offers "see members" for ORGANIZATION-scope roles', () => {
+    it('only offers "see members" for ORGANIZATION-scope roles', async () => {
+        const user = userEvent.setup();
         render(
             <RolesByScopeSection
                 group={{
@@ -201,16 +217,14 @@ describe('RolesByScopeSection', () => {
             />,
         );
 
-        expect(screen.queryByRole('button', { name: 'Button to see members with this role' })).not.toBeInTheDocument();
-        expect(screen.queryByRole('button', { name: /Actions for/ })).not.toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Button to delete a role' })).toBeInTheDocument();
+        await user.click(screen.getByRole('button', { name: 'Actions for USER' }));
+        expect(screen.queryByRole('menuitem', { name: /See members/ })).not.toBeInTheDocument();
+        expect(screen.getByRole('menuitem', { name: /Delete role/ })).toBeInTheDocument();
     });
 
     it('hides delete and members actions without permission', () => {
         render(<RolesByScopeSection group={organizationGroup()} {...BASE_PROPS} canDelete={false} canManageMembers={false} />);
 
-        expect(screen.queryByRole('button', { name: 'Button to delete a role' })).not.toBeInTheDocument();
-        expect(screen.queryByRole('button', { name: 'Button to see members with this role' })).not.toBeInTheDocument();
         expect(screen.queryByRole('button', { name: /Actions for/ })).not.toBeInTheDocument();
     });
 });

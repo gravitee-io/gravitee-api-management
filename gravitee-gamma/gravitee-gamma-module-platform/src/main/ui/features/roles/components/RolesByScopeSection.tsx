@@ -62,7 +62,7 @@ function RoleRowActions({ role, scope, canSeeMembers, canDeleteRole, onViewMembe
                 {canSeeMembers ? (
                     <DropdownMenuItem onSelect={() => onViewMembers(scope, role.name)}>
                         <UsersIcon className="size-4 shrink-0" aria-hidden />
-                        <span className="whitespace-nowrap">View members</span>
+                        <span className="whitespace-nowrap">See members</span>
                     </DropdownMenuItem>
                 ) : null}
                 {canSeeMembers && canDeleteRole ? <DropdownMenuSeparator /> : null}
@@ -120,7 +120,11 @@ export function RolesByScopeSection({
                     </div>
                     {canCreate ? (
                         <Button onClick={handleCreateClick}>
-                            {hasCustomRolesLicense ? <PlusIcon className="size-4" aria-hidden /> : <LockIcon className="size-4" aria-hidden />}
+                            {hasCustomRolesLicense ? (
+                                <PlusIcon className="size-4" aria-hidden />
+                            ) : (
+                                <LockIcon className="size-4" aria-hidden />
+                            )}
                             Add a role
                         </Button>
                     ) : null}
@@ -152,7 +156,7 @@ export function RolesByScopeSection({
                                             <Button
                                                 type="button"
                                                 variant="link"
-                                                className="h-auto min-w-0 truncate p-0 text-left text-sm font-medium text-foreground hover:underline"
+                                                className="h-auto min-w-0 shrink truncate p-0 text-left text-sm font-medium text-foreground hover:underline"
                                                 onClick={() => onSelectRole(group.scope, role.name)}
                                             >
                                                 {role.name}
