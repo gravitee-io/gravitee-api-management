@@ -29,7 +29,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @SuperBuilder(toBuilder = true)
 public abstract sealed class PortalNavigationItem
-    permits PortalNavigationPage, PortalNavigationLink, PortalNavigationFolder, PortalNavigationApi, PortalNavigationApiProduct {
+    permits PortalNavigationPage, PortalNavigationLink, PortalNavigationFolder, PortalNavigationApi, PortalNavigationApiProduct, PortalNavigationAgent {
 
     @Nonnull
     private final PortalNavigationItemId id;
@@ -172,6 +172,7 @@ public abstract sealed class PortalNavigationItem
         final var url = item.getUrl();
         final var apiId = item.getApiId();
         final var apiProductId = item.getApiProductId();
+        final var agentId = item.getAgentId();
         final var categoryIds = item.getCategoryIds();
         final var order = item.getOrder();
         final var visibility = null != item.getVisibility() ? item.getVisibility() : PortalVisibility.PUBLIC;
@@ -201,6 +202,18 @@ public abstract sealed class PortalNavigationItem
                 area,
                 order,
                 apiProductId,
+                published,
+                visibility,
+                categoryIds
+            );
+            case AGENT -> new PortalNavigationAgent(
+                id,
+                organizationId,
+                environmentId,
+                title,
+                area,
+                order,
+                agentId,
                 published,
                 visibility,
                 categoryIds

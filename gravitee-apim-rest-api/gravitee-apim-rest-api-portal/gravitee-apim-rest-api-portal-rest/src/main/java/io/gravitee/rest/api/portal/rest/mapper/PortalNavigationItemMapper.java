@@ -21,6 +21,7 @@ import io.gravitee.apim.core.portal_page.model.AsyncApiPageContent;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.OpenApiConfiguration;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationAgent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
@@ -61,6 +62,7 @@ public interface PortalNavigationItemMapper {
             case PortalNavigationPage page -> map(page);
             case PortalNavigationApi api -> map(api);
             case PortalNavigationApiProduct apiProduct -> map(apiProduct);
+            case PortalNavigationAgent agent -> map(agent);
         };
         var wrappedItem = new io.gravitee.rest.api.portal.rest.model.PortalNavigationItem();
         wrappedItem.setActualInstance(baseItem);
@@ -72,6 +74,7 @@ public interface PortalNavigationItemMapper {
     io.gravitee.rest.api.portal.rest.model.PortalNavigationPage map(PortalNavigationPage page);
     io.gravitee.rest.api.portal.rest.model.PortalNavigationApi map(PortalNavigationApi api);
     io.gravitee.rest.api.portal.rest.model.PortalNavigationApiProduct map(PortalNavigationApiProduct apiProduct);
+    io.gravitee.rest.api.portal.rest.model.PortalNavigationAgent map(PortalNavigationAgent agent);
 
     @Mapping(source = "value", target = "content")
     default String extractContent(PortalPageContent<?> content) {
@@ -163,6 +166,7 @@ public interface PortalNavigationItemMapper {
                 switch (i) {
                     case API -> io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude.API;
                     case API_PRODUCT -> io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude.API_PRODUCT;
+                    case AGENT -> io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude.AGENT;
                 }
             )
             .collect(Collectors.toSet());

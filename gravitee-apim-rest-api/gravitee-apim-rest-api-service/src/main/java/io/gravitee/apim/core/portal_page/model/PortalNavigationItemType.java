@@ -21,4 +21,5 @@ public enum PortalNavigationItemType {
     LINK,
     API,
     API_PRODUCT,
+    AGENT,
 }

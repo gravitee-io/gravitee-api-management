@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal.domain_service.navigation;
 
 import io.gravitee.apim.core.portal.model.NavigationPath;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationAgent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
@@ -86,6 +87,7 @@ public final class PortalNavigationTreeWalker {
             case PortalNavigationPage p -> visitor.visitPage(p, parentPath);
             case PortalNavigationApi a -> visitor.visitApi(a, parentPath);
             case PortalNavigationApiProduct p -> visitor.visitApiProduct(p, parentPath);
+            case PortalNavigationAgent a -> visitor.visitAgent(a, parentPath);
             case PortalNavigationLink l -> visitor.visitLink(l, parentPath);
         }
     }
