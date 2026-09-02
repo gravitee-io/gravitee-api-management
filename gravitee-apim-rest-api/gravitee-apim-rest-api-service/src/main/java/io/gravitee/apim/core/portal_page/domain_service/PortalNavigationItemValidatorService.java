@@ -40,6 +40,9 @@ import io.gravitee.apim.core.portal_page.domain_service.validation.SourceAutomat
 import io.gravitee.apim.core.portal_page.domain_service.validation.SourceConfigurationRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.SourcedAncestorFinder;
 import io.gravitee.apim.core.portal_page.domain_service.validation.SourcedItemReadOnlyRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.SubscriptionFormContentTypeRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.SubscriptionFormNoParentRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.SubscriptionFormUniquenessRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.TitleRequiredRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.TypeConsistencyRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.UniqueItemIdRule;
@@ -87,17 +90,21 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
         var sourceAutomationExclusivityRule = new SourceAutomationExclusivityRule(navigationItemsQueryService, pageContentQueryService);
         var sourcedItemReadOnlyRule = new SourcedItemReadOnlyRule(new SourcedAncestorFinder(navigationItemsQueryService));
         var fileListingSourceOnFolderRule = new FileListingSourceOnFolderRule(portalNavigationItemSourceDomainService::supportsFileListing);
+        var subscriptionFormNoParentRule = new SubscriptionFormNoParentRule();
 
         this.createRules = List.of(
             new UniqueItemIdRule(navigationItemsQueryService),
             new HomepageUniquenessRule(navigationItemsQueryService),
+            new SubscriptionFormUniquenessRule(navigationItemsQueryService),
             new PageContentExistsRule(pageContentQueryService),
+            new SubscriptionFormContentTypeRule(pageContentQueryService),
             titleRequiredRule,
             new ApiItemCreateRule(apiProductQueryService),
             new ApiProductItemCreateRule(apiProductQueryService),
             new ApiDocumentationAreaRule(),
             linkUrlRule,
             parentRule,
+            subscriptionFormNoParentRule,
             segmentConflictRule,
             externalSourceItemTypeRule,
             sourceConfigurationRule,
@@ -110,6 +117,7 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
             new ApiItemUpdateRule(apiProductQueryService),
             new ApiProductItemUpdateRule(),
             parentRule,
+            subscriptionFormNoParentRule,
             segmentConflictRule,
             linkUrlRule,
             externalSourceItemTypeRule,
