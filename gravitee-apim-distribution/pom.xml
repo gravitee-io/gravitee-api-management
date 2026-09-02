@@ -30,7 +30,7 @@
         -->
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>25.1.0</version>
+        <version>25.1.2</version>
         <relativePath/>
     </parent>
 
