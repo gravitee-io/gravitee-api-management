@@ -40,6 +40,7 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.PerformanceTargetRepository;
 import io.gravitee.repository.management.api.ScoringReportRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
@@ -173,6 +174,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final GroupService groupService;
     private final ApiCategoryService apiCategoryService;
     private final ScoringReportRepository scoringReportRepository;
+    private final PerformanceTargetRepository performanceTargetRepository;
     private final RemoveApiFromApiProductsDomainService removeApiFromApiProductsDomainService;
     private final ApiMetadataQueryService apiMetadataQueryService;
 
@@ -203,6 +205,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         @Lazy final AlertService alertService,
         @Lazy final ApiQualityRuleRepository apiQualityRuleRepository,
         @Lazy final ScoringReportRepository scoringReportRepository,
+        @Lazy final PerformanceTargetRepository performanceTargetRepository,
         final MediaService mediaService,
         final PropertiesService propertiesService,
         final ApiNotificationService apiNotificationService,
@@ -243,6 +246,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         this.groupService = groupService;
         this.apiCategoryService = apiCategoryService;
         this.scoringReportRepository = scoringReportRepository;
+        this.performanceTargetRepository = performanceTargetRepository;
         this.removeApiFromApiProductsDomainService = removeApiFromApiProductsDomainService;
         this.apiMetadataQueryService = apiMetadataQueryService;
     }
@@ -740,6 +744,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             apiMetadataService.deleteAllByApi(executionContext, apiId);
 
             scoringReportRepository.deleteByApi(apiId);
+
+            performanceTargetRepository.removeApiId(apiId);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to delete API " + apiId, ex);
         }

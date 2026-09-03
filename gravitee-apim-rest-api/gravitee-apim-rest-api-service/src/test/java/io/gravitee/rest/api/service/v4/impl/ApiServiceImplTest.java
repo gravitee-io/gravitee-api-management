@@ -87,6 +87,7 @@ import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.IntegrationRepository;
+import io.gravitee.repository.management.api.PerformanceTargetRepository;
 import io.gravitee.repository.management.api.ScoringReportRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Api;
@@ -307,6 +308,9 @@ public class ApiServiceImplTest {
     private ScoringReportRepository scoringReportRepository;
 
     @Mock
+    private PerformanceTargetRepository performanceTargetRepository;
+
+    @Mock
     private EventManager eventManager;
 
     @InjectMocks
@@ -369,6 +373,7 @@ public class ApiServiceImplTest {
             alertService,
             apiQualityRuleRepository,
             scoringReportRepository,
+            performanceTargetRepository,
             mediaService,
             propertiesService,
             apiNotificationService,
@@ -723,6 +728,16 @@ public class ApiServiceImplTest {
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
         verify(scoringReportRepository).deleteByApi(eq(API_ID));
+        verify(apiRepository).delete(eq(API_ID));
+    }
+
+    @Test
+    public void shouldRemoveApiFromPerformanceTargets() throws Exception {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
+
+        verify(performanceTargetRepository).removeApiId(eq(API_ID));
         verify(apiRepository).delete(eq(API_ID));
     }
 

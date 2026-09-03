@@ -285,6 +285,7 @@ public class ApiServiceImpl_findAllTest {
             alertService,
             apiQualityRuleRepository,
             null,
+            null,
             mediaService,
             propertiesService,
             apiNotificationService,
