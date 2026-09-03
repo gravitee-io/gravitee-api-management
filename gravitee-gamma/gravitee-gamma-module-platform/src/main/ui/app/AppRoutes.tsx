@@ -58,6 +58,7 @@ import { GatewayInstanceDetailLayout } from '../features/gateway-instances/compo
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
 import { ORGANIZATION_ROLE_UPDATE_PERMISSION } from '../features/roles/utils/rolePermissionConstants';
 import { SecurityPlanTypesPage } from '../features/security-plan-types/SecurityPlanTypesPage';
+import { useIntegrationsAvailable, useIntegrationsEntitlementUnknown } from '../features/shared/hooks/useIntegrationsAvailable';
 import { usePermissionServiceSnapshot } from '../features/shared/hooks/usePermissionServiceSnapshot';
 import { SharedPolicyGroupDetailLayout } from '../features/shared-policy-groups/components/SharedPolicyGroupDetailLayout';
 import { ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION } from '../features/shared-policy-groups/utils/sharedPolicyGroupPermissions';
@@ -79,6 +80,7 @@ import { GatewayInstanceMonitoringPage } from '../pages/GatewayInstanceMonitorin
 import { GatewayInstancesPage } from '../pages/GatewayInstancesPage';
 import { GroupDetailPage } from '../pages/GroupDetailPage';
 import { GroupsPage } from '../pages/GroupsPage';
+import { IntegrationsPage } from '../pages/IntegrationsPage';
 import { ManagementAndSchedulersPage } from '../pages/ManagementAndSchedulersPage';
 import { MetadataPage } from '../pages/MetadataPage';
 import { NotificationTemplateDetailPage } from '../pages/NotificationTemplateDetailPage';
@@ -165,6 +167,16 @@ function PermissionPageGuard({
 function RequireAlertEngineLicense({ children }: { readonly children: ReactElement }) {
     const hasFeature = useHasFeature(ALERT_ENGINE_FEATURE);
     if (!hasFeature) {
+        return <UnauthorizedRedirect />;
+    }
+    return children;
+}
+
+// Sibling of the nav item's own availability check, reading the same predicate through the same hook:
+// the route and the sidebar have to agree, or the item is visible and the page bounces.
+function RequireIntegrationsAvailable({ children }: { readonly children: ReactElement }) {
+    const federationAvailable = useIntegrationsAvailable();
+    if (!federationAvailable) {
         return <UnauthorizedRedirect />;
     }
     return children;
@@ -290,6 +302,18 @@ function ModuleLayout() {
     const dictionariesQuery = useEnvironmentDictionaries({ enabled: canReadDictionariesPermission });
     const dictionariesForbidden = isForbiddenApiError(dictionariesQuery.isError, dictionariesQuery.error);
 
+    const federationAvailable = useIntegrationsAvailable();
+
+    // Denying on an unreported license hides a feature the organization may well be entitled to, and
+    // the host logs only that the license request failed, never what the denial cost. ModuleLayout
+    // mounts once per module session, so this warns once rather than once per Integrations visit.
+    const federationEntitlementUnknown = useIntegrationsEntitlementUnknown();
+    useEffect(() => {
+        if (federationEntitlementUnknown) {
+            console.warn('Organization license not loaded; hiding the Integrations nav item and route until entitlement is known');
+        }
+    }, [federationEntitlementUnknown]);
+
     const { activeNavKey, navigateToKey } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
     const hasAlertEngine = useHasFeature(ALERT_ENGINE_FEATURE);
     const hasAuditTrail = useHasFeature(APIM_AUDIT_TRAIL_FEATURE);
@@ -311,10 +335,11 @@ function ModuleLayout() {
             has: hasPermission,
             metadataForbidden,
             dictionariesForbidden,
+            federationAvailable,
             lockedItemKeys,
             deniedItemKeys: deniedNavItemKeys,
         }),
-        [deniedNavItemKeys, dictionariesForbidden, hasPermission, lockedItemKeys, metadataForbidden, permissionsReady],
+        [deniedNavItemKeys, dictionariesForbidden, federationAvailable, hasPermission, lockedItemKeys, metadataForbidden, permissionsReady],
     );
 
     const visibleNavSections = useMemo(
@@ -689,6 +714,16 @@ export function AppRoutes() {
                                 element={
                                     <NavPermissionGuard itemKey="security-plan-types">
                                         <SecurityPlanTypesPage />
+                                    </NavPermissionGuard>
+                                }
+                            />
+                            <Route
+                                path="integrations"
+                                element={
+                                    <NavPermissionGuard itemKey="integrations">
+                                        <RequireIntegrationsAvailable>
+                                            <IntegrationsPage />
+                                        </RequireIntegrationsAvailable>
                                     </NavPermissionGuard>
                                 }
                             />

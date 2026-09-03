@@ -13,29 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export type IntegrationAgentStatus = 'CONNECTED' | 'DISCONNECTED';
 
-/**
- * Subset of GET /organizations/{orgId}/console (ConsoleConfigEntity; Angular `entities/consoleSettings`).
- * Extend here when platform features need more org settings fields.
- */
-export interface ConsoleSettings {
-    userGroup?: {
-        required?: {
-            enabled?: boolean;
-        };
-    };
-    cloudHosted?: {
-        enabled?: boolean;
-    };
-    alert?: {
-        enabled?: boolean;
-    };
-    management?: {
-        systemRoleEdition?: {
-            enabled?: boolean;
-        };
-    };
-    federation?: {
-        enabled?: boolean;
-    };
+export interface Integration {
+    id: string;
+    name: string;
+    provider: string;
+    agentStatus?: IntegrationAgentStatus;
+}
+
+export interface IntegrationsPagination {
+    page: number;
+    perPage: number;
+    pageCount: number;
+    pageItemsCount: number;
+    totalCount: number;
+}
+
+export interface IntegrationsResponse {
+    data: Integration[];
+    pagination: IntegrationsPagination;
 }

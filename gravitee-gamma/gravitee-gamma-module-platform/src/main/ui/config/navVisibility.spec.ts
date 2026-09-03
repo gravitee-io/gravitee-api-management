@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { License } from '@gravitee/gamma-modules-sdk/types';
+
 import { NAV_SECTIONS } from './navigation';
 import {
     firstVisibleNavItemKey,
+    isFederationAvailable,
     isNavItemVisible,
     landingNavItemKey,
     modulePathFor,
@@ -92,6 +95,8 @@ const ORGANIZATION_ADMIN = [
     'organization-user-d',
     'organization-notification_templates-r',
 ] as const;
+
+const ENTITLED_LICENSE: License = { tier: 'enterprise', packs: [], features: [], isExpired: false };
 
 function hasOf(granted: readonly string[]): (permission: string) => boolean {
     const set = new Set(granted);
@@ -208,6 +213,30 @@ describe('platform nav visibility', () => {
         expect(isNavItemVisible('access-management', visibility(['environment-am_configuration-r']))).toBe(true);
         expect(isNavItemVisible('access-management', visibility([...ORGANIZATION_USER, ...ENVIRONMENT_USER]))).toBe(false);
         expect(isNavItemVisible('access-management', visibility([...ORGANIZATION_USER, ...FEDERATION_AGENT]))).toBe(false);
+    });
+
+    it('shows Integrations for environment-integration-r when the federation availability gate passes', () => {
+        const entitled = visibility(['environment-integration-r'], { federationAvailable: true });
+
+        expect(isNavItemVisible('integrations', entitled)).toBe(true);
+        expect(visibleNavItemKeys(entitled)).toEqual(['integrations']);
+    });
+
+    it('hides Integrations without environment-integration-r even when the availability gate passes', () => {
+        const unpermitted = visibility([], { federationAvailable: true });
+
+        expect(isNavItemVisible('integrations', unpermitted)).toBe(false);
+        expect(visibleNavItemKeys(unpermitted)).not.toContain('integrations');
+    });
+
+    it('gates Integrations on environment-integration-r without the org settings gate', () => {
+        expect(requiresOrganizationSettingsGate('integrations')).toBe(false);
+        expect(pageGuardForNavItem('integrations')).toEqual({ anyOf: ['environment-integration-r'] });
+    });
+
+    it('withholds Federation availability until a license is reported', () => {
+        expect(isFederationAvailable({ federationEnabled: true, license: null })).toBe(false);
+        expect(isFederationAvailable({ federationEnabled: true, license: ENTITLED_LICENSE })).toBe(true);
     });
 
     it('hides Management, CORS, and SMTP when the user has organization-settings-u without -r', () => {
