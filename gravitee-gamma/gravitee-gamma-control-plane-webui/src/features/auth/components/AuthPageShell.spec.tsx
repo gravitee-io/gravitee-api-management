@@ -49,4 +49,23 @@ describe('AuthPageShell', () => {
 
         expect(screen.queryByText('Go to sign in')).toBeNull();
     });
+
+    it('carries a brand mark for each theme, swapped by display', () => {
+        render(
+            <AuthPageShell title="Sign in" description="to access Gravitee Gamma">
+                <p>Content</p>
+            </AuthPageShell>,
+        );
+
+        const marks = screen.getAllByAltText('Gravitee');
+        expect(marks).toHaveLength(2);
+
+        const [lightMark, darkMark] = marks;
+        // The wordmark is near-black on light and near-white on dark, so the two are distinct
+        // assets rather than one recoloured mark. `.dark` on the document element picks one.
+        expect(lightMark?.className).toContain('dark:hidden');
+        expect(darkMark?.className).toContain('dark:block');
+        expect(darkMark?.className).toContain('hidden');
+        expect(lightMark?.getAttribute('src')).not.toBe(darkMark?.getAttribute('src'));
+    });
 });
