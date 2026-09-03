@@ -114,7 +114,7 @@ public class SubscriptionFormCrudServiceImpl implements SubscriptionFormCrudServ
         }
 
         subscriptionFormItem.setPublished(subscriptionForm.isEnabled());
-        subscriptionFormItem.setValidationConstraints(subscriptionForm.getValidationConstraints());
+        subscriptionFormItem.updateValidationConstraints(subscriptionForm.getValidationConstraints());
         var updatedItem = (PortalNavigationSubscriptionForm) navigationItemCrudService.update(subscriptionFormItem);
 
         var content = pageContentQueryService
