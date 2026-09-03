@@ -162,6 +162,12 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     protected ScoringFunctionRepository scoringFunctionRepository;
 
     @Inject
+    protected PerformanceTargetRepository performanceTargetRepository;
+
+    @Inject
+    protected PerformanceTargetEvaluationRepository performanceTargetEvaluationRepository;
+
+    @Inject
     protected DashboardRepository dashboardRepository;
 
     @Inject
@@ -314,6 +320,10 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             case ScoringReport scoringReport -> scoringReportRepository.create(scoringReport);
             case ScoringRuleset scoringRuleset -> scoringRulesetRepository.create(scoringRuleset);
             case ScoringFunction scoringFunction -> scoringFunctionRepository.create(scoringFunction);
+            case PerformanceTarget performanceTarget -> performanceTargetRepository.create(performanceTarget);
+            case PerformanceTargetEvaluation performanceTargetEvaluation -> performanceTargetEvaluationRepository.create(
+                performanceTargetEvaluation
+            );
             case CustomDashboard customDashboard -> customDashboardRepository.create(customDashboard);
             case GammaDashboard gammaDashboard -> gammaDashboardRepository.create(gammaDashboard);
             case PortalCategory portalCategory -> portalCategoryRepository.create(portalCategory);

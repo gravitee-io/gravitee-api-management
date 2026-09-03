@@ -1,0 +1,130 @@
+[
+    {
+        "id": "target1",
+        "environmentId": "my-env",
+        "reference": "api-1",
+        "apiIds": ["api-1"],
+        "windowSeconds": 900,
+        "intervalSeconds": 300,
+        "minSampleSize": 20,
+        "rules": [
+            {
+                "metric": "HTTP_GATEWAY_RESPONSE_TIME",
+                "measure": "P95",
+                "operator": "LTE",
+                "threshold": 2000,
+                "apiTypes": [],
+                "filters": []
+            },
+            {
+                "metric": "HTTP_ERROR_RATE",
+                "measure": "PERCENTAGE",
+                "operator": "LTE",
+                "threshold": 5,
+                "apiTypes": ["MCP_PROXY"],
+                "filters": [{ "name": "MCP_PROXY_TOOL", "operator": "EQ", "value": "search" }]
+            }
+        ],
+        "createdAt": 1470157767000,
+        "updatedAt": 1470157767000
+    },
+    {
+        "id": "target2",
+        "environmentId": "my-env",
+        "reference": "agent-1",
+        "apiIds": ["api-1", "api-2"],
+        "windowSeconds": 3600,
+        "intervalSeconds": 300,
+        "minSampleSize": 20,
+        "rules": [
+            {
+                "metric": "LLM_PROMPT_TOKEN_TOTAL_COST",
+                "measure": "AVG",
+                "operator": "LTE",
+                "threshold": 0.01,
+                "apiTypes": ["LLM_PROXY"],
+                "filters": []
+            }
+        ],
+        "createdAt": 1470157767000,
+        "updatedAt": 1470157767000
+    },
+    {
+        "id": "target3",
+        "environmentId": "my-env",
+        "reference": "agent-1",
+        "apiIds": ["api-2"],
+        "windowSeconds": 86400,
+        "intervalSeconds": 900,
+        "minSampleSize": 50,
+        "rules": [
+            {
+                "metric": "HTTP_ERROR_RATE",
+                "measure": "PERCENTAGE",
+                "operator": "LTE",
+                "threshold": 1,
+                "apiTypes": [],
+                "filters": []
+            }
+        ],
+        "createdAt": 1470157767000,
+        "updatedAt": 1470157767000
+    },
+    {
+        "id": "other-env-target",
+        "environmentId": "other-env",
+        "reference": "agent-1",
+        "apiIds": ["api-other"],
+        "windowSeconds": 900,
+        "intervalSeconds": 300,
+        "minSampleSize": 20,
+        "rules": [
+            {
+                "metric": "HTTP_REQUESTS",
+                "measure": "COUNT",
+                "operator": "GTE",
+                "threshold": 10,
+                "apiTypes": [],
+                "filters": []
+            }
+        ],
+        "createdAt": 1470157767000,
+        "updatedAt": 1470157767000
+    },
+    {
+        "id": "to-delete",
+        "environmentId": "env1",
+        "reference": "to-delete",
+        "apiIds": ["api-to-delete"],
+        "windowSeconds": 900,
+        "intervalSeconds": 300,
+        "minSampleSize": 20,
+        "rules": [],
+        "createdAt": 1470157767000,
+        "updatedAt": 1470157767000
+    },
+    {
+        "id": "86adbd41-8a3f-45f3-b1ca-f980042db19d",
+        "environmentId": "my-env",
+        "reference": "ToBeDeleted",
+        "apiIds": ["api-shared"],
+        "windowSeconds": 900,
+        "intervalSeconds": 300,
+        "minSampleSize": 20,
+        "rules": [],
+        "createdAt": 1470157767000,
+        "updatedAt": 1470157767000
+    },
+    {
+        "id": "b8c2ef52-ebb5-4d0f-be1e-a41cc5579fc8",
+        "environmentId": "my-env",
+        "reference": "ToBeDeleted",
+        "apiIds": ["api-shared", "api-3"],
+        "windowSeconds": 900,
+        "intervalSeconds": 300,
+        "minSampleSize": 20,
+        "rules": [],
+        "createdAt": 1470157767000,
+        "updatedAt": 1470157767000
+    }
+]

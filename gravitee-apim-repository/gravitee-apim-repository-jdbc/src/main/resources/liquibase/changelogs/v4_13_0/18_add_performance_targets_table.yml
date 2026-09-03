@@ -1,0 +1,42 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.13.0_18_add_performance_targets_table
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}performance_targets
+            columns:
+              - column: { name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}performance_targets" } }
+              - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: reference, type: nvarchar(512), constraints: { nullable: false } }
+              - column: { name: window_seconds, type: bigint, constraints: { nullable: false } }
+              - column: { name: interval_seconds, type: bigint, constraints: { nullable: false } }
+              - column: { name: min_sample_size, type: int, constraints: { nullable: false } }
+              - column: { name: rules, type: nclob }
+              - column: { name: created_at, type: timestamp(6) }
+              - column: { name: updated_at, type: timestamp(6) }
+        - createIndex:
+            tableName: ${gravitee_prefix}performance_targets
+            indexName: idx_${gravitee_prefix}performance_targets_env_ref
+            columns:
+              - column:
+                  name: environment_id
+              - column:
+                  name: reference
+        - createTable:
+            tableName: ${gravitee_prefix}performance_target_apis
+            columns:
+              - column: { name: target_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: api_id, type: nvarchar(64), constraints: { nullable: false } }
+        - createIndex:
+            tableName: ${gravitee_prefix}performance_target_apis
+            indexName: idx_${gravitee_prefix}performance_target_apis_target_id
+            columns:
+              - column:
+                  name: target_id
+        - createIndex:
+            tableName: ${gravitee_prefix}performance_target_apis
+            indexName: idx_${gravitee_prefix}performance_target_apis_api_id
+            columns:
+              - column:
+                  name: api_id

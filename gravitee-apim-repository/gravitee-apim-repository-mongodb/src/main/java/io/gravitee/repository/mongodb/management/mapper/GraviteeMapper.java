@@ -392,6 +392,12 @@ public interface GraviteeMapper {
     ScoringFunction map(ScoringFunctionMongo source);
     ScoringFunctionMongo map(ScoringFunction source);
 
+    // PerformanceTarget mapping
+    PerformanceTarget map(PerformanceTargetMongo source);
+    PerformanceTargetMongo map(PerformanceTarget source);
+    PerformanceTargetEvaluation map(PerformanceTargetEvaluationMongo source);
+    PerformanceTargetEvaluationMongo map(PerformanceTargetEvaluation source);
+
     Cluster map(ClusterMongo source);
     ClusterMongo map(Cluster source);
 
