@@ -13,6 +13,10 @@
 
 # Console settings
 #console:
+#  authentication:
+#    expose:
+#      accessToken: true
+#      idToken: true
 ## Pendo Analysis Tool
 # To make our SaaS offering easier to use, we now have the ability to track activity in Pendo. This is disabled by
 # default, but if you'd like to help us in this journey, don't hesitate to reach us to get our key ;)
@@ -607,6 +611,10 @@ email:
 #  path: ${gravitee.home}/templates
 
 #portal:
+#  authentication:
+#    expose:
+#      accessToken: true
+#      idToken: true
 #  themes:
 #    path: ${gravitee.home}/themes
   # Allows domains to be used while generating some emails from the portal. ie. registration, forget password
