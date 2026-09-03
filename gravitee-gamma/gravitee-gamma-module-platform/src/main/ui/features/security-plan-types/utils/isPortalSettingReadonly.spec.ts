@@ -24,10 +24,12 @@ describe('isPortalSettingReadonly', () => {
     });
 
     it('returns true only for keys listed in metadata.readonly', () => {
-        const settings = { metadata: { readonly: ['http.api.portal.cors.allow-origin', 'email.host'] } };
+        const settings = { metadata: { readonly: ['http.api.portal.cors.allow-origin', 'email.host', 'logging.default.max.duration'] } };
         expect(isPortalSettingReadonly(settings, 'http.api.portal.cors.allow-origin')).toBe(true);
         expect(isPortalSettingReadonly(settings, 'email.host')).toBe(true);
+        expect(isPortalSettingReadonly(settings, 'logging.default.max.duration')).toBe(true);
         expect(isPortalSettingReadonly(settings, 'http.api.portal.cors.max-age')).toBe(false);
         expect(isPortalSettingReadonly(settings, 'email.password')).toBe(false);
+        expect(isPortalSettingReadonly(settings, 'logging.audit.enabled')).toBe(false);
     });
 });

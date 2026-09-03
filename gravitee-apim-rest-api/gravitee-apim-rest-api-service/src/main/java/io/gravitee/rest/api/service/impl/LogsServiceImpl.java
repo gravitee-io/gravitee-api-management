@@ -201,7 +201,7 @@ public class LogsServiceImpl implements LogsService {
             // Check that request log belongs to the current environment
             apiSearchService.findRepositoryApiById(executionContext, log.getApi());
 
-            if (parameterService.findAsBoolean(executionContext, Key.LOGGING_AUDIT_ENABLED, ParameterReferenceType.ORGANIZATION)) {
+            if (parameterService.findAsBoolean(executionContext, Key.LOGGING_AUDIT_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
                 auditService.createApiAuditLog(
                     executionContext,
                     AuditService.AuditLogData.builder()
@@ -532,7 +532,7 @@ public class LogsServiceImpl implements LogsService {
         final boolean userEnabled = parameterService.findAsBoolean(
             executionContext,
             Key.LOGGING_USER_DISPLAYED,
-            ParameterReferenceType.ORGANIZATION
+            ParameterReferenceType.ENVIRONMENT
         );
 
         //get the first item to define the type of export

@@ -15,9 +15,9 @@
  */
 
 import { PASSWORD_SENTINEL } from '../../organization-settings/types/consoleSettings';
-import type { PortalSettings, PortalSettingsEmail } from '../../security-plan-types/services/portalSettings';
+import type { PortalSettings, PortalSettingsEmail, PortalSettingsLogging } from '../../security-plan-types/services/portalSettings';
 
-export type PortalSettingsSection = 'cors' | 'email';
+export type PortalSettingsSection = 'cors' | 'email' | 'logging';
 
 function mergeEmail(current: PortalSettingsEmail | undefined, overlay: PortalSettingsEmail | undefined): PortalSettingsEmail {
     const password = overlay?.password === PASSWORD_SENTINEL || !overlay?.password ? current?.password : overlay?.password;
@@ -32,17 +32,51 @@ function mergeEmail(current: PortalSettingsEmail | undefined, overlay: PortalSet
     };
 }
 
+function mergeLogging(current: PortalSettingsLogging | undefined, overlay: PortalSettingsLogging | undefined): PortalSettingsLogging {
+    return {
+        ...current,
+        ...overlay,
+        audit: overlay?.audit
+            ? {
+                  ...current?.audit,
+                  ...overlay.audit,
+                  trail: overlay.audit.trail ? { ...current?.audit?.trail, ...overlay.audit.trail } : current?.audit?.trail,
+              }
+            : current?.audit,
+        user: overlay?.user ? { ...current?.user, ...overlay.user } : current?.user,
+        messageSampling: overlay?.messageSampling
+            ? {
+                  ...current?.messageSampling,
+                  ...overlay.messageSampling,
+                  probabilistic: overlay.messageSampling.probabilistic
+                      ? { ...current?.messageSampling?.probabilistic, ...overlay.messageSampling.probabilistic }
+                      : current?.messageSampling?.probabilistic,
+                  count: overlay.messageSampling.count
+                      ? { ...current?.messageSampling?.count, ...overlay.messageSampling.count }
+                      : current?.messageSampling?.count,
+                  temporal: overlay.messageSampling.temporal
+                      ? { ...current?.messageSampling?.temporal, ...overlay.messageSampling.temporal }
+                      : current?.messageSampling?.temporal,
+                  windowedCount: overlay.messageSampling.windowedCount
+                      ? { ...current?.messageSampling?.windowedCount, ...overlay.messageSampling.windowedCount }
+                      : current?.messageSampling?.windowedCount,
+              }
+            : current?.messageSampling,
+    };
+}
+
 /**
  * Classic portal-settings save: POST the full fetched entity with only the edited section overlaid.
  */
 export function buildPortalSettingsSectionPayload(
     current: PortalSettings,
     section: PortalSettingsSection,
-    overlay: Pick<PortalSettings, 'cors' | 'email'>,
+    overlay: Pick<PortalSettings, 'cors' | 'email' | 'logging'>,
 ): PortalSettings {
     return {
         ...current,
         cors: section === 'cors' ? { ...current.cors, ...overlay.cors } : current.cors,
         email: section === 'email' ? mergeEmail(current.email, overlay.email) : current.email,
+        logging: section === 'logging' ? mergeLogging(current.logging, overlay.logging) : current.logging,
     };
 }

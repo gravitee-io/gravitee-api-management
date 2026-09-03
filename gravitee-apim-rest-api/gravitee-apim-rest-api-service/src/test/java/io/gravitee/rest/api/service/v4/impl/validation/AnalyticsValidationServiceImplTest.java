@@ -74,7 +74,7 @@ class AnalyticsValidationServiceImplTest {
                     eq(GraviteeContext.getExecutionContext()),
                     eq(Key.LOGGING_DEFAULT_MAX_DURATION),
                     any(Function.class),
-                    eq(ParameterReferenceType.ORGANIZATION)
+                    eq(ParameterReferenceType.ENVIRONMENT)
                 )
             )
             .thenReturn(singletonList(1L));
@@ -133,7 +133,7 @@ class AnalyticsValidationServiceImplTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(Key.LOGGING_DEFAULT_MAX_DURATION),
                 any(Function.class),
-                eq(ParameterReferenceType.ORGANIZATION)
+                eq(ParameterReferenceType.ENVIRONMENT)
             )
         ).thenReturn(singletonList(0L));
 
@@ -211,7 +211,7 @@ class AnalyticsValidationServiceImplTest {
                 eq(GraviteeContext.getExecutionContext()),
                 eq(Key.LOGGING_DEFAULT_MAX_DURATION),
                 any(Function.class),
-                eq(ParameterReferenceType.ORGANIZATION)
+                eq(ParameterReferenceType.ENVIRONMENT)
             )
         ).thenReturn(singletonList(3L));
 
@@ -286,7 +286,14 @@ class AnalyticsValidationServiceImplTest {
 
     @Test
     void should_set_default_analytics_with_sampling_when_async_api_from_custom_settings() {
-        when(parameterService.findAll(any(), eq(Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT), any(), any())).thenReturn(List.of("77"));
+        when(
+            parameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT),
+                any(),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        ).thenReturn(List.of("77"));
         Analytics sanitizedAnalytics = analyticsValidationService.validateAndSanitize(
             GraviteeContext.getExecutionContext(),
             ApiType.MESSAGE,

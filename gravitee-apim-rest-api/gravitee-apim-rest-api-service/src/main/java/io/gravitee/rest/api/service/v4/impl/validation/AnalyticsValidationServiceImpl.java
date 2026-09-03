@@ -87,7 +87,7 @@ public class AnalyticsValidationServiceImpl extends TransactionalService impleme
                     executionContext,
                     Key.LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT,
                     Function.identity(),
-                    ParameterReferenceType.ORGANIZATION
+                    ParameterReferenceType.ENVIRONMENT
                 )
                 .stream()
                 .findFirst()
@@ -120,7 +120,7 @@ public class AnalyticsValidationServiceImpl extends TransactionalService impleme
                         executionContext,
                         Key.LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT,
                         Integer::valueOf,
-                        ParameterReferenceType.ORGANIZATION
+                        ParameterReferenceType.ENVIRONMENT
                     )
                     .stream()
                     .findFirst()
@@ -132,7 +132,7 @@ public class AnalyticsValidationServiceImpl extends TransactionalService impleme
                         executionContext,
                         Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT,
                         Double::valueOf,
-                        ParameterReferenceType.ORGANIZATION
+                        ParameterReferenceType.ENVIRONMENT
                     )
                     .stream()
                     .findFirst()
@@ -144,7 +144,7 @@ public class AnalyticsValidationServiceImpl extends TransactionalService impleme
                         executionContext,
                         Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT,
                         Function.identity(),
-                        ParameterReferenceType.ORGANIZATION
+                        ParameterReferenceType.ENVIRONMENT
                     )
                     .stream()
                     .findFirst()
@@ -156,7 +156,7 @@ public class AnalyticsValidationServiceImpl extends TransactionalService impleme
                         executionContext,
                         Key.LOGGING_MESSAGE_SAMPLING_WINDOWED_COUNT_LIMIT,
                         Function.identity(),
-                        ParameterReferenceType.ORGANIZATION
+                        ParameterReferenceType.ENVIRONMENT
                     )
                     .stream()
                     .findFirst()
@@ -202,7 +202,7 @@ public class AnalyticsValidationServiceImpl extends TransactionalService impleme
 
     private String computeMaxDurationCondition(final ExecutionContext executionContext, final String existingCondition) {
         Optional<Long> optionalMaxDuration = parameterService
-            .findAll(executionContext, Key.LOGGING_DEFAULT_MAX_DURATION, Long::valueOf, ParameterReferenceType.ORGANIZATION)
+            .findAll(executionContext, Key.LOGGING_DEFAULT_MAX_DURATION, Long::valueOf, ParameterReferenceType.ENVIRONMENT)
             .stream()
             .findFirst();
         if (optionalMaxDuration.isPresent() && optionalMaxDuration.get() > 0) {

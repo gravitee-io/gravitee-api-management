@@ -210,6 +210,10 @@ jest.mock('../pages/EnvironmentSmtpSettingsPage', () => ({
     EnvironmentSmtpSettingsPage: () => <div data-testid="environment-smtp-settings-page" />,
 }));
 
+jest.mock('../pages/EnvironmentApiLoggingSettingsPage', () => ({
+    EnvironmentApiLoggingSettingsPage: () => <div data-testid="environment-api-logging-settings-page" />,
+}));
+
 jest.mock('../pages/SmtpSettingsPage', () => ({
     SmtpSettingsPage: () => <div data-testid="smtp-settings-page" />,
 }));
@@ -1126,6 +1130,11 @@ describe('AppRoutes', () => {
         expect(screen.queryByTestId('smtp-settings-page')).toBeNull();
     });
 
+    it('routes to environment API Logging settings', () => {
+        renderPlatform('/environment-api-logging');
+        expect(screen.getByTestId('environment-api-logging-settings-page')).not.toBeNull();
+    });
+
     it('routes to organization notification templates', () => {
         renderPlatform('/templates');
         expect(screen.getByTestId('notification-templates-page')).not.toBeNull();
@@ -1289,6 +1298,7 @@ describe('AppRoutes', () => {
         expect(visibleNavKeys()).not.toContain('security-plan-types');
         expect(visibleNavKeys()).not.toContain('environment-cors');
         expect(visibleNavKeys()).not.toContain('environment-smtp');
+        expect(visibleNavKeys()).not.toContain('environment-api-logging');
     });
 
     it('does not render environment CORS without environment-settings-r', () => {
@@ -1304,6 +1314,14 @@ describe('AppRoutes', () => {
         renderPlatform('/environment-smtp');
 
         expect(screen.queryByTestId('environment-smtp-settings-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('does not render environment API Logging without environment-settings-r', () => {
+        denyPermissions('environment-settings-r');
+        renderPlatform('/environment-api-logging');
+
+        expect(screen.queryByTestId('environment-api-logging-settings-page')).toBeNull();
         expect(screen.getByTestId('applications-page')).not.toBeNull();
     });
 

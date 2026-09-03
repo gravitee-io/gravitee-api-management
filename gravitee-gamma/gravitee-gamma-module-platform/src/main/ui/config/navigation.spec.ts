@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CloudIcon, FileTextIcon, GlobeIcon, MailIcon, ShieldIcon, UsersIcon, UsersRoundIcon } from '@gravitee/graphene-core/icons';
+import { CloudIcon, FileTextIcon, GlobeIcon, ListIcon, MailIcon, ShieldIcon, UsersIcon, UsersRoundIcon } from '@gravitee/graphene-core/icons';
 
 import { filterNavSections, findNavSectionKey, firstNavItemKey, lockNavItem, NAV_SECTIONS, platformPrimaryNavItems } from './navigation';
 import { PLATFORM_ROUTE_CONFIG, ROUTES } from './routes';
@@ -66,7 +66,7 @@ describe('platform navigation config', () => {
         expect(sectionKeys('Environment', 'APIs & Assets')).toEqual(['applications', 'metadata', 'dictionaries', 'shared-policy-groups']);
     });
 
-    it('places Access Management, Gateways, Alerts, Notification settings, CORS, SMTP, Security Plan Types, and Audit under Environment / System & Security', () => {
+    it('places Access Management, Gateways, Alerts, Notification settings, CORS, SMTP, API Logging, Security Plan Types, and Audit under Environment / System & Security', () => {
         expect(sectionKeys('Environment', 'System & Security')).toEqual([
             'access-management',
             'gateways',
@@ -74,6 +74,7 @@ describe('platform navigation config', () => {
             'notification-settings',
             'environment-cors',
             'environment-smtp',
+            'environment-api-logging',
             'security-plan-types',
             'environment-audit',
         ]);
@@ -82,6 +83,7 @@ describe('platform navigation config', () => {
                 ?.items ?? [];
         expect(systemItems.find(item => item.key === 'environment-cors')?.icon).toBe(GlobeIcon);
         expect(systemItems.find(item => item.key === 'environment-smtp')?.icon).toBe(MailIcon);
+        expect(systemItems.find(item => item.key === 'environment-api-logging')?.icon).toBe(ListIcon);
     });
 
     it('places Users, Groups, and Roles under Team', () => {
@@ -202,6 +204,12 @@ describe('platform navigation config', () => {
         expect(ROUTES['environment-smtp']).toEqual({ path: 'environment-smtp', label: 'SMTP' });
         expect(findNavSectionKey(NAV_SECTIONS, 'environment-smtp')).toBe('environment');
         expect(findNavSectionKey(NAV_SECTIONS, 'smtp')).toBe('organization');
+    });
+
+    it('declares the environment API Logging route', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('environment-api-logging');
+        expect(ROUTES['environment-api-logging']).toEqual({ path: 'environment-api-logging', label: 'API Logging' });
+        expect(findNavSectionKey(NAV_SECTIONS, 'environment-api-logging')).toBe('environment');
     });
 
     it('declares the authentication route in platform routing config', () => {

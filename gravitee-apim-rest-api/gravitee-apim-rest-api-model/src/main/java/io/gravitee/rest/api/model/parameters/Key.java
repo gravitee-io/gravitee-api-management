@@ -275,14 +275,22 @@ public enum Key {
 
     ALERT_ENABLED("alert.enabled", "true", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
 
-    LOGGING_DEFAULT_MAX_DURATION("logging.default.max.duration", "0", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
-    LOGGING_AUDIT_ENABLED("logging.audit.enabled", Boolean.FALSE.toString(), new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    LOGGING_DEFAULT_MAX_DURATION("logging.default.max.duration", "0", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    LOGGING_AUDIT_ENABLED(
+        "logging.audit.enabled",
+        Boolean.FALSE.toString(),
+        new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
+    ),
     LOGGING_AUDIT_TRAIL_ENABLED(
         "logging.audit.trail.enabled",
         Boolean.FALSE.toString(),
-        new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))
+        new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
     ),
-    LOGGING_USER_DISPLAYED("logging.user.displayed", Boolean.FALSE.toString(), new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    LOGGING_USER_DISPLAYED(
+        "logging.user.displayed",
+        Boolean.FALSE.toString(),
+        new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
+    ),
     LOGGING_MESSAGE_SAMPLING_COUNT_DEFAULT("logging.messageSampling.count.default", "100", Set.of(ENVIRONMENT, ORGANIZATION, SYSTEM)),
     LOGGING_MESSAGE_SAMPLING_COUNT_LIMIT("logging.messageSampling.count.limit", "10", Set.of(ENVIRONMENT, ORGANIZATION, SYSTEM)),
     LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT(

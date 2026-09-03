@@ -61,6 +61,26 @@ export interface PortalSettingsEmail {
     };
 }
 
+export interface PortalSettingsSamplingPair<T> {
+    default?: T;
+    limit?: T;
+}
+
+export interface PortalSettingsLogging {
+    maxDurationMillis?: number;
+    audit?: {
+        enabled?: boolean;
+        trail?: { enabled?: boolean };
+    };
+    user?: { displayed?: boolean };
+    messageSampling?: {
+        probabilistic?: PortalSettingsSamplingPair<number>;
+        count?: PortalSettingsSamplingPair<number>;
+        temporal?: PortalSettingsSamplingPair<string>;
+        windowedCount?: PortalSettingsSamplingPair<string>;
+    };
+}
+
 export interface PortalSettings {
     metadata?: PortalSettingsMetadata;
     plan?: {
@@ -69,6 +89,7 @@ export interface PortalSettings {
     };
     cors?: PortalSettingsCors;
     email?: PortalSettingsEmail;
+    logging?: PortalSettingsLogging;
     [key: string]: unknown;
 }
 

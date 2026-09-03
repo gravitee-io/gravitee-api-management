@@ -191,6 +191,7 @@ describe('platform nav visibility', () => {
                 'notification-settings',
                 'environment-cors',
                 'environment-smtp',
+                'environment-api-logging',
                 'security-plan-types',
                 'environment-audit',
                 'access-management',
@@ -202,6 +203,7 @@ describe('platform nav visibility', () => {
         expect(keys).not.toContain('cors');
         expect(keys).toContain('environment-cors');
         expect(keys).toContain('environment-smtp');
+        expect(keys).toContain('environment-api-logging');
         expect(keys).not.toContain('policy-studio');
     });
 
@@ -229,6 +231,7 @@ describe('platform nav visibility', () => {
         expect(isNavItemVisible('smtp', canRead)).toBe(true);
         expect(isNavItemVisible('environment-cors', canRead)).toBe(false);
         expect(isNavItemVisible('environment-smtp', canRead)).toBe(false);
+        expect(isNavItemVisible('environment-api-logging', canRead)).toBe(false);
         expect(isNavItemVisible('templates', canRead)).toBe(false);
     });
 
@@ -244,6 +247,13 @@ describe('platform nav visibility', () => {
         expect(pageGuardForNavItem('environment-smtp')).toEqual({ anyOf: ['environment-settings-r'] });
         expect(isNavItemVisible('environment-smtp', visibility(['environment-settings-r']))).toBe(true);
         expect(isNavItemVisible('environment-smtp', visibility(['organization-settings-r']))).toBe(false);
+    });
+
+    it('gates environment API Logging on environment-settings-r without the org settings gate', () => {
+        expect(requiresOrganizationSettingsGate('environment-api-logging')).toBe(false);
+        expect(pageGuardForNavItem('environment-api-logging')).toEqual({ anyOf: ['environment-settings-r'] });
+        expect(isNavItemVisible('environment-api-logging', visibility(['environment-settings-r']))).toBe(true);
+        expect(isNavItemVisible('environment-api-logging', visibility(['organization-settings-r']))).toBe(false);
     });
 
     it('gates Templates on organization-notification_templates-r after the org settings gate', () => {

@@ -29,6 +29,12 @@ const CURRENT: PortalSettings = {
         properties: { auth: true },
         brandedSenders: [{ domains: ['partners.example.com'], from: 'Partners <partners@example.com>', subject: '[Partners] %s' }],
     },
+    logging: {
+        maxDurationMillis: 15000,
+        audit: { enabled: false, trail: { enabled: false } },
+        user: { displayed: false },
+        messageSampling: { count: { default: 100, limit: 10 } },
+    },
     plan: { security: { keyless: { enabled: true } }, validation: { enabled: true } },
 };
 
@@ -44,6 +50,7 @@ describe('buildPortalSettingsSectionPayload', () => {
         expect(payload.plan).toEqual(CURRENT.plan);
         expect(payload.company).toEqual(CURRENT.company);
         expect(payload.email).toEqual(CURRENT.email);
+        expect(payload.logging).toEqual(CURRENT.logging);
     });
 
     it('keeps existing cors fields that the overlay does not set', () => {
@@ -65,6 +72,7 @@ describe('buildPortalSettingsSectionPayload', () => {
         expect(payload.email?.password).toBe(PASSWORD_SENTINEL);
         expect(payload.cors).toEqual(CURRENT.cors);
         expect(payload.plan).toEqual(CURRENT.plan);
+        expect(payload.logging).toEqual(CURRENT.logging);
     });
 
     it('sends a new password when the user replaced the sentinel', () => {
@@ -90,5 +98,33 @@ describe('buildPortalSettingsSectionPayload', () => {
 
         expect(payload.email?.properties).toEqual({ auth: true, startTlsEnable: true });
         expect(payload.email?.host).toBe('smtp.example.com');
+    });
+
+    it('overlays only logging and keeps cors and email', () => {
+        const payload = buildPortalSettingsSectionPayload(CURRENT, 'logging', {
+            logging: { maxDurationMillis: 20000, audit: { enabled: true } },
+        });
+
+        expect(payload.logging?.maxDurationMillis).toBe(20000);
+        expect(payload.logging?.audit?.enabled).toBe(true);
+        expect(payload.logging?.audit?.trail).toEqual(CURRENT.logging?.audit?.trail);
+        expect(payload.logging?.messageSampling).toEqual(CURRENT.logging?.messageSampling);
+        expect(payload.cors).toEqual(CURRENT.cors);
+        expect(payload.email).toEqual(CURRENT.email);
+    });
+
+    it('overlays a complete logging sampling block without dropping sibling pairs', () => {
+        const payload = buildPortalSettingsSectionPayload(CURRENT, 'logging', {
+            logging: {
+                messageSampling: {
+                    probabilistic: { default: 0.02, limit: 0.4 },
+                    count: { default: 80, limit: 10 },
+                },
+            },
+        });
+
+        expect(payload.logging?.messageSampling?.probabilistic).toEqual({ default: 0.02, limit: 0.4 });
+        expect(payload.logging?.messageSampling?.count).toEqual({ default: 80, limit: 10 });
+        expect(payload.logging?.maxDurationMillis).toBe(15000);
     });
 });

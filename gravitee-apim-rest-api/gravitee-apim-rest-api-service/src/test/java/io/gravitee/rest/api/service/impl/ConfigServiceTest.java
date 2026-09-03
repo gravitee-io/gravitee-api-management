@@ -67,6 +67,7 @@ import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.KeyScope;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
 import io.gravitee.rest.api.model.settings.ConsoleSettingsEntity;
@@ -410,6 +411,58 @@ class ConfigServiceTest {
             "DEFAULT",
             ParameterReferenceType.ENVIRONMENT
         );
+    }
+
+    @Test
+    void should_save_portal_logging_settings_at_environment_scope() {
+        PortalSettingsEntity portalSettingsEntity = new PortalSettingsEntity();
+        portalSettingsEntity.getLogging().setMaxDurationMillis(15000L);
+        portalSettingsEntity.getLogging().getAudit().setEnabled(true);
+        portalSettingsEntity.getLogging().getAudit().getTrail().setEnabled(true);
+        portalSettingsEntity.getLogging().getUser().setDisplayed(true);
+
+        configService.save(GraviteeContext.getExecutionContext(), portalSettingsEntity);
+
+        verify(mockParameterService, times(1)).save(
+            GraviteeContext.getExecutionContext(),
+            LOGGING_DEFAULT_MAX_DURATION,
+            "15000",
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
+        verify(mockParameterService, times(1)).save(
+            GraviteeContext.getExecutionContext(),
+            LOGGING_AUDIT_ENABLED,
+            "true",
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
+        verify(mockParameterService, times(1)).save(
+            GraviteeContext.getExecutionContext(),
+            LOGGING_AUDIT_TRAIL_ENABLED,
+            "true",
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
+        verify(mockParameterService, times(1)).save(
+            GraviteeContext.getExecutionContext(),
+            LOGGING_USER_DISPLAYED,
+            "true",
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
+    }
+
+    @Test
+    void logging_duration_audit_and_user_keys_include_environment_scope() {
+        assertThat(Key.LOGGING_DEFAULT_MAX_DURATION.scopes()).containsExactlyInAnyOrder(
+            KeyScope.ENVIRONMENT,
+            KeyScope.ORGANIZATION,
+            KeyScope.SYSTEM
+        );
+        assertThat(Key.LOGGING_AUDIT_ENABLED.scopes()).contains(KeyScope.ENVIRONMENT);
+        assertThat(Key.LOGGING_AUDIT_TRAIL_ENABLED.scopes()).contains(KeyScope.ENVIRONMENT);
+        assertThat(Key.LOGGING_USER_DISPLAYED.scopes()).contains(KeyScope.ENVIRONMENT);
     }
 
     @Test

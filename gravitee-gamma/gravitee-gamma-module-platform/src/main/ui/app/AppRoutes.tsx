@@ -73,6 +73,7 @@ import { DictionaryDetailPage } from '../pages/DictionaryDetailPage';
 import { EditIdentityProviderPage } from '../pages/EditIdentityProviderPage';
 import { EntrypointsAndShardingTagsPage } from '../pages/EntrypointsAndShardingTagsPage';
 import { EnvAuditLogsPage } from '../pages/EnvAuditLogsPage';
+import { EnvironmentApiLoggingSettingsPage } from '../pages/EnvironmentApiLoggingSettingsPage';
 import { EnvironmentCorsSettingsPage } from '../pages/EnvironmentCorsSettingsPage';
 import { EnvironmentNotificationSettingsPage } from '../pages/EnvironmentNotificationSettingsPage';
 import { EnvironmentSmtpSettingsPage } from '../pages/EnvironmentSmtpSettingsPage';
@@ -509,6 +510,14 @@ export function AppRoutes() {
                                 element={
                                     <NavPermissionGuard itemKey="environment-smtp">
                                         <EnvironmentSmtpSettingsPage />
+                                    </NavPermissionGuard>
+                                }
+                            />
+                            <Route
+                                path="environment-api-logging"
+                                element={
+                                    <NavPermissionGuard itemKey="environment-api-logging">
+                                        <EnvironmentApiLoggingSettingsPage />
                                     </NavPermissionGuard>
                                 }
                             />
