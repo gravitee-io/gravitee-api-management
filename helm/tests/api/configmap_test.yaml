@@ -68,6 +68,24 @@ tests:
       - matchRegex:
           path: data["gravitee.yml"]
           pattern: "apiKey: myPendoKey"
+  - it: Render IdP token expose flags per API
+    template: api/api-configmap.yaml
+    set:
+      api:
+        authentication:
+          console:
+            exposeAccessToken: false
+            exposeIdToken: true
+          portal:
+            exposeAccessToken: true
+            exposeIdToken: false
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: 'accessToken: false\s+idToken: true'
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: 'accessToken: true\s+idToken: false'
   - it: Set user password policy pattern
     template: api/api-configmap.yaml
     set:

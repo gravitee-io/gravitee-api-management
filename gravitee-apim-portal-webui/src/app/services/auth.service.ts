@@ -118,13 +118,23 @@ export class AuthService {
       .then(() => {
         this.currentUserService.revokeUser();
         if (this.getProviderId()) {
-          this.oauthService.logOut();
+          this._idpEndSessionLogout();
           this.removeProviderId();
         }
         this.router.navigate(['']);
       })
       .catch(() => resolve(false))
       .finally(() => resolve(true));
+  }
+
+  private _idpEndSessionLogout(): void {
+    const clientId = this.oauthService.clientId;
+    const idTokenExposed = this.configurationService.get('authentication.exposeIdToken.enabled', true) !== false;
+    if (!idTokenExposed && clientId) {
+      this.oauthService.logOut({ client_id: clientId });
+      return;
+    }
+    this.oauthService.logOut();
   }
 
   private _configure(provider) {

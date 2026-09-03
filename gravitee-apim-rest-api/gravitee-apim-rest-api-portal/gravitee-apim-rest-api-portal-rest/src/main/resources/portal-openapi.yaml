@@ -5050,8 +5050,19 @@ components:
                     type: string
                 access_token:
                     type: string
+                    deprecated: true
+                    description: >-
+                        IdP access token when returned with an IdP id_token. Omitted when the login is not
+                        OIDC-with-id_token. Empty string when portal.authentication.expose.accessToken is
+                        false (token-endpoint shape preserved for OIDC clients). Defaults to exposed when
+                        the installation flag is unset.
                 id_token:
                     type: string
+                    deprecated: true
+                    description: >-
+                        IdP ID token when returned by the IdP. Omitted when no IdP id_token was returned.
+                        Empty string when portal.authentication.expose.idToken is false. Defaults to exposed
+                        when the installation flag is unset.
         Category:
             properties:
                 id:
@@ -5380,6 +5391,16 @@ components:
                 forceLogin:
                     $ref: "#/components/schemas/Enabled"
                 localLogin:
+                    $ref: "#/components/schemas/Enabled"
+                exposeAccessToken:
+                    description: >-
+                        When enabled, the IdP access_token is included in the OAuth2 login response.
+                        Installation-level setting (gravitee.yml); defaults to true.
+                    $ref: "#/components/schemas/Enabled"
+                exposeIdToken:
+                    description: >-
+                        When enabled, the IdP id_token is included in the OAuth2 login response.
+                        Installation-level setting (gravitee.yml); defaults to true.
                     $ref: "#/components/schemas/Enabled"
         ConfigurationScheduler:
             properties:
