@@ -69,6 +69,11 @@ class ObservabilityEntrypointsTest {
      * own repositories, so nothing here can observe a new {@code entrypoint-id} directly; bundling
      * the plugin in the distribution is the first moment a new entrypoint becomes visible to this
      * repository, and that is where this test intervenes.
+     *
+     * <p>It matches artifact names, which is all this reactor can see. The id each plugin really
+     * declares is checked by {@code ObservabilityEntrypointsDistributionTest} in the distribution
+     * reactor, against the assembled plugins; this one stays as the fast check that runs whenever
+     * this module changes.
      */
     @Nested
     class DistributionCoverage {
