@@ -161,7 +161,10 @@ public class PortalNavigationItemsResource extends AbstractResource {
 
         var page = output.items();
         List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem> pageItems = portalNavigationItemMapper.map(page.getContent());
-        List<io.gravitee.rest.api.portal.rest.model.Api> includedApis = loadIncludedApiEntities(executionContext, output.includedApis());
+        List<io.gravitee.rest.api.portal.rest.model.Api> includedApis = loadIncludedApiEntities(
+            executionContext,
+            mergeIncludedApis(output.includedApis(), output.includedAgentApis())
+        );
 
         var responseBody = new PortalNavigationItemsSearchResponse()
             .data(pageItems)
@@ -233,6 +236,22 @@ public class PortalNavigationItemsResource extends AbstractResource {
                 .map(i -> (PortalNavigationItem) i)
                 .toList()
         );
+    }
+
+    private List<io.gravitee.apim.core.api.model.Api> mergeIncludedApis(
+        List<io.gravitee.apim.core.api.model.Api> includedApis,
+        List<io.gravitee.apim.core.api.model.Api> includedAgentApis
+    ) {
+        if (includedAgentApis.isEmpty()) {
+            return includedApis;
+        }
+        if (includedApis.isEmpty()) {
+            return includedAgentApis;
+        }
+        Map<String, io.gravitee.apim.core.api.model.Api> apisById = new HashMap<>();
+        includedApis.forEach(api -> apisById.putIfAbsent(api.getId(), api));
+        includedAgentApis.forEach(api -> apisById.putIfAbsent(api.getId(), api));
+        return List.copyOf(apisById.values());
     }
 
     private List<io.gravitee.rest.api.portal.rest.model.Api> loadIncludedApiEntities(

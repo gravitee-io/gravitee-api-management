@@ -117,6 +117,12 @@ describe('DocumentationTreeService', () => {
       service.init(parentItem, items);
       expect(service.findFirstPageIdWithinNode('api1')).toEqual('p-api1');
     });
+
+    it('should return first page within Agent node', () => {
+      const items = [makeItem('agent1', 'AGENT', 'Agent 1', 0), makeItem('p-agent1', 'PAGE', 'Agent doc', 0, 'agent1')];
+      service.init(parentItem, items);
+      expect(service.findFirstPageIdWithinNode('agent1')).toEqual('p-agent1');
+    });
   });
 
   describe('getDocumentationActionContext', () => {
@@ -126,6 +132,15 @@ describe('DocumentationTreeService', () => {
       expect(service.getDocumentationActionContext('p-api1')).toEqual({
         apiId: 'api-api1',
         subscriptionTarget: { type: 'API', apiId: 'api-api1' },
+      });
+    });
+
+    it('should return an API context and subscription target when page is under an Agent', () => {
+      const items = [makeItem('agent1', 'AGENT', 'Agent 1', 0), makeItem('p-agent1', 'PAGE', 'Agent doc', 0, 'agent1')];
+      service.init(parentItem, items);
+      expect(service.getDocumentationActionContext('p-agent1')).toEqual({
+        apiId: 'api-agent1',
+        subscriptionTarget: { type: 'API', apiId: 'api-agent1' },
       });
     });
 

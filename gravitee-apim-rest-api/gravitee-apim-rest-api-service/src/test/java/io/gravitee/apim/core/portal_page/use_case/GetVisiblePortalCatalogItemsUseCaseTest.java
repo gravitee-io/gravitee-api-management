@@ -35,6 +35,7 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalCatalogNavigationV
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalCatalogApiProductSummary;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationAgent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
@@ -505,6 +506,88 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
         assertThat(output.items().getContent()).isEmpty();
     }
 
+    @Test
+    void should_return_published_agent_in_catalog_results() {
+        var folder = folder("folder-id", "Catalog", null);
+        var agentItem = agentItem("agent-item-id", "agent-api-id", folder.getId(), PortalVisibility.PUBLIC);
+        navigationItemsQueryService.initWith(List.of(folder, agentItem));
+        initApis(List.of(api("agent-api-id", "Helpdesk Agent", "1.0.0")));
+
+        var output = useCase.execute(input(Optional.empty(), Set.of(), 1, 10));
+
+        assertThat(output.items().getContent()).containsExactly(agentItem);
+        assertThat(output.includedAgentApis()).isEmpty();
+    }
+
+    @Test
+    void should_exclude_unpublished_agent_from_catalog_results() {
+        var folder = folder("folder-id", "Catalog", null);
+        var agentItem = agentItem("agent-item-id", "agent-api-id", folder.getId(), PortalVisibility.PUBLIC);
+        agentItem.setPublished(false);
+        navigationItemsQueryService.initWith(List.of(folder, agentItem));
+        initApis(List.of(api("agent-api-id", "Helpdesk Agent", "1.0.0")));
+
+        var output = useCase.execute(input(Optional.empty(), Set.of(), 1, 10));
+
+        assertThat(output.items().getContent()).isEmpty();
+    }
+
+    @Test
+    void should_filter_agents_by_category_id() {
+        var folder = folder("folder-id", "Catalog", null);
+        var agentInCategory = agentItem(
+            "agent-item-in-category-id",
+            "agent-in-category-id",
+            folder.getId(),
+            PortalVisibility.PUBLIC,
+            List.of(PortalCategoryId.of(CATEGORY_ID_1))
+        );
+        var agentOutsideCategory = agentItem(
+            "agent-item-outside-category-id",
+            "agent-outside-category-id",
+            folder.getId(),
+            PortalVisibility.PUBLIC,
+            List.of(PortalCategoryId.of(CATEGORY_ID_2))
+        );
+        navigationItemsQueryService.initWith(List.of(folder, agentInCategory, agentOutsideCategory));
+        initApis(
+            List.of(
+                api("agent-in-category-id", "In Category Agent", "1.0.0"),
+                api("agent-outside-category-id", "Outside Category Agent", "1.0.0")
+            )
+        );
+
+        var output = useCase.execute(input(Optional.empty(), Set.of(), 1, 10, Optional.of(CATEGORY_ID_1)));
+
+        assertThat(output.items().getContent()).containsExactly(agentInCategory);
+    }
+
+    @Test
+    void should_match_agent_backing_api_name() {
+        var folder = folder("folder-id", "Catalog", null);
+        var matchingAgent = agentItem("matching-agent-item-id", "matching-agent-id", folder.getId(), PortalVisibility.PUBLIC);
+        var otherAgent = agentItem("other-agent-item-id", "other-agent-id", folder.getId(), PortalVisibility.PUBLIC);
+        navigationItemsQueryService.initWith(List.of(folder, matchingAgent, otherAgent));
+        initApis(List.of(api("matching-agent-id", "Helpdesk Agent", "1.0.0"), api("other-agent-id", "Payroll Bot", "1.0.0")));
+
+        var output = useCase.execute(input(Optional.of("helpdesk"), Set.of(), 1, 10));
+
+        assertThat(output.items().getContent()).containsExactly(matchingAgent);
+    }
+
+    @Test
+    void should_include_agent_backing_api_when_include_agent() {
+        var folder = folder("folder-id", "Catalog", null);
+        var agentItem = agentItem("agent-item-id", "agent-api-id", folder.getId(), PortalVisibility.PUBLIC);
+        navigationItemsQueryService.initWith(List.of(folder, agentItem));
+        initApis(List.of(api("agent-api-id", "Helpdesk Agent", "1.0.0")));
+
+        var output = useCase.execute(input(Optional.empty(), Set.of(PortalNavigationSearchInclude.AGENT), 1, 10));
+
+        assertThat(output.items().getContent()).containsExactly(agentItem);
+        assertThat(output.includedAgentApis()).singleElement().extracting(Api::getId).isEqualTo("agent-api-id");
+    }
+
     private GetVisiblePortalCatalogItemsUseCase.Input input(
         Optional<String> query,
         Set<PortalNavigationSearchInclude> includes,
@@ -626,6 +709,33 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
             .order(0)
             .parentId(parentId)
             .apiProductId(apiProductId)
+            .published(true)
+            .visibility(visibility)
+            .categoryIds(categoryIds)
+            .build();
+    }
+
+    private PortalNavigationAgent agentItem(String id, String agentId, PortalNavigationItemId parentId, PortalVisibility visibility) {
+        return agentItem(id, agentId, parentId, visibility, List.of());
+    }
+
+    private PortalNavigationAgent agentItem(
+        String id,
+        String agentId,
+        PortalNavigationItemId parentId,
+        PortalVisibility visibility,
+        List<PortalCategoryId> categoryIds
+    ) {
+        return PortalNavigationAgent.builder()
+            .id(navigationItemId(id))
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .title(agentId)
+            .segment(agentId)
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .parentId(parentId)
+            .agentId(agentId)
             .published(true)
             .visibility(visibility)
             .categoryIds(categoryIds)

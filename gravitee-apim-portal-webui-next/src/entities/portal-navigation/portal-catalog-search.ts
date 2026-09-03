@@ -55,7 +55,21 @@ export interface PortalCatalogApiProductSearchItem {
   categoryIds?: string[];
 }
 
-export type PortalCatalogSearchItem = PortalCatalogApiSearchItem | PortalCatalogApiProductSearchItem;
+export interface PortalCatalogAgentSearchItem {
+  type: 'AGENT';
+  id: string;
+  name: string;
+  version: string;
+  description: string;
+  _links?: ApiLinks;
+  mcp?: Mcp;
+  labels?: string[];
+  rootId: string;
+  navItemId: string;
+  categoryIds?: string[];
+}
+
+export type PortalCatalogSearchItem = PortalCatalogApiSearchItem | PortalCatalogApiProductSearchItem | PortalCatalogAgentSearchItem;
 
 export interface PortalCatalogSearchResponse {
   data: PortalCatalogSearchItem[];

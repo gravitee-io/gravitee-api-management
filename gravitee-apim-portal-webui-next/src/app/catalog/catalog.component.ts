@@ -44,7 +44,7 @@ import { PortalNavigationItemsService } from '../../services/portal-navigation-i
 
 interface CatalogItemVM {
   id: string;
-  type: 'API' | 'API_PRODUCT';
+  type: 'API' | 'API_PRODUCT' | 'AGENT';
   title: string;
   version: string;
   content?: string;
@@ -65,8 +65,15 @@ interface CatalogApiProductVM extends CatalogItemVM {
   apiNames: string[];
 }
 
+interface CatalogAgentVM extends CatalogItemVM {
+  type: 'AGENT';
+  isEnabledMcpServer: boolean;
+  picture?: string;
+  labels?: string[];
+}
+
 interface CatalogPaginatorVM {
-  data: (CatalogApiVM | CatalogApiProductVM)[];
+  data: (CatalogApiVM | CatalogApiProductVM | CatalogAgentVM)[];
   page: number;
   totalResults: number;
   error: boolean;
@@ -194,7 +201,7 @@ export class CatalogComponent {
     this.viewMode.set(this.viewMode() === 'grid' ? 'list' : 'grid');
   }
 
-  navigateToDocumentation(item: CatalogApiVM | CatalogApiProductVM) {
+  navigateToDocumentation(item: CatalogApiVM | CatalogApiProductVM | CatalogAgentVM) {
     this.router.navigate(['/documentation', item.rootId], { queryParams: { selectedId: item.navItemId } });
   }
 
@@ -237,6 +244,22 @@ export class CatalogComponent {
               navItemId: item.navItemId,
               categoryIds: item.categoryIds,
             } satisfies CatalogApiVM;
+          }
+
+          if (item.type === 'AGENT') {
+            return {
+              id: item.id,
+              type: item.type,
+              content: item.description,
+              version: item.version,
+              title: item.name,
+              picture: item._links?.picture,
+              isEnabledMcpServer: !!item.mcp,
+              labels: item.labels,
+              rootId: item.rootId,
+              navItemId: item.navItemId,
+              categoryIds: item.categoryIds,
+            } satisfies CatalogAgentVM;
           }
 
           return {

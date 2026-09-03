@@ -169,7 +169,7 @@ export class DocumentationFolderComponent {
       return of({ children, selectedPageContent: null }).pipe(tap(() => this.navigateToNotFound()));
     }
 
-    if (child.type === 'API' || child.type === 'API_PRODUCT' || child.type === 'FOLDER') {
+    if (child.type === 'API' || child.type === 'API_PRODUCT' || child.type === 'FOLDER' || child.type === 'AGENT') {
       // APIs, API Products, and folders are not selectable, so navigate to their first page.
       const firstPageId = this.treeService.findFirstPageIdWithinNode(selectedId);
       return of({ children, selectedPageContent: null }).pipe(tap(() => firstPageId && this.navigateToPage(firstPageId)));

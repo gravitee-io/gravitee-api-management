@@ -540,6 +540,54 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    void should_return_agent_in_catalog_search() {
+        var navigationItemId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000201");
+        var agentItem = PortalNavigationFixtures.agent(navigationItemId, "Helpdesk Agent", PortalArea.TOP_NAVBAR, "agent-api-id");
+        agentItem.setEnvironmentId(ENV_ID);
+        portalNavigationItemsQueryService.initWith(List.of(agentItem));
+        apiQueryService.initWith(List.of(Api.builder().id("agent-api-id").name("Helpdesk Agent").environmentId(ENV_ID).build()));
+
+        Response response = target("/_search").queryParam("type", "catalog").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
+        @SuppressWarnings("unchecked")
+        var data = (List<Map<String, Object>>) result.get("data");
+        assertThat(data).hasSize(1);
+        assertThat(data.getFirst()).containsEntry("id", navigationItemId.json()).containsEntry("type", "AGENT");
+        assertThat(result).doesNotContainKey("apis");
+    }
+
+    @Test
+    void should_include_agent_backing_api_in_apis_field_when_include_agent() {
+        var navigationItemId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000202");
+        var agentItem = PortalNavigationFixtures.agent(navigationItemId, "Helpdesk Agent", PortalArea.TOP_NAVBAR, "agent-api-id");
+        agentItem.setEnvironmentId(ENV_ID);
+        portalNavigationItemsQueryService.initWith(List.of(agentItem));
+        apiQueryService.initWith(List.of(Api.builder().id("agent-api-id").name("Helpdesk Agent").environmentId(ENV_ID).build()));
+
+        var mockApiEntity = Mockito.mock(GenericApiEntity.class);
+        when(apiSearchService.findGenericByEnvironmentAndIdIn(any(), any())).thenReturn(Set.of(mockApiEntity));
+        var mockApi = new io.gravitee.rest.api.portal.rest.model.Api();
+        mockApi.setId("agent-api-id");
+        mockApi.setName("Helpdesk Agent");
+        when(apiMapper.convert(any(), any())).thenReturn(mockApi);
+
+        Response response = target("/_search").queryParam("type", "catalog").queryParam("include", "agent").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
+        @SuppressWarnings("unchecked")
+        var data = (List<Object>) result.get("data");
+        assertThat(data).hasSize(1);
+        @SuppressWarnings("unchecked")
+        var apis = (List<Map<String, Object>>) result.get("apis");
+        assertThat(apis)
+            .singleElement()
+            .satisfies(api -> assertThat(api).containsEntry("id", "agent-api-id"));
+    }
+
+    @Test
     void should_filter_catalog_api_items_by_known_category_id() {
         var itemInCategory = PortalNavigationApi.builder()
             .id(PortalNavigationItemId.random())

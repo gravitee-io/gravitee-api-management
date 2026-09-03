@@ -20,6 +20,7 @@ import { of } from 'rxjs/internal/observable/of';
 
 import { ConfigService } from './config.service';
 import {
+  PortalCatalogAgentSearchItem,
   PortalCatalogApiProductSearchItem,
   PortalCatalogApiSearchItem,
   PortalCatalogSearchItem,
@@ -98,6 +99,7 @@ export class PortalNavigationItemsService {
       .set('type', 'catalog')
       .append('include', 'api')
       .append('include', 'api_product')
+      .append('include', 'agent')
       .set('page', page)
       .set('size', size);
     if (query) params = params.set('query', query);
@@ -184,6 +186,27 @@ export class PortalNavigationItemsService {
             apis: apiProduct.apis,
             categoryIds: item.categoryIds,
           } satisfies PortalCatalogApiProductSearchItem,
+        ];
+      }
+
+      if (item.type === 'AGENT') {
+        const api = apiById.get(item.agentId);
+        if (!api) return [];
+
+        return [
+          {
+            type: 'AGENT',
+            id: api.id,
+            name: api.name,
+            version: api.version,
+            description: api.description,
+            _links: api._links,
+            mcp: api.mcp,
+            labels: api.labels,
+            rootId: item.rootId,
+            navItemId: item.id,
+            categoryIds: item.categoryIds,
+          } satisfies PortalCatalogAgentSearchItem,
         ];
       }
 
