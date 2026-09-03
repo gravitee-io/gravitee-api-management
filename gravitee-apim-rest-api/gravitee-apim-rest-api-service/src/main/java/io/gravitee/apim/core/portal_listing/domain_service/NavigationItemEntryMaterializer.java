@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_listing.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator;
 import io.gravitee.apim.core.portal.exception.PathConflictException;
@@ -48,20 +49,22 @@ class NavigationItemEntryMaterializer {
     private final PortalNavigationItemCrudService navigationItemCrudService;
     private final PortalNavigationItemsQueryService navigationItemsQueryService;
     private final ApiDocumentationSyncDomainService apiDocumentationSyncDomainService;
+    private final ApiCrudService apiCrudService;
 
     PortalNavigationApi upsert(AuditInfo auditInfo, PortalId portalId, String apiId, PortalListingApiEntry entry) {
         var navApiId = rowId(auditInfo, portalId, apiId);
         var parent = resolveParent(auditInfo, portalId.toString(), entry.location());
+        var title = apiCrudService.get(apiId).getName();
 
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), navApiId);
         if (existing instanceof PortalNavigationApi navApi) {
-            applyUpdate(navApi, apiId, entry, parent);
+            applyUpdate(navApi, apiId, entry, parent, title);
             return (PortalNavigationApi) navigationItemCrudService.update(navApi);
         }
         rejectIfSegmentTakenByForeignItem(auditInfo, parent, Slug.from(entry.apiHrid()).value(), navApiId, entry.location());
         var create = CreatePortalNavigationItem.builder()
             .id(navApiId)
-            .title(entry.apiHrid())
+            .title(title)
             .segment(Slug.from(entry.apiHrid()).value())
             .area(AREA)
             .type(PortalNavigationItemType.API)
@@ -154,12 +157,13 @@ class NavigationItemEntryMaterializer {
         PortalNavigationApi navApi,
         String apiId,
         PortalListingApiEntry entry,
-        PortalNavigationItemContainer parent
+        PortalNavigationItemContainer parent,
+        String title
     ) {
         var visibility = PortalVisibility.inheritedFrom(parent);
         navApi.setApiId(apiId);
         navApi.setOrder(entry.order() != null ? entry.order() : 0);
-        navApi.setTitle(entry.apiHrid());
+        navApi.setTitle(title);
         navApi.setSegment(Slug.from(entry.apiHrid()).value());
         navApi.setVisibility(visibility);
         navApi.setPublished(true);
