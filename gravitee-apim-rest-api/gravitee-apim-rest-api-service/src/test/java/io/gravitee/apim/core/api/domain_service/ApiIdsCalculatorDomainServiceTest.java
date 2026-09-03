@@ -282,6 +282,143 @@ class ApiIdsCalculatorDomainServiceTest {
     }
 
     @Nested
+    class KnownTargetApi {
+
+        private static final String TARGET_API_ID = "target-api-id";
+        private final Api targetApi = Api.builder()
+            .id(TARGET_API_ID)
+            .crossId("target-cross-id-that-does-not-match")
+            .environmentId(ENVIRONMENT_ID)
+            .build();
+
+        @BeforeEach
+        void setUp() {
+            // The target API is NOT resolvable by the definition crossId (e.g. resolved through promotion history).
+            apiQueryService.initWith(List.of(targetApi));
+            pageQueryServiceInMemory.initWith(
+                List.of(
+                    buildPage("existing-page-id", "a-page-cross-id")
+                        .toBuilder()
+                        .referenceId(TARGET_API_ID)
+                        .referenceType(Page.ReferenceType.API)
+                        .build()
+                )
+            );
+            planQueryServiceInMemory.initWith(
+                List.of(buildPlanWithFlows("existing-plan-id", "a-plan-cross-id").toBuilder().referenceId(TARGET_API_ID).build())
+            );
+        }
+
+        @Test
+        void should_recalculate_ids_against_target_api_when_definition_has_no_id_and_cross_id_does_not_match() {
+            final Set<PlanWithFlows> plans = Set.of(
+                buildPlanWithFlows("", "a-plan-cross-id"),
+                buildPlanWithFlows("", "brand-new-plan-cross-id")
+            );
+            final List<Page> pages = List.of(buildPage("", "a-page-cross-id"), buildPage("", "brand-new-page-cross-id"));
+            final ImportDefinition toRecalculate = buildImportDefinition("", plans, pages);
+            toRecalculate.getApiExport().setCrossId(API_CROSS_ID);
+
+            final ImportDefinition result = cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, toRecalculate, targetApi);
+
+            assertThat(result.getApiExport().getId()).isEqualTo(TARGET_API_ID);
+            assertThat(result.getPlans())
+                .filteredOn(plan -> "a-plan-cross-id".equals(plan.getCrossId()))
+                .extracting(PlanWithFlows::getId)
+                .containsExactly("existing-plan-id");
+            assertThat(result.getPlans())
+                .filteredOn(plan -> "brand-new-plan-cross-id".equals(plan.getCrossId()))
+                .allSatisfy(plan -> assertIsUuid(plan.getId()));
+            assertThat(result.getPages())
+                .filteredOn(page -> "a-page-cross-id".equals(page.getCrossId()))
+                .extracting(Page::getId)
+                .containsExactly("existing-page-id");
+            assertThat(result.getPages())
+                .filteredOn(page -> "brand-new-page-cross-id".equals(page.getCrossId()))
+                .allSatisfy(page -> assertIsUuid(page.getId()));
+        }
+
+        @Test
+        void should_keep_page_and_plan_ids_that_have_no_cross_id_when_recalculating_against_a_known_target() {
+            final Set<PlanWithFlows> plans = Set.of(buildPlanWithFlows("plan-id-from-file", ""));
+            final List<Page> pages = List.of(buildPage("page-id-from-file", ""));
+            final ImportDefinition toRecalculate = buildImportDefinition("", plans, pages);
+            toRecalculate.getApiExport().setCrossId(API_CROSS_ID);
+
+            final ImportDefinition result = cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, toRecalculate, targetApi);
+
+            assertThat(result.getApiExport().getId()).isEqualTo(TARGET_API_ID);
+            assertThat(result.getPlans()).extracting(PlanWithFlows::getId).containsExactly("plan-id-from-file");
+            assertThat(result.getPages()).extracting(Page::getId).containsExactly("page-id-from-file");
+        }
+
+        @Test
+        void should_prefer_target_api_over_cross_id_lookup() {
+            final Api apiMatchingCrossId = Api.builder()
+                .id("api-matching-cross-id")
+                .crossId(API_CROSS_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .build();
+            apiQueryService.initWith(List.of(targetApi, apiMatchingCrossId));
+            final ImportDefinition toRecalculate = buildImportDefinition("", Set.of(), List.of());
+            toRecalculate.getApiExport().setCrossId(API_CROSS_ID);
+
+            final ImportDefinition result = cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, toRecalculate, targetApi);
+
+            assertThat(result.getApiExport().getId()).isEqualTo(TARGET_API_ID);
+        }
+
+        @Test
+        void should_replace_definition_id_by_target_api_id_when_they_differ() {
+            final Set<PlanWithFlows> plans = Set.of(buildPlanWithFlows("plan-id-from-definition", "a-plan-cross-id"));
+            final ImportDefinition toRecalculate = buildImportDefinition("api-id-from-definition", plans, List.of());
+
+            final ImportDefinition result = cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, toRecalculate, targetApi);
+
+            assertThat(result.getApiExport().getId()).isEqualTo(TARGET_API_ID);
+            // Sub-entity ids from the definition are left as-is, the import layer matches them by crossId then id.
+            assertThat(result.getPlans()).extracting(PlanWithFlows::getId).containsExactly("plan-id-from-definition");
+        }
+
+        @Test
+        void should_leave_definition_id_when_target_api_id_is_null() {
+            final ImportDefinition toRecalculate = buildImportDefinition("api-id-from-definition", Set.of(), List.of());
+
+            final ImportDefinition result = cut.recalculateApiDefinitionIds(
+                ENVIRONMENT_ID,
+                toRecalculate,
+                Api.builder().id(null).crossId("target-cross-id").environmentId(ENVIRONMENT_ID).build()
+            );
+
+            assertThat(result.getApiExport().getId()).isEqualTo("api-id-from-definition");
+        }
+
+        @Test
+        void should_not_fail_when_definition_has_no_plans_nor_pages() {
+            final ImportDefinition toRecalculate = buildImportDefinition("", null, null);
+            toRecalculate.getApiExport().setCrossId(API_CROSS_ID);
+
+            final ImportDefinition result = assertDoesNotThrow(() ->
+                cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, toRecalculate, targetApi)
+            );
+
+            assertThat(result.getApiExport().getId()).isEqualTo(TARGET_API_ID);
+        }
+
+        @Test
+        void should_behave_as_before_when_target_api_is_null() {
+            final ImportDefinition toRecalculate = buildImportDefinition("", Set.of(), List.of());
+            toRecalculate.getApiExport().setCrossId(API_CROSS_ID);
+
+            final ImportDefinition result = cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, toRecalculate, null);
+
+            // No API matches the crossId and no target is known: a brand-new id is generated.
+            assertThat(result.getApiExport().getId()).isNotEqualTo(TARGET_API_ID);
+            assertIsUuid(result.getApiExport().getId());
+        }
+    }
+
+    @Nested
     class NoApiForCrossId {
 
         @Test

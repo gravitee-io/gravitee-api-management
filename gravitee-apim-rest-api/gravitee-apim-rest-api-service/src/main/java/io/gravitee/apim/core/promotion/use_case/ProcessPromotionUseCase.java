@@ -137,9 +137,29 @@ public class ProcessPromotionUseCase {
         }
 
         if (existingPromotedApi != null) {
-            importDefinitionUpdateDomainService.update(importDefinition, existingPromotedApi, auditInfo);
+            // Resolution is already env-scoped. This is the use-case contract: Input.existingPromotedApi is
+            // supplied by the caller, so a null or foreign environmentId must still be rejected here.
+            if (
+                existingPromotedApi.getEnvironmentId() == null || !existingPromotedApi.getEnvironmentId().equals(auditInfo.environmentId())
+            ) {
+                throw new IllegalStateException(
+                    "Promotion " +
+                        promotion.getId() +
+                        " failed. Target API " +
+                        existingPromotedApi.getId() +
+                        " does not belong to the target environment " +
+                        auditInfo.environmentId()
+                );
+            }
+            var updatedApi = importDefinitionUpdateDomainService.update(importDefinition, existingPromotedApi, auditInfo);
+            // The target must stay the API we resolved, whatever the import layer returns.
+            promotion.setTargetApiId(updatedApi != null && updatedApi.getId() != null ? updatedApi.getId() : existingPromotedApi.getId());
         } else {
-            importDefinitionCreateDomainService.create(auditInfo, importDefinition);
+            var createdApi = importDefinitionCreateDomainService.create(auditInfo, importDefinition);
+            if (createdApi == null || createdApi.getId() == null) {
+                throw new IllegalStateException("Promotion " + promotion.getId() + " failed. The promoted API could not be created");
+            }
+            promotion.setTargetApiId(createdApi.getId());
         }
         promotion.setStatus(PromotionStatus.ACCEPTED);
     }
