@@ -833,6 +833,7 @@ class DebugReactorEventListenerTest {
         }
 
         @Test
+<<<<<<< HEAD
         void should_scope_secret_discovery_to_each_debug_run() throws JsonProcessingException {
             givenAStalledDebugRequest();
             final DebugReactorEventListener listener = listenerWith(registry, aConfiguration(60000));
@@ -852,6 +853,8 @@ class DebugReactorEventListenerTest {
         }
 
         @Test
+=======
+>>>>>>> 0042aee (fix(gateway): key debug handlers by event id)
         void should_skip_a_debug_event_dispatched_twice() throws JsonProcessingException {
             givenAStalledDebugRequest();
             final DebugReactorEventListener listener = listenerWith(registry, aConfiguration(60000));
@@ -875,10 +878,19 @@ class DebugReactorEventListenerTest {
                 .atMost(10, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     verify(registry).remove(any(DebugApiV2.class));
+<<<<<<< HEAD
                     verify(eventRepository, times(1)).update(any());
                     verify(eventRepository).createOrPatch(eventCaptor.capture());
                 });
             assertThat(eventCaptor.getValue().getProperties()).containsEntry(API_DEBUG_STATUS.getValue(), ApiDebugStatus.ERROR.name());
+=======
+                    verify(eventRepository, times(2)).update(eventCaptor.capture());
+                });
+            assertThat(eventCaptor.getAllValues().getLast().getProperties()).containsEntry(
+                API_DEBUG_STATUS.getValue(),
+                ApiDebugStatus.ERROR.name()
+            );
+>>>>>>> 0042aee (fix(gateway): key debug handlers by event id)
         }
 
         @Test
@@ -896,8 +908,11 @@ class DebugReactorEventListenerTest {
                 .untilAsserted(() -> verify(registry).remove(any(DebugApiV2.class)));
             verify(eventRepository, times(1)).update(eventCaptor.capture());
             assertThat(eventCaptor.getValue().getProperties()).containsEntry(API_DEBUG_STATUS.getValue(), ApiDebugStatus.DEBUGGING.name());
+<<<<<<< HEAD
             // the reload runs on its own scheduler: leave it a window in which it could have written
             verify(eventRepository, after(500).never()).createOrPatch(any());
+=======
+>>>>>>> 0042aee (fix(gateway): key debug handlers by event id)
         }
 
         /**

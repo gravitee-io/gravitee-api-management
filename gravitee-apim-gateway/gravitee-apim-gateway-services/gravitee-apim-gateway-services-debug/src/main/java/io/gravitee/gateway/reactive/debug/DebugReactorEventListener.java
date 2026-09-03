@@ -294,6 +294,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
     /**
      * Marks the debug event as failed, unless the debug already succeeded.
      *
+<<<<<<< HEAD
      * <p>The debug completion processor stores the debug result on that very same event, so two
      * precautions are taken. The status is written as a patch carrying nothing but
      * {@code API_DEBUG_STATUS}: a full update built from a copy read earlier would erase the result.
@@ -303,6 +304,13 @@ public class DebugReactorEventListener extends ReactorEventListener {
      * <p>That read is best effort — a completion landing between it and the patch still flips the
      * status to {@code ERROR}. There is no conditional write on {@code EventRepository} to close that
      * window; what the patch guarantees is that the debug result itself survives it.
+=======
+     * <p>The in-memory event still carries the payload as it was submitted, while the debug
+     * completion processor stores the debug result on that very same event. Writing the in-memory
+     * copy back would erase that result, so reload the event and leave it alone once it reached
+     * {@link ApiDebugStatus#SUCCESS}. An event that can no longer be read is failed from the copy at
+     * hand, as it was before.
+>>>>>>> 0042aee (fix(gateway): key debug handlers by event id)
      */
     private void failEventIfNotCompleted(io.gravitee.repository.management.model.Event debugEvent) {
         if (debugEvent == null) {
@@ -310,15 +318,23 @@ public class DebugReactorEventListener extends ReactorEventListener {
         }
         Completable.defer(() -> {
             var latest = eventRepository.findById(debugEvent.getId());
+<<<<<<< HEAD
             if (latest.isPresent() && isSuccessful(latest.get())) {
                 return Completable.complete();
             }
             return patchEventStatus(debugEvent, ApiDebugStatus.ERROR);
+=======
+            if (latest.isEmpty()) {
+                return updateEvent(debugEvent, ApiDebugStatus.ERROR);
+            }
+            return isSuccessful(latest.get()) ? Completable.complete() : updateEvent(latest.get(), ApiDebugStatus.ERROR);
+>>>>>>> 0042aee (fix(gateway): key debug handlers by event id)
         })
             .subscribeOn(Schedulers.io())
             .subscribe(() -> {}, throwable -> logger.error("Failed to update event {} to ERROR status", debugEvent.getId(), throwable));
     }
 
+<<<<<<< HEAD
     /**
      * Writes a single property on the event, leaving every other field — the debug payload above all —
      * untouched. Both the Mongo and JDBC repositories implement {@code createOrPatch} as a per-property
@@ -337,6 +353,8 @@ public class DebugReactorEventListener extends ReactorEventListener {
         });
     }
 
+=======
+>>>>>>> 0042aee (fix(gateway): key debug handlers by event id)
     private boolean isSuccessful(io.gravitee.repository.management.model.Event event) {
         return ApiDebugStatus.SUCCESS.name().equals(
             event.getProperties().get(io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS.getValue())

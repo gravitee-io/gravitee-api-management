@@ -59,6 +59,7 @@ class DebugApiV4Test {
         assertThat(first.hashCode()).isEqualTo(second.hashCode());
     }
 
+<<<<<<< HEAD
     @Test
     void should_carry_the_event_as_revision_so_two_runs_get_distinct_secret_descriptors() {
         final DebugApiV4 first = new DebugApiV4("evt-1", anApiDefinition());
@@ -70,6 +71,8 @@ class DebugApiV4Test {
         assertThat(second.getRevision()).isEqualTo("evt-2");
     }
 
+=======
+>>>>>>> 0042aee (fix(gateway): key debug handlers by event id)
     private static io.gravitee.definition.model.debug.DebugApiV4 anApiDefinition() {
         final Api api = Api.builder()
             .id("api-id")
