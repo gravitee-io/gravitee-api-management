@@ -102,6 +102,10 @@ public class SubscriptionFormCrudServiceImpl implements SubscriptionFormCrudServ
         return toSubscriptionForm((PortalNavigationSubscriptionForm) createdItem, subscriptionForm);
     }
 
+    /**
+     * Updates both the navigation item (published status, validation constraints) and the associated
+     * page content (GMD content) to keep the dual storage representations in sync.
+     */
     @Override
     public SubscriptionForm update(SubscriptionForm subscriptionForm) {
         var environmentId = subscriptionForm.getEnvironmentId();
