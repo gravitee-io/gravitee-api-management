@@ -15,31 +15,30 @@
     limitations under the License.
 
 -->
-<mat-card
-  class="api-card"
-  appearance="outlined"
-  role="button"
-  tabindex="0"
-  (click)="cardSelect.emit(apiId)"
-  (keydown.enter)="cardSelect.emit(apiId)"
-  (keydown.space)="$event.preventDefault(); cardSelect.emit(apiId)"
->
+<mat-card class="api-card" appearance="outlined">
   <mat-card-content class="api-card__content">
     <div class="api-card__header">
       <div class="api-card__header__content">
-        <div class="api-card__title next-gen-h5" data-testid="api-card-title" [matTooltip]="title" appMatTooltipOnEllipsis>
-          {{ title }}
-        </div>
+        <h3 class="api-card__title next-gen-h5" data-testid="api-card-title" [matTooltip]="title" appMatTooltipOnEllipsis>
+          <button type="button" class="api-card__open" (click)="cardSelect.emit(apiId)">{{ title }}</button
+          ><span class="api-card__version next-gen-small" data-testid="api-card-version">{{ version }}</span>
+        </h3>
       </div>
       <div class="api-card__badges">
+        @if (accessLabel(); as accessLabel) {
+          <span
+            class="api-card__access next-gen-small"
+            [class.api-card__access--mine]="access() === 'SUBSCRIBED'"
+            data-testid="api-access-token"
+            >{{ accessLabel }}</span
+          >
+        }
         @if (typeLabel()) {
           <app-badge data-testid="api-type-badge" [label]="typeLabel()!" />
         }
-        @if (isEnabledMcpServer) {
-          <app-badge data-testid="api-mcp-badge" i18n-label label="MCP" i18n-matTooltip matTooltip="MCP available for this API" />
-        }
       </div>
     </div>
+
     <div class="api-card__description next-gen-body">
       @if (content) {
         {{ content }}
@@ -48,4 +47,74 @@
       }
     </div>
   </mat-card-content>
+
+  <div class="api-card__foot">
+    <app-overflow-labels class="api-card__capabilities" [labels]="capabilities()" />
+    <button
+      type="button"
+      class="api-card__more"
+      data-testid="api-card-more"
+      [attr.aria-expanded]="expanded()"
+      [attr.aria-controls]="'api-card-details-' + apiId"
+      (click)="toggleDetails()"
+      i18n="@@catalogMoreDetails"
+    >
+      more details
+      <mat-icon aria-hidden="true" class="api-card__more__chevron" [class.api-card__more__chevron--up]="expanded()">expand_more</mat-icon>
+    </button>
+  </div>
+
+  <div class="api-card__details" [class.api-card__details--open]="expanded()">
+    <div class="api-card__details__inner">
+      <div class="api-card__details__body" [id]="'api-card-details-' + apiId">
+        @if (expanded()) {
+          @if (skills().length) {
+            <h3 class="api-card__details__heading next-gen-caption" i18n="@@catalogWhatItCanDo">What it can do</h3>
+            <div class="api-card__skills">
+              @for (skill of skills(); track skill.name) {
+                <div class="api-card__skill">
+                  <div class="api-card__skill__name">{{ skill.name }}</div>
+                  <div class="api-card__skill__description">{{ skill.description }}</div>
+                </div>
+              }
+            </div>
+          }
+
+          <div class="api-card__facts">
+            @if (endpoint(); as endpoint) {
+              <div class="api-card__fact api-card__fact--wide">
+                <div class="api-card__fact__key next-gen-caption" i18n="@@catalogGatewayEndpoint">Gateway endpoint</div>
+                <div class="api-card__fact__value api-card__fact__value--mono">{{ endpoint }}</div>
+              </div>
+            }
+            @if (plans(); as plans) {
+              <div class="api-card__fact">
+                <div class="api-card__fact__key next-gen-caption" i18n="@@catalogPlans">Plans</div>
+                <div class="api-card__fact__value">{{ plans }}</div>
+              </div>
+            }
+            @if (published(); as published) {
+              <div class="api-card__fact">
+                <div class="api-card__fact__key next-gen-caption" i18n="@@catalogPublished">Published</div>
+                <div class="api-card__fact__value" data-testid="api-card-published">{{ published }}</div>
+              </div>
+            }
+            @if (protocol(); as protocol) {
+              <div class="api-card__fact">
+                <div class="api-card__fact__key next-gen-caption" i18n="@@catalogProtocol">Protocol</div>
+                <div class="api-card__fact__value api-card__fact__value--mono">{{ protocol }}</div>
+              </div>
+            }
+          </div>
+
+          <div class="api-card__actions">
+            <button type="button" mat-flat-button (click)="subscribeSelect.emit(apiId)" i18n="@@catalogSubscribe">Subscribe</button>
+            <button type="button" mat-stroked-button (click)="documentationSelect.emit(apiId)" i18n="@@catalogReadTheDocs">
+              Read the docs
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
 </mat-card>

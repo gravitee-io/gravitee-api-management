@@ -100,7 +100,7 @@ export const Default: StoryObj = {
           <div style="display: flex; flex-flow: column; gap: 32px">
                       <div style="width: 360px">
                 <h2>API Card</h2>
-                <app-api-card [id]="api.id" [picture]="api.picture" [content]="api.description" [title]="api.name" [version]="api.version" />
+                <app-api-card [apiId]="api.id" [content]="api.description" [title]="api.name" [version]="api.version" typeLabel="API" />
             </div>
                         <div>
              <h2>API Details</h2>

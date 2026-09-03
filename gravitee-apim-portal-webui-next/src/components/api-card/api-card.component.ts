@@ -13,21 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, input, Input, output } from '@angular/core';
+import { Component, Input, input, output, signal } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 
 import { MatTooltipOnEllipsisDirective } from '../../directives/mat-tooltip-on-ellipsis.directive';
 import { BadgeComponent } from '../badge/badge.component';
+import { OverflowLabelsComponent } from '../overflow-labels/overflow-labels.component';
+
+export type ApiCardAccess = 'SUBSCRIBED' | 'NO_KEY' | 'CREDENTIALS' | 'APPROVAL';
+
+export interface ApiCardSkill {
+  name: string;
+  description?: string;
+}
 
 @Component({
   selector: 'app-api-card',
-  imports: [MatCardModule, MatTooltip, MatTooltipOnEllipsisDirective, BadgeComponent],
+  imports: [
+    MatButtonModule,
+    MatCardModule,
+    MatIconModule,
+    MatTooltip,
+    MatTooltipOnEllipsisDirective,
+    BadgeComponent,
+    OverflowLabelsComponent,
+  ],
   templateUrl: './api-card.component.html',
   styleUrl: './api-card.component.scss',
 })
 export class ApiCardComponent {
   readonly typeLabel = input<string>();
+  readonly capabilities = input<string[]>([]);
+  readonly access = input<ApiCardAccess>();
+  readonly accessLabel = input<string>();
+  readonly skills = input<ApiCardSkill[]>([]);
+  readonly endpoint = input<string>();
+  readonly protocol = input<string>();
+  readonly published = input<string>();
+  readonly plans = input<string>();
 
   @Input({ required: true })
   apiId!: string;
@@ -36,11 +62,15 @@ export class ApiCardComponent {
   @Input({ required: true })
   version!: string;
   @Input()
-  picture: string | undefined;
-  @Input()
-  isEnabledMcpServer: boolean = false;
-  @Input()
   content?: string;
 
   cardSelect = output<string>();
+  subscribeSelect = output<string>();
+  documentationSelect = output<string>();
+
+  protected readonly expanded = signal(false);
+
+  protected toggleDetails(): void {
+    this.expanded.update(expanded => !expanded);
+  }
 }
