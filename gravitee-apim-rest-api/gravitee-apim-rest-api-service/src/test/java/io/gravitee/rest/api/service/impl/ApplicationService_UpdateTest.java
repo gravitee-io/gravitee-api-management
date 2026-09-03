@@ -32,9 +32,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import inmemory.ClientCertificateCrudServiceInMemory;
 import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
 import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService.CertificateInfo;
 import io.gravitee.apim.core.application_certificate.domain_service.MtlsSubscriptionSyncDomainService;
+import io.gravitee.apim.infra.domain_service.application_certificates.ClientCertificateValidationDomainServiceImpl;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.repository.exceptions.DuplicateKeyException;
@@ -836,7 +838,33 @@ public class ApplicationService_UpdateTest {
     }
 
     @Test
-    public void should_pass_exclude_application_id_when_creating_certificate_during_sync() throws TechnicalException {
+    public void should_create_certificate_during_sync_when_exclude_ignores_same_application_fingerprint() throws TechnicalException {
+        ClientCertificateCrudServiceInMemory backingStore = new ClientCertificateCrudServiceInMemory();
+        ClientCertificateValidationDomainServiceImpl realValidation = new ClientCertificateValidationDomainServiceImpl(backingStore);
+        var certInfo = realValidation.validate(VALID_PEM_1);
+
+        backingStore.initWith(
+            List.of(
+                new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                    "stored-cert-id",
+                    null,
+                    APPLICATION_ID,
+                    "existing",
+                    null,
+                    null,
+                    new java.util.Date(),
+                    new java.util.Date(),
+                    VALID_PEM_1,
+                    null,
+                    null,
+                    null,
+                    certInfo.fingerprint(),
+                    GraviteeContext.getExecutionContext().getEnvironmentId(),
+                    io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+                )
+            )
+        );
+
         ApplicationSettings settings = new ApplicationSettings();
         settings.setApp(new SimpleApplicationSettings());
         settings.setTls(TlsSettings.builder().clientCertificate(VALID_PEM_1).build());
@@ -844,16 +872,44 @@ public class ApplicationService_UpdateTest {
         when(updateApplication.getSettings()).thenReturn(settings);
         when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
 
+        io.gravitee.apim.core.application_certificate.model.ClientCertificate staleExisting =
+            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                "stored-cert-id",
+                null,
+                APPLICATION_ID,
+                "existing",
+                null,
+                null,
+                new java.util.Date(),
+                new java.util.Date(),
+                VALID_PEM_1,
+                null,
+                null,
+                null,
+                "stale-fingerprint",
+                null,
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+            );
         when(
             clientCertificateCrudService.findByApplicationIdAndStatuses(
                 any(),
                 any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
                 any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
             )
-        ).thenReturn(java.util.List.of());
+        ).thenReturn(java.util.List.of(staleExisting));
+        when(clientCertificateCrudService.create(eq(APPLICATION_ID), any())).thenAnswer(invocation ->
+            backingStore.create(invocation.getArgument(0), invocation.getArgument(1))
+        );
+        when(clientCertificateValidationDomainService.validate(any())).thenAnswer(invocation ->
+            realValidation.validate(invocation.getArgument(0))
+        );
+        when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any())).thenAnswer(invocation ->
+            realValidation.validateForCreation(invocation.getArgument(0), invocation.getArgument(1), invocation.getArgument(2))
+        );
 
         applicationService.syncClientCertificates(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
 
+        verify(clientCertificateCrudService).create(eq(APPLICATION_ID), any());
         verify(clientCertificateValidationDomainService).validateForCreation(any(), any(), eq(APPLICATION_ID));
     }
 

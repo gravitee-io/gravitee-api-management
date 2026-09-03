@@ -741,7 +741,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
         // Create new certificates (incoming fingerprints not in existing) or update existing ones
         for (CreateClientCertificate incomingCert : incoming) {
-            ClientCertificate existingCert = existingByFingerprint.get(fingerprint(incomingCert.certificate()));
+            String incomingFingerprint = fingerprint(incomingCert.certificate());
+            ClientCertificate existingCert = existingByFingerprint.get(incomingFingerprint);
             if (existingCert == null) {
                 // Create new certificate
                 var certToCreate = new ClientCertificate(

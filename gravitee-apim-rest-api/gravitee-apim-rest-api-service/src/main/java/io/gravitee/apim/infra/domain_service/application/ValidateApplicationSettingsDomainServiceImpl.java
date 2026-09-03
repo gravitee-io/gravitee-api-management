@@ -204,7 +204,8 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
         try {
             clientCertificateValidationDomainService.validateForCreation(
                 new ClientCertificate(cert.name(), cert.certificate(), cert.startsAt(), cert.endsAt()),
-                input.auditInfo().environmentId()
+                input.auditInfo().environmentId(),
+                input.applicationId()
             );
         } catch (AbstractManagementException e) {
             errors.add(Error.severe(e.getMessage()));
