@@ -906,6 +906,13 @@ api:
       defaultApplication: true
     anonymizeOnDelete: false
   supportEnabled: true
+  authentication:
+    portal:
+      exposeAccessToken: true
+      exposeIdToken: true
+    console:
+      exposeAccessToken: true
+      exposeIdToken: true
   ratingEnabled: true
   newsletterEnabled: true
   # Specify the visibility duration of a gateway in Unknown State (in seconds)

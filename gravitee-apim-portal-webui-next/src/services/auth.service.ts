@@ -57,7 +57,7 @@ export class AuthService {
       tap(_ => {
         const providerId = this.getProviderId();
         if (providerId) {
-          this.oauthService.logOut();
+          this._idpEndSessionLogout();
           this.removeProviderId();
         }
       }),
@@ -111,6 +111,16 @@ export class AuthService {
       }),
       catchError(() => of(undefined)),
     );
+  }
+
+  private _idpEndSessionLogout(): void {
+    const clientId = this.oauthService.clientId;
+    const idTokenExposed = this.configService.configuration.authentication?.exposeIdToken?.enabled !== false;
+    if (!idTokenExposed && clientId) {
+      this.oauthService.logOut({ client_id: clientId });
+      return;
+    }
+    this.oauthService.logOut();
   }
 
   private _configure(provider: IdentityProvider) {
