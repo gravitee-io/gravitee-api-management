@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { isResetPasswordTokenExpired, parseResetPasswordToken } from './resetPasswordToken';
+import { isAuthTokenExpired, parseAuthToken } from './authToken';
 
 const VALID_TOKEN =
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' +
     'eyJzdWIiOiJ1c2VyLTEiLCJlbWFpbCI6Im5vcm0xQGdtYWlsLmNvbSIsImZpcnN0bmFtZSI6Im5vcm0xIiwibGFzdG5hbWUiOiJub3JtMSIsImV4cCI6OTk5OTk5OTk5OTk5fQ.' +
     'signature';
 
-describe('resetPasswordToken', () => {
+describe('authToken', () => {
     it('parses user claims from a reset token', () => {
-        const claims = parseResetPasswordToken(VALID_TOKEN);
+        const claims = parseAuthToken(VALID_TOKEN);
 
         expect(claims).toEqual(
             expect.objectContaining({
@@ -35,14 +35,14 @@ describe('resetPasswordToken', () => {
     });
 
     it('returns null for invalid tokens', () => {
-        expect(parseResetPasswordToken('not-a-jwt')).toBeNull();
+        expect(parseAuthToken('not-a-jwt')).toBeNull();
     });
 
     it('detects expired tokens', () => {
         const expiredToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' + 'eyJzdWIiOiJ1c2VyLTEiLCJleHAiOjF9.' + 'signature';
 
-        const claims = parseResetPasswordToken(expiredToken);
+        const claims = parseAuthToken(expiredToken);
         expect(claims).not.toBeNull();
-        expect(isResetPasswordTokenExpired(claims!)).toBe(true);
+        expect(isAuthTokenExpired(claims!)).toBe(true);
     });
 });
