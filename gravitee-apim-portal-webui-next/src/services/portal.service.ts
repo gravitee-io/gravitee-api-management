@@ -80,9 +80,16 @@ export class PortalService {
           content: this.getPortalNavigationItemContent(navigationItemId),
           resolvedOptions: this.getSubscriptionFormResolvedOptions(apiId),
         }).pipe(
-          map(({ content, resolvedOptions }) =>
-            content && resolvedOptions ? { gmdContent: content.content, resolvedOptions: resolvedOptions.resolvedOptions } : null,
-          ),
+          map(({ content, resolvedOptions }) => {
+            if (!content || !resolvedOptions) {
+              return null;
+            }
+
+            return {
+              gmdContent: content.content,
+              resolvedOptions: resolvedOptions.resolvedOptions,
+            };
+          }),
         );
       }),
     );
