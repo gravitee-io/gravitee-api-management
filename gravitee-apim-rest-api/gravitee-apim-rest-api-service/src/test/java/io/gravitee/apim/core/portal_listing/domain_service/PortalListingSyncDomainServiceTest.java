@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_listing.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.PortalListingCrudServiceInMemory;
@@ -23,6 +24,8 @@ import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
@@ -85,7 +88,7 @@ class PortalListingSyncDomainServiceTest {
         syncService = new PortalListingSyncDomainService(
             pageContentQuery,
             apiDocSync,
-            new NavigationItemEntryMaterializer(navItemCrud, navItemQuery, apiDocSync),
+            new NavigationItemEntryMaterializer(navItemCrud, navItemQuery, apiDocSync, apiCrud),
             new ApiFolderSubtreeReconciler(
                 navItemQuery,
                 apiCrud,
@@ -98,6 +101,7 @@ class PortalListingSyncDomainServiceTest {
     @Test
     void should_create_nav_api_row_at_deterministic_id_under_portal_folder() {
         var apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
+        apiCrud.initWith(List.of(anApi(API_HRID)));
         var listing = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
 
         syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), listing);
@@ -112,7 +116,29 @@ class PortalListingSyncDomainServiceTest {
     }
 
     @Test
+    void should_use_api_name_as_title_when_api_exists() {
+        var apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
+        apiCrud.initWith(List.of(Api.builder().id(apiId).name("Echo API Declarative").environmentId(AUDIT_INFO.environmentId()).build()));
+        var listing = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
+
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), listing);
+
+        assertThat(navItemCrud.storage())
+            .filteredOn(PortalNavigationApi.class::isInstance)
+            .extracting(PortalNavigationItem::getTitle)
+            .containsExactly("Echo API Declarative");
+    }
+
+    @Test
+    void should_throw_api_not_found_when_api_does_not_exist() {
+        var listing = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
+
+        assertThatThrownBy(() -> syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), listing)).isInstanceOf(ApiNotFoundException.class);
+    }
+
+    @Test
     void should_be_idempotent_when_syncing_twice() {
+        apiCrud.initWith(List.of(anApi(API_HRID)));
         var listing = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
 
         syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), listing);
@@ -129,6 +155,7 @@ class PortalListingSyncDomainServiceTest {
             HRIDToUUID.apiDocumentation().context(AUDIT_INFO).api(API_HRID).hrid("getting-started").id()
         );
         pageContentQuery.initWith(List.of(anApiDocPageContent(docContentId, apiId)));
+        apiCrud.initWith(List.of(anApi(API_HRID)));
 
         var listing = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
         syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), listing);
@@ -158,6 +185,7 @@ class PortalListingSyncDomainServiceTest {
         var removeHrid = "pets-api";
         var removeApiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(removeHrid).id();
         var keepApiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(keepHrid).id();
+        apiCrud.initWith(List.of(anApi(removeHrid), anApi(keepHrid)));
 
         var initial = aListing(
             List.of(new PortalListingApiEntry(removeHrid, "/projects/alpha", 1), new PortalListingApiEntry(keepHrid, "/projects/beta", 2))
@@ -183,6 +211,7 @@ class PortalListingSyncDomainServiceTest {
             HRIDToUUID.apiDocumentation().context(AUDIT_INFO).api(API_HRID).hrid("getting-started").id()
         );
         pageContentQuery.initWith(List.of(anApiDocPageContent(docContentId, apiId)));
+        apiCrud.initWith(List.of(anApi(API_HRID)));
 
         var initial = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
         syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), initial);
@@ -200,6 +229,7 @@ class PortalListingSyncDomainServiceTest {
             HRIDToUUID.apiDocumentation().context(AUDIT_INFO).api(API_HRID).hrid("getting-started").id()
         );
         pageContentQuery.initWith(List.of(anApiDocPageContent(docContentId, apiId)));
+        apiCrud.initWith(List.of(anApi(API_HRID)));
 
         var listing = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
         syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), listing);
@@ -207,6 +237,14 @@ class PortalListingSyncDomainServiceTest {
         syncService.dematerialize(AUDIT_INFO, PORTAL_ID, listing);
 
         assertThat(navItemCrud.storage()).isEmpty();
+    }
+
+    private static Api anApi(String hrid) {
+        return Api.builder()
+            .id(HRIDToUUID.api().context(AUDIT_INFO).hrid(hrid).id())
+            .name(hrid)
+            .environmentId(AUDIT_INFO.environmentId())
+            .build();
     }
 
     private static PortalListing aListing(List<PortalListingApiEntry> apis) {

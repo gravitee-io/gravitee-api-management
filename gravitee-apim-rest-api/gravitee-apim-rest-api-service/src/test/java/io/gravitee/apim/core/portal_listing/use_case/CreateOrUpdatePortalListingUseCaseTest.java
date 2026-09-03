@@ -19,8 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.mock;
 
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalListingCrudServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -56,13 +58,16 @@ class CreateOrUpdatePortalListingUseCaseTest {
 
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
     private final PortalListingCrudServiceInMemory portalListingCrudService = new PortalListingCrudServiceInMemory();
+    private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final ValidatePortalListingDomainService validator = new ValidatePortalListingDomainService(
-        new PortalAutomationScopeDomainService(portalCrudService, () -> false)
+        new PortalAutomationScopeDomainService(portalCrudService, () -> false),
+        apiCrudService
     );
     private CreateOrUpdatePortalListingUseCase useCase;
 
     @BeforeEach
     void setUp() {
+        apiCrudService.initWith(List.of(anApi("pets-api"), anApi("shop-api")));
         useCase = new CreateOrUpdatePortalListingUseCase(validator, portalListingCrudService, mock(PortalListingSyncDomainService.class));
     }
 
@@ -162,6 +167,19 @@ class CreateOrUpdatePortalListingUseCaseTest {
     }
 
     @Test
+    void should_throw_validation_error_when_referenced_api_does_not_exist() {
+        var apis = List.of(new PortalListingApiEntry("ghost-api", "/projects/alpha", 1));
+
+        var throwable = catchThrowable(() ->
+            useCase.execute(new CreateOrUpdatePortalListingUseCase.Input(AUDIT_INFO, LISTING_ID, PORTAL_ID, apis))
+        );
+
+        assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+        assertThat(throwable.getMessage()).contains("apis[0]").contains("ghost-api");
+        assertThat(portalListingCrudService.storage()).isEmpty();
+    }
+
+    @Test
     void should_accept_empty_apis_list() {
         var output = useCase.execute(new CreateOrUpdatePortalListingUseCase.Input(AUDIT_INFO, LISTING_ID, PORTAL_ID, List.of()));
 
@@ -183,7 +201,7 @@ class CreateOrUpdatePortalListingUseCaseTest {
         var establishedCrud = new PortalCrudServiceInMemory();
         establishedCrud.initWith(List.of(Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Established")));
         var restrictedUseCase = new CreateOrUpdatePortalListingUseCase(
-            new ValidatePortalListingDomainService(new PortalAutomationScopeDomainService(establishedCrud, () -> false)),
+            new ValidatePortalListingDomainService(new PortalAutomationScopeDomainService(establishedCrud, () -> false), apiCrudService),
             portalListingCrudService,
             mock(PortalListingSyncDomainService.class)
         );
@@ -197,5 +215,13 @@ class CreateOrUpdatePortalListingUseCaseTest {
         assertThat(throwable).isInstanceOf(ValidationDomainException.class);
         assertThat(throwable.getMessage()).contains("portalHrid").contains("established portal");
         assertThat(portalListingCrudService.storage()).isEmpty();
+    }
+
+    private static Api anApi(String hrid) {
+        return Api.builder()
+            .id(HRIDToUUID.api().context(AUDIT_INFO).hrid(hrid).id())
+            .name(hrid)
+            .environmentId(AUDIT_INFO.environmentId())
+            .build();
     }
 }

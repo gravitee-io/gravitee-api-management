@@ -1690,9 +1690,10 @@ public class ResourceContextConfiguration {
 
     @Bean
     public ValidatePortalListingDomainService validatePortalListingDomainService(
-        PortalAutomationScopeDomainService portalAutomationScopeDomainService
+        PortalAutomationScopeDomainService portalAutomationScopeDomainService,
+        ApiCrudService apiCrudService
     ) {
-        return new ValidatePortalListingDomainService(portalAutomationScopeDomainService);
+        return new ValidatePortalListingDomainService(portalAutomationScopeDomainService, apiCrudService);
     }
 
     @Bean
