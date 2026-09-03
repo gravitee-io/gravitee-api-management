@@ -18,8 +18,10 @@ package io.gravitee.apim.core.api.domain_service.import_definition;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -153,6 +155,71 @@ class ImportDefinitionUpdateDomainServiceTest {
         );
         assertThat(apiImagesService.apiPictures.get(PROMOTED_API_ID)).isEqualTo(picture);
         assertThat(apiImagesService.apiBackgrounds.get(PROMOTED_API_ID)).isEqualTo(background);
+    }
+
+    @Test
+    public void should_update_the_given_api_when_definition_has_no_id_and_cross_id_does_not_match() {
+        // Promotion case: definition exported without ids, target API resolved by another mean than crossId.
+        var existingApi = ApiFixtures.aProxyApiV4()
+            .toBuilder()
+            .id(PROMOTED_API_ID)
+            .crossId("cross-id-of-the-existing-api")
+            .environmentId(TARGET_ENVIRONMENT_ID)
+            .build();
+        apiCrudServiceInMemory.initWith(List.of(existingApi));
+        apiQueryServiceInMemory.initWith(List.of(existingApi));
+
+        var importDefinition = ImportDefinition.builder()
+            .apiExport(ApiExport.builder().crossId(PROMOTED_API_CROSS_ID).name("updated name").build())
+            .build();
+
+        var updated = service.update(importDefinition, existingApi, AUDIT_INFO);
+
+        assertThat(updated).isNotNull();
+        assertThat(updated.getId()).isEqualTo(PROMOTED_API_ID);
+        assertThat(apiCrudServiceInMemory.storage()).hasSize(1);
+        verify(apiService).update(
+            eq(new ExecutionContext(ORGANIZATION_ID, TARGET_ENVIRONMENT_ID)),
+            eq(PROMOTED_API_ID),
+            // The crossId of the definition is applied so that the next promotion is resolved by crossId again.
+            argThat(update -> "updated name".equals(update.getName()) && PROMOTED_API_CROSS_ID.equals(update.getCrossId())),
+            eq(false),
+            eq(USER)
+        );
+    }
+
+    @Test
+    public void should_update_the_given_api_when_definition_carries_the_id_of_another_api() {
+        var existingApi = ApiFixtures.aProxyApiV4()
+            .toBuilder()
+            .id(PROMOTED_API_ID)
+            .crossId(PROMOTED_API_CROSS_ID)
+            .environmentId(TARGET_ENVIRONMENT_ID)
+            .build();
+        apiCrudServiceInMemory.initWith(List.of(existingApi));
+        apiQueryServiceInMemory.initWith(List.of(existingApi));
+
+        var importDefinition = ImportDefinition.builder()
+            .apiExport(ApiExport.builder().id("source-api-id").crossId(PROMOTED_API_CROSS_ID).name("updated name").build())
+            .build();
+
+        var updated = service.update(importDefinition, existingApi, AUDIT_INFO);
+
+        assertThat(updated.getId()).isEqualTo(PROMOTED_API_ID);
+        verify(apiService).update(any(), eq(PROMOTED_API_ID), any(), eq(false), eq(USER));
+        verify(apiService, never()).update(any(), eq("source-api-id"), any(), anyBoolean(), any());
+    }
+
+    @Test
+    public void should_fail_fast_when_no_existing_api_is_given() {
+        var importDefinition = ImportDefinition.builder()
+            .apiExport(ApiExport.builder().crossId(PROMOTED_API_CROSS_ID).name("updated name").build())
+            .build();
+
+        var throwable = catchThrowable(() -> service.update(importDefinition, null, AUDIT_INFO));
+
+        assertThat(throwable).isInstanceOf(NullPointerException.class);
+        verify(apiService, never()).update(any(), any(), any(), anyBoolean(), any());
     }
 
     @Test

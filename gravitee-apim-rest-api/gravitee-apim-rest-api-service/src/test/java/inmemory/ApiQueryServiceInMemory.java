@@ -134,7 +134,7 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
     public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) {
         return storage
             .stream()
-            .filter(api -> api.getEnvironmentId().equals(environmentId) && api.getCrossId().equals(crossId))
+            .filter(api -> environmentId.equals(api.getEnvironmentId()) && Objects.equals(api.getCrossId(), crossId))
             .findFirst();
     }
 
