@@ -38,7 +38,7 @@ public interface PortalNavigationItemAdapter {
     Logger log = NodeLoggerFactory.getLogger(PortalNavigationItemAdapter.class);
     PortalNavigationItemAdapter INSTANCE = Mappers.getMapper(PortalNavigationItemAdapter.class);
 
-    com.fasterxml.jackson.databind.ObjectMapper OBJECT_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper();
+    com.fasterxml.jackson.databind.ObjectMapper OBJECT_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper().findAndRegisterModules();
     String PORTAL_PAGE_CONTENT_ID = "portalPageContentId";
     String VALIDATION_CONSTRAINTS = "validationConstraints";
     String URL = "url";
@@ -51,9 +51,6 @@ public interface PortalNavigationItemAdapter {
     String LAST_FETCH_ERROR = "lastFetchError";
     String SUBTREE_IMPORT = "subtreeImport";
 
-    com.fasterxml.jackson.databind.ObjectMapper FIELD_CONSTRAINTS_JSON =
-        new com.fasterxml.jackson.databind.ObjectMapper().findAndRegisterModules();
-
     /**
      * (De)serializes {@link SubscriptionFormFieldConstraints} to/from the JSON shape shared by the
      * legacy {@code subscription_forms} table and the {@code validationConstraints} entry of a
@@ -64,7 +61,7 @@ public interface PortalNavigationItemAdapter {
             return "{}";
         }
         try {
-            return FIELD_CONSTRAINTS_JSON.writerFor(new TypeReference<Map<String, List<Constraint>>>() {}).writeValueAsString(
+            return OBJECT_MAPPER.writerFor(new TypeReference<Map<String, List<Constraint>>>() {}).writeValueAsString(
                 constraints.byFieldKey()
             );
         } catch (JsonProcessingException e) {
@@ -77,7 +74,7 @@ public interface PortalNavigationItemAdapter {
             return SubscriptionFormFieldConstraints.empty();
         }
         try {
-            Map<String, List<Constraint>> map = FIELD_CONSTRAINTS_JSON.readValue(json, new TypeReference<>() {});
+            Map<String, List<Constraint>> map = OBJECT_MAPPER.readValue(json, new TypeReference<>() {});
             return map.isEmpty() ? SubscriptionFormFieldConstraints.empty() : new SubscriptionFormFieldConstraints(map);
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("Failed to deserialize subscription form field constraints", e);
@@ -302,7 +299,7 @@ public interface PortalNavigationItemAdapter {
                     config.put(PORTAL_PAGE_CONTENT_ID, subscriptionForm.getPortalPageContentId().json());
                     config.set(
                         VALIDATION_CONSTRAINTS,
-                        FIELD_CONSTRAINTS_JSON.readTree(writeFieldConstraintsJson(subscriptionForm.getValidationConstraints()))
+                        OBJECT_MAPPER.readTree(writeFieldConstraintsJson(subscriptionForm.getValidationConstraints()))
                     );
                 }
             }
