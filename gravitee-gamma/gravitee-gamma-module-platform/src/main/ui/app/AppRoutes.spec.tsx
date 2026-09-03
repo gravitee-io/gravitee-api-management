@@ -206,6 +206,10 @@ jest.mock('../pages/EnvironmentCorsSettingsPage', () => ({
     EnvironmentCorsSettingsPage: () => <div data-testid="environment-cors-settings-page" />,
 }));
 
+jest.mock('../pages/EnvironmentSmtpSettingsPage', () => ({
+    EnvironmentSmtpSettingsPage: () => <div data-testid="environment-smtp-settings-page" />,
+}));
+
 jest.mock('../pages/SmtpSettingsPage', () => ({
     SmtpSettingsPage: () => <div data-testid="smtp-settings-page" />,
 }));
@@ -1116,6 +1120,12 @@ describe('AppRoutes', () => {
         expect(screen.queryByTestId('cors-settings-page')).toBeNull();
     });
 
+    it('routes to environment SMTP settings', () => {
+        renderPlatform('/environment-smtp');
+        expect(screen.getByTestId('environment-smtp-settings-page')).not.toBeNull();
+        expect(screen.queryByTestId('smtp-settings-page')).toBeNull();
+    });
+
     it('routes to organization notification templates', () => {
         renderPlatform('/templates');
         expect(screen.getByTestId('notification-templates-page')).not.toBeNull();
@@ -1278,6 +1288,7 @@ describe('AppRoutes', () => {
 
         expect(visibleNavKeys()).not.toContain('security-plan-types');
         expect(visibleNavKeys()).not.toContain('environment-cors');
+        expect(visibleNavKeys()).not.toContain('environment-smtp');
     });
 
     it('does not render environment CORS without environment-settings-r', () => {
@@ -1285,6 +1296,14 @@ describe('AppRoutes', () => {
         renderPlatform('/environment-cors');
 
         expect(screen.queryByTestId('environment-cors-settings-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('does not render environment SMTP without environment-settings-r', () => {
+        denyPermissions('environment-settings-r');
+        renderPlatform('/environment-smtp');
+
+        expect(screen.queryByTestId('environment-smtp-settings-page')).toBeNull();
         expect(screen.getByTestId('applications-page')).not.toBeNull();
     });
 

@@ -14,9 +14,23 @@
  * limitations under the License.
  */
 
-import type { PortalSettings } from '../../security-plan-types/services/portalSettings';
+import { PASSWORD_SENTINEL } from '../../organization-settings/types/consoleSettings';
+import type { PortalSettings, PortalSettingsEmail } from '../../security-plan-types/services/portalSettings';
 
-export type PortalSettingsSection = 'cors';
+export type PortalSettingsSection = 'cors' | 'email';
+
+function mergeEmail(current: PortalSettingsEmail | undefined, overlay: PortalSettingsEmail | undefined): PortalSettingsEmail {
+    const password = overlay?.password === PASSWORD_SENTINEL || !overlay?.password ? current?.password : overlay?.password;
+    return {
+        ...current,
+        ...overlay,
+        password,
+        properties: {
+            ...current?.properties,
+            ...overlay?.properties,
+        },
+    };
+}
 
 /**
  * Classic portal-settings save: POST the full fetched entity with only the edited section overlaid.
@@ -24,10 +38,11 @@ export type PortalSettingsSection = 'cors';
 export function buildPortalSettingsSectionPayload(
     current: PortalSettings,
     section: PortalSettingsSection,
-    overlay: Pick<PortalSettings, 'cors'>,
+    overlay: Pick<PortalSettings, 'cors' | 'email'>,
 ): PortalSettings {
     return {
         ...current,
         cors: section === 'cors' ? { ...current.cors, ...overlay.cors } : current.cors,
+        email: section === 'email' ? mergeEmail(current.email, overlay.email) : current.email,
     };
 }

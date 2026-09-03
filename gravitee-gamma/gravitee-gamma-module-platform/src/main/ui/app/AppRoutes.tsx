@@ -75,6 +75,7 @@ import { EntrypointsAndShardingTagsPage } from '../pages/EntrypointsAndShardingT
 import { EnvAuditLogsPage } from '../pages/EnvAuditLogsPage';
 import { EnvironmentCorsSettingsPage } from '../pages/EnvironmentCorsSettingsPage';
 import { EnvironmentNotificationSettingsPage } from '../pages/EnvironmentNotificationSettingsPage';
+import { EnvironmentSmtpSettingsPage } from '../pages/EnvironmentSmtpSettingsPage';
 import { GatewayInstanceEnvironmentPage } from '../pages/GatewayInstanceEnvironmentPage';
 import { GatewayInstanceMonitoringPage } from '../pages/GatewayInstanceMonitoringPage';
 import { GatewayInstancesPage } from '../pages/GatewayInstancesPage';
@@ -500,6 +501,14 @@ export function AppRoutes() {
                                 element={
                                     <NavPermissionGuard itemKey="environment-cors">
                                         <EnvironmentCorsSettingsPage />
+                                    </NavPermissionGuard>
+                                }
+                            />
+                            <Route
+                                path="environment-smtp"
+                                element={
+                                    <NavPermissionGuard itemKey="environment-smtp">
+                                        <EnvironmentSmtpSettingsPage />
                                     </NavPermissionGuard>
                                 }
                             />

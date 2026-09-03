@@ -38,6 +38,7 @@ export const ROUTE_KEYS: readonly string[] = [
     'cors',
     'smtp',
     'environment-cors',
+    'environment-smtp',
     'templates',
     'no-access',
 ];
@@ -68,6 +69,7 @@ export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: s
     cors: { path: 'cors', label: 'CORS' },
     smtp: { path: 'smtp', label: 'SMTP' },
     'environment-cors': { path: 'environment-cors', label: 'CORS' },
+    'environment-smtp': { path: 'environment-smtp', label: 'SMTP' },
     templates: { path: 'templates', label: 'Templates' },
     'no-access': { path: 'no-access', label: 'No access' },
 };

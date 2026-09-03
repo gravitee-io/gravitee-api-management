@@ -88,4 +88,12 @@ describe('OrgSettingsFormShell', () => {
         expect(screen.getByRole('button', { name: /Save changes/i })).toHaveProperty('disabled', true);
         expect(screen.getByRole('button', { name: 'Discard' })).toHaveProperty('disabled', false);
     });
+
+    it('renders extra actions after the form content', () => {
+        renderShell({ extraActions: <button type="button">Reset to Org settings</button> });
+
+        const content = screen.getByTestId('form-content');
+        const reset = screen.getByRole('button', { name: 'Reset to Org settings' });
+        expect(content.compareDocumentPosition(reset) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    });
 });

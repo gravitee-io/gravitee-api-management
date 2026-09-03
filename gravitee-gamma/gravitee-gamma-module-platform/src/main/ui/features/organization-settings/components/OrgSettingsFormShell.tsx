@@ -29,6 +29,7 @@ export function OrgSettingsFormShell({
     isError,
     onSave,
     onDiscard,
+    extraActions,
     children,
 }: Readonly<{
     title: string;
@@ -41,6 +42,7 @@ export function OrgSettingsFormShell({
     isError: boolean;
     onSave: () => void;
     onDiscard: () => void;
+    extraActions?: ReactNode;
     children: ReactNode;
 }>) {
     if (isLoading) {
@@ -92,6 +94,8 @@ export function OrgSettingsFormShell({
                 ) : null}
 
                 {children}
+
+                {extraActions}
 
                 {isDirty && canEdit ? (
                     <div className="sticky bottom-0 z-10 flex flex-wrap items-center justify-end gap-2 border-t bg-background py-4">

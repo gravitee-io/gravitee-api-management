@@ -66,13 +66,14 @@ describe('platform navigation config', () => {
         expect(sectionKeys('Environment', 'APIs & Assets')).toEqual(['applications', 'metadata', 'dictionaries', 'shared-policy-groups']);
     });
 
-    it('places Access Management, Gateways, Alerts, Notification settings, CORS, Security Plan Types, and Audit under Environment / System & Security', () => {
+    it('places Access Management, Gateways, Alerts, Notification settings, CORS, SMTP, Security Plan Types, and Audit under Environment / System & Security', () => {
         expect(sectionKeys('Environment', 'System & Security')).toEqual([
             'access-management',
             'gateways',
             'alerts',
             'notification-settings',
             'environment-cors',
+            'environment-smtp',
             'security-plan-types',
             'environment-audit',
         ]);
@@ -80,6 +81,7 @@ describe('platform navigation config', () => {
             NAV_SECTIONS.find(section => section.key === 'environment')?.groups.find(group => group.label === 'System & Security')
                 ?.items ?? [];
         expect(systemItems.find(item => item.key === 'environment-cors')?.icon).toBe(GlobeIcon);
+        expect(systemItems.find(item => item.key === 'environment-smtp')?.icon).toBe(MailIcon);
     });
 
     it('places Users, Groups, and Roles under Team', () => {
@@ -193,6 +195,13 @@ describe('platform navigation config', () => {
         expect(ROUTES['environment-cors']).toEqual({ path: 'environment-cors', label: 'CORS' });
         expect(findNavSectionKey(NAV_SECTIONS, 'environment-cors')).toBe('environment');
         expect(findNavSectionKey(NAV_SECTIONS, 'cors')).toBe('organization');
+    });
+
+    it('declares the environment SMTP route separately from organization SMTP', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('environment-smtp');
+        expect(ROUTES['environment-smtp']).toEqual({ path: 'environment-smtp', label: 'SMTP' });
+        expect(findNavSectionKey(NAV_SECTIONS, 'environment-smtp')).toBe('environment');
+        expect(findNavSectionKey(NAV_SECTIONS, 'smtp')).toBe('organization');
     });
 
     it('declares the authentication route in platform routing config', () => {

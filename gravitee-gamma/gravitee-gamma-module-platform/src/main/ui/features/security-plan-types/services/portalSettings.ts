@@ -43,6 +43,24 @@ export interface PortalSettingsCors {
     maxAge?: number;
 }
 
+export interface PortalSettingsEmail {
+    enabled?: boolean;
+    host?: string;
+    port?: number;
+    username?: string;
+    password?: string;
+    protocol?: string;
+    subject?: string;
+    from?: string;
+    brandedSenders?: Array<{ domains: string[]; from: string; subject: string }>;
+    brandedSendersInherited?: boolean;
+    properties?: {
+        auth?: boolean;
+        startTlsEnable?: boolean;
+        sslTrust?: string;
+    };
+}
+
 export interface PortalSettings {
     metadata?: PortalSettingsMetadata;
     plan?: {
@@ -50,6 +68,7 @@ export interface PortalSettings {
         [key: string]: unknown;
     };
     cors?: PortalSettingsCors;
+    email?: PortalSettingsEmail;
     [key: string]: unknown;
 }
 
@@ -61,5 +80,11 @@ export async function savePortalSettings(environmentId: string, settings: Portal
     return apimFetchJsonV1Env<PortalSettings>(environmentId, '/settings', {
         method: 'POST',
         body: JSON.stringify(settings),
+    });
+}
+
+export async function resetPortalBrandedSenders(environmentId: string): Promise<PortalSettings> {
+    return apimFetchJsonV1Env<PortalSettings>(environmentId, '/settings/email/branded-senders/reset', {
+        method: 'POST',
     });
 }

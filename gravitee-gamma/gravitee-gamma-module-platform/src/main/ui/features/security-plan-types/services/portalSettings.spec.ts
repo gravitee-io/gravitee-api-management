@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getPortalSettings, savePortalSettings } from './portalSettings';
+import { getPortalSettings, resetPortalBrandedSenders, savePortalSettings } from './portalSettings';
 import { apimFetchJsonV1Env } from '../../../shared/api/apimClient';
 
 jest.mock('../../../shared/api/apimClient', () => ({ apimFetchJsonV1Env: jest.fn() }));
@@ -46,6 +46,20 @@ describe('portalSettings service', () => {
             expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('env-2', '/settings', {
                 method: 'POST',
                 body: JSON.stringify(payload),
+            });
+            expect(result).toEqual(mockResponse);
+        });
+    });
+
+    describe('resetPortalBrandedSenders', () => {
+        it('posts the branded-senders reset endpoint for the environment', async () => {
+            const mockResponse = { email: { brandedSenders: [], brandedSendersInherited: true } };
+            mockApimFetchJsonV1Env.mockResolvedValue(mockResponse);
+
+            const result = await resetPortalBrandedSenders('env-3');
+
+            expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('env-3', '/settings/email/branded-senders/reset', {
+                method: 'POST',
             });
             expect(result).toEqual(mockResponse);
         });

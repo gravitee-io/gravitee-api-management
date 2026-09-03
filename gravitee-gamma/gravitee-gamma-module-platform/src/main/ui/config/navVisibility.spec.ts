@@ -190,6 +190,7 @@ describe('platform nav visibility', () => {
                 'alerts',
                 'notification-settings',
                 'environment-cors',
+                'environment-smtp',
                 'security-plan-types',
                 'environment-audit',
                 'access-management',
@@ -200,6 +201,7 @@ describe('platform nav visibility', () => {
         expect(keys).not.toContain('users');
         expect(keys).not.toContain('cors');
         expect(keys).toContain('environment-cors');
+        expect(keys).toContain('environment-smtp');
         expect(keys).not.toContain('policy-studio');
     });
 
@@ -226,6 +228,7 @@ describe('platform nav visibility', () => {
         expect(isNavItemVisible('cors', canRead)).toBe(true);
         expect(isNavItemVisible('smtp', canRead)).toBe(true);
         expect(isNavItemVisible('environment-cors', canRead)).toBe(false);
+        expect(isNavItemVisible('environment-smtp', canRead)).toBe(false);
         expect(isNavItemVisible('templates', canRead)).toBe(false);
     });
 
@@ -234,6 +237,13 @@ describe('platform nav visibility', () => {
         expect(pageGuardForNavItem('environment-cors')).toEqual({ anyOf: ['environment-settings-r'] });
         expect(isNavItemVisible('environment-cors', visibility(['environment-settings-r']))).toBe(true);
         expect(isNavItemVisible('environment-cors', visibility(['organization-settings-r']))).toBe(false);
+    });
+
+    it('gates environment SMTP on environment-settings-r without the org settings gate', () => {
+        expect(requiresOrganizationSettingsGate('environment-smtp')).toBe(false);
+        expect(pageGuardForNavItem('environment-smtp')).toEqual({ anyOf: ['environment-settings-r'] });
+        expect(isNavItemVisible('environment-smtp', visibility(['environment-settings-r']))).toBe(true);
+        expect(isNavItemVisible('environment-smtp', visibility(['organization-settings-r']))).toBe(false);
     });
 
     it('gates Templates on organization-notification_templates-r after the org settings gate', () => {
