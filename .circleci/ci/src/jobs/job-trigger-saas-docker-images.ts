@@ -16,7 +16,7 @@
 import { Command, Job, commands } from '../circleci-config';
 import { CircleCIEnvironment } from '../pipelines';
 import { BaseExecutor } from '../executors';
-import { computeDockerTagSuffix } from '../utils';
+import { computeDockerTagSuffix, sanitizeBranch } from '../utils';
 
 export class TriggerSaasDockerImagesJob {
   private static jobName: string = 'job-trigger-saas-docker-images';
@@ -31,9 +31,9 @@ export class TriggerSaasDockerImagesJob {
 --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline \
 --header "Circle-Token: \${CIRCLE_TOKEN}" \
 --header 'content-type: application/json' \
---data '{"parameters":{"project":"apim", "distribution":"${distribution}", "branch-version":"${
-          environment.branch
-        }", "sha1":"${computeDockerTagSuffix(environment.sha1)}", "release-version":"${environment.graviteeioVersion}", "dry-run":${
+--data '{"parameters":{"project":"apim", "distribution":"${distribution}", "branch-version":"${sanitizeBranch(
+          environment.branch,
+        )}", "sha1":"${computeDockerTagSuffix(environment.sha1)}", "release-version":"${environment.graviteeioVersion}", "dry-run":${
           environment.isDryRun
         }, "os-distribution":"${osDistribution}"}}' | jq -r '.id')
 echo "Pipeline triggered with ID: $PIPELINE_ID"

@@ -888,7 +888,7 @@ jobs:
       - run:
           name: Trigger SaaS Docker images pipeline
           command: |-
-            PIPELINE_ID=$(curl --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"project":"apim", "distribution":"prod", "branch-version":"hotfix/4.2.0", "sha1":"784ff35", "release-version":"4.2.0-hotfix.1", "dry-run":false, "os-distribution":"debian"}}' | jq -r '.id')
+            PIPELINE_ID=$(curl --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"project":"apim", "distribution":"prod", "branch-version":"hotfix-4.2.0", "sha1":"784ff35", "release-version":"4.2.0-hotfix.1", "dry-run":false, "os-distribution":"debian"}}' | jq -r '.id')
             echo "Pipeline triggered with ID: $PIPELINE_ID"
             waitForPipelineCompletion() {
                 while true; do
@@ -913,7 +913,7 @@ jobs:
       - run:
           name: Trigger SaaS Docker images pipeline
           command: |-
-            PIPELINE_ID=$(curl --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"project":"apim", "distribution":"prod", "branch-version":"hotfix/4.2.0", "sha1":"784ff35", "release-version":"4.2.0-hotfix.1", "dry-run":false, "os-distribution":"chainguard"}}' | jq -r '.id')
+            PIPELINE_ID=$(curl --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"project":"apim", "distribution":"prod", "branch-version":"hotfix-4.2.0", "sha1":"784ff35", "release-version":"4.2.0-hotfix.1", "dry-run":false, "os-distribution":"chainguard"}}' | jq -r '.id')
             echo "Pipeline triggered with ID: $PIPELINE_ID"
             waitForPipelineCompletion() {
                 while true; do
@@ -938,7 +938,7 @@ jobs:
       - run:
           name: Trigger SaaS Docker images pipeline
           command: |-
-            PIPELINE_ID=$(curl --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"project":"apim", "distribution":"prod", "branch-version":"hotfix/4.2.0", "sha1":"784ff35", "release-version":"4.2.0-hotfix.1", "dry-run":false, "os-distribution":"chainguard-fips"}}' | jq -r '.id')
+            PIPELINE_ID=$(curl --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"project":"apim", "distribution":"prod", "branch-version":"hotfix-4.2.0", "sha1":"784ff35", "release-version":"4.2.0-hotfix.1", "dry-run":false, "os-distribution":"chainguard-fips"}}' | jq -r '.id')
             echo "Pipeline triggered with ID: $PIPELINE_ID"
             waitForPipelineCompletion() {
                 while true; do
