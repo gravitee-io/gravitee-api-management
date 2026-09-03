@@ -40,4 +40,28 @@ public class DebugApiV2V2Test {
             .anyMatch(item -> item.getPath().equals("/" + EVENT_ID + "-path2"))
             .anyMatch(item -> item.getPath().equals("/" + EVENT_ID + "-path3"));
     }
+
+    @Test
+    public void should_not_be_equal_when_debugging_the_same_api_from_another_event() {
+        final DebugApiV2 first = new DebugApiV2("evt-1", anApiDefinition());
+        final DebugApiV2 second = new DebugApiV2("evt-2", anApiDefinition());
+
+        assertThat(first).isNotEqualTo(second);
+        assertThat(first.hashCode()).isNotEqualTo(second.hashCode());
+    }
+
+    @Test
+    public void should_be_equal_when_debugging_the_same_api_from_the_same_event() {
+        final DebugApiV2 first = new DebugApiV2(EVENT_ID, anApiDefinition());
+        final DebugApiV2 second = new DebugApiV2(EVENT_ID, anApiDefinition());
+
+        assertThat(first).isEqualTo(second);
+        assertThat(first.hashCode()).isEqualTo(second.hashCode());
+    }
+
+    private static io.gravitee.definition.model.debug.DebugApiV2 anApiDefinition() {
+        final io.gravitee.definition.model.debug.DebugApiV2 debugApi = Stubs.getADebugApiDefinition();
+        debugApi.setId("api-id");
+        return debugApi;
+    }
 }

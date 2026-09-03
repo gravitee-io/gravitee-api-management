@@ -52,7 +52,13 @@ import io.vertx.rxjava3.core.http.HttpClient;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Map;
+<<<<<<< HEAD
 import lombok.CustomLog;
+=======
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+>>>>>>> 0042aee (fix(gateway): key debug handlers by event id)
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -143,6 +149,9 @@ public class DebugReactorEventListener extends ReactorEventListener {
                                 .ignoreElement();
                         })
                     )
+                    // Neither the event update nor the response body read is bounded on its own: without
+                    // this, a stalled run never reaches a terminal callback and leaks its handler forever.
+                    .timeout(debugHttpClientConfiguration.getGlobalTimeout(), TimeUnit.MILLISECONDS)
                     .subscribeOn(Schedulers.io())
                     .subscribe(
                         () -> {
@@ -154,7 +163,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
                             log.error("Debugging API has failed for API [{}], removing the handler.", debugApi.getId(), throwable);
                             eventManager.publishEvent(SecretDiscoveryEventType.REVOKE, secretDiscoveryEvent);
                             reactorHandlerRegistry.remove(debugApi);
-                            failEvent(debugEvent);
+                            failEventIfNotCompleted(debugEvent);
                         }
                     );
             }
@@ -283,6 +292,36 @@ public class DebugReactorEventListener extends ReactorEventListener {
             headers.forEach(headersMultiMap::set);
         }
         return headersMultiMap;
+    }
+
+    /**
+     * Marks the debug event as failed, unless the debug already succeeded.
+     *
+     * <p>The in-memory event still carries the payload as it was submitted, while the debug
+     * completion processor stores the debug result on that very same event. Writing the in-memory
+     * copy back would erase that result, so reload the event and leave it alone once it reached
+     * {@link ApiDebugStatus#SUCCESS}. An event that can no longer be read is failed from the copy at
+     * hand, as it was before.
+     */
+    private void failEventIfNotCompleted(io.gravitee.repository.management.model.Event debugEvent) {
+        if (debugEvent == null) {
+            return;
+        }
+        Completable.defer(() -> {
+            var latest = eventRepository.findById(debugEvent.getId());
+            if (latest.isEmpty()) {
+                return updateEvent(debugEvent, ApiDebugStatus.ERROR);
+            }
+            return isSuccessful(latest.get()) ? Completable.complete() : updateEvent(latest.get(), ApiDebugStatus.ERROR);
+        })
+            .subscribeOn(Schedulers.io())
+            .subscribe(() -> {}, throwable -> logger.error("Failed to update event {} to ERROR status", debugEvent.getId(), throwable));
+    }
+
+    private boolean isSuccessful(io.gravitee.repository.management.model.Event event) {
+        return ApiDebugStatus.SUCCESS.name().equals(
+            event.getProperties().get(io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS.getValue())
+        );
     }
 
     private void failEvent(io.gravitee.repository.management.model.Event debugEvent) {
