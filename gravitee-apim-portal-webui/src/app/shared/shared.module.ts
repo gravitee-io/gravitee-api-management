@@ -19,7 +19,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { TranslateCompiler, TranslateDirective, TranslateLoader, TranslatePipe, provideChildTranslateService } from '@ngx-translate/core';
 import { TRANSLATE_HTTP_LOADER_CONFIG, TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { OAuthModule } from 'angular-oauth2-oidc';
+import { MemoryStorage, OAuthModule, OAuthStorage } from 'angular-oauth2-oidc';
 import { TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-compiler';
 
 import { GvCheckboxControlValueAccessorDirective } from '../directives/gv-checkbox-control-value-accessor.directive';
@@ -37,6 +37,8 @@ import { MarkdownDescriptionPipe } from '../pipes/markdown-description.pipe';
 import { ApiStatesPipe } from '../pipes/api-states.pipe';
 import { SafePipe } from '../pipes/safe.pipe';
 import { ApiLabelsPipe } from '../pipes/api-labels.pipe';
+
+import { AccessTokenFilteringOAuthStorage } from './access-token-filtering-oauth-storage';
 
 @NgModule({
   exports: [
@@ -92,6 +94,10 @@ import { ApiLabelsPipe } from '../pipes/api-labels.pipe';
     LocalizedDatePipe,
     provideHttpClient(withInterceptorsFromDi()),
     { provide: TRANSLATE_HTTP_LOADER_CONFIG, useValue: { resources: [{ prefix: './assets/i18n/', suffix: '.json' }], failOnError: true } },
+    {
+      provide: OAuthStorage,
+      useFactory: () => new AccessTokenFilteringOAuthStorage(typeof sessionStorage !== 'undefined' ? sessionStorage : new MemoryStorage()),
+    },
   ],
 })
 export class SharedModule {}
