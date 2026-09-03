@@ -257,6 +257,24 @@ class ValidateApplicationSettingsDomainServiceImplTest {
         }
 
         @Test
+        void should_reject_duplicated_certificate_with_different_pem_formatting() {
+            var reformattedPem = VALID_PEM.replace("-----BEGIN CERTIFICATE-----\n", "-----BEGIN CERTIFICATE-----\r\n");
+            var tls = TlsSettings.builder()
+                .clientCertificates(
+                    List.of(
+                        new CreateClientCertificate("cert1", null, null, VALID_PEM),
+                        new CreateClientCertificate("cert2", null, null, reformattedPem)
+                    )
+                )
+                .build();
+
+            var result = cut.validateAndSanitize(inputWithTls(tls));
+
+            assertThat(result.severe()).isPresent();
+            assertThat(result.severe().get()).anyMatch(e -> e.getMessage().contains("client certificate content must be unique"));
+        }
+
+        @Test
         void should_reject_certificate_already_used_by_another_application() {
             var info = clientCertificateValidationDomainService.validate(VALID_PEM);
             clientCertificateCrudService.initWith(

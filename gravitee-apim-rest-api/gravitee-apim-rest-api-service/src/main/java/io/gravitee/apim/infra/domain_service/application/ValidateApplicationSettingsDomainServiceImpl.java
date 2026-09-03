@@ -153,10 +153,16 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
                 validateCertificateCreation(input, new CreateClientCertificate("certificate", null, null, tls.getClientCertificate()))
             );
         } else if (hasList) {
-            Set<String> certs = tls.getClientCertificates().stream().map(CreateClientCertificate::certificate).collect(Collectors.toSet());
-            if (certs.size() != tls.getClientCertificates().size()) {
-                errors.add(Error.severe("client certificate content must be unique"));
-                return errors;
+            Set<String> fingerprints = new java.util.HashSet<>();
+            for (var cert : tls.getClientCertificates()) {
+                var parsed = validateCertificatePem(cert.certificate());
+                if (parsed.errors().stream().anyMatch(Error::isSevere)) {
+                    continue;
+                }
+                if (!fingerprints.add(fingerprint(cert.certificate()))) {
+                    errors.add(Error.severe("client certificate content must be unique"));
+                    return errors;
+                }
             }
             for (var cert : tls.getClientCertificates()) {
                 errors.addAll(validateCertificateCreation(input, cert));
@@ -189,6 +195,7 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
         if (input.applicationId() == null) {
             return true;
         }
+        var incomingFingerprint = fingerprint(certificatePem);
         var existingCerts = clientCertificateCrudService.findByApplicationIdAndStatuses(
             input.applicationId(),
             ClientCertificateStatus.ACTIVE,
@@ -197,7 +204,18 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
         if (CollectionUtils.isEmpty(existingCerts)) {
             return true;
         }
-        return existingCerts.stream().noneMatch(cert -> certificatePem.equals(cert.certificate()));
+        return existingCerts.stream().noneMatch(cert -> incomingFingerprint.equals(fingerprintOf(cert)));
+    }
+
+    private String fingerprintOf(ClientCertificate certificate) {
+        if (StringUtils.isNotEmpty(certificate.fingerprint())) {
+            return certificate.fingerprint();
+        }
+        return fingerprint(certificate.certificate());
+    }
+
+    private String fingerprint(String certificatePem) {
+        return clientCertificateValidationDomainService.validate(certificatePem).fingerprint();
     }
 
     private List<Error> validateCertificateEntry(CreateClientCertificate cert) {
