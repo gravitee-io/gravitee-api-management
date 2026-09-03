@@ -15,20 +15,20 @@
  */
 import { jwtDecode, type JwtPayload } from 'jwt-decode';
 
-export interface ResetPasswordTokenClaims extends JwtPayload {
+export interface AuthTokenClaims extends JwtPayload {
     email?: string;
     firstname?: string;
     lastname?: string;
 }
 
-export function parseResetPasswordToken(token: string): ResetPasswordTokenClaims | null {
+export function parseAuthToken(token: string): AuthTokenClaims | null {
     try {
-        return jwtDecode<ResetPasswordTokenClaims>(token);
+        return jwtDecode<AuthTokenClaims>(token);
     } catch {
         return null;
     }
 }
 
-export function isResetPasswordTokenExpired(claims: ResetPasswordTokenClaims): boolean {
+export function isAuthTokenExpired(claims: AuthTokenClaims): boolean {
     return typeof claims.exp === 'number' && claims.exp * 1000 < Date.now();
 }
