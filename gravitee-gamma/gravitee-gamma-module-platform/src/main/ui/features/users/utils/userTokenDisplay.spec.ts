@@ -43,7 +43,18 @@ describe('userTokenDisplay utilities', () => {
     });
 
     it('formats token timestamps for table display', () => {
-        expect(formatTokenTimestamp(undefined)).toBe('never');
-        expect(formatTokenTimestamp(Date.parse('2021-08-31T01:35:35.403Z'))).toMatch(/Aug 31, 2021|31 Aug 2021/);
+        const RealDateTimeFormat = Intl.DateTimeFormat;
+        const dtfSpy = jest
+            .spyOn(Intl, 'DateTimeFormat')
+            .mockImplementation(
+                (locale?: string | string[], options?: Intl.DateTimeFormatOptions) =>
+                    new RealDateTimeFormat(locale, { ...options, timeZone: 'UTC' }),
+            );
+        try {
+            expect(formatTokenTimestamp(undefined)).toBe('never');
+            expect(formatTokenTimestamp(Date.parse('2021-08-31T01:35:35.403Z'))).toMatch(/Aug 31, 2021|31 Aug 2021/);
+        } finally {
+            dtfSpy.mockRestore();
+        }
     });
 });
