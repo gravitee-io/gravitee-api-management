@@ -358,6 +358,20 @@ class PortalNavigationItemsMapperTest {
         }
 
         @Test
+        void should_map_update_portal_navigation_subscription_form_via_polymorphic_dispatch() {
+            var subscriptionForm = new UpdatePortalNavigationSubscriptionForm();
+            subscriptionForm.type(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType.SUBSCRIPTION_FORM);
+            subscriptionForm.title("Subscription Form");
+            subscriptionForm.order(0);
+            subscriptionForm.published(true);
+            subscriptionForm.visibility(io.gravitee.rest.api.management.v2.rest.model.PortalVisibility.PUBLIC);
+
+            var result = mapper.map((io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem) subscriptionForm);
+
+            assertThat(result.getType()).isEqualTo(io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.SUBSCRIPTION_FORM);
+        }
+
+        @Test
         void should_map_create_portal_navigation_api_product() {
             var category1 = UUID.randomUUID();
             var category2 = UUID.randomUUID();
