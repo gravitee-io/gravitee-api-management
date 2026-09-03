@@ -41,8 +41,9 @@ tags:
           are RBAC-scoped: the caller only sees logs for APIs they have read access to.
 
           Filter conditions reference the shared filter catalog narrowed to the `LOGS` signal.
-          When no explicit entrypoint filter is supplied, the server injects the canonical HTTP
-          entrypoints so table totals match the analytics dashboard.
+          When no explicit entrypoint filter is supplied, the server scopes the search to the
+          entrypoints observability counts as request traffic, plus native Kafka connections, which
+          the logs signal serves and the analytics dashboard does not.
     - name: Analytics
       description: |
           Environment-wide analytics computation: aggregate measures, faceted breakdowns, and
@@ -50,8 +51,10 @@ tags:
 
           Filter conditions reference the shared filter catalog narrowed to the `ANALYTICS` signal.
           RBAC scoping ensures the caller only sees metrics for APIs they have read access to.
-          When no explicit `ENTRYPOINT` filter is supplied, the server injects the canonical HTTP
-          entrypoints (`http-get`, `http-post`, `http-proxy`, `llm-proxy`, `mcp-proxy`).
+          When no explicit `ENTRYPOINT` filter is supplied, the server scopes the query to the
+          entrypoints observability counts as request traffic. That list is a product decision, not a
+          plugin property, and grows as entrypoints reach the product; query
+          `GET /observability/filters/ENTRYPOINT/values` for the ids present in your own data.
 
           All three endpoints return opaque JSON produced by the APIM analytics engine — the
           response schemas below document the stable structure but additional fields may appear.
@@ -605,9 +608,10 @@ paths:
                 indistinguishable from an unfiltered result.
 
                 **Default entrypoint scoping**: when no explicit `ENTRYPOINT` filter is supplied,
-                the server injects the canonical HTTP entrypoints (`http-get`, `http-post`,
-                `http-proxy`, `llm-proxy`, `mcp-proxy`) so log table totals match the analytics
-                dashboard for the same time range. Skipped for decision rows, which carry no
+                the server scopes the search to the entrypoints observability counts as request
+                traffic, plus native Kafka connections — the logs signal serves those and the
+                analytics dashboard does not, so an unfiltered log total can exceed the dashboard
+                total on an environment that mixes both. Skipped for decision rows, which carry no
                 entrypoint.
 
                 **Enrichment**: each log entry is enriched server-side with display names for API,

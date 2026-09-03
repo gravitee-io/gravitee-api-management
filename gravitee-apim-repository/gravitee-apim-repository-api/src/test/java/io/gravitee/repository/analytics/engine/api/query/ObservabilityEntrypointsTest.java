@@ -38,6 +38,17 @@ class ObservabilityEntrypointsTest {
     @Nested
     class Scopes {
 
+        /**
+         * Two constants sharing an id would repeat it in the derived lists and split its scope decision in
+         * two places, so a later reader could not tell which one the product meant.
+         */
+        @Test
+        void should_declare_each_entrypoint_id_once() {
+            var ids = Arrays.stream(ObservabilityEntrypoints.values()).map(ObservabilityEntrypoints::id).toList();
+
+            assertThat(ids).doesNotHaveDuplicates();
+        }
+
         @Test
         void should_expose_the_http_scope_in_declaration_order() {
             assertThat(ObservabilityEntrypoints.HTTP_SCOPE_IDS).containsExactly(
@@ -46,7 +57,9 @@ class ObservabilityEntrypointsTest {
                 "http-proxy",
                 "llm-proxy",
                 "mcp-proxy",
-                "a2a-proxy"
+                "a2a-proxy",
+                "mcp",
+                "mcp-studio"
             );
         }
 
@@ -59,6 +72,8 @@ class ObservabilityEntrypointsTest {
                 "llm-proxy",
                 "mcp-proxy",
                 "a2a-proxy",
+                "mcp",
+                "mcp-studio",
                 "native-kafka"
             );
         }

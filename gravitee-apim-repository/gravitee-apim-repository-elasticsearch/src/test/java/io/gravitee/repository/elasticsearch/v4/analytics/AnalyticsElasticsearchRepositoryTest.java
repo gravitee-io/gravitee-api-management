@@ -2050,6 +2050,49 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             }
         }
 
+        /**
+         * The scope decisions proven on documents rather than on the query body: an API exposed over the two
+         * promoted entrypoints is counted by the default HTTP scope, while the same API's agent-to-agent
+         * traffic (deliberately deferred) and its sse subscription stay out of it.
+         */
+        @Nested
+        class PromotedEntrypoints {
+
+            private static final String PROMOTED_API = "promoted-entrypoints-api-001";
+
+            private long countWith(Filter... filters) {
+                var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+                var result = cut.searchHTTPMeasures(QUERY_CONTEXT, new MeasuresQuery(buildTimeRange(), List.of(filters), metrics));
+
+                return result.measures().getFirst().measures().get(Measure.COUNT).longValue();
+            }
+
+            private static Filter api() {
+                return new Filter(Filter.Name.API, Filter.Operator.IN, List.of(PROMOTED_API));
+            }
+
+            @Test
+            void should_count_the_promoted_entrypoints_only() {
+                // mcp and mcp-studio; the agent-to-agent and sse documents of the same API are left out.
+                assertThat(countWith(api())).isEqualTo(2L);
+            }
+
+            @Test
+            void should_leave_the_deferred_entrypoint_out_of_the_default_scope() {
+                var entrypoint = new Filter(Filter.Name.ENTRYPOINT, Filter.Operator.IN, List.of("agent-to-agent"));
+
+                assertThat(countWith(api(), entrypoint)).isEqualTo(1L);
+                assertThat(countWith(api())).isEqualTo(2L);
+            }
+
+            @Test
+            void should_still_honour_an_explicit_filter_on_a_promoted_entrypoint() {
+                var entrypoint = new Filter(Filter.Name.ENTRYPOINT, Filter.Operator.IN, List.of("mcp-studio"));
+
+                assertThat(countWith(api(), entrypoint)).isEqualTo(1L);
+            }
+        }
+
         @Nested
         class LLM {
 
