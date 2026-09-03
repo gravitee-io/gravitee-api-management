@@ -246,6 +246,18 @@ jobs:
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*
             - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target/distribution
             - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution
+  job-check-graphene-versions:
+    docker:
+      - image: cimg/node:24.18.0
+    resource_class: small
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Check graphene versions across bundled Gamma modules
+          command: npm ci && npx ts-node src/graphene-versions/check.ts
+          working_directory: .circleci/ci
   job-test-plugin:
     machine:
       image: ubuntu-2204:current
@@ -348,6 +360,12 @@ workflows:
             - cicd-orchestrator
           requires:
             - Validate backend
+      - job-check-graphene-versions:
+          name: Check graphene versions
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build backend
       - job-test-plugin:
           name: Test plugins
           context:
@@ -366,6 +384,7 @@ workflows:
           name: Validate workflow status
           requires:
             - Build backend
+            - Check graphene versions
             - Test plugins
 orbs:
   keeper: gravitee-io/keeper@0.7.1
