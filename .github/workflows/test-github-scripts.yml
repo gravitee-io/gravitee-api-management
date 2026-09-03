@@ -1,0 +1,15 @@
+# The scripts under .github/scripts run inside other repos' release pipelines,
+# so their tests must go red here, on the PR, and not there.
+name: Test GitHub scripts
+
+on:
+    pull_request:
+        paths:
+            - '.github/scripts/**'
+
+jobs:
+    unit-tests:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6.1.0
+            - run: python3 -m unittest discover -s .github/scripts -p 'test_*.py'
