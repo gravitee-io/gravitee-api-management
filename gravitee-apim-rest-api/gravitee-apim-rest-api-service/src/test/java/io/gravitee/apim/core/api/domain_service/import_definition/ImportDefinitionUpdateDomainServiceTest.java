@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 
 import fakes.FakeApiImagesService;
 import fixtures.core.model.ApiFixtures;
+import fixtures.core.model.GroupFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
@@ -41,6 +42,7 @@ import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiService;
@@ -153,6 +155,43 @@ class ImportDefinitionUpdateDomainServiceTest {
             .build();
         Throwable throwable = catchThrowable(() -> service.update(importDefinition, existingApi, AUDIT_INFO));
         assertThat(throwable).isInstanceOf(IllegalStateException.class).hasMessage("Unsupported API type: LLM_PROXY");
+    }
+
+    @Test
+    void should_resolve_existing_group_by_name_and_create_missing_group_on_update() {
+        importDefinitionUpdateInitializer.groupQueryServiceInMemory.initWith(
+            List.of(GroupFixtures.aGroup("developers-id").toBuilder().name("Developers").environmentId(TARGET_ENVIRONMENT_ID).build())
+        );
+
+        var existingApi = ApiFixtures.aProxyApiV4()
+            .toBuilder()
+            .id(PROMOTED_API_ID)
+            .crossId(PROMOTED_API_CROSS_ID)
+            .name("api name")
+            .environmentId(TARGET_ENVIRONMENT_ID)
+            .build();
+        apiCrudServiceInMemory.initWith(List.of(existingApi));
+        apiQueryServiceInMemory.initWith(List.of(existingApi));
+
+        var importDefinition = ImportDefinition.builder()
+            .apiExport(
+                ApiExport.builder()
+                    .id(PROMOTED_API_ID)
+                    .crossId(PROMOTED_API_CROSS_ID)
+                    .name("updated name")
+                    .groups(Set.of("Developers", "Helios"))
+                    .build()
+            )
+            .build();
+
+        service.update(importDefinition, existingApi, AUDIT_INFO);
+
+        var groupsCaptor = ArgumentCaptor.forClass(UpdateApiEntity.class);
+        verify(apiService).update(any(), eq(PROMOTED_API_ID), groupsCaptor.capture(), eq(false), eq(USER));
+        assertThat(groupsCaptor.getValue().getGroups()).hasSize(2).contains("developers-id");
+        assertThat(
+            importDefinitionUpdateInitializer.groupQueryServiceInMemory.findByNames(TARGET_ENVIRONMENT_ID, Set.of("Helios"))
+        ).hasSize(1);
     }
 
     @Test

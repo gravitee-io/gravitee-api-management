@@ -37,6 +37,7 @@ import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentation
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.group.domain_service.ImportApiGroupsDomainService;
 import io.gravitee.apim.core.media.model.Media;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
@@ -74,6 +75,7 @@ public class ImportDefinitionCreateDomainService {
     private final MetadataCrudService metadataCrudService;
     private final DocumentationValidationDomainService documentationValidationDomainService;
     private final CategoryDomainService categoryDomainService;
+    private final ImportApiGroupsDomainService importApiGroupsDomainService;
 
     public ImportDefinitionCreateDomainService(
         ApiImportDomainService apiImportDomainService,
@@ -86,7 +88,8 @@ public class ImportDefinitionCreateDomainService {
         ApiIdsCalculatorDomainService apiIdsCalculatorDomainService,
         MetadataCrudService metadataCrudService,
         DocumentationValidationDomainService documentationValidationDomainService,
-        CategoryDomainService categoryDomainService
+        CategoryDomainService categoryDomainService,
+        ImportApiGroupsDomainService importApiGroupsDomainService
     ) {
         this.apiImportDomainService = apiImportDomainService;
         this.apiPrimaryOwnerFactory = apiPrimaryOwnerFactory;
@@ -99,6 +102,7 @@ public class ImportDefinitionCreateDomainService {
         this.metadataCrudService = metadataCrudService;
         this.documentationValidationDomainService = documentationValidationDomainService;
         this.categoryDomainService = categoryDomainService;
+        this.importApiGroupsDomainService = importApiGroupsDomainService;
     }
 
     public ApiWithFlows create(AuditInfo auditInfo, ImportDefinition importDefinition) {
@@ -111,7 +115,11 @@ public class ImportDefinitionCreateDomainService {
             .orElse(auditInfo.actor().userId());
         PrimaryOwnerEntity primaryOwner = resolvePrimaryOwner(organizationId, environmentId, primaryOwnerId, auditInfo);
         var apiWithIds = apiIdsCalculatorDomainService.recalculateApiDefinitionIds(environmentId, importDefinition);
-        var api = ApiModelFactory.fromApiExport(apiWithIds.getApiExport(), environmentId);
+        var apiExport = apiWithIds.getApiExport();
+        apiExport.setGroups(
+            importApiGroupsDomainService.resolveOrCreateGroupIds(apiExport.getGroups(), new ExecutionContext(organizationId, environmentId))
+        );
+        var api = ApiModelFactory.fromApiExport(apiExport, environmentId);
         var apiWithResolvedCategories = resolveCategoriesForImport(api, environmentId);
         var createdApi = createApiDomainService.create(
             apiWithResolvedCategories,

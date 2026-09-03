@@ -29,11 +29,13 @@ import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinitionSubEntityProcessor;
 import io.gravitee.apim.core.api.service_provider.ApiImagesServiceProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.group.domain_service.ImportApiGroupsDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 import java.util.function.UnaryOperator;
 
@@ -49,6 +51,7 @@ public class ImportDefinitionUpdateDomainService {
     private final ImportDefinitionMetadataDomainService importDefinitionMetadataDomainService;
     private final ImportDefinitionPlanDomainService importDefinitionPlanDomainService;
     private final ImportDefinitionPageDomainService importDefinitionPageDomainService;
+    private final ImportApiGroupsDomainService importApiGroupsDomainService;
 
     ImportDefinitionUpdateDomainService(
         UpdateApiDomainService updateApiDomainService,
@@ -59,7 +62,8 @@ public class ImportDefinitionUpdateDomainService {
         ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
         ImportDefinitionMetadataDomainService importDefinitionMetadataDomainService,
         ImportDefinitionPlanDomainService importDefinitionPlanDomainService,
-        ImportDefinitionPageDomainService importDefinitionPageDomainService
+        ImportDefinitionPageDomainService importDefinitionPageDomainService,
+        ImportApiGroupsDomainService importApiGroupsDomainService
     ) {
         this.updateApiDomainService = updateApiDomainService;
         this.apiImagesServiceProvider = apiImagesServiceProvider;
@@ -70,19 +74,26 @@ public class ImportDefinitionUpdateDomainService {
         this.importDefinitionMetadataDomainService = importDefinitionMetadataDomainService;
         this.importDefinitionPlanDomainService = importDefinitionPlanDomainService;
         this.importDefinitionPageDomainService = importDefinitionPageDomainService;
+        this.importApiGroupsDomainService = importApiGroupsDomainService;
     }
 
     public Api update(ImportDefinition importDefinition, Api existingPromotedApi, AuditInfo auditInfo) {
         var apiId = existingPromotedApi.getId();
         var apiWithIds = apiIdsCalculatorDomainService.recalculateApiDefinitionIds(auditInfo.environmentId(), importDefinition);
         var apiExport = apiWithIds.getApiExport();
+        apiExport.setGroups(
+            importApiGroupsDomainService.resolveOrCreateGroupIds(
+                apiExport.getGroups(),
+                new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId())
+            )
+        );
 
         var updatedApi = switch (existingPromotedApi.getType()) {
             case PROXY, MESSAGE -> updateApiDomainService.updateV4(
                 ApiModelFactory.fromApiExport(apiExport, auditInfo.environmentId()),
                 auditInfo
             );
-            case NATIVE -> updateNativeApi(apiId, apiWithIds.getApiExport(), auditInfo);
+            case NATIVE -> updateNativeApi(apiId, apiExport, auditInfo);
             default -> throw new IllegalStateException("Unsupported API type: " + existingPromotedApi.getType());
         };
 
@@ -123,8 +134,8 @@ public class ImportDefinitionUpdateDomainService {
     }
 
     private UnaryOperator<Api> toNativeApiUpdateOperator(ApiExport apiExport) {
-        return currentApi ->
-            currentApi
+        return currentApi -> {
+            var builder = currentApi
                 .toBuilder()
                 .name(apiExport.getName())
                 .description(apiExport.getDescription())
@@ -153,7 +164,11 @@ public class ImportDefinitionUpdateDomainService {
                             .properties(apiExport.getProperties())
                             .build()
                         : null
-                )
-                .build();
+                );
+            if (apiExport.getGroups() != null) {
+                builder.groups(apiExport.getGroups());
+            }
+            return builder.build();
+        };
     }
 }
