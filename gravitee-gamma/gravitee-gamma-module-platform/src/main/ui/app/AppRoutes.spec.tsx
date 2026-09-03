@@ -202,6 +202,10 @@ jest.mock('../pages/CorsSettingsPage', () => ({
     CorsSettingsPage: () => <div data-testid="cors-settings-page" />,
 }));
 
+jest.mock('../pages/EnvironmentCorsSettingsPage', () => ({
+    EnvironmentCorsSettingsPage: () => <div data-testid="environment-cors-settings-page" />,
+}));
+
 jest.mock('../pages/SmtpSettingsPage', () => ({
     SmtpSettingsPage: () => <div data-testid="smtp-settings-page" />,
 }));
@@ -1106,6 +1110,12 @@ describe('AppRoutes', () => {
         expect(screen.getByTestId('smtp-settings-page')).not.toBeNull();
     });
 
+    it('routes to environment CORS settings', () => {
+        renderPlatform('/environment-cors');
+        expect(screen.getByTestId('environment-cors-settings-page')).not.toBeNull();
+        expect(screen.queryByTestId('cors-settings-page')).toBeNull();
+    });
+
     it('routes to organization notification templates', () => {
         renderPlatform('/templates');
         expect(screen.getByTestId('notification-templates-page')).not.toBeNull();
@@ -1267,6 +1277,15 @@ describe('AppRoutes', () => {
         renderPlatform();
 
         expect(visibleNavKeys()).not.toContain('security-plan-types');
+        expect(visibleNavKeys()).not.toContain('environment-cors');
+    });
+
+    it('does not render environment CORS without environment-settings-r', () => {
+        denyPermissions('environment-settings-r');
+        renderPlatform('/environment-cors');
+
+        expect(screen.queryByTestId('environment-cors-settings-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
     });
 
     it('renders Access Management from a pasted URL without organization-settings', () => {

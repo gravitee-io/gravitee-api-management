@@ -108,6 +108,7 @@ export const NAV_SECTIONS: PlatformNavSection[] = [
                     { key: 'gateways', title: ROUTES.gateways.label, icon: ServerIcon },
                     { key: 'alerts', title: ROUTES.alerts.label, icon: BellIcon },
                     { key: 'notification-settings', title: ROUTES['notification-settings'].label, icon: MailIcon },
+                    { key: 'environment-cors', title: ROUTES['environment-cors'].label, icon: GlobeIcon },
                     { key: 'security-plan-types', title: ROUTES['security-plan-types'].label, icon: KeyIcon },
                     { key: 'environment-audit', title: ROUTES['environment-audit'].label, icon: ScrollTextIcon },
                 ],

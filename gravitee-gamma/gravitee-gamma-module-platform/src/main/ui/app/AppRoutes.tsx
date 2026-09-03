@@ -73,6 +73,7 @@ import { DictionaryDetailPage } from '../pages/DictionaryDetailPage';
 import { EditIdentityProviderPage } from '../pages/EditIdentityProviderPage';
 import { EntrypointsAndShardingTagsPage } from '../pages/EntrypointsAndShardingTagsPage';
 import { EnvAuditLogsPage } from '../pages/EnvAuditLogsPage';
+import { EnvironmentCorsSettingsPage } from '../pages/EnvironmentCorsSettingsPage';
 import { EnvironmentNotificationSettingsPage } from '../pages/EnvironmentNotificationSettingsPage';
 import { GatewayInstanceEnvironmentPage } from '../pages/GatewayInstanceEnvironmentPage';
 import { GatewayInstanceMonitoringPage } from '../pages/GatewayInstanceMonitoringPage';
@@ -491,6 +492,14 @@ export function AppRoutes() {
                                 element={
                                     <NavPermissionGuard itemKey="smtp">
                                         <SmtpSettingsPage />
+                                    </NavPermissionGuard>
+                                }
+                            />
+                            <Route
+                                path="environment-cors"
+                                element={
+                                    <NavPermissionGuard itemKey="environment-cors">
+                                        <EnvironmentCorsSettingsPage />
                                     </NavPermissionGuard>
                                 }
                             />

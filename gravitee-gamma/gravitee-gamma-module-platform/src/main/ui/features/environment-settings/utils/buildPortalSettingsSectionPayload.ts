@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
-import { useQuery } from '@tanstack/react-query';
+import type { PortalSettings } from '../../security-plan-types/services/portalSettings';
 
-import { getPortalSettings } from '../services/portalSettings';
-import { portalSettingsKeys } from '../utils/queryKeys';
+export type PortalSettingsSection = 'cors';
 
-export function usePortalSettings() {
-    const env = useEnvironment();
-
-    return useQuery({
-        queryKey: portalSettingsKeys.env(env?.id ?? ''),
-        queryFn: () => getPortalSettings(env!.id),
-        enabled: Boolean(env?.id),
-        staleTime: 0,
-    });
+/**
+ * Classic portal-settings save: POST the full fetched entity with only the edited section overlaid.
+ */
+export function buildPortalSettingsSectionPayload(
+    current: PortalSettings,
+    section: PortalSettingsSection,
+    overlay: Pick<PortalSettings, 'cors'>,
+): PortalSettings {
+    return {
+        ...current,
+        cors: section === 'cors' ? { ...current.cors, ...overlay.cors } : current.cors,
+    };
 }

@@ -35,12 +35,21 @@ export interface PortalSettingsMetadata {
     readonly?: string[];
 }
 
+export interface PortalSettingsCors {
+    allowOrigin?: string[];
+    allowHeaders?: string[];
+    allowMethods?: string[];
+    exposedHeaders?: string[];
+    maxAge?: number;
+}
+
 export interface PortalSettings {
     metadata?: PortalSettingsMetadata;
     plan?: {
         security?: PlanSecuritySettings;
         [key: string]: unknown;
     };
+    cors?: PortalSettingsCors;
     [key: string]: unknown;
 }
 

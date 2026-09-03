@@ -104,9 +104,13 @@ public class ParameterServiceTest {
     private CommandRepository commandRepository;
 
     @BeforeEach
-    public void init() {
+    public void init() throws TechnicalException {
         GraviteeContext.getCurrentParameters().clear();
         when(node.id()).thenReturn("test-node-id");
+        EnvironmentEntity defaultEnv = new EnvironmentEntity();
+        defaultEnv.setOrganizationId("DEFAULT_ORG");
+        lenient().when(environmentService.findById(anyString())).thenReturn(defaultEnv);
+        lenient().when(parameterRepository.findById(anyString(), anyString(), eq(ParameterReferenceType.ORGANIZATION))).thenReturn(empty());
     }
 
     @Test
@@ -1533,5 +1537,112 @@ public class ParameterServiceTest {
                     auditLogData.getNewValue().equals(parameter)
             )
         );
+    }
+
+    @Test
+    public void should_not_create_env_parameter_when_value_equals_organization() throws TechnicalException {
+        final Parameter orgParameter = new Parameter();
+        orgParameter.setKey(LOGGING_DEFAULT_MAX_DURATION.key());
+        orgParameter.setValue("15000");
+
+        when(parameterRepository.findById(LOGGING_DEFAULT_MAX_DURATION.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
+            empty()
+        );
+        when(
+            parameterRepository.findById(LOGGING_DEFAULT_MAX_DURATION.key(), "DEFAULT_ORG", ParameterReferenceType.ORGANIZATION)
+        ).thenReturn(of(orgParameter));
+
+        Parameter result = parameterService.save(
+            GraviteeContext.getExecutionContext(),
+            LOGGING_DEFAULT_MAX_DURATION,
+            "15000",
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        assertEquals("15000", result.getValue());
+        verify(parameterRepository, never()).create(any());
+        verify(auditService, never()).createAuditLog(any(), any());
+    }
+
+    @Test
+    public void should_create_env_parameter_when_value_differs_from_organization() throws TechnicalException {
+        final Parameter orgParameter = new Parameter();
+        orgParameter.setKey(LOGGING_DEFAULT_MAX_DURATION.key());
+        orgParameter.setValue("15000");
+
+        when(parameterRepository.findById(LOGGING_DEFAULT_MAX_DURATION.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
+            empty()
+        );
+        when(
+            parameterRepository.findById(LOGGING_DEFAULT_MAX_DURATION.key(), "DEFAULT_ORG", ParameterReferenceType.ORGANIZATION)
+        ).thenReturn(of(orgParameter));
+        when(parameterRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Parameter result = parameterService.save(
+            GraviteeContext.getExecutionContext(),
+            LOGGING_DEFAULT_MAX_DURATION,
+            "30000",
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        assertEquals("30000", result.getValue());
+        verify(parameterRepository).create(any());
+    }
+
+    @Test
+    public void should_not_create_env_parameter_when_value_equals_key_default() throws TechnicalException {
+        when(parameterRepository.findById(PORTAL_TCP_PORT.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(empty());
+
+        Parameter result = parameterService.save(
+            GraviteeContext.getExecutionContext(),
+            PORTAL_TCP_PORT,
+            "4082",
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        assertEquals("4082", result.getValue());
+        verify(parameterRepository, never()).create(any());
+        verify(auditService, never()).createAuditLog(any(), any());
+    }
+
+    @Test
+    public void should_not_create_env_branded_senders_when_json_matches_organization() throws TechnicalException {
+        final String orgJson = "[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[Example] %s\"}]";
+        final String postedJson = "[{\"subject\":\"[Example] %s\",\"from\":\"noreply@example.com\",\"domains\":[\"example.com\"]}]";
+        final Parameter orgParameter = new Parameter();
+        orgParameter.setKey(EMAIL_BRANDED_SENDERS.key());
+        orgParameter.setValue(orgJson);
+
+        when(parameterRepository.findById(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(empty());
+        when(parameterRepository.findById(EMAIL_BRANDED_SENDERS.key(), "DEFAULT_ORG", ParameterReferenceType.ORGANIZATION)).thenReturn(
+            of(orgParameter)
+        );
+
+        parameterService.save(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_BRANDED_SENDERS,
+            postedJson,
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        verify(parameterRepository, never()).create(any());
+    }
+
+    @Test
+    public void should_not_persist_env_save_when_key_has_no_environment_scope() throws TechnicalException {
+        when(parameterRepository.findById(CONSOLE_HTTP_CORS_MAX_AGE.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
+            empty()
+        );
+
+        Parameter result = parameterService.save(
+            GraviteeContext.getExecutionContext(),
+            CONSOLE_HTTP_CORS_MAX_AGE,
+            "60",
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        assertEquals("60", result.getValue());
+        verify(parameterRepository, never()).create(any());
+        verify(parameterRepository, never()).update(any());
     }
 }

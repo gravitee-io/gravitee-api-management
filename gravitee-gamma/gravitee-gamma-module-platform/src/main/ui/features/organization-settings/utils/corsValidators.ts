@@ -95,9 +95,28 @@ export type CorsHttpMethod = (typeof CORS_HTTP_METHODS)[number];
 
 export const DEFAULT_CORS_MAX_AGE = 1728000;
 
+/** Integer.MAX_VALUE — backend storage type for cors.maxAge. */
+export const MAX_CORS_MAX_AGE = 2147483647;
+
+export function parseCorsMaxAge(value: string): number | null {
+    if (!/^\d+$/.test(value.trim())) return null;
+    const parsed = Number(value);
+    if (!Number.isSafeInteger(parsed) || parsed > MAX_CORS_MAX_AGE) return null;
+    return parsed;
+}
+
+/** Cap compiled CORS origin patterns to bound ReDoS from admin input. */
+export const MAX_CORS_ALLOW_ORIGIN_PATTERN_LENGTH = 256;
+
+const NESTED_QUANTIFIERS = /\([^()]*[+*][^()]*\)[+*?]/;
+
+function isUnsafeAllowOriginPattern(origin: string): boolean {
+    return origin.length > MAX_CORS_ALLOW_ORIGIN_PATTERN_LENGTH || NESTED_QUANTIFIERS.test(origin);
+}
+
 /**
  * Port of Classic `CorsUtil.allowOriginValidator`.
- * `*` and plain origins pass; values that look like regexes must compile.
+ * `*` and plain origins pass; values that look like regexes must compile without nested quantifiers.
  */
 export function getInvalidAllowOrigins(allowOrigin: readonly string[]): string[] {
     return allowOrigin.filter(origin => {
@@ -105,6 +124,9 @@ export function getInvalidAllowOrigins(allowOrigin: readonly string[]): string[]
             return false;
         }
         if (origin.includes('(') || origin.includes('[') || origin.includes('*')) {
+            if (isUnsafeAllowOriginPattern(origin)) {
+                return true;
+            }
             try {
                 new RegExp(origin);
                 return false;

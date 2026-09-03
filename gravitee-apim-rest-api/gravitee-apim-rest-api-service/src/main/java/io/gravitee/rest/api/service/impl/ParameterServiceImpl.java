@@ -46,6 +46,7 @@ import io.gravitee.rest.api.model.InvalidateParameterCacheCommandEntity;
 import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.KeyScope;
+import io.gravitee.rest.api.model.settings.BrandedSenders;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.ParameterService;
@@ -60,6 +61,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -468,6 +470,10 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                 }
             }
 
+            if (!isKeyInReferenceScope(key, referenceType)) {
+                return parameter;
+            }
+
             if (updateMode) {
                 if (value == null) {
                     deleteParameterAndInvalidateCache(
@@ -505,6 +511,9 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
             } else {
                 if (value == null) {
                     return null;
+                }
+                if (referenceType == ENVIRONMENT && isSameAsInheritedEnvironmentValue(key, value, refIdToUse)) {
+                    return parameter;
                 }
                 final Parameter savedParameter = parameterRepository.create(parameter);
                 cache.invalidate(computeCacheKey(key.key(), refIdToUse, ParameterReferenceType.valueOf(referenceType.name())));
@@ -833,5 +842,40 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
         } catch (TechnicalException e) {
             log.error("Failed to create command to invalidate cached parameter for {}", eventData, e);
         }
+    }
+
+    private boolean isKeyInReferenceScope(Key key, io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
+        if (referenceType == ENVIRONMENT) {
+            return key.scopes().contains(KeyScope.ENVIRONMENT);
+        }
+        if (referenceType == ORGANIZATION) {
+            return key.scopes().contains(KeyScope.ORGANIZATION);
+        }
+        return true;
+    }
+
+    private boolean isSameAsInheritedEnvironmentValue(Key key, String value, String environmentId) throws TechnicalException {
+        return parameterValuesEquivalent(key, value, resolveInheritedEnvironmentValue(key, environmentId));
+    }
+
+    private String resolveInheritedEnvironmentValue(Key key, String environmentId) throws TechnicalException {
+        if (key.scopes().contains(KeyScope.ORGANIZATION)) {
+            String organizationId = environmentService.findById(environmentId).getOrganizationId();
+            Optional<Parameter> orgParameter = getOrgParameter(key, organizationId);
+            if (orgParameter.isPresent()) {
+                return orgParameter.get().getValue();
+            }
+        }
+        return key.defaultValue();
+    }
+
+    private boolean parameterValuesEquivalent(Key key, String left, String right) {
+        if (Objects.equals(left, right)) {
+            return true;
+        }
+        if (key == Key.EMAIL_BRANDED_SENDERS) {
+            return BrandedSenders.parse(left).equals(BrandedSenders.parse(right));
+        }
+        return false;
     }
 }

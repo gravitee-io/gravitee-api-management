@@ -23,7 +23,7 @@ import { useOrgConsoleSettings } from '../features/organization-settings/hooks/u
 import { useSaveOrgConsoleSettings } from '../features/organization-settings/hooks/useSaveOrgConsoleSettings';
 import type { ConsoleSettings } from '../features/organization-settings/types/consoleSettings';
 import { buildConsoleSettingsSavePayload } from '../features/organization-settings/utils/buildConsoleSettingsSavePayload';
-import { DEFAULT_CORS_MAX_AGE, getInvalidAllowOrigins } from '../features/organization-settings/utils/corsValidators';
+import { DEFAULT_CORS_MAX_AGE, getInvalidAllowOrigins, parseCorsMaxAge } from '../features/organization-settings/utils/corsValidators';
 import { isConsoleSettingReadonly } from '../features/organization-settings/utils/isConsoleSettingReadonly';
 
 function buildState(settings: ConsoleSettings | undefined): CorsFormState {
@@ -34,15 +34,6 @@ function buildState(settings: ConsoleSettings | undefined): CorsFormState {
         exposedHeaders: settings?.cors?.exposedHeaders ?? [],
         maxAge: String(settings?.cors?.maxAge ?? DEFAULT_CORS_MAX_AGE),
     };
-}
-
-const MAX_CORS_MAX_AGE = 2147483647; // Integer.MAX_VALUE, the backend's storage type for cors.maxAge
-
-function parseMaxAge(value: string): number | null {
-    if (!/^\d+$/.test(value.trim())) return null;
-    const parsed = Number(value);
-    if (!Number.isSafeInteger(parsed) || parsed > MAX_CORS_MAX_AGE) return null;
-    return parsed;
 }
 
 export function CorsSettingsPage() {
@@ -77,7 +68,7 @@ export function CorsSettingsPage() {
         [settings],
     );
 
-    const maxAge = parseMaxAge(localState.maxAge);
+    const maxAge = parseCorsMaxAge(localState.maxAge);
     const isValid = maxAge !== null && getInvalidAllowOrigins(localState.allowOrigin).length === 0;
 
     function handleSave() {

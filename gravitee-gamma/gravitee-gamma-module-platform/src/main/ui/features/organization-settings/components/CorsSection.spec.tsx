@@ -82,4 +82,20 @@ describe('CorsSection', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Yes, I want to allow all origins.' }));
         expect(screen.getByText(/exposes this management API/)).not.toBeNull();
     });
+
+    it('lets callers name the API in the wildcard warning', () => {
+        function EnvHarness() {
+            const [value, setValue] = useState({ ...INITIAL, allowOrigin: ['*'] });
+            return (
+                <CorsSection
+                    value={value}
+                    disabled={false}
+                    wildcardWarningTarget="developer portal API"
+                    onChange={setValue}
+                />
+            );
+        }
+        render(<EnvHarness />);
+        expect(screen.getByText(/exposes this developer portal API/)).not.toBeNull();
+    });
 });

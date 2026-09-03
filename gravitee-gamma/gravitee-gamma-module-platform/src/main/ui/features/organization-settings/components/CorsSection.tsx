@@ -42,11 +42,13 @@ export function CorsSection({
     value,
     disabled,
     readonly = {},
+    wildcardWarningTarget = 'management API',
     onChange,
 }: Readonly<{
     value: CorsFormState;
     disabled: boolean;
     readonly?: CorsFieldReadonly;
+    wildcardWarningTarget?: string;
     onChange: (next: CorsFormState) => void;
 }>) {
     const [pendingWildcard, setPendingWildcard] = useState(false);
@@ -97,8 +99,8 @@ export function CorsSection({
                         <Alert>
                             <InfoIcon className="size-4" />
                             <AlertDescription>
-                                Setting <span className="font-mono">*</span> exposes this management API to any website. Make sure that is
-                                intended.
+                                Setting <span className="font-mono">*</span> exposes this {wildcardWarningTarget} to any website. Make sure
+                                that is intended.
                             </AlertDescription>
                         </Alert>
                     ) : null}

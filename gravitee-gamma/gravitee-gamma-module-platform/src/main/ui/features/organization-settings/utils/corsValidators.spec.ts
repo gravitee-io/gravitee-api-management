@@ -14,7 +14,15 @@
  * limitations under the License.
  */
 
-import { CORS_DEFAULT_HTTP_HEADERS, CORS_HTTP_METHODS, DEFAULT_CORS_MAX_AGE, getInvalidAllowOrigins } from './corsValidators';
+import {
+    CORS_DEFAULT_HTTP_HEADERS,
+    CORS_HTTP_METHODS,
+    DEFAULT_CORS_MAX_AGE,
+    getInvalidAllowOrigins,
+    MAX_CORS_ALLOW_ORIGIN_PATTERN_LENGTH,
+    MAX_CORS_MAX_AGE,
+    parseCorsMaxAge,
+} from './corsValidators';
 
 describe('corsValidators', () => {
     it('exposes Classic HTTP methods in order', () => {
@@ -37,5 +45,21 @@ describe('corsValidators', () => {
 
     it('rejects invalid regular expressions that look like patterns', () => {
         expect(getInvalidAllowOrigins(['(http'])).toEqual(['(http']);
+    });
+
+    it('rejects nested-quantifier CORS origin patterns that can ReDoS', () => {
+        expect(getInvalidAllowOrigins(['(a+)+'])).toEqual(['(a+)+']);
+        const tooLong = `*${'a'.repeat(MAX_CORS_ALLOW_ORIGIN_PATTERN_LENGTH)}`;
+        expect(getInvalidAllowOrigins([tooLong])).toEqual([tooLong]);
+    });
+
+    it('parses cors max age as a non-negative integer up to Integer.MAX_VALUE', () => {
+        expect(parseCorsMaxAge('0')).toBe(0);
+        expect(parseCorsMaxAge('60')).toBe(60);
+        expect(parseCorsMaxAge(String(MAX_CORS_MAX_AGE))).toBe(MAX_CORS_MAX_AGE);
+        expect(parseCorsMaxAge('')).toBeNull();
+        expect(parseCorsMaxAge('1.5')).toBeNull();
+        expect(parseCorsMaxAge('-1')).toBeNull();
+        expect(parseCorsMaxAge(String(MAX_CORS_MAX_AGE + 1))).toBeNull();
     });
 });

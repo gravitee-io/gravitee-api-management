@@ -66,15 +66,20 @@ describe('platform navigation config', () => {
         expect(sectionKeys('Environment', 'APIs & Assets')).toEqual(['applications', 'metadata', 'dictionaries', 'shared-policy-groups']);
     });
 
-    it('places Access Management, Gateways, Alerts, Notification settings, Security Plan Types, and Audit under Environment / System & Security', () => {
+    it('places Access Management, Gateways, Alerts, Notification settings, CORS, Security Plan Types, and Audit under Environment / System & Security', () => {
         expect(sectionKeys('Environment', 'System & Security')).toEqual([
             'access-management',
             'gateways',
             'alerts',
             'notification-settings',
+            'environment-cors',
             'security-plan-types',
             'environment-audit',
         ]);
+        const systemItems =
+            NAV_SECTIONS.find(section => section.key === 'environment')?.groups.find(group => group.label === 'System & Security')
+                ?.items ?? [];
+        expect(systemItems.find(item => item.key === 'environment-cors')?.icon).toBe(GlobeIcon);
     });
 
     it('places Users, Groups, and Roles under Team', () => {
@@ -181,6 +186,13 @@ describe('platform navigation config', () => {
         expect(ROUTES.cors).toEqual({ path: 'cors', label: 'CORS' });
         expect(ROUTES.smtp).toEqual({ path: 'smtp', label: 'SMTP' });
         expect(ROUTES.templates).toEqual({ path: 'templates', label: 'Templates' });
+    });
+
+    it('declares the environment CORS route separately from organization CORS', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('environment-cors');
+        expect(ROUTES['environment-cors']).toEqual({ path: 'environment-cors', label: 'CORS' });
+        expect(findNavSectionKey(NAV_SECTIONS, 'environment-cors')).toBe('environment');
+        expect(findNavSectionKey(NAV_SECTIONS, 'cors')).toBe('organization');
     });
 
     it('declares the authentication route in platform routing config', () => {
