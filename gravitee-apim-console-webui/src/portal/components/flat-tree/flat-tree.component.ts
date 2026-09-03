@@ -191,6 +191,36 @@ export class FlatTreeComponent {
     return creationAllowedByNodeId;
   });
 
+  readonly agentCreationAllowedByNodeId = computed(() => {
+    const links = this.links();
+    const creationAllowedByNodeId = new Map<string, boolean>();
+
+    if (!links || !Array.isArray(links)) {
+      return creationAllowedByNodeId;
+    }
+
+    const itemsById = new Map<string, PortalNavigationItem>(links.map(item => [item.id, item]));
+
+    for (const link of links) {
+      let currentParent = link.parentId ? itemsById.get(link.parentId) : undefined;
+      const visitedParentIds = new Set<string>();
+      let hasAgentAncestor = false;
+
+      while (currentParent && !visitedParentIds.has(currentParent.id)) {
+        visitedParentIds.add(currentParent.id);
+        if (currentParent.type === 'AGENT') {
+          hasAgentAncestor = true;
+          break;
+        }
+        currentParent = currentParent.parentId ? itemsById.get(currentParent.parentId) : undefined;
+      }
+
+      creationAllowedByNodeId.set(link.id, !hasAgentAncestor);
+    }
+
+    return creationAllowedByNodeId;
+  });
+
   // "Fetch All" targets what the backend _fetch endpoint accepts: the sourced PAGE descendants, and the
   // import-managed folders, whose re-import replaces the walk of individual sourced pages
   private readonly fetchableContainerIds = computed(() => collectFetchableContainerIds(this.links()));
@@ -385,7 +415,7 @@ export class FlatTreeComponent {
   }
 
   canShowMoreActions(node: FlatTreeNode): boolean {
-    if ((node.type === 'FOLDER' || node.type === 'API_PRODUCT') && this.canCreate) {
+    if (this.isContainer(node) && this.canCreate) {
       return true;
     }
     return this.canUpdate || this.canDelete;
@@ -522,7 +552,7 @@ export class FlatTreeComponent {
   }
 
   private isContainer(node: SectionNode): boolean {
-    return node.type === 'FOLDER' || node.type === 'API' || node.type === 'API_PRODUCT';
+    return node.type === 'FOLDER' || node.type === 'API' || node.type === 'API_PRODUCT' || node.type === 'AGENT';
   }
 
   // Reject the dragged node itself and its own descendants as targets: re-parenting a node under one
@@ -640,7 +670,7 @@ export class FlatTreeComponent {
         label: link.title,
         type,
         data: link,
-        children: type === 'FOLDER' || type === 'API' || type === 'API_PRODUCT' ? [] : undefined,
+        children: type === 'FOLDER' || type === 'API' || type === 'API_PRODUCT' || type === 'AGENT' ? [] : undefined,
         __order: link.order ?? 0,
         __parentId: link.parentId ?? null,
       } as ProcessingNode);

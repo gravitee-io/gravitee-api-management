@@ -126,6 +126,14 @@
               </span>
             </div>
           }
+          @if (selectedAgentId()) {
+            <div class="panel-header__title__linked-api" data-testid="linked-agent-header">
+              <span>Linked Agent:</span>
+              <span class="panel-header__title__linked-api__value">
+                {{ selectedLinkedAgentName.isLoading() ? 'Loading...' : (selectedLinkedAgentName.value() ?? selectedAgentId()) }}
+              </span>
+            </div>
+          }
         </div>
       }
       <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-u'] }">

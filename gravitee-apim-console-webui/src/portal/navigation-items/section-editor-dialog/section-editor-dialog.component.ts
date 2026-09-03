@@ -57,7 +57,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 export type SectionEditorDialogMode = 'create' | 'edit';
 
-export type SectionEditorDialogItemType = Exclude<PortalNavigationItemType, 'API' | 'API_PRODUCT'>;
+export type SectionEditorDialogItemType = Exclude<PortalNavigationItemType, 'API' | 'API_PRODUCT' | 'AGENT'>;
 
 interface SectionEditorDialogCreateData {
   mode: 'create';
@@ -101,6 +101,7 @@ export const PORTAL_PAGE_CONTENT_TYPE_OPTIONS: PortalPageTypeOption[] = [
 const TITLE_FIELD_LABEL_BY_TYPE: Record<PortalNavigationItemType, string> = {
   API: 'API Display Name',
   API_PRODUCT: 'API Product Display Name',
+  AGENT: 'Agent Display Name',
   FOLDER: 'Folder Title',
   LINK: 'Link Title',
   PAGE: 'Page Title',

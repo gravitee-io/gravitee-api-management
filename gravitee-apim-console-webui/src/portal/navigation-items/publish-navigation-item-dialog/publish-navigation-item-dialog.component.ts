@@ -51,10 +51,13 @@ export class PublishNavigationItemDialogComponent {
     propagatePublishToChildren: new FormControl(false, { nonNullable: true }),
   });
 
-  readonly isContainer = computed(() => ['FOLDER', 'API', 'API_PRODUCT'].includes(this.navItem().type));
+  readonly isContainer = computed(() => ['FOLDER', 'API', 'API_PRODUCT', 'AGENT'].includes(this.navItem().type));
   readonly typeLabel = computed(() => {
     if (this.navItem().type === 'API_PRODUCT') {
       return 'API Product';
+    }
+    if (this.navItem().type === 'AGENT') {
+      return 'Agent';
     }
     return this.navItem().type === 'API' ? 'API' : this.navItem().type.toLowerCase();
   });

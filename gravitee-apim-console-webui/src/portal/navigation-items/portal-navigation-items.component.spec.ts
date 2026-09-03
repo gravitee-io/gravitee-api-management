@@ -34,6 +34,7 @@ import { PortalNavigationItemsHarness } from './portal-navigation-items.harness'
 import { SectionEditorDialogHarness } from './section-editor-dialog/section-editor-dialog.harness';
 import { ApiSectionEditorDialogHarness } from './api-section-editor-dialog/api-section-editor-dialog.harness';
 import { ApiProductSectionEditorDialogHarness } from './api-product-section-editor-dialog/api-product-section-editor-dialog.harness';
+import { AgentSectionEditorDialogHarness } from './agent-section-editor-dialog/agent-section-editor-dialog.harness';
 import { OpenApiConfigDialogHarness } from './openapi-config-dialog/openapi-config-dialog.harness';
 import { PublishNavigationItemDialogHarness } from './publish-navigation-item-dialog/publish-navigation-item-dialog.harness';
 import { ImportNavigationDialogHarness } from './import-navigation-dialog/import-navigation-dialog.harness';
@@ -47,6 +48,7 @@ import {
   fakePortalPageContent,
   fakePortalNavigationApi,
   fakePortalNavigationApiProduct,
+  fakePortalNavigationAgent,
   fakePortalNavigationFolder,
   fakePortalNavigationItemsFetchSummary,
   fakePortalNavigationItemsResponse,
@@ -3415,6 +3417,94 @@ describe('PortalNavigationItemsComponent', () => {
     });
   });
 
+  describe('creating Agent navigation items in bulk', () => {
+    const folder = fakePortalNavigationFolder({ id: 'agent-folder-1', title: 'Agent Folder', area: 'TOP_NAVBAR' });
+    const agents = [
+      { id: 'agent-1', name: 'First Agent', apiVersion: '1.0', description: 'First' },
+      { id: 'agent-2', name: 'Second Agent', apiVersion: '2.0', description: 'Second' },
+    ];
+
+    beforeEach(async () => {
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder] }));
+    });
+
+    it('should create one Agent item per selection in a single ordered bulk request', async () => {
+      const createdAgents = agents.map((agent, index) =>
+        fakePortalNavigationAgent({
+          id: `nav-agent-${index + 1}`,
+          agentId: agent.id,
+          title: agent.name,
+          parentId: folder.id,
+          order: index,
+        }),
+      );
+
+      component.onNodeMenuAction({
+        action: 'create',
+        itemType: 'AGENT',
+        node: { id: folder.id, label: folder.title, type: folder.type, data: folder },
+      });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expectAgentSearchResponse(agents);
+
+      const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="agent-picker-checkbox-"]' }));
+      await checkboxes[1].check();
+      await checkboxes[0].check();
+
+      const dialog = await rootLoader.getHarness(AgentSectionEditorDialogHarness);
+      await dialog.clickSubmitButton();
+
+      expectCreateNavigationItemsInBulk(
+        [agents[1], agents[0]].map(agent => ({
+          title: agent.name,
+          type: 'AGENT',
+          area: 'TOP_NAVBAR',
+          parentId: folder.id,
+          visibility: 'PUBLIC',
+          agentId: agent.id,
+        })),
+        fakePortalNavigationItemsResponse({ items: [createdAgents[1], createdAgents[0]] }),
+      );
+
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, ...createdAgents] }));
+
+      expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdAgents[0].id } }));
+    });
+
+    it('should refresh the tree and show an actionable error after a partial bulk conflict', async () => {
+      const errorSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+
+      component.onNodeMenuAction({
+        action: 'create',
+        itemType: 'AGENT',
+        node: { id: folder.id, label: folder.title, type: folder.type, data: folder },
+      });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expectAgentSearchResponse(agents);
+      const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="agent-picker-checkbox-"]' }));
+      await checkboxes[0].check();
+      await (await rootLoader.getHarness(AgentSectionEditorDialogHarness)).clickSubmitButton();
+
+      const request = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_bulk`,
+      });
+      request.flush({ message: 'Conflict' }, { status: 409, statusText: 'Conflict' });
+
+      expect(errorSpy).not.toHaveBeenCalled();
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder] }));
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(errorSpy).toHaveBeenCalledWith('Unable to add Agents because one or more agents are already in the navigation');
+      expect(document.body.textContent).toContain('one or more agents are already in the navigation');
+    });
+  });
+
   function fakeSectionNode(sectionNode: Partial<SectionNode>): SectionNode {
     return {
       id: 'node-1',
@@ -3570,6 +3660,22 @@ describe('PortalNavigationItemsComponent', () => {
 
     expect(req.request.body).toEqual({ query: '' });
     req.flush({ data: apiProducts, pagination: { totalCount: apiProducts.length } });
+    fixture.detectChanges();
+  }
+
+  function expectAgentSearchResponse(agents: Array<{ id: string; name: string; apiVersion?: string; description?: string }>) {
+    const req = httpTestingController.expectOne(request => {
+      return (
+        request.method === 'POST' &&
+        request.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search` &&
+        request.params.get('page') === '1' &&
+        request.params.get('perPage') === '10' &&
+        request.params.get('manageOnly') === 'false'
+      );
+    });
+
+    expect(req.request.body).toEqual({ query: '', apiTypes: ['V4_A2A_PROXY'] });
+    req.flush({ data: agents, pagination: { totalCount: agents.length } });
     fixture.detectChanges();
   }
 
