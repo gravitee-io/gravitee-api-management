@@ -20,6 +20,7 @@ import io.gravitee.gamma.rest.core.observability.logs.model.LogDetail;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsPage;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
+import io.gravitee.gamma.rest.core.observability.logs.model.MessageLogsPage;
 import java.util.List;
 import java.util.Optional;
 
@@ -70,4 +71,15 @@ public interface ObservabilityLogsDataPort {
      * every decision it contains with the same one.
      */
     Optional<LogEntry> getDecision(String organizationId, String environmentId, String apiId, String eventId);
+
+    /**
+     * Loads one page of the messages that crossed a Message API during a single connection, newest
+     * first. Scoped to a {@code requestId} because that is how the message documents are keyed —
+     * there is no cross-connection message search.
+     *
+     * <p>Returns {@link MessageLogsPage#EMPTY} when the API records no message logs: they are only
+     * indexed when {@code analytics.logging} enables the message content flags, which is off by
+     * default and forbidden entirely on non-message api types.
+     */
+    MessageLogsPage searchMessages(String organizationId, String environmentId, String apiId, String requestId, int page, int perPage);
 }

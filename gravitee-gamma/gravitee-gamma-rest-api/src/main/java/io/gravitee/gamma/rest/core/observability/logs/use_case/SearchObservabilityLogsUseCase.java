@@ -54,15 +54,15 @@ public class SearchObservabilityLogsUseCase {
     private static final int MAX_PER_PAGE = 100;
 
     /**
-     * API types the LOGS signal serves today. Extensible: adding MESSAGE later only requires
-     * widening this set — the rest of the pipeline (AccessibleApiScope, query building) adjusts
-     * automatically.
+     * API types the LOGS signal serves today. Extensible: adding a type only requires widening this
+     * set — the rest of the pipeline (AccessibleApiScope, query building) adjusts automatically.
      */
     static final Set<ApiType> LOGS_SUPPORTED_API_TYPES = Set.of(
         ApiType.HTTP_PROXY,
         ApiType.LLM,
         ApiType.MCP,
         ApiType.A2A,
+        ApiType.MESSAGE,
         ApiType.NATIVE,
         ApiType.AUTHZ
     );
@@ -70,11 +70,19 @@ public class SearchObservabilityLogsUseCase {
     /**
      * Canonical entrypoints applied when no explicit entrypoint filter is set. The HTTP subset
      * mirrors {@code FilterAdapter.httpFilter()} from the analytics ES adapter; {@code native-kafka}
-     * is additionally included so native connection documents are served by the LOGS signal.
-     * NOTE: the analytics default has NOT been widened to native yet, so in a mixed environment the
-     * unfiltered logs total includes native connections while dashboard totals do not — aligning
-     * the analytics side is a pending decision with the Gamma team. The ES query builder adds a
-     * field-missing fallback alongside these terms.
+     * is additionally included so native connection documents are served by the LOGS signal, and
+     * {@code sse} / {@code websocket} / {@code webhook} so are the async entrypoints of Message
+     * APIs — {@code entrypoint-id} carries the plugin id, so a Message API exposed over any of the
+     * three would otherwise yield an empty page with no error (their http-get / http-post siblings
+     * were already covered).
+     * NOTE: the analytics side has NOT been widened to match. {@code FilterAdapter.httpFilter()}
+     * lists only http-get, http-post, http-proxy, llm-proxy, mcp-proxy and a2a-proxy, so every id
+     * added here — {@code native-kafka}, and now {@code sse} / {@code websocket} / {@code webhook} —
+     * shows N connections in the logs list and 0 on the dashboard. The async trio is the largest
+     * case and the one a user is most likely to hit, since a Message API exposed over SSE is served
+     * here in full while its dashboard stays empty. Aligning the analytics side is a pending
+     * decision with the Gamma team. The ES query builder adds a field-missing fallback alongside
+     * these terms.
      */
     static final Set<String> DEFAULT_ENTRYPOINT_IDS = Set.of(
         "http-get",
@@ -83,7 +91,10 @@ public class SearchObservabilityLogsUseCase {
         "llm-proxy",
         "mcp-proxy",
         "a2a-proxy",
-        "native-kafka"
+        "native-kafka",
+        "sse",
+        "websocket",
+        "webhook"
     );
 
     private final ObservabilityLogsDataPort logsDataPort;
@@ -232,7 +243,7 @@ public class SearchObservabilityLogsUseCase {
     /**
      * Narrows {@link #LOGS_SUPPORTED_API_TYPES} when the caller supplies an explicit
      * {@code API_TYPE} filter. Values are intersected with the supported set so that an
-     * unsupported type (e.g. {@code MESSAGE}) simply yields an empty scope instead of an error.
+     * unsupported type (e.g. {@code EDGE}) simply yields an empty scope instead of an error.
      */
     private static Set<ApiType> narrowApiTypes(List<FilterCondition> conditions) {
         var requested = conditions

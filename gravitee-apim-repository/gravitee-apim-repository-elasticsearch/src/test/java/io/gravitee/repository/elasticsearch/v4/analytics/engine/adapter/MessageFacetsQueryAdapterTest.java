@@ -22,6 +22,7 @@ import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
+import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import java.util.List;
 import java.util.Set;
@@ -142,6 +143,26 @@ class MessageFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
 
         var bucket = json.at("/aggs").elements().next();
         assertThat(bucket.at("/terms").has("size")).isFalse();
+    }
+
+    /**
+     * Message documents carry their own {@code api-id}, so the API scope is applied on them directly
+     * rather than being inherited from whatever request ids the first phase happened to resolve.
+     */
+    @Test
+    void should_scope_the_message_query_to_the_api_itself() throws JsonProcessingException {
+        var query = new FacetsQuery(
+            buildTimeRange(),
+            List.of(new Filter(Filter.Name.API, Filter.Operator.EQ, "api-1")),
+            List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT))),
+            List.of(Facet.MESSAGE_OPERATION_TYPE),
+            null,
+            List.of()
+        );
+
+        var json = JSON.readTree(adapter.adapt(query, Set.of("req-1")));
+
+        assertThat(json.at("/query/bool/filter").toString()).contains("api-id").contains("api-1");
     }
 
     @Test

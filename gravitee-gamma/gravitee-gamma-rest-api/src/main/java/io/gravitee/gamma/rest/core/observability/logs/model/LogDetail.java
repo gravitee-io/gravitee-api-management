@@ -36,6 +36,16 @@ public record LogDetail(
     // Identifiers
     String requestId,
     String apiId,
+    /**
+     * Api type of the log's API, resolved from the caller's accessible set rather than from the
+     * document — the connection indices do not store it.
+     *
+     * <p>Present so a client can pick the right rendering for the row it opened: a Kafka connection
+     * and a Message API connection ask different questions of the same endpoint, and without this
+     * the client would have to carry the type from the list row it came from, which a direct link
+     * to the detail does not have.
+     */
+    String apiType,
     String transactionId,
     String clientIdentifier,
     Instant timestamp,

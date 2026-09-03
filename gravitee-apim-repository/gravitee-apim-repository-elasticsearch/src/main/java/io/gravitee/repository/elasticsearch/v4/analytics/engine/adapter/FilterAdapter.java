@@ -74,7 +74,17 @@ public class FilterAdapter {
         Filter.Name.ENTRYPOINT
     );
 
+    /**
+     * Applied on the message documents themselves, in the second phase of the join.
+     *
+     * <p>{@code API} belongs here even though the first phase already restricts by it: message
+     * documents carry {@code api-id} of their own ({@code MessageMetrics#apiId}), so scoping the
+     * second phase to the API stops it depending on the resolved request-id set being complete. The
+     * dimensions that genuinely live only on the connection document — plan, application,
+     * entrypoint — cannot follow.
+     */
     static final List<Filter.Name> MESSAGE_FILTER_NAMES = List.of(
+        Filter.Name.API,
         Filter.Name.MESSAGE_CONNECTOR_TYPE,
         Filter.Name.MESSAGE_CONNECTOR_ID,
         Filter.Name.MESSAGE_OPERATION_TYPE,
