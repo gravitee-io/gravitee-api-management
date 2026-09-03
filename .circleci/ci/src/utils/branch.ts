@@ -36,6 +36,10 @@ export function isSupportBranch(branch: string): boolean {
   return regex.test(branch);
 }
 
+export function isAMPDemoBranch(branch: string): boolean {
+  return branch === 'amp_demo';
+}
+
 export function isSupportBranchOrMaster(branch: string): boolean {
-  return isMasterBranch(branch) || isSupportBranch(branch);
+  return isMasterBranch(branch) || isSupportBranch(branch) || isAMPDemoBranch(branch);
 }
