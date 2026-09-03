@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.13.0_19_add_performance_target_evaluations_table
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}performance_target_evaluations
+            columns:
+              - column: { name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}performance_target_evaluations" } }
+              - column: { name: target_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: reference, type: nvarchar(512), constraints: { nullable: false } }
+              - column: { name: status, type: nvarchar(32), constraints: { nullable: false } }
+              - column: { name: rules, type: nclob }
+              - column: { name: window_from, type: timestamp(6) }
+              - column: { name: window_to, type: timestamp(6) }
+              - column: { name: covered_api_ids, type: nclob }
+              - column: { name: evaluated_at, type: timestamp(6), constraints: { nullable: false } }
+              - column: { name: latest, type: boolean, constraints: { nullable: false } }
+        - createIndex:
+            tableName: ${gravitee_prefix}performance_target_evaluations
+            indexName: idx_${gravitee_prefix}performance_target_evaluations_target_latest
+            columns:
+              - column:
+                  name: target_id
+              - column:
+                  name: latest
+        - createIndex:
+            tableName: ${gravitee_prefix}performance_target_evaluations
+            indexName: idx_${gravitee_prefix}performance_target_evaluations_env_ref_latest
+            columns:
+              - column:
+                  name: environment_id
+              - column:
+                  name: reference
+              - column:
+                  name: latest

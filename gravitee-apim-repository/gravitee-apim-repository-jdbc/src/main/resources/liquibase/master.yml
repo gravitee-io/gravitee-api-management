@@ -421,3 +421,7 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_13_0/16_add_active_theme_id_to_portals.yml
     - include:
         - file: liquibase/changelogs/v4_13_0/17_add_automation_metadata_to_themes.yml
+    - include:
+        - file: liquibase/changelogs/v4_13_0/18_add_performance_targets_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_13_0/19_add_performance_target_evaluations_table.yml

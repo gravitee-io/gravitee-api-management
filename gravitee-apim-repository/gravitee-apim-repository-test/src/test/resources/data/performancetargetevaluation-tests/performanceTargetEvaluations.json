@@ -1,0 +1,178 @@
+[
+    {
+        "id": "eval-1a",
+        "targetId": "target1",
+        "environmentId": "my-env",
+        "reference": "api-1",
+        "status": "PASS",
+        "rules": [
+            {
+                "metric": "HTTP_GATEWAY_RESPONSE_TIME",
+                "measure": "P95",
+                "operator": "LTE",
+                "threshold": 2000,
+                "observed": 1200,
+                "deviation": -800,
+                "deviationRatio": -0.4,
+                "sampleCount": 40,
+                "status": "PASS"
+            }
+        ],
+        "windowFrom": 1470156867000,
+        "windowTo": 1470157767000,
+        "coveredApiIds": ["api-1"],
+        "evaluatedAt": 1470157767000,
+        "latest": false
+    },
+    {
+        "id": "eval-1b",
+        "targetId": "target1",
+        "environmentId": "my-env",
+        "reference": "api-1",
+        "status": "BREACH",
+        "rules": [
+            {
+                "metric": "HTTP_GATEWAY_RESPONSE_TIME",
+                "measure": "P95",
+                "operator": "LTE",
+                "threshold": 2000,
+                "observed": 4810,
+                "deviation": 2810,
+                "deviationRatio": 1.405,
+                "sampleCount": 63,
+                "status": "BREACH"
+            },
+            {
+                "metric": "HTTP_ERROR_RATE",
+                "measure": "PERCENTAGE",
+                "operator": "LTE",
+                "threshold": 5,
+                "observed": 1.6,
+                "deviation": -3.4,
+                "deviationRatio": -0.68,
+                "sampleCount": 91,
+                "status": "PASS"
+            }
+        ],
+        "windowFrom": 1470157167000,
+        "windowTo": 1470158067000,
+        "coveredApiIds": ["api-1"],
+        "evaluatedAt": 1470158067000,
+        "latest": true
+    },
+    {
+        "id": "eval-2",
+        "targetId": "target2",
+        "environmentId": "my-env",
+        "reference": "agent-1",
+        "status": "PASS",
+        "rules": [
+            {
+                "metric": "LLM_PROMPT_TOKEN_TOTAL_COST",
+                "measure": "AVG",
+                "operator": "LTE",
+                "threshold": 0.01,
+                "observed": 0.004,
+                "deviation": -0.006,
+                "deviationRatio": -0.6,
+                "sampleCount": 25,
+                "status": "PASS"
+            }
+        ],
+        "windowFrom": 1470154200000,
+        "windowTo": 1470157800000,
+        "coveredApiIds": ["api-2"],
+        "evaluatedAt": 1470157800000,
+        "latest": true
+    },
+    {
+        "id": "eval-3-old",
+        "targetId": "target3",
+        "environmentId": "my-env",
+        "reference": "agent-1",
+        "status": "BREACH",
+        "rules": [],
+        "windowFrom": 1470071367000,
+        "windowTo": 1470157767000,
+        "coveredApiIds": ["api-2"],
+        "evaluatedAt": 1470157700000,
+        "latest": false
+    },
+    {
+        "id": "eval-3",
+        "targetId": "target3",
+        "environmentId": "my-env",
+        "reference": "agent-1",
+        "status": "NOT_EVALUABLE",
+        "rules": [
+            {
+                "metric": "HTTP_ERROR_RATE",
+                "measure": "PERCENTAGE",
+                "operator": "LTE",
+                "threshold": 1,
+                "observed": null,
+                "deviation": null,
+                "deviationRatio": null,
+                "sampleCount": 0,
+                "status": "NOT_EVALUABLE"
+            }
+        ],
+        "windowFrom": 1470071367000,
+        "windowTo": 1470157767000,
+        "coveredApiIds": [],
+        "evaluatedAt": 1470157767000,
+        "latest": true
+    },
+    {
+        "id": "eval-other-env",
+        "targetId": "other-env-target",
+        "environmentId": "other-env",
+        "reference": "agent-1",
+        "status": "BREACH",
+        "rules": [],
+        "windowFrom": 1470156867000,
+        "windowTo": 1470157767000,
+        "coveredApiIds": ["api-other"],
+        "evaluatedAt": 1470158100000,
+        "latest": true
+    },
+    {
+        "id": "eval-del-1-old",
+        "targetId": "tbd-1",
+        "environmentId": "my-env",
+        "reference": "ToBeDeleted",
+        "status": "BREACH",
+        "rules": [],
+        "windowFrom": 1470156000000,
+        "windowTo": 1470156900000,
+        "coveredApiIds": ["api-shared"],
+        "evaluatedAt": 1470156900000,
+        "latest": false
+    },
+    {
+        "id": "eval-del-1",
+        "targetId": "tbd-1",
+        "environmentId": "my-env",
+        "reference": "ToBeDeleted",
+        "status": "PASS",
+        "rules": [],
+        "windowFrom": 1470157000000,
+        "windowTo": 1470157900000,
+        "coveredApiIds": ["api-shared"],
+        "evaluatedAt": 1470157900000,
+        "latest": true
+    },
+    {
+        "id": "eval-del-2",
+        "targetId": "tbd-2",
+        "environmentId": "my-env",
+        "reference": "ToBeDeleted",
+        "status": "BREACH",
+        "rules": [],
+        "windowFrom": 1470157100000,
+        "windowTo": 1470158000000,
+        "coveredApiIds": ["api-shared", "api-3"],
+        "evaluatedAt": 1470158000000,
+        "latest": true
+    }
+]
