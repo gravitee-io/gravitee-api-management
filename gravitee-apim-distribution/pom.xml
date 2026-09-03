@@ -57,7 +57,7 @@
             reactors at once. That ends when the distribution gets a lane of its own.
         -->
         <revision>4.13.0</revision>
-        <sha1 />
+        <sha1>-agent-gateway</sha1>
         <changelist>-SNAPSHOT</changelist>
 
         <!--
@@ -75,7 +75,7 @@
             -Dapim.core.version=<root triplet>, to assemble the core currently being worked on —
             the Taskfile handles it for you.
         -->
-        <apim.core.version>4.13.0-SNAPSHOT</apim.core.version>
+        <apim.core.version>4.13.0-agent-gateway-SNAPSHOT</apim.core.version>
 
         <!--
             Versions shared with the engine. They are declared here as well because the distribution
