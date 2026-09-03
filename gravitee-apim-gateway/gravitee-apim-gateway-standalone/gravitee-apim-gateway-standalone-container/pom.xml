@@ -171,25 +171,9 @@
             <artifactId>gravitee-resource-oauth2-provider-api</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.graviteesource.agent.stores</groupId>
-            <artifactId>gravitee-agent-store-api</artifactId>
-        </dependency>
 
-        <dependency>
-            <groupId>com.graviteesource.agent.channels</groupId>
-            <artifactId>gravitee-agent-channel-api</artifactId>
-        </dependency>
 
-        <dependency>
-            <groupId>com.graviteesource.agent.skills</groupId>
-            <artifactId>gravitee-agent-skill-api</artifactId>
-        </dependency>
 
-        <dependency>
-            <groupId>com.graviteesource.agent.sandboxes</groupId>
-            <artifactId>gravitee-agent-sandbox-api</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>io.gravitee.resource</groupId>

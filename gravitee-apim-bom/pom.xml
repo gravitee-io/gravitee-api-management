@@ -197,29 +197,9 @@
                 <version>${gravitee-resource-oauth2-provider-api.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>com.graviteesource.agent.stores</groupId>
-                <artifactId>gravitee-agent-store-api</artifactId>
-                <version>${gravitee-agent-store-api.version}</version>
-            </dependency>
 
-            <dependency>
-                <groupId>com.graviteesource.agent.channels</groupId>
-                <artifactId>gravitee-agent-channel-api</artifactId>
-                <version>${gravitee-agent-channel-api.version}</version>
-            </dependency>
 
-            <dependency>
-                <groupId>com.graviteesource.agent.skills</groupId>
-                <artifactId>gravitee-agent-skill-api</artifactId>
-                <version>${gravitee-agent-skill-api.version}</version>
-            </dependency>
 
-            <dependency>
-                <groupId>com.graviteesource.agent.sandboxes</groupId>
-                <artifactId>gravitee-agent-sandbox-api</artifactId>
-                <version>${gravitee-agent-sandbox-api.version}</version>
-            </dependency>
 
             <dependency>
                 <groupId>io.gravitee.resource</groupId>
