@@ -48,36 +48,19 @@ jobs:
                   token: ${{ secrets.BOT_GITHUB_TOKEN || github.token }}
                   ref: master
 
+            - name: Self-test bump script
+              run: python3 -m unittest discover -s .github/scripts -p 'test_*.py'
+
+            # Sets BUMP_SKIPPED=true when the version is not newer than master's: releases from
+            # a module's maintenance line must not downgrade master or overwrite its pending PR.
             - name: Update version property
               env:
                   MODULE: ${{ inputs.module }}
                   VERSION: ${{ inputs.version }}
-              run: |
-                  python3 -c "
-                  import re, sys, os
-                  module  = os.environ['MODULE']
-                  version = os.environ['VERSION']
-                  prop    = f'{module}.version'
-                  pattern = rf'<{re.escape(prop)}>[^<]+</{re.escape(prop)}>'
-                  # Bundled plugin versions live in the distribution pom; engine and third-party
-                  # ones stay in the root pom. Look in both, distribution first.
-                  candidates = ['gravitee-apim-distribution/pom.xml', 'pom.xml']
-                  target = next((p for p in candidates if re.search(pattern, open(p).read())), None)
-                  if target is None:
-                      print('ERROR: <' + prop + '> not found in ' + ' or '.join(candidates), file=sys.stderr)
-                      sys.exit(1)
-                  content = open(target).read()
-                  new_content = re.sub(pattern, f'<{prop}>{version}</{prop}>', content)
-                  if new_content != content:
-                      open(target, 'w').write(new_content)
-                      print(f'Updated <{prop}> to {version} in {target}')
-                  else:
-                      print(f'Already at {version} in {target}, nothing to update')
-                  with open(os.environ['GITHUB_ENV'], 'a') as fh:
-                      fh.write(f'POM_FILE={target}\n')
-                  "
+              run: python3 .github/scripts/bump_module_version.py
 
             - name: Create or update version-bump PR
+              if: env.BUMP_SKIPPED == 'false'
               env:
                   GH_TOKEN: ${{ secrets.BOT_GITHUB_TOKEN || github.token }}
                   GH_REPO: gravitee-io/gravitee-api-management
@@ -90,14 +73,8 @@ jobs:
                   git config user.email "github-actions[bot]@users.noreply.github.com"
 
                   git checkout -B "$BRANCH"
-                  git add "${POM_FILE:-pom.xml}"
-
-                  if git diff --cached --quiet; then
-                    :
-                  else
-                    git commit -m "chore(deps): bump ${MODULE} to ${VERSION}"
-                  fi
-
+                  git add "$BUMP_POM_FILE"
+                  git commit -m "chore(deps): bump ${MODULE} to ${VERSION}"
                   git push origin "$BRANCH" --force
 
                   gh label create "automated-version-bump" \
