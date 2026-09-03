@@ -24,6 +24,7 @@ import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.ApplicationMetadataCrudServiceInMemory;
 import inmemory.ApplicationMetadataQueryServiceInMemory;
 import inmemory.CRDMembersDomainServiceInMemory;
+import inmemory.ClientCertificateCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.ImportApplicationCRDDomainServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
@@ -41,6 +42,7 @@ import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.core.user.model.IdpSource;
 import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
+import io.gravitee.apim.infra.domain_service.application_certificates.ClientCertificateValidationDomainServiceImpl;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.Origin;
 import io.gravitee.repository.management.api.ApplicationRepository;
@@ -113,7 +115,13 @@ class ImportApplicationCRDUseCaseTest {
     private final ValidateApplicationCRDDomainService crdValidator = new ValidateApplicationCRDDomainService(
         new ValidateGroupsDomainService(groupQueryService),
         new ValidateCRDMembersDomainService(userDomainService, roleQueryService),
-        new ValidateApplicationSettingsDomainServiceImpl(applicationRepository, new ApplicationTypeServiceImpl(), parameterService)
+        new ValidateApplicationSettingsDomainServiceImpl(
+            applicationRepository,
+            new ApplicationTypeServiceImpl(),
+            parameterService,
+            new ClientCertificateValidationDomainServiceImpl(new ClientCertificateCrudServiceInMemory()),
+            new ClientCertificateCrudServiceInMemory()
+        )
     );
 
     ImportApplicationCRDUseCase useCase;

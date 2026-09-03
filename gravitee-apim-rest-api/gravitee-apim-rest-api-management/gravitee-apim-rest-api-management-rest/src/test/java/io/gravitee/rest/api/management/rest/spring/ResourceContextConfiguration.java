@@ -1035,9 +1035,17 @@ public class ResourceContextConfiguration {
     public ValidateApplicationSettingsDomainService validateApplicationSettingsDomainService(
         ApplicationRepository applicationRepository,
         ApplicationTypeService applicationTypeService,
-        ParameterService parameterService
+        ParameterService parameterService,
+        ClientCertificateValidationDomainService clientCertificateValidationDomainService,
+        ClientCertificateCrudService clientCertificateCrudService
     ) {
-        return new ValidateApplicationSettingsDomainServiceImpl(applicationRepository, applicationTypeService, parameterService);
+        return new ValidateApplicationSettingsDomainServiceImpl(
+            applicationRepository,
+            applicationTypeService,
+            parameterService,
+            clientCertificateValidationDomainService,
+            clientCertificateCrudService
+        );
     }
 
     @Bean
