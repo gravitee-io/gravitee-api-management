@@ -238,7 +238,9 @@ class AnalyticsRequestPipelineTest {
                 "http-proxy",
                 "llm-proxy",
                 "mcp-proxy",
-                "a2a-proxy"
+                "a2a-proxy",
+                "mcp",
+                "mcp-studio"
             );
         }
 
