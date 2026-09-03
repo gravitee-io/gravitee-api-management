@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { License } from '@gravitee/gamma-modules-sdk/types';
 import { act, render, screen } from '@testing-library/react';
 import type { ComponentType } from 'react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useLocation, useNavigationType } from 'react-router-dom';
 
 import { AppRoutes } from './AppRoutes';
+import { ROUTES } from '../config/routes';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
 import { ApimApiError } from '../shared/api/apimClient';
 import { useEnvironmentPermissionsReady } from '../shared/hooks/useEnvironmentPermissions';
 import { markNavItemDenied, resetDeniedNavItemsForEnvironment } from '../shared/nav/deniedNavItems';
+import { notify } from '../shared/notify/notify';
 
 jest.mock('./PlatformToaster', () => ({
     PlatformToaster: () => <div data-testid="platform-toaster" />,
@@ -51,11 +54,28 @@ let mockPermissionStoreVersion = 0;
 
 const mockUseEnvironmentPermissionGrant = jest.fn<boolean | undefined, [string[]]>();
 
+// Same reasoning as the permission store above: the license arrives from the host and can land after the
+// first render, so the fake keeps real listeners. The holder is read back by reference — a `getSnapshot`
+// returning a fresh object literal per call trips React's "result of getSnapshot should be cached" loop.
+const mockLicenseListeners = new Set<() => void>();
+let mockLicense: License | null = null;
+
+const ENTITLED_LICENSE: License = { tier: 'enterprise', packs: [], features: [], isExpired: false };
+const OSS_LICENSE: License = { tier: 'oss', packs: [], features: [], isExpired: false };
+const EXPIRED_LICENSE: License = { tier: 'enterprise', packs: [], features: [], isExpired: true };
+
+const mockUseConsoleSettings = jest.fn();
+
 let deniedNavItemResetCount = 0;
 
 function emitPermissionChange() {
     mockPermissionStoreVersion += 1;
     mockPermissionListeners.forEach(listener => listener());
+}
+
+function mockSetLicense(license: License | null) {
+    mockLicense = license;
+    mockLicenseListeners.forEach(listener => listener());
 }
 
 jest.mock('@gravitee/graphene-core', () => {
@@ -72,6 +92,7 @@ jest.mock('@gravitee/graphene-core', () => {
 
 jest.mock('../shared/console-settings', () => ({
     ConsoleSettingsProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    useConsoleSettings: () => mockUseConsoleSettings(),
 }));
 
 jest.mock('../shared/hooks/useEnvironmentPermissions', () => ({
@@ -93,6 +114,15 @@ jest.mock('@gravitee/gamma-modules-sdk', () => ({
         },
         getSnapshot: () => mockPermissionStoreVersion,
     },
+    licenseService: {
+        setLicense: mockSetLicense,
+        getLicense: () => mockLicense,
+        subscribe: (listener: () => void) => {
+            mockLicenseListeners.add(listener);
+            return () => mockLicenseListeners.delete(listener);
+        },
+        getSnapshot: () => mockLicense,
+    },
 }));
 
 jest.mock('../features/dictionaries/hooks/useEnvironmentDictionaries');
@@ -113,6 +143,10 @@ function grantOnlyPermissions(...allowed: string[]) {
 
 jest.mock('../pages/ApplicationsPage', () => ({
     ApplicationsPage: () => <div data-testid="applications-page" />,
+}));
+
+jest.mock('../pages/IntegrationsPage', () => ({
+    IntegrationsPage: () => <div data-testid="integrations-page" />,
 }));
 
 jest.mock('../pages/UsersPage', () => ({
@@ -263,6 +297,24 @@ jest.mock('../pages/EnvironmentNotificationSettingsPage', () => ({
     EnvironmentNotificationSettingsPage: () => <div data-testid="environment-notification-settings-page" />,
 }));
 
+function LocationProbe() {
+    return <div data-testid="location">{useLocation().pathname}</div>;
+}
+
+function NavigationTypeProbe() {
+    return <div data-testid="navigation-type">{useNavigationType()}</div>;
+}
+
+function renderIntegrationsUrl() {
+    render(
+        <MemoryRouter initialEntries={['/integrations']}>
+            <AppRoutes />
+            <LocationProbe />
+            <NavigationTypeProbe />
+        </MemoryRouter>,
+    );
+}
+
 function renderPlatform(path = '/applications') {
     render(
         <MemoryRouter initialEntries={[path]}>
@@ -271,7 +323,7 @@ function renderPlatform(path = '/applications') {
     );
 }
 
-type NavGroupProps = { items: { key: string; access?: string }[] };
+type NavGroupProps = { label?: string; items: { key: string; access?: string }[] };
 
 type LayoutConfig = {
     navigation?: { props?: { items?: { key: string; title: string }[]; onItemSelect?: (key: string) => void } };
@@ -315,6 +367,14 @@ function visibleNavKeys(): string[] {
     return contextGroups().flatMap(group => group.items.map(item => item.key));
 }
 
+function navGroupItemKeys(groupLabel: string): string[] {
+    return (
+        contextGroups()
+            .find(group => group.label === groupLabel)
+            ?.items.map(item => item.key) ?? []
+    );
+}
+
 function navItemAccess(key: string): string | undefined {
     return contextGroups()
         .flatMap(group => group.items)
@@ -340,6 +400,11 @@ describe('AppRoutes', () => {
         mockUseEnvironmentPermissionsReady.mockReturnValue(true);
         mockPermissionListeners.clear();
         mockPermissionStoreVersion = 0;
+        mockLicenseListeners.clear();
+        // Null on both stores is what the host reports before it pushes anything: entitlement stays
+        // unknown until a license lands, and null settings are ConsoleSettingsProvider's pre-fetch value.
+        mockLicense = null;
+        mockUseConsoleSettings.mockReset().mockReturnValue(null);
         // The denial store is module state; a switch to an unused environment id clears it.
         resetDeniedNavItemsForEnvironment(`reset-${(deniedNavItemResetCount += 1)}`);
         mockUseEnvironmentDictionaries.mockReturnValue({
@@ -420,6 +485,255 @@ describe('AppRoutes', () => {
         );
 
         expect(screen.getByTestId('role-members-page')).not.toBeNull();
+    });
+
+    it('routes a direct Integrations URL visit to the Integrations page without redirecting', () => {
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        render(
+            <MemoryRouter initialEntries={['/integrations']}>
+                <AppRoutes />
+                <LocationProbe />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('integrations-page')).not.toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe('/integrations');
+    });
+
+    it('shows the Integrations nav item next to Applications when the gate passes with no integrations configured', () => {
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        renderPlatform();
+
+        expect(navGroupItemKeys('APIs & Assets')).toEqual([
+            'applications',
+            'integrations',
+            'metadata',
+            'dictionaries',
+            'shared-policy-groups',
+        ]);
+        expect(navItemAccess('integrations')).toBeUndefined();
+    });
+
+    it('hides the Integrations nav item when Federation is not enabled for the organization', () => {
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: false } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        renderPlatform();
+
+        expect(visibleNavKeys()).not.toContain('integrations');
+    });
+
+    it('hides the Integrations nav item when console settings carry no federation flag at all', () => {
+        mockUseConsoleSettings.mockReturnValue({});
+        mockSetLicense(ENTITLED_LICENSE);
+
+        renderPlatform();
+
+        expect(visibleNavKeys()).not.toContain('integrations');
+    });
+
+    it('hides the Integrations nav item when the user lacks environment-integration-r', () => {
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+        denyPermissions('environment-integration-r');
+
+        renderPlatform();
+
+        expect(visibleNavKeys()).not.toContain('integrations');
+    });
+
+    it.each([
+        ['an oss-tier license', OSS_LICENSE],
+        ['an expired license', EXPIRED_LICENSE],
+        ['no license reported yet', null],
+    ])('hides the Integrations nav item entirely, not as a locked item, with %s', (_case, license) => {
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(license);
+
+        renderPlatform();
+
+        expect(visibleNavKeys()).not.toContain('integrations');
+    });
+
+    it('redirects a direct Integrations URL visit to Applications when the user lacks environment-integration-r', () => {
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+        denyPermissions('environment-integration-r');
+
+        renderIntegrationsUrl();
+
+        expect(screen.queryByTestId('integrations-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe('/applications');
+        expect(screen.getByTestId('navigation-type').textContent).toBe('REPLACE');
+    });
+
+    it.each([
+        ['Federation is not enabled for the organization', { federation: { enabled: false } }, ENTITLED_LICENSE],
+        ['the installed license tier is oss', { federation: { enabled: true } }, OSS_LICENSE],
+        ['the license has expired', { federation: { enabled: true } }, EXPIRED_LICENSE],
+        ['no license has been reported yet', { federation: { enabled: true } }, null],
+    ])('redirects a direct Integrations URL visit to Applications when %s', (_case, consoleSettings, license) => {
+        mockUseConsoleSettings.mockReturnValue(consoleSettings);
+        mockSetLicense(license);
+
+        renderIntegrationsUrl();
+
+        expect(screen.queryByTestId('integrations-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe('/applications');
+        expect(screen.getByTestId('navigation-type').textContent).toBe('REPLACE');
+    });
+
+    it('redirects a refused Integrations visit to the landing item when the user cannot see Applications', () => {
+        grantOnlyPermissions('environment-integration-r', 'organization-settings-r', 'organization-tenant-r');
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: false } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        renderIntegrationsUrl();
+
+        expect(screen.queryByTestId('integrations-page')).toBeNull();
+        expect(screen.getByTestId('tenants-page')).not.toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe('/tenants');
+    });
+
+    it('lands on the Integrations page from the platform index when Integrations is the only visible item', () => {
+        grantOnlyPermissions('environment-integration-r');
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        render(
+            <MemoryRouter initialEntries={['/']}>
+                <AppRoutes />
+                <LocationProbe />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('location').textContent).toBe('/integrations');
+        expect(screen.getByTestId('integrations-page')).not.toBeNull();
+        expect(screen.queryByTestId('platform-no-access-page')).toBeNull();
+    });
+
+    it('warns once while Federation is enabled and no license has been reported', () => {
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+
+        renderPlatform();
+
+        expect(warn).toHaveBeenCalledTimes(1);
+        warn.mockRestore();
+    });
+
+    it('does not repeat the unreported-license warning across a re-render', () => {
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        renderPlatform();
+
+        act(() => {
+            emitPermissionChange();
+        });
+
+        expect(warn).toHaveBeenCalledTimes(1);
+        warn.mockRestore();
+    });
+
+    it('does not warn a second time when the refused visit is to the Integrations route itself', () => {
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+
+        renderIntegrationsUrl();
+
+        expect(screen.queryByTestId('integrations-page')).toBeNull();
+        expect(warn).toHaveBeenCalledTimes(1);
+        warn.mockRestore();
+    });
+
+    it.each([
+        ['the license tier is oss', { federation: { enabled: true } }, OSS_LICENSE],
+        ['the license has expired', { federation: { enabled: true } }, EXPIRED_LICENSE],
+        ['Federation is not enabled', { federation: { enabled: false } }, null],
+    ])('stays quiet when %s, which answers the entitlement question', (_case, consoleSettings, license) => {
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+        mockUseConsoleSettings.mockReturnValue(consoleSettings);
+        mockSetLicense(license);
+
+        renderPlatform();
+
+        expect(warn).not.toHaveBeenCalled();
+        warn.mockRestore();
+    });
+
+    it('lands on the Integrations page when the Integrations nav item is selected', () => {
+        const navigateToKey = jest.fn();
+        mockUseModuleRouting.mockReturnValue({ activeNavKey: 'applications', navigateToKey, rootPath: '/platform' });
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+        renderPlatform();
+        expect(visibleNavKeys()).toContain('integrations');
+
+        contextNav()?.props?.onItemSelect?.('integrations');
+
+        expect(navigateToKey).toHaveBeenCalledWith('integrations');
+        renderPlatform(`/${ROUTES.integrations.path}`);
+        expect(screen.getByTestId('integrations-page')).not.toBeNull();
+    });
+
+    it('surfaces no error notification while the Integrations gate runs without environment-integration-r', () => {
+        const notifyError = jest.spyOn(notify, 'error').mockImplementation(() => undefined);
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+        denyPermissions('environment-integration-r');
+
+        renderPlatform();
+        renderIntegrationsUrl();
+
+        expect(notifyError).not.toHaveBeenCalled();
+        notifyError.mockRestore();
+    });
+
+    it('requests no integrations endpoint while deciding whether Integrations is available', () => {
+        const fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue(new Response('[]'));
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+        denyPermissions('environment-integration-r');
+
+        renderPlatform();
+        renderIntegrationsUrl();
+
+        const requestedUrls = fetchSpy.mock.calls.map(([input]) => String(input));
+        expect(requestedUrls.filter(url => /integration/i.test(url))).toEqual([]);
+        fetchSpy.mockRestore();
+    });
+
+    it('adds the Integrations nav item when the license lands after the first render', () => {
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        renderPlatform();
+        expect(visibleNavKeys()).not.toContain('integrations');
+
+        act(() => {
+            mockSetLicense(ENTITLED_LICENSE);
+        });
+
+        expect(visibleNavKeys()).toContain('integrations');
+    });
+
+    it('redirects off the Integrations page when the entitlement lapses while it is open', () => {
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+        renderIntegrationsUrl();
+        expect(screen.getByTestId('integrations-page')).not.toBeNull();
+
+        act(() => {
+            mockSetLicense(EXPIRED_LICENSE);
+        });
+
+        expect(screen.queryByTestId('integrations-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe('/applications');
     });
 
     it('shows Organization, Environment, and Team in the primary sidebar', () => {

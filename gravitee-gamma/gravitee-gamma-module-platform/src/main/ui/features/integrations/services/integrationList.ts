@@ -13,29 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
+import type { IntegrationsResponse } from '../types/integration';
 
-/**
- * Subset of GET /organizations/{orgId}/console (ConsoleConfigEntity; Angular `entities/consoleSettings`).
- * Extend here when platform features need more org settings fields.
- */
-export interface ConsoleSettings {
-    userGroup?: {
-        required?: {
-            enabled?: boolean;
-        };
-    };
-    cloudHosted?: {
-        enabled?: boolean;
-    };
-    alert?: {
-        enabled?: boolean;
-    };
-    management?: {
-        systemRoleEdition?: {
-            enabled?: boolean;
-        };
-    };
-    federation?: {
-        enabled?: boolean;
-    };
+export async function listIntegrations(environmentId: string, params: { page: number; perPage: number }): Promise<IntegrationsResponse> {
+    const searchParams = new URLSearchParams();
+    searchParams.set('page', String(params.page));
+    searchParams.set('perPage', String(params.perPage));
+    return apimFetchJsonV2<IntegrationsResponse>(environmentId, `/integrations?${searchParams.toString()}`);
 }
