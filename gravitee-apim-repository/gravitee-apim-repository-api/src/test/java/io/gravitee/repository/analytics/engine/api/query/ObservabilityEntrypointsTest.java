@@ -35,6 +35,14 @@ import org.junit.jupiter.api.Test;
  */
 class ObservabilityEntrypointsTest {
 
+    /** The registry is keyed by id: two constants sharing one would let the second silently shadow the first. */
+    @Test
+    void should_declare_each_entrypoint_id_once() {
+        var ids = Arrays.stream(ObservabilityEntrypoints.values()).map(ObservabilityEntrypoints::id).toList();
+
+        assertThat(ids).doesNotHaveDuplicates();
+    }
+
     @Nested
     class Scopes {
 
@@ -46,7 +54,10 @@ class ObservabilityEntrypointsTest {
                 "http-proxy",
                 "llm-proxy",
                 "mcp-proxy",
-                "a2a-proxy"
+                "a2a-proxy",
+                "mcp",
+                "mcp-studio",
+                "agent-to-agent"
             );
         }
 
@@ -59,6 +70,9 @@ class ObservabilityEntrypointsTest {
                 "llm-proxy",
                 "mcp-proxy",
                 "a2a-proxy",
+                "mcp",
+                "mcp-studio",
+                "agent-to-agent",
                 "native-kafka"
             );
         }
