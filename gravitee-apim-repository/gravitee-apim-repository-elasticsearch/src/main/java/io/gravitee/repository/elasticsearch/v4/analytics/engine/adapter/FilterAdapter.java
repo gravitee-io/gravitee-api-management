@@ -37,6 +37,8 @@ public class FilterAdapter {
     static final String HTTP_PROXY_ENTRYPOINT_ID = "http-proxy";
     static final String LLM_PROXY_ENTRYPOINT_ID = "llm-proxy";
     static final String MCP_PROXY_ENTRYPOINT_ID = "mcp-proxy";
+    static final String MCP_ENTRYPOINT_ID = "mcp";
+    static final String MCP_STUDIO_ENTRYPOINT_ID = "mcp-studio";
     static final String A2A_PROXY_ENTRYPOINT_ID = "a2a-proxy";
     static final String EDGE_ENTRYPOINT_ID = "edge";
 
@@ -273,7 +275,9 @@ public class FilterAdapter {
                     HTTP_PROXY_ENTRYPOINT_ID,
                     LLM_PROXY_ENTRYPOINT_ID,
                     MCP_PROXY_ENTRYPOINT_ID,
-                    A2A_PROXY_ENTRYPOINT_ID
+                    A2A_PROXY_ENTRYPOINT_ID,
+                    MCP_ENTRYPOINT_ID,
+                    MCP_STUDIO_ENTRYPOINT_ID
                 )
             )
         );

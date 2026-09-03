@@ -540,7 +540,11 @@ class SearchObservabilityLogsUseCaseTest {
                 "http-post",
                 "http-proxy",
                 "llm-proxy",
+                "mcp",
                 "mcp-proxy",
+                // Studio-mode MCP servers report this entrypoint. Omitting it hides their logs entirely
+                // rather than merely narrowing them.
+                "mcp-studio",
                 "a2a-proxy",
                 "native-kafka"
             );
