@@ -83,8 +83,15 @@ public class ImportDefinitionUpdateDomainService {
     }
 
     public Api update(ImportDefinition importDefinition, Api existingPromotedApi, AuditInfo auditInfo) {
+        Objects.requireNonNull(existingPromotedApi, "An existing API is required to update from an import definition");
         var apiId = existingPromotedApi.getId();
-        var apiWithIds = apiIdsCalculatorDomainService.recalculateApiDefinitionIds(auditInfo.environmentId(), importDefinition);
+        // Ids are recalculated against the API we are updating (not against a crossId lookup) so that the update always
+        // targets this API even when the imported definition crossId differs from the existing one.
+        var apiWithIds = apiIdsCalculatorDomainService.recalculateApiDefinitionIds(
+            auditInfo.environmentId(),
+            importDefinition,
+            existingPromotedApi
+        );
         var apiExport = apiWithIds.getApiExport();
 
         if (
