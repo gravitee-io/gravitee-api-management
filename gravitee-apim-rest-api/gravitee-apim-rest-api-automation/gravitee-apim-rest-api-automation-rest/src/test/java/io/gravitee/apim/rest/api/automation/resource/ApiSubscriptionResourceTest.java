@@ -199,6 +199,46 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_return_404_when_hrid_contains_api_uuid_and_api_does_not_match() {
+            try (var ctx = mockStatic(GraviteeContext.class)) {
+                ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
+
+                subscriptionCrudService.initWith(
+                    List.of(
+                        SubscriptionFixtures.aSubscription()
+                            .toBuilder()
+                            .id(
+                                HRIDToUUID.subscription()
+                                    .context(new ExecutionContext(ORGANIZATION, ENVIRONMENT))
+                                    .api(API_HRID)
+                                    .subscription(HRID)
+                                    .id()
+                            )
+                            .referenceId("other-api-id")
+                            .applicationId(APPLICATION_HRID)
+                            .planId(PLAN_HRID)
+                            .build()
+                    )
+                );
+                applicationCrudService.initWith(
+                    List.of(ApplicationModelFixtures.anApplicationEntity().toBuilder().id(APPLICATION_HRID).hrid(APPLICATION_HRID).build())
+                );
+                planCrudService.initWith(List.of(PlanFixtures.aPlanHttpV4().toBuilder().id(PLAN_HRID).hrid(PLAN_HRID).build()));
+
+                try (
+                    var response = rootTarget()
+                        .queryParam("hridContainsUUID", false)
+                        .queryParam("hridContainsApiUUID", true)
+                        .path(HRID)
+                        .request()
+                        .get()
+                ) {
+                    assertThat(response.getStatus()).isEqualTo(404);
+                }
+            }
+        }
+
+        @Test
         void should_return_a_404_status_code_with_unknown_hrid() {
             expectNotFound("unknown");
         }
@@ -217,6 +257,7 @@ class ApiSubscriptionResourceTest extends AbstractResourceTest {
             try (
                 var response = rootTarget()
                     .queryParam("hridContainsUUID", legacy)
+                    .queryParam("hridContainsApiUUID", legacy)
                     .path(hrid)
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)

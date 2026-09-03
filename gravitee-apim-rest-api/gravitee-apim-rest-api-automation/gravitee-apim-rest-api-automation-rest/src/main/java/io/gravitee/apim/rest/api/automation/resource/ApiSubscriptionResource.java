@@ -71,7 +71,8 @@ public class ApiSubscriptionResource extends AbstractResource {
     public Response getSubscriptionByHRID(
         @PathParam("apiHrid") String apiHrid,
         @PathParam("hrid") String hrid,
-        @QueryParam("hridContainsUUID") boolean hridContainsUUID
+        @QueryParam("hridContainsUUID") boolean hridContainsUUID,
+        @QueryParam("hridContainsApiUUID") boolean hridContainsApiUUID
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
@@ -80,7 +81,7 @@ public class ApiSubscriptionResource extends AbstractResource {
                 : HRIDToUUID.subscription().context(executionContext).api(apiHrid).subscription(hrid).id();
             SubscriptionEntity subscriptionEntity = subscriptionCrudService.get(subscriptionId);
 
-            if (hridContainsUUID && !subscriptionEntity.getReferenceId().equals(apiHrid)) {
+            if (hridContainsApiUUID && !subscriptionEntity.getReferenceId().equals(apiHrid)) {
                 throw new SubscriptionNotFoundException(apiHrid);
             }
 

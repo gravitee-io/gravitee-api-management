@@ -456,6 +456,8 @@ paths:
         - $ref: "#/components/parameters/envIdParam"
         - $ref: "#/components/parameters/apiHridParam"
         - $ref: "#/components/parameters/hridParam"
+        - $ref: "#/components/parameters/hridContainsUUIDQueryParam"
+        - $ref: "#/components/parameters/hridContainsApiUUIDQueryParam"
       responses:
         "200":
           description: API subscription successfully retrieved
@@ -3756,6 +3758,16 @@ components:
       description: |
         When true, the HRID path or spec value is treated as an existing UUID rather than
         a human-readable identifier. This is to support backward compatibility for resources
+        created before migration to the automation API and should not be used for new resources.
+      schema:
+        type: boolean
+        default: false
+    hridContainsApiUUIDQueryParam:
+      name: hridContainsApiUUID
+      in: query
+      description: |
+        When true, the API HRID path parameter is treated as an existing UUID rather than
+        a human-readable identifier. This is to support backward compatibility for APIs
         created before migration to the automation API and should not be used for new resources.
       schema:
         type: boolean
