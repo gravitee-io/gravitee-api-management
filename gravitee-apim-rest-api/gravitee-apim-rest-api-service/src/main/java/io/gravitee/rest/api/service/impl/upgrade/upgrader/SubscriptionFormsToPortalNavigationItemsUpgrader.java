@@ -93,30 +93,37 @@ public class SubscriptionFormsToPortalNavigationItemsUpgrader implements Upgrade
         int migrated = 0;
 
         for (var form : forms) {
-            var environmentId = form.getEnvironmentId();
-            var alreadyMigrated = !portalNavigationItemsQueryService
-                .findTopLevelItemsByEnvironmentIdAndPortalArea(environmentId, PortalArea.SUBSCRIPTION_FORM)
-                .isEmpty();
-            if (alreadyMigrated) {
-                continue;
-            }
-
-            var organizationId = environmentRepository.findById(environmentId).map(Environment::getOrganizationId).orElse(null);
-            if (organizationId == null) {
-                log.warn("Skipping subscription form migration: environment [{}] no longer exists", environmentId);
-                continue;
-            }
-
-            try {
-                migrate(form, organizationId, environmentId);
+            if (migrateIfNeeded(form)) {
                 migrated++;
-            } catch (Exception e) {
-                log.error("Failed to migrate subscription form for environment [{}]", environmentId, e);
             }
         }
 
         log.info("Subscription form to portal navigation item upgrader completed. Migrated {}/{} forms.", migrated, forms.size());
         return true;
+    }
+
+    private boolean migrateIfNeeded(SubscriptionForm form) throws TechnicalException {
+        var environmentId = form.getEnvironmentId();
+        var alreadyMigrated = !portalNavigationItemsQueryService
+            .findTopLevelItemsByEnvironmentIdAndPortalArea(environmentId, PortalArea.SUBSCRIPTION_FORM)
+            .isEmpty();
+        if (alreadyMigrated) {
+            return false;
+        }
+
+        var organizationId = environmentRepository.findById(environmentId).map(Environment::getOrganizationId).orElse(null);
+        if (organizationId == null) {
+            log.warn("Skipping subscription form migration: environment [{}] no longer exists", environmentId);
+            return false;
+        }
+
+        try {
+            migrate(form, organizationId, environmentId);
+            return true;
+        } catch (Exception e) {
+            log.error("Failed to migrate subscription form for environment [{}]", environmentId, e);
+            return false;
+        }
     }
 
     private void migrate(SubscriptionForm form, String organizationId, String environmentId) {
