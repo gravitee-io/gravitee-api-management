@@ -24,6 +24,7 @@
 
 .api-card {
   height: 100%;
+  min-width: 0;
   cursor: pointer;
   overflow: hidden;
   transition: box-shadow 0.2s ease;
@@ -50,15 +51,62 @@
   }
 
   &__title {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin: 0;
+    min-width: 0;
+  }
+
+  &__open {
+    min-width: 0;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+    }
+  }
+
+  &__version {
+    flex: 0 0 auto;
+    color: theme.$paragraph-color;
+    font-variant-numeric: tabular-nums;
   }
 
   &__badges {
     display: flex;
     flex: 0 0 auto;
+    align-items: center;
     gap: 8px;
+  }
+
+  &__access {
+    display: inline-flex;
+    align-items: center;
+    height: 27px;
+    padding: 0 10px;
+    border: 1px solid theme.$border-color;
+    border-radius: 4px;
+    color: theme.$paragraph-color;
+    white-space: nowrap;
+
+    &--mine {
+      border-color: transparent;
+      background-color: theme.$badge-container-color;
+      color: theme.$badge-label-text-color;
+    }
   }
 
   &__content {
@@ -78,5 +126,145 @@
     text-overflow: ellipsis;
     word-wrap: break-word;
     color: theme.$paragraph-color;
+  }
+
+  &__foot {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding: 8px 8px 8px 16px;
+    border-top: 1px solid theme.$border-color;
+  }
+
+  &__capabilities {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  &__more {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 8px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: theme.$paragraph-color;
+    font: inherit;
+    cursor: pointer;
+
+    &:hover {
+      background-color: theme.$badge-container-color;
+    }
+
+    &__chevron {
+      transition: transform 0.2s ease;
+
+      &--up {
+        transform: rotate(180deg);
+      }
+    }
+  }
+
+  &__details {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.22s ease;
+
+    &--open {
+      grid-template-rows: 1fr;
+    }
+
+    &__inner {
+      overflow: hidden;
+    }
+
+    &__body {
+      position: relative;
+      z-index: 1;
+      padding: 16px;
+      border-top: 1px solid theme.$border-color;
+    }
+
+    &__heading {
+      margin: 0 0 12px;
+      color: theme.$paragraph-color;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+  }
+
+  &__skills {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__skill {
+    display: grid;
+    grid-template-columns: minmax(120px, 180px) 1fr;
+    gap: 14px;
+
+    @media (max-width: 600px) {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+
+    &__name {
+      font-family: monospace;
+      font-size: 1em;
+      overflow-wrap: anywhere;
+    }
+
+    &__description {
+      color: theme.$paragraph-color;
+    }
+  }
+
+  &__facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px 26px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid theme.$border-color;
+  }
+
+  &__fact {
+    &--wide {
+      grid-column: 1 / -1;
+    }
+
+    &__key {
+      color: theme.$paragraph-color;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    &__value {
+      overflow-wrap: anywhere;
+
+      &--mono {
+        font-family: monospace;
+        font-size: 1em;
+      }
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .api-card__details,
+  .api-card__more__chevron {
+    transition: none;
   }
 }

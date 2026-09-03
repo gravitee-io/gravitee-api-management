@@ -37,58 +37,185 @@ $empty-state-height: 400px;
 }
 
 .api-list {
+  &__search-row {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 16px;
+    margin-top: -16px;
+
+    &--mobile {
+      flex-wrap: wrap;
+    }
+  }
+
+  &__search {
+    display: block;
+    flex: 1 1 320px;
+    min-width: 240px;
+  }
+
+  &__body {
+    display: grid;
+    flex: 1 1 auto;
+    min-height: 0;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 32px;
+    margin-top: -16px;
+  }
+
+  &__sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  @media (max-width: 900.02px) {
+    &__body {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    &__sidebar {
+      flex: 0 0 auto;
+      overflow-y: visible;
+    }
+
+    &__sidebar--collapsed .api-list__sidebar__collapsible {
+      display: none;
+    }
+  }
+
+  &__filters-toggle {
+    align-self: flex-start;
+    padding: 6px 12px;
+    border: 1px solid theme.$border-color;
+    border-radius: theme.$element-shape;
+    background: transparent;
+    color: theme.$default-text-color;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  @media (min-width: 900.03px) {
+    &__filters-toggle {
+      display: none;
+    }
+  }
+
+  &__sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    &__label {
+      color: theme.$paragraph-color;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    select {
+      height: 36px;
+      padding: 0 8px;
+      border: 1px solid theme.$border-color;
+      border-radius: theme.$element-shape;
+      background: transparent;
+      color: theme.$default-text-color;
+      font: inherit;
+    }
+  }
+
+  &__kinds {
+    display: flex;
+    // the page is a flex column with hidden overflow, which otherwise squashes this row to nothing
+    flex: 0 0 auto;
+    align-self: flex-start;
+    margin-top: -16px;
+    overflow: hidden;
+    border: 1px solid theme.$border-color;
+    border-radius: theme.$element-shape;
+
+    button {
+      padding: 10px 24px;
+      border: 0;
+      border-right: 1px solid theme.$border-color;
+      background: transparent;
+      color: theme.$paragraph-color;
+      font: inherit;
+      cursor: pointer;
+
+      &:last-child {
+        border-right: 0;
+      }
+
+      &:hover {
+        background-color: theme.$badge-container-color;
+      }
+
+      &[aria-pressed='true'] {
+        background-color: theme.$button-toggle-active-background-color;
+        color: theme.$button-toggle-active-text-color;
+      }
+
+      &:focus-visible {
+        outline: 2px solid theme.$primary-main-color;
+        outline-offset: -2px;
+      }
+    }
+  }
+
+  &__count {
+    margin-left: 6px;
+    color: theme.$paragraph-color;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__sidebar__collapsible {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  &__clear {
+    border: 0;
+    background: transparent;
+    color: theme.$primary-main-color;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  &__tally {
+    margin: 0 0 16px;
+    color: theme.$paragraph-color;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__grid {
+    display: grid;
+    align-items: start;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  }
+
+  @media (max-width: 900px) {
+    &__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
   &__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
 
-    &__controls {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 16px;
-
-      app-search-bar {
-        width: 300px;
-      }
-
-      .api-list__category-filter {
-        width: 200px;
-      }
-    }
-
     &--mobile {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      grid-template-rows: auto auto auto;
-      gap: 16px;
-
-      .next-gen-h1 {
-        grid-column: 1 / 2;
-        grid-row: 1 / 2;
-      }
-
-      .api-list__header__controls {
-        display: contents;
-      }
-
-      app-button-toggle-group {
-        grid-column: 2 / 3;
-        grid-row: 1 / 2;
-      }
-
-      .api-list__category-filter {
-        grid-column: 1 / 3;
-        grid-row: 2 / 3;
-        width: 100%;
-      }
-
-      app-search-bar {
-        grid-column: 1 / 3;
-        grid-row: 3 / 4;
-        width: 100%;
-      }
+      flex-wrap: wrap;
     }
   }
 
