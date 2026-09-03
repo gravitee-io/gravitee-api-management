@@ -194,14 +194,15 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
     }
 
     @Override
-    public boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId) {
+    public boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId, String excludeApplicationId) {
         return storage
             .stream()
             .anyMatch(
                 cert ->
                     fingerprint.equals(cert.fingerprint()) &&
                     environmentId.equals(cert.environmentId()) &&
-                    cert.status() != ClientCertificateStatus.REVOKED
+                    cert.status() != ClientCertificateStatus.REVOKED &&
+                    (excludeApplicationId == null || !excludeApplicationId.equals(cert.applicationId()))
             );
     }
 

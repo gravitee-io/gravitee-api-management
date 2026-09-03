@@ -121,5 +121,18 @@ public interface ClientCertificateCrudService {
      * @param environmentId the environment ID
      * @return true if such a certificate exists
      */
-    boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId);
+    default boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId) {
+        return existsByFingerprintAndActiveApplication(fingerprint, environmentId, null);
+    }
+
+    /**
+     * Check whether a non-revoked certificate with the given fingerprint already exists
+     * for an active application in the specified environment, optionally excluding one application.
+     *
+     * @param fingerprint the SHA-256 certificate fingerprint
+     * @param environmentId the environment ID
+     * @param excludeApplicationId application ID to exclude from the lookup, or null to check all applications
+     * @return true if such a certificate exists
+     */
+    boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId, String excludeApplicationId);
 }

@@ -183,11 +183,13 @@ public class MongoClientCertificateRepository implements ClientCertificateReposi
     }
 
     @Override
-    public boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId) throws TechnicalException {
+    public boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId, String excludeApplicationId)
+        throws TechnicalException {
         log.debug(
-            "Check if client certificate with fingerprint [{}] exists for an active application in environment [{}]",
+            "Check if client certificate with fingerprint [{}] exists for an active application in environment [{}], excluding application [{}]",
             fingerprint,
-            environmentId
+            environmentId,
+            excludeApplicationId
         );
 
         try {
@@ -195,6 +197,9 @@ public class MongoClientCertificateRepository implements ClientCertificateReposi
             query.addCriteria(Criteria.where("fingerprint").is(fingerprint));
             query.addCriteria(Criteria.where("environmentId").is(environmentId));
             query.addCriteria(Criteria.where("status").ne(ClientCertificateStatus.REVOKED.name()));
+            if (excludeApplicationId != null) {
+                query.addCriteria(Criteria.where("applicationId").ne(excludeApplicationId));
+            }
 
             List<ClientCertificateMongo> certificates = mongoTemplate.find(query, ClientCertificateMongo.class);
 
