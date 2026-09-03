@@ -24,6 +24,7 @@ import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { of, firstValueFrom } from 'rxjs';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MatDialog } from '@angular/material/dialog';
+import moment from 'moment';
 
 import { WebhookLogsComponent } from './webhook-logs.component';
 import { WebhookLogsHarness } from './webhook-logs.harness';
@@ -43,6 +44,9 @@ const defaultApi = {
   analytics: { enabled: true, logging: { mode: { endpoint: true } } },
   definitionVersion: 'V4',
 } as ApiV4;
+const FAKE_NOW_MS = new Date('2023-10-05T00:00:00.000Z').getTime();
+const DEFAULT_FROM_MS = FAKE_NOW_MS - 5 * 60 * 1000;
+const DEFAULT_LOGS_TIME = { from: DEFAULT_FROM_MS, to: FAKE_NOW_MS };
 
 describe('WebhookLogsComponent', () => {
   let fixture: ComponentFixture<WebhookLogsComponent>;
@@ -51,6 +55,8 @@ describe('WebhookLogsComponent', () => {
   let httpTestingController: HttpTestingController;
   let activatedRoute: ActivatedRoute;
   let rootLoader: HarnessLoader;
+  let dateNowSpy: jest.SpyInstance;
+  let momentNowSpy: jest.SpyInstance;
 
   const setupComponent = async (options?: { queryParams?: Record<string, string | undefined>; api?: ApiV4 }) => {
     const { queryParams = {}, api = defaultApi } = options ?? {};
@@ -90,7 +96,7 @@ describe('WebhookLogsComponent', () => {
     expectApi(api || defaultApi);
 
     expectSubscriptions();
-    expectWebhookLogs();
+    expectWebhookLogs(3, DEFAULT_LOGS_TIME);
 
     await fixture.whenStable();
     fixture.detectChanges();
@@ -286,9 +292,29 @@ describe('WebhookLogsComponent', () => {
     fixture.detectChanges();
   }
 
+  beforeEach(() => {
+    dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(FAKE_NOW_MS);
+    momentNowSpy = jest.spyOn(moment, 'now').mockReturnValue(FAKE_NOW_MS);
+  });
+
   afterEach(() => {
     httpTestingController?.verify();
     routerNavigateSpy?.mockRestore();
+    dateNowSpy?.mockRestore();
+    momentNowSpy?.mockRestore();
+  });
+
+  it('should default Period to Last 5 Minutes and send a bounded from/to', async () => {
+    await setupComponent();
+
+    expect(routerNavigateSpy).toHaveBeenCalledWith(
+      ['.'],
+      expect.objectContaining({
+        queryParams: expect.objectContaining({
+          period: '-5m',
+        }),
+      }),
+    );
   });
 
   it('should render demo logs and navigate to the details page when clicking the details action', async () => {
@@ -305,9 +331,10 @@ describe('WebhookLogsComponent', () => {
     await fixture.whenStable();
 
     expect(routerNavigateSpy).toHaveBeenCalled();
-    const navigateCall = routerNavigateSpy.mock.calls[0];
-    expect(navigateCall[0]).toEqual(['./', 'req-1']);
-    expect(navigateCall[1]).toEqual(
+    const detailsCall = routerNavigateSpy.mock.calls.find(call => Array.isArray(call[0]) && call[0][0] === './' && call[0][1] === 'req-1');
+    expect(detailsCall).toBeDefined();
+    expect(detailsCall![0]).toEqual(['./', 'req-1']);
+    expect(detailsCall![1]).toEqual(
       expect.objectContaining({
         relativeTo: activatedRoute,
         state: expect.objectContaining({
@@ -395,7 +422,7 @@ describe('WebhookLogsComponent', () => {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env?.v2BaseURL}/apis/${API_ID}`, method: 'GET' }).flush(updatedApi);
 
     // Also handle the loadWebhookLogs request triggered alongside the refresh
-    expectWebhookLogs();
+    expectWebhookLogs(3, DEFAULT_LOGS_TIME);
 
     fixture.detectChanges();
     await fixture.whenStable();
