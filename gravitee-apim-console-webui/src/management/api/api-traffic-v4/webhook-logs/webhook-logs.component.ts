@@ -46,7 +46,7 @@ import { ApiLogsV2Service } from '../../../../services-ngx/api-logs-v2.service';
 import { ApiSubscriptionV2Service } from '../../../../services-ngx/api-subscription-v2.service';
 import { ApplicationService } from '../../../../services-ngx/application.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-import { NONE_PERIOD, MultiFilter, PERIODS, SimpleFilter } from '../runtime-logs/models';
+import { DEFAULT_PERIOD, MultiFilter, NONE_PERIOD, PERIODS, SimpleFilter } from '../runtime-logs/models';
 import { GioTableWrapperPagination } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 
 @Component({
@@ -512,9 +512,9 @@ export class WebhookLogsComponent implements OnInit {
 
   private buildInitialPeriod(periodValue?: string): SimpleFilter {
     if (!periodValue) {
-      return NONE_PERIOD;
+      return DEFAULT_PERIOD;
     }
-    return this.periods.find(period => period.value === periodValue) ?? NONE_PERIOD;
+    return this.periods.find(period => period.value === periodValue) ?? DEFAULT_PERIOD;
   }
 
   /**
