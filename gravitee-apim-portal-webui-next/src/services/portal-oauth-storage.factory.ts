@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { MemoryStorage, OAuthStorage } from 'angular-oauth2-oidc';
 
-import { Enabled } from './enabled';
+import { AccessTokenFilteringOAuthStorage } from './access-token-filtering-oauth-storage';
+import { ConfigService } from './config.service';
 
-export interface ConfigurationAuthentication {
-  forceLogin?: Enabled;
-  localLogin?: Enabled;
-  exposeAccessToken?: Enabled;
-  exposeIdToken?: Enabled;
+export function createPortalOAuthStorage(configService: ConfigService): OAuthStorage {
+  const delegate: OAuthStorage = typeof sessionStorage !== 'undefined' ? sessionStorage : new MemoryStorage();
+  if (configService.stripIdpAccessTokenFromStorage()) {
+    return new AccessTokenFilteringOAuthStorage(delegate);
+  }
+  return delegate;
 }

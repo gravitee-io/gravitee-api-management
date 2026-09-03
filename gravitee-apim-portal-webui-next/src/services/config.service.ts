@@ -81,6 +81,13 @@ export class ConfigService {
     );
   }
 
+  /**
+   * When {@code portal.authentication.expose.accessToken} is disabled, strip IdP access_token from OAuth storage.
+   */
+  stripIdpAccessTokenFromStorage(): boolean {
+    return this.configuration.authentication?.exposeAccessToken?.enabled === false;
+  }
+
   private _sanitizeBaseURLs(config: Config): string {
     let baseURL = config.baseURL;
     if (config.baseURL.endsWith('/')) {

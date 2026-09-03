@@ -19,7 +19,7 @@ import { ApplicationConfig, inject, provideAppInitializer } from '@angular/core'
 import { MAT_RIPPLE_GLOBAL_OPTIONS } from '@angular/material/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, Router, withComponentInputBinding, withRouterConfig } from '@angular/router';
-import { provideOAuthClient } from 'angular-oauth2-oidc';
+import { OAuthStorage, provideOAuthClient } from 'angular-oauth2-oidc';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { catchError, combineLatest, Observable, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
@@ -31,6 +31,7 @@ import { AuthService } from '../services/auth.service';
 import { ConfigService } from '../services/config.service';
 import { CurrentUserService } from '../services/current-user.service';
 import { PortalNavigationItemsService } from '../services/portal-navigation-items.service';
+import { createPortalOAuthStorage } from '../services/portal-oauth-storage.factory';
 import { ThemeService } from '../services/theme.service';
 
 function initApp(
@@ -64,6 +65,11 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([httpRequestInterceptor, csrfInterceptor])),
     provideAnimations(),
     provideOAuthClient(),
+    {
+      provide: OAuthStorage,
+      useFactory: createPortalOAuthStorage,
+      deps: [ConfigService],
+    },
     provideAppInitializer(() => {
       const initializerFn = initApp(
         inject(AuthService),
