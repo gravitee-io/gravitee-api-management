@@ -19,7 +19,6 @@ import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstraints;
 import jakarta.annotation.Nonnull;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Getter
@@ -28,11 +27,9 @@ public final class PortalNavigationSubscriptionForm extends PortalNavigationItem
 
     private static final PortalNavigationItemType TYPE = PortalNavigationItemType.SUBSCRIPTION_FORM;
 
-    @Setter
     @Nonnull
-    private PortalPageContentId portalPageContentId;
+    private final PortalPageContentId portalPageContentId;
 
-    @Setter
     @Nonnull
     private SubscriptionFormFieldConstraints validationConstraints;
 
@@ -56,5 +53,9 @@ public final class PortalNavigationSubscriptionForm extends PortalNavigationItem
     @Override
     public PortalNavigationItemType getType() {
         return TYPE;
+    }
+
+    public void updateValidationConstraints(@Nonnull SubscriptionFormFieldConstraints validationConstraints) {
+        this.validationConstraints = validationConstraints;
     }
 }
