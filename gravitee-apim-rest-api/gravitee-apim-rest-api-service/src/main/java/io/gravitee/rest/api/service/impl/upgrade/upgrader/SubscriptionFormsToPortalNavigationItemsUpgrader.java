@@ -118,7 +118,7 @@ public class SubscriptionFormsToPortalNavigationItemsUpgrader implements Upgrade
         }
 
         try {
-            migrate(form, organizationId, environmentId);
+            createPageContentAndNavigationItem(form, organizationId, environmentId);
             return true;
         } catch (Exception e) {
             log.error("Failed to migrate subscription form for environment [{}]", environmentId, e);
@@ -126,7 +126,7 @@ public class SubscriptionFormsToPortalNavigationItemsUpgrader implements Upgrade
         }
     }
 
-    private void migrate(SubscriptionForm form, String organizationId, String environmentId) {
+    private void createPageContentAndNavigationItem(SubscriptionForm form, String organizationId, String environmentId) {
         var content = pageContentCrudService.create(
             new GraviteeMarkdownPageContent(
                 PortalPageContentId.random(),
