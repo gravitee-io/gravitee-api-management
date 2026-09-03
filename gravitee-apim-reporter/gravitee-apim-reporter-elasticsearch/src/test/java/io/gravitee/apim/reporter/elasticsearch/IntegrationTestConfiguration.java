@@ -18,7 +18,6 @@ package io.gravitee.apim.reporter.elasticsearch;
 import io.gravitee.apim.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.elasticsearch.config.Endpoint;
 import java.util.Collections;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -37,8 +36,19 @@ public class IntegrationTestConfiguration {
     public static final String ELASTICSEARCH_DEFAULT_VERSION = "9.2.1";
     public static final String CLUSTER_NAME = "gravitee_test";
 
-    @Value("${elasticsearch.version:" + ELASTICSEARCH_DEFAULT_VERSION + "}")
-    private String elasticsearchVersion;
+    /**
+     * One Elasticsearch node for the whole JVM, shared by every Spring context importing this configuration.
+     *
+     * <p>The Spring TestContext cache never closes a context between test classes, so a container declared
+     * as a plain bean stays up until the JVM exits. Two contexts import this class — this one and the
+     * {@code TestConfig} of {@code ElasticsearchReporterTest} — and each would keep its own node running,
+     * alongside the OpenSearch node of {@code IndexPreparerIntegrationTest}. Three of them is more than the
+     * CI machine holds, and the third one never finishes starting.
+     *
+     * <p>The bean below therefore declares no destroy method: closing the container with the first context
+     * to be discarded would take it away from the other. Ryuk removes it when the JVM exits.
+     */
+    private static final ElasticsearchContainer ELASTICSEARCH_CONTAINER = startContainer();
 
     @Bean
     public ReporterConfiguration configuration(ElasticsearchContainer elasticSearchContainer) {
@@ -49,13 +59,18 @@ public class IntegrationTestConfiguration {
         return elasticConfiguration;
     }
 
-    @Bean(destroyMethod = "close")
+    @Bean
     public ElasticsearchContainer elasticSearchContainer() {
+        return ELASTICSEARCH_CONTAINER;
+    }
+
+    private static ElasticsearchContainer startContainer() {
+        final String version = System.getProperty("elasticsearch.version", ELASTICSEARCH_DEFAULT_VERSION);
         final ElasticsearchContainer elasticsearchContainer = new ElasticsearchContainer(
-            "docker.elastic.co/elasticsearch/elasticsearch:" + elasticsearchVersion
+            "docker.elastic.co/elasticsearch/elasticsearch:" + version
         );
         elasticsearchContainer.withEnv("cluster.name", CLUSTER_NAME);
-        if (!elasticsearchVersion.startsWith("7")) {
+        if (!version.startsWith("7")) {
             elasticsearchContainer.withEnv("xpack.security.enabled", "false");
         }
         elasticsearchContainer.start();
