@@ -199,6 +199,21 @@ class PortalNavigationItemsMapperTest {
         }
 
         @Test
+        void should_map_list_containing_subscription_form() {
+            var subscriptionForm = PortalNavigationItemFixtures.aSubscriptionForm(
+                PortalNavigationItemFixtures.PAGE_ID,
+                io.gravitee.apim.core.portal_page.model.PortalPageContentId.random()
+            );
+
+            var result = mapper.map(List.of(subscriptionForm));
+
+            assertThat(result).hasSize(1);
+            assertThat(result.getFirst().getActualInstance()).isInstanceOf(
+                io.gravitee.rest.api.management.v2.rest.model.PortalNavigationSubscriptionForm.class
+            );
+        }
+
+        @Test
         void should_map_portal_navigation_page_source() {
             var page = PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE_ID, "My Page", null)
                 .toBuilder()
