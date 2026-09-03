@@ -29,4 +29,7 @@ public interface PerformanceTargetMongoRepository
 
     @Query(value = "{ environmentId: ?0, reference: ?1 }", fields = "{ _id : 1 }", delete = true)
     List<PerformanceTargetMongo> deleteByEnvironmentIdAndReference(String environmentId, String reference);
+
+    @Query(value = "{ environmentId: ?0 }", fields = "{ _id : 1 }", delete = true)
+    List<PerformanceTargetMongo> deleteByEnvironmentId(String environmentId);
 }

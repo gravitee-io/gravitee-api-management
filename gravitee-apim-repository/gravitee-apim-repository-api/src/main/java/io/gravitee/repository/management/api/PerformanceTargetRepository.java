@@ -37,6 +37,11 @@ public interface PerformanceTargetRepository {
     List<String> deleteByReference(String environmentId, String reference) throws TechnicalException;
 
     /**
+     * @return the ids of the deleted targets
+     */
+    List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
+
+    /**
      * Removes {@code apiId} from the api ids of every target that lists it. Targets are kept even when no id is left.
      *
      * @return the ids of the targets that listed the api

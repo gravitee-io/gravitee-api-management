@@ -58,6 +58,8 @@ import io.gravitee.repository.management.api.MetadataRepository;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.PageRevisionRepository;
 import io.gravitee.repository.management.api.ParameterRepository;
+import io.gravitee.repository.management.api.PerformanceTargetEvaluationRepository;
+import io.gravitee.repository.management.api.PerformanceTargetRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.PortalCategoryRepository;
 import io.gravitee.repository.management.api.PortalListingRepository;
@@ -186,6 +188,8 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     private final RoleRepository roleRepository;
     private final ScoringReportRepository scoringReportRepository;
     private final ScoringRulesetRepository scoringRulesetRepository;
+    private final PerformanceTargetRepository performanceTargetRepository;
+    private final PerformanceTargetEvaluationRepository performanceTargetEvaluationRepository;
     private final ScoringFunctionRepository scoringFunctionRepository;
     private final SearchEngineService searchEngineService;
     private final SharedPolicyGroupRepository sharedPolicyGroupRepository;
@@ -249,6 +253,8 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         @Lazy RoleRepository roleRepository,
         @Lazy ScoringReportRepository scoringReportRepository,
         @Lazy ScoringRulesetRepository scoringRulesetRepository,
+        @Lazy PerformanceTargetRepository performanceTargetRepository,
+        @Lazy PerformanceTargetEvaluationRepository performanceTargetEvaluationRepository,
         @Lazy ScoringFunctionRepository scoringFunctionRepository,
         @Lazy SharedPolicyGroupRepository sharedPolicyGroupRepository,
         @Lazy SharedPolicyGroupHistoryRepository sharedPolicyGroupHistoryRepository,
@@ -326,6 +332,8 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         this.scoringReportRepository = scoringReportRepository;
         this.scoringFunctionRepository = scoringFunctionRepository;
         this.scoringRulesetRepository = scoringRulesetRepository;
+        this.performanceTargetRepository = performanceTargetRepository;
+        this.performanceTargetEvaluationRepository = performanceTargetEvaluationRepository;
         this.searchEngineService = searchEngineService;
         this.sharedPolicyGroupRepository = sharedPolicyGroupRepository;
         this.sharedPolicyGroupHistoryRepository = sharedPolicyGroupHistoryRepository;
@@ -448,6 +456,8 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         dictionaryRepository.deleteByEnvironmentId(environment.getId());
         scoringRulesetRepository.deleteByReferenceId(environment.getId(), ScoringRuleset.ReferenceType.ENVIRONMENT.name());
         scoringFunctionRepository.deleteByReferenceId(environment.getId(), ScoringRuleset.ReferenceType.ENVIRONMENT.name());
+        performanceTargetRepository.deleteByEnvironmentId(environment.getId());
+        performanceTargetEvaluationRepository.deleteByEnvironmentId(environment.getId());
 
         // Always default for environment
         portalNotificationConfigRepository.deleteByReferenceIdAndReferenceType(environment.getId(), NotificationReferenceType.ENVIRONMENT);

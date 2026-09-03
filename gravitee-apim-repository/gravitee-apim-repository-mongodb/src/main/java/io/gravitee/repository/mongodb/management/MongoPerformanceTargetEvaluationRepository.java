@@ -104,6 +104,17 @@ class MongoPerformanceTargetEvaluationRepository implements PerformanceTargetEva
     }
 
     @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("Delete performance target evaluations of environment [{}]", environmentId);
+        try {
+            return internalRepository.deleteByEnvironmentId(environmentId).stream().map(PerformanceTargetEvaluationMongo::getId).toList();
+        } catch (Exception ex) {
+            log.error("Failed to delete performance target evaluations of environment [{}]", environmentId, ex);
+            throw new TechnicalException("Failed to delete performance target evaluations by environment", ex);
+        }
+    }
+
+    @Override
     public void deleteByTargetId(String targetId) throws TechnicalException {
         log.debug("Delete performance target evaluations of target [{}]", targetId);
         try {

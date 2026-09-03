@@ -188,6 +188,20 @@ public class PerformanceTargetEvaluationRepositoryTest extends AbstractManagemen
         );
     }
 
+    // deleteByEnvironmentId
+    @Test
+    public void deleteByEnvironmentId_should_delete_every_evaluation_of_the_environment_only() throws TechnicalException {
+        var deleted = performanceTargetEvaluationRepository.deleteByEnvironmentId("my-env");
+
+        assertThat(deleted).hasSize(8).doesNotContain("eval-other-env");
+        assertThat(performanceTargetEvaluationRepository.getEnvironmentSummary("my-env")).isEqualTo(
+            new PerformanceTargetEnvironmentSummary("my-env", 0, 0, 0)
+        );
+        assertThat(performanceTargetEvaluationRepository.findLatestByReference("other-env", "agent-1"))
+            .extracting(PerformanceTargetEvaluation::getId)
+            .containsExactly("eval-other-env");
+    }
+
     // deleteByTargetId
     @Test
     public void deleteByTargetId_should_delete_history_of_target() throws TechnicalException {

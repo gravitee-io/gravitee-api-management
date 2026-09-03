@@ -175,6 +175,32 @@ public class JdbcPerformanceTargetRepository
     }
 
     @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("JdbcPerformanceTargetRepository.deleteByEnvironmentId({})", environmentId);
+        try {
+            var ids = jdbcTemplate.queryForList(
+                "select id from " + this.tableName + " where environment_id = ?",
+                String.class,
+                environmentId
+            );
+            if (!ids.isEmpty()) {
+                jdbcTemplate.update(
+                    "delete from " +
+                        PERFORMANCE_TARGET_APIS +
+                        " where target_id in (select id from " +
+                        this.tableName +
+                        " where environment_id = ?)",
+                    environmentId
+                );
+                jdbcTemplate.update("delete from " + this.tableName + " where environment_id = ?", environmentId);
+            }
+            return ids;
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to delete performance targets of environment " + environmentId, ex);
+        }
+    }
+
+    @Override
     public List<String> removeApiId(String apiId) throws TechnicalException {
         log.debug("JdbcPerformanceTargetRepository.removeApiId({})", apiId);
         try {
