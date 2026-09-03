@@ -16,8 +16,16 @@
 package io.gravitee.apim.core.portal_listing.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
@@ -47,13 +55,16 @@ class ValidatePortalListingUseCaseTest {
         HRIDToUUID.portalListing().context(AUDIT_INFO).portal(PORTAL_HRID).hrid(LISTING_HRID).id()
     );
 
+    private final ApiCrudServiceInMemory apiCrud = new ApiCrudServiceInMemory();
     private final ValidatePortalListingDomainService validator = new ValidatePortalListingDomainService(
-        new PortalAutomationScopeDomainService(new PortalCrudServiceInMemory(), () -> false)
+        new PortalAutomationScopeDomainService(new PortalCrudServiceInMemory(), () -> false),
+        apiCrud
     );
     private ValidatePortalListingUseCase useCase;
 
     @BeforeEach
     void setUp() {
+        apiCrud.initWith(List.of(anApi("pets-api"), anApi("shop-api")));
         useCase = new ValidatePortalListingUseCase(validator);
     }
 
@@ -99,5 +110,53 @@ class ValidatePortalListingUseCaseTest {
         );
 
         assertThat(output.errors()).anyMatch(e -> e.getMessage().contains("apis[1].location"));
+    }
+
+    @Test
+    void should_surface_error_when_referenced_api_does_not_exist() {
+        var output = useCase.execute(
+            new CreateOrUpdatePortalListingUseCase.Input(
+                AUDIT_INFO,
+                LISTING_ID,
+                PORTAL_ID,
+                List.of(new PortalListingApiEntry("ghost-api", "/projects/alpha", 1))
+            )
+        );
+
+        assertThat(output.errors()).anyMatch(e -> e.getMessage().contains("apis[0]") && e.getMessage().contains("ghost-api"));
+    }
+
+    @Test
+    void should_check_api_existence_in_a_single_batched_call_for_multiple_entries() {
+        ApiCrudService apiCrudSpy = spy(apiCrud);
+        var spiedUseCase = new ValidatePortalListingUseCase(
+            new ValidatePortalListingDomainService(
+                new PortalAutomationScopeDomainService(new PortalCrudServiceInMemory(), () -> false),
+                apiCrudSpy
+            )
+        );
+
+        spiedUseCase.execute(
+            new CreateOrUpdatePortalListingUseCase.Input(
+                AUDIT_INFO,
+                LISTING_ID,
+                PORTAL_ID,
+                List.of(
+                    new PortalListingApiEntry("pets-api", "/projects/alpha", 1),
+                    new PortalListingApiEntry("shop-api", "/projects/beta", 2)
+                )
+            )
+        );
+
+        verify(apiCrudSpy).findByIds(anyList());
+        verify(apiCrudSpy, never()).existsById(any());
+    }
+
+    private static Api anApi(String hrid) {
+        return Api.builder()
+            .id(HRIDToUUID.api().context(AUDIT_INFO).hrid(hrid).id())
+            .name(hrid)
+            .environmentId(AUDIT_INFO.environmentId())
+            .build();
     }
 }
