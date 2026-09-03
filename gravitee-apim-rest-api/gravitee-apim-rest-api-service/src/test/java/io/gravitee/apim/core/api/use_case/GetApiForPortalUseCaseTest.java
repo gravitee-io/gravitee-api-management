@@ -26,6 +26,7 @@ import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomain
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationAgent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -133,6 +134,15 @@ class GetApiForPortalUseCaseTest {
         assertThat(output.visible()).isFalse();
     }
 
+    @Test
+    void should_return_visible_when_api_is_published_as_an_agent_navigation_item() {
+        navQueryService.initWith(List.of(publishedAgentNavItem(PUBLIC_API_ID, PortalVisibility.PUBLIC)));
+
+        var output = useCase.execute(new GetApiForPortalUseCase.Input(ENV_ID, PUBLIC_API_ID, null));
+
+        assertThat(output.visible()).isTrue();
+    }
+
     private PortalNavigationApi publishedApiNavItem(String apiId, PortalVisibility visibility) {
         return PortalNavigationApi.builder()
             .id(PortalNavigationItemId.random())
@@ -143,6 +153,21 @@ class GetApiForPortalUseCaseTest {
             .area(PortalArea.TOP_NAVBAR)
             .order(0)
             .apiId(apiId)
+            .published(true)
+            .visibility(visibility)
+            .build();
+    }
+
+    private PortalNavigationAgent publishedAgentNavItem(String agentId, PortalVisibility visibility) {
+        return PortalNavigationAgent.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .title("Nav for " + agentId)
+            .segment(PortalNavigationItem.slugify("Nav for " + agentId).value())
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .agentId(agentId)
             .published(true)
             .visibility(visibility)
             .build();

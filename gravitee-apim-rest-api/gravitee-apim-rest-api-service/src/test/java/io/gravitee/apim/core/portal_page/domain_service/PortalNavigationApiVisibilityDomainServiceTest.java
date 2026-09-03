@@ -27,6 +27,7 @@ import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomain
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationAgent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -353,6 +354,24 @@ class PortalNavigationApiVisibilityDomainServiceTest {
             navQueryService.initWith(List.of(publishedApiNavItem(PUBLIC_API_ID, PortalVisibility.PUBLIC)));
             assertThat(domainService.isApiVisibleToUser(ENV_ID, "non-existent-api", USER_ID)).isFalse();
         }
+
+        @Test
+        void public_agent_proxy_is_visible_to_anonymous_user_by_id() {
+            navQueryService.initWith(List.of(publishedAgentNavItem(PUBLIC_API_ID, PortalVisibility.PUBLIC)));
+            assertThat(domainService.isApiVisibleToUser(ENV_ID, PUBLIC_API_ID, null)).isTrue();
+        }
+
+        @Test
+        void private_agent_proxy_is_not_visible_to_anonymous_user_by_id() {
+            navQueryService.initWith(List.of(publishedAgentNavItem(PRIVATE_API_ID, PortalVisibility.PRIVATE)));
+            assertThat(domainService.isApiVisibleToUser(ENV_ID, PRIVATE_API_ID, null)).isFalse();
+        }
+
+        @Test
+        void unpublished_agent_proxy_is_not_visible_by_id() {
+            navQueryService.initWith(List.of(unpublishedAgentNavItem(PUBLIC_API_ID, PortalVisibility.PUBLIC)));
+            assertThat(domainService.isApiVisibleToUser(ENV_ID, PUBLIC_API_ID, USER_ID)).isFalse();
+        }
     }
 
     // --- helpers ---
@@ -368,6 +387,29 @@ class PortalNavigationApiVisibilityDomainServiceTest {
             .order(0)
             .apiId(apiId)
             .published(true)
+            .visibility(visibility)
+            .build();
+    }
+
+    private PortalNavigationAgent publishedAgentNavItem(String agentId, PortalVisibility visibility) {
+        return agentNavItem(agentId, visibility, true);
+    }
+
+    private PortalNavigationAgent unpublishedAgentNavItem(String agentId, PortalVisibility visibility) {
+        return agentNavItem(agentId, visibility, false);
+    }
+
+    private PortalNavigationAgent agentNavItem(String agentId, PortalVisibility visibility, boolean published) {
+        return PortalNavigationAgent.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .title("Nav for " + agentId)
+            .segment(PortalNavigationItem.slugify("Nav for " + agentId).value())
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .agentId(agentId)
+            .published(published)
             .visibility(visibility)
             .build();
     }

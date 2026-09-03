@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationAgent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
@@ -28,6 +29,7 @@ import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQuer
 import jakarta.annotation.Nullable;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -125,23 +127,17 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
 
     /**
      * Checks if an API is visible in portal navigation for the given user, looking it up by API ID.
+     * An API is visible when a published API navigation item references it, or when a published
+     * AGENT navigation item references it as its backing A2A proxy ({@code agentId}).
      */
     public boolean isApiVisibleToUser(String environmentId, String apiId, @Nullable String userId) {
-        return queryService
-            .search(
-                PortalNavigationItemQueryCriteria.builder()
-                    .environmentId(environmentId)
-                    .published(true)
-                    .root(false)
-                    .type(PortalNavigationItemType.API)
-                    .apiIds(Set.of(apiId))
-                    .build()
+        return findPublishedApiItem(environmentId, apiId)
+            .map(item -> isLinkedApiVisibleToUser(item.getApiId(), item.getVisibility(), userId))
+            .or(() ->
+                findPublishedAgentItem(environmentId, apiId).map(item ->
+                    isLinkedApiVisibleToUser(item.getAgentId(), item.getVisibility(), userId)
+                )
             )
-            .stream()
-            .filter(PortalNavigationApi.class::isInstance)
-            .map(PortalNavigationApi.class::cast)
-            .findFirst()
-            .map(item -> isVisibleToUser(item, userId))
             .orElse(false);
     }
 
@@ -149,14 +145,7 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
      * Checks visibility of a single PortalNavigationApi for the given user.
      */
     public boolean isVisibleToUser(PortalNavigationApi item, String userId) {
-        if (PortalVisibility.PUBLIC.equals(item.getVisibility())) {
-            return true;
-        }
-        Set<String> candidate = Set.of(item.getApiId());
-        return (
-            !apiMembershipDomainService.filterApiIdsByUserMembership(userId, candidate).isEmpty() ||
-            !apiMembershipDomainService.filterAllowedApiIdsBySubscription(userId, candidate).isEmpty()
-        );
+        return isLinkedApiVisibleToUser(item.getApiId(), item.getVisibility(), userId);
     }
 
     /**
@@ -198,5 +187,50 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
             }
         }
         return false;
+    }
+
+    private Optional<PortalNavigationApi> findPublishedApiItem(String environmentId, String apiId) {
+        return queryService
+            .search(
+                PortalNavigationItemQueryCriteria.builder()
+                    .environmentId(environmentId)
+                    .published(true)
+                    .root(false)
+                    .type(PortalNavigationItemType.API)
+                    .apiIds(Set.of(apiId))
+                    .build()
+            )
+            .stream()
+            .filter(PortalNavigationApi.class::isInstance)
+            .map(PortalNavigationApi.class::cast)
+            .findFirst();
+    }
+
+    private Optional<PortalNavigationAgent> findPublishedAgentItem(String environmentId, String agentId) {
+        return queryService
+            .search(
+                PortalNavigationItemQueryCriteria.builder()
+                    .environmentId(environmentId)
+                    .published(true)
+                    .root(false)
+                    .type(PortalNavigationItemType.AGENT)
+                    .build()
+            )
+            .stream()
+            .filter(PortalNavigationAgent.class::isInstance)
+            .map(PortalNavigationAgent.class::cast)
+            .filter(item -> agentId.equals(item.getAgentId()))
+            .findFirst();
+    }
+
+    private boolean isLinkedApiVisibleToUser(String linkedApiId, PortalVisibility visibility, String userId) {
+        if (PortalVisibility.PUBLIC.equals(visibility)) {
+            return true;
+        }
+        Set<String> candidate = Set.of(linkedApiId);
+        return (
+            !apiMembershipDomainService.filterApiIdsByUserMembership(userId, candidate).isEmpty() ||
+            !apiMembershipDomainService.filterAllowedApiIdsBySubscription(userId, candidate).isEmpty()
+        );
     }
 }
