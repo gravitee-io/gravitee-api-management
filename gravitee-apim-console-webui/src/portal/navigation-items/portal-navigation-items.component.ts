@@ -59,6 +59,12 @@ import {
   ApiProductSectionEditorDialogResult,
   SelectedApiProduct,
 } from './api-product-section-editor-dialog/api-product-section-editor-dialog.component';
+import {
+  AgentSectionEditorDialogComponent,
+  AgentSectionEditorDialogData,
+  AgentSectionEditorDialogResult,
+  SelectedAgent,
+} from './agent-section-editor-dialog/agent-section-editor-dialog.component';
 import { OpenApiConfigDialogComponent, OpenApiConfigDialogData } from './openapi-config-dialog/openapi-config-dialog.component';
 import {
   PublishNavigationItemDialogComponent,
@@ -80,6 +86,7 @@ import {
   getPortalNavigationItemSource,
   NewPortalNavigationItem,
   PortalArea,
+  PortalNavigationAgent,
   PortalNavigationApi,
   PortalNavigationApiProduct,
   PortalNavigationFolder,
@@ -111,6 +118,11 @@ type AsyncApiSpecValidationError = {
 };
 
 type ApiProductBulkCreateResult = {
+  createdItemId: string | null;
+  errorMessage?: string;
+};
+
+type AgentBulkCreateResult = {
   createdItemId: string | null;
   errorMessage?: string;
 };
@@ -216,6 +228,14 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       apiProductId
         ? this.apiProductService.get(apiProductId).pipe(map(apiProduct => `${apiProduct.name} (${apiProduct.version})`))
         : of(null),
+  });
+  readonly selectedAgentId = computed(() => {
+    const selectedItem = this.selectedNavigationItem()?.data;
+    return selectedItem?.type === 'AGENT' ? selectedItem.agentId : null;
+  });
+  readonly selectedLinkedAgentName = rxResource({
+    params: () => this.selectedAgentId(),
+    stream: ({ params: agentId }) => (agentId ? this.apiService.resolveNameById(agentId) : of(null)),
   });
   readonly selectedNavigationItemParent: Signal<SectionNode | null> = computed(() => {
     const selectedNavigationItem = this.selectedNavigationItem();
@@ -406,7 +426,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   onAddSection(sectionType: PortalNavigationItemType) {
     this.checkUnsavedChangesAndRun(() => {
-      if (sectionType === 'API' || sectionType === 'API_PRODUCT') {
+      if (sectionType === 'API' || sectionType === 'API_PRODUCT' || sectionType === 'AGENT') {
         return;
       }
       this.manageSection(sectionType, 'create', 'TOP_NAVBAR');
@@ -446,6 +466,18 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
               return;
             }
             this.createApiProductSection(event.node.data);
+            return;
+          }
+
+          if (event.itemType === 'AGENT' && event.action !== 'edit') {
+            if (!event.node.data) {
+              return;
+            }
+            if (this.isInsideAgentSubtree(event.node.data)) {
+              this.snackBarService.error('Agents cannot be nested inside another Agent');
+              return;
+            }
+            this.createAgentSection(event.node.data);
             return;
           }
 
@@ -513,6 +545,36 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       .pipe(
         filter((result): result is ApiProductSectionEditorDialogResult => !!result),
         switchMap(result => this.createApiProductsInOrder(parentItem.id, result.apiProducts, result.visibility)),
+        switchMap(result => this.refreshNavigationItems().pipe(map(() => result))),
+        tap(result => {
+          if (result.errorMessage) {
+            this.snackBarService.error(result.errorMessage);
+          } else if (result.createdItemId) {
+            this.navigateToItemByNavId(result.createdItemId);
+          }
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  private createAgentSection(parentItem: PortalNavigationItem): void {
+    this.matDialog
+      .open<AgentSectionEditorDialogComponent, AgentSectionEditorDialogData, AgentSectionEditorDialogResult>(
+        AgentSectionEditorDialogComponent,
+        {
+          width: GIO_DIALOG_WIDTH.LARGE,
+          data: {
+            mode: 'create',
+            existingAgentIds: this.extractAgentIdsFromNavigationItems(),
+            parentItem,
+          },
+        },
+      )
+      .afterClosed()
+      .pipe(
+        filter((result): result is AgentSectionEditorDialogResult => !!result),
+        switchMap(result => this.createAgentsInOrder(parentItem.id, result.agents, result.visibility)),
         switchMap(result => this.refreshNavigationItems().pipe(map(() => result))),
         tap(result => {
           if (result.errorMessage) {
@@ -730,6 +792,36 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     );
   }
 
+  private createAgentsInOrder(parentId: string, agents: SelectedAgent[], visibility: PortalVisibility): Observable<AgentBulkCreateResult> {
+    if (!agents.length) {
+      return of({ createdItemId: null });
+    }
+
+    const items: NewPortalNavigationItem[] = agents.map(agent => ({
+      title: agent.name,
+      type: 'AGENT',
+      area: 'TOP_NAVBAR',
+      parentId,
+      visibility,
+      agentId: agent.id,
+    }));
+
+    return this.portalNavigationItemsService.createNavigationItemsInBulk(items).pipe(
+      map(response => {
+        const createdAgentItems = response.items?.filter((item): item is PortalNavigationAgent => item.type === 'AGENT');
+        return {
+          createdItemId: createdAgentItems?.length ? createdAgentItems[createdAgentItems.length - 1].id : null,
+        };
+      }),
+      catchError(error => {
+        return of({
+          createdItemId: null,
+          errorMessage: this.getAgentCreateErrorMessage(error),
+        });
+      }),
+    );
+  }
+
   private refreshNavigationItems(): Observable<PortalNavigationItem[]> {
     return new Observable(subscriber => {
       const subscription = this.menuLinks$.pipe(skip(1), take(1)).subscribe(subscriber);
@@ -778,6 +870,17 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
               return this.update(existingItem.id, {
                 title: result.title,
                 type: 'API_PRODUCT',
+                parentId: existingItem.parentId,
+                order: existingItem.order,
+                published: existingItem.published,
+                visibility: result.visibility,
+                categoryIds: existingItem.categoryIds,
+              });
+            }
+            if (existingItem.type === 'AGENT') {
+              return this.update(existingItem.id, {
+                title: result.title,
+                type: 'AGENT',
                 parentId: existingItem.parentId,
                 order: existingItem.order,
                 published: existingItem.published,
@@ -1219,6 +1322,18 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       };
     }
 
+    if (navItem.type === 'AGENT') {
+      return {
+        title: navItem.title,
+        type: 'AGENT',
+        parentId: navItem.parentId,
+        order: navItem.order,
+        published: !navItem.published,
+        visibility: navItem.visibility,
+        categoryIds: navItem.categoryIds,
+      };
+    }
+
     return { ...navItem, published: !navItem.published };
   }
 
@@ -1266,6 +1381,15 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       }
     }
 
+    if (node.type === 'AGENT') {
+      const validationError = this.getAgentMoveValidationError(newParentId);
+      if (validationError) {
+        this.snackBarService.error(validationError);
+        this.refreshMenuList.next(1);
+        return;
+      }
+    }
+
     if (node.type === 'API' && newParentId) {
       const parent = this.menuLinks().find(i => i.id === newParentId);
       if (parent?.type === 'API') {
@@ -1304,18 +1428,28 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
             parentId: newParentId ?? undefined,
             order: newOrder,
           }
-        : {
-            title: navItem.title,
-            type: navItem.type,
-            published: navItem.published,
-            visibility: navItem.visibility,
-            url: (navItem as PortalNavigationLink).url,
-            apiId: (navItem as PortalNavigationApi).apiId,
-            categoryIds: (navItem as PortalNavigationApi).categoryIds,
-            parentId: newParentId ?? undefined,
-            order: newOrder,
-            source: (navItem as PortalNavigationPage).source,
-          };
+        : navItem.type === 'AGENT'
+          ? {
+              title: navItem.title,
+              type: 'AGENT',
+              published: navItem.published,
+              visibility: navItem.visibility,
+              categoryIds: navItem.categoryIds,
+              parentId: newParentId ?? undefined,
+              order: newOrder,
+            }
+          : {
+              title: navItem.title,
+              type: navItem.type,
+              published: navItem.published,
+              visibility: navItem.visibility,
+              url: (navItem as PortalNavigationLink).url,
+              apiId: (navItem as PortalNavigationApi).apiId,
+              categoryIds: (navItem as PortalNavigationApi).categoryIds,
+              parentId: newParentId ?? undefined,
+              order: newOrder,
+              source: (navItem as PortalNavigationPage).source,
+            };
     return this.update(navItem.id, updateItem).pipe(
       tap(() => {
         this.refreshMenuList.next(1);
@@ -1349,6 +1483,12 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     return this.menuLinks()
       .filter((item): item is PortalNavigationApiProduct => item.type === 'API_PRODUCT')
       .map(item => item.apiProductId);
+  }
+
+  private extractAgentIdsFromNavigationItems(): string[] {
+    return this.menuLinks()
+      .filter((item): item is PortalNavigationAgent => item.type === 'AGENT')
+      .map(item => item.agentId);
   }
 
   private findApiProductNavigationContext(
@@ -1388,6 +1528,22 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     return false;
   }
 
+  private isInsideAgentSubtree(item: PortalNavigationItem): boolean {
+    const itemsById = new Map(this.menuLinks().map(menuItem => [menuItem.id, menuItem]));
+    let currentItem: PortalNavigationItem | undefined = item;
+    const visitedItemIds = new Set<string>();
+
+    while (currentItem && !visitedItemIds.has(currentItem.id)) {
+      visitedItemIds.add(currentItem.id);
+      if (currentItem.type === 'AGENT') {
+        return true;
+      }
+      currentItem = currentItem.parentId ? itemsById.get(currentItem.parentId) : undefined;
+    }
+
+    return false;
+  }
+
   private getApiProductMoveValidationError(parentId: string | null): string | null {
     if (!parentId) {
       return 'API Product must be placed under a folder';
@@ -1401,6 +1557,21 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       return 'API Product cannot be nested inside another API Product';
     }
     return parent.type === 'FOLDER' ? null : 'API Product must be placed under a folder';
+  }
+
+  private getAgentMoveValidationError(parentId: string | null): string | null {
+    if (!parentId) {
+      return 'Agent must be placed under a folder';
+    }
+
+    const parent = this.menuLinks().find(item => item.id === parentId);
+    if (!parent) {
+      return 'Agent must be placed under a folder';
+    }
+    if (this.isInsideAgentSubtree(parent)) {
+      return 'Agent cannot be nested inside another Agent';
+    }
+    return parent.type === 'FOLDER' ? null : 'Agent must be placed under a folder';
   }
 
   private getApiProductCreateErrorMessage(error: unknown): string {
@@ -1417,6 +1588,23 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         return 'Unable to add API Products because one or more products are already in the navigation';
       default:
         return 'Failed to create API Product navigation items';
+    }
+  }
+
+  private getAgentCreateErrorMessage(error: unknown): string {
+    if (!(error instanceof HttpErrorResponse)) {
+      return 'Failed to create Agent navigation items';
+    }
+
+    switch (error.status) {
+      case 400:
+        return 'Unable to add Agents because the selected placement or request is invalid';
+      case 404:
+        return 'Unable to add Agents because one or more agents no longer exist';
+      case 409:
+        return 'Unable to add Agents because one or more agents are already in the navigation';
+      default:
+        return 'Failed to create Agent navigation items';
     }
   }
 }
@@ -1446,7 +1634,7 @@ export function findFirstAvailablePage(
       if (element.type === 'PAGE') {
         return element;
       }
-      if (element.type === 'FOLDER' || element.type === 'API' || element.type === 'API_PRODUCT') {
+      if (element.type === 'FOLDER' || element.type === 'API' || element.type === 'API_PRODUCT' || element.type === 'AGENT') {
         const found = search(element);
         if (found) return found;
         return element;

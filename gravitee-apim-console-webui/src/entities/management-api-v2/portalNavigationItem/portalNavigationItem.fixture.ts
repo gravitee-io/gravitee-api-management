@@ -22,16 +22,19 @@ import {
   PortalNavigationLink,
   PortalNavigationApi,
   PortalNavigationApiProduct,
+  PortalNavigationAgent,
   NewPagePortalNavigationItem,
   NewFolderPortalNavigationItem,
   NewLinkPortalNavigationItem,
   NewApiPortalNavigationItem,
   NewApiProductPortalNavigationItem,
+  NewAgentPortalNavigationItem,
   UpdatePagePortalNavigationItem,
   UpdateLinkPortalNavigationItem,
   UpdateFolderPortalNavigationItem,
   UpdateApiPortalNavigationItem,
   UpdateApiProductPortalNavigationItem,
+  UpdateAgentPortalNavigationItem,
 } from './portalNavigationItem';
 import { PortalNavigationItemsResponse } from './portalNavigationItemsResponse';
 
@@ -143,6 +146,31 @@ export function fakePortalNavigationApiProduct(overrides?: Partial<PortalNavigat
     apiProductId: 'api-product-1',
     published: false,
     visibility: 'PUBLIC',
+  };
+
+  if (isFunction(overrides)) {
+    return overrides(base);
+  }
+
+  return {
+    ...base,
+    ...overrides,
+  };
+}
+
+export function fakePortalNavigationAgent(overrides?: Partial<PortalNavigationAgent>): PortalNavigationAgent {
+  const base: PortalNavigationAgent = {
+    id: 'nav-agent-1',
+    organizationId: 'org-1',
+    environmentId: 'env-1',
+    title: 'Agent',
+    type: 'AGENT',
+    order: 1,
+    area: 'TOP_NAVBAR',
+    agentId: 'agent-1',
+    published: false,
+    visibility: 'PUBLIC',
+    categoryIds: [],
   };
 
   if (isFunction(overrides)) {
@@ -286,6 +314,26 @@ export function fakeNewApiProductPortalNavigationItem(
   };
 }
 
+export function fakeNewAgentPortalNavigationItem(overrides?: Partial<NewAgentPortalNavigationItem>): NewAgentPortalNavigationItem {
+  const base: NewAgentPortalNavigationItem = {
+    title: 'New Agent',
+    type: 'AGENT',
+    area: 'TOP_NAVBAR',
+    agentId: 'agent-1',
+    visibility: 'PUBLIC',
+    categoryIds: [],
+  };
+
+  if (isFunction(overrides)) {
+    return overrides(base);
+  }
+
+  return {
+    ...base,
+    ...overrides,
+  };
+}
+
 export function fakeUpdatePagePortalNavigationItem(overrides?: Partial<UpdatePagePortalNavigationItem>): UpdatePagePortalNavigationItem {
   const base: UpdatePagePortalNavigationItem = {
     published: false,
@@ -371,6 +419,25 @@ export function fakeUpdateApiProductPortalNavigationItem(
     type: 'API_PRODUCT',
     title: 'Updated API Product',
     visibility: 'PUBLIC',
+  };
+
+  if (isFunction(overrides)) {
+    return overrides(base);
+  }
+
+  return {
+    ...base,
+    ...overrides,
+  };
+}
+
+export function fakeUpdateAgentPortalNavigationItem(overrides?: Partial<UpdateAgentPortalNavigationItem>): UpdateAgentPortalNavigationItem {
+  const base: UpdateAgentPortalNavigationItem = {
+    published: false,
+    type: 'AGENT',
+    title: 'Updated Agent',
+    visibility: 'PUBLIC',
+    categoryIds: [],
   };
 
   if (isFunction(overrides)) {

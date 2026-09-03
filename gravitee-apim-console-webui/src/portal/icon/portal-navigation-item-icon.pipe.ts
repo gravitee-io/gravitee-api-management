@@ -23,6 +23,7 @@ const portalNavigationItemTypeToSvgIcon: Readonly<Record<PortalNavigationItemTyp
   FOLDER: 'gio:folder',
   API: 'gio:folder-api',
   API_PRODUCT: 'gio:folder-api',
+  AGENT: 'gio:folder-api',
 };
 
 @Pipe({

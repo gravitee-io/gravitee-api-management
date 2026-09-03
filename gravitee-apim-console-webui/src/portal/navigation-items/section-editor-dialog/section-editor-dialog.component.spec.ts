@@ -73,7 +73,7 @@ class TestHostComponent {
     const type = this.type();
 
     if (this.mode() === 'create') {
-      if (type === 'API' || type === 'API_PRODUCT') {
+      if (type === 'API' || type === 'API_PRODUCT' || type === 'AGENT') {
         throw new Error('API and API Product items use dedicated dialogs in create mode');
       }
 

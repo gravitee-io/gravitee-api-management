@@ -16,7 +16,7 @@
 import type { PortalPageContentType } from '../portalPageContent/portalPageContent';
 
 export type PortalArea = 'HOMEPAGE' | 'TOP_NAVBAR';
-export type PortalNavigationItemType = 'PAGE' | 'FOLDER' | 'LINK' | 'API' | 'API_PRODUCT';
+export type PortalNavigationItemType = 'PAGE' | 'FOLDER' | 'LINK' | 'API' | 'API_PRODUCT' | 'AGENT';
 export type PortalVisibility = 'PUBLIC' | 'PRIVATE';
 
 export interface PortalNavigationItemSource {
@@ -70,12 +70,18 @@ export interface PortalNavigationApiProduct extends BasePortalNavigationItem<'AP
   categoryIds?: string[];
 }
 
+export interface PortalNavigationAgent extends BasePortalNavigationItem<'AGENT'> {
+  agentId: string;
+  categoryIds?: string[];
+}
+
 export type PortalNavigationItem =
   | PortalNavigationPage
   | PortalNavigationFolder
   | PortalNavigationLink
   | PortalNavigationApi
-  | PortalNavigationApiProduct;
+  | PortalNavigationApiProduct
+  | PortalNavigationAgent;
 
 /** Only PAGE and FOLDER items can carry an external source. */
 export function getPortalNavigationItemSource(item: PortalNavigationItem): PortalNavigationItemSource | undefined {
@@ -195,12 +201,18 @@ export interface NewApiProductPortalNavigationItem extends BaseNewPortalNavigati
   categoryIds?: string[];
 }
 
+export interface NewAgentPortalNavigationItem extends BaseNewPortalNavigationItem<'AGENT'> {
+  agentId: string;
+  categoryIds?: string[];
+}
+
 export type NewPortalNavigationItem =
   | NewPagePortalNavigationItem
   | NewFolderPortalNavigationItem
   | NewLinkPortalNavigationItem
   | NewApiPortalNavigationItem
-  | NewApiProductPortalNavigationItem;
+  | NewApiProductPortalNavigationItem
+  | NewAgentPortalNavigationItem;
 
 interface BaseUpdatePortalNavigationItem<T extends PortalNavigationItemType> {
   title: string;
@@ -232,9 +244,14 @@ export interface UpdateApiProductPortalNavigationItem extends BaseUpdatePortalNa
   categoryIds?: string[];
 }
 
+export interface UpdateAgentPortalNavigationItem extends BaseUpdatePortalNavigationItem<'AGENT'> {
+  categoryIds?: string[];
+}
+
 export type UpdatePortalNavigationItem =
   | UpdatePagePortalNavigationItem
   | UpdateFolderPortalNavigationItem
   | UpdateLinkPortalNavigationItem
   | UpdateApiPortalNavigationItem
-  | UpdateApiProductPortalNavigationItem;
+  | UpdateApiProductPortalNavigationItem
+  | UpdateAgentPortalNavigationItem;
