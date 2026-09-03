@@ -70,6 +70,9 @@ public class IntegrationTestConfiguration {
             "docker.elastic.co/elasticsearch/elasticsearch:" + version
         );
         elasticsearchContainer.withEnv("cluster.name", CLUSTER_NAME);
+        // Left alone, the node sizes its heap at half the memory it can see — 3.7GB of the CI machine, for
+        // the handful of documents these tests index.
+        elasticsearchContainer.withEnv("ES_JAVA_OPTS", "-Xms512m -Xmx512m");
         if (!version.startsWith("7")) {
             elasticsearchContainer.withEnv("xpack.security.enabled", "false");
         }

@@ -142,6 +142,9 @@ class IndexPreparerIntegrationTest {
                 .withEnv("discovery.type", "single-node")
                 .withEnv("DISABLE_SECURITY_PLUGIN", "true")
                 .withEnv("DISABLE_INSTALL_DEMO_CONFIG", "true")
+                // Left alone, the node sizes its heap at half the memory it can see, and it shares the CI
+                // machine with the Elasticsearch node the other integration tests keep running.
+                .withEnv("OPENSEARCH_JAVA_OPTS", "-Xms512m -Xmx512m")
                 .waitingFor(Wait.forHttp("/").forStatusCode(200));
             container.start();
             return container;
