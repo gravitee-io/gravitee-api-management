@@ -40,7 +40,19 @@ public interface ClientCertificateValidationDomainService {
      * @param environmentId the environment ID for duplicate fingerprint lookup
      * @return extracted certificate information
      */
-    CertificateInfo validateForCreation(ClientCertificate clientCertificate, String environmentId);
+    default CertificateInfo validateForCreation(ClientCertificate clientCertificate, String environmentId) {
+        return validateForCreation(clientCertificate, environmentId, null);
+    }
+
+    /**
+     * Validates a certificate for creation: PEM validation, duplicate fingerprint check, and date bounds.
+     *
+     * @param clientCertificate the certificate to validate
+     * @param environmentId the environment ID for duplicate fingerprint lookup
+     * @param excludeApplicationId application ID to exclude from duplicate fingerprint lookup, or null
+     * @return extracted certificate information
+     */
+    CertificateInfo validateForCreation(ClientCertificate clientCertificate, String environmentId, String excludeApplicationId);
 
     record CertificateInfo(Date certificateExpiration, String subject, String issuer, String fingerprint) {}
 }

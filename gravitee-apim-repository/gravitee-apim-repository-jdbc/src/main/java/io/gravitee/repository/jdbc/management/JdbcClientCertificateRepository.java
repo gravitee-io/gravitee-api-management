@@ -179,8 +179,14 @@ public class JdbcClientCertificateRepository
     }
 
     @Override
-    public boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId) throws TechnicalException {
-        log.debug("JdbcClientCertificateRepository.existsByFingerprintAndActiveApplication({}, {})", fingerprint, environmentId);
+    public boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId, String excludeApplicationId)
+        throws TechnicalException {
+        log.debug(
+            "JdbcClientCertificateRepository.existsByFingerprintAndActiveApplication({}, {}, {})",
+            fingerprint,
+            environmentId,
+            excludeApplicationId
+        );
 
         try {
             String sql =
@@ -191,14 +197,21 @@ public class JdbcClientCertificateRepository
                 " a ON cc.application_id = a.id " +
                 "WHERE cc.fingerprint = ? AND cc.environment_id = ? AND cc.status != ? AND a.status = ?";
 
-            List<Integer> results = jdbcTemplate.queryForList(
-                sql,
-                Integer.class,
-                fingerprint,
-                environmentId,
-                ClientCertificateStatus.REVOKED.name(),
-                ApplicationStatus.ACTIVE.name()
-            );
+            if (excludeApplicationId != null) {
+                sql += " AND cc.application_id != ?";
+            }
+
+            Object[] args = excludeApplicationId != null
+                ? new Object[] {
+                    fingerprint,
+                    environmentId,
+                    ClientCertificateStatus.REVOKED.name(),
+                    ApplicationStatus.ACTIVE.name(),
+                    excludeApplicationId,
+                }
+                : new Object[] { fingerprint, environmentId, ClientCertificateStatus.REVOKED.name(), ApplicationStatus.ACTIVE.name() };
+
+            List<Integer> results = jdbcTemplate.queryForList(sql, Integer.class, args);
 
             return !results.isEmpty();
         } catch (Exception ex) {
