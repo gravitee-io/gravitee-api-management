@@ -730,7 +730,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             .sorted(Comparator.comparing(ClientCertificate::createdAt))
             .toList();
 
-        // Build a map of existing certificates by fingerprint for matching
         Map<String, ClientCertificate> existingByFingerprint = existing
             .stream()
             .collect(Collectors.toMap(this::fingerprintOf, c -> c, (a, b) -> a));

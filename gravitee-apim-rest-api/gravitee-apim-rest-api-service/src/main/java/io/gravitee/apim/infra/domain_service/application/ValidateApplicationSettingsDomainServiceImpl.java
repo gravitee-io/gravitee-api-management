@@ -147,12 +147,22 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
             return errors;
         }
 
+        if (!hasSingle && !hasList) {
+            return errors;
+        }
+
+        var existingCerts = loadExistingCertificates(input);
+
         if (hasSingle) {
             errors.add(Error.warning("clientCertificate is deprecated, use clientCertificates instead"));
             errors.addAll(
-                validateCertificateCreation(input, new CreateClientCertificate("certificate", null, null, tls.getClientCertificate()))
+                validateCertificateCreation(
+                    input,
+                    new CreateClientCertificate("certificate", null, null, tls.getClientCertificate()),
+                    existingCerts
+                )
             );
-        } else if (hasList) {
+        } else {
             Set<String> fingerprints = new java.util.HashSet<>();
             for (var cert : tls.getClientCertificates()) {
                 var parsed = validateCertificatePem(cert.certificate());
@@ -165,19 +175,30 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
                 }
             }
             for (var cert : tls.getClientCertificates()) {
-                errors.addAll(validateCertificateCreation(input, cert));
+                errors.addAll(validateCertificateCreation(input, cert, existingCerts));
             }
         }
 
         return errors;
     }
 
-    private List<Error> validateCertificateCreation(Input input, CreateClientCertificate cert) {
+    private List<ClientCertificate> loadExistingCertificates(Input input) {
+        if (input.applicationId() == null) {
+            return List.of();
+        }
+        return clientCertificateCrudService.findByApplicationIdAndStatuses(
+            input.applicationId(),
+            ClientCertificateStatus.ACTIVE,
+            ClientCertificateStatus.ACTIVE_WITH_END
+        );
+    }
+
+    private List<Error> validateCertificateCreation(Input input, CreateClientCertificate cert, List<ClientCertificate> existingCerts) {
         var errors = new ArrayList<>(validateCertificateEntry(cert));
         if (errors.stream().anyMatch(Error::isSevere)) {
             return errors;
         }
-        if (!requiresCreationValidation(input, cert.certificate())) {
+        if (!requiresCreationValidation(cert.certificate(), existingCerts)) {
             return errors;
         }
         try {
@@ -191,19 +212,11 @@ public class ValidateApplicationSettingsDomainServiceImpl implements ValidateApp
         return errors;
     }
 
-    private boolean requiresCreationValidation(Input input, String certificatePem) {
-        if (input.applicationId() == null) {
-            return true;
-        }
-        var incomingFingerprint = fingerprint(certificatePem);
-        var existingCerts = clientCertificateCrudService.findByApplicationIdAndStatuses(
-            input.applicationId(),
-            ClientCertificateStatus.ACTIVE,
-            ClientCertificateStatus.ACTIVE_WITH_END
-        );
+    private boolean requiresCreationValidation(String certificatePem, List<ClientCertificate> existingCerts) {
         if (CollectionUtils.isEmpty(existingCerts)) {
             return true;
         }
+        var incomingFingerprint = fingerprint(certificatePem);
         return existingCerts.stream().noneMatch(cert -> incomingFingerprint.equals(fingerprintOf(cert)));
     }
 
