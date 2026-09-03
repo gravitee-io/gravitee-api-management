@@ -20,7 +20,6 @@ import { useNavigate } from 'react-router-dom';
 import { CustomRolesLicenseDialog } from '../features/roles/components/CustomRolesLicenseDialog';
 import { RoleDeleteDialog } from '../features/roles/components/RoleDeleteDialog';
 import { RolesByScopeSection } from '../features/roles/components/RolesByScopeSection';
-import { RolesTableOfContents } from '../features/roles/components/RolesTableOfContents';
 import { useDeleteRole } from '../features/roles/hooks/useRoleMutations';
 import { useRolesByScope } from '../features/roles/hooks/useRoles';
 import { CUSTOM_ROLES_LICENSE_FEATURE } from '../features/roles/license/customRolesLicense';
@@ -65,27 +64,21 @@ export function RolesPage() {
         <div className="space-y-6">
             <h1 className="text-2xl font-semibold tracking-tight">Roles</h1>
 
-            <div className="flex items-start gap-6">
-                <RolesTableOfContents items={groups.map(group => ({ scope: group.scope, label: group.label }))} />
-
-                <div className="min-w-0 flex-1 space-y-6">
-                    {groups.map(group => (
-                        <RolesByScopeSection
-                            key={group.scope}
-                            group={group}
-                            canCreate={canCreate}
-                            canDelete={canDelete}
-                            canManageMembers={canManageMembers}
-                            hasCustomRolesLicense={hasCustomRolesLicense}
-                            onCreateRole={scope => navigate(`${scope}`)}
-                            onSelectRole={(scope, roleName) => navigate(`${scope}/${roleName}`)}
-                            onDeleteRole={(scope, role) => setDeleteTarget({ scope, role })}
-                            onViewMembers={(scope, roleName) => navigate(`${scope}/${roleName}/members`)}
-                            onShowLicenseDialog={() => setLicenseDialogOpen(true)}
-                        />
-                    ))}
-                </div>
-            </div>
+            {groups.map(group => (
+                <RolesByScopeSection
+                    key={group.scope}
+                    group={group}
+                    canCreate={canCreate}
+                    canDelete={canDelete}
+                    canManageMembers={canManageMembers}
+                    hasCustomRolesLicense={hasCustomRolesLicense}
+                    onCreateRole={scope => navigate(`${scope}`)}
+                    onSelectRole={(scope, roleName) => navigate(`${scope}/${roleName}`)}
+                    onDeleteRole={(scope, role) => setDeleteTarget({ scope, role })}
+                    onViewMembers={(scope, roleName) => navigate(`${scope}/${roleName}/members`)}
+                    onShowLicenseDialog={() => setLicenseDialogOpen(true)}
+                />
+            ))}
 
             <RoleDeleteDialog
                 open={deleteTarget !== null}

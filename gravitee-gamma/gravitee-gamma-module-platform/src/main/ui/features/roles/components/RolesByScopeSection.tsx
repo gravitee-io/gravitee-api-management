@@ -34,7 +34,6 @@ import type { RolesByScopeGroup } from '../hooks/useRoles';
 import type { Role, RoleScope } from '../types/role';
 import { canRoleBeDeleted } from '../utils/rolePermissions';
 import { getRoleScopeIcon } from '../utils/roleScopeIcon';
-import { roleSectionId } from '../utils/roleSectionId';
 
 interface RoleRowActionsProps {
     role: Role;
@@ -62,7 +61,7 @@ function RoleRowActions({ role, scope, canSeeMembers, canDeleteRole, onViewMembe
                 {canSeeMembers ? (
                     <DropdownMenuItem onSelect={() => onViewMembers(scope, role.name)}>
                         <UsersIcon className="size-4 shrink-0" aria-hidden />
-                        <span className="whitespace-nowrap">See members</span>
+                        <span className="whitespace-nowrap">View members</span>
                     </DropdownMenuItem>
                 ) : null}
                 {canSeeMembers && canDeleteRole ? <DropdownMenuSeparator /> : null}
@@ -111,7 +110,7 @@ export function RolesByScopeSection({
     }
 
     return (
-        <Card id={roleSectionId(group.scope)} className="scroll-mt-20">
+        <Card>
             <CardHeader className="space-y-0">
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-2">
@@ -148,7 +147,7 @@ export function RolesByScopeSection({
                         {group.roles.map(role => (
                             <li key={role.name} className="flex items-center justify-between gap-4 py-3">
                                 {/* Name-as-link, not full-row-click: the row also carries row actions
-                                    (delete/see members), so the clickable target for "open this role" stays
+                                    (view members/delete), so the clickable target for "open this role" stays
                                     scoped to its name instead of swallowing the whole row. */}
                                 <div className="flex min-w-0 flex-1 items-start gap-3">
                                     <span className="min-w-0">
