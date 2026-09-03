@@ -55,6 +55,19 @@
                     (cardSelect)="navigateToDocumentation(item)"
                   />
                 }
+                @case ('AGENT') {
+                  <app-api-card
+                    [apiId]="item.id"
+                    [title]="item.title"
+                    [version]="item.version"
+                    [content]="item.content"
+                    [picture]="item.picture"
+                    [isEnabledMcpServer]="item.isEnabledMcpServer"
+                    i18n-typeLabel="@@catalogAgentType"
+                    typeLabel="AGENT"
+                    (cardSelect)="navigateToDocumentation(item)"
+                  />
+                }
                 @case ('API_PRODUCT') {
                   <app-api-product-card
                     [apiProductId]="item.id"
@@ -82,6 +95,8 @@
                     }
                     @if (item.type === 'API') {
                       <app-badge i18n-label="@@catalogApiType" label="API" />
+                    } @else if (item.type === 'AGENT') {
+                      <app-badge i18n-label="@@catalogAgentType" label="AGENT" />
                     } @else {
                       <app-badge i18n-label="@@catalogApiProductType" label="API PRODUCT" />
                     }
@@ -101,7 +116,7 @@
             <ng-container matColumnDef="labels">
               <th mat-header-cell *matHeaderCellDef i18n="@@catalogTableHeaderDetails">Details</th>
               <td mat-cell *matCellDef="let item">
-                @if (item.type === 'API') {
+                @if (item.type === 'API' || item.type === 'AGENT') {
                   @if (item.labels) {
                     @for (label of item.labels; track label) {
                       <mat-chip># {{ label }}</mat-chip>
@@ -139,7 +154,7 @@
             <ng-container matColumnDef="mcp">
               <th mat-header-cell *matHeaderCellDef></th>
               <td mat-cell *matCellDef="let item" class="api-list__table__mcp-cell">
-                @if (item.type === 'API' && item.isEnabledMcpServer) {
+                @if ((item.type === 'API' || item.type === 'AGENT') && item.isEnabledMcpServer) {
                   <app-badge i18n-label label="MCP" i18n-matTooltip matTooltip="MCP available for this API" />
                 }
               </td>

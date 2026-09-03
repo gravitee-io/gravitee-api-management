@@ -43,7 +43,8 @@ $folder-indent-step: $indent-step;
 
     &.folder,
     &.api,
-    &.api-product {
+    &.api-product,
+    &.agent {
       padding-left: calc(#{$indent-base} + (var(--level) * #{$indent-step}));
 
       &.child {

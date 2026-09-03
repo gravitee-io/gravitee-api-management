@@ -30,7 +30,7 @@ import { fakeApi } from '../../entities/api/api.fixtures';
 import { PortalCategory } from '../../entities/categories/portal-category';
 import { fakePortalCategory } from '../../entities/categories/portal-category.fixture';
 import { PortalNavigationItemsSearchResponse } from '../../entities/portal-navigation/portal-navigation-apis-search';
-import { fakePortalNavigationApi, fakePortalNavigationApiProduct } from '../../entities/portal-navigation/portal-navigation-item.fixture';
+import { fakePortalNavigationApi, fakePortalNavigationApiProduct, fakePortalNavigationAgent } from '../../entities/portal-navigation/portal-navigation-item.fixture';
 import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
 
 describe('CatalogComponent', () => {
@@ -56,6 +56,13 @@ describe('CatalogComponent', () => {
       tools: [{ toolDefinition: { name: 'MCP Tool', description: 'MCP Tool Description', inputSchema: {} } }],
     },
   });
+  const agent = fakeApi({
+    id: 'agent-api-1',
+    name: 'Helpdesk Agent',
+    version: '1.2',
+    description: 'Triage and route IT tickets.',
+    labels: ['ticketing'],
+  });
   const apiProduct = {
     id: '4f6597ca-74b8-4e68-a597-ca74b83e6824',
     name: 'AI Workspace',
@@ -78,15 +85,16 @@ describe('CatalogComponent', () => {
         categoryIds: ['cat-1'],
       }),
       fakePortalNavigationApi({ id: 'api-nav-2', rootId: 'api-root-2', apiId: mcpApi.id }),
+      fakePortalNavigationAgent({ id: 'agent-nav-1', rootId: 'agent-root-1', agentId: agent.id, categoryIds: ['cat-1'] }),
     ],
-    apis: [api, mcpApi],
+    apis: [api, mcpApi, agent],
     apiProducts: [apiProduct],
     links: {},
     metadata: {
       pagination: {
         current_page: 1,
         size: 20,
-        total: 3,
+        total: 4,
         total_pages: 1,
       },
     },
@@ -131,30 +139,32 @@ describe('CatalogComponent', () => {
     httpTestingController.verify();
   });
 
-  it('should render APIs and API Products in one grid', async () => {
+  it('should render APIs, API Products, and Agents in one grid', async () => {
     await init();
 
     const apiCards = await harnessLoader.getAllHarnesses(ApiCardHarness);
     const productCards = await harnessLoader.getAllHarnesses(ApiProductCardHarness);
 
-    expect(apiCards).toHaveLength(2);
+    expect(apiCards).toHaveLength(3);
     expect(await apiCards[0].getTitle()).toBe('Weather API');
     expect(await apiCards[0].getType()).toBe('API');
     expect(await apiCards[1].isMcpServer()).toBe(true);
+    expect(await apiCards[2].getTitle()).toBe('Helpdesk Agent');
+    expect(await apiCards[2].getType()).toBe('AGENT');
     expect(productCards).toHaveLength(1);
     expect(await productCards[0].getTitle()).toBe('AI Workspace');
     expect(await productCards[0].getType()).toBe('API PRODUCT');
     expect(await productCards[0].getApiCount()).toContain('2 APIS INCLUDED');
   });
 
-  it('should render APIs and API Products in one list', async () => {
+  it('should render APIs, API Products, and Agents in one list', async () => {
     await init();
 
     fixture.componentInstance.toggleViewMode();
     fixture.detectChanges();
 
     const rows = await catalogHarness.getAllRowsCellText();
-    expect(rows).toHaveLength(3);
+    expect(rows).toHaveLength(4);
     expect(rows[0]).toMatchObject({
       name: expect.stringContaining('Weather API'),
       labels: expect.stringContaining('# weather'),
@@ -164,6 +174,11 @@ describe('CatalogComponent', () => {
       name: expect.stringContaining('AI Workspace'),
       labels: expect.stringContaining('Included APIs: 2'),
       version: '3.0',
+    });
+    expect(rows[3]).toMatchObject({
+      name: expect.stringContaining('Helpdesk Agent'),
+      labels: expect.stringContaining('# ticketing'),
+      version: '1.2',
     });
   });
 
@@ -186,6 +201,17 @@ describe('CatalogComponent', () => {
 
     expect(navigate).toHaveBeenCalledWith(['/documentation', 'api-root-1'], {
       queryParams: { selectedId: 'api-nav-1' },
+    });
+  });
+
+  it('should navigate an Agent card to its documentation context', async () => {
+    await init();
+    const navigate = jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+    await (await harnessLoader.getAllHarnesses(ApiCardHarness))[2].select();
+
+    expect(navigate).toHaveBeenCalledWith(['/documentation', 'agent-root-1'], {
+      queryParams: { selectedId: 'agent-nav-1' },
     });
   });
 
@@ -395,7 +421,7 @@ describe('CatalogComponent', () => {
         request.method === 'GET' &&
         request.url === `${TESTING_BASE_URL}/portal-navigation-items/_search` &&
         request.params.get('type') === 'catalog' &&
-        request.params.getAll('include')?.join(',') === 'api,api_product' &&
+        request.params.getAll('include')?.join(',') === 'api,api_product,agent' &&
         request.params.get('page') === `${page}` &&
         request.params.get('size') === `${size}` &&
         request.params.get('categoryId') === (categoryId ?? null),

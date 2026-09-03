@@ -528,6 +528,49 @@ describe('DocumentationFolderComponent', () => {
     });
   });
 
+  describe('agent', () => {
+    it('should redirect an Agent selection to its first readable descendant', async () => {
+      const agent = makeItem('agent1', 'AGENT', 'Helpdesk Agent', 0, undefined, 'root1');
+      const agentFolder = makeItem('agent-folder1', 'FOLDER', 'Agent Documentation', 0, 'agent1', 'root1');
+      const overviewPage = makeItem('agent-overview1', 'PAGE', 'Agent Overview', 0, 'agent-folder1', 'root1');
+      const laterPage = makeItem('agent-page2', 'PAGE', 'Later Agent Page', 1, 'agent1', 'root1');
+
+      await init({
+        items: [agent, agentFolder, overviewPage, laterPage],
+        queryParams: { selectedId: 'agent1' },
+        content: MOCK_CONTENT,
+      });
+
+      expect(routerSpy.navigate).toHaveBeenCalledWith([], {
+        relativeTo: expect.anything(),
+        queryParams: { selectedId: 'agent-overview1' },
+      });
+      expect(navigationServiceSpy.getNavigationItemContent).not.toHaveBeenCalledWith('agent1');
+      expect(navigationServiceSpy.getNavigationItemContent).toHaveBeenCalledWith('agent-overview1');
+
+      const breadcrumbs = await harness.getBreadcrumbs();
+      expect(await breadcrumbs?.getText()).toEqual('Test item/Helpdesk Agent/Agent Documentation/Agent Overview');
+    });
+
+    it('should show a subscription action for agent documentation and navigate to the API flow', async () => {
+      const agent = makeItem('agent1', 'AGENT', 'Helpdesk Agent', 0, undefined, 'root1');
+      const agentPage = makeItem('agent-overview1', 'PAGE', 'Agent Overview', 0, 'agent1', 'root1');
+
+      await init({ items: [agent, agentPage], queryParams: { selectedId: 'agent-overview1' }, content: MOCK_CONTENT });
+
+      const subscribeButton = await harness.getSubscribeButton();
+      expect(subscribeButton).not.toBeNull();
+      expect(await subscribeButton!.getText()).toEqual('Subscribe');
+
+      await subscribeButton!.click();
+
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['api', 'api-agent1', 'subscribe'], {
+        relativeTo: expect.anything(),
+        queryParamsHandling: 'preserve',
+      });
+    });
+  });
+
   describe('api', () => {
     it('should show subscribe button when api documentation is clicked', async () => {
       const apiItem = makeItem('api1', 'API', 'API 1', 0, undefined);

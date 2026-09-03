@@ -33,7 +33,7 @@
     <span class="material-icons tree__link__icon" aria-hidden="true">open_in_new</span>
   </a>
 } @else {
-  @let isContainer = node().type === 'FOLDER' || node().type === 'API' || node().type === 'API_PRODUCT';
+  @let isContainer = node().type === 'FOLDER' || node().type === 'API' || node().type === 'API_PRODUCT' || node().type === 'AGENT';
 
   <button
     class="tree__row nav-button next-gen-small"
@@ -42,6 +42,7 @@
     [class.folder]="node().type === 'FOLDER'"
     [class.api]="node().type === 'API'"
     [class.api-product]="node().type === 'API_PRODUCT'"
+    [class.agent]="node().type === 'AGENT'"
     [class.selected]="isSelected()"
     [class.child]="level() > 0"
     [style.--level]="level()"

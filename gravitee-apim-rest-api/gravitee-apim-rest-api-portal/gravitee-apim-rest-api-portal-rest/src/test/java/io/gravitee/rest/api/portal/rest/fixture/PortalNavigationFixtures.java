@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.fixture;
 
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationAgent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -100,6 +101,21 @@ public final class PortalNavigationFixtures {
             .area(area)
             .order(1)
             .apiProductId(apiProductId.toString())
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+    }
+
+    public static PortalNavigationAgent agent(PortalNavigationItemId id, String title, PortalArea area, String agentId) {
+        return PortalNavigationAgent.builder()
+            .id(id)
+            .organizationId("org")
+            .environmentId("env")
+            .title(title)
+            .segment(PortalNavigationItem.slugify(title).value())
+            .area(area)
+            .order(1)
+            .agentId(agentId)
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
             .build();

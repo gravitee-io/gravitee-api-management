@@ -21,6 +21,7 @@ import {
   PortalNavigationLink,
   PortalNavigationApi,
   PortalNavigationApiProduct,
+  PortalNavigationAgent,
 } from './portal-navigation-item';
 
 export function fakePortalNavigationPage(overrides?: Partial<PortalNavigationPage>): PortalNavigationPage {
@@ -132,6 +133,32 @@ export function fakePortalNavigationApiProduct(
     apiProductId: '4f6597ca-74b8-4e68-a597-ca74b83e6824',
     published: true,
     rootId: '9d1dfa42-c550-4ca3-9dfa-42c550dca37a',
+  };
+
+  if (isFunction(overrides)) {
+    return overrides(base);
+  }
+
+  return {
+    ...base,
+    ...overrides,
+  };
+}
+
+export function fakePortalNavigationAgent(
+  overrides?: Partial<PortalNavigationAgent> | ((baseAgent: PortalNavigationAgent) => PortalNavigationAgent),
+): PortalNavigationAgent {
+  const base: PortalNavigationAgent = {
+    id: 'nav-agent-1',
+    organizationId: 'org-1',
+    environmentId: 'env-1',
+    title: 'Agent 1',
+    type: 'AGENT',
+    order: 1,
+    area: 'HOMEPAGE',
+    agentId: 'agent-1',
+    published: true,
+    rootId: 'nav-agent-1',
   };
 
   if (isFunction(overrides)) {
