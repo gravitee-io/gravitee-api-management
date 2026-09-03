@@ -18,7 +18,6 @@ import userEvent from '@testing-library/user-event';
 
 import { RolesByScopeSection } from './RolesByScopeSection';
 import type { RolesByScopeGroup } from '../hooks/useRoles';
-import { roleSectionId } from '../utils/roleSectionId';
 
 const BASE_PROPS = {
     canCreate: true,
@@ -65,12 +64,6 @@ describe('RolesByScopeSection', () => {
         expect(screen.getByText('ADMIN')).toBeInTheDocument();
         expect(screen.getByText('System')).toBeInTheDocument();
         expect(screen.getByText('Default')).toBeInTheDocument();
-    });
-
-    it('exposes an anchor id matching the scope, for the table-of-contents to jump to', () => {
-        const { container } = render(<RolesByScopeSection group={organizationGroup()} {...BASE_PROPS} />);
-
-        expect(container.querySelector(`#${roleSectionId('ORGANIZATION')}`)).toBeInTheDocument();
     });
 
     it('truncates a long role name instead of overflowing the row and clipping its action button', () => {
@@ -167,20 +160,20 @@ describe('RolesByScopeSection', () => {
             />,
         );
 
-        // ADMIN and DEFAULT_ROLE only offer "see members" in their dropdown, no "Delete role".
+        // ADMIN and DEFAULT_ROLE only offer "view members" in their dropdown, no "Delete role".
         await user.click(screen.getByRole('button', { name: 'Actions for ADMIN' }));
-        expect(screen.getByRole('menuitem', { name: /See members/ })).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', { name: /View members/ })).toBeInTheDocument();
         expect(screen.queryByRole('menuitem', { name: /Delete role/ })).not.toBeInTheDocument();
         await user.keyboard('{Escape}');
 
         await user.click(screen.getByRole('button', { name: 'Actions for DEFAULT_ROLE' }));
-        expect(screen.getByRole('menuitem', { name: /See members/ })).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', { name: /View members/ })).toBeInTheDocument();
         expect(screen.queryByRole('menuitem', { name: /Delete role/ })).not.toBeInTheDocument();
         await user.keyboard('{Escape}');
 
         // CUSTOM offers both.
         await user.click(screen.getByRole('button', { name: 'Actions for CUSTOM' }));
-        expect(screen.getByRole('menuitem', { name: /See members/ })).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', { name: /View members/ })).toBeInTheDocument();
         expect(screen.getByRole('menuitem', { name: /Delete role/ })).toBeInTheDocument();
     });
 
@@ -194,7 +187,7 @@ describe('RolesByScopeSection', () => {
         );
 
         await user.click(screen.getByRole('button', { name: 'Actions for CUSTOM' }));
-        await user.click(screen.getByRole('menuitem', { name: /See members/ }));
+        await user.click(screen.getByRole('menuitem', { name: /View members/ }));
         expect(BASE_PROPS.onViewMembers).toHaveBeenCalledWith('ORGANIZATION', 'CUSTOM');
 
         await user.click(screen.getByRole('button', { name: 'Actions for CUSTOM' }));
@@ -202,7 +195,7 @@ describe('RolesByScopeSection', () => {
         expect(BASE_PROPS.onDeleteRole).toHaveBeenCalledWith('ORGANIZATION', { name: 'CUSTOM', scope: 'ORGANIZATION', permissions: {} });
     });
 
-    it('only offers "see members" for ORGANIZATION-scope roles', async () => {
+    it('only offers "view members" for ORGANIZATION-scope roles', async () => {
         const user = userEvent.setup();
         render(
             <RolesByScopeSection
@@ -218,7 +211,7 @@ describe('RolesByScopeSection', () => {
         );
 
         await user.click(screen.getByRole('button', { name: 'Actions for USER' }));
-        expect(screen.queryByRole('menuitem', { name: /See members/ })).not.toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', { name: /View members/ })).not.toBeInTheDocument();
         expect(screen.getByRole('menuitem', { name: /Delete role/ })).toBeInTheDocument();
     });
 

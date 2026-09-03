@@ -30,7 +30,7 @@ jest.mock('../shared/notify', () => ({
 }));
 
 import { useHasFeature, useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -88,17 +88,14 @@ describe('RolesPage', () => {
         renderPage();
 
         expect(screen.getByRole('heading', { name: 'Roles' })).toBeInTheDocument();
-        // Each scope label appears twice: once as the card title, once as a table-of-contents link.
-        expect(screen.getAllByText('Organization')).toHaveLength(2);
-        expect(screen.getAllByText('API')).toHaveLength(2);
+        expect(screen.getByText('Organization')).toBeInTheDocument();
+        expect(screen.getByText('API')).toBeInTheDocument();
     });
 
-    it('renders a table-of-contents link for every scope', () => {
+    it('does not render a table-of-contents / side nav for the scope sections', () => {
         renderPage();
 
-        const toc = screen.getByRole('navigation', { name: 'Roles sections' });
-        expect(within(toc).getByRole('link', { name: 'Organization' })).toBeInTheDocument();
-        expect(within(toc).getByRole('link', { name: 'API' })).toBeInTheDocument();
+        expect(screen.queryByRole('navigation', { name: 'Roles sections' })).not.toBeInTheDocument();
     });
 
     it('navigates to the create route when adding a role while licensed', async () => {
@@ -134,9 +131,9 @@ describe('RolesPage', () => {
         const user = userEvent.setup();
         renderPage();
 
-        // ADMIN only has "see members", but it's still behind the row's "..." dropdown.
+        // ADMIN only has "view members", but it's still behind the row's "..." dropdown.
         await user.click(screen.getByRole('button', { name: 'Actions for ADMIN' }));
-        await user.click(screen.getByRole('menuitem', { name: /See members/ }));
+        await user.click(screen.getByRole('menuitem', { name: /View members/ }));
 
         expect(mockNavigate).toHaveBeenCalledWith('ORGANIZATION/ADMIN/members');
     });
@@ -147,7 +144,7 @@ describe('RolesPage', () => {
         const user = userEvent.setup();
         renderPage();
 
-        // CUSTOM has both "see members" and "delete", so its row actions collapse into a dropdown.
+        // CUSTOM has both "view members" and "delete", so its row actions collapse into a dropdown.
         await user.click(screen.getByRole('button', { name: 'Actions for CUSTOM' }));
         await user.click(screen.getByRole('menuitem', { name: /Delete role/ }));
         expect(screen.getByRole('heading', { name: 'Delete a Role' })).toBeInTheDocument();
