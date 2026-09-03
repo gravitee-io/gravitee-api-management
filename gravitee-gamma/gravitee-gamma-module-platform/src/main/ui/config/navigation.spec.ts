@@ -62,8 +62,14 @@ describe('platform navigation config', () => {
         expect(systemItems.find(item => item.key === 'templates')?.icon).toBe(FileTextIcon);
     });
 
-    it('places Applications, Metadata, Dictionaries, and Shared Policy Groups under Environment / APIs & Assets', () => {
-        expect(sectionKeys('Environment', 'APIs & Assets')).toEqual(['applications', 'metadata', 'dictionaries', 'shared-policy-groups']);
+    it('places Applications, Federation, Metadata, Dictionaries, and Shared Policy Groups under Environment / APIs & Assets', () => {
+        expect(sectionKeys('Environment', 'APIs & Assets')).toEqual([
+            'applications',
+            'federation',
+            'metadata',
+            'dictionaries',
+            'shared-policy-groups',
+        ]);
     });
 
     it('places Access Management, Gateways, Alerts, Notification settings, Security Plan Types, and Audit under Environment / System & Security', () => {
@@ -134,6 +140,11 @@ describe('platform navigation config', () => {
 
         expect(findAlerts(lockNavItem([...NAV_SECTIONS], 'alerts', true))?.access).toBe('locked');
         expect(findAlerts(lockNavItem([...NAV_SECTIONS], 'alerts', false))?.access).toBeUndefined();
+    });
+
+    it('declares the federation route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('federation');
+        expect(ROUTES.federation).toEqual({ path: 'federation', label: 'Federation' });
     });
 
     it('declares the users route in platform routing config', () => {

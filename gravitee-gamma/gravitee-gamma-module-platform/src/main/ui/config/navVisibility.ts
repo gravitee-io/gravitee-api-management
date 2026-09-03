@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import type { License } from '@gravitee/gamma-modules-sdk/types';
+
 import { filterNavSections, firstNavItemKey, NAV_SECTIONS, type PlatformNavSection } from './navigation';
 import { DEFAULT_ROUTE_KEY, ROUTE_KEYS } from './routes';
 import { ENVIRONMENT_ALERT_READ_PERMISSION } from '../features/alerts/utils/alertPermissions';
@@ -29,6 +31,7 @@ export const ORGANIZATION_SETTINGS_READ_PERMISSION = 'organization-settings-r' a
 export const ORGANIZATION_SETTINGS_GATE_PERMISSIONS = [ORGANIZATION_SETTINGS_READ_PERMISSION, 'organization-settings-u'] as const;
 
 export const ENVIRONMENT_APPLICATION_READ_PERMISSION = 'environment-application-r' as const;
+export const ENVIRONMENT_INTEGRATION_READ_PERMISSION = 'environment-integration-r' as const;
 export const ENVIRONMENT_AM_CONFIGURATION_READ_PERMISSION = 'environment-am_configuration-r' as const;
 export const ENVIRONMENT_SETTINGS_READ_PERMISSION = 'environment-settings-r' as const;
 export const ORGANIZATION_TAG_READ_PERMISSION = 'organization-tag-r' as const;
@@ -56,9 +59,11 @@ const ORGANIZATION_SETTINGS_GATED_ITEMS: ReadonlySet<string> = new Set([
  * after the org-settings outer gate (organization-navigation.service.ts). Gamma does
  * not also accept environment-tenant-r or environment-entrypoint-r for those items.
  *
- * Two deliberate divergences: Classic filters its org Audit item on license only, while
- * Gamma also requires `organization-audit-r`; and Access Management is environment-scoped
- * here, outside the org-settings gate, because it is Gamma-only.
+ * Three deliberate divergences: Classic filters its org Audit item on license only, while
+ * Gamma also requires `organization-audit-r`; Access Management is environment-scoped
+ * here, outside the org-settings gate, because it is Gamma-only; and Federation, mapped to
+ * the same `environment-integration-r` Classic's side nav uses, is additionally hidden
+ * unless the caller reports Federation available.
  */
 export const NAV_ITEM_PERMISSIONS: Readonly<Record<string, readonly string[]>> = {
     tenants: [ORGANIZATION_TENANT_READ_PERMISSION],
@@ -72,6 +77,7 @@ export const NAV_ITEM_PERMISSIONS: Readonly<Record<string, readonly string[]>> =
     templates: [ORGANIZATION_NOTIFICATION_TEMPLATES_READ],
     'organization-audit': [ORGANIZATION_AUDIT_READ_PERMISSION],
     applications: [ENVIRONMENT_APPLICATION_READ_PERMISSION],
+    federation: [ENVIRONMENT_INTEGRATION_READ_PERMISSION],
     metadata: ['environment-metadata-r'],
     dictionaries: ['environment-dictionary-r'],
     'shared-policy-groups': [ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION],
@@ -92,10 +98,42 @@ export interface NavVisibilityInput {
     readonly has: (permission: string) => boolean;
     readonly metadataForbidden?: boolean;
     readonly dictionariesForbidden?: boolean;
+    readonly federationAvailable?: boolean;
     /** Items shown but not enterable (missing license). Visible in the sidebar, never a landing target. */
     readonly lockedItemKeys?: readonly string[];
     /** Items a live 403 denied at runtime, whichever permission scope still grants them. */
     readonly deniedItemKeys?: ReadonlySet<string>;
+}
+
+/**
+ * The single source for `federationAvailable`, read by the nav item and by its route guard so a
+ * visible item can never lead to a route that bounces. Permission is not part of it: each side
+ * already applies that half through NAV_ITEM_PERMISSIONS / pageGuardForNavItem.
+ *
+ * A null license means the host has not reported one yet, not that none is installed — an
+ * installation without one reports `tier: 'oss'`. Granting on null would turn a license fetch that
+ * has not landed, or failed, into an entitlement.
+ *
+ * Expiry is a separate term because the backend's tier does not carry it: an expired enterprise
+ * license still reports `tier: 'enterprise'` (LicenseDomainService.isFederationFeatureAllowed).
+ */
+export function isFederationAvailable({
+    federationEnabled,
+    license,
+}: Readonly<{ federationEnabled: boolean; license: License | null }>): boolean {
+    if (!federationEnabled) {
+        return false;
+    }
+    if (license === null) {
+        return false;
+    }
+    if (license.isExpired) {
+        return false;
+    }
+    if (license.tier === 'oss') {
+        return false;
+    }
+    return true;
 }
 
 export function requiresOrganizationSettingsGate(itemKey: string): boolean {
@@ -144,6 +182,9 @@ export function isNavItemVisible(itemKey: string, visibility: NavVisibilityInput
         return false;
     }
     if (itemKey === 'dictionaries' && visibility.dictionariesForbidden) {
+        return false;
+    }
+    if (itemKey === 'federation' && !visibility.federationAvailable) {
         return false;
     }
     return true;

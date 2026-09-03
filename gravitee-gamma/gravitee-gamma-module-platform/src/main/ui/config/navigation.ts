@@ -34,6 +34,7 @@ import {
     ShieldIcon,
     UsersIcon,
     UsersRoundIcon,
+    WaypointsIcon,
     WorkflowIcon,
 } from '@gravitee/graphene-core/icons';
 import type { ElementType } from 'react';
@@ -96,6 +97,7 @@ export const NAV_SECTIONS: PlatformNavSection[] = [
                 label: 'APIs & Assets',
                 items: [
                     { key: 'applications', title: ROUTES.applications.label, icon: AppWindowIcon },
+                    { key: 'federation', title: ROUTES.federation.label, icon: WaypointsIcon },
                     { key: 'metadata', title: ROUTES.metadata.label, icon: DatabaseIcon },
                     { key: 'dictionaries', title: ROUTES.dictionaries.label, icon: BookOpenIcon },
                     { key: 'shared-policy-groups', title: ROUTES['shared-policy-groups'].label, icon: LayersIcon },

@@ -16,3 +16,5 @@
 
 /** Shared page-size options for DataTable pagination (UI-COMP-12). */
 export const TABLE_PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
+
+export const SMALLEST_TABLE_PAGE_SIZE: number = Math.min(...TABLE_PAGE_SIZE_OPTIONS);

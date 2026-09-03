@@ -14,28 +14,6 @@
  * limitations under the License.
  */
 
-/**
- * Subset of GET /organizations/{orgId}/console (ConsoleConfigEntity; Angular `entities/consoleSettings`).
- * Extend here when platform features need more org settings fields.
- */
-export interface ConsoleSettings {
-    userGroup?: {
-        required?: {
-            enabled?: boolean;
-        };
-    };
-    cloudHosted?: {
-        enabled?: boolean;
-    };
-    alert?: {
-        enabled?: boolean;
-    };
-    management?: {
-        systemRoleEdition?: {
-            enabled?: boolean;
-        };
-    };
-    federation?: {
-        enabled?: boolean;
-    };
-}
+export { SMALLEST_TABLE_PAGE_SIZE, TABLE_PAGE_SIZE_OPTIONS } from '../../../shared/utils/paginationConstants';
+
+export const DEFAULT_INTEGRATION_LIST_PAGE_SIZE = 10;
