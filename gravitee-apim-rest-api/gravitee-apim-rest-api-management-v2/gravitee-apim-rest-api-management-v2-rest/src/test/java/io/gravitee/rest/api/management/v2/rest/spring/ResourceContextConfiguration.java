@@ -111,6 +111,7 @@ import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDomainService;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
 import io.gravitee.apim.core.application.use_case.ValidateApplicationCRDUseCase;
+import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
 import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateDomainService;
 import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
 import io.gravitee.apim.core.application_certificate.domain_service.MtlsSubscriptionSyncDomainService;
@@ -913,9 +914,17 @@ public class ResourceContextConfiguration {
     public ValidateApplicationSettingsDomainService validateApplicationSettingsDomainService(
         ApplicationRepository applicationRepository,
         ApplicationTypeService applicationTypeService,
-        ParameterService parameterService
+        ParameterService parameterService,
+        ClientCertificateValidationDomainService clientCertificateValidationDomainService,
+        ClientCertificateCrudService clientCertificateCrudService
     ) {
-        return new ValidateApplicationSettingsDomainServiceImpl(applicationRepository, applicationTypeService, parameterService);
+        return new ValidateApplicationSettingsDomainServiceImpl(
+            applicationRepository,
+            applicationTypeService,
+            parameterService,
+            clientCertificateValidationDomainService,
+            clientCertificateCrudService
+        );
     }
 
     @Bean
@@ -1738,6 +1747,11 @@ public class ResourceContextConfiguration {
     @Bean
     ClientCertificateDomainService clientCertificateDomainService() {
         return mock(ClientCertificateDomainService.class);
+    }
+
+    @Bean
+    public ClientCertificateCrudService clientCertificateCrudService() {
+        return mock(ClientCertificateCrudService.class);
     }
 
     @Bean
