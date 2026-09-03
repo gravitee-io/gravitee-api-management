@@ -34,13 +34,13 @@ import java.util.stream.Stream;
  * behaviour change owned by OBS-69, not by this registry.
  *
  * <p>The set is declared by hand rather than derived from the installed entrypoint plugins, because
- * the scope is a dashboard decision, not a plugin property: {@code mcp} carries the same metadata as
- * {@code http-proxy} yet is not counted yet, and {@code http-get} / {@code http-post} are Message
- * entrypoints counted on purpose. A derived set would also fail silently — the gateway and the
- * Management API load separate plugin trees, an entrypoint missing on one side would simply vanish
- * from the totals, and uninstalling a plugin would erase its historical traffic — while
- * {@code FilterAdapter} runs inside the Elasticsearch repository plugin and cannot see the plugin
- * registry at all.
+ * the scope is a dashboard decision no plugin attribute expresses: {@code http-get}, {@code http-post},
+ * {@code agent-to-agent} and {@code sse} are all Message-API entrypoints on the HTTP listener, and each
+ * one gets a different answer. A derived set would also fail
+ * silently — the gateway and the Management API load separate plugin trees, an entrypoint missing on
+ * one side would simply vanish from the totals, and uninstalling a plugin would erase its historical
+ * traffic — while {@code FilterAdapter} runs inside the Elasticsearch repository plugin and cannot
+ * see the plugin registry at all.
  *
  * <p>Two tests hold the registry to the product instead: {@code ObservabilityEntrypointsTest} checks
  * the artifacts the distribution pom bundles (fast, runs whenever this module changes), and
@@ -59,7 +59,8 @@ public enum ObservabilityEntrypoints {
     LLM_PROXY("llm-proxy", "gravitee-entrypoint-llm-proxy", Scope.HTTP),
     MCP_PROXY("mcp-proxy", "gravitee-entrypoint-mcp-proxy", Scope.HTTP),
     A2A_PROXY("a2a-proxy", "gravitee-entrypoint-a2a-proxy", Scope.HTTP),
-
+    MCP("mcp", "gravitee-entrypoint-mcp-tool-server", Scope.HTTP),
+    MCP_STUDIO("mcp-studio", "gravitee-entrypoint-mcp-studio", Scope.HTTP),
     NATIVE_KAFKA("native-kafka", "gravitee-entrypoint-native-kafka", Scope.LOGS_ONLY),
 
     /** Reported by Edge agents, which ship no entrypoint plugin of their own. */
@@ -67,8 +68,11 @@ public enum ObservabilityEntrypoints {
     /** The plugin id differs from the artifact name: {@code plugin.properties} of gravitee-entrypoint-authz 1.2.0 says {@code authzen}. */
     AUTHZ("authzen", "gravitee-entrypoint-authz", Scope.DEDICATED_FAMILY),
 
-    MCP("mcp", "gravitee-entrypoint-mcp-tool-server", Scope.PENDING),
-    MCP_STUDIO("mcp-studio", "gravitee-entrypoint-mcp-studio", Scope.PENDING),
+    /**
+     * Decided to be request traffic, deliberately not counted yet: the logs screen serves no Message API,
+     * so counting it here would show an agent's calls on the dashboards and none in the logs. OBS-90 lifts
+     * both limits together.
+     */
     AGENT_TO_AGENT("agent-to-agent", "gravitee-entrypoint-agent-to-agent", Scope.PENDING),
 
     SSE("sse", "gravitee-entrypoint-sse", Scope.EXCLUDED),
@@ -81,13 +85,17 @@ public enum ObservabilityEntrypoints {
      * new one cannot reach the product without someone stating the intent.
      */
     public enum Scope {
-        /** Counted by the HTTP request scope: the analytics engine, Gamma analytics and Gamma logs. */
+        /**
+         * Counted by the HTTP request scope: the analytics engine, Gamma analytics and Gamma logs. The
+         * criterion is the shape of the traffic, not the API kind — {@code http-get} and {@code http-post}
+         * are Message-API entrypoints serving request-shaped calls.
+         */
         HTTP,
 
         /**
          * Served by Gamma logs but not by analytics. Native connections have their own documents and
          * their own dashboard tiles; adding them to the analytics default would change every
-         * environment-wide total. The divergence is deliberate and tracked by OBS-18.
+         * environment-wide total. The divergence is deliberate.
          */
         LOGS_ONLY,
 
@@ -98,12 +106,17 @@ public enum ObservabilityEntrypoints {
         DEDICATED_FAMILY,
 
         /**
-         * Carries traffic observability should count but does not yet. Listed so the gap is visible
-         * rather than accidental; OBS-18 promotes these to {@link #HTTP}.
+         * Carries traffic observability should count, held back until it can be counted on every screen at
+         * once. Listed so the gap is a decision on the record rather than an oversight; OBS-90 promotes
+         * what is left here to {@link #HTTP}.
          */
         PENDING,
 
-        /** Message and TCP APIs, outside what the observability signals cover today. */
+        /**
+         * Outside what the observability signals cover today: the subscription entrypoints, whose
+         * connections are not requests and whose duration would distort every latency aggregate, and TCP.
+         * Being a Message-API entrypoint is not the criterion — see {@link #HTTP} and {@link #PENDING}.
+         */
         EXCLUDED,
     }
 
