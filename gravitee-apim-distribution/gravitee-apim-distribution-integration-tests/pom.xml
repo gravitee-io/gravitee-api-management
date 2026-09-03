@@ -78,6 +78,13 @@
             <version>${apim.server.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <!-- ObservabilityEntrypointsDistributionTest holds the registry to the bundled entrypoint plugins. -->
+            <groupId>io.gravitee.apim.repository</groupId>
+            <artifactId>gravitee-apim-repository-api</artifactId>
+            <version>${apim.server.version}</version>
+            <scope>test</scope>
+        </dependency>
         <!-- Test tooling -->
         <dependency>
             <groupId>org.awaitility</groupId>

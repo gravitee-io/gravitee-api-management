@@ -21,20 +21,32 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
- * Canonical registry of the {@code entrypoint-id} values observability knows about, each with the
- * scope it was given. Single source of truth for the default entrypoint scoping applied by:
+ * Registry of the {@code entrypoint-id} values observability knows about, each with the scope it
+ * was given. The default entrypoint scoping of the observability signals is declared here and
+ * nowhere else:
  * <ul>
  *   <li>the analytics engine ({@code FilterAdapter})</li>
  *   <li>Gamma analytics and dashboards ({@code AnalyticsRequestPipeline})</li>
  *   <li>Gamma logs ({@code SearchObservabilityLogsUseCase})</li>
  * </ul>
+ * The legacy v4 analytics adapters under {@code repository-elasticsearch/v4/analytics/adapter} keep
+ * their own lists on purpose: they serve the Console's v4 analytics endpoints, and widening them is a
+ * behaviour change owned by OBS-69, not by this registry.
  *
- * <p>The set is declared by hand rather than derived from the installed entrypoint plugins:
- * analytics and logs read <em>historical</em> documents, so a derived set would drop past traffic
- * from totals the day a plugin is uninstalled, and {@code FilterAdapter} runs inside the
- * Elasticsearch repository plugin, which cannot see the entrypoint plugin registry. Drift is
- * prevented instead by {@code ObservabilityEntrypointsTest}, which fails when the distribution
- * bundles an entrypoint plugin no constant here accounts for.
+ * <p>The set is declared by hand rather than derived from the installed entrypoint plugins, because
+ * the scope is a dashboard decision, not a plugin property: {@code mcp} carries the same metadata as
+ * {@code http-proxy} yet is not counted yet, and {@code http-get} / {@code http-post} are Message
+ * entrypoints counted on purpose. A derived set would also fail silently — the gateway and the
+ * Management API load separate plugin trees, an entrypoint missing on one side would simply vanish
+ * from the totals, and uninstalling a plugin would erase its historical traffic — while
+ * {@code FilterAdapter} runs inside the Elasticsearch repository plugin and cannot see the plugin
+ * registry at all.
+ *
+ * <p>Two tests hold the registry to the product instead: {@code ObservabilityEntrypointsTest} checks
+ * the artifacts the distribution pom bundles (fast, runs whenever this module changes), and
+ * {@code ObservabilityEntrypointsDistributionTest} in the distribution reactor reads the id every
+ * bundled plugin declares in its {@code plugin.properties} (runs whenever the distribution changes,
+ * i.e. when a new entrypoint reaches the product).
  */
 public enum ObservabilityEntrypoints {
     /*
