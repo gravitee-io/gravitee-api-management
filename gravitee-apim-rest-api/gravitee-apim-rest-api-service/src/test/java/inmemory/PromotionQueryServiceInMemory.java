@@ -25,7 +25,15 @@ import java.util.List;
 
 public class PromotionQueryServiceInMemory implements PromotionQueryService, InMemoryAlternative<Promotion> {
 
-    final List<Promotion> storage = new ArrayList<>();
+    final List<Promotion> storage;
+
+    public PromotionQueryServiceInMemory() {
+        this.storage = new ArrayList<>();
+    }
+
+    public PromotionQueryServiceInMemory(PromotionCrudServiceInMemory promotionCrudService) {
+        this.storage = promotionCrudService.storage;
+    }
 
     @Override
     public void initWith(List<Promotion> items) {
@@ -51,13 +59,16 @@ public class PromotionQueryServiceInMemory implements PromotionQueryService, InM
         List<Promotion> matches = storage
             .stream()
             .filter(promotion -> {
-                boolean matchesApiId = promotionQuery.apiId() == null || promotion.getApiId().equals(promotionQuery.apiId());
+                boolean matchesApiId = promotionQuery.apiId() == null || promotionQuery.apiId().equals(promotion.getApiId());
 
-                boolean matchesStatuses = promotionQuery.statuses() == null || promotionQuery.statuses().contains(promotion.getStatus());
+                boolean matchesStatuses =
+                    promotionQuery.statuses() == null ||
+                    (promotion.getStatus() != null && promotionQuery.statuses().contains(promotion.getStatus()));
 
                 boolean matchesTargetEnvCockpitIds =
                     promotionQuery.targetEnvCockpitIds() == null ||
-                    promotionQuery.targetEnvCockpitIds().contains(promotion.getTargetEnvCockpitId());
+                    (promotion.getTargetEnvCockpitId() != null &&
+                        promotionQuery.targetEnvCockpitIds().contains(promotion.getTargetEnvCockpitId()));
 
                 boolean matchesTargetApiExists =
                     promotionQuery.targetApiExists() == null || (promotionQuery.targetApiExists() == (promotion.getTargetApiId() != null));

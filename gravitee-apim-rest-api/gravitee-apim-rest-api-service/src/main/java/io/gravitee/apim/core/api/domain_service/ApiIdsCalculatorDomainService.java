@@ -56,12 +56,31 @@ public class ApiIdsCalculatorDomainService {
     }
 
     public ImportDefinition recalculateApiDefinitionIds(String environmentId, ImportDefinition toRecalculate) {
+        return recalculateApiDefinitionIds(environmentId, toRecalculate, null);
+    }
+
+    /**
+     * Recalculate the ids of the imported definition.
+     *
+     * When {@code targetApi} is provided, it is the API the definition is going to be applied to and ids are
+     * recalculated against it directly, without looking the API up by crossId. This is what a promotion needs
+     * when the target API was resolved through another mean than crossId (e.g. promotion history): otherwise the
+     * crossId lookup misses again, random ids are generated and the update is applied to a non-existing API.
+     */
+    public ImportDefinition recalculateApiDefinitionIds(String environmentId, ImportDefinition toRecalculate, Api targetApi) {
         Objects.requireNonNull(toRecalculate.getApiExport(), "Api is mandatory");
         if (toRecalculate.getApiExport().getId() == null || toRecalculate.getApiExport().getId().isEmpty()) {
-            findApiByEnvironmentAndCrossId(environmentId, toRecalculate.getApiExport().getCrossId()).ifPresentOrElse(
-                api -> recalculateIdsFromCrossId(toRecalculate, api),
-                () -> recalculateIdsFromDefinitionIds(environmentId, toRecalculate)
-            );
+            Optional.ofNullable(targetApi)
+                .or(() -> findApiByEnvironmentAndCrossId(environmentId, toRecalculate.getApiExport().getCrossId()))
+                .ifPresentOrElse(
+                    api -> recalculateIdsFromCrossId(toRecalculate, api),
+                    () -> recalculateIdsFromDefinitionIds(environmentId, toRecalculate)
+                );
+        } else if (targetApi != null && targetApi.getId() != null && !targetApi.getId().equals(toRecalculate.getApiExport().getId())) {
+            // The definition carries an id but we are updating another API: never let the definition id win.
+            // Page and plan ids are left untouched, they are matched by crossId/id by the import layer.
+            log.debug("Import definition id [{}] replaced by target api id [{}]", toRecalculate.getApiExport().getId(), targetApi.getId());
+            toRecalculate.getApiExport().setId(targetApi.getId());
         }
         return generateEmptyIdsForPlansAndPages(toRecalculate);
     }
@@ -69,8 +88,11 @@ public class ApiIdsCalculatorDomainService {
     private void recalculateIdsFromCrossId(ImportDefinition toRecalculate, Api api) {
         log.debug("Recalculating page and plans ids from cross id {} for api {}", api.getCrossId(), api.getId());
         toRecalculate.getApiExport().setId(api.getId());
-        Map<String, String> newPageIdsByOldPageIds = recalculatePageIdsFromCrossIds(api, toRecalculate.getPages());
-        recalculatePlanIdsFromCrossIds(api, toRecalculate.getPlans(), newPageIdsByOldPageIds);
+        Map<String, String> newPageIdsByOldPageIds = recalculatePageIdsFromCrossIds(
+            api,
+            Objects.requireNonNullElse(toRecalculate.getPages(), List.of())
+        );
+        recalculatePlanIdsFromCrossIds(api, Objects.requireNonNullElse(toRecalculate.getPlans(), Set.of()), newPageIdsByOldPageIds);
     }
 
     /**
