@@ -190,6 +190,70 @@ class ClientCertificateValidationDomainServiceImplTest {
         }
 
         @Test
+        void should_allow_fingerprint_when_it_belongs_to_excluded_application_on_update() {
+            var info = service.validate(PEM_CERTIFICATE);
+            clientCertificateCrudService.initWith(
+                List.of(
+                    new ClientCertificate(
+                        "existing-id",
+                        "cross-id",
+                        "app-1",
+                        "Existing",
+                        null,
+                        null,
+                        new Date(),
+                        new Date(),
+                        PEM_CERTIFICATE,
+                        null,
+                        null,
+                        null,
+                        info.fingerprint(),
+                        "env-1",
+                        ClientCertificateStatus.ACTIVE
+                    )
+                )
+            );
+
+            var cert = new ClientCertificate("Renamed Cert", PEM_CERTIFICATE, null, null);
+
+            var result = service.validateForCreation(cert, "env-1", "app-1");
+
+            assertThat(result.fingerprint()).isEqualTo(info.fingerprint());
+        }
+
+        @Test
+        void should_still_reject_fingerprint_used_by_another_application_when_excluding_different_application() {
+            var info = service.validate(PEM_CERTIFICATE);
+            clientCertificateCrudService.initWith(
+                List.of(
+                    new ClientCertificate(
+                        "existing-id",
+                        "cross-id",
+                        "app-1",
+                        "Existing",
+                        null,
+                        null,
+                        new Date(),
+                        new Date(),
+                        PEM_CERTIFICATE,
+                        null,
+                        null,
+                        null,
+                        info.fingerprint(),
+                        "env-1",
+                        ClientCertificateStatus.ACTIVE
+                    )
+                )
+            );
+
+            var cert = new ClientCertificate("New Cert", PEM_CERTIFICATE, null, null);
+
+            assertThatThrownBy(() -> service.validateForCreation(cert, "env-1", "app-2")).isInstanceOf(
+                ClientCertificateAlreadyUsedException.class
+            );
+        }
+
+        @Test
         void should_throw_when_starts_at_is_after_ends_at() {
             var startsAt = Date.from(Instant.now().plus(2, ChronoUnit.DAYS));
             var endsAt = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
