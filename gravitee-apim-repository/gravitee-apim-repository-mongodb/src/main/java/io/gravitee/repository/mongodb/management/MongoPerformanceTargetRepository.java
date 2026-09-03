@@ -100,6 +100,19 @@ class MongoPerformanceTargetRepository implements PerformanceTargetRepository {
     }
 
     @Override
+    public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("Delete performance targets of environment [{}]", environmentId);
+        try {
+            var deleted = internalRepository.deleteByEnvironmentId(environmentId).stream().map(PerformanceTargetMongo::getId).toList();
+            log.debug("Delete performance targets of environment [{}] - Done", environmentId);
+            return deleted;
+        } catch (Exception ex) {
+            log.error("Failed to delete performance targets of environment [{}]", environmentId, ex);
+            throw new TechnicalException("Failed to delete performance targets by environment", ex);
+        }
+    }
+
+    @Override
     public List<String> removeApiId(String apiId) throws TechnicalException {
         log.debug("Remove api [{}] from performance targets", apiId);
         try {

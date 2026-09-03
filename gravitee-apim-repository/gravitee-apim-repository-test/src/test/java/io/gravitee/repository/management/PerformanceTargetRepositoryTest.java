@@ -156,6 +156,25 @@ public class PerformanceTargetRepositoryTest extends AbstractManagementRepositor
         assertThat(performanceTargetRepository.removeApiId("api-3")).isEmpty();
     }
 
+    // deleteByEnvironmentId
+    @Test
+    public void deleteByEnvironmentId_should_delete_every_target_of_the_environment_only() throws TechnicalException {
+        var deleted = performanceTargetRepository.deleteByEnvironmentId("my-env");
+
+        assertThat(deleted).containsExactlyInAnyOrder(
+            "target1",
+            "target2",
+            "target3",
+            "86adbd41-8a3f-45f3-b1ca-f980042db19d",
+            "b8c2ef52-ebb5-4d0f-be1e-a41cc5579fc8"
+        );
+        assertThat(performanceTargetRepository.findById("target1")).isEmpty();
+        assertThat(performanceTargetRepository.removeApiId("api-shared")).isEmpty();
+        assertThat(performanceTargetRepository.findByReference("other-env", "agent-1"))
+            .extracting(PerformanceTarget::getId)
+            .containsExactly("other-env-target");
+    }
+
     // removeApiId
     @Test
     public void removeApiId_should_remove_id_from_every_target_and_keep_targets_left_without_ids() throws TechnicalException {

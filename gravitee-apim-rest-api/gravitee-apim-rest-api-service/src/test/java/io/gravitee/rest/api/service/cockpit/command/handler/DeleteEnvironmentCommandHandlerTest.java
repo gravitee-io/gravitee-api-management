@@ -62,6 +62,8 @@ import io.gravitee.repository.management.api.MetadataRepository;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.PageRevisionRepository;
 import io.gravitee.repository.management.api.ParameterRepository;
+import io.gravitee.repository.management.api.PerformanceTargetEvaluationRepository;
+import io.gravitee.repository.management.api.PerformanceTargetRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.PortalCategoryRepository;
 import io.gravitee.repository.management.api.PortalListingRepository;
@@ -347,6 +349,12 @@ public class DeleteEnvironmentCommandHandlerTest {
     private ScoringRulesetRepository scoringRulesetRepository;
 
     @Mock
+    private PerformanceTargetRepository performanceTargetRepository;
+
+    @Mock
+    private PerformanceTargetEvaluationRepository performanceTargetEvaluationRepository;
+
+    @Mock
     private ScoringFunctionRepository scoringFunctionRepository;
 
     @Mock
@@ -501,6 +509,8 @@ public class DeleteEnvironmentCommandHandlerTest {
             roleRepository,
             scoringReportRepository,
             scoringRulesetRepository,
+            performanceTargetRepository,
+            performanceTargetEvaluationRepository,
             scoringFunctionRepository,
             sharedPolicyGroupRepository,
             sharedPolicyGroupHistoryRepository,
@@ -612,6 +622,8 @@ public class DeleteEnvironmentCommandHandlerTest {
 
         verify(metadataRepository).deleteByReferenceIdAndReferenceType(ENV_ID, MetadataReferenceType.ENVIRONMENT);
         verify(scoringRulesetRepository).deleteByReferenceId(ENV_ID, "ENVIRONMENT");
+        verify(performanceTargetRepository).deleteByEnvironmentId(ENV_ID);
+        verify(performanceTargetEvaluationRepository).deleteByEnvironmentId(ENV_ID);
         verify(environmentService).delete(ENV_ID);
         verify(clientRegistrationProviderRepository).deleteByEnvironmentId(ENV_ID);
         verify(qualityRuleRepository).deleteByReferenceIdAndReferenceType(ENV_ID, QualityRule.ReferenceType.ENVIRONMENT);

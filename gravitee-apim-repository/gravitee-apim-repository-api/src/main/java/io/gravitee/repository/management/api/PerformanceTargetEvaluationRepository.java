@@ -50,4 +50,9 @@ public interface PerformanceTargetEvaluationRepository {
     List<String> deleteByReference(String environmentId, String reference) throws TechnicalException;
 
     void deleteByTargetId(String targetId) throws TechnicalException;
+
+    /**
+     * @return the ids of the deleted evaluations
+     */
+    List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
 }
