@@ -147,15 +147,14 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         PromotionRequestEntity promotionRequest,
         String userId
     ) {
-        // TODO: do we have to use filteredFields like for duplicate (i think no need members and groups)
         // FIXME: can we get the version from target environment
+        // Groups are exported as names and resolved (or auto-created) on the target, matching V2 import.
         EnvironmentEntity currentEnvironmentEntity = environmentService.findById(sourceEnvironmentId);
         String apiDefinition = apiExportService.exportAsJson(
             new ExecutionContext(currentEnvironmentEntity.getOrganizationId(), currentEnvironmentEntity.getId()),
             apiId,
             ApiSerializer.Version.DEFAULT.getVersion(),
-            "members",
-            "groups"
+            "members"
         );
         UserEntity author = userService.findById(executionContext, userId);
 
