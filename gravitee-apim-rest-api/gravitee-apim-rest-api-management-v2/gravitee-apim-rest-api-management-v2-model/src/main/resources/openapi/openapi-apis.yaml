@@ -4052,6 +4052,48 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/AgentOutput"
+                judge:
+                    $ref: "#/components/schemas/AgentJudge"
+        AgentJudge:
+            type: object
+            description: |
+                Declares this agent judges rather than answers. The block is compiled at deploy into the contract a judging
+                call expects — `criteria` plus one required input per variable, and an `{explanation, score}` answer — so an
+                agent declaring it must not also declare inputs or outputs by hand. The criteria are deliberately not here:
+                they arrive on every call, so one deployed judge serves every question.
+            properties:
+                score:
+                    $ref: "#/components/schemas/AgentJudgeScore"
+                explanation:
+                    type: boolean
+                    description: Whether the judge must also say why. Absent ⇒ true.
+                variables:
+                    type: array
+                    description: >-
+                        What the judge is shown beside the criteria, from a fixed vocabulary: input, output, expected_output,
+                        context, tool_calls, metadata. Absent ⇒ ["input", "output"]. Every one becomes a required input.
+                    items:
+                        type: string
+        AgentJudgeScore:
+            type: object
+            description: The scale a judge scores on. Absent ⇒ numeric, between 0 and 1.
+            properties:
+                type:
+                    type: string
+                    description: numeric | boolean | categorical. Absent ⇒ numeric.
+                min:
+                    type: number
+                    format: double
+                    description: Lower bound, for type numeric. Absent ⇒ 0.
+                max:
+                    type: number
+                    format: double
+                    description: Upper bound, for type numeric. Absent ⇒ 1.
+                labels:
+                    type: array
+                    description: The allowed verdicts for type categorical, in the spelling the judge must answer in. Required for that type.
+                    items:
+                        type: string
         AgentModel:
             type: object
             properties:
