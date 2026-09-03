@@ -24,8 +24,13 @@ describe('AccessTokenFilteringOAuthStorage', () => {
 
     storage.setItem('access_token', 'super-secret-idp-token');
 
+<<<<<<< HEAD
     expect(storage.getItem('access_token')).toBeFalsy();
     expect(delegate.getItem('access_token')).toBeFalsy();
+=======
+    expect(storage.getItem('access_token')).toBeUndefined();
+    expect(delegate.getItem('access_token')).toBeUndefined();
+>>>>>>> e1e86a5 (fix(security): strip IdP access_token from browser Web Storage)
   });
 
   it('still writes and reads every other key, e.g. id_token, unaffected', () => {
@@ -46,6 +51,10 @@ describe('AccessTokenFilteringOAuthStorage', () => {
 
     storage.removeItem('id_token');
 
+<<<<<<< HEAD
     expect(storage.getItem('id_token')).toBeFalsy();
+=======
+    expect(storage.getItem('id_token')).toBeUndefined();
+>>>>>>> e1e86a5 (fix(security): strip IdP access_token from browser Web Storage)
   });
 });

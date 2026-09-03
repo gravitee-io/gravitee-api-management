@@ -21,6 +21,11 @@ import { OAuthStorage } from 'angular-oauth2-oidc';
  *
  * `id_token` and the other OIDC bookkeeping keys are left untouched: they are needed for single logout
  * and session-expiry checks.
+<<<<<<< HEAD
+=======
+ *
+ * See APIM-14822.
+>>>>>>> e1e86a5 (fix(security): strip IdP access_token from browser Web Storage)
  */
 export class AccessTokenFilteringOAuthStorage implements OAuthStorage {
   private static readonly FILTERED_KEY = 'access_token';

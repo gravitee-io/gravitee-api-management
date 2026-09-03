@@ -41,6 +41,8 @@ import { ConfigurationService } from '../services/configuration.service';
 
 import { AccessTokenFilteringOAuthStorage } from './access-token-filtering-oauth-storage';
 
+import { AccessTokenFilteringOAuthStorage } from './access-token-filtering-oauth-storage';
+
 @NgModule({
   exports: [
     TranslatePipe,
@@ -97,6 +99,7 @@ import { AccessTokenFilteringOAuthStorage } from './access-token-filtering-oauth
     { provide: TRANSLATE_HTTP_LOADER_CONFIG, useValue: { resources: [{ prefix: './assets/i18n/', suffix: '.json' }], failOnError: true } },
     {
       provide: OAuthStorage,
+<<<<<<< HEAD
       useFactory: (configurationService: ConfigurationService) => {
         const delegate: OAuthStorage = typeof sessionStorage !== 'undefined' ? sessionStorage : new MemoryStorage();
         if (configurationService.get('authentication.exposeAccessToken.enabled', true) === false) {
@@ -105,6 +108,9 @@ import { AccessTokenFilteringOAuthStorage } from './access-token-filtering-oauth
         return delegate;
       },
       deps: [ConfigurationService],
+=======
+      useFactory: () => new AccessTokenFilteringOAuthStorage(typeof sessionStorage !== 'undefined' ? sessionStorage : new MemoryStorage()),
+>>>>>>> e1e86a5 (fix(security): strip IdP access_token from browser Web Storage)
     },
   ],
 })
