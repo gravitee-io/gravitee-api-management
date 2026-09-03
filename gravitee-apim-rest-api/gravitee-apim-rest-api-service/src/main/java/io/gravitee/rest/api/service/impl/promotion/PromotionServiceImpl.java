@@ -235,6 +235,12 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
             if (existingPromotion.isPresent()) {
                 log.debug("Updating existing promotion: {}", promotion.getId());
+                // The Cockpit round-trip may echo a promotion without its targetApiId (e.g. the source environment
+                // replaying a promotion request). Never lose the link to the API already promoted: it is what lets
+                // the next promotion update that API in place when the crossId lookup misses.
+                if (promotion.getTargetApiId() == null && existingPromotion.get().getTargetApiId() != null) {
+                    promotion.setTargetApiId(existingPromotion.get().getTargetApiId());
+                }
                 createdOrUpdatedPromotion = promotionRepository.update(promotion);
             } else {
                 log.debug("Creating promotion: {}", promotion.getId());
@@ -433,6 +439,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         promotion.setApiDefinition(promotionEntity.getApiDefinition());
         promotion.setStatus(convert(promotionEntity.getStatus()));
         promotion.setAuthor(promotionAuthor);
+        promotion.setTargetApiId(promotionEntity.getTargetApiId());
 
         return promotion;
     }

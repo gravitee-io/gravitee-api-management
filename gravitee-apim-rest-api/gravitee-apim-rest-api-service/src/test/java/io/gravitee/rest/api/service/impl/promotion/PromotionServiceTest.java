@@ -202,6 +202,47 @@ public class PromotionServiceTest {
     }
 
     @Test
+    public void shouldKeepTargetApiIdOfTheEntityWhenCreatingOrUpdating() throws TechnicalException {
+        when(promotionRepository.findById(any())).thenReturn(Optional.empty());
+        when(promotionRepository.create(any())).thenReturn(getAPromotion());
+
+        promotionService.createOrUpdate(getAPromotionEntity());
+
+        verify(promotionRepository, times(1)).create(argThat(promotion -> "api#1-Promoted".equals(promotion.getTargetApiId())));
+    }
+
+    @Test
+    public void shouldNotLoseExistingTargetApiIdWhenUpdatedEntityHasNone() throws TechnicalException {
+        // Cockpit echoes the promotion to the source environment without the targetApiId set by the target one.
+        Promotion existing = getAPromotion();
+        existing.setTargetApiId("api-already-promoted");
+        when(promotionRepository.findById(any())).thenReturn(Optional.of(existing));
+        when(promotionRepository.update(any())).thenReturn(existing);
+
+        PromotionEntity withoutTargetApiId = getAPromotionEntity();
+        withoutTargetApiId.setTargetApiId(null);
+
+        promotionService.createOrUpdate(withoutTargetApiId);
+
+        verify(promotionRepository, times(1)).update(argThat(promotion -> "api-already-promoted".equals(promotion.getTargetApiId())));
+    }
+
+    @Test
+    public void shouldReplaceExistingTargetApiIdWhenUpdatedEntityHasOne() throws TechnicalException {
+        Promotion existing = getAPromotion();
+        existing.setTargetApiId("old-target-api");
+        when(promotionRepository.findById(any())).thenReturn(Optional.of(existing));
+        when(promotionRepository.update(any())).thenReturn(existing);
+
+        PromotionEntity withNewTargetApiId = getAPromotionEntity();
+        withNewTargetApiId.setTargetApiId("new-target-api");
+
+        promotionService.createOrUpdate(withNewTargetApiId);
+
+        verify(promotionRepository, times(1)).update(argThat(promotion -> "new-target-api".equals(promotion.getTargetApiId())));
+    }
+
+    @Test
     public void shouldNotCreateOrUpdateException() throws TechnicalException {
         assertThrows(TechnicalManagementException.class, () -> {
             when(promotionRepository.findById(any())).thenThrow(new TechnicalException());

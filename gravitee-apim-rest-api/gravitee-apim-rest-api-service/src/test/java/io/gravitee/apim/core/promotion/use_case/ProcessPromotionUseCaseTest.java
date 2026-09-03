@@ -18,20 +18,25 @@ package io.gravitee.apim.core.promotion.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.PromotionFixtures;
 import initializers.ImportDefinitionCreateDomainServiceTestInitializer;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.EnvironmentCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PromotionCrudServiceInMemory;
+import inmemory.PromotionQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.import_definition.ImportDefinitionUpdateDomainServiceTestInitializer;
 import io.gravitee.apim.core.api.exception.ApiImportedWithErrorException;
@@ -47,6 +52,7 @@ import io.gravitee.apim.core.cockpit.model.CockpitReplyStatus;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
+import io.gravitee.apim.core.promotion.domain_service.PromotionContextDomainService;
 import io.gravitee.apim.core.promotion.model.Promotion;
 import io.gravitee.apim.core.promotion.model.PromotionStatus;
 import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
@@ -59,6 +65,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -107,6 +114,9 @@ class ProcessPromotionUseCaseTest {
     private final ImportDefinitionUpdateDomainServiceTestInitializer importDefinitionUpdateDomainService =
         new ImportDefinitionUpdateDomainServiceTestInitializer(apiCrudServiceInMemory);
     private final EnvironmentCrudServiceInMemory environmentCrudService = new EnvironmentCrudServiceInMemory();
+    private final PromotionQueryServiceInMemory promotionQueryService = new PromotionQueryServiceInMemory(promotionCrudService);
+    private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudServiceInMemory);
+    private PromotionContextDomainService promotionContextDomainService;
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     private AuditDomainService auditService;
@@ -124,6 +134,15 @@ class ProcessPromotionUseCaseTest {
             importDefinitionCreateDomainService.initialize(),
             importDefinitionUpdateDomainService.initialize(ENVIRONMENT_ID),
             auditService
+        );
+
+        promotionContextDomainService = new PromotionContextDomainService(
+            promotionCrudService,
+            promotionQueryService,
+            apiQueryService,
+            apiCrudServiceInMemory,
+            environmentCrudService,
+            new JsonMapper()
         );
 
         UuidString.overrideGenerator(() -> UUID);
@@ -248,6 +267,8 @@ class ProcessPromotionUseCaseTest {
             )
         );
         assertThat(result).isNotNull();
+        assertThat(result.promotion().getStatus()).isEqualTo(PromotionStatus.ACCEPTED);
+        assertThat(result.promotion().getTargetApiId()).isEqualTo("already-promoted-api");
     }
 
     @Test
@@ -291,6 +312,7 @@ class ProcessPromotionUseCaseTest {
         assertThat(result).isNotNull();
         assertThat(result.promotion()).isNotNull();
         assertThat(result.promotion().getStatus()).isEqualTo(PromotionStatus.ACCEPTED);
+        assertThat(result.promotion().getTargetApiId()).isEqualTo(UUID);
         assertThat(apiCrudServiceInMemory.storage()).hasSize(2);
         assertThat(apiCrudServiceInMemory.get(UUID))
             .isNotNull()
@@ -299,6 +321,266 @@ class ProcessPromotionUseCaseTest {
                 assertThat(api.getApiLifecycleState()).isEqualTo(Api.ApiLifecycleState.CREATED);
                 assertThat(api.getLifecycleState()).isEqualTo(Api.LifecycleState.STOPPED);
             });
+    }
+
+    @Test
+    void should_create_a_new_api_instead_of_updating_when_existing_promoted_api_was_not_resolved() {
+        promotionCrudService.initWith(List.of(PROMOTION));
+        environmentCrudService.initWith(List.of(ENVIRONMENT));
+
+        var alreadyInTarget = ApiFixtures.aProxyApiV4()
+            .toBuilder()
+            .id("already-promoted-api")
+            .crossId("different-cross-id")
+            .environmentId(ENVIRONMENT_ID)
+            .build();
+        apiCrudServiceInMemory.initWith(List.of(alreadyInTarget));
+
+        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
+        importDefinitionCreateDomainService.parametersQueryService.initWith(
+            List.of(
+                new Parameter(
+                    Key.API_PRIMARY_OWNER_MODE.key(),
+                    ENVIRONMENT_ID,
+                    ParameterReferenceType.ENVIRONMENT,
+                    ApiPrimaryOwnerMode.USER.name()
+                ),
+                new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
+            )
+        );
+        importDefinitionCreateDomainService.userCrudService.initWith(List.of(BASE_USER_ENTITY));
+        when(
+            importDefinitionCreateDomainService.validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any())
+        ).thenAnswer(invocation -> invocation.getArgument(0));
+
+        var result = useCase.execute(
+            new ProcessPromotionUseCase.Input(
+                PROMOTION,
+                DefinitionVersion.V4,
+                true,
+                null,
+                ImportDefinition.builder().apiExport(ApiExport.builder().crossId(CROSS_ID).build()).build(),
+                AUDIT
+            )
+        );
+
+        assertThat(result.promotion().getStatus()).isEqualTo(PromotionStatus.ACCEPTED);
+        assertThat(result.promotion().getTargetApiId()).isEqualTo(UUID);
+        assertThat(apiCrudServiceInMemory.storage()).hasSize(2);
+        assertThat(apiCrudServiceInMemory.get("already-promoted-api").getCrossId()).isEqualTo("different-cross-id");
+        assertThat(apiCrudServiceInMemory.get(UUID)).isNotNull();
+    }
+
+    @Test
+    void should_update_existing_target_api_when_resolved_even_if_crossId_differs() {
+        promotionCrudService.initWith(List.of(PROMOTION));
+        environmentCrudService.initWith(List.of(ENVIRONMENT));
+
+        var alreadyInTarget = ApiFixtures.aProxyApiV4()
+            .toBuilder()
+            .id("already-promoted-api")
+            .crossId("different-cross-id")
+            .environmentId(ENVIRONMENT_ID)
+            .build();
+        apiCrudServiceInMemory.initWith(List.of(alreadyInTarget));
+
+        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
+
+        var result = useCase.execute(
+            new ProcessPromotionUseCase.Input(
+                PROMOTION,
+                DefinitionVersion.V4,
+                true,
+                alreadyInTarget,
+                ImportDefinition.builder().apiExport(ApiExport.builder().id(API_ID).crossId(CROSS_ID).build()).build(),
+                AUDIT
+            )
+        );
+
+        assertThat(result.promotion().getStatus()).isEqualTo(PromotionStatus.ACCEPTED);
+        assertThat(result.promotion().getTargetApiId()).isEqualTo("already-promoted-api");
+        assertThat(apiCrudServiceInMemory.storage()).hasSize(1);
+        assertThat(apiCrudServiceInMemory.get("already-promoted-api")).isNotNull();
+        verify(cockpitPromotionServiceProvider).processPromotion(any(), any(), any());
+    }
+
+    @Test
+    void should_update_resolved_target_api_in_place_when_export_has_no_id_and_crossId_differs() {
+        // Real promotions export the definition without ids (Excludable.IDS). When the target API was resolved through
+        // the promotion history, its crossId differs from the definition one: the update must still hit that API.
+        promotionCrudService.initWith(List.of(PROMOTION));
+        environmentCrudService.initWith(List.of(ENVIRONMENT));
+
+        var alreadyInTarget = ApiFixtures.aProxyApiV4()
+            .toBuilder()
+            .id("already-promoted-api")
+            .crossId("different-cross-id")
+            .environmentId(ENVIRONMENT_ID)
+            .build();
+        apiCrudServiceInMemory.initWith(List.of(alreadyInTarget));
+
+        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
+
+        var result = useCase.execute(
+            new ProcessPromotionUseCase.Input(
+                PROMOTION,
+                DefinitionVersion.V4,
+                true,
+                alreadyInTarget,
+                ImportDefinition.builder().apiExport(ApiExport.builder().crossId(CROSS_ID).name("promoted name").build()).build(),
+                AUDIT
+            )
+        );
+
+        assertThat(result.promotion().getStatus()).isEqualTo(PromotionStatus.ACCEPTED);
+        assertThat(result.promotion().getTargetApiId()).isEqualTo("already-promoted-api");
+        assertThat(apiCrudServiceInMemory.storage()).hasSize(1);
+        verify(importDefinitionUpdateDomainService.apiService).update(
+            any(),
+            eq("already-promoted-api"),
+            argThat(update -> CROSS_ID.equals(update.getCrossId()) && "promoted name".equals(update.getName())),
+            eq(false),
+            eq(USER_NAME)
+        );
+    }
+
+    @Test
+    void should_refuse_to_update_a_target_api_that_belongs_to_another_environment() {
+        var promotion = aPendingPromotion();
+        promotionCrudService.initWith(List.of(promotion));
+        environmentCrudService.initWith(List.of(ENVIRONMENT));
+
+        var apiInAnotherEnv = ApiFixtures.aProxyApiV4()
+            .toBuilder()
+            .id("api-in-another-env")
+            .crossId(CROSS_ID)
+            .environmentId("ANOTHER-ENV-ID")
+            .build();
+        apiCrudServiceInMemory.initWith(List.of(apiInAnotherEnv));
+
+        Throwable throwable = catchThrowable(() ->
+            useCase.execute(
+                new ProcessPromotionUseCase.Input(
+                    promotion,
+                    DefinitionVersion.V4,
+                    true,
+                    apiInAnotherEnv,
+                    ImportDefinition.builder().apiExport(ApiExport.builder().crossId(CROSS_ID).build()).build(),
+                    AUDIT
+                )
+            )
+        );
+
+        assertThat(throwable)
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("api-in-another-env")
+            .hasMessageContaining(ENVIRONMENT_ID);
+        assertThat(apiCrudServiceInMemory.storage()).hasSize(1);
+        verify(importDefinitionUpdateDomainService.apiService, never()).update(any(), any(), any(), anyBoolean(), any());
+        verify(cockpitPromotionServiceProvider, never()).processPromotion(any(), any(), any());
+        assertThat(promotionCrudService.storage().getFirst().getStatus()).isEqualTo(PromotionStatus.TO_BE_VALIDATED);
+    }
+
+    @Test
+    void should_refuse_to_update_a_target_api_with_no_environment_id() {
+        var promotion = aPendingPromotion();
+        promotionCrudService.initWith(List.of(promotion));
+        environmentCrudService.initWith(List.of(ENVIRONMENT));
+
+        var apiWithNoEnv = ApiFixtures.aProxyApiV4().toBuilder().id("api-with-no-env").crossId(CROSS_ID).environmentId(null).build();
+        apiCrudServiceInMemory.initWith(List.of(apiWithNoEnv));
+
+        Throwable throwable = catchThrowable(() ->
+            useCase.execute(
+                new ProcessPromotionUseCase.Input(
+                    promotion,
+                    DefinitionVersion.V4,
+                    true,
+                    apiWithNoEnv,
+                    ImportDefinition.builder().apiExport(ApiExport.builder().crossId(CROSS_ID).build()).build(),
+                    AUDIT
+                )
+            )
+        );
+
+        assertThat(throwable)
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("api-with-no-env")
+            .hasMessageContaining(ENVIRONMENT_ID);
+        verify(importDefinitionUpdateDomainService.apiService, never()).update(any(), any(), any(), anyBoolean(), any());
+        verify(cockpitPromotionServiceProvider, never()).processPromotion(any(), any(), any());
+        assertThat(promotionCrudService.storage().getFirst().getStatus()).isEqualTo(PromotionStatus.TO_BE_VALIDATED);
+    }
+
+    @Test
+    void should_not_accept_nor_notify_cockpit_when_the_target_api_update_fails() {
+        var promotion = aPendingPromotion();
+        promotionCrudService.initWith(List.of(promotion));
+        environmentCrudService.initWith(List.of(ENVIRONMENT));
+
+        var alreadyInTarget = ApiFixtures.aProxyApiV4()
+            .toBuilder()
+            .id("already-promoted-api")
+            .crossId(CROSS_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .build();
+        apiCrudServiceInMemory.initWith(List.of(alreadyInTarget));
+        when(importDefinitionUpdateDomainService.apiService.update(any(), any(), any(), anyBoolean(), any())).thenThrow(
+            new IllegalStateException("update failed")
+        );
+
+        Throwable throwable = catchThrowable(() ->
+            useCase.execute(
+                new ProcessPromotionUseCase.Input(
+                    promotion,
+                    DefinitionVersion.V4,
+                    true,
+                    alreadyInTarget,
+                    ImportDefinition.builder().apiExport(ApiExport.builder().crossId(CROSS_ID).build()).build(),
+                    AUDIT
+                )
+            )
+        );
+
+        assertThat(throwable).isInstanceOf(IllegalStateException.class).hasMessage("update failed");
+        verify(cockpitPromotionServiceProvider, never()).processPromotion(any(), any(), any());
+        assertThat(promotionCrudService.storage().getFirst().getStatus()).isEqualTo(PromotionStatus.TO_BE_VALIDATED);
+        assertThat(promotionCrudService.storage().getFirst().getTargetApiId()).isNull();
+    }
+
+    @Test
+    void should_not_persist_promotion_when_cockpit_rejects_the_processed_promotion() {
+        var stored = aPendingPromotion();
+        var input = aPendingPromotion();
+        promotionCrudService.initWith(List.of(stored));
+        environmentCrudService.initWith(List.of(ENVIRONMENT));
+
+        var alreadyInTarget = ApiFixtures.aProxyApiV4()
+            .toBuilder()
+            .id("already-promoted-api")
+            .crossId(CROSS_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .build();
+        apiCrudServiceInMemory.initWith(List.of(alreadyInTarget));
+        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.ERROR);
+
+        Throwable throwable = catchThrowable(() ->
+            useCase.execute(
+                new ProcessPromotionUseCase.Input(
+                    input,
+                    DefinitionVersion.V4,
+                    true,
+                    alreadyInTarget,
+                    ImportDefinition.builder().apiExport(ApiExport.builder().crossId(CROSS_ID).build()).build(),
+                    AUDIT
+                )
+            )
+        );
+
+        assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
+        // The stored promotion is untouched: no ACCEPTED status and no targetApiId without a successful Cockpit reply.
+        assertThat(promotionCrudService.storage().getFirst().getStatus()).isEqualTo(PromotionStatus.TO_BE_VALIDATED);
+        assertThat(promotionCrudService.storage().getFirst().getTargetApiId()).isNull();
     }
 
     @Test
@@ -414,4 +696,100 @@ class ProcessPromotionUseCaseTest {
                 "(Plans) Cannot invoke \"io.gravitee.definition.model.DefinitionVersion.ordinal()\""
             );
     }
+
+    /**
+     * The scenario an environment upgrading from an affected version is in: the API was promoted before the pipeline
+     * persisted {@code targetApiId}, so every accepted promotion row has {@code target_api_id = NULL}, and the crossId
+     * has since diverged. Resolution runs for real here (through {@link PromotionContextDomainService}) rather than
+     * being handed in, because the whole question is whether the target gets resolved at all on that path.
+     */
+    @Test
+    void should_update_the_already_promoted_api_in_place_when_upgrading_from_a_version_that_never_stored_target_api_id() {
+        var promotion = aPendingPromotion().toBuilder().apiDefinition(A_V4_DEFINITION_SERVING_HTTP_PROXY).build();
+        var legacyAccepted = promotion
+            .toBuilder()
+            .id("legacy-accepted-promotion")
+            .status(PromotionStatus.ACCEPTED)
+            .targetApiId(null)
+            .createdAt(Instant.parse("2026-01-01T00:00:00Z"))
+            .build();
+        promotionCrudService.initWith(List.of(promotion, legacyAccepted));
+        environmentCrudService.initWith(List.of(ENVIRONMENT));
+
+        var alreadyPromotedApi = ApiFixtures.aProxyApiV4()
+            .toBuilder()
+            .id("already-promoted-api")
+            .crossId("diverged-cross-id")
+            .environmentId(ENVIRONMENT_ID)
+            .build();
+        apiCrudServiceInMemory.initWith(List.of(alreadyPromotedApi));
+
+        when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
+
+        var context = promotionContextDomainService.getPromotionContext(promotion.getId(), true);
+
+        assertThat(context.existingPromotedApi())
+            .as("the API already serving the promoted context path must be resolved as the promotion target")
+            .isNotNull()
+            .extracting(Api::getId)
+            .isEqualTo("already-promoted-api");
+
+        var result = useCase.execute(
+            new ProcessPromotionUseCase.Input(
+                context.promotion(),
+                context.expectedDefinitionVersion(),
+                true,
+                context.existingPromotedApi(),
+                ImportDefinition.builder().apiExport(ApiExport.builder().crossId(CROSS_ID).build()).build(),
+                AUDIT
+            )
+        );
+
+        assertThat(result.promotion().getStatus()).isEqualTo(PromotionStatus.ACCEPTED);
+        assertThat(result.promotion().getTargetApiId()).isEqualTo("already-promoted-api");
+        // No second API, so no entrypoint conflict — and the next promotion resolves by targetApiId.
+        assertThat(apiCrudServiceInMemory.storage()).hasSize(1);
+    }
+
+    @Test
+    void should_create_the_api_rather_than_take_over_an_unrelated_api_serving_the_same_path() {
+        // Same shape as above but with no accepted promotion of this API into the environment: the API owning the
+        // path is a stranger and must not be overwritten.
+        var promotion = aPendingPromotion().toBuilder().apiDefinition(A_V4_DEFINITION_SERVING_HTTP_PROXY).build();
+        promotionCrudService.initWith(List.of(promotion));
+        environmentCrudService.initWith(List.of(ENVIRONMENT));
+        apiCrudServiceInMemory.initWith(
+            List.of(
+                ApiFixtures.aProxyApiV4()
+                    .toBuilder()
+                    .id("unrelated-api")
+                    .crossId("unrelated-cross-id")
+                    .environmentId(ENVIRONMENT_ID)
+                    .build()
+            )
+        );
+
+        var context = promotionContextDomainService.getPromotionContext(promotion.getId(), true);
+
+        assertThat(context.existingPromotedApi()).isNull();
+    }
+
+    /**
+     * The use case mutates the promotion it receives; {@link #PROMOTION} is shared by all tests so tests asserting on
+     * the "not accepted" state need their own instance with a known initial status.
+     */
+    private static Promotion aPendingPromotion() {
+        return PROMOTION.toBuilder().status(PromotionStatus.TO_BE_VALIDATED).targetApiId(null).build();
+    }
+
+    private static final String A_V4_DEFINITION_SERVING_HTTP_PROXY = """
+        {
+            "api": {
+                "crossId": "%s",
+                "definitionVersion": "V4",
+                "name": "My Api",
+                "listeners": [ { "type": "HTTP", "paths": [ { "path": "/http_proxy" } ] } ]
+            }
+        }
+        """.formatted(CROSS_ID);
 }
