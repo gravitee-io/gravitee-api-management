@@ -16,7 +16,7 @@
 
 -->
 <div class="menu-items">
-  <app-nav-bar-button class="nav-button" i18n="@@catalog" [path]="['catalog']">Catalog</app-nav-bar-button>
+  <app-nav-bar-button class="nav-button" i18n="@@catalog" [path]="['catalog']">Marketplace</app-nav-bar-button>
   @for (navigationItem of topBarNavigationItems(); track navigationItem.id) {
     @switch (navigationItem.type) {
       @case ('LINK') {
