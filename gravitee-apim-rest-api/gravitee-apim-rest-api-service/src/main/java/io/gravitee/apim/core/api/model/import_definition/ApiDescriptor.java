@@ -227,6 +227,7 @@ public sealed interface ApiDescriptor {
         boolean composable,
         List<Listener> listeners,
         io.gravitee.definition.model.v4.agent.StandaloneAgentDefinition standalone,
+        io.gravitee.definition.model.v4.agent.JudgeDefinition judge,
         io.gravitee.definition.model.v4.agent.workflow.Workflow workflow,
         io.gravitee.definition.model.v4.agent.AgentAnalytics analytics,
         List<io.gravitee.definition.model.v4.resource.Resource> resources

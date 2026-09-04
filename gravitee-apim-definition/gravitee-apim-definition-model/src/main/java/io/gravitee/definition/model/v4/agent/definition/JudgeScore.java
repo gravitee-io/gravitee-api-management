@@ -26,7 +26,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * The scale a {@link AgentJudge} scores on — the one thing that makes two otherwise identical judges different.
+ * The scale a {@link io.gravitee.definition.model.v4.agent.JudgeDefinition} scores on — the one thing that makes two otherwise identical judges different.
  *
  * <p>Declared on the judge rather than travelling with each set of criteria, so the scale is fixed at deploy time.
  * That is what lets the allowed labels reach the model as a real JSON-schema {@code enum} instead of a sentence

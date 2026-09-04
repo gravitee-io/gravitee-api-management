@@ -16,6 +16,7 @@
 package io.gravitee.definition.model.v4.agent;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.AbstractApi;
@@ -44,11 +45,14 @@ import lombok.experimental.SuperBuilder;
  * A first-class agent definition — a sibling of {@code Api}/{@code NativeApi} under {@link AbstractApi}, selected
  * by {@code type: agent}. Unlike the proxy {@code Api}, it models no endpointGroups/flows: an agent is
  * <b>exposure</b> ({@code listeners} — HTTP entrypoints) plus {@code plans}, a {@code composable} flag (whether it can
- * be referenced as a workflow sub-agent), a {@code kind} ({@code standalone}|{@code workflow}) and the matching body:
+ * be referenced as a workflow sub-agent), a {@code kind} ({@code standalone}|{@code workflow}|{@code judge}) and the
+ * matching body:
  * <ul>
  *   <li>{@code standalone} → {@link StandaloneAgentDefinition} {@code standalone} (a single task agent);</li>
  *   <li>{@code workflow} → {@link Workflow} {@code workflow} (an orchestration whose agent leaves are
  *       <b>references</b> by id to independently-deployed agents — never embedded);</li>
+ *   <li>{@code judge} → {@link JudgeDefinition} {@code judge} (an agent that scores material against criteria it is
+ *       handed per call, rather than answering for itself);</li>
  *   <li>{@code evaluation} → {@link EvaluationDefinition} {@code evaluation} (a scoring of another agent's recorded
  *       runs, on a schedule or on demand — it serves no traffic of its own).</li>
  * </ul>
@@ -75,7 +79,8 @@ public class AgentApi extends AbstractApi {
 
     /**
      * {@code standalone} (a single agent) | {@code workflow} (an orchestration over referenced agents) |
-     * {@code evaluation} (a scoring of another agent's recorded runs).
+     * {@code judge} (a scorer of material against per-call criteria) | {@code evaluation} (a scoring of another
+     * agent's recorded runs). Names the body key that must be present, and the others must not be.
      */
     @JsonProperty(required = true)
     @NotNull
@@ -86,6 +91,15 @@ public class AgentApi extends AbstractApi {
 
     /** The orchestration root (a control) — present when {@code kind=workflow}. Type-locked to {@link Workflow}. */
     private Workflow workflow;
+
+    /**
+     * The judge body — present when {@code kind=judge}.
+     *
+     * <p>Excluded when null at the field rather than on the class: the class carries no inclusion rule, and an
+     * ordinary agent must not gain a {@code "judge": null} that churns every stored definition.</p>
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private JudgeDefinition judge;
 
     /**
      * The evaluation body — present when {@code kind=evaluation}.
@@ -115,7 +129,11 @@ public class AgentApi extends AbstractApi {
     public List<Plugin> getPlugins() {
         List<Plugin> bodyPlugins = standalone != null
             ? standalone.collectPlugins()
-            : (workflow != null ? workflow.collectPlugins() : List.of());
+            : workflow != null
+                ? workflow.collectPlugins()
+                : judge != null
+                    ? judge.collectPlugins()
+                    : List.of();
         return Stream.of(
             Optional.ofNullable(this.getResources())
                 .map(r -> r.stream().filter(Resource::isEnabled).map(Resource::getPlugins).flatMap(List::stream).toList())

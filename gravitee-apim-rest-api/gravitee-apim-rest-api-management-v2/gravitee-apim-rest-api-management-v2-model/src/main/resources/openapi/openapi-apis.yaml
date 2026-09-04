@@ -3977,10 +3977,13 @@ components:
                           $ref: "#/components/schemas/ApiType"
                       kind:
                           type: string
-                          description: Agent kind. 'standalone' for a single agent, 'workflow' for an orchestration.
+                          description: >-
+                              Agent kind. 'standalone' for a single agent, 'workflow' for an orchestration, 'judge' for an
+                              agent that scores material against criteria handed to it per call. Names the body key.
                           enum:
                               - standalone
                               - workflow
+                              - judge
                       composable:
                           type: boolean
                           description: Whether the agent can be referenced as a workflow sub-agent.
@@ -3991,6 +3994,8 @@ components:
                               $ref: "#/components/schemas/Listener"
                       standalone:
                           $ref: "#/components/schemas/AgentStandalone"
+                      judge:
+                          $ref: "#/components/schemas/JudgeDefinition"
                       workflow:
                           type: object
                           description: >
@@ -4052,16 +4057,23 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/AgentOutput"
-                judge:
-                    $ref: "#/components/schemas/AgentJudge"
-        AgentJudge:
+        JudgeDefinition:
             type: object
             description: |
-                Declares this agent judges rather than answers. The block is compiled at deploy into the contract a judging
-                call expects — `criteria` plus one required input per variable, and an `{explanation, score}` answer — so an
-                agent declaring it must not also declare inputs or outputs by hand. The criteria are deliberately not here:
-                they arrive on every call, so one deployed judge serves every question.
+                The body of a judge — an agent that scores material against criteria handed to it per call, present when
+                kind is judge. It is lowered at deploy into the contract a judging call expects — `criteria` plus one required
+                input per variable, and an `{explanation, score}` answer. It carries no role, tools, skills, working memory
+                or hand-written contract. The criteria are deliberately not here: they arrive on every call, so one deployed
+                judge serves every question.
             properties:
+                model:
+                    $ref: "#/components/schemas/AgentModel"
+                subject:
+                    type: string
+                    description: What one call scores. 'turn' (default, the only value honoured today) or 'trajectory' (reserved).
+                instructions:
+                    type: string
+                    description: The author's instructions, appended after the fixed framing and the scale. Persona and rubric detail go here.
                 score:
                     $ref: "#/components/schemas/AgentJudgeScore"
                 explanation:
@@ -4070,8 +4082,9 @@ components:
                 variables:
                     type: array
                     description: >-
-                        What the judge is shown beside the criteria, from a fixed vocabulary: input, output, expected_output,
-                        context, tool_calls, metadata. Absent ⇒ ["input", "output"]. Every one becomes a required input.
+                        What the judge is shown beside the criteria, from the subject's fixed vocabulary — for a turn: input,
+                        output, expected_output, context, tool_calls, metadata. Absent ⇒ the subject's default, ["input", "output"]
+                        for a turn. Every one becomes a required input.
                     items:
                         type: string
         AgentJudgeScore:
@@ -4405,10 +4418,13 @@ components:
                           $ref: "#/components/schemas/ApiType"
                       kind:
                           type: string
-                          description: Agent kind. 'standalone' for a single agent, 'workflow' for an orchestration.
+                          description: >-
+                              Agent kind. 'standalone' for a single agent, 'workflow' for an orchestration, 'judge' for an
+                              agent that scores material against criteria handed to it per call. Names the body key.
                           enum:
                               - standalone
                               - workflow
+                              - judge
                       composable:
                           type: boolean
                           description: Whether the agent can be referenced as a workflow sub-agent.
@@ -4426,6 +4442,8 @@ components:
                           minItems: 1
                       standalone:
                           $ref: "#/components/schemas/AgentStandalone"
+                      judge:
+                          $ref: "#/components/schemas/JudgeDefinition"
                       workflow:
                           type: object
                           description: >
@@ -4811,10 +4829,13 @@ components:
                           $ref: "#/components/schemas/ApiType"
                       kind:
                           type: string
-                          description: Agent kind. 'standalone' for a single agent, 'workflow' for an orchestration.
+                          description: >-
+                              Agent kind. 'standalone' for a single agent, 'workflow' for an orchestration, 'judge' for an
+                              agent that scores material against criteria handed to it per call. Names the body key.
                           enum:
                               - standalone
                               - workflow
+                              - judge
                       composable:
                           type: boolean
                           description: Whether the agent can be referenced as a workflow sub-agent.
@@ -4826,6 +4847,8 @@ components:
                           minItems: 1
                       standalone:
                           $ref: "#/components/schemas/AgentStandalone"
+                      judge:
+                          $ref: "#/components/schemas/JudgeDefinition"
                       workflow:
                           type: object
                           description: >
