@@ -164,6 +164,28 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
             ).containsExactlyInAnyOrderElementsOf(KNOWN_UNCATALOGUED_FILTERS);
         }
 
+        /**
+         * The same loss one level up: a name the engines evaluate but the catalog does not describe is advertised
+         * to no signal and cannot list values, which is how the observability Entrypoint picker broke while the
+         * engine was filtering on it all along. What is left undescribed is exactly the pinned dimensions above,
+         * so this set shrinks with them and never grows.
+         */
+        @Test
+        void should_describe_every_engine_name_outside_the_pinned_dimension_gaps() {
+            var service = new AnalyticsDefinitionYAMLQueryService();
+            var pinnedNames = KNOWN_UNCATALOGUED_FILTERS.stream()
+                .map(entry -> entry.substring(entry.indexOf("-> ") + 3))
+                .distinct()
+                .toList();
+
+            var undescribed = Arrays.stream(FilterSpec.Name.values())
+                .filter(name -> service.findFilter(name).isEmpty())
+                .map(FilterSpec.Name::name)
+                .toList();
+
+            assertThat(undescribed).containsExactlyInAnyOrderElementsOf(pinnedNames);
+        }
+
         private static <T> List<String> droppedDimensions(
             Function<MetricSpec, List<T>> declared,
             BiFunction<AnalyticsDefinitionYAMLQueryService, MetricSpec.Name, List<T>> surfaced
