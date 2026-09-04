@@ -24,6 +24,7 @@ import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
@@ -47,19 +48,32 @@ public final class NavigationSyncPlanExecutor {
     private final PortalNavigationItemsQueryService queryService;
     private final PortalPageContentCrudService pageContentCrudService;
 
+    /** Transitional: callers that do not yet carry a reference plan in the default namespace. */
+    public void execute(
+        NavigationSyncPlan plan,
+        AuditInfo auditInfo,
+        PortalArea area,
+        @Nullable PortalNavigationItemContainer root,
+        Function<String, PortalNavigationItemId> idFactory,
+        DeleteStrategy strategy
+    ) {
+        execute(plan, auditInfo, area, root, NavigationItemReference.defaultReference(), idFactory, strategy);
+    }
+
     public void execute(
         NavigationSyncPlan plan,
         AuditInfo auditInfo,
         PortalArea area,
         // null for top-level portal navigation; the nav-api row for api-folder subtrees
         @Nullable PortalNavigationItemContainer root,
+        NavigationItemReference reference,
         Function<String, PortalNavigationItemId> idFactory,
         DeleteStrategy strategy
     ) {
         final var byPath = new HashMap<String, PortalNavigationItemContainer>();
         for (var action : plan.actions()) {
             switch (action) {
-                case FolderActions.FolderMutation m -> applyMutation(m, byPath, auditInfo, area, root, idFactory);
+                case FolderActions.FolderMutation m -> applyMutation(m, byPath, auditInfo, area, root, reference, idFactory);
                 case FolderActions.DeleteFolder d -> applyDelete(d, auditInfo.environmentId(), strategy);
             }
         }
@@ -71,12 +85,13 @@ public final class NavigationSyncPlanExecutor {
         AuditInfo auditInfo,
         PortalArea area,
         PortalNavigationItemContainer root,
+        NavigationItemReference reference,
         Function<String, PortalNavigationItemId> idFactory
     ) {
         final var df = mutation.desired();
         final var parent = df.parentPath() == null ? root : byPath.get(df.parentPath());
         final PortalNavigationFolder result = switch (mutation) {
-            case FolderActions.CreateFolder c -> createFolder(c.desired(), parent, auditInfo, area, idFactory);
+            case FolderActions.CreateFolder c -> createFolder(c.desired(), parent, auditInfo, area, reference, idFactory);
             case FolderActions.UpdateFolder u -> applyUpdate(u.existing(), u.desired(), parent);
         };
         byPath.put(df.path(), result);
@@ -110,11 +125,12 @@ public final class NavigationSyncPlanExecutor {
         PortalNavigationItemContainer parent,
         AuditInfo auditInfo,
         PortalArea area,
+        NavigationItemReference reference,
         Function<String, PortalNavigationItemId> idFactory
     ) {
         final var folderId = idFactory.apply(df.path());
         final var parentId = parent == null ? null : parent.getId();
-        rejectIfSegmentTakenByForeignItem(auditInfo, parentId, df.segment().value(), folderId, df.path());
+        rejectIfSegmentTakenByForeignItem(auditInfo, parentId, df.segment().value(), folderId, df.path(), reference);
         final var create = CreatePortalNavigationItem.builder()
             .id(folderId)
             .title(df.title())
@@ -123,6 +139,7 @@ public final class NavigationSyncPlanExecutor {
             .type(PortalNavigationItemType.FOLDER)
             .order(df.order())
             .visibility(df.visibility())
+            .reference(reference)
             .published(true)
             .build();
         return (PortalNavigationFolder) crudService.create(
@@ -135,10 +152,11 @@ public final class NavigationSyncPlanExecutor {
         @Nullable PortalNavigationItemId parentId,
         String segment,
         PortalNavigationItemId expectedId,
-        String path
+        String path,
+        NavigationItemReference reference
     ) {
         queryService
-            .findByParentIdAndSegment(auditInfo.environmentId(), parentId, segment)
+            .findByParentIdAndSegment(auditInfo.environmentId(), parentId, segment, reference)
             .filter(sibling -> !sibling.getId().equals(expectedId))
             .ifPresent(squatter -> {
                 throw PathConflictException.folderPath(path);
