@@ -17,7 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.rest.api.service.common.GraviteeContext.getExecutionContext;
 
-import io.gravitee.apim.core.subscription_form.use_case.GetSubscriptionFormForApiPortalUseCase;
+import io.gravitee.apim.core.subscription_form.use_case.ResolveSubscriptionFormOptionsUseCase;
 import io.gravitee.rest.api.portal.rest.mapper.SubscriptionFormMapper;
 import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import jakarta.inject.Inject;
@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
 public class ApiSubscriptionFormResource extends AbstractResource<Object, Object> {
 
     @Inject
-    private GetSubscriptionFormForApiPortalUseCase getSubscriptionFormForApiPortalUseCase;
+    private ResolveSubscriptionFormOptionsUseCase resolveSubscriptionFormOptionsUseCase;
 
     private static final SubscriptionFormMapper subscriptionFormMapper = SubscriptionFormMapper.INSTANCE;
 
@@ -50,8 +50,8 @@ public class ApiSubscriptionFormResource extends AbstractResource<Object, Object
     @RequirePortalAuth
     public Response getSubscriptionForm(@PathParam("apiId") String apiId) {
         var executionContext = getExecutionContext();
-        var result = getSubscriptionFormForApiPortalUseCase.execute(
-            GetSubscriptionFormForApiPortalUseCase.Input.builder()
+        var result = resolveSubscriptionFormOptionsUseCase.execute(
+            ResolveSubscriptionFormOptionsUseCase.Input.builder()
                 .environmentId(executionContext.getEnvironmentId())
                 .apiId(apiId)
                 .userId(getAuthenticatedUserOrNull())

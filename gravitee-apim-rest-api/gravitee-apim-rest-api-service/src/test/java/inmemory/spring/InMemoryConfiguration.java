@@ -599,16 +599,6 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public SubscriptionFormCrudServiceInMemory subscriptionFormCrudService() {
-        return new SubscriptionFormCrudServiceInMemory();
-    }
-
-    @Bean
-    public SubscriptionFormQueryServiceInMemory subscriptionFormQueryService() {
-        return new SubscriptionFormQueryServiceInMemory();
-    }
-
-    @Bean
     public SubscriptionFormElResolverInMemory subscriptionFormElResolver() {
         return new SubscriptionFormElResolverInMemory();
     }
