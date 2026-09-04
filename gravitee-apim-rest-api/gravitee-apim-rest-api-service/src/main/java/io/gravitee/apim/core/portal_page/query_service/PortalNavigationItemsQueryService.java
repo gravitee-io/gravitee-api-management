@@ -96,4 +96,20 @@ public interface PortalNavigationItemsQueryService {
             .filter(subscriptionForm -> subscriptionForm.getPortalPageContentId().equals(contentId))
             .findFirst();
     }
+
+    /**
+     * The environment's effective default subscription form: there is no stored "default" flag — a
+     * SUBSCRIPTION_FORM item is the default exactly when it is the only one currently published. Zero or more
+     * than one published item both resolve to empty, matching "behave as if there is no subscription form" for
+     * an ambiguous state.
+     */
+    default Optional<PortalNavigationSubscriptionForm> findPublishedSubscriptionForm(String environmentId) {
+        var published = findTopLevelItemsByEnvironmentIdAndPortalArea(environmentId, PortalArea.SUBSCRIPTION_FORM)
+            .stream()
+            .filter(PortalNavigationSubscriptionForm.class::isInstance)
+            .map(PortalNavigationSubscriptionForm.class::cast)
+            .filter(item -> Boolean.TRUE.equals(item.getPublished()))
+            .toList();
+        return published.size() == 1 ? Optional.of(published.get(0)) : Optional.empty();
+    }
 }
