@@ -31,7 +31,6 @@ import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
-import inmemory.SubscriptionFormQueryServiceInMemory;
 import inmemory.SubscriptionSearchQueryServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
@@ -181,7 +180,6 @@ import io.gravitee.apim.core.subscription.use_case.GetSubscriptionsUseCase;
 import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionCRDUseCase;
 import io.gravitee.apim.core.subscription.use_case.UpdateSubscriptionUseCase;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSchemaGenerator;
-import io.gravitee.apim.core.subscription_form.query_service.SubscriptionFormQueryService;
 import io.gravitee.apim.core.user.domain_service.CreateUserDomainService;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.service_provider.UserPasswordService;
@@ -1509,11 +1507,6 @@ public class ResourceContextConfiguration {
     @Bean
     public ClientCertificateDomainService clientCertificateDomainService() {
         return mock(ClientCertificateDomainService.class);
-    }
-
-    @Bean
-    public SubscriptionFormQueryService subscriptionFormQueryService() {
-        return new SubscriptionFormQueryServiceInMemory();
     }
 
     @Bean

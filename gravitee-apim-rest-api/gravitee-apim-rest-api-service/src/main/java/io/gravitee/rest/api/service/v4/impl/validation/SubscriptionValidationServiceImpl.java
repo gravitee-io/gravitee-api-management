@@ -17,10 +17,10 @@ package io.gravitee.rest.api.service.v4.impl.validation;
 
 import static java.util.Optional.ofNullable;
 
+import io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm;
+import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormElResolverDomainService;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSubmissionValidator;
-import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
-import io.gravitee.apim.core.subscription_form.query_service.SubscriptionFormQueryService;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
@@ -48,7 +48,7 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
 
     private final EntrypointConnectorPluginService entrypointService;
     private final SubscriptionMetadataSanitizer subscriptionMetadataSanitizer;
-    private final SubscriptionFormQueryService subscriptionFormQueryService;
+    private final PortalNavigationItemsQueryService navigationItemsQueryService;
     private final SubscriptionFormElResolverDomainService subscriptionFormElResolver;
 
     @Override
@@ -105,10 +105,9 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
     ) {
         var submitted = ofNullable(metadata).orElseGet(Map::of);
 
-        subscriptionFormQueryService
-            .findDefaultForEnvironmentId(genericPlanEntity.getEnvironmentId())
-            .filter(SubscriptionForm::isEnabled)
-            .map(SubscriptionForm::getValidationConstraints)
+        navigationItemsQueryService
+            .findPublishedSubscriptionForm(genericPlanEntity.getEnvironmentId())
+            .map(PortalNavigationSubscriptionForm::getValidationConstraints)
             .filter(constraints -> !constraints.isEmpty())
             .map(constraints ->
                 GenericPlanEntity.ReferenceType.API.equals(genericPlanEntity.getReferenceType())

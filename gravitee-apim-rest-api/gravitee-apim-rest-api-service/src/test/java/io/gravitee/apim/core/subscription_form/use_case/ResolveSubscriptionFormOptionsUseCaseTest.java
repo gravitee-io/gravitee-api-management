@@ -18,24 +18,27 @@ package io.gravitee.apim.core.subscription_form.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import fixtures.core.model.SubscriptionFormFixtures;
+import fixtures.core.model.PortalPageContentFixtures;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.SubscriptionFormElResolverInMemory;
-import inmemory.SubscriptionFormQueryServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
+import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoundException;
-import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstraints;
 import io.gravitee.apim.infra.domain_service.subscription_form.SubscriptionFormSchemaGeneratorImpl;
 import java.util.List;
 import java.util.Map;
@@ -45,29 +48,30 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class GetSubscriptionFormForApiPortalUseCaseTest {
+class ResolveSubscriptionFormOptionsUseCaseTest {
 
-    private static final String ENV_ID = SubscriptionFormFixtures.ENVIRONMENT_ID;
-    private static final String ORG_ID = "org-id";
+    private static final String ENV_ID = "env-1";
+    private static final String ORG_ID = "org-1";
     private static final String API_ID = "api-1";
     private static final String USER_ID = "user-1";
+    private static final String CONTENT_ID = "00000000-0000-0000-0000-000000000030";
 
     private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory();
+    private final PortalPageContentQueryServiceInMemory pageContentQueryService = new PortalPageContentQueryServiceInMemory();
     private final MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
     private final SubscriptionQueryServiceInMemory subscriptionQueryService = new SubscriptionQueryServiceInMemory();
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
-    private final SubscriptionFormQueryServiceInMemory queryService = new SubscriptionFormQueryServiceInMemory();
     private final SubscriptionFormElResolverInMemory elResolver = new SubscriptionFormElResolverInMemory();
     private final SubscriptionFormSchemaGeneratorImpl schemaGenerator = new SubscriptionFormSchemaGeneratorImpl();
-    private GetSubscriptionFormForApiPortalUseCase useCase;
+    private ResolveSubscriptionFormOptionsUseCase useCase;
 
     @BeforeEach
     void setUp() {
         navQueryService.reset();
+        pageContentQueryService.reset();
         membershipQueryService.reset();
         subscriptionQueryService.reset();
         apiQueryService.reset();
-        queryService.reset();
         elResolver.reset();
 
         var apiMembershipDomainService = new ApiPortalMembershipDomainService(
@@ -76,36 +80,41 @@ class GetSubscriptionFormForApiPortalUseCaseTest {
             apiQueryService
         );
         var visibility = new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService);
-        useCase = new GetSubscriptionFormForApiPortalUseCase(visibility, queryService, schemaGenerator, elResolver);
+        useCase = new ResolveSubscriptionFormOptionsUseCase(
+            visibility,
+            navQueryService,
+            pageContentQueryService,
+            schemaGenerator,
+            elResolver
+        );
     }
 
     @Test
     void should_throw_api_not_found_when_api_not_visible_in_portal() {
         navQueryService.initWith(List.of(publishedApiNavItem(API_ID, PortalVisibility.PRIVATE)));
 
-        var input = GetSubscriptionFormForApiPortalUseCase.Input.builder().environmentId(ENV_ID).apiId(API_ID).userId(USER_ID).build();
+        var input = ResolveSubscriptionFormOptionsUseCase.Input.builder().environmentId(ENV_ID).apiId(API_ID).userId(USER_ID).build();
 
         assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(ApiNotFoundException.class);
     }
 
     @Test
     void should_return_resolved_options_when_api_is_public() {
-        navQueryService.initWith(List.of(publishedApiNavItem(API_ID, PortalVisibility.PUBLIC)));
-        var form = enabledFormWithDynamicSelect();
-        queryService.initWith(List.of(form));
+        pageContentQueryService.initWith(List.of(dynamicSelectContent()));
+        navQueryService.initWith(List.of(publishedApiNavItem(API_ID, PortalVisibility.PUBLIC), subscriptionForm(true)));
         elResolver.withResolved(Map.of("{#api.metadata['envs']}", List.of("Dev", "Staging", "Prod")));
 
         var result = useCase.execute(
-            GetSubscriptionFormForApiPortalUseCase.Input.builder().environmentId(ENV_ID).apiId(API_ID).userId(USER_ID).build()
+            ResolveSubscriptionFormOptionsUseCase.Input.builder().environmentId(ENV_ID).apiId(API_ID).userId(USER_ID).build()
         );
 
-        assertThat(result.subscriptionForm()).isEqualTo(form);
         assertThat(result.resolvedOptions()).containsEntry("env", List.of("Dev", "Staging", "Prod"));
     }
 
     @Test
     void should_return_resolved_options_when_api_is_private_and_user_is_member() {
-        navQueryService.initWith(List.of(publishedApiNavItem(API_ID, PortalVisibility.PRIVATE)));
+        pageContentQueryService.initWith(List.of(dynamicSelectContent()));
+        navQueryService.initWith(List.of(publishedApiNavItem(API_ID, PortalVisibility.PRIVATE), subscriptionForm(true)));
         membershipQueryService.initWith(
             List.of(
                 Membership.builder()
@@ -117,47 +126,56 @@ class GetSubscriptionFormForApiPortalUseCaseTest {
                     .build()
             )
         );
-        var form = enabledFormWithDynamicSelect();
-        queryService.initWith(List.of(form));
         elResolver.withResolved(Map.of("{#api.metadata['envs']}", List.of("A", "B")));
 
         var result = useCase.execute(
-            GetSubscriptionFormForApiPortalUseCase.Input.builder().environmentId(ENV_ID).apiId(API_ID).userId(USER_ID).build()
+            ResolveSubscriptionFormOptionsUseCase.Input.builder().environmentId(ENV_ID).apiId(API_ID).userId(USER_ID).build()
         );
 
         assertThat(result.resolvedOptions()).containsEntry("env", List.of("A", "B"));
     }
 
     @Test
-    void should_throw_subscription_form_not_found_after_visibility_when_no_form() {
+    void should_throw_subscription_form_not_found_when_no_form_is_published() {
         navQueryService.initWith(List.of(publishedApiNavItem(API_ID, PortalVisibility.PUBLIC)));
-        queryService.initWith(List.of());
 
-        var input = GetSubscriptionFormForApiPortalUseCase.Input.builder().environmentId(ENV_ID).apiId(API_ID).userId(null).build();
+        var input = ResolveSubscriptionFormOptionsUseCase.Input.builder().environmentId(ENV_ID).apiId(API_ID).userId(null).build();
 
         assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(SubscriptionFormNotFoundException.class);
     }
 
     @Test
-    void should_throw_when_form_disabled() {
-        navQueryService.initWith(List.of(publishedApiNavItem(API_ID, PortalVisibility.PUBLIC)));
-        SubscriptionForm disabledForm = SubscriptionFormFixtures.aSubscriptionFormBuilder().environmentId(ENV_ID).enabled(false).build();
-        queryService.initWith(List.of(disabledForm));
+    void should_throw_subscription_form_not_found_when_the_only_form_is_unpublished() {
+        pageContentQueryService.initWith(List.of(dynamicSelectContent()));
+        navQueryService.initWith(List.of(publishedApiNavItem(API_ID, PortalVisibility.PUBLIC), subscriptionForm(false)));
 
-        var input = GetSubscriptionFormForApiPortalUseCase.Input.builder().environmentId(ENV_ID).apiId(API_ID).userId(null).build();
+        var input = ResolveSubscriptionFormOptionsUseCase.Input.builder().environmentId(ENV_ID).apiId(API_ID).userId(null).build();
 
         assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(SubscriptionFormNotFoundException.class);
     }
 
-    private SubscriptionForm enabledFormWithDynamicSelect() {
-        return SubscriptionFormFixtures.aSubscriptionFormBuilder()
+    private GraviteeMarkdownPageContent dynamicSelectContent() {
+        return PortalPageContentFixtures.aGraviteeMarkdownPageContent(
+            PortalPageContentId.of(CONTENT_ID),
+            ORG_ID,
+            ENV_ID,
+            "<gmd-select fieldKey=\"env\" options=\"{#api.metadata['envs']}:Prod,Test\"/>"
+        );
+    }
+
+    private PortalNavigationSubscriptionForm subscriptionForm(boolean published) {
+        return PortalNavigationSubscriptionForm.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId(ORG_ID)
             .environmentId(ENV_ID)
-            .enabled(true)
-            .gmdContent(
-                io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown.of(
-                    "<gmd-select fieldKey=\"env\" options=\"{#api.metadata['envs']}:Prod,Test\"/>"
-                )
-            )
+            .title("Subscription Form")
+            .segment(PortalNavigationItem.slugify("Subscription Form").value())
+            .area(PortalArea.SUBSCRIPTION_FORM)
+            .order(0)
+            .portalPageContentId(PortalPageContentId.of(CONTENT_ID))
+            .validationConstraints(SubscriptionFormFieldConstraints.empty())
+            .published(published)
+            .visibility(PortalVisibility.PUBLIC)
             .build();
     }
 

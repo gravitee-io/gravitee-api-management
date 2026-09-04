@@ -17,16 +17,19 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import fixtures.core.model.SubscriptionFormFixtures;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.SubscriptionFormElResolverInMemory;
-import inmemory.SubscriptionFormQueryServiceInMemory;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstraints;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
@@ -44,9 +47,10 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
 
     private static final String ENV_ID = "DEFAULT";
     private static final String API_ID = "my-api-id";
+    private static final String CONTENT_ID = "00000000-0000-0000-0000-000000000040";
 
     @Autowired
-    private SubscriptionFormQueryServiceInMemory subscriptionFormQueryService;
+    private PortalPageContentQueryServiceInMemory portalPageContentQueryService;
 
     @Autowired
     private SubscriptionFormElResolverInMemory subscriptionFormElResolver;
@@ -83,19 +87,17 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
     @AfterEach
     void cleanUp() {
         GraviteeContext.cleanContext();
-        subscriptionFormQueryService.reset();
+        portalPageContentQueryService.reset();
         subscriptionFormElResolver.reset();
         portalNavigationItemsQueryService.reset();
     }
 
     @Test
     void should_return_200_with_resolved_options_only_no_content() {
-        var form = SubscriptionFormFixtures.aSubscriptionFormBuilder()
-            .environmentId(ENV_ID)
-            .enabled(true)
-            .gmdContent(GraviteeMarkdown.of("<gmd-select fieldKey=\"env\" options=\"{#api.metadata['envs']}:Prod,Test\"/>"))
-            .build();
-        subscriptionFormQueryService.initWith(List.of(form));
+        portalPageContentQueryService.initWith(
+            List.of(dynamicSelectContent("<gmd-select fieldKey=\"env\" options=\"{#api.metadata['envs']}:Prod,Test\"/>"))
+        );
+        addPublishedSubscriptionFormNavItem();
         subscriptionFormElResolver.withResolved(Map.of("{#api.metadata['envs']}", List.of("Dev", "Staging", "Prod")));
 
         Response response = target(API_ID + "/subscription-form").request().get();
@@ -108,8 +110,6 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
 
     @Test
     void should_return_404_when_form_not_found() {
-        subscriptionFormQueryService.initWith(List.of());
-
         Response response = target(API_ID + "/subscription-form").request().get();
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
@@ -133,8 +133,8 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
                     .build()
             )
         );
-        var form = SubscriptionFormFixtures.aSubscriptionFormBuilder().environmentId(ENV_ID).enabled(true).build();
-        subscriptionFormQueryService.initWith(List.of(form));
+        portalPageContentQueryService.initWith(List.of(dynamicSelectContent("<p/>")));
+        addPublishedSubscriptionFormNavItem();
 
         Response response = target(API_ID + "/subscription-form").request().get();
 
@@ -146,9 +146,9 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    void should_return_404_when_form_disabled() {
-        var form = SubscriptionFormFixtures.aSubscriptionFormBuilder().environmentId(ENV_ID).enabled(false).build();
-        subscriptionFormQueryService.initWith(List.of(form));
+    void should_return_404_when_no_form_is_published() {
+        portalPageContentQueryService.initWith(List.of(dynamicSelectContent("<p/>")));
+        portalNavigationItemsQueryService.storage().add(subscriptionFormNavItem(false));
 
         Response response = target(API_ID + "/subscription-form").request().get();
 
@@ -157,12 +157,10 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
 
     @Test
     void should_return_fallback_options_when_el_resolver_has_no_resolved_values() {
-        var form = SubscriptionFormFixtures.aSubscriptionFormBuilder()
-            .environmentId(ENV_ID)
-            .enabled(true)
-            .gmdContent(GraviteeMarkdown.of("<gmd-select fieldKey=\"plan\" options=\"{#api.metadata['plans']}:Free,Pro\"/>"))
-            .build();
-        subscriptionFormQueryService.initWith(List.of(form));
+        portalPageContentQueryService.initWith(
+            List.of(dynamicSelectContent("<gmd-select fieldKey=\"plan\" options=\"{#api.metadata['plans']}:Free,Pro\"/>"))
+        );
+        addPublishedSubscriptionFormNavItem();
         // no resolved values → should fall back to "Free,Pro"
 
         Response response = target(API_ID + "/subscription-form").request().get();
@@ -170,5 +168,29 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         var result = response.readEntity(SubscriptionForm.class);
         assertThat(result.getResolvedOptions()).containsEntry("plan", List.of("Free", "Pro"));
+    }
+
+    private void addPublishedSubscriptionFormNavItem() {
+        portalNavigationItemsQueryService.storage().add(subscriptionFormNavItem(true));
+    }
+
+    private PortalNavigationSubscriptionForm subscriptionFormNavItem(boolean published) {
+        return PortalNavigationSubscriptionForm.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId("DEFAULT")
+            .environmentId(ENV_ID)
+            .title("Subscription Form")
+            .segment("subscription-form")
+            .area(PortalArea.SUBSCRIPTION_FORM)
+            .order(0)
+            .portalPageContentId(PortalPageContentId.of(CONTENT_ID))
+            .validationConstraints(SubscriptionFormFieldConstraints.empty())
+            .published(published)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+    }
+
+    private GraviteeMarkdownPageContent dynamicSelectContent(String content) {
+        return new GraviteeMarkdownPageContent(PortalPageContentId.of(CONTENT_ID), "DEFAULT", ENV_ID, GraviteeMarkdown.of(content));
     }
 }

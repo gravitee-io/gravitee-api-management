@@ -15,9 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
-import io.gravitee.apim.core.subscription_form.use_case.GetSubscriptionFormForApiPortalUseCase;
-import io.gravitee.apim.core.subscription_form.use_case.GetSubscriptionFormForEnvironmentUseCase;
+import io.gravitee.apim.core.subscription_form.use_case.ResolveSubscriptionFormOptionsUseCase;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -28,16 +26,8 @@ import org.mapstruct.factory.Mappers;
 public interface SubscriptionFormMapper {
     SubscriptionFormMapper INSTANCE = Mappers.getMapper(SubscriptionFormMapper.class);
 
-    io.gravitee.rest.api.portal.rest.model.SubscriptionForm map(SubscriptionForm subscriptionForm);
-
-    default io.gravitee.rest.api.portal.rest.model.SubscriptionForm map(GetSubscriptionFormForEnvironmentUseCase.Output output) {
-        var model = map(output.subscriptionForm());
-        model.setResolvedOptions(output.resolvedOptions().isEmpty() ? null : output.resolvedOptions());
-        return model;
-    }
-
-    default io.gravitee.rest.api.portal.rest.model.SubscriptionForm map(GetSubscriptionFormForApiPortalUseCase.Output output) {
-        var model = map(output.subscriptionForm());
+    default io.gravitee.rest.api.portal.rest.model.SubscriptionForm map(ResolveSubscriptionFormOptionsUseCase.Output output) {
+        var model = new io.gravitee.rest.api.portal.rest.model.SubscriptionForm();
         model.setResolvedOptions(output.resolvedOptions().isEmpty() ? null : output.resolvedOptions());
         return model;
     }
