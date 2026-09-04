@@ -1874,6 +1874,14 @@ spec:
               - EQ
               - IN
 
+        - name: URI
+          label: Request URI
+          type: STRING
+
+        - name: ENTRYPOINT
+          label: Entrypoint
+          type: KEYWORD
+
         - name: HOST
           label: Host
           type: KEYWORD

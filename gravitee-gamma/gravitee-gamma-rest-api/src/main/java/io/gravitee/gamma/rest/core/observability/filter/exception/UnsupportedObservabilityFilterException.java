@@ -69,6 +69,13 @@ public class UnsupportedObservabilityFilterException extends ValidationDomainExc
         );
     }
 
+    public static UnsupportedObservabilityFilterException valuesPageOutOfRange(int page, int max) {
+        return new UnsupportedObservabilityFilterException(
+            "page must be between 1 and " + max + ", got " + page,
+            "observability.filter.values_page_out_of_range"
+        );
+    }
+
     public static UnsupportedObservabilityFilterException searchTranslationNotSupported(String filterName) {
         return new UnsupportedObservabilityFilterException(
             "Filter '" + filterName + "' is not yet supported for log search",
