@@ -41,6 +41,8 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class PerformanceTargetEvaluationMongoRepositoryImpl implements PerformanceTargetEvaluationMongoRepositoryCustom {
 
+    private static final Sort MOST_RECENT_FIRST = Sort.by(Sort.Order.desc("evaluatedAt"), Sort.Order.asc("_id"));
+
     private final MongoTemplate mongoTemplate;
 
     @Override
@@ -65,13 +67,25 @@ public class PerformanceTargetEvaluationMongoRepositoryImpl implements Performan
     private Page<PerformanceTargetEvaluationMongo> pageMostRecentFirst(Query query, Pageable pageable) {
         long total = mongoTemplate.count(query, PerformanceTargetEvaluationMongo.class);
         var content = mongoTemplate.find(
-            query
-                .with(Sort.by(Sort.Order.desc("evaluatedAt"), Sort.Order.asc("_id")))
-                .skip((long) pageable.pageNumber() * pageable.pageSize())
-                .limit(pageable.pageSize()),
+            query.with(MOST_RECENT_FIRST).skip((long) pageable.pageNumber() * pageable.pageSize()).limit(pageable.pageSize()),
             PerformanceTargetEvaluationMongo.class
         );
         return new Page<>(content, pageable.pageNumber(), content.size(), total);
+    }
+
+    @Override
+    public List<String> pruneHistory(String targetId, int retention) {
+        var beyondRetention = query(where("targetId").is(targetId)).with(MOST_RECENT_FIRST).skip(retention);
+        beyondRetention.fields().include("_id");
+        var pruned = mongoTemplate
+            .find(beyondRetention, PerformanceTargetEvaluationMongo.class)
+            .stream()
+            .map(PerformanceTargetEvaluationMongo::getId)
+            .toList();
+        if (!pruned.isEmpty()) {
+            mongoTemplate.remove(query(where("_id").in(pruned)), PerformanceTargetEvaluationMongo.class);
+        }
+        return pruned;
     }
 
     @Override

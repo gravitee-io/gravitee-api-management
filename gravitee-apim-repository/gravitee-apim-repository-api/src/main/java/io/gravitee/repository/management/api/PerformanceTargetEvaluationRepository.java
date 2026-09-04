@@ -50,6 +50,13 @@ public interface PerformanceTargetEvaluationRepository {
     PerformanceTargetEnvironmentSummary getEnvironmentSummary(String environmentId) throws TechnicalException;
 
     /**
+     * Deletes every evaluation of the target but its {@code retention} most recent ones.
+     *
+     * @return the ids of the deleted evaluations
+     */
+    List<String> pruneHistory(String targetId, int retention) throws TechnicalException;
+
+    /**
      * @return the ids of the deleted evaluations
      */
     List<String> deleteByReference(String environmentId, String reference) throws TechnicalException;
