@@ -75,8 +75,12 @@ public class ValidatePerformanceTargetDomainService {
         }
 
         var subjectApiTypes = subjectApiTypes(target);
-        for (var rule : target.rules()) {
-            validateRule(rule, subjectApiTypes);
+        for (int ruleIndex = 0; ruleIndex < target.rules().size(); ruleIndex++) {
+            try {
+                validateRule(target.rules().get(ruleIndex), subjectApiTypes);
+            } catch (InvalidPerformanceTargetException e) {
+                throw new InvalidPerformanceTargetException(e.getMessage(), ruleIndex);
+            }
         }
     }
 

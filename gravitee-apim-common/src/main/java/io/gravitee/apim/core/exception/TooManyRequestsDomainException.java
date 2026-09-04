@@ -13,23 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.performance_target.exception;
+package io.gravitee.apim.core.exception;
 
-import io.gravitee.apim.core.exception.ValidationDomainException;
-import java.util.Map;
+import java.time.Duration;
+import lombok.Getter;
 
-public class InvalidPerformanceTargetException extends ValidationDomainException {
+/**
+ * The operation was requested again before the delay it enforces between two runs had elapsed.
+ */
+@Getter
+public class TooManyRequestsDomainException extends AbstractDomainException {
 
-    public static final String RULE_INDEX_PARAMETER = "ruleIndex";
+    private final Duration retryAfter;
 
-    public InvalidPerformanceTargetException(String message) {
+    public TooManyRequestsDomainException(String message, Duration retryAfter) {
         super(message);
-    }
-
-    /**
-     * @param ruleIndex the position, in the target's rules, of the rule the message is about
-     */
-    public InvalidPerformanceTargetException(String message, int ruleIndex) {
-        super(message, Map.of(RULE_INDEX_PARAMETER, String.valueOf(ruleIndex)));
+        this.retryAfter = retryAfter;
     }
 }

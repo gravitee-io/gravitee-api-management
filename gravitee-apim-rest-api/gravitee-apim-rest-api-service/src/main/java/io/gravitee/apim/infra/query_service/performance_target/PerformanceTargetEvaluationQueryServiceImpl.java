@@ -88,6 +88,20 @@ public class PerformanceTargetEvaluationQueryServiceImpl extends AbstractService
     }
 
     @Override
+    public Page<PerformanceTargetEvaluation> findByTargetId(String targetId, Pageable pageable) {
+        try {
+            return evaluationRepository
+                .findByTargetId(targetId, convert(pageable))
+                .map(PerformanceTargetEvaluationAdapter.INSTANCE::toEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                "An error occurred while finding Performance Target Evaluations of target " + targetId,
+                e
+            );
+        }
+    }
+
+    @Override
     public PerformanceTargetEnvironmentSummary getEnvironmentSummary(String environmentId) {
         try {
             return PerformanceTargetEvaluationAdapter.INSTANCE.toEntity(evaluationRepository.getEnvironmentSummary(environmentId));

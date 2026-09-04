@@ -640,4 +640,31 @@ public class InMemoryConfiguration {
     ) {
         return new PortalCategoryDomainService(portalCategoryCrudServiceInMemory, portalCategoryQueryServiceInMemory);
     }
+
+    @Bean
+    public PerformanceTargetCrudServiceInMemory performanceTargetCrudService() {
+        return new PerformanceTargetCrudServiceInMemory();
+    }
+
+    @Bean
+    public PerformanceTargetQueryServiceInMemory performanceTargetQueryService(PerformanceTargetCrudServiceInMemory crudService) {
+        return new PerformanceTargetQueryServiceInMemory(crudService);
+    }
+
+    @Bean
+    public PerformanceTargetEvaluationCrudServiceInMemory performanceTargetEvaluationCrudService() {
+        return new PerformanceTargetEvaluationCrudServiceInMemory();
+    }
+
+    @Bean
+    public PerformanceTargetEvaluationQueryServiceInMemory performanceTargetEvaluationQueryService(
+        PerformanceTargetEvaluationCrudServiceInMemory crudService
+    ) {
+        return new PerformanceTargetEvaluationQueryServiceInMemory(crudService);
+    }
+
+    @Bean
+    public PerformanceTargetEvaluatorInMemory performanceTargetEvaluator() {
+        return new PerformanceTargetEvaluatorInMemory();
+    }
 }

@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.performance_target.crud_service;
 
+import io.gravitee.apim.core.performance_target.exception.PerformanceTargetNotFoundException;
 import io.gravitee.apim.core.performance_target.model.PerformanceTarget;
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +24,15 @@ public interface PerformanceTargetCrudService {
     PerformanceTarget create(PerformanceTarget target);
 
     Optional<PerformanceTarget> findById(String id);
+
+    /**
+     * @throws PerformanceTargetNotFoundException when the target does not exist or belongs to another environment
+     */
+    default PerformanceTarget get(String environmentId, String id) {
+        return findById(id)
+            .filter(target -> target.environmentId().equals(environmentId))
+            .orElseThrow(() -> new PerformanceTargetNotFoundException(id));
+    }
 
     PerformanceTarget update(PerformanceTarget target);
 

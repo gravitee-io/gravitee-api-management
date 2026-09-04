@@ -35,5 +35,10 @@ public interface PerformanceTargetEvaluationQueryService {
      */
     Page<PerformanceTargetEvaluation> findEnvironmentLatest(String environmentId, Pageable pageable);
 
+    /**
+     * @return the stored evaluations of the target, most recently evaluated first
+     */
+    Page<PerformanceTargetEvaluation> findByTargetId(String targetId, Pageable pageable);
+
     PerformanceTargetEnvironmentSummary getEnvironmentSummary(String environmentId);
 }
