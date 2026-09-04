@@ -26,6 +26,7 @@ import io.gravitee.rest.api.management.v2.rest.model.BasePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationSubscriptionForm;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPageContentType;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApi;
@@ -312,6 +313,24 @@ class PortalNavigationItemsMapperTest {
             assertThat(result.getOrder()).isEqualTo(3);
             assertThat(result.getParentId().id()).isEqualTo(link.getParentId());
             assertThat(result.getUrl()).isEqualTo(((CreatePortalNavigationLink) link).getUrl());
+        }
+
+        @Test
+        void should_map_create_portal_navigation_subscription_form() {
+            final var subscriptionForm = PortalNavigationItemsFixtures.aCreatePortalNavigationSubscriptionForm();
+
+            var result = mapper.map(subscriptionForm);
+
+            assertThat(result).isInstanceOf(CreatePortalNavigationItem.class);
+            assertThat(result.getType()).isEqualTo(io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.SUBSCRIPTION_FORM);
+            assertThat(result.getContentType()).isEqualTo(io.gravitee.apim.core.portal_page.model.PortalPageContentType.GRAVITEE_MARKDOWN);
+            assertThat(result.getId()).isNotNull();
+            assertThat(result.getTitle()).isEqualTo(subscriptionForm.getTitle());
+            assertThat(result.getArea()).isEqualTo(PortalArea.SUBSCRIPTION_FORM);
+            assertThat(result.getOrder()).isEqualTo(0);
+            assertThat(result.getPortalPageContentId().id()).isEqualTo(
+                ((CreatePortalNavigationSubscriptionForm) subscriptionForm).getPortalPageContentId()
+            );
         }
 
         @Test

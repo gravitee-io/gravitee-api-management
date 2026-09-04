@@ -73,7 +73,8 @@ public class PortalNavigationItemDomainService {
         createPortalNavigationItem.setOrder(sanitizedOrder);
 
         if (
-            createPortalNavigationItem.getType() == PortalNavigationItemType.PAGE &&
+            (createPortalNavigationItem.getType() == PortalNavigationItemType.PAGE ||
+                createPortalNavigationItem.getType() == PortalNavigationItemType.SUBSCRIPTION_FORM) &&
             createPortalNavigationItem.getPortalPageContentId() == null
         ) {
             final var defaultPageContent = pageContentCrudService.createDefault(
