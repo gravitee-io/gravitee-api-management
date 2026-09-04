@@ -28,6 +28,7 @@ import {
   NewLinkPortalNavigationItem,
   NewApiPortalNavigationItem,
   NewApiProductPortalNavigationItem,
+  NewSubscriptionFormPortalNavigationItem,
   UpdatePagePortalNavigationItem,
   UpdateLinkPortalNavigationItem,
   UpdateFolderPortalNavigationItem,
@@ -302,6 +303,27 @@ export function fakeNewApiProductPortalNavigationItem(
     area: 'TOP_NAVBAR',
     apiProductId: 'api-product-1',
     visibility: 'PUBLIC',
+  };
+
+  if (isFunction(overrides)) {
+    return overrides(base);
+  }
+
+  return {
+    ...base,
+    ...overrides,
+  };
+}
+
+export function fakeNewSubscriptionFormPortalNavigationItem(
+  overrides?: Partial<NewSubscriptionFormPortalNavigationItem>,
+): NewSubscriptionFormPortalNavigationItem {
+  const base: NewSubscriptionFormPortalNavigationItem = {
+    title: 'New Subscription Form',
+    type: 'SUBSCRIPTION_FORM',
+    area: 'SUBSCRIPTION_FORM',
+    visibility: 'PUBLIC',
+    portalPageContentId: 'subscription-form-content-1',
   };
 
   if (isFunction(overrides)) {
