@@ -64,6 +64,12 @@ final class ApiNavigationSubtreePaths {
         return result;
     }
 
+    /**
+     * Deliberately unbounded: a folder is followed only when its stored id equals {@code forApiFolder}
+     * for the path built to reach it, and that path grows by one segment per level. A cycle would have
+     * to present one id for two different paths, which a deterministic id cannot — so a repeated folder
+     * fails the ownership test on its second visit and that branch ends there.
+     */
     private static void walk(
         String organizationId,
         String environmentId,

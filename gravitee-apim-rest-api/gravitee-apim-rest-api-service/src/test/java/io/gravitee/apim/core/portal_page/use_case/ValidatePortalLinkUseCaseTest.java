@@ -79,6 +79,10 @@ class ValidatePortalLinkUseCaseTest {
 
     @Test
     void should_return_no_errors_and_no_link_for_well_formed_input() {
+        portalCrudService.initWith(
+            List.of(Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Default Portal"))
+        );
+
         var output = useCase.execute(input("External Docs", "https://docs.example.com", "/projects/alpha", 1));
 
         assertThat(output.errors()).isEmpty();
@@ -86,10 +90,12 @@ class ValidatePortalLinkUseCaseTest {
     }
 
     @Test
-    void should_not_block_when_referenced_portal_does_not_exist() {
+    void should_surface_missing_portal_so_dry_run_can_predict_the_apply_failure() {
         var output = useCase.execute(input("External Docs", "https://docs.example.com", "/projects/alpha", 1));
 
-        assertThat(output.errors()).isEmpty();
+        assertThat(output.errors())
+            .extracting(Validator.Error::getMessage)
+            .contains("the portal to attach the link to does not exist in this environment");
     }
 
     @Test
