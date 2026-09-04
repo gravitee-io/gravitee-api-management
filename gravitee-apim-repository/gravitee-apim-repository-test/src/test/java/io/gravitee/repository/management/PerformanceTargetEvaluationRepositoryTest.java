@@ -16,8 +16,11 @@
 package io.gravitee.repository.management;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 
 import io.gravitee.common.utils.UUID;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.PerformanceTargetEnvironmentSummary;
@@ -56,6 +59,17 @@ public class PerformanceTargetEvaluationRepositoryTest extends AbstractManagemen
         assertThat(performanceTargetEvaluationRepository.findLatestByReference("my-env", "agent-1"))
             .extracting(PerformanceTargetEvaluation::getId)
             .containsExactlyInAnyOrder("eval-2", "eval-3");
+    }
+
+    @Test
+    public void create_should_reject_a_duplicate_id_and_keep_the_stored_latest() throws TechnicalException {
+        var duplicate = anEvaluation("eval-1b", "target1", "api-1", Status.PASS, true);
+
+        assertThatThrownBy(() -> performanceTargetEvaluationRepository.create(duplicate)).isInstanceOf(DuplicateKeyException.class);
+
+        assertThat(performanceTargetEvaluationRepository.findLatestByReference("my-env", "api-1"))
+            .extracting(PerformanceTargetEvaluation::getId, PerformanceTargetEvaluation::getStatus)
+            .containsExactly(tuple("eval-1b", Status.BREACH));
     }
 
     // findLatestByReference

@@ -20,6 +20,7 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PerformanceTargetEvaluationRepository;
@@ -87,16 +88,20 @@ public class JdbcPerformanceTargetEvaluationRepository
     public PerformanceTargetEvaluation create(PerformanceTargetEvaluation evaluation) throws TechnicalException {
         log.debug("JdbcPerformanceTargetEvaluationRepository.create({})", evaluation.getId());
         try {
+            // insert first: a rejected duplicate must leave the stored evaluation and its latest flag untouched
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(evaluation));
             if (evaluation.isLatest()) {
                 jdbcTemplate.update(
-                    "update " + this.tableName + " set latest = ? where target_id = ? and latest = ?",
+                    "update " + this.tableName + " set latest = ? where target_id = ? and latest = ? and id <> ?",
                     false,
                     evaluation.getTargetId(),
-                    true
+                    true,
+                    evaluation.getId()
                 );
             }
-            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(evaluation));
             return jdbcTemplate.query(getOrm().getSelectByIdSql(), getRowMapper(), evaluation.getId()).stream().findFirst().orElse(null);
+        } catch (org.springframework.dao.DuplicateKeyException ex) {
+            throw new DuplicateKeyException("Performance target evaluation " + evaluation.getId() + " already exists", ex);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to create performance target evaluation " + evaluation.getId(), ex);
         }

@@ -86,14 +86,25 @@ public class EvaluateDuePerformanceTargetsUseCase {
                 states.put(target.id(), new State(now, previous.consecutiveNotEvaluable()));
                 continue;
             }
-            var latest = performanceTargetEvaluationCrudService.create(
-                evaluation.toBuilder().id(UuidString.generateRandom()).latest(true).build()
-            );
-            performanceTargetEvaluationCrudService.pruneHistory(target.id(), schedule.retention());
+            var slotStart = schedule.slotStart(target, previous.consecutiveNotEvaluable(), now);
+            var latest = evaluation.toBuilder().id(evaluationId(target, slotStart)).latest(true).build();
+            performanceTargetEvaluationCrudService
+                .createIfAbsent(latest)
+                .ifPresent(created -> {
+                    performanceTargetEvaluationCrudService.pruneHistory(target.id(), schedule.retention());
+                    stored.add(created);
+                });
             states.put(target.id(), previous.after(latest));
-            stored.add(latest);
         }
         return new Output(targets.size(), stored);
+    }
+
+    /**
+     * One id per target and slot, the same on every node: without a cluster manager every node believes it is the
+     * primary and evaluates the same slot, and the store keeps only the first record.
+     */
+    private static String evaluationId(PerformanceTarget target, Instant slotStart) {
+        return UuidString.generateForEnvironment(target.environmentId(), target.id(), String.valueOf(slotStart.getEpochSecond()));
     }
 
     private State seed(PerformanceTarget target, PerformanceTargetSchedule schedule) {

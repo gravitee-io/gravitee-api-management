@@ -21,11 +21,20 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 public class PerformanceTargetEvaluationCrudServiceInMemory
     implements PerformanceTargetEvaluationCrudService, InMemoryAlternative<PerformanceTargetEvaluation> {
 
     final ArrayList<PerformanceTargetEvaluation> storage = new ArrayList<>();
+
+    @Override
+    public Optional<PerformanceTargetEvaluation> createIfAbsent(PerformanceTargetEvaluation evaluation) {
+        if (storage.stream().anyMatch(stored -> stored.id().equals(evaluation.id()))) {
+            return Optional.empty();
+        }
+        return Optional.of(create(evaluation));
+    }
 
     @Override
     public PerformanceTargetEvaluation create(PerformanceTargetEvaluation evaluation) {

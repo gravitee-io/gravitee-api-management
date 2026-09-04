@@ -105,6 +105,14 @@ class PerformanceTargetScheduleTest {
         }
 
         @Test
+        void should_name_the_slot_an_instant_belongs_to_by_its_start() {
+            assertThat(SCHEDULE.slotStart(TARGET, 0, boundary)).isEqualTo(boundary);
+            assertThat(SCHEDULE.slotStart(TARGET, 0, boundary.plus(INTERVAL).minusSeconds(1))).isEqualTo(boundary);
+            assertThat(SCHEDULE.slotStart(TARGET, 0, boundary.plus(INTERVAL))).isEqualTo(boundary.plus(INTERVAL));
+            assertThat(SCHEDULE.slotStart(TARGET, 3, boundary.plus(INTERVAL))).isEqualTo(boundary);
+        }
+
+        @Test
         void should_wait_for_the_effective_interval_of_an_idle_target() {
             var backedOffBoundary = Instant.parse("2021-06-01T10:00:00Z").plus(SCHEDULE.jitter(TARGET));
 

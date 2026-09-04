@@ -453,6 +453,9 @@ services:
   # Each tick evaluates the targets whose interval has elapsed, spread over the ticks by a stable per-target
   # offset; targets sharing an environment and a window are evaluated with one analytics request.
   # Disabling the service leaves the evaluate-on-demand endpoint working.
+  # Without a cluster manager (cluster.type: hazelcast) every node believes it is the primary and evaluates every
+  # target on the same tick; the store keeps a single evaluation per target and slot, but the analytics queries are
+  # multiplied by the number of nodes. Configure the cluster manager, or enable the service on one node only.
   performance-targets:
     enabled: true
     cron: "0 * * * * *"
