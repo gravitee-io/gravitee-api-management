@@ -129,7 +129,7 @@ public class AuthzMeasuresQueryAdapter {
             case MIN -> "min";
             case MAX -> "max";
             case P50, P90, P95, P99 -> "percentiles";
-            case PERCENTAGE, SUM -> throw new UnsupportedOperationException(
+            case PERCENTAGE, SUM, RATE -> throw new UnsupportedOperationException(
                 "AuthzMeasuresQueryAdapter does not rescale measure " + measure
             );
         };
@@ -145,7 +145,7 @@ public class AuthzMeasuresQueryAdapter {
             case P90 -> Optional.of(p90Builder.build(aggName, field));
             case P95 -> Optional.of(p95Builder.build(aggName, field));
             case P99 -> Optional.of(p99Builder.build(aggName, field));
-            case PERCENTAGE, SUM -> throw new UnsupportedOperationException(
+            case PERCENTAGE, SUM, RATE -> throw new UnsupportedOperationException(
                 "AuthzMeasuresQueryAdapter does not support measure " + measure
             );
         };

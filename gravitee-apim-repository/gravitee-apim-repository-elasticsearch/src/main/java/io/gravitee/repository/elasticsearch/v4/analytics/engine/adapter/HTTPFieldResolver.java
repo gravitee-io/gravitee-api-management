@@ -28,7 +28,7 @@ public class HTTPFieldResolver implements FieldResolver {
 
     public String fromMetric(Metric metric) {
         return switch (metric) {
-            case HTTP_REQUESTS, HTTP_ERRORS -> "@timestamp";
+            case HTTP_REQUESTS, HTTP_ERRORS, HTTP_REQUESTS_PER_SECOND -> "@timestamp";
             case HTTP_REQUEST_CONTENT_LENGTH -> "request-content-length";
             case HTTP_RESPONSE_CONTENT_LENGTH -> "response-content-length";
             case HTTP_ENDPOINT_RESPONSE_TIME -> "endpoint-response-time-ms";

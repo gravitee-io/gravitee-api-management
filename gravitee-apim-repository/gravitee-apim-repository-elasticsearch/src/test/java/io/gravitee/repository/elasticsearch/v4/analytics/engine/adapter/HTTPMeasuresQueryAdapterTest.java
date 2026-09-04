@@ -203,6 +203,32 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
     }
 
     @Test
+    void should_count_only_statuses_from_500_as_errors_in_the_server_error_rate() throws JsonProcessingException {
+        var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_SERVER_ERROR_RATE, Set.of(Measure.PERCENTAGE)));
+
+        var jsonQuery = JSON.readTree(adapter.adapt(new MeasuresQuery(buildTimeRange(), buildFilters(), metrics)));
+
+        var aggs = jsonQuery.at("/aggs/_HTTP_SERVER_ERROR_RATE#PERCENTAGE/aggs");
+        assertThat(aggs.at("/_error_count/filter/range/status/gte").asInt()).isEqualTo(500);
+        assertThat(aggs.at("/_other_count/filter/range/status/lt").asInt()).isEqualTo(500);
+        assertThat(aggs.at("/HTTP_SERVER_ERROR_RATE#PERCENTAGE/bucket_script/script")).isNotEmpty();
+    }
+
+    @Test
+    void should_divide_the_request_count_by_the_query_range_for_requests_per_second() throws JsonProcessingException {
+        var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS_PER_SECOND, Set.of(Measure.RATE)));
+
+        var jsonQuery = JSON.readTree(adapter.adapt(new MeasuresQuery(buildTimeRange(), buildFilters(), metrics)));
+
+        var rate = jsonQuery.at("/aggs/_HTTP_REQUESTS_PER_SECOND#RATE");
+        assertThat(rate.at("/date_histogram")).isNotEmpty();
+        assertThat(rate.at("/aggs/_count/value_count/field").asText()).isEqualTo("@timestamp");
+        var bucketScript = rate.at("/aggs/HTTP_REQUESTS_PER_SECOND#RATE/bucket_script");
+        assertThat(bucketScript.at("/buckets_path/count").asText()).isEqualTo("_count");
+        assertThat(bucketScript.at("/script/params/seconds").asDouble()).isEqualTo((TO - FROM) / 1000.0);
+    }
+
+    @Test
     void should_build_query_with_llm_total_token_count_measure() throws JsonProcessingException {
         var timeRange = buildTimeRange();
         var filters = buildFilters();
