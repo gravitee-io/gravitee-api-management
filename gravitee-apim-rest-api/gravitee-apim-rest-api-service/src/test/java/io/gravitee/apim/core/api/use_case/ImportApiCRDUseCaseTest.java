@@ -1244,6 +1244,18 @@ class ImportApiCRDUseCaseTest {
         }
 
         @Test
+        void should_let_domain_exceptions_propagate_without_wrapping_in_technical_management_exception() {
+            givenExistingApi();
+            givenExistingPlans(List.of(KEYLESS));
+            var domain = new ValidationDomainException("boom");
+            when(updateApiDomainService.update(any(), any(), any())).thenThrow(domain);
+
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().build())));
+
+            assertThat(throwable).isSameAs(domain);
+        }
+
+        @Test
         void should_return_native_CRD_status() {
             givenExistingNativeApi();
             givenExistingPlans(List.of(NATIVE_KEYLESS));
