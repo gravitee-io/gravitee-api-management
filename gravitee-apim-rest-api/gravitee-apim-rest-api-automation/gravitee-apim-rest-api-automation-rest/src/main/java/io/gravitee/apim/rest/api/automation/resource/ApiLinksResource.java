@@ -18,10 +18,9 @@ package io.gravitee.apim.rest.api.automation.resource;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
-import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
-import io.gravitee.apim.core.portal_page.use_case.CreateOrUpdatePortalLinkUseCase;
-import io.gravitee.apim.core.portal_page.use_case.ValidatePortalLinkUseCase;
+import io.gravitee.apim.core.portal_page.use_case.CreateOrUpdateApiLinkUseCase;
+import io.gravitee.apim.core.portal_page.use_case.ValidateApiLinkUseCase;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.rest.api.automation.mapper.PortalLinkMapper;
 import io.gravitee.apim.rest.api.automation.model.PortalLinkSpec;
@@ -46,38 +45,38 @@ import jakarta.ws.rs.core.Response;
 /**
  * @author GraviteeSource Team
  */
-public class PortalLinksResource extends AbstractResource {
+public class ApiLinksResource extends AbstractResource {
 
     @Context
     private ResourceContext resourceContext;
 
     @Inject
-    private CreateOrUpdatePortalLinkUseCase createOrUpdatePortalLinkUseCase;
+    private CreateOrUpdateApiLinkUseCase createOrUpdateApiLinkUseCase;
 
     @Inject
-    private ValidatePortalLinkUseCase validatePortalLinkUseCase;
+    private ValidateApiLinkUseCase validateApiLinkUseCase;
 
     @Path("/{linkHrid}")
-    public PortalLinkResource getPortalLinkResource() {
-        return resourceContext.getResource(PortalLinkResource.class);
+    public ApiLinkResource getApiLinkResource() {
+        return resourceContext.getResource(ApiLinkResource.class);
     }
 
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = { CREATE, UPDATE }) })
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { CREATE, UPDATE }) })
     public Response createOrUpdate(
-        @PathParam("hrid") String portalHrid,
+        @PathParam("apiHrid") String apiHrid,
         @Valid @NotNull PortalLinkSpec spec,
         @QueryParam("dryRun") boolean dryRun
     ) {
         var auditInfo = getAuditInfo();
-        var portalId = PortalId.of(HRIDToUUID.portal().context(auditInfo).hrid(portalHrid).id());
-        var linkId = PortalNavigationItemId.forPortalLink(auditInfo, portalId.toString(), spec.getHrid());
+        var apiId = HRIDToUUID.api().context(auditInfo).hrid(apiHrid).id();
+        var linkId = PortalNavigationItemId.forApiLink(auditInfo, apiId, spec.getHrid());
 
-        var input = new CreateOrUpdatePortalLinkUseCase.Input(
+        var input = new CreateOrUpdateApiLinkUseCase.Input(
             auditInfo,
-            portalId,
+            apiId,
             spec.getHrid(),
             spec.getName(),
             spec.getHref(),
@@ -85,14 +84,14 @@ public class PortalLinksResource extends AbstractResource {
             spec.getOrder(),
             PortalLinkMapper.INSTANCE.toDomainVisibility(spec.getVisibility())
         );
-        var output = dryRun ? validatePortalLinkUseCase.execute(input) : createOrUpdatePortalLinkUseCase.execute(input);
+        var output = dryRun ? validateApiLinkUseCase.execute(input) : createOrUpdateApiLinkUseCase.execute(input);
 
-        // A dry run never has a link() (ValidatePortalLinkUseCase never persists), and a failed real apply
+        // A dry run never has a link() (ValidateApiLinkUseCase never persists), and a failed real apply
         // has none either, so both fall back to echoing the submitted spec; a successful apply reports
         // what was actually persisted, not what was submitted.
         var state = output.link() != null
-            ? PortalLinkMapper.INSTANCE.toPortalLinkState(output.link(), spec.getHrid(), output.errors(), portalHrid)
-            : PortalLinkMapper.INSTANCE.toPortalLinkState(spec, linkId.toString(), output.errors(), auditInfo, portalHrid);
+            ? PortalLinkMapper.INSTANCE.toApiLinkState(output.link(), spec.getHrid(), output.errors(), apiHrid)
+            : PortalLinkMapper.INSTANCE.toApiLinkState(spec, linkId.toString(), output.errors(), auditInfo, apiHrid);
 
         // A dry run is a preview: severe findings are its payload, so it always answers 200.
         // A real apply that produced severe errors persisted nothing — it must not report success.
