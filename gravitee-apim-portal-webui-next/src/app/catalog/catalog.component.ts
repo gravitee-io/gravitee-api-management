@@ -22,7 +22,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 import { isEqual } from 'lodash';
-import { catchError, distinctUntilChanged, filter, from, map, mergeMap, Observable, scan, startWith, switchMap, tap } from 'rxjs';
+import { catchError, distinctUntilChanged, filter, from, map, mergeMap, Observable, startWith, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { CatalogFilterSelection, buildFilterFields, matchesFilters, pruneSelection } from './catalog-filters';
@@ -110,7 +110,7 @@ function buildComparator(sort: CatalogSort): (left: CatalogCardVM, right: Catalo
 }
 
 function timestampOf(item: CatalogCardVM, field: 'publishedAt' | 'updatedAt'): number {
-  const value = item.type === 'API' ? item[field] : undefined;
+  const value = item.type === 'API_PRODUCT' ? undefined : item[field];
   return value ? new Date(value).getTime() : 0;
 }
 
@@ -154,6 +154,8 @@ export class CatalogComponent {
   protected readonly pageSize = signal(20);
   pageSizeOptions = [8, 20, 40, 80];
   viewMode = signal<'grid' | 'list'>('grid');
+
+  private readonly plansByApiId = new Map<string, Plan[]>();
 
   private readonly portalNavigationItemsService = inject(PortalNavigationItemsService);
   private readonly planService = inject(PlanService);
@@ -383,20 +385,33 @@ export class CatalogComponent {
       : of(new Set<string | undefined>());
 
     return subscribedApiIds$.pipe(
-      switchMap(subscribedApiIds =>
-        from(apiIds).pipe(
+      switchMap(subscribedApiIds => {
+        const accessByApiId = () =>
+          new Map(
+            apiIds
+              .filter(apiId => this.plansByApiId.has(apiId))
+              .map(apiId => [apiId, toAccessVM(this.plansByApiId.get(apiId) ?? [], subscribedApiIds.has(apiId))] as const),
+          );
+
+        const unknownApiIds = apiIds.filter(apiId => !this.plansByApiId.has(apiId));
+        if (unknownApiIds.length === 0) {
+          return of(accessByApiId());
+        }
+
+        return from(unknownApiIds).pipe(
           mergeMap(
             apiId =>
               this.planService.list(apiId).pipe(
-                map(response => [apiId, toAccessVM(response.data ?? [], subscribedApiIds.has(apiId))] as const),
-                catchError(() => of([apiId, {} as CatalogAccessVM] as const)),
+                map(response => [apiId, response.data ?? []] as const),
+                catchError(() => of([apiId, [] as Plan[]] as const)),
               ),
             PLAN_REQUEST_CONCURRENCY,
           ),
-          scan((accessByApiId, [apiId, access]) => new Map(accessByApiId).set(apiId, access), new Map<string, CatalogAccessVM>()),
-          startWith(new Map<string, CatalogAccessVM>()),
-        ),
-      ),
+          tap(([apiId, plans]) => this.plansByApiId.set(apiId, plans)),
+          map(() => accessByApiId()),
+          startWith(accessByApiId()),
+        );
+      }),
     );
   }
 
@@ -458,9 +473,7 @@ export class CatalogComponent {
           } satisfies CatalogApiProductVM;
         });
 
-        const total = resp.metadata?.pagination?.total;
-        const truncated = total !== undefined && data.length < total;
-        return truncated ? { data: [], error: true } : { data, error: resp.error };
+        return { data, error: resp.error };
       }),
       catchError(() => of({ data: [] as (CatalogApiVM | CatalogApiProductVM)[], error: true })),
       tap(_ => this.loadingPage.set(false)),

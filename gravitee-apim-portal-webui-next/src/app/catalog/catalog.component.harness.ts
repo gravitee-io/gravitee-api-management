@@ -29,6 +29,7 @@ export class CatalogHarness extends ComponentHarness {
   private readonly locateFilterSections = this.locatorForAll('.catalog-filters__name');
   private readonly locateTally = this.locatorForOptional('.api-list__tally');
   private readonly locateClear = this.locatorForOptional('.api-list__clear');
+  private readonly locateSort = this.locatorFor('[data-testid="catalog-sort"]');
 
   async getAllRowsCellText(): Promise<Record<string, string>[]> {
     const table = await this.locateTable();
@@ -39,6 +40,12 @@ export class CatalogHarness extends ComponentHarness {
   async selectRow(index: number): Promise<void> {
     const rows = await this.locateRows();
     await rows[index].click();
+  }
+
+  async selectSort(value: 'name' | 'newest' | 'updated'): Promise<void> {
+    const sort = await this.locateSort();
+    await sort.setInputValue(value);
+    await sort.dispatchEvent('change');
   }
 
   async getEmptyStateText(): Promise<string | null> {

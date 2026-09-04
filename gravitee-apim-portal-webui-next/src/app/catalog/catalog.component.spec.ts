@@ -18,7 +18,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import { of } from 'rxjs';
+import { BehaviorSubject, of } from 'rxjs';
 
 import { CatalogComponent } from './catalog.component';
 import { CatalogHarness } from './catalog.component.harness';
@@ -349,14 +349,55 @@ describe('CatalogComponent', () => {
     expect(await catalogHarness.getEmptyStateText()).toContain('No catalog items available yet');
   });
 
-  it('should own up when the server returned fewer items than it says it has', async () => {
+  it('should render the items it could resolve when one entry has no backing api', async () => {
     await init(
       createCatalogResponse({
-        metadata: { pagination: { current_page: 1, size: -1, total: 99, total_pages: 1 } },
+        data: [
+          fakePortalNavigationAgent({ id: 'agent-nav-1', rootId: 'agent-root-1', agentId: agent.id }),
+          fakePortalNavigationAgent({ id: 'agent-nav-orphan', rootId: 'agent-root-orphan', agentId: 'deleted-api-id' }),
+        ],
+        apis: [agent],
+        apiProducts: [],
+        metadata: { pagination: { current_page: 1, size: -1, total: 2, total_pages: 1 } },
       }),
+      { [agent.id]: [] },
     );
 
-    expect(await catalogHarness.getEmptyStateText()).toContain('Something went wrong');
+    const apiCards = await harnessLoader.getAllHarnesses(ApiCardHarness);
+    expect(await Promise.all(apiCards.map(card => card.getTitle()))).toEqual(['Helpdesk Agent']);
+    expect(await catalogHarness.getEmptyStateText()).toBeNull();
+  });
+
+  it('should sort agents by their own dates, not push them behind every api', async () => {
+    const olderAgent = fakeApi({
+      id: 'agent-api-old',
+      name: 'Older Agent',
+      created_at: new Date('2024-01-01T00:00:00Z'),
+      updated_at: new Date('2024-01-01T00:00:00Z'),
+    });
+    const newerAgent = fakeApi({
+      id: 'agent-api-new',
+      name: 'Newer Agent',
+      created_at: new Date('2025-06-01T00:00:00Z'),
+      updated_at: new Date('2025-06-01T00:00:00Z'),
+    });
+    await init(
+      createCatalogResponse({
+        data: [
+          fakePortalNavigationAgent({ id: 'agent-nav-old', rootId: 'agent-root-old', agentId: olderAgent.id }),
+          fakePortalNavigationAgent({ id: 'agent-nav-new', rootId: 'agent-root-new', agentId: newerAgent.id }),
+        ],
+        apis: [olderAgent, newerAgent],
+        apiProducts: [],
+      }),
+      { [olderAgent.id]: [], [newerAgent.id]: [] },
+    );
+
+    await catalogHarness.selectSort('newest');
+    fixture.detectChanges();
+
+    const apiCards = await harnessLoader.getAllHarnesses(ApiCardHarness);
+    expect(await Promise.all(apiCards.map(card => card.getTitle()))).toEqual(['Newer Agent', 'Older Agent']);
   });
 
   it('should show a generic error state when the catalog request fails', async () => {
@@ -859,6 +900,51 @@ describe('CatalogComponent', () => {
     });
   });
 
+  it('should not ask again for the plans of apis it already loaded', async () => {
+    const firstAgent = fakeApi({ id: 'agent-api-first', name: 'First Agent' });
+    const secondAgent = fakeApi({ id: 'agent-api-second', name: 'Second Agent' });
+    const queryParams$ = new BehaviorSubject<Record<string, string>>({});
+
+    await TestBed.configureTestingModule({ imports: [CatalogComponent, AppTestingModule] })
+      .overrideProvider(ActivatedRoute, { useValue: { snapshot: { queryParams: {} }, queryParams: queryParams$ } })
+      .compileComponents();
+
+    fixture = TestBed.createComponent(CatalogComponent);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+    catalogHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, CatalogHarness);
+    flushCategories();
+    fixture.detectChanges();
+
+    expectCatalogRequest().flush(
+      createCatalogResponse({
+        data: [fakePortalNavigationAgent({ id: 'agent-nav-first', rootId: 'agent-root-first', agentId: firstAgent.id })],
+        apis: [firstAgent],
+        apiProducts: [],
+      }),
+    );
+    fixture.detectChanges();
+    expect(flushPlanRequestsAndReturnApiIds()).toEqual([firstAgent.id]);
+    fixture.detectChanges();
+
+    queryParams$.next({ query: 'agent' });
+    fixture.detectChanges();
+    expectCatalogRequest().flush(
+      createCatalogResponse({
+        data: [
+          fakePortalNavigationAgent({ id: 'agent-nav-first', rootId: 'agent-root-first', agentId: firstAgent.id }),
+          fakePortalNavigationAgent({ id: 'agent-nav-second', rootId: 'agent-root-second', agentId: secondAgent.id }),
+        ],
+        apis: [firstAgent, secondAgent],
+        apiProducts: [],
+      }),
+    );
+    fixture.detectChanges();
+
+    expect(flushPlanRequestsAndReturnApiIds()).toEqual([secondAgent.id]);
+    fixture.detectChanges();
+  });
+
   it('should send the reader to the subscribe page of the catalog, not the root', async () => {
     await init();
     const navigate = jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
@@ -867,6 +953,14 @@ describe('CatalogComponent', () => {
 
     expect(navigate).toHaveBeenCalledWith(['api', 'api-2', 'subscribe'], { relativeTo: expect.anything() });
   });
+
+  function flushPlanRequestsAndReturnApiIds(): string[] {
+    const pending = httpTestingController.match(
+      request => request.url.startsWith(`${TESTING_BASE_URL}/apis/`) && request.url.includes('/plans'),
+    );
+    pending.forEach(request => request.flush({ data: [] }));
+    return pending.map(request => request.request.url.replace(`${TESTING_BASE_URL}/apis/`, '').replace(/\/plans.*$/, ''));
+  }
 
   function expectCatalogRequest(categoryId?: string) {
     return httpTestingController.expectOne(
