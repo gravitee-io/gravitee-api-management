@@ -15,21 +15,15 @@
  */
 package io.gravitee.apim.core.performance_target.exception;
 
-import io.gravitee.apim.core.exception.ValidationDomainException;
-import java.util.Map;
+import io.gravitee.apim.core.exception.TooManyRequestsDomainException;
+import java.time.Duration;
 
-public class InvalidPerformanceTargetException extends ValidationDomainException {
+public class PerformanceTargetEvaluatedTooRecentlyException extends TooManyRequestsDomainException {
 
-    public static final String RULE_INDEX_PARAMETER = "ruleIndex";
-
-    public InvalidPerformanceTargetException(String message) {
-        super(message);
-    }
-
-    /**
-     * @param ruleIndex the position, in the target's rules, of the rule the message is about
-     */
-    public InvalidPerformanceTargetException(String message, int ruleIndex) {
-        super(message, Map.of(RULE_INDEX_PARAMETER, String.valueOf(ruleIndex)));
+    public PerformanceTargetEvaluatedTooRecentlyException(String targetId, Duration retryAfter) {
+        super(
+            "Performance target %s was evaluated too recently, retry in %d seconds".formatted(targetId, retryAfter.toSeconds()),
+            retryAfter
+        );
     }
 }

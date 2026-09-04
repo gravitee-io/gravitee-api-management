@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.performance_target.model.PerformanceTargetEnvironmentSummary;
@@ -35,6 +36,7 @@ import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class PerformanceTargetEvaluationQueryServiceImplTest {
 
@@ -75,6 +77,23 @@ class PerformanceTargetEvaluationQueryServiceImplTest {
 
         assertThat(page.getTotalElements()).isEqualTo(7);
         assertThat(page.getContent()).extracting(PerformanceTargetEvaluation::id).containsExactly("eval-1", "eval-2");
+    }
+
+    @Test
+    @SneakyThrows
+    void should_page_evaluations_of_a_target_with_zero_based_repository_page() {
+        when(repository.findByTargetId(eq("target-id"), any())).thenReturn(
+            new Page<>(List.of(aRepositoryEvaluation("eval-3"), aRepositoryEvaluation("eval-2")), 1, 2, 5)
+        );
+
+        var page = service.findByTargetId("target-id", new PageableImpl(2, 2));
+
+        var pageable = ArgumentCaptor.forClass(io.gravitee.repository.management.api.search.Pageable.class);
+        verify(repository).findByTargetId(eq("target-id"), pageable.capture());
+        assertThat(pageable.getValue().pageNumber()).isEqualTo(1);
+        assertThat(pageable.getValue().pageSize()).isEqualTo(2);
+        assertThat(page.getTotalElements()).isEqualTo(5);
+        assertThat(page.getContent()).extracting(PerformanceTargetEvaluation::id).containsExactly("eval-3", "eval-2");
     }
 
     @Test

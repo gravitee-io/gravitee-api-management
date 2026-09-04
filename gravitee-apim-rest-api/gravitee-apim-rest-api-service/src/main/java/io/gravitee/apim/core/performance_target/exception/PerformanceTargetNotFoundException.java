@@ -15,21 +15,11 @@
  */
 package io.gravitee.apim.core.performance_target.exception;
 
-import io.gravitee.apim.core.exception.ValidationDomainException;
-import java.util.Map;
+import io.gravitee.apim.core.exception.NotFoundDomainException;
 
-public class InvalidPerformanceTargetException extends ValidationDomainException {
+public class PerformanceTargetNotFoundException extends NotFoundDomainException {
 
-    public static final String RULE_INDEX_PARAMETER = "ruleIndex";
-
-    public InvalidPerformanceTargetException(String message) {
-        super(message);
-    }
-
-    /**
-     * @param ruleIndex the position, in the target's rules, of the rule the message is about
-     */
-    public InvalidPerformanceTargetException(String message, int ruleIndex) {
-        super(message, Map.of(RULE_INDEX_PARAMETER, String.valueOf(ruleIndex)));
+    public PerformanceTargetNotFoundException(String id) {
+        super("Performance target with id %s not found".formatted(id), id);
     }
 }
