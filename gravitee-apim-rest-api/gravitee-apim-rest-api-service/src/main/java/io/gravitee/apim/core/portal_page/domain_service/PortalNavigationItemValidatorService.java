@@ -92,11 +92,12 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
         var sourcedItemReadOnlyRule = new SourcedItemReadOnlyRule(new SourcedAncestorFinder(navigationItemsQueryService));
         var fileListingSourceOnFolderRule = new FileListingSourceOnFolderRule(portalNavigationItemSourceDomainService::supportsFileListing);
         var subscriptionFormNoParentRule = new SubscriptionFormNoParentRule();
+        var subscriptionFormUniquenessRule = new SubscriptionFormUniquenessRule(navigationItemsQueryService);
 
         this.createRules = List.of(
             new UniqueItemIdRule(navigationItemsQueryService),
             new HomepageUniquenessRule(navigationItemsQueryService),
-            new SubscriptionFormUniquenessRule(navigationItemsQueryService),
+            subscriptionFormUniquenessRule,
             new PageContentExistsRule(pageContentQueryService),
             new SubscriptionFormContentTypeRule(pageContentQueryService),
             titleRequiredRule,
@@ -119,6 +120,7 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
             new ApiProductItemUpdateRule(),
             parentRule,
             subscriptionFormNoParentRule,
+            subscriptionFormUniquenessRule,
             segmentConflictRule,
             linkUrlRule,
             externalSourceItemTypeRule,
