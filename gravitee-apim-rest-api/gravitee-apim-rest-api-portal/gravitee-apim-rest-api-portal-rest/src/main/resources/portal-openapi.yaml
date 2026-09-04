@@ -10,7 +10,7 @@ info:
     license:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0
-    version: "4.13.0-SNAPSHOT"
+    version: "4.13.0-amp-demo-SNAPSHOT"
 servers:
     - url: /portal/environments/{envId}
       description: The portal API for a given environment
@@ -6572,6 +6572,8 @@ components:
                 - HTTP_REQUESTS
                 - HTTP_ERRORS
                 - HTTP_ERROR_RATE
+                - HTTP_SERVER_ERROR_RATE
+                - HTTP_REQUESTS_PER_SECOND
                 - HTTP_REQUEST_CONTENT_LENGTH
                 - HTTP_RESPONSE_CONTENT_LENGTH
                 - HTTP_ENDPOINT_RESPONSE_TIME
@@ -6684,6 +6686,7 @@ components:
                 - P99
                 - COUNT
                 - PERCENTAGE
+                - RATE
             description: Measure / aggregation name
             example: "COUNT"
         AnalyticsUnitName:
@@ -6693,6 +6696,7 @@ components:
                 - MILLISECONDS
                 - NUMBER
                 - PERCENT
+                - PER_SECOND
             description: Unit of measurement for metric values
             example: "NUMBER"
         AnalyticsInterval:

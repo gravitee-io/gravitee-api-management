@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.domain_service.analytics_engine.definition;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 
 import io.gravitee.apim.core.analytics_engine.model.ApiSpec;
 import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
@@ -34,6 +35,8 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 /**
  * @author GraviteeSource Team
@@ -102,6 +105,25 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
                 .toList();
 
             assertThat(declaredButUnadvertised).isEmpty();
+        }
+    }
+
+    @Nested
+    class ComputedHttpMetrics {
+
+        // Both metrics exist so a performance target can declare a window-independent throughput floor and a
+        // 5xx-only availability ceiling; every API kind that shares the HTTP request document must offer them.
+        @ParameterizedTest
+        @EnumSource(value = ApiSpec.Name.class, names = { "HTTP_PROXY", "LLM", "MESSAGE", "MCP", "A2A" })
+        void should_offer_requests_per_second_and_server_error_rate_to_every_http_family_api(ApiSpec.Name api) {
+            var service = new AnalyticsDefinitionYAMLQueryService();
+
+            assertThat(service.getMetrics(api))
+                .extracting(MetricSpec::name, MetricSpec::unit, MetricSpec::measures)
+                .contains(
+                    tuple(MetricSpec.Name.HTTP_REQUESTS_PER_SECOND, MetricSpec.Unit.PER_SECOND, List.of(MetricSpec.Measure.RATE)),
+                    tuple(MetricSpec.Name.HTTP_SERVER_ERROR_RATE, MetricSpec.Unit.PERCENT, List.of(MetricSpec.Measure.PERCENTAGE))
+                );
         }
     }
 

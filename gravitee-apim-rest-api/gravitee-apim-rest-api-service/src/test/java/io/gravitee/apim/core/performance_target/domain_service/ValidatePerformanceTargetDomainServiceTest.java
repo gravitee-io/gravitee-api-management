@@ -66,6 +66,17 @@ class ValidatePerformanceTargetDomainServiceTest {
     }
 
     @Test
+    void should_accept_a_throughput_floor_and_a_server_error_ceiling_on_an_mcp_subject() {
+        var target = aTarget(
+            List.of(MCP_API),
+            aRule(MetricSpec.Name.HTTP_REQUESTS_PER_SECOND, MetricSpec.Measure.RATE, 2),
+            aRule(MetricSpec.Name.HTTP_SERVER_ERROR_RATE, MetricSpec.Measure.PERCENTAGE, 1)
+        );
+
+        assertThatCode(() -> service.validate(target)).doesNotThrowAnyException();
+    }
+
+    @Test
     void should_reject_an_llm_only_metric_on_an_a2a_only_subject() {
         var target = aTarget(List.of(A2A_API), aRule(MetricSpec.Name.LLM_PROMPT_TOKEN_TOTAL_COST, MetricSpec.Measure.AVG, 0.01));
 

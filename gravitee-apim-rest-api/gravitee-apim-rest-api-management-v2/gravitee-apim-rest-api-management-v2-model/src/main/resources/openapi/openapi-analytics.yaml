@@ -1344,6 +1344,8 @@ components:
                 - HTTP_REQUESTS
                 - HTTP_ERRORS
                 - HTTP_ERROR_RATE
+                - HTTP_SERVER_ERROR_RATE
+                - HTTP_REQUESTS_PER_SECOND
                 - HTTP_REQUEST_CONTENT_LENGTH
                 - HTTP_RESPONSE_CONTENT_LENGTH
                 - HTTP_ENDPOINT_RESPONSE_TIME
@@ -1613,6 +1615,7 @@ components:
                 - COUNT
                 - PERCENTAGE
                 - SUM
+                - RATE
             description: Measure name identifier. Represents the type of measure/aggregation applied to a metric.
             example: "COUNT"
 
@@ -1640,6 +1643,7 @@ components:
                 - MILLISECONDS
                 - NUMBER
                 - PERCENT
+                - PER_SECOND
             description: |
                 Unit of measurement for metrics. Specifies the unit in which the metric values are expressed.
             example: "BYTES"
