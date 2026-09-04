@@ -115,6 +115,7 @@ export const NAV_SECTIONS: PlatformNavSection[] = [
                     { key: 'notification-settings', title: ROUTES['notification-settings'].label, icon: MailIcon },
                     { key: 'api-health-check', title: ROUTES['api-health-check'].label, icon: ActivityIcon },
                     { key: 'environment-smtp', title: ROUTES['environment-smtp'].label, icon: SettingsIcon },
+                    { key: 'environment-cors', title: ROUTES['environment-cors'].label, icon: GlobeIcon },
                     { key: 'api-logging', title: ROUTES['api-logging'].label, icon: FileTextIcon },
                     { key: 'security-plan-types', title: ROUTES['security-plan-types'].label, icon: KeyIcon },
                     { key: 'environment-audit', title: ROUTES['environment-audit'].label, icon: ScrollTextIcon },

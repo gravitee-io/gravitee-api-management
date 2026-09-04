@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
+import { TooltipProvider } from '@gravitee/graphene-core';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { useState } from 'react';
 
-import { CorsSection, type CorsFormState } from './CorsSection';
+import type { CorsFieldReadonly, CorsFormState } from './CorsSection';
+import { ManagementCorsSection } from './ManagementCorsSection';
 
 const INITIAL: CorsFormState = {
     allowOrigin: ['https://console.example.com'],
@@ -27,16 +29,21 @@ const INITIAL: CorsFormState = {
     maxAge: '1728000',
 };
 
-function Harness({ initial = INITIAL }: { initial?: CorsFormState }) {
+function Harness({ initial = INITIAL, readonly = {} }: { initial?: CorsFormState; readonly?: CorsFieldReadonly }) {
     const [value, setValue] = useState(initial);
-    return <CorsSection value={value} disabled={false} onChange={setValue} />;
+    return (
+        <TooltipProvider>
+            <ManagementCorsSection value={value} disabled={false} readonly={readonly} onChange={setValue} />
+        </TooltipProvider>
+    );
 }
 
-describe('CorsSection', () => {
-    it('renders CORS fields in a Graphene Card', () => {
+describe('ManagementCorsSection', () => {
+    it('renders Classic org CORS copy before fields', () => {
         render(<Harness />);
-        expect(screen.getByLabelText('Allow-Origin').closest('[data-slot="card"]')).not.toBeNull();
-        expect(screen.getByLabelText('Max age').closest('[data-slot="card"]')).not.toBeNull();
+        expect(screen.getByText(/same-origin definition/i)).not.toBeNull();
+        expect(screen.getByText(/Regular expressions are also supported\./)).not.toBeNull();
+        expect(screen.getAllByText(/preflight request to indicate which HTTP headers/i).length).toBeGreaterThan(0);
     });
 
     it('renders origin chips, method checkboxes, and max age', () => {
@@ -71,6 +78,12 @@ describe('CorsSection', () => {
         fireEvent.change(screen.getByLabelText('Allow-Origin'), { target: { value: 'https://app.example.com' } });
         fireEvent.blur(screen.getByLabelText('Allow-Origin'));
         expect(screen.getByText('https://app.example.com')).not.toBeNull();
+    });
+
+    it('wraps system-readonly fields with a tooltip hint', () => {
+        render(<Harness readonly={{ allowOrigin: true }} />);
+        expect(screen.getByPlaceholderText(/https:\/\/mydomain.com/).closest('[data-system-readonly="true"]')).not.toBeNull();
+        expect(screen.getByLabelText('Max age').closest('[data-system-readonly="true"]')).toBeNull();
     });
 
     it('asks before adding * as an origin', () => {

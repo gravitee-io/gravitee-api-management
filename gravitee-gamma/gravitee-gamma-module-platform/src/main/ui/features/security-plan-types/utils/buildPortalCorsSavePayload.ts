@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-export interface CorsFormState {
-    allowOrigin: string[];
-    allowMethods: string[];
-    allowHeaders: string[];
-    exposedHeaders: string[];
-    maxAge: string;
-}
+import type { ConsoleSettingsCors } from '../../organization-settings/types/consoleSettings';
+import type { PortalSettings } from '../services/portalSettings';
 
-export interface CorsFieldReadonly {
-    allowOrigin?: boolean;
-    allowMethods?: boolean;
-    allowHeaders?: boolean;
-    exposedHeaders?: boolean;
-    maxAge?: boolean;
+export function buildPortalCorsSavePayload(current: PortalSettings, cors: ConsoleSettingsCors): PortalSettings {
+    return {
+        ...current,
+        cors: {
+            ...current.cors,
+            ...cors,
+        },
+    };
 }
-
-export { ManagementCorsSection as CorsSection } from './ManagementCorsSection';

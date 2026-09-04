@@ -80,6 +80,13 @@ describe('CorsSettingsPage', () => {
         expect((screen.getByLabelText('Max age') as HTMLInputElement).value).toBe('1728000');
     });
 
+    it('shows the architecture override banner like other organization settings pages', () => {
+        renderPage();
+        expect(
+            screen.getByText(/Depending on your architecture, this configuration may be overridden by a local configuration file/),
+        ).not.toBeNull();
+    });
+
     it('saves only the cors overlay and keeps email', () => {
         const mutate = jest.fn();
         mockUseSaveOrgConsoleSettings.mockReturnValue({
@@ -110,6 +117,7 @@ describe('CorsSettingsPage', () => {
 
         renderPage();
         expect((screen.getByPlaceholderText(/https:\/\/mydomain.com/) as HTMLInputElement).disabled).toBe(true);
+        expect(screen.getByPlaceholderText(/https:\/\/mydomain.com/).closest('[data-system-readonly="true"]')).not.toBeNull();
         expect((screen.getByLabelText('Max age') as HTMLInputElement).disabled).toBe(false);
         expect((screen.getByLabelText('GET') as HTMLButtonElement).disabled).toBe(false);
     });

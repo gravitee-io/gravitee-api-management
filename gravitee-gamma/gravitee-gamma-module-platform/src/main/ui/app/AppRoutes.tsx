@@ -77,6 +77,7 @@ import { DictionaryDetailPage } from '../pages/DictionaryDetailPage';
 import { EditIdentityProviderPage } from '../pages/EditIdentityProviderPage';
 import { EntrypointsAndShardingTagsPage } from '../pages/EntrypointsAndShardingTagsPage';
 import { EnvAuditLogsPage } from '../pages/EnvAuditLogsPage';
+import { EnvironmentCorsSettingsPage } from '../pages/EnvironmentCorsSettingsPage';
 import { EnvironmentNotificationSettingsPage } from '../pages/EnvironmentNotificationSettingsPage';
 import { EnvironmentSmtpSettingsPage } from '../pages/EnvironmentSmtpSettingsPage';
 import { GatewayInstanceEnvironmentPage } from '../pages/GatewayInstanceEnvironmentPage';
@@ -507,6 +508,7 @@ export function AppRoutes() {
                                     </NavPermissionGuard>
                                 }
                             />
+                            <Route path="organization/cors" element={<Navigate to="../cors" replace />} />
                             <Route
                                 path="cors"
                                 element={
@@ -528,6 +530,14 @@ export function AppRoutes() {
                                 element={
                                     <NavPermissionGuard itemKey="environment-smtp">
                                         <EnvironmentSmtpSettingsPage />
+                                    </NavPermissionGuard>
+                                }
+                            />
+                            <Route
+                                path="environment/cors"
+                                element={
+                                    <NavPermissionGuard itemKey="environment-cors">
+                                        <EnvironmentCorsSettingsPage />
                                     </NavPermissionGuard>
                                 }
                             />

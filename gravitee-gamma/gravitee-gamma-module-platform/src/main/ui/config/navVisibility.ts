@@ -89,6 +89,7 @@ export const NAV_ITEM_PERMISSIONS: Readonly<Record<string, readonly string[]>> =
     'notification-settings': ['environment-notification-r'],
     'api-health-check': ['environment-api-r'],
     'environment-smtp': [ENVIRONMENT_SETTINGS_READ_PERMISSION],
+    'environment-cors': [ENVIRONMENT_SETTINGS_READ_PERMISSION],
     'security-plan-types': [ENVIRONMENT_SETTINGS_READ_PERMISSION],
     'environment-audit': [ENVIRONMENT_AUDIT_READ_PERMISSION],
     users: ORGANIZATION_USER_ACCESS_PERMISSIONS,
@@ -238,6 +239,16 @@ export function modulePathFor(pathname: string, itemKey: string): string {
             if (matches && candidate.length > bestLength) {
                 bestLength = candidate.length;
                 leafStart = start;
+            }
+        }
+    }
+
+    if (leafStart < 0) {
+        for (let i = segments.length - 1; i >= 0; i--) {
+            const key = segments[i] as RouteKey;
+            if (ROUTE_KEYS.includes(key) && !ROUTES[key].path.includes('/')) {
+                leafStart = i;
+                break;
             }
         }
     }
