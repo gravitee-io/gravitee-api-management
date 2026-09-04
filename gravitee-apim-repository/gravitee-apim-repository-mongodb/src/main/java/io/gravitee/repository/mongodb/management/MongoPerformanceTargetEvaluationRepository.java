@@ -72,7 +72,16 @@ class MongoPerformanceTargetEvaluationRepository implements PerformanceTargetEva
     @Override
     public Page<PerformanceTargetEvaluation> findEnvironmentLatest(String environmentId, Pageable pageable) throws TechnicalException {
         log.debug("Find latest performance target evaluations of environment [{}]", environmentId);
-        var page = internalRepository.findEnvironmentLatest(environmentId, pageable);
+        return map(internalRepository.findEnvironmentLatest(environmentId, pageable));
+    }
+
+    @Override
+    public Page<PerformanceTargetEvaluation> findByTargetId(String targetId, Pageable pageable) throws TechnicalException {
+        log.debug("Find performance target evaluations of target [{}]", targetId);
+        return map(internalRepository.findByTargetId(targetId, pageable));
+    }
+
+    private Page<PerformanceTargetEvaluation> map(Page<PerformanceTargetEvaluationMongo> page) {
         return new Page<>(
             page.getContent().stream().map(mapper::map).toList(),
             page.getPageNumber(),
