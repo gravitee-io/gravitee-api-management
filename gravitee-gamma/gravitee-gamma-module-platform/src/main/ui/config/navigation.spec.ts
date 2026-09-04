@@ -19,6 +19,7 @@ import {
     GlobeIcon,
     MailIcon,
     MessageSquareIcon,
+    SettingsIcon,
     ShieldIcon,
     UsersIcon,
     UsersRoundIcon,
@@ -86,19 +87,21 @@ describe('platform navigation config', () => {
         expect(assetItems.find(item => item.key === 'broadcasts')?.title).toBe('Broadcasts');
     });
 
-    it('places Access Management, Gateways, Alerts, Notifications, Security Plan Types, and Audit under Environment / System & Security', () => {
-        const systemItems =
-            NAV_SECTIONS.find(section => section.key === 'environment')?.groups.find(group => group.label === 'System & Security')?.items ??
-            [];
+    it('places Access Management, Gateways, Alerts, Notification settings, SMTP, Security Plan Types, and Audit under Environment / System & Security', () => {
         expect(sectionKeys('Environment', 'System & Security')).toEqual([
             'access-management',
             'gateways',
             'alerts',
             'notification-settings',
+            'environment-smtp',
             'security-plan-types',
             'environment-audit',
         ]);
+        const systemItems =
+            NAV_SECTIONS.find(section => section.key === 'environment')?.groups.find(group => group.label === 'System & Security')?.items ??
+            [];
         expect(systemItems.find(item => item.key === 'notification-settings')?.title).toBe('Notifications');
+        expect(systemItems.find(item => item.key === 'environment-smtp')?.icon).toBe(SettingsIcon);
     });
 
     it('places Users, Groups, and Roles under Team', () => {
@@ -216,6 +219,11 @@ describe('platform navigation config', () => {
         expect(ROUTES.cors).toEqual({ path: 'cors', label: 'CORS' });
         expect(ROUTES.smtp).toEqual({ path: 'smtp', label: 'SMTP' });
         expect(ROUTES.templates).toEqual({ path: 'templates', label: 'Templates' });
+    });
+
+    it('declares the environment-smtp route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('environment-smtp');
+        expect(ROUTES['environment-smtp']).toEqual({ path: 'environment/smtp', label: 'SMTP' });
     });
 
     it('declares the authentication route in platform routing config', () => {

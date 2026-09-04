@@ -36,6 +36,12 @@ export interface ConsoleSettingsEmail extends DisableableFeature {
     subject?: string;
     from?: string;
     brandedSenders?: BrandedSender[];
+    /**
+     * Environment-scoped settings only: true when the environment has no branded-senders override of its
+     * own and is inheriting the organization's configuration. Absent (or on org-scoped settings) means
+     * "unknown" / not applicable — callers should treat that as "don't offer a reset".
+     */
+    brandedSendersInherited?: boolean;
     properties?: {
         auth?: boolean;
         startTlsEnable?: boolean;

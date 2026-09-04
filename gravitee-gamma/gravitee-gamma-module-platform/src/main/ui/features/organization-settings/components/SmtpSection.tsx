@@ -35,6 +35,24 @@ export interface SmtpFormState {
     brandedSenders: BrandedSender[];
 }
 
+export interface SmtpFieldReadonly {
+    enabled?: boolean;
+    host?: boolean;
+    port?: boolean;
+    username?: boolean;
+    password?: boolean;
+    protocol?: boolean;
+    subject?: boolean;
+    from?: boolean;
+    auth?: boolean;
+    startTlsEnable?: boolean;
+    sslTrust?: boolean;
+    brandedSenders?: boolean;
+}
+
+/** Classic portal-settings: host, port, and username stay editable when emailing is disabled. */
+const FIELDS_EDITABLE_WHEN_EMAILING_DISABLED = new Set<keyof SmtpFieldReadonly>(['host', 'port', 'username']);
+
 export function extractEmailAddress(from: string): string {
     const angled = from.match(/<([^>]+)>/);
     return (angled?.[1] ?? from).trim();
@@ -139,37 +157,32 @@ export function isSmtpFormValid(state: SmtpFormState): boolean {
     );
 }
 
-export interface SmtpFieldReadonly {
-    enabled?: boolean;
-    host?: boolean;
-    port?: boolean;
-    username?: boolean;
-    password?: boolean;
-    protocol?: boolean;
-    subject?: boolean;
-    from?: boolean;
-    auth?: boolean;
-    startTlsEnable?: boolean;
-    sslTrust?: boolean;
-    brandedSenders?: boolean;
-}
-
 export function SmtpSection({
     value,
     disabled,
     readonly = {},
     onChange,
+    canResetBrandedSenders = false,
+    isResettingBrandedSenders = false,
+    onResetBrandedSenders,
 }: Readonly<{
     value: SmtpFormState;
     disabled: boolean;
     readonly?: SmtpFieldReadonly;
     onChange: (next: SmtpFormState) => void;
+    /** Environment-scoped settings only: shows a "Reset to Org settings" action on the branded senders section. */
+    canResetBrandedSenders?: boolean;
+    isResettingBrandedSenders?: boolean;
+    onResetBrandedSenders?: () => void;
 }>) {
-    const fieldsOff = disabled || !value.enabled;
-
     function isFieldDisabled(key: keyof SmtpFieldReadonly): boolean {
-        return fieldsOff || Boolean(readonly[key]);
+        if (disabled || Boolean(readonly[key])) return true;
+        if (!value.enabled && !FIELDS_EDITABLE_WHEN_EMAILING_DISABLED.has(key)) return true;
+        return false;
     }
+
+    const brandedSendersDisabled = disabled || !value.enabled || Boolean(readonly.brandedSenders);
+    const showFieldErrors = value.enabled;
 
     return (
         <div className="space-y-6">
@@ -190,126 +203,120 @@ export function SmtpSection({
                         </SystemReadonlyHint>
                     </div>
 
-                    {value.enabled ? (
-                        <>
-                            <Field
-                                id="smtp-host"
-                                label="Host"
-                                value={value.host}
-                                disabled={isFieldDisabled('host')}
-                                systemReadonly={Boolean(readonly.host)}
-                                error={value.host.trim().length === 0 ? 'Host is required when emailing is enabled.' : undefined}
-                                onChange={host => onChange({ ...value, host })}
+                    <Field
+                        id="smtp-host"
+                        label="Host"
+                        value={value.host}
+                        disabled={isFieldDisabled('host')}
+                        systemReadonly={Boolean(readonly.host)}
+                        error={showFieldErrors && value.host.trim().length === 0 ? 'Host is required when emailing is enabled.' : undefined}
+                        onChange={host => onChange({ ...value, host })}
+                    />
+                    <Field
+                        id="smtp-port"
+                        label="Port"
+                        type="number"
+                        min={0}
+                        value={value.port}
+                        disabled={isFieldDisabled('port')}
+                        systemReadonly={Boolean(readonly.port)}
+                        error={showFieldErrors && parseSmtpPort(value.port) === null ? 'Enter a port between 0 and 65535.' : undefined}
+                        onChange={port => onChange({ ...value, port })}
+                    />
+                    <Field
+                        id="smtp-username"
+                        label="Username"
+                        value={value.username}
+                        disabled={isFieldDisabled('username')}
+                        systemReadonly={Boolean(readonly.username)}
+                        onChange={username => onChange({ ...value, username })}
+                    />
+                    <Field
+                        id="smtp-password"
+                        label="Password"
+                        type="password"
+                        value={value.password}
+                        disabled={isFieldDisabled('password')}
+                        systemReadonly={Boolean(readonly.password)}
+                        onChange={password => onChange({ ...value, password })}
+                    />
+                    <Field
+                        id="smtp-protocol"
+                        label="Protocol"
+                        value={value.protocol}
+                        disabled={isFieldDisabled('protocol')}
+                        systemReadonly={Boolean(readonly.protocol)}
+                        onChange={protocol => onChange({ ...value, protocol })}
+                    />
+                    <div className="space-y-1.5">
+                        <label htmlFor="smtp-subject" className="text-sm font-medium">
+                            Subject
+                        </label>
+                        <SystemReadonlyHint locked={Boolean(readonly.subject)}>
+                            <Input
+                                id="smtp-subject"
+                                value={value.subject}
+                                onChange={e => onChange({ ...value, subject: e.target.value })}
+                                disabled={isFieldDisabled('subject')}
                             />
-                            <Field
-                                id="smtp-port"
-                                label="Port"
-                                type="number"
-                                min={0}
-                                value={value.port}
-                                disabled={isFieldDisabled('port')}
-                                systemReadonly={Boolean(readonly.port)}
-                                error={parseSmtpPort(value.port) === null ? 'Enter a port between 0 and 65535.' : undefined}
-                                onChange={port => onChange({ ...value, port })}
-                            />
-                            <Field
-                                id="smtp-username"
-                                label="Username"
-                                value={value.username}
-                                disabled={isFieldDisabled('username')}
-                                systemReadonly={Boolean(readonly.username)}
-                                onChange={username => onChange({ ...value, username })}
-                            />
-                            <Field
-                                id="smtp-password"
-                                label="Password"
-                                type="password"
-                                value={value.password}
-                                disabled={isFieldDisabled('password')}
-                                systemReadonly={Boolean(readonly.password)}
-                                onChange={password => onChange({ ...value, password })}
-                            />
-                            <Field
-                                id="smtp-protocol"
-                                label="Protocol"
-                                value={value.protocol}
-                                disabled={isFieldDisabled('protocol')}
-                                systemReadonly={Boolean(readonly.protocol)}
-                                onChange={protocol => onChange({ ...value, protocol })}
-                            />
-                            <div className="space-y-1.5">
-                                <label htmlFor="smtp-subject" className="text-sm font-medium">
-                                    Subject
-                                </label>
-                                <SystemReadonlyHint locked={Boolean(readonly.subject)}>
-                                    <Input
-                                        id="smtp-subject"
-                                        value={value.subject}
-                                        onChange={e => onChange({ ...value, subject: e.target.value })}
-                                        disabled={isFieldDisabled('subject')}
-                                    />
-                                </SystemReadonlyHint>
-                                <p className="text-xs text-muted-foreground">{"%s is replaced with the email's subject."}</p>
-                            </div>
-                            <Field
-                                id="smtp-from"
-                                label="From"
-                                value={value.from}
-                                disabled={isFieldDisabled('from')}
-                                systemReadonly={Boolean(readonly.from)}
-                                error={smtpFromFieldError(value.from)}
-                                onChange={from => onChange({ ...value, from })}
-                            />
-                        </>
-                    ) : null}
+                        </SystemReadonlyHint>
+                        <p className="text-xs text-muted-foreground">{"%s is replaced with the email's subject."}</p>
+                    </div>
+                    <Field
+                        id="smtp-from"
+                        label="From"
+                        value={value.from}
+                        disabled={isFieldDisabled('from')}
+                        systemReadonly={Boolean(readonly.from)}
+                        error={showFieldErrors ? smtpFromFieldError(value.from) : undefined}
+                        onChange={from => onChange({ ...value, from })}
+                    />
                 </CardContent>
             </Card>
 
-            {value.enabled ? (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Mail Properties</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="flex items-center justify-between gap-4">
-                            <label htmlFor="smtp-auth" className="text-sm font-medium">
-                                Enable Auth
-                            </label>
-                            <SystemReadonlyHint locked={Boolean(readonly.auth)} className="inline-flex">
-                                <Switch
-                                    id="smtp-auth"
-                                    checked={value.auth}
-                                    onCheckedChange={checked => onChange({ ...value, auth: checked === true })}
-                                    disabled={isFieldDisabled('auth')}
-                                    aria-label="Enable Auth"
-                                />
-                            </SystemReadonlyHint>
-                        </div>
-                        <div className="flex items-center justify-between gap-4">
-                            <label htmlFor="smtp-starttls" className="text-sm font-medium">
-                                Enable Start TLS
-                            </label>
-                            <SystemReadonlyHint locked={Boolean(readonly.startTlsEnable)} className="inline-flex">
-                                <Switch
-                                    id="smtp-starttls"
-                                    checked={value.startTlsEnable}
-                                    onCheckedChange={checked => onChange({ ...value, startTlsEnable: checked === true })}
-                                    disabled={isFieldDisabled('startTlsEnable')}
-                                    aria-label="Enable Start TLS"
-                                />
-                            </SystemReadonlyHint>
-                        </div>
-                        <Field
-                            id="smtp-ssl-trust"
-                            label="SSL Trust"
-                            value={value.sslTrust}
-                            disabled={isFieldDisabled('sslTrust')}
-                            systemReadonly={Boolean(readonly.sslTrust)}
-                            onChange={sslTrust => onChange({ ...value, sslTrust })}
-                        />
-                    </CardContent>
-                </Card>
-            ) : null}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Mail properties</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between gap-4">
+                        <label htmlFor="smtp-auth" className="text-sm font-medium">
+                            Enable Auth
+                        </label>
+                        <SystemReadonlyHint locked={Boolean(readonly.auth)} className="inline-flex">
+                            <Switch
+                                id="smtp-auth"
+                                checked={value.auth}
+                                onCheckedChange={checked => onChange({ ...value, auth: checked === true })}
+                                disabled={isFieldDisabled('auth')}
+                                aria-label="Enable Auth"
+                            />
+                        </SystemReadonlyHint>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                        <label htmlFor="smtp-starttls" className="text-sm font-medium">
+                            Enable Start TLS
+                        </label>
+                        <SystemReadonlyHint locked={Boolean(readonly.startTlsEnable)} className="inline-flex">
+                            <Switch
+                                id="smtp-starttls"
+                                checked={value.startTlsEnable}
+                                onCheckedChange={checked => onChange({ ...value, startTlsEnable: checked === true })}
+                                disabled={isFieldDisabled('startTlsEnable')}
+                                aria-label="Enable Start TLS"
+                            />
+                        </SystemReadonlyHint>
+                    </div>
+                    <Field
+                        id="smtp-ssl-trust"
+                        label="SSL Trust"
+                        value={value.sslTrust}
+                        disabled={isFieldDisabled('sslTrust')}
+                        systemReadonly={Boolean(readonly.sslTrust)}
+                        onChange={sslTrust => onChange({ ...value, sslTrust })}
+                    />
+                </CardContent>
+            </Card>
 
             <div>
                 <SystemReadonlyHint locked={Boolean(readonly.brandedSenders)}>
@@ -317,10 +324,13 @@ export function SmtpSection({
                         defaultFrom={value.from}
                         defaultSubject={value.subject}
                         senders={value.brandedSenders}
-                        disabled={disabled || !value.enabled || Boolean(readonly.brandedSenders)}
+                        disabled={brandedSendersDisabled}
                         senderErrors={value.brandedSenders.map(getBrandedSenderFieldErrors)}
-                        listError={getBrandedSendersListError(value.brandedSenders)}
+                        listError={showFieldErrors ? getBrandedSendersListError(value.brandedSenders) : undefined}
                         onChange={brandedSenders => onChange({ ...value, brandedSenders })}
+                        canReset={canResetBrandedSenders}
+                        isResetting={isResettingBrandedSenders}
+                        onReset={onResetBrandedSenders}
                     />
                 </SystemReadonlyHint>
             </div>

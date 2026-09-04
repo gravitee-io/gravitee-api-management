@@ -18,42 +18,18 @@ import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { OrgSettingsFormShell } from '../features/organization-settings/components/OrgSettingsFormShell';
-import {
-    isSmtpFormValid,
-    parseSmtpPort,
-    SmtpSection,
-    type SmtpFieldReadonly,
-    type SmtpFormState,
-} from '../features/organization-settings/components/SmtpSection';
+import { isSmtpFormValid, SmtpSection, type SmtpFormState } from '../features/organization-settings/components/SmtpSection';
 import { useOrgConsoleSettings } from '../features/organization-settings/hooks/useOrgConsoleSettings';
 import { useSaveOrgConsoleSettings } from '../features/organization-settings/hooks/useSaveOrgConsoleSettings';
-import { PASSWORD_SENTINEL, type ConsoleSettings } from '../features/organization-settings/types/consoleSettings';
 import { buildConsoleSettingsSavePayload } from '../features/organization-settings/utils/buildConsoleSettingsSavePayload';
-import { isConsoleSettingReadonly } from '../features/organization-settings/utils/isConsoleSettingReadonly';
-
-function buildState(settings: ConsoleSettings | undefined): SmtpFormState {
-    return {
-        enabled: settings?.email?.enabled ?? false,
-        host: settings?.email?.host ?? '',
-        port: settings?.email?.port !== undefined && settings?.email?.port !== null ? String(settings.email.port) : '',
-        username: settings?.email?.username ?? '',
-        password: settings?.email?.password ?? PASSWORD_SENTINEL,
-        protocol: settings?.email?.protocol ?? '',
-        subject: settings?.email?.subject ?? '',
-        from: settings?.email?.from ?? '',
-        auth: settings?.email?.properties?.auth ?? false,
-        startTlsEnable: settings?.email?.properties?.startTlsEnable ?? false,
-        sslTrust: settings?.email?.properties?.sslTrust ?? '',
-        brandedSenders: settings?.email?.brandedSenders ?? [],
-    };
-}
+import { buildSmtpEmailPatch, buildSmtpFieldReadonly, buildSmtpFormState } from '../features/organization-settings/utils/smtpFormState';
 
 export function SmtpSettingsPage() {
     const canEdit = useHasPermission({ anyOf: ['organization-settings-u'] });
     const { data: settings, isLoading, isError } = useOrgConsoleSettings();
     const saveMutation = useSaveOrgConsoleSettings();
-    const [localState, setLocalState] = useState<SmtpFormState>(() => buildState(settings));
-    const [savedState, setSavedState] = useState<SmtpFormState>(() => buildState(settings));
+    const [localState, setLocalState] = useState<SmtpFormState>(() => buildSmtpFormState(settings));
+    const [savedState, setSavedState] = useState<SmtpFormState>(() => buildSmtpFormState(settings));
 
     const isDirty = JSON.stringify(localState) !== JSON.stringify(savedState);
     const isDirtyRef = useRef(isDirty);
@@ -61,7 +37,7 @@ export function SmtpSettingsPage() {
 
     useEffect(() => {
         if (!settings) return;
-        const next = buildState(settings);
+        const next = buildSmtpFormState(settings);
         setSavedState(next);
         // Don't clobber in-progress edits when a background refetch (e.g. window refocus) delivers fresh data.
         if (!isDirtyRef.current) {
@@ -70,44 +46,13 @@ export function SmtpSettingsPage() {
     }, [settings]);
 
     const trialHidesSmtp = Boolean(settings?.trialInstance?.enabled);
-    const readonly = useMemo<SmtpFieldReadonly>(
-        () => ({
-            enabled: isConsoleSettingReadonly(settings, 'email.enabled'),
-            host: isConsoleSettingReadonly(settings, 'email.host'),
-            port: isConsoleSettingReadonly(settings, 'email.port'),
-            username: isConsoleSettingReadonly(settings, 'email.username'),
-            password: isConsoleSettingReadonly(settings, 'email.password'),
-            protocol: isConsoleSettingReadonly(settings, 'email.protocol'),
-            subject: isConsoleSettingReadonly(settings, 'email.subject'),
-            from: isConsoleSettingReadonly(settings, 'email.from'),
-            auth: isConsoleSettingReadonly(settings, 'email.properties.auth'),
-            startTlsEnable: isConsoleSettingReadonly(settings, 'email.properties.starttls.enable'),
-            sslTrust: isConsoleSettingReadonly(settings, 'email.properties.ssl.trust'),
-            brandedSenders: isConsoleSettingReadonly(settings, 'email.branded_senders'),
-        }),
-        [settings],
-    );
+    const readonly = useMemo(() => buildSmtpFieldReadonly(settings), [settings]);
     const isValid = isSmtpFormValid(localState);
 
     function handleSave() {
         if (!settings || !isDirty || !isValid || saveMutation.isPending) return;
         const payload = buildConsoleSettingsSavePayload(settings, 'email', {
-            email: {
-                enabled: localState.enabled,
-                host: localState.host,
-                port: parseSmtpPort(localState.port) ?? undefined,
-                username: localState.username,
-                password: localState.password,
-                protocol: localState.protocol,
-                subject: localState.subject,
-                from: localState.from,
-                brandedSenders: localState.brandedSenders,
-                properties: {
-                    auth: localState.auth,
-                    startTlsEnable: localState.startTlsEnable,
-                    sslTrust: localState.sslTrust,
-                },
-            },
+            email: buildSmtpEmailPatch(localState),
         });
         saveMutation.mutate(payload, { onSuccess: () => setSavedState(localState) });
     }

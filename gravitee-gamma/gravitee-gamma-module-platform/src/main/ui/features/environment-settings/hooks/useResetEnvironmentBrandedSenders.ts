@@ -18,25 +18,20 @@ import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { notify } from '../../../shared/notify';
-import type { PortalSettings } from '../services/portalSettings';
-import { savePortalSettings } from '../services/portalSettings';
-import { portalSettingsKeys } from '../utils/queryKeys';
+import { portalSettingsKeys } from '../../security-plan-types/utils/queryKeys';
+import { resetEnvironmentBrandedSenders } from '../services/environmentConsoleSettings';
 
-interface SavePortalSettingsOptions {
-    readonly successMessage?: string;
-    readonly errorMessage?: string;
-}
-
-export function useSavePortalSettings(options?: SavePortalSettingsOptions) {
+export function useResetEnvironmentBrandedSenders() {
     const env = useEnvironment();
+    const environmentId = env?.id ?? '';
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (payload: PortalSettings) => savePortalSettings(env!.id, payload),
+        mutationFn: () => resetEnvironmentBrandedSenders(environmentId),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: portalSettingsKeys.env(env?.id ?? '') });
-            notify.success(options?.successMessage ?? 'Security plan types saved successfully.');
+            queryClient.invalidateQueries({ queryKey: portalSettingsKeys.env(environmentId) });
+            notify.success('Branded senders reset to the organization configuration.');
         },
-        onError: error => notify.error(error, options?.errorMessage ?? 'Failed to save security plan types.'),
+        onError: error => notify.error(error, 'An error occurred while resetting the branded senders.'),
     });
 }
