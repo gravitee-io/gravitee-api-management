@@ -23,6 +23,8 @@ import io.gravitee.repository.mongodb.management.internal.performancetarget.Perf
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -72,6 +74,14 @@ class MongoPerformanceTargetRepository implements PerformanceTargetRepository {
         log.debug("Delete performance target [{}]", id);
         internalRepository.deleteById(id);
         log.debug("Delete performance target [{}] - Done", id);
+    }
+
+    @Override
+    public Set<PerformanceTarget> findAll() throws TechnicalException {
+        log.debug("Find all performance targets");
+        var result = internalRepository.findAll().stream().map(mapper::map).collect(Collectors.toSet());
+        log.debug("Find all performance targets - Done");
+        return result;
     }
 
     @Override
