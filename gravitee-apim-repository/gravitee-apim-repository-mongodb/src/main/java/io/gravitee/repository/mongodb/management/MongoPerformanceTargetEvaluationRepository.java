@@ -49,7 +49,6 @@ class MongoPerformanceTargetEvaluationRepository implements PerformanceTargetEva
             log.debug("Create performance target evaluation [{}] - Done", created.getId());
             return created;
         } catch (Exception ex) {
-            log.error("Failed to create performance target evaluation [{}]", evaluation.getId(), ex);
             throw new TechnicalException("Failed to create performance target evaluation", ex);
         }
     }
@@ -98,7 +97,6 @@ class MongoPerformanceTargetEvaluationRepository implements PerformanceTargetEva
                 .map(PerformanceTargetEvaluationMongo::getId)
                 .toList();
         } catch (Exception ex) {
-            log.error("Failed to delete performance target evaluations by reference [{}/{}]", environmentId, reference, ex);
             throw new TechnicalException("Failed to delete performance target evaluations by reference", ex);
         }
     }
@@ -109,7 +107,6 @@ class MongoPerformanceTargetEvaluationRepository implements PerformanceTargetEva
         try {
             return internalRepository.deleteByEnvironmentId(environmentId).stream().map(PerformanceTargetEvaluationMongo::getId).toList();
         } catch (Exception ex) {
-            log.error("Failed to delete performance target evaluations of environment [{}]", environmentId, ex);
             throw new TechnicalException("Failed to delete performance target evaluations by environment", ex);
         }
     }
@@ -120,7 +117,6 @@ class MongoPerformanceTargetEvaluationRepository implements PerformanceTargetEva
         try {
             internalRepository.deleteByTargetId(targetId);
         } catch (Exception ex) {
-            log.error("Failed to delete performance target evaluations of target [{}]", targetId, ex);
             throw new TechnicalException("Failed to delete performance target evaluations by target", ex);
         }
     }

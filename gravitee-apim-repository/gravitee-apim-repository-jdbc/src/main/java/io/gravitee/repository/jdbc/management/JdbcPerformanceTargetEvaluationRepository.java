@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
@@ -35,7 +37,7 @@ import org.springframework.stereotype.Repository;
 @CustomLog
 @Repository
 public class JdbcPerformanceTargetEvaluationRepository
-    extends JdbcAbstractPageableRepository<PerformanceTargetEvaluation>
+    extends JdbcAbstractRepository<PerformanceTargetEvaluation>
     implements PerformanceTargetEvaluationRepository {
 
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
@@ -148,13 +150,21 @@ public class JdbcPerformanceTargetEvaluationRepository
     public Page<PerformanceTargetEvaluation> findEnvironmentLatest(String environmentId, Pageable pageable) throws TechnicalException {
         log.debug("JdbcPerformanceTargetEvaluationRepository.findEnvironmentLatest({})", environmentId);
         try {
-            var latest = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where environment_id = ? and latest = ? order by evaluated_at desc, id",
+            var where = " where environment_id = ? and latest = ?";
+            Long total = jdbcTemplate.queryForObject("select count(*) from " + this.tableName + where, Long.class, environmentId, true);
+            if (total == null || total == 0) {
+                return new Page<>(List.of(), pageable.pageNumber(), 0, 0);
+            }
+            var content = jdbcTemplate.query(
+                getOrm().getSelectAllSql() +
+                    where +
+                    " order by evaluated_at desc, id " +
+                    createPagingClause(pageable.pageSize(), pageable.from()),
                 getRowMapper(),
                 environmentId,
                 true
             );
-            return getResultAsPage(pageable, latest);
+            return new Page<>(content, pageable.pageNumber(), content.size(), total);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find latest performance target evaluations of environment " + environmentId, ex);
         }

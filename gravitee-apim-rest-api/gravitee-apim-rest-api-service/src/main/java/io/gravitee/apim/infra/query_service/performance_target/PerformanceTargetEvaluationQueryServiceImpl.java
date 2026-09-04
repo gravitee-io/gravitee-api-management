@@ -50,7 +50,6 @@ public class PerformanceTargetEvaluationQueryServiceImpl extends AbstractService
                 .map(PerformanceTargetEvaluationAdapter.INSTANCE::toEntity)
                 .toList();
         } catch (TechnicalException e) {
-            log.error("An error occurred while finding latest Performance Target Evaluations of [{}/{}]", environmentId, reference, e);
             throw new TechnicalManagementException(
                 "An error occurred while finding latest Performance Target Evaluations of [%s/%s]".formatted(environmentId, reference),
                 e
@@ -67,7 +66,6 @@ public class PerformanceTargetEvaluationQueryServiceImpl extends AbstractService
                 .map(PerformanceTargetEvaluationAdapter.INSTANCE::toEntity)
                 .toList();
         } catch (TechnicalException e) {
-            log.error("An error occurred while finding latest Performance Target Evaluations in environment {}", environmentId, e);
             throw new TechnicalManagementException(
                 "An error occurred while finding latest Performance Target Evaluations in environment " + environmentId,
                 e
@@ -82,7 +80,6 @@ public class PerformanceTargetEvaluationQueryServiceImpl extends AbstractService
                 .findEnvironmentLatest(environmentId, convert(pageable))
                 .map(PerformanceTargetEvaluationAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
-            log.error("An error occurred while finding latest Performance Target Evaluations of environment {}", environmentId, e);
             throw new TechnicalManagementException(
                 "An error occurred while finding latest Performance Target Evaluations of environment " + environmentId,
                 e
@@ -95,7 +92,6 @@ public class PerformanceTargetEvaluationQueryServiceImpl extends AbstractService
         try {
             return PerformanceTargetEvaluationAdapter.INSTANCE.toEntity(evaluationRepository.getEnvironmentSummary(environmentId));
         } catch (TechnicalException e) {
-            log.error("An error occurred while summarizing Performance Target Evaluations of environment {}", environmentId, e);
             throw new TechnicalManagementException(
                 "An error occurred while summarizing Performance Target Evaluations of environment " + environmentId,
                 e

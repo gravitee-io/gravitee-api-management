@@ -45,7 +45,6 @@ public class PerformanceTargetQueryServiceImpl implements PerformanceTargetQuery
                 .map(PerformanceTargetAdapter.INSTANCE::toEntity)
                 .toList();
         } catch (TechnicalException e) {
-            log.error("An error occurred while finding Performance Targets by reference [{}/{}]", environmentId, reference, e);
             throw new TechnicalManagementException(
                 "An error occurred while finding Performance Targets by reference [%s/%s]".formatted(environmentId, reference),
                 e

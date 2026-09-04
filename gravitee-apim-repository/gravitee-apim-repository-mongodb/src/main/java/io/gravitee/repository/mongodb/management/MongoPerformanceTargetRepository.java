@@ -94,7 +94,6 @@ class MongoPerformanceTargetRepository implements PerformanceTargetRepository {
             log.debug("Delete performance targets by reference [{}/{}] - Done", environmentId, reference);
             return deleted;
         } catch (Exception ex) {
-            log.error("Failed to delete performance targets by reference [{}/{}]", environmentId, reference, ex);
             throw new TechnicalException("Failed to delete performance targets by reference", ex);
         }
     }
@@ -107,7 +106,6 @@ class MongoPerformanceTargetRepository implements PerformanceTargetRepository {
             log.debug("Delete performance targets of environment [{}] - Done", environmentId);
             return deleted;
         } catch (Exception ex) {
-            log.error("Failed to delete performance targets of environment [{}]", environmentId, ex);
             throw new TechnicalException("Failed to delete performance targets by environment", ex);
         }
     }
@@ -120,7 +118,6 @@ class MongoPerformanceTargetRepository implements PerformanceTargetRepository {
             log.debug("Remove api [{}] from performance targets - Done", apiId);
             return touched;
         } catch (Exception ex) {
-            log.error("Failed to remove api [{}] from performance targets", apiId, ex);
             throw new TechnicalException("Failed to remove api from performance targets", ex);
         }
     }
