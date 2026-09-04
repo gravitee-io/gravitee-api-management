@@ -35,6 +35,7 @@ import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.UnaryOperator;
 
 @DomainService
@@ -86,7 +87,7 @@ public class ImportDefinitionUpdateDomainService {
 
         var updatedApi = switch (existingPromotedApi.getType()) {
             case PROXY, MESSAGE -> updateApiDomainService.updateV4(
-                ApiModelFactory.fromApiExport(apiExport, auditInfo.environmentId()),
+                ApiModelFactory.fromApiExport(apiExport, auditInfo.environmentId()).toBuilder().id(apiId).build(),
                 auditInfo
             );
             case NATIVE -> updateNativeApi(apiId, apiWithIds.getApiExport(), auditInfo);

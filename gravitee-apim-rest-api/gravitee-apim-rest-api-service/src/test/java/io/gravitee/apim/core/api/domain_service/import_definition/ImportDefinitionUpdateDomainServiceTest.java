@@ -148,8 +148,6 @@ class ImportDefinitionUpdateDomainServiceTest {
     }
 
     @Test
-<<<<<<< HEAD
-=======
     public void should_update_the_given_api_when_definition_has_no_id_and_cross_id_does_not_match() {
         // Promotion case: definition exported without ids, target API resolved by another mean than crossId.
         var existingApi = ApiFixtures.aProxyApiV4()
@@ -215,78 +213,6 @@ class ImportDefinitionUpdateDomainServiceTest {
     }
 
     @Test
-    public void should_preserve_existing_properties_when_proxy_api_updated_with_oas_import_having_no_properties() {
-        List<Property> existingProperties = new ArrayList<>(
-            List.of(Property.builder().key("existing-key").value("existing-value").build())
-        );
-        var baseProxyApi = ApiFixtures.aProxyApiV4();
-        ((io.gravitee.definition.model.v4.Api) baseProxyApi.getApiDefinitionValue()).setProperties(existingProperties);
-        var existingApi = baseProxyApi
-            .toBuilder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .environmentId(TARGET_ENVIRONMENT_ID)
-            .build();
-        apiCrudServiceInMemory.initWith(List.of(existingApi));
-        apiQueryServiceInMemory.initWith(List.of(existingApi));
-
-        // OAS import produces no Gravitee-specific properties
-        var importDefinition = ImportDefinition.builder()
-            .apiExport(ApiExport.builder().id(PROMOTED_API_ID).crossId(PROMOTED_API_CROSS_ID).name("updated name").build())
-            .build();
-
-        var updated = service.update(importDefinition, existingApi, AUDIT_INFO);
-
-        assertThat(updated).isNotNull();
-        assertThat(((io.gravitee.definition.model.v4.Api) updated.getApiDefinitionValue()).getProperties())
-            .usingRecursiveComparison()
-            .isEqualTo(existingProperties);
-    }
-
-    @Test
-    public void should_preserve_existing_properties_when_native_api_updated_with_oas_import_having_no_properties() {
-        List<Property> existingProperties = new ArrayList<>(
-            List.of(Property.builder().key("existing-key").value("existing-value").build())
-        );
-        var baseNativeApi = ApiFixtures.aNativeApi();
-        ((NativeApi) baseNativeApi.getApiDefinitionValue()).setProperties(existingProperties);
-        var existingApi = baseNativeApi
-            .toBuilder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .environmentId(TARGET_ENVIRONMENT_ID)
-            .build();
-        apiCrudServiceInMemory.initWith(List.of(existingApi));
-        apiQueryServiceInMemory.initWith(List.of(existingApi));
-
-        var apiExport = ApiExport.builder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .name("updated name")
-            .type(ApiType.NATIVE)
-            // No properties — simulating OAS import
-            .build();
-
-        when(
-            importDefinitionUpdateInitializer.validateApiDomainService.validateAndSanitizeForUpdate(
-                any(),
-                any(),
-                any(),
-                eq(TARGET_ENVIRONMENT_ID),
-                eq(ORGANIZATION_ID)
-            )
-        ).thenAnswer(invocation -> invocation.getArgument(1));
-
-        var importDefinition = ImportDefinition.builder().apiExport(apiExport).build();
-
-        var updated = service.update(importDefinition, existingApi, AUDIT_INFO);
-
-        assertThat(updated).isNotNull();
-        assertThat(updated.getApiDefinitionNativeV4().getProperties()).usingRecursiveComparison().isEqualTo(existingProperties);
-    }
-
-    @Test
->>>>>>> f7d1a90 (fix: API promotion multi env not working)
     void should_throw_an_exception_when_api_not_supported() {
         var existingApi = ApiFixtures.aLLMProxyApiV4().toBuilder().id(PROMOTED_API_ID).crossId(PROMOTED_API_CROSS_ID).build();
         var importDefinition = ImportDefinition.builder()
