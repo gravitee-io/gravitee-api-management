@@ -16,58 +16,72 @@
 package io.gravitee.apim.infra.query_service.subscription_form;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
+import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm;
+import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.apim.core.subscription_form.query_service.SubscriptionFormQueryService;
-import io.gravitee.apim.infra.adapter.SubscriptionFormAdapter;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.SubscriptionFormRepository;
 import java.util.Optional;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * Infrastructure implementation of SubscriptionFormQueryService.
+ * Infrastructure implementation of SubscriptionFormQueryService, reading the environment-default
+ * subscription form through the {@code PortalNavigationItem}/{@code PortalPageContent} model
+ * (PORTAL-164) instead of the retired {@code subscription_forms} table/collection. Every caller of
+ * this interface (the Get use cases, {@code SubscriptionValidationServiceImpl}, the still-live
+ * management-v2 REST resources) keeps working unchanged — only the storage underneath changed.
  *
  * @author Gravitee.io Team
  */
 @Component
 public class SubscriptionFormQueryServiceImpl implements SubscriptionFormQueryService {
 
-    private final SubscriptionFormRepository subscriptionFormRepository;
-    private static final SubscriptionFormAdapter subscriptionFormAdapter = SubscriptionFormAdapter.INSTANCE;
+    private final PortalNavigationItemsQueryService navigationItemsQueryService;
+    private final PortalPageContentQueryService pageContentQueryService;
 
-    public SubscriptionFormQueryServiceImpl(@Lazy SubscriptionFormRepository subscriptionFormRepository) {
-        this.subscriptionFormRepository = subscriptionFormRepository;
+    public SubscriptionFormQueryServiceImpl(
+        PortalNavigationItemsQueryService navigationItemsQueryService,
+        PortalPageContentQueryService pageContentQueryService
+    ) {
+        this.navigationItemsQueryService = navigationItemsQueryService;
+        this.pageContentQueryService = pageContentQueryService;
     }
 
     @Override
     public Optional<SubscriptionForm> findByIdAndEnvironmentId(String environmentId, SubscriptionFormId subscriptionFormId) {
-        try {
-            return subscriptionFormRepository
-                .findByIdAndEnvironmentId(subscriptionFormId.toString(), environmentId)
-                .map(subscriptionFormAdapter::toEntity);
-        } catch (TechnicalException e) {
-            throw new TechnicalDomainException(
-                String.format(
-                    "An error occurred while trying to find a SubscriptionForm with id: %s in environment: %s",
-                    subscriptionFormId,
-                    environmentId
-                ),
-                e
-            );
-        }
+        return findDefaultForEnvironmentId(environmentId).filter(form -> form.getId().equals(subscriptionFormId));
     }
 
     @Override
     public Optional<SubscriptionForm> findDefaultForEnvironmentId(String environmentId) {
-        try {
-            return subscriptionFormRepository.findByEnvironmentId(environmentId).map(subscriptionFormAdapter::toEntity);
-        } catch (TechnicalException e) {
+        return navigationItemsQueryService
+            .findTopLevelItemsByEnvironmentIdAndPortalArea(environmentId, PortalArea.SUBSCRIPTION_FORM)
+            .stream()
+            .findFirst()
+            .filter(PortalNavigationSubscriptionForm.class::isInstance)
+            .map(PortalNavigationSubscriptionForm.class::cast)
+            .map(this::toSubscriptionForm);
+    }
+
+    private SubscriptionForm toSubscriptionForm(PortalNavigationSubscriptionForm navigationItem) {
+        var content = pageContentQueryService
+            .findById(navigationItem.getPortalPageContentId())
+            .orElseThrow(() -> new PageContentNotFoundException(navigationItem.getPortalPageContentId().toString()));
+        if (!(content instanceof GraviteeMarkdownPageContent gmdContent)) {
             throw new TechnicalDomainException(
-                String.format("An error occurred while trying to find a SubscriptionForm for environment: %s", environmentId),
-                e
+                "Subscription form navigation item [%s] references non-GRAVITEE_MARKDOWN content".formatted(navigationItem.getId())
             );
         }
+        return SubscriptionForm.builder()
+            .id(SubscriptionFormId.of(navigationItem.getId().toString()))
+            .environmentId(navigationItem.getEnvironmentId())
+            .gmdContent(gmdContent.getContent())
+            .enabled(Boolean.TRUE.equals(navigationItem.getPublished()))
+            .validationConstraints(navigationItem.getValidationConstraints())
+            .build();
     }
 }
