@@ -14,7 +14,7 @@ mat-dialog-content {
   gap: 8px;
 }
 
-.api-product-search-description-box {
+.entity-search-description-box {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -30,7 +30,7 @@ mat-dialog-content {
   }
 }
 
-.api-product-search-description,
+.entity-search-description,
 .already-added-label {
   @include mat.m2-typography-level($typography, caption);
   color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker80');

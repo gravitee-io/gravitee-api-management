@@ -213,6 +213,42 @@ describe('TreeNodeComponent', () => {
     });
   });
 
+  describe('test Agent node', () => {
+    const node: TreeNode = {
+      id: 'agent1',
+      label: 'Helpdesk Agent',
+      type: 'AGENT',
+      children: [
+        {
+          id: 'agent-page1',
+          label: 'Agent Overview',
+          type: 'PAGE',
+        },
+      ],
+    };
+
+    it('should render as an expanded container', async () => {
+      await init({ node });
+
+      expect(await harness.getText()).toBe(node.label);
+      expect(await harness.getChildren()).toHaveLength(1);
+      expect(await harness.getAriaExpanded()).toBe('true');
+      expect(await harness.isExpanded()).toBe(true);
+    });
+
+    it('should toggle expansion without selecting the node', async () => {
+      await init({ node });
+      const nodeSelected = jest.fn();
+      component.nodeSelected.subscribe(nodeSelected);
+
+      await harness.click();
+
+      expect(await harness.getAriaExpanded()).toBe('false');
+      expect(await harness.isExpanded()).toBe(false);
+      expect(nodeSelected).not.toHaveBeenCalled();
+    });
+  });
+
   it('should compute selected state from selectedId input', async () => {
     const node: TreeNode = {
       id: 'n1',

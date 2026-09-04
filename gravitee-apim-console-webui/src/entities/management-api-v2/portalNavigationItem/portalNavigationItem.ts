@@ -16,7 +16,7 @@
 import type { PortalPageContentType } from '../portalPageContent/portalPageContent';
 
 export type PortalArea = 'HOMEPAGE' | 'TOP_NAVBAR';
-export type PortalNavigationItemType = 'PAGE' | 'FOLDER' | 'LINK' | 'API' | 'API_PRODUCT';
+export type PortalNavigationItemType = 'PAGE' | 'FOLDER' | 'LINK' | 'API' | 'API_PRODUCT' | 'AGENT';
 export type PortalVisibility = 'PUBLIC' | 'PRIVATE';
 
 export interface PortalNavigationItemSource {
@@ -70,16 +70,75 @@ export interface PortalNavigationApiProduct extends BasePortalNavigationItem<'AP
   categoryIds?: string[];
 }
 
+export interface PortalNavigationAgent extends BasePortalNavigationItem<'AGENT'> {
+  agentId: string;
+  termsAndConditionsPageContentId?: string;
+  termsAndConditionsEnabled?: boolean;
+  categoryIds?: string[];
+}
+
 export type PortalNavigationItem =
   | PortalNavigationPage
   | PortalNavigationFolder
   | PortalNavigationLink
   | PortalNavigationApi
-  | PortalNavigationApiProduct;
+  | PortalNavigationApiProduct
+  | PortalNavigationAgent;
 
 /** Only PAGE and FOLDER items can carry an external source. */
 export function getPortalNavigationItemSource(item: PortalNavigationItem): PortalNavigationItemSource | undefined {
   return item.type === 'PAGE' || item.type === 'FOLDER' ? item.source : undefined;
+}
+
+/**
+ * Walks `item` and its ancestors — `item` itself included — and reports whether any of them has `type`.
+ * Tolerates `parentId` cycles.
+ */
+export function hasSelfOrAncestorOfType(
+  itemsById: Map<string, PortalNavigationItem>,
+  item: PortalNavigationItem | undefined,
+  type: PortalNavigationItemType,
+): boolean {
+  let current = item;
+  const visitedIds = new Set<string>();
+
+  while (current && !visitedIds.has(current.id)) {
+    visitedIds.add(current.id);
+    if (current.type === type) {
+      return true;
+    }
+    current = current.parentId ? itemsById.get(current.parentId) : undefined;
+  }
+
+  return false;
+}
+
+export function indexPortalNavigationItemsById(items: PortalNavigationItem[]): Map<string, PortalNavigationItem> {
+  return new Map(items.map(item => [item.id, item]));
+}
+
+/**
+ * For every item, whether a child of `type` may be created under it: allowed unless one of its ancestors
+ * already has `type`, since items of these types do not nest.
+ */
+export function collectCreationAllowedByNodeId(
+  items: PortalNavigationItem[] | null | undefined,
+  type: PortalNavigationItemType,
+): Map<string, boolean> {
+  const creationAllowedByNodeId = new Map<string, boolean>();
+
+  if (!items || !Array.isArray(items)) {
+    return creationAllowedByNodeId;
+  }
+
+  const itemsById = indexPortalNavigationItemsById(items);
+
+  for (const item of items) {
+    const parent = item.parentId ? itemsById.get(item.parentId) : undefined;
+    creationAllowedByNodeId.set(item.id, !hasSelfOrAncestorOfType(itemsById, parent, type));
+  }
+
+  return creationAllowedByNodeId;
 }
 
 /**
@@ -195,12 +254,18 @@ export interface NewApiProductPortalNavigationItem extends BaseNewPortalNavigati
   categoryIds?: string[];
 }
 
+export interface NewAgentPortalNavigationItem extends BaseNewPortalNavigationItem<'AGENT'> {
+  agentId: string;
+  categoryIds?: string[];
+}
+
 export type NewPortalNavigationItem =
   | NewPagePortalNavigationItem
   | NewFolderPortalNavigationItem
   | NewLinkPortalNavigationItem
   | NewApiPortalNavigationItem
-  | NewApiProductPortalNavigationItem;
+  | NewApiProductPortalNavigationItem
+  | NewAgentPortalNavigationItem;
 
 interface BaseUpdatePortalNavigationItem<T extends PortalNavigationItemType> {
   title: string;
@@ -232,9 +297,15 @@ export interface UpdateApiProductPortalNavigationItem extends BaseUpdatePortalNa
   categoryIds?: string[];
 }
 
+export interface UpdateAgentPortalNavigationItem extends BaseUpdatePortalNavigationItem<'AGENT'> {
+  categoryIds?: string[];
+  termsAndConditionsEnabled?: boolean;
+}
+
 export type UpdatePortalNavigationItem =
   | UpdatePagePortalNavigationItem
   | UpdateFolderPortalNavigationItem
   | UpdateLinkPortalNavigationItem
   | UpdateApiPortalNavigationItem
-  | UpdateApiProductPortalNavigationItem;
+  | UpdateApiProductPortalNavigationItem
+  | UpdateAgentPortalNavigationItem;

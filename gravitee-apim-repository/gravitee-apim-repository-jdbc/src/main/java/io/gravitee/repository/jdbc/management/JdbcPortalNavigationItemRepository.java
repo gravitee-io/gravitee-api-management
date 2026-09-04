@@ -76,6 +76,7 @@ public class JdbcPortalNavigationItemRepository
             .addColumn("published", Types.BOOLEAN, boolean.class)
             .addColumn("apiId", Types.NVARCHAR, String.class)
             .addColumn("apiProductId", Types.NVARCHAR, String.class)
+            .addColumn("agentId", Types.NVARCHAR, String.class)
             .addColumn("visibility", Types.NVARCHAR, PortalNavigationItem.Visibility.class)
             .addColumn("use_auto_fetch", Types.BOOLEAN, boolean.class)
             .addColumn(
@@ -377,6 +378,10 @@ public class JdbcPortalNavigationItemRepository
             if (criteria.getApiProductIds() != null && !criteria.getApiProductIds().isEmpty()) {
                 clauses.add("api_product_id IN (" + String.join(",", Collections.nCopies(criteria.getApiProductIds().size(), "?")) + ")");
                 params.addAll(criteria.getApiProductIds());
+            }
+            if (criteria.getAgentIds() != null && !criteria.getAgentIds().isEmpty()) {
+                clauses.add("agent_id IN (" + String.join(",", Collections.nCopies(criteria.getAgentIds().size(), "?")) + ")");
+                params.addAll(criteria.getAgentIds());
             }
             if (hasText(criteria.getType())) {
                 try {

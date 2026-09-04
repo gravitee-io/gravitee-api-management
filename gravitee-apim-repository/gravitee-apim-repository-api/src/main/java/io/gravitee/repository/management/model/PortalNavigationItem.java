@@ -40,6 +40,7 @@ public class PortalNavigationItem {
         LINK,
         API,
         API_PRODUCT,
+        AGENT,
     }
 
     public enum Area {
@@ -92,6 +93,8 @@ public class PortalNavigationItem {
     private String apiId;
 
     private String apiProductId;
+
+    private String agentId;
 
     private boolean useAutoFetch;
 

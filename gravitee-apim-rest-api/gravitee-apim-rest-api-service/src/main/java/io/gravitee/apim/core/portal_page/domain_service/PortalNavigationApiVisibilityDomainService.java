@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationAgent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
@@ -28,8 +29,10 @@ import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQuer
 import jakarta.annotation.Nullable;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
@@ -41,7 +44,7 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
 
     @Override
     public boolean appliesTo(PortalNavigationItem item) {
-        return item instanceof PortalNavigationApi;
+        return item instanceof PortalNavigationApi || item instanceof PortalNavigationAgent;
     }
 
     @Override
@@ -49,7 +52,13 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
         String environmentId,
         PortalNavigationItemViewerContext viewerContext
     ) {
-        return item -> !isApiItemHidden((PortalNavigationApi) item, viewerContext);
+        Set<String> accessibleAgentApiIds = resolveAccessibleAgentApiIds(environmentId, viewerContext);
+        return item ->
+            switch (item) {
+                case PortalNavigationApi api -> !isApiItemHidden(api, viewerContext);
+                case PortalNavigationAgent agent -> !isAgentItemHidden(agent, viewerContext, accessibleAgentApiIds);
+                default -> true;
+            };
     }
 
     /**
@@ -125,23 +134,17 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
 
     /**
      * Checks if an API is visible in portal navigation for the given user, looking it up by API ID.
+     * An API is visible when a published API navigation item references it, or when a published
+     * AGENT navigation item references it as its backing A2A proxy ({@code agentId}).
      */
     public boolean isApiVisibleToUser(String environmentId, String apiId, @Nullable String userId) {
-        return queryService
-            .search(
-                PortalNavigationItemQueryCriteria.builder()
-                    .environmentId(environmentId)
-                    .published(true)
-                    .root(false)
-                    .type(PortalNavigationItemType.API)
-                    .apiIds(Set.of(apiId))
-                    .build()
+        return findPublishedApiItem(environmentId, apiId)
+            .map(item -> isLinkedApiVisibleToUser(item.getApiId(), item.getVisibility(), userId))
+            .or(() ->
+                findPublishedAgentItem(environmentId, apiId).map(item ->
+                    isLinkedApiVisibleToUser(item.getAgentId(), item.getVisibility(), userId)
+                )
             )
-            .stream()
-            .filter(PortalNavigationApi.class::isInstance)
-            .map(PortalNavigationApi.class::cast)
-            .findFirst()
-            .map(item -> isVisibleToUser(item, userId))
             .orElse(false);
     }
 
@@ -149,14 +152,7 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
      * Checks visibility of a single PortalNavigationApi for the given user.
      */
     public boolean isVisibleToUser(PortalNavigationApi item, String userId) {
-        if (PortalVisibility.PUBLIC.equals(item.getVisibility())) {
-            return true;
-        }
-        Set<String> candidate = Set.of(item.getApiId());
-        return (
-            !apiMembershipDomainService.filterApiIdsByUserMembership(userId, candidate).isEmpty() ||
-            !apiMembershipDomainService.filterAllowedApiIdsBySubscription(userId, candidate).isEmpty()
-        );
+        return isLinkedApiVisibleToUser(item.getApiId(), item.getVisibility(), userId);
     }
 
     /**
@@ -166,10 +162,74 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
      * endpoint so navigation and catalog expose the same set of APIs.
      */
     public boolean isApiItemHidden(PortalNavigationApi item, PortalNavigationItemViewerContext viewerContext) {
-        if (!viewerContext.isPortalMode()) {
+        return isLinkedItemHidden(item.getApiId(), item.getVisibility(), viewerContext);
+    }
+
+    /**
+     * Same rules as {@link #isApiItemHidden(PortalNavigationApi, PortalNavigationItemViewerContext)} applied to the
+     * A2A proxy API backing an agent navigation item.
+     */
+    public boolean isAgentItemHidden(PortalNavigationAgent item, PortalNavigationItemViewerContext viewerContext) {
+        return isLinkedItemHidden(item.getAgentId(), item.getVisibility(), viewerContext);
+    }
+
+    public boolean isAgentItemHidden(
+        PortalNavigationAgent item,
+        PortalNavigationItemViewerContext viewerContext,
+        Set<String> accessibleAgentApiIds
+    ) {
+        if (!viewerContext.isPortalMode() || PortalVisibility.PUBLIC.equals(item.getVisibility())) {
             return false;
         }
-        if (PortalVisibility.PUBLIC.equals(item.getVisibility())) {
+        return !viewerContext.isAuthenticated() || !accessibleAgentApiIds.contains(item.getAgentId());
+    }
+
+    /**
+     * Bulk counterpart of {@link #isAgentItemHidden(PortalNavigationAgent, PortalNavigationItemViewerContext)}: resolves
+     * the private agent API ids the viewer may access with a single membership and a single subscription lookup.
+     */
+    public Set<String> resolveAccessibleAgentApiIds(String environmentId, PortalNavigationItemViewerContext viewerContext) {
+        if (!viewerContext.isPortalMode()) {
+            return Set.of();
+        }
+        return viewerContext
+            .userId()
+            .map(userId -> resolveAccessibleAgentApiIds(environmentId, userId))
+            .orElse(Set.of());
+    }
+
+    private Set<String> resolveAccessibleAgentApiIds(String environmentId, String userId) {
+        Set<String> privateAgentApiIds = fetchAgentItems(environmentId)
+            .stream()
+            .filter(item -> !PortalVisibility.PUBLIC.equals(item.getVisibility()))
+            .map(PortalNavigationAgent::getAgentId)
+            .collect(Collectors.toSet());
+        if (privateAgentApiIds.isEmpty()) {
+            return Set.of();
+        }
+        Set<String> accessibleIds = new HashSet<>(apiMembershipDomainService.filterApiIdsByUserMembership(userId, privateAgentApiIds));
+        accessibleIds.addAll(apiMembershipDomainService.filterAllowedApiIdsBySubscription(userId, privateAgentApiIds));
+        return accessibleIds;
+    }
+
+    private List<PortalNavigationAgent> fetchAgentItems(String environmentId) {
+        return queryService
+            .search(
+                PortalNavigationItemQueryCriteria.builder()
+                    .environmentId(environmentId)
+                    .published(true)
+                    .root(false)
+                    .type(PortalNavigationItemType.AGENT)
+                    .build()
+            )
+            .stream()
+            .filter(PortalNavigationAgent.class::isInstance)
+            .map(PortalNavigationAgent.class::cast)
+            .toList();
+    }
+
+    private boolean isLinkedItemHidden(String linkedApiId, PortalVisibility visibility, PortalNavigationItemViewerContext viewerContext) {
+        if (!viewerContext.isPortalMode() || PortalVisibility.PUBLIC.equals(visibility)) {
             return false;
         }
         if (!viewerContext.isAuthenticated()) {
@@ -177,7 +237,7 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
         }
         return viewerContext
             .userId()
-            .map(uid -> !isVisibleToUser(item, uid))
+            .map(uid -> !isLinkedApiVisibleToUser(linkedApiId, visibility, uid))
             .orElse(true);
     }
 
@@ -196,7 +256,55 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
             if (current instanceof PortalNavigationApi apiAncestor && isApiItemHidden(apiAncestor, viewerContext)) {
                 return true;
             }
+            if (current instanceof PortalNavigationAgent agentAncestor && isAgentItemHidden(agentAncestor, viewerContext)) {
+                return true;
+            }
         }
         return false;
+    }
+
+    private Optional<PortalNavigationApi> findPublishedApiItem(String environmentId, String apiId) {
+        return queryService
+            .search(
+                PortalNavigationItemQueryCriteria.builder()
+                    .environmentId(environmentId)
+                    .published(true)
+                    .root(false)
+                    .type(PortalNavigationItemType.API)
+                    .apiIds(Set.of(apiId))
+                    .build()
+            )
+            .stream()
+            .filter(PortalNavigationApi.class::isInstance)
+            .map(PortalNavigationApi.class::cast)
+            .findFirst();
+    }
+
+    private Optional<PortalNavigationAgent> findPublishedAgentItem(String environmentId, String agentId) {
+        return queryService
+            .search(
+                PortalNavigationItemQueryCriteria.builder()
+                    .environmentId(environmentId)
+                    .published(true)
+                    .root(false)
+                    .type(PortalNavigationItemType.AGENT)
+                    .agentIds(Set.of(agentId))
+                    .build()
+            )
+            .stream()
+            .filter(PortalNavigationAgent.class::isInstance)
+            .map(PortalNavigationAgent.class::cast)
+            .findFirst();
+    }
+
+    private boolean isLinkedApiVisibleToUser(String linkedApiId, PortalVisibility visibility, String userId) {
+        if (PortalVisibility.PUBLIC.equals(visibility)) {
+            return true;
+        }
+        Set<String> candidate = Set.of(linkedApiId);
+        return (
+            !apiMembershipDomainService.filterApiIdsByUserMembership(userId, candidate).isEmpty() ||
+            !apiMembershipDomainService.filterAllowedApiIdsBySubscription(userId, candidate).isEmpty()
+        );
     }
 }

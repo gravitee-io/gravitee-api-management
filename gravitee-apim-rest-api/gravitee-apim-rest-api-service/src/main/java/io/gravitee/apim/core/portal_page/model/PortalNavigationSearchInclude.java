@@ -18,4 +18,5 @@ package io.gravitee.apim.core.portal_page.model;
 public enum PortalNavigationSearchInclude {
     API,
     API_PRODUCT,
+    AGENT,
 }

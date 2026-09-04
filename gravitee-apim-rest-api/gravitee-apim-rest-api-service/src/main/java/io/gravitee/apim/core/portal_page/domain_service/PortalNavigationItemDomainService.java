@@ -24,11 +24,14 @@ import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudServi
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationAgent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
@@ -43,6 +46,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -101,6 +105,13 @@ public class PortalNavigationItemDomainService {
         }
 
         var itemToCreate = PortalNavigationItem.from(createPortalNavigationItem, organizationId, environmentId, parent);
+        if (itemToCreate instanceof PortalNavigationAgent agent && agent.getTermsAndConditionsPageContentId() == null) {
+            var templateContent = loadTemplate("templates/agent-terms-and-conditions-page-content.md");
+            var termsContent = pageContentCrudService.create(
+                GraviteeMarkdownPageContent.create(organizationId, environmentId, templateContent)
+            );
+            agent.setTermsAndConditionsPageContentId(termsContent.getId());
+        }
         final var portalNavigationItem = this.crudService.create(itemToCreate);
 
         // Update orders of all following sibling items
@@ -170,10 +181,7 @@ public class PortalNavigationItemDomainService {
     }
 
     public void delete(PortalNavigationItem item) {
-        // Determine if item is a page and collect content id
-        final var contentId = item instanceof io.gravitee.apim.core.portal_page.model.PortalNavigationPage
-            ? ((io.gravitee.apim.core.portal_page.model.PortalNavigationPage) item).getPortalPageContentId()
-            : null;
+        pageContentIdOf(item).ifPresent(pageContentCrudService::delete);
 
         // Reorder siblings at the deleted item's parent level: decrement order for siblings with order > deleted order
         var parentId = item.getParentId();
@@ -187,9 +195,6 @@ public class PortalNavigationItemDomainService {
         siblingsToUpdate.forEach(sibling -> sibling.setOrder(sibling.getOrder() - 1));
 
         // Perform deletions/updates for the single item
-        if (contentId != null) {
-            pageContentCrudService.delete(contentId);
-        }
         crudService.delete(item.getId());
         siblingsToUpdate.forEach(crudService::update);
     }
@@ -205,10 +210,7 @@ public class PortalNavigationItemDomainService {
             allUnderRoot
                 .stream()
                 .filter(i -> descendantIds.contains(i.getId()))
-                .filter(PortalNavigationPage.class::isInstance)
-                .map(PortalNavigationPage.class::cast)
-                .map(PortalNavigationPage::getPortalPageContentId)
-                .forEach(pageContentCrudService::delete);
+                .forEach(descendant -> pageContentIdOf(descendant).ifPresent(pageContentCrudService::delete));
 
             if (!descendantIds.isEmpty()) {
                 crudService.deleteByIds(new ArrayList<>(descendantIds));
@@ -221,9 +223,7 @@ public class PortalNavigationItemDomainService {
     private void deleteLegacyDescendantsRecursive(PortalNavigationItemId parentId, String environmentId) {
         for (var child : queryService.findByParentIdAndEnvironmentId(environmentId, parentId)) {
             deleteLegacyDescendantsRecursive(child.getId(), environmentId);
-            if (child instanceof PortalNavigationPage page) {
-                pageContentCrudService.delete(page.getPortalPageContentId());
-            }
+            pageContentIdOf(child).ifPresent(pageContentCrudService::delete);
             crudService.delete(child.getId());
         }
     }
@@ -248,6 +248,14 @@ public class PortalNavigationItemDomainService {
             result.add(child.getId());
             collectDescendantIdsRecursive(child.getId(), childrenByParent, result);
         }
+    }
+
+    private Optional<PortalPageContentId> pageContentIdOf(PortalNavigationItem item) {
+        return switch (item) {
+            case PortalNavigationPage page -> Optional.ofNullable(page.getPortalPageContentId());
+            case PortalNavigationAgent agent -> Optional.ofNullable(agent.getTermsAndConditionsPageContentId());
+            default -> Optional.empty();
+        };
     }
 
     public PortalNavigationItem update(UpdatePortalNavigationItem toUpdate, PortalNavigationItem originalItem) {
@@ -487,5 +495,16 @@ public class PortalNavigationItemDomainService {
                 }
             })
             .toList();
+    }
+
+    private String loadTemplate(String templatePath) {
+        try (var inputStream = PortalNavigationItemDomainService.class.getClassLoader().getResourceAsStream(templatePath)) {
+            if (inputStream == null) {
+                throw new IllegalStateException("Could not load default agent terms and conditions template: " + templatePath);
+            }
+            return new String(inputStream.readAllBytes());
+        } catch (Exception e) {
+            throw new IllegalStateException("Could not load default agent terms and conditions template", e);
+        }
     }
 }

@@ -16,6 +16,8 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.portal_page.model.PortalCatalogAccessibleIds;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationAgent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -32,20 +34,18 @@ import lombok.RequiredArgsConstructor;
 public class PortalCatalogNavigationVisibilityDomainService {
 
     private final PortalNavigationApiProductVisibilityDomainService apiProductVisibilityDomainService;
+    private final PortalNavigationApiVisibilityDomainService apiVisibilityDomainService;
 
     public <T extends PortalNavigationItem> List<T> filterVisibleItems(
         List<T> items,
         Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
         PortalNavigationItemViewerContext viewerContext,
-        Set<PortalNavigationItemId> accessibleApiNavigationItemIds,
-        Set<String> accessibleApiProductIds
+        PortalCatalogAccessibleIds accessibleIds
     ) {
         return items
             .stream()
             .filter(
-                item ->
-                    !isHidden(item, viewerContext, accessibleApiNavigationItemIds, accessibleApiProductIds) &&
-                    !hasHiddenAncestor(item, itemsById, viewerContext, accessibleApiNavigationItemIds, accessibleApiProductIds)
+                item -> !isHidden(item, viewerContext, accessibleIds) && !hasHiddenAncestor(item, itemsById, viewerContext, accessibleIds)
             )
             .toList();
     }
@@ -76,14 +76,13 @@ public class PortalCatalogNavigationVisibilityDomainService {
         PortalNavigationItem item,
         Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
         PortalNavigationItemViewerContext viewerContext,
-        Set<PortalNavigationItemId> accessibleApiNavigationItemIds,
-        Set<String> accessibleApiProductIds
+        PortalCatalogAccessibleIds accessibleIds
     ) {
         Set<PortalNavigationItemId> visited = new HashSet<>();
         PortalNavigationItem current = item;
         while (current != null && current.getParentId() != null && visited.add(current.getId())) {
             current = itemsById.get(current.getParentId());
-            if (current != null && isHidden(current, viewerContext, accessibleApiNavigationItemIds, accessibleApiProductIds)) {
+            if (current != null && isHidden(current, viewerContext, accessibleIds)) {
                 return true;
             }
         }
@@ -93,18 +92,24 @@ public class PortalCatalogNavigationVisibilityDomainService {
     private boolean isHidden(
         PortalNavigationItem item,
         PortalNavigationItemViewerContext viewerContext,
-        Set<PortalNavigationItemId> accessibleApiNavigationItemIds,
-        Set<String> accessibleApiProductIds
+        PortalCatalogAccessibleIds accessibleIds
     ) {
         if (viewerContext.shouldNotShow(item)) {
             return true;
         }
-        if (item instanceof PortalNavigationApi) {
-            return !accessibleApiNavigationItemIds.contains(item.getId());
-        }
-        if (item instanceof PortalNavigationApiProduct apiProduct) {
-            return apiProductVisibilityDomainService.isApiProductItemHidden(apiProduct, viewerContext, accessibleApiProductIds);
-        }
-        return false;
+        return switch (item) {
+            case PortalNavigationApi ignored -> !accessibleIds.apiNavigationItemIds().contains(item.getId());
+            case PortalNavigationApiProduct apiProduct -> apiProductVisibilityDomainService.isApiProductItemHidden(
+                apiProduct,
+                viewerContext,
+                accessibleIds.apiProductIds()
+            );
+            case PortalNavigationAgent agent -> apiVisibilityDomainService.isAgentItemHidden(
+                agent,
+                viewerContext,
+                accessibleIds.agentApiIds()
+            );
+            default -> false;
+        };
     }
 }

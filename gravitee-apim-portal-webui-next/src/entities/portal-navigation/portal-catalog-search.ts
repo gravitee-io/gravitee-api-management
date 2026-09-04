@@ -15,6 +15,7 @@
  */
 
 import type { PortalNavigationSearchMetadata } from './portal-navigation-apis-search';
+import { ApiType } from '../api/api';
 import { ApiLinks } from '../api/api-links';
 import { Mcp } from '../api/mcp';
 import { ApiProductApi } from '../api-product/api-product';
@@ -38,6 +39,11 @@ export interface PortalCatalogApiSearchItem {
   _links?: ApiLinks;
   mcp?: Mcp;
   labels?: string[];
+  apiType?: ApiType;
+  entrypoints?: string[];
+  createdAt?: Date;
+  updatedAt?: Date;
+  publisher?: string;
   rootId: string;
   navItemId: string;
   categoryIds?: string[];
@@ -55,7 +61,26 @@ export interface PortalCatalogApiProductSearchItem {
   categoryIds?: string[];
 }
 
-export type PortalCatalogSearchItem = PortalCatalogApiSearchItem | PortalCatalogApiProductSearchItem;
+export interface PortalCatalogAgentSearchItem {
+  type: 'AGENT';
+  id: string;
+  name: string;
+  version: string;
+  description: string;
+  _links?: ApiLinks;
+  mcp?: Mcp;
+  labels?: string[];
+  apiType?: ApiType;
+  entrypoints?: string[];
+  createdAt?: Date;
+  updatedAt?: Date;
+  publisher?: string;
+  rootId: string;
+  navItemId: string;
+  categoryIds?: string[];
+}
+
+export type PortalCatalogSearchItem = PortalCatalogApiSearchItem | PortalCatalogApiProductSearchItem | PortalCatalogAgentSearchItem;
 
 export interface PortalCatalogSearchResponse {
   data: PortalCatalogSearchItem[];

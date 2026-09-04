@@ -35,6 +35,7 @@ public final class UpdatePortalNavigationItem {
     private PortalNavigationItemId parentId;
     private String url;
     private List<PortalCategoryId> categoryIds;
+    private Boolean termsAndConditionsEnabled;
     private Boolean published;
     private PortalVisibility visibility;
     private PortalNavigationItemSource source;

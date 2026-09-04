@@ -18,6 +18,7 @@ package inmemory;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationAgent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -111,6 +112,9 @@ public class PortalNavigationItemsQueryServiceInMemory
                         criteria.getApiProductIds().isEmpty() ||
                         (item instanceof PortalNavigationApiProduct apiProduct &&
                             criteria.getApiProductIds().contains(apiProduct.getApiProductId()))) &&
+                    (criteria.getAgentIds() == null ||
+                        criteria.getAgentIds().isEmpty() ||
+                        (item instanceof PortalNavigationAgent agent && criteria.getAgentIds().contains(agent.getAgentId()))) &&
                     (criteria.getUseAutoFetch() == null || criteria.getUseAutoFetch() == usesAutoFetch(item)) &&
                     (criteria.getCategoryId() == null ||
                         (item instanceof PortalNavigationApi api && api.getCategoryIds().contains(criteria.getCategoryId())))

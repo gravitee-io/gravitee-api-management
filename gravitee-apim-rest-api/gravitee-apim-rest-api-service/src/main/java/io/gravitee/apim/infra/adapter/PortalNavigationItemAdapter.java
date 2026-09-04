@@ -35,6 +35,8 @@ public interface PortalNavigationItemAdapter {
 
     com.fasterxml.jackson.databind.ObjectMapper OBJECT_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper();
     String PORTAL_PAGE_CONTENT_ID = "portalPageContentId";
+    String TERMS_AND_CONDITIONS_ENABLED = "termsAndConditionsEnabled";
+    String TERMS_AND_CONDITIONS_PAGE_CONTENT_ID = "termsAndConditionsPageContentId";
     String URL = "url";
     String SOURCE = "source";
     String SOURCE_TYPE = "type";
@@ -52,6 +54,7 @@ public interface PortalNavigationItemAdapter {
             case LINK -> portalNavigationLinkFromRepository(portalNavigationItem);
             case API -> portalNavigationApiFromRepository(portalNavigationItem);
             case API_PRODUCT -> portalNavigationApiProductFromRepository(portalNavigationItem);
+            case AGENT -> portalNavigationAgentFromRepository(portalNavigationItem);
         };
     }
 
@@ -103,6 +106,25 @@ public interface PortalNavigationItemAdapter {
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
 
+    @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
+    @Mapping(target = "visibility", expression = "java(repositoryVisibilityToDomain(portalNavigationItem))")
+    @Mapping(target = "reference", expression = "java(referenceFromRepository(portalNavigationItem))")
+    @Mapping(
+        target = "automationMetadata",
+        expression = "java(automationMetadataFromRepository(portalNavigationItem.getAutomationMetadata()))"
+    )
+    @Mapping(
+        target = "termsAndConditionsPageContentId",
+        expression = "java(parseTermsAndConditionsPageContentId(portalNavigationItem.getConfiguration()))"
+    )
+    @Mapping(
+        target = "termsAndConditionsEnabled",
+        expression = "java(parseTermsAndConditionsEnabled(portalNavigationItem.getConfiguration()))"
+    )
+    PortalNavigationAgent portalNavigationAgentFromRepository(
+        io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
+    );
+
     @Mapping(target = "portalPageContentId", expression = "java(parsePortalPageContentId(portalNavigationItem.getConfiguration()))")
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
     @Mapping(target = "visibility", expression = "java(repositoryVisibilityToDomain(portalNavigationItem))")
@@ -151,6 +173,7 @@ public interface PortalNavigationItemAdapter {
         return switch (portalNavigationItem) {
             case PortalNavigationApi api -> toRepository(api);
             case PortalNavigationApiProduct apiProduct -> toRepository(apiProduct);
+            case PortalNavigationAgent agent -> toRepository(agent);
             case PortalNavigationPage page -> toRepository(page);
             case PortalNavigationLink link -> toRepository(link);
             case PortalNavigationFolder folder -> toRepository(folder);
@@ -209,6 +232,16 @@ public interface PortalNavigationItemAdapter {
     )
     io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationApiProduct portalNavigationItem);
 
+    @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
+    @Mapping(target = "configuration", expression = "java(configurationOf(portalNavigationItem))")
+    @Mapping(target = "referenceType", expression = "java(referenceTypeToRepository(portalNavigationItem.getReference()))")
+    @Mapping(target = "referenceId", expression = "java(referenceIdToRepository(portalNavigationItem.getReference()))")
+    @Mapping(
+        target = "automationMetadata",
+        expression = "java(automationMetadataToRepository(portalNavigationItem.getAutomationMetadata()))"
+    )
+    io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationAgent portalNavigationItem);
+
     default io.gravitee.repository.management.model.PortalNavigationItem.Type mapType(PortalNavigationItem portalNavigationItem) {
         return switch (portalNavigationItem) {
             case PortalNavigationFolder ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.FOLDER;
@@ -216,6 +249,7 @@ public interface PortalNavigationItemAdapter {
             case PortalNavigationLink ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.LINK;
             case PortalNavigationApi ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.API;
             case PortalNavigationApiProduct ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.API_PRODUCT;
+            case PortalNavigationAgent ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.AGENT;
         };
     }
 
@@ -231,6 +265,12 @@ public interface PortalNavigationItemAdapter {
                 case PortalNavigationFolder folder -> writeSource(config, folder.getSource());
                 case PortalNavigationApi ignored -> {}
                 case PortalNavigationApiProduct ignored -> {}
+                case PortalNavigationAgent agent -> {
+                    config.put(TERMS_AND_CONDITIONS_ENABLED, agent.isTermsAndConditionsEnabled());
+                    if (agent.getTermsAndConditionsPageContentId() != null) {
+                        config.put(TERMS_AND_CONDITIONS_PAGE_CONTENT_ID, agent.getTermsAndConditionsPageContentId().json());
+                    }
+                }
             }
             return OBJECT_MAPPER.writeValueAsString(config);
         } catch (Exception e) {
@@ -272,6 +312,32 @@ public interface PortalNavigationItemAdapter {
             return PortalPageContentId.of(node.get(PORTAL_PAGE_CONTENT_ID).asText());
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid configuration for PortalNavigationItem PAGE type", e);
+        }
+    }
+
+    default boolean parseTermsAndConditionsEnabled(String configuration) {
+        if (configuration == null || configuration.isEmpty()) {
+            return true;
+        }
+        try {
+            return OBJECT_MAPPER.readTree(configuration).path(TERMS_AND_CONDITIONS_ENABLED).asBoolean(true);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid configuration for PortalNavigationItem AGENT type", e);
+        }
+    }
+
+    default PortalPageContentId parseTermsAndConditionsPageContentId(String configuration) {
+        if (configuration == null || configuration.isEmpty()) {
+            return null;
+        }
+        try {
+            var node = OBJECT_MAPPER.readTree(configuration).get(TERMS_AND_CONDITIONS_PAGE_CONTENT_ID);
+            if (node == null || node.isNull() || !StringUtils.hasText(node.asText())) {
+                return null;
+            }
+            return PortalPageContentId.of(node.asText());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid configuration for PortalNavigationItem AGENT type", e);
         }
     }
 
@@ -387,6 +453,17 @@ public interface PortalNavigationItemAdapter {
 
     @Mapping(source = "area", target = "portalArea")
     io.gravitee.repository.management.api.search.PortalNavigationItemCriteria map(PortalNavigationItemQueryCriteria criteria);
+
+    default PortalPageContentId mapPortalPageContentId(String id) {
+        if (!StringUtils.hasText(id)) {
+            return null;
+        }
+        return PortalPageContentId.of(id);
+    }
+
+    default String mapPortalPageContentId(PortalPageContentId id) {
+        return id != null ? id.json() : null;
+    }
 
     default String mapPortalNavigationItemId(PortalNavigationItemId id) {
         return id != null ? id.json() : null;

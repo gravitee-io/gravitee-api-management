@@ -146,7 +146,7 @@
 }
 
 <ng-template #menuItems let-node>
-  @if (node.type === 'FOLDER' || node.type === 'API' || node.type === 'API_PRODUCT') {
+  @if (node.type === 'FOLDER' || node.type === 'API' || node.type === 'API_PRODUCT' || node.type === 'AGENT') {
     @if (canCreate) {
       <button mat-menu-item (click)="onCreate(node, 'PAGE')">
         <mat-icon [svgIcon]="'PAGE' | portalNavigationItemIcon"></mat-icon>
@@ -164,6 +164,13 @@
         <button mat-menu-item data-testid="add-api-product-button" (click)="onCreate(node, 'API_PRODUCT')">
           <mat-icon [svgIcon]="'API_PRODUCT' | portalNavigationItemIcon"></mat-icon>
           Add API Product
+        </button>
+      }
+
+      @if (node.type === 'FOLDER' && (agentCreationAllowedByNodeId().get(node.id) ?? true)) {
+        <button mat-menu-item data-testid="add-agent-button" (click)="onCreate(node, 'AGENT')">
+          <mat-icon [svgIcon]="'AGENT' | portalNavigationItemIcon"></mat-icon>
+          Add Agent
         </button>
       }
 

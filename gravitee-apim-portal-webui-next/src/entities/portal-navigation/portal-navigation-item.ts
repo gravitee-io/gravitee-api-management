@@ -16,7 +16,7 @@
 
 export type PortalArea = 'HOMEPAGE' | 'TOP_NAVBAR';
 
-export type PortalNavigationItemType = 'PAGE' | 'FOLDER' | 'LINK' | 'API' | 'API_PRODUCT';
+export type PortalNavigationItemType = 'PAGE' | 'FOLDER' | 'LINK' | 'API' | 'API_PRODUCT' | 'AGENT';
 
 export interface BasePortalNavigationItem {
   id: string;
@@ -57,9 +57,18 @@ export interface PortalNavigationApiProduct extends BasePortalNavigationItem {
   categoryIds?: string[];
 }
 
+export interface PortalNavigationAgent extends BasePortalNavigationItem {
+  type: 'AGENT';
+  agentId: string;
+  termsAndConditionsPageContentId?: string;
+  termsAndConditionsEnabled?: boolean;
+  categoryIds?: string[];
+}
+
 export type PortalNavigationItem =
   | PortalNavigationPage
   | PortalNavigationFolder
   | PortalNavigationLink
   | PortalNavigationApi
-  | PortalNavigationApiProduct;
+  | PortalNavigationApiProduct
+  | PortalNavigationAgent;

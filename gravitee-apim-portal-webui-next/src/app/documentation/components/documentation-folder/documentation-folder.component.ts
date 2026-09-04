@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { AsyncPipe } from '@angular/common';
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { rxResource, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, debounceTime, finalize, map, merge, Observable, switchMap, tap, withLatestFrom } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
@@ -27,14 +25,18 @@ import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
 import { Api } from 'src/entities/api/api';
 
 import { TreeComponent } from './tree/tree.component';
+import { isChattableAgent, resolveChatTarget } from '../../../../components/agent-chat/agent-chat-access';
+import { AgentChatComponent } from '../../../../components/agent-chat/agent-chat.component';
+import { AgentChatStore } from '../../../../components/agent-chat/agent-chat.store';
 import { Breadcrumb } from '../../../../components/breadcrumbs/breadcrumbs.component';
 import { DocumentationSkeletonComponent } from '../../../../components/documentation-skeleton/documentation-skeleton.component';
 import { NavigationItemContentViewerComponent } from '../../../../components/navigation-item-content-viewer/navigation-item-content-viewer.component';
+import { SidePanelComponent } from '../../../../components/side-panel/side-panel.component';
 import { SidenavLayoutComponent } from '../../../../components/sidenav-layout/sidenav-layout.component';
 import { SidenavSkeletonComponent } from '../../../../components/sidenav-skeleton/sidenav-skeleton.component';
-import { MobileClassDirective } from '../../../../directives/mobile-class.directive';
 import { PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
 import { PortalPageContent } from '../../../../entities/portal-navigation/portal-page-content';
+import { AgentSubscriptionAccess, AgentSubscriptionService } from '../../../../services/agent-subscription.service';
 import { ApiService } from '../../../../services/api.service';
 import { CurrentUserService } from '../../../../services/current-user.service';
 import { PortalNavigationItemsService } from '../../../../services/portal-navigation-items.service';
@@ -54,8 +56,6 @@ enum NavParamsChange {
 @Component({
   selector: 'app-documentation-folder',
   imports: [
-    CdkTrapFocus,
-    MobileClassDirective,
     SidenavLayoutComponent,
     SidenavSkeletonComponent,
     DocumentationSkeletonComponent,
@@ -64,14 +64,18 @@ enum NavParamsChange {
     NavigationItemContentViewerComponent,
     AsyncPipe,
     MatButtonModule,
-    MatIconModule,
+    SidePanelComponent,
     ApiTabToolsComponent,
+    AgentChatComponent,
   ],
   templateUrl: './documentation-folder.component.html',
   styleUrl: './documentation-folder.component.scss',
+  providers: [AgentChatStore],
 })
 export class DocumentationFolderComponent {
   private readonly apiService = inject(ApiService);
+  private readonly agentSubscriptionService = inject(AgentSubscriptionService);
+  private readonly chatStore = inject(AgentChatStore);
   readonly currentUser = inject(CurrentUserService).isUserAuthenticated;
 
   navItem = input.required<PortalNavigationItem>();
@@ -87,6 +91,7 @@ export class DocumentationFolderComponent {
 
   documentationActionContext = signal<DocumentationActionContext>({ apiId: null, subscriptionTarget: null });
   mcpDrawerOpen = signal(false);
+  chatOpen = signal(false);
   subscriptionTarget = computed(() => this.documentationActionContext().subscriptionTarget);
   apiId = computed(() => this.documentationActionContext().apiId);
   api = rxResource<Api | null, string | null>({
@@ -94,14 +99,44 @@ export class DocumentationFolderComponent {
     stream: ({ params }) => (params ? this.apiService.details(params) : of(null)),
   });
   apiHasMcp = computed(() => !this.api.error() && !!this.api.value()?.mcp);
-  hasBreadcrumbActions = computed(() => !!this.subscriptionTarget() || this.apiHasMcp());
+
+  // Every read of api.value() is guarded: an errored resource throws from value(), and this page
+  // must still render its tree and breadcrumbs when the api call fails.
+  private readonly agentApiId = computed(() => {
+    const api = this.api.error() ? null : this.api.value();
+    return isChattableAgent(api) && this.currentUser() ? (api?.id ?? null) : null;
+  });
+  agentAccess = rxResource<AgentSubscriptionAccess | null, string | null>({
+    params: this.agentApiId,
+    stream: ({ params }) => (params ? this.agentSubscriptionService.findForAgent(params) : of(null)),
+  });
+  chatTarget = computed(() => (this.api.error() ? null : resolveChatTarget(this.api.value(), this.agentAccess.value()?.apiKey)));
+  chatSession = computed(() => {
+    const target = this.chatTarget();
+    const agentName = this.api.error() ? null : this.api.value()?.name;
+    const applicationName = this.agentAccess.value()?.applicationName;
+    return target && agentName ? { target, agentName, applicationName: applicationName ?? '' } : null;
+  });
+
+  hasBreadcrumbActions = computed(() => !!this.subscriptionTarget() || this.apiHasMcp() || !!this.chatTarget());
 
   constructor(
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
     private readonly itemsService: PortalNavigationItemsService,
     private readonly treeService: TreeService,
-  ) {}
+  ) {
+    effect(() => {
+      const agentId = this.agentApiId();
+      if (!agentId) {
+        // Selecting another page clears the api context, and a panel left open would otherwise
+        // reopen itself once the next agent resolves.
+        this.chatOpen.set(false);
+        return;
+      }
+      this.chatStore.resetFor(agentId);
+    });
+  }
 
   onSelect(selectedPageId: string) {
     this.navigateToPage(selectedPageId);
@@ -169,7 +204,7 @@ export class DocumentationFolderComponent {
       return of({ children, selectedPageContent: null }).pipe(tap(() => this.navigateToNotFound()));
     }
 
-    if (child.type === 'API' || child.type === 'API_PRODUCT' || child.type === 'FOLDER') {
+    if (child.type === 'API' || child.type === 'API_PRODUCT' || child.type === 'FOLDER' || child.type === 'AGENT') {
       // APIs, API Products, and folders are not selectable, so navigate to their first page.
       const firstPageId = this.treeService.findFirstPageIdWithinNode(selectedId);
       return of({ children, selectedPageContent: null }).pipe(tap(() => firstPageId && this.navigateToPage(firstPageId)));

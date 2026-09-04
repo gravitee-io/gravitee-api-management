@@ -319,4 +319,9 @@ public class ApiResource extends AbstractResource {
     public ApiSubscriptionFormResource getApiSubscriptionFormResource() {
         return resourceContext.getResource(ApiSubscriptionFormResource.class);
     }
+
+    @Path("terms-and-conditions")
+    public ApiTermsAndConditionsResource getApiTermsAndConditionsResource() {
+        return resourceContext.getResource(ApiTermsAndConditionsResource.class);
+    }
 }

@@ -28,6 +28,7 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationAgent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
@@ -211,6 +212,32 @@ public class PortalNavigationItemDomainServiceTest {
 
     @Nested
     class Create {
+
+        @Test
+        void should_create_default_terms_and_conditions_content_for_agent() {
+            var toCreate = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.AGENT)
+                .title("My Agent")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .agentId("a2a-proxy-api-id")
+                .build();
+
+            var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
+
+            assertThat(created).isInstanceOfSatisfying(PortalNavigationAgent.class, agent -> {
+                assertThat(agent.getTermsAndConditionsPageContentId()).isNotNull();
+                assertThat(agent.isTermsAndConditionsEnabled()).isTrue();
+                assertThat(portalPageContentCrudService.storage())
+                    .singleElement()
+                    .satisfies(content -> {
+                        assertThat(content.getId()).isEqualTo(agent.getTermsAndConditionsPageContentId());
+                        assertThat(((GraviteeMarkdownPageContent) content).getContent().value()).isEqualTo(
+                            loadTermsAndConditionsTemplate()
+                        );
+                    });
+            });
+        }
 
         @Test
         void should_set_root_id_to_self_for_homepage_area_item() {
@@ -424,6 +451,24 @@ public class PortalNavigationItemDomainServiceTest {
             portalNavigationItemsCrudService.initWith(List.of(toDelete));
             portalNavigationItemsQueryService.initWith(List.of(toDelete));
             portalPageContentCrudService.initWith(List.of(pageContent));
+
+            domainService.delete(toDelete);
+
+            assertThat(portalNavigationItemsCrudService.storage()).isEmpty();
+            assertThat(portalPageContentCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_delete_agent_terms_and_conditions_content() {
+            var termsContent = portalPageContentCrudService.createDefault(
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                PortalPageContentType.GRAVITEE_MARKDOWN
+            );
+            var toDelete = PortalNavigationItemFixtures.anAgent().toBuilder().termsAndConditionsPageContentId(termsContent.getId()).build();
+            portalNavigationItemsCrudService.initWith(List.of(toDelete));
+            portalNavigationItemsQueryService.initWith(List.of(toDelete));
+            portalPageContentCrudService.initWith(List.of(termsContent));
 
             domainService.delete(toDelete);
 
@@ -1345,6 +1390,19 @@ public class PortalNavigationItemDomainServiceTest {
                 .containsEntry(parentFolder.getId(), false)
                 .containsEntry(childFolder.getId(), false)
                 .containsEntry(grandChildPage.getId(), false);
+        }
+    }
+
+    private String loadTermsAndConditionsTemplate() {
+        try (
+            var inputStream = PortalNavigationItemDomainServiceTest.class.getClassLoader().getResourceAsStream(
+                "templates/agent-terms-and-conditions-page-content.md"
+            )
+        ) {
+            assertThat(inputStream).isNotNull();
+            return new String(inputStream.readAllBytes());
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable to load agent terms and conditions template", e);
         }
     }
 }

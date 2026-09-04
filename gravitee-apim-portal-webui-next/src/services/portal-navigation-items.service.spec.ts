@@ -305,6 +305,11 @@ describe('PortalNavigationItemsService', () => {
           _links: api._links,
           mcp: api.mcp,
           labels: api.labels,
+          apiType: api.type,
+          entrypoints: api.entrypoints,
+          createdAt: api.created_at,
+          updatedAt: api.updated_at,
+          publisher: api.owner.display_name,
           rootId: 'api-root-1',
           navItemId: 'api-nav-1',
           categoryIds: ['cat-1'],
@@ -319,11 +324,69 @@ describe('PortalNavigationItemsService', () => {
         r.method === 'GET' &&
         r.url === `${baseURL}/portal-navigation-items/_search` &&
         r.params.get('type') === 'catalog' &&
-        r.params.getAll('include')?.join(',') === 'api,api_product' &&
+        r.params.getAll('include')?.join(',') === 'api,api_product,agent' &&
         r.params.get('page') === '2' &&
         r.params.get('size') === '20' &&
         r.params.get('query') === 'workspace' &&
         r.params.get('categoryId') === 'cat-1',
+    );
+    req.flush(rawResponse);
+  });
+
+  it('should map AGENT catalog items from the backing API', done => {
+    const api = fakeApi({ id: 'agent-api-1', name: 'Helpdesk Agent', version: '1.2', description: 'Ticket triage' });
+    const rawResponse = {
+      data: [
+        {
+          type: 'AGENT' as const,
+          agentId: api.id,
+          id: 'agent-nav-1',
+          rootId: 'agent-root-1',
+          categoryIds: ['cat-1'],
+        },
+      ],
+      apis: [api],
+      links: {},
+      metadata: {
+        pagination: {
+          current_page: 1,
+          size: 8,
+          total: 1,
+          total_pages: 1,
+        },
+      },
+    };
+
+    service.searchCatalogItems().subscribe(res => {
+      expect(res.data).toEqual([
+        {
+          type: 'AGENT',
+          id: api.id,
+          name: api.name,
+          version: api.version,
+          description: api.description,
+          _links: api._links,
+          mcp: api.mcp,
+          labels: api.labels,
+          apiType: api.type,
+          entrypoints: api.entrypoints,
+          createdAt: api.created_at,
+          updatedAt: api.updated_at,
+          publisher: api.owner.display_name,
+          rootId: 'agent-root-1',
+          navItemId: 'agent-nav-1',
+          categoryIds: ['cat-1'],
+        },
+      ]);
+      done();
+    });
+
+    const req = httpMock.expectOne(
+      r =>
+        r.method === 'GET' &&
+        r.url === `${baseURL}/portal-navigation-items/_search` &&
+        r.params.get('type') === 'catalog' &&
+        r.params.getAll('include')?.join(',') === 'api,api_product,agent',
     );
     req.flush(rawResponse);
   });

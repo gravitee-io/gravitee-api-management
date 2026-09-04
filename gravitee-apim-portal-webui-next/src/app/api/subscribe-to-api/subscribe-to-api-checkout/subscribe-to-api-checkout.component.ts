@@ -15,6 +15,7 @@
  */
 import { Component, input, Input, InputSignal, OnInit, WritableSignal } from '@angular/core';
 import { MatCard, MatCardContent } from '@angular/material/card';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { GmdFormHostComponent, GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
 
@@ -25,6 +26,7 @@ import { Api } from '../../../../entities/api/api';
 import { Application } from '../../../../entities/application/application';
 import { Plan } from '../../../../entities/plan/plan';
 import { SubscriptionForm } from '../../../../entities/portal/subscription-form';
+import { PortalPageContent } from '../../../../entities/portal-navigation/portal-page-content';
 import { Subscription } from '../../../../entities/subscription/subscription';
 
 @Component({
@@ -37,6 +39,7 @@ import { Subscription } from '../../../../entities/subscription/subscription';
     RadioCardComponent,
     GraviteeMarkdownViewerModule,
     GmdFormHostComponent,
+    MatCheckboxModule,
   ],
   templateUrl: './subscribe-to-api-checkout.component.html',
   styleUrl: './subscribe-to-api-checkout.component.scss',
@@ -54,6 +57,12 @@ export class SubscribeToApiCheckoutComponent implements OnInit {
 
   @Input()
   subscriptionForm: SubscriptionForm | null = null;
+
+  @Input()
+  agentTermsContent: PortalPageContent | null = null;
+
+  @Input()
+  agentTermsAccepted!: WritableSignal<boolean>;
 
   @Input()
   applicationApiKeySubscriptions: Subscription[] = [];

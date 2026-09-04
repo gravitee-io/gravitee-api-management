@@ -20,6 +20,7 @@ import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationAgent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -43,6 +44,7 @@ public class PortalNavigationDefaultPageDomainService {
     private static final String DEFAULT_OVERVIEW_TEMPLATE = "api-overview-page-content.md";
     private static final String MCP_PROXY_OVERVIEW_TEMPLATE = "api-overview-mcp-proxy-page-content.md";
     private static final String API_PRODUCT_OVERVIEW_TEMPLATE = "api-product-overview-page-content.md";
+    private static final String AGENT_OVERVIEW_TEMPLATE = "agent-overview-page-content.md";
 
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
     private final PortalNavigationItemDomainService portalNavigationItemDomainService;
@@ -117,6 +119,13 @@ public class PortalNavigationDefaultPageDomainService {
         }
         if (navigationItem instanceof PortalNavigationApiProduct) {
             return API_PRODUCT_OVERVIEW_TEMPLATE;
+        }
+        if (navigationItem instanceof PortalNavigationAgent agentNavigationItem) {
+            return apiCrudService
+                .findById(agentNavigationItem.getAgentId())
+                .filter(api -> ApiType.MCP_PROXY == api.getType())
+                .map(api -> MCP_PROXY_OVERVIEW_TEMPLATE)
+                .orElse(AGENT_OVERVIEW_TEMPLATE);
         }
         return null;
     }

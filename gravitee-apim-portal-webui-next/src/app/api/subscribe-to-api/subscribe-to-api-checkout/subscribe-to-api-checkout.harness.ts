@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
+import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 
 import { RadioCardHarness } from '../../../../components/radio-card/radio-card.harness';
 
@@ -21,6 +22,8 @@ export class SubscribeToApiCheckoutHarness extends ComponentHarness {
   public static readonly hostSelector = 'app-subscribe-to-api-checkout';
   protected locateApiKeyMode = this.locatorForOptional('.subscribe-to-api-checkout__api-key-mode');
   protected locateSubscriptionForm = this.locatorForOptional('.subscribe-to-api-checkout__form');
+  protected locateAgentTerms = this.locatorForOptional('.subscribe-to-api-checkout__terms');
+  protected locateAgentTermsCheckbox = this.locatorForOptional(MatCheckboxHarness);
 
   public async getGeneratedApiKeyRadio(): Promise<RadioCardHarness> {
     return await this.locateRadioCard('Generated API Key');
@@ -36,6 +39,15 @@ export class SubscribeToApiCheckoutHarness extends ComponentHarness {
 
   public async isSubscriptionFormVisible(): Promise<boolean> {
     return await this.locateSubscriptionForm().then(res => !!res);
+  }
+
+  public async isAgentTermsVisible(): Promise<boolean> {
+    return await this.locateAgentTerms().then(res => !!res);
+  }
+
+  public async acceptAgentTerms(): Promise<void> {
+    const checkbox = await this.locateAgentTermsCheckbox();
+    await checkbox?.check();
   }
 
   protected locateRadioCard = (title: string) => this.locatorFor(RadioCardHarness.with({ title }))();

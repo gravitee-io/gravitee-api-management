@@ -21,7 +21,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { GioConfirmAndValidateDialogHarness, GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
@@ -33,7 +33,7 @@ import { findFirstAvailablePage, PortalNavigationItemsComponent } from './portal
 import { PortalNavigationItemsHarness } from './portal-navigation-items.harness';
 import { SectionEditorDialogHarness } from './section-editor-dialog/section-editor-dialog.harness';
 import { ApiSectionEditorDialogHarness } from './api-section-editor-dialog/api-section-editor-dialog.harness';
-import { ApiProductSectionEditorDialogHarness } from './api-product-section-editor-dialog/api-product-section-editor-dialog.harness';
+import { SectionEntityPickerDialogHarness } from './section-entity-picker-dialog/section-entity-picker-dialog.harness';
 import { OpenApiConfigDialogHarness } from './openapi-config-dialog/openapi-config-dialog.harness';
 import { PublishNavigationItemDialogHarness } from './publish-navigation-item-dialog/publish-navigation-item-dialog.harness';
 import { ImportNavigationDialogHarness } from './import-navigation-dialog/import-navigation-dialog.harness';
@@ -47,6 +47,7 @@ import {
   fakePortalPageContent,
   fakePortalNavigationApi,
   fakePortalNavigationApiProduct,
+  fakePortalNavigationAgent,
   fakePortalNavigationFolder,
   fakePortalNavigationItemsFetchSummary,
   fakePortalNavigationItemsResponse,
@@ -1521,6 +1522,110 @@ describe('PortalNavigationItemsComponent', () => {
       expect(document.body.textContent).not.toContain('Failed to update page content');
       expect(await harness.getEditorContentText()).toBe('Edited content with ${api.invalid}');
       expect(await harness.isSaveButtonDisabled()).toBe(false);
+    });
+  });
+
+  describe('agent terms and conditions editor', () => {
+    const agent = fakePortalNavigationAgent({
+      id: 'nav-agent-1',
+      title: 'My A2A Agent',
+      termsAndConditionsPageContentId: 'agent-terms-content-1',
+    });
+
+    beforeEach(async () => {
+      await expectGetNavigationItems(
+        fakePortalNavigationItemsResponse({
+          items: [
+            fakePortalNavigationPage({
+              id: 'nav-item-1',
+              title: 'Nav Item 1',
+              portalPageContentId: 'nav-item-1-content',
+            }),
+            agent,
+          ],
+        }),
+      );
+      expectGetPageContent('nav-item-1-content', 'Page content');
+
+      await TestBed.inject(Router).navigate(['.'], {
+        relativeTo: TestBed.inject(ActivatedRoute),
+        queryParams: { navId: agent.id },
+        queryParamsHandling: 'merge',
+      });
+      fixture.detectChanges();
+      flushPendingLinkedApiSearchRequests();
+      expectGetPageContent('agent-terms-content-1', '# Agent usage terms');
+      await fixture.whenStable();
+      fixture.detectChanges();
+    });
+
+    it('should load agent terms and conditions into the GMD editor', async () => {
+      const gmdEditor = await harness.getGmdEditor();
+      expect(gmdEditor).toBeTruthy();
+      expect(await harness.getEditorContentText()).toBe('# Agent usage terms');
+      expect(await harness.isSaveButtonDisabled()).toBe(true);
+    });
+
+    it('should save agent terms and conditions content', async () => {
+      await harness.setEditorContentText('Updated agent terms');
+      expect(await harness.isSaveButtonDisabled()).toBe(false);
+
+      const saveButton = await rootLoader.getHarness(MatButtonHarness.with({ text: /Save/i }));
+      await saveButton.click();
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/agent-terms-content-1`,
+      });
+      expect(req.request.body).toEqual({ content: 'Updated agent terms' });
+      req.flush({ id: 'agent-terms-content-1', content: 'Updated agent terms' });
+
+      fixture.detectChanges();
+
+      expect(await harness.isSaveButtonDisabled()).toBe(true);
+      expect(await harness.getEditorContentText()).toBe('Updated agent terms');
+    });
+
+    it('should display terms toggle for agent items', async () => {
+      expect(await harness.isAgentTermsEnabled()).toBe(true);
+    });
+
+    it('should save termsAndConditionsEnabled when toggled', async () => {
+      await harness.toggleAgentTermsEnabled();
+      fixture.detectChanges();
+
+      expectPutPortalNavigationItem(
+        agent.id,
+        {
+          title: agent.title,
+          type: 'AGENT',
+          parentId: agent.parentId,
+          order: agent.order,
+          published: agent.published,
+          visibility: agent.visibility,
+          categoryIds: agent.categoryIds,
+          termsAndConditionsEnabled: false,
+        },
+        { ...agent, termsAndConditionsEnabled: false },
+      );
+      await expectGetNavigationItems(
+        fakePortalNavigationItemsResponse({
+          items: [
+            fakePortalNavigationPage({
+              id: 'nav-item-1',
+              title: 'Nav Item 1',
+              portalPageContentId: 'nav-item-1-content',
+            }),
+            { ...agent, termsAndConditionsEnabled: false },
+          ],
+        }),
+      );
+      flushPendingLinkedApiSearchRequests();
+      expectGetPageContent('agent-terms-content-1', '# Agent usage terms');
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(await harness.isAgentTermsEnabled()).toBe(false);
     });
   });
 
@@ -3337,13 +3442,11 @@ describe('PortalNavigationItemsComponent', () => {
 
       expectApiProductSearchResponse(apiProducts);
 
-      const checkboxes = await rootLoader.getAllHarnesses(
-        MatCheckboxHarness.with({ selector: '[data-testid^="api-product-picker-checkbox-"]' }),
-      );
+      const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="picker-checkbox-"]' }));
       await checkboxes[1].check();
       await checkboxes[0].check();
 
-      const dialog = await rootLoader.getHarness(ApiProductSectionEditorDialogHarness);
+      const dialog = await rootLoader.getHarness(SectionEntityPickerDialogHarness);
       await dialog.clickSubmitButton();
 
       expectCreateNavigationItemsInBulk(
@@ -3379,11 +3482,9 @@ describe('PortalNavigationItemsComponent', () => {
       await fixture.whenStable();
 
       expectApiProductSearchResponse(apiProducts);
-      const checkboxes = await rootLoader.getAllHarnesses(
-        MatCheckboxHarness.with({ selector: '[data-testid^="api-product-picker-checkbox-"]' }),
-      );
+      const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="picker-checkbox-"]' }));
       await checkboxes[0].check();
-      await (await rootLoader.getHarness(ApiProductSectionEditorDialogHarness)).clickSubmitButton();
+      await (await rootLoader.getHarness(SectionEntityPickerDialogHarness)).clickSubmitButton();
 
       const request = httpTestingController.expectOne({
         method: 'POST',
@@ -3412,6 +3513,95 @@ describe('PortalNavigationItemsComponent', () => {
       privateInstance.refreshNavigationItems().subscribe(items => (result = items));
 
       expect(result).toEqual(refreshedItems);
+    });
+  });
+
+  describe('creating Agent navigation items in bulk', () => {
+    const folder = fakePortalNavigationFolder({ id: 'agent-folder-1', title: 'Agent Folder', area: 'TOP_NAVBAR' });
+    const agents = [
+      { id: 'agent-1', name: 'First Agent', apiVersion: '1.0', description: 'First' },
+      { id: 'agent-2', name: 'Second Agent', apiVersion: '2.0', description: 'Second' },
+    ];
+
+    beforeEach(async () => {
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder] }));
+    });
+
+    it('should create one Agent item per selection in a single ordered bulk request', async () => {
+      const createdAgents = agents.map((agent, index) =>
+        fakePortalNavigationAgent({
+          id: `nav-agent-${index + 1}`,
+          agentId: agent.id,
+          title: agent.name,
+          parentId: folder.id,
+          order: index,
+        }),
+      );
+
+      component.onNodeMenuAction({
+        action: 'create',
+        itemType: 'AGENT',
+        node: { id: folder.id, label: folder.title, type: folder.type, data: folder },
+      });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expectAgentSearchResponse(agents);
+
+      const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="picker-checkbox-"]' }));
+      await checkboxes[1].check();
+      await checkboxes[0].check();
+
+      const dialog = await rootLoader.getHarness(SectionEntityPickerDialogHarness);
+      await dialog.clickSubmitButton();
+
+      expectCreateNavigationItemsInBulk(
+        [agents[1], agents[0]].map(agent => ({
+          title: agent.name,
+          type: 'AGENT',
+          area: 'TOP_NAVBAR',
+          parentId: folder.id,
+          visibility: 'PUBLIC',
+          agentId: agent.id,
+        })),
+        fakePortalNavigationItemsResponse({ items: [createdAgents[1], createdAgents[0]] }),
+      );
+
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, ...createdAgents] }));
+      await expectGetPageContent(createdAgents[0].termsAndConditionsPageContentId, 'Agent terms');
+
+      expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdAgents[0].id } }));
+    });
+
+    it('should refresh the tree and show an actionable error after a partial bulk conflict', async () => {
+      const errorSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+
+      component.onNodeMenuAction({
+        action: 'create',
+        itemType: 'AGENT',
+        node: { id: folder.id, label: folder.title, type: folder.type, data: folder },
+      });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expectAgentSearchResponse(agents);
+      const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="picker-checkbox-"]' }));
+      await checkboxes[0].check();
+      await (await rootLoader.getHarness(SectionEntityPickerDialogHarness)).clickSubmitButton();
+
+      const request = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_bulk`,
+      });
+      request.flush({ message: 'Conflict' }, { status: 409, statusText: 'Conflict' });
+
+      expect(errorSpy).not.toHaveBeenCalled();
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder] }));
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(errorSpy).toHaveBeenCalledWith('Unable to add Agents because one or more agents are already in the navigation');
+      expect(document.body.textContent).toContain('one or more agents are already in the navigation');
     });
   });
 
@@ -3570,6 +3760,22 @@ describe('PortalNavigationItemsComponent', () => {
 
     expect(req.request.body).toEqual({ query: '' });
     req.flush({ data: apiProducts, pagination: { totalCount: apiProducts.length } });
+    fixture.detectChanges();
+  }
+
+  function expectAgentSearchResponse(agents: Array<{ id: string; name: string; apiVersion?: string; description?: string }>) {
+    const req = httpTestingController.expectOne(request => {
+      return (
+        request.method === 'POST' &&
+        request.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search` &&
+        request.params.get('page') === '1' &&
+        request.params.get('perPage') === '10' &&
+        request.params.get('manageOnly') === 'false'
+      );
+    });
+
+    expect(req.request.body).toEqual({ query: '', apiTypes: ['V4_A2A_PROXY'] });
+    req.flush({ data: agents, pagination: { totalCount: agents.length } });
     fixture.detectChanges();
   }
 

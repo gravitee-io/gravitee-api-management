@@ -28,6 +28,7 @@ import { GioTestingModule } from '../../../shared/testing';
 import {
   fakePortalNavigationApi,
   fakePortalNavigationApiProduct,
+  fakePortalNavigationAgent,
   fakePortalNavigationFolder,
   fakePortalNavigationLink,
   fakePortalNavigationPage,
@@ -77,6 +78,8 @@ describe('FlatTreeComponent', () => {
         return fakePortalNavigationApi({ id, title, order, parentId, published });
       case 'API_PRODUCT':
         return fakePortalNavigationApiProduct({ id, title, order, parentId, published });
+      case 'AGENT':
+        return fakePortalNavigationAgent({ id, title, order, parentId, published });
       case 'PAGE':
       default:
         return fakePortalNavigationPage({ id, title, order, parentId, published });
@@ -136,6 +139,19 @@ describe('FlatTreeComponent', () => {
     const productNode = component.tree()[0].children?.[0];
     expect(productNode?.type).toBe('API_PRODUCT');
     expect(productNode?.children?.[0].type).toBe('API');
+  });
+
+  it('should render Agent as an expandable container', () => {
+    fixture.componentRef.setInput('links', [
+      makeItem('folder-1', 'FOLDER', 'Folder 1', 0),
+      makeItem('agent-1', 'AGENT', 'Agent 1', 0, 'folder-1'),
+      makeItem('page-1', 'PAGE', 'Page 1', 0, 'agent-1'),
+    ]);
+    fixture.detectChanges();
+
+    const agentNode = component.tree()[0].children?.[0];
+    expect(agentNode?.type).toBe('AGENT');
+    expect(agentNode?.children?.[0].type).toBe('PAGE');
   });
 
   describe('Indentation after move', () => {
@@ -1062,6 +1078,7 @@ describe('FlatTreeComponent', () => {
       const addFolderButton = await harness.getMenuItemByText('Add Folder');
       const addLinkButton = await harness.getMenuItemByText('Add Link');
       const addApiProductButton = await harness.getMenuItemByTestId('add-api-product-button');
+      const addAgentButton = await harness.getMenuItemByTestId('add-agent-button');
       const editButton = await harness.getMenuItemByTestId('edit-node-button');
       const deleteButton = await harness.getMenuItemByTestId('delete-node-button');
 
@@ -1070,6 +1087,8 @@ describe('FlatTreeComponent', () => {
       expect(addLinkButton).toBeTruthy();
       expect(addApiProductButton).toBeTruthy();
       expect(await addApiProductButton!.isDisabled()).toBe(false);
+      expect(addAgentButton).toBeTruthy();
+      expect(await addAgentButton!.isDisabled()).toBe(false);
       expect(editButton).toBeNull();
       expect(deleteButton).toBeNull();
     });
@@ -1092,6 +1111,48 @@ describe('FlatTreeComponent', () => {
       const moreActionsButton = await harness['getMoreActionsButtonById']('folder-nested')();
       await moreActionsButton.click();
 
+      expect(await harness.getMenuItemByTestId('add-api-product-button')).toBeNull();
+    });
+
+    it('should hide Add Agent for a folder inside an Agent subtree', async () => {
+      setupPermissions(['environment-documentation-c']);
+      fixture = TestBed.createComponent(FlatTreeComponent);
+      component = fixture.componentInstance;
+      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, FlatTreeComponentHarness);
+
+      fixture.componentRef.setInput('links', [
+        makeItem('folder-root', 'FOLDER', 'Root Folder', 0),
+        makeItem('agent-1', 'AGENT', 'Agent 1', 0, 'folder-root'),
+        makeItem('folder-nested', 'FOLDER', 'Nested Folder', 0, 'agent-1'),
+      ]);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expandTree();
+      const moreActionsButton = await harness['getMoreActionsButtonById']('folder-nested')();
+      await moreActionsButton.click();
+
+      expect(await harness.getMenuItemByTestId('add-agent-button')).toBeNull();
+    });
+
+    it('should show documentation actions for an Agent if user has create permission', async () => {
+      setupPermissions(['environment-documentation-c']);
+      fixture = TestBed.createComponent(FlatTreeComponent);
+      component = fixture.componentInstance;
+      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, FlatTreeComponentHarness);
+
+      fixture.componentRef.setInput('links', [makeItem('agent-1', 'AGENT', 'Agent 1', 0, 'folder-1')]);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const moreActionsButton = await harness['getMoreActionsButtonById']('agent-1')();
+      expect(moreActionsButton).toBeTruthy();
+      await moreActionsButton.click();
+
+      expect(await harness.getMenuItemByText('Add Page')).toBeTruthy();
+      expect(await harness.getMenuItemByText('Add Folder')).toBeTruthy();
+      expect(await harness.getMenuItemByText('Add Link')).toBeTruthy();
+      expect(await harness.getMenuItemByTestId('add-agent-button')).toBeNull();
       expect(await harness.getMenuItemByTestId('add-api-product-button')).toBeNull();
     });
 

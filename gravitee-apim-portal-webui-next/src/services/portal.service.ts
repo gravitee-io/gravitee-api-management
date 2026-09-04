@@ -33,6 +33,7 @@ import { ConfigService } from './config.service';
 import { ApiInformation } from '../entities/api/api-information';
 import { PortalPage } from '../entities/portal/portal-page';
 import { SubscriptionForm } from '../entities/portal/subscription-form';
+import { PortalPageContent } from '../entities/portal-navigation/portal-page-content';
 
 @Injectable({
   providedIn: 'root',
@@ -61,6 +62,17 @@ export class PortalService {
 
   public getSubscriptionForm(apiId: string): Observable<SubscriptionForm | null> {
     return this.http.get<SubscriptionForm>(`${this.configService.baseURL}/apis/${apiId}/subscription-form`).pipe(
+      catchError(err => {
+        if (err.status === 404) {
+          return of(null);
+        }
+        throw err;
+      }),
+    );
+  }
+
+  public getAgentTermsAndConditions(apiId: string): Observable<PortalPageContent | null> {
+    return this.http.get<PortalPageContent>(`${this.configService.baseURL}/apis/${apiId}/terms-and-conditions`).pipe(
       catchError(err => {
         if (err.status === 404) {
           return of(null);

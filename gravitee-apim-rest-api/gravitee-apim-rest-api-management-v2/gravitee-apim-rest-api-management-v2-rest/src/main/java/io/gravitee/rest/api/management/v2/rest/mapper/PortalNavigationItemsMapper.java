@@ -29,6 +29,7 @@ import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationAgent;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApiProduct;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder;
@@ -43,6 +44,7 @@ import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemFetchRe
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemsFetchSummary;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPageContentType;
 import io.gravitee.rest.api.management.v2.rest.model.SeedDefaultPagesRequest;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationAgent;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApi;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApiProduct;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationFolder;
@@ -91,6 +93,17 @@ public interface PortalNavigationItemsMapper {
         io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct apiProduct
     );
 
+    @Mapping(target = "type", constant = "AGENT")
+    @Mapping(target = "agentId", source = "agentId")
+    @Mapping(target = "rootId", source = "rootId", qualifiedByName = "portalNavigationItemIdToUuid")
+    @Mapping(
+        target = "termsAndConditionsPageContentId",
+        expression = "java(agent.getTermsAndConditionsPageContentId() == null ? null : agent.getTermsAndConditionsPageContentId().id())"
+    )
+    io.gravitee.rest.api.management.v2.rest.model.PortalNavigationAgent map(
+        io.gravitee.apim.core.portal_page.model.PortalNavigationAgent agent
+    );
+
     default List<PortalNavigationItem> map(List<io.gravitee.apim.core.portal_page.model.PortalNavigationItem> items) {
         return items.stream().map(this::map).toList();
     }
@@ -105,6 +118,7 @@ public interface PortalNavigationItemsMapper {
             case io.gravitee.apim.core.portal_page.model.PortalNavigationLink link -> new PortalNavigationItem(map(link));
             case io.gravitee.apim.core.portal_page.model.PortalNavigationApi api -> new PortalNavigationItem(map(api));
             case io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct apiProduct -> new PortalNavigationItem(map(apiProduct));
+            case io.gravitee.apim.core.portal_page.model.PortalNavigationAgent agent -> new PortalNavigationItem(map(agent));
         };
     }
 
@@ -139,6 +153,10 @@ public interface PortalNavigationItemsMapper {
     @Mapping(target = "apiProductId", source = "apiProductId")
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(CreatePortalNavigationApiProduct apiProduct);
 
+    @Mapping(target = "contentType", constant = "GRAVITEE_MARKDOWN")
+    @Mapping(target = "agentId", source = "agentId")
+    io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(CreatePortalNavigationAgent agent);
+
     default io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
         BaseCreatePortalNavigationItem createPortalNavigationItem
     ) {
@@ -148,6 +166,7 @@ public interface PortalNavigationItemsMapper {
             case CreatePortalNavigationLink link -> map(link);
             case CreatePortalNavigationApi api -> map(api);
             case CreatePortalNavigationApiProduct apiProduct -> map(apiProduct);
+            case CreatePortalNavigationAgent agent -> map(agent);
             default -> throw new TechnicalDomainException(
                 String.format("Unknown PortalNavigationItem class %s", createPortalNavigationItem.getClass().getSimpleName())
             );
@@ -268,6 +287,7 @@ public interface PortalNavigationItemsMapper {
             case UpdatePortalNavigationLink link -> map(link);
             case UpdatePortalNavigationApi api -> map(api);
             case UpdatePortalNavigationApiProduct apiProduct -> map(apiProduct);
+            case UpdatePortalNavigationAgent agent -> map(agent);
             default -> throw new TechnicalDomainException(
                 String.format("Unknown PortalNavigationItem class %s", updatePortalNavigationItem.getClass().getSimpleName())
             );
@@ -291,6 +311,8 @@ public interface PortalNavigationItemsMapper {
     );
 
     io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(UpdatePortalNavigationApiProduct apiProduct);
+
+    io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(UpdatePortalNavigationAgent agent);
 
     default PortalCategoryId mapCategoryId(UUID id) {
         if (id == null) {

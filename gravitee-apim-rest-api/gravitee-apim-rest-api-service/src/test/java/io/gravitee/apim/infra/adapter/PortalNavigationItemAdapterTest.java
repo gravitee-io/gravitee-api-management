@@ -165,6 +165,62 @@ class PortalNavigationItemAdapterTest {
         }
 
         @Test
+        void should_map_agent_to_entity() {
+            var categoryId = PortalCategoryId.random();
+            var repositoryItem = PortalNavigationItemsRepositoryFixtures.anAgent(
+                "550e8400-e29b-41d4-a716-446655440060",
+                "My Agent",
+                "a2a-proxy-api-id",
+                null
+            );
+            repositoryItem.setCategoryIds(List.of(categoryId.toString()));
+
+            var entity = adapter.toEntity(repositoryItem);
+
+            assertThat(entity).isInstanceOf(PortalNavigationAgent.class);
+            var agent = (PortalNavigationAgent) entity;
+            assertThat(agent.getId()).isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440060"));
+            assertThat(agent.getAgentId()).isEqualTo("a2a-proxy-api-id");
+            assertThat(agent.getTermsAndConditionsPageContentId()).isNull();
+            assertThat(agent.isTermsAndConditionsEnabled()).isTrue();
+            assertThat(agent.getCategoryIds()).containsExactly(categoryId);
+            assertThat(agent.getRootId()).isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440060"));
+        }
+
+        @Test
+        void should_map_agent_terms_and_conditions_page_content_id_to_entity() {
+            var termsContentId = PortalPageContentId.random();
+            var repositoryItem = PortalNavigationItemsRepositoryFixtures.anAgent(
+                "550e8400-e29b-41d4-a716-446655440060",
+                "My Agent",
+                "a2a-proxy-api-id",
+                null
+            );
+            repositoryItem.setConfiguration("{\"termsAndConditionsPageContentId\":\"" + termsContentId.json() + "\"}");
+
+            var entity = adapter.toEntity(repositoryItem);
+
+            assertThat(entity).isInstanceOf(PortalNavigationAgent.class);
+            assertThat(((PortalNavigationAgent) entity).getTermsAndConditionsPageContentId()).isEqualTo(termsContentId);
+        }
+
+        @Test
+        void should_map_agent_terms_and_conditions_enabled_false_from_configuration() {
+            var repositoryItem = PortalNavigationItemsRepositoryFixtures.anAgent(
+                "550e8400-e29b-41d4-a716-446655440060",
+                "My Agent",
+                "a2a-proxy-api-id",
+                null
+            );
+            repositoryItem.setConfiguration("{\"termsAndConditionsEnabled\":false}");
+
+            var entity = adapter.toEntity(repositoryItem);
+
+            assertThat(entity).isInstanceOf(PortalNavigationAgent.class);
+            assertThat(((PortalNavigationAgent) entity).isTermsAndConditionsEnabled()).isFalse();
+        }
+
+        @Test
         void should_map_blank_or_empty_rootId_to_zero() {
             // Given - repository item with empty rootId (rootId is non-nullable; empty/blank still mapped defensively)
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.aFolder(
@@ -219,6 +275,13 @@ class PortalNavigationItemAdapterTest {
                 null
             );
             apiProduct.setVisibility(null);
+            var agent = PortalNavigationItemsRepositoryFixtures.anAgent(
+                "550e8400-e29b-41d4-a716-446655440045",
+                "My Agent",
+                "agentId",
+                null
+            );
+            agent.setVisibility(null);
 
             // Then
             assertThat(adapter.toEntity(folder).getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
@@ -226,6 +289,7 @@ class PortalNavigationItemAdapterTest {
             assertThat(adapter.toEntity(link).getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
             assertThat(adapter.toEntity(api).getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
             assertThat(adapter.toEntity(apiProduct).getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
+            assertThat(adapter.toEntity(agent).getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
         }
 
         /**
@@ -256,6 +320,13 @@ class PortalNavigationItemAdapterTest {
                 null
             );
             apiProduct.setVisibility(PortalNavigationItem.Visibility.PRIVATE);
+            var agent = PortalNavigationItemsRepositoryFixtures.anAgent(
+                "550e8400-e29b-41d4-a716-446655440055",
+                "My Agent",
+                "agentId",
+                null
+            );
+            agent.setVisibility(PortalNavigationItem.Visibility.PRIVATE);
 
             // Then
             assertThat(adapter.toEntity(folder).getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
@@ -263,6 +334,7 @@ class PortalNavigationItemAdapterTest {
             assertThat(adapter.toEntity(link).getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
             assertThat(adapter.toEntity(api).getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
             assertThat(adapter.toEntity(apiProduct).getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
+            assertThat(adapter.toEntity(agent).getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
         }
 
         @Test
@@ -495,6 +567,51 @@ class PortalNavigationItemAdapterTest {
 
             // Then
             assertThat(repositoryItem.getCategoryIds()).containsExactly(categoryId.toString());
+        }
+
+        @Test
+        void should_map_agent_to_repository() {
+            var categoryId = PortalCategoryId.random();
+            var entity = PortalNavigationItemFixtures.anAgent("550e8400-e29b-41d4-a716-446655440062", "My Agent", null, "a2a-proxy-api-id")
+                .toBuilder()
+                .categoryIds(List.of(categoryId))
+                .build();
+
+            var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
+
+            assertThat(repositoryItem.getId()).isEqualTo("550e8400-e29b-41d4-a716-446655440062");
+            assertThat(repositoryItem.getType()).isEqualTo(PortalNavigationItem.Type.AGENT);
+            assertThat(repositoryItem.getAgentId()).isEqualTo("a2a-proxy-api-id");
+            assertThat(repositoryItem.getCategoryIds()).containsExactly(categoryId.toString());
+            assertThat(repositoryItem.getConfiguration()).isEqualTo("{\"termsAndConditionsEnabled\":true}");
+            assertThat(repositoryItem.getRootId()).isEqualTo("00000000-0000-0000-0000-000000000000");
+        }
+
+        @Test
+        void should_map_agent_terms_and_conditions_page_content_id_to_repository() {
+            var termsContentId = PortalPageContentId.random();
+            var entity = PortalNavigationItemFixtures.anAgent("550e8400-e29b-41d4-a716-446655440062", "My Agent", null, "a2a-proxy-api-id")
+                .toBuilder()
+                .termsAndConditionsPageContentId(termsContentId)
+                .build();
+
+            var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
+
+            assertThat(repositoryItem.getConfiguration()).isEqualTo(
+                "{\"termsAndConditionsEnabled\":true,\"termsAndConditionsPageContentId\":\"" + termsContentId.json() + "\"}"
+            );
+        }
+
+        @Test
+        void should_map_agent_terms_and_conditions_enabled_to_configuration() {
+            var entity = PortalNavigationItemFixtures.anAgent("550e8400-e29b-41d4-a716-446655440062", "My Agent", null, "a2a-proxy-api-id")
+                .toBuilder()
+                .termsAndConditionsEnabled(false)
+                .build();
+
+            var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
+
+            assertThat(repositoryItem.getConfiguration()).isEqualTo("{\"termsAndConditionsEnabled\":false}");
         }
 
         @Test

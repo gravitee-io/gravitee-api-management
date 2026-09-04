@@ -18,14 +18,17 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, Subject } from 'rxjs';
+import { BehaviorSubject, Subject, throwError } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { DocumentationFolderComponent } from './documentation-folder.component';
 import { DocumentationFolderComponentHarness } from './documentation-folder.component.harness';
+import { completed, respondingGateway } from '../../../../components/agent-chat/testing/sse-body';
+import { ApiType } from '../../../../entities/api/api';
 import { PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
 import { fakePortalNavigationApiProduct } from '../../../../entities/portal-navigation/portal-navigation-item.fixture';
 import { makeItem, MOCK_ITEMS } from '../../../../mocks/portal-navigation-item.mocks';
+import { AgentSubscriptionAccess, AgentSubscriptionService } from '../../../../services/agent-subscription.service';
 import { ApiService } from '../../../../services/api.service';
 import { CurrentUserService } from '../../../../services/current-user.service';
 import { PortalNavigationItemsService } from '../../../../services/portal-navigation-items.service';
@@ -36,6 +39,7 @@ describe('DocumentationFolderComponent', () => {
   let harness: DocumentationFolderComponentHarness;
   let navigationServiceSpy: PortalNavigationItemsService;
   let apiServiceSpy: { details: jest.Mock };
+  let agentSubscriptionServiceSpy: { findForAgent: jest.Mock };
   let routerSpy: jest.Mocked<Router>;
   let queryParamsSubject: BehaviorSubject<{ selectedId?: string }>;
 
@@ -60,6 +64,9 @@ describe('DocumentationFolderComponent', () => {
       content: string;
       isAuthenticated: boolean;
       apiHasMcp: boolean;
+      apiType: ApiType;
+      agentAccess: AgentSubscriptionAccess | null;
+      apiEntrypoints: string[];
     }> = {
       queryParams: { selectedId: 'p1' },
       items: MOCK_CHILDREN,
@@ -85,11 +92,14 @@ describe('DocumentationFolderComponent', () => {
       details: jest.fn().mockImplementation((id: string) =>
         of({
           ...baseApiDetails,
+          ...(params.apiEntrypoints ? { entrypoints: params.apiEntrypoints } : {}),
           id,
           ...(apiHasMcp ? { mcp: { mcpPath: '/mcp', tools: [] as { toolDefinition: Record<string, unknown> }[] } } : {}),
+          ...(params.apiType ? { type: params.apiType } : {}),
         }),
       ),
     };
+    agentSubscriptionServiceSpy = { findForAgent: jest.fn().mockReturnValue(of(params.agentAccess ?? null)) };
 
     await TestBed.configureTestingModule({
       animationsEnabled: true,
@@ -99,6 +109,7 @@ describe('DocumentationFolderComponent', () => {
         { provide: Router, useValue: routerSpy },
         { provide: PortalNavigationItemsService, useValue: navigationServiceSpy },
         { provide: ApiService, useValue: apiServiceSpy },
+        { provide: AgentSubscriptionService, useValue: agentSubscriptionServiceSpy },
         { provide: CurrentUserService, useValue: { isUserAuthenticated: signal(params?.isAuthenticated ?? true) } },
       ],
     }).compileComponents();
@@ -528,6 +539,49 @@ describe('DocumentationFolderComponent', () => {
     });
   });
 
+  describe('agent', () => {
+    it('should redirect an Agent selection to its first readable descendant', async () => {
+      const agent = makeItem('agent1', 'AGENT', 'Helpdesk Agent', 0, undefined, 'root1');
+      const agentFolder = makeItem('agent-folder1', 'FOLDER', 'Agent Documentation', 0, 'agent1', 'root1');
+      const overviewPage = makeItem('agent-overview1', 'PAGE', 'Agent Overview', 0, 'agent-folder1', 'root1');
+      const laterPage = makeItem('agent-page2', 'PAGE', 'Later Agent Page', 1, 'agent1', 'root1');
+
+      await init({
+        items: [agent, agentFolder, overviewPage, laterPage],
+        queryParams: { selectedId: 'agent1' },
+        content: MOCK_CONTENT,
+      });
+
+      expect(routerSpy.navigate).toHaveBeenCalledWith([], {
+        relativeTo: expect.anything(),
+        queryParams: { selectedId: 'agent-overview1' },
+      });
+      expect(navigationServiceSpy.getNavigationItemContent).not.toHaveBeenCalledWith('agent1');
+      expect(navigationServiceSpy.getNavigationItemContent).toHaveBeenCalledWith('agent-overview1');
+
+      const breadcrumbs = await harness.getBreadcrumbs();
+      expect(await breadcrumbs?.getText()).toEqual('Test item/Helpdesk Agent/Agent Documentation/Agent Overview');
+    });
+
+    it('should show a subscription action for agent documentation and navigate to the API flow', async () => {
+      const agent = makeItem('agent1', 'AGENT', 'Helpdesk Agent', 0, undefined, 'root1');
+      const agentPage = makeItem('agent-overview1', 'PAGE', 'Agent Overview', 0, 'agent1', 'root1');
+
+      await init({ items: [agent, agentPage], queryParams: { selectedId: 'agent-overview1' }, content: MOCK_CONTENT });
+
+      const subscribeButton = await harness.getSubscribeButton();
+      expect(subscribeButton).not.toBeNull();
+      expect(await subscribeButton!.getText()).toEqual('Subscribe');
+
+      await subscribeButton!.click();
+
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['api', 'api-agent1', 'subscribe'], {
+        relativeTo: expect.anything(),
+        queryParamsHandling: 'preserve',
+      });
+    });
+  });
+
   describe('api', () => {
     it('should show subscribe button when api documentation is clicked', async () => {
       const apiItem = makeItem('api1', 'API', 'API 1', 0, undefined);
@@ -584,6 +638,155 @@ describe('DocumentationFolderComponent', () => {
       fixture.detectChanges();
 
       expect(await harness.getApiTabToolsHarness()).not.toBeNull();
+    });
+  });
+
+  describe('agent chat', () => {
+    const AGENT_ACCESS: AgentSubscriptionAccess = { apiKey: 'key-1', applicationName: 'My App' };
+
+    const realFetch = globalThis.fetch;
+
+    beforeEach(() => {
+      globalThis.fetch = respondingGateway(completed('ctx-1')) as unknown as typeof fetch;
+    });
+
+    afterEach(() => {
+      globalThis.fetch = realFetch;
+    });
+
+    const initAgentPage = async (params: {
+      apiType?: ApiType;
+      agentAccess?: AgentSubscriptionAccess | null;
+      isAuthenticated?: boolean;
+      apiEntrypoints?: string[];
+    }) => {
+      const agentItem = makeItem('agent1', 'AGENT', 'Agent 1', 0, undefined);
+      const agentPage = makeItem('p-agent1', 'PAGE', 'Agent 1 Documentation', 0, 'agent1');
+      await init({ items: [agentItem, agentPage], queryParams: { selectedId: 'p-agent1' }, content: MOCK_CONTENT, ...params });
+      await settle();
+    };
+
+    // The chat button waits on two chained resources: the api, then its subscription.
+    const settle = async () => {
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+    };
+
+    const openChat = async () => {
+      await (await harness.getChatButton())!.click();
+      fixture.detectChanges();
+    };
+
+    const closeChat = async () => {
+      await (await harness.getSidePanel())!.clickClose();
+      fixture.detectChanges();
+    };
+
+    it('should not show the chat button for an api that is not an agent', async () => {
+      await initAgentPage({ apiType: 'PROXY', agentAccess: AGENT_ACCESS });
+
+      expect(await harness.getChatButton()).toBeNull();
+    });
+
+    it('should not show the chat button to a viewer with no usable subscription', async () => {
+      await initAgentPage({ apiType: 'A2A_PROXY', agentAccess: null });
+
+      expect(await harness.getChatButton()).toBeNull();
+    });
+
+    it('should show the chat button to a subscriber of an agent', async () => {
+      await initAgentPage({ apiType: 'A2A_PROXY', agentAccess: AGENT_ACCESS });
+
+      expect(await harness.getChatButton()).not.toBeNull();
+    });
+
+    it('should open the chat panel when the chat button is clicked', async () => {
+      await initAgentPage({ apiType: 'A2A_PROXY', agentAccess: AGENT_ACCESS });
+
+      expect(await harness.getAgentChat()).toBeNull();
+
+      await openChat();
+
+      expect(await harness.getAgentChat()).not.toBeNull();
+    });
+
+    it('should not offer the chat for an agent that publishes no gateway entrypoint', async () => {
+      await initAgentPage({ apiType: 'A2A_PROXY', agentAccess: AGENT_ACCESS, apiEntrypoints: [] });
+
+      expect(await harness.getChatButton()).toBeNull();
+    });
+
+    it('should keep the conversation when the panel is closed and reopened', async () => {
+      await initAgentPage({ apiType: 'A2A_PROXY', agentAccess: AGENT_ACCESS });
+      await openChat();
+
+      const chat = (await harness.getAgentChat())!;
+      await chat.type('what happened?');
+      await chat.clickSend();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(await chat.getPlainTurnTexts()).toContain('what happened?');
+
+      await closeChat();
+      expect(await harness.getAgentChat()).toBeNull();
+
+      await openChat();
+
+      expect(await (await harness.getAgentChat())!.getPlainTurnTexts()).toContain('what happened?');
+    });
+
+    it('should not look up a subscription for an anonymous viewer', async () => {
+      await initAgentPage({ apiType: 'A2A_PROXY', isAuthenticated: false });
+
+      expect(agentSubscriptionServiceSpy.findForAgent).not.toHaveBeenCalled();
+      expect(await harness.getChatButton()).toBeNull();
+    });
+
+    it('should keep rendering the page when the api call fails, instead of breaking change detection', async () => {
+      const agentItem = makeItem('agent1', 'AGENT', 'Agent 1', 0, undefined);
+      const agentPage = makeItem('p-agent1', 'PAGE', 'Agent 1 Documentation', 0, 'agent1');
+      await init({ items: [agentItem, agentPage], queryParams: { selectedId: 'p-agent1' }, content: MOCK_CONTENT });
+      apiServiceSpy.details.mockReturnValue(throwError(() => new Error('403')));
+      await settle();
+
+      expect(await harness.getChatButton()).toBeNull();
+      expect(await harness.getTreeHarness()).not.toBeNull();
+    });
+
+    it('should not reopen the panel by itself after the viewer navigates away', async () => {
+      const agentItem = makeItem('agent1', 'AGENT', 'Agent 1', 0, undefined);
+      const agentPage = makeItem('p-agent1', 'PAGE', 'Agent 1 Documentation', 0, 'agent1');
+      const otherAgent = makeItem('agent2', 'AGENT', 'Agent 2', 1, undefined);
+      const otherAgentPage = makeItem('p-agent2', 'PAGE', 'Agent 2 Documentation', 0, 'agent2');
+      await init({
+        items: [agentItem, agentPage, otherAgent, otherAgentPage],
+        queryParams: { selectedId: 'p-agent1' },
+        content: MOCK_CONTENT,
+        apiType: 'A2A_PROXY',
+        agentAccess: AGENT_ACCESS,
+      });
+      await settle();
+      await openChat();
+      expect(await harness.getAgentChat()).not.toBeNull();
+
+      queryParamsSubject.next({ selectedId: 'p-agent2' });
+      await settle();
+      expect(await harness.getAgentChat()).toBeNull();
+
+      queryParamsSubject.next({ selectedId: 'p-agent1' });
+      await settle();
+
+      expect(await harness.getAgentChat()).toBeNull();
+    });
+
+    it('should not look up a subscription on a page that is not an agent', async () => {
+      await initAgentPage({ apiType: 'PROXY' });
+
+      expect(agentSubscriptionServiceSpy.findForAgent).not.toHaveBeenCalled();
     });
   });
 });

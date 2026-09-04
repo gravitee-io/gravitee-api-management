@@ -1,0 +1,68 @@
+@use '../../scss/theme' as app-theme;
+
+// ShadowCss only rewrites keyframes defined in the same stylesheet as the animation that uses them,
+// so this import is what makes fade-in/slide-in resolve here at all.
+@use '../../animations/keyframes';
+
+$overlay-duration: 400ms;
+$overlay-easing: cubic-bezier(0.25, 0.8, 0.25, 1);
+
+// The host is the overlay's own positioning and stacking context, and the element Angular animates
+// on the way out, so it has to be a real box rather than display: contents.
+:host {
+  position: absolute;
+  z-index: 10;
+  inset: 0;
+}
+
+// Applied by the parent through animate.leave; a leave animation registered inside this template
+// would never run, because Angular reads the map of the view that owns the detached node.
+:host(.side-panel-leave) {
+  animation: fade-out $overlay-duration $overlay-easing forwards;
+
+  .side-panel__panel {
+    animation: slide-out $overlay-duration $overlay-easing forwards;
+  }
+}
+
+.side-panel {
+  &__backdrop {
+    position: absolute;
+    inset: 0;
+    background-color: app-theme.$background-overlay-color;
+
+    &__enter {
+      animation: fade-in $overlay-duration $overlay-easing forwards;
+    }
+  }
+
+  &__panel {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    max-width: 80vw;
+    box-sizing: border-box;
+    overflow: auto;
+    background-color: app-theme.$card-background-color;
+    box-shadow: -4px 0 24px app-theme.$shadow-color;
+    will-change: transform;
+    padding: 28px 30px;
+
+    &__enter {
+      animation: slide-in $overlay-duration $overlay-easing forwards;
+    }
+
+    &__mobile {
+      max-width: 100vw;
+      padding: 16px;
+    }
+
+    &__close-button {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+  }
+}

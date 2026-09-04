@@ -54,11 +54,12 @@ import {
   ApiSectionEditorDialogData,
 } from './api-section-editor-dialog/api-section-editor-dialog.component';
 import {
-  ApiProductSectionEditorDialogComponent,
-  ApiProductSectionEditorDialogData,
-  ApiProductSectionEditorDialogResult,
-  SelectedApiProduct,
-} from './api-product-section-editor-dialog/api-product-section-editor-dialog.component';
+  SectionEntityKind,
+  SectionEntityPickerDialogComponent,
+  SectionEntityPickerDialogData,
+  SectionEntityPickerDialogResult,
+  SelectedSectionEntity,
+} from './section-entity-picker-dialog/section-entity-picker-dialog.component';
 import { OpenApiConfigDialogComponent, OpenApiConfigDialogData } from './openapi-config-dialog/openapi-config-dialog.component';
 import {
   PublishNavigationItemDialogComponent,
@@ -78,8 +79,11 @@ import {
   collectFetchableContainerIds,
   FetchPortalNavigationItemResponse,
   getPortalNavigationItemSource,
+  hasSelfOrAncestorOfType,
+  indexPortalNavigationItemsById,
   NewPortalNavigationItem,
   PortalArea,
+  PortalNavigationAgent,
   PortalNavigationApi,
   PortalNavigationApiProduct,
   PortalNavigationFolder,
@@ -111,6 +115,11 @@ type AsyncApiSpecValidationError = {
 };
 
 type ApiProductBulkCreateResult = {
+  createdItemId: string | null;
+  errorMessage?: string;
+};
+
+type AgentBulkCreateResult = {
   createdItemId: string | null;
   errorMessage?: string;
 };
@@ -217,6 +226,14 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         ? this.apiProductService.get(apiProductId).pipe(map(apiProduct => `${apiProduct.name} (${apiProduct.version})`))
         : of(null),
   });
+  readonly selectedAgentId = computed(() => {
+    const selectedItem = this.selectedNavigationItem()?.data;
+    return selectedItem?.type === 'AGENT' ? selectedItem.agentId : null;
+  });
+  readonly selectedLinkedAgentName = rxResource({
+    params: () => this.selectedAgentId(),
+    stream: ({ params: agentId }) => (agentId ? this.apiService.resolveNameById(agentId) : of(null)),
+  });
   readonly selectedNavigationItemParent: Signal<SectionNode | null> = computed(() => {
     const selectedNavigationItem = this.selectedNavigationItem();
     const parentId = selectedNavigationItem?.data?.parentId;
@@ -247,6 +264,10 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   readonly publishActionDisabled: Signal<boolean> = computed(() => this.actionsDisabled() || this.publishDisabled());
   readonly selectedNavigationItemIsPublished: Signal<boolean> = computed(() => {
     return this.selectedNavigationItem()?.data?.published ?? false;
+  });
+  readonly isAgentTermsEnabled: Signal<boolean> = computed(() => {
+    const navItem = this.selectedNavigationItem()?.data;
+    return navItem?.type === 'AGENT' ? (navItem.termsAndConditionsEnabled ?? true) : true;
   });
 
   // --- External source state ---
@@ -406,7 +427,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   onAddSection(sectionType: PortalNavigationItemType) {
     this.checkUnsavedChangesAndRun(() => {
-      if (sectionType === 'API' || sectionType === 'API_PRODUCT') {
+      if (sectionType === 'API' || sectionType === 'API_PRODUCT' || sectionType === 'AGENT') {
         return;
       }
       this.manageSection(sectionType, 'create', 'TOP_NAVBAR');
@@ -446,6 +467,18 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
               return;
             }
             this.createApiProductSection(event.node.data);
+            return;
+          }
+
+          if (event.itemType === 'AGENT' && event.action !== 'edit') {
+            if (!event.node.data) {
+              return;
+            }
+            if (this.isInsideAgentSubtree(event.node.data)) {
+              this.snackBarService.error('Agents cannot be nested inside another Agent');
+              return;
+            }
+            this.createAgentSection(event.node.data);
             return;
           }
 
@@ -496,23 +529,44 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       .subscribe();
   }
 
-  private createApiProductSection(parentItem: PortalNavigationItem): void {
-    this.matDialog
-      .open<ApiProductSectionEditorDialogComponent, ApiProductSectionEditorDialogData, ApiProductSectionEditorDialogResult>(
-        ApiProductSectionEditorDialogComponent,
+  private openSectionEntityPicker(
+    parentItem: PortalNavigationItem,
+    kind: SectionEntityKind,
+    existingIds: string[],
+  ): Observable<SectionEntityPickerDialogResult> {
+    return this.matDialog
+      .open<SectionEntityPickerDialogComponent, SectionEntityPickerDialogData, SectionEntityPickerDialogResult>(
+        SectionEntityPickerDialogComponent,
         {
           width: GIO_DIALOG_WIDTH.LARGE,
-          data: {
-            mode: 'create',
-            existingApiProductIds: this.extractApiProductIdsFromNavigationItems(),
-            parentItem,
-          },
+          data: { kind, existingIds, parentItem },
         },
       )
       .afterClosed()
+      .pipe(filter((result): result is SectionEntityPickerDialogResult => !!result));
+  }
+
+  private createApiProductSection(parentItem: PortalNavigationItem): void {
+    this.openSectionEntityPicker(parentItem, 'API_PRODUCT', this.extractApiProductIdsFromNavigationItems())
       .pipe(
-        filter((result): result is ApiProductSectionEditorDialogResult => !!result),
-        switchMap(result => this.createApiProductsInOrder(parentItem.id, result.apiProducts, result.visibility)),
+        switchMap(result => this.createApiProductsInOrder(parentItem.id, result.entities, result.visibility)),
+        switchMap(result => this.refreshNavigationItems().pipe(map(() => result))),
+        tap(result => {
+          if (result.errorMessage) {
+            this.snackBarService.error(result.errorMessage);
+          } else if (result.createdItemId) {
+            this.navigateToItemByNavId(result.createdItemId);
+          }
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  private createAgentSection(parentItem: PortalNavigationItem): void {
+    this.openSectionEntityPicker(parentItem, 'AGENT', this.extractAgentIdsFromNavigationItems())
+      .pipe(
+        switchMap(result => this.createAgentsInOrder(parentItem.id, result.entities, result.visibility)),
         switchMap(result => this.refreshNavigationItems().pipe(map(() => result))),
         tap(result => {
           if (result.errorMessage) {
@@ -578,7 +632,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         }),
         switchMap(node => {
           const navItem = node?.data;
-          if (!navItem || navItem.type !== 'PAGE') {
+          if (!navItem || (navItem.type !== 'PAGE' && navItem.type !== 'AGENT')) {
             this.contentControl.reset('');
             this.initialContent.set('');
             this.currentPageContentType.set(null);
@@ -586,8 +640,17 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
             return of(null);
           }
 
+          const contentId = navItem.type === 'PAGE' ? navItem.portalPageContentId : navItem.termsAndConditionsPageContentId;
+          if (!contentId) {
+            this.contentControl.reset('');
+            this.initialContent.set('');
+            this.currentPageContentType.set('GRAVITEE_MARKDOWN');
+            this.contentControl.updateValueAndValidity();
+            return of(null);
+          }
+
           this.isLoadingPageContent.set(true);
-          return this.loadPageContent((navItem as PortalNavigationPage).portalPageContentId);
+          return this.loadPageContent(contentId);
         }),
         filter(result => result !== null),
         takeUntilDestroyed(this.destroyRef),
@@ -698,7 +761,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   private createApiProductsInOrder(
     parentId: string,
-    apiProducts: SelectedApiProduct[],
+    apiProducts: SelectedSectionEntity[],
     visibility: PortalVisibility,
   ): Observable<ApiProductBulkCreateResult> {
     if (!apiProducts.length) {
@@ -725,6 +788,40 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         return of({
           createdItemId: null,
           errorMessage: this.getApiProductCreateErrorMessage(error),
+        });
+      }),
+    );
+  }
+
+  private createAgentsInOrder(
+    parentId: string,
+    agents: SelectedSectionEntity[],
+    visibility: PortalVisibility,
+  ): Observable<AgentBulkCreateResult> {
+    if (!agents.length) {
+      return of({ createdItemId: null });
+    }
+
+    const items: NewPortalNavigationItem[] = agents.map(agent => ({
+      title: agent.name,
+      type: 'AGENT',
+      area: 'TOP_NAVBAR',
+      parentId,
+      visibility,
+      agentId: agent.id,
+    }));
+
+    return this.portalNavigationItemsService.createNavigationItemsInBulk(items).pipe(
+      map(response => {
+        const createdAgentItems = response.items?.filter((item): item is PortalNavigationAgent => item.type === 'AGENT');
+        return {
+          createdItemId: createdAgentItems?.length ? createdAgentItems[createdAgentItems.length - 1].id : null,
+        };
+      }),
+      catchError(error => {
+        return of({
+          createdItemId: null,
+          errorMessage: this.getAgentCreateErrorMessage(error),
         });
       }),
     );
@@ -778,6 +875,17 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
               return this.update(existingItem.id, {
                 title: result.title,
                 type: 'API_PRODUCT',
+                parentId: existingItem.parentId,
+                order: existingItem.order,
+                published: existingItem.published,
+                visibility: result.visibility,
+                categoryIds: existingItem.categoryIds,
+              });
+            }
+            if (existingItem.type === 'AGENT') {
+              return this.update(existingItem.id, {
+                title: result.title,
+                type: 'AGENT',
                 parentId: existingItem.parentId,
                 order: existingItem.order,
                 published: existingItem.published,
@@ -867,32 +975,54 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   protected onSave() {
     const navItem = this.selectedNavigationItem().data;
-
-    if (navItem && navItem.type === 'PAGE') {
-      if (!this.validateAsyncApiSpec()) {
-        return;
-      }
-
-      const pageId = navItem.portalPageContentId;
-      this.portalPageContentService
-        .updatePageContent(pageId, { content: this.contentControl.value })
-        .pipe(
-          map(({ content }) => content),
-          catchError(error => {
-            // HTTP errors are already caught by HttpErrorInterceptor and displayed in the snackbar.
-            // Suppress here to avoid replacing a specific backend message with a generic one.
-            if (!(error instanceof HttpErrorResponse)) {
-              this.snackBarService.error('Failed to update page content');
-            }
-            return EMPTY;
-          }),
-          takeUntilDestroyed(this.destroyRef),
-        )
-        .subscribe(content => {
-          this.contentControl.reset(content);
-          this.initialContent.set(content);
-        });
+    const contentId = this.editableContentId();
+    if (!navItem || !contentId) {
+      return;
     }
+
+    if (navItem.type === 'PAGE' && !this.validateAsyncApiSpec()) {
+      return;
+    }
+
+    this.portalPageContentService
+      .updatePageContent(contentId, { content: this.contentControl.value })
+      .pipe(
+        map(({ content }) => content),
+        catchError(error => {
+          // HTTP errors are already caught by HttpErrorInterceptor and displayed in the snackbar.
+          // Suppress here to avoid replacing a specific backend message with a generic one.
+          if (!(error instanceof HttpErrorResponse)) {
+            this.snackBarService.error('Failed to update page content');
+          }
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(content => {
+        this.contentControl.reset(content);
+        this.initialContent.set(content);
+      });
+  }
+
+  protected readonly editableContentId = computed(() => this.contentIdOf(this.selectedNavigationItem()?.data));
+
+  protected readonly saveDisabledTooltip = computed(() =>
+    this.selectedNavigationItem()?.type === 'AGENT'
+      ? 'This agent has no terms and conditions content to save into'
+      : 'This item has no content to save into',
+  );
+
+  private contentIdOf(navItem: PortalNavigationItem | undefined): string | undefined {
+    if (!navItem) {
+      return undefined;
+    }
+    if (navItem.type === 'PAGE') {
+      return navItem.portalPageContentId;
+    }
+    if (navItem.type === 'AGENT') {
+      return navItem.termsAndConditionsPageContentId;
+    }
+    return undefined;
   }
 
   private validateAsyncApiSpec(): boolean {
@@ -974,6 +1104,26 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   onPublishToggle() {
     this.checkUnsavedChangesAndRun(() => this.handlePublishToggle(this.selectedNavigationItem()!.data));
+  }
+
+  onTermsEnabledToggle(enabled: boolean) {
+    const navItem = this.selectedNavigationItem()?.data;
+    if (!navItem || navItem.type !== 'AGENT') {
+      return;
+    }
+
+    this.update(navItem.id, this.createAgentUpdateItem(navItem, { termsAndConditionsEnabled: enabled }))
+      .pipe(
+        tap(() => this.refreshMenuList.next(1)),
+        catchError(error => {
+          if (!(error instanceof HttpErrorResponse)) {
+            this.snackBarService.error('Failed to update terms and conditions visibility');
+          }
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   onFetchNow() {
@@ -1219,7 +1369,32 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       };
     }
 
+    if (navItem.type === 'AGENT') {
+      return this.createAgentUpdateItem(navItem, { published: !navItem.published });
+    }
+
     return { ...navItem, published: !navItem.published };
+  }
+
+  private createAgentUpdateItem(
+    navItem: PortalNavigationAgent,
+    overrides: Partial<{
+      published: boolean;
+      parentId: string | undefined;
+      order: number;
+      termsAndConditionsEnabled: boolean;
+    }> = {},
+  ): UpdatePortalNavigationItem {
+    return {
+      title: navItem.title,
+      type: 'AGENT',
+      parentId: 'parentId' in overrides ? overrides.parentId : navItem.parentId,
+      order: overrides.order ?? navItem.order,
+      published: overrides.published ?? navItem.published,
+      visibility: navItem.visibility,
+      categoryIds: navItem.categoryIds,
+      termsAndConditionsEnabled: overrides.termsAndConditionsEnabled ?? navItem.termsAndConditionsEnabled,
+    };
   }
 
   private confirmDeleteAction(event: NodeMenuActionEvent) {
@@ -1266,6 +1441,15 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       }
     }
 
+    if (node.type === 'AGENT') {
+      const validationError = this.getAgentMoveValidationError(newParentId);
+      if (validationError) {
+        this.snackBarService.error(validationError);
+        this.refreshMenuList.next(1);
+        return;
+      }
+    }
+
     if (node.type === 'API' && newParentId) {
       const parent = this.menuLinks().find(i => i.id === newParentId);
       if (parent?.type === 'API') {
@@ -1304,18 +1488,20 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
             parentId: newParentId ?? undefined,
             order: newOrder,
           }
-        : {
-            title: navItem.title,
-            type: navItem.type,
-            published: navItem.published,
-            visibility: navItem.visibility,
-            url: (navItem as PortalNavigationLink).url,
-            apiId: (navItem as PortalNavigationApi).apiId,
-            categoryIds: (navItem as PortalNavigationApi).categoryIds,
-            parentId: newParentId ?? undefined,
-            order: newOrder,
-            source: (navItem as PortalNavigationPage).source,
-          };
+        : navItem.type === 'AGENT'
+          ? this.createAgentUpdateItem(navItem, { parentId: newParentId ?? undefined, order: newOrder })
+          : {
+              title: navItem.title,
+              type: navItem.type,
+              published: navItem.published,
+              visibility: navItem.visibility,
+              url: (navItem as PortalNavigationLink).url,
+              apiId: (navItem as PortalNavigationApi).apiId,
+              categoryIds: (navItem as PortalNavigationApi).categoryIds,
+              parentId: newParentId ?? undefined,
+              order: newOrder,
+              source: (navItem as PortalNavigationPage).source,
+            };
     return this.update(navItem.id, updateItem).pipe(
       tap(() => {
         this.refreshMenuList.next(1);
@@ -1351,6 +1537,12 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       .map(item => item.apiProductId);
   }
 
+  private extractAgentIdsFromNavigationItems(): string[] {
+    return this.menuLinks()
+      .filter((item): item is PortalNavigationAgent => item.type === 'AGENT')
+      .map(item => item.agentId);
+  }
+
   private findApiProductNavigationContext(
     item: PortalNavigationItem,
     itemsById = new Map(this.menuLinks().map(menuItem => [menuItem.id, menuItem])),
@@ -1373,19 +1565,11 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   }
 
   private isInsideApiProductSubtree(item: PortalNavigationItem): boolean {
-    const itemsById = new Map(this.menuLinks().map(menuItem => [menuItem.id, menuItem]));
-    let currentItem: PortalNavigationItem | undefined = item;
-    const visitedItemIds = new Set<string>();
+    return hasSelfOrAncestorOfType(indexPortalNavigationItemsById(this.menuLinks()), item, 'API_PRODUCT');
+  }
 
-    while (currentItem && !visitedItemIds.has(currentItem.id)) {
-      visitedItemIds.add(currentItem.id);
-      if (currentItem.type === 'API_PRODUCT') {
-        return true;
-      }
-      currentItem = currentItem.parentId ? itemsById.get(currentItem.parentId) : undefined;
-    }
-
-    return false;
+  private isInsideAgentSubtree(item: PortalNavigationItem): boolean {
+    return hasSelfOrAncestorOfType(indexPortalNavigationItemsById(this.menuLinks()), item, 'AGENT');
   }
 
   private getApiProductMoveValidationError(parentId: string | null): string | null {
@@ -1403,6 +1587,21 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     return parent.type === 'FOLDER' ? null : 'API Product must be placed under a folder';
   }
 
+  private getAgentMoveValidationError(parentId: string | null): string | null {
+    if (!parentId) {
+      return 'Agent must be placed under a folder';
+    }
+
+    const parent = this.menuLinks().find(item => item.id === parentId);
+    if (!parent) {
+      return 'Agent must be placed under a folder';
+    }
+    if (this.isInsideAgentSubtree(parent)) {
+      return 'Agent cannot be nested inside another Agent';
+    }
+    return parent.type === 'FOLDER' ? null : 'Agent must be placed under a folder';
+  }
+
   private getApiProductCreateErrorMessage(error: unknown): string {
     if (!(error instanceof HttpErrorResponse)) {
       return 'Failed to create API Product navigation items';
@@ -1417,6 +1616,23 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         return 'Unable to add API Products because one or more products are already in the navigation';
       default:
         return 'Failed to create API Product navigation items';
+    }
+  }
+
+  private getAgentCreateErrorMessage(error: unknown): string {
+    if (!(error instanceof HttpErrorResponse)) {
+      return 'Failed to create Agent navigation items';
+    }
+
+    switch (error.status) {
+      case 400:
+        return 'Unable to add Agents because the selected placement or request is invalid';
+      case 404:
+        return 'Unable to add Agents because one or more agents no longer exist';
+      case 409:
+        return 'Unable to add Agents because one or more agents are already in the navigation';
+      default:
+        return 'Failed to create Agent navigation items';
     }
   }
 }
@@ -1446,7 +1662,7 @@ export function findFirstAvailablePage(
       if (element.type === 'PAGE') {
         return element;
       }
-      if (element.type === 'FOLDER' || element.type === 'API' || element.type === 'API_PRODUCT') {
+      if (element.type === 'FOLDER' || element.type === 'API' || element.type === 'API_PRODUCT' || element.type === 'AGENT') {
         const found = search(element);
         if (found) return found;
         return element;

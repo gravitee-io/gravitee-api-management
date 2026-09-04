@@ -31,6 +31,9 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
   private getAddButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Add new section"]' }));
   private getToggleExpansionButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid="toggle-tree-expansion"]' }));
   private getPreviewToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[data-testid="preview-toggle"]' }));
+  private getAgentTermsEnabledToggle = this.locatorFor(
+    MatSlideToggleHarness.with({ selector: '[data-testid="agent-terms-enabled-toggle"]' }),
+  );
   private getEditButton = this.locatorFor(MatButtonHarness.with({ text: /Edit/i }));
   private getSaveButton = this.locatorFor(MatButtonHarness.with({ text: /Save/i }));
   private readonly getConfigureButtonOptional = this.locatorForOptional(MatButtonHarness.with({ text: /^Configure$/ }));
@@ -78,6 +81,16 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
   async isPreviewVisible(): Promise<boolean> {
     const toggle = await this.getPreviewToggle();
     return toggle.isChecked();
+  }
+
+  async isAgentTermsEnabled(): Promise<boolean> {
+    const toggle = await this.getAgentTermsEnabledToggle();
+    return toggle.isChecked();
+  }
+
+  async toggleAgentTermsEnabled(): Promise<void> {
+    const toggle = await this.getAgentTermsEnabledToggle();
+    return toggle.toggle();
   }
 
   async clickAddButton(): Promise<void> {

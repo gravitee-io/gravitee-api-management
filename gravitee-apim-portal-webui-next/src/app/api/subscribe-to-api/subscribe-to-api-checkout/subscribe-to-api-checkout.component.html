@@ -85,5 +85,20 @@
         </gmd-form-host>
       </section>
     }
+    @if (agentTermsContent) {
+      <section class="subscribe-to-api-checkout__terms" aria-label="Terms and conditions">
+        <div class="next-gen-h5" i18n="@@agentTermsAndConditionsTitle">Terms and Conditions</div>
+        <div class="subscribe-to-api-checkout__terms__content">
+          <gmd-viewer [content]="agentTermsContent.content" />
+        </div>
+        <mat-checkbox
+          [checked]="agentTermsAccepted()"
+          (change)="agentTermsAccepted.set($event.checked)"
+          i18n="@@agentTermsAndConditionsAccept"
+        >
+          I accept the terms and conditions
+        </mat-checkbox>
+      </section>
+    }
   }
 </div>
