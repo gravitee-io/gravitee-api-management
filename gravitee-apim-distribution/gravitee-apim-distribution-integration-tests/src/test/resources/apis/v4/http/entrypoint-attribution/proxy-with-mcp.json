@@ -1,0 +1,56 @@
+{
+    "id": "entrypoint-attribution-proxy",
+    "name": "entrypoint-attribution-proxy",
+    "gravitee": "4.0.0",
+    "type": "proxy",
+    "listeners": [
+        {
+            "type": "http",
+            "cors": {
+                "enabled": true,
+                "allowCredentials": true,
+                "allowHeaders": ["x-gravitee-test"],
+                "allowMethods": ["GET", "POST"],
+                "allowOrigin": ["https://mydomain.com"],
+                "runPolicies": false
+            },
+            "paths": [
+                {
+                    "path": "/entrypoint-attribution"
+                }
+            ],
+            "entrypoints": [
+                {
+                    "type": "http-proxy"
+                },
+                {
+                    "type": "mcp",
+                    "configuration": {
+                        "mcpPath": "/mcp"
+                    }
+                }
+            ]
+        }
+    ],
+    "endpointGroups": [
+        {
+            "name": "default-group",
+            "type": "http-proxy",
+            "endpoints": [
+                {
+                    "name": "default",
+                    "type": "http-proxy",
+                    "weight": 1,
+                    "inheritConfiguration": false,
+                    "configuration": {
+                        "target": "http://localhost:8080/endpoint"
+                    }
+                }
+            ]
+        }
+    ],
+    "flows": [],
+    "analytics": {
+        "enabled": true
+    }
+}

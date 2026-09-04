@@ -15,11 +15,13 @@
  */
 package io.gravitee.gateway.reactive.reactor.processor.reporter;
 
+import static io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR_RESOLVER;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -31,8 +33,11 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.connector.Connector;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.BaseEntrypointConnector;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
+import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.reactive.reactor.processor.AbstractProcessorTest;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.report.ReporterService;
@@ -366,6 +371,95 @@ class ReporterProcessorTest extends AbstractProcessorTest {
             // Then
             assertNull(ctx.metrics().getLog());
             verifyNoInteractions(reporterService);
+        }
+    }
+
+    /**
+     * Requests refused before an entrypoint connector was selected are attributed to the entrypoint they were
+     * addressed to, through the resolver the API reactor publishes; the connector attribute itself is never set
+     * here, since it means "this connector handled the request".
+     */
+    @Nested
+    class EntrypointAttribution {
+
+        @Mock
+        private DefaultEntrypointConnectorResolver resolver;
+
+        @Mock
+        private BaseEntrypointConnector<HttpExecutionContextInternal> addressedConnector;
+
+        @BeforeEach
+        void givenAV4Api() {
+            lenient().when(reactableApi.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+            ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, reactableApi);
+        }
+
+        @Test
+        void should_keep_the_connector_that_handled_the_request_without_resolving_again() {
+            final Connector handlingConnector = mock(Connector.class);
+            when(handlingConnector.id()).thenReturn("http-proxy");
+            ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR, handlingConnector);
+            ctx.setInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR_RESOLVER, resolver);
+
+            reporterProcessor.execute(ctx).test().assertResult();
+
+            assertThat(ctx.metrics().getEntrypointId()).isEqualTo("http-proxy");
+            verifyNoInteractions(resolver);
+            verify(reporterService).report(ctx.metrics());
+        }
+
+        @Test
+        void should_attribute_a_request_refused_before_entrypoint_selection_to_the_entrypoint_it_was_addressed_to() {
+            when(addressedConnector.id()).thenReturn("mcp");
+            when(resolver.resolve(ctx)).thenReturn(addressedConnector);
+            ctx.setInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR_RESOLVER, resolver);
+
+            reporterProcessor.execute(ctx).test().assertResult();
+
+            assertThat(ctx.metrics().getEntrypointId()).isEqualTo("mcp");
+            assertThat((Object) ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).isNull();
+            verify(reporterService).report(ctx.metrics());
+        }
+
+        @Test
+        void should_leave_the_entrypoint_unset_when_no_entrypoint_matches_the_request() {
+            when(resolver.resolve(ctx)).thenReturn(null);
+            ctx.setInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR_RESOLVER, resolver);
+
+            reporterProcessor.execute(ctx).test().assertResult();
+
+            assertThat(ctx.metrics().getEntrypointId()).isNull();
+            verify(reporterService).report(ctx.metrics());
+        }
+
+        @Test
+        void should_still_report_when_resolving_the_entrypoint_fails() {
+            when(resolver.resolve(ctx)).thenThrow(new IllegalStateException("connector matching failed"));
+            ctx.setInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR_RESOLVER, resolver);
+
+            reporterProcessor.execute(ctx).test().assertResult();
+
+            assertThat(ctx.metrics().getEntrypointId()).isNull();
+            verify(reporterService).report(ctx.metrics());
+        }
+
+        @Test
+        void should_leave_the_entrypoint_unset_when_no_reactor_published_a_resolver() {
+            // Not-found and rejected-path chains never reach an API reactor: nothing to attribute to.
+            reporterProcessor.execute(ctx).test().assertResult();
+
+            assertThat(ctx.metrics().getEntrypointId()).isNull();
+            verify(reporterService).report(ctx.metrics());
+        }
+
+        @Test
+        void should_not_resolve_anything_when_metrics_are_disabled() {
+            ctx.metrics(new NoopMetrics());
+            ctx.setInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR_RESOLVER, resolver);
+
+            reporterProcessor.execute(ctx).test().assertResult();
+
+            verifyNoInteractions(resolver, reporterService);
         }
     }
 }
