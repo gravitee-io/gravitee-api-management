@@ -32,12 +32,13 @@ class ApiNavigationSubtreePathsTest {
     private static final String ORG = "org";
     private static final String ENV = "env";
     private static final String NAV_API_ROW_ID = "11111111-1111-1111-1111-111111111111";
+    private static final String API_ID = "55555555-5555-5555-5555-555555555555";
 
     @Test
     void collects_a_single_folder_directly_under_the_row() {
-        var guides = legacyFolder("/guides");
+        var guides = automationFolder("/guides");
 
-        var result = ApiNavigationSubtreePaths.collect(ORG, ENV, NAV_API_ROW_ID, Map.of(NAV_API_ROW_ID, List.of(guides)));
+        var result = ApiNavigationSubtreePaths.collect(ORG, ENV, NAV_API_ROW_ID, API_ID, Map.of(NAV_API_ROW_ID, List.of(guides)));
 
         assertThat(result).extracting(ApiNavigationSubtreePaths.PathedFolder::path).containsExactly("/guides");
         assertThat(result)
@@ -47,22 +48,22 @@ class ApiNavigationSubtreePathsTest {
 
     @Test
     void collects_a_folder_nested_two_deep() {
-        var guides = legacyFolder("/guides");
-        var advanced = legacyFolder("/guides/advanced");
+        var guides = automationFolder("/guides");
+        var advanced = automationFolder("/guides/advanced");
         advanced.setParentId(guides.getId());
 
         var byParent = new HashMap<String, List<PortalNavigationItem>>();
         byParent.put(NAV_API_ROW_ID, List.of(guides));
         byParent.put(guides.getId(), List.of(advanced));
 
-        var result = ApiNavigationSubtreePaths.collect(ORG, ENV, NAV_API_ROW_ID, byParent);
+        var result = ApiNavigationSubtreePaths.collect(ORG, ENV, NAV_API_ROW_ID, API_ID, byParent);
 
         assertThat(result).extracting(ApiNavigationSubtreePaths.PathedFolder::path).containsExactly("/guides", "/guides/advanced");
     }
 
     @Test
-    void does_not_re_key_or_descend_into_a_hand_created_folder() {
-        // Its id is not the deterministic legacy id for "/notes" — an ordinary folder someone made by
+    void does_not_claim_or_descend_into_a_hand_created_folder() {
+        // Its id is not the deterministic automation id for "/notes" — an ordinary folder someone made by
         // hand happens to sit where automation would have written one. The child beneath it would only
         // be reachable if the walk (wrongly) descended anyway.
         var handCreated = PortalNavigationItem.builder()
@@ -74,14 +75,14 @@ class ApiNavigationSubtreePathsTest {
             .segment("notes")
             .rootId("22222222-2222-2222-2222-222222222222")
             .build();
-        var wouldBeChild = legacyFolder("/notes/nested");
+        var wouldBeChild = automationFolder("/notes/nested");
         wouldBeChild.setParentId(handCreated.getId());
 
         var byParent = new HashMap<String, List<PortalNavigationItem>>();
         byParent.put(NAV_API_ROW_ID, List.of(handCreated));
         byParent.put(handCreated.getId(), List.of(wouldBeChild));
 
-        var result = ApiNavigationSubtreePaths.collect(ORG, ENV, NAV_API_ROW_ID, byParent);
+        var result = ApiNavigationSubtreePaths.collect(ORG, ENV, NAV_API_ROW_ID, API_ID, byParent);
 
         assertThat(result).isEmpty();
     }
@@ -98,7 +99,7 @@ class ApiNavigationSubtreePathsTest {
             .rootId("33333333-3333-3333-3333-333333333333")
             .build();
 
-        var result = ApiNavigationSubtreePaths.collect(ORG, ENV, NAV_API_ROW_ID, Map.of(NAV_API_ROW_ID, List.of(blank)));
+        var result = ApiNavigationSubtreePaths.collect(ORG, ENV, NAV_API_ROW_ID, API_ID, Map.of(NAV_API_ROW_ID, List.of(blank)));
 
         assertThat(result).isEmpty();
     }
@@ -115,14 +116,15 @@ class ApiNavigationSubtreePathsTest {
             .rootId("44444444-4444-4444-4444-444444444444")
             .build();
 
-        var result = ApiNavigationSubtreePaths.collect(ORG, ENV, NAV_API_ROW_ID, Map.of(NAV_API_ROW_ID, List.of(page)));
+        var result = ApiNavigationSubtreePaths.collect(ORG, ENV, NAV_API_ROW_ID, API_ID, Map.of(NAV_API_ROW_ID, List.of(page)));
 
         assertThat(result).isEmpty();
     }
 
-    private static PortalNavigationItem legacyFolder(String path) {
+    /** Keyed on the API, never on the nav-api row — the shape {@code forApiFolder} has always written. */
+    private static PortalNavigationItem automationFolder(String path) {
         var segment = path.substring(path.lastIndexOf('/') + 1);
-        var id = HRIDToUUID.navigation().context(ORG, ENV).api(NAV_API_ROW_ID).folder(path).id();
+        var id = HRIDToUUID.navigation().context(ORG, ENV).api(API_ID).folder(path).id();
         return PortalNavigationItem.builder()
             .id(id)
             .organizationId(ORG)
