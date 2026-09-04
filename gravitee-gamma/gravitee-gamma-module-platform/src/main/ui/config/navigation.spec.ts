@@ -88,7 +88,7 @@ describe('platform navigation config', () => {
         expect(assetItems.find(item => item.key === 'broadcasts')?.title).toBe('Broadcasts');
     });
 
-    it('places Access Management, Gateways, Alerts, Notifications, API Health Check, SMTP, API Logging, Security Plan Types, and Audit under Environment / System & Security', () => {
+    it('places Access Management, Gateways, Alerts, Notifications, API Health Check, SMTP, CORS, API Logging, Security Plan Types, and Audit under Environment / System & Security', () => {
         expect(sectionKeys('Environment', 'System & Security')).toEqual([
             'access-management',
             'gateways',
@@ -96,6 +96,7 @@ describe('platform navigation config', () => {
             'notification-settings',
             'api-health-check',
             'environment-smtp',
+            'environment-cors',
             'api-logging',
             'security-plan-types',
             'environment-audit',
@@ -107,6 +108,7 @@ describe('platform navigation config', () => {
         expect(systemItems.find(item => item.key === 'api-health-check')?.icon).toBe(ActivityIcon);
         expect(systemItems.find(item => item.key === 'api-health-check')?.title).toBe('API Health Check');
         expect(systemItems.find(item => item.key === 'environment-smtp')?.icon).toBe(SettingsIcon);
+        expect(systemItems.find(item => item.key === 'environment-cors')?.icon).toBe(GlobeIcon);
     });
 
     it('declares the api-health-check route in platform routing config', () => {
@@ -235,6 +237,11 @@ describe('platform navigation config', () => {
     it('declares the environment-smtp route in platform routing config', () => {
         expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('environment-smtp');
         expect(ROUTES['environment-smtp']).toEqual({ path: 'environment/smtp', label: 'SMTP' });
+    });
+
+    it('declares the environment-cors route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('environment-cors');
+        expect(ROUTES['environment-cors']).toEqual({ path: 'environment/cors', label: 'CORS' });
     });
 
     it('declares the authentication route in platform routing config', () => {

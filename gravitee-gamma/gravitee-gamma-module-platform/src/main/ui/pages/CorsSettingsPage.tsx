@@ -17,40 +17,25 @@
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { CorsSection, type CorsFieldReadonly, type CorsFormState } from '../features/organization-settings/components/CorsSection';
+import type { CorsFormState } from '../features/organization-settings/components/CorsSection';
+import { ManagementCorsSection } from '../features/organization-settings/components/ManagementCorsSection';
 import { OrgSettingsFormShell } from '../features/organization-settings/components/OrgSettingsFormShell';
 import { useOrgConsoleSettings } from '../features/organization-settings/hooks/useOrgConsoleSettings';
 import { useSaveOrgConsoleSettings } from '../features/organization-settings/hooks/useSaveOrgConsoleSettings';
-import type { ConsoleSettings } from '../features/organization-settings/types/consoleSettings';
 import { buildConsoleSettingsSavePayload } from '../features/organization-settings/utils/buildConsoleSettingsSavePayload';
-import { DEFAULT_CORS_MAX_AGE, getInvalidAllowOrigins } from '../features/organization-settings/utils/corsValidators';
-import { isConsoleSettingReadonly } from '../features/organization-settings/utils/isConsoleSettingReadonly';
-
-function buildState(settings: ConsoleSettings | undefined): CorsFormState {
-    return {
-        allowOrigin: settings?.cors?.allowOrigin ?? [],
-        allowMethods: settings?.cors?.allowMethods ?? [],
-        allowHeaders: settings?.cors?.allowHeaders ?? [],
-        exposedHeaders: settings?.cors?.exposedHeaders ?? [],
-        maxAge: String(settings?.cors?.maxAge ?? DEFAULT_CORS_MAX_AGE),
-    };
-}
-
-const MAX_CORS_MAX_AGE = 2147483647; // Integer.MAX_VALUE, the backend's storage type for cors.maxAge
-
-function parseMaxAge(value: string): number | null {
-    if (!/^\d+$/.test(value.trim())) return null;
-    const parsed = Number(value);
-    if (!Number.isSafeInteger(parsed) || parsed > MAX_CORS_MAX_AGE) return null;
-    return parsed;
-}
+import {
+    buildCorsFormStateFromConsoleSettings,
+    buildCorsPatch,
+    buildManagementCorsFieldReadonly,
+    isCorsFormValid,
+} from '../features/organization-settings/utils/corsFormState';
 
 export function CorsSettingsPage() {
     const canEdit = useHasPermission({ anyOf: ['organization-settings-u'] });
     const { data: settings, isLoading, isError } = useOrgConsoleSettings();
     const saveMutation = useSaveOrgConsoleSettings();
-    const [localState, setLocalState] = useState<CorsFormState>(() => buildState(settings));
-    const [savedState, setSavedState] = useState<CorsFormState>(() => buildState(settings));
+    const [localState, setLocalState] = useState<CorsFormState>(() => buildCorsFormStateFromConsoleSettings(settings));
+    const [savedState, setSavedState] = useState<CorsFormState>(() => buildCorsFormStateFromConsoleSettings(settings));
 
     const isDirty = JSON.stringify(localState) !== JSON.stringify(savedState);
     const isDirtyRef = useRef(isDirty);
@@ -58,7 +43,7 @@ export function CorsSettingsPage() {
 
     useEffect(() => {
         if (!settings) return;
-        const next = buildState(settings);
+        const next = buildCorsFormStateFromConsoleSettings(settings);
         setSavedState(next);
         // Don't clobber in-progress edits when a background refetch (e.g. window refocus) delivers fresh data.
         if (!isDirtyRef.current) {
@@ -66,30 +51,13 @@ export function CorsSettingsPage() {
         }
     }, [settings]);
 
-    const readonly = useMemo<CorsFieldReadonly>(
-        () => ({
-            allowOrigin: isConsoleSettingReadonly(settings, 'http.api.management.cors.allow-origin'),
-            allowMethods: isConsoleSettingReadonly(settings, 'http.api.management.cors.allow-methods'),
-            allowHeaders: isConsoleSettingReadonly(settings, 'http.api.management.cors.allow-headers'),
-            exposedHeaders: isConsoleSettingReadonly(settings, 'http.api.management.cors.exposed-headers'),
-            maxAge: isConsoleSettingReadonly(settings, 'http.api.management.cors.max-age'),
-        }),
-        [settings],
-    );
-
-    const maxAge = parseMaxAge(localState.maxAge);
-    const isValid = maxAge !== null && getInvalidAllowOrigins(localState.allowOrigin).length === 0;
+    const readonly = useMemo(() => buildManagementCorsFieldReadonly(settings), [settings]);
+    const isValid = isCorsFormValid(localState);
 
     function handleSave() {
         if (!settings || !isDirty || !isValid || saveMutation.isPending) return;
         const payload = buildConsoleSettingsSavePayload(settings, 'cors', {
-            cors: {
-                allowOrigin: localState.allowOrigin,
-                allowMethods: localState.allowMethods,
-                allowHeaders: localState.allowHeaders,
-                exposedHeaders: localState.exposedHeaders,
-                maxAge,
-            },
+            cors: buildCorsPatch(localState),
         });
         saveMutation.mutate(payload, { onSuccess: () => setSavedState(localState) });
     }
@@ -107,7 +75,7 @@ export function CorsSettingsPage() {
             onSave={handleSave}
             onDiscard={() => setLocalState(savedState)}
         >
-            <CorsSection value={localState} disabled={!canEdit} readonly={readonly} onChange={setLocalState} />
+            <ManagementCorsSection value={localState} disabled={!canEdit} readonly={readonly} onChange={setLocalState} />
         </OrgSettingsFormShell>
     );
 }
