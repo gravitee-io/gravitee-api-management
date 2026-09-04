@@ -31,9 +31,9 @@ import { Observable, catchError, map, of } from 'rxjs';
 
 import { ConfigService } from './config.service';
 import { ApiInformation } from '../entities/api/api-information';
-import { PortalPageContent } from '../entities/portal-navigation/portal-page-content';
 import { PortalPage } from '../entities/portal/portal-page';
 import { SubscriptionForm } from '../entities/portal/subscription-form';
+import { PortalPageContent } from '../entities/portal-navigation/portal-page-content';
 
 @Injectable({
   providedIn: 'root',

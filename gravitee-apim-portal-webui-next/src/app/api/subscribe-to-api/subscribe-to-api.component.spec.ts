@@ -39,8 +39,8 @@ import { fakeApplication, fakeApplicationsResponse } from '../../../entities/app
 import { Page } from '../../../entities/page/page';
 import { fakePage } from '../../../entities/page/page.fixtures';
 import { fakePlan } from '../../../entities/plan/plan.fixture';
-import { PortalPageContent } from '../../../entities/portal-navigation/portal-page-content';
 import { SubscriptionForm } from '../../../entities/portal/subscription-form';
+import { PortalPageContent } from '../../../entities/portal-navigation/portal-page-content';
 import {
   CreateSubscription,
   fakeSubscription,

@@ -32,11 +32,36 @@ import liquibase.sqlgenerator.SqlGeneratorChain;
 import liquibase.sqlgenerator.core.CreateDatabaseChangeLogTableGenerator;
 import liquibase.statement.core.CreateDatabaseChangeLogTableStatement;
 import liquibase.structure.DatabaseObject;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class MySqlChangeLogTableWithPrimaryKeyGeneratorTest {
 
+    /**
+     * {@code AbstractJdbcRepositoryConfiguration} sets this globally from the configured table prefix, so a
+     * repository test running earlier in the same JVM would otherwise decide the changelog table name here.
+     */
+    private static final String CHANGELOG_TABLE_NAME_PROPERTY = "liquibase.databaseChangeLogTableName";
+
     private final MySqlChangeLogTableWithPrimaryKeyGenerator generator = new MySqlChangeLogTableWithPrimaryKeyGenerator();
+
+    private String previousChangeLogTableName;
+
+    @BeforeEach
+    void pin_changelog_table_name() {
+        previousChangeLogTableName = System.getProperty(CHANGELOG_TABLE_NAME_PROPERTY);
+        System.setProperty(CHANGELOG_TABLE_NAME_PROPERTY, "databasechangelog");
+    }
+
+    @AfterEach
+    void restore_changelog_table_name() {
+        if (previousChangeLogTableName == null) {
+            System.clearProperty(CHANGELOG_TABLE_NAME_PROPERTY);
+        } else {
+            System.setProperty(CHANGELOG_TABLE_NAME_PROPERTY, previousChangeLogTableName);
+        }
+    }
 
     @Test
     void supports_MySQLDatabase() {
@@ -181,8 +206,7 @@ class MySqlChangeLogTableWithPrimaryKeyGeneratorTest {
         assertThat(generated).isNotEmpty();
         String sql = generated[0].toSql();
         assertThat(sql).startsWith("CREATE TABLE");
-        // Constraint name derives from Database#getDatabaseChangeLogTableName(); MySQL defaults
-        // to lowercase databasechangelog.
+        // Constraint name derives from Database#getDatabaseChangeLogTableName(), pinned above.
         assertThat(sql).contains("CONSTRAINT pk_databasechangelog PRIMARY KEY (ID, AUTHOR, FILENAME)");
         // Spot-check that the columns Liquibase ships with survive the splice — guards against a
         // future upstream change that adds/renames columns and silently breaks our retrofit.

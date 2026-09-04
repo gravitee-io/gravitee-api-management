@@ -19,9 +19,9 @@ import { TestBed } from '@angular/core/testing';
 import { ConfigService } from './config.service';
 import { PortalService } from './portal.service';
 import { ApiInformation } from '../entities/api/api-information';
-import { PortalPageContent } from '../entities/portal-navigation/portal-page-content';
 import { PortalPage } from '../entities/portal/portal-page';
 import { SubscriptionForm } from '../entities/portal/subscription-form';
+import { PortalPageContent } from '../entities/portal-navigation/portal-page-content';
 
 describe('PortalService', () => {
   let service: PortalService;

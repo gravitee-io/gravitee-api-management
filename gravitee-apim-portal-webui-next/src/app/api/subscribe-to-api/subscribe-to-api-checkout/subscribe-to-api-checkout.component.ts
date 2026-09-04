@@ -25,8 +25,8 @@ import { SubscriptionInfoComponent } from '../../../../components/subscription-i
 import { Api } from '../../../../entities/api/api';
 import { Application } from '../../../../entities/application/application';
 import { Plan } from '../../../../entities/plan/plan';
-import { PortalPageContent } from '../../../../entities/portal-navigation/portal-page-content';
 import { SubscriptionForm } from '../../../../entities/portal/subscription-form';
+import { PortalPageContent } from '../../../../entities/portal-navigation/portal-page-content';
 import { Subscription } from '../../../../entities/subscription/subscription';
 
 @Component({
