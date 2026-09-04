@@ -40,11 +40,13 @@ public class PortalNavigationItem {
         LINK,
         API,
         API_PRODUCT,
+        SUBSCRIPTION_FORM,
     }
 
     public enum Area {
         HOMEPAGE,
         TOP_NAVBAR,
+        SUBSCRIPTION_FORM,
     }
 
     public enum Visibility {

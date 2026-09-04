@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.model;
 
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstraints;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -45,6 +46,8 @@ public final class CreatePortalNavigationItem {
 
     @NotNull
     private PortalPageContentType contentType;
+
+    private SubscriptionFormFieldConstraints validationConstraints;
 
     private String url;
     private String apiId;

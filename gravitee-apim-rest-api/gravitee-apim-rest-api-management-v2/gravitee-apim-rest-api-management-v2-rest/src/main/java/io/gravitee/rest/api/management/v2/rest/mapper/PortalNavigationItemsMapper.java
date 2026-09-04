@@ -105,6 +105,9 @@ public interface PortalNavigationItemsMapper {
             case io.gravitee.apim.core.portal_page.model.PortalNavigationLink link -> new PortalNavigationItem(map(link));
             case io.gravitee.apim.core.portal_page.model.PortalNavigationApi api -> new PortalNavigationItem(map(api));
             case io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct apiProduct -> new PortalNavigationItem(map(apiProduct));
+            case io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm subscriptionForm -> throw new UnsupportedOperationException(
+                "SUBSCRIPTION_FORM navigation items are not yet exposed through the management-v2 REST contract"
+            );
         };
     }
 

@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.model;
 
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.slug.model.Slug;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstraints;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.util.Objects;
@@ -29,7 +30,13 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @SuperBuilder(toBuilder = true)
 public abstract sealed class PortalNavigationItem
-    permits PortalNavigationPage, PortalNavigationLink, PortalNavigationFolder, PortalNavigationApi, PortalNavigationApiProduct {
+    permits
+        PortalNavigationPage,
+        PortalNavigationLink,
+        PortalNavigationFolder,
+        PortalNavigationApi,
+        PortalNavigationApiProduct,
+        PortalNavigationSubscriptionForm {
 
     @Nonnull
     private final PortalNavigationItemId id;
@@ -169,6 +176,10 @@ public abstract sealed class PortalNavigationItem
         final var title = item.getTitle();
         final var area = item.getArea();
         final var contentId = item.getPortalPageContentId();
+        final var validationConstraints = Objects.requireNonNullElseGet(
+            item.getValidationConstraints(),
+            SubscriptionFormFieldConstraints::empty
+        );
         final var url = item.getUrl();
         final var apiId = item.getApiId();
         final var apiProductId = item.getApiProductId();
@@ -204,6 +215,18 @@ public abstract sealed class PortalNavigationItem
                 published,
                 visibility,
                 categoryIds
+            );
+            case SUBSCRIPTION_FORM -> new PortalNavigationSubscriptionForm(
+                id,
+                organizationId,
+                environmentId,
+                title,
+                area,
+                order,
+                contentId,
+                validationConstraints,
+                published,
+                visibility
             );
         };
         newItem.setSegment(segmentFor(item));
