@@ -38,6 +38,9 @@ public record PerformanceTargetEvaluation(
     Instant evaluatedAt,
     boolean latest
 ) {
+    /** Evaluations kept per target: 24 h of history at the default 5 min interval. */
+    public static final int HISTORY_RETENTION = 288;
+
     public PerformanceTargetEvaluation {
         rules = rules == null ? List.of() : List.copyOf(rules);
         coveredApiIds = coveredApiIds == null ? List.of() : List.copyOf(coveredApiIds);
@@ -46,7 +49,15 @@ public record PerformanceTargetEvaluation(
     public enum Status {
         PASS,
         BREACH,
-        NOT_EVALUABLE,
+        NOT_EVALUABLE;
+
+        /** The target status: any missed rule is a BREACH, PASS needs every rule to pass, anything else is NOT_EVALUABLE. */
+        public static Status of(List<RuleResult> rules) {
+            if (rules.stream().anyMatch(rule -> rule.status() == BREACH)) {
+                return BREACH;
+            }
+            return !rules.isEmpty() && rules.stream().allMatch(rule -> rule.status() == PASS) ? PASS : NOT_EVALUABLE;
+        }
     }
 
     @Builder(toBuilder = true)
@@ -63,7 +74,12 @@ public record PerformanceTargetEvaluation(
 
     /**
      * How far {@code observed} is from the threshold: {@code absolute} in the metric's unit, {@code ratio} relative to
-     * the threshold.
+     * the threshold. A zero threshold cannot be exceeded by a ratio, so any excess counts as a full ratio of 1.
      */
-    public record Deviation(double absolute, double ratio) {}
+    public record Deviation(double absolute, double ratio) {
+        public static Deviation of(double observed, double threshold) {
+            var absolute = observed - threshold;
+            return new Deviation(absolute, threshold == 0 ? Math.signum(absolute) : absolute / threshold);
+        }
+    }
 }

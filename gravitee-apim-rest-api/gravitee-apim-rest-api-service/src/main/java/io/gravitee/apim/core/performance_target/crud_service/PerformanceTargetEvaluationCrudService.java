@@ -25,6 +25,13 @@ public interface PerformanceTargetEvaluationCrudService {
     PerformanceTargetEvaluation create(PerformanceTargetEvaluation evaluation);
 
     /**
+     * Deletes every evaluation of the target but its {@code retention} most recent ones.
+     *
+     * @return the ids of the deleted evaluations
+     */
+    List<String> pruneHistory(String targetId, int retention);
+
+    /**
      * @return the ids of the deleted evaluations
      */
     List<String> deleteByReference(String environmentId, String reference);
