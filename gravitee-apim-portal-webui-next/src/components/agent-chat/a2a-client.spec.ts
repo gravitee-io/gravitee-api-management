@@ -44,6 +44,14 @@ describe('splitSseFrames', () => {
   it('drops blank frames', () => {
     expect(splitSseFrames('data: a\n\n\n\ndata: b\n\n').frames).toEqual(['data: a', 'data: b']);
   });
+
+  it('splits crlf frames, which is what the python a2a sdk emits', () => {
+    expect(splitSseFrames('data: a\r\n\r\ndata: b\r\n\r\n').frames).toEqual(['data: a', 'data: b']);
+  });
+
+  it('keeps an incomplete trailing crlf frame in the buffer', () => {
+    expect(splitSseFrames('data: a\r\n\r\ndata: b')).toEqual({ frames: ['data: a'], rest: 'data: b' });
+  });
 });
 
 describe('eventFromFrame', () => {
@@ -83,5 +91,47 @@ describe('eventFromFrame', () => {
 
   it('ignores an artifact-update carrying no text', () => {
     expect(eventFromFrame(frame({ result: { kind: 'artifact-update', artifact: { parts: [] } } }))).toEqual({ kind: 'ignored' });
+  });
+
+  it('reports a failed task as an error rather than a finished answer', () => {
+    const event = eventFromFrame(
+      frame({
+        result: {
+          kind: 'status-update',
+          contextId: 'ctx-4',
+          status: { state: 'failed', message: { parts: [{ kind: 'text', text: 'upstream model timed out' }] } },
+        },
+      }),
+    );
+
+    expect(event).toEqual({ kind: 'error', message: 'upstream model timed out' });
+  });
+
+  it('reports a cancelled task as an error even when it carries no reason', () => {
+    const event = eventFromFrame(frame({ result: { kind: 'status-update', status: { state: 'canceled' } } }));
+
+    expect(event).toEqual({ kind: 'error', message: expect.any(String) });
+  });
+
+  it('treats input-required as the end of the agent turn', () => {
+    const event = eventFromFrame(frame({ result: { kind: 'status-update', contextId: 'ctx-5', status: { state: 'input-required' } } }));
+
+    expect(event).toEqual({ kind: 'completed', contextId: 'ctx-5' });
+  });
+
+  it('ignores an in-progress status without ending the turn', () => {
+    expect(eventFromFrame(frame({ result: { kind: 'status-update', status: { state: 'working' } } }))).toEqual({ kind: 'ignored' });
+  });
+
+  it('rejoins a payload split across several data lines, as the sse spec requires', () => {
+    const event = eventFromFrame('data: {"result":{"kind":"message",\ndata: "parts":[{"kind":"text","text":"split"}]}}');
+
+    expect(event).toEqual({ kind: 'delta', text: 'split', contextId: undefined });
+  });
+
+  it('reads a crlf-delimited frame', () => {
+    const event = eventFromFrame('data: {"result":{"kind":"message","parts":[{"kind":"text","text":"crlf"}]}}\r');
+
+    expect(event).toEqual({ kind: 'delta', text: 'crlf', contextId: undefined });
   });
 });

@@ -18,11 +18,12 @@ import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, Subject } from 'rxjs';
+import { BehaviorSubject, Subject, throwError } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { DocumentationFolderComponent } from './documentation-folder.component';
 import { DocumentationFolderComponentHarness } from './documentation-folder.component.harness';
+import { completed, respondingGateway } from '../../../../components/agent-chat/testing/sse-body';
 import { ApiType } from '../../../../entities/api/api';
 import { PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
 import { fakePortalNavigationApiProduct } from '../../../../entities/portal-navigation/portal-navigation-item.fixture';
@@ -38,7 +39,7 @@ describe('DocumentationFolderComponent', () => {
   let harness: DocumentationFolderComponentHarness;
   let navigationServiceSpy: PortalNavigationItemsService;
   let apiServiceSpy: { details: jest.Mock };
-  let agentSubscriptionServiceSpy: { forAgent: jest.Mock };
+  let agentSubscriptionServiceSpy: { findForAgent: jest.Mock };
   let routerSpy: jest.Mocked<Router>;
   let queryParamsSubject: BehaviorSubject<{ selectedId?: string }>;
 
@@ -98,7 +99,7 @@ describe('DocumentationFolderComponent', () => {
         }),
       ),
     };
-    agentSubscriptionServiceSpy = { forAgent: jest.fn().mockReturnValue(of(params.agentAccess ?? null)) };
+    agentSubscriptionServiceSpy = { findForAgent: jest.fn().mockReturnValue(of(params.agentAccess ?? null)) };
 
     await TestBed.configureTestingModule({
       animationsEnabled: true,
@@ -641,27 +642,16 @@ describe('DocumentationFolderComponent', () => {
   });
 
   describe('agent chat', () => {
-    const AGENT_ACCESS: AgentSubscriptionAccess = { subscriptionId: 'sub-1', apiKey: 'key-1', applicationName: 'My App' };
+    const AGENT_ACCESS: AgentSubscriptionAccess = { apiKey: 'key-1', applicationName: 'My App' };
 
-    // jsdom ships no streams API, so the response body is faked down to what the store reads.
-    const answeringGateway = () => {
-      const encoded = new TextEncoder().encode(
-        'data: {"result":{"kind":"status-update","contextId":"ctx-1","status":{"state":"completed"}}}\n\n',
-      );
-      let sent = false;
-      return jest.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        body: {
-          getReader: () => ({
-            read: () => Promise.resolve(sent ? { done: true, value: undefined } : ((sent = true), { done: false, value: encoded })),
-          }),
-        },
-      } as unknown as Response);
-    };
+    const realFetch = globalThis.fetch;
 
     beforeEach(() => {
-      globalThis.fetch = answeringGateway() as unknown as typeof fetch;
+      globalThis.fetch = respondingGateway(completed('ctx-1')) as unknown as typeof fetch;
+    });
+
+    afterEach(() => {
+      globalThis.fetch = realFetch;
     });
 
     const initAgentPage = async (params: {
@@ -673,6 +663,13 @@ describe('DocumentationFolderComponent', () => {
       const agentItem = makeItem('agent1', 'AGENT', 'Agent 1', 0, undefined);
       const agentPage = makeItem('p-agent1', 'PAGE', 'Agent 1 Documentation', 0, 'agent1');
       await init({ items: [agentItem, agentPage], queryParams: { selectedId: 'p-agent1' }, content: MOCK_CONTENT, ...params });
+      await settle();
+    };
+
+    // The chat button waits on two chained resources: the api, then its subscription.
+    const settle = async () => {
+      fixture.detectChanges();
+      await fixture.whenStable();
       fixture.detectChanges();
       await fixture.whenStable();
       fixture.detectChanges();
@@ -732,27 +729,64 @@ describe('DocumentationFolderComponent', () => {
       await fixture.whenStable();
       fixture.detectChanges();
 
-      expect(await chat.plainTurnTexts()).toContain('what happened?');
+      expect(await chat.getPlainTurnTexts()).toContain('what happened?');
 
       await closeChat();
       expect(await harness.getAgentChat()).toBeNull();
 
       await openChat();
 
-      expect(await (await harness.getAgentChat())!.plainTurnTexts()).toContain('what happened?');
+      expect(await (await harness.getAgentChat())!.getPlainTurnTexts()).toContain('what happened?');
     });
 
     it('should not look up a subscription for an anonymous viewer', async () => {
       await initAgentPage({ apiType: 'A2A_PROXY', isAuthenticated: false });
 
-      expect(agentSubscriptionServiceSpy.forAgent).not.toHaveBeenCalled();
+      expect(agentSubscriptionServiceSpy.findForAgent).not.toHaveBeenCalled();
       expect(await harness.getChatButton()).toBeNull();
+    });
+
+    it('should keep rendering the page when the api call fails, instead of breaking change detection', async () => {
+      const agentItem = makeItem('agent1', 'AGENT', 'Agent 1', 0, undefined);
+      const agentPage = makeItem('p-agent1', 'PAGE', 'Agent 1 Documentation', 0, 'agent1');
+      await init({ items: [agentItem, agentPage], queryParams: { selectedId: 'p-agent1' }, content: MOCK_CONTENT });
+      apiServiceSpy.details.mockReturnValue(throwError(() => new Error('403')));
+      await settle();
+
+      expect(await harness.getChatButton()).toBeNull();
+      expect(await harness.getTreeHarness()).not.toBeNull();
+    });
+
+    it('should not reopen the panel by itself after the viewer navigates away', async () => {
+      const agentItem = makeItem('agent1', 'AGENT', 'Agent 1', 0, undefined);
+      const agentPage = makeItem('p-agent1', 'PAGE', 'Agent 1 Documentation', 0, 'agent1');
+      const otherAgent = makeItem('agent2', 'AGENT', 'Agent 2', 1, undefined);
+      const otherAgentPage = makeItem('p-agent2', 'PAGE', 'Agent 2 Documentation', 0, 'agent2');
+      await init({
+        items: [agentItem, agentPage, otherAgent, otherAgentPage],
+        queryParams: { selectedId: 'p-agent1' },
+        content: MOCK_CONTENT,
+        apiType: 'A2A_PROXY',
+        agentAccess: AGENT_ACCESS,
+      });
+      await settle();
+      await openChat();
+      expect(await harness.getAgentChat()).not.toBeNull();
+
+      queryParamsSubject.next({ selectedId: 'p-agent2' });
+      await settle();
+      expect(await harness.getAgentChat()).toBeNull();
+
+      queryParamsSubject.next({ selectedId: 'p-agent1' });
+      await settle();
+
+      expect(await harness.getAgentChat()).toBeNull();
     });
 
     it('should not look up a subscription on a page that is not an agent', async () => {
       await initAgentPage({ apiType: 'PROXY' });
 
-      expect(agentSubscriptionServiceSpy.forAgent).not.toHaveBeenCalled();
+      expect(agentSubscriptionServiceSpy.findForAgent).not.toHaveBeenCalled();
     });
   });
 });

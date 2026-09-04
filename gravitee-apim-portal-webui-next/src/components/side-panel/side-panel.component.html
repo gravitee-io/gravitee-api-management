@@ -20,7 +20,6 @@
   aria-hidden="true"
   tabindex="-1"
   animate.enter="side-panel__backdrop__enter"
-  animate.leave="side-panel__backdrop__leave"
   (click)="closed.emit()"
 ></div>
 <div
@@ -29,7 +28,6 @@
   cdkTrapFocus
   cdkTrapFocusAutoCapture
   animate.enter="side-panel__panel__enter"
-  animate.leave="side-panel__panel__leave"
   role="dialog"
   aria-modal="true"
   [attr.aria-label]="ariaLabel()"

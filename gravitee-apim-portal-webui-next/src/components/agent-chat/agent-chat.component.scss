@@ -40,16 +40,25 @@
     border-radius: app-theme.$container-shape;
     padding: 8px 12px;
     background-color: app-theme.$background-color;
+    // Inherited through the viewer shadow boundary, so a long token wraps once the turn is rendered
+    // as markdown too, not only while it streams as plain text.
+    overflow-wrap: anywhere;
+
+    // The viewer ships no styles of its own and defaults to inline.
+    gmd-viewer {
+      display: block;
+    }
 
     &--user {
       align-self: flex-end;
       border-color: transparent;
+      // The highlight token is near-white in every theme, so the text colour cannot be inherited.
       background-color: app-theme.$primary-highlight-color;
+      color: app-theme.$primary-main-color;
     }
 
     &__text {
       white-space: pre-wrap;
-      overflow-wrap: anywhere;
     }
 
     &__thinking {

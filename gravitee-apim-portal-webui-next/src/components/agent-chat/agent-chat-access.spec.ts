@@ -13,55 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { chatAccess, ChatEligibility } from './agent-chat-access';
-import { Api } from '../../entities/api/api';
+import { isChattableAgent, resolveChatTarget } from './agent-chat-access';
+import { fakeApi } from '../../entities/api/api.fixtures';
 
-const anAgent = (overrides: Partial<Api> = {}): Api =>
-  ({
-    id: 'agent-1',
-    name: 'Incident Commander',
-    version: '1',
-    description: '',
-    definitionVersion: 'V4',
-    type: 'A2A_PROXY',
-    entrypoints: ['https://gw.test/agent'],
-    ...overrides,
-  }) as Api;
+const anAgent = () => fakeApi({ type: 'A2A_PROXY', entrypoints: ['https://gw.test/agent'] });
 
-const eligibility = (overrides: Partial<ChatEligibility> = {}): ChatEligibility => ({
-  api: anAgent(),
-  apiLoading: false,
-  apiKey: 'key-1',
-  subscriptionLoading: false,
-  ...overrides,
-});
-
-describe('chatAccess', () => {
-  it('grants access to a subscriber of an a2a agent that has a gateway entrypoint', () => {
-    expect(chatAccess(eligibility())).toBe('granted');
+describe('isChattableAgent', () => {
+  it('accepts an a2a agent that publishes a gateway entrypoint', () => {
+    expect(isChattableAgent(anAgent())).toBe(true);
   });
 
-  it('waits while the api is still loading', () => {
-    expect(chatAccess(eligibility({ api: undefined, apiLoading: true }))).toBe('loading');
-  });
-
-  it('waits while the subscription is still loading', () => {
-    expect(chatAccess(eligibility({ apiKey: null, subscriptionLoading: true }))).toBe('loading');
-  });
-
-  it('refuses a non-agent api without waiting for a subscription', () => {
-    expect(chatAccess(eligibility({ api: anAgent({ type: 'PROXY' }), subscriptionLoading: true }))).toBe('not-eligible');
+  it('refuses an api that is not an agent', () => {
+    expect(isChattableAgent(fakeApi({ type: 'PROXY' }))).toBe(false);
   });
 
   it('refuses an agent that publishes no gateway entrypoint', () => {
-    expect(chatAccess(eligibility({ api: anAgent({ entrypoints: [] }) }))).toBe('not-eligible');
+    expect(isChattableAgent(fakeApi({ type: 'A2A_PROXY', entrypoints: [] }))).toBe(false);
   });
 
-  it('refuses a viewer with no api key', () => {
-    expect(chatAccess(eligibility({ apiKey: null }))).toBe('not-eligible');
+  it('refuses a missing api, which is also what a still-loading one looks like', () => {
+    expect(isChattableAgent(undefined)).toBe(false);
+    expect(isChattableAgent(null)).toBe(false);
+  });
+});
+
+describe('resolveChatTarget', () => {
+  it('points at the gateway entrypoint with the viewer own api key', () => {
+    expect(resolveChatTarget(anAgent(), 'key-1')).toEqual({ endpoint: 'https://gw.test/agent', apiKey: 'key-1' });
   });
 
-  it('refuses when there is no api at all', () => {
-    expect(chatAccess(eligibility({ api: null }))).toBe('not-eligible');
+  it('yields nothing without an api key, so a non-subscriber gets no button', () => {
+    expect(resolveChatTarget(anAgent(), null)).toBeNull();
+    expect(resolveChatTarget(anAgent(), undefined)).toBeNull();
+  });
+
+  it('yields nothing for an api that is not a chattable agent', () => {
+    expect(resolveChatTarget(fakeApi({ type: 'PROXY' }), 'key-1')).toBeNull();
+    expect(resolveChatTarget(fakeApi({ type: 'A2A_PROXY', entrypoints: [] }), 'key-1')).toBeNull();
+  });
+
+  it('yields nothing while the api is still loading', () => {
+    expect(resolveChatTarget(undefined, 'key-1')).toBeNull();
   });
 });

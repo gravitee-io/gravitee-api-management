@@ -32,7 +32,7 @@
           }
         </button>
       }
-      @if (canChat()) {
+      @if (chatTarget()) {
         <button mat-flat-button type="button" (click)="chatOpen.set(true)" data-testid="chat-button">
           <span i18n="@@documentationChatButton">Chat now!</span>
         </button>
@@ -83,19 +83,21 @@
     panelTestId="mcp-tools-drawer"
     i18n-ariaLabel="@@documentationMcpPanelAria"
     ariaLabel="MCP tools"
+    animate.leave="side-panel-leave"
     (closed)="mcpDrawerOpen.set(false)"
   >
     <app-api-tab-tools [api]="api.value()!" />
   </app-side-panel>
 }
 
-@if (chatOpen() && chatTarget()) {
+@if (chatOpen() && chatSession(); as session) {
   <app-side-panel
     panelTestId="agent-chat-drawer"
     i18n-ariaLabel="@@documentationChatPanelAria"
     ariaLabel="Chat with the agent"
+    animate.leave="side-panel-leave"
     (closed)="chatOpen.set(false)"
   >
-    <app-agent-chat [agentName]="api.value()!.name" [applicationName]="agentAccess.value()!.applicationName" [target]="chatTarget()!" />
+    <app-agent-chat [agentName]="session.agentName" [applicationName]="session.applicationName" [target]="session.target" />
   </app-side-panel>
 }

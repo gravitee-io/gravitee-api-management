@@ -31,7 +31,7 @@ export class AgentChatComponentHarness extends ComponentHarness {
   private readonly getPlainTurns = this.locatorForAll('.agent-chat__turn__text');
   private readonly getComposerElement = this.locatorFor('textarea[matInput]');
 
-  async headerText(): Promise<string> {
+  async getHeaderText(): Promise<string> {
     return (await this.getHeader()).text();
   }
 
@@ -43,7 +43,7 @@ export class AgentChatComponentHarness extends ComponentHarness {
     await (await this.getComposerElement()).dispatchEvent('keydown', { key: 'Enter', shiftKey: !!shift });
   }
 
-  async composerValue(): Promise<string> {
+  async getComposerValue(): Promise<string> {
     return (await this.getComposer()).getValue();
   }
 
@@ -55,12 +55,12 @@ export class AgentChatComponentHarness extends ComponentHarness {
     return (await this.getSendButton()).isDisabled();
   }
 
-  async errorText(): Promise<string | null> {
+  async getErrorText(): Promise<string | null> {
     const error = await this.getError();
     return error ? error.text() : null;
   }
 
-  async emptyStateText(): Promise<string | null> {
+  async getEmptyStateText(): Promise<string | null> {
     const emptyState = await this.getEmptyState();
     return emptyState ? emptyState.text() : null;
   }
@@ -69,7 +69,7 @@ export class AgentChatComponentHarness extends ComponentHarness {
     return (await this.getMarkdownViewer()) !== null;
   }
 
-  async plainTurnTexts(): Promise<string[]> {
+  async getPlainTurnTexts(): Promise<string[]> {
     const turns = await this.getPlainTurns();
     return Promise.all(turns.map(turn => turn.text()));
   }

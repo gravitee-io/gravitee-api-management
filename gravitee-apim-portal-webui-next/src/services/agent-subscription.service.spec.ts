@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 
 import { AgentSubscriptionService } from './agent-subscription.service';
 import { SubscriptionService } from './subscription.service';
@@ -47,8 +47,8 @@ describe('AgentSubscriptionService', () => {
     subscriptionService.list.mockReturnValue(listing([accepted('sub-1', [])]));
     subscriptionService.get.mockReturnValue(of(accepted('sub-1', [aKey('key-1', 'My App')])));
 
-    service.forAgent('agent-1').subscribe(access => {
-      expect(access).toEqual({ subscriptionId: 'sub-1', apiKey: 'key-1', applicationName: 'My App' });
+    service.findForAgent('agent-1').subscribe(access => {
+      expect(access).toEqual({ apiKey: 'key-1', applicationName: 'My App' });
       done();
     });
   });
@@ -56,7 +56,7 @@ describe('AgentSubscriptionService', () => {
   it('asks only for accepted subscriptions of that agent', () => {
     subscriptionService.list.mockReturnValue(listing([]));
 
-    service.forAgent('agent-1').subscribe();
+    service.findForAgent('agent-1').subscribe();
 
     expect(subscriptionService.list).toHaveBeenCalledWith(expect.objectContaining({ apiIds: ['agent-1'], statuses: ['ACCEPTED'] }));
   });
@@ -67,8 +67,8 @@ describe('AgentSubscriptionService', () => {
       of(id === 'sub-1' ? accepted('sub-1', [aKey('dead', 'Old App', true)]) : accepted('sub-2', [aKey('key-2', 'Live App')])),
     );
 
-    service.forAgent('agent-1').subscribe(access => {
-      expect(access).toEqual({ subscriptionId: 'sub-2', apiKey: 'key-2', applicationName: 'Live App' });
+    service.findForAgent('agent-1').subscribe(access => {
+      expect(access).toEqual({ apiKey: 'key-2', applicationName: 'Live App' });
       done();
     });
   });
@@ -76,7 +76,7 @@ describe('AgentSubscriptionService', () => {
   it('returns nothing when the viewer has no subscription', done => {
     subscriptionService.list.mockReturnValue(listing([]));
 
-    service.forAgent('agent-1').subscribe(access => {
+    service.findForAgent('agent-1').subscribe(access => {
       expect(access).toBeNull();
       done();
     });
@@ -86,7 +86,7 @@ describe('AgentSubscriptionService', () => {
     subscriptionService.list.mockReturnValue(listing([accepted('sub-1', [])]));
     subscriptionService.get.mockReturnValue(of(accepted('sub-1', [])));
 
-    service.forAgent('agent-1').subscribe(access => {
+    service.findForAgent('agent-1').subscribe(access => {
       expect(access).toBeNull();
       done();
     });
@@ -95,17 +95,29 @@ describe('AgentSubscriptionService', () => {
   it('returns nothing when the listing fails', done => {
     subscriptionService.list.mockReturnValue(throwError(() => new Error('boom')));
 
-    service.forAgent('agent-1').subscribe(access => {
+    service.findForAgent('agent-1').subscribe(access => {
       expect(access).toBeNull();
       done();
     });
+  });
+
+  it('asks for every candidate at once rather than one after another', done => {
+    subscriptionService.list.mockReturnValue(listing([accepted('sub-1', []), accepted('sub-2', [])]));
+    const pending = new Subject<Subscription>();
+    subscriptionService.get.mockReturnValue(pending);
+
+    service.findForAgent('agent-1').subscribe();
+
+    expect(subscriptionService.get).toHaveBeenCalledTimes(2);
+    pending.complete();
+    done();
   });
 
   it('returns nothing when reading the only subscription fails', done => {
     subscriptionService.list.mockReturnValue(listing([accepted('sub-1', [])]));
     subscriptionService.get.mockReturnValue(throwError(() => new Error('boom')));
 
-    service.forAgent('agent-1').subscribe(access => {
+    service.findForAgent('agent-1').subscribe(access => {
       expect(access).toBeNull();
       done();
     });

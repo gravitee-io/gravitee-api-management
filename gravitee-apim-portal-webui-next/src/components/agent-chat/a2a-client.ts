@@ -54,10 +54,12 @@ export interface SseSplit {
   rest: string;
 }
 
-// An SSE frame ends with a blank line, so anything after the last blank line is incomplete
-// and has to stay in the buffer until more bytes arrive.
+// An SSE frame ends with a blank line, which the spec allows to be LF or CRLF. Anything after
+// the last blank line is incomplete and has to stay in the buffer until more bytes arrive.
+const FRAME_SEPARATOR = /\r?\n\r?\n/;
+
 export function splitSseFrames(buffer: string): SseSplit {
-  const parts = buffer.split('\n\n');
+  const parts = buffer.split(FRAME_SEPARATOR);
   const rest = parts.pop() ?? '';
   return { frames: parts.filter(frame => frame.trim().length > 0), rest };
 }
@@ -68,61 +70,80 @@ export type A2AEvent =
   | { kind: 'error'; message: string }
   | { kind: 'ignored' };
 
+// States that end the task. 'input-required' ends the agent's turn too: it has said its piece
+// and is waiting for the next question.
+const COMPLETED_STATES = ['completed', 'input-required'];
+const FAILED_STATES = ['failed', 'canceled', 'cancelled', 'rejected'];
+
+interface JsonRpcPart {
+  kind?: string;
+  text?: string;
+}
+
 interface JsonRpcFrame {
   result?: {
     kind?: string;
     contextId?: string;
-    artifact?: { parts?: Array<{ kind?: string; text?: string }> };
-    parts?: Array<{ kind?: string; text?: string }>;
-    status?: { state?: string };
+    artifact?: { parts?: JsonRpcPart[] };
+    parts?: JsonRpcPart[];
+    status?: { state?: string; message?: { parts?: JsonRpcPart[] } };
   };
   error?: { message?: string };
 }
 
-function textOfParts(parts: Array<{ kind?: string; text?: string }> | undefined): string {
+function textOfParts(parts: JsonRpcPart[] | undefined): string {
   return (parts ?? [])
     .filter(part => part.kind === 'text' && typeof part.text === 'string')
     .map(part => part.text)
     .join('');
 }
 
-export function eventFromFrame(frame: string): A2AEvent {
-  const dataLine = frame
-    .split('\n')
+// The spec splits a payload containing newlines across consecutive data: lines, to be rejoined with \n.
+function payloadOfFrame(frame: string): string | null {
+  const data = frame
+    .split(/\r?\n/)
     .map(line => line.trim())
-    .find(line => line.startsWith('data:'));
-  if (!dataLine) {
+    .filter(line => line.startsWith('data:'))
+    .map(line => line.slice('data:'.length).trim());
+  return data.length ? data.join('\n') : null;
+}
+
+export function eventFromFrame(frame: string): A2AEvent {
+  const payload = payloadOfFrame(frame);
+  if (payload === null) {
     return { kind: 'ignored' };
   }
 
-  let payload: JsonRpcFrame;
+  let parsed: JsonRpcFrame;
   try {
-    payload = JSON.parse(dataLine.slice('data:'.length).trim()) as JsonRpcFrame;
+    parsed = JSON.parse(payload) as JsonRpcFrame;
   } catch {
     return { kind: 'ignored' };
   }
 
-  if (payload.error) {
-    return { kind: 'error', message: payload.error.message ?? $localize`:@@agentChatAgentError:The agent returned an error.` };
+  if (parsed.error) {
+    return { kind: 'error', message: parsed.error.message ?? $localize`:@@agentChatAgentError:The agent returned an error.` };
   }
 
-  const result = payload.result;
+  const result = parsed.result;
   if (!result) {
     return { kind: 'ignored' };
   }
 
-  if (result.kind === 'artifact-update') {
-    const text = textOfParts(result.artifact?.parts);
+  if (result.kind === 'artifact-update' || result.kind === 'message') {
+    const text = textOfParts(result.artifact?.parts ?? result.parts);
     return text ? { kind: 'delta', text, contextId: result.contextId } : { kind: 'ignored' };
   }
 
-  if (result.kind === 'message') {
-    const text = textOfParts(result.parts);
-    return text ? { kind: 'delta', text, contextId: result.contextId } : { kind: 'ignored' };
-  }
-
-  if (result.kind === 'status-update' && result.status?.state === 'completed') {
-    return { kind: 'completed', contextId: result.contextId };
+  if (result.kind === 'status-update') {
+    const state = result.status?.state ?? '';
+    if (COMPLETED_STATES.includes(state)) {
+      return { kind: 'completed', contextId: result.contextId };
+    }
+    if (FAILED_STATES.includes(state)) {
+      const reason = textOfParts(result.status?.message?.parts);
+      return { kind: 'error', message: reason || $localize`:@@agentChatTaskFailed:The agent stopped before answering.` };
+    }
   }
 
   return { kind: 'ignored' };

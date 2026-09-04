@@ -21,11 +21,12 @@
     <div class="next-gen-small agent-chat__header__application" i18n="@@agentChatApplication">Calling as {{ applicationName() }}</div>
   </div>
 
-  <div #log class="agent-chat__log" role="log" i18n-aria-label="@@agentChatLogAria" aria-label="Conversation">
+  <div #log class="agent-chat__log" role="log" tabindex="0" i18n-aria-label="@@agentChatLogAria" aria-label="Conversation">
     @for (turn of turns(); track turn.id) {
-      <div class="agent-chat__turn" [class.agent-chat__turn--user]="turn.role === 'user'">
-        @if (turn.role === 'agent' && turn.complete) {
-          <gmd-viewer [content]="turn.text" />
+      <!-- A streaming turn changes on every delta; announcing each one would flood a screen reader. -->
+      <div class="agent-chat__turn" [class.agent-chat__turn--user]="turn.role === 'user'" [attr.aria-live]="turn.isComplete ? null : 'off'">
+        @if (turn.role === 'agent' && turn.isComplete) {
+          <gmd-viewer [content]="answerOf(turn)" />
         } @else if (turn.text) {
           <div class="agent-chat__turn__text next-gen-body">{{ turn.text }}</div>
         } @else {

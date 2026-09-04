@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 import { inject, Injectable } from '@angular/core';
-import { catchError, concatMap, defaultIfEmpty, EMPTY, filter, from, map, Observable, of, switchMap, take } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
 
 import { SubscriptionService } from './subscription.service';
 import { isActiveApiKey, Subscription } from '../entities/subscription';
 
 export interface AgentSubscriptionAccess {
-  subscriptionId: string;
   apiKey: string;
   applicationName: string;
 }
@@ -33,18 +32,18 @@ const MAX_CANDIDATES = 10;
 export class AgentSubscriptionService {
   private readonly subscriptionService = inject(SubscriptionService);
 
-  forAgent(apiId: string): Observable<AgentSubscriptionAccess | null> {
+  findForAgent(apiId: string): Observable<AgentSubscriptionAccess | null> {
     return this.subscriptionService.list({ apiIds: [apiId], statuses: ['ACCEPTED'], size: MAX_CANDIDATES }).pipe(
       map(response => response.data ?? []),
+      // Only get() returns the keys, so each candidate needs its own call; they go out together
+      // rather than one after another, and the first usable one in listing order wins so the
+      // application named in the panel stays the same between visits.
       switchMap(candidates =>
-        from(candidates).pipe(
-          concatMap(candidate => this.subscriptionService.get(candidate.id).pipe(catchError(() => EMPTY))),
-          map(subscription => this.accessFrom(subscription)),
-          filter((access): access is AgentSubscriptionAccess => access !== null),
-          take(1),
-          defaultIfEmpty(null),
-        ),
+        candidates.length
+          ? forkJoin(candidates.map(candidate => this.subscriptionService.get(candidate.id).pipe(catchError(() => of(null)))))
+          : of([]),
       ),
+      map(subscriptions => subscriptions.map(subscription => (subscription ? this.accessFrom(subscription) : null)).find(Boolean) ?? null),
       catchError(() => of(null)),
     );
   }
@@ -55,7 +54,6 @@ export class AgentSubscriptionService {
       return null;
     }
     return {
-      subscriptionId: subscription.id,
       apiKey: usableKey.key,
       applicationName: usableKey.application?.name ?? '',
     };

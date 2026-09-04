@@ -13,28 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ChatTarget } from './agent-chat.store';
 import { Api } from '../../entities/api/api';
 
-export type ChatAccess = 'loading' | 'granted' | 'not-eligible';
-
-export interface ChatEligibility {
-  api: Api | null | undefined;
-  apiLoading: boolean;
-  apiKey: string | null | undefined;
-  subscriptionLoading: boolean;
+export function isChattableAgent(api: Api | null | undefined): boolean {
+  return api?.type === 'A2A_PROXY' && !!api.entrypoints?.[0];
 }
 
-// The chat is offered only where it can work: an a2a agent reachable through the gateway,
-// with an api key from the viewer's own subscription to authenticate with.
-export function chatAccess({ api, apiLoading, apiKey, subscriptionLoading }: ChatEligibility): ChatAccess {
-  if (apiLoading) {
-    return 'loading';
-  }
-  if (!api || api.type !== 'A2A_PROXY' || !api.entrypoints?.[0]) {
-    return 'not-eligible';
-  }
-  if (subscriptionLoading) {
-    return 'loading';
-  }
-  return apiKey ? 'granted' : 'not-eligible';
+/**
+ * Where to send a question, or null when the viewer may not chat. A still-loading api or
+ * subscription yields null too, which is what keeps the button hidden until both are known.
+ */
+export function resolveChatTarget(api: Api | null | undefined, apiKey: string | null | undefined): ChatTarget | null {
+  const endpoint = api?.entrypoints?.[0];
+  return isChattableAgent(api) && endpoint && apiKey ? { endpoint, apiKey } : null;
 }

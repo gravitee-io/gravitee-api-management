@@ -25,9 +25,9 @@ import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
 import { Api } from 'src/entities/api/api';
 
 import { TreeComponent } from './tree/tree.component';
-import { chatAccess } from '../../../../components/agent-chat/agent-chat-access';
+import { isChattableAgent, resolveChatTarget } from '../../../../components/agent-chat/agent-chat-access';
 import { AgentChatComponent } from '../../../../components/agent-chat/agent-chat.component';
-import { AgentChatStore, ChatTarget } from '../../../../components/agent-chat/agent-chat.store';
+import { AgentChatStore } from '../../../../components/agent-chat/agent-chat.store';
 import { Breadcrumb } from '../../../../components/breadcrumbs/breadcrumbs.component';
 import { DocumentationSkeletonComponent } from '../../../../components/documentation-skeleton/documentation-skeleton.component';
 import { NavigationItemContentViewerComponent } from '../../../../components/navigation-item-content-viewer/navigation-item-content-viewer.component';
@@ -100,30 +100,25 @@ export class DocumentationFolderComponent {
   });
   apiHasMcp = computed(() => !this.api.error() && !!this.api.value()?.mcp);
 
+  // Every read of api.value() is guarded: an errored resource throws from value(), and this page
+  // must still render its tree and breadcrumbs when the api call fails.
   private readonly agentApiId = computed(() => {
-    const api = this.api.value();
-    return api?.type === 'A2A_PROXY' && this.currentUser() ? api.id : null;
+    const api = this.api.error() ? null : this.api.value();
+    return isChattableAgent(api) && this.currentUser() ? (api?.id ?? null) : null;
   });
   agentAccess = rxResource<AgentSubscriptionAccess | null, string | null>({
     params: this.agentApiId,
-    stream: ({ params }) => (params ? this.agentSubscriptionService.forAgent(params) : of(null)),
+    stream: ({ params }) => (params ? this.agentSubscriptionService.findForAgent(params) : of(null)),
   });
-  canChat = computed(
-    () =>
-      chatAccess({
-        api: this.api.value(),
-        apiLoading: this.api.isLoading(),
-        apiKey: this.agentAccess.value()?.apiKey,
-        subscriptionLoading: this.agentAccess.isLoading(),
-      }) === 'granted',
-  );
-  chatTarget = computed<ChatTarget | null>(() => {
-    const endpoint = this.api.value()?.entrypoints?.[0];
-    const apiKey = this.agentAccess.value()?.apiKey;
-    return endpoint && apiKey ? { endpoint, apiKey } : null;
+  chatTarget = computed(() => (this.api.error() ? null : resolveChatTarget(this.api.value(), this.agentAccess.value()?.apiKey)));
+  chatSession = computed(() => {
+    const target = this.chatTarget();
+    const agentName = this.api.error() ? null : this.api.value()?.name;
+    const applicationName = this.agentAccess.value()?.applicationName;
+    return target && agentName ? { target, agentName, applicationName: applicationName ?? '' } : null;
   });
 
-  hasBreadcrumbActions = computed(() => !!this.subscriptionTarget() || this.apiHasMcp() || this.canChat());
+  hasBreadcrumbActions = computed(() => !!this.subscriptionTarget() || this.apiHasMcp() || !!this.chatTarget());
 
   constructor(
     private readonly router: Router,
@@ -133,9 +128,13 @@ export class DocumentationFolderComponent {
   ) {
     effect(() => {
       const agentId = this.agentApiId();
-      if (agentId) {
-        this.chatStore.resetFor(agentId);
+      if (!agentId) {
+        // Selecting another page clears the api context, and a panel left open would otherwise
+        // reopen itself once the next agent resolves.
+        this.chatOpen.set(false);
+        return;
       }
+      this.chatStore.resetFor(agentId);
     });
   }
 
