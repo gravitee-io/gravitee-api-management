@@ -24,7 +24,6 @@ import inmemory.PerformanceTargetCrudServiceInMemory;
 import inmemory.PerformanceTargetEvaluationCrudServiceInMemory;
 import inmemory.PerformanceTargetEvaluationQueryServiceInMemory;
 import inmemory.PerformanceTargetEvaluatorInMemory;
-import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.performance_target.exception.PerformanceTargetEvaluatedTooRecentlyException;
 import io.gravitee.apim.core.performance_target.exception.PerformanceTargetNotFoundException;
 import io.gravitee.apim.core.performance_target.model.PerformanceTargetEvaluation;
@@ -35,7 +34,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,7 +56,7 @@ class EvaluatePerformanceTargetUseCaseTest {
         targetCrudService,
         evaluationQueryService,
         evaluationCrudService,
-        Optional.of(new PerformanceTargetEvaluatorInMemory())
+        new PerformanceTargetEvaluatorInMemory()
     );
 
     @BeforeEach
@@ -109,18 +108,26 @@ class EvaluatePerformanceTargetUseCaseTest {
     }
 
     @Test
-    void should_fail_when_no_evaluator_is_available() {
-        var withoutEvaluator = new EvaluatePerformanceTargetUseCase(
-            targetCrudService,
-            evaluationQueryService,
-            evaluationCrudService,
-            Optional.empty()
-        );
+    void should_prune_the_history_of_the_target_beyond_the_retention() {
+        var history = IntStream.range(0, PerformanceTargetEvaluation.HISTORY_RETENTION)
+            .mapToObj(i ->
+                PerformanceTargetFixtures.anEvaluation(
+                    "old-" + i,
+                    TARGET_ID,
+                    PerformanceTargetEvaluation.Status.PASS,
+                    NOW.minus(Duration.ofHours(1)).minus(Duration.ofMinutes(5L * i))
+                )
+            )
+            .toList();
+        evaluationCrudService.initWith(history);
 
-        assertThatThrownBy(() ->
-            withoutEvaluator.execute(new EvaluatePerformanceTargetUseCase.Input(ENVIRONMENT_ID, TARGET_ID))
-        ).isInstanceOf(TechnicalDomainException.class);
-        assertThat(evaluationCrudService.storage()).isEmpty();
+        useCase.execute(new EvaluatePerformanceTargetUseCase.Input(ENVIRONMENT_ID, TARGET_ID));
+
+        assertThat(evaluationCrudService.storage())
+            .hasSize(PerformanceTargetEvaluation.HISTORY_RETENTION)
+            .extracting(PerformanceTargetEvaluation::id)
+            .contains("evaluation-id", "old-0")
+            .doesNotContain("old-" + (PerformanceTargetEvaluation.HISTORY_RETENTION - 1));
     }
 
     @Test

@@ -19,6 +19,7 @@ import io.gravitee.apim.core.performance_target.crud_service.PerformanceTargetEv
 import io.gravitee.apim.core.performance_target.model.PerformanceTargetEvaluation;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class PerformanceTargetEvaluationCrudServiceInMemory
@@ -35,6 +36,19 @@ public class PerformanceTargetEvaluationCrudServiceInMemory
         }
         storage.add(evaluation);
         return evaluation;
+    }
+
+    @Override
+    public List<String> pruneHistory(String targetId, int retention) {
+        var pruned = storage
+            .stream()
+            .filter(evaluation -> evaluation.targetId().equals(targetId))
+            .sorted(Comparator.comparing(PerformanceTargetEvaluation::evaluatedAt).reversed())
+            .skip(retention)
+            .map(PerformanceTargetEvaluation::id)
+            .toList();
+        storage.removeIf(evaluation -> pruned.contains(evaluation.id()));
+        return pruned;
     }
 
     @Override

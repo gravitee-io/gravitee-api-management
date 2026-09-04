@@ -16,7 +16,6 @@
 package io.gravitee.apim.core.performance_target.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.performance_target.crud_service.PerformanceTargetCrudService;
 import io.gravitee.apim.core.performance_target.crud_service.PerformanceTargetEvaluationCrudService;
 import io.gravitee.apim.core.performance_target.exception.PerformanceTargetEvaluatedTooRecentlyException;
@@ -27,13 +26,13 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Duration;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 /**
  * Evaluates a target on demand and stores the result as its latest evaluation, through the same evaluator as the
- * scheduler. A target is evaluated at most once per {@link #MIN_DELAY_BETWEEN_EVALUATIONS}, whoever triggered the
- * previous run, so a UI refresh cannot turn into a query storm.
+ * scheduler, then prunes the history beyond {@link PerformanceTargetEvaluation#HISTORY_RETENTION}. A target is
+ * evaluated at most once per {@link #MIN_DELAY_BETWEEN_EVALUATIONS}, whoever triggered the previous run, so a UI
+ * refresh cannot turn into a query storm.
  */
 @RequiredArgsConstructor
 @UseCase
@@ -44,8 +43,7 @@ public class EvaluatePerformanceTargetUseCase {
     private final PerformanceTargetCrudService performanceTargetCrudService;
     private final PerformanceTargetEvaluationQueryService performanceTargetEvaluationQueryService;
     private final PerformanceTargetEvaluationCrudService performanceTargetEvaluationCrudService;
-    // Optional until the evaluation engine lands: the REST contract ships first, the engine follows.
-    private final Optional<PerformanceTargetEvaluator> performanceTargetEvaluator;
+    private final PerformanceTargetEvaluator performanceTargetEvaluator;
 
     public Output execute(Input input) {
         var target = performanceTargetCrudService.get(input.environmentId(), input.targetId());
@@ -62,11 +60,10 @@ public class EvaluatePerformanceTargetUseCase {
                 throw new PerformanceTargetEvaluatedTooRecentlyException(target.id(), retryAfter);
             });
 
-        var evaluator = performanceTargetEvaluator.orElseThrow(() ->
-            new TechnicalDomainException("Performance target evaluation is not available")
-        );
-        var evaluation = evaluator.evaluate(target, now).toBuilder().id(UuidString.generateRandom()).latest(true).build();
-        return new Output(performanceTargetEvaluationCrudService.create(evaluation));
+        var evaluation = performanceTargetEvaluator.evaluate(target, now).toBuilder().id(UuidString.generateRandom()).latest(true).build();
+        var stored = performanceTargetEvaluationCrudService.create(evaluation);
+        performanceTargetEvaluationCrudService.pruneHistory(target.id(), PerformanceTargetEvaluation.HISTORY_RETENTION);
+        return new Output(stored);
     }
 
     public record Input(String environmentId, String targetId) {}

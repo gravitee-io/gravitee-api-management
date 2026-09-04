@@ -84,12 +84,53 @@ public record PerformanceTarget(
             apiTypes = apiTypes == null ? Set.of() : Set.copyOf(apiTypes);
             filters = filters == null ? List.of() : List.copyOf(filters);
         }
+
+        /**
+         * Judges {@code observed} against the threshold. Without a value, or with fewer samples than the target's
+         * minimum, the rule is NOT_EVALUABLE and reports no observed value, never a PASS.
+         */
+        public PerformanceTargetEvaluation.RuleResult evaluate(Double observed, long sampleCount, int minSampleSize) {
+            if (observed == null || sampleCount < minSampleSize) {
+                return new PerformanceTargetEvaluation.RuleResult(
+                    metric,
+                    measure,
+                    operator,
+                    threshold,
+                    null,
+                    null,
+                    sampleCount,
+                    PerformanceTargetEvaluation.Status.NOT_EVALUABLE
+                );
+            }
+            var status = operator.holds(observed, threshold)
+                ? PerformanceTargetEvaluation.Status.PASS
+                : PerformanceTargetEvaluation.Status.BREACH;
+            return new PerformanceTargetEvaluation.RuleResult(
+                metric,
+                measure,
+                operator,
+                threshold,
+                observed,
+                PerformanceTargetEvaluation.Deviation.of(observed, threshold),
+                sampleCount,
+                status
+            );
+        }
     }
 
     public enum Operator {
         LT,
         LTE,
         GT,
-        GTE,
+        GTE;
+
+        public boolean holds(double observed, double threshold) {
+            return switch (this) {
+                case LT -> observed < threshold;
+                case LTE -> observed <= threshold;
+                case GT -> observed > threshold;
+                case GTE -> observed >= threshold;
+            };
+        }
     }
 }

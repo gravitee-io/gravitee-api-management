@@ -48,6 +48,15 @@ public class PerformanceTargetEvaluationCrudServiceImpl extends AbstractService 
     }
 
     @Override
+    public List<String> pruneHistory(String targetId, int retention) {
+        try {
+            return evaluationRepository.pruneHistory(targetId, retention);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("Error when pruning Performance Target Evaluations of target: " + targetId, e);
+        }
+    }
+
+    @Override
     public List<String> deleteByReference(String environmentId, String reference) {
         try {
             return evaluationRepository.deleteByReference(environmentId, reference);

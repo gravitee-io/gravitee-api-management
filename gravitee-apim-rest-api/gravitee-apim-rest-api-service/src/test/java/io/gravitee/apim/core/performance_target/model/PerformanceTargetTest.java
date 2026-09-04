@@ -23,7 +23,10 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 class PerformanceTargetTest {
 
@@ -64,6 +67,96 @@ class PerformanceTargetTest {
         var rule = aRule(Set.of(ApiType.A2A_PROXY));
 
         assertThat(target.apiIdsFor(rule, Map.of("llm-api", ApiType.LLM_PROXY))).isEmpty();
+    }
+
+    @Nested
+    class Evaluate {
+
+        private final PerformanceTarget.Rule rule = aRule(Set.of());
+
+        @Test
+        void should_pass_when_the_observed_value_meets_the_threshold() {
+            var result = rule.evaluate(1500.0, 63, 20);
+
+            assertThat(result).isEqualTo(
+                new PerformanceTargetEvaluation.RuleResult(
+                    MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME,
+                    MetricSpec.Measure.P95,
+                    PerformanceTarget.Operator.LTE,
+                    2000,
+                    1500.0,
+                    new PerformanceTargetEvaluation.Deviation(-500, -0.25),
+                    63,
+                    PerformanceTargetEvaluation.Status.PASS
+                )
+            );
+        }
+
+        @Test
+        void should_breach_when_the_observed_value_misses_the_threshold() {
+            var result = rule.evaluate(4810.0, 63, 20);
+
+            assertThat(result.status()).isEqualTo(PerformanceTargetEvaluation.Status.BREACH);
+            assertThat(result.observed()).isEqualTo(4810.0);
+            assertThat(result.deviation()).isEqualTo(new PerformanceTargetEvaluation.Deviation(2810, 1.405));
+            assertThat(result.sampleCount()).isEqualTo(63);
+        }
+
+        @Test
+        void should_pass_when_the_observed_value_equals_an_inclusive_threshold() {
+            assertThat(rule.evaluate(2000.0, 63, 20).status()).isEqualTo(PerformanceTargetEvaluation.Status.PASS);
+        }
+
+        @Test
+        void should_not_be_evaluable_below_the_minimum_sample_size_even_with_an_observed_value() {
+            var result = rule.evaluate(4810.0, 19, 20);
+
+            assertThat(result.status()).isEqualTo(PerformanceTargetEvaluation.Status.NOT_EVALUABLE);
+            assertThat(result.observed()).isNull();
+            assertThat(result.deviation()).isNull();
+            assertThat(result.sampleCount()).isEqualTo(19);
+        }
+
+        @Test
+        void should_not_be_evaluable_without_an_observed_value() {
+            var result = rule.evaluate(null, 63, 20);
+
+            assertThat(result.status()).isEqualTo(PerformanceTargetEvaluation.Status.NOT_EVALUABLE);
+            assertThat(result.observed()).isNull();
+            assertThat(result.deviation()).isNull();
+            assertThat(result.sampleCount()).isEqualTo(63);
+        }
+
+        @Test
+        void should_evaluate_exactly_the_minimum_sample_size() {
+            assertThat(rule.evaluate(1500.0, 20, 20).status()).isEqualTo(PerformanceTargetEvaluation.Status.PASS);
+        }
+    }
+
+    @Nested
+    class OperatorHolds {
+
+        @ParameterizedTest
+        @CsvSource(
+            {
+                "LT, 1, 2, true",
+                "LT, 2, 2, false",
+                "LTE, 2, 2, true",
+                "LTE, 3, 2, false",
+                "GT, 3, 2, true",
+                "GT, 2, 2, false",
+                "GTE, 2, 2, true",
+                "GTE, 1, 2, false",
+            }
+        )
+        void should_compare_the_observed_value_to_the_threshold(
+            PerformanceTarget.Operator operator,
+            double observed,
+            double threshold,
+            boolean expected
+        ) {
+            assertThat(operator.holds(observed, threshold)).isEqualTo(expected);
+        }
     }
 
     private static PerformanceTarget.Rule aRule(Set<ApiType> apiTypes) {
