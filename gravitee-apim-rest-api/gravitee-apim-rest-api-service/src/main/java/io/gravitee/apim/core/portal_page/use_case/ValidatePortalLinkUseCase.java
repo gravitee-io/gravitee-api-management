@@ -94,7 +94,7 @@ public class ValidatePortalLinkUseCase {
                     .build();
                 navigationItemValidatorService.validateOne(toCreate, input.auditInfo().environmentId());
             }
-            if (portalAutomationScopeEnforcer.isDefaultPortal(input.auditInfo(), input.portalId())) {
+            if (portalAutomationScopeEnforcer.portalExistsInEnvironment(input.auditInfo(), input.portalId())) {
                 syncDomainService.validateForConflicts(input.auditInfo(), input.portalId().toString(), input.linkHrid(), input.location());
             }
         } catch (AbstractDomainException e) {

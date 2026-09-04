@@ -30,7 +30,12 @@ public class PortalAutomationScopeDomainService {
     private final PortalCrudService portalCrudService;
     private final PortalAutomationProperties properties;
 
-    public boolean isDefaultPortal(AuditInfo auditInfo, PortalId portalId) {
+    /**
+     * Whether a portal with this id is present in this environment — nothing about it being the
+     * environment's established or "default" one. Whether a <em>second</em> portal may exist at all is
+     * a separate rule, enforced by {@link #validate}.
+     */
+    public boolean portalExistsInEnvironment(AuditInfo auditInfo, PortalId portalId) {
         return portalCrudService.findByIdAndEnvironmentId(portalId, auditInfo.environmentId()).isPresent();
     }
 
