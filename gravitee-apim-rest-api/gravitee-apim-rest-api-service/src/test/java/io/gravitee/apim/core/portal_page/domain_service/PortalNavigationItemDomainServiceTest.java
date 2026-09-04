@@ -895,6 +895,36 @@ public class PortalNavigationItemDomainServiceTest {
         }
 
         @Test
+        void moving_a_console_root_reorders_portal_attached_root_links() {
+            // Completes the trio around create and delete: reordering an existing root has to see the
+            // whole rendered root list, which mixes a console root's PortalId.ZERO with a portal-attached
+            // link's own portal id.
+            var consoleRoot = PortalNavigationItemFixtures.aFolder("00000000-0000-0000-0000-0000000000e1", "Console Root", null);
+            var first = aRootLink("00000000-0000-0000-0000-0000000000e2", "Docs", 1);
+            var second = aRootLink("00000000-0000-0000-0000-0000000000e3", "Status", 2);
+            portalNavigationItemsCrudService.initWith(List.of(consoleRoot, first, second));
+            portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
+
+            var toUpdate = UpdatePortalNavigationItem.builder()
+                .order(2)
+                .title(consoleRoot.getTitle())
+                .visibility(consoleRoot.getVisibility())
+                .type(consoleRoot.getType())
+                .parentId(consoleRoot.getParentId())
+                .published(consoleRoot.getPublished())
+                .build();
+
+            var result = domainService.update(toUpdate, consoleRoot);
+
+            assertThat(result.getOrder()).isEqualTo(2);
+            var orders = portalNavigationItemsCrudService
+                .storage()
+                .stream()
+                .collect(Collectors.toMap(PortalNavigationItem::getId, PortalNavigationItem::getOrder));
+            assertThat(orders).containsEntry(first.getId(), 0).containsEntry(second.getId(), 1).containsEntry(consoleRoot.getId(), 2);
+        }
+
+        @Test
         void should_update_order_incrementing_order() {
             // Given
             PortalNavigationPage page1 = PortalNavigationItemFixtures.aPage("p1", null).toBuilder().order(0).build();
