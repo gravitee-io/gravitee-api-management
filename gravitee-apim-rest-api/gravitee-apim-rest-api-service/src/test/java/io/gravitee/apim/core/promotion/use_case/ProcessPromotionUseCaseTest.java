@@ -245,14 +245,13 @@ class ProcessPromotionUseCaseTest {
         promotionCrudService.initWith(List.of(PROMOTION));
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
-        var v4proxyApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).crossId(CROSS_ID).build();
-        var aleadyPromotedApi = ApiFixtures.aProxyApiV4()
+        var alreadyPromotedApi = ApiFixtures.aProxyApiV4()
             .toBuilder()
-            .id(API_ID)
+            .id("already-promoted-api")
             .crossId(CROSS_ID)
             .environmentId(ENVIRONMENT.getId())
             .build();
-        apiCrudServiceInMemory.initWith(List.of(v4proxyApi, aleadyPromotedApi));
+        apiCrudServiceInMemory.initWith(List.of(alreadyPromotedApi));
 
         when(cockpitPromotionServiceProvider.processPromotion(any(), any(), any())).thenReturn(CockpitReplyStatus.SUCCEEDED);
 
@@ -261,7 +260,7 @@ class ProcessPromotionUseCaseTest {
                 PROMOTION,
                 DefinitionVersion.V4,
                 true,
-                ApiFixtures.aProxyApiV4().toBuilder().id("already-promoted-api").crossId(CROSS_ID).environmentId(ENVIRONMENT_ID).build(),
+                alreadyPromotedApi,
                 ImportDefinition.builder().apiExport(ApiExport.builder().id(API_ID).crossId(CROSS_ID).build()).build(),
                 AUDIT
             )
@@ -656,14 +655,13 @@ class ProcessPromotionUseCaseTest {
         promotionCrudService.initWith(List.of(PROMOTION));
         environmentCrudService.initWith(List.of(ENVIRONMENT));
 
-        var v4proxyApi = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).crossId(CROSS_ID).build();
-        var aleadyPromotedApi = ApiFixtures.aProxyApiV4()
+        var alreadyPromotedApi = ApiFixtures.aProxyApiV4()
             .toBuilder()
-            .id(API_ID)
+            .id("already-promoted-api")
             .crossId(CROSS_ID)
             .environmentId(ENVIRONMENT.getId())
             .build();
-        apiCrudServiceInMemory.initWith(List.of(v4proxyApi, aleadyPromotedApi));
+        apiCrudServiceInMemory.initWith(List.of(alreadyPromotedApi));
 
         Throwable throwable = catchThrowable(() ->
             useCase.execute(
@@ -671,12 +669,7 @@ class ProcessPromotionUseCaseTest {
                     PROMOTION,
                     DefinitionVersion.V4,
                     true,
-                    ApiFixtures.aProxyApiV4()
-                        .toBuilder()
-                        .id("already-promoted-api")
-                        .crossId(CROSS_ID)
-                        .environmentId(ENVIRONMENT_ID)
-                        .build(),
+                    alreadyPromotedApi,
                     ImportDefinition.builder()
                         .apiExport(ApiExport.builder().id(API_ID).crossId(CROSS_ID).build())
                         .plans(Set.of(new PlanWithFlows()))

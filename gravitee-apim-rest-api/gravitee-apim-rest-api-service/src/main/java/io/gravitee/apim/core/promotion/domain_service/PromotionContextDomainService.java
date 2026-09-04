@@ -18,8 +18,6 @@ package io.gravitee.apim.core.promotion.domain_service;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
-import io.gravitee.apim.core.api.domain_service.ApiPathExtractor;
-import io.gravitee.apim.core.api.domain_service.ApiPathIndex;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
@@ -31,6 +29,7 @@ import io.gravitee.apim.core.promotion.model.Promotion;
 import io.gravitee.apim.core.promotion.model.PromotionStatus;
 import io.gravitee.apim.core.promotion.query_service.PromotionQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -221,10 +220,10 @@ public class PromotionContextDomainService {
      * confirmed this source API was already promoted here, so an unrelated API that merely happens to own the path
      * is never overwritten.
      *
-     * <p>{@link ApiPathIndex#scanPaths} reports overlapping (contained) paths, which is the right ambiguity check
-     * but the wrong identity check — {@code /orders} overlaps {@code /orders/v2}. After a unique overlap, the
-     * candidate must own every promoted path exactly (host + path). An ambiguous or inexact match is treated as
-     * no match — the promotion fails on the path conflict instead of guessing which API to overwrite.
+     * <p>Overlap (containment) is the ambiguity check — {@code /orders} overlaps {@code /orders/v2} — but not
+     * identity. After a unique overlap, the candidate must own every promoted path exactly (host + path). An
+     * ambiguous or inexact match is treated as no match — the promotion fails on the path conflict instead of
+     * guessing which API to overwrite.
      */
     private Optional<Api> findApiOwningTheContextPath(Promotion promotion, String targetEnvId) {
         var candidatePaths = extractPathsFromDefinition(promotion);
@@ -233,18 +232,18 @@ public class PromotionContextDomainService {
         }
 
         var pathsByApiId = new HashMap<String, List<Path>>();
-        try (var apis = searchPathBearingApis(targetEnvId)) {
-            apis.forEach(api -> {
-                var paths = ApiPathExtractor.extractPaths(api);
-                if (!paths.isEmpty()) {
-                    pathsByApiId.put(api.getId(), paths);
-                }
-            });
-        }
+        searchPathBearingApis(targetEnvId).forEach(api -> {
+            var paths = extractPaths(api);
+            if (!paths.isEmpty()) {
+                pathsByApiId.put(api.getId(), paths);
+            }
+        });
 
-        var conflictingApiIds = ApiPathIndex.scanPaths(pathsByApiId, null, candidatePaths)
+        var conflictingApiIds = pathsByApiId
+            .entrySet()
             .stream()
-            .map(ApiPathIndex.Conflict::apiId)
+            .filter(entry -> overlaps(entry.getValue(), candidatePaths))
+            .map(java.util.Map.Entry::getKey)
             .distinct()
             .toList();
 
@@ -273,6 +272,69 @@ public class PromotionContextDomainService {
         }
 
         return apiCrudService.findById(apiId);
+    }
+
+    /** Same containment rule as {@code VerifyApiPathDomainService}: either path string starts with the other. */
+    private static boolean overlaps(List<Path> existingPaths, List<Path> candidatePaths) {
+        return candidatePaths
+            .stream()
+            .anyMatch(candidate ->
+                pathsOnTheSameHost(existingPaths, candidate)
+                    .stream()
+                    .anyMatch(existingPath -> existingPath.startsWith(candidate.getPath()) || candidate.getPath().startsWith(existingPath))
+            );
+    }
+
+    private static List<String> pathsOnTheSameHost(List<Path> existingPaths, Path candidate) {
+        var candidateHasHost = candidate.getHost() != null && !candidate.getHost().isEmpty();
+        return existingPaths
+            .stream()
+            .filter(existing -> {
+                var existingHasHost = existing.getHost() != null && !existing.getHost().isEmpty();
+                return candidateHasHost ? existingHasHost && Objects.equals(existing.getHost(), candidate.getHost()) : !existingHasHost;
+            })
+            .map(Path::getPath)
+            .toList();
+    }
+
+    private static List<Path> extractPaths(Api api) {
+        return switch (api.getApiDefinitionValue()) {
+            case io.gravitee.definition.model.v4.Api v4Api -> Objects.requireNonNullElse(
+                v4Api.getListeners(),
+                List.<io.gravitee.definition.model.v4.listener.Listener>of()
+            )
+                .stream()
+                .flatMap(listener -> listener instanceof HttpListener httpListener ? Stream.of(httpListener) : Stream.of())
+                .flatMap(httpListener ->
+                    Objects.requireNonNullElse(httpListener.getPaths(), List.<io.gravitee.definition.model.v4.listener.http.Path>of())
+                        .stream()
+                        .map(path ->
+                            Path.builder()
+                                .host(path.getHost())
+                                .path(path.getPath())
+                                .overrideAccess(path.isOverrideAccess())
+                                .build()
+                                .sanitize()
+                        )
+                )
+                .toList();
+            case io.gravitee.definition.model.Api v2Api -> v2Api.getProxy() == null || v2Api.getProxy().getVirtualHosts() == null
+                ? List.of()
+                : v2Api
+                    .getProxy()
+                    .getVirtualHosts()
+                    .stream()
+                    .map(virtualHost ->
+                        Path.builder()
+                            .host(virtualHost.getHost())
+                            .path(virtualHost.getPath())
+                            .overrideAccess(virtualHost.isOverrideEntrypoint())
+                            .build()
+                            .sanitize()
+                    )
+                    .toList();
+            case null, default -> List.of();
+        };
     }
 
     /** Host + path only; {@code overrideAccess} is not part of identity. */

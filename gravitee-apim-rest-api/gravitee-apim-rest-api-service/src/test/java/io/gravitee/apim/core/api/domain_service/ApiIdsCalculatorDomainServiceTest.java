@@ -305,7 +305,7 @@ class ApiIdsCalculatorDomainServiceTest {
                 )
             );
             planQueryServiceInMemory.initWith(
-                List.of(buildPlanWithFlows("existing-plan-id", "a-plan-cross-id").toBuilder().referenceId(TARGET_API_ID).build())
+                List.of(buildPlanWithFlows("existing-plan-id", "a-plan-cross-id").toBuilder().apiId(TARGET_API_ID).build())
             );
         }
 

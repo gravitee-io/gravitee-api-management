@@ -196,9 +196,6 @@ public class PromotionServiceTest {
         verify(promotionRepository, times(1)).update(any());
     }
 
-<<<<<<< HEAD
-    @Test(expected = TechnicalManagementException.class)
-=======
     @Test
     public void shouldKeepTargetApiIdOfTheEntityWhenCreatingOrUpdating() throws TechnicalException {
         when(promotionRepository.findById(any())).thenReturn(Optional.empty());
@@ -240,8 +237,7 @@ public class PromotionServiceTest {
         verify(promotionRepository, times(1)).update(argThat(promotion -> "new-target-api".equals(promotion.getTargetApiId())));
     }
 
-    @Test
->>>>>>> f7d1a90 (fix: API promotion multi env not working)
+    @Test(expected = TechnicalManagementException.class)
     public void shouldNotCreateOrUpdateException() throws TechnicalException {
         when(promotionRepository.findById(any())).thenThrow(new TechnicalException());
 
