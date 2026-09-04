@@ -2587,6 +2587,7 @@ components:
           LINK: "#/components/schemas/CreatePortalNavigationLink"
           API:  "#/components/schemas/CreatePortalNavigationApi"
           API_PRODUCT: "#/components/schemas/CreatePortalNavigationApiProduct"
+          SUBSCRIPTION_FORM: "#/components/schemas/CreatePortalNavigationSubscriptionForm"
       required: [ title, type, area, visibility ]
     CreatePortalNavigationFolder:
       type: object
@@ -2665,6 +2666,18 @@ components:
                 format: uuid
               example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
           required: [ apiProductId ]
+    CreatePortalNavigationSubscriptionForm:
+      type: object
+      title: "CreatePortalNavigationSubscriptionForm"
+      description: Portal navigation subscription form to create. If portalPageContentId is not provided, default GRAVITEE_MARKDOWN content is created automatically (as for CreatePortalNavigationPage) — edit it afterwards through the portal-page-contents endpoints. Newly created forms are unpublished by default.
+      allOf:
+        - $ref: "#/components/schemas/BaseCreatePortalNavigationItem"
+        - properties:
+            portalPageContentId:
+              type: string
+              format: uuid
+              description: The UUID of an existing portal page content backing this subscription form. Must be of type GRAVITEE_MARKDOWN. If omitted, default content is created automatically.
+              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
     CreatePortalNavigationItem:
       oneOf:
         - $ref: "#/components/schemas/CreatePortalNavigationPage"
@@ -2672,6 +2685,7 @@ components:
         - $ref: "#/components/schemas/CreatePortalNavigationLink"
         - $ref: "#/components/schemas/CreatePortalNavigationApi"
         - $ref: "#/components/schemas/CreatePortalNavigationApiProduct"
+        - $ref: "#/components/schemas/CreatePortalNavigationSubscriptionForm"
 
       discriminator:
         propertyName: type
@@ -2681,6 +2695,7 @@ components:
           LINK: "#/components/schemas/CreatePortalNavigationLink"
           API: "#/components/schemas/CreatePortalNavigationApi"
           API_PRODUCT: "#/components/schemas/CreatePortalNavigationApiProduct"
+          SUBSCRIPTION_FORM: "#/components/schemas/CreatePortalNavigationSubscriptionForm"
 
     CreatePortalNavigationItems:
       type: object

@@ -23,7 +23,9 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstraints;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
@@ -31,6 +33,7 @@ import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApiPr
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationSubscriptionForm;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
 import io.gravitee.rest.api.management.v2.rest.model.PortalVisibility;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApi;
@@ -147,6 +150,36 @@ public class PortalNavigationItemsFixtures {
         var apiProduct = anUpdatePortalNavigationApiProduct();
         apiProduct.setCategoryIds(categoryIds);
         return apiProduct;
+    }
+
+    public static BaseCreatePortalNavigationItem aCreatePortalNavigationSubscriptionForm() {
+        var title = "Subscription Form";
+        var id = UUID.fromString("00000000-0000-0000-0000-000000000021");
+        var contentId = UUID.fromString("00000000-0000-0000-0000-000000000020");
+        return new CreatePortalNavigationSubscriptionForm()
+            .portalPageContentId(contentId)
+            .type(PortalNavigationItemType.SUBSCRIPTION_FORM)
+            .id(id)
+            .title(title)
+            .area(io.gravitee.rest.api.management.v2.rest.model.PortalArea.SUBSCRIPTION_FORM)
+            .order(0)
+            .visibility(PortalVisibility.PUBLIC);
+    }
+
+    public static PortalNavigationItem aPortalNavigationSubscriptionForm(String organizationId, String environmentId) {
+        return PortalNavigationSubscriptionForm.builder()
+            .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000021"))
+            .organizationId(organizationId)
+            .environmentId(environmentId)
+            .title("Subscription Form")
+            .segment(PortalNavigationItem.slugify("Subscription Form").value())
+            .area(PortalArea.SUBSCRIPTION_FORM)
+            .order(0)
+            .portalPageContentId(PortalPageContentId.of("00000000-0000-0000-0000-000000000020"))
+            .validationConstraints(SubscriptionFormFieldConstraints.empty())
+            .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC)
+            .published(false)
+            .build();
     }
 
     public static BaseCreatePortalNavigationItem aPrivateCreatePortalNavigationPage() {

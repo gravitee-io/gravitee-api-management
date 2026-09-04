@@ -34,6 +34,7 @@ import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApiPr
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationSubscriptionForm;
 import io.gravitee.rest.api.management.v2.rest.model.FetchPortalNavigationItemResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ImportPortalNavigationRequest;
 import io.gravitee.rest.api.management.v2.rest.model.ImportPortalNavigationResponse;
@@ -149,6 +150,13 @@ public interface PortalNavigationItemsMapper {
     @Mapping(target = "apiProductId", source = "apiProductId")
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(CreatePortalNavigationApiProduct apiProduct);
 
+    @Mapping(target = "contentType", constant = "GRAVITEE_MARKDOWN")
+    @Mapping(
+        target = "portalPageContentId",
+        expression = "java(subscriptionForm.getPortalPageContentId() == null ? null : io.gravitee.apim.core.portal_page.model.PortalPageContentId.of(subscriptionForm.getPortalPageContentId().toString()))"
+    )
+    io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(CreatePortalNavigationSubscriptionForm subscriptionForm);
+
     default io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
         BaseCreatePortalNavigationItem createPortalNavigationItem
     ) {
@@ -158,6 +166,7 @@ public interface PortalNavigationItemsMapper {
             case CreatePortalNavigationLink link -> map(link);
             case CreatePortalNavigationApi api -> map(api);
             case CreatePortalNavigationApiProduct apiProduct -> map(apiProduct);
+            case CreatePortalNavigationSubscriptionForm subscriptionForm -> map(subscriptionForm);
             default -> throw new TechnicalDomainException(
                 String.format("Unknown PortalNavigationItem class %s", createPortalNavigationItem.getClass().getSimpleName())
             );

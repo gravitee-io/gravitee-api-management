@@ -34,6 +34,7 @@ import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApiProduct;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationSubscriptionForm;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
 import io.gravitee.rest.api.management.v2.rest.model.PortalVisibility;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -314,6 +315,36 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
             .hasFieldOrPropertyWithValue("apiProductId", ((CreatePortalNavigationApiProduct) apiProduct).getApiProductId())
             .hasFieldOrPropertyWithValue("parentId", apiProduct.getParentId())
             .hasFieldOrPropertyWithValue("published", false);
+    }
+
+    @Test
+    void should_create_portal_navigation_subscription_form() {
+        // Given
+        final var subscriptionForm = PortalNavigationItemsFixtures.aCreatePortalNavigationSubscriptionForm();
+
+        final var output = PortalNavigationItemsFixtures.aPortalNavigationSubscriptionForm(ORGANIZATION, ENVIRONMENT);
+        when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
+
+        // When
+        Response response = target.request().post(json(subscriptionForm));
+
+        // Then
+        assertThat(response).hasStatus(CREATED_201);
+
+        final var item = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationSubscriptionForm.class);
+        assertThat(item)
+            .isNotNull()
+            .hasFieldOrPropertyWithValue("id", subscriptionForm.getId())
+            .hasFieldOrPropertyWithValue("title", subscriptionForm.getTitle())
+            .hasFieldOrPropertyWithValue("type", PortalNavigationItemType.SUBSCRIPTION_FORM)
+            .hasFieldOrPropertyWithValue(
+                "portalPageContentId",
+                ((CreatePortalNavigationSubscriptionForm) subscriptionForm).getPortalPageContentId()
+            )
+            .hasFieldOrPropertyWithValue("order", subscriptionForm.getOrder())
+            .hasFieldOrPropertyWithValue("area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.SUBSCRIPTION_FORM)
+            .hasFieldOrPropertyWithValue("published", false)
+            .hasFieldOrPropertyWithValue("visibility", io.gravitee.rest.api.management.v2.rest.model.PortalVisibility.PUBLIC);
     }
 
     @Test

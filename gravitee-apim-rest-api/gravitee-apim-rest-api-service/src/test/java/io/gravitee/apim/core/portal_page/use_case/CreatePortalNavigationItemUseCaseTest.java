@@ -49,6 +49,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
@@ -345,6 +346,36 @@ class CreatePortalNavigationItemUseCaseTest {
 
         // Then
         final var contentId = ((PortalNavigationPage) output.item()).getPortalPageContentId();
+        final var contents = pageContentCrudService.storage();
+        assertThat(contents)
+            .hasSize(numberOfContents + 1)
+            .anySatisfy(content -> {
+                assertThat(content.getId()).isEqualTo(contentId);
+                assertThat(content.getOrganizationId()).isEqualTo(ORG_ID);
+                assertThat(content.getEnvironmentId()).isEqualTo(ENV_ID);
+                assertThat(content).isInstanceOf(GraviteeMarkdownPageContent.class);
+                assertThat(((GraviteeMarkdownPageContent) content).getContent().value()).isEqualTo("default page content");
+            });
+    }
+
+    @Test
+    void should_create_default_subscription_form_content_when_content_id_is_null() {
+        // Given
+        final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+            .id(PortalNavigationItemId.random())
+            .type(PortalNavigationItemType.SUBSCRIPTION_FORM)
+            .title("Alternate Subscription Form")
+            .area(PortalArea.SUBSCRIPTION_FORM)
+            .order(0)
+            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+            .build();
+        final var numberOfContents = pageContentCrudService.storage().size();
+
+        // When
+        final var output = useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, createPortalNavigationItem));
+
+        // Then
+        final var contentId = ((PortalNavigationSubscriptionForm) output.item()).getPortalPageContentId();
         final var contents = pageContentCrudService.storage();
         assertThat(contents)
             .hasSize(numberOfContents + 1)
