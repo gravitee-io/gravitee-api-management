@@ -110,6 +110,9 @@ public interface PortalNavigationItemsQueryService {
             .map(PortalNavigationSubscriptionForm.class::cast)
             .filter(item -> Boolean.TRUE.equals(item.getPublished()))
             .toList();
-        return published.size() == 1 ? Optional.of(published.get(0)) : Optional.empty();
+        if (published.size() != 1) {
+            return Optional.empty();
+        }
+        return Optional.of(published.get(0));
     }
 }
