@@ -26,6 +26,7 @@ import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
@@ -35,6 +36,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
@@ -55,6 +57,11 @@ import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class PortalNavigationItemDomainServiceTest {
+
+    /** What PortalLinkSyncDomainService stamps on a portal-attached link: a real portal, never PortalId.ZERO. */
+    private static final NavigationItemReference A_PORTAL = new NavigationItemReference.PortalReference(
+        PortalId.of("11111111-1111-1111-1111-111111111111")
+    );
 
     private final PortalNavigationItemsCrudServiceInMemory portalNavigationItemsCrudService =
         new PortalNavigationItemsCrudServiceInMemory();
@@ -368,6 +375,42 @@ public class PortalNavigationItemDomainServiceTest {
 
             assertThat(created.getSegment()).isEqualTo("q-a-2");
         }
+
+        @Test
+        void should_append_suffix_when_a_portal_attached_root_link_already_holds_the_slug() {
+            var link = aRootLink("00000000-0000-0000-0000-0000000000c1", "Q&A", 0);
+            portalNavigationItemsCrudService.initWith(List.of(link));
+            portalNavigationItemsQueryService.initWith(List.of(link));
+
+            var toCreate = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.FOLDER)
+                .title("Q/A")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .build();
+
+            var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
+
+            assertThat(created.getSegment()).isEqualTo("q-a-2");
+        }
+
+        @Test
+        void should_place_a_new_root_after_portal_attached_root_links_when_no_order_is_given() {
+            var first = aRootLink("00000000-0000-0000-0000-0000000000c2", "Docs", 0);
+            var second = aRootLink("00000000-0000-0000-0000-0000000000c3", "Status", 1);
+            portalNavigationItemsCrudService.initWith(List.of(first, second));
+            portalNavigationItemsQueryService.initWith(List.of(first, second));
+
+            var toCreate = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.FOLDER)
+                .title("Guides")
+                .area(PortalArea.TOP_NAVBAR)
+                .build();
+
+            var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
+
+            assertThat(created.getOrder()).isEqualTo(2);
+        }
     }
 
     @Nested
@@ -470,6 +513,23 @@ public class PortalNavigationItemDomainServiceTest {
                 .collect(Collectors.toMap(PortalNavigationItem::getId, item -> item));
             assertThat(reloaded.get(apiRoot1.getId()).getOrder()).isEqualTo(1);
             assertThat(reloaded.get(apiRoot2.getId()).getOrder()).isEqualTo(2);
+        }
+
+        @Test
+        void deleting_a_console_root_reorders_portal_attached_root_links() {
+            var consoleRoot = PortalNavigationItemFixtures.aFolder("00000000-0000-0000-0000-0000000000d1", "Console Root", null);
+            var link = aRootLink("00000000-0000-0000-0000-0000000000d2", "Docs", 1);
+
+            portalNavigationItemsCrudService.initWith(List.of(consoleRoot, link));
+            portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
+
+            domainService.delete(consoleRoot);
+
+            var reloaded = portalNavigationItemsCrudService
+                .storage()
+                .stream()
+                .collect(Collectors.toMap(PortalNavigationItem::getId, item -> item));
+            assertThat(reloaded.get(link.getId()).getOrder()).isEqualTo(0);
         }
 
         @Test
@@ -1408,5 +1468,23 @@ public class PortalNavigationItemDomainServiceTest {
                 .containsEntry(childFolder.getId(), false)
                 .containsEntry(grandChildPage.getId(), false);
         }
+    }
+
+    private static PortalNavigationLink aRootLink(String id, String title, int order) {
+        var link = PortalNavigationLink.builder()
+            .id(PortalNavigationItemId.of(id))
+            .organizationId(PortalNavigationItemFixtures.ORG_ID)
+            .environmentId(PortalNavigationItemFixtures.ENV_ID)
+            .title(title)
+            .segment(PortalNavigationItem.slugify(title).value())
+            .area(PortalArea.TOP_NAVBAR)
+            .order(order)
+            .url("https://example.com")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .reference(A_PORTAL)
+            .build();
+        link.markAsRoot();
+        return link;
     }
 }

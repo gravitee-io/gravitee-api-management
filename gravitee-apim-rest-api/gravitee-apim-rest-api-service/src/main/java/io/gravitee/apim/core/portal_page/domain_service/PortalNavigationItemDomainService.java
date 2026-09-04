@@ -171,15 +171,27 @@ public class PortalNavigationItemDomainService {
         return crudService.update(page);
     }
 
+    /**
+     * At root level the sibling set must match what the navigation actually renders side by side, which
+     * is every root in the area except the API subtrees spliced in elsewhere — not the rows sharing an
+     * identical reference. The reference-scoped query cannot express that: it matches on exact
+     * (type, id), so it would split a console-authored root (PortalId.ZERO) from a portal-attached link
+     * (the portal's own id) even though both render in the same ordered list.
+     */
     private List<PortalNavigationItem> retrieveSiblingItems(
         PortalNavigationItemId parentId,
         String environmentId,
         PortalArea area,
         NavigationItemReference reference
     ) {
-        return parentId != null
-            ? queryService.findByParentIdAndEnvironmentId(environmentId, parentId)
-            : queryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(environmentId, area, reference);
+        if (parentId != null) {
+            return queryService.findByParentIdAndEnvironmentId(environmentId, parentId);
+        }
+        return queryService
+            .findTopLevelItemsByEnvironmentIdAndPortalArea(environmentId, area)
+            .stream()
+            .filter(item -> reference.sharesRootNamespaceWith(item.getReference()))
+            .toList();
     }
 
     public void delete(PortalNavigationItem item) {
