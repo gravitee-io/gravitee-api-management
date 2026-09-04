@@ -83,6 +83,7 @@ $outline-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80)
       gap: 8px;
       align-items: center;
       color: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, darker80);
+      margin: 0 15px;
 
       &__value {
         border-radius: 16px;
@@ -186,6 +187,23 @@ $outline-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80)
   openapi-editor {
     flex-grow: 1;
     min-height: 0;
+  }
+
+  .agent-terms-editor {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
+    gap: 8px;
+
+    &__label {
+      @include mat.m2-typography-level($typography, 'subtitle-2');
+    }
+
+    gmd-editor {
+      flex-grow: 1;
+      min-height: 0;
+    }
   }
 
   &__header {

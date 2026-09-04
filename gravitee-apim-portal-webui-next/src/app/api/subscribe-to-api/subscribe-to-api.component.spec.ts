@@ -39,6 +39,7 @@ import { fakeApplication, fakeApplicationsResponse } from '../../../entities/app
 import { Page } from '../../../entities/page/page';
 import { fakePage } from '../../../entities/page/page.fixtures';
 import { fakePlan } from '../../../entities/plan/plan.fixture';
+import { PortalPageContent } from '../../../entities/portal-navigation/portal-page-content';
 import { SubscriptionForm } from '../../../entities/portal/subscription-form';
 import {
   CreateSubscription,
@@ -74,7 +75,12 @@ describe('SubscribeToApiComponent', () => {
   const APP_ID_WITH_CLIENT_CERTIFICATE = 'app-id-with-client-certificate';
   const CONFIGURATION_KAFKA_SASL_MECHANISMS = '[PLAIN, SCRAM-SHA-256, SCRAM-SHA-512]';
 
-  const init = async (sharedApiKeyModeEnabled: boolean, api: Api = API, subscriptionForm: SubscriptionForm | null = null) => {
+  const init = async (
+    sharedApiKeyModeEnabled: boolean,
+    api: Api = API,
+    subscriptionForm: SubscriptionForm | null = null,
+    agentTerms: PortalPageContent | null = null,
+  ) => {
     await TestBed.configureTestingModule({
       imports: [SubscribeToApiComponent, AppTestingModule],
       providers: [
@@ -106,6 +112,9 @@ describe('SubscribeToApiComponent', () => {
     fixture.detectChanges();
 
     expectGetSubscriptionForm(subscriptionForm);
+    if (api.type === 'A2A_PROXY') {
+      expectGetAgentTermsAndConditions(agentTerms);
+    }
     httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/${API_ID}/plans?size=-1`).flush({
       data: [
         fakePlan({ id: KEYLESS_PLAN_ID, security: 'KEY_LESS' }),
@@ -1202,6 +1211,89 @@ describe('SubscribeToApiComponent', () => {
     });
   });
 
+  describe('Agent subscription', () => {
+    const AGENT_API = fakeApi({ id: API_ID, type: 'A2A_PROXY', entrypoints: [ENTRYPOINT] });
+    const AGENT_TERMS: PortalPageContent = {
+      type: 'GRAVITEE_MARKDOWN',
+      content: 'By using this agent you agree to the usage policy.',
+    };
+
+    describe('terms and conditions', () => {
+      it('should show terms on review and disable subscribe until accepted', async () => {
+        await init(false, AGENT_API, null, AGENT_TERMS);
+        await selectAgentPlanAndAutoSelectApplication(API_KEY_PLAN_ID);
+
+        expect(getTitle()).toEqual('Review');
+        const checkout = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+        expect(await checkout.isAgentTermsVisible()).toEqual(true);
+
+        const subscribeButton = await getSubscribeButton();
+        expect(await subscribeButton?.isDisabled()).toEqual(true);
+
+        await checkout.acceptAgentTerms();
+        expect(await subscribeButton?.isDisabled()).toEqual(false);
+      });
+
+      it('should subscribe after accepting agent terms without opening the plan terms dialog', async () => {
+        await init(false, AGENT_API, null, AGENT_TERMS);
+        await selectAgentPlanAndAutoSelectApplication(API_KEY_PLAN_ID_GENERAL_CONDITIONS);
+
+        const checkout = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+        await checkout.acceptAgentTerms();
+
+        const subscribeButton = await getSubscribeButton();
+        await subscribeButton?.click();
+
+        const page = fakePage({
+          id: GENERAL_CONDITIONS_ID,
+          content: 'cats rule',
+          type: 'MARKDOWN',
+          contentRevisionId: { revision: 2, pageId: GENERAL_CONDITIONS_ID },
+        });
+        expectGetPage(page);
+
+        expectPostCreateSubscription({
+          plan: API_KEY_PLAN_ID_GENERAL_CONDITIONS,
+          application: APP_ID,
+          general_conditions_accepted: true,
+          general_conditions_content_revision: page.contentRevisionId,
+        });
+
+        const dialog = await rootHarnessLoader.getHarnessOrNull(TermsAndConditionsDialogHarness);
+        expect(dialog).toBeNull();
+      });
+    });
+
+    describe('auto-select application', () => {
+      it('should skip the application step when there is a single eligible application', async () => {
+        await init(false, AGENT_API);
+        await selectAgentPlanAndAutoSelectApplication(API_KEY_PLAN_ID);
+        expect(getTitle()).toEqual('Review');
+      });
+
+      it('should keep the application step when more than one application exists', async () => {
+        await init(false, AGENT_API);
+        const step1 = await harnessLoader.getHarness(SubscribeToApiChoosePlanHarness);
+        await step1.selectPlanByPlanId(API_KEY_PLAN_ID);
+        fixture.detectChanges();
+        expectGetSubscriptionsForApi(API_ID);
+        expectGetApplications(
+          1,
+          fakeApplicationsResponse({
+            data: [fakeApplication({ id: APP_ID, name: 'App 1' }), fakeApplication({ id: APP_ID_NO_SUBSCRIPTIONS, name: 'App 2' })],
+            metadata: {
+              pagination: { current_page: 1, first: 1, last: 2, size: 2, total: 2, total_pages: 1 },
+            },
+          }),
+        );
+        fixture.detectChanges();
+        await goToNextStep();
+        fixture.detectChanges();
+        expect(getTitle()).toEqual('Choose an application');
+      });
+    });
+  });
+
   function expectGetSubscriptionsForApi(apiId: string, subscriptions: SubscriptionsResponse = fakeSubscriptionResponse({ data: [] })) {
     httpTestingController
       .expectOne(req => {
@@ -1244,6 +1336,15 @@ describe('SubscribeToApiComponent', () => {
     const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/${API_ID}/subscription-form`);
     if (subscriptionForm) {
       req.flush(subscriptionForm);
+    } else {
+      req.flush(null, { status: 404, statusText: 'Not Found' });
+    }
+  }
+
+  function expectGetAgentTermsAndConditions(terms: PortalPageContent | null) {
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/${API_ID}/terms-and-conditions`);
+    if (terms) {
+      req.flush(terms);
     } else {
       req.flush(null, { status: 404, statusText: 'Not Found' });
     }
@@ -1320,5 +1421,31 @@ describe('SubscribeToApiComponent', () => {
     const application = await harnessLoader.getHarness(RadioCardHarness.with({ title: appId }));
     await application.select();
     await goToNextStep();
+  }
+
+  async function selectAgentPlanAndAutoSelectApplication(planId: string): Promise<void> {
+    const step1 = await harnessLoader.getHarness(SubscribeToApiChoosePlanHarness);
+    await step1.selectPlanByPlanId(planId);
+    fixture.detectChanges();
+    expectGetSubscriptionsForApi(API_ID);
+    expectGetApplications(
+      1,
+      fakeApplicationsResponse({
+        data: [fakeApplication({ id: APP_ID, name: 'App 1' })],
+        metadata: {
+          pagination: {
+            current_page: 1,
+            first: 1,
+            last: 1,
+            size: 1,
+            total: 1,
+            total_pages: 1,
+          },
+        },
+      }),
+    );
+    fixture.detectChanges();
+    await goToNextStep();
+    fixture.detectChanges();
   }
 });

@@ -76,6 +76,26 @@ public interface PortalNavigationItemMapper {
     io.gravitee.rest.api.portal.rest.model.PortalNavigationApiProduct map(PortalNavigationApiProduct apiProduct);
     io.gravitee.rest.api.portal.rest.model.PortalNavigationAgent map(PortalNavigationAgent agent);
 
+    default UUID mapPortalPageContentIdToUuid(PortalPageContentId portalPageContentId) {
+        return portalPageContentId == null ? null : portalPageContentId.id();
+    }
+
+    default io.gravitee.rest.api.portal.rest.model.PortalPageContent map(PortalPageContent<?> content) {
+        if (content == null) {
+            return null;
+        }
+        var dto = new io.gravitee.rest.api.portal.rest.model.PortalPageContent();
+        dto.setContent(extractContent(content));
+        dto.setType(
+            switch (content) {
+                case GraviteeMarkdownPageContent ignored -> io.gravitee.rest.api.portal.rest.model.PortalPageContentType.GRAVITEE_MARKDOWN;
+                case OpenApiPageContent ignored -> io.gravitee.rest.api.portal.rest.model.PortalPageContentType.OPENAPI;
+                case AsyncApiPageContent ignored -> io.gravitee.rest.api.portal.rest.model.PortalPageContentType.ASYNCAPI;
+            }
+        );
+        return dto;
+    }
+
     @Mapping(source = "value", target = "content")
     default String extractContent(PortalPageContent<?> content) {
         return switch (content) {

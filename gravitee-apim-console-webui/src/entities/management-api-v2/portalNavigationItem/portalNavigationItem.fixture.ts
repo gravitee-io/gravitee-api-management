@@ -168,6 +168,8 @@ export function fakePortalNavigationAgent(overrides?: Partial<PortalNavigationAg
     order: 1,
     area: 'TOP_NAVBAR',
     agentId: 'agent-1',
+    termsAndConditionsPageContentId: 'agent-terms-content-1',
+    termsAndConditionsEnabled: true,
     published: false,
     visibility: 'PUBLIC',
     categoryIds: [],

@@ -1180,9 +1180,15 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             assertThat(created.isPublished()).isTrue();
 
             created.setTitle("Updated Agent");
+            created.setConfiguration(
+                "{\"termsAndConditionsEnabled\":true,\"termsAndConditionsPageContentId\":\"550e8400-e29b-41d4-a716-446655440099\"}"
+            );
             PortalNavigationItem updated = portalNavigationItemRepository.update(created);
             assertThat(updated.getTitle()).isEqualTo("Updated Agent");
             assertThat(updated.getAgentId()).isEqualTo("a2a-proxy-api-id-1");
+            assertThat(updated.getConfiguration()).isEqualTo(
+                "{\"termsAndConditionsEnabled\":true,\"termsAndConditionsPageContentId\":\"550e8400-e29b-41d4-a716-446655440099\"}"
+            );
 
             var found = portalNavigationItemRepository.findById(item.getId());
             assertThat(found).isPresent();

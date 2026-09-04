@@ -72,6 +72,8 @@ export interface PortalNavigationApiProduct extends BasePortalNavigationItem<'AP
 
 export interface PortalNavigationAgent extends BasePortalNavigationItem<'AGENT'> {
   agentId: string;
+  termsAndConditionsPageContentId?: string;
+  termsAndConditionsEnabled?: boolean;
   categoryIds?: string[];
 }
 
@@ -246,6 +248,7 @@ export interface UpdateApiProductPortalNavigationItem extends BaseUpdatePortalNa
 
 export interface UpdateAgentPortalNavigationItem extends BaseUpdatePortalNavigationItem<'AGENT'> {
   categoryIds?: string[];
+  termsAndConditionsEnabled?: boolean;
 }
 
 export type UpdatePortalNavigationItem =

@@ -22,7 +22,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, catchError, combineLatestWith, EMPTY, map, Observable, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, catchError, combineLatestWith, EMPTY, map, Observable, shareReplay, switchMap, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { GMD_FORM_STATE_STORE, provideGmdFormStore } from '@gravitee/gravitee-markdown';
@@ -47,6 +47,7 @@ import { Api } from '../../../entities/api/api';
 import { Application, ApplicationsResponse } from '../../../entities/application/application';
 import { Page } from '../../../entities/page/page';
 import { Plan } from '../../../entities/plan/plan';
+import { PortalPageContent } from '../../../entities/portal-navigation/portal-page-content';
 import { SubscriptionForm } from '../../../entities/portal/subscription-form';
 import { SubscriptionConsumerConfiguration } from '../../../entities/subscription';
 import { CreateSubscription, Subscription } from '../../../entities/subscription/subscription';
@@ -118,13 +119,17 @@ export class SubscribeToApiComponent implements OnInit {
   currentStep = signal<SubscribeStep>(SubscribeStep.PLAN_SELECTION);
   currentPlan = signal<Plan | undefined>(undefined);
   currentApplication = signal<Application | undefined>(undefined);
+  autoSelectedApplication = signal(false);
+  agentTermsAccepted = signal(false);
 
   activeSteps = computed<SubscribeStep[]>(() => {
     const plan = this.currentPlan();
     const steps: SubscribeStep[] = [SubscribeStep.PLAN_SELECTION];
 
     if (plan?.security !== 'KEY_LESS') {
-      steps.push(SubscribeStep.APP_SELECTION);
+      if (!(this.api().type === 'A2A_PROXY' && this.autoSelectedApplication())) {
+        steps.push(SubscribeStep.APP_SELECTION);
+      }
       if (plan?.mode === 'PUSH') {
         steps.push(SubscribeStep.PUSH_DETAILS);
       }
@@ -150,12 +155,19 @@ export class SubscribeToApiComponent implements OnInit {
     ),
     { initialValue: null },
   );
+  agentTermsAndConditions = toSignal(
+    toObservable(this.api).pipe(
+      switchMap(api => (api.type === 'A2A_PROXY' ? this.portalService.getAgentTermsAndConditions(api.id) : of(null))),
+    ),
+    { initialValue: null as PortalPageContent | null },
+  );
   hasSubscriptionError = false;
   consumerConfigurationFormData = signal<ConsumerConfigurationFormData>({ value: undefined, isValid: false });
   plans$: Observable<Plan[]> = of();
   applicationsData$: Observable<ApplicationsData> = of();
   checkoutData$: Observable<CheckoutData> = of();
   currentApplication$ = toObservable(this.currentApplication);
+  private readonly currentPlan$ = toObservable(this.currentPlan);
 
   formValues = computed(() => {
     const values = this.store.fieldValues();
@@ -174,6 +186,9 @@ export class SubscribeToApiComponent implements OnInit {
         if (this.showApiKeyModeSelection() && !this.applicationApiKeyMode()) {
           return true;
         }
+        if (this.agentTermsAndConditions()?.content && !this.agentTermsAccepted()) {
+          return true;
+        }
         const showSubscriptionForm = this.subscriptionForm()?.gmdContent && this.currentPlan()?.security !== 'KEY_LESS';
         return showSubscriptionForm ? !this.formIsValid() : false;
       }
@@ -188,13 +203,29 @@ export class SubscribeToApiComponent implements OnInit {
       catchError(_ => of([])),
     );
 
-    this.applicationsData$ = this.subscriptionService.list({ apiIds: [this.api().id], statuses: ['PENDING', 'ACCEPTED'], size: -1 }).pipe(
-      combineLatestWith(this.currentApplicationsPage, this.currentApplicationsPageSize),
-      switchMap(([subscriptions, page, pageSize]) => this.getApplicationsData$(page, pageSize, subscriptions)),
+    this.applicationsData$ = this.currentPlan$.pipe(
+      switchMap(plan => {
+        if (this.api().type === 'A2A_PROXY' && !plan) {
+          return of({
+            applications: [],
+            pagination: { currentPage: 0, totalApplications: 0, pageSize: this.currentApplicationsPageSize.value },
+          });
+        }
+        return this.subscriptionService.list({ apiIds: [this.api().id], statuses: ['PENDING', 'ACCEPTED'], size: -1 }).pipe(
+          combineLatestWith(this.currentApplicationsPage, this.currentApplicationsPageSize),
+          switchMap(([subscriptions, page, pageSize]) => this.getApplicationsData$(page, pageSize, subscriptions)),
+        );
+      }),
+      tap(data => this.maybeAutoSelectApplication(data)),
       catchError(_ =>
         of({ applications: [], pagination: { currentPage: 0, totalApplications: 0, pageSize: DEFAULT_APPLICATIONS_PAGE_SIZE } }),
       ),
+      shareReplay({ bufferSize: 1, refCount: true }),
     );
+
+    if (this.api().type === 'A2A_PROXY') {
+      this.applicationsData$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+    }
 
     this.checkoutData$ = this.handleCheckoutData$(this.api()).pipe(
       tap(({ applicationApiKeySubscriptions }) => {
@@ -325,8 +356,42 @@ export class SubscribeToApiComponent implements OnInit {
     );
   }
 
+  private maybeAutoSelectApplication(data: ApplicationsData): void {
+    if (this.api().type !== 'A2A_PROXY' || !this.currentPlan() || this.currentPlan()?.security === 'KEY_LESS') {
+      this.autoSelectedApplication.set(false);
+      return;
+    }
+
+    const singleApp = data.pagination.totalApplications === 1 ? data.applications[0] : undefined;
+    if (singleApp && !singleApp.disabled) {
+      this.currentApplication.set(singleApp);
+      this.autoSelectedApplication.set(true);
+      if (this.currentStep() === SubscribeStep.APP_SELECTION) {
+        this.goToNextStep();
+      }
+      return;
+    }
+
+    this.autoSelectedApplication.set(false);
+  }
+
   private handleTermsAndConditions$(createSubscription: CreateSubscription): Observable<CreateSubscription> {
     const generalConditionsPageId = this.currentPlan()?.general_conditions;
+    const agentTermsAccepted = !!this.agentTermsAndConditions()?.content && this.agentTermsAccepted();
+
+    if (agentTermsAccepted) {
+      if (!generalConditionsPageId) {
+        return of(createSubscription);
+      }
+      return this.pageService.getByApiIdAndId(this.api().id, generalConditionsPageId, true).pipe(
+        map(page => ({
+          ...createSubscription,
+          general_conditions_accepted: true,
+          general_conditions_content_revision: page.contentRevisionId,
+        })),
+      );
+    }
+
     if (generalConditionsPageId) {
       return this.pageService
         .getByApiIdAndId(this.api().id, generalConditionsPageId, true)

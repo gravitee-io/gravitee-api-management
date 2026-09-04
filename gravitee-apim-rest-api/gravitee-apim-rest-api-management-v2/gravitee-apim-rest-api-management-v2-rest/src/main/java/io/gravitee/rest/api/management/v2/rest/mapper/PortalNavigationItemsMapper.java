@@ -96,6 +96,10 @@ public interface PortalNavigationItemsMapper {
     @Mapping(target = "type", constant = "AGENT")
     @Mapping(target = "agentId", source = "agentId")
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "portalNavigationItemIdToUuid")
+    @Mapping(
+        target = "termsAndConditionsPageContentId",
+        expression = "java(agent.getTermsAndConditionsPageContentId() == null ? null : agent.getTermsAndConditionsPageContentId().id())"
+    )
     io.gravitee.rest.api.management.v2.rest.model.PortalNavigationAgent map(
         io.gravitee.apim.core.portal_page.model.PortalNavigationAgent agent
     );

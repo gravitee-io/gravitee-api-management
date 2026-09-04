@@ -268,6 +268,10 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   readonly selectedNavigationItemIsPublished: Signal<boolean> = computed(() => {
     return this.selectedNavigationItem()?.data?.published ?? false;
   });
+  readonly isAgentTermsEnabled: Signal<boolean> = computed(() => {
+    const navItem = this.selectedNavigationItem()?.data;
+    return navItem?.type === 'AGENT' ? (navItem.termsAndConditionsEnabled ?? true) : true;
+  });
 
   // --- External source state ---
   readonly selectedItemSource: Signal<PortalNavigationItemSource | null> = computed(() => {
@@ -640,7 +644,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         }),
         switchMap(node => {
           const navItem = node?.data;
-          if (!navItem || navItem.type !== 'PAGE') {
+          if (!navItem || (navItem.type !== 'PAGE' && navItem.type !== 'AGENT')) {
             this.contentControl.reset('');
             this.initialContent.set('');
             this.currentPageContentType.set(null);
@@ -648,8 +652,17 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
             return of(null);
           }
 
+          const contentId = navItem.type === 'PAGE' ? navItem.portalPageContentId : navItem.termsAndConditionsPageContentId;
+          if (!contentId) {
+            this.contentControl.reset('');
+            this.initialContent.set('');
+            this.currentPageContentType.set('GRAVITEE_MARKDOWN');
+            this.contentControl.updateValueAndValidity();
+            return of(null);
+          }
+
           this.isLoadingPageContent.set(true);
-          return this.loadPageContent((navItem as PortalNavigationPage).portalPageContentId);
+          return this.loadPageContent(contentId);
         }),
         filter(result => result !== null),
         takeUntilDestroyed(this.destroyRef),
@@ -970,32 +983,46 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   protected onSave() {
     const navItem = this.selectedNavigationItem().data;
-
-    if (navItem && navItem.type === 'PAGE') {
-      if (!this.validateAsyncApiSpec()) {
-        return;
-      }
-
-      const pageId = navItem.portalPageContentId;
-      this.portalPageContentService
-        .updatePageContent(pageId, { content: this.contentControl.value })
-        .pipe(
-          map(({ content }) => content),
-          catchError(error => {
-            // HTTP errors are already caught by HttpErrorInterceptor and displayed in the snackbar.
-            // Suppress here to avoid replacing a specific backend message with a generic one.
-            if (!(error instanceof HttpErrorResponse)) {
-              this.snackBarService.error('Failed to update page content');
-            }
-            return EMPTY;
-          }),
-          takeUntilDestroyed(this.destroyRef),
-        )
-        .subscribe(content => {
-          this.contentControl.reset(content);
-          this.initialContent.set(content);
-        });
+    const contentId = this.contentIdOf(navItem);
+    if (!navItem || !contentId) {
+      return;
     }
+
+    if (navItem.type === 'PAGE' && !this.validateAsyncApiSpec()) {
+      return;
+    }
+
+    this.portalPageContentService
+      .updatePageContent(contentId, { content: this.contentControl.value })
+      .pipe(
+        map(({ content }) => content),
+        catchError(error => {
+          // HTTP errors are already caught by HttpErrorInterceptor and displayed in the snackbar.
+          // Suppress here to avoid replacing a specific backend message with a generic one.
+          if (!(error instanceof HttpErrorResponse)) {
+            this.snackBarService.error('Failed to update page content');
+          }
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(content => {
+        this.contentControl.reset(content);
+        this.initialContent.set(content);
+      });
+  }
+
+  private contentIdOf(navItem: PortalNavigationItem | undefined): string | undefined {
+    if (!navItem) {
+      return undefined;
+    }
+    if (navItem.type === 'PAGE') {
+      return navItem.portalPageContentId;
+    }
+    if (navItem.type === 'AGENT') {
+      return navItem.termsAndConditionsPageContentId;
+    }
+    return undefined;
   }
 
   private validateAsyncApiSpec(): boolean {
@@ -1077,6 +1104,26 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   onPublishToggle() {
     this.checkUnsavedChangesAndRun(() => this.handlePublishToggle(this.selectedNavigationItem()!.data));
+  }
+
+  onTermsEnabledToggle(enabled: boolean) {
+    const navItem = this.selectedNavigationItem()?.data;
+    if (!navItem || navItem.type !== 'AGENT') {
+      return;
+    }
+
+    this.update(navItem.id, this.createAgentUpdateItem(navItem, { termsAndConditionsEnabled: enabled }))
+      .pipe(
+        tap(() => this.refreshMenuList.next(1)),
+        catchError(error => {
+          if (!(error instanceof HttpErrorResponse)) {
+            this.snackBarService.error('Failed to update terms and conditions visibility');
+          }
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   onFetchNow() {
@@ -1323,18 +1370,31 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     }
 
     if (navItem.type === 'AGENT') {
-      return {
-        title: navItem.title,
-        type: 'AGENT',
-        parentId: navItem.parentId,
-        order: navItem.order,
-        published: !navItem.published,
-        visibility: navItem.visibility,
-        categoryIds: navItem.categoryIds,
-      };
+      return this.createAgentUpdateItem(navItem, { published: !navItem.published });
     }
 
     return { ...navItem, published: !navItem.published };
+  }
+
+  private createAgentUpdateItem(
+    navItem: PortalNavigationAgent,
+    overrides: Partial<{
+      published: boolean;
+      parentId: string | undefined;
+      order: number;
+      termsAndConditionsEnabled: boolean;
+    }> = {},
+  ): UpdatePortalNavigationItem {
+    return {
+      title: navItem.title,
+      type: 'AGENT',
+      parentId: 'parentId' in overrides ? overrides.parentId : navItem.parentId,
+      order: overrides.order ?? navItem.order,
+      published: overrides.published ?? navItem.published,
+      visibility: navItem.visibility,
+      categoryIds: navItem.categoryIds,
+      termsAndConditionsEnabled: overrides.termsAndConditionsEnabled ?? navItem.termsAndConditionsEnabled,
+    };
   }
 
   private confirmDeleteAction(event: NodeMenuActionEvent) {
@@ -1429,15 +1489,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
             order: newOrder,
           }
         : navItem.type === 'AGENT'
-          ? {
-              title: navItem.title,
-              type: 'AGENT',
-              published: navItem.published,
-              visibility: navItem.visibility,
-              categoryIds: navItem.categoryIds,
-              parentId: newParentId ?? undefined,
-              order: newOrder,
-            }
+          ? this.createAgentUpdateItem(navItem, { parentId: newParentId ?? undefined, order: newOrder })
           : {
               title: navItem.title,
               type: navItem.type,

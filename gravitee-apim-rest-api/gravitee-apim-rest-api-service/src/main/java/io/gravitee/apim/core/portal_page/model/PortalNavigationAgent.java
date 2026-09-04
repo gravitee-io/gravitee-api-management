@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.model;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import lombok.Builder;
@@ -34,6 +35,14 @@ public final class PortalNavigationAgent extends PortalNavigationItem implements
     @Setter
     @Nonnull
     private String agentId;
+
+    @Setter
+    @Nullable
+    private PortalPageContentId termsAndConditionsPageContentId;
+
+    @Setter
+    @Builder.Default
+    private boolean termsAndConditionsEnabled = true;
 
     @Builder.Default
     @Nonnull
@@ -65,6 +74,9 @@ public final class PortalNavigationAgent extends PortalNavigationItem implements
     public void update(UpdatePortalNavigationItem navItem) {
         super.update(navItem);
         this.categoryIds = normalizeCategoryIds(navItem.getCategoryIds());
+        if (navItem.getTermsAndConditionsEnabled() != null) {
+            this.termsAndConditionsEnabled = navItem.getTermsAndConditionsEnabled();
+        }
     }
 
     private static List<PortalCategoryId> normalizeCategoryIds(List<PortalCategoryId> categoryIds) {

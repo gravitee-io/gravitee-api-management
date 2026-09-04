@@ -35,6 +35,8 @@ public interface PortalNavigationItemAdapter {
 
     com.fasterxml.jackson.databind.ObjectMapper OBJECT_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper();
     String PORTAL_PAGE_CONTENT_ID = "portalPageContentId";
+    String TERMS_AND_CONDITIONS_ENABLED = "termsAndConditionsEnabled";
+    String TERMS_AND_CONDITIONS_PAGE_CONTENT_ID = "termsAndConditionsPageContentId";
     String URL = "url";
     String SOURCE = "source";
     String SOURCE_TYPE = "type";
@@ -111,6 +113,11 @@ public interface PortalNavigationItemAdapter {
         target = "automationMetadata",
         expression = "java(automationMetadataFromRepository(portalNavigationItem.getAutomationMetadata()))"
     )
+    @Mapping(
+        target = "termsAndConditionsPageContentId",
+        expression = "java(parseTermsAndConditionsPageContentId(portalNavigationItem.getConfiguration()))"
+    )
+    @Mapping(target = "termsAndConditionsEnabled", expression = "java(parseTermsAndConditionsEnabled(portalNavigationItem.getConfiguration()))")
     PortalNavigationAgent portalNavigationAgentFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
@@ -255,7 +262,12 @@ public interface PortalNavigationItemAdapter {
                 case PortalNavigationFolder folder -> writeSource(config, folder.getSource());
                 case PortalNavigationApi ignored -> {}
                 case PortalNavigationApiProduct ignored -> {}
-                case PortalNavigationAgent ignored -> {}
+                case PortalNavigationAgent agent -> {
+                    config.put(TERMS_AND_CONDITIONS_ENABLED, agent.isTermsAndConditionsEnabled());
+                    if (agent.getTermsAndConditionsPageContentId() != null) {
+                        config.put(TERMS_AND_CONDITIONS_PAGE_CONTENT_ID, agent.getTermsAndConditionsPageContentId().json());
+                    }
+                }
             }
             return OBJECT_MAPPER.writeValueAsString(config);
         } catch (Exception e) {
@@ -297,6 +309,32 @@ public interface PortalNavigationItemAdapter {
             return PortalPageContentId.of(node.get(PORTAL_PAGE_CONTENT_ID).asText());
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid configuration for PortalNavigationItem PAGE type", e);
+        }
+    }
+
+    default boolean parseTermsAndConditionsEnabled(String configuration) {
+        if (configuration == null || configuration.isEmpty()) {
+            return true;
+        }
+        try {
+            return OBJECT_MAPPER.readTree(configuration).path(TERMS_AND_CONDITIONS_ENABLED).asBoolean(true);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid configuration for PortalNavigationItem AGENT type", e);
+        }
+    }
+
+    default PortalPageContentId parseTermsAndConditionsPageContentId(String configuration) {
+        if (configuration == null || configuration.isEmpty()) {
+            return null;
+        }
+        try {
+            var node = OBJECT_MAPPER.readTree(configuration).get(TERMS_AND_CONDITIONS_PAGE_CONTENT_ID);
+            if (node == null || node.isNull() || !StringUtils.hasText(node.asText())) {
+                return null;
+            }
+            return PortalPageContentId.of(node.asText());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid configuration for PortalNavigationItem AGENT type", e);
         }
     }
 
@@ -412,6 +450,17 @@ public interface PortalNavigationItemAdapter {
 
     @Mapping(source = "area", target = "portalArea")
     io.gravitee.repository.management.api.search.PortalNavigationItemCriteria map(PortalNavigationItemQueryCriteria criteria);
+
+    default PortalPageContentId mapPortalPageContentId(String id) {
+        if (!StringUtils.hasText(id)) {
+            return null;
+        }
+        return PortalPageContentId.of(id);
+    }
+
+    default String mapPortalPageContentId(PortalPageContentId id) {
+        return id != null ? id.json() : null;
+    }
 
     default String mapPortalNavigationItemId(PortalNavigationItemId id) {
         return id != null ? id.json() : null;

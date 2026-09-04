@@ -3164,6 +3164,14 @@ components:
               type: string
               description: The ID of the A2A proxy API that backs this agent
               example: 3f2504e0-4f89-41d3-9a0c-0305e82c3301
+            termsAndConditionsPageContentId:
+              type: string
+              format: uuid
+              description: The ID of the GMD page content holding the agent's terms and conditions. Null if no T&C configured.
+            termsAndConditionsEnabled:
+              type: boolean
+              description: Whether the agent's terms and conditions are shown to subscribers on the portal. When false, T&C content is preserved but hidden.
+              default: true
             categoryIds:
               type: array
               description: The IDs of the Portal Next categories this agent navigation item is assigned to
@@ -3506,6 +3514,9 @@ components:
       allOf:
         - $ref: "#/components/schemas/BaseUpdatePortalNavigationItem"
         - properties:
+            termsAndConditionsEnabled:
+              type: boolean
+              description: Whether the agent's terms and conditions are shown to subscribers on the portal. When false, T&C content is preserved but hidden.
             categoryIds:
               type: array
               description: The IDs of the Portal Next categories this agent navigation item is assigned to. Defaults to an empty list if not provided.

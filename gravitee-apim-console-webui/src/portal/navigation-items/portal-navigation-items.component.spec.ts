@@ -21,7 +21,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { GioConfirmAndValidateDialogHarness, GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
@@ -1523,6 +1523,110 @@ describe('PortalNavigationItemsComponent', () => {
       expect(document.body.textContent).not.toContain('Failed to update page content');
       expect(await harness.getEditorContentText()).toBe('Edited content with ${api.invalid}');
       expect(await harness.isSaveButtonDisabled()).toBe(false);
+    });
+  });
+
+  describe('agent terms and conditions editor', () => {
+    const agent = fakePortalNavigationAgent({
+      id: 'nav-agent-1',
+      title: 'My A2A Agent',
+      termsAndConditionsPageContentId: 'agent-terms-content-1',
+    });
+
+    beforeEach(async () => {
+      await expectGetNavigationItems(
+        fakePortalNavigationItemsResponse({
+          items: [
+            fakePortalNavigationPage({
+              id: 'nav-item-1',
+              title: 'Nav Item 1',
+              portalPageContentId: 'nav-item-1-content',
+            }),
+            agent,
+          ],
+        }),
+      );
+      expectGetPageContent('nav-item-1-content', 'Page content');
+
+      await TestBed.inject(Router).navigate(['.'], {
+        relativeTo: TestBed.inject(ActivatedRoute),
+        queryParams: { navId: agent.id },
+        queryParamsHandling: 'merge',
+      });
+      fixture.detectChanges();
+      flushPendingLinkedApiSearchRequests();
+      expectGetPageContent('agent-terms-content-1', '# Agent usage terms');
+      await fixture.whenStable();
+      fixture.detectChanges();
+    });
+
+    it('should load agent terms and conditions into the GMD editor', async () => {
+      const gmdEditor = await harness.getGmdEditor();
+      expect(gmdEditor).toBeTruthy();
+      expect(await harness.getEditorContentText()).toBe('# Agent usage terms');
+      expect(await harness.isSaveButtonDisabled()).toBe(true);
+    });
+
+    it('should save agent terms and conditions content', async () => {
+      await harness.setEditorContentText('Updated agent terms');
+      expect(await harness.isSaveButtonDisabled()).toBe(false);
+
+      const saveButton = await rootLoader.getHarness(MatButtonHarness.with({ text: /Save/i }));
+      await saveButton.click();
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/agent-terms-content-1`,
+      });
+      expect(req.request.body).toEqual({ content: 'Updated agent terms' });
+      req.flush({ id: 'agent-terms-content-1', content: 'Updated agent terms' });
+
+      fixture.detectChanges();
+
+      expect(await harness.isSaveButtonDisabled()).toBe(true);
+      expect(await harness.getEditorContentText()).toBe('Updated agent terms');
+    });
+
+    it('should display terms toggle for agent items', async () => {
+      expect(await harness.isAgentTermsEnabled()).toBe(true);
+    });
+
+    it('should save termsAndConditionsEnabled when toggled', async () => {
+      await harness.toggleAgentTermsEnabled();
+      fixture.detectChanges();
+
+      expectPutPortalNavigationItem(
+        agent.id,
+        {
+          title: agent.title,
+          type: 'AGENT',
+          parentId: agent.parentId,
+          order: agent.order,
+          published: agent.published,
+          visibility: agent.visibility,
+          categoryIds: agent.categoryIds,
+          termsAndConditionsEnabled: false,
+        },
+        { ...agent, termsAndConditionsEnabled: false },
+      );
+      await expectGetNavigationItems(
+        fakePortalNavigationItemsResponse({
+          items: [
+            fakePortalNavigationPage({
+              id: 'nav-item-1',
+              title: 'Nav Item 1',
+              portalPageContentId: 'nav-item-1-content',
+            }),
+            { ...agent, termsAndConditionsEnabled: false },
+          ],
+        }),
+      );
+      flushPendingLinkedApiSearchRequests();
+      expectGetPageContent('agent-terms-content-1', '# Agent usage terms');
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(await harness.isAgentTermsEnabled()).toBe(false);
     });
   });
 

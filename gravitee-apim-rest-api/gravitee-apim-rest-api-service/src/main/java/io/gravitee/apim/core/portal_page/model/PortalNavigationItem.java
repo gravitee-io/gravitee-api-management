@@ -29,7 +29,13 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @SuperBuilder(toBuilder = true)
 public abstract sealed class PortalNavigationItem
-    permits PortalNavigationPage, PortalNavigationLink, PortalNavigationFolder, PortalNavigationApi, PortalNavigationApiProduct, PortalNavigationAgent {
+    permits
+        PortalNavigationPage,
+        PortalNavigationLink,
+        PortalNavigationFolder,
+        PortalNavigationApi,
+        PortalNavigationApiProduct,
+        PortalNavigationAgent {
 
     @Nonnull
     private final PortalNavigationItemId id;

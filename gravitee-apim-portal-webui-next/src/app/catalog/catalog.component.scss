@@ -134,7 +134,6 @@ $empty-state-height: 400px;
     // the page is a flex column with hidden overflow, which otherwise squashes this row to nothing
     flex: 0 0 auto;
     align-self: flex-start;
-    margin-top: -16px;
     overflow: hidden;
     border: 1px solid theme.$border-color;
     border-radius: theme.$element-shape;

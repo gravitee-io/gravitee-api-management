@@ -20,18 +20,18 @@
     <div class="next-gen-h1" i18n="@@catalogTitle">Marketplace</div>
   </div>
 
-  <div class="api-list__kinds" role="group" i18n-aria-label="@@catalogKindGroupLabel" aria-label="Show agents or APIs">
-    <button type="button" [attr.aria-pressed]="kind() === 'agents'" (click)="selectKind('agents')">
-      <ng-container i18n="@@catalogKindAgents">Agents</ng-container>
-      <span class="api-list__count next-gen-caption">{{ kindCounts().agents }}</span>
-    </button>
-    <button type="button" [attr.aria-pressed]="kind() === 'apis'" (click)="selectKind('apis')">
-      <ng-container i18n="@@catalogKindApis">APIs</ng-container>
-      <span class="api-list__count next-gen-caption">{{ kindCounts().apis }}</span>
-    </button>
-  </div>
-
   <div class="api-list__search-row" [appIsMobile]="'api-list__search-row--mobile'">
+    <div class="api-list__kinds" role="group" i18n-aria-label="@@catalogKindGroupLabel" aria-label="Show agents or APIs">
+      <button type="button" [attr.aria-pressed]="kind() === 'agents'" (click)="selectKind('agents')">
+        <ng-container i18n="@@catalogKindAgents">Agents</ng-container>
+        <span class="api-list__count next-gen-caption">{{ kindCounts().agents }}</span>
+      </button>
+      <button type="button" [attr.aria-pressed]="kind() === 'apis'" (click)="selectKind('apis')">
+        <ng-container i18n="@@catalogKindApis">APIs</ng-container>
+        <span class="api-list__count next-gen-caption">{{ kindCounts().apis }}</span>
+      </button>
+    </div>
+
     <app-search-bar class="api-list__search" (searchTerm)="onSearchResults($event)" [searchParam]="query()" />
 
     <label class="api-list__sort">

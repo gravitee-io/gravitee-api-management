@@ -105,38 +105,47 @@
                 {{ selectedNavigationItemIsPublished() ? 'Published' : 'Unpublished' }}
               </span>
               <span class="gio-badge-primary">{{ selectedNavigationItem().data.visibility | titlecase }}</span>
+
+              @if (selectedApiId()) {
+                <div class="panel-header__title__linked-api" data-testid="linked-api-header">
+                  <span>Linked API:</span>
+                  <span class="panel-header__title__linked-api__value">
+                    {{ selectedLinkedApiName.isLoading() ? 'Loading...' : (selectedLinkedApiName.value() ?? selectedApiId()) }}
+                  </span>
+                </div>
+              }
+              @if (selectedApiProductId()) {
+                <div class="panel-header__title__linked-api" data-testid="linked-api-product-header">
+                  <span>Linked API Product:</span>
+                  <span class="panel-header__title__linked-api__value">
+                    {{
+                      selectedLinkedApiProductName.isLoading() ? 'Loading...' : (selectedLinkedApiProductName.value() ?? selectedApiProductId())
+                    }}
+                  </span>
+                </div>
+              }
+              @if (selectedAgentId()) {
+                <div class="panel-header__title__linked-api" data-testid="linked-agent-header">
+                  <span>Linked Agent:</span>
+                  <span class="panel-header__title__linked-api__value">
+                    {{ selectedLinkedAgentName.isLoading() ? 'Loading...' : (selectedLinkedAgentName.value() ?? selectedAgentId()) }}
+                  </span>
+                </div>
+              }
             </div>
           </div>
-
-          @if (selectedApiId()) {
-            <div class="panel-header__title__linked-api" data-testid="linked-api-header">
-              <span>Linked API:</span>
-              <span class="panel-header__title__linked-api__value">
-                {{ selectedLinkedApiName.isLoading() ? 'Loading...' : (selectedLinkedApiName.value() ?? selectedApiId()) }}
-              </span>
-            </div>
-          }
-          @if (selectedApiProductId()) {
-            <div class="panel-header__title__linked-api" data-testid="linked-api-product-header">
-              <span>Linked API Product:</span>
-              <span class="panel-header__title__linked-api__value">
-                {{
-                  selectedLinkedApiProductName.isLoading() ? 'Loading...' : (selectedLinkedApiProductName.value() ?? selectedApiProductId())
-                }}
-              </span>
-            </div>
-          }
-          @if (selectedAgentId()) {
-            <div class="panel-header__title__linked-api" data-testid="linked-agent-header">
-              <span>Linked Agent:</span>
-              <span class="panel-header__title__linked-api__value">
-                {{ selectedLinkedAgentName.isLoading() ? 'Loading...' : (selectedLinkedAgentName.value() ?? selectedAgentId()) }}
-              </span>
-            </div>
-          }
         </div>
       }
       <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-u'] }">
+        @if (selectedAgentId()) {
+          <mat-slide-toggle
+            data-testid="agent-terms-enabled-toggle"
+            [checked]="isAgentTermsEnabled()"
+            (change)="onTermsEnabledToggle($event.checked)"
+          >
+            Show Terms and Conditions
+          </mat-slide-toggle>
+        }
         <mat-slide-toggle data-testid="preview-toggle" [checked]="isPreviewVisible()" (change)="isPreviewVisible.set($event.checked)">
           Preview
         </mat-slide-toggle>
@@ -211,6 +220,19 @@
             </div>
           }
           <ng-container *ngTemplateOutlet="emptyEditorState"></ng-container>
+        }
+        @case ('AGENT') {
+          @if (isLoadingPageContent()) {
+            <div class="empty-editor">
+              <mat-card appearance="outlined"></mat-card>
+            </div>
+          } @else if (contentLoadError()) {
+            <ng-container *ngTemplateOutlet="pageNotFound"></ng-container>
+          } @else {
+            <div class="agent-terms-editor">
+              <gmd-editor [formControl]="contentControl" [showPreview]="isPreviewVisible()" />
+            </div>
+          }
         }
         @default {
           <ng-container *ngTemplateOutlet="emptyEditorState"></ng-container>

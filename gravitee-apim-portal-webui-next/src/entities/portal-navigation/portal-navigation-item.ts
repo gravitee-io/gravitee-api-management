@@ -60,6 +60,8 @@ export interface PortalNavigationApiProduct extends BasePortalNavigationItem {
 export interface PortalNavigationAgent extends BasePortalNavigationItem {
   type: 'AGENT';
   agentId: string;
+  termsAndConditionsPageContentId?: string;
+  termsAndConditionsEnabled?: boolean;
   categoryIds?: string[];
 }
 

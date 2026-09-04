@@ -91,6 +91,8 @@
               [showApiKeyModeSelection]="showApiKeyModeSelection()"
               [applicationApiKeySubscriptions]="checkoutData.applicationApiKeySubscriptions"
               [subscriptionForm]="subscriptionForm()"
+              [agentTermsContent]="agentTermsAndConditions()"
+              [agentTermsAccepted]="agentTermsAccepted"
             />
           } @else {
             <app-loader />

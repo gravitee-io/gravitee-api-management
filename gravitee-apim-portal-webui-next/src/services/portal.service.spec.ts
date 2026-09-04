@@ -19,6 +19,7 @@ import { TestBed } from '@angular/core/testing';
 import { ConfigService } from './config.service';
 import { PortalService } from './portal.service';
 import { ApiInformation } from '../entities/api/api-information';
+import { PortalPageContent } from '../entities/portal-navigation/portal-page-content';
 import { PortalPage } from '../entities/portal/portal-page';
 import { SubscriptionForm } from '../entities/portal/subscription-form';
 
@@ -121,6 +122,34 @@ describe('PortalService', () => {
     });
 
     const req = httpMock.expectOne(`${baseURL}/apis/${apiId}/subscription-form`);
+    expect(req.request.method).toBe('GET');
+    req.flush(null, { status: 404, statusText: 'Not Found' });
+  });
+
+  it('should GET agent terms and conditions for an API id', () => {
+    const apiId = 'api-123';
+    const mockTerms: PortalPageContent = {
+      type: 'GRAVITEE_MARKDOWN',
+      content: '# Agent usage terms',
+    };
+
+    service.getAgentTermsAndConditions(apiId).subscribe(terms => {
+      expect(terms).toEqual(mockTerms);
+    });
+
+    const req = httpMock.expectOne(`${baseURL}/apis/${apiId}/terms-and-conditions`);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockTerms);
+  });
+
+  it('should return null when agent terms and conditions endpoint responds 404', () => {
+    const apiId = 'api-404';
+
+    service.getAgentTermsAndConditions(apiId).subscribe(terms => {
+      expect(terms).toBeNull();
+    });
+
+    const req = httpMock.expectOne(`${baseURL}/apis/${apiId}/terms-and-conditions`);
     expect(req.request.method).toBe('GET');
     req.flush(null, { status: 404, statusText: 'Not Found' });
   });
