@@ -44,6 +44,7 @@ import java.util.UUID;
 public class PortalNavigationItemsFixtures {
 
     static final String MY_FOLDER = "My Folder";
+    static final String SUBSCRIPTION_FORM_TITLE = "Subscription Form";
 
     private PortalNavigationItemsFixtures() {}
 
@@ -153,7 +154,7 @@ public class PortalNavigationItemsFixtures {
     }
 
     public static BaseCreatePortalNavigationItem aCreatePortalNavigationSubscriptionForm() {
-        var title = "Subscription Form";
+        var title = SUBSCRIPTION_FORM_TITLE;
         var id = UUID.fromString("00000000-0000-0000-0000-000000000021");
         var contentId = UUID.fromString("00000000-0000-0000-0000-000000000020");
         return new CreatePortalNavigationSubscriptionForm()
@@ -171,8 +172,8 @@ public class PortalNavigationItemsFixtures {
             .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000021"))
             .organizationId(organizationId)
             .environmentId(environmentId)
-            .title("Subscription Form")
-            .segment(PortalNavigationItem.slugify("Subscription Form").value())
+            .title(SUBSCRIPTION_FORM_TITLE)
+            .segment(PortalNavigationItem.slugify(SUBSCRIPTION_FORM_TITLE).value())
             .area(PortalArea.SUBSCRIPTION_FORM)
             .order(0)
             .portalPageContentId(PortalPageContentId.of("00000000-0000-0000-0000-000000000020"))
