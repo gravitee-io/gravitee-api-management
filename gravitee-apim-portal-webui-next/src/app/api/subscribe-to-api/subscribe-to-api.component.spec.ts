@@ -1328,6 +1328,80 @@ describe('SubscribeToApiComponent', () => {
         expect(getTitle()).toEqual('Review');
       });
 
+      it('should not show the selected application chip when there is a single eligible application', async () => {
+        await init(false, AGENT_API);
+        const step1 = await harnessLoader.getHarness(SubscribeToApiChoosePlanHarness);
+        await step1.selectPlanByPlanId(API_KEY_PLAN_ID);
+        fixture.detectChanges();
+        expectGetSubscriptionsForApi(API_ID);
+        expectGetApplications(
+          1,
+          fakeApplicationsResponse({
+            data: [fakeApplication({ id: APP_ID, name: 'App 1' })],
+            metadata: {
+              pagination: {
+                current_page: 1,
+                first: 1,
+                last: 1,
+                size: 1,
+                total: 1,
+                total_pages: 1,
+              },
+            },
+          }),
+        );
+        fixture.detectChanges();
+        expect(await getSelectedApplicationName()).toBeNull();
+      });
+
+      it('should not show the selected application chip after switching to a keyless plan', async () => {
+        await init(false, AGENT_API);
+        const step1 = await harnessLoader.getHarness(SubscribeToApiChoosePlanHarness);
+        await step1.selectPlanByPlanId(API_KEY_PLAN_ID);
+        fixture.detectChanges();
+        expectGetSubscriptionsForApi(API_ID);
+        expectGetApplications(
+          1,
+          fakeApplicationsResponse({
+            data: [fakeApplication({ id: APP_ID, name: 'App 1' })],
+            metadata: {
+              pagination: {
+                current_page: 1,
+                first: 1,
+                last: 1,
+                size: 1,
+                total: 1,
+                total_pages: 1,
+              },
+            },
+          }),
+        );
+        fixture.detectChanges();
+        expect(await getSelectedApplicationName()).toBeNull();
+
+        await step1.selectPlanByPlanId(KEYLESS_PLAN_ID);
+        fixture.detectChanges();
+        expectGetSubscriptionsForApi(API_ID);
+        expectGetApplications(
+          1,
+          fakeApplicationsResponse({
+            data: [fakeApplication({ id: APP_ID, name: 'App 1' })],
+            metadata: {
+              pagination: {
+                current_page: 1,
+                first: 1,
+                last: 1,
+                size: 1,
+                total: 1,
+                total_pages: 1,
+              },
+            },
+          }),
+        );
+        fixture.detectChanges();
+        expect(await getSelectedApplicationName()).toBeNull();
+      });
+
       it('should keep the application step when more than one application exists', async () => {
         await init(false, AGENT_API);
         const step1 = await harnessLoader.getHarness(SubscribeToApiChoosePlanHarness);
@@ -1434,7 +1508,7 @@ describe('SubscribeToApiComponent', () => {
 
   async function getSelectedApplicationName(): Promise<string | null> {
     return await harnessLoader
-      .getHarness(MatChipHarness)
+      .getHarness(MatChipHarness.with({ ancestor: '.subscribe-to-api__actions__selected-application' }))
       .then(chip => chip.getText())
       .catch(_ => null);
   }
