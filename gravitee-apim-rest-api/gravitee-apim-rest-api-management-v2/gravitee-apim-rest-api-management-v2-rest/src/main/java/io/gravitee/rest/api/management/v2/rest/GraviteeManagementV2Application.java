@@ -30,6 +30,7 @@ import io.gravitee.rest.api.management.v2.rest.exceptionmapper.domain.ConflictDo
 import io.gravitee.rest.api.management.v2.rest.exceptionmapper.domain.NotAllowedDomainExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionmapper.domain.NotFoundDomainExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionmapper.domain.TechnicalDomainExceptionMapper;
+import io.gravitee.rest.api.management.v2.rest.exceptionmapper.domain.TooManyRequestsDomainExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionmapper.domain.ValidationDomainExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.provider.ByteArrayOutputStreamWriter;
 import io.gravitee.rest.api.management.v2.rest.provider.CommaSeparatedQueryParamConverterProvider;
@@ -117,6 +118,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(NotAllowedDomainExceptionMapper.class);
         register(NotFoundDomainExceptionMapper.class);
         register(ConflictDomainExceptionMapper.class);
+        register(TooManyRequestsDomainExceptionMapper.class);
 
         register(CommaSeparatedQueryParamConverterProvider.class);
 

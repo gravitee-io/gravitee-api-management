@@ -36,6 +36,11 @@ tags:
     description: Everything about shared policy groups
   - name: Scoring
     description: Everything about APIs scoring
+  - name: Performance Targets
+    description: |-
+      Declared performance expectations (latency, error rate, cost...) evaluated against gateway telemetry.
+      A target applies to a subject: the API ids whose traffic is evaluated, and a reference chosen by the caller
+      (an API id, an agent catalog id) to find its targets again.
   - name: Clusters
     description: Everything about clusters
   - name: Newt Ai
@@ -479,6 +484,215 @@ paths:
       responses:
         "204":
           description: Scoring function deleted
+        default:
+          $ref: "#/components/responses/Error"
+
+  # Performance Targets
+  /performance-targets:
+    post:
+      tags:
+        - Performance Targets
+      summary: Create a performance target
+      description: |-
+        Declares what "good" looks like for a subject. Rules are validated against the analytics definition of the
+        API types listed in the subject: a rule whose metric, measure or filter is not available for those types is
+        refused with a 400 error carrying the index of the failing rule in the `ruleIndex` parameter.
+      operationId: createPerformanceTarget
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePerformanceTarget"
+        required: true
+      responses:
+        "201":
+          description: Performance target created
+          headers:
+            Location:
+              schema:
+                type: string
+              description: The URL of the created target
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PerformanceTarget"
+        default:
+          $ref: "#/components/responses/Error"
+    get:
+      tags:
+        - Performance Targets
+      summary: Get the performance targets of a reference
+      description: Lists the targets created with the given `subject.reference` in this environment.
+      operationId: getPerformanceTargetsByReference
+      parameters:
+        - $ref: "#/components/parameters/performanceTargetReference"
+      responses:
+        "200":
+          $ref: "#/components/responses/PerformanceTargetsResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /performance-targets/_summary:
+    get:
+      tags:
+        - Performance Targets
+      summary: Count the performance targets of the environment by status
+      description: Counts the latest evaluation of every target of the environment by status.
+      operationId: getPerformanceTargetsSummary
+      responses:
+        "200":
+          description: Counts by status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PerformanceTargetsSummary"
+        default:
+          $ref: "#/components/responses/Error"
+  /performance-targets/evaluations/_latest:
+    post:
+      tags:
+        - Performance Targets
+      summary: Get the latest evaluation of several references
+      description: |-
+        Returns one entry per requested reference, keyed by reference. The value is the latest evaluation of the
+        reference (the worst one when several targets share the reference), or `null` when the reference has no
+        target or no evaluation yet. Meant for list badges.
+      operationId: getLatestPerformanceTargetEvaluations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LatestPerformanceTargetEvaluationsRequest"
+        required: true
+      responses:
+        "200":
+          description: Latest evaluation per reference
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LatestPerformanceTargetEvaluationsResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /performance-targets/{targetId}:
+    get:
+      tags:
+        - Performance Targets
+      summary: Get a performance target
+      operationId: getPerformanceTarget
+      parameters:
+        - $ref: "#/components/parameters/performanceTargetId"
+      responses:
+        "200":
+          description: Performance target found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PerformanceTarget"
+        default:
+          $ref: "#/components/responses/Error"
+    put:
+      tags:
+        - Performance Targets
+      summary: Update a performance target
+      description: Replaces the subject, schedule and rules of the target. The same validation as creation applies.
+      operationId: updatePerformanceTarget
+      parameters:
+        - $ref: "#/components/parameters/performanceTargetId"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePerformanceTarget"
+        required: true
+      responses:
+        "200":
+          description: Performance target updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PerformanceTarget"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      tags:
+        - Performance Targets
+      summary: Delete a performance target and its evaluations
+      operationId: deletePerformanceTarget
+      parameters:
+        - $ref: "#/components/parameters/performanceTargetId"
+      responses:
+        "204":
+          description: Performance target deleted
+        default:
+          $ref: "#/components/responses/Error"
+  /performance-targets/{targetId}/evaluations:
+    get:
+      tags:
+        - Performance Targets
+      summary: Get the evaluation history of a performance target
+      description: The stored evaluations of the target, most recent first. History is bounded by the evaluator.
+      operationId: getPerformanceTargetEvaluations
+      parameters:
+        - $ref: "#/components/parameters/performanceTargetId"
+        - $ref: "#/components/parameters/pageParam"
+        - $ref: "#/components/parameters/perPageParam"
+      responses:
+        "200":
+          $ref: "#/components/responses/PerformanceTargetEvaluationsResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /performance-targets/{targetId}/evaluations/latest:
+    get:
+      tags:
+        - Performance Targets
+      summary: Get the latest evaluation of a performance target
+      operationId: getLatestPerformanceTargetEvaluation
+      parameters:
+        - $ref: "#/components/parameters/performanceTargetId"
+      responses:
+        "200":
+          description: Latest evaluation of the target
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PerformanceTargetEvaluation"
+        "404":
+          description: The target does not exist or has not been evaluated yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
+  /performance-targets/{targetId}/_evaluate:
+    post:
+      tags:
+        - Performance Targets
+      summary: Evaluate a performance target now
+      description: |-
+        Runs the same evaluation as the scheduler, stores the result as the target's latest evaluation and returns
+        it. Refused with a 429 error while the target was evaluated less than 30 seconds ago; the `Retry-After`
+        header says how long to wait.
+      operationId: evaluatePerformanceTarget
+      parameters:
+        - $ref: "#/components/parameters/performanceTargetId"
+      responses:
+        "200":
+          description: The stored evaluation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PerformanceTargetEvaluation"
+        "429":
+          description: The target was evaluated too recently
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds to wait before evaluating again
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
 
@@ -2058,6 +2272,300 @@ components:
       pattern: '^[^/]+\.js$'
       description: The name of ruleset
 
+    # Performance Targets
+    PerformanceTargetSubject:
+      type: object
+      description: What a target applies to.
+      properties:
+        apiIds:
+          type: array
+          description: |-
+            The API ids whose gateway telemetry is evaluated. One id for an API target; the APIs an agent depends on
+            for an agent target. May be empty when the dependencies are not known yet: every rule is then
+            NOT_EVALUABLE.
+          items:
+            type: string
+        reference:
+          type: string
+          minLength: 1
+          description: |-
+            An opaque lookup key chosen by the caller (an API id, an agent catalog id) to find its targets again.
+            Stored and indexed, never interpreted.
+      required:
+        - apiIds
+        - reference
+    PerformanceTargetOperator:
+      type: string
+      description: How the observed value is compared to the threshold; the rule passes when the comparison holds.
+      enum:
+        - LT
+        - LTE
+        - GT
+        - GTE
+    PerformanceTargetFilterOperator:
+      type: string
+      description: Operator of a rule filter, from the analytics engine filter vocabulary.
+      enum:
+        - EQ
+        - IN
+        - LTE
+        - GTE
+        - CONTAINS
+    PerformanceTargetRuleFilter:
+      type: object
+      description: Narrows the measure of a rule using the analytics engine filter vocabulary, e.g. `MCP_PROXY_TOOL EQ search`.
+      properties:
+        name:
+          type: string
+          description: A filter name of the analytics definition, e.g. `MCP_PROXY_TOOL`
+        operator:
+          $ref: "#/components/schemas/PerformanceTargetFilterOperator"
+        value:
+          description: The filter value; a string, a number or an array of strings depending on the operator.
+      required:
+        - name
+        - operator
+        - value
+    PerformanceTargetRule:
+      type: object
+      description: |-
+        One expectation: a measure of a metric of the analytics definition compared to a threshold, e.g.
+        `HTTP_GATEWAY_RESPONSE_TIME P95 LTE 2000`.
+      properties:
+        metric:
+          type: string
+          description: A metric name of the analytics definition, e.g. `HTTP_GATEWAY_RESPONSE_TIME`
+        measure:
+          type: string
+          description: A measure of that metric, e.g. `P95`
+        operator:
+          $ref: "#/components/schemas/PerformanceTargetOperator"
+        threshold:
+          type: number
+          format: double
+          description: The boundary of acceptable behaviour, in the metric's unit
+        apiTypes:
+          type: array
+          description: |-
+            Restricts the rule to the subject ids of these API types, e.g. latency on `A2A_PROXY` only. Empty means
+            the whole subject.
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/ApiType"
+        filters:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceTargetRuleFilter"
+      required:
+        - metric
+        - measure
+        - operator
+        - threshold
+    CreatePerformanceTarget:
+      type: object
+      description: The performance target to create
+      properties:
+        subject:
+          $ref: "#/components/schemas/PerformanceTargetSubject"
+        windowSeconds:
+          type: integer
+          format: int64
+          minimum: 1
+          default: 900
+          description: The rolling window evaluated, in seconds. Must be at least the interval.
+        intervalSeconds:
+          type: integer
+          format: int64
+          minimum: 1
+          default: 300
+          description: How often the target is evaluated, in seconds
+        minSampleSize:
+          type: integer
+          format: int32
+          minimum: 1
+          default: 20
+          description: Below this many samples in the window a rule is NOT_EVALUABLE rather than PASS
+        rules:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/PerformanceTargetRule"
+      required:
+        - subject
+        - rules
+    UpdatePerformanceTarget:
+      type: object
+      description: The new subject, schedule and rules of a performance target
+      properties:
+        subject:
+          $ref: "#/components/schemas/PerformanceTargetSubject"
+        windowSeconds:
+          type: integer
+          format: int64
+          minimum: 1
+          default: 900
+          description: The rolling window evaluated, in seconds. Must be at least the interval.
+        intervalSeconds:
+          type: integer
+          format: int64
+          minimum: 1
+          default: 300
+          description: How often the target is evaluated, in seconds
+        minSampleSize:
+          type: integer
+          format: int32
+          minimum: 1
+          default: 20
+          description: Below this many samples in the window a rule is NOT_EVALUABLE rather than PASS
+        rules:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/PerformanceTargetRule"
+      required:
+        - subject
+        - rules
+    PerformanceTarget:
+      type: object
+      description: A performance target
+      properties:
+        id:
+          type: string
+        subject:
+          $ref: "#/components/schemas/PerformanceTargetSubject"
+        windowSeconds:
+          type: integer
+          format: int64
+          description: The rolling window evaluated, in seconds
+        intervalSeconds:
+          type: integer
+          format: int64
+          description: How often the target is evaluated, in seconds
+        minSampleSize:
+          type: integer
+          format: int32
+        rules:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceTargetRule"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    PerformanceTargetEvaluationStatus:
+      type: string
+      description: |-
+        PASS when the rule holds, BREACH when it does not, NOT_EVALUABLE when the window has fewer samples than
+        the target's minimum or no data at all. A target's status is the worst of its rules.
+      enum:
+        - PASS
+        - BREACH
+        - NOT_EVALUABLE
+    PerformanceTargetDeviation:
+      type: object
+      description: How far the observed value is from the threshold
+      properties:
+        absolute:
+          type: number
+          format: double
+          description: Observed minus threshold, in the metric's unit
+        ratio:
+          type: number
+          format: double
+          description: Absolute deviation relative to the threshold
+    PerformanceTargetRuleResult:
+      type: object
+      description: The outcome of one rule over the evaluated window
+      properties:
+        metric:
+          type: string
+        measure:
+          type: string
+        operator:
+          $ref: "#/components/schemas/PerformanceTargetOperator"
+        threshold:
+          type: number
+          format: double
+        observed:
+          type: number
+          format: double
+          description: The measured value; absent when the rule is NOT_EVALUABLE
+        deviation:
+          $ref: "#/components/schemas/PerformanceTargetDeviation"
+        sampleCount:
+          type: integer
+          format: int64
+          description: How many samples the window held for this rule
+        status:
+          $ref: "#/components/schemas/PerformanceTargetEvaluationStatus"
+    PerformanceTargetEvaluation:
+      type: object
+      description: The outcome of evaluating one target over one window
+      properties:
+        id:
+          type: string
+        targetId:
+          type: string
+        reference:
+          type: string
+          description: The subject reference of the target at evaluation time
+        status:
+          $ref: "#/components/schemas/PerformanceTargetEvaluationStatus"
+        rules:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceTargetRuleResult"
+        windowFrom:
+          type: string
+          format: date-time
+        windowTo:
+          type: string
+          format: date-time
+        coveredApiIds:
+          type: array
+          description: The API ids the evaluation actually covered, so a lagging subject is visible
+          items:
+            type: string
+        evaluatedAt:
+          type: string
+          format: date-time
+    PerformanceTargetsSummary:
+      type: object
+      description: How many targets of the environment currently pass, miss, or cannot be evaluated
+      properties:
+        pass:
+          type: integer
+          format: int64
+        breach:
+          type: integer
+          format: int64
+        notEvaluable:
+          type: integer
+          format: int64
+    LatestPerformanceTargetEvaluationsRequest:
+      type: object
+      properties:
+        references:
+          type: array
+          description: The subject references to look up
+          minItems: 1
+          maxItems: 500
+          uniqueItems: true
+          items:
+            type: string
+      required:
+        - references
+    LatestPerformanceTargetEvaluationsResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          description: The latest evaluation of each requested reference, `null` when it has none
+          additionalProperties:
+            $ref: "#/components/schemas/PerformanceTargetEvaluation"
+
     ApiType:
       type: string
       description: API's type.
@@ -3357,6 +3865,22 @@ components:
       schema:
         $ref: "#/components/schemas/ScoringFunctionName"
 
+    # Performance Targets
+    performanceTargetId:
+      name: targetId
+      in: path
+      description: The unique ID of the performance target
+      required: true
+      schema:
+        type: string
+    performanceTargetReference:
+      name: reference
+      in: query
+      description: The subject reference the targets were created with
+      required: true
+      schema:
+        type: string
+
     # Cluster
     clusterId:
       name: clusterId
@@ -3730,6 +4254,35 @@ components:
                 type: array
                 items:
                   $ref: "#/components/schemas/ScoringFunction"
+
+    # Performance Targets
+    PerformanceTargetsResponse:
+      description: Performance targets list
+      content:
+        application/json:
+          schema:
+            title: "PerformanceTargetsResponse"
+            properties:
+              data:
+                description: The targets of the reference
+                type: array
+                items:
+                  $ref: "#/components/schemas/PerformanceTarget"
+    PerformanceTargetEvaluationsResponse:
+      description: Page of performance target evaluations, most recent first
+      content:
+        application/json:
+          schema:
+            title: "PerformanceTargetEvaluationsResponse"
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PerformanceTargetEvaluation"
+              pagination:
+                $ref: "#/components/schemas/Pagination"
+              links:
+                $ref: "#/components/schemas/Links"
 
     # NewAI
     GenerateExpressionLanguageResponse:

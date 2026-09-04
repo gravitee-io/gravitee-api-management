@@ -28,6 +28,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.cluster.ClustersResource
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentAnalyticsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentLogsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentNewtAIResource;
+import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentPerformanceTargetsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.EnvironmentScoringResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.PortalCategoriesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.PortalNavigationItemsResource;
@@ -104,6 +105,11 @@ public class EnvironmentResource extends AbstractResource {
     @Path("/scoring")
     public EnvironmentScoringResource getEnvironmentScoringResource() {
         return resourceContext.getResource(EnvironmentScoringResource.class);
+    }
+
+    @Path("/performance-targets")
+    public EnvironmentPerformanceTargetsResource getEnvironmentPerformanceTargetsResource() {
+        return resourceContext.getResource(EnvironmentPerformanceTargetsResource.class);
     }
 
     @Path("/analytics")
