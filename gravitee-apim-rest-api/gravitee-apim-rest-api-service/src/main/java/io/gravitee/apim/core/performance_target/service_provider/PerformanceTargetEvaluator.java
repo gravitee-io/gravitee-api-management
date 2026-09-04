@@ -18,6 +18,7 @@ package io.gravitee.apim.core.performance_target.service_provider;
 import io.gravitee.apim.core.performance_target.model.PerformanceTarget;
 import io.gravitee.apim.core.performance_target.model.PerformanceTargetEvaluation;
 import java.time.Instant;
+import java.util.List;
 
 /**
  * Evaluates a target against gateway telemetry. Shared by the scheduler and by evaluate-on-demand so that both produce
@@ -29,4 +30,12 @@ public interface PerformanceTargetEvaluator {
      * caller decides whether it becomes the target's latest evaluation.
      */
     PerformanceTargetEvaluation evaluate(PerformanceTarget target, Instant now);
+
+    /**
+     * Evaluates many targets over their windows ending at {@code now}, with as few analytics requests as their
+     * shapes allow: the number of requests is bounded by the number of distinct environments and windows, not by
+     * the number of targets. Results come in the order of the targets; a target that could not be evaluated on its
+     * own is left out, so the list may be shorter than the input.
+     */
+    List<PerformanceTargetEvaluation> evaluateAll(List<PerformanceTarget> targets, Instant now);
 }

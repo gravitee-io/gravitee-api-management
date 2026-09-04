@@ -37,6 +37,15 @@ public class PerformanceTargetQueryServiceImpl implements PerformanceTargetQuery
     }
 
     @Override
+    public List<PerformanceTarget> findAll() {
+        try {
+            return performanceTargetRepository.findAll().stream().map(PerformanceTargetAdapter.INSTANCE::toEntity).toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurred while finding all Performance Targets", e);
+        }
+    }
+
+    @Override
     public List<PerformanceTarget> findByReference(String environmentId, String reference) {
         try {
             return performanceTargetRepository
