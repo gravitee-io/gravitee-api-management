@@ -23,6 +23,7 @@ import static io.gravitee.gateway.reactive.api.context.ContextAttributes.*;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SERVER_ID;
+import static io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR_RESOLVER;
 import static java.lang.Boolean.TRUE;
 
 import io.gravitee.common.component.Lifecycle;
@@ -322,6 +323,9 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
         // Prepare attributes and metrics before handling the request.
         prepareExecutionContext(ctx);
+        // Published here rather than in prepareExecutionContext so the resolver is only reachable once every attribute
+        // its connectors match on (the context path) is in place; the reporter uses it to attribute refused requests.
+        ctx.setInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR_RESOLVER, entrypointConnectorResolver);
         prepareMetrics(ctx);
 
         return handleRequest(ctx);
