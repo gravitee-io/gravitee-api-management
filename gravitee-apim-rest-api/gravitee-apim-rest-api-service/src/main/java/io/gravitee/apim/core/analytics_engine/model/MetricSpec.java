@@ -30,6 +30,8 @@ public record MetricSpec(
         HTTP_REQUESTS,
         HTTP_ERRORS,
         HTTP_ERROR_RATE,
+        HTTP_SERVER_ERROR_RATE,
+        HTTP_REQUESTS_PER_SECOND,
         HTTP_REQUEST_CONTENT_LENGTH,
         HTTP_RESPONSE_CONTENT_LENGTH,
         HTTP_ENDPOINT_RESPONSE_TIME,
@@ -86,6 +88,7 @@ public record MetricSpec(
         MILLISECONDS,
         BYTES,
         PERCENT,
+        PER_SECOND,
     }
 
     public enum Measure {
@@ -99,5 +102,6 @@ public record MetricSpec(
         P95,
         P90,
         SUM,
+        RATE,
     }
 }
