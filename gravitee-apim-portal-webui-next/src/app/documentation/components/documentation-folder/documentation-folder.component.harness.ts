@@ -19,10 +19,12 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { GraviteeMarkdownViewerHarness } from '@gravitee/gravitee-markdown';
 
 import { TreeComponentHarness } from './tree/tree.component.harness';
+import { AgentChatComponentHarness } from '../../../../components/agent-chat/agent-chat.harness';
 import { BreadcrumbSkeletonComponentHarness } from '../../../../components/breadcrumb-skeleton/breadcrumb-skeleton.component.harness';
 import { BreadcrumbsComponentHarness } from '../../../../components/breadcrumbs/breadcrumbs.component.harness';
 import { DocumentationSkeletonComponentHarness } from '../../../../components/documentation-skeleton/documentation-skeleton.component.harness';
 import { NavigationItemContentViewerHarness } from '../../../../components/navigation-item-content-viewer/navigation-item-content-viewer.harness';
+import { SidePanelComponentHarness } from '../../../../components/side-panel/side-panel.harness';
 import { SidenavLayoutComponentHarness } from '../../../../components/sidenav-layout/sidenav-layout.component.harness';
 import { SidenavSkeletonComponentHarness } from '../../../../components/sidenav-skeleton/sidenav-skeleton.component.harness';
 import { SidenavToggleButtonComponentHarness } from '../../../../components/sidenav-toggle-button/sidenav-toggle-button.component.harness';
@@ -44,7 +46,10 @@ export class DocumentationFolderComponentHarness extends ComponentHarness {
   private readonly getGraviteeMarkdownViewer = this.locatorForOptional(GraviteeMarkdownViewerHarness);
   private readonly getSubscribeMatButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="subscribe-button"]' }));
   private readonly getMcpMatButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="mcp-button"]' }));
+  private readonly getChatMatButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="chat-button"]' }));
   private readonly locateApiTabTools = this.locatorForOptional(ApiTabToolsComponentHarness);
+  private readonly locateAgentChat = this.locatorForOptional(AgentChatComponentHarness);
+  private readonly locateSidePanel = this.locatorForOptional(SidePanelComponentHarness);
 
   async getSidenavToggleButton(): Promise<SidenavToggleButtonComponentHarness | null> {
     const sidenav = await this.getSidenavLayoutHarness();
@@ -93,7 +98,19 @@ export class DocumentationFolderComponentHarness extends ComponentHarness {
     return this.getMcpMatButton();
   }
 
+  async getChatButton(): Promise<MatButtonHarness | null> {
+    return this.getChatMatButton();
+  }
+
   async getApiTabToolsHarness(): Promise<ApiTabToolsComponentHarness | null> {
     return this.locateApiTabTools();
+  }
+
+  async getAgentChat(): Promise<AgentChatComponentHarness | null> {
+    return this.locateAgentChat();
+  }
+
+  async getSidePanel(): Promise<SidePanelComponentHarness | null> {
+    return this.locateSidePanel();
   }
 }

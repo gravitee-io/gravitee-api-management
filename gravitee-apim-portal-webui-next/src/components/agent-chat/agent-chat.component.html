@@ -1,0 +1,61 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="agent-chat">
+  <div class="agent-chat__header">
+    <div class="next-gen-h5" i18n="@@agentChatTitle">Chat with {{ agentName() }}</div>
+    <div class="next-gen-small agent-chat__header__application" i18n="@@agentChatApplication">Calling as {{ applicationName() }}</div>
+  </div>
+
+  <div #log class="agent-chat__log" role="log" i18n-aria-label="@@agentChatLogAria" aria-label="Conversation">
+    @for (turn of turns(); track turn.id) {
+      <div class="agent-chat__turn" [class.agent-chat__turn--user]="turn.role === 'user'">
+        @if (turn.role === 'agent' && turn.complete) {
+          <gmd-viewer [content]="turn.text" />
+        } @else if (turn.text) {
+          <div class="agent-chat__turn__text next-gen-body">{{ turn.text }}</div>
+        } @else {
+          <div class="agent-chat__turn__thinking next-gen-small" i18n="@@agentChatThinking">Thinking...</div>
+        }
+      </div>
+    } @empty {
+      <div class="agent-chat__empty next-gen-body" i18n="@@agentChatEmpty">Ask {{ agentName() }} a question to start the conversation.</div>
+    }
+  </div>
+
+  @if (error(); as message) {
+    <div class="agent-chat__error next-gen-body" role="alert">{{ message }}</div>
+  }
+
+  <div class="agent-chat__composer">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="agent-chat__composer__field">
+      <textarea
+        matInput
+        rows="2"
+        [formControl]="draft"
+        (keydown.enter)="onEnter($event)"
+        i18n-placeholder="@@agentChatPlaceholder"
+        placeholder="Ask the agent..."
+        i18n-aria-label="@@agentChatMessageAria"
+        aria-label="Message"
+      ></textarea>
+    </mat-form-field>
+    <button mat-flat-button type="button" data-testid="agent-chat-send" [disabled]="!canSend()" (click)="submit()">
+      <span i18n="@@agentChatSend">Send</span>
+    </button>
+  </div>
+</div>

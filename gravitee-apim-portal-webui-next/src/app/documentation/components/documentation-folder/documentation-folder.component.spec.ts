@@ -23,9 +23,11 @@ import { of } from 'rxjs/internal/observable/of';
 
 import { DocumentationFolderComponent } from './documentation-folder.component';
 import { DocumentationFolderComponentHarness } from './documentation-folder.component.harness';
+import { ApiType } from '../../../../entities/api/api';
 import { PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
 import { fakePortalNavigationApiProduct } from '../../../../entities/portal-navigation/portal-navigation-item.fixture';
 import { makeItem, MOCK_ITEMS } from '../../../../mocks/portal-navigation-item.mocks';
+import { AgentSubscriptionAccess, AgentSubscriptionService } from '../../../../services/agent-subscription.service';
 import { ApiService } from '../../../../services/api.service';
 import { CurrentUserService } from '../../../../services/current-user.service';
 import { PortalNavigationItemsService } from '../../../../services/portal-navigation-items.service';
@@ -36,6 +38,7 @@ describe('DocumentationFolderComponent', () => {
   let harness: DocumentationFolderComponentHarness;
   let navigationServiceSpy: PortalNavigationItemsService;
   let apiServiceSpy: { details: jest.Mock };
+  let agentSubscriptionServiceSpy: { forAgent: jest.Mock };
   let routerSpy: jest.Mocked<Router>;
   let queryParamsSubject: BehaviorSubject<{ selectedId?: string }>;
 
@@ -60,6 +63,9 @@ describe('DocumentationFolderComponent', () => {
       content: string;
       isAuthenticated: boolean;
       apiHasMcp: boolean;
+      apiType: ApiType;
+      agentAccess: AgentSubscriptionAccess | null;
+      apiEntrypoints: string[];
     }> = {
       queryParams: { selectedId: 'p1' },
       items: MOCK_CHILDREN,
@@ -85,11 +91,14 @@ describe('DocumentationFolderComponent', () => {
       details: jest.fn().mockImplementation((id: string) =>
         of({
           ...baseApiDetails,
+          ...(params.apiEntrypoints ? { entrypoints: params.apiEntrypoints } : {}),
           id,
           ...(apiHasMcp ? { mcp: { mcpPath: '/mcp', tools: [] as { toolDefinition: Record<string, unknown> }[] } } : {}),
+          ...(params.apiType ? { type: params.apiType } : {}),
         }),
       ),
     };
+    agentSubscriptionServiceSpy = { forAgent: jest.fn().mockReturnValue(of(params.agentAccess ?? null)) };
 
     await TestBed.configureTestingModule({
       animationsEnabled: true,
@@ -99,6 +108,7 @@ describe('DocumentationFolderComponent', () => {
         { provide: Router, useValue: routerSpy },
         { provide: PortalNavigationItemsService, useValue: navigationServiceSpy },
         { provide: ApiService, useValue: apiServiceSpy },
+        { provide: AgentSubscriptionService, useValue: agentSubscriptionServiceSpy },
         { provide: CurrentUserService, useValue: { isUserAuthenticated: signal(params?.isAuthenticated ?? true) } },
       ],
     }).compileComponents();
@@ -627,6 +637,122 @@ describe('DocumentationFolderComponent', () => {
       fixture.detectChanges();
 
       expect(await harness.getApiTabToolsHarness()).not.toBeNull();
+    });
+  });
+
+  describe('agent chat', () => {
+    const AGENT_ACCESS: AgentSubscriptionAccess = { subscriptionId: 'sub-1', apiKey: 'key-1', applicationName: 'My App' };
+
+    // jsdom ships no streams API, so the response body is faked down to what the store reads.
+    const answeringGateway = () => {
+      const encoded = new TextEncoder().encode(
+        'data: {"result":{"kind":"status-update","contextId":"ctx-1","status":{"state":"completed"}}}\n\n',
+      );
+      let sent = false;
+      return jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        body: {
+          getReader: () => ({
+            read: () => Promise.resolve(sent ? { done: true, value: undefined } : ((sent = true), { done: false, value: encoded })),
+          }),
+        },
+      } as unknown as Response);
+    };
+
+    beforeEach(() => {
+      globalThis.fetch = answeringGateway() as unknown as typeof fetch;
+    });
+
+    const initAgentPage = async (params: {
+      apiType?: ApiType;
+      agentAccess?: AgentSubscriptionAccess | null;
+      isAuthenticated?: boolean;
+      apiEntrypoints?: string[];
+    }) => {
+      const agentItem = makeItem('agent1', 'AGENT', 'Agent 1', 0, undefined);
+      const agentPage = makeItem('p-agent1', 'PAGE', 'Agent 1 Documentation', 0, 'agent1');
+      await init({ items: [agentItem, agentPage], queryParams: { selectedId: 'p-agent1' }, content: MOCK_CONTENT, ...params });
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+    };
+
+    const openChat = async () => {
+      await (await harness.getChatButton())!.click();
+      fixture.detectChanges();
+    };
+
+    const closeChat = async () => {
+      await (await harness.getSidePanel())!.clickClose();
+      fixture.detectChanges();
+    };
+
+    it('should not show the chat button for an api that is not an agent', async () => {
+      await initAgentPage({ apiType: 'PROXY', agentAccess: AGENT_ACCESS });
+
+      expect(await harness.getChatButton()).toBeNull();
+    });
+
+    it('should not show the chat button to a viewer with no usable subscription', async () => {
+      await initAgentPage({ apiType: 'A2A_PROXY', agentAccess: null });
+
+      expect(await harness.getChatButton()).toBeNull();
+    });
+
+    it('should show the chat button to a subscriber of an agent', async () => {
+      await initAgentPage({ apiType: 'A2A_PROXY', agentAccess: AGENT_ACCESS });
+
+      expect(await harness.getChatButton()).not.toBeNull();
+    });
+
+    it('should open the chat panel when the chat button is clicked', async () => {
+      await initAgentPage({ apiType: 'A2A_PROXY', agentAccess: AGENT_ACCESS });
+
+      expect(await harness.getAgentChat()).toBeNull();
+
+      await openChat();
+
+      expect(await harness.getAgentChat()).not.toBeNull();
+    });
+
+    it('should not offer the chat for an agent that publishes no gateway entrypoint', async () => {
+      await initAgentPage({ apiType: 'A2A_PROXY', agentAccess: AGENT_ACCESS, apiEntrypoints: [] });
+
+      expect(await harness.getChatButton()).toBeNull();
+    });
+
+    it('should keep the conversation when the panel is closed and reopened', async () => {
+      await initAgentPage({ apiType: 'A2A_PROXY', agentAccess: AGENT_ACCESS });
+      await openChat();
+
+      const chat = (await harness.getAgentChat())!;
+      await chat.type('what happened?');
+      await chat.clickSend();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(await chat.plainTurnTexts()).toContain('what happened?');
+
+      await closeChat();
+      expect(await harness.getAgentChat()).toBeNull();
+
+      await openChat();
+
+      expect(await (await harness.getAgentChat())!.plainTurnTexts()).toContain('what happened?');
+    });
+
+    it('should not look up a subscription for an anonymous viewer', async () => {
+      await initAgentPage({ apiType: 'A2A_PROXY', isAuthenticated: false });
+
+      expect(agentSubscriptionServiceSpy.forAgent).not.toHaveBeenCalled();
+      expect(await harness.getChatButton()).toBeNull();
+    });
+
+    it('should not look up a subscription on a page that is not an agent', async () => {
+      await initAgentPage({ apiType: 'PROXY' });
+
+      expect(agentSubscriptionServiceSpy.forAgent).not.toHaveBeenCalled();
     });
   });
 });

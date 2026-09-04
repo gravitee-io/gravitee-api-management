@@ -1,0 +1,60 @@
+@use '../../scss/theme' as app-theme;
+
+$overlay-duration: 400ms;
+$overlay-easing: cubic-bezier(0.25, 0.8, 0.25, 1);
+
+// The backdrop and the panel are positioned against the page shell, not against this component.
+:host {
+  display: contents;
+}
+
+.side-panel {
+  &__backdrop {
+    position: absolute;
+    z-index: 10;
+    inset: 0;
+    background-color: app-theme.$background-overlay-color;
+
+    &__enter {
+      animation: fade-in $overlay-duration $overlay-easing forwards;
+    }
+
+    &__leave {
+      animation: fade-out $overlay-duration $overlay-easing forwards;
+    }
+  }
+
+  &__panel {
+    position: absolute;
+    z-index: 20;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    max-width: 80vw;
+    box-sizing: border-box;
+    overflow: auto;
+    background-color: app-theme.$card-background-color;
+    box-shadow: -4px 0 24px app-theme.$shadow-color;
+    will-change: transform;
+    padding: 28px 30px;
+
+    &__enter {
+      animation: slide-in $overlay-duration $overlay-easing forwards;
+    }
+
+    &__leave {
+      animation: slide-out $overlay-duration $overlay-easing forwards;
+    }
+
+    &__mobile {
+      max-width: 100vw;
+      padding: 16px;
+    }
+
+    &__close-button {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+  }
+}

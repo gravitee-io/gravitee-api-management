@@ -1,0 +1,76 @@
+@use '../../scss/theme' as app-theme;
+
+.agent-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 520px;
+  max-width: 100%;
+  height: 100%;
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-right: 40px;
+
+    &__application {
+      color: app-theme.$paragraph-color;
+    }
+  }
+
+  &__log {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 320px;
+    overflow-y: auto;
+  }
+
+  &__empty {
+    color: app-theme.$paragraph-color;
+  }
+
+  &__turn {
+    align-self: flex-start;
+    max-width: 90%;
+    box-sizing: border-box;
+    border: app-theme.$border-width solid app-theme.$border-color;
+    border-radius: app-theme.$container-shape;
+    padding: 8px 12px;
+    background-color: app-theme.$background-color;
+
+    &--user {
+      align-self: flex-end;
+      border-color: transparent;
+      background-color: app-theme.$primary-highlight-color;
+    }
+
+    &__text {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    &__thinking {
+      color: app-theme.$paragraph-color;
+    }
+  }
+
+  &__error {
+    border-radius: app-theme.$container-shape;
+    padding: 8px 12px;
+    background-color: app-theme.$banner-error-background-color;
+    color: app-theme.$banner-error-text-color;
+  }
+
+  &__composer {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+
+    &__field {
+      flex: 1;
+    }
+  }
+}
