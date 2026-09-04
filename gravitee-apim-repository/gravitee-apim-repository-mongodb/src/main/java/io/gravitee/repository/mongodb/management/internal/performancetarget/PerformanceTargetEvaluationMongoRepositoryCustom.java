@@ -19,6 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.PerformanceTargetEnvironmentSummary;
 import io.gravitee.repository.mongodb.management.internal.model.PerformanceTargetEvaluationMongo;
+import java.util.List;
 
 public interface PerformanceTargetEvaluationMongoRepositoryCustom {
     void unsetLatest(String targetId);
@@ -28,4 +29,6 @@ public interface PerformanceTargetEvaluationMongoRepositoryCustom {
     Page<PerformanceTargetEvaluationMongo> findByTargetId(String targetId, Pageable pageable);
 
     PerformanceTargetEnvironmentSummary getEnvironmentSummary(String environmentId);
+
+    List<String> pruneHistory(String targetId, int retention);
 }

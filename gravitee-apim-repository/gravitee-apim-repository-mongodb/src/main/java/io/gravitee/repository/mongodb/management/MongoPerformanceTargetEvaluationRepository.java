@@ -97,6 +97,16 @@ class MongoPerformanceTargetEvaluationRepository implements PerformanceTargetEva
     }
 
     @Override
+    public List<String> pruneHistory(String targetId, int retention) throws TechnicalException {
+        log.debug("Prune performance target evaluations of target [{}] beyond the {} most recent", targetId, retention);
+        try {
+            return internalRepository.pruneHistory(targetId, retention);
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to prune performance target evaluations of target " + targetId, ex);
+        }
+    }
+
+    @Override
     public List<String> deleteByReference(String environmentId, String reference) throws TechnicalException {
         log.debug("Delete performance target evaluations by reference [{}/{}]", environmentId, reference);
         try {

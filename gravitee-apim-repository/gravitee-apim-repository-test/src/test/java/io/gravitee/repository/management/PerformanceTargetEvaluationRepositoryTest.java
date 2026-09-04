@@ -230,6 +230,37 @@ public class PerformanceTargetEvaluationRepositoryTest extends AbstractManagemen
             .containsExactly("eval-other-env");
     }
 
+    // pruneHistory
+    @Test
+    public void pruneHistory_should_keep_only_the_most_recent_evaluations_of_the_target() throws TechnicalException {
+        var pruned = performanceTargetEvaluationRepository.pruneHistory("target1", 1);
+
+        assertThat(pruned).containsExactly("eval-1a");
+        var history = performanceTargetEvaluationRepository.findByTargetId(
+            "target1",
+            new PageableBuilder().pageNumber(0).pageSize(10).build()
+        );
+        assertThat(history.getTotalElements()).isEqualTo(1);
+        assertThat(history.getContent()).extracting(PerformanceTargetEvaluation::getId).containsExactly("eval-1b");
+        assertThat(
+            performanceTargetEvaluationRepository.findByTargetId("target3", new PageableBuilder().pageNumber(0).pageSize(10).build())
+        )
+            .extracting(page -> page.getTotalElements())
+            .isEqualTo(2L);
+    }
+
+    @Test
+    public void pruneHistory_should_delete_nothing_when_the_history_fits_the_retention() throws TechnicalException {
+        var pruned = performanceTargetEvaluationRepository.pruneHistory("target1", 2);
+
+        assertThat(pruned).isEmpty();
+        assertThat(
+            performanceTargetEvaluationRepository.findByTargetId("target1", new PageableBuilder().pageNumber(0).pageSize(10).build())
+        )
+            .extracting(page -> page.getTotalElements())
+            .isEqualTo(2L);
+    }
+
     // deleteByTargetId
     @Test
     public void deleteByTargetId_should_delete_history_of_target() throws TechnicalException {

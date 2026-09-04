@@ -207,6 +207,28 @@ public class JdbcPerformanceTargetEvaluationRepository
     }
 
     @Override
+    public List<String> pruneHistory(String targetId, int retention) throws TechnicalException {
+        log.debug("JdbcPerformanceTargetEvaluationRepository.pruneHistory({}, {})", targetId, retention);
+        try {
+            var ids = jdbcTemplate.queryForList(
+                "select id from " + this.tableName + " where target_id = ? order by evaluated_at desc, id",
+                String.class,
+                targetId
+            );
+            if (ids.size() <= retention) {
+                return List.of();
+            }
+            var pruned = List.copyOf(ids.subList(retention, ids.size()));
+            jdbcTemplate.update("delete from " + this.tableName + " where id in (" + getOrm().buildInClause(pruned) + ")", ps ->
+                getOrm().setArguments(ps, pruned, 1)
+            );
+            return pruned;
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to prune performance target evaluations of target " + targetId, ex);
+        }
+    }
+
+    @Override
     public List<String> deleteByReference(String environmentId, String reference) throws TechnicalException {
         log.debug("JdbcPerformanceTargetEvaluationRepository.deleteByReference({}, {})", environmentId, reference);
         try {
