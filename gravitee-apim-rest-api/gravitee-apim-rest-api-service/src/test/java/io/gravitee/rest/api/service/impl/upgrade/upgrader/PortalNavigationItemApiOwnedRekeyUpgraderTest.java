@@ -61,71 +61,6 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
     }
 
     @Test
-    void rekeys_a_two_level_legacy_folder_tree_and_keeps_its_paths() throws UpgraderException {
-        var navApiRowId = "nav-api-row-1";
-        var apiRow = apiRow(navApiRowId, API_ID);
-        var guides = legacyFolder(navApiRowId, "/guides");
-        guides.setParentId(navApiRowId);
-        var advanced = legacyFolder(navApiRowId, "/guides/advanced");
-        advanced.setParentId(guides.getId());
-        repository.initWith(List.of(apiRow, guides, advanced));
-
-        assertThat(upgrader.upgrade()).isTrue();
-
-        var newGuidesId = newFolderId(API_ID, "/guides");
-        var newAdvancedId = newFolderId(API_ID, "/guides/advanced");
-
-        var newGuides = repository.get(newGuidesId);
-        assertThat(newGuides.getParentId()).isNull();
-        assertThat(newGuides.getRootId()).isEqualTo(newGuidesId);
-        assertThat(newGuides.getReferenceType()).isEqualTo(PortalNavigationReferenceType.API);
-        assertThat(newGuides.getReferenceId()).isEqualTo(API_ID);
-
-        var newAdvanced = repository.get(newAdvancedId);
-        assertThat(newAdvanced.getParentId()).isEqualTo(newGuidesId);
-        assertThat(newAdvanced.getRootId()).isEqualTo(newGuidesId);
-        assertThat(newAdvanced.getReferenceType()).isEqualTo(PortalNavigationReferenceType.API);
-
-        assertThat(repository.findById(guides.getId())).isEmpty();
-        assertThat(repository.findById(advanced.getId())).isEmpty();
-    }
-
-    @Test
-    void rekeys_a_legacy_doc_page_onto_the_api_and_keeps_its_phantom_parent_when_the_folder_is_absent() throws UpgraderException {
-        var contentId = "content-1";
-        var page = PortalNavigationItem.builder()
-            .id("old-page-id")
-            .organizationId(ORG)
-            .environmentId(ENV)
-            .type(PortalNavigationItem.Type.PAGE)
-            .parentId("some-legacy-parent-placeholder")
-            .rootId("old-page-id")
-            .configuration("{\"portalPageContentId\":\"" + contentId + "\"}")
-            .automationMetadata(
-                AutomationMetadata.builder()
-                    .referenceType(AutomationTargetReferenceType.API)
-                    .referenceId(API_ID)
-                    .location("/missing")
-                    .build()
-            )
-            .build();
-        repository.initWith(List.of(page));
-
-        assertThat(upgrader.upgrade()).isTrue();
-
-        var newPageId = HRIDToUUID.navigation().context(ORG, ENV).api(API_ID).documentation(contentId).id();
-        var phantomFolderId = newFolderId(API_ID, "/missing");
-
-        var newPage = repository.get(newPageId);
-        assertThat(newPage.getParentId()).isEqualTo(phantomFolderId);
-        assertThat(newPage.getRootId()).isEqualTo(phantomFolderId);
-        assertThat(newPage.getReferenceType()).isEqualTo(PortalNavigationReferenceType.API);
-        assertThat(newPage.getReferenceId()).isEqualTo(API_ID);
-
-        assertThat(repository.findById("old-page-id")).isEmpty();
-    }
-
-    @Test
     void re_parents_a_legacy_api_link_without_changing_its_id() throws UpgraderException {
         var linkId = HRIDToUUID.apiLink().context(AUDIT_INFO).api(API_ID).hrid("external-docs").id();
         var link = PortalNavigationItem.builder()
@@ -229,24 +164,176 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
     }
 
     @Test
-    void two_portals_listing_the_same_api_converge_on_one_subtree() throws UpgraderException {
-        var apiRowA = apiRow("nav-api-row-a", API_ID);
-        var apiRowB = apiRow("nav-api-row-b", API_ID);
-        var guidesA = legacyFolder("nav-api-row-a", "/guides");
-        guidesA.setParentId("nav-api-row-a");
-        var guidesB = legacyFolder("nav-api-row-b", "/guides");
-        guidesB.setParentId("nav-api-row-b");
-        repository.initWith(List.of(apiRowA, apiRowB, guidesA, guidesB));
+    void realigns_a_legacy_root_folder_that_already_carries_its_api_owned_id() throws UpgraderException {
+        var navApiRowId = "nav-api-row-1";
+        var folderId = newFolderId(API_ID, "/guides");
+        repository.initWith(List.of(apiRow(navApiRowId, API_ID), legacyApiOwnedFolder("/guides", navApiRowId, navApiRowId)));
 
         assertThat(upgrader.upgrade()).isTrue();
 
-        var newGuidesId = newFolderId(API_ID, "/guides");
+        var folder = repository.get(folderId);
+        assertThat(folder.getParentId()).isNull();
+        assertThat(folder.getRootId()).isEqualTo(folderId);
+        assertThat(folder.getReferenceType()).isEqualTo(PortalNavigationReferenceType.API);
+        assertThat(folder.getReferenceId()).isEqualTo(API_ID);
+    }
+
+    @Test
+    void realigns_a_nested_legacy_folder_onto_the_subtree_root() throws UpgraderException {
+        var navApiRowId = "nav-api-row-1";
+        var guidesId = newFolderId(API_ID, "/guides");
+        var advancedId = newFolderId(API_ID, "/guides/advanced");
+        repository.initWith(
+            List.of(
+                apiRow(navApiRowId, API_ID),
+                legacyApiOwnedFolder("/guides", navApiRowId, navApiRowId),
+                legacyApiOwnedFolder("/guides/advanced", guidesId, navApiRowId)
+            )
+        );
+
+        assertThat(upgrader.upgrade()).isTrue();
+
+        var advanced = repository.get(advancedId);
+        assertThat(advanced.getParentId()).isEqualTo(guidesId);
+        assertThat(advanced.getRootId()).isEqualTo(guidesId);
+        assertThat(advanced.getReferenceType()).isEqualTo(PortalNavigationReferenceType.API);
+        assertThat(advanced.getReferenceId()).isEqualTo(API_ID);
+    }
+
+    @Test
+    void realigns_a_legacy_root_doc_page_off_the_nav_api_row() throws UpgraderException {
+        var navApiRowId = "nav-api-row-1";
+        var contentId = "content-1";
+        var pageId = docPageId(contentId);
+        repository.initWith(List.of(apiRow(navApiRowId, API_ID), legacyApiOwnedDocPage(contentId, null, navApiRowId, navApiRowId)));
+
+        assertThat(upgrader.upgrade()).isTrue();
+
+        var page = repository.get(pageId);
+        assertThat(page.getParentId()).isNull();
+        assertThat(page.getRootId()).isEqualTo(pageId);
+        assertThat(page.getReferenceType()).isEqualTo(PortalNavigationReferenceType.API);
+        assertThat(page.getReferenceId()).isEqualTo(API_ID);
+    }
+
+    @Test
+    void realigns_a_nested_legacy_doc_page_under_its_folder() throws UpgraderException {
+        var navApiRowId = "nav-api-row-1";
+        var contentId = "content-1";
+        var guidesId = newFolderId(API_ID, "/guides");
+        repository.initWith(
+            List.of(
+                apiRow(navApiRowId, API_ID),
+                legacyApiOwnedFolder("/guides", navApiRowId, navApiRowId),
+                legacyApiOwnedDocPage(contentId, "/guides", guidesId, navApiRowId)
+            )
+        );
+
+        assertThat(upgrader.upgrade()).isTrue();
+
+        var page = repository.get(docPageId(contentId));
+        assertThat(page.getParentId()).isEqualTo(guidesId);
+        assertThat(page.getRootId()).isEqualTo(guidesId);
+        assertThat(page.getReferenceType()).isEqualTo(PortalNavigationReferenceType.API);
+        assertThat(page.getReferenceId()).isEqualTo(API_ID);
+    }
+
+    @Test
+    void realigns_a_legacy_doc_page_onto_a_phantom_parent_when_its_folder_is_absent() throws UpgraderException {
+        var contentId = "content-1";
+        repository.initWith(List.of(legacyApiOwnedDocPage(contentId, "/missing", "nav-api-row-1", "nav-api-row-1")));
+
+        assertThat(upgrader.upgrade()).isTrue();
+
+        var phantomFolderId = newFolderId(API_ID, "/missing");
+        var page = repository.get(docPageId(contentId));
+        assertThat(page.getParentId()).isEqualTo(phantomFolderId);
+        assertThat(page.getRootId()).isEqualTo(phantomFolderId);
+        assertThat(page.getReferenceType()).isEqualTo(PortalNavigationReferenceType.API);
+        assertThat(page.getReferenceId()).isEqualTo(API_ID);
+    }
+
+    @Test
+    void gives_a_deeply_nested_doc_page_the_subtree_root_not_its_immediate_folder() throws UpgraderException {
+        var navApiRowId = "nav-api-row-1";
+        var contentId = "content-1";
+        var guidesId = newFolderId(API_ID, "/guides");
+        var advancedId = newFolderId(API_ID, "/guides/advanced");
+        repository.initWith(
+            List.of(
+                apiRow(navApiRowId, API_ID),
+                legacyApiOwnedFolder("/guides", navApiRowId, navApiRowId),
+                legacyApiOwnedFolder("/guides/advanced", guidesId, navApiRowId),
+                legacyApiOwnedDocPage(contentId, "/guides/advanced", advancedId, navApiRowId)
+            )
+        );
+
+        assertThat(upgrader.upgrade()).isTrue();
+
+        var page = repository.get(docPageId(contentId));
+        assertThat(page.getParentId()).isEqualTo(advancedId);
+        assertThat(page.getRootId()).isEqualTo(guidesId);
+    }
+
+    @Test
+    void realigns_the_single_folder_row_two_portals_listing_the_same_api_share() throws UpgraderException {
+        // Both listings derive the same forApiFolder id, so there was only ever one folder row —
+        // parented under whichever nav-api row reconciled last.
+        var folderId = newFolderId(API_ID, "/guides");
+        repository.initWith(
+            List.of(
+                apiRow("nav-api-row-a", API_ID),
+                apiRow("nav-api-row-b", API_ID),
+                legacyApiOwnedFolder("/guides", "nav-api-row-b", "nav-api-row-b")
+            )
+        );
+
+        assertThat(upgrader.upgrade()).isTrue();
 
         assertThat(repository.storage())
-            .filteredOn(item -> item.getId().equals(newGuidesId))
+            .filteredOn(item -> item.getId().equals(folderId))
             .hasSize(1);
-        assertThat(repository.findById(guidesA.getId())).isEmpty();
-        assertThat(repository.findById(guidesB.getId())).isEmpty();
+        var folder = repository.get(folderId);
+        assertThat(folder.getParentId()).isNull();
+        assertThat(folder.getRootId()).isEqualTo(folderId);
+        assertThat(folder.getReferenceType()).isEqualTo(PortalNavigationReferenceType.API);
+    }
+
+    /**
+     * The real pre-migration shape: {@code forApiFolder} was always keyed on the API, never on the
+     * nav-api row, so a legacy folder already sits at its API-owned id and only its parent, root and
+     * reference are stale.
+     */
+    private static PortalNavigationItem legacyApiOwnedFolder(String path, String parentId, String navApiRowId) {
+        return PortalNavigationItem.builder()
+            .id(newFolderId(API_ID, path))
+            .organizationId(ORG)
+            .environmentId(ENV)
+            .type(PortalNavigationItem.Type.FOLDER)
+            .segment(path.substring(path.lastIndexOf('/') + 1))
+            .parentId(parentId)
+            .rootId(navApiRowId)
+            .build();
+    }
+
+    /** As {@link #legacyApiOwnedFolder}, for a doc page: {@code forApiDocumentation} was API-keyed too. */
+    private static PortalNavigationItem legacyApiOwnedDocPage(String contentId, String location, String parentId, String navApiRowId) {
+        return PortalNavigationItem.builder()
+            .id(docPageId(contentId))
+            .organizationId(ORG)
+            .environmentId(ENV)
+            .type(PortalNavigationItem.Type.PAGE)
+            .parentId(parentId)
+            .rootId(navApiRowId)
+            .configuration("{\"portalPageContentId\":\"" + contentId + "\"}")
+            .automationMetadata(
+                AutomationMetadata.builder().referenceType(AutomationTargetReferenceType.API).referenceId(API_ID).location(location).build()
+            )
+            .build();
+    }
+
+    private static String docPageId(String contentId) {
+        return HRIDToUUID.navigation().context(ORG, ENV).api(API_ID).documentation(contentId).id();
     }
 
     private static PortalNavigationItem apiRow(String id, String apiId) {
@@ -257,19 +344,6 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
             .type(PortalNavigationItem.Type.API)
             .apiId(apiId)
             .rootId(id)
-            .build();
-    }
-
-    private static PortalNavigationItem legacyFolder(String navApiRowId, String path) {
-        var segment = path.substring(path.lastIndexOf('/') + 1);
-        var id = HRIDToUUID.navigation().context(ORG, ENV).api(navApiRowId).folder(path).id();
-        return PortalNavigationItem.builder()
-            .id(id)
-            .organizationId(ORG)
-            .environmentId(ENV)
-            .type(PortalNavigationItem.Type.FOLDER)
-            .segment(segment)
-            .rootId(navApiRowId)
             .build();
     }
 
