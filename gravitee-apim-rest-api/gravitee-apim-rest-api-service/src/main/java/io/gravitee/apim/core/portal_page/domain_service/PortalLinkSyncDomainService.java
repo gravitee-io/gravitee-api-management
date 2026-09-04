@@ -19,10 +19,12 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.exception.PathConflictException;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -99,7 +101,7 @@ public class PortalLinkSyncDomainService {
         // is safe: if this link already legitimately owns (parent, segment), no foreign item could have
         // taken that same slot in the meantime without failing this same check itself.
         if (existingLink == null || !Objects.equals(existingLink.getParentId(), parentId)) {
-            rejectIfSegmentTakenByForeignItem(auditInfo, parent, segment, linkId, location);
+            rejectIfSegmentTakenByForeignItem(auditInfo, parent, segment, linkId, location, automationMetadata.reference());
         }
 
         var visibility = PortalVisibility.resolve(callerVisibility, parent == null ? null : parent.getVisibility());
@@ -147,7 +149,8 @@ public class PortalLinkSyncDomainService {
             resolveParent(auditInfo, location, portalId),
             Slug.from(linkHrid).value(),
             PortalNavigationItemId.forPortalLink(auditInfo, portalId, linkHrid),
-            location
+            location,
+            new NavigationItemReference.PortalReference(PortalId.of(portalId))
         );
     }
 
@@ -192,7 +195,8 @@ public class PortalLinkSyncDomainService {
             resolveApiParent(auditInfo, location, apiId),
             Slug.from(linkHrid).value(),
             PortalNavigationItemId.forApiLink(auditInfo, apiId, linkHrid),
-            location
+            location,
+            new NavigationItemReference.ApiReference(apiId)
         );
     }
 
@@ -242,11 +246,12 @@ public class PortalLinkSyncDomainService {
         PortalNavigationItemContainer parent,
         String segment,
         PortalNavigationItemId expectedId,
-        String location
+        String location,
+        NavigationItemReference reference
     ) {
         var parentId = Optional.ofNullable(parent).map(PortalNavigationItemContainer::getId).orElse(null);
         navigationItemsQueryService
-            .findByParentIdAndSegment(auditInfo.environmentId(), parentId, segment)
+            .findByParentIdAndSegment(auditInfo.environmentId(), parentId, segment, reference)
             .filter(sibling -> !sibling.getId().equals(expectedId))
             .ifPresent(squatter -> {
                 throw PathConflictException.segmentTaken(PathConflictException.EntryKind.LINK, location);

@@ -45,7 +45,7 @@ public abstract sealed class PortalNavigationItem
 
     @Builder.Default
     @Nonnull
-    private NavigationItemReference reference = NavigationItemReference.DEFAULT;
+    private NavigationItemReference reference = NavigationItemReference.defaultReference();
 
     @Setter
     @Nonnull
@@ -208,7 +208,7 @@ public abstract sealed class PortalNavigationItem
             );
         };
         newItem.setSegment(segmentFor(item));
-        newItem.reference = Objects.requireNonNullElse(item.getReference(), NavigationItemReference.DEFAULT);
+        newItem.reference = Objects.requireNonNullElse(item.getReference(), NavigationItemReference.defaultReference());
         newItem.source = item.getSource();
         newItem.automationMetadata = item.getAutomationMetadata();
         if (parent == null) {

@@ -25,6 +25,7 @@ import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudServi
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -68,7 +69,8 @@ public class PortalNavigationItemDomainService {
             createPortalNavigationItem.getParentId(),
             environmentId,
             createPortalNavigationItem.getArea(),
-            createPortalNavigationItem.getOrder()
+            createPortalNavigationItem.getOrder(),
+            createPortalNavigationItem.getReference()
         );
         createPortalNavigationItem.setOrder(sanitizedOrder);
 
@@ -93,7 +95,12 @@ public class PortalNavigationItemDomainService {
         var parent = parentId != null ? resolveParentContainer(parentId, environmentId) : null;
 
         if (createPortalNavigationItem.getSegment() == null) {
-            var usedSegments = retrieveSiblingItems(parentId, environmentId, createPortalNavigationItem.getArea())
+            var usedSegments = retrieveSiblingItems(
+                parentId,
+                environmentId,
+                createPortalNavigationItem.getArea(),
+                createPortalNavigationItem.getReference()
+            )
                 .stream()
                 .map(item -> new Slug(item.getSegment()))
                 .collect(Collectors.toSet());
@@ -107,7 +114,8 @@ public class PortalNavigationItemDomainService {
         this.retrieveSiblingItems(
                 portalNavigationItem.getParentId(),
                 portalNavigationItem.getEnvironmentId(),
-                createPortalNavigationItem.getArea()
+                createPortalNavigationItem.getArea(),
+                portalNavigationItem.getReference()
             )
             .stream()
             .filter(item -> !Objects.equals(item.getId(), portalNavigationItem.getId()))
@@ -163,10 +171,15 @@ public class PortalNavigationItemDomainService {
         return crudService.update(page);
     }
 
-    private List<PortalNavigationItem> retrieveSiblingItems(PortalNavigationItemId parentId, String environmentId, PortalArea area) {
+    private List<PortalNavigationItem> retrieveSiblingItems(
+        PortalNavigationItemId parentId,
+        String environmentId,
+        PortalArea area,
+        NavigationItemReference reference
+    ) {
         return parentId != null
             ? queryService.findByParentIdAndEnvironmentId(environmentId, parentId)
-            : queryService.findTopLevelItemsByEnvironmentIdAndPortalArea(environmentId, area);
+            : queryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(environmentId, area, reference);
     }
 
     public void delete(PortalNavigationItem item) {
@@ -178,7 +191,7 @@ public class PortalNavigationItemDomainService {
         // Reorder siblings at the deleted item's parent level: decrement order for siblings with order > deleted order
         var parentId = item.getParentId();
         var deletedOrder = item.getOrder();
-        var siblings = retrieveSiblingItems(parentId, item.getEnvironmentId(), item.getArea());
+        var siblings = retrieveSiblingItems(parentId, item.getEnvironmentId(), item.getArea(), item.getReference());
         var siblingsToUpdate = siblings
             .stream()
             .filter(sibling -> !sibling.getId().equals(item.getId()))
@@ -274,20 +287,27 @@ public class PortalNavigationItemDomainService {
                 toUpdate.getParentId(),
                 originalItem.getEnvironmentId(),
                 originalItem.getArea(),
-                toUpdate.getOrder()
+                toUpdate.getOrder(),
+                originalItem.getReference()
             )
             : this.sanitizeOrderForReordering(
                 toUpdate.getParentId(),
                 originalItem.getEnvironmentId(),
                 originalItem.getArea(),
-                toUpdate.getOrder()
+                toUpdate.getOrder(),
+                originalItem.getReference()
             );
 
         toUpdate.setOrder(sanitizedOrder);
 
         if (toUpdate.getSegment() == null) {
             var targetParentId = isMoveToNewParent ? toUpdate.getParentId() : originalItem.getParentId();
-            var usedSegments = retrieveSiblingItems(targetParentId, originalItem.getEnvironmentId(), originalItem.getArea())
+            var usedSegments = retrieveSiblingItems(
+                targetParentId,
+                originalItem.getEnvironmentId(),
+                originalItem.getArea(),
+                originalItem.getReference()
+            )
                 .stream()
                 .filter(sibling -> !Objects.equals(sibling.getId(), originalItem.getId()))
                 .map(sibling -> new Slug(sibling.getSegment()))
@@ -427,15 +447,27 @@ public class PortalNavigationItemDomainService {
         }
     }
 
-    private int sanitizeOrderForReordering(PortalNavigationItemId parentId, String environmentId, PortalArea area, Integer order) {
-        final var siblingItems = this.retrieveSiblingItems(parentId, environmentId, area);
+    private int sanitizeOrderForReordering(
+        PortalNavigationItemId parentId,
+        String environmentId,
+        PortalArea area,
+        Integer order,
+        NavigationItemReference reference
+    ) {
+        final var siblingItems = this.retrieveSiblingItems(parentId, environmentId, area, reference);
         final var maxOrder = Math.max(0, siblingItems.size() - 1);
         if (Objects.isNull(order)) return maxOrder;
         return Math.min(order, maxOrder);
     }
 
-    private int sanitizeOrderForInsertion(PortalNavigationItemId parentId, String environmentId, PortalArea area, Integer order) {
-        final var newMaxOrder = this.retrieveSiblingItems(parentId, environmentId, area).size();
+    private int sanitizeOrderForInsertion(
+        PortalNavigationItemId parentId,
+        String environmentId,
+        PortalArea area,
+        Integer order,
+        NavigationItemReference reference
+    ) {
+        final var newMaxOrder = this.retrieveSiblingItems(parentId, environmentId, area, reference).size();
         if (Objects.isNull(order)) return newMaxOrder;
 
         return Math.min(order, newMaxOrder);
@@ -446,7 +478,12 @@ public class PortalNavigationItemDomainService {
         PortalNavigationItem updatedItem,
         PortalNavigationItemId originalParentId
     ) {
-        return this.retrieveSiblingItems(originalParentId, updatedItem.getEnvironmentId(), updatedItem.getArea())
+        return this.retrieveSiblingItems(
+                originalParentId,
+                updatedItem.getEnvironmentId(),
+                updatedItem.getArea(),
+                updatedItem.getReference()
+            )
             .stream()
             .filter(sibling -> sibling.getOrder() > originalOrder)
             .peek(sibling -> {
@@ -456,7 +493,12 @@ public class PortalNavigationItemDomainService {
     }
 
     private List<PortalNavigationItem> reorderDestinationSiblingsOnInsertion(PortalNavigationItem updatedItem) {
-        return this.retrieveSiblingItems(updatedItem.getParentId(), updatedItem.getEnvironmentId(), updatedItem.getArea())
+        return this.retrieveSiblingItems(
+                updatedItem.getParentId(),
+                updatedItem.getEnvironmentId(),
+                updatedItem.getArea(),
+                updatedItem.getReference()
+            )
             .stream()
             .filter(sibling -> !Objects.equals(sibling.getId(), updatedItem.getId()) && sibling.getOrder() >= updatedItem.getOrder())
             .peek(sibling -> {
@@ -472,7 +514,12 @@ public class PortalNavigationItemDomainService {
         Predicate<PortalNavigationItem> shouldBeIncremented = sibling ->
             sibling.getOrder() >= updatedItem.getOrder() && sibling.getOrder() < originalOrder;
 
-        return this.retrieveSiblingItems(updatedItem.getParentId(), updatedItem.getEnvironmentId(), updatedItem.getArea())
+        return this.retrieveSiblingItems(
+                updatedItem.getParentId(),
+                updatedItem.getEnvironmentId(),
+                updatedItem.getArea(),
+                updatedItem.getReference()
+            )
             .stream()
             .filter(
                 sibling ->

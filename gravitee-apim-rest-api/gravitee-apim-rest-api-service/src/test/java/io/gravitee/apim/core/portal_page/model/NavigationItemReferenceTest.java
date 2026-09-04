@@ -26,12 +26,12 @@ import org.junit.jupiter.api.Test;
 class NavigationItemReferenceTest {
 
     @Test
-    void DEFAULT_is_a_PortalReference_wrapping_PortalId_ZERO() {
-        assertThat(NavigationItemReference.DEFAULT).isEqualTo(new NavigationItemReference.PortalReference(PortalId.ZERO));
+    void defaultReference_is_a_PortalReference_wrapping_PortalId_ZERO() {
+        assertThat(NavigationItemReference.defaultReference()).isEqualTo(new NavigationItemReference.PortalReference(PortalId.ZERO));
     }
 
     @Test
-    void DEFAULT_is_the_same_instance_as_PortalReference_DEFAULT() {
-        assertThat(NavigationItemReference.DEFAULT).isSameAs(NavigationItemReference.PortalReference.DEFAULT);
+    void defaultReference_returns_the_same_instance_as_PortalReference_DEFAULT() {
+        assertThat(NavigationItemReference.defaultReference()).isSameAs(NavigationItemReference.PortalReference.DEFAULT);
     }
 }

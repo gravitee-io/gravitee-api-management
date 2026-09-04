@@ -25,6 +25,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.domain_service.navigation.actions.FolderActions;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -47,6 +48,7 @@ class NavigationSyncPlanExecutorTest {
         .build();
 
     private static final PortalNavigationItemId FIXED_ID = PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+    private static final String API_ID = "00000000-0000-0000-0000-0000000000a1";
 
     private final PortalNavigationItemsCrudServiceInMemory crud = new PortalNavigationItemsCrudServiceInMemory();
     private final PortalNavigationItemsQueryServiceInMemory query = new PortalNavigationItemsQueryServiceInMemory(crud.storage());
@@ -60,6 +62,24 @@ class NavigationSyncPlanExecutorTest {
     }
 
     @Test
+    void created_folders_carry_the_reference_they_were_planned_under() {
+        var plan = new NavigationSyncPlan(List.of(new FolderActions.CreateFolder(desired("/guides", null, "guides", 0))));
+        var reference = new NavigationItemReference.ApiReference(API_ID);
+
+        executor.execute(
+            plan,
+            AUDIT_INFO,
+            PortalArea.TOP_NAVBAR,
+            null,
+            reference,
+            path -> PortalNavigationItemId.random(),
+            new DeleteStrategy(item -> false, false)
+        );
+
+        assertThat(crud.storage()).singleElement().extracting(PortalNavigationItem::getReference).isEqualTo(reference);
+    }
+
+    @Test
     void create_folder_under_root_when_parent_path_is_null() {
         var plan = new NavigationSyncPlan(List.of(new FolderActions.CreateFolder(desired("/a", null, "a", 0))));
 
@@ -68,6 +88,7 @@ class NavigationSyncPlanExecutorTest {
             AUDIT_INFO,
             PortalArea.TOP_NAVBAR,
             null,
+            NavigationItemReference.defaultReference(),
             path -> PortalNavigationItemId.random(),
             new DeleteStrategy(item -> false, false)
         );
@@ -95,6 +116,7 @@ class NavigationSyncPlanExecutorTest {
             AUDIT_INFO,
             PortalArea.TOP_NAVBAR,
             null,
+            NavigationItemReference.defaultReference(),
             path -> PortalNavigationItemId.random(),
             new DeleteStrategy(item -> false, false)
         );
@@ -109,7 +131,15 @@ class NavigationSyncPlanExecutorTest {
     void id_comes_from_id_factory() {
         var plan = new NavigationSyncPlan(List.of(new FolderActions.CreateFolder(desired("/a", null, "a", 0))));
 
-        executor.execute(plan, AUDIT_INFO, PortalArea.TOP_NAVBAR, null, path -> FIXED_ID, new DeleteStrategy(item -> false, false));
+        executor.execute(
+            plan,
+            AUDIT_INFO,
+            PortalArea.TOP_NAVBAR,
+            null,
+            NavigationItemReference.defaultReference(),
+            path -> FIXED_ID,
+            new DeleteStrategy(item -> false, false)
+        );
 
         assertThat(crud.storage()).hasSize(1);
         assertThat(crud.storage().get(0).getId()).isEqualTo(FIXED_ID);
@@ -127,6 +157,7 @@ class NavigationSyncPlanExecutorTest {
             AUDIT_INFO,
             PortalArea.TOP_NAVBAR,
             null,
+            NavigationItemReference.defaultReference(),
             path -> PortalNavigationItemId.random(),
             new DeleteStrategy(item -> false, false)
         );
@@ -147,6 +178,7 @@ class NavigationSyncPlanExecutorTest {
             AUDIT_INFO,
             PortalArea.TOP_NAVBAR,
             null,
+            NavigationItemReference.defaultReference(),
             path -> PortalNavigationItemId.random(),
             new DeleteStrategy(item -> false, false)
         );
@@ -168,6 +200,7 @@ class NavigationSyncPlanExecutorTest {
             AUDIT_INFO,
             PortalArea.TOP_NAVBAR,
             null,
+            NavigationItemReference.defaultReference(),
             path -> PortalNavigationItemId.random(),
             new DeleteStrategy(item -> false, false)
         );
@@ -182,7 +215,15 @@ class NavigationSyncPlanExecutorTest {
         crud.initWith(List.of(privateRoot));
         var plan = new NavigationSyncPlan(List.of(new FolderActions.CreateFolder(desired("/a", null, "a", 0))));
 
-        executor.execute(plan, AUDIT_INFO, PortalArea.TOP_NAVBAR, privateRoot, path -> FIXED_ID, new DeleteStrategy(item -> false, false));
+        executor.execute(
+            plan,
+            AUDIT_INFO,
+            PortalArea.TOP_NAVBAR,
+            privateRoot,
+            NavigationItemReference.defaultReference(),
+            path -> FIXED_ID,
+            new DeleteStrategy(item -> false, false)
+        );
 
         var created = (PortalNavigationFolder) crud
             .storage()
@@ -206,6 +247,7 @@ class NavigationSyncPlanExecutorTest {
             AUDIT_INFO,
             PortalArea.TOP_NAVBAR,
             privateParent,
+            NavigationItemReference.defaultReference(),
             path -> PortalNavigationItemId.random(),
             new DeleteStrategy(item -> false, false)
         );
@@ -234,6 +276,7 @@ class NavigationSyncPlanExecutorTest {
             AUDIT_INFO,
             PortalArea.TOP_NAVBAR,
             null,
+            NavigationItemReference.defaultReference(),
             path -> PortalNavigationItemId.random(),
             new DeleteStrategy(item -> skipIds.contains(item.getId()), false)
         );
