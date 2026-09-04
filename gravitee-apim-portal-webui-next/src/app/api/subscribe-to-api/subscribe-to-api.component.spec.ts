@@ -1234,7 +1234,7 @@ describe('SubscribeToApiComponent', () => {
         expect(await subscribeButton?.isDisabled()).toEqual(false);
       });
 
-      it('should subscribe after accepting agent terms without opening the plan terms dialog', async () => {
+      it('should still ask for the plan general conditions after accepting the agent terms', async () => {
         await init(false, AGENT_API, null, AGENT_TERMS);
         await selectAgentPlanAndAutoSelectApplication(API_KEY_PLAN_ID_GENERAL_CONDITIONS);
 
@@ -1252,15 +1252,39 @@ describe('SubscribeToApiComponent', () => {
         });
         expectGetPage(page);
 
+        const dialog = await rootHarnessLoader.getHarness(TermsAndConditionsDialogHarness);
+        await dialog.accept();
+
         expectPostCreateSubscription({
           plan: API_KEY_PLAN_ID_GENERAL_CONDITIONS,
           application: APP_ID,
           general_conditions_accepted: true,
           general_conditions_content_revision: page.contentRevisionId,
         });
+      });
 
-        const dialog = await rootHarnessLoader.getHarnessOrNull(TermsAndConditionsDialogHarness);
-        expect(dialog).toBeNull();
+      it('should not subscribe when the viewer dismisses the plan general conditions', async () => {
+        await init(false, AGENT_API, null, AGENT_TERMS);
+        await selectAgentPlanAndAutoSelectApplication(API_KEY_PLAN_ID_GENERAL_CONDITIONS);
+
+        const checkout = await harnessLoader.getHarness(SubscribeToApiCheckoutHarness);
+        await checkout.acceptAgentTerms();
+
+        const subscribeButton = await getSubscribeButton();
+        await subscribeButton?.click();
+
+        const page = fakePage({
+          id: GENERAL_CONDITIONS_ID,
+          content: 'cats rule',
+          type: 'MARKDOWN',
+          contentRevisionId: { revision: 2, pageId: GENERAL_CONDITIONS_ID },
+        });
+        expectGetPage(page);
+
+        const dialog = await rootHarnessLoader.getHarness(TermsAndConditionsDialogHarness);
+        await dialog.close();
+
+        httpTestingController.expectNone(`${TESTING_BASE_URL}/subscriptions`);
       });
     });
 
@@ -1268,6 +1292,39 @@ describe('SubscribeToApiComponent', () => {
       it('should skip the application step when there is a single eligible application', async () => {
         await init(false, AGENT_API);
         await selectAgentPlanAndAutoSelectApplication(API_KEY_PLAN_ID);
+        expect(getTitle()).toEqual('Review');
+      });
+
+      it('should move forward, not back to plan selection, when a later response leaves a single application', async () => {
+        await init(false, AGENT_API);
+        const step1 = await harnessLoader.getHarness(SubscribeToApiChoosePlanHarness);
+        await step1.selectPlanByPlanId(API_KEY_PLAN_ID);
+        fixture.detectChanges();
+        expectGetSubscriptionsForApi(API_ID);
+        expectGetApplications(
+          1,
+          fakeApplicationsResponse({
+            data: [fakeApplication({ id: APP_ID, name: 'App 1' }), fakeApplication({ id: APP_ID_NO_SUBSCRIPTIONS, name: 'App 2' })],
+            metadata: { pagination: { current_page: 1, first: 1, last: 7, size: 6, total: 7, total_pages: 2 } },
+          }),
+        );
+        fixture.detectChanges();
+        await goToNextStep();
+        fixture.detectChanges();
+        expect(getTitle()).toEqual('Choose an application');
+
+        const step2 = await harnessLoader.getHarness(SubscribeToApiChooseApplicationHarness);
+        await step2.getNextPageOfApplications();
+        fixture.detectChanges();
+        expectGetApplications(
+          2,
+          fakeApplicationsResponse({
+            data: [fakeApplication({ id: APP_ID, name: 'App 1' })],
+            metadata: { pagination: { current_page: 2, first: 1, last: 1, size: 6, total: 1, total_pages: 1 } },
+          }),
+        );
+        fixture.detectChanges();
+
         expect(getTitle()).toEqual('Review');
       });
 

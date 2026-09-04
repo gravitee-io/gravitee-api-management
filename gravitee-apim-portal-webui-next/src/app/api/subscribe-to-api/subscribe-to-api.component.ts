@@ -247,10 +247,9 @@ export class SubscribeToApiComponent implements OnInit {
   }
 
   goToNextStep(): void {
-    const steps = this.activeSteps();
-    const currentIndex = steps.indexOf(this.currentStep());
-    if (currentIndex < steps.length - 1) {
-      this.currentStep.set(steps[currentIndex + 1]);
+    const nextStep = this.stepAfter(this.currentStep());
+    if (nextStep) {
+      this.currentStep.set(nextStep);
     }
   }
 
@@ -316,6 +315,12 @@ export class SubscribeToApiComponent implements OnInit {
       });
   }
 
+  private stepAfter(step: SubscribeStep): SubscribeStep | undefined {
+    const steps = this.activeSteps();
+    const index = steps.indexOf(step);
+    return index >= 0 && index < steps.length - 1 ? steps[index + 1] : undefined;
+  }
+
   private filterEmptyMetadata(metadata: Record<string, string>): Record<string, string> {
     return Object.fromEntries(Object.entries(metadata).filter(([_, value]) => value != null && value.trim() !== ''));
   }
@@ -364,10 +369,12 @@ export class SubscribeToApiComponent implements OnInit {
 
     const singleApp = data.pagination.totalApplications === 1 ? data.applications[0] : undefined;
     if (singleApp && !singleApp.disabled) {
+      const stepAfterAppSelection =
+        this.currentStep() === SubscribeStep.APP_SELECTION ? this.stepAfter(SubscribeStep.APP_SELECTION) : undefined;
       this.currentApplication.set(singleApp);
       this.autoSelectedApplication.set(true);
-      if (this.currentStep() === SubscribeStep.APP_SELECTION) {
-        this.goToNextStep();
+      if (stepAfterAppSelection) {
+        this.currentStep.set(stepAfterAppSelection);
       }
       return;
     }
@@ -377,27 +384,12 @@ export class SubscribeToApiComponent implements OnInit {
 
   private handleTermsAndConditions$(createSubscription: CreateSubscription): Observable<CreateSubscription> {
     const generalConditionsPageId = this.currentPlan()?.general_conditions;
-    const agentTermsAccepted = !!this.agentTermsAndConditions()?.content && this.agentTermsAccepted();
-
-    if (agentTermsAccepted) {
-      if (!generalConditionsPageId) {
-        return of(createSubscription);
-      }
-      return this.pageService.getByApiIdAndId(this.api().id, generalConditionsPageId, true).pipe(
-        map(page => ({
-          ...createSubscription,
-          general_conditions_accepted: true,
-          general_conditions_content_revision: page.contentRevisionId,
-        })),
-      );
+    if (!generalConditionsPageId) {
+      return of(createSubscription);
     }
-
-    if (generalConditionsPageId) {
-      return this.pageService
-        .getByApiIdAndId(this.api().id, generalConditionsPageId, true)
-        .pipe(switchMap(page => this.handleTermsAndConditionsDialog$(this.api().id, page, createSubscription)));
-    }
-    return of(createSubscription);
+    return this.pageService
+      .getByApiIdAndId(this.api().id, generalConditionsPageId, true)
+      .pipe(switchMap(page => this.handleTermsAndConditionsDialog$(this.api().id, page, createSubscription)));
   }
 
   private handleTermsAndConditionsDialog$(
