@@ -113,10 +113,10 @@ public class CreateOrUpdatePortalLinkUseCase {
                     .build();
                 navigationItemValidatorService.validateOne(toCreate, input.auditInfo().environmentId());
             }
-            if (portalAutomationScopeEnforcer.isDefaultPortal(input.auditInfo(), input.portalId())) {
+            if (portalAutomationScopeEnforcer.portalExistsInEnvironment(input.auditInfo(), input.portalId())) {
                 syncDomainService.validateForConflicts(input.auditInfo(), input.portalId().toString(), input.linkHrid(), input.location());
             } else {
-                errors.add(Validator.Error.severe("no portal exists in this environment to attach the link to"));
+                errors.add(Validator.Error.severe("the portal to attach the link to does not exist in this environment"));
             }
         } catch (AbstractDomainException e) {
             errors.add(Validator.Error.severe("%s", e.getMessage()));
