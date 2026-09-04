@@ -47,6 +47,7 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -108,6 +109,44 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
             .singleElement()
             .isInstanceOfSatisfying(GraviteeMarkdownPageContent.class, content ->
                 assertThat(content.getContent().value()).isEqualTo(loadTemplate("api-overview-page-content.md"))
+            );
+    }
+
+    /** An agent is an A2A proxy: it gets an overview page like an API, worded for an agent consumer. */
+    @Test
+    void should_seed_agent_overview_page_for_agent() {
+        var parent = (PortalNavigationFolder) portalNavigationItemsQueryService.findByIdAndEnvironmentId(
+            ENV_ID,
+            PortalNavigationItemId.of(APIS_ID)
+        );
+        var agentApiId = "00000000-0000-0000-0000-0000000000a1";
+        apiCrudService.initWith(
+            List.of(Api.builder().id(agentApiId).name("My agent").version("1.0.0").type(ApiType.A2A_PROXY).build())
+        );
+        var agent = PortalNavigationItemFixtures.anAgent(
+            "00000000-0000-0000-0000-0000000000a2",
+            "My agent",
+            parent.getId(),
+            agentApiId
+        );
+        agent.updateParent(parent);
+        portalNavigationItemsQueryService.initWith(
+            Stream.concat(portalNavigationItemsQueryService.storage().stream(), Stream.of(agent)).toList()
+        );
+
+        var output = useCase.execute(
+            new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(ORG_ID, ENV_ID, List.of(agent.getId()))
+        );
+
+        assertThat(output.seededNavigationItemIds()).containsExactly(agent.getId());
+        assertThat(portalNavigationItemsQueryService.findByParentIdAndEnvironmentId(ENV_ID, agent.getId()))
+            .filteredOn(PortalNavigationPage.class::isInstance)
+            .singleElement()
+            .satisfies(item -> assertThat(item.getTitle()).isEqualTo("Overview"));
+        assertThat(portalPageContentCrudService.storage())
+            .singleElement()
+            .isInstanceOfSatisfying(GraviteeMarkdownPageContent.class, content ->
+                assertThat(content.getContent().value()).isEqualTo(loadTemplate("agent-overview-page-content.md"))
             );
     }
 

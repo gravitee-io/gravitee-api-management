@@ -30,6 +30,8 @@ class PortalNavigationEnclosingApiDomainServiceTest {
     private static final String ROOT_PAGE_ID = "00000000-0000-0000-0000-00000000a001";
     private static final String FOLDER_UNDER_API_ID = "00000000-0000-0000-0000-00000000a002";
     private static final String DOC_PAGE_ID = "00000000-0000-0000-0000-00000000a003";
+    private static final String AGENT_ID = "00000000-0000-0000-0000-00000000a004";
+    private static final String PAGE_UNDER_AGENT_ID = "00000000-0000-0000-0000-00000000a005";
 
     private PortalNavigationItemsQueryServiceInMemory itemsQueryService;
     private PortalNavigationEnclosingApiDomainService enclosingApiDomainService;
@@ -61,5 +63,21 @@ class PortalNavigationEnclosingApiDomainServiceTest {
         itemsQueryService.initWith(List.of(api, folder, page));
 
         assertThat(enclosingApiDomainService.findEnclosingApiId(ENV_ID, page)).contains("api-x");
+    }
+
+    /**
+     * An agent is an A2A proxy, so its id is an API id: without this its pages render with no api model and
+     * every ${api.*} placeholder in the seeded overview stays unresolved.
+     */
+    @Test
+    void should_find_the_api_of_an_agent_ancestor() {
+        var agent = PortalNavigationItemFixtures.anAgent(AGENT_ID, "Agent", null, "agent-x");
+        agent.markAsRoot();
+        var contentId = PortalPageContentId.random();
+        var page = PortalNavigationItemFixtures.aPage(PAGE_UNDER_AGENT_ID, "Overview", agent.getId(), contentId);
+        page.updateParent(agent);
+        itemsQueryService.initWith(List.of(agent, page));
+
+        assertThat(enclosingApiDomainService.findEnclosingApiId(ENV_ID, page)).contains("agent-x");
     }
 }
