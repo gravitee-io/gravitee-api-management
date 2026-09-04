@@ -37,18 +37,24 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * One-time re-key of API-attached navigation rows created before their identity moved off the
- * per-listing {@code PortalNavigationApi} row and onto the API itself. Folders, doc pages and
- * links keyed on a nav-api row are moved into the API-owned key space; a legacy link's id never changed
- * (it was already keyed on the API), so it is only re-parented and re-referenced in place.
+ * One-time realignment of API-attached navigation rows created before the API's subtree moved off the
+ * per-listing {@code PortalNavigationApi} row and onto the API itself.
  * <p>
- * Folders have no reliable automation-ownership signal of their own — they never carried
- * {@code automationMetadata} — so a folder is treated as legacy-automation-owned only if its stored id
- * matches the pre-re-key {@code forApiFolder} formula for its own reconstructed path, the same identity
- * test the runtime itself uses to reject a foreign item. See {@link ApiNavigationSubtreePaths}. Doc
- * pages and links carry {@code automationMetadata} whenever automation created them and never otherwise,
- * so they are found by a direct scan instead of a tree walk — which also finds a page phantom-parented
- * at a folder id with no row behind it, unreachable by any walk.
+ * Every such row keeps the id it already has. {@code forApiFolder}, {@code forApiDocumentation} and
+ * {@code forApiLink} have always been keyed on the API, never on the nav-api row a {@code PortalListing}
+ * creates, so no identity moves here — only {@code parentId}, {@code rootId} and the stamped
+ * {@code reference}, which legacy rows inherited from the nav-api row they hung under. That makes this
+ * migration a pure in-place field update: it never creates or deletes a row, so a re-run is a no-op and
+ * a run that died half-way is safe to resume.
+ * <p>
+ * Folders have no automation-ownership signal of their own — they never carried
+ * {@code automationMetadata} — so they are discovered by walking down from each nav-api row (where they
+ * were parented) and claimed only when their stored id matches {@code forApiFolder} for their own
+ * reconstructed path, the same identity test the runtime uses to reject a foreign item. See
+ * {@link ApiNavigationSubtreePaths}. Doc pages and links carry {@code automationMetadata} whenever
+ * automation created them and never otherwise, so they are found by a direct scan instead of a tree
+ * walk — which also finds a page phantom-parented at a folder id with no row behind it, unreachable by
+ * any walk.
  * <p>
  * Must run after {@link PortalNavigationItemAutomationMetadataUpgrader}: doc-page discovery here relies
  * on {@code automationMetadata} already being backfilled onto every automation-managed page.
@@ -98,236 +104,173 @@ public class PortalNavigationItemApiOwnedRekeyUpgrader implements Upgrader {
             .filter(item -> item.getParentId() != null)
             .collect(Collectors.groupingBy(PortalNavigationItem::getParentId));
 
-        Map<String, String> folderNewIdToRootId = new HashMap<>();
+        Map<String, String> folderIdToRootId = new HashMap<>();
 
         var apiRows = items
             .stream()
             .filter(item -> item.getType() == PortalNavigationItem.Type.API)
             .toList();
         for (var apiRow : apiRows) {
-            rekeyFolders(organizationId, environmentId, apiRow, childrenByParentId, folderNewIdToRootId);
+            realignFolders(organizationId, environmentId, apiRow, childrenByParentId, folderIdToRootId);
         }
 
-        rekeyDocPages(organizationId, environmentId, items, folderNewIdToRootId);
-        realignApiLinkReferences(organizationId, environmentId, items, folderNewIdToRootId);
+        realignDocPages(organizationId, environmentId, items, folderIdToRootId);
+        realignApiLinks(organizationId, environmentId, items, folderIdToRootId);
     }
 
-    private void rekeyFolders(
+    private void realignFolders(
         String organizationId,
         String environmentId,
         PortalNavigationItem apiRow,
         Map<String, List<PortalNavigationItem>> childrenByParentId,
-        Map<String, String> folderNewIdToRootId
+        Map<String, String> folderIdToRootId
     ) throws TechnicalException {
         var apiId = apiRow.getApiId();
-        var pathedFolders = ApiNavigationSubtreePaths.collect(organizationId, environmentId, apiRow.getId(), childrenByParentId);
+        var pathedFolders = ApiNavigationSubtreePaths.collect(organizationId, environmentId, apiRow.getId(), apiId, childrenByParentId);
 
-        // Pre-order: every ancestor of a folder appears earlier in this list, so its new root is
-        // already in folderNewIdToRootId by the time a descendant needs it.
+        // Pre-order: every ancestor of a folder appears earlier in this list, so its root is already
+        // in folderIdToRootId by the time a descendant needs it.
         for (var pathed : pathedFolders) {
             var path = pathed.path();
-            var newId = folderId(organizationId, environmentId, apiId, path);
+            var folderId = pathed.folder().getId();
 
-            String newParentId = null;
-            String newRootId = newId;
-            var lastSlash = path.lastIndexOf('/');
-            if (lastSlash > 0) {
-                var parentPath = path.substring(0, lastSlash);
-                newParentId = folderId(organizationId, environmentId, apiId, parentPath);
-                newRootId = folderNewIdToRootId.getOrDefault(newParentId, newParentId);
-            }
-            folderNewIdToRootId.put(newId, newRootId);
+            var parentAndRoot = parentAndRootForFolder(organizationId, environmentId, apiId, path, folderId, folderIdToRootId);
+            folderIdToRootId.put(folderId, parentAndRoot.rootId());
 
-            rekeyItem(pathed.folder(), newId, newParentId, newRootId, PortalNavigationReferenceType.API, apiId);
+            realign(pathed.folder(), parentAndRoot, apiId);
         }
     }
 
-    private record DocPageCandidate(PortalNavigationItem page, String apiId, String location, String contentId) {}
-
-    private void rekeyDocPages(
+    private void realignDocPages(
         String organizationId,
         String environmentId,
         List<PortalNavigationItem> items,
-        Map<String, String> folderNewIdToRootId
+        Map<String, String> folderIdToRootId
     ) throws TechnicalException {
         var candidates = items
             .stream()
             .filter(item -> item.getType() == PortalNavigationItem.Type.PAGE)
-            .filter(page -> {
-                var metadata = page.getAutomationMetadata();
-                return metadata != null && metadata.getReferenceType() == AutomationTargetReferenceType.API;
-            })
-            .map(page -> {
-                var metadata = page.getAutomationMetadata();
-                return new DocPageCandidate(page, metadata.getReferenceId(), metadata.getLocation(), extractContentId(page));
-            })
+            .filter(PortalNavigationItemApiOwnedRekeyUpgrader::isApiAutomationManaged)
+            .map(this::toDocPageCandidate)
+            // A page whose configuration will not parse has something wrong with it beyond a stale
+            // parent; leave such a row exactly as it is rather than rewriting fields on it.
             .filter(candidate -> candidate.contentId() != null)
             .toList();
 
         for (var candidate : candidates) {
-            var newId = HRIDToUUID.navigation()
-                .context(organizationId, environmentId)
-                .api(candidate.apiId())
-                .documentation(candidate.contentId())
-                .id();
-            var parentAndRoot = resolveNewParentAndRoot(
-                organizationId,
-                environmentId,
-                candidate.apiId(),
-                candidate.location(),
-                newId,
-                folderNewIdToRootId
-            );
-
-            rekeyItem(
-                candidate.page(),
-                newId,
-                parentAndRoot.parentId(),
-                parentAndRoot.rootId(),
-                PortalNavigationReferenceType.API,
-                candidate.apiId()
-            );
+            realignAtLocation(organizationId, environmentId, candidate.page(), candidate.apiId(), candidate.location(), folderIdToRootId);
         }
     }
 
-    private record LinkCandidate(PortalNavigationItem link, String apiId, ParentAndRoot parentAndRoot) {}
-
-    private void realignApiLinkReferences(
+    private void realignApiLinks(
         String organizationId,
         String environmentId,
         List<PortalNavigationItem> items,
-        Map<String, String> folderNewIdToRootId
+        Map<String, String> folderIdToRootId
     ) throws TechnicalException {
-        var candidates = items
+        var links = items
             .stream()
             .filter(item -> item.getType() == PortalNavigationItem.Type.LINK)
-            .filter(link -> {
-                var metadata = link.getAutomationMetadata();
-                return metadata != null && metadata.getReferenceType() == AutomationTargetReferenceType.API;
-            })
-            .map(link -> {
-                var metadata = link.getAutomationMetadata();
-                var apiId = metadata.getReferenceId();
-                var parentAndRoot = resolveNewParentAndRoot(
-                    organizationId,
-                    environmentId,
-                    apiId,
-                    metadata.getLocation(),
-                    link.getId(),
-                    folderNewIdToRootId
-                );
-                return new LinkCandidate(link, apiId, parentAndRoot);
-            })
-            .filter(candidate -> !isAlreadyCorrect(candidate))
+            .filter(PortalNavigationItemApiOwnedRekeyUpgrader::isApiAutomationManaged)
             .toList();
 
-        for (var candidate : candidates) {
-            var link = candidate.link();
-            var parentAndRoot = candidate.parentAndRoot();
-            link.setParentId(parentAndRoot.parentId());
-            link.setRootId(parentAndRoot.rootId());
-            link.setReferenceType(PortalNavigationReferenceType.API);
-            link.setReferenceId(candidate.apiId());
-            portalNavigationItemRepository.update(link);
+        for (var link : links) {
+            var metadata = link.getAutomationMetadata();
+            realignAtLocation(organizationId, environmentId, link, metadata.getReferenceId(), metadata.getLocation(), folderIdToRootId);
         }
     }
 
-    private static boolean isAlreadyCorrect(LinkCandidate candidate) {
-        var link = candidate.link();
-        var parentAndRoot = candidate.parentAndRoot();
-        if (!Objects.equals(link.getParentId(), parentAndRoot.parentId())) {
-            return false;
-        }
-        if (!Objects.equals(link.getRootId(), parentAndRoot.rootId())) {
-            return false;
-        }
-        if (link.getReferenceType() != PortalNavigationReferenceType.API) {
-            return false;
-        }
-        return candidate.apiId().equals(link.getReferenceId());
+    private void realignAtLocation(
+        String organizationId,
+        String environmentId,
+        PortalNavigationItem item,
+        String apiId,
+        String location,
+        Map<String, String> folderIdToRootId
+    ) throws TechnicalException {
+        var parentAndRoot = parentAndRootForLocation(organizationId, environmentId, apiId, location, item.getId(), folderIdToRootId);
+        realign(item, parentAndRoot, apiId);
     }
+
+    private static boolean isApiAutomationManaged(PortalNavigationItem item) {
+        var metadata = item.getAutomationMetadata();
+        return metadata != null && metadata.getReferenceType() == AutomationTargetReferenceType.API;
+    }
+
+    private DocPageCandidate toDocPageCandidate(PortalNavigationItem page) {
+        var metadata = page.getAutomationMetadata();
+        return new DocPageCandidate(page, metadata.getReferenceId(), metadata.getLocation(), extractContentId(page));
+    }
+
+    private record DocPageCandidate(PortalNavigationItem page, String apiId, String location, String contentId) {}
 
     /**
-     * Applied to folders and doc pages, where the identity itself changes. If {@code newId} already
-     * matches, nothing was ever legacy-keyed here and there is nothing to do — the current write paths
-     * already set parent/root/reference correctly together whenever they set the id correctly. If a row
-     * already exists at {@code newId}, this source is a duplicate that lost the race — created by a
-     * different, already-processed nav-api row's copy of the same subtree — so only the source is
-     * deleted; skipping the redundant insert and always deleting the source is what makes two legacy
-     * duplicates converge on one new row, and what makes a run that died mid-migration converge on retry.
+     * The row keeps its id; only these three fields move into the API-owned scheme. Skipping a row that
+     * already carries them is what makes a second run touch nothing.
      */
-    private void rekeyItem(
-        PortalNavigationItem original,
-        String newId,
-        String newParentId,
-        String newRootId,
-        PortalNavigationReferenceType referenceType,
-        String referenceId
-    ) throws TechnicalException {
-        if (newId.equals(original.getId())) {
+    private void realign(PortalNavigationItem item, ParentAndRoot parentAndRoot, String apiId) throws TechnicalException {
+        if (isAlreadyAligned(item, parentAndRoot, apiId)) {
             return;
         }
-        if (portalNavigationItemRepository.findById(newId).isEmpty()) {
-            portalNavigationItemRepository.create(copyWithNewIdentity(original, newId, newParentId, newRootId, referenceType, referenceId));
-        }
-        portalNavigationItemRepository.delete(original.getId());
+        item.setParentId(parentAndRoot.parentId());
+        item.setRootId(parentAndRoot.rootId());
+        item.setReferenceType(PortalNavigationReferenceType.API);
+        item.setReferenceId(apiId);
+        portalNavigationItemRepository.update(item);
     }
 
-    private static PortalNavigationItem copyWithNewIdentity(
-        PortalNavigationItem original,
-        String newId,
-        String newParentId,
-        String newRootId,
-        PortalNavigationReferenceType referenceType,
-        String referenceId
-    ) {
-        return PortalNavigationItem.builder()
-            .id(newId)
-            .organizationId(original.getOrganizationId())
-            .environmentId(original.getEnvironmentId())
-            .referenceType(referenceType)
-            .referenceId(referenceId)
-            .title(original.getTitle())
-            .segment(original.getSegment())
-            .type(original.getType())
-            .area(original.getArea())
-            .parentId(newParentId)
-            .rootId(newRootId)
-            .order(original.getOrder())
-            .configuration(original.getConfiguration())
-            .published(original.isPublished())
-            .visibility(original.getVisibility())
-            .apiId(original.getApiId())
-            .apiProductId(original.getApiProductId())
-            .useAutoFetch(original.isUseAutoFetch())
-            .categoryIds(original.getCategoryIds())
-            .automationMetadata(original.getAutomationMetadata())
-            .build();
+    private static boolean isAlreadyAligned(PortalNavigationItem item, ParentAndRoot parentAndRoot, String apiId) {
+        return (
+            Objects.equals(item.getParentId(), parentAndRoot.parentId()) &&
+            Objects.equals(item.getRootId(), parentAndRoot.rootId()) &&
+            item.getReferenceType() == PortalNavigationReferenceType.API &&
+            apiId.equals(item.getReferenceId())
+        );
     }
 
     private record ParentAndRoot(String parentId, String rootId) {}
 
     /**
+     * A top-level folder becomes a root of its own; a nested one keeps pointing at its parent folder —
+     * an id that does not change either — and inherits that parent's root.
+     */
+    private static ParentAndRoot parentAndRootForFolder(
+        String organizationId,
+        String environmentId,
+        String apiId,
+        String path,
+        String folderId,
+        Map<String, String> folderIdToRootId
+    ) {
+        var lastSlash = path.lastIndexOf('/');
+        if (lastSlash <= 0) {
+            return new ParentAndRoot(null, folderId);
+        }
+        var parentId = folderId(organizationId, environmentId, apiId, path.substring(0, lastSlash));
+        return new ParentAndRoot(parentId, folderIdToRootId.getOrDefault(parentId, parentId));
+    }
+
+    /**
      * A blank/null/"/" location makes the item a root of its own — matching
      * {@code ApiDocumentationSyncDomainService#resolveParent}'s same three-way check. Otherwise the
-     * parent is the deterministic folder id for that location; if that folder was re-keyed earlier in
+     * parent is the deterministic folder id for that location; if that folder was realigned earlier in
      * this same pass its real root is known, and if not — the folder does not exist, exactly the phantom
      * case the runtime itself tolerates — the item's root is the folder id itself, mirroring
      * {@code PortalNavigationItemContainer#phantom}, whose root is its own placeholder id.
      */
-    private static ParentAndRoot resolveNewParentAndRoot(
+    private static ParentAndRoot parentAndRootForLocation(
         String organizationId,
         String environmentId,
         String apiId,
         String location,
-        String ownNewId,
-        Map<String, String> folderNewIdToRootId
+        String ownId,
+        Map<String, String> folderIdToRootId
     ) {
         if (location == null || location.isBlank() || "/".equals(location)) {
-            return new ParentAndRoot(null, ownNewId);
+            return new ParentAndRoot(null, ownId);
         }
         var folderId = folderId(organizationId, environmentId, apiId, normalizeLocation(location));
-        return new ParentAndRoot(folderId, folderNewIdToRootId.getOrDefault(folderId, folderId));
+        return new ParentAndRoot(folderId, folderIdToRootId.getOrDefault(folderId, folderId));
     }
 
     private static String folderId(String organizationId, String environmentId, String apiId, String path) {
@@ -345,7 +288,7 @@ public class PortalNavigationItemApiOwnedRekeyUpgrader implements Upgrader {
             JsonNode node = JSON.readTree(item.getConfiguration()).get(PORTAL_PAGE_CONTENT_ID);
             return node == null ? null : node.asText();
         } catch (Exception e) {
-            log.warn("Unable to parse configuration for portal navigation item {}; skipping api-owned re-key for it", item.getId(), e);
+            log.warn("Unable to parse configuration for portal navigation item {}; skipping api-owned realignment for it", item.getId(), e);
             return null;
         }
     }
