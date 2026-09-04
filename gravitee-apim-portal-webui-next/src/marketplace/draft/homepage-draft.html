@@ -1,0 +1,880 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+    
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    
+            http://www.apache.org/licenses/LICENSE-2.0
+    
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<style>
+  /* ── Reset & Base ── */
+  .amp * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  .amp {
+    font-family:
+      'Inter',
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      Roboto,
+      sans-serif;
+    color: #1a1a2e;
+    line-height: 1.6;
+    background: #f8f9fc;
+  }
+
+  /* ── Hero ── */
+  .amp-hero {
+    background: linear-gradient(135deg, #0f0c29 0%, #1a1a4e 40%, #302b63 70%, #24243e 100%);
+    padding: 64px 32px 56px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .amp-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background:
+      radial-gradient(ellipse at 30% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 60%),
+      radial-gradient(ellipse at 70% 50%, rgba(16, 185, 129, 0.1) 0%, transparent 60%);
+    animation: amp-glow 8s ease-in-out infinite alternate;
+  }
+  @keyframes amp-glow {
+    0% {
+      transform: translate(0, 0) scale(1);
+    }
+    100% {
+      transform: translate(2%, -2%) scale(1.05);
+    }
+  }
+  .amp-hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .amp-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(99, 102, 241, 0.2);
+    border: 1px solid rgba(99, 102, 241, 0.35);
+    color: #a5b4fc;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    padding: 6px 16px;
+    border-radius: 100px;
+    margin-bottom: 20px;
+  }
+  .amp-hero-badge::before {
+    content: '✦';
+    font-size: 10px;
+  }
+  .amp-hero h1 {
+    font-size: 44px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+    line-height: 1.15;
+    margin-bottom: 16px;
+  }
+  .amp-hero h1 span {
+    background: linear-gradient(90deg, #818cf8, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .amp-hero p {
+    font-size: 17px;
+    color: #94a3b8;
+    max-width: 620px;
+    margin: 0 auto 32px;
+    line-height: 1.7;
+  }
+
+  /* ── Search Bar ── */
+  .amp-search {
+    max-width: 560px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .amp-search input {
+    width: 100%;
+    padding: 16px 20px 16px 48px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    color: #ffffff;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.3s;
+  }
+  .amp-search input::placeholder {
+    color: #64748b;
+  }
+  .amp-search input:focus {
+    border-color: rgba(99, 102, 241, 0.5);
+    background: rgba(255, 255, 255, 0.12);
+  }
+  .amp-search-icon {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    font-size: 18px;
+  }
+
+  /* ── Stats Bar ── */
+  .amp-stats {
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+    padding: 28px 32px;
+    max-width: 700px;
+    margin: -28px auto 0;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    position: relative;
+    z-index: 1;
+    backdrop-filter: blur(8px);
+  }
+  .amp-stat {
+    text-align: center;
+  }
+  .amp-stat-number {
+    font-size: 28px;
+    font-weight: 800;
+    color: #ffffff;
+  }
+  .amp-stat-label {
+    font-size: 12px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  /* ── Section Shared ── */
+  .amp-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px 32px 0;
+  }
+  .amp-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .amp-section-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a2e;
+  }
+  .amp-section-link {
+    font-size: 14px;
+    font-weight: 600;
+    color: #6366f1;
+    text-decoration: none;
+  }
+  .amp-section-link:hover {
+    text-decoration: underline;
+  }
+
+  /* ── Categories ── */
+  .amp-categories {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+    gap: 14px;
+  }
+  .amp-cat {
+    background: #ffffff;
+    border: 1px solid #e8eaf0;
+    border-radius: 14px;
+    padding: 20px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-decoration: none;
+    color: inherit;
+  }
+  .amp-cat:hover {
+    border-color: #6366f1;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.1);
+  }
+  .amp-cat-icon {
+    font-size: 30px;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .amp-cat-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+  }
+  .amp-cat-count {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+
+  /* ── Agent Cards ── */
+  .amp-agents {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+  }
+
+  .amp-card {
+    background: #ffffff;
+    border: 1px solid #e8eaf0;
+    border-radius: 16px;
+    padding: 24px;
+    transition: all 0.25s;
+    cursor: pointer;
+    position: relative;
+  }
+  .amp-card:hover {
+    border-color: #c7d2fe;
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(99, 102, 241, 0.08);
+  }
+
+  .amp-card-top {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+  .amp-card-logo {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+  .amp-card-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .amp-card-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 2px;
+  }
+  .amp-card-publisher {
+    font-size: 12px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .amp-verified {
+    color: #6366f1;
+    font-size: 13px;
+  }
+  .amp-card-desc {
+    font-size: 13.5px;
+    color: #475569;
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+
+  /* ── Tags ── */
+  .amp-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .amp-tag {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #475569;
+  }
+  .amp-tag-protocol {
+    background: #eef2ff;
+    color: #4f46e5;
+  }
+  .amp-tag-new {
+    background: #ecfdf5;
+    color: #059669;
+  }
+
+  /* ── Card Footer ── */
+  .amp-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 14px;
+  }
+  .amp-price {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a2e;
+  }
+  .amp-price-unit {
+    font-size: 11px;
+    font-weight: 400;
+    color: #94a3b8;
+  }
+  .amp-card-btn {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #6366f1;
+    color: #ffffff;
+  }
+  .amp-card-btn:hover {
+    background: #4f46e5;
+  }
+  .amp-card-btn-outline {
+    background: transparent;
+    color: #6366f1;
+    border: 1.5px solid #c7d2fe;
+  }
+  .amp-card-btn-outline:hover {
+    background: #eef2ff;
+  }
+
+  /* ── Featured Banner ── */
+  .amp-featured {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+    border-radius: 20px;
+    padding: 40px;
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    margin-bottom: 12px;
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
+  }
+  .amp-featured::after {
+    content: '';
+    position: absolute;
+    right: -40px;
+    top: -40px;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.3), transparent 70%);
+  }
+  .amp-featured-content {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+  }
+  .amp-featured-label {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #a5b4fc;
+    margin-bottom: 12px;
+  }
+  .amp-featured h3 {
+    font-size: 26px;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+  .amp-featured p {
+    font-size: 14px;
+    color: #c7d2fe;
+    max-width: 480px;
+    line-height: 1.7;
+  }
+  .amp-featured-btn {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 12px 28px;
+    background: #6366f1;
+    color: #ffffff;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .amp-featured-btn:hover {
+    background: #818cf8;
+  }
+  .amp-featured-visual {
+    width: 180px;
+    height: 180px;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 72px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── How It Works ── */
+  .amp-how {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+    margin-top: 8px;
+  }
+  .amp-how-step {
+    text-align: center;
+    padding: 32px 20px;
+    background: #ffffff;
+    border: 1px solid #e8eaf0;
+    border-radius: 16px;
+  }
+  .amp-how-num {
+    display: inline-flex;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 800;
+    background: #eef2ff;
+    color: #6366f1;
+    margin-bottom: 14px;
+  }
+  .amp-how-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #1a1a2e;
+  }
+  .amp-how-desc {
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.6;
+  }
+
+  /* ── Trust Banner ── */
+  .amp-trust {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 36px;
+    padding: 36px 32px;
+    margin-top: 48px;
+    background: #ffffff;
+    border-top: 1px solid #e8eaf0;
+    border-bottom: 1px solid #e8eaf0;
+  }
+  .amp-trust-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .amp-trust-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+  .amp-trust-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+  }
+  .amp-trust-sub {
+    font-size: 11px;
+    color: #94a3b8;
+    font-weight: 400;
+  }
+
+  /* ── Footer ── */
+  .amp-footer {
+    text-align: center;
+    padding: 40px 32px;
+    font-size: 13px;
+    color: #94a3b8;
+  }
+  .amp-footer a {
+    color: #6366f1;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .amp-footer a:hover {
+    text-decoration: underline;
+  }
+</style>
+
+<div class="amp">
+  <!-- ══ HERO ══ -->
+  <div class="amp-hero">
+    <div class="amp-hero-content">
+      <div class="amp-hero-badge">AI Agent Marketplace</div>
+      <h1>Discover, acquire &amp; govern <span>AI Agents</span></h1>
+      <p>
+        A curated marketplace of production-ready AI agents — discoverable, subscribable, and governed through the Gravitee Gateway with
+        full traffic observability.
+      </p>
+      <div class="amp-search">
+        <span class="amp-search-icon">🔍</span>
+        <input type="text" placeholder="Search agents by name, skill, protocol, or publisher..." />
+      </div>
+    </div>
+    <div class="amp-stats">
+      <div class="amp-stat">
+        <div class="amp-stat-number">127</div>
+        <div class="amp-stat-label">Agents</div>
+      </div>
+      <div class="amp-stat">
+        <div class="amp-stat-number">34</div>
+        <div class="amp-stat-label">Publishers</div>
+      </div>
+      <div class="amp-stat">
+        <div class="amp-stat-number">8</div>
+        <div class="amp-stat-label">Categories</div>
+      </div>
+      <div class="amp-stat">
+        <div class="amp-stat-number">2.4M</div>
+        <div class="amp-stat-label">Calls / month</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CATEGORIES ══ -->
+  <div class="amp-section">
+    <div class="amp-section-header">
+      <h2>Browse by Category</h2>
+      <a href="#" class="amp-section-link">View all →</a>
+    </div>
+    <div class="amp-categories">
+      <div class="amp-cat">
+        <span class="amp-cat-icon">🤖</span>
+        <div class="amp-cat-name">Customer Service</div>
+        <div class="amp-cat-count">24 agents</div>
+      </div>
+      <div class="amp-cat">
+        <span class="amp-cat-icon">📊</span>
+        <div class="amp-cat-name">Data &amp; Analytics</div>
+        <div class="amp-cat-count">19 agents</div>
+      </div>
+      <div class="amp-cat">
+        <span class="amp-cat-icon">💼</span>
+        <div class="amp-cat-name">Sales &amp; CRM</div>
+        <div class="amp-cat-count">17 agents</div>
+      </div>
+      <div class="amp-cat">
+        <span class="amp-cat-icon">🔐</span>
+        <div class="amp-cat-name">Security &amp; Compliance</div>
+        <div class="amp-cat-count">15 agents</div>
+      </div>
+      <div class="amp-cat">
+        <span class="amp-cat-icon">🛠️</span>
+        <div class="amp-cat-name">IT Operations</div>
+        <div class="amp-cat-count">21 agents</div>
+      </div>
+      <div class="amp-cat">
+        <span class="amp-cat-icon">📝</span>
+        <div class="amp-cat-name">HR &amp; Recruiting</div>
+        <div class="amp-cat-count">12 agents</div>
+      </div>
+      <div class="amp-cat">
+        <span class="amp-cat-icon">💰</span>
+        <div class="amp-cat-name">Finance &amp; Billing</div>
+        <div class="amp-cat-count">11 agents</div>
+      </div>
+      <div class="amp-cat">
+        <span class="amp-cat-icon">⚡</span>
+        <div class="amp-cat-name">DevOps &amp; CI/CD</div>
+        <div class="amp-cat-count">8 agents</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FEATURED ══ -->
+  <div class="amp-section">
+    <div class="amp-featured">
+      <div class="amp-featured-content">
+        <div class="amp-featured-label">⭐ Featured Agent</div>
+        <h3>Enterprise Knowledge Navigator</h3>
+        <p>
+          AI-powered agent that connects to your internal knowledge bases, Confluence, SharePoint, and Notion — delivering instant, cited
+          answers to employee questions with full access control through the gateway.
+        </p>
+        <button class="amp-featured-btn">View Agent →</button>
+      </div>
+      <div class="amp-featured-visual">🧠</div>
+    </div>
+  </div>
+
+  <!-- ══ POPULAR AGENTS ══ -->
+  <div class="amp-section">
+    <div class="amp-section-header">
+      <h2>Popular Agents</h2>
+      <a href="#" class="amp-section-link">View all →</a>
+    </div>
+    <div class="amp-agents">
+      <!-- Agent 1 -->
+      <div class="amp-card">
+        <div class="amp-card-top">
+          <div class="amp-card-logo" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe)">🎧</div>
+          <div class="amp-card-info">
+            <div class="amp-card-name">Resolve AI — Support Agent</div>
+            <div class="amp-card-publisher"><span class="amp-verified">✓</span> Resolve Inc.</div>
+          </div>
+        </div>
+        <div class="amp-card-desc">
+          Autonomous L1/L2 customer support agent. Handles ticket triage, sentiment analysis, knowledge-base lookups, and escalation —
+          reducing mean time to resolution by 68%.
+        </div>
+        <div class="amp-tags">
+          <span class="amp-tag amp-tag-protocol">A2A</span>
+          <span class="amp-tag amp-tag-protocol">MCP</span>
+          <span class="amp-tag">Zendesk</span>
+          <span class="amp-tag">Intercom</span>
+          <span class="amp-tag">Salesforce</span>
+        </div>
+        <div class="amp-card-footer">
+          <div class="amp-price">$0.003 <span class="amp-price-unit">/ call</span></div>
+          <button class="amp-card-btn">Subscribe</button>
+        </div>
+      </div>
+
+      <!-- Agent 2 -->
+      <div class="amp-card">
+        <div class="amp-card-top">
+          <div class="amp-card-logo" style="background: linear-gradient(135deg, #fce7f3, #fbcfe8)">📈</div>
+          <div class="amp-card-info">
+            <div class="amp-card-name">InsightForge — Analytics Agent</div>
+            <div class="amp-card-publisher"><span class="amp-verified">✓</span> DataCraft Labs</div>
+          </div>
+        </div>
+        <div class="amp-card-desc">
+          Natural-language data analyst. Connects to SQL databases, warehouses, and BI tools — generates queries, charts, and executive
+          summaries from plain-English questions.
+        </div>
+        <div class="amp-tags">
+          <span class="amp-tag amp-tag-protocol">A2A</span>
+          <span class="amp-tag">BigQuery</span>
+          <span class="amp-tag">Snowflake</span>
+          <span class="amp-tag">Looker</span>
+        </div>
+        <div class="amp-card-footer">
+          <div class="amp-price">$49 <span class="amp-price-unit">/ month</span></div>
+          <button class="amp-card-btn">Subscribe</button>
+        </div>
+      </div>
+
+      <!-- Agent 3 -->
+      <div class="amp-card">
+        <div class="amp-card-top">
+          <div class="amp-card-logo" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0)">🔍</div>
+          <div class="amp-card-info">
+            <div class="amp-card-name">ComplianceGuard Agent</div>
+            <div class="amp-card-publisher"><span class="amp-verified">✓</span> TrustLayer AI</div>
+          </div>
+        </div>
+        <div class="amp-card-desc">
+          Continuous compliance monitoring agent. Scans policies, contracts, and operations against SOC2, GDPR, HIPAA, and ISO 27001 — flags
+          violations in real time.
+        </div>
+        <div class="amp-tags">
+          <span class="amp-tag amp-tag-protocol">MCP</span>
+          <span class="amp-tag">SOC2</span>
+          <span class="amp-tag">GDPR</span>
+          <span class="amp-tag">HIPAA</span>
+          <span class="amp-tag amp-tag-new">New</span>
+        </div>
+        <div class="amp-card-footer">
+          <div class="amp-price">$99 <span class="amp-price-unit">/ month</span></div>
+          <button class="amp-card-btn">Subscribe</button>
+        </div>
+      </div>
+
+      <!-- Agent 4 -->
+      <div class="amp-card">
+        <div class="amp-card-top">
+          <div class="amp-card-logo" style="background: linear-gradient(135deg, #fef3c7, #fde68a)">⚡</div>
+          <div class="amp-card-info">
+            <div class="amp-card-name">PipelineBot — CI/CD Agent</div>
+            <div class="amp-card-publisher"><span class="amp-verified">✓</span> DevStream</div>
+          </div>
+        </div>
+        <div class="amp-card-desc">
+          Intelligent CI/CD orchestrator. Analyzes build failures, auto-generates fixes, manages deployments, and provides real-time
+          pipeline health diagnostics.
+        </div>
+        <div class="amp-tags">
+          <span class="amp-tag amp-tag-protocol">A2A</span>
+          <span class="amp-tag amp-tag-protocol">MCP</span>
+          <span class="amp-tag">GitHub</span>
+          <span class="amp-tag">Jenkins</span>
+          <span class="amp-tag amp-tag-new">New</span>
+        </div>
+        <div class="amp-card-footer">
+          <div class="amp-price">$0.005 <span class="amp-price-unit">/ call</span></div>
+          <button class="amp-card-btn">Subscribe</button>
+        </div>
+      </div>
+
+      <!-- Agent 5 -->
+      <div class="amp-card">
+        <div class="amp-card-top">
+          <div class="amp-card-logo" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe)">💼</div>
+          <div class="amp-card-info">
+            <div class="amp-card-name">DealSense — Sales Intel Agent</div>
+            <div class="amp-card-publisher"><span class="amp-verified">✓</span> RevOps AI</div>
+          </div>
+        </div>
+        <div class="amp-card-desc">
+          Sales intelligence agent that enriches leads, scores opportunities, drafts personalized outreach, and predicts deal outcomes using
+          CRM and market signals.
+        </div>
+        <div class="amp-tags">
+          <span class="amp-tag amp-tag-protocol">A2A</span>
+          <span class="amp-tag">HubSpot</span>
+          <span class="amp-tag">Salesforce</span>
+          <span class="amp-tag">LinkedIn</span>
+        </div>
+        <div class="amp-card-footer">
+          <div class="amp-price">$79 <span class="amp-price-unit">/ month</span></div>
+          <button class="amp-card-btn">Subscribe</button>
+        </div>
+      </div>
+
+      <!-- Agent 6 -->
+      <div class="amp-card">
+        <div class="amp-card-top">
+          <div class="amp-card-logo" style="background: linear-gradient(135deg, #fee2e2, #fecaca)">🏥</div>
+          <div class="amp-card-info">
+            <div class="amp-card-name">DocuMind — Document Processor</div>
+            <div class="amp-card-publisher"><span class="amp-verified">✓</span> Neuralign</div>
+          </div>
+        </div>
+        <div class="amp-card-desc">
+          Extracts, classifies, and summarizes information from contracts, invoices, reports, and forms. Supports 40+ document types with
+          configurable extraction schemas.
+        </div>
+        <div class="amp-tags">
+          <span class="amp-tag amp-tag-protocol">MCP</span>
+          <span class="amp-tag">PDF</span>
+          <span class="amp-tag">OCR</span>
+          <span class="amp-tag">S3</span>
+        </div>
+        <div class="amp-card-footer">
+          <div class="amp-price">$0.01 <span class="amp-price-unit">/ document</span></div>
+          <button class="amp-card-btn">Subscribe</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ HOW IT WORKS ══ -->
+  <div class="amp-section" style="padding-bottom: 8px">
+    <div class="amp-section-header">
+      <h2>How It Works</h2>
+    </div>
+    <div class="amp-how">
+      <div class="amp-how-step">
+        <div class="amp-how-num">1</div>
+        <div class="amp-how-title">Discover</div>
+        <div class="amp-how-desc">
+          Browse curated agents by category, protocol (A2A, MCP), or publisher. Every listing shows skills, systems, and pricing.
+        </div>
+      </div>
+      <div class="amp-how-step">
+        <div class="amp-how-num">2</div>
+        <div class="amp-how-title">Subscribe</div>
+        <div class="amp-how-desc">
+          Choose a plan, accept terms, and get approved. Credentials are issued automatically — API key or OAuth client.
+        </div>
+      </div>
+      <div class="amp-how-step">
+        <div class="amp-how-num">3</div>
+        <div class="amp-how-title">Consume</div>
+        <div class="amp-how-desc">
+          Call agents through the Gravitee Gateway. Traffic is authenticated, rate-limited, and observable on every request.
+        </div>
+      </div>
+      <div class="amp-how-step">
+        <div class="amp-how-num">4</div>
+        <div class="amp-how-title">Govern &amp; Pay</div>
+        <div class="amp-how-desc">
+          Usage is metered per subscription. Policies enforce guardrails. Invoices are generated automatically via billing integration.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TRUST BAR ══ -->
+  <div class="amp-trust">
+    <div class="amp-trust-item">
+      <div class="amp-trust-icon" style="background: #eef2ff; color: #6366f1">🛡️</div>
+      <div>
+        <div class="amp-trust-text">Gateway-Enforced Governance</div>
+        <div class="amp-trust-sub">Every call governed by policy</div>
+      </div>
+    </div>
+    <div class="amp-trust-item">
+      <div class="amp-trust-icon" style="background: #ecfdf5; color: #059669">✓</div>
+      <div>
+        <div class="amp-trust-text">Verified Publishers</div>
+        <div class="amp-trust-sub">Identity &amp; card validated</div>
+      </div>
+    </div>
+    <div class="amp-trust-item">
+      <div class="amp-trust-icon" style="background: #fef3c7; color: #d97706">📊</div>
+      <div>
+        <div class="amp-trust-text">Full Observability</div>
+        <div class="amp-trust-sub">Traffic analytics on every request</div>
+      </div>
+    </div>
+    <div class="amp-trust-item">
+      <div class="amp-trust-icon" style="background: #fce7f3; color: #db2777">🔑</div>
+      <div>
+        <div class="amp-trust-text">Instant Provisioning</div>
+        <div class="amp-trust-sub">Credentials on approval</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FOOTER ══ -->
+  <div class="amp-footer">
+    <p>Powered by <a href="#">Gravitee.io</a> — Runtime-neutral agent governance through the API Gateway.</p>
+  </div>
+</div>
