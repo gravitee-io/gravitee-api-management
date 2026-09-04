@@ -22,11 +22,16 @@ import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PerformanceTargetRepository;
 import io.gravitee.repository.management.model.PerformanceTarget;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.stereotype.Repository;
 
 @CustomLog
@@ -122,6 +127,24 @@ public class JdbcPerformanceTargetRepository
             jdbcTemplate.update(getOrm().getDeleteSql(), id);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to delete performance target " + id, ex);
+        }
+    }
+
+    @Override
+    public Set<PerformanceTarget> findAll() throws TechnicalException {
+        log.debug("JdbcPerformanceTargetRepository.findAll()");
+        try {
+            var targets = jdbcTemplate.query(getOrm().getSelectAllSql() + " order by id", getRowMapper());
+            var apiIdsByTarget = new HashMap<String, List<String>>();
+            jdbcTemplate.query(
+                "select target_id, api_id from " + PERFORMANCE_TARGET_APIS,
+                (RowCallbackHandler) rs ->
+                    apiIdsByTarget.computeIfAbsent(rs.getString("target_id"), id -> new ArrayList<>()).add(rs.getString("api_id"))
+            );
+            targets.forEach(target -> target.setApiIds(apiIdsByTarget.getOrDefault(target.getId(), List.of())));
+            return new LinkedHashSet<>(targets);
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to find all performance targets", ex);
         }
     }
 

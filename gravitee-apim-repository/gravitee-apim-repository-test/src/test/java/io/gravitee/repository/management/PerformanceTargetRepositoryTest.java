@@ -132,6 +132,32 @@ public class PerformanceTargetRepositoryTest extends AbstractManagementRepositor
         assertThat(performanceTargetRepository.removeApiId("api-to-delete")).isEmpty();
     }
 
+    // findAll
+    @Test
+    public void findAll_should_return_every_target_of_every_environment_with_its_api_ids() throws TechnicalException {
+        var found = performanceTargetRepository.findAll();
+
+        assertThat(found)
+            .extracting(PerformanceTarget::getId)
+            .containsExactlyInAnyOrder(
+                "target1",
+                "target2",
+                "target3",
+                "other-env-target",
+                "to-delete",
+                "86adbd41-8a3f-45f3-b1ca-f980042db19d",
+                "b8c2ef52-ebb5-4d0f-be1e-a41cc5579fc8"
+            );
+        assertThat(found)
+            .filteredOn(target -> target.getId().equals("target2"))
+            .singleElement()
+            .satisfies(target -> {
+                assertThat(target.getApiIds()).containsExactlyInAnyOrder("api-1", "api-2");
+                assertThat(target.getRules()).hasSize(1);
+                assertThat(target.getIntervalSeconds()).isEqualTo(300);
+            });
+    }
+
     // findByReference
     @Test
     public void findByReference_should_return_targets_of_reference_in_environment_only() throws TechnicalException {

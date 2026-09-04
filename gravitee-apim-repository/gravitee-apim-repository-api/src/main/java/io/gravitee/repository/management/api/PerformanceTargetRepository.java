@@ -19,6 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.PerformanceTarget;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface PerformanceTargetRepository {
     PerformanceTarget create(PerformanceTarget target) throws TechnicalException;
@@ -28,6 +29,11 @@ public interface PerformanceTargetRepository {
     PerformanceTarget update(PerformanceTarget target) throws TechnicalException;
 
     void delete(String id) throws TechnicalException;
+
+    /**
+     * @return every target of every environment, the scheduler's view of what is to be evaluated
+     */
+    Set<PerformanceTarget> findAll() throws TechnicalException;
 
     List<PerformanceTarget> findByReference(String environmentId, String reference) throws TechnicalException;
 
