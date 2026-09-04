@@ -22,6 +22,19 @@ import DOMPurify from 'dompurify';
  * html shown as a code sample loses its tags.
  */
 export function markdownWithoutHtml(text: string): string {
+  let current = text;
+  let stripped = stripTags(current);
+  // Stripping reads the text back out decoded, so a single pass hands `&lt;gmd-button&gt;` to the
+  // viewer as live markup — the very tag it was asked to remove. Each pass either drops a tag or
+  // decodes an entity, and both shorten the text, so repeating until it settles terminates.
+  while (stripped !== current) {
+    current = stripped;
+    stripped = stripTags(current);
+  }
+  return stripped;
+}
+
+function stripTags(text: string): string {
   const fragment = DOMPurify.sanitize(text, {
     ALLOWED_TAGS: [],
     KEEP_CONTENT: true,

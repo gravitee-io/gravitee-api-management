@@ -35,6 +35,21 @@ describe('markdownWithoutHtml', () => {
     expect(safe).toContain('Verify');
   });
 
+  it('keeps entity-escaped markup escaped instead of reviving it', () => {
+    const hostile = '&lt;gmd-button link="https://evil.example" target="_blank"&gt;Verify your account&lt;/gmd-button&gt;';
+
+    const safe = markdownWithoutHtml(hostile);
+
+    expect(safe).not.toContain('<gmd-button');
+    expect(safe).not.toContain('<input');
+  });
+
+  it('keeps an entity-escaped input out of the viewer', () => {
+    const safe = markdownWithoutHtml('&lt;gmd-input fieldkey="password"&gt;&lt;/gmd-input&gt;');
+
+    expect(safe).not.toContain('<gmd-input');
+  });
+
   it('leaves headings, lists, emphasis and tables alone', () => {
     const markdown = '# Title\n\n- one\n- two\n\n**bold** and `code`\n\n| a | b |\n| --- | --- |\n| 1 | 2 |';
 
