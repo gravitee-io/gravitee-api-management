@@ -448,6 +448,25 @@ services:
     enabled: true
     cron: "0 */5 * * * *"
 
+  # Performance targets evaluation service.
+  # Evaluates the performance targets against gateway telemetry, on the primary node of a cluster only.
+  # Each tick evaluates the targets whose interval has elapsed, spread over the ticks by a stable per-target
+  # offset; targets sharing an environment and a window are evaluated with one analytics request.
+  # Disabling the service leaves the evaluate-on-demand endpoint working.
+  performance-targets:
+    enabled: true
+    cron: "0 * * * * *"
+    # Analytics queries in flight per node for target evaluation, scheduled and on demand alike.
+    concurrency: 2
+    backoff:
+      # Consecutive windows without enough traffic before an idle target's interval starts doubling.
+      after: 3
+      # Longest interval, in minutes, an idle target backs off to. The declared interval applies again as soon as
+      # a window can be evaluated.
+      cap: 60
+    # Evaluations kept per target, 288 being 24 hours of history at the default 5 minute interval.
+    retention: 288
+
   # Subscription service
   subscription:
     enabled: true

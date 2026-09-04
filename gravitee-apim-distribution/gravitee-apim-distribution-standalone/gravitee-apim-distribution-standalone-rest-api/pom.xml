@@ -226,6 +226,20 @@
 
         <dependency>
             <groupId>io.gravitee.apim.rest.api.services</groupId>
+            <artifactId>gravitee-apim-rest-api-services-performance-targets</artifactId>
+            <version>${apim.server.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api.services</groupId>
             <artifactId>gravitee-apim-rest-api-services-audit</artifactId>
             <version>${apim.server.version}</version>
             <scope>runtime</scope>
