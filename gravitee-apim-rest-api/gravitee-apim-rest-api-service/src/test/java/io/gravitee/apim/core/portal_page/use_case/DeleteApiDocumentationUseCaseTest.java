@@ -64,12 +64,7 @@ class DeleteApiDocumentationUseCaseTest {
         useCase = new DeleteApiDocumentationUseCase(
             crudService,
             queryService,
-            new ApiDocumentationSyncDomainService(
-                navCrudService,
-                navQueryService,
-                queryService,
-                mock(PortalNavigationItemValidatorService.class)
-            )
+            new ApiDocumentationSyncDomainService(navCrudService, navQueryService, mock(PortalNavigationItemValidatorService.class))
         );
     }
 
