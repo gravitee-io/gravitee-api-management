@@ -39,18 +39,36 @@ public interface PortalLinkMapper {
         AuditInfo audit,
         String portalHrid
     ) {
-        var state = new PortalLinkState(id, audit.environmentId(), audit.organizationId(), toErrors(errors), portalHrid, null);
-        state.setHrid(spec.getHrid());
-        state.setName(spec.getName());
-        state.setHref(spec.getHref());
-        state.setLocation(spec.getLocation());
-        state.setOrder(spec.getOrder());
-        state.setVisibility(spec.getVisibility());
-        return state;
+        return fromSpec(spec, id, errors, audit, portalHrid, null);
     }
 
     default PortalLinkState toApiLinkState(PortalLinkSpec spec, String id, List<Validator.Error> errors, AuditInfo audit, String apiHrid) {
-        var state = new PortalLinkState(id, audit.environmentId(), audit.organizationId(), toErrors(errors), null, apiHrid);
+        return fromSpec(spec, id, errors, audit, null, apiHrid);
+    }
+
+    default PortalLinkState toPortalLinkState(PortalNavigationLink link, String hrid, List<Validator.Error> errors, String portalHrid) {
+        return fromLink(link, hrid, errors, portalHrid, null);
+    }
+
+    default PortalLinkState toApiLinkState(PortalNavigationLink link, String hrid, List<Validator.Error> errors, String apiHrid) {
+        return fromLink(link, hrid, errors, null, apiHrid);
+    }
+
+    /**
+     * A link is attached to either a portal or an API, never both, so exactly one of
+     * {@code portalHrid} / {@code apiHrid} is ever non-null. Nothing else about the two attachments
+     * differs — mapping them through one body is what keeps a field added to {@link PortalLinkSpec}
+     * from reaching one attachment and not the other.
+     */
+    private PortalLinkState fromSpec(
+        PortalLinkSpec spec,
+        String id,
+        List<Validator.Error> errors,
+        AuditInfo audit,
+        String portalHrid,
+        String apiHrid
+    ) {
+        var state = new PortalLinkState(id, audit.environmentId(), audit.organizationId(), toErrors(errors), portalHrid, apiHrid);
         state.setHrid(spec.getHrid());
         state.setName(spec.getName());
         state.setHref(spec.getHref());
@@ -60,40 +78,43 @@ public interface PortalLinkMapper {
         return state;
     }
 
-    default PortalLinkState toPortalLinkState(PortalNavigationLink link, String hrid, String portalHrid) {
+    /**
+     * The persisted counterpart of {@link #fromSpec}. The hrid is passed in rather than read off the
+     * link: it is the caller-supplied key the id and segment were derived from, and the nav item does
+     * not carry it.
+     */
+    private PortalLinkState fromLink(
+        PortalNavigationLink link,
+        String hrid,
+        List<Validator.Error> errors,
+        String portalHrid,
+        String apiHrid
+    ) {
         var state = new PortalLinkState(
             link.getId() != null ? link.getId().toString() : null,
             link.getEnvironmentId(),
             link.getOrganizationId(),
-            null,
+            toErrors(errors),
             portalHrid,
-            null
-        );
-        state.setHrid(hrid);
-        state.setName(link.getTitle());
-        state.setHref(link.getUrl());
-        state.setOrder(link.getOrder());
-        state.setLocation(link.getAutomationMetadata() != null ? link.getAutomationMetadata().location().orElse(null) : null);
-        state.setVisibility(toWireVisibility(link.getVisibility()));
-        return state;
-    }
-
-    default PortalLinkState toApiLinkState(PortalNavigationLink link, String hrid, String apiHrid) {
-        var state = new PortalLinkState(
-            link.getId() != null ? link.getId().toString() : null,
-            link.getEnvironmentId(),
-            link.getOrganizationId(),
-            null,
-            null,
             apiHrid
         );
         state.setHrid(hrid);
         state.setName(link.getTitle());
         state.setHref(link.getUrl());
-        state.setOrder(link.getOrder());
         state.setLocation(link.getAutomationMetadata() != null ? link.getAutomationMetadata().location().orElse(null) : null);
+        state.setOrder(link.getOrder());
         state.setVisibility(toWireVisibility(link.getVisibility()));
         return state;
+    }
+
+    default Errors toErrors(List<Validator.Error> validationErrors) {
+        if (validationErrors == null || validationErrors.isEmpty()) {
+            return null;
+        }
+        var wire = new Errors();
+        wire.setSevere(validationErrors.stream().filter(Validator.Error::isSevere).map(Validator.Error::getMessage).toList());
+        wire.setWarning(validationErrors.stream().filter(Validator.Error::isWarning).map(Validator.Error::getMessage).toList());
+        return wire;
     }
 
     default io.gravitee.apim.core.portal.model.PortalVisibility toDomainVisibility(
@@ -106,15 +127,5 @@ public interface PortalLinkMapper {
         io.gravitee.apim.core.portal.model.PortalVisibility domain
     ) {
         return domain == null ? null : io.gravitee.apim.rest.api.automation.model.PortalVisibility.fromValue(domain.name());
-    }
-
-    default Errors toErrors(List<Validator.Error> validationErrors) {
-        if (validationErrors == null || validationErrors.isEmpty()) {
-            return null;
-        }
-        var wire = new Errors();
-        wire.setSevere(validationErrors.stream().filter(Validator.Error::isSevere).map(Validator.Error::getMessage).toList());
-        wire.setWarning(validationErrors.stream().filter(Validator.Error::isWarning).map(Validator.Error::getMessage).toList());
-        return wire;
     }
 }
