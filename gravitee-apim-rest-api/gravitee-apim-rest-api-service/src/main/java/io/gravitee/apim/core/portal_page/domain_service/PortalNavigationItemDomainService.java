@@ -195,10 +195,7 @@ public class PortalNavigationItemDomainService {
     }
 
     public void delete(PortalNavigationItem item) {
-        // Determine if item is a page and collect content id
-        final var contentId = item instanceof io.gravitee.apim.core.portal_page.model.PortalNavigationPage
-            ? ((io.gravitee.apim.core.portal_page.model.PortalNavigationPage) item).getPortalPageContentId()
-            : null;
+        final var contentId = item instanceof PortalNavigationPage page ? page.getPortalPageContentId() : null;
 
         // Reorder siblings at the deleted item's parent level: decrement order for siblings with order > deleted order
         var parentId = item.getParentId();

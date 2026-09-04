@@ -19,10 +19,11 @@ import io.gravitee.apim.core.portal.model.PortalId;
 
 public sealed interface NavigationItemReference {
     /**
-     * Deliberately a method, not an eagerly-initialized field: a field initializer here would read
-     * {@code PortalReference.DEFAULT} as part of this interface's own class initialization, coupling
-     * the two classes' {@code <clinit>} together. A method defers that read to first call, so this
-     * interface's own initialization has no dependency on {@link PortalReference} at all.
+     * A method rather than a constant, because {@code sharesRootNamespaceWith} makes this a
+     * superinterface declaring a default method: initializing {@link PortalReference} therefore also
+     * initializes this interface (JLS 12.4.1). A constant initializer here would read
+     * {@code PortalReference.DEFAULT} while that record is still mid-initialization on the same
+     * thread, see {@code null}, and keep it forever. Deferring the read to call time breaks the cycle.
      */
     static NavigationItemReference defaultReference() {
         return PortalReference.DEFAULT;
@@ -31,6 +32,8 @@ public sealed interface NavigationItemReference {
     default boolean sharesRootNamespaceWith(NavigationItemReference other) {
         return switch (this) {
             case ApiReference api -> other instanceof ApiReference otherApi && api.apiId().equals(otherApi.apiId());
+            // All portals share one root namespace: multiple portals per environment is opt-in
+            // configuration, and their roots are not told apart here.
             case PortalReference ignored -> !(other instanceof ApiReference);
         };
     }

@@ -54,7 +54,13 @@ public class SegmentConflictRule implements CreatePortalNavigationItemValidation
     @Override
     public void validate(CreatePortalNavigationItem item, String environmentId, CreateValidationContext ctx) {
         if (
-            collidesWithPendingBatch(item.getId(), item.getParentId(), item.getSegment(), ctx.pendingSegmentClaims()) ||
+            collidesWithPendingBatch(
+                item.getId(),
+                item.getParentId(),
+                item.getSegment(),
+                item.getReference(),
+                ctx.pendingSegmentClaims()
+            ) ||
             collidesWithPersistedSibling(
                 item.getId(),
                 item.getParentId(),
@@ -79,7 +85,13 @@ public class SegmentConflictRule implements CreatePortalNavigationItemValidation
     @Override
     public void validate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
         if (
-            collidesWithPendingBatch(existingItem.getId(), toUpdate.getParentId(), toUpdate.getSegment(), ctx.pendingSegmentClaims()) ||
+            collidesWithPendingBatch(
+                existingItem.getId(),
+                toUpdate.getParentId(),
+                toUpdate.getSegment(),
+                existingItem.getReference(),
+                ctx.pendingSegmentClaims()
+            ) ||
             collidesWithPersistedSibling(
                 existingItem.getId(),
                 toUpdate.getParentId(),
@@ -97,6 +109,7 @@ public class SegmentConflictRule implements CreatePortalNavigationItemValidation
         PortalNavigationItemId itemId,
         PortalNavigationItemId parentId,
         String segment,
+        NavigationItemReference reference,
         List<PendingSegmentClaim> claims
     ) {
         return claims
@@ -106,7 +119,8 @@ public class SegmentConflictRule implements CreatePortalNavigationItemValidation
                     claim.intent() == PendingSegmentClaim.Intent.CLAIM &&
                     !Objects.equals(claim.id(), itemId) &&
                     Objects.equals(claim.parentId(), parentId) &&
-                    Objects.equals(claim.segment(), segment)
+                    Objects.equals(claim.segment(), segment) &&
+                    (parentId != null || reference.sharesRootNamespaceWith(claim.reference()))
             );
     }
 

@@ -40,7 +40,7 @@ import io.gravitee.apim.core.slug.model.Slug;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
-/** Owns the {@link PortalNavigationApi} row lifecycle (upsert at the deterministic id, row-only dematerialize). */
+/** Owns the {@link PortalNavigationApi} row lifecycle (upsert at the deterministic id, cascade-dematerialize). */
 @DomainService
 @RequiredArgsConstructor
 class NavigationItemEntryMaterializer {

@@ -44,7 +44,7 @@ public interface PortalNavigationItemsQueryService {
         String environmentId,
         @Nullable PortalNavigationItemId parentId,
         String segment,
-        NavigationItemReference reference
+        @Nonnull NavigationItemReference reference
     ) {
         return findByParentIdAndEnvironmentId(environmentId, parentId)
             .stream()

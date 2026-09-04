@@ -240,7 +240,7 @@ public class PortalNavigationItemDomainServiceTest {
         }
 
         @Test
-        void should_set_parentId_and_rootId_correctly_when_parent_already_has_correct_root_id() {
+        void should_set_parent_id_and_root_id_correctly_when_parent_already_has_correct_root_id() {
             // Given — grandparent (root), parent (child of grandparent with rootId already = grandparent.id)
             var grandparent = PortalNavigationItemFixtures.aFolder("grandparent-folder");
             grandparent.markAsRoot();
@@ -652,7 +652,7 @@ public class PortalNavigationItemDomainServiceTest {
         }
 
         @Test
-        void should_delete_legacy_item_with_zero_rootId_using_parent_child_traversal() {
+        void should_delete_legacy_item_with_zero_root_id_using_parent_child_traversal() {
             // Given — legacy items that never had markAsRoot() called, so rootId == ZERO
             PortalNavigationFolder folder = PortalNavigationItemFixtures.aFolder("33000000-0000-4000-8000-000000000001", "Legacy Folder");
             // No markAsRoot() → rootId stays at ZERO
@@ -892,6 +892,36 @@ public class PortalNavigationItemDomainServiceTest {
             )
                 .containsOnlyKeys(expected.keySet())
                 .containsAllEntriesOf(expected);
+        }
+
+        @Test
+        void moving_a_console_root_reorders_portal_attached_root_links() {
+            // Completes the trio around create and delete: reordering an existing root has to see the
+            // whole rendered root list, which mixes a console root's PortalId.ZERO with a portal-attached
+            // link's own portal id.
+            var consoleRoot = PortalNavigationItemFixtures.aFolder("00000000-0000-0000-0000-0000000000e1", "Console Root", null);
+            var first = aRootLink("00000000-0000-0000-0000-0000000000e2", "Docs", 1);
+            var second = aRootLink("00000000-0000-0000-0000-0000000000e3", "Status", 2);
+            portalNavigationItemsCrudService.initWith(List.of(consoleRoot, first, second));
+            portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
+
+            var toUpdate = UpdatePortalNavigationItem.builder()
+                .order(2)
+                .title(consoleRoot.getTitle())
+                .visibility(consoleRoot.getVisibility())
+                .type(consoleRoot.getType())
+                .parentId(consoleRoot.getParentId())
+                .published(consoleRoot.getPublished())
+                .build();
+
+            var result = domainService.update(toUpdate, consoleRoot);
+
+            assertThat(result.getOrder()).isEqualTo(2);
+            var orders = portalNavigationItemsCrudService
+                .storage()
+                .stream()
+                .collect(Collectors.toMap(PortalNavigationItem::getId, PortalNavigationItem::getOrder));
+            assertThat(orders).containsEntry(first.getId(), 0).containsEntry(second.getId(), 1).containsEntry(consoleRoot.getId(), 2);
         }
 
         @Test
