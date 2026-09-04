@@ -20,7 +20,6 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
-import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -30,9 +29,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
-import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
-import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
-import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.apim.core.subscription_form.crud_service.SubscriptionFormCrudService;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
@@ -45,9 +41,9 @@ import org.springframework.stereotype.Component;
 /**
  * Infrastructure implementation of SubscriptionFormCrudService, writing the environment-default
  * subscription form through the {@code PortalNavigationItem}/{@code PortalPageContent} model
- * (PORTAL-164) instead of the retired {@code subscription_forms} table/collection. Every caller of
- * this interface (Update/Enable/Disable use cases, {@code CreateDefaultSubscriptionFormUseCase})
- * keeps working unchanged — only the storage underneath changed.
+ * (PORTAL-164) instead of the retired {@code subscription_forms} table/collection. The one
+ * remaining caller of this interface, {@code CreateDefaultSubscriptionFormUseCase}, keeps working
+ * unchanged — only the storage underneath changed.
  *
  * @author Gravitee.io Team
  */
@@ -55,22 +51,16 @@ import org.springframework.stereotype.Component;
 public class SubscriptionFormCrudServiceImpl implements SubscriptionFormCrudService {
 
     private final EnvironmentRepository environmentRepository;
-    private final PortalNavigationItemsQueryService navigationItemsQueryService;
     private final PortalNavigationItemCrudService navigationItemCrudService;
-    private final PortalPageContentQueryService pageContentQueryService;
     private final PortalPageContentCrudService pageContentCrudService;
 
     public SubscriptionFormCrudServiceImpl(
         @Lazy EnvironmentRepository environmentRepository,
-        PortalNavigationItemsQueryService navigationItemsQueryService,
         PortalNavigationItemCrudService navigationItemCrudService,
-        PortalPageContentQueryService pageContentQueryService,
         PortalPageContentCrudService pageContentCrudService
     ) {
         this.environmentRepository = environmentRepository;
-        this.navigationItemsQueryService = navigationItemsQueryService;
         this.navigationItemCrudService = navigationItemCrudService;
-        this.pageContentQueryService = pageContentQueryService;
         this.pageContentCrudService = pageContentCrudService;
     }
 
@@ -100,34 +90,6 @@ public class SubscriptionFormCrudServiceImpl implements SubscriptionFormCrudServ
         var createdItem = navigationItemCrudService.create(PortalNavigationItem.from(createItem, organizationId, environmentId, null));
 
         return toSubscriptionForm((PortalNavigationSubscriptionForm) createdItem, subscriptionForm);
-    }
-
-    /**
-     * Updates both the navigation item (published status, validation constraints) and the associated
-     * page content (GMD content) to keep the dual storage representations in sync.
-     */
-    @Override
-    public SubscriptionForm update(SubscriptionForm subscriptionForm) {
-        var environmentId = subscriptionForm.getEnvironmentId();
-        var navigationItemId = PortalNavigationItemId.of(subscriptionForm.getId().toString());
-        var existingItem = navigationItemsQueryService.findByIdAndEnvironmentId(environmentId, navigationItemId);
-        if (!(existingItem instanceof PortalNavigationSubscriptionForm subscriptionFormItem)) {
-            throw new TechnicalDomainException(
-                "Subscription form navigation item [%s] not found for environment [%s]".formatted(navigationItemId, environmentId)
-            );
-        }
-
-        subscriptionFormItem.setPublished(subscriptionForm.isEnabled());
-        subscriptionFormItem.updateValidationConstraints(subscriptionForm.getValidationConstraints());
-        var updatedItem = (PortalNavigationSubscriptionForm) navigationItemCrudService.update(subscriptionFormItem);
-
-        var content = pageContentQueryService
-            .findById(updatedItem.getPortalPageContentId())
-            .orElseThrow(() -> new PageContentNotFoundException(updatedItem.getPortalPageContentId().toString()));
-        content.update(UpdatePortalPageContent.builder().content(subscriptionForm.getGmdContent().value()).build());
-        pageContentCrudService.update(content);
-
-        return toSubscriptionForm(updatedItem, subscriptionForm);
     }
 
     private String findOrganizationId(String environmentId) {

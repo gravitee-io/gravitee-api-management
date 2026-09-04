@@ -25,8 +25,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.core.model.PortalPageContentFixtures;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
+import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
@@ -42,12 +44,16 @@ import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalPageContentTooLargeException;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.SwaggerUiConfiguration;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
+import io.gravitee.apim.core.subscription_form.model.Constraint;
+import io.gravitee.apim.infra.domain_service.subscription_form.SubscriptionFormSchemaGeneratorImpl;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -61,12 +67,14 @@ class UpdatePortalPageContentUseCaseTest {
     private PortalPageContentQueryServiceInMemory queryService;
     private PortalPageContentCrudServiceInMemory crudService;
     private PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService;
+    private PortalNavigationItemsCrudServiceInMemory navigationItemCrudService;
 
     @BeforeEach
     void setUp() {
         queryService = new PortalPageContentQueryServiceInMemory();
         crudService = new PortalPageContentCrudServiceInMemory();
         navigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory(new java.util.ArrayList<>());
+        navigationItemCrudService = new PortalNavigationItemsCrudServiceInMemory(navigationItemsQueryService.storage());
 
         GraviteeMarkdownValidator gmdValidator = new GraviteeMarkdownValidator();
         PortalNavigationItemsQueryService portalNavigationItemsQueryService = mock(PortalNavigationItemsQueryService.class);
@@ -86,7 +94,9 @@ class UpdatePortalPageContentUseCaseTest {
             crudService,
             validatorService,
             navigationItemsQueryService,
-            new PortalNavigationSourcedItemsDomainService(navigationItemsQueryService)
+            new PortalNavigationSourcedItemsDomainService(navigationItemsQueryService),
+            new SubscriptionFormSchemaGeneratorImpl(),
+            navigationItemCrudService
         );
 
         queryService.initWith(PortalPageContentFixtures.samplePortalPageContents());
@@ -320,6 +330,60 @@ class UpdatePortalPageContentUseCaseTest {
         assertThatThrownBy(() -> useCase.execute(input))
             .isInstanceOf(GraviteeMarkdownContentEmptyException.class)
             .hasMessage("Content must not be null or empty");
+    }
+
+    @Test
+    void should_regenerate_subscription_form_validation_constraints_when_its_content_changes() {
+        // Given: a SUBSCRIPTION_FORM item backed by CONTENT_ID, with no constraints yet
+        var subscriptionForm = PortalNavigationItemFixtures.aSubscriptionForm(
+            "00000000-0000-0000-0000-0000000000f1",
+            PortalPageContentId.of(CONTENT_ID)
+        )
+            .toBuilder()
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .build();
+        subscriptionForm.markAsRoot();
+        navigationItemsQueryService.storage().add(subscriptionForm);
+
+        final var updateContent = UpdatePortalPageContent.builder()
+            .content("<gmd-input name=\"email\" fieldKey=\"email\" required=\"true\"/>")
+            .build();
+        final var input = UpdatePortalPageContentUseCase.Input.builder()
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .portalPageContentId(CONTENT_ID)
+            .updatePortalPageContent(updateContent)
+            .build();
+
+        // When
+        useCase.execute(input);
+
+        // Then
+        final var updatedItem = (PortalNavigationSubscriptionForm) navigationItemCrudService
+            .storage()
+            .stream()
+            .filter(item -> item.getId().equals(PortalNavigationItemId.of("00000000-0000-0000-0000-0000000000f1")))
+            .findFirst()
+            .orElseThrow();
+        assertThat(updatedItem.getValidationConstraints().byFieldKey()).containsKey("email");
+        assertThat(updatedItem.getValidationConstraints().byFieldKey().get("email")).contains(new Constraint.Required());
+    }
+
+    @Test
+    void should_not_look_up_a_subscription_form_when_updating_regular_page_content() {
+        // Given: no SUBSCRIPTION_FORM item exists anywhere - only regular page content is updated
+        final var updateContent = UpdatePortalPageContent.builder().content("Updated content").build();
+        final var input = UpdatePortalPageContentUseCase.Input.builder()
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .portalPageContentId(CONTENT_ID)
+            .updatePortalPageContent(updateContent)
+            .build();
+
+        // When & Then: succeeds without attempting to persist any navigation item
+        useCase.execute(input);
+        assertThat(navigationItemCrudService.storage()).isEmpty();
     }
 
     @Test

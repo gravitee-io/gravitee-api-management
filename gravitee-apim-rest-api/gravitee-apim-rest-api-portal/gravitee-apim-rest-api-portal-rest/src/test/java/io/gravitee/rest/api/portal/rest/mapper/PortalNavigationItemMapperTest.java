@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
@@ -23,6 +24,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.rest.api.portal.rest.fixture.PortalNavigationFixtures;
@@ -131,5 +133,26 @@ class PortalNavigationItemMapperTest {
         assertThat(mappedApiProduct.getApiProductId()).isEqualTo(UUID.fromString(apiProductId));
         assertThat(mappedApiProduct.getCategoryIds()).containsExactly(category1.id(), category2.id());
         assertThat(mappedApiProduct.getTitle()).isEqualTo("API Product");
+    }
+
+    @Test
+    void should_throw_when_mapping_a_subscription_form_item() {
+        var subscriptionForm = PortalNavigationSubscriptionForm.builder()
+            .id(PortalNavigationFixtures.randomNavigationId())
+            .organizationId("org")
+            .environmentId("env")
+            .title("Subscription Form")
+            .segment("subscription-form")
+            .area(PortalArea.SUBSCRIPTION_FORM)
+            .order(0)
+            .portalPageContentId(PortalNavigationFixtures.randomPageId())
+            .validationConstraints(io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstraints.empty())
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+
+        assertThatThrownBy(() -> PortalNavigationItemMapper.INSTANCE.getBasePortalNavigationItem(subscriptionForm)).isInstanceOf(
+            IllegalStateException.class
+        );
     }
 }

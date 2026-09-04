@@ -1382,154 +1382,6 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
-  # Subscription Forms
-  /subscription-forms:
-    get:
-      tags:
-        - Subscription Forms
-      summary: Get subscription form for environment
-      description: |-
-        Get the subscription form for the environment. Returns the form definition used
-        by API consumers when subscribing to APIs in the Developer Portal.
-        
-        User must have the ENVIRONMENT_SETTINGS[READ] permission.
-      operationId: getSubscriptionForm
-      responses:
-        "200":
-          description: Subscription form retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SubscriptionForm"
-        "404":
-          description: No subscription form exists for this environment
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        default:
-          $ref: "#/components/responses/Error"
-  /subscription-forms/{subscriptionFormId}:
-    put:
-      tags:
-        - Subscription Forms
-      summary: Update subscription form
-      description: |-
-        Update the existing subscription form. The form content is defined using Gravitee Markdown (GMD)
-        syntax with form components.
-        
-        Note: This operation does NOT change the enabled state. Use _enable/_disable endpoints for that.
-        
-        User must have the ENVIRONMENT_SETTINGS[UPDATE] permission.
-      operationId: updateSubscriptionForm
-      parameters:
-        - name: subscriptionFormId
-          in: path
-          required: true
-          description: The unique ID of the subscription form
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateSubscriptionForm"
-      responses:
-        "200":
-          description: Subscription form saved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SubscriptionForm"
-        "400":
-          description: Invalid or unsafe GMD content
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "404":
-          description: No subscription form exists with this ID
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        default:
-          $ref: "#/components/responses/Error"
-  /subscription-forms/{subscriptionFormId}/_enable:
-    post:
-      tags:
-        - Subscription Forms
-      summary: Enable subscription form
-      description: |-
-        Enable the subscription form to make it visible to API consumers in the Developer Portal.
-        When enabled, the form will be displayed during the API subscription process.
-        
-        This operation is idempotent - enabling an already enabled form returns success.
-        
-        User must have the ENVIRONMENT_SETTINGS[UPDATE] permission.
-      operationId: enableSubscriptionForm
-      parameters:
-        - name: subscriptionFormId
-          in: path
-          required: true
-          description: The unique ID of the subscription form
-          schema:
-            type: string
-            format: uuid
-      responses:
-        "200":
-          description: Subscription form enabled successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SubscriptionForm"
-        "404":
-          description: No subscription form exists with this ID
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        default:
-          $ref: "#/components/responses/Error"
-  /subscription-forms/{subscriptionFormId}/_disable:
-    post:
-      tags:
-        - Subscription Forms
-      summary: Disable subscription form
-      description: |-
-        Disable the subscription form to hide it from API consumers in the Developer Portal.
-        When disabled, the form will not be displayed during the API subscription process.
-        
-        This operation is idempotent - disabling an already disabled form returns success.
-        
-        User must have the ENVIRONMENT_SETTINGS[UPDATE] permission.
-      operationId: disableSubscriptionForm
-      parameters:
-        - name: subscriptionFormId
-          in: path
-          required: true
-          description: The unique ID of the subscription form
-          schema:
-            type: string
-            format: uuid
-      responses:
-        "200":
-          description: Subscription form disabled successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SubscriptionForm"
-        "404":
-          description: No subscription form exists with this ID
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        default:
-          $ref: "#/components/responses/Error"
-
 components:
   schemas:
     # Analytics
@@ -2411,7 +2263,7 @@ components:
       type: string
       description: The type of the navigation item
       example: FOLDER
-      enum: [ PAGE, FOLDER, LINK, API, API_PRODUCT ]
+      enum: [ PAGE, FOLDER, LINK, API, API_PRODUCT, SUBSCRIPTION_FORM ]
     BasePortalNavigationItem:
       type: object
       description: Base portal navigation item
@@ -2465,6 +2317,7 @@ components:
           LINK: "#/components/schemas/PortalNavigationLink"
           API: "#/components/schemas/PortalNavigationApi"
           API_PRODUCT: "#/components/schemas/PortalNavigationApiProduct"
+          SUBSCRIPTION_FORM: "#/components/schemas/PortalNavigationSubscriptionForm"
     PortalNavigationItemSource:
       type: object
       description: External source of the item content.
@@ -2645,6 +2498,17 @@ components:
                 format: uuid
               example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
           required: [ apiProductId ]
+    PortalNavigationSubscriptionForm:
+      description: Portal navigation item of type SUBSCRIPTION_FORM
+      allOf:
+        - $ref: "#/components/schemas/BasePortalNavigationItem"
+        - properties:
+            portalPageContentId:
+              type: string
+              format: uuid
+              description: The UUID of the portal page content backing this subscription form. Always GRAVITEE_MARKDOWN.
+              example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+          required: [ portalPageContentId ]
     PortalNavigationItem:
       oneOf:
         - $ref: "#/components/schemas/PortalNavigationPage"
@@ -2652,6 +2516,7 @@ components:
         - $ref: "#/components/schemas/PortalNavigationLink"
         - $ref: "#/components/schemas/PortalNavigationApi"
         - $ref: "#/components/schemas/PortalNavigationApiProduct"
+        - $ref: "#/components/schemas/PortalNavigationSubscriptionForm"
       discriminator:
         propertyName: type
         mapping:
@@ -2660,6 +2525,7 @@ components:
           LINK: "#/components/schemas/PortalNavigationLink"
           API: "#/components/schemas/PortalNavigationApi"
           API_PRODUCT: "#/components/schemas/PortalNavigationApiProduct"
+          SUBSCRIPTION_FORM: "#/components/schemas/PortalNavigationSubscriptionForm"
     PortalNavigationItemsResponseMetadata:
       type: object
       description: Sidecar data resolved for the returned navigation items, present only when requested via the `includes` query parameter.
@@ -2882,6 +2748,7 @@ components:
           LINK: "#/components/schemas/UpdatePortalNavigationLink"
           API: "#/components/schemas/UpdatePortalNavigationApi"
           API_PRODUCT: "#/components/schemas/UpdatePortalNavigationApiProduct"
+          SUBSCRIPTION_FORM: "#/components/schemas/UpdatePortalNavigationSubscriptionForm"
 
       required: [ type, title, order, published, visibility ]
     UpdatePortalNavigationFolder:
@@ -2947,6 +2814,12 @@ components:
                 type: string
                 format: uuid
               example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
+    UpdatePortalNavigationSubscriptionForm:
+      type: object
+      title: "UpdatePortalNavigationSubscriptionForm"
+      description: Portal navigation subscription form to update. The linked page content is edited separately through the portal-page-contents endpoints; this only covers the navigation item's own fields (title, order, published, visibility).
+      allOf:
+        - $ref: "#/components/schemas/BaseUpdatePortalNavigationItem"
     UpdatePortalNavigationItem:
       oneOf:
         - $ref: "#/components/schemas/UpdatePortalNavigationPage"
@@ -2954,6 +2827,7 @@ components:
         - $ref: "#/components/schemas/UpdatePortalNavigationLink"
         - $ref: "#/components/schemas/UpdatePortalNavigationApi"
         - $ref: "#/components/schemas/UpdatePortalNavigationApiProduct"
+        - $ref: "#/components/schemas/UpdatePortalNavigationSubscriptionForm"
       discriminator:
         propertyName: type
         mapping:
@@ -2962,6 +2836,7 @@ components:
           LINK: "#/components/schemas/UpdatePortalNavigationLink"
           API: "#/components/schemas/UpdatePortalNavigationApi"
           API_PRODUCT: "#/components/schemas/UpdatePortalNavigationApiProduct"
+          SUBSCRIPTION_FORM: "#/components/schemas/UpdatePortalNavigationSubscriptionForm"
 
     PortalCategory:
       type: object
@@ -3178,64 +3053,6 @@ components:
             When set and different from the current content type, the content is converted to this type.
             Used by the file import, where the type is derived from the uploaded file extension.
       required: [ content ]
-
-    # Subscription Forms
-    SubscriptionForm:
-      type: object
-      description: Subscription form definition used by API consumers when subscribing to APIs
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: Unique identifier of the subscription form
-          example: 550e8400-e29b-41d4-a716-446655440000
-        gmdContent:
-          type: string
-          description: |-
-            Gravitee Markdown (GMD) content defining the form.
-            Supports form components like gmd-input, gmd-textarea, gmd-select, gmd-checkbox, gmd-radio.
-          example: |
-            # Subscription Information
-            
-            <gmd-input name="consumer_company_name" label="Company Name" required="true"/>
-            <gmd-textarea name="consumer_use_case" label="Use Case" required="true"/>
-        enabled:
-          type: boolean
-          description: Whether the form is enabled and visible to API consumers in the Developer Portal
-          example: false
-        resolvedOptions:
-          type: object
-          description: |-
-            Resolved option lists for fields that use EL expressions.
-            Keys are field keys; values are the effective option lists (fallback values when no API context is available).
-            Present only when at least one field has dynamic options.
-          additionalProperties:
-            type: array
-            items:
-              type: string
-      required:
-        - id
-        - gmdContent
-        - enabled
-    UpdateSubscriptionForm:
-      type: object
-      description: Payload for updating a subscription form
-      properties:
-        gmdContent:
-          type: string
-          minLength: 1
-          description: |-
-            Gravitee Markdown (GMD) content defining the form.
-            Supports form components like gmd-input, gmd-textarea, gmd-select, gmd-checkbox, gmd-radio.
-            
-            Content is validated for security - malicious HTML/scripts will be rejected.
-          example: |
-            # Subscription Information
-            
-            <gmd-input name="consumer_company_name" label="Company Name" required="true"/>
-            <gmd-textarea name="consumer_use_case" label="Use Case" required="true"/>
-      required:
-        - gmdContent
 
   parameters:
     pageParam:
