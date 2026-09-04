@@ -17,12 +17,21 @@ package io.gravitee.apim.core.performance_target.crud_service;
 
 import io.gravitee.apim.core.performance_target.model.PerformanceTargetEvaluation;
 import java.util.List;
+import java.util.Optional;
 
 public interface PerformanceTargetEvaluationCrudService {
     /**
      * Stores an evaluation; when it is flagged latest it replaces the target's previous latest evaluation.
      */
     PerformanceTargetEvaluation create(PerformanceTargetEvaluation evaluation);
+
+    /**
+     * Stores an evaluation unless one with the same id already exists, so that several nodes evaluating the same
+     * target for the same slot keep a single record.
+     *
+     * @return the stored evaluation, or empty when the id was already taken
+     */
+    Optional<PerformanceTargetEvaluation> createIfAbsent(PerformanceTargetEvaluation evaluation);
 
     /**
      * Deletes every evaluation of the target but its {@code retention} most recent ones.

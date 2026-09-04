@@ -18,11 +18,13 @@ package io.gravitee.apim.infra.crud_service.performance_target;
 import io.gravitee.apim.core.performance_target.crud_service.PerformanceTargetEvaluationCrudService;
 import io.gravitee.apim.core.performance_target.model.PerformanceTargetEvaluation;
 import io.gravitee.apim.infra.adapter.PerformanceTargetEvaluationAdapter;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PerformanceTargetEvaluationRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import java.util.List;
+import java.util.Optional;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -42,6 +44,18 @@ public class PerformanceTargetEvaluationCrudServiceImpl extends AbstractService 
         try {
             var created = evaluationRepository.create(PerformanceTargetEvaluationAdapter.INSTANCE.toRepository(evaluation));
             return PerformanceTargetEvaluationAdapter.INSTANCE.toEntity(created);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("Error when creating Performance Target Evaluation: " + evaluation.id(), e);
+        }
+    }
+
+    @Override
+    public Optional<PerformanceTargetEvaluation> createIfAbsent(PerformanceTargetEvaluation evaluation) {
+        try {
+            var created = evaluationRepository.create(PerformanceTargetEvaluationAdapter.INSTANCE.toRepository(evaluation));
+            return Optional.of(PerformanceTargetEvaluationAdapter.INSTANCE.toEntity(created));
+        } catch (DuplicateKeyException e) {
+            return Optional.empty();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("Error when creating Performance Target Evaluation: " + evaluation.id(), e);
         }

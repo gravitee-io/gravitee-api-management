@@ -28,7 +28,6 @@ import io.gravitee.apim.core.performance_target.model.PerformanceTarget;
 import io.gravitee.apim.core.performance_target.model.PerformanceTargetEvaluation;
 import io.gravitee.apim.core.performance_target.model.PerformanceTargetSchedule;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -39,7 +38,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class EvaluateDuePerformanceTargetsUseCaseTest {
@@ -56,19 +54,12 @@ class EvaluateDuePerformanceTargetsUseCaseTest {
         evaluationCrudService
     );
     PerformanceTargetEvaluatorInMemory evaluator = new PerformanceTargetEvaluatorInMemory();
-    AtomicInteger ids = new AtomicInteger();
 
     EvaluateDuePerformanceTargetsUseCase useCase = newUseCase(evaluator);
-
-    @BeforeEach
-    void setUp() {
-        UuidString.overrideGenerator(() -> "evaluation-" + ids.incrementAndGet());
-    }
 
     @AfterEach
     void tearDown() {
         TimeProvider.reset();
-        UuidString.reset();
         Stream.of(targetCrudService, evaluationCrudService).forEach(InMemoryAlternative::reset);
     }
 
@@ -83,10 +74,43 @@ class EvaluateDuePerformanceTargetsUseCaseTest {
         assertThat(evaluationCrudService.storage())
             .hasSize(2)
             .allSatisfy(evaluation -> {
-                assertThat(evaluation.id()).startsWith("evaluation-");
+                assertThat(evaluation.id()).isNotBlank();
                 assertThat(evaluation.latest()).isTrue();
                 assertThat(evaluation.evaluatedAt()).isEqualTo(T0);
             });
+    }
+
+    @Test
+    void should_store_one_evaluation_per_slot_when_several_nodes_tick_at_once() {
+        var target = aTarget("a");
+        targetCrudService.initWith(List.of(target));
+        var boundary = slotBoundaryAfter(target, T0);
+        var otherNode = newUseCase(evaluator);
+
+        var first = useCase.execute(input(boundary));
+        var second = otherNode.execute(input(boundary.plusSeconds(1)));
+        var secondNextTick = otherNode.execute(input(boundary.plus(TICK)));
+
+        assertThat(first.evaluations()).extracting(PerformanceTargetEvaluation::targetId).containsExactly("a");
+        assertThat(second.evaluations()).isEmpty();
+        assertThat(secondNextTick.evaluations()).isEmpty();
+        assertThat(evaluationCrudService.storage()).singleElement().extracting(PerformanceTargetEvaluation::latest).isEqualTo(true);
+    }
+
+    @Test
+    void should_give_the_same_evaluation_the_same_id_on_every_node() {
+        var target = aTarget("a");
+        targetCrudService.initWith(List.of(target));
+        var boundary = slotBoundaryAfter(target, T0);
+
+        var stored = useCase.execute(input(boundary)).evaluations().getFirst();
+        evaluationCrudService.reset();
+        var storedAgain = newUseCase(evaluator).execute(input(boundary.plusSeconds(30))).evaluations().getFirst();
+        evaluationCrudService.reset();
+        var nextSlot = newUseCase(evaluator).execute(input(boundary.plus(INTERVAL))).evaluations().getFirst();
+
+        assertThat(storedAgain.id()).isEqualTo(stored.id());
+        assertThat(nextSlot.id()).isNotEqualTo(stored.id());
     }
 
     @Test
@@ -236,7 +260,9 @@ class EvaluateDuePerformanceTargetsUseCaseTest {
 
         assertThat(evaluationCrudService.storage())
             .extracting(PerformanceTargetEvaluation::id)
-            .containsExactlyInAnyOrder("evaluation-1", "old-0", "old-1");
+            .hasSize(3)
+            .contains("old-0", "old-1")
+            .doesNotContain("old-2");
     }
 
     @Test

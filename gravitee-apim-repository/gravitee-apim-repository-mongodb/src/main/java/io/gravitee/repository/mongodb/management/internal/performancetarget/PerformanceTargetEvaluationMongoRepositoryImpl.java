@@ -46,9 +46,9 @@ public class PerformanceTargetEvaluationMongoRepositoryImpl implements Performan
     private final MongoTemplate mongoTemplate;
 
     @Override
-    public void unsetLatest(String targetId) {
+    public void unsetLatestExcept(String targetId, String evaluationId) {
         mongoTemplate.updateMulti(
-            query(where("targetId").is(targetId).and("latest").is(true)),
+            query(where("targetId").is(targetId).and("latest").is(true).and("_id").ne(evaluationId)),
             new Update().set("latest", false),
             PerformanceTargetEvaluationMongo.class
         );

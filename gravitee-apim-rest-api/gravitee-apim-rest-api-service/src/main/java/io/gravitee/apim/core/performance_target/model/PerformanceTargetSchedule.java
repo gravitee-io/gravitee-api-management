@@ -60,13 +60,14 @@ public record PerformanceTargetSchedule(int backoffAfter, Duration backoffCap, i
      * @param lastEvaluatedAt {@code null} when the target was never evaluated, which makes it due at once
      */
     public boolean isDue(PerformanceTarget target, Instant lastEvaluatedAt, int consecutiveNotEvaluable, Instant now) {
-        if (lastEvaluatedAt == null) {
-            return true;
-        }
+        return lastEvaluatedAt == null || lastEvaluatedAt.isBefore(slotStart(target, consecutiveNotEvaluable, now));
+    }
+
+    /** The start of the target's slot {@code now} falls in; every node computes the same one for the same tick. */
+    public Instant slotStart(PerformanceTarget target, int consecutiveNotEvaluable, Instant now) {
         var interval = Math.max(1, effectiveInterval(target, consecutiveNotEvaluable).toSeconds());
         var jitter = jitter(target).toSeconds();
-        var slotStart = Math.floorDiv(now.getEpochSecond() - jitter, interval) * interval + jitter;
-        return lastEvaluatedAt.getEpochSecond() < slotStart;
+        return Instant.ofEpochSecond(Math.floorDiv(now.getEpochSecond() - jitter, interval) * interval + jitter);
     }
 
     /**

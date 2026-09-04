@@ -16,6 +16,7 @@
 package io.gravitee.repository.management.api;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.PerformanceTargetEnvironmentSummary;
@@ -27,6 +28,8 @@ public interface PerformanceTargetEvaluationRepository {
     /**
      * Stores an evaluation. When it is flagged latest, the previous latest evaluation of the same target loses the flag,
      * so a target has at most one latest evaluation.
+     *
+     * @throws DuplicateKeyException when an evaluation with the same id exists; the stored one and its flag are untouched
      */
     PerformanceTargetEvaluation create(PerformanceTargetEvaluation evaluation) throws TechnicalException;
 

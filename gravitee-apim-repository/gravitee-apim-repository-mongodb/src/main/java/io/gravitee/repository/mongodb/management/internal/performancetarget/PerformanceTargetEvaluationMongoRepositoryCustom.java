@@ -22,7 +22,7 @@ import io.gravitee.repository.mongodb.management.internal.model.PerformanceTarge
 import java.util.List;
 
 public interface PerformanceTargetEvaluationMongoRepositoryCustom {
-    void unsetLatest(String targetId);
+    void unsetLatestExcept(String targetId, String evaluationId);
 
     Page<PerformanceTargetEvaluationMongo> findEnvironmentLatest(String environmentId, Pageable pageable);
 

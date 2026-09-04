@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PerformanceTargetEvaluationRepository;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -42,12 +43,15 @@ class MongoPerformanceTargetEvaluationRepository implements PerformanceTargetEva
     public PerformanceTargetEvaluation create(PerformanceTargetEvaluation evaluation) throws TechnicalException {
         log.debug("Create performance target evaluation [{}]", evaluation.getId());
         try {
-            if (evaluation.isLatest()) {
-                internalRepository.unsetLatest(evaluation.getTargetId());
-            }
+            // insert first: a rejected duplicate must leave the stored evaluation and its latest flag untouched
             var created = mapper.map(internalRepository.insert(mapper.map(evaluation)));
+            if (evaluation.isLatest()) {
+                internalRepository.unsetLatestExcept(evaluation.getTargetId(), evaluation.getId());
+            }
             log.debug("Create performance target evaluation [{}] - Done", created.getId());
             return created;
+        } catch (org.springframework.dao.DuplicateKeyException ex) {
+            throw new DuplicateKeyException("Performance target evaluation " + evaluation.getId() + " already exists", ex);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to create performance target evaluation", ex);
         }
