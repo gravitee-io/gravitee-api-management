@@ -28,11 +28,14 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
@@ -408,6 +411,65 @@ public class PortalNavigationItemDomainServiceTest {
             )
                 .containsOnlyKeys(expected.keySet())
                 .containsAllEntriesOf(expected);
+        }
+
+        @Test
+        void deleting_a_portal_root_does_not_reorder_api_subtree_roots() {
+            var portalRoot = PortalNavigationPage.builder()
+                .id(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000a010"))
+                .organizationId(PortalNavigationItemFixtures.ORG_ID)
+                .environmentId(PortalNavigationItemFixtures.ENV_ID)
+                .title("Portal Root")
+                .segment("portal-root")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(PortalPageContentId.random())
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
+            portalRoot.markAsRoot();
+
+            var apiRoot1 = PortalNavigationPage.builder()
+                .id(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000a011"))
+                .organizationId(PortalNavigationItemFixtures.ORG_ID)
+                .environmentId(PortalNavigationItemFixtures.ENV_ID)
+                .title("API 1 Root")
+                .segment("api-1-root")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(1)
+                .portalPageContentId(PortalPageContentId.random())
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .reference(new NavigationItemReference.ApiReference("api-1"))
+                .build();
+            apiRoot1.markAsRoot();
+
+            var apiRoot2 = PortalNavigationPage.builder()
+                .id(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000a012"))
+                .organizationId(PortalNavigationItemFixtures.ORG_ID)
+                .environmentId(PortalNavigationItemFixtures.ENV_ID)
+                .title("API 2 Root")
+                .segment("api-2-root")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(2)
+                .portalPageContentId(PortalPageContentId.random())
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .reference(new NavigationItemReference.ApiReference("api-2"))
+                .build();
+            apiRoot2.markAsRoot();
+
+            portalNavigationItemsCrudService.initWith(List.of(portalRoot, apiRoot1, apiRoot2));
+            portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
+
+            domainService.delete(portalRoot);
+
+            var reloaded = portalNavigationItemsCrudService
+                .storage()
+                .stream()
+                .collect(Collectors.toMap(PortalNavigationItem::getId, item -> item));
+            assertThat(reloaded.get(apiRoot1.getId()).getOrder()).isEqualTo(1);
+            assertThat(reloaded.get(apiRoot2.getId()).getOrder()).isEqualTo(2);
         }
 
         @Test

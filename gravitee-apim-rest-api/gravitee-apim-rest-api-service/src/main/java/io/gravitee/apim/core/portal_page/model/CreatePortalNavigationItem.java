@@ -36,7 +36,7 @@ public final class CreatePortalNavigationItem {
     private PortalArea area;
 
     @Builder.Default
-    private NavigationItemReference reference = NavigationItemReference.DEFAULT;
+    private NavigationItemReference reference = NavigationItemReference.defaultReference();
 
     private Integer order;
     private PortalNavigationItemType type;

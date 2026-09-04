@@ -39,7 +39,17 @@ public interface PortalLinkMapper {
         AuditInfo audit,
         String portalHrid
     ) {
-        var state = new PortalLinkState(id, audit.environmentId(), audit.organizationId(), toErrors(errors), portalHrid);
+        var state = new PortalLinkState(id, audit.environmentId(), audit.organizationId(), toErrors(errors), portalHrid, null);
+        state.setHrid(spec.getHrid());
+        state.setName(spec.getName());
+        state.setHref(spec.getHref());
+        state.setLocation(spec.getLocation());
+        state.setOrder(spec.getOrder());
+        return state;
+    }
+
+    default PortalLinkState toApiLinkState(PortalLinkSpec spec, String id, List<Validator.Error> errors, AuditInfo audit, String apiHrid) {
+        var state = new PortalLinkState(id, audit.environmentId(), audit.organizationId(), toErrors(errors), null, apiHrid);
         state.setHrid(spec.getHrid());
         state.setName(spec.getName());
         state.setHref(spec.getHref());
@@ -54,7 +64,25 @@ public interface PortalLinkMapper {
             link.getEnvironmentId(),
             link.getOrganizationId(),
             null,
-            portalHrid
+            portalHrid,
+            null
+        );
+        state.setHrid(hrid);
+        state.setName(link.getTitle());
+        state.setHref(link.getUrl());
+        state.setOrder(link.getOrder());
+        state.setLocation(link.getAutomationMetadata() != null ? link.getAutomationMetadata().location().orElse(null) : null);
+        return state;
+    }
+
+    default PortalLinkState toApiLinkState(PortalNavigationLink link, String hrid, String apiHrid) {
+        var state = new PortalLinkState(
+            link.getId() != null ? link.getId().toString() : null,
+            link.getEnvironmentId(),
+            link.getOrganizationId(),
+            null,
+            null,
+            apiHrid
         );
         state.setHrid(hrid);
         state.setName(link.getTitle());
