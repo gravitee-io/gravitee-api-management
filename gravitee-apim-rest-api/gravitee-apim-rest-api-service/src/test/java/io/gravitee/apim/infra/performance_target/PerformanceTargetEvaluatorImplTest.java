@@ -26,6 +26,9 @@ import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.PerformanceTargetFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.EnvironmentCrudServiceInMemory;
+import io.gravitee.apim.core.analytics_engine.model.FacetBucketResponse;
+import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
@@ -33,6 +36,7 @@ import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.Measure;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
+import io.gravitee.apim.core.analytics_engine.model.MetricFacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
@@ -41,6 +45,7 @@ import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.core.observability.model.FilterOperator;
 import io.gravitee.apim.core.performance_target.model.PerformanceTarget;
@@ -56,7 +61,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class PerformanceTargetEvaluatorImplTest {
@@ -381,19 +391,306 @@ class PerformanceTargetEvaluatorImplTest {
         return new MetricMeasuresResponse(metric, null, List.of(new Measure(measure, value)));
     }
 
+    @Nested
+    class EvaluateAll {
+
+        private static final PerformanceTarget.Rule LATENCY = PerformanceTargetFixtures.aLatencyRule();
+
+        @Test
+        void should_evaluate_a_thousand_single_api_targets_of_one_window_with_a_bounded_number_of_requests() {
+            var apiIds = IntStream.range(0, 1000)
+                .mapToObj(i -> "api-" + i)
+                .toList();
+            apiCrudService.initWith(
+                apiIds
+                    .stream()
+                    .<Api>map(id -> ApiFixtures.aProxyApiV4().toBuilder().id(id).build())
+                    .toList()
+            );
+            apiIds.forEach(apiId ->
+                analytics.givenApi(apiId, requests(50), measure(MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME, MetricSpec.Measure.P95, 1000))
+            );
+            var targets = apiIds
+                .stream()
+                .map(apiId -> aSingleApiTarget(apiId, WINDOW, LATENCY))
+                .toList();
+
+            var evaluations = evaluator.evaluateAll(targets, NOW);
+
+            assertThat(analytics.requests).isEmpty();
+            assertThat(analytics.facetsRequests).hasSizeLessThanOrEqualTo(4);
+            assertThat(evaluations)
+                .hasSize(1000)
+                .allSatisfy(evaluation -> {
+                    assertThat(evaluation.status()).isEqualTo(PASS);
+                    assertThat(evaluation.coveredApiIds()).containsExactly(evaluation.targetId());
+                    assertThat(evaluation.rules())
+                        .singleElement()
+                        .extracting(PerformanceTargetEvaluation.RuleResult::sampleCount)
+                        .isEqualTo(50L);
+                });
+            assertThat(evaluations).extracting(PerformanceTargetEvaluation::targetId).containsExactlyElementsOf(apiIds);
+        }
+
+        @Test
+        void should_count_first_and_aggregate_only_the_targets_with_enough_samples() {
+            analytics.givenApi(A2A_API_ID, requests(63), measure(MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME, MetricSpec.Measure.P95, 4810));
+            analytics.givenApi(LLM_API_ID, requests(5), measure(MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME, MetricSpec.Measure.P95, 100));
+
+            var evaluations = evaluator.evaluateAll(
+                List.of(aSingleApiTarget(A2A_API_ID, WINDOW, LATENCY), aSingleApiTarget(LLM_API_ID, WINDOW, LATENCY)),
+                NOW
+            );
+
+            assertThat(analytics.contexts).containsOnly(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID));
+            assertThat(analytics.facetsRequests)
+                .allSatisfy(request -> {
+                    assertThat(request.timeRange()).isEqualTo(new TimeRange(NOW.minus(WINDOW), NOW));
+                    assertThat(request.facets()).containsExactly(FacetSpec.Name.API);
+                })
+                .satisfiesExactly(
+                    count -> {
+                        assertThat(count.filters()).containsExactly(apiIn(A2A_API_ID, LLM_API_ID));
+                        assertThat(count.limit()).isEqualTo(2);
+                        assertThat(count.metrics()).containsExactly(
+                            new FacetMetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT), List.of())
+                        );
+                    },
+                    aggregation -> {
+                        assertThat(aggregation.filters()).containsExactly(apiIn(A2A_API_ID));
+                        assertThat(aggregation.limit()).isEqualTo(1);
+                        assertThat(aggregation.metrics()).containsExactly(
+                            new FacetMetricMeasuresRequest(
+                                MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME,
+                                List.of(MetricSpec.Measure.P95),
+                                List.of()
+                            )
+                        );
+                    }
+                );
+            assertThat(evaluations)
+                .extracting(PerformanceTargetEvaluation::targetId, PerformanceTargetEvaluation::status)
+                .containsExactly(tuple(A2A_API_ID, BREACH), tuple(LLM_API_ID, NOT_EVALUABLE));
+            assertThat(evaluations)
+                .flatExtracting(PerformanceTargetEvaluation::rules)
+                .extracting(
+                    PerformanceTargetEvaluation.RuleResult::observed,
+                    PerformanceTargetEvaluation.RuleResult::sampleCount,
+                    PerformanceTargetEvaluation.RuleResult::status
+                )
+                .containsExactly(tuple(4810.0, 63L, BREACH), tuple(null, 5L, NOT_EVALUABLE));
+        }
+
+        @Test
+        void should_skip_the_aggregation_when_no_target_has_enough_samples() {
+            analytics.givenApi(A2A_API_ID, requests(3));
+
+            var evaluations = evaluator.evaluateAll(
+                List.of(aSingleApiTarget(A2A_API_ID, WINDOW, LATENCY), aSingleApiTarget(LLM_API_ID, WINDOW, LATENCY)),
+                NOW
+            );
+
+            assertThat(analytics.facetsRequests).hasSize(1);
+            assertThat(evaluations)
+                .flatExtracting(PerformanceTargetEvaluation::rules)
+                .extracting(PerformanceTargetEvaluation.RuleResult::sampleCount, PerformanceTargetEvaluation.RuleResult::status)
+                .containsExactly(tuple(3L, NOT_EVALUABLE), tuple(0L, NOT_EVALUABLE));
+        }
+
+        @Test
+        void should_batch_per_environment_and_window() {
+            environmentCrudService.initWith(
+                List.of(
+                    Environment.builder().id(ENVIRONMENT_ID).organizationId(ORGANIZATION_ID).build(),
+                    Environment.builder().id("other-env").organizationId("other-org").build()
+                )
+            );
+            apiCrudService.initWith(
+                List.of(
+                    ApiFixtures.anA2AProxyApiV4().toBuilder().id(A2A_API_ID).build(),
+                    ApiFixtures.aLLMProxyApiV4().toBuilder().id(LLM_API_ID).build(),
+                    ApiFixtures.aProxyApiV4().toBuilder().id("hourly-api").build(),
+                    ApiFixtures.aProxyApiV4().toBuilder().id("other-env-api").environmentId("other-env").build()
+                )
+            );
+            var hour = Duration.ofHours(1);
+
+            evaluator.evaluateAll(
+                List.of(
+                    aSingleApiTarget(A2A_API_ID, WINDOW, LATENCY),
+                    aSingleApiTarget("hourly-api", hour, LATENCY),
+                    aSingleApiTarget(LLM_API_ID, WINDOW, LATENCY),
+                    aSingleApiTarget("other-env-api", WINDOW, LATENCY).toBuilder().environmentId("other-env").build()
+                ),
+                NOW
+            );
+
+            assertThat(analytics.facetsRequests)
+                .extracting(FacetsRequest::timeRange, FacetsRequest::filters)
+                .containsExactlyInAnyOrder(
+                    tuple(new TimeRange(NOW.minus(WINDOW), NOW), List.of(apiIn(A2A_API_ID, LLM_API_ID))),
+                    tuple(new TimeRange(NOW.minus(hour), NOW), List.of(apiIn("hourly-api"))),
+                    tuple(new TimeRange(NOW.minus(WINDOW), NOW), List.of(apiIn("other-env-api")))
+                );
+            assertThat(analytics.contexts).containsExactlyInAnyOrder(
+                new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
+                new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
+                new ExecutionContext("other-org", "other-env")
+            );
+        }
+
+        @Test
+        void should_fall_back_to_a_per_target_evaluation_when_a_rule_spans_several_apis_or_carries_filters() {
+            var searchTool = new Filter(FilterSpec.Name.MCP_PROXY_TOOL, FilterOperator.EQ, "search");
+            var filtered = aSingleApiTarget(A2A_API_ID, WINDOW, ERROR_RATE.toBuilder().filters(List.of(searchTool)).build());
+
+            var evaluations = evaluator.evaluateAll(
+                List.of(anAgentTarget(ERROR_RATE), filtered, aSingleApiTarget(LLM_API_ID, WINDOW, LATENCY)),
+                NOW
+            );
+
+            assertThat(analytics.requests)
+                .extracting(MeasuresRequest::filters)
+                .containsExactly(List.of(apiIn(A2A_API_ID, LLM_API_ID)), List.of(apiIn(A2A_API_ID), searchTool));
+            assertThat(analytics.facetsRequests).singleElement().extracting(FacetsRequest::filters).isEqualTo(List.of(apiIn(LLM_API_ID)));
+            assertThat(evaluations)
+                .extracting(PerformanceTargetEvaluation::targetId)
+                .containsExactly("target-id", filtered.id(), LLM_API_ID);
+        }
+
+        @Test
+        void should_batch_an_agent_target_whose_rules_each_resolve_to_one_api() {
+            analytics.givenApi(A2A_API_ID, requests(63), measure(MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME, MetricSpec.Measure.P95, 1500));
+            analytics.givenApi(
+                LLM_API_ID,
+                requests(40),
+                measure(MetricSpec.Name.LLM_PROMPT_TOKEN_TOTAL_COST, MetricSpec.Measure.AVG, 0.02)
+            );
+
+            var evaluations = evaluator.evaluateAll(List.of(anAgentTarget(A2A_LATENCY, LLM_COST)), NOW);
+
+            assertThat(analytics.requests).isEmpty();
+            assertThat(analytics.facetsRequests).hasSize(2);
+            assertThat(evaluations)
+                .singleElement()
+                .satisfies(evaluation -> {
+                    assertThat(evaluation.status()).isEqualTo(BREACH);
+                    assertThat(evaluation.coveredApiIds()).containsExactly(A2A_API_ID, LLM_API_ID);
+                    assertThat(evaluation.rules())
+                        .extracting(
+                            PerformanceTargetEvaluation.RuleResult::observed,
+                            PerformanceTargetEvaluation.RuleResult::sampleCount,
+                            PerformanceTargetEvaluation.RuleResult::status
+                        )
+                        .containsExactly(tuple(1500.0, 63L, PASS), tuple(0.02, 40L, BREACH));
+                });
+        }
+
+        @Test
+        void should_keep_the_input_order_and_leave_out_a_target_that_cannot_be_evaluated() {
+            apiCrudService.initWith(
+                List.of(
+                    ApiFixtures.anA2AProxyApiV4().toBuilder().id(A2A_API_ID).build(),
+                    ApiFixtures.aNativeApi().toBuilder().id("kafka-api").build()
+                )
+            );
+            var mixedFamilies = PerformanceTargetFixtures.aTarget("mixed")
+                .toBuilder()
+                .subject(new PerformanceTarget.Subject(List.of(A2A_API_ID, "kafka-api"), "mixed"))
+                .rules(List.of(ERROR_RATE))
+                .build();
+
+            var evaluations = evaluator.evaluateAll(
+                List.of(aSingleApiTarget(A2A_API_ID, WINDOW, LATENCY), mixedFamilies, anAgentTarget(ERROR_RATE)),
+                NOW
+            );
+
+            assertThat(evaluations).extracting(PerformanceTargetEvaluation::targetId).containsExactly(A2A_API_ID, "target-id");
+        }
+
+        @Test
+        void should_return_nothing_for_no_target() {
+            assertThat(evaluator.evaluateAll(List.of(), NOW)).isEmpty();
+            assertThat(analytics.facetsRequests).isEmpty();
+            assertThat(analytics.requests).isEmpty();
+        }
+    }
+
+    @Nested
+    class Concurrency {
+
+        @Test
+        void should_cap_the_analytics_queries_in_flight() throws Exception {
+            var entered = new CountDownLatch(2);
+            var release = new CountDownLatch(1);
+            var blocking = new RecordingAnalyticsEngineQueryService() {
+                @Override
+                public MeasuresResponse searchMeasures(ExecutionContext context, MeasuresRequest request) {
+                    entered.countDown();
+                    try {
+                        release.await(5, TimeUnit.SECONDS);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                    return super.searchMeasures(context, request);
+                }
+            };
+            var capped = new PerformanceTargetEvaluatorImpl(
+                apiCrudService,
+                environmentCrudService,
+                new AnalyticsQueryContextProvider(List.of(blocking)),
+                1
+            );
+            var executor = Executors.newFixedThreadPool(2);
+            try {
+                var first = executor.submit(() -> capped.evaluate(anAgentTarget(ERROR_RATE), NOW));
+                var second = executor.submit(() -> capped.evaluate(anAgentTarget(ERROR_RATE), NOW));
+
+                assertThat(entered.await(500, TimeUnit.MILLISECONDS)).as("the second query must wait for the first one").isFalse();
+                assertThat(entered.getCount()).isEqualTo(1);
+
+                release.countDown();
+                first.get(5, TimeUnit.SECONDS);
+                second.get(5, TimeUnit.SECONDS);
+                assertThat(blocking.requests).hasSize(2);
+            } finally {
+                executor.shutdownNow();
+            }
+        }
+    }
+
+    private static PerformanceTarget aSingleApiTarget(String apiId, Duration window, PerformanceTarget.Rule... rules) {
+        return PerformanceTargetFixtures.aTarget(apiId)
+            .toBuilder()
+            .subject(new PerformanceTarget.Subject(List.of(apiId), apiId))
+            .window(window)
+            .rules(List.of(rules))
+            .build();
+    }
+
     /**
      * Answers a measures request with the metrics configured for the API ids it filters on, merging several
-     * configured responses for the same metric, and records what it was asked so tests can assert the query shape.
+     * configured responses for the same metric, and a facets request with one API bucket per API id that has
+     * configured metrics, the way Elasticsearch returns no bucket for an API without documents. Records what it was
+     * asked so tests can assert the query shape.
      */
     static class RecordingAnalyticsEngineQueryService implements AnalyticsEngineQueryService {
 
         final List<ExecutionContext> contexts = new ArrayList<>();
         final List<MeasuresRequest> requests = new ArrayList<>();
+        final List<FacetsRequest> facetsRequests = new ArrayList<>();
         private final Map<Set<String>, List<MetricMeasuresResponse>> responsesByApiIds = new HashMap<>();
+        private final Map<String, List<MetricMeasuresResponse>> responsesByApi = new HashMap<>();
 
         void given(Set<String> apiIds, MetricMeasuresResponse... metrics) {
             for (var metric : metrics) {
                 responsesByApiIds.computeIfAbsent(apiIds, ids -> new ArrayList<>()).add(metric);
+            }
+        }
+
+        void givenApi(String apiId, MetricMeasuresResponse... metrics) {
+            for (var metric : metrics) {
+                responsesByApi.computeIfAbsent(apiId, id -> new ArrayList<>()).add(metric);
             }
         }
 
@@ -403,19 +700,11 @@ class PerformanceTargetEvaluatorImplTest {
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public MeasuresResponse searchMeasures(ExecutionContext context, MeasuresRequest request) {
             contexts.add(context);
             requests.add(request);
-            var apiIds = request
-                .filters()
-                .stream()
-                .filter(filter -> filter.name() == FilterSpec.Name.API)
-                .findFirst()
-                .map(filter -> Set.copyOf((Collection<String>) filter.value()))
-                .orElse(Set.of());
             var byMetric = new HashMap<MetricSpec.Name, List<Measure>>();
-            for (var response : responsesByApiIds.getOrDefault(apiIds, List.of())) {
+            for (var response : responsesByApiIds.getOrDefault(apiIdsOf(request.filters()), List.of())) {
                 byMetric.computeIfAbsent(response.name(), name -> new ArrayList<>()).addAll(response.measures());
             }
             return new MeasuresResponse(
@@ -428,7 +717,46 @@ class PerformanceTargetEvaluatorImplTest {
 
         @Override
         public FacetsResponse searchFacets(ExecutionContext context, FacetsRequest request) {
-            throw new UnsupportedOperationException();
+            contexts.add(context);
+            facetsRequests.add(request);
+            var apiIds = new TreeSet<>(apiIdsOf(request.filters()));
+            return new FacetsResponse(
+                request
+                    .metrics()
+                    .stream()
+                    .map(metric ->
+                        new MetricFacetsResponse(
+                            metric.name(),
+                            null,
+                            apiIds
+                                .stream()
+                                .map(apiId -> new FacetBucketResponse(apiId, null, null, measuresOf(apiId, metric)))
+                                .filter(bucket -> !bucket.measures().isEmpty())
+                                .toList()
+                        )
+                    )
+                    .toList()
+            );
+        }
+
+        private List<Measure> measuresOf(String apiId, FacetMetricMeasuresRequest metric) {
+            return responsesByApi
+                .getOrDefault(apiId, List.of())
+                .stream()
+                .filter(response -> response.name() == metric.name())
+                .flatMap(response -> response.measures().stream())
+                .filter(measure -> metric.measures().contains(measure.name()))
+                .toList();
+        }
+
+        @SuppressWarnings("unchecked")
+        private static Set<String> apiIdsOf(List<Filter> filters) {
+            return filters
+                .stream()
+                .filter(filter -> filter.name() == FilterSpec.Name.API)
+                .findFirst()
+                .map(filter -> Set.copyOf((Collection<String>) filter.value()))
+                .orElse(Set.of());
         }
 
         @Override

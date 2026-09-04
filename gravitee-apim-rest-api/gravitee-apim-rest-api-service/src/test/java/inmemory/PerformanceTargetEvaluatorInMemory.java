@@ -19,20 +19,28 @@ import io.gravitee.apim.core.performance_target.model.PerformanceTarget;
 import io.gravitee.apim.core.performance_target.model.PerformanceTargetEvaluation;
 import io.gravitee.apim.core.performance_target.service_provider.PerformanceTargetEvaluator;
 import java.time.Instant;
+import java.util.List;
 
 /**
- * Passes every rule with an observed value at half the threshold, so tests can focus on what happens around the
- * evaluation rather than on the numbers.
+ * Gives every rule the configured status, PASS by default with an observed value at half the threshold, so tests can
+ * focus on what happens around the evaluation rather than on the numbers.
  */
 public class PerformanceTargetEvaluatorInMemory implements PerformanceTargetEvaluator {
 
+    private PerformanceTargetEvaluation.Status status = PerformanceTargetEvaluation.Status.PASS;
+
+    public void status(PerformanceTargetEvaluation.Status status) {
+        this.status = status;
+    }
+
     @Override
     public PerformanceTargetEvaluation evaluate(PerformanceTarget target, Instant now) {
+        var evaluable = status != PerformanceTargetEvaluation.Status.NOT_EVALUABLE;
         return PerformanceTargetEvaluation.builder()
             .targetId(target.id())
             .environmentId(target.environmentId())
             .reference(target.subject().reference())
-            .status(PerformanceTargetEvaluation.Status.PASS)
+            .status(status)
             .rules(
                 target
                     .rules()
@@ -43,10 +51,10 @@ public class PerformanceTargetEvaluatorInMemory implements PerformanceTargetEval
                             rule.measure(),
                             rule.operator(),
                             rule.threshold(),
-                            rule.threshold() / 2,
-                            new PerformanceTargetEvaluation.Deviation(-rule.threshold() / 2, -0.5),
-                            42,
-                            PerformanceTargetEvaluation.Status.PASS
+                            evaluable ? rule.threshold() / 2 : null,
+                            evaluable ? new PerformanceTargetEvaluation.Deviation(-rule.threshold() / 2, -0.5) : null,
+                            evaluable ? 42 : 0,
+                            status
                         )
                     )
                     .toList()
@@ -56,5 +64,13 @@ public class PerformanceTargetEvaluatorInMemory implements PerformanceTargetEval
             .coveredApiIds(target.subject().apiIds())
             .evaluatedAt(now)
             .build();
+    }
+
+    @Override
+    public List<PerformanceTargetEvaluation> evaluateAll(List<PerformanceTarget> targets, Instant now) {
+        return targets
+            .stream()
+            .map(target -> evaluate(target, now))
+            .toList();
     }
 }

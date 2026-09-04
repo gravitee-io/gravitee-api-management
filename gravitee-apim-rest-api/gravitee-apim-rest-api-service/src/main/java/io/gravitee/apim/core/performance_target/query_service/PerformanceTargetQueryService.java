@@ -19,5 +19,10 @@ import io.gravitee.apim.core.performance_target.model.PerformanceTarget;
 import java.util.List;
 
 public interface PerformanceTargetQueryService {
+    /**
+     * @return every target of every environment
+     */
+    List<PerformanceTarget> findAll();
+
     List<PerformanceTarget> findByReference(String environmentId, String reference);
 }

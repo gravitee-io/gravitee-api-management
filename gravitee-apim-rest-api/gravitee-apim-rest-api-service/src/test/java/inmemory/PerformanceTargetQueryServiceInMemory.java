@@ -34,6 +34,11 @@ public class PerformanceTargetQueryServiceInMemory implements PerformanceTargetQ
     }
 
     @Override
+    public List<PerformanceTarget> findAll() {
+        return List.copyOf(storage);
+    }
+
+    @Override
     public List<PerformanceTarget> findByReference(String environmentId, String reference) {
         return storage
             .stream()
