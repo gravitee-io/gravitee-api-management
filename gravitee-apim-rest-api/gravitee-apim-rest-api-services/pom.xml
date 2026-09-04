@@ -38,6 +38,7 @@
         <module>gravitee-apim-rest-api-services-audit</module>
         <module>gravitee-apim-rest-api-services-auto-fetch</module>
         <module>gravitee-apim-rest-api-services-portal-auto-fetch</module>
+        <module>gravitee-apim-rest-api-services-performance-targets</module>
         <module>gravitee-apim-rest-api-services-dictionary</module>
         <module>gravitee-apim-rest-api-services-dynamic-properties</module>
         <module>gravitee-apim-rest-api-services-events</module>
