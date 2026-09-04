@@ -121,6 +121,20 @@ class ApiNavigationSubtreePathsTest {
         assertThat(result).isEmpty();
     }
 
+    @Test
+    void terminates_on_a_cyclic_parent_chain_instead_of_recursing_forever() {
+        // Malformed data: the folder is listed as its own child. The walk stops because the ownership
+        // test is keyed on the path used to reach the folder, and "/loop/loop" is not "/loop".
+        var loop = automationFolder("/loop");
+        var byParent = new HashMap<String, List<PortalNavigationItem>>();
+        byParent.put(NAV_API_ROW_ID, List.of(loop));
+        byParent.put(loop.getId(), List.of(loop));
+
+        var result = ApiNavigationSubtreePaths.collect(ORG, ENV, NAV_API_ROW_ID, API_ID, byParent);
+
+        assertThat(result).extracting(ApiNavigationSubtreePaths.PathedFolder::path).containsExactly("/loop");
+    }
+
     /** Keyed on the API, never on the nav-api row — the shape {@code forApiFolder} has always written. */
     private static PortalNavigationItem automationFolder(String path) {
         var segment = path.substring(path.lastIndexOf('/') + 1);

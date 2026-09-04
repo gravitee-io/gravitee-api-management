@@ -220,12 +220,16 @@ public class PortalNavigationItemApiOwnedRekeyUpgrader implements Upgrader {
     }
 
     private static boolean isAlreadyAligned(PortalNavigationItem item, ParentAndRoot parentAndRoot, String apiId) {
-        return (
-            Objects.equals(item.getParentId(), parentAndRoot.parentId()) &&
-            Objects.equals(item.getRootId(), parentAndRoot.rootId()) &&
-            item.getReferenceType() == PortalNavigationReferenceType.API &&
-            apiId.equals(item.getReferenceId())
-        );
+        if (!Objects.equals(item.getParentId(), parentAndRoot.parentId())) {
+            return false;
+        }
+        if (!Objects.equals(item.getRootId(), parentAndRoot.rootId())) {
+            return false;
+        }
+        if (item.getReferenceType() != PortalNavigationReferenceType.API) {
+            return false;
+        }
+        return apiId.equals(item.getReferenceId());
     }
 
     private record ParentAndRoot(String parentId, String rootId) {}
