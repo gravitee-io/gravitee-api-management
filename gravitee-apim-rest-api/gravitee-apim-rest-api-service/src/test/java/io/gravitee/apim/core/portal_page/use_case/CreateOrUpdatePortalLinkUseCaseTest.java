@@ -214,13 +214,13 @@ class CreateOrUpdatePortalLinkUseCaseTest {
     }
 
     @Test
-    void should_skip_materialization_when_parent_portal_does_not_exist() {
+    void should_reject_the_apply_and_persist_nothing_when_the_environment_has_no_portal() {
         portalCrudService.reset();
 
         var output = useCase.execute(input("External Docs", "https://docs.example.com", "/projects/alpha", 3));
 
-        assertThat(output.errors()).isEmpty();
         assertThat(output.link()).isNull();
+        assertThat(output.errors()).anyMatch(Validator.Error::isSevere);
         assertThat(navCrudService.storage()).isEmpty();
     }
 

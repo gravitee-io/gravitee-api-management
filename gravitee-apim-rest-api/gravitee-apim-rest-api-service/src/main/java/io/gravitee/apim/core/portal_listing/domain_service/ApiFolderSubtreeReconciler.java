@@ -30,7 +30,7 @@ import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -45,7 +45,7 @@ import java.util.Set;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 
-/** Reconciles the api-folder subtree under a {@link PortalNavigationApi} row against the api's {@code portalNavigation}. */
+/** Reconciles the api-folder subtree for an API, keyed on the API itself, against the api's {@code portalNavigation}. */
 @DomainService
 @RequiredArgsConstructor
 class ApiFolderSubtreeReconciler {
@@ -55,36 +55,30 @@ class ApiFolderSubtreeReconciler {
     private final NavigationSyncPlanExecutor planExecutor;
     private final AutomationManagedNavigationItemsQueryService automationManagedNavigationItemsQueryService;
 
-    void sync(
-        AuditInfo auditInfo,
-        PortalNavigationApi navApi,
-        String apiId,
-        List<NavigationPath> previousPaths,
-        List<PortalNavigationItem> currentFolders
-    ) {
+    void sync(AuditInfo auditInfo, String apiId, List<NavigationPath> previousPaths, List<PortalNavigationItem> currentFolders) {
         var desired = desiredPaths(apiId);
         var ownership = ownership(auditInfo, apiId, desired);
         var plan = NavigationSyncPlanner.plan(desired, currentFolders, previousPaths, ownership);
         Function<String, PortalNavigationItemId> idMapper = path -> apiFolderId(auditInfo, apiId, path);
         var deleteStrategy = ownership.asDeleteStrategy();
-        planExecutor.execute(plan, auditInfo, navApi.getArea(), navApi, idMapper, deleteStrategy);
+        planExecutor.execute(
+            plan,
+            auditInfo,
+            PortalArea.TOP_NAVBAR,
+            null,
+            new NavigationItemReference.ApiReference(apiId),
+            idMapper,
+            deleteStrategy
+        );
+    }
+
+    ValidationItems itemsForValidation(AuditInfo auditInfo, String apiId, List<PortalNavigationItem> currentFolders) {
+        return itemsForValidation(auditInfo, apiId, desiredPaths(apiId), currentFolders);
     }
 
     ValidationItems itemsForValidation(
         AuditInfo auditInfo,
         String apiId,
-        PortalNavigationItemId navApiId,
-        PortalArea area,
-        List<PortalNavigationItem> currentFolders
-    ) {
-        return itemsForValidation(auditInfo, apiId, navApiId, area, desiredPaths(apiId), currentFolders);
-    }
-
-    ValidationItems itemsForValidation(
-        AuditInfo auditInfo,
-        String apiId,
-        PortalNavigationItemId navApiId,
-        PortalArea area,
         List<NavigationPath> desired,
         List<PortalNavigationItem> currentFolders
     ) {
@@ -97,14 +91,14 @@ class ApiFolderSubtreeReconciler {
             .filter(FolderActions.CreateFolder.class::isInstance)
             .map(FolderActions.CreateFolder.class::cast)
             .map(FolderActions.CreateFolder::desired)
-            .map(df -> toCreateItem(df, area, idFactory, navApiId, apiId))
+            .map(df -> toCreateItem(df, idFactory, apiId))
             .toList();
         var updates = plan
             .actions()
             .stream()
             .filter(FolderActions.UpdateFolder.class::isInstance)
             .map(FolderActions.UpdateFolder.class::cast)
-            .map(action -> new PendingUpdate(toUpdateItem(action.desired(), idFactory, navApiId), action.existing()))
+            .map(action -> new PendingUpdate(toUpdateItem(action.desired(), idFactory), action.existing()))
             .toList();
         return new ValidationItems(creates, updates);
     }
@@ -113,20 +107,19 @@ class ApiFolderSubtreeReconciler {
 
     private static CreatePortalNavigationItem toCreateItem(
         FolderActions.DesiredFolder df,
-        PortalArea area,
         Function<String, PortalNavigationItemId> idFactory,
-        PortalNavigationItemId navApiId,
         String apiId
     ) {
         return CreatePortalNavigationItem.builder()
             .id(idFactory.apply(df.path()))
             .title(df.title())
             .segment(df.segment().value())
-            .area(area)
+            .area(PortalArea.TOP_NAVBAR)
             .type(PortalNavigationItemType.FOLDER)
             .order(df.order())
-            .parentId(df.parentPath() == null ? navApiId : idFactory.apply(df.parentPath()))
+            .parentId(df.parentPath() == null ? null : idFactory.apply(df.parentPath()))
             .visibility(df.visibility())
+            .reference(new NavigationItemReference.ApiReference(apiId))
             .published(true)
             .automationMetadata(
                 new AutomationMetadata(AutomationMetadata.ReferenceType.API, apiId, null, Optional.of(df.path()), Optional.empty())
@@ -136,15 +129,14 @@ class ApiFolderSubtreeReconciler {
 
     private static UpdatePortalNavigationItem toUpdateItem(
         FolderActions.DesiredFolder df,
-        Function<String, PortalNavigationItemId> idFactory,
-        PortalNavigationItemId navApiId
+        Function<String, PortalNavigationItemId> idFactory
     ) {
         return UpdatePortalNavigationItem.builder()
             .title(df.title())
             .segment(df.segment().value())
             .type(PortalNavigationItemType.FOLDER)
             .order(df.order())
-            .parentId(df.parentPath() == null ? navApiId : idFactory.apply(df.parentPath()))
+            .parentId(df.parentPath() == null ? null : idFactory.apply(df.parentPath()))
             .visibility(df.visibility())
             .build();
     }
@@ -155,25 +147,20 @@ class ApiFolderSubtreeReconciler {
         );
     }
 
-    List<PortalNavigationItem> collectFolderDescendantsFrom(List<PortalNavigationItem> envFolders, PortalNavigationItemId rootId) {
-        var collector = new FolderCollector();
-        PortalNavigationTreeWalker.walkFrom(envFolders, rootId, collector);
-        return collector.collected();
-    }
-
-    List<PortalNavigationApi> navApiRowsFor(AuditInfo auditInfo, String apiId) {
-        return navigationItemsQueryService
-            .search(
-                PortalNavigationItemQueryCriteria.builder()
-                    .environmentId(auditInfo.environmentId())
-                    .type(PortalNavigationItemType.API)
-                    .apiIds(Set.of(apiId))
-                    .build()
-            )
+    List<PortalNavigationItem> collectFolderDescendantsFrom(List<PortalNavigationItem> envFolders, String apiId) {
+        var reference = new NavigationItemReference.ApiReference(apiId);
+        var collected = new ArrayList<PortalNavigationItem>();
+        envFolders
             .stream()
-            .filter(PortalNavigationApi.class::isInstance)
-            .map(PortalNavigationApi.class::cast)
-            .toList();
+            .filter(folder -> reference.equals(folder.getReference()))
+            .filter(PortalNavigationItem::isRoot)
+            .forEach(root -> {
+                collected.add(root);
+                var walker = new FolderCollector();
+                PortalNavigationTreeWalker.walkFrom(envFolders, root.getId(), walker);
+                collected.addAll(walker.collected());
+            });
+        return collected;
     }
 
     List<NavigationPath> desiredPaths(String apiId) {
@@ -189,7 +176,7 @@ class ApiFolderSubtreeReconciler {
             path -> apiFolderId(auditInfo, apiId, path),
             automationManagedNavigationItemsQueryService.automationManagedApiDocPages(auditInfo, apiId),
             Set.of(),
-            Set.of()
+            automationManagedNavigationItemsQueryService.automationManagedApiLinks(auditInfo, apiId)
         );
     }
 

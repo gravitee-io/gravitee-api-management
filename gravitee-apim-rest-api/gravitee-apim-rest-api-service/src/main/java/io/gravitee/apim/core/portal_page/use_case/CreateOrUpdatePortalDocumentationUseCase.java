@@ -95,6 +95,10 @@ public class CreateOrUpdatePortalDocumentationUseCase {
         var warnings = validation.warning().orElseGet(List::of);
         var sanitized = validation.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize portal documentation"));
 
+        if (!portalAutomationScopeEnforcer.isDefaultPortal(input.auditInfo(), sanitized.portalId())) {
+            throw new ValidationDomainException("no portal exists in this environment to attach the documentation to");
+        }
+
         var meta = new AutomationMetadata(
             AutomationMetadata.ReferenceType.PORTAL,
             sanitized.portalId().toString(),
@@ -121,11 +125,7 @@ public class CreateOrUpdatePortalDocumentationUseCase {
         }
 
         var area = sanitized.area() != null ? sanitized.area() : PortalArea.TOP_NAVBAR;
-
-        // Skip nav-tree materialization for non-default portals — app is not ready for that.
-        if (portalAutomationScopeEnforcer.isDefaultPortal(input.auditInfo(), sanitized.portalId())) {
-            syncDomainService.materialize(input.auditInfo(), saved, area, input.visibility());
-        }
+        syncDomainService.materialize(input.auditInfo(), saved, area, input.visibility());
 
         return new Output(saved.getId(), warnings);
     }
