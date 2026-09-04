@@ -36,6 +36,7 @@ import { CommonModule } from '@angular/common';
 import { CdkDragDrop, CdkDragMove, CdkDragStart, DragDropModule } from '@angular/cdk/drag-drop';
 
 import {
+  collectCreationAllowedByNodeId,
   collectFetchableContainerIds,
   getPortalNavigationItemSource,
   PortalNavigationItem,
@@ -161,65 +162,9 @@ export class FlatTreeComponent {
     return parentByChildId;
   });
 
-  readonly apiProductCreationAllowedByNodeId = computed(() => {
-    const links = this.links();
-    const creationAllowedByNodeId = new Map<string, boolean>();
+  readonly apiProductCreationAllowedByNodeId = computed(() => collectCreationAllowedByNodeId(this.links(), 'API_PRODUCT'));
 
-    if (!links || !Array.isArray(links)) {
-      return creationAllowedByNodeId;
-    }
-
-    const itemsById = new Map<string, PortalNavigationItem>(links.map(item => [item.id, item]));
-
-    for (const link of links) {
-      let currentParent = link.parentId ? itemsById.get(link.parentId) : undefined;
-      const visitedParentIds = new Set<string>();
-      let hasApiProductAncestor = false;
-
-      while (currentParent && !visitedParentIds.has(currentParent.id)) {
-        visitedParentIds.add(currentParent.id);
-        if (currentParent.type === 'API_PRODUCT') {
-          hasApiProductAncestor = true;
-          break;
-        }
-        currentParent = currentParent.parentId ? itemsById.get(currentParent.parentId) : undefined;
-      }
-
-      creationAllowedByNodeId.set(link.id, !hasApiProductAncestor);
-    }
-
-    return creationAllowedByNodeId;
-  });
-
-  readonly agentCreationAllowedByNodeId = computed(() => {
-    const links = this.links();
-    const creationAllowedByNodeId = new Map<string, boolean>();
-
-    if (!links || !Array.isArray(links)) {
-      return creationAllowedByNodeId;
-    }
-
-    const itemsById = new Map<string, PortalNavigationItem>(links.map(item => [item.id, item]));
-
-    for (const link of links) {
-      let currentParent = link.parentId ? itemsById.get(link.parentId) : undefined;
-      const visitedParentIds = new Set<string>();
-      let hasAgentAncestor = false;
-
-      while (currentParent && !visitedParentIds.has(currentParent.id)) {
-        visitedParentIds.add(currentParent.id);
-        if (currentParent.type === 'AGENT') {
-          hasAgentAncestor = true;
-          break;
-        }
-        currentParent = currentParent.parentId ? itemsById.get(currentParent.parentId) : undefined;
-      }
-
-      creationAllowedByNodeId.set(link.id, !hasAgentAncestor);
-    }
-
-    return creationAllowedByNodeId;
-  });
+  readonly agentCreationAllowedByNodeId = computed(() => collectCreationAllowedByNodeId(this.links(), 'AGENT'));
 
   // "Fetch All" targets what the backend _fetch endpoint accepts: the sourced PAGE descendants, and the
   // import-managed folders, whose re-import replaces the walk of individual sourced pages

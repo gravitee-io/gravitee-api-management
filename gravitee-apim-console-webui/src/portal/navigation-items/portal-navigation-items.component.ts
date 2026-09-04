@@ -54,17 +54,12 @@ import {
   ApiSectionEditorDialogData,
 } from './api-section-editor-dialog/api-section-editor-dialog.component';
 import {
-  ApiProductSectionEditorDialogComponent,
-  ApiProductSectionEditorDialogData,
-  ApiProductSectionEditorDialogResult,
-  SelectedApiProduct,
-} from './api-product-section-editor-dialog/api-product-section-editor-dialog.component';
-import {
-  AgentSectionEditorDialogComponent,
-  AgentSectionEditorDialogData,
-  AgentSectionEditorDialogResult,
-  SelectedAgent,
-} from './agent-section-editor-dialog/agent-section-editor-dialog.component';
+  SectionEntityKind,
+  SectionEntityPickerDialogComponent,
+  SectionEntityPickerDialogData,
+  SectionEntityPickerDialogResult,
+  SelectedSectionEntity,
+} from './section-entity-picker-dialog/section-entity-picker-dialog.component';
 import { OpenApiConfigDialogComponent, OpenApiConfigDialogData } from './openapi-config-dialog/openapi-config-dialog.component';
 import {
   PublishNavigationItemDialogComponent,
@@ -84,6 +79,8 @@ import {
   collectFetchableContainerIds,
   FetchPortalNavigationItemResponse,
   getPortalNavigationItemSource,
+  hasSelfOrAncestorOfType,
+  indexPortalNavigationItemsById,
   NewPortalNavigationItem,
   PortalArea,
   PortalNavigationAgent,
@@ -532,23 +529,27 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       .subscribe();
   }
 
-  private createApiProductSection(parentItem: PortalNavigationItem): void {
-    this.matDialog
-      .open<ApiProductSectionEditorDialogComponent, ApiProductSectionEditorDialogData, ApiProductSectionEditorDialogResult>(
-        ApiProductSectionEditorDialogComponent,
+  private openSectionEntityPicker(
+    parentItem: PortalNavigationItem,
+    kind: SectionEntityKind,
+    existingIds: string[],
+  ): Observable<SectionEntityPickerDialogResult> {
+    return this.matDialog
+      .open<SectionEntityPickerDialogComponent, SectionEntityPickerDialogData, SectionEntityPickerDialogResult>(
+        SectionEntityPickerDialogComponent,
         {
           width: GIO_DIALOG_WIDTH.LARGE,
-          data: {
-            mode: 'create',
-            existingApiProductIds: this.extractApiProductIdsFromNavigationItems(),
-            parentItem,
-          },
+          data: { kind, existingIds, parentItem },
         },
       )
       .afterClosed()
+      .pipe(filter((result): result is SectionEntityPickerDialogResult => !!result));
+  }
+
+  private createApiProductSection(parentItem: PortalNavigationItem): void {
+    this.openSectionEntityPicker(parentItem, 'API_PRODUCT', this.extractApiProductIdsFromNavigationItems())
       .pipe(
-        filter((result): result is ApiProductSectionEditorDialogResult => !!result),
-        switchMap(result => this.createApiProductsInOrder(parentItem.id, result.apiProducts, result.visibility)),
+        switchMap(result => this.createApiProductsInOrder(parentItem.id, result.entities, result.visibility)),
         switchMap(result => this.refreshNavigationItems().pipe(map(() => result))),
         tap(result => {
           if (result.errorMessage) {
@@ -563,22 +564,9 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   }
 
   private createAgentSection(parentItem: PortalNavigationItem): void {
-    this.matDialog
-      .open<AgentSectionEditorDialogComponent, AgentSectionEditorDialogData, AgentSectionEditorDialogResult>(
-        AgentSectionEditorDialogComponent,
-        {
-          width: GIO_DIALOG_WIDTH.LARGE,
-          data: {
-            mode: 'create',
-            existingAgentIds: this.extractAgentIdsFromNavigationItems(),
-            parentItem,
-          },
-        },
-      )
-      .afterClosed()
+    this.openSectionEntityPicker(parentItem, 'AGENT', this.extractAgentIdsFromNavigationItems())
       .pipe(
-        filter((result): result is AgentSectionEditorDialogResult => !!result),
-        switchMap(result => this.createAgentsInOrder(parentItem.id, result.agents, result.visibility)),
+        switchMap(result => this.createAgentsInOrder(parentItem.id, result.entities, result.visibility)),
         switchMap(result => this.refreshNavigationItems().pipe(map(() => result))),
         tap(result => {
           if (result.errorMessage) {
@@ -773,7 +761,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   private createApiProductsInOrder(
     parentId: string,
-    apiProducts: SelectedApiProduct[],
+    apiProducts: SelectedSectionEntity[],
     visibility: PortalVisibility,
   ): Observable<ApiProductBulkCreateResult> {
     if (!apiProducts.length) {
@@ -805,7 +793,11 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     );
   }
 
-  private createAgentsInOrder(parentId: string, agents: SelectedAgent[], visibility: PortalVisibility): Observable<AgentBulkCreateResult> {
+  private createAgentsInOrder(
+    parentId: string,
+    agents: SelectedSectionEntity[],
+    visibility: PortalVisibility,
+  ): Observable<AgentBulkCreateResult> {
     if (!agents.length) {
       return of({ createdItemId: null });
     }
@@ -983,7 +975,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   protected onSave() {
     const navItem = this.selectedNavigationItem().data;
-    const contentId = this.contentIdOf(navItem);
+    const contentId = this.editableContentId();
     if (!navItem || !contentId) {
       return;
     }
@@ -1011,6 +1003,14 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         this.initialContent.set(content);
       });
   }
+
+  protected readonly editableContentId = computed(() => this.contentIdOf(this.selectedNavigationItem()?.data));
+
+  protected readonly saveDisabledTooltip = computed(() =>
+    this.selectedNavigationItem()?.type === 'AGENT'
+      ? 'This agent has no terms and conditions content to save into'
+      : 'This item has no content to save into',
+  );
 
   private contentIdOf(navItem: PortalNavigationItem | undefined): string | undefined {
     if (!navItem) {
@@ -1565,35 +1565,11 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   }
 
   private isInsideApiProductSubtree(item: PortalNavigationItem): boolean {
-    const itemsById = new Map(this.menuLinks().map(menuItem => [menuItem.id, menuItem]));
-    let currentItem: PortalNavigationItem | undefined = item;
-    const visitedItemIds = new Set<string>();
-
-    while (currentItem && !visitedItemIds.has(currentItem.id)) {
-      visitedItemIds.add(currentItem.id);
-      if (currentItem.type === 'API_PRODUCT') {
-        return true;
-      }
-      currentItem = currentItem.parentId ? itemsById.get(currentItem.parentId) : undefined;
-    }
-
-    return false;
+    return hasSelfOrAncestorOfType(indexPortalNavigationItemsById(this.menuLinks()), item, 'API_PRODUCT');
   }
 
   private isInsideAgentSubtree(item: PortalNavigationItem): boolean {
-    const itemsById = new Map(this.menuLinks().map(menuItem => [menuItem.id, menuItem]));
-    let currentItem: PortalNavigationItem | undefined = item;
-    const visitedItemIds = new Set<string>();
-
-    while (currentItem && !visitedItemIds.has(currentItem.id)) {
-      visitedItemIds.add(currentItem.id);
-      if (currentItem.type === 'AGENT') {
-        return true;
-      }
-      currentItem = currentItem.parentId ? itemsById.get(currentItem.parentId) : undefined;
-    }
-
-    return false;
+    return hasSelfOrAncestorOfType(indexPortalNavigationItemsById(this.menuLinks()), item, 'AGENT');
   }
 
   private getApiProductMoveValidationError(parentId: string | null): string | null {

@@ -20,22 +20,18 @@ import { DivHarness, SpanHarness } from '@gravitee/ui-particles-angular/testing'
 
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 
-export class ApiProductSectionEditorDialogHarness extends ComponentHarness {
-  static readonly hostSelector = 'api-product-section-editor-dialog';
+export class SectionEntityPickerDialogHarness extends ComponentHarness {
+  static readonly hostSelector = 'section-entity-picker-dialog';
 
   private readonly locateCancelButton = this.locatorFor(MatButtonHarness.with({ text: 'Cancel' }));
   private readonly locateSubmitButton = this.locatorFor(MatButtonHarness.with({ text: 'Add' }));
   private readonly locateFormTitle = this.locatorFor(DivHarness.with({ selector: '[mat-dialog-title]' }));
   private readonly locateAuthenticationToggle = this.locatorFor(MatSlideToggleHarness);
   private readonly locateTableWrapper = this.locatorFor(GioTableWrapperHarness);
-  private readonly locateAlreadyAddedLabels = this.locatorForAll(
-    SpanHarness.with({ selector: '[data-testid^="api-product-picker-already-added-"]' }),
-  );
-  private readonly locateLoadError = this.locatorForOptional(
-    SpanHarness.with({ selector: '[data-testid="api-product-picker-load-error"]' }),
-  );
-  private readonly locateLoading = this.locatorForOptional(SpanHarness.with({ selector: '[data-testid="api-product-picker-loading"]' }));
-  private readonly locateEmptyState = this.locatorForOptional(SpanHarness.with({ selector: '[data-testid="api-product-picker-empty"]' }));
+  private readonly locateAlreadyAddedLabels = this.locatorForAll(SpanHarness.with({ selector: '[data-testid^="picker-already-added-"]' }));
+  private readonly locateLoadError = this.locatorForOptional(SpanHarness.with({ selector: '[data-testid="picker-load-error"]' }));
+  private readonly locateLoading = this.locatorForOptional(SpanHarness.with({ selector: '[data-testid="picker-loading"]' }));
+  private readonly locateEmptyState = this.locatorForOptional(SpanHarness.with({ selector: '[data-testid="picker-empty"]' }));
 
   async clickCancelButton(): Promise<void> {
     return (await this.locateCancelButton()).click();
@@ -69,8 +65,8 @@ export class ApiProductSectionEditorDialogHarness extends ComponentHarness {
     return (await this.locateTableWrapper()).setSearchValue(value);
   }
 
-  async getAlreadyAddedLabel(apiProductId: string): Promise<SpanHarness | null> {
-    const expectedDataTestId = `api-product-picker-already-added-${apiProductId}`;
+  async getAlreadyAddedLabel(entityId: string): Promise<SpanHarness | null> {
+    const expectedDataTestId = `picker-already-added-${entityId}`;
     for (const label of await this.locateAlreadyAddedLabels()) {
       const host = await label.host();
       if ((await host.getAttribute('data-testid')) === expectedDataTestId) {

@@ -33,8 +33,7 @@ import { findFirstAvailablePage, PortalNavigationItemsComponent } from './portal
 import { PortalNavigationItemsHarness } from './portal-navigation-items.harness';
 import { SectionEditorDialogHarness } from './section-editor-dialog/section-editor-dialog.harness';
 import { ApiSectionEditorDialogHarness } from './api-section-editor-dialog/api-section-editor-dialog.harness';
-import { ApiProductSectionEditorDialogHarness } from './api-product-section-editor-dialog/api-product-section-editor-dialog.harness';
-import { AgentSectionEditorDialogHarness } from './agent-section-editor-dialog/agent-section-editor-dialog.harness';
+import { SectionEntityPickerDialogHarness } from './section-entity-picker-dialog/section-entity-picker-dialog.harness';
 import { OpenApiConfigDialogHarness } from './openapi-config-dialog/openapi-config-dialog.harness';
 import { PublishNavigationItemDialogHarness } from './publish-navigation-item-dialog/publish-navigation-item-dialog.harness';
 import { ImportNavigationDialogHarness } from './import-navigation-dialog/import-navigation-dialog.harness';
@@ -3443,13 +3442,11 @@ describe('PortalNavigationItemsComponent', () => {
 
       expectApiProductSearchResponse(apiProducts);
 
-      const checkboxes = await rootLoader.getAllHarnesses(
-        MatCheckboxHarness.with({ selector: '[data-testid^="api-product-picker-checkbox-"]' }),
-      );
+      const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="picker-checkbox-"]' }));
       await checkboxes[1].check();
       await checkboxes[0].check();
 
-      const dialog = await rootLoader.getHarness(ApiProductSectionEditorDialogHarness);
+      const dialog = await rootLoader.getHarness(SectionEntityPickerDialogHarness);
       await dialog.clickSubmitButton();
 
       expectCreateNavigationItemsInBulk(
@@ -3485,11 +3482,9 @@ describe('PortalNavigationItemsComponent', () => {
       await fixture.whenStable();
 
       expectApiProductSearchResponse(apiProducts);
-      const checkboxes = await rootLoader.getAllHarnesses(
-        MatCheckboxHarness.with({ selector: '[data-testid^="api-product-picker-checkbox-"]' }),
-      );
+      const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="picker-checkbox-"]' }));
       await checkboxes[0].check();
-      await (await rootLoader.getHarness(ApiProductSectionEditorDialogHarness)).clickSubmitButton();
+      await (await rootLoader.getHarness(SectionEntityPickerDialogHarness)).clickSubmitButton();
 
       const request = httpTestingController.expectOne({
         method: 'POST',
@@ -3553,11 +3548,11 @@ describe('PortalNavigationItemsComponent', () => {
 
       expectAgentSearchResponse(agents);
 
-      const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="agent-picker-checkbox-"]' }));
+      const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="picker-checkbox-"]' }));
       await checkboxes[1].check();
       await checkboxes[0].check();
 
-      const dialog = await rootLoader.getHarness(AgentSectionEditorDialogHarness);
+      const dialog = await rootLoader.getHarness(SectionEntityPickerDialogHarness);
       await dialog.clickSubmitButton();
 
       expectCreateNavigationItemsInBulk(
@@ -3573,6 +3568,7 @@ describe('PortalNavigationItemsComponent', () => {
       );
 
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, ...createdAgents] }));
+      await expectGetPageContent(createdAgents[0].termsAndConditionsPageContentId, 'Agent terms');
 
       expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdAgents[0].id } }));
     });
@@ -3589,9 +3585,9 @@ describe('PortalNavigationItemsComponent', () => {
       await fixture.whenStable();
 
       expectAgentSearchResponse(agents);
-      const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="agent-picker-checkbox-"]' }));
+      const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="picker-checkbox-"]' }));
       await checkboxes[0].check();
-      await (await rootLoader.getHarness(AgentSectionEditorDialogHarness)).clickSubmitButton();
+      await (await rootLoader.getHarness(SectionEntityPickerDialogHarness)).clickSubmitButton();
 
       const request = httpTestingController.expectOne({
         method: 'POST',

@@ -15,37 +15,37 @@
     limitations under the License.
 
 -->
-<div mat-dialog-title class="title">{{ title }}</div>
+<div mat-dialog-title class="title">{{ config.title }}</div>
 
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
   <mat-dialog-content class="mat-elevation-z0">
-    <div class="agent-search-description-box">
-      <div class="selected-panel__title">Agents</div>
-      <div class="agent-search-description">Pick the A2A proxy agents you want to add to your navigation menu.</div>
+    <div class="entity-search-description-box">
+      <div class="selected-panel__title">{{ config.pluralLabel }}</div>
+      <div class="entity-search-description">{{ config.description }}</div>
     </div>
 
     @if (isLoading()) {
-      <span data-testid="agent-picker-loading">Loading...</span>
+      <span data-testid="picker-loading">Loading...</span>
     }
-    <gio-table-wrapper [searchLabel]="'Search'" [length]="total" [filters]="filters" (filtersChange)="onFiltersChanged($event)">
-      <table mat-table [dataSource]="rows$ | async" aria-label="Agents picker table">
+    <gio-table-wrapper [searchLabel]="'Search'" [length]="total()" [filters]="filters" (filtersChange)="onFiltersChanged($event)">
+      <table mat-table [dataSource]="rows$ | async" [attr.aria-label]="config.pluralLabel + ' picker table'">
         <ng-container matColumnDef="select">
           <th mat-header-cell *matHeaderCellDef></th>
           <td mat-cell *matCellDef="let row">
             @if (!row.isDisabled) {
               <mat-checkbox
                 [checked]="isChecked(row.id)"
-                (change)="onAgentSelectionChange(row, $event)"
-                [attr.data-testid]="'agent-picker-checkbox-' + row.id"
+                (change)="onSelectionChange(row, $event)"
+                [attr.data-testid]="'picker-checkbox-' + row.id"
               ></mat-checkbox>
             } @else {
-              <span class="already-added-label" [attr.data-testid]="'agent-picker-already-added-' + row.id">Already added</span>
+              <span class="already-added-label" [attr.data-testid]="'picker-already-added-' + row.id">Already added</span>
             }
           </td>
         </ng-container>
 
         <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef>Agent name</th>
+          <th mat-header-cell *matHeaderCellDef>{{ config.nameColumnHeader }}</th>
           <td mat-cell *matCellDef="let row" [class.disabled]="row.isDisabled">{{ row.name }}</td>
         </ng-container>
 
@@ -59,15 +59,20 @@
           <td mat-cell *matCellDef="let row" [class.disabled]="row.isDisabled">{{ row.description }}</td>
         </ng-container>
 
+        <ng-container matColumnDef="apiCount">
+          <th mat-header-cell *matHeaderCellDef>APIs</th>
+          <td mat-cell *matCellDef="let row" [class.disabled]="row.isDisabled">{{ row.apiCount }}</td>
+        </ng-container>
+
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns" [class.disabled-row]="row.isDisabled"></tr>
 
         <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
           <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
             @if (hasLoadError()) {
-              <span data-testid="agent-picker-load-error">Unable to load Agents.</span>
-            } @else if (total === 0) {
-              <span data-testid="agent-picker-empty">No data to display.</span>
+              <span data-testid="picker-load-error">Unable to load {{ config.pluralLabel }}.</span>
+            } @else if (total() === 0) {
+              <span data-testid="picker-empty">No data to display.</span>
             }
           </td>
         </tr>
@@ -78,18 +83,18 @@
       <mat-expansion-panel-header>
         <mat-panel-title>
           <div class="selected-panel__badge" [class.selected-panel__badge--zero]="selectedCount() === 0">{{ selectedCount() }}</div>
-          <div>Agents selected</div>
+          <div>{{ config.pluralLabel }} selected</div>
         </mat-panel-title>
       </mat-expansion-panel-header>
 
       <div>
         @if (selectedCount() === 0) {
-          <div>Select an Agent to add it to your navigation.</div>
+          <div>Select an {{ config.singularLabel }} to add it to your navigation.</div>
         } @else {
           <mat-chip-set>
-            @for (agent of selectedAgents(); track agent.id) {
-              <mat-chip [removable]="true" (removed)="removeSelected(agent.id)">
-                {{ agent.name }}
+            @for (entity of selectedEntities(); track entity.id) {
+              <mat-chip [removable]="true" (removed)="removeSelected(entity.id)">
+                {{ entity.name }}
                 <mat-icon matChipRemove>cancel</mat-icon>
               </mat-chip>
             }
@@ -100,8 +105,8 @@
 
     <div class="selected-panel__title selected-panel__title--authentication">Authentication</div>
     <span [matTooltip]="publicDisabledTooltip()" [matTooltipDisabled]="!publicDisabled()">
-      <mat-slide-toggle formControlName="isPrivate" aria-label="Require authentication to view selected Agents">
-        Authentication is required to view selected Agents.
+      <mat-slide-toggle formControlName="isPrivate" [attr.aria-label]="'Require authentication to view selected ' + config.pluralLabel">
+        Authentication is required to view selected {{ config.pluralLabel }}.
       </mat-slide-toggle>
     </span>
   </mat-dialog-content>

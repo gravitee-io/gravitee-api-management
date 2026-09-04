@@ -91,6 +91,57 @@ export function getPortalNavigationItemSource(item: PortalNavigationItem): Porta
 }
 
 /**
+ * Walks `item` and its ancestors — `item` itself included — and reports whether any of them has `type`.
+ * Tolerates `parentId` cycles.
+ */
+export function hasSelfOrAncestorOfType(
+  itemsById: Map<string, PortalNavigationItem>,
+  item: PortalNavigationItem | undefined,
+  type: PortalNavigationItemType,
+): boolean {
+  let current = item;
+  const visitedIds = new Set<string>();
+
+  while (current && !visitedIds.has(current.id)) {
+    visitedIds.add(current.id);
+    if (current.type === type) {
+      return true;
+    }
+    current = current.parentId ? itemsById.get(current.parentId) : undefined;
+  }
+
+  return false;
+}
+
+export function indexPortalNavigationItemsById(items: PortalNavigationItem[]): Map<string, PortalNavigationItem> {
+  return new Map(items.map(item => [item.id, item]));
+}
+
+/**
+ * For every item, whether a child of `type` may be created under it: allowed unless one of its ancestors
+ * already has `type`, since items of these types do not nest.
+ */
+export function collectCreationAllowedByNodeId(
+  items: PortalNavigationItem[] | null | undefined,
+  type: PortalNavigationItemType,
+): Map<string, boolean> {
+  const creationAllowedByNodeId = new Map<string, boolean>();
+
+  if (!items || !Array.isArray(items)) {
+    return creationAllowedByNodeId;
+  }
+
+  const itemsById = indexPortalNavigationItemsById(items);
+
+  for (const item of items) {
+    const parent = item.parentId ? itemsById.get(item.parentId) : undefined;
+    creationAllowedByNodeId.set(item.id, !hasSelfOrAncestorOfType(itemsById, parent, type));
+  }
+
+  return creationAllowedByNodeId;
+}
+
+/**
  * Ids of the items carrying at least one sourced PAGE below them — exactly what the backend `_fetch`
  * endpoint walks. An item carrying a source itself but no sourced PAGE below it is absent from the
  * set: the endpoint rejects it with a 400.

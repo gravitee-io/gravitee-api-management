@@ -119,7 +119,9 @@
                   <span>Linked API Product:</span>
                   <span class="panel-header__title__linked-api__value">
                     {{
-                      selectedLinkedApiProductName.isLoading() ? 'Loading...' : (selectedLinkedApiProductName.value() ?? selectedApiProductId())
+                      selectedLinkedApiProductName.isLoading()
+                        ? 'Loading...'
+                        : (selectedLinkedApiProductName.value() ?? selectedApiProductId())
                     }}
                   </span>
                 </div>
@@ -172,9 +174,16 @@
             {{ selectedNavigationItemIsPublished() ? 'Unpublish' : 'Publish' }}
           </button>
         </span>
-        <button mat-flat-button color="primary" [disabled]="contentControl.pristine || contentControl.invalid" (click)="onSave()">
-          Save
-        </button>
+        <span [matTooltip]="saveDisabledTooltip()" [matTooltipDisabled]="!!editableContentId()">
+          <button
+            mat-flat-button
+            color="primary"
+            [disabled]="!editableContentId() || contentControl.pristine || contentControl.invalid"
+            (click)="onSave()"
+          >
+            Save
+          </button>
+        </span>
       </div>
     </header>
 
