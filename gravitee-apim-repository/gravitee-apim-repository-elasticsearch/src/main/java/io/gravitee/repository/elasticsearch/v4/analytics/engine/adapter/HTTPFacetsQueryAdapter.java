@@ -25,6 +25,7 @@ import io.gravitee.repository.analytics.engine.api.query.Query;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -50,21 +51,38 @@ public class HTTPFacetsQueryAdapter {
     }
 
     private JsonObject json(FacetsQuery query, JsonObject boolQuery) {
+        var rateWindow = HTTPMeasuresQueryAdapter.rateWindow(query.timeRange());
         return new JsonObject()
             .put("size", 0)
             .put("query", boolQuery)
-            .put("aggs", adaptFacets(query.metrics(), query.facets(), query.limit(), query.ranges()));
+            .put("aggs", adaptFacets(query.metrics(), query.facets(), query.limit(), query.ranges(), rateWindow));
     }
 
-    public JsonObject adaptFacets(List<MetricMeasuresQuery> metrics, List<Facet> queryFacets, Integer limit, List<NumberRange> ranges) {
+    /**
+     * @param rateWindow the span a per-second rate divides its bucket count by, see
+     *                   {@link HTTPMeasuresQueryAdapter#adaptMetrics(List, Duration)}
+     */
+    public JsonObject adaptFacets(
+        List<MetricMeasuresQuery> metrics,
+        List<Facet> queryFacets,
+        Integer limit,
+        List<NumberRange> ranges,
+        Duration rateWindow
+    ) {
         var aggs = new JsonObject();
         for (var metric : metrics) {
-            aggs.mergeIn(adaptFacets(metric, queryFacets, limit, ranges));
+            aggs.mergeIn(adaptFacets(metric, queryFacets, limit, ranges, rateWindow));
         }
         return aggs;
     }
 
-    public JsonObject adaptFacets(MetricMeasuresQuery metric, List<Facet> queryFacets, Integer limit, List<NumberRange> ranges) {
+    public JsonObject adaptFacets(
+        MetricMeasuresQuery metric,
+        List<Facet> queryFacets,
+        Integer limit,
+        List<NumberRange> ranges,
+        Duration rateWindow
+    ) {
         var aggs = new JsonObject();
 
         if (queryFacets.isEmpty()) {
@@ -78,10 +96,10 @@ public class HTTPFacetsQueryAdapter {
         aggs.put(aggName, adaptFacet(metric, facet, limit, ranges, isLast));
 
         if (isLast) {
-            aggs.getJsonObject(aggName).put("aggs", measuresAdapter.adaptMetrics(List.of(metric)));
+            aggs.getJsonObject(aggName).put("aggs", measuresAdapter.adaptMetrics(List.of(metric), rateWindow));
         } else {
             var remainingFacets = queryFacets.subList(1, queryFacets.size());
-            aggs.getJsonObject(aggName).put("aggs", adaptFacets(metric, remainingFacets, limit, ranges));
+            aggs.getJsonObject(aggName).put("aggs", adaptFacets(metric, remainingFacets, limit, ranges, rateWindow));
         }
 
         return aggs;

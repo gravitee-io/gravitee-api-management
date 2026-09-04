@@ -44,6 +44,7 @@ class HTTPFieldResolverTest {
         names = {
             "HTTP_REQUESTS",
             "HTTP_ERRORS",
+            "HTTP_REQUESTS_PER_SECOND",
             "HTTP_REQUEST_CONTENT_LENGTH",
             "HTTP_RESPONSE_CONTENT_LENGTH",
             "HTTP_ENDPOINT_RESPONSE_TIME",

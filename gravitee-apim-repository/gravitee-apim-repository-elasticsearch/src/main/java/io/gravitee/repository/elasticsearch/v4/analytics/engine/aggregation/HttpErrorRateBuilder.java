@@ -19,23 +19,35 @@ import io.vertx.core.json.JsonObject;
 import java.util.Map;
 
 /**
+ * Share of responses whose status is at least {@code errorStatusFrom}, over every response with a status: 400 gives
+ * the classic error rate, 500 the server-error rate.
+ *
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class HttpErrorRateBuilder {
 
     private static final String SCRIPT_SOURCE = """
-        (params.success + params.error) > 0 ? params.error / (params.success + params.error) * 100 : 0
+        (params.other + params.error) > 0 ? params.error / (params.other + params.error) * 100 : 0
         """;
 
+    private static final int LOWEST_STATUS = 100;
+    private static final int STATUS_UPPER_BOUND = 600;
+
     private final SingleDateHistogramBucketBuilder singleBucketBuilder = new SingleDateHistogramBucketBuilder();
+
+    private final int errorStatusFrom;
+
+    public HttpErrorRateBuilder(int errorStatusFrom) {
+        this.errorStatusFrom = errorStatusFrom;
+    }
 
     public Map<String, JsonObject> build(String aggName, String field) {
         return Map.of("_" + aggName, json().put("date_histogram", singleBucketBuilder.build()).put("aggs", aggs(aggName)));
     }
 
     private JsonObject aggs(String aggName) {
-        return json().put("_success_count", successCount()).put("_error_count", errorCount()).put(aggName, bucketScript());
+        return json().put("_other_count", otherCount()).put("_error_count", errorCount()).put(aggName, bucketScript());
     }
 
     private JsonObject bucketScript() {
@@ -43,19 +55,19 @@ public class HttpErrorRateBuilder {
     }
 
     private JsonObject bucketPath() {
-        return json().put("success", "_success_count>count").put("error", "_error_count>count");
+        return json().put("other", "_other_count>count").put("error", "_error_count>count");
     }
 
     private JsonObject script() {
         return json().put("source", SCRIPT_SOURCE);
     }
 
-    private JsonObject successCount() {
-        return json().put("filter", statusFilter(100, 400)).put("aggs", json().put("count", valueCount()));
+    private JsonObject otherCount() {
+        return json().put("filter", statusFilter(LOWEST_STATUS, errorStatusFrom)).put("aggs", json().put("count", valueCount()));
     }
 
     private JsonObject errorCount() {
-        return json().put("filter", statusFilter(400, 600)).put("aggs", json().put("count", valueCount()));
+        return json().put("filter", statusFilter(errorStatusFrom, STATUS_UPPER_BOUND)).put("aggs", json().put("count", valueCount()));
     }
 
     private JsonObject statusFilter(int gte, int lt) {

@@ -36,6 +36,7 @@ import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.NumberRange;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
 import io.gravitee.repository.analytics.engine.api.result.FacetBucketResult;
+import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.elasticsearch.TimeProvider;
@@ -1629,6 +1630,61 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     assertThat(measure.measures().values().iterator().next()).satisfies(n -> assertThat(n.doubleValue()).isNotZero());
                 }
             }
+
+            /** One 404 on the first API, one 200 and one 500 on the second: three responses, two errors, one of them 5xx. */
+            private static Filter apisWithOneClientAndOneServerError() {
+                return new Filter(
+                    Filter.Name.API,
+                    Filter.Operator.IN,
+                    List.of("4932fe31-6f36-424e-a29e-f2bfa22ad179", "4a6895d5-a1bc-4041-a895-d5a1bce041ae")
+                );
+            }
+
+            @Test
+            void should_count_only_server_errors_in_the_server_error_rate() {
+                var metrics = List.of(
+                    new MetricMeasuresQuery(Metric.HTTP_ERROR_RATE, Set.of(Measure.PERCENTAGE)),
+                    new MetricMeasuresQuery(Metric.HTTP_SERVER_ERROR_RATE, Set.of(Measure.PERCENTAGE))
+                );
+
+                var result = cut.searchHTTPMeasures(
+                    QUERY_CONTEXT,
+                    new MeasuresQuery(buildTimeRange(), List.of(apisWithOneClientAndOneServerError()), metrics)
+                );
+
+                assertThat(measure(result, Metric.HTTP_ERROR_RATE, Measure.PERCENTAGE)).isCloseTo(200.0 / 3, offset(0.01));
+                assertThat(measure(result, Metric.HTTP_SERVER_ERROR_RATE, Measure.PERCENTAGE)).isCloseTo(100.0 / 3, offset(0.01));
+            }
+
+            @Test
+            void should_return_requests_per_second_as_the_request_count_over_the_time_range() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(
+                    new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)),
+                    new MetricMeasuresQuery(Metric.HTTP_REQUESTS_PER_SECOND, Set.of(Measure.RATE))
+                );
+
+                var result = cut.searchHTTPMeasures(
+                    QUERY_CONTEXT,
+                    new MeasuresQuery(timeRange, List.of(apisWithOneClientAndOneServerError()), metrics)
+                );
+
+                var seconds = Duration.between(timeRange.from(), timeRange.to()).toSeconds();
+                assertThat(measure(result, Metric.HTTP_REQUESTS, Measure.COUNT)).isEqualTo(3.0);
+                assertThat(measure(result, Metric.HTTP_REQUESTS_PER_SECOND, Measure.RATE)).isCloseTo(3.0 / seconds, offset(1e-9));
+            }
+
+            private static double measure(MeasuresResult result, Metric metric, Measure measure) {
+                return result
+                    .measures()
+                    .stream()
+                    .filter(metricResult -> metricResult.metric() == metric)
+                    .findFirst()
+                    .orElseThrow()
+                    .measures()
+                    .get(measure)
+                    .doubleValue();
+            }
         }
 
         @Nested
@@ -1712,6 +1768,41 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
                 var facetBuckets = timeSeriesBuckets.getFirst().buckets();
                 assertThat(facetBuckets).isNotEmpty();
+            }
+
+            /**
+             * The fixtures hold two requests in one hour of yesterday and one in another hour of today for these
+             * APIs, so a per-second rate over hourly buckets must peak at two requests per hour and add up to three.
+             */
+            @Test
+            void should_divide_requests_per_second_by_the_bucket_interval_in_a_time_series() {
+                var interval = Duration.ofHours(1);
+                var filter = new Filter(
+                    Filter.Name.API,
+                    Filter.Operator.IN,
+                    List.of("4932fe31-6f36-424e-a29e-f2bfa22ad179", "4a6895d5-a1bc-4041-a895-d5a1bce041ae")
+                );
+                var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS_PER_SECOND, Set.of(Measure.RATE)));
+
+                var result = cut.searchHTTPTimeSeries(
+                    QUERY_CONTEXT,
+                    new TimeSeriesQuery(buildTimeRange(), List.of(filter), interval.toMillis(), metrics)
+                );
+
+                var ratesPerSecond = result
+                    .metrics()
+                    .getFirst()
+                    .buckets()
+                    .stream()
+                    .map(bucket -> bucket.measures().get(Measure.RATE).doubleValue())
+                    .toList();
+                assertThat(
+                    ratesPerSecond
+                        .stream()
+                        .mapToDouble(rate -> rate * interval.toSeconds())
+                        .sum()
+                ).isCloseTo(3.0, offset(1e-6));
+                assertThat(ratesPerSecond).anySatisfy(rate -> assertThat(rate).isCloseTo(2.0 / interval.toSeconds(), offset(1e-9)));
             }
         }
 

@@ -21,6 +21,7 @@ import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
 import io.vertx.core.json.JsonObject;
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -57,10 +58,15 @@ public class HTTPTimeSeriesQueryAdapter {
 
     public JsonObject adaptTimeSeries(MetricMeasuresQuery metric, TimeSeriesQuery query) {
         var dateHistogram = DateHistogramAdapter.adapt(query.interval(), query.timeRange());
+        // A rate inside a time series is per bucket, so it divides by the interval rather than by the whole range.
+        var rateWindow = Duration.ofMillis(query.interval());
         if (query.facets() != null && !query.facets().isEmpty()) {
-            dateHistogram.put("aggs", facetsQueryAdapter.adaptFacets(List.of(metric), query.facets(), query.limit(), query.ranges()));
+            dateHistogram.put(
+                "aggs",
+                facetsQueryAdapter.adaptFacets(List.of(metric), query.facets(), query.limit(), query.ranges(), rateWindow)
+            );
         } else {
-            dateHistogram.put("aggs", measuresAdapter.adaptMetrics(List.of(metric)));
+            dateHistogram.put("aggs", measuresAdapter.adaptMetrics(List.of(metric), rateWindow));
         }
         var aggName = AggregationAdapter.adaptName(metric.metric(), TIME_SERIES_AGG_NAME);
         return json().put(aggName, dateHistogram);

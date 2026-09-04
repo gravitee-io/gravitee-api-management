@@ -19,12 +19,14 @@ import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
+import io.gravitee.repository.analytics.engine.api.query.TimeRange;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.CountBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.CountWithSumBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.HttpErrorRateBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.LLMTotalCostBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.LLMTotalTokenBuilder;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.RateBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleAVGBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleCountBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleMaxBuilder;
@@ -35,6 +37,7 @@ import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.Simp
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleP99Builder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleSUMBuilder;
 import io.vertx.core.json.JsonObject;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -55,7 +58,9 @@ public class HTTPMeasuresQueryAdapter {
     private final CountBuilder countWithSumBuilder = new CountWithSumBuilder();
     private final SimpleAVGBuilder avgBuilder = new SimpleAVGBuilder();
     private final SimpleSUMBuilder sumBuilder = new SimpleSUMBuilder();
-    private final HttpErrorRateBuilder errorRateBuilder = new HttpErrorRateBuilder();
+    private final HttpErrorRateBuilder errorRateBuilder = new HttpErrorRateBuilder(400);
+    private final HttpErrorRateBuilder serverErrorRateBuilder = new HttpErrorRateBuilder(500);
+    private final RateBuilder rateBuilder = new RateBuilder();
     private final LLMTotalTokenBuilder llmTotalTokenBuilder = new LLMTotalTokenBuilder();
     private final LLMTotalCostBuilder llmTotalCostBuilder = new LLMTotalCostBuilder();
 
@@ -70,15 +75,27 @@ public class HTTPMeasuresQueryAdapter {
     }
 
     private JsonObject json(MeasuresQuery query) {
-        return new JsonObject().put("size", 0).put("query", queryAdapter.adaptForHTTP(query)).put("aggs", adaptMetrics(query.metrics()));
+        return new JsonObject()
+            .put("size", 0)
+            .put("query", queryAdapter.adaptForHTTP(query))
+            .put("aggs", adaptMetrics(query.metrics(), rateWindow(query.timeRange())));
+    }
+
+    /** The span a per-second rate divides its count by when the whole query range is measured at once. */
+    static Duration rateWindow(TimeRange timeRange) {
+        return Duration.between(timeRange.from(), timeRange.to());
     }
 
     static final String FILTER_AGG_SUFFIX = "__FILTER__";
 
-    JsonObject adaptMetrics(List<MetricMeasuresQuery> metrics) {
+    /**
+     * @param rateWindow the span a per-second rate divides its count by: the query range for measures and facets,
+     *                   the bucket interval for time series
+     */
+    JsonObject adaptMetrics(List<MetricMeasuresQuery> metrics, Duration rateWindow) {
         var aggs = new JsonObject();
         for (var metric : metrics) {
-            var measureAggs = buildMeasureAggs(metric);
+            var measureAggs = buildMeasureAggs(metric, rateWindow);
             if (metric.filters() != null && !metric.filters().isEmpty()) {
                 var filterName = metric.metric().name() + AggregationAdapter.AGG_NAME_SEPARATOR + FILTER_AGG_SUFFIX;
                 var filterAgg = new JsonObject().put("filter", filterAdapter.adaptMetricFilters(metric.filters())).put("aggs", measureAggs);
@@ -90,12 +107,12 @@ public class HTTPMeasuresQueryAdapter {
         return aggs;
     }
 
-    private JsonObject buildMeasureAggs(MetricMeasuresQuery metric) {
+    private JsonObject buildMeasureAggs(MetricMeasuresQuery metric, Duration rateWindow) {
         var aggs = new JsonObject();
         for (var measure : metric.measures()) {
             var aggName = AggregationAdapter.adaptName(metric.metric(), measure);
             var field = isComputedMetric(metric.metric()) ? null : fieldResolver.fromMetric(metric.metric());
-            aggregate(aggName, field, metric.metric(), measure).ifPresent(agg -> {
+            aggregate(aggName, field, metric.metric(), measure, rateWindow).ifPresent(agg -> {
                 aggs.put(agg.keySet().iterator().next(), agg.values().iterator().next());
             });
         }
@@ -104,17 +121,26 @@ public class HTTPMeasuresQueryAdapter {
 
     private boolean isComputedMetric(Metric metric) {
         return switch (metric) {
-            case LLM_PROMPT_TOTAL_TOKEN, LLM_PROMPT_TOKEN_TOTAL_COST, HTTP_ERROR_RATE -> true;
+            case LLM_PROMPT_TOTAL_TOKEN, LLM_PROMPT_TOKEN_TOTAL_COST, HTTP_ERROR_RATE, HTTP_SERVER_ERROR_RATE -> true;
             default -> false;
         };
     }
 
-    private Optional<Map<String, JsonObject>> aggregate(String aggName, String field, Metric metric, Measure measure) {
+    private Optional<Map<String, JsonObject>> aggregate(String aggName, String field, Metric metric, Measure measure, Duration rateWindow) {
         return switch (metric) {
             case LLM_PROMPT_TOTAL_TOKEN -> aggregateLLMTotalToken(aggName, measure);
             case LLM_PROMPT_TOKEN_TOTAL_COST -> aggregateLLMTotalCost(aggName, measure);
-            case HTTP_ERROR_RATE -> aggregateHTTPErrorRate(aggName, measure);
+            case HTTP_ERROR_RATE -> aggregateHTTPErrorRate(aggName, measure, errorRateBuilder);
+            case HTTP_SERVER_ERROR_RATE -> aggregateHTTPErrorRate(aggName, measure, serverErrorRateBuilder);
+            case HTTP_REQUESTS_PER_SECOND -> aggregateRate(aggName, field, measure, rateWindow);
             default -> aggregateByMeasure(aggName, field, metric, measure);
+        };
+    }
+
+    private Optional<Map<String, JsonObject>> aggregateRate(String aggName, String field, Measure measure, Duration rateWindow) {
+        return switch (measure) {
+            case RATE -> Optional.of(rateBuilder.build(aggName, field, rateWindow));
+            default -> Optional.empty();
         };
     }
 
@@ -134,9 +160,9 @@ public class HTTPMeasuresQueryAdapter {
         };
     }
 
-    private Optional<Map<String, JsonObject>> aggregateHTTPErrorRate(String aggName, Measure measure) {
+    private Optional<Map<String, JsonObject>> aggregateHTTPErrorRate(String aggName, Measure measure, HttpErrorRateBuilder builder) {
         return switch (measure) {
-            case PERCENTAGE -> errorRate().map(errorRate -> errorRate.build(aggName, null));
+            case PERCENTAGE -> Optional.of(builder.build(aggName, null));
             default -> Optional.empty();
         };
     }
@@ -193,9 +219,5 @@ public class HTTPMeasuresQueryAdapter {
 
     private Optional<SimpleP50Builder> p50() {
         return Optional.of(p50Builder);
-    }
-
-    private Optional<HttpErrorRateBuilder> errorRate() {
-        return Optional.of(errorRateBuilder);
     }
 }

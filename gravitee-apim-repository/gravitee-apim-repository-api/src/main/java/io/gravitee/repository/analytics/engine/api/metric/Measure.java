@@ -30,4 +30,5 @@ public enum Measure {
     P99,
     PERCENTAGE,
     SUM,
+    RATE,
 }
