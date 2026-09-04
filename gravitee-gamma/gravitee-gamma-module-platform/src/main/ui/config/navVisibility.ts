@@ -15,7 +15,7 @@
  */
 
 import { filterNavSections, firstNavItemKey, NAV_SECTIONS, type PlatformNavSection } from './navigation';
-import { DEFAULT_ROUTE_KEY, ROUTE_KEYS } from './routes';
+import { DEFAULT_ROUTE_KEY, ROUTES, ROUTE_KEYS, type RouteKey } from './routes';
 import { ENVIRONMENT_ALERT_READ_PERMISSION } from '../features/alerts/utils/alertPermissions';
 import { ENVIRONMENT_AUDIT_READ_PERMISSION, ORGANIZATION_AUDIT_READ_PERMISSION } from '../features/audit-logs/utils/auditPermissions';
 import { ENVIRONMENT_GROUP_READ_PERMISSION } from '../features/groups/utils/groupPermissions';
@@ -78,14 +78,13 @@ export const NAV_ITEM_PERMISSIONS: Readonly<Record<string, readonly string[]>> =
     gateways: ['environment-instance-r'],
     alerts: [ENVIRONMENT_ALERT_READ_PERMISSION],
     'notification-settings': ['environment-notification-r'],
+    'environment-smtp': [ENVIRONMENT_SETTINGS_READ_PERMISSION],
     'security-plan-types': [ENVIRONMENT_SETTINGS_READ_PERMISSION],
     'environment-audit': [ENVIRONMENT_AUDIT_READ_PERMISSION],
     users: ORGANIZATION_USER_ACCESS_PERMISSIONS,
     groups: [ENVIRONMENT_GROUP_READ_PERMISSION],
     roles: [ORGANIZATION_ROLE_READ_PERMISSION],
 };
-
-const MODULE_LEAF_KEYS: ReadonlySet<string> = new Set(ROUTE_KEYS);
 
 export interface NavVisibilityInput {
     readonly permissionsReady: boolean;
@@ -178,16 +177,25 @@ export function landingNavItemKey(visibility: NavVisibilityInput): string | unde
     return keys[0];
 }
 
-/** Replace the module leaf (a platform route key) with `itemKey`, keeping host prefixes. */
+/** Replace the module route leaf with `itemKey`'s path, keeping host prefixes. */
 export function modulePathFor(pathname: string, itemKey: string): string {
+    const routePath = ROUTES[itemKey as RouteKey]?.path ?? itemKey;
     const segments = pathname.split('/').filter(Boolean);
-    let leafIndex = -1;
-    for (let index = segments.length - 1; index >= 0; index--) {
-        if (MODULE_LEAF_KEYS.has(segments[index]!)) {
-            leafIndex = index;
-            break;
+    const routeSegments = routePath.split('/');
+
+    let leafStart = -1;
+    let bestLength = 0;
+    for (const key of ROUTE_KEYS) {
+        const candidate = ROUTES[key].path.split('/');
+        if (segments.length < candidate.length) continue;
+        const start = segments.length - candidate.length;
+        const matches = candidate.every((segment, index) => segments[start + index] === segment);
+        if (matches && candidate.length > bestLength) {
+            bestLength = candidate.length;
+            leafStart = start;
         }
     }
-    const prefix = leafIndex >= 0 ? segments.slice(0, leafIndex) : segments;
-    return `/${[...prefix, itemKey].join('/')}`;
+
+    const prefix = leafStart >= 0 ? segments.slice(0, leafStart) : segments;
+    return `/${[...prefix, ...routeSegments].join('/')}`;
 }

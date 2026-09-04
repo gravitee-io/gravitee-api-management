@@ -74,6 +74,7 @@ import { EditIdentityProviderPage } from '../pages/EditIdentityProviderPage';
 import { EntrypointsAndShardingTagsPage } from '../pages/EntrypointsAndShardingTagsPage';
 import { EnvAuditLogsPage } from '../pages/EnvAuditLogsPage';
 import { EnvironmentNotificationSettingsPage } from '../pages/EnvironmentNotificationSettingsPage';
+import { EnvironmentSmtpSettingsPage } from '../pages/EnvironmentSmtpSettingsPage';
 import { GatewayInstanceEnvironmentPage } from '../pages/GatewayInstanceEnvironmentPage';
 import { GatewayInstanceMonitoringPage } from '../pages/GatewayInstanceMonitoringPage';
 import { GatewayInstancesPage } from '../pages/GatewayInstancesPage';
@@ -491,6 +492,14 @@ export function AppRoutes() {
                                 element={
                                     <NavPermissionGuard itemKey="smtp">
                                         <SmtpSettingsPage />
+                                    </NavPermissionGuard>
+                                }
+                            />
+                            <Route
+                                path="environment/smtp"
+                                element={
+                                    <NavPermissionGuard itemKey="environment-smtp">
+                                        <EnvironmentSmtpSettingsPage />
                                     </NavPermissionGuard>
                                 }
                             />

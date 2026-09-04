@@ -57,7 +57,7 @@ describe('SmtpSection', () => {
     it('wraps SMTP blocks in Graphene Cards', () => {
         render(<Harness />);
         expect(screen.getByLabelText('Enable Emailing').closest('[data-slot="card"]')).not.toBeNull();
-        expect(screen.getByText('Mail Properties').closest('[data-slot="card-title"]')).not.toBeNull();
+        expect(screen.getByText('Mail properties').closest('[data-slot="card-title"]')).not.toBeNull();
         expect(screen.getByText('Branded notification email').closest('[data-slot="card"]')).toBeNull();
     });
 
@@ -71,9 +71,11 @@ describe('SmtpSection', () => {
         expect(screen.getByLabelText('From').getAttribute('aria-invalid')).toBe('true');
     });
 
-    it('hides mail fields when emailing is disabled', () => {
+    it('keeps mail fields visible but disables most of them when emailing is off', () => {
         render(<Harness initial={{ ...ENABLED, enabled: false }} />);
-        expect(screen.queryByLabelText('Host')).toBeNull();
+        expect(screen.getByLabelText('Host')).not.toBeNull();
+        expect((screen.getByLabelText('Host') as HTMLInputElement).disabled).toBe(false);
+        expect((screen.getByLabelText('Password') as HTMLInputElement).disabled).toBe(true);
         expect(screen.getByLabelText('Enable Emailing')).not.toBeNull();
     });
 
@@ -90,8 +92,8 @@ describe('SmtpSection', () => {
             />,
         );
         expect(screen.getByText('Branded notification email')).not.toBeNull();
-        expect(screen.queryByRole('button', { name: /Add rule/i })).toBeNull();
-        expect((screen.getByLabelText('From *') as HTMLInputElement).disabled).toBe(true);
+        expect(screen.queryByRole('button', { name: /Add configuration/i })).toBeNull();
+        expect((screen.getByLabelText('From') as HTMLInputElement).disabled).toBe(true);
     });
 
     it('shows host, port, password sentinel, and mail properties when enabled', () => {
@@ -174,8 +176,8 @@ describe('SmtpSection', () => {
         );
         expect(screen.getByText('Invalid domain(s): localhost')).not.toBeNull();
         expect(screen.getByText('From is required.')).not.toBeNull();
-        expect(screen.getByLabelText('Recipient domains *').getAttribute('aria-invalid')).toBe('true');
-        expect(screen.getByLabelText('From *').getAttribute('aria-invalid')).toBe('true');
+        expect(screen.getByLabelText('Recipient domains').getAttribute('aria-invalid')).toBe('true');
+        expect(screen.getByLabelText('From').getAttribute('aria-invalid')).toBe('true');
     });
 
     it('marks system-provided SMTP fields for the Classic tooltip', () => {
@@ -192,5 +194,11 @@ describe('SmtpSection', () => {
         fireEvent.click(enableSwitch);
         expect((screen.getByLabelText('Host') as HTMLInputElement).disabled).toBe(true);
         expect((screen.getByLabelText('Username') as HTMLInputElement).disabled).toBe(false);
+    });
+
+    it('disables Enable Emailing when email.enabled is system-provided', () => {
+        render(<Harness readonly={{ enabled: true }} />);
+        expect((screen.getByLabelText('Enable Emailing') as HTMLButtonElement).disabled).toBe(true);
+        expect(screen.getByLabelText('Enable Emailing').closest('[data-system-readonly="true"]')).not.toBeNull();
     });
 });

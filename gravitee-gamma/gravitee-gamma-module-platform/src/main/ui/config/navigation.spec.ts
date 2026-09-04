@@ -66,15 +66,20 @@ describe('platform navigation config', () => {
         expect(sectionKeys('Environment', 'APIs & Assets')).toEqual(['applications', 'metadata', 'dictionaries', 'shared-policy-groups']);
     });
 
-    it('places Access Management, Gateways, Alerts, Notification settings, Security Plan Types, and Audit under Environment / System & Security', () => {
+    it('places Access Management, Gateways, Alerts, Notification settings, SMTP, Security Plan Types, and Audit under Environment / System & Security', () => {
         expect(sectionKeys('Environment', 'System & Security')).toEqual([
             'access-management',
             'gateways',
             'alerts',
             'notification-settings',
+            'environment-smtp',
             'security-plan-types',
             'environment-audit',
         ]);
+        const systemItems =
+            NAV_SECTIONS.find(section => section.key === 'environment')?.groups.find(group => group.label === 'System & Security')
+                ?.items ?? [];
+        expect(systemItems.find(item => item.key === 'environment-smtp')?.icon).toBe(MailIcon);
     });
 
     it('places Users, Groups, and Roles under Team', () => {
@@ -181,6 +186,11 @@ describe('platform navigation config', () => {
         expect(ROUTES.cors).toEqual({ path: 'cors', label: 'CORS' });
         expect(ROUTES.smtp).toEqual({ path: 'smtp', label: 'SMTP' });
         expect(ROUTES.templates).toEqual({ path: 'templates', label: 'Templates' });
+    });
+
+    it('declares the environment-smtp route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('environment-smtp');
+        expect(ROUTES['environment-smtp']).toEqual({ path: 'environment/smtp', label: 'SMTP' });
     });
 
     it('declares the authentication route in platform routing config', () => {

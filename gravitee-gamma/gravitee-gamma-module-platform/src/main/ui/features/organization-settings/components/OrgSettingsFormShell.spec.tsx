@@ -88,4 +88,12 @@ describe('OrgSettingsFormShell', () => {
         expect(screen.getByRole('button', { name: /Save changes/i })).toHaveProperty('disabled', true);
         expect(screen.getByRole('button', { name: 'Discard' })).toHaveProperty('disabled', false);
     });
+
+    it('hides the architecture override banner when showArchitectureOverrideWarning is false', () => {
+        renderShell({ showArchitectureOverrideWarning: false });
+
+        expect(
+            screen.queryByText(/Depending on your architecture, this configuration may be overridden by a local configuration file/),
+        ).toBeNull();
+    });
 });

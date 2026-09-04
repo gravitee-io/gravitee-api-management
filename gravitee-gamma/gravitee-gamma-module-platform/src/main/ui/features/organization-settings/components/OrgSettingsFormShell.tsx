@@ -30,6 +30,7 @@ export function OrgSettingsFormShell({
     onSave,
     onDiscard,
     children,
+    showArchitectureOverrideWarning = true,
 }: Readonly<{
     title: string;
     description: string;
@@ -42,6 +43,8 @@ export function OrgSettingsFormShell({
     onSave: () => void;
     onDiscard: () => void;
     children: ReactNode;
+    /** Organization console settings only — portal/environment settings omit this banner. */
+    showArchitectureOverrideWarning?: boolean;
 }>) {
     if (isLoading) {
         return (
@@ -74,13 +77,15 @@ export function OrgSettingsFormShell({
                     <p className="text-sm text-muted-foreground">{description}</p>
                 </div>
 
-                <Alert>
-                    <InfoIcon className="size-4" />
-                    <AlertDescription>
-                        Depending on your architecture, this configuration may be overridden by a local configuration file. See
-                        documentation for more information.
-                    </AlertDescription>
-                </Alert>
+                {showArchitectureOverrideWarning ? (
+                    <Alert>
+                        <InfoIcon className="size-4" />
+                        <AlertDescription>
+                            Depending on your architecture, this configuration may be overridden by a local configuration file. See
+                            documentation for more information.
+                        </AlertDescription>
+                    </Alert>
+                ) : null}
 
                 {!canEdit ? (
                     <Alert>

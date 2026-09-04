@@ -206,6 +206,10 @@ jest.mock('../pages/SmtpSettingsPage', () => ({
     SmtpSettingsPage: () => <div data-testid="smtp-settings-page" />,
 }));
 
+jest.mock('../pages/EnvironmentSmtpSettingsPage', () => ({
+    EnvironmentSmtpSettingsPage: () => <div data-testid="environment-smtp-settings-page" />,
+}));
+
 jest.mock('../pages/NotificationTemplatesPage', () => ({
     NotificationTemplatesPage: () => <div data-testid="notification-templates-page" />,
 }));
@@ -1104,6 +1108,23 @@ describe('AppRoutes', () => {
         expect(screen.getByTestId('cors-settings-page')).not.toBeNull();
         renderPlatform('/smtp');
         expect(screen.getByTestId('smtp-settings-page')).not.toBeNull();
+    });
+
+    it('routes to environment-scoped SMTP settings', () => {
+        renderPlatform('/environment/smtp');
+        expect(screen.getByTestId('environment-smtp-settings-page')).not.toBeNull();
+    });
+
+    it('shows environment SMTP in the Environment nav section', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'environment-smtp',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        renderPlatform('/environment/smtp');
+
+        expect(visibleNavKeys()).toContain('environment-smtp');
+        expect(visibleNavKeys()).not.toContain('smtp');
     });
 
     it('routes to organization notification templates', () => {

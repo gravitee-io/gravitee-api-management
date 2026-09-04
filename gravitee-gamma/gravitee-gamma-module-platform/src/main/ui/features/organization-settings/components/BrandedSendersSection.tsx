@@ -15,7 +15,7 @@
  */
 
 import { Button, Card, CardContent, Input } from '@gravitee/graphene-core';
-import { PlusIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
+import { PlusIcon, RefreshCwIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 
 import { ChipInput } from '../../shared/components/ChipInput';
 import type { BrandedSender } from '../types/consoleSettings';
@@ -34,6 +34,9 @@ export function BrandedSendersSection({
     senderErrors = [],
     listError,
     onChange,
+    canReset = false,
+    isResetting = false,
+    onReset,
 }: Readonly<{
     defaultFrom: string;
     defaultSubject: string;
@@ -42,6 +45,10 @@ export function BrandedSendersSection({
     senderErrors?: readonly BrandedSenderFieldErrors[];
     listError?: string;
     onChange: (next: BrandedSender[]) => void;
+    /** Environment-scoped settings only: shows a "Reset to Org settings" action next to "Add configuration". */
+    canReset?: boolean;
+    isResetting?: boolean;
+    onReset?: () => void;
 }>) {
     function updateAt(index: number, patch: Partial<BrandedSender>) {
         onChange(senders.map((sender, senderIndex) => (senderIndex === index ? { ...sender, ...patch } : sender)));
@@ -51,7 +58,7 @@ export function BrandedSendersSection({
         <div className="space-y-6">
             <section className="space-y-3">
                 <div>
-                    <h3 className="text-sm font-semibold">Default notification email</h3>
+                    <h2 className="text-sm font-semibold">Default notification email</h2>
                     <p className="text-xs text-muted-foreground">{"Used when no branded rule matches the recipient's email domain."}</p>
                 </div>
                 <div className="space-y-1.5">
@@ -59,36 +66,45 @@ export function BrandedSendersSection({
                         Default From
                     </label>
                     <Input id="smtp-default-from" value={defaultFrom} readOnly disabled />
-                    <p className="text-xs text-muted-foreground">Read-only preview of the from configured above.</p>
+                    <p className="text-xs text-muted-foreground">Read-only preview of the From configured above.</p>
                 </div>
                 <div className="space-y-1.5">
                     <label htmlFor="smtp-default-subject" className="text-sm font-medium">
                         Default subject prefix
                     </label>
                     <Input id="smtp-default-subject" value={defaultSubject} readOnly disabled />
+                    <p className="text-xs text-muted-foreground">{"%s is replaced with the email's subject."}</p>
                 </div>
             </section>
 
             <section className="space-y-3">
                 <div className="flex items-start justify-between gap-4">
                     <div>
-                        <h3 className="text-sm font-semibold">Branded notification email</h3>
+                        <h2 className="text-sm font-semibold">Branded notification email</h2>
                         <p className="text-xs text-muted-foreground">
                             {
-                                "Add one or more rules. When a recipient's domain matches a rule, that rule's From and Subject prefix are used instead of the default above."
+                                "Add one or more rules. When a recipient's domain matches a rule, that rule's From and Subject prefix are used instead of the defaults above."
                             }
                         </p>
                     </div>
                     {disabled ? null : (
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => onChange([...senders, { domains: [], from: '', subject: '' }])}
-                        >
-                            <PlusIcon className="size-4" aria-hidden />
-                            Add rule
-                        </Button>
+                        <div className="flex items-center gap-2">
+                            {canReset && onReset ? (
+                                <Button type="button" variant="ghost" size="sm" onClick={onReset} disabled={isResetting}>
+                                    <RefreshCwIcon className="size-4" aria-hidden />
+                                    {isResetting ? 'Resetting…' : 'Reset to Org settings'}
+                                </Button>
+                            ) : null}
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => onChange([...senders, { domains: [], from: '', subject: '' }])}
+                            >
+                                <PlusIcon className="size-4" aria-hidden />
+                                Add configuration
+                            </Button>
+                        </div>
                     )}
                 </div>
 
@@ -105,13 +121,14 @@ export function BrandedSendersSection({
                     return (
                         <Card key={`branded-sender-${index}`}>
                             <CardContent className="space-y-3 relative">
+                                <p className="text-sm font-medium">Configuration {index + 1}</p>
                                 {disabled ? null : (
                                     <Button
                                         type="button"
                                         variant="ghost"
                                         size="icon"
                                         className="absolute right-2 top-2"
-                                        aria-label={`Delete branded sender ${index + 1}`}
+                                        aria-label="Delete configuration"
                                         onClick={() => onChange(senders.filter((_, senderIndex) => senderIndex !== index))}
                                     >
                                         <Trash2Icon className="size-4" aria-hidden />
@@ -119,7 +136,7 @@ export function BrandedSendersSection({
                                 )}
                                 <div className="space-y-1.5 pr-10">
                                     <label htmlFor={`branded-domains-${index}`} className="text-sm font-medium">
-                                        Recipient domains *
+                                        Recipient domains
                                     </label>
                                     <ChipInput
                                         id={`branded-domains-${index}`}
@@ -142,13 +159,14 @@ export function BrandedSendersSection({
                                 </div>
                                 <div className="space-y-1.5">
                                     <label htmlFor={`branded-from-${index}`} className="text-sm font-medium">
-                                        From *
+                                        From
                                     </label>
                                     <Input
                                         id={`branded-from-${index}`}
                                         value={sender.from}
                                         onChange={e => updateAt(index, { from: e.target.value })}
                                         disabled={disabled}
+                                        placeholder="noreply@example.com"
                                         aria-invalid={Boolean(fieldErrors.from)}
                                         aria-describedby={fieldErrors.from ? fromErrorId : undefined}
                                     />
@@ -167,6 +185,7 @@ export function BrandedSendersSection({
                                         value={sender.subject}
                                         onChange={e => updateAt(index, { subject: e.target.value })}
                                         disabled={disabled}
+                                        placeholder="[Example] %s"
                                         aria-invalid={Boolean(fieldErrors.subject)}
                                         aria-describedby={fieldErrors.subject ? subjectErrorId : undefined}
                                     />

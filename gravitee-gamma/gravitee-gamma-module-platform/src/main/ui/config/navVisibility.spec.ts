@@ -322,9 +322,10 @@ describe('platform nav visibility', () => {
         expect(modulePathFor('/alerts', 'applications')).toBe('/applications');
         expect(modulePathFor('/environments/dev/platform/alerts', 'applications')).toBe('/environments/dev/platform/applications');
         expect(modulePathFor('/groups/group-1', 'applications')).toBe('/applications');
-        expect(modulePathFor('/environments/dev/platform/applications/app-1/subscriptions/sub-1', 'groups')).toBe(
-            '/environments/dev/platform/groups',
+        expect(modulePathFor('/environments/dev/platform/environment/smtp', 'applications')).toBe(
+            '/environments/dev/platform/applications',
         );
+        expect(modulePathFor('/environments/dev/platform/environment/smtp', 'smtp')).toBe('/environments/dev/platform/smtp');
         expect(modulePathFor('/environments/dev/platform', 'no-access')).toBe('/environments/dev/platform/no-access');
         expect(modulePathFor('/', 'no-access')).toBe('/no-access');
     });

@@ -32,8 +32,8 @@ describe('BrandedSendersSection', () => {
                 onChange={jest.fn()}
             />,
         );
-        expect(screen.getByLabelText('From *').closest('[data-slot="card"]')).not.toBeNull();
-        expect(screen.getByLabelText('Recipient domains *').closest('[data-slot="card"]')).not.toBeNull();
+        expect(screen.getByLabelText('From', { selector: '#branded-from-0' }).closest('[data-slot="card"]')).not.toBeNull();
+        expect(screen.getByLabelText('Recipient domains').closest('[data-slot="card"]')).not.toBeNull();
     });
 
     it('previews default from/subject and lists branded rules', () => {
@@ -49,7 +49,7 @@ describe('BrandedSendersSection', () => {
         expect((screen.getByLabelText('Default From') as HTMLInputElement).value).toBe('noreply@example.com');
         expect((screen.getByLabelText('Default From') as HTMLInputElement).readOnly).toBe(true);
         expect(screen.getByText('partners.example.com')).not.toBeNull();
-        expect((screen.getByLabelText('From *') as HTMLInputElement).value).toBe('Partners <partners@example.com>');
+        expect((screen.getByLabelText('From', { selector: '#branded-from-0' }) as HTMLInputElement).value).toBe('Partners <partners@example.com>');
     });
 
     it('adds and removes branded sender rules', () => {
@@ -63,9 +63,9 @@ describe('BrandedSendersSection', () => {
                 onChange={onChange}
             />,
         );
-        fireEvent.click(screen.getByRole('button', { name: /Add rule/i }));
+        fireEvent.click(screen.getByRole('button', { name: /Add configuration/i }));
         expect(onChange).toHaveBeenCalledWith([...SENDERS, { domains: [], from: '', subject: '' }]);
-        fireEvent.click(screen.getByRole('button', { name: /Delete branded sender 1/i }));
+        fireEvent.click(screen.getByRole('button', { name: /Delete configuration/i }));
         expect(onChange).toHaveBeenCalledWith([]);
     });
 
@@ -88,8 +88,8 @@ describe('BrandedSendersSection', () => {
             />,
         );
 
-        const domains = screen.getByLabelText('Recipient domains *');
-        const from = screen.getByLabelText('From *');
+        const domains = screen.getByLabelText('Recipient domains');
+        const from = screen.getByLabelText('From', { selector: '#branded-from-0' });
         const subject = screen.getByLabelText('Subject prefix');
 
         expect(screen.getByText('Invalid domain(s): localhost')).not.toBeNull();
@@ -103,5 +103,53 @@ describe('BrandedSendersSection', () => {
         expect(domains.getAttribute('aria-describedby')).toContain('branded-domains-0-error');
         expect(from.getAttribute('aria-describedby')).toBe('branded-from-0-error');
         expect(subject.getAttribute('aria-describedby')).toBe('branded-subject-0-error');
+    });
+
+    it('does not render a reset action by default', () => {
+        render(
+            <BrandedSendersSection
+                defaultFrom="noreply@example.com"
+                defaultSubject="[gravitee] %s"
+                senders={SENDERS}
+                disabled={false}
+                onChange={jest.fn()}
+            />,
+        );
+        expect(screen.queryByRole('button', { name: /Reset to Org settings/i })).toBeNull();
+    });
+
+    it('renders a reset action when canReset and onReset are provided, and calls it on click', () => {
+        const onReset = jest.fn();
+        render(
+            <BrandedSendersSection
+                defaultFrom="noreply@example.com"
+                defaultSubject="[gravitee] %s"
+                senders={SENDERS}
+                disabled={false}
+                onChange={jest.fn()}
+                canReset
+                onReset={onReset}
+            />,
+        );
+        const resetButton = screen.getByRole('button', { name: 'Reset to Org settings' });
+        fireEvent.click(resetButton);
+        expect(onReset).toHaveBeenCalledTimes(1);
+    });
+
+    it('disables the reset action while resetting', () => {
+        render(
+            <BrandedSendersSection
+                defaultFrom="noreply@example.com"
+                defaultSubject="[gravitee] %s"
+                senders={SENDERS}
+                disabled={false}
+                onChange={jest.fn()}
+                canReset
+                isResetting
+                onReset={jest.fn()}
+            />,
+        );
+        const resetButton = screen.getByRole('button', { name: /Resetting…/i }) as HTMLButtonElement;
+        expect(resetButton.disabled).toBe(true);
     });
 });
