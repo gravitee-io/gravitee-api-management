@@ -196,6 +196,7 @@ describe('platform nav visibility', () => {
                 'gateways',
                 'alerts',
                 'notification-settings',
+                'environment-smtp',
                 'security-plan-types',
                 'environment-audit',
                 'access-management',
@@ -364,6 +365,10 @@ describe('platform nav visibility', () => {
         expect(modulePathFor('/environments/dev/platform/applications/app-1/subscriptions/sub-1', 'groups')).toBe(
             '/environments/dev/platform/groups',
         );
+        expect(modulePathFor('/environments/dev/platform/environment/smtp', 'applications')).toBe(
+            '/environments/dev/platform/applications',
+        );
+        expect(modulePathFor('/environments/dev/platform/environment/smtp', 'smtp')).toBe('/environments/dev/platform/smtp');
         expect(modulePathFor('/environments/dev/platform', 'no-access')).toBe('/environments/dev/platform/no-access');
         expect(modulePathFor('/', 'no-access')).toBe('/no-access');
     });
