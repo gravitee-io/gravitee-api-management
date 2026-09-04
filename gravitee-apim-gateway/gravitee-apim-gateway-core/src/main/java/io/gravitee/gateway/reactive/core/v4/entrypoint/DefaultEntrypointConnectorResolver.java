@@ -44,6 +44,14 @@ import lombok.Getter;
 @SuppressWarnings("unchecked")
 public class DefaultEntrypointConnectorResolver extends AbstractService<DefaultEntrypointConnectorResolver> {
 
+    /**
+     * Internal attribute under which the API reactor publishes this resolver before the request chain runs, so
+     * that a request refused before an entrypoint connector was selected (plan 401/403, CORS preflight, request
+     * validation, timeout or client abort during the security chain) can still be attributed at report time to
+     * the entrypoint it was addressed to, with the same matching rules as accepted traffic.
+     */
+    public static final String ATTR_INTERNAL_ENTRYPOINT_CONNECTOR_RESOLVER = "entrypointConnector.resolver";
+
     @Getter
     private final List<BaseEntrypointConnector> entrypointConnectors;
 
