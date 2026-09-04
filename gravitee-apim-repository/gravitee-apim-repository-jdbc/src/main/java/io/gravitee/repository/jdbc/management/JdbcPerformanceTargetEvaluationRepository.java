@@ -150,24 +150,36 @@ public class JdbcPerformanceTargetEvaluationRepository
     public Page<PerformanceTargetEvaluation> findEnvironmentLatest(String environmentId, Pageable pageable) throws TechnicalException {
         log.debug("JdbcPerformanceTargetEvaluationRepository.findEnvironmentLatest({})", environmentId);
         try {
-            var where = " where environment_id = ? and latest = ?";
-            Long total = jdbcTemplate.queryForObject("select count(*) from " + this.tableName + where, Long.class, environmentId, true);
-            if (total == null || total == 0) {
-                return new Page<>(List.of(), pageable.pageNumber(), 0, 0);
-            }
-            var content = jdbcTemplate.query(
-                getOrm().getSelectAllSql() +
-                    where +
-                    " order by evaluated_at desc, id " +
-                    createPagingClause(pageable.pageSize(), pageable.from()),
-                getRowMapper(),
-                environmentId,
-                true
-            );
-            return new Page<>(content, pageable.pageNumber(), content.size(), total);
+            return pageMostRecentFirst(" where environment_id = ? and latest = ?", pageable, environmentId, true);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find latest performance target evaluations of environment " + environmentId, ex);
         }
+    }
+
+    @Override
+    public Page<PerformanceTargetEvaluation> findByTargetId(String targetId, Pageable pageable) throws TechnicalException {
+        log.debug("JdbcPerformanceTargetEvaluationRepository.findByTargetId({})", targetId);
+        try {
+            return pageMostRecentFirst(" where target_id = ?", pageable, targetId);
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to find performance target evaluations of target " + targetId, ex);
+        }
+    }
+
+    private Page<PerformanceTargetEvaluation> pageMostRecentFirst(String where, Pageable pageable, Object... args) {
+        Long total = jdbcTemplate.queryForObject("select count(*) from " + this.tableName + where, Long.class, args);
+        if (total == null || total == 0) {
+            return new Page<>(List.of(), pageable.pageNumber(), 0, 0);
+        }
+        var content = jdbcTemplate.query(
+            getOrm().getSelectAllSql() +
+                where +
+                " order by evaluated_at desc, id " +
+                createPagingClause(pageable.pageSize(), pageable.from()),
+            getRowMapper(),
+            args
+        );
+        return new Page<>(content, pageable.pageNumber(), content.size(), total);
     }
 
     @Override

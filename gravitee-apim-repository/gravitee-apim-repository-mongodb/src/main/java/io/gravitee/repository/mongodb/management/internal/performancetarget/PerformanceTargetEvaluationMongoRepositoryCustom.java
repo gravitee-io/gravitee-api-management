@@ -25,5 +25,7 @@ public interface PerformanceTargetEvaluationMongoRepositoryCustom {
 
     Page<PerformanceTargetEvaluationMongo> findEnvironmentLatest(String environmentId, Pageable pageable);
 
+    Page<PerformanceTargetEvaluationMongo> findByTargetId(String targetId, Pageable pageable);
+
     PerformanceTargetEnvironmentSummary getEnvironmentSummary(String environmentId);
 }

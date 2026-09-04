@@ -42,6 +42,11 @@ public interface PerformanceTargetEvaluationRepository {
      */
     Page<PerformanceTargetEvaluation> findEnvironmentLatest(String environmentId, Pageable pageable) throws TechnicalException;
 
+    /**
+     * @return the stored evaluations of the target, most recently evaluated first
+     */
+    Page<PerformanceTargetEvaluation> findByTargetId(String targetId, Pageable pageable) throws TechnicalException;
+
     PerformanceTargetEnvironmentSummary getEnvironmentSummary(String environmentId) throws TechnicalException;
 
     /**

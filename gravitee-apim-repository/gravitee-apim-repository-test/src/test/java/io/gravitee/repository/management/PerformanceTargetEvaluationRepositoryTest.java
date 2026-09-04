@@ -161,6 +161,34 @@ public class PerformanceTargetEvaluationRepositoryTest extends AbstractManagemen
         assertThat(page.getContent()).isEmpty();
     }
 
+    // findByTargetId
+    @Test
+    public void findByTargetId_should_page_history_most_recent_first() throws TechnicalException {
+        var firstPage = performanceTargetEvaluationRepository.findByTargetId(
+            "target1",
+            new PageableBuilder().pageNumber(0).pageSize(1).build()
+        );
+        var secondPage = performanceTargetEvaluationRepository.findByTargetId(
+            "target1",
+            new PageableBuilder().pageNumber(1).pageSize(1).build()
+        );
+
+        assertThat(firstPage.getTotalElements()).isEqualTo(2);
+        assertThat(firstPage.getContent()).extracting(PerformanceTargetEvaluation::getId).containsExactly("eval-1b");
+        assertThat(secondPage.getContent()).extracting(PerformanceTargetEvaluation::getId).containsExactly("eval-1a");
+    }
+
+    @Test
+    public void findByTargetId_should_return_empty_page_for_unknown_target() throws TechnicalException {
+        var page = performanceTargetEvaluationRepository.findByTargetId(
+            "unknown",
+            new PageableBuilder().pageNumber(0).pageSize(10).build()
+        );
+
+        assertThat(page.getTotalElements()).isZero();
+        assertThat(page.getContent()).isEmpty();
+    }
+
     // getEnvironmentSummary
     @Test
     public void getEnvironmentSummary_should_count_latest_evaluations_by_status() throws TechnicalException {

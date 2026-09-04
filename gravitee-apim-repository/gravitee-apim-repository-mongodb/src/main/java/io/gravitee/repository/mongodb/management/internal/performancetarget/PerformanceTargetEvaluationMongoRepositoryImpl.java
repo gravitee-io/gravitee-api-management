@@ -33,6 +33,7 @@ import lombok.AllArgsConstructor;
 import org.bson.Document;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
@@ -53,10 +54,18 @@ public class PerformanceTargetEvaluationMongoRepositoryImpl implements Performan
 
     @Override
     public Page<PerformanceTargetEvaluationMongo> findEnvironmentLatest(String environmentId, Pageable pageable) {
-        var latestOfEnvironment = query(where("environmentId").is(environmentId).and("latest").is(true));
-        long total = mongoTemplate.count(latestOfEnvironment, PerformanceTargetEvaluationMongo.class);
+        return pageMostRecentFirst(query(where("environmentId").is(environmentId).and("latest").is(true)), pageable);
+    }
+
+    @Override
+    public Page<PerformanceTargetEvaluationMongo> findByTargetId(String targetId, Pageable pageable) {
+        return pageMostRecentFirst(query(where("targetId").is(targetId)), pageable);
+    }
+
+    private Page<PerformanceTargetEvaluationMongo> pageMostRecentFirst(Query query, Pageable pageable) {
+        long total = mongoTemplate.count(query, PerformanceTargetEvaluationMongo.class);
         var content = mongoTemplate.find(
-            latestOfEnvironment
+            query
                 .with(Sort.by(Sort.Order.desc("evaluatedAt"), Sort.Order.asc("_id")))
                 .skip((long) pageable.pageNumber() * pageable.pageSize())
                 .limit(pageable.pageSize()),
