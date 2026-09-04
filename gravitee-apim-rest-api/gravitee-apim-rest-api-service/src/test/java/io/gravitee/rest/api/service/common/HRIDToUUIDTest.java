@@ -445,4 +445,15 @@ class HRIDToUUIDTest {
             assertThat(planId).isEqualTo(pageId).isEqualTo(subId);
         }
     }
+
+    @Nested
+    class Navigation {
+
+        @Test
+        void should_produce_same_result_from_audit_info_and_org_env_strings() {
+            assertThat(HRIDToUUID.navigation().context(AUDIT).api("api").folder("/guides").id()).isEqualTo(
+                HRIDToUUID.navigation().context("org", "env").api("api").folder("/guides").id()
+            );
+        }
+    }
 }
