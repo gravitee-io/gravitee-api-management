@@ -20,13 +20,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.gamma.rest.core.observability.filter.exception.ObservabilityFilterNotFoundException;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
+import io.gravitee.gamma.rest.core.observability.filter.inmemory.InMemoryObservabilityFilterDataPort;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterValue;
-import io.gravitee.gamma.rest.core.observability.filter.model.FilterValuesPage;
-import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.ObservabilityFilterDataPort;
 import io.gravitee.gamma.rest.infra.adapter.SpiFilterRegistry;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -35,7 +33,7 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class GetObservabilityFilterValuesUseCaseTest {
 
-    private final RecordingDataPort dataPort = new RecordingDataPort();
+    private final InMemoryObservabilityFilterDataPort dataPort = new InMemoryObservabilityFilterDataPort();
     private final GetObservabilityFilterValuesUseCase useCase = new GetObservabilityFilterValuesUseCase(new SpiFilterRegistry(), dataPort);
 
     @Test
@@ -80,19 +78,31 @@ class GetObservabilityFilterValuesUseCaseTest {
 
     @Test
     void should_delegate_keyword_filter_to_the_data_port_with_resolved_pagination() {
-        dataPort.nextPage = new FilterValuesPage(List.of(new FilterValue("api-1", "Petstore")), 1L);
+        dataPort.givenKeywordValues("API", List.of(new FilterValue("api-1", "Petstore"), new FilterValue("api-2", "Weather")));
 
         var output = useCase.execute(new GetObservabilityFilterValuesUseCase.Input("API", "pet", null, null, null, null));
 
-        assertThat(output.values()).isSameAs(dataPort.nextPage);
-        assertThat(dataPort.lastFilterName).isEqualTo("API");
-        assertThat(dataPort.lastQuery).isEqualTo("pet");
-        // null page/perPage are resolved to the defaults (1 / 10) before reaching the port.
-        assertThat(dataPort.lastPage).isEqualTo(1);
-        assertThat(dataPort.lastPerPage).isEqualTo(10);
+        assertThat(output.values().data()).containsExactly(new FilterValue("api-1", "Petstore"));
+        assertThat(dataPort.lastCall()).hasValueSatisfying(call -> {
+            assertThat(call.filterName()).isEqualTo("API");
+            assertThat(call.query()).isEqualTo("pet");
+            // null page/perPage are resolved to the defaults (1 / 10) before reaching the port.
+            assertThat(call.page()).isEqualTo(1);
+            assertThat(call.perPage()).isEqualTo(10);
+        });
         // The resolved pagination is surfaced on the output so the REST layer builds a consistent envelope.
         assertThat(output.page()).isEqualTo(1);
         assertThat(output.perPage()).isEqualTo(10);
+    }
+
+    @Test
+    void should_list_entrypoint_values_from_the_data_port() {
+        dataPort.givenKeywordValues("ENTRYPOINT", List.of(new FilterValue("http-proxy", null), new FilterValue("mcp-studio", null)));
+
+        var output = useCase.execute(new GetObservabilityFilterValuesUseCase.Input("ENTRYPOINT", null, null, null, null, null));
+
+        assertThat(output.values().data()).extracting(FilterValue::value).containsExactly("http-proxy", "mcp-studio");
+        assertThat(output.values().totalElements()).isEqualTo(2L);
     }
 
     @Test
@@ -105,11 +115,24 @@ class GetObservabilityFilterValuesUseCaseTest {
     }
 
     @Test
+    void should_reject_a_page_beyond_the_maximum_before_reaching_the_data_port() {
+        dataPort.givenKeywordValues("ENTRYPOINT", List.of(new FilterValue("http-proxy", null)));
+
+        assertThatThrownBy(() ->
+            useCase.execute(new GetObservabilityFilterValuesUseCase.Input("ENTRYPOINT", null, null, null, 10_001, null))
+        )
+            .isInstanceOf(UnsupportedObservabilityFilterException.class)
+            .extracting("technicalCode")
+            .isEqualTo("observability.filter.values_page_out_of_range");
+        assertThat(dataPort.lastCall()).isEmpty();
+    }
+
+    @Test
     void should_not_touch_the_data_port_for_number_filter() {
         assertThatThrownBy(() ->
             useCase.execute(new GetObservabilityFilterValuesUseCase.Input("HTTP_STATUS", null, null, null, null, null))
         ).isInstanceOf(UnsupportedObservabilityFilterException.class);
-        assertThat(dataPort.lastFilterName).isNull();
+        assertThat(dataPort.lastCall()).isEmpty();
     }
 
     @Test
@@ -117,7 +140,20 @@ class GetObservabilityFilterValuesUseCaseTest {
         assertThatThrownBy(() ->
             useCase.execute(new GetObservabilityFilterValuesUseCase.Input("URI", null, null, null, null, null))
         ).isInstanceOf(UnsupportedObservabilityFilterException.class);
-        assertThat(dataPort.lastFilterName).isNull();
+        assertThat(dataPort.lastCall()).isEmpty();
+    }
+
+    @Test
+    void should_answer_400_for_a_keyword_filter_whose_values_the_store_cannot_list() {
+        // NATIVE_TOPIC is a KEYWORD filter whose values live in the event-metrics stream the store does
+        // not aggregate over: the catalog offers the filter, not its values, and says so before the port.
+        assertThatThrownBy(() ->
+            useCase.execute(new GetObservabilityFilterValuesUseCase.Input("NATIVE_TOPIC", null, null, null, null, null))
+        )
+            .isInstanceOf(UnsupportedObservabilityFilterException.class)
+            .extracting("technicalCode")
+            .isEqualTo("observability.filter.value_listing_not_supported");
+        assertThat(dataPort.lastCall()).isEmpty();
     }
 
     @Test
@@ -132,50 +168,10 @@ class GetObservabilityFilterValuesUseCaseTest {
 
     @Test
     void should_propagate_apiTypes_to_the_data_port_for_keyword_filters() {
-        dataPort.nextPage = new FilterValuesPage(List.of(new FilterValue("api-1", "Petstore")), 1L);
+        dataPort.givenKeywordValues("API", List.of(new FilterValue("api-1", "Petstore")));
 
         useCase.execute(new GetObservabilityFilterValuesUseCase.Input("API", null, null, null, null, null, Set.of(ApiType.HTTP_PROXY)));
 
-        assertThat(dataPort.lastApiTypes).containsExactly(ApiType.HTTP_PROXY);
-    }
-
-    private static final class RecordingDataPort implements ObservabilityFilterDataPort {
-
-        private FilterValuesPage nextPage = new FilterValuesPage(List.of(), 0L);
-        private String lastFilterName;
-        private String lastQuery;
-        private Long lastFrom;
-        private Long lastTo;
-        private Integer lastPage;
-        private Integer lastPerPage;
-        private Set<ApiType> lastApiTypes;
-
-        @Override
-        public FilterValuesPage listKeywordValues(
-            String filterName,
-            String query,
-            Long from,
-            Long to,
-            int page,
-            int perPage,
-            Set<ApiType> apiTypes
-        ) {
-            this.lastFilterName = filterName;
-            this.lastQuery = query;
-            this.lastFrom = from;
-            this.lastTo = to;
-            this.lastPage = page;
-            this.lastPerPage = perPage;
-            this.lastApiTypes = apiTypes;
-            return nextPage;
-        }
-
-        @Override
-        public List<ResolvedLabels> resolveLabels(List<ResolveRequest> requests) {
-            return requests
-                .stream()
-                .map(r -> new ResolvedLabels(r.filterName(), Map.of()))
-                .toList();
-        }
+        assertThat(dataPort.lastCall()).hasValueSatisfying(call -> assertThat(call.apiTypes()).containsExactly(ApiType.HTTP_PROXY));
     }
 }
