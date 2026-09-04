@@ -277,8 +277,8 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
     }
 
     @Test
-    void should_reject_the_apply_and_persist_nothing_when_the_environment_has_no_portal() {
-        // portalCrudService is empty in this class, so no portal exists for nonDefaultPortalId.
+    void should_reject_the_apply_and_persist_nothing_when_the_portal_is_not_in_the_environment() {
+        // portalCrudService is empty in this class, so nonDefaultPortalId resolves to no portal here.
         var nonDefaultPortalId = PortalId.of(HRIDToUUID.portal().context(AUDIT_INFO).hrid("foo-portal").id());
         var nonDefaultDocId = PortalPageContentId.of(
             HRIDToUUID.portalDocumentation().context(AUDIT_INFO).portal("foo-portal").hrid(DOC_HRID).id()
@@ -302,7 +302,7 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
         );
 
         assertThat(throwable).isInstanceOf(ValidationDomainException.class);
-        assertThat(throwable.getMessage()).contains("no portal");
+        assertThat(throwable.getMessage()).contains("the portal to attach the documentation to does not exist in this environment");
         assertThat(crudService.storage()).isEmpty();
         assertThat(navCrudService.storage()).isEmpty();
     }

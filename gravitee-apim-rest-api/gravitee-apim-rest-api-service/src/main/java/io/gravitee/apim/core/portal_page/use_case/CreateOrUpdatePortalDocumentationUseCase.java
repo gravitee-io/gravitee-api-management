@@ -95,8 +95,8 @@ public class CreateOrUpdatePortalDocumentationUseCase {
         var warnings = validation.warning().orElseGet(List::of);
         var sanitized = validation.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize portal documentation"));
 
-        if (!portalAutomationScopeEnforcer.isDefaultPortal(input.auditInfo(), sanitized.portalId())) {
-            throw new ValidationDomainException("no portal exists in this environment to attach the documentation to");
+        if (!portalAutomationScopeEnforcer.portalExistsInEnvironment(input.auditInfo(), sanitized.portalId())) {
+            throw new ValidationDomainException("the portal to attach the documentation to does not exist in this environment");
         }
 
         var meta = new AutomationMetadata(
