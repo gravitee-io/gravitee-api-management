@@ -19,13 +19,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.exception.PortalLinkNotFoundException;
-import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
@@ -34,13 +34,13 @@ import io.gravitee.apim.core.portal_page.use_case.DeleteApiLinkUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetApiLinkUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ValidateApiLinkUseCase;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.apim.rest.api.automation.model.PortalLinkSpec;
 import io.gravitee.apim.rest.api.automation.model.PortalLinkState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import java.util.List;
-import java.util.Optional;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -81,7 +81,9 @@ class ApiLinkResourceTest extends AbstractResourceTest {
 
         @Test
         void should_apply_and_return_the_api_link_state() {
-            when(createOrUpdateApiLinkUseCase.execute(any())).thenReturn(new CreateOrUpdateApiLinkUseCase.Output(null, List.of()));
+            when(createOrUpdateApiLinkUseCase.execute(any())).thenReturn(
+                new CreateOrUpdateApiLinkUseCase.Output(aPersistedLink("External Docs"), List.of())
+            );
 
             try (
                 var response = rootTarget().request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON("api-link.json")))
@@ -92,6 +94,23 @@ class ApiLinkResourceTest extends AbstractResourceTest {
                 var state = response.readEntity(PortalLinkState.class);
                 assertThat(state.getApiHrid()).isEqualTo(API_HRID);
                 assertThat(state.getPortalHrid()).isNull();
+            }
+        }
+
+        @Test
+        void should_build_the_response_from_the_persisted_link_not_from_the_submitted_spec() {
+            when(createOrUpdateApiLinkUseCase.execute(any())).thenReturn(
+                new CreateOrUpdateApiLinkUseCase.Output(aPersistedLink("Normalized Name"), List.of())
+            );
+
+            try (
+                var response = rootTarget()
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(aLinkSpec("  Normalized Name  ")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(200);
+                assertThat(response.readEntity(PortalLinkState.class).getName()).isEqualTo("Normalized Name");
             }
         }
 
@@ -188,7 +207,7 @@ class ApiLinkResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_the_link() {
-            when(getApiLinkUseCase.execute(any())).thenReturn(new GetApiLinkUseCase.Output(aLink()));
+            when(getApiLinkUseCase.execute(any())).thenReturn(new GetApiLinkUseCase.Output(aPersistedLink("External Docs")));
 
             try (var response = rootTarget(LINK_HRID).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
                 assertThat(response.getStatus()).isEqualTo(200);
@@ -220,11 +239,23 @@ class ApiLinkResourceTest extends AbstractResourceTest {
     class Delete {
 
         @Test
-        void should_delete_the_link() {
+        void should_delete_the_link_and_return_no_content() {
             try (var response = rootTarget(LINK_HRID).request().delete()) {
                 assertThat(response.getStatus()).isEqualTo(204);
                 verify(deleteApiLinkUseCase).execute(any(DeleteApiLinkUseCase.Input.class));
             }
+        }
+
+        @Test
+        void should_not_error_when_deleting_the_same_link_twice() {
+            try (var first = rootTarget(LINK_HRID).request().delete()) {
+                assertThat(first.getStatus()).isEqualTo(204);
+            }
+            try (var second = rootTarget(LINK_HRID).request().delete()) {
+                assertThat(second.getStatus()).isEqualTo(204);
+            }
+
+            verify(deleteApiLinkUseCase, times(2)).execute(any(DeleteApiLinkUseCase.Input.class));
         }
 
         @Test
@@ -237,21 +268,22 @@ class ApiLinkResourceTest extends AbstractResourceTest {
         }
     }
 
-    private static PortalNavigationLink aLink() {
+    private static PortalLinkSpec aLinkSpec(String name) {
+        return new PortalLinkSpec().hrid(LINK_HRID).name(name).href("https://docs.example.com");
+    }
+
+    private static PortalNavigationLink aPersistedLink(String name) {
         return PortalNavigationLink.builder()
-            .id(PortalNavigationItemId.of("11111111-1111-1111-1111-111111111111"))
+            .id(PortalNavigationItemId.random())
             .organizationId(ORGANIZATION)
             .environmentId(ENVIRONMENT)
-            .title("External Docs")
+            .title(name)
             .segment(LINK_HRID)
             .area(PortalArea.TOP_NAVBAR)
             .order(3)
             .url("https://docs.example.com")
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
-            .automationMetadata(
-                new AutomationMetadata(AutomationMetadata.ReferenceType.API, "api-1", null, Optional.empty(), Optional.empty())
-            )
             .build();
     }
 }

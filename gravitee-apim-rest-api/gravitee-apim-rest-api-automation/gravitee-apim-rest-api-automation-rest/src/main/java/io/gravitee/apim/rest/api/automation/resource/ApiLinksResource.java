@@ -85,7 +85,12 @@ public class ApiLinksResource extends AbstractResource {
         );
         var output = dryRun ? validateApiLinkUseCase.execute(input) : createOrUpdateApiLinkUseCase.execute(input);
 
-        var state = PortalLinkMapper.INSTANCE.toApiLinkState(spec, linkId.toString(), output.errors(), auditInfo, apiHrid);
+        // A dry run never has a link() (ValidateApiLinkUseCase never persists), and a failed real apply
+        // has none either, so both fall back to echoing the submitted spec; a successful apply reports
+        // what was actually persisted, not what was submitted.
+        var state = output.link() != null
+            ? PortalLinkMapper.INSTANCE.toApiLinkState(output.link(), spec.getHrid(), apiHrid)
+            : PortalLinkMapper.INSTANCE.toApiLinkState(spec, linkId.toString(), output.errors(), auditInfo, apiHrid);
 
         // A dry run is a preview: severe findings are its payload, so it always answers 200.
         // A real apply that produced severe errors persisted nothing — it must not report success.
