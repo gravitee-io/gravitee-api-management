@@ -120,23 +120,14 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
             PortalNavigationItemId.of(APIS_ID)
         );
         var agentApiId = "00000000-0000-0000-0000-0000000000a1";
-        apiCrudService.initWith(
-            List.of(Api.builder().id(agentApiId).name("My agent").version("1.0.0").type(ApiType.A2A_PROXY).build())
-        );
-        var agent = PortalNavigationItemFixtures.anAgent(
-            "00000000-0000-0000-0000-0000000000a2",
-            "My agent",
-            parent.getId(),
-            agentApiId
-        );
+        apiCrudService.initWith(List.of(Api.builder().id(agentApiId).name("My agent").version("1.0.0").type(ApiType.A2A_PROXY).build()));
+        var agent = PortalNavigationItemFixtures.anAgent("00000000-0000-0000-0000-0000000000a2", "My agent", parent.getId(), agentApiId);
         agent.updateParent(parent);
         portalNavigationItemsQueryService.initWith(
             Stream.concat(portalNavigationItemsQueryService.storage().stream(), Stream.of(agent)).toList()
         );
 
-        var output = useCase.execute(
-            new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(ORG_ID, ENV_ID, List.of(agent.getId()))
-        );
+        var output = useCase.execute(new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(ORG_ID, ENV_ID, List.of(agent.getId())));
 
         assertThat(output.seededNavigationItemIds()).containsExactly(agent.getId());
         assertThat(portalNavigationItemsQueryService.findByParentIdAndEnvironmentId(ENV_ID, agent.getId()))

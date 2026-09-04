@@ -117,7 +117,10 @@ public interface PortalNavigationItemAdapter {
         target = "termsAndConditionsPageContentId",
         expression = "java(parseTermsAndConditionsPageContentId(portalNavigationItem.getConfiguration()))"
     )
-    @Mapping(target = "termsAndConditionsEnabled", expression = "java(parseTermsAndConditionsEnabled(portalNavigationItem.getConfiguration()))")
+    @Mapping(
+        target = "termsAndConditionsEnabled",
+        expression = "java(parseTermsAndConditionsEnabled(portalNavigationItem.getConfiguration()))"
+    )
     PortalNavigationAgent portalNavigationAgentFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );

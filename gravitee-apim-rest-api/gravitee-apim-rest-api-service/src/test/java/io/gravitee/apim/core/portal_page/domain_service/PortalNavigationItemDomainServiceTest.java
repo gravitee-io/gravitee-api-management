@@ -1395,8 +1395,9 @@ public class PortalNavigationItemDomainServiceTest {
 
     private String loadTermsAndConditionsTemplate() {
         try (
-            var inputStream = PortalNavigationItemDomainServiceTest.class.getClassLoader()
-                .getResourceAsStream("templates/agent-terms-and-conditions-page-content.md")
+            var inputStream = PortalNavigationItemDomainServiceTest.class.getClassLoader().getResourceAsStream(
+                "templates/agent-terms-and-conditions-page-content.md"
+            )
         ) {
             assertThat(inputStream).isNotNull();
             return new String(inputStream.readAllBytes());

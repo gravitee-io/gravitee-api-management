@@ -49,10 +49,14 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class PortalNavigationItemsResource extends AbstractResource {
@@ -248,7 +252,7 @@ public class PortalNavigationItemsResource extends AbstractResource {
         if (includedApis.isEmpty()) {
             return includedAgentApis;
         }
-        Map<String, io.gravitee.apim.core.api.model.Api> apisById = new HashMap<>();
+        Map<String, io.gravitee.apim.core.api.model.Api> apisById = new LinkedHashMap<>();
         includedApis.forEach(api -> apisById.putIfAbsent(api.getId(), api));
         includedAgentApis.forEach(api -> apisById.putIfAbsent(api.getId(), api));
         return List.copyOf(apisById.values());
@@ -261,12 +265,20 @@ public class PortalNavigationItemsResource extends AbstractResource {
         if (domainApis.isEmpty()) {
             return List.of();
         }
-        Set<String> ids = domainApis.stream().map(io.gravitee.apim.core.api.model.Api::getId).collect(Collectors.toSet());
-        return apiSearchService
-            .findGenericByEnvironmentAndIdIn(executionContext, ids)
+        List<String> orderedIds = domainApis.stream().map(io.gravitee.apim.core.api.model.Api::getId).toList();
+        Map<String, io.gravitee.rest.api.portal.rest.model.Api> apisById = apiSearchService
+            .findGenericByEnvironmentAndIdIn(executionContext, new LinkedHashSet<>(orderedIds))
             .stream()
             .map(entity -> apiMapper.convert(executionContext, entity))
-            .toList();
+            .collect(
+                Collectors.toMap(
+                    io.gravitee.rest.api.portal.rest.model.Api::getId,
+                    Function.identity(),
+                    (first, ignored) -> first,
+                    LinkedHashMap::new
+                )
+            );
+        return orderedIds.stream().map(apisById::get).filter(Objects::nonNull).toList();
     }
 
     @Path("{portalNavigationItemId}")

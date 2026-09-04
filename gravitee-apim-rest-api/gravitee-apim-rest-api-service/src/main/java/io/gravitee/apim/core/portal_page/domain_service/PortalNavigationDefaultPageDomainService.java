@@ -120,7 +120,6 @@ public class PortalNavigationDefaultPageDomainService {
         if (navigationItem instanceof PortalNavigationApiProduct) {
             return API_PRODUCT_OVERVIEW_TEMPLATE;
         }
-        // An agent is backed by an API, so it gets an overview page like one — worded for an agent consumer.
         if (navigationItem instanceof PortalNavigationAgent agentNavigationItem) {
             return apiCrudService
                 .findById(agentNavigationItem.getAgentId())

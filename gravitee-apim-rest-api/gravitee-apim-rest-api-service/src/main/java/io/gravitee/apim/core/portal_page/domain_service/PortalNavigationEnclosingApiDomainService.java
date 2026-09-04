@@ -39,7 +39,6 @@ public class PortalNavigationEnclosingApiDomainService {
             if (current instanceof PortalNavigationApi api) {
                 return Optional.of(api.getApiId());
             }
-            // An agent is an A2A proxy, so its id is an API id and scopes the templates the same way.
             if (current instanceof PortalNavigationAgent agent) {
                 return Optional.of(agent.getAgentId());
             }

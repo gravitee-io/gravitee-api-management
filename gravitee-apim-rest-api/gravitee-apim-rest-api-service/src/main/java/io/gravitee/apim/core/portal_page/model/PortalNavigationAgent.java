@@ -31,6 +31,7 @@ import lombok.experimental.SuperBuilder;
 public final class PortalNavigationAgent extends PortalNavigationItem implements PortalNavigationItemContainer {
 
     private static final PortalNavigationItemType TYPE = PortalNavigationItemType.AGENT;
+    private static final boolean TERMS_AND_CONDITIONS_ENABLED_BY_DEFAULT = true;
 
     @Setter
     @Nonnull
@@ -42,7 +43,7 @@ public final class PortalNavigationAgent extends PortalNavigationItem implements
 
     @Setter
     @Builder.Default
-    private boolean termsAndConditionsEnabled = true;
+    private boolean termsAndConditionsEnabled = TERMS_AND_CONDITIONS_ENABLED_BY_DEFAULT;
 
     @Builder.Default
     @Nonnull
@@ -63,6 +64,7 @@ public final class PortalNavigationAgent extends PortalNavigationItem implements
         super(id, organizationId, environmentId, title, area, order, published, visibility);
         this.agentId = agentId;
         this.categoryIds = normalizeCategoryIds(categoryIds);
+        this.termsAndConditionsEnabled = TERMS_AND_CONDITIONS_ENABLED_BY_DEFAULT;
     }
 
     @Override

@@ -588,6 +588,64 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    void should_return_included_apis_in_catalog_order_regardless_of_lookup_order() {
+        var apiItem = PortalNavigationApi.builder()
+            .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000203"))
+            .organizationId("org")
+            .environmentId(ENV_ID)
+            .title("Auth API")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .apiId("plain-api-id")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .segment(PortalNavigationItem.slugify("Auth API").value())
+            .build();
+        var agentItem = PortalNavigationFixtures.agent(
+            PortalNavigationItemId.of("00000000-0000-0000-0000-000000000204"),
+            "Helpdesk Agent",
+            PortalArea.TOP_NAVBAR,
+            "agent-api-id"
+        );
+        agentItem.setEnvironmentId(ENV_ID);
+        portalNavigationItemsQueryService.initWith(List.of(apiItem, agentItem));
+        apiPortalSearchQueryService.initWith(List.of(Api.builder().id("plain-api-id").name("Auth API").environmentId(ENV_ID).build()));
+        apiQueryService.initWith(
+            List.of(
+                Api.builder().id("plain-api-id").name("Auth API").environmentId(ENV_ID).build(),
+                Api.builder().id("agent-api-id").name("Helpdesk Agent").environmentId(ENV_ID).build()
+            )
+        );
+
+        var agentEntity = Mockito.mock(GenericApiEntity.class);
+        var plainEntity = Mockito.mock(GenericApiEntity.class);
+        when(apiSearchService.findGenericByEnvironmentAndIdIn(any(), any())).thenReturn(
+            new java.util.LinkedHashSet<>(List.of(agentEntity, plainEntity))
+        );
+        var agentApi = new io.gravitee.rest.api.portal.rest.model.Api();
+        agentApi.setId("agent-api-id");
+        var plainApi = new io.gravitee.rest.api.portal.rest.model.Api();
+        plainApi.setId("plain-api-id");
+        when(apiMapper.convert(any(), eq(agentEntity))).thenReturn(agentApi);
+        when(apiMapper.convert(any(), eq(plainEntity))).thenReturn(plainApi);
+
+        Response response = target("/_search")
+            .queryParam("type", "catalog")
+            .queryParam("include", "api")
+            .queryParam("include", "agent")
+            .request()
+            .get();
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
+        @SuppressWarnings("unchecked")
+        var apis = (List<Map<String, Object>>) result.get("apis");
+        assertThat(apis)
+            .extracting(api -> api.get("id"))
+            .containsExactly("plain-api-id", "agent-api-id");
+    }
+
+    @Test
     void should_filter_catalog_api_items_by_known_category_id() {
         var itemInCategory = PortalNavigationApi.builder()
             .id(PortalNavigationItemId.random())

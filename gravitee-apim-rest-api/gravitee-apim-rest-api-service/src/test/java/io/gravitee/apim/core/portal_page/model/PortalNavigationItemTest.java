@@ -29,6 +29,23 @@ import org.junit.jupiter.api.Test;
 class PortalNavigationItemTest {
 
     @Test
+    void should_enable_agent_terms_and_conditions_by_default() {
+        var create = CreatePortalNavigationItem.builder()
+            .title("Helpdesk Agent")
+            .segment("helpdesk-agent")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .type(PortalNavigationItemType.AGENT)
+            .agentId("00000000-0000-0000-0000-000000000030")
+            .build();
+
+        var item = PortalNavigationItem.from(create, "organization-id", "environment-id", null);
+
+        assertThat(item).isInstanceOf(PortalNavigationAgent.class);
+        assertThat(((PortalNavigationAgent) item).isTermsAndConditionsEnabled()).isTrue();
+    }
+
+    @Test
     void should_create_unpublished_api_product_container() {
         var create = CreatePortalNavigationItem.builder()
             .title("Product documentation")

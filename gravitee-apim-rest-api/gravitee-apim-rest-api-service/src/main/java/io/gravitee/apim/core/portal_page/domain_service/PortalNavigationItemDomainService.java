@@ -111,7 +111,6 @@ public class PortalNavigationItemDomainService {
                 GraviteeMarkdownPageContent.create(organizationId, environmentId, templateContent)
             );
             agent.setTermsAndConditionsPageContentId(termsContent.getId());
-            agent.setTermsAndConditionsEnabled(true);
         }
         final var portalNavigationItem = this.crudService.create(itemToCreate);
 
@@ -253,7 +252,7 @@ public class PortalNavigationItemDomainService {
 
     private Optional<PortalPageContentId> pageContentIdOf(PortalNavigationItem item) {
         return switch (item) {
-            case PortalNavigationPage page -> Optional.of(page.getPortalPageContentId());
+            case PortalNavigationPage page -> Optional.ofNullable(page.getPortalPageContentId());
             case PortalNavigationAgent agent -> Optional.ofNullable(agent.getTermsAndConditionsPageContentId());
             default -> Optional.empty();
         };
@@ -499,9 +498,7 @@ public class PortalNavigationItemDomainService {
     }
 
     private String loadTemplate(String templatePath) {
-        try (
-            var inputStream = PortalNavigationItemDomainService.class.getClassLoader().getResourceAsStream(templatePath)
-        ) {
+        try (var inputStream = PortalNavigationItemDomainService.class.getClassLoader().getResourceAsStream(templatePath)) {
             if (inputStream == null) {
                 throw new IllegalStateException("Could not load default agent terms and conditions template: " + templatePath);
             }
