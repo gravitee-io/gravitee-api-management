@@ -149,7 +149,7 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
 
     public static InvalidPortalNavigationItemDataException parentMustBePublic(String parentId) {
         return new InvalidPortalNavigationItemDataException(
-            "Parent item with id %s must be PUBLIC to create a public child item.".formatted(parentId)
+            "Parent item with id %s must be PUBLIC to have a public child item.".formatted(parentId)
         );
     }
 }

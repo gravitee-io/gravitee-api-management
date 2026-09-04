@@ -336,6 +336,8 @@ public class ImportApiCRDUseCase {
                 .state(api.getLifecycleState().name())
                 .plans(planKeyIdMapping)
                 .build();
+        } catch (AbstractDomainException e) {
+            throw e;
         } catch (Exception e) {
             throw new TechnicalManagementException(e);
         }

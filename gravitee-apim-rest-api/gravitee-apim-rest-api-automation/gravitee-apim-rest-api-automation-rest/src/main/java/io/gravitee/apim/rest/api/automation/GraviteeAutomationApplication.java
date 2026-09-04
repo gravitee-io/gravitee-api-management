@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.rest.api.automation;
 
+import io.gravitee.apim.rest.api.automation.exception.mapping.ConflictDomainMapper;
 import io.gravitee.apim.rest.api.automation.exception.mapping.HRIDNotFoundMapper;
 import io.gravitee.apim.rest.api.automation.exception.mapping.ValidationDomainMapper;
 import io.gravitee.apim.rest.api.automation.resource.ApiSubscriptionsResource;
@@ -74,6 +75,7 @@ public class GraviteeAutomationApplication extends ResourceConfig {
         register(GammaModuleAutomationResource.class);
 
         register(ValidationDomainMapper.class);
+        register(ConflictDomainMapper.class);
         register(ConflictDomainExceptionMapper.class);
         register(HRIDNotFoundMapper.class);
         register(ManagementExceptionMapper.class);

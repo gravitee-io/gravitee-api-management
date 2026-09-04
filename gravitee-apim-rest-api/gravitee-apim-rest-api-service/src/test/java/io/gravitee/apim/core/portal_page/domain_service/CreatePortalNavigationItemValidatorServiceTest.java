@@ -669,7 +669,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
             // Then
             Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
             assertThat(exception.getMessage()).isEqualTo(
-                "Parent item with id %s must be PUBLIC to create a public child item.".formatted(privateParent.getId())
+                "Parent item with id %s must be PUBLIC to have a public child item.".formatted(privateParent.getId())
             );
         }
     }
@@ -984,10 +984,11 @@ class CreatePortalNavigationItemValidatorServiceTest {
                 folder
             );
 
-            Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
-                validatorService.validate(List.of(), List.of(pendingUpdate), ENV_ID)
+            Exception exception = assertThrows(
+                io.gravitee.apim.core.portal_page.exception.ConflictingNavigationItemStateException.class,
+                () -> validatorService.validate(List.of(), List.of(pendingUpdate), ENV_ID)
             );
-            assertThat(exception.getMessage()).contains("must be PUBLIC");
+            assertThat(exception.getMessage()).contains("cannot be made PRIVATE while a descendant is still PUBLIC");
         }
 
         @Test

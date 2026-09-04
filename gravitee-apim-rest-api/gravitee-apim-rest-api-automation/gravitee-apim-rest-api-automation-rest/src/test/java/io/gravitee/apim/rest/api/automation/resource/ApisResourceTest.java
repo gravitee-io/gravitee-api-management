@@ -188,6 +188,51 @@ class ApisResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_return_409_and_no_fqcn_when_use_case_throws_descendant_visibility_conflict() {
+            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class))).thenThrow(
+                io.gravitee.apim.core.portal_page.exception.ConflictingNavigationItemStateException.descendantsMustBePrivateFirst(
+                    "90d554e0-0000-0000-0000-000000000000"
+                )
+            );
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", false)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-with-hrid.json")))
+            ) {
+                var body = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Error.class);
+                SoftAssertions.assertSoftly(soft -> {
+                    soft.assertThat(response.getStatus()).isEqualTo(409);
+                    soft.assertThat(body.getMessage()).doesNotContain("io.gravitee.apim.core");
+                    soft.assertThat(body.getMessage()).contains("cannot be made PRIVATE while a descendant is still PUBLIC");
+                });
+            }
+        }
+
+        @Test
+        void should_return_400_when_use_case_throws_validation_domain_exception() {
+            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class))).thenThrow(
+                io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException.parentMustBePublic(
+                    "90d554e0-0000-0000-0000-000000000000"
+                )
+            );
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", false)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-with-hrid.json")))
+            ) {
+                var body = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Error.class);
+                SoftAssertions.assertSoftly(soft -> {
+                    soft.assertThat(response.getStatus()).isEqualTo(400);
+                    soft.assertThat(body.getMessage()).doesNotContain("io.gravitee.apim.core");
+                });
+            }
+        }
+
+        @Test
         void should_return_state_from_hrid_and_have_spg_hrid_replaced() {
             var state = expectEntity("api-with-hrid-spg-hrid.json");
             SoftAssertions.assertSoftly(soft -> {

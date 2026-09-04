@@ -26,6 +26,7 @@ import io.gravitee.apim.core.portal_page.domain_service.validation.ApiProductIte
 import io.gravitee.apim.core.portal_page.domain_service.validation.BulkCreatePortalNavigationItemValidationRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.CreatePortalNavigationItemValidationRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.CreateValidationContext;
+import io.gravitee.apim.core.portal_page.domain_service.validation.DescendantVisibilityRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.DuplicateApiIdsInPayloadRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.DuplicateApiProductIdsInPayloadRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ExternalSourceItemTypeRule;
@@ -81,6 +82,7 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
         // Rules applied on both update and create
         var titleRequiredRule = new TitleRequiredRule();
         var parentRule = new ParentRule(navigationItemsQueryService);
+        var descendantVisibilityRule = new DescendantVisibilityRule(navigationItemsQueryService);
         var segmentConflictRule = new SegmentConflictRule(navigationItemsQueryService);
         var linkUrlRule = new LinkUrlRule();
         var externalSourceItemTypeRule = new ExternalSourceItemTypeRule();
@@ -111,6 +113,7 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
             new ApiItemUpdateRule(apiProductQueryService),
             new ApiProductItemUpdateRule(),
             parentRule,
+            descendantVisibilityRule,
             segmentConflictRule,
             linkUrlRule,
             externalSourceItemTypeRule,
