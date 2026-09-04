@@ -58,6 +58,8 @@ public record Filter(Filter.Name name, Operator operator, Object value) {
         MCP_PROXY_TOOL,
         MCP_PROXY_RESOURCE,
         MCP_PROXY_PROMPT,
+        MCP_TOOL_PRICE_STATUS,
+        MCP_TOOL_BILLED,
         EDGE_PROVIDER,
         EDGE_PROCESS,
         EDGE_CLIENT,
