@@ -113,8 +113,10 @@ public class CreateOrUpdatePortalLinkUseCase {
                     .build();
                 navigationItemValidatorService.validateOne(toCreate, input.auditInfo().environmentId());
             }
-            if (portalAutomationScopeEnforcer.isDefaultPortal(input.auditInfo(), input.portalId())) {
+            if (portalAutomationScopeEnforcer.portalExistsInEnvironment(input.auditInfo(), input.portalId())) {
                 syncDomainService.validateForConflicts(input.auditInfo(), input.portalId().toString(), input.linkHrid(), input.location());
+            } else {
+                errors.add(Validator.Error.severe("the portal to attach the link to does not exist in this environment"));
             }
         } catch (AbstractDomainException e) {
             errors.add(Validator.Error.severe("%s", e.getMessage()));
@@ -124,20 +126,16 @@ public class CreateOrUpdatePortalLinkUseCase {
             return new Output(null, errors);
         }
 
-        PortalNavigationLink link = null;
-        // Skip nav-tree materialization for non-default portals — mirrors Documentation: app is not ready for that.
-        if (portalAutomationScopeEnforcer.isDefaultPortal(input.auditInfo(), input.portalId())) {
-            link = syncDomainService.materialize(
-                input.auditInfo(),
-                input.portalId().toString(),
-                input.linkHrid(),
-                sanitizedName,
-                sanitizedHref,
-                input.location(),
-                input.order(),
-                input.visibility()
-            );
-        }
+        var link = syncDomainService.materialize(
+            input.auditInfo(),
+            input.portalId().toString(),
+            input.linkHrid(),
+            sanitizedName,
+            sanitizedHref,
+            input.location(),
+            input.order(),
+            input.visibility()
+        );
 
         return new Output(link, errors);
     }

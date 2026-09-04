@@ -114,6 +114,8 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
 
     @Test
     void should_create_when_not_existing() {
+        seedDefaultPortal();
+
         var output = useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/projects/alpha", 1));
 
         assertThat(output.id()).isEqualTo(DOC_ID);
@@ -128,6 +130,7 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
 
     @Test
     void should_update_when_existing() {
+        seedDefaultPortal();
         useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/projects/alpha", 1));
         queryService.initWith(crudService.storage());
 
@@ -145,6 +148,7 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
 
     @Test
     void should_reject_update_when_content_becomes_blank() {
+        seedDefaultPortal();
         useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/projects/alpha", 1));
         queryService.initWith(crudService.storage());
 
@@ -155,6 +159,7 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
 
     @Test
     void should_be_idempotent_when_put_twice() {
+        seedDefaultPortal();
         var input = input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/projects/alpha", 1);
 
         var first = useCase.execute(input);
@@ -166,15 +171,8 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
     }
 
     @Test
-    void should_persist_even_when_parent_portal_does_not_exist() {
-        var output = useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/projects/alpha", 1));
-
-        assertThat(output.errors()).isEmpty();
-        assertThat(crudService.storage()).hasSize(1);
-    }
-
-    @Test
     void should_persist_with_null_location_and_order() {
+        seedDefaultPortal();
         var output = useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", null, null));
 
         assertThat(output.errors()).isEmpty();
@@ -279,31 +277,40 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
     }
 
     @Test
-    void should_skip_nav_tree_materialization_for_non_default_portal_when_multiple_portals_allowed() {
-        // Flag is true (validator allows non-default), but materialization must still be skipped — app is not ready for that.
+    void should_reject_the_apply_and_persist_nothing_when_the_portal_is_not_in_the_environment() {
+        // portalCrudService is empty in this class, so nonDefaultPortalId resolves to no portal here.
         var nonDefaultPortalId = PortalId.of(HRIDToUUID.portal().context(AUDIT_INFO).hrid("foo-portal").id());
         var nonDefaultDocId = PortalPageContentId.of(
             HRIDToUUID.portalDocumentation().context(AUDIT_INFO).portal("foo-portal").hrid(DOC_HRID).id()
         );
 
-        var output = useCase.execute(
-            new CreateOrUpdatePortalDocumentationUseCase.Input(
-                AUDIT_INFO,
-                nonDefaultDocId,
-                nonDefaultPortalId,
-                "Getting Started",
-                PortalPageContentType.GRAVITEE_MARKDOWN,
-                "# Hello",
-                "/projects/alpha",
-                1,
-                null,
-                null
+        var throwable = catchThrowable(() ->
+            useCase.execute(
+                new CreateOrUpdatePortalDocumentationUseCase.Input(
+                    AUDIT_INFO,
+                    nonDefaultDocId,
+                    nonDefaultPortalId,
+                    "Getting Started",
+                    PortalPageContentType.GRAVITEE_MARKDOWN,
+                    "# Hello",
+                    "/projects/alpha",
+                    1,
+                    null,
+                    null
+                )
             )
         );
 
-        assertThat(output.id()).isEqualTo(nonDefaultDocId);
-        assertThat(crudService.storage()).hasSize(1);
+        assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+        assertThat(throwable.getMessage()).contains("the portal to attach the documentation to does not exist in this environment");
+        assertThat(crudService.storage()).isEmpty();
         assertThat(navCrudService.storage()).isEmpty();
+    }
+
+    private void seedDefaultPortal() {
+        portalCrudService.initWith(
+            List.of(Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Default Portal"))
+        );
     }
 
     private static CreateOrUpdatePortalDocumentationUseCase.Input input(

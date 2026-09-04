@@ -21,7 +21,6 @@ import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationVa
 import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator.PendingUpdate;
 import io.gravitee.apim.core.portal.exception.PathConflictException;
 import io.gravitee.apim.core.portal.model.NavigationPath;
-import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_listing.domain_service.ApiFolderSubtreeReconciler.ValidationItems;
 import io.gravitee.apim.core.portal_listing.model.PortalListing;
@@ -68,24 +67,19 @@ public class PortalListingSyncDomainService {
             var envFolders = apiFolderSubtreeReconciler.loadAllFoldersInEnv(auditInfo.environmentId());
             for (var entry : listing.getApis()) {
                 var apiId = entry.apiId(auditInfo);
-                var navApi = navigationItemEntryMaterializer.upsert(auditInfo, portalId, apiId, entry);
-                var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, navApi.getId());
-                apiFolderSubtreeReconciler.sync(auditInfo, navApi, apiId, List.of(), currentFolders);
+                navigationItemEntryMaterializer.upsert(auditInfo, portalId, apiId, entry);
+                var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, apiId);
+                apiFolderSubtreeReconciler.sync(auditInfo, apiId, List.of(), currentFolders);
                 materializeApiDocs(auditInfo, apiId);
             }
         }
     }
 
-    /** Reconciles the api-folder subtree under every nav-api row for this api, then re-materializes its doc pages. */
+    /** Reconciles the api-folder subtree for this api, then re-materializes its doc pages. */
     public void syncApiFolders(AuditInfo auditInfo, String apiId, List<NavigationPath> previousPaths) {
-        var navApis = apiFolderSubtreeReconciler.navApiRowsFor(auditInfo, apiId);
-        if (!navApis.isEmpty()) {
-            var envFolders = apiFolderSubtreeReconciler.loadAllFoldersInEnv(auditInfo.environmentId());
-            for (var navApi : navApis) {
-                var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, navApi.getId());
-                apiFolderSubtreeReconciler.sync(auditInfo, navApi, apiId, previousPaths, currentFolders);
-            }
-        }
+        var envFolders = apiFolderSubtreeReconciler.loadAllFoldersInEnv(auditInfo.environmentId());
+        var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, apiId);
+        apiFolderSubtreeReconciler.sync(auditInfo, apiId, previousPaths, currentFolders);
         materializeApiDocs(auditInfo, apiId);
     }
 
@@ -132,8 +126,7 @@ public class PortalListingSyncDomainService {
 
     private ValidationItems validationItemsForNewRow(AuditInfo auditInfo, PortalId portalId, String apiId, PortalListingApiEntry entry) {
         var rowCreate = navigationItemEntryMaterializer.itemForValidation(auditInfo, portalId, apiId, entry);
-        var navApiId = navigationItemEntryMaterializer.rowId(auditInfo, portalId, apiId);
-        var subtree = apiFolderSubtreeReconciler.itemsForValidation(auditInfo, apiId, navApiId, PortalArea.TOP_NAVBAR, List.of());
+        var subtree = apiFolderSubtreeReconciler.itemsForValidation(auditInfo, apiId, List.of());
         var creates = new ArrayList<CreatePortalNavigationItem>(subtree.creates().size() + 1);
         creates.add(rowCreate);
         creates.addAll(subtree.creates());
@@ -148,8 +141,8 @@ public class PortalListingSyncDomainService {
         PortalNavigationApi navApi,
         List<PortalNavigationItem> envFolders
     ) {
-        var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, navApi.getId());
-        var subtree = apiFolderSubtreeReconciler.itemsForValidation(auditInfo, apiId, navApi.getId(), navApi.getArea(), currentFolders);
+        var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, apiId);
+        var subtree = apiFolderSubtreeReconciler.itemsForValidation(auditInfo, apiId, currentFolders);
         var rowUpdate = navigationItemEntryMaterializer.updateForValidation(auditInfo, portalId, entry, navApi);
         var updates = new ArrayList<>(subtree.updates());
         updates.add(rowUpdate);
@@ -157,26 +150,11 @@ public class PortalListingSyncDomainService {
     }
 
     public void validateApiFolderConflictsForApi(AuditInfo auditInfo, String apiId, @Nullable List<NavigationPath> desired) {
-        var navApis = apiFolderSubtreeReconciler.navApiRowsFor(auditInfo, apiId);
-        if (navApis.isEmpty()) return;
         var safeDesired = desired == null ? List.<NavigationPath>of() : desired;
         var envFolders = apiFolderSubtreeReconciler.loadAllFoldersInEnv(auditInfo.environmentId());
-        List<CreatePortalNavigationItem> creates = new ArrayList<>();
-        List<PendingUpdate> updates = new ArrayList<>();
-        for (var navApi : navApis) {
-            var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, navApi.getId());
-            var items = apiFolderSubtreeReconciler.itemsForValidation(
-                auditInfo,
-                apiId,
-                navApi.getId(),
-                navApi.getArea(),
-                safeDesired,
-                currentFolders
-            );
-            creates.addAll(items.creates());
-            updates.addAll(items.updates());
-        }
-        validatorService.validate(creates, updates, auditInfo.environmentId());
+        var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, apiId);
+        var items = apiFolderSubtreeReconciler.itemsForValidation(auditInfo, apiId, safeDesired, currentFolders);
+        validatorService.validate(items.creates(), items.updates(), auditInfo.environmentId());
     }
 
     private void materializeApiDocs(AuditInfo auditInfo, String apiId) {

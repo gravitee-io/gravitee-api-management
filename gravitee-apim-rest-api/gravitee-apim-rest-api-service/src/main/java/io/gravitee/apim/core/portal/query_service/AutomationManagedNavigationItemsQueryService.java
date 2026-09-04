@@ -24,7 +24,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
-import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +38,6 @@ import lombok.RequiredArgsConstructor;
 public class AutomationManagedNavigationItemsQueryService {
 
     private final PortalListingCrudService portalListingCrudService;
-    private final PortalPageContentQueryService portalPageContentQueryService;
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
 
     public Set<PortalNavigationItemId> activeListingApiRows(AuditInfo auditInfo, PortalId portalId) {
@@ -61,16 +59,26 @@ public class AutomationManagedNavigationItemsQueryService {
     }
 
     public Set<PortalNavigationItemId> automationManagedApiDocPages(AuditInfo auditInfo, String apiId) {
-        return portalPageContentQueryService
-            .findByReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.API, apiId)
+        return portalNavigationItemsQueryService
+            .findByAutomationReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.API, apiId)
             .stream()
-            .map(pc -> PortalNavigationItemId.forApiDocumentation(auditInfo, apiId, pc.getId()))
+            .filter(item -> item.getType() == PortalNavigationItemType.PAGE)
+            .map(PortalNavigationItem::getId)
             .collect(Collectors.toSet());
     }
 
     public Set<PortalNavigationItemId> automationManagedPortalLinks(AuditInfo auditInfo, PortalId portalId) {
         return portalNavigationItemsQueryService
             .findByAutomationReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.PORTAL, portalId.toString())
+            .stream()
+            .filter(item -> item.getType() == PortalNavigationItemType.LINK)
+            .map(PortalNavigationItem::getId)
+            .collect(Collectors.toSet());
+    }
+
+    public Set<PortalNavigationItemId> automationManagedApiLinks(AuditInfo auditInfo, String apiId) {
+        return portalNavigationItemsQueryService
+            .findByAutomationReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.API, apiId)
             .stream()
             .filter(item -> item.getType() == PortalNavigationItemType.LINK)
             .map(PortalNavigationItem::getId)
