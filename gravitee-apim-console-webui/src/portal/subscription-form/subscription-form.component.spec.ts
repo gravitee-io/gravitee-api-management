@@ -13,18 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import {
-  ConfigureTestingGraviteeMarkdownEditor,
-  GmdFormEditorHarness,
-  GMD_FORM_STATE_STORE,
-  provideGmdFormStore,
-} from '@gravitee/gravitee-markdown';
-
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { By } from '@angular/platform-browser';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
@@ -40,7 +33,7 @@ import {
   fakePortalNavigationItemsResponse,
 } from '../../entities/management-api-v2/portalNavigationItem/portalNavigationItem.fixture';
 import { fakePortalPageContent } from '../../entities/management-api-v2/portalPageContent/portalPageContent.fixture';
-import { PortalNavigationSubscriptionForm, PortalPageContent } from '../../entities/management-api-v2';
+import { PortalNavigationSubscriptionForm } from '../../entities/management-api-v2';
 
 describe('SubscriptionFormComponent', () => {
   let fixture: ComponentFixture<SubscriptionFormComponent>;
@@ -49,15 +42,10 @@ describe('SubscriptionFormComponent', () => {
   let rootLoader: HarnessLoader;
   let snackBarService: SnackBarService;
 
-  const init = async (
-    canUpdate: boolean,
-    navItem: PortalNavigationSubscriptionForm = fakePortalNavigationSubscriptionForm(),
-    content: PortalPageContent = fakePortalPageContent({ id: navItem.portalPageContentId }),
-  ) => {
+  const init = async (canUpdate: boolean) => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, SubscriptionFormComponent],
       providers: [
-        provideGmdFormStore(),
         {
           provide: GioPermissionService,
           useValue: {
@@ -67,351 +55,400 @@ describe('SubscriptionFormComponent', () => {
       ],
     }).compileComponents();
 
-    ConfigureTestingGraviteeMarkdownEditor();
-
     fixture = TestBed.createComponent(SubscriptionFormComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
-    // Spy on snackbar
     snackBarService = TestBed.inject(SnackBarService);
     jest.spyOn(snackBarService, 'success');
     jest.spyOn(snackBarService, 'error');
 
     fixture.detectChanges();
-
-    // Expect GET request for the SUBSCRIPTION_FORM-area navigation item, then for its content
-    const navItemReq = httpTestingController.expectOne({
-      method: 'GET',
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items?area=SUBSCRIPTION_FORM`,
-    });
-    navItemReq.flush(fakePortalNavigationItemsResponse({ items: [navItem] }));
-
-    const contentReq = httpTestingController.expectOne({
-      method: 'GET',
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/${navItem.portalPageContentId}`,
-    });
-    contentReq.flush(content);
   };
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
+  function expectGetNavigationItems(items: PortalNavigationSubscriptionForm[]): void {
+    const req = httpTestingController.expectOne({
+      method: 'GET',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items?area=SUBSCRIPTION_FORM`,
+    });
+    req.flush(fakePortalNavigationItemsResponse({ items }));
+    fixture.detectChanges();
+  }
+
+  function expectGetContent(contentId: string, content = 'Original content'): void {
+    const req = httpTestingController.expectOne({
+      method: 'GET',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/${contentId}`,
+    });
+    req.flush(fakePortalPageContent({ id: contentId, content }));
+    fixture.detectChanges();
+  }
+
   it('should create component', async () => {
     await init(true);
+    expectGetNavigationItems([]);
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should load subscription form content from API', async () => {
-    const gmdContent = '# Test Form\n\n<gmd-input name="email" label="Email" fieldKey="email" required="true"></gmd-input>';
-    const navItem = fakePortalNavigationSubscriptionForm();
-    const content = fakePortalPageContent({ id: navItem.portalPageContentId, content: gmdContent });
-
-    await init(true, navItem, content);
-
-    const editorHarness = await harnessLoader.getHarness(GmdFormEditorHarness);
-    // The mock editor might normalize newlines to spaces or remove them if it's an input
-    const receivedValue = await editorHarness.getEditorValue();
-    expect(receivedValue.replace(/\s/g, '')).toEqual(gmdContent.replace(/\s/g, ''));
-  });
-
-  it('should disable editor when user has no update permission', async () => {
-    await init(false);
-    const editorHarness = await harnessLoader.getHarness(GmdFormEditorHarness);
-    expect(await editorHarness.isEditorReadOnly()).toBe(true);
-  });
-
-  it('should enable editor when user has update permission', async () => {
+  it('should render every subscription form item and auto-select the published one', async () => {
     await init(true);
-    const editorHarness = await harnessLoader.getHarness(GmdFormEditorHarness);
-    expect(await editorHarness.isEditorReadOnly()).toBe(false);
+    const formA = fakePortalNavigationSubscriptionForm({
+      id: 'form-a',
+      title: 'Form A',
+      published: false,
+      portalPageContentId: 'content-a',
+    });
+    const formB = fakePortalNavigationSubscriptionForm({
+      id: 'form-b',
+      title: 'Form B',
+      published: true,
+      portalPageContentId: 'content-b',
+    });
+    expectGetNavigationItems([formA, formB]);
+
+    const text = fixture.debugElement.nativeElement.textContent;
+    expect(text).toContain('Form A');
+    expect(text).toContain('Form B');
+
+    expectGetContent('content-b', 'Form B content');
+    expect(fixture.componentInstance.titleControl.value).toBe('Form B');
+    expect(fixture.componentInstance.contentControl.value).toBe('Form B content');
   });
 
-  it('should disable save button when content is empty or unchanged', async () => {
-    const navItem = fakePortalNavigationSubscriptionForm();
-    await init(true, navItem, fakePortalPageContent({ id: navItem.portalPageContentId, content: '# Hello world' }));
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    fixture.componentInstance.contentControl.setValue('Updated form content');
-    fixture.detectChanges();
-
-    const saveButton = await getSaveButton();
-    expect(await saveButton.isDisabled()).toBeFalsy();
-
-    fixture.componentInstance.contentControl.setValue('# Hello world');
-    fixture.detectChanges();
-    expect(await saveButton.isDisabled()).toBeTruthy();
-
-    fixture.componentInstance.contentControl.setValue('');
-    fixture.detectChanges();
-    expect(await saveButton.isDisabled()).toBeTruthy();
-
-    fixture.componentInstance.contentControl.setValue('     ');
-    fixture.detectChanges();
-    expect(await saveButton.isDisabled()).toBeTruthy();
-  });
-
-  it('should update subscription form content', async () => {
-    const navItem = fakePortalNavigationSubscriptionForm();
-    const content = fakePortalPageContent({ id: navItem.portalPageContentId });
-    const updatedContent = '# Updated Form\n\n<gmd-input name="name" label="Name" fieldKey="name"></gmd-input>';
-    await init(true, navItem, content);
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    fixture.componentInstance.contentControl.setValue(updatedContent);
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const saveButton = await getSaveButton();
-    expect(await saveButton.isDisabled()).toBeFalsy();
-    await saveButton.click();
-
-    expectPageContentUpdate(navItem.portalPageContentId, updatedContent, { ...content, content: updatedContent });
-    expect(snackBarService.success).toHaveBeenCalledWith('The subscription form has been updated successfully');
-    expect(await saveButton.isDisabled()).toBeTruthy();
-  });
-
-  it('should disable save button when critical config errors exist', async () => {
+  it('should not render a paginator', async () => {
     await init(true);
-    await fixture.whenStable();
-    fixture.detectChanges();
-    const store = getGmdFormStore();
+    expectGetNavigationItems([fakePortalNavigationSubscriptionForm({ id: 'form-a' })]);
+    expectGetContent('subscription-form-content-1');
 
-    fixture.componentInstance.contentControl.setValue('Updated form content');
-    fixture.detectChanges();
-
-    const saveButton = await getSaveButton();
-    expect(await saveButton.isDisabled()).toBeFalsy();
-
-    store.updateField(fieldStateWithConfigError('error'));
-    fixture.detectChanges();
-
-    expect(await saveButton.isDisabled()).toBeTruthy();
+    expect(fixture.debugElement.query(By.css('[data-testid=paginator-header]'))).toBeFalsy();
   });
 
-  it('should not disable save button when only config warnings exist', async () => {
+  it('should show an empty state and select nothing when there are no subscription forms', async () => {
     await init(true);
-    await fixture.whenStable();
-    fixture.detectChanges();
-    const store = getGmdFormStore();
+    expectGetNavigationItems([]);
 
-    fixture.componentInstance.contentControl.setValue('Updated form content');
-    fixture.detectChanges();
-
-    const saveButton = await getSaveButton();
-    store.updateField(fieldStateWithConfigError('warning'));
-    fixture.detectChanges();
-
-    expect(await saveButton.isDisabled()).toBeFalsy();
+    expect(fixture.debugElement.query(By.css('[data-testid=subscription-form-empty]'))).toBeTruthy();
+    expect(fixture.componentInstance.selectedItem()).toBeNull();
   });
 
-  describe('enable/disable toggle functionality', () => {
-    it('should enable a disabled form after confirmation', async () => {
-      const disabledNavItem = fakePortalNavigationSubscriptionForm({ published: false });
-      await init(true, disabledNavItem);
+  it('should show an error message when loading the list fails', async () => {
+    await init(true);
+    const req = httpTestingController.expectOne({
+      method: 'GET',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items?area=SUBSCRIPTION_FORM`,
+    });
+    req.flush({ message: 'Load failed' }, { status: 500, statusText: 'Server Error' });
 
-      const toggle = await getEnableToggle();
-      expect(await toggle.isChecked()).toBe(false);
+    expect(snackBarService.error).toHaveBeenCalledWith('Load failed');
+  });
+
+  describe('permissions', () => {
+    it('should hide the create button, disable the publish toggle and disable editing when user lacks permission', async () => {
+      await init(false);
+      const form = fakePortalNavigationSubscriptionForm({ id: 'form-a', published: true });
+      expectGetNavigationItems([form]);
+      expectGetContent(form.portalPageContentId);
+
+      await expect(
+        harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=create-subscription-form-button]' })),
+      ).rejects.toThrow();
+
+      const toggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[data-testid=publish-toggle-form-a]' }));
+      expect(await toggle.isDisabled()).toBe(true);
+
+      expect(fixture.componentInstance.titleControl.disabled).toBe(true);
+      expect(fixture.componentInstance.contentControl.disabled).toBe(true);
+    });
+  });
+
+  describe('create flow', () => {
+    it('should keep Save disabled until both title and content are provided', async () => {
+      await init(true);
+      expectGetNavigationItems([]);
+
+      const createButton = await harnessLoader.getHarness(
+        MatButtonHarness.with({ selector: '[data-testid=create-subscription-form-button]' }),
+      );
+      await createButton.click();
+      fixture.detectChanges();
+      expect(fixture.componentInstance.isCreating()).toBe(true);
+
+      const saveButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=subscription-form-save-button]' }));
+      expect(await saveButton.isDisabled()).toBe(true);
+
+      fixture.componentInstance.titleControl.setValue('New Form');
+      fixture.detectChanges();
+      expect(await saveButton.isDisabled()).toBe(true);
+
+      fixture.componentInstance.contentControl.setValue('New content');
+      fixture.detectChanges();
+      expect(await saveButton.isDisabled()).toBe(false);
+    });
+
+    it('should create a navigation item then overwrite its auto-created content, and refresh the list', async () => {
+      await init(true);
+      expectGetNavigationItems([]);
+
+      const createButton = await harnessLoader.getHarness(
+        MatButtonHarness.with({ selector: '[data-testid=create-subscription-form-button]' }),
+      );
+      await createButton.click();
+      fixture.detectChanges();
+
+      fixture.componentInstance.titleControl.setValue('New Form');
+      fixture.componentInstance.contentControl.setValue('New content');
+      fixture.detectChanges();
+
+      const saveButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=subscription-form-save-button]' }));
+      await saveButton.click();
+
+      const createReq = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items`,
+      });
+      expect(createReq.request.body).toEqual({
+        type: 'SUBSCRIPTION_FORM',
+        area: 'SUBSCRIPTION_FORM',
+        title: 'New Form',
+        visibility: 'PUBLIC',
+      });
+      createReq.flush(fakePortalNavigationSubscriptionForm({ id: 'new-form', title: 'New Form', portalPageContentId: 'new-content-id' }));
+
+      const updateContentReq = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/new-content-id`,
+      });
+      expect(updateContentReq.request.body).toEqual({ content: 'New content' });
+      updateContentReq.flush(fakePortalPageContent({ id: 'new-content-id', content: 'New content' }));
+
+      expect(snackBarService.success).toHaveBeenCalledWith('Subscription form created successfully.');
+      expectGetNavigationItems([
+        fakePortalNavigationSubscriptionForm({ id: 'new-form', title: 'New Form', portalPageContentId: 'new-content-id' }),
+      ]);
+      // The newly created item is now selected and present in the refreshed list, so its content is
+      // (redundantly but harmlessly) re-fetched.
+      expectGetContent('new-content-id', 'New content');
+    });
+  });
+
+  describe('edit flow', () => {
+    it('should load content on selection, then update content and title on save', async () => {
+      await init(true);
+      const form = fakePortalNavigationSubscriptionForm({
+        id: 'form-a',
+        title: 'Form A',
+        portalPageContentId: 'content-a',
+        published: true,
+      });
+      expectGetNavigationItems([form]);
+      expectGetContent('content-a', 'Original content');
+      expect(fixture.componentInstance.titleControl.value).toBe('Form A');
+
+      fixture.componentInstance.titleControl.setValue('Updated Form A');
+      fixture.componentInstance.contentControl.setValue('Updated content');
+      fixture.detectChanges();
+
+      const saveButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=subscription-form-save-button]' }));
+      await saveButton.click();
+
+      const updateContentReq = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/content-a`,
+      });
+      expect(updateContentReq.request.body).toEqual({ content: 'Updated content' });
+      updateContentReq.flush(fakePortalPageContent({ id: 'content-a', content: 'Updated content' }));
+
+      const updateItemReq = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/form-a`,
+      });
+      expect(updateItemReq.request.body).toEqual({
+        type: 'SUBSCRIPTION_FORM',
+        title: 'Updated Form A',
+        order: form.order,
+        published: true,
+        visibility: 'PUBLIC',
+      });
+      updateItemReq.flush({ ...form, title: 'Updated Form A' });
+
+      expect(snackBarService.success).toHaveBeenCalledWith('Subscription form updated successfully.');
+      expectGetNavigationItems([{ ...form, title: 'Updated Form A' }]);
+    });
+
+    it('should not update the navigation item when only the content changed', async () => {
+      await init(true);
+      const form = fakePortalNavigationSubscriptionForm({
+        id: 'form-a',
+        title: 'Form A',
+        portalPageContentId: 'content-a',
+        published: false,
+      });
+      expectGetNavigationItems([form]);
+      expectGetContent('content-a');
+
+      fixture.componentInstance.contentControl.setValue('Updated content');
+      fixture.detectChanges();
+
+      const saveButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=subscription-form-save-button]' }));
+      await saveButton.click();
+
+      httpTestingController
+        .expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/content-a` })
+        .flush(fakePortalPageContent({ id: 'content-a', content: 'Updated content' }));
+
+      expectGetNavigationItems([form]);
+    });
+  });
+
+  describe('selection', () => {
+    it('should load a different form when selecting a different row', async () => {
+      await init(true);
+      const formA = fakePortalNavigationSubscriptionForm({
+        id: 'form-a',
+        title: 'Form A',
+        portalPageContentId: 'content-a',
+        published: true,
+      });
+      const formB = fakePortalNavigationSubscriptionForm({
+        id: 'form-b',
+        title: 'Form B',
+        portalPageContentId: 'content-b',
+        published: false,
+      });
+      expectGetNavigationItems([formA, formB]);
+      expectGetContent('content-a', 'Content A');
+
+      fixture.debugElement.query(By.css('[data-testid=subscription-form-row-form-b]')).nativeElement.click();
+      fixture.detectChanges();
+
+      expectGetContent('content-b', 'Content B');
+      expect(fixture.componentInstance.titleControl.value).toBe('Form B');
+    });
+
+    it('should prompt to discard unsaved changes before switching selection', async () => {
+      await init(true);
+      const formA = fakePortalNavigationSubscriptionForm({
+        id: 'form-a',
+        title: 'Form A',
+        portalPageContentId: 'content-a',
+        published: true,
+      });
+      const formB = fakePortalNavigationSubscriptionForm({
+        id: 'form-b',
+        title: 'Form B',
+        portalPageContentId: 'content-b',
+        published: false,
+      });
+      expectGetNavigationItems([formA, formB]);
+      expectGetContent('content-a', 'Content A');
+
+      fixture.componentInstance.titleControl.setValue('Dirty title');
+      fixture.detectChanges();
+
+      fixture.debugElement.query(By.css('[data-testid=subscription-form-row-form-b]')).nativeElement.click();
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      const discardButton = await dialog.getHarness(MatButtonHarness.with({ text: /Discard/ }));
+      await discardButton.click();
+
+      expectGetContent('content-b', 'Content B');
+      expect(fixture.componentInstance.titleControl.value).toBe('Form B');
+    });
+  });
+
+  describe('publish toggle', () => {
+    it('should publish the item after confirmation', async () => {
+      await init(true);
+      const form = fakePortalNavigationSubscriptionForm({ id: 'form-a', title: 'Form A', published: false });
+      expectGetNavigationItems([form]);
+      expectGetContent(form.portalPageContentId);
+
+      const toggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[data-testid=publish-toggle-form-a]' }));
       await toggle.toggle();
 
-      await confirmDialog('Enable');
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      const confirmButton = await dialog.getHarness(MatButtonHarness.with({ text: /Publish/ }));
+      await confirmButton.click();
 
       const req = httpTestingController.expectOne({
         method: 'PUT',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${disabledNavItem.id}`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/form-a`,
       });
-      req.flush({ ...disabledNavItem, published: true });
-      fixture.detectChanges();
+      expect(req.request.body).toEqual({
+        type: 'SUBSCRIPTION_FORM',
+        title: 'Form A',
+        order: form.order,
+        published: true,
+        visibility: 'PUBLIC',
+      });
+      req.flush({ ...form, published: true });
 
-      expect(snackBarService.success).toHaveBeenCalledWith('Subscription form has been enabled successfully.');
-      expect(await toggle.isChecked()).toBe(true);
+      expect(snackBarService.success).toHaveBeenCalledWith('Subscription form "Form A" has been published successfully.');
+      expectGetNavigationItems([{ ...form, published: true }]);
     });
 
-    it('should disable an enabled form after confirmation', async () => {
-      const enabledNavItem = fakePortalNavigationSubscriptionForm({ published: true });
-      await init(true, enabledNavItem);
+    it('should unpublish the item after confirmation', async () => {
+      await init(true);
+      const form = fakePortalNavigationSubscriptionForm({ id: 'form-a', title: 'Form A', published: true });
+      expectGetNavigationItems([form]);
+      expectGetContent(form.portalPageContentId);
 
-      const toggle = await getEnableToggle();
-      expect(await toggle.isChecked()).toBe(true);
+      const toggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[data-testid=publish-toggle-form-a]' }));
       await toggle.toggle();
 
-      await confirmDialog('Disable');
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      const confirmButton = await dialog.getHarness(MatButtonHarness.with({ text: /Unpublish/ }));
+      await confirmButton.click();
 
       const req = httpTestingController.expectOne({
         method: 'PUT',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${enabledNavItem.id}`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/form-a`,
       });
-      req.flush({ ...enabledNavItem, published: false });
-      fixture.detectChanges();
+      req.flush({ ...form, published: false });
 
-      expect(snackBarService.success).toHaveBeenCalledWith('Subscription form has been disabled successfully.');
-      expect(await toggle.isChecked()).toBe(false);
+      expect(snackBarService.success).toHaveBeenCalledWith('Subscription form "Form A" has been unpublished successfully.');
+      expectGetNavigationItems([{ ...form, published: false }]);
     });
 
-    it('should not perform any action if the confirmation dialog is cancelled', async () => {
-      const disabledNavItem = fakePortalNavigationSubscriptionForm({ published: false });
-      await init(true, disabledNavItem);
+    it('should not update anything when the confirmation dialog is cancelled', async () => {
+      await init(true);
+      const form = fakePortalNavigationSubscriptionForm({ id: 'form-a', published: false });
+      expectGetNavigationItems([form]);
+      expectGetContent(form.portalPageContentId);
 
-      const toggle = await getEnableToggle();
+      const toggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[data-testid=publish-toggle-form-a]' }));
       await toggle.toggle();
 
       const dialog = await rootLoader.getHarness(MatDialogHarness);
       await dialog.close();
-
-      // Toggle should be reset to previous state
-      expect(await toggle.isChecked()).toBe(false);
-      httpTestingController.verify();
     });
 
-    it('should show an error message if enabling fails', async () => {
-      const disabledNavItem = fakePortalNavigationSubscriptionForm({ published: false });
-      await init(true, disabledNavItem);
-
-      const toggle = await getEnableToggle();
-      await toggle.toggle();
-      await confirmDialog('Enable');
-
-      const req = httpTestingController.expectOne({
-        method: 'PUT',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${disabledNavItem.id}`,
-      });
-      req.flush({ message: 'API error on enable' }, { status: 500, statusText: 'Server Error' });
-
-      expect(snackBarService.error).toHaveBeenCalledWith('API error on enable');
-      // Toggle should be reset to previous state
-      expect(await toggle.isChecked()).toBe(false);
-    });
-
-    it('should save changes before enabling when form has unsaved changes', async () => {
-      const disabledNavItem = fakePortalNavigationSubscriptionForm({ published: false });
-      const content = fakePortalPageContent({ id: disabledNavItem.portalPageContentId });
-      await init(true, disabledNavItem, content);
-      await fixture.whenStable();
-      fixture.detectChanges();
-
-      fixture.componentInstance.contentControl.setValue('Updated form content');
-      fixture.detectChanges();
-
-      const toggle = await getEnableToggle();
-      await toggle.toggle();
-
-      await confirmDialog('Save and enable');
-
-      expectPageContentUpdate(disabledNavItem.portalPageContentId, 'Updated form content', {
-        ...content,
-        content: 'Updated form content',
-      });
-
-      const req = httpTestingController.expectOne({
-        method: 'PUT',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${disabledNavItem.id}`,
-      });
-      req.flush({ ...disabledNavItem, published: true });
-      fixture.detectChanges();
-
-      expect(snackBarService.success).toHaveBeenCalledWith('Subscription form has been enabled successfully.');
-      expect(await toggle.isChecked()).toBe(true);
-    });
-
-    it('should disable toggle when config errors exist', async () => {
+    it('should show an error message if publishing fails', async () => {
       await init(true);
-      await fixture.whenStable();
-      fixture.detectChanges();
-      const store = getGmdFormStore();
+      const form = fakePortalNavigationSubscriptionForm({ id: 'form-a', title: 'Form A', published: false });
+      expectGetNavigationItems([form]);
+      expectGetContent(form.portalPageContentId);
 
-      store.updateField(fieldStateWithConfigError('error'));
-      fixture.detectChanges();
-      await fixture.whenStable();
+      const toggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[data-testid=publish-toggle-form-a]' }));
+      await toggle.toggle();
 
-      const toggle = await getEnableToggle();
-      expect(await toggle.isDisabled()).toBe(true);
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      const confirmButton = await dialog.getHarness(MatButtonHarness.with({ text: /Publish/ }));
+      await confirmButton.click();
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/form-a`,
+      });
+      req.flush({ message: 'A subscription form is already published for this environment' }, { status: 409, statusText: 'Conflict' });
+
+      expect(snackBarService.error).toHaveBeenCalledWith('A subscription form is already published for this environment');
     });
   });
-
-  it('should have unsaved changes when content is modified', async () => {
-    const navItem = fakePortalNavigationSubscriptionForm();
-    await init(true, navItem, fakePortalPageContent({ id: navItem.portalPageContentId, content: 'Initial content' }));
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    expect(fixture.componentInstance.hasUnsavedChanges()).toBeFalsy();
-
-    fixture.componentInstance.contentControl.setValue('Modified content');
-    expect(fixture.componentInstance.hasUnsavedChanges()).toBeTruthy();
-  });
-
-  it('should not have unsaved changes when content is modified and then reverted', async () => {
-    const navItem = fakePortalNavigationSubscriptionForm();
-    await init(true, navItem, fakePortalPageContent({ id: navItem.portalPageContentId, content: 'Initial content' }));
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    expect(fixture.componentInstance.hasUnsavedChanges()).toBeFalsy();
-
-    fixture.componentInstance.contentControl.setValue('Modified content');
-    expect(fixture.componentInstance.hasUnsavedChanges()).toBeTruthy();
-
-    fixture.componentInstance.contentControl.setValue('Initial content');
-    expect(fixture.componentInstance.hasUnsavedChanges()).toBeFalsy();
-  });
-
-  it('should show action bar, hide Save and disable toggle when user lacks permission', async () => {
-    await init(false);
-
-    const toggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[data-testid=enable-toggle]' }));
-
-    await expect(
-      harnessLoader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Update subscription form"]' })),
-    ).rejects.toThrow();
-    await expect(toggle.isDisabled()).resolves.toBe(true);
-  });
-
-  async function getEnableToggle() {
-    return await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[data-testid=enable-toggle]' }));
-  }
-
-  async function confirmDialog(action: string) {
-    const dialog = await rootLoader.getHarness(MatDialogHarness);
-    const confirmButton = await dialog.getHarness(MatButtonHarness.with({ text: new RegExp(action) }));
-    await confirmButton.click();
-  }
-
-  async function getSaveButton() {
-    return await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Update subscription form"]' }));
-  }
-
-  function getGmdFormStore() {
-    return fixture.debugElement.injector.get(GMD_FORM_STATE_STORE);
-  }
-
-  /** Returns a field state with one config error, for tests that need hasConfigErrors() to be true. */
-  function fieldStateWithConfigError(severity: 'error' | 'warning') {
-    return {
-      id: 'field-1',
-      fieldKey: 'key-1',
-      valid: true,
-      value: '',
-      required: false,
-      touched: false,
-      validationErrors: [],
-      configErrors: [
-        severity === 'error'
-          ? { code: 'emptyFieldKey' as const, message: 'Missing property', severity: 'error' as const }
-          : { code: 'normalizedValue' as const, message: 'Missing property', severity: 'warning' as const },
-      ],
-    };
-  }
-
-  function expectPageContentUpdate(contentId: string, expectedContent: string, response: PortalPageContent) {
-    const req = httpTestingController.expectOne({
-      method: 'PUT',
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/${contentId}`,
-    });
-    expect(req.request.body).toStrictEqual({ content: expectedContent });
-    req.flush(response);
-  }
 });

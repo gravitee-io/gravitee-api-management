@@ -200,12 +200,18 @@ export interface NewApiProductPortalNavigationItem extends BaseNewPortalNavigati
   categoryIds?: string[];
 }
 
+export interface NewSubscriptionFormPortalNavigationItem extends BaseNewPortalNavigationItem<'SUBSCRIPTION_FORM'> {
+  /** If omitted, default GRAVITEE_MARKDOWN content is created automatically — edit it afterwards via portal-page-contents. */
+  portalPageContentId?: string;
+}
+
 export type NewPortalNavigationItem =
   | NewPagePortalNavigationItem
   | NewFolderPortalNavigationItem
   | NewLinkPortalNavigationItem
   | NewApiPortalNavigationItem
-  | NewApiProductPortalNavigationItem;
+  | NewApiProductPortalNavigationItem
+  | NewSubscriptionFormPortalNavigationItem;
 
 interface BaseUpdatePortalNavigationItem<T extends PortalNavigationItemType> {
   title: string;

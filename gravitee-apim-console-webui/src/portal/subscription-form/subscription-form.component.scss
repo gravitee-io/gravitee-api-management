@@ -1,30 +1,179 @@
-@use '../../scss/gio-layout' as gio-layout;
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 @use '@gravitee/gravitee-markdown' as gmd;
 
+@use '../../scss/gio-layout' as gio-layout;
+
+$outline-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80);
+
 :host {
   @include gio-layout.gio-responsive-content-container;
 
-  & {
+  @include gmd.editor-overrides(
+    (
+      container-outline-color: $outline-color,
+    )
+  );
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.page-layout {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 0;
+  flex-grow: 1;
+  min-height: 0;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
+  min-height: 0;
+  min-width: 0;
+}
+
+.panel-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+
+  &__title {
     display: flex;
-    flex-direction: column;
-    height: 100%;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+
+    &__field {
+      width: 280px;
+    }
+
+    &__badges {
+      display: flex;
+      gap: 4px;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 }
 
-.actions {
-  display: flex;
-  gap: 16px;
-  align-items: center;
+.sections-panel {
+  padding: 16px;
+  width: 500px;
+  min-width: 280px;
+  max-width: 600px;
+  resize: none;
+  overflow: hidden;
+
+  &__header {
+    padding-bottom: 16px;
+
+    h3 {
+      margin: 0;
+    }
+  }
+
+  &__tree__container {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    width: 100%;
+
+    table {
+      width: 100%;
+    }
+
+    tr[mat-row] {
+      cursor: pointer;
+
+      &:hover {
+        background-color: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, lighter60);
+      }
+
+      &.selected {
+        background-color: mat.m2-get-color-from-palette(gio.$mat-accent-palette, lighter20);
+      }
+    }
+  }
 }
 
-gmd-form-editor {
-  @include gmd.editor-overrides(
+.editor-panel {
+  @include mat.card-overrides(
     (
-      container-outline-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20'),
+      outlined-outline-color: $outline-color,
     )
   );
+
+  gmd-form-editor {
+    flex-grow: 1;
+    min-height: 0;
+  }
+
+  &__header {
+    padding: 16px 16px 0 16px;
+  }
+}
+
+.empty-state {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.empty-editor {
+  display: flex;
+  padding: 16px;
+  height: 100%;
   flex-grow: 1;
-  min-height: 0;
+
+  mat-card {
+    flex: 1;
+  }
+}
+
+.resize-handle-container {
+  position: relative;
+  width: 2px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .resize-handle {
+    width: 2px;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80);
+    cursor: col-resize;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter70);
+    }
+  }
+
+  mat-icon {
+    position: absolute;
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter60);
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    cursor: grab;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
 }
