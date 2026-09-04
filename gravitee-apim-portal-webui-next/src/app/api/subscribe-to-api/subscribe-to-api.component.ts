@@ -363,7 +363,7 @@ export class SubscribeToApiComponent implements OnInit {
 
   private maybeAutoSelectApplication(data: ApplicationsData): void {
     if (this.api().type !== 'A2A_PROXY' || !this.currentPlan() || this.currentPlan()?.security === 'KEY_LESS') {
-      this.autoSelectedApplication.set(false);
+      this.clearAutoSelectedApplication();
       return;
     }
 
@@ -379,6 +379,13 @@ export class SubscribeToApiComponent implements OnInit {
       return;
     }
 
+    this.clearAutoSelectedApplication();
+  }
+
+  private clearAutoSelectedApplication(): void {
+    if (this.autoSelectedApplication()) {
+      this.currentApplication.set(undefined);
+    }
     this.autoSelectedApplication.set(false);
   }
 

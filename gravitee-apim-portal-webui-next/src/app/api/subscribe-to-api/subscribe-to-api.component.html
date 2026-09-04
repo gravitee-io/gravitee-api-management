@@ -126,7 +126,7 @@
     <div>
       @if (currentStep() !== SubscribeStep.REVIEW) {
         <div class="subscribe-to-api__actions__next">
-          @if (currentApplication()) {
+          @if (currentApplication() && !autoSelectedApplication()) {
             <div class="m3-body-medium subscribe-to-api__actions__selected-application">
               <div><span i18n="@@subscribeToApiAppSelected">Selected Application</span>:</div>
               <mat-chip (removed)="currentApplication.set(undefined)"
