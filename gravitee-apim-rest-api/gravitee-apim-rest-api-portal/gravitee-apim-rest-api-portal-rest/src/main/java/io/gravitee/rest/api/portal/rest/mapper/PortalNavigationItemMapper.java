@@ -43,8 +43,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
-import org.mapstruct.ValueMapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -53,13 +51,6 @@ public interface PortalNavigationItemMapper {
 
     PortalArea map(io.gravitee.rest.api.portal.rest.model.PortalArea area);
 
-    /**
-     * SUBSCRIPTION_FORM is never browsable through this listing (a distinct, single, management-only
-     * area, not part of the HOMEPAGE/TOP_NAVBAR navigation tree this portal-rest surface serves) - a
-     * value here would mean a caller queried the wrong area, so this fails loudly instead of silently
-     * producing an unmappable REST value.
-     */
-    @ValueMapping(source = "SUBSCRIPTION_FORM", target = MappingConstants.THROW_EXCEPTION)
     io.gravitee.rest.api.portal.rest.model.PortalArea map(PortalArea area);
 
     default List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem> map(@Nonnull List<PortalNavigationItem> items) {
@@ -73,9 +64,7 @@ public interface PortalNavigationItemMapper {
             case PortalNavigationPage page -> map(page);
             case PortalNavigationApi api -> map(api);
             case PortalNavigationApiProduct apiProduct -> map(apiProduct);
-            case PortalNavigationSubscriptionForm subscriptionForm -> throw new IllegalStateException(
-                "SUBSCRIPTION_FORM navigation items are never exposed through the portal navigation listing"
-            );
+            case PortalNavigationSubscriptionForm subscriptionForm -> map(subscriptionForm);
         };
         var wrappedItem = new io.gravitee.rest.api.portal.rest.model.PortalNavigationItem();
         wrappedItem.setActualInstance(baseItem);
@@ -87,6 +76,7 @@ public interface PortalNavigationItemMapper {
     io.gravitee.rest.api.portal.rest.model.PortalNavigationPage map(PortalNavigationPage page);
     io.gravitee.rest.api.portal.rest.model.PortalNavigationApi map(PortalNavigationApi api);
     io.gravitee.rest.api.portal.rest.model.PortalNavigationApiProduct map(PortalNavigationApiProduct apiProduct);
+    io.gravitee.rest.api.portal.rest.model.PortalNavigationSubscriptionForm map(PortalNavigationSubscriptionForm subscriptionForm);
 
     @Mapping(source = "value", target = "content")
     default String extractContent(PortalPageContent<?> content) {

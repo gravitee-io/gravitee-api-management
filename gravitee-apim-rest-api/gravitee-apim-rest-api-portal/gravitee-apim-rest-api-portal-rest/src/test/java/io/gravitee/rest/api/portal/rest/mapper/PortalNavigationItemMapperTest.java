@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
@@ -136,7 +135,8 @@ class PortalNavigationItemMapperTest {
     }
 
     @Test
-    void should_throw_when_mapping_a_subscription_form_item() {
+    void should_map_subscription_form_item() {
+        var contentId = PortalNavigationFixtures.randomPageId();
         var subscriptionForm = PortalNavigationSubscriptionForm.builder()
             .id(PortalNavigationFixtures.randomNavigationId())
             .organizationId("org")
@@ -145,14 +145,17 @@ class PortalNavigationItemMapperTest {
             .segment("subscription-form")
             .area(PortalArea.SUBSCRIPTION_FORM)
             .order(0)
-            .portalPageContentId(PortalNavigationFixtures.randomPageId())
+            .portalPageContentId(contentId)
             .validationConstraints(io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstraints.empty())
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
             .build();
 
-        assertThatThrownBy(() -> PortalNavigationItemMapper.INSTANCE.getBasePortalNavigationItem(subscriptionForm)).isInstanceOf(
-            IllegalStateException.class
-        );
+        var mapped = PortalNavigationItemMapper.INSTANCE.getBasePortalNavigationItem(subscriptionForm);
+
+        assertThat(mapped.getActualInstance()).isInstanceOf(io.gravitee.rest.api.portal.rest.model.PortalNavigationSubscriptionForm.class);
+        var mappedForm = (io.gravitee.rest.api.portal.rest.model.PortalNavigationSubscriptionForm) mapped.getActualInstance();
+        assertThat(mappedForm.getTitle()).isEqualTo("Subscription Form");
+        assertThat(mappedForm.getPortalPageContentId()).isEqualTo(contentId.json());
     }
 }

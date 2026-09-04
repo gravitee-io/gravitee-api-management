@@ -23,11 +23,14 @@ import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDa
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.RendererException;
+import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.RenderedPageContent;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
@@ -64,7 +67,12 @@ public class GetPortalPageContentByNavigationIdUseCase {
             throw new PortalNavigationItemNotFoundException(portalNavigationItem.getId().json());
         }
 
-        if (!(portalNavigationItem instanceof PortalNavigationPage page)) {
+        PortalPageContentId portalPageContentId;
+        if (portalNavigationItem instanceof PortalNavigationPage page) {
+            portalPageContentId = page.getPortalPageContentId();
+        } else if (portalNavigationItem instanceof PortalNavigationSubscriptionForm subscriptionForm) {
+            portalPageContentId = subscriptionForm.getPortalPageContentId();
+        } else {
             throw InvalidPortalNavigationItemDataException.typeMismatch(
                 PortalNavigationItemType.PAGE.name(),
                 portalNavigationItem.getType().name()
@@ -72,15 +80,25 @@ public class GetPortalPageContentByNavigationIdUseCase {
         }
 
         var portalPageContent = portalPageContentQueryService
-            .findById(page.getPortalPageContentId())
-            .orElseThrow(() -> new PageContentNotFoundException(page.getPortalPageContentId().toString()));
+            .findById(portalPageContentId)
+            .orElseThrow(() -> new PageContentNotFoundException(portalPageContentId.toString()));
 
-        var rendered = contentRenderers
-            .stream()
-            .filter(r -> r.appliesTo(portalPageContent))
-            .findFirst()
-            .orElseThrow(() -> new RendererException("No renderer found for content type: " + portalPageContent.getType()))
-            .render(page, portalPageContent);
+        RenderedPageContent rendered;
+        if (portalNavigationItem instanceof PortalNavigationSubscriptionForm) {
+            // Subscription form content is served raw, with EL placeholders left unresolved: dynamic
+            // option resolution against a specific API is handled separately (there is no "enclosing
+            // API" for an unparented subscription-form item), matching this content's existing
+            // pre-Phase-7 behavior of never being templated at the content-serving layer.
+            var markdownContent = (GraviteeMarkdownPageContent) portalPageContent;
+            rendered = RenderedPageContent.of(markdownContent.getContent().value(), markdownContent.getType());
+        } else {
+            rendered = contentRenderers
+                .stream()
+                .filter(r -> r.appliesTo(portalPageContent))
+                .findFirst()
+                .orElseThrow(() -> new RendererException("No renderer found for content type: " + portalPageContent.getType()))
+                .render(portalNavigationItem, portalPageContent);
+        }
 
         return new Output(rendered, portalNavigationItem);
     }
