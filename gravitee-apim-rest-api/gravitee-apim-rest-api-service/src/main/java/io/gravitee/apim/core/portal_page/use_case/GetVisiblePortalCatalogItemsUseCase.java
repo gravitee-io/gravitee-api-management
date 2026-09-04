@@ -28,6 +28,7 @@ import io.gravitee.apim.core.portal_page.domain_service.CheckTypoToleranceDomain
 import io.gravitee.apim.core.portal_page.domain_service.PortalCatalogNavigationVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
+import io.gravitee.apim.core.portal_page.model.PortalCatalogAccessibleIds;
 import io.gravitee.apim.core.portal_page.model.PortalCatalogApiProductSummary;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationAgent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
@@ -96,24 +97,28 @@ public class GetVisiblePortalCatalogItemsUseCase {
             input.environmentId(),
             input.viewerContext()
         );
+        PortalCatalogAccessibleIds accessibleIds = new PortalCatalogAccessibleIds(
+            accessibleApiNavigationItemIds,
+            accessibleApiProductIds,
+            apiVisibilityDomainService.resolveAccessibleAgentApiIds(input.environmentId(), input.viewerContext())
+        );
 
         List<PortalNavigationApi> visibleApis = catalogNavigationVisibilityDomainService.filterVisibleItems(
             accessibleApis,
             navigationItemsById,
             input.viewerContext(),
-            accessibleApiNavigationItemIds,
-            accessibleApiProductIds
+            accessibleIds
         );
         List<PortalNavigationApi> catalogApiCandidates = catalogNavigationVisibilityDomainService.filterStandaloneApis(
             visibleApis,
             navigationItemsById
         );
         List<PortalNavigationApiProduct> visibleApiProducts = filterApiProductsByCategory(
-            findVisibleApiProducts(navigationItems, input, navigationItemsById, accessibleApiNavigationItemIds, accessibleApiProductIds),
+            findVisibleApiProducts(navigationItems, input, navigationItemsById, accessibleIds),
             input.categoryId()
         );
         List<PortalNavigationAgent> visibleAgents = filterAgentsByCategory(
-            findVisibleAgents(navigationItems, input, navigationItemsById, accessibleApiNavigationItemIds, accessibleApiProductIds),
+            findVisibleAgents(navigationItems, input, navigationItemsById, accessibleIds),
             input.categoryId()
         );
 
@@ -153,7 +158,7 @@ public class GetVisiblePortalCatalogItemsUseCase {
             input,
             pageEntries,
             navigationItemsById,
-            accessibleApiProductIds,
+            accessibleIds,
             visibleApis
         );
         List<PortalCatalogApiProductSummary> includedApiProducts = resolveIncludedApiProducts(
@@ -180,7 +185,7 @@ public class GetVisiblePortalCatalogItemsUseCase {
         Input input,
         List<CatalogEntry> pageEntries,
         Map<PortalNavigationItemId, PortalNavigationItem> navigationItemsById,
-        Set<String> accessibleApiProductIds,
+        PortalCatalogAccessibleIds accessibleIds,
         List<PortalNavigationApi> categoryVisibleApis
     ) {
         boolean pageContainsApiProduct = pageEntries
@@ -202,8 +207,7 @@ public class GetVisiblePortalCatalogItemsUseCase {
             accessibleApis,
             navigationItemsById,
             input.viewerContext(),
-            accessibleApiNavigationItemIds,
-            accessibleApiProductIds
+            new PortalCatalogAccessibleIds(accessibleApiNavigationItemIds, accessibleIds.apiProductIds(), accessibleIds.agentApiIds())
         );
     }
 
@@ -211,8 +215,7 @@ public class GetVisiblePortalCatalogItemsUseCase {
         List<PortalNavigationItem> navigationItems,
         Input input,
         Map<PortalNavigationItemId, PortalNavigationItem> navigationItemsById,
-        Set<PortalNavigationItemId> accessibleApiNavigationItemIds,
-        Set<String> accessibleApiProductIds
+        PortalCatalogAccessibleIds accessibleIds
     ) {
         List<PortalNavigationApiProduct> apiProductItems = navigationItems
             .stream()
@@ -224,8 +227,7 @@ public class GetVisiblePortalCatalogItemsUseCase {
             apiProductItems,
             navigationItemsById,
             input.viewerContext(),
-            accessibleApiNavigationItemIds,
-            accessibleApiProductIds
+            accessibleIds
         );
     }
 
@@ -247,8 +249,7 @@ public class GetVisiblePortalCatalogItemsUseCase {
         List<PortalNavigationItem> navigationItems,
         Input input,
         Map<PortalNavigationItemId, PortalNavigationItem> navigationItemsById,
-        Set<PortalNavigationItemId> accessibleApiNavigationItemIds,
-        Set<String> accessibleApiProductIds
+        PortalCatalogAccessibleIds accessibleIds
     ) {
         List<PortalNavigationAgent> agentItems = navigationItems
             .stream()
@@ -260,15 +261,11 @@ public class GetVisiblePortalCatalogItemsUseCase {
             agentItems,
             navigationItemsById,
             input.viewerContext(),
-            accessibleApiNavigationItemIds,
-            accessibleApiProductIds
+            accessibleIds
         );
     }
 
-    private List<PortalNavigationAgent> filterAgentsByCategory(
-        List<PortalNavigationAgent> agents,
-        Optional<PortalCategoryId> categoryId
-    ) {
+    private List<PortalNavigationAgent> filterAgentsByCategory(List<PortalNavigationAgent> agents, Optional<PortalCategoryId> categoryId) {
         return categoryId
             .map(selectedCategoryId ->
                 agents
@@ -314,9 +311,7 @@ public class GetVisiblePortalCatalogItemsUseCase {
 
     private Map<String, Api> loadAgentApis(String environmentId, List<PortalNavigationAgent> items) {
         Set<String> ids = items.stream().map(PortalNavigationAgent::getAgentId).collect(Collectors.toSet());
-        return loadApis(environmentId, ids)
-            .stream()
-            .collect(Collectors.toMap(Api::getId, Function.identity(), (first, ignored) -> first));
+        return loadApis(environmentId, ids).stream().collect(Collectors.toMap(Api::getId, Function.identity(), (first, ignored) -> first));
     }
 
     private List<CatalogEntry> createEntries(

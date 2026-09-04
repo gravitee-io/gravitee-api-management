@@ -18,10 +18,15 @@ package io.gravitee.apim.core.portal_page.domain_service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.ApiQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import inmemory.SubscriptionQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalCatalogAccessibleIds;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationAgent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
@@ -56,7 +61,15 @@ class PortalCatalogNavigationVisibilityDomainServiceTest {
             new PortalNavigationItemsQueryServiceInMemory(),
             new ApiProductAccessibleIdsDomainService(new ApiProductQueryServiceInMemory(), new MembershipQueryServiceInMemory())
         );
-        service = new PortalCatalogNavigationVisibilityDomainService(apiProductVisibilityDomainService);
+        var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(
+            new PortalNavigationItemsQueryServiceInMemory(),
+            new ApiPortalMembershipDomainService(
+                new MembershipQueryServiceInMemory(),
+                new SubscriptionQueryServiceInMemory(),
+                new ApiQueryServiceInMemory()
+            )
+        );
+        service = new PortalCatalogNavigationVisibilityDomainService(apiProductVisibilityDomainService, apiVisibilityDomainService);
     }
 
     @Test
@@ -150,18 +163,68 @@ class PortalCatalogNavigationVisibilityDomainServiceTest {
         assertThat(result).containsExactly(missingParentApi, cycleApi);
     }
 
+    @Test
+    void should_hide_a_private_agent_from_a_viewer_without_access() {
+        var agent = agent("agent-item", null, PortalVisibility.PRIVATE);
+        var items = List.<PortalNavigationItem>of(agent);
+
+        var result = filter(List.of(agent), items, Set.of(), Set.of());
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void should_keep_a_private_agent_for_a_viewer_with_access() {
+        var agent = agent("agent-item", null, PortalVisibility.PRIVATE);
+        var items = List.<PortalNavigationItem>of(agent);
+
+        var result = filter(List.of(agent), items, Set.of(), Set.of(), Set.of(agent.getAgentId()));
+
+        assertThat(result).containsExactly(agent);
+    }
+
+    @Test
+    void should_keep_a_public_agent_for_any_viewer() {
+        var agent = agent("agent-item", null, PortalVisibility.PUBLIC);
+        var items = List.<PortalNavigationItem>of(agent);
+
+        var result = filter(List.of(agent), items, Set.of(), Set.of());
+
+        assertThat(result).containsExactly(agent);
+    }
+
+    @Test
+    void should_filter_an_item_below_a_hidden_agent_ancestor() {
+        var agent = agent("agent-item", null, PortalVisibility.PRIVATE);
+        var page = folder("page-item", agent.getId());
+        var items = List.<PortalNavigationItem>of(agent, page);
+
+        var result = filter(List.of(page), items, Set.of(), Set.of());
+
+        assertThat(result).isEmpty();
+    }
+
     private <T extends PortalNavigationItem> List<T> filter(
         List<T> candidates,
         List<PortalNavigationItem> allItems,
         Set<PortalNavigationItemId> accessibleApiNavigationItemIds,
         Set<String> accessibleApiProductIds
     ) {
+        return filter(candidates, allItems, accessibleApiNavigationItemIds, accessibleApiProductIds, Set.of());
+    }
+
+    private <T extends PortalNavigationItem> List<T> filter(
+        List<T> candidates,
+        List<PortalNavigationItem> allItems,
+        Set<PortalNavigationItemId> accessibleApiNavigationItemIds,
+        Set<String> accessibleApiProductIds,
+        Set<String> accessibleAgentApiIds
+    ) {
         return service.filterVisibleItems(
             candidates,
             index(allItems),
             VIEWER_CONTEXT,
-            accessibleApiNavigationItemIds,
-            accessibleApiProductIds
+            new PortalCatalogAccessibleIds(accessibleApiNavigationItemIds, accessibleApiProductIds, accessibleAgentApiIds)
         );
     }
 
@@ -215,6 +278,22 @@ class PortalCatalogNavigationVisibilityDomainServiceTest {
             .order(0)
             .parentId(parentId)
             .apiProductId(id)
+            .published(true)
+            .visibility(visibility)
+            .build();
+    }
+
+    private PortalNavigationAgent agent(String id, PortalNavigationItemId parentId, PortalVisibility visibility) {
+        return PortalNavigationAgent.builder()
+            .id(navigationItemId(id))
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .title(id)
+            .segment(id)
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .parentId(parentId)
+            .agentId(id)
             .published(true)
             .visibility(visibility)
             .build();

@@ -1375,9 +1375,13 @@ public class ResourceContextConfiguration {
 
     @Bean
     public PortalCatalogNavigationVisibilityDomainService portalCatalogNavigationVisibilityDomainService(
-        PortalNavigationApiProductVisibilityDomainService portalNavigationApiProductVisibilityDomainService
+        PortalNavigationApiProductVisibilityDomainService portalNavigationApiProductVisibilityDomainService,
+        PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService
     ) {
-        return new PortalCatalogNavigationVisibilityDomainService(portalNavigationApiProductVisibilityDomainService);
+        return new PortalCatalogNavigationVisibilityDomainService(
+            portalNavigationApiProductVisibilityDomainService,
+            portalNavigationApiVisibilityDomainService
+        );
     }
 
     @Bean

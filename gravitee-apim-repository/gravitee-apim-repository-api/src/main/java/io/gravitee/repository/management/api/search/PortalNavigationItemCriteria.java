@@ -35,6 +35,7 @@ public class PortalNavigationItemCriteria {
     private String visibility;
     private Set<String> apiIds;
     private Set<String> apiProductIds;
+    private Set<String> agentIds;
     private String type;
     private Boolean useAutoFetch;
     private String categoryId;

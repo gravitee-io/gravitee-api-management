@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
@@ -43,7 +44,7 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
 
     @Override
     public boolean appliesTo(PortalNavigationItem item) {
-        return item instanceof PortalNavigationApi;
+        return item instanceof PortalNavigationApi || item instanceof PortalNavigationAgent;
     }
 
     @Override
@@ -51,7 +52,13 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
         String environmentId,
         PortalNavigationItemViewerContext viewerContext
     ) {
-        return item -> !isApiItemHidden((PortalNavigationApi) item, viewerContext);
+        Set<String> accessibleAgentApiIds = resolveAccessibleAgentApiIds(environmentId, viewerContext);
+        return item ->
+            switch (item) {
+                case PortalNavigationApi api -> !isApiItemHidden(api, viewerContext);
+                case PortalNavigationAgent agent -> !isAgentItemHidden(agent, viewerContext, accessibleAgentApiIds);
+                default -> true;
+            };
     }
 
     /**
@@ -155,10 +162,74 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
      * endpoint so navigation and catalog expose the same set of APIs.
      */
     public boolean isApiItemHidden(PortalNavigationApi item, PortalNavigationItemViewerContext viewerContext) {
-        if (!viewerContext.isPortalMode()) {
+        return isLinkedItemHidden(item.getApiId(), item.getVisibility(), viewerContext);
+    }
+
+    /**
+     * Same rules as {@link #isApiItemHidden(PortalNavigationApi, PortalNavigationItemViewerContext)} applied to the
+     * A2A proxy API backing an agent navigation item.
+     */
+    public boolean isAgentItemHidden(PortalNavigationAgent item, PortalNavigationItemViewerContext viewerContext) {
+        return isLinkedItemHidden(item.getAgentId(), item.getVisibility(), viewerContext);
+    }
+
+    public boolean isAgentItemHidden(
+        PortalNavigationAgent item,
+        PortalNavigationItemViewerContext viewerContext,
+        Set<String> accessibleAgentApiIds
+    ) {
+        if (!viewerContext.isPortalMode() || PortalVisibility.PUBLIC.equals(item.getVisibility())) {
             return false;
         }
-        if (PortalVisibility.PUBLIC.equals(item.getVisibility())) {
+        return !viewerContext.isAuthenticated() || !accessibleAgentApiIds.contains(item.getAgentId());
+    }
+
+    /**
+     * Bulk counterpart of {@link #isAgentItemHidden(PortalNavigationAgent, PortalNavigationItemViewerContext)}: resolves
+     * the private agent API ids the viewer may access with a single membership and a single subscription lookup.
+     */
+    public Set<String> resolveAccessibleAgentApiIds(String environmentId, PortalNavigationItemViewerContext viewerContext) {
+        if (!viewerContext.isPortalMode()) {
+            return Set.of();
+        }
+        return viewerContext
+            .userId()
+            .map(userId -> resolveAccessibleAgentApiIds(environmentId, userId))
+            .orElse(Set.of());
+    }
+
+    private Set<String> resolveAccessibleAgentApiIds(String environmentId, String userId) {
+        Set<String> privateAgentApiIds = fetchAgentItems(environmentId)
+            .stream()
+            .filter(item -> !PortalVisibility.PUBLIC.equals(item.getVisibility()))
+            .map(PortalNavigationAgent::getAgentId)
+            .collect(Collectors.toSet());
+        if (privateAgentApiIds.isEmpty()) {
+            return Set.of();
+        }
+        Set<String> accessibleIds = new HashSet<>(apiMembershipDomainService.filterApiIdsByUserMembership(userId, privateAgentApiIds));
+        accessibleIds.addAll(apiMembershipDomainService.filterAllowedApiIdsBySubscription(userId, privateAgentApiIds));
+        return accessibleIds;
+    }
+
+    private List<PortalNavigationAgent> fetchAgentItems(String environmentId) {
+        return queryService
+            .search(
+                PortalNavigationItemQueryCriteria.builder()
+                    .environmentId(environmentId)
+                    .published(true)
+                    .root(false)
+                    .type(PortalNavigationItemType.AGENT)
+                    .build()
+            )
+            .stream()
+            .filter(PortalNavigationAgent.class::isInstance)
+            .map(PortalNavigationAgent.class::cast)
+            .toList();
+    }
+
+    private boolean isLinkedItemHidden(String linkedApiId, PortalVisibility visibility, PortalNavigationItemViewerContext viewerContext) {
+        if (!viewerContext.isPortalMode() || PortalVisibility.PUBLIC.equals(visibility)) {
             return false;
         }
         if (!viewerContext.isAuthenticated()) {
@@ -166,7 +237,7 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
         }
         return viewerContext
             .userId()
-            .map(uid -> !isVisibleToUser(item, uid))
+            .map(uid -> !isLinkedApiVisibleToUser(linkedApiId, visibility, uid))
             .orElse(true);
     }
 
@@ -183,6 +254,9 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
         while (current != null && current.getParentId() != null) {
             current = queryService.findByIdAndEnvironmentId(environmentId, current.getParentId());
             if (current instanceof PortalNavigationApi apiAncestor && isApiItemHidden(apiAncestor, viewerContext)) {
+                return true;
+            }
+            if (current instanceof PortalNavigationAgent agentAncestor && isAgentItemHidden(agentAncestor, viewerContext)) {
                 return true;
             }
         }
@@ -214,12 +288,12 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
                     .published(true)
                     .root(false)
                     .type(PortalNavigationItemType.AGENT)
+                    .agentIds(Set.of(agentId))
                     .build()
             )
             .stream()
             .filter(PortalNavigationAgent.class::isInstance)
             .map(PortalNavigationAgent.class::cast)
-            .filter(item -> agentId.equals(item.getAgentId()))
             .findFirst();
     }
 

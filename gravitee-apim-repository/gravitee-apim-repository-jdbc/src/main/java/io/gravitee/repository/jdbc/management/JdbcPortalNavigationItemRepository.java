@@ -379,6 +379,10 @@ public class JdbcPortalNavigationItemRepository
                 clauses.add("api_product_id IN (" + String.join(",", Collections.nCopies(criteria.getApiProductIds().size(), "?")) + ")");
                 params.addAll(criteria.getApiProductIds());
             }
+            if (criteria.getAgentIds() != null && !criteria.getAgentIds().isEmpty()) {
+                clauses.add("agent_id IN (" + String.join(",", Collections.nCopies(criteria.getAgentIds().size(), "?")) + ")");
+                params.addAll(criteria.getAgentIds());
+            }
             if (hasText(criteria.getType())) {
                 try {
                     PortalNavigationItem.Type type = PortalNavigationItem.Type.valueOf(criteria.getType());

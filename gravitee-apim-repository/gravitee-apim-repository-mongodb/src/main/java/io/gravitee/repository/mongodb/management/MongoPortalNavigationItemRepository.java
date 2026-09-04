@@ -151,6 +151,9 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
             if (criteria.getApiProductIds() != null && !criteria.getApiProductIds().isEmpty()) {
                 query.addCriteria(where("apiProductId").in(criteria.getApiProductIds()));
             }
+            if (criteria.getAgentIds() != null && !criteria.getAgentIds().isEmpty()) {
+                query.addCriteria(where("agentId").in(criteria.getAgentIds()));
+            }
             if (hasText(criteria.getType())) {
                 try {
                     PortalNavigationItem.Type type = PortalNavigationItem.Type.valueOf(criteria.getType());

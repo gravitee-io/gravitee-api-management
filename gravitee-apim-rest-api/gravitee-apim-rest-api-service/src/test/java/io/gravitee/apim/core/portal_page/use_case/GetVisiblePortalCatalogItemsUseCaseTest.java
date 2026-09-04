@@ -28,6 +28,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
+import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.domain_service.CheckTypoToleranceDomainService;
@@ -75,6 +76,7 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
     private ApiQueryServiceInMemory apiQueryService;
     private ApiProductQueryServiceInMemory apiProductQueryService;
     private ParametersQueryServiceInMemory parametersQueryService;
+    private MembershipQueryServiceInMemory membershipQueryService;
 
     @BeforeEach
     void set_up() {
@@ -83,7 +85,7 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
         apiQueryService = new ApiQueryServiceInMemory();
         apiProductQueryService = new ApiProductQueryServiceInMemory();
         parametersQueryService = new ParametersQueryServiceInMemory();
-        var membershipQueryService = new MembershipQueryServiceInMemory();
+        membershipQueryService = new MembershipQueryServiceInMemory();
         var apiMembershipDomainService = new ApiPortalMembershipDomainService(
             membershipQueryService,
             new SubscriptionQueryServiceInMemory(),
@@ -98,7 +100,8 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
             new ApiProductAccessibleIdsDomainService(apiProductQueryService, membershipQueryService)
         );
         var catalogNavigationVisibilityDomainService = new PortalCatalogNavigationVisibilityDomainService(
-            apiProductVisibilityDomainService
+            apiProductVisibilityDomainService,
+            apiVisibilityDomainService
         );
         useCase = new GetVisiblePortalCatalogItemsUseCase(
             navigationItemsQueryService,
@@ -604,10 +607,21 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
         int size,
         Optional<String> categoryId
     ) {
+        return input(query, includes, page, size, categoryId, PortalNavigationItemViewerContext.forPortal((String) null));
+    }
+
+    private GetVisiblePortalCatalogItemsUseCase.Input input(
+        Optional<String> query,
+        Set<PortalNavigationSearchInclude> includes,
+        int page,
+        int size,
+        Optional<String> categoryId,
+        PortalNavigationItemViewerContext viewerContext
+    ) {
         return new GetVisiblePortalCatalogItemsUseCase.Input(
             ENV_ID,
             ORG_ID,
-            PortalNavigationItemViewerContext.forPortal((String) null),
+            viewerContext,
             new PageableImpl(page, size),
             query,
             includes,
@@ -712,6 +726,58 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
             .published(true)
             .visibility(visibility)
             .categoryIds(categoryIds)
+            .build();
+    }
+
+    @Test
+    void should_not_return_a_private_agent_to_an_authenticated_user_without_access() {
+        var agentItem = agentItem("agent-item-id", "private-agent-api-id", null, PortalVisibility.PRIVATE);
+        navigationItemsQueryService.initWith(List.of(agentItem));
+        initApis(List.of(api("private-agent-api-id", "Helpdesk Agent", "1.0.0")));
+
+        var output = useCase.execute(
+            input(
+                Optional.empty(),
+                Set.of(PortalNavigationSearchInclude.AGENT),
+                1,
+                10,
+                Optional.empty(),
+                PortalNavigationItemViewerContext.forPortal("user-without-access")
+            )
+        );
+
+        assertThat(output.items().getContent()).isEmpty();
+        assertThat(output.includedAgentApis()).isEmpty();
+    }
+
+    @Test
+    void should_return_a_private_agent_to_an_authenticated_member_of_its_backing_api() {
+        var agentItem = agentItem("agent-item-id", "private-agent-api-id", null, PortalVisibility.PRIVATE);
+        navigationItemsQueryService.initWith(List.of(agentItem));
+        initApis(List.of(api("private-agent-api-id", "Helpdesk Agent", "1.0.0")));
+        membershipQueryService.initWith(List.of(apiMembership("member-user", "private-agent-api-id")));
+
+        var output = useCase.execute(
+            input(
+                Optional.empty(),
+                Set.of(PortalNavigationSearchInclude.AGENT),
+                1,
+                10,
+                Optional.empty(),
+                PortalNavigationItemViewerContext.forPortal("member-user")
+            )
+        );
+
+        assertThat(output.items().getContent()).containsExactly(agentItem);
+    }
+
+    private Membership apiMembership(String userId, String apiId) {
+        return Membership.builder()
+            .id("membership-" + userId + "-" + apiId)
+            .memberId(userId)
+            .memberType(Membership.Type.USER)
+            .referenceType(Membership.ReferenceType.API)
+            .referenceId(apiId)
             .build();
     }
 

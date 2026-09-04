@@ -15,27 +15,14 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
-import io.gravitee.apim.core.portal.model.PortalArea;
-import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import java.util.Set;
-import lombok.Builder;
-import lombok.Data;
 
-@Data
-@Builder
-public class PortalNavigationItemQueryCriteria {
-
-    private String environmentId;
-    private Boolean root;
-    private PortalNavigationItemId parentId;
-    private PortalArea area;
-    private Boolean published;
-    private PortalVisibility visibility;
-    private Set<String> apiIds;
-    private Set<String> apiProductIds;
-    private Set<String> agentIds;
-    private PortalNavigationItemType type;
-
-    private Boolean useAutoFetch;
-    private PortalCategoryId categoryId;
+public record PortalCatalogAccessibleIds(
+    Set<PortalNavigationItemId> apiNavigationItemIds,
+    Set<String> apiProductIds,
+    Set<String> agentApiIds
+) {
+    public static PortalCatalogAccessibleIds none() {
+        return new PortalCatalogAccessibleIds(Set.of(), Set.of(), Set.of());
+    }
 }
