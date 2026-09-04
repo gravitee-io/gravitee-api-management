@@ -33,6 +33,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 
 /**
  * @author GraviteeSource Team
@@ -54,7 +55,7 @@ public class PortalLinkResource extends AbstractResource {
         var linkId = PortalNavigationItemId.forPortalLink(auditInfo, portalId, linkHrid);
         try {
             var output = getPortalLinkUseCase.execute(new GetPortalLinkUseCase.Input(auditInfo, linkId));
-            return Response.ok(PortalLinkMapper.INSTANCE.toPortalLinkState(output.link(), linkHrid, portalHrid)).build();
+            return Response.ok(PortalLinkMapper.INSTANCE.toPortalLinkState(output.link(), linkHrid, List.of(), portalHrid)).build();
         } catch (PortalLinkNotFoundException e) {
             throw new HRIDNotFoundException(linkHrid);
         }

@@ -114,7 +114,7 @@ class PortalLinkMapperTest {
             )
             .build();
 
-        var state = PortalLinkMapper.INSTANCE.toPortalLinkState(link, "external-docs", "default-portal");
+        var state = PortalLinkMapper.INSTANCE.toPortalLinkState(link, "external-docs", List.of(), "default-portal");
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(state.getId()).isEqualTo(LINK_ID.toString());
@@ -169,7 +169,7 @@ class PortalLinkMapperTest {
             .visibility(PortalVisibility.PUBLIC)
             .build();
 
-        var state = PortalLinkMapper.INSTANCE.toPortalLinkState(link, "external-docs", "default-portal");
+        var state = PortalLinkMapper.INSTANCE.toPortalLinkState(link, "external-docs", List.of(), "default-portal");
 
         assertThat(state.getLocation()).isNull();
     }
@@ -194,6 +194,119 @@ class PortalLinkMapperTest {
         });
     }
 
+    @Test
+    void put_state_carries_the_spec_visibility() {
+        var state = PortalLinkMapper.INSTANCE.toPortalLinkState(aSpec(), LINK_ID.toString(), List.of(), AUDIT, "default-portal");
+
+        assertThat(state.getVisibility()).isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC);
+    }
+
+    @Test
+    void api_put_state_carries_the_spec_visibility() {
+        var state = PortalLinkMapper.INSTANCE.toApiLinkState(aSpec(), LINK_ID.toString(), List.of(), AUDIT, "my-api");
+
+        assertThat(state.getVisibility()).isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC);
+    }
+
+    @Test
+    void get_state_carries_the_persisted_visibility() {
+        var state = PortalLinkMapper.INSTANCE.toPortalLinkState(
+            aLink(PortalVisibility.PRIVATE),
+            "external-docs",
+            List.of(),
+            "default-portal"
+        );
+
+        assertThat(state.getVisibility()).isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE);
+    }
+
+    @Test
+    void api_get_state_carries_the_persisted_visibility() {
+        var state = PortalLinkMapper.INSTANCE.toApiLinkState(aLink(PortalVisibility.PRIVATE), "external-docs", List.of(), "my-api");
+
+        assertThat(state.getVisibility()).isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE);
+    }
+
+    @Test
+    void api_get_state_populates_api_hrid_and_leaves_portal_hrid_null() {
+        var state = PortalLinkMapper.INSTANCE.toApiLinkState(aLink(PortalVisibility.PUBLIC), "external-docs", List.of(), "my-api");
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(state.getApiHrid()).isEqualTo("my-api");
+            soft.assertThat(state.getPortalHrid()).isNull();
+        });
+    }
+
+    @Test
+    void portal_get_state_populates_portal_hrid_and_leaves_api_hrid_null() {
+        var state = PortalLinkMapper.INSTANCE.toPortalLinkState(
+            aLink(PortalVisibility.PUBLIC),
+            "external-docs",
+            List.of(),
+            "default-portal"
+        );
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(state.getPortalHrid()).isEqualTo("default-portal");
+            soft.assertThat(state.getApiHrid()).isNull();
+        });
+    }
+
+    @Test
+    void apply_state_from_the_persisted_link_still_reports_warnings() {
+        // A successful apply persists the link and may still have produced non-severe findings; the
+        // response is the only place the caller ever sees them.
+        var warnings = List.of(Validator.Error.warning("careful"));
+
+        var state = PortalLinkMapper.INSTANCE.toPortalLinkState(
+            aLink(PortalVisibility.PUBLIC),
+            "external-docs",
+            warnings,
+            "default-portal"
+        );
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(state.getErrors()).isNotNull();
+            soft.assertThat(state.getErrors().getWarning()).containsExactly("careful");
+        });
+    }
+
+    @Test
+    void api_apply_state_from_the_persisted_link_still_reports_warnings() {
+        var warnings = List.of(Validator.Error.warning("careful"));
+
+        var state = PortalLinkMapper.INSTANCE.toApiLinkState(aLink(PortalVisibility.PUBLIC), "external-docs", warnings, "my-api");
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(state.getErrors()).isNotNull();
+            soft.assertThat(state.getErrors().getWarning()).containsExactly("careful");
+        });
+    }
+
+    private static PortalNavigationLink aLink(PortalVisibility visibility) {
+        return PortalNavigationLink.builder()
+            .id(LINK_ID)
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .title("External Docs")
+            .segment("external-docs")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(3)
+            .url("https://docs.example.com")
+            .published(true)
+            .visibility(visibility)
+            .automationMetadata(
+                new AutomationMetadata(
+                    AutomationMetadata.ReferenceType.PORTAL,
+                    "portal-ref-id",
+                    null,
+                    Optional.of("/projects/alpha"),
+                    Optional.empty()
+                )
+            )
+            .build();
+    }
+
     private static PortalLinkSpec aSpec() {
         var spec = new PortalLinkSpec();
         spec.setHrid("external-docs");
@@ -201,6 +314,7 @@ class PortalLinkMapperTest {
         spec.setHref("https://docs.example.com");
         spec.setLocation("/projects/alpha");
         spec.setOrder(3);
+        spec.setVisibility(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC);
         return spec;
     }
 }

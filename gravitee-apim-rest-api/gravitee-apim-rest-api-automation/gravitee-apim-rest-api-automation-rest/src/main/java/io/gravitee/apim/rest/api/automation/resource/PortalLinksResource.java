@@ -91,7 +91,7 @@ public class PortalLinksResource extends AbstractResource {
         // has none either, so both fall back to echoing the submitted spec; a successful apply reports
         // what was actually persisted, not what was submitted.
         var state = output.link() != null
-            ? PortalLinkMapper.INSTANCE.toPortalLinkState(output.link(), spec.getHrid(), portalHrid)
+            ? PortalLinkMapper.INSTANCE.toPortalLinkState(output.link(), spec.getHrid(), output.errors(), portalHrid)
             : PortalLinkMapper.INSTANCE.toPortalLinkState(spec, linkId.toString(), output.errors(), auditInfo, portalHrid);
 
         // A dry run is a preview: severe findings are its payload, so it always answers 200.
