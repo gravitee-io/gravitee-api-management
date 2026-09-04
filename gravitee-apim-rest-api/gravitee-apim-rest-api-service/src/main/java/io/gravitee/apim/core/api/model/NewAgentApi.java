@@ -17,6 +17,7 @@ package io.gravitee.apim.core.api.model;
 
 import io.gravitee.definition.model.v4.agent.AgentAnalytics;
 import io.gravitee.definition.model.v4.agent.AgentApi;
+import io.gravitee.definition.model.v4.agent.JudgeDefinition;
 import io.gravitee.definition.model.v4.agent.StandaloneAgentDefinition;
 import io.gravitee.definition.model.v4.agent.definition.AgentChannel;
 import io.gravitee.definition.model.v4.agent.workflow.Workflow;
@@ -46,6 +47,9 @@ public class NewAgentApi extends AbstractNewApi {
 
     private StandaloneAgentDefinition standalone;
 
+    /** The judge body, present when {@code kind=judge}. */
+    private JudgeDefinition judge;
+
     /** The orchestration body, present when {@code kind=workflow}. Passthrough at the REST boundary, typed here. */
     private Workflow workflow;
 
@@ -69,6 +73,7 @@ public class NewAgentApi extends AbstractNewApi {
             .composable(composable)
             .listeners(listeners)
             .standalone(standalone)
+            .judge(judge)
             .workflow(workflow)
             .analytics(analytics)
             .resources(resources)

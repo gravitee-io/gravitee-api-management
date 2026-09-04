@@ -20,6 +20,7 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.agent.AgentAnalytics;
+import io.gravitee.definition.model.v4.agent.JudgeDefinition;
 import io.gravitee.definition.model.v4.agent.StandaloneAgentDefinition;
 import io.gravitee.definition.model.v4.agent.definition.AgentChannel;
 import io.gravitee.definition.model.v4.agent.workflow.Workflow;
@@ -98,6 +99,7 @@ public class AgentApiEntity implements GenericApiEntity {
     private List<Listener> listeners;
     private List<AgentChannel> channels;
     private StandaloneAgentDefinition standalone;
+    private JudgeDefinition judge;
     private Workflow workflow;
     private AgentAnalytics analytics;
     private List<Resource> resources;

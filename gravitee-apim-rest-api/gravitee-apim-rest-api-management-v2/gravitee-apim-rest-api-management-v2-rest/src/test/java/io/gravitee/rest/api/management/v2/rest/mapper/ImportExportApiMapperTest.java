@@ -250,6 +250,7 @@ public class ImportExportApiMapperTest extends AbstractMapperTest {
             null,
             null,
             null,
+            null,
             io.gravitee.definition.model.v4.agent.AgentAnalytics.builder().tracing(tracing).build(),
             java.util.List.of(
                 io.gravitee.definition.model.v4.resource.Resource.builder().name("memory").type("agent-store-inmemory").build()

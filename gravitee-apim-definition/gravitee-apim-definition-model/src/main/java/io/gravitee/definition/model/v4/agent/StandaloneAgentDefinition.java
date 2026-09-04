@@ -16,9 +16,9 @@
 package io.gravitee.definition.model.v4.agent;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.agent.definition.AgentInput;
-import io.gravitee.definition.model.v4.agent.definition.AgentJudge;
 import io.gravitee.definition.model.v4.agent.definition.AgentModel;
 import io.gravitee.definition.model.v4.agent.definition.AgentOutput;
 import io.gravitee.definition.model.v4.agent.definition.AgentSkill;
@@ -41,8 +41,8 @@ import lombok.ToString;
  * {@code inputs}/{@code outputs} contract. Capabilities are inline plugin references ({@code tools}/{@code skills})
  * except memory, whose {@code workingMemory} references an independently-deployed chat-memory store resource.
  *
- * <p>A standalone agent that declares {@code judge} scores other agents' work instead of answering for itself;
- * that block writes the {@code inputs}/{@code outputs} contract rather than sitting beside it.</p>
+ * <p>An agent that scores other agents' work is not one of these: it is {@code kind:judge}, see
+ * {@link JudgeDefinition}.</p>
  */
 @NoArgsConstructor
 @AllArgsConstructor
@@ -67,13 +67,17 @@ public class StandaloneAgentDefinition {
     private List<AgentOutput> outputs;
 
     /**
-     * Declares this agent judges rather than answers — see {@link AgentJudge}.
+     * Where {@code judge} lived before it became a kind of its own — see {@link JudgeDefinition}.
      *
-     * <p>Sugar, not a third kind of agent: it is compiled into {@link #inputs} and {@link #outputs} at deploy, and
-     * what runs afterwards is an ordinary standalone agent. Declaring it alongside an explicit contract is a
-     * contradiction rather than a merge, so a definition that sets both keeps the one it wrote by hand.</p>
+     * <p>Read but never written: the definition mapper ignores unknown properties, so without this slot a stale
+     * {@code standalone.judge} would load silently as an ordinary assistant. Keeping the key visible lets the gateway
+     * refuse it at deploy by name, with the fix spelled out, instead of answering prose on a judge's door. Left out
+     * of equality and serialization so it can never travel back to a store.</p>
      */
-    private AgentJudge judge;
+    @JsonProperty(value = "judge", access = JsonProperty.Access.WRITE_ONLY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Object judge;
 
     /**
      * Keeps a durable record of this agent's runs so they can be scored later — see {@link Recording}.

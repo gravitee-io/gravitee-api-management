@@ -226,6 +226,63 @@ public class ApiMapperTest {
     }
 
     @Test
+    void should_map_a_judge_entity_to_api_agent_v4_with_its_body() {
+        var uriInfo = Mockito.mock(UriInfo.class);
+        Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));
+        var entity = io.gravitee.rest.api.model.v4.agent.AgentApiEntity.builder()
+            .id("judge-1")
+            .name("Relevance")
+            .apiVersion("1.0.0")
+            .kind("judge")
+            .judge(
+                io.gravitee.definition.model.v4.agent.JudgeDefinition.builder()
+                    .subject("turn")
+                    .instructions("Be strict.")
+                    .score(io.gravitee.definition.model.v4.agent.definition.JudgeScore.builder().type("boolean").build())
+                    .variables(List.of("output"))
+                    .build()
+            )
+            .build();
+
+        var mapped = apiMapper.mapToAgentV4(entity, uriInfo);
+
+        // The third kind reaches the wire as its enum value, and its body is not dropped on the way.
+        assertThat(mapped.getKind()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.ApiAgent.KindEnum.JUDGE);
+        assertThat(mapped.getStandalone()).isNull();
+        assertThat(mapped.getJudge()).isNotNull();
+        assertThat(mapped.getJudge().getSubject()).isEqualTo("turn");
+        assertThat(mapped.getJudge().getInstructions()).isEqualTo("Be strict.");
+        assertThat(mapped.getJudge().getScore().getType()).isEqualTo("boolean");
+        Assertions.assertThat(mapped.getJudge().getVariables()).containsExactly("output");
+    }
+
+    @Test
+    void should_map_create_api_judge_to_new_agent_api_with_its_body() {
+        var dto = new io.gravitee.rest.api.management.v2.rest.model.CreateApiAgent();
+        dto.setName("Relevance");
+        dto.setApiVersion("1.0.0");
+        dto.setDefinitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.AGENT);
+        dto.setType(io.gravitee.rest.api.management.v2.rest.model.ApiType.AGENT);
+        dto.setKind(io.gravitee.rest.api.management.v2.rest.model.CreateApiAgent.KindEnum.JUDGE);
+        dto.setJudge(
+            new io.gravitee.rest.api.management.v2.rest.model.JudgeDefinition()
+                .instructions("Be strict.")
+                .score(new io.gravitee.rest.api.management.v2.rest.model.AgentJudgeScore().type("numeric").min(1d).max(5d))
+                .variables(List.of("input", "output"))
+        );
+
+        var mapped = apiMapper.mapToNewAgentApi(dto);
+
+        assertThat(mapped.getKind()).isEqualTo("judge");
+        assertThat(mapped.getJudge()).isNotNull();
+        assertThat(mapped.getJudge().getInstructions()).isEqualTo("Be strict.");
+        assertThat(mapped.getJudge().getScore().getMax()).isEqualTo(5d);
+        Assertions.assertThat(mapped.getJudge().getVariables()).containsExactly("input", "output");
+        // And the definition the core builds from it carries the body under the kind's key.
+        assertThat(mapped.toApiDefinitionBuilder().build().getJudge()).isEqualTo(mapped.getJudge());
+    }
+
+    @Test
     void should_map_agent_analytics_and_resources_on_create_response() {
         var uriInfo = Mockito.mock(UriInfo.class);
         Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));

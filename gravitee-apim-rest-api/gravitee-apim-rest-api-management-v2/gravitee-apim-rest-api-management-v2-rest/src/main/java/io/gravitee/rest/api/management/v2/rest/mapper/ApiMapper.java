@@ -291,6 +291,7 @@ public interface ApiMapper {
     @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
     @Mapping(target = "listeners", source = "source.apiDefinitionAgent.listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(target = "standalone", source = "source.apiDefinitionAgent.standalone")
+    @Mapping(target = "judge", source = "source.apiDefinitionAgent.judge")
     @Mapping(target = "workflow", source = "source.apiDefinitionAgent.workflow")
     @Mapping(target = "analytics", source = "source.apiDefinitionAgent.analytics")
     @Mapping(target = "resources", source = "source.apiDefinitionAgent.resources")
