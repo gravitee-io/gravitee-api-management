@@ -171,9 +171,6 @@ public class VertxWebSocket implements WebSocket {
         return upgraded && !webSocket.isClosed();
     }
 
-<<<<<<< HEAD
-    private io.vertx.rxjava3.core.http.WebSocketFrame convert(io.gravitee.gateway.api.ws.WebSocketFrame frame) {
-=======
     /**
      * Reporting a successful write on a websocket closed by the client makes the failure invisible to the caller: an
      * async entrypoint keeps consuming from its endpoint and writing to nowhere, and its consumer is never released.
@@ -185,8 +182,7 @@ public class VertxWebSocket implements WebSocket {
         return Completable.complete();
     }
 
-    private io.vertx.core.http.WebSocketFrame convert(io.gravitee.gateway.api.ws.WebSocketFrame frame) {
->>>>>>> d3633a7 (fix(gateway): fail websocket writes on a closed connection (#19655))
+    private io.vertx.rxjava3.core.http.WebSocketFrame convert(io.gravitee.gateway.api.ws.WebSocketFrame frame) {
         switch (frame.type()) {
             case BINARY:
                 return binaryFrame(io.vertx.rxjava3.core.buffer.Buffer.buffer(frame.data().getNativeBuffer()), frame.isFinal());
