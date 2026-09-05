@@ -65,6 +65,14 @@ class HTTPFieldResolverTest {
         assertThrows(UnsupportedOperationException.class, () -> fieldResolver.fromMetric(Metric.MESSAGE_ERRORS));
     }
 
+    @Test
+    void should_resolve_http_path_to_the_path_info_the_gateway_reports() {
+        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.HTTP_PATH, Filter.Operator.EQ, "/tools/call"))).isEqualTo(
+            "path-info.keyword"
+        );
+        assertThat(fieldResolver.fromFacet(Facet.HTTP_PATH)).isEqualTo("path-info.keyword");
+    }
+
     @ParameterizedTest
     @EnumSource(
         value = Filter.Name.class,
