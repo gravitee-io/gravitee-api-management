@@ -30,6 +30,30 @@ import { environment } from '../environments/environment';
 
 const USER_PROVIDER_ID_SELECTED = 'user-provider-id-selected';
 
+/**
+ * A StateStore that delegates to the given store, but strips the IdP `access_token` before it is ever
+ * persisted to Web Storage.
+ *
+ * Rationale (APIM-14822): the `access_token` is a live bearer credential at the IdP and must not be
+ * readable from `localStorage`/`sessionStorage` by an XSS running after login. `id_token` and `expires_at`
+ * are kept: they are needed for single logout (`signoutRedirect({ id_token_hint })`) and for the
+ * `user.expired` check in `checkAuth()`.
+ */
+export class AccessTokenFilteringStateStore extends WebStorageStateStore {
+  override set(key: string, value: string): Promise<void> {
+    try {
+      const parsed = JSON.parse(value);
+      if (parsed && typeof parsed === 'object' && 'access_token' in parsed) {
+        parsed.access_token = '';
+        value = JSON.stringify(parsed);
+      }
+    } catch {
+      // Not a JSON-serialised User object (e.g. OIDC state entries) - store as-is.
+    }
+    return super.set(key, value);
+  }
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -69,7 +93,7 @@ export class AuthService {
         scope: idp.scopes?.join(idp.scopeDelimiter ?? ' '),
         response_type: 'code',
         post_logout_redirect_uri: `${(window.location.origin + window.location.pathname).replace(/\/$/, '') + this.locationStrategy.prepareExternalUrl('/_login')}`,
-        userStore: new WebStorageStateStore({ store: window.localStorage }),
+        userStore: new AccessTokenFilteringStateStore({ store: window.localStorage }),
         loadUserInfo: false,
         extraHeaders: {
           // Needed for Gravitee APIM POST method
