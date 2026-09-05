@@ -49,6 +49,8 @@ public record FacetSpec(Name name, String label, String type, List<Object> enumV
         MCP_PROXY_TOOL,
         MCP_PROXY_RESOURCE,
         MCP_PROXY_PROMPT,
+        MCP_TOOL_PRICE_STATUS,
+        MCP_TOOL_BILLED,
         EDGE_PROVIDER,
         EDGE_PROCESS,
         EDGE_CLIENT,

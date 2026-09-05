@@ -70,6 +70,8 @@ public class FilterAdapter {
         Filter.Name.LLM_PROXY_PROVIDER,
         Filter.Name.MCP_PROXY_METHOD,
         Filter.Name.MCP_PROXY_TOOL,
+        Filter.Name.MCP_TOOL_PRICE_STATUS,
+        Filter.Name.MCP_TOOL_BILLED,
         Filter.Name.MCP_PROXY_RESOURCE,
         Filter.Name.MCP_PROXY_PROMPT,
         Filter.Name.URI,

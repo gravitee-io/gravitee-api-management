@@ -188,7 +188,10 @@ public class HTTPMeasuresQueryAdapter {
                 LLM_PROMPT_TOKEN_SENT,
                 LLM_PROMPT_TOKEN_RECEIVED,
                 LLM_PROMPT_TOKEN_SENT_COST,
-                LLM_PROMPT_TOKEN_RECEIVED_COST -> Optional.of(countWithSumBuilder);
+                LLM_PROMPT_TOKEN_RECEIVED_COST,
+                LLM_PROMPT_TOKEN_REASONING,
+                LLM_PROMPT_TOKEN_REASONING_COST,
+                MCP_TOOL_COST -> Optional.of(countWithSumBuilder);
             default -> Optional.of(simpleCountBuilder);
         };
     }

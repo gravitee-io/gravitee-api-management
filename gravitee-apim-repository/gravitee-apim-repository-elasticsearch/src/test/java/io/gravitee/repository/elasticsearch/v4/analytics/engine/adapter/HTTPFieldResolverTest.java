@@ -54,6 +54,9 @@ class HTTPFieldResolverTest {
             "LLM_PROMPT_TOKEN_RECEIVED",
             "LLM_PROMPT_TOKEN_SENT_COST",
             "LLM_PROMPT_TOKEN_RECEIVED_COST",
+            "LLM_PROMPT_TOKEN_REASONING",
+            "LLM_PROMPT_TOKEN_REASONING_COST",
+            "MCP_TOOL_COST",
         }
     )
     void should_resolve_from_http_metric(Metric metric) {
@@ -94,6 +97,8 @@ class HTTPFieldResolverTest {
             "MCP_PROXY_TOOL",
             "MCP_PROXY_RESOURCE",
             "MCP_PROXY_PROMPT",
+            "MCP_TOOL_PRICE_STATUS",
+            "MCP_TOOL_BILLED",
             "API_PRODUCT",
         }
     )
@@ -129,6 +134,8 @@ class HTTPFieldResolverTest {
             "MCP_PROXY_TOOL",
             "MCP_PROXY_RESOURCE",
             "MCP_PROXY_PROMPT",
+            "MCP_TOOL_PRICE_STATUS",
+            "MCP_TOOL_BILLED",
             "API_PRODUCT",
         }
     )

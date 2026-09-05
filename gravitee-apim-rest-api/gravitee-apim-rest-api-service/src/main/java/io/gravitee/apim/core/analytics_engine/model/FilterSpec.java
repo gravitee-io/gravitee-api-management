@@ -92,6 +92,8 @@ public record FilterSpec(
         LLM_PROXY_PROVIDER,
         MCP_PROXY_METHOD,
         MCP_PROXY_TOOL,
+        MCP_TOOL_PRICE_STATUS,
+        MCP_TOOL_BILLED,
         MCP_PROXY_RESOURCE,
         MCP_PROXY_PROMPT,
         EDGE_PROVIDER,

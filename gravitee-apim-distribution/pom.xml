@@ -265,8 +265,8 @@
     <gravitee-policy-kafka-rules.version>1.1.2</gravitee-policy-kafka-rules.version>
     <gravitee-policy-kafka-namespace.version>1.0.0</gravitee-policy-kafka-namespace.version>
     <gravitee-policy-offloading.version>1.1.0</gravitee-policy-offloading.version>
-    <gravitee-policy-token-ratelimit.version>1.1.0</gravitee-policy-token-ratelimit.version>
-    <gravitee-policy-cost-ratelimit.version>1.1.1</gravitee-policy-cost-ratelimit.version>
+    <gravitee-policy-token-ratelimit.version>1.1.3</gravitee-policy-token-ratelimit.version>
+    <gravitee-policy-cost-ratelimit.version>1.1.3</gravitee-policy-cost-ratelimit.version>
     <gravitee-policy-mcp-acl.version>2.0.0</gravitee-policy-mcp-acl.version>
     <gravitee-policy-pii-filtering.version>2.2.0</gravitee-policy-pii-filtering.version>
     <gravitee-policy-native-ipfiltering.version>1.0.1</gravitee-policy-native-ipfiltering.version>
