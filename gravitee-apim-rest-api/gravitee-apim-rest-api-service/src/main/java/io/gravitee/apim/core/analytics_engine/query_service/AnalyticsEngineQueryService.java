@@ -17,6 +17,8 @@ package io.gravitee.apim.core.analytics_engine.query_service;
 
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
+import io.gravitee.apim.core.analytics_engine.model.GroupedMeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.GroupedMeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
@@ -37,4 +39,14 @@ public interface AnalyticsEngineQueryService {
     FacetsResponse searchFacets(ExecutionContext context, FacetsRequest request);
 
     TimeSeriesResponse searchTimeSeries(ExecutionContext context, TimeSeriesRequest request);
+
+    /** Whether {@link #searchGroupedMeasures} is implemented for the metrics of this engine. */
+    default boolean supportsGroupedMeasures() {
+        return false;
+    }
+
+    /** The same measures computed once per group of documents, in a single request; see {@link GroupedMeasuresRequest}. */
+    default GroupedMeasuresResponse searchGroupedMeasures(ExecutionContext context, GroupedMeasuresRequest request) {
+        throw new UnsupportedOperationException(getClass().getSimpleName() + " does not compute measures per group");
+    }
 }

@@ -20,6 +20,8 @@ import static io.gravitee.apim.core.analytics_engine.model.MetricSpec.Name.HTTP_
 
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
+import io.gravitee.apim.core.analytics_engine.model.GroupedMeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.GroupedMeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec.Name;
@@ -79,6 +81,18 @@ public class HTTPDataPlaneAnalyticsQueryService implements AnalyticsEngineQueryS
     public MeasuresResponse searchMeasures(ExecutionContext context, MeasuresRequest request) {
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
         var result = analyticsRepository.searchHTTPMeasures(context.getQueryContext(), query);
+        return AnalyticsMeasuresAdapter.INSTANCE.fromResult(result);
+    }
+
+    @Override
+    public boolean supportsGroupedMeasures() {
+        return true;
+    }
+
+    @Override
+    public GroupedMeasuresResponse searchGroupedMeasures(ExecutionContext context, GroupedMeasuresRequest request) {
+        var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
+        var result = analyticsRepository.searchHTTPGroupedMeasures(context.getQueryContext(), query);
         return AnalyticsMeasuresAdapter.INSTANCE.fromResult(result);
     }
 

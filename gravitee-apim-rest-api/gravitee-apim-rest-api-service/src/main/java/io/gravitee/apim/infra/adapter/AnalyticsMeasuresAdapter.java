@@ -18,6 +18,8 @@ package io.gravitee.apim.infra.adapter;
 import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
+import io.gravitee.apim.core.analytics_engine.model.GroupedMeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.GroupedMeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.Measure;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
@@ -30,14 +32,17 @@ import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
+import io.gravitee.repository.analytics.engine.api.query.GroupedMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
 import io.gravitee.repository.analytics.engine.api.result.FacetsResult;
+import io.gravitee.repository.analytics.engine.api.result.GroupedMeasuresResult;
 import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
 import io.gravitee.repository.analytics.engine.api.result.MetricMeasuresResult;
 import io.gravitee.repository.analytics.engine.api.result.MetricTimeSeriesResult;
 import io.gravitee.repository.analytics.engine.api.result.TimeSeriesResult;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.mapstruct.Mapper;
@@ -72,6 +77,32 @@ public interface AnalyticsMeasuresAdapter {
 
     @Mapping(source = "name", target = "metric")
     MetricMeasuresQuery fromRequest(MetricMeasuresRequest request);
+
+    Filter fromRequest(io.gravitee.apim.core.analytics_engine.model.Filter filter);
+
+    io.gravitee.repository.analytics.engine.api.query.TimeRange fromRequest(
+        io.gravitee.apim.core.analytics_engine.model.TimeRange timeRange
+    );
+
+    default GroupedMeasuresQuery fromRequest(GroupedMeasuresRequest request) {
+        var groups = new LinkedHashMap<String, List<Filter>>();
+        request.groups().forEach((key, filters) -> groups.put(key, filters.stream().map(this::fromRequest).toList()));
+        return new GroupedMeasuresQuery(
+            fromRequest(request.timeRange()),
+            request.filters().stream().map(this::fromRequest).toList(),
+            request.metrics().stream().map(this::fromRequest).toList(),
+            groups
+        );
+    }
+
+    default GroupedMeasuresResponse fromResult(GroupedMeasuresResult result) {
+        if (result == null) {
+            return null;
+        }
+        var groups = new LinkedHashMap<String, MeasuresResponse>();
+        result.groups().forEach((key, measures) -> groups.put(key, fromResult(measures)));
+        return new GroupedMeasuresResponse(groups);
+    }
 
     default MeasuresResponse fromResult(MeasuresResult result) {
         if (result == null) {
