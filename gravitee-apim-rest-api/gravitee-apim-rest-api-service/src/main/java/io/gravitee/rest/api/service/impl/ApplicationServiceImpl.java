@@ -548,7 +548,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     cert.startsAt(),
                     cert.endsAt()
                 );
-                clientCertificateCrudService.create(application.getId(), validateAndEnrich(certToCreate, executionContext));
+                clientCertificateCrudService.create(application.getId(), validateAndEnrich(certToCreate, executionContext, null));
             }
 
             Application createdApplication = applicationRepository.create(application);
@@ -730,16 +730,19 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             .sorted(Comparator.comparing(ClientCertificate::createdAt))
             .toList();
 
-        // Build a map of existing certificates by their certificate content for matching
-        Map<String, ClientCertificate> existingByCertificate = existing
+        Map<String, ClientCertificate> existingByFingerprint = existing
             .stream()
-            .collect(Collectors.toMap(ClientCertificate::certificate, c -> c, (a, b) -> a));
+            .collect(Collectors.toMap(this::fingerprintOf, c -> c, (a, b) -> a));
 
-        Set<String> incomingCertificates = incoming.stream().map(CreateClientCertificate::certificate).collect(toSet());
+        Set<String> incomingFingerprints = incoming
+            .stream()
+            .map(cert -> fingerprint(cert.certificate()))
+            .collect(toSet());
 
-        // Create new certificates (incoming certificates not in existing) or update existing ones
+        // Create new certificates (incoming fingerprints not in existing) or update existing ones
         for (CreateClientCertificate incomingCert : incoming) {
-            ClientCertificate existingCert = existingByCertificate.get(incomingCert.certificate());
+            String incomingFingerprint = fingerprint(incomingCert.certificate());
+            ClientCertificate existingCert = existingByFingerprint.get(incomingFingerprint);
             if (existingCert == null) {
                 // Create new certificate
                 var certToCreate = new ClientCertificate(
@@ -748,7 +751,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     incomingCert.startsAt(),
                     incomingCert.endsAt()
                 );
-                clientCertificateCrudService.create(applicationId, validateAndEnrich(certToCreate, executionContext));
+                clientCertificateCrudService.create(applicationId, validateAndEnrich(certToCreate, executionContext, applicationId));
             } else if (hasChanges(incomingCert, existingCert)) {
                 // Update existing certificate only if there are changes (name, startsAt, endsAt)
                 clientCertificateCrudService.update(
@@ -760,7 +763,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
         // Delete certificates that are no longer in the incoming list
         for (ClientCertificate existingCert : existing) {
-            if (!incomingCertificates.contains(existingCert.certificate())) {
+            if (!incomingFingerprints.contains(fingerprintOf(existingCert))) {
                 clientCertificateCrudService.delete(existingCert.id());
             }
         }
@@ -768,8 +771,16 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         applicationCertificatesUpdateDomainService.updateActiveMTLSSubscriptions(applicationId);
     }
 
-    private ClientCertificate validateAndEnrich(ClientCertificate certToCreate, ExecutionContext executionContext) {
-        var certInfo = clientCertificateValidationDomainService.validateForCreation(certToCreate, executionContext.getEnvironmentId());
+    private ClientCertificate validateAndEnrich(
+        ClientCertificate certToCreate,
+        ExecutionContext executionContext,
+        String excludeApplicationId
+    ) {
+        var certInfo = clientCertificateValidationDomainService.validateForCreation(
+            certToCreate,
+            executionContext.getEnvironmentId(),
+            excludeApplicationId
+        );
         return new ClientCertificate(
             null,
             null,
@@ -795,6 +806,17 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             !Objects.equals(incoming.startsAt(), existing.startsAt()) ||
             !Objects.equals(incoming.endsAt(), existing.endsAt())
         );
+    }
+
+    private String fingerprint(String certificatePem) {
+        return clientCertificateValidationDomainService.validate(certificatePem).fingerprint();
+    }
+
+    private String fingerprintOf(ClientCertificate certificate) {
+        if (StringUtils.isNotBlank(certificate.fingerprint())) {
+            return certificate.fingerprint();
+        }
+        return fingerprint(certificate.certificate());
     }
 
     private void createAuditLog(

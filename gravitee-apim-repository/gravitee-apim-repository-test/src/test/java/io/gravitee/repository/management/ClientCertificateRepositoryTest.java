@@ -375,6 +375,13 @@ public class ClientCertificateRepositoryTest extends AbstractManagementRepositor
     }
 
     @Test
+    public void should_return_false_when_fingerprint_exists_only_on_excluded_application() throws Exception {
+        boolean exists = clientCertificateRepository.existsByFingerprintAndActiveApplication("ABC123", "env-1", "app-1");
+
+        assertThat(exists).isFalse();
+    }
+
+    @Test
     public void should_delete_by_application_id() throws Exception {
         // app-1 has 2 certificates: cert-1 and cert-2
         Page<ClientCertificate> beforeDelete = clientCertificateRepository.findByApplicationId(
