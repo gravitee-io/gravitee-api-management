@@ -133,6 +133,9 @@ data:
         {{- if $server.haproxy }}
         haproxy: {{ toYaml $server.haproxy | nindent 10 }}
         {{- end }}
+        {{- if $server.http2 }}
+        http2: {{ toYaml $server.http2 | nindent 10 }}
+        {{- end }}
     {{- end }}
     http:
       requestTimeout: {{ include "gateway.httpRequestTimeout" . }}
@@ -207,6 +210,9 @@ data:
         enabled: {{ .Values.gateway.websocket }}
       {{- if .Values.gateway.haproxy }}
       haproxy: {{ toYaml .Values.gateway.haproxy | nindent 8 }}
+      {{- end }}
+      {{- if .Values.gateway.http.http2 }}
+      http2: {{ toYaml .Values.gateway.http.http2 | nindent 8 }}
       {{- end }}
     {{- end }}
     {{- if hasKey .Values.gateway "kafka" }}

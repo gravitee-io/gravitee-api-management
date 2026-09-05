@@ -106,6 +106,17 @@ secrets:
 #  pathHandling: NORMALIZE
 #  secured: false
 #  alpn: false
+#  HTTP/2 flow control. A client may only send this many bytes of request body before waiting for the gateway to
+#  acknowledge them, so upload throughput is bounded by window size / round-trip time. The 65535 bytes protocol
+#  default throttles large uploads as soon as there is real network latency, where HTTP/1.1 is unaffected.
+#  Both are left at the protocol default unless set, and both have to be set: the initial settings the gateway sends
+#  reach streams only, never the connection, so raising streamWindowSize alone leaves the connection window at
+#  65535 bytes and it stays the bottleneck. Keep connectionWindowSize >= streamWindowSize.
+#  Raising them costs gateway memory per connection and per concurrent request respectively, so size them against
+#  the payloads you actually accept and the concurrency you expect, not against a single upload. Neither is capped.
+#  http2:
+#    streamWindowSize: 20971520 # per-request window, in bytes
+#    connectionWindowSize: 20971520 # per-connection window, in bytes
 #  ssl:
 #    clientAuth: none # Supports none, request, required
 #    Whether the configured truststore is sent to clients as the list of acceptable certificate authorities during

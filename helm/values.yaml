@@ -1440,6 +1440,19 @@ gateway:
     maxInitialLineLength: 4096
     maxFormAttributeSize: 2048
     alpn: "true"
+    # HTTP/2 flow-control windows, in bytes. A client may only send this many bytes of request
+    # body before waiting for the gateway to acknowledge them, so upload throughput is bounded
+    # by window size / round-trip time. The 65535 bytes protocol default throttles large uploads
+    # as soon as there is real network latency, where HTTP/1.1 is unaffected.
+    # Unset by default, which keeps the protocol default. Set both or neither: the initial
+    # settings the gateway sends reach streams only, never the connection, so raising
+    # streamWindowSize alone leaves the connection window at 65535 bytes and it stays the
+    # bottleneck. Keep connectionWindowSize >= streamWindowSize.
+    # Raising them costs gateway memory per connection and per concurrent request respectively,
+    # and neither is capped, so size them against the concurrency you expect.
+    # http2:
+    #   connectionWindowSize: 20971520
+    #   streamWindowSize: 20971520
     # How dot segments in the request path are treated, before the listener context path is
     # resolved and therefore before any plan is enforced. One value for the whole gateway:
     # it cannot be set per server or per API.
