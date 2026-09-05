@@ -16,57 +16,61 @@
 package io.gravitee.apim.infra.query_service.subscription_form;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.exception.TechnicalDomainException;
+import fixtures.core.model.PortalNavigationItemFixtures;
+import fixtures.core.model.PortalPageContentFixtures;
+import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.SubscriptionFormRepository;
-import io.gravitee.repository.management.model.SubscriptionForm;
-import java.util.Optional;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class SubscriptionFormQueryServiceImplTest {
 
-    @Mock
-    SubscriptionFormRepository repository;
+    private static final String ENV_ID = PortalNavigationItemFixtures.ENV_ID;
 
+    PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService;
+    PortalPageContentQueryServiceInMemory pageContentQueryService;
     SubscriptionFormQueryServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        service = new SubscriptionFormQueryServiceImpl(repository);
+        navigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory();
+        pageContentQueryService = new PortalPageContentQueryServiceInMemory();
+        service = new SubscriptionFormQueryServiceImpl(navigationItemsQueryService, pageContentQueryService);
     }
 
     @Nested
-    class FindByEnvironmentId {
+    class FindDefaultForEnvironmentId {
 
         @Test
-        void should_return_subscription_form_when_found() throws TechnicalException {
-            var repoForm = SubscriptionForm.builder()
-                .id("550e8400-e29b-41d4-a716-446655440000")
-                .environmentId("environment-id")
-                .gmdContent("<gmd-input name=\"company\" label=\"Company\" required=\"true\"/>")
-                .enabled(true)
+        void should_return_subscription_form_when_found() {
+            var contentId = PortalPageContentId.random();
+            var content = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
+                contentId,
+                "org-id",
+                ENV_ID,
+                "<gmd-input name=\"company\" label=\"Company\" required=\"true\"/>"
+            );
+            pageContentQueryService.initWith(List.of(content));
+            var navItem = PortalNavigationItemFixtures.aSubscriptionForm("00000000-0000-0000-0000-000000000030", contentId)
+                .toBuilder()
+                .published(true)
                 .build();
+            navigationItemsQueryService.storage().add(navItem);
 
-            when(repository.findByEnvironmentId("environment-id")).thenReturn(Optional.of(repoForm));
-
-            var result = service.findDefaultForEnvironmentId("environment-id");
+            var result = service.findDefaultForEnvironmentId(ENV_ID);
 
             assertThat(result).isPresent();
-            assertThat(result.get().getId().toString()).hasToString("550e8400-e29b-41d4-a716-446655440000");
-            assertThat(result.get().getEnvironmentId()).isEqualTo("environment-id");
+            assertThat(result.get().getId()).isEqualTo(SubscriptionFormId.of("00000000-0000-0000-0000-000000000030"));
+            assertThat(result.get().getEnvironmentId()).isEqualTo(ENV_ID);
             assertThat(result.get().getGmdContent()).isEqualTo(
                 GraviteeMarkdown.of("<gmd-input name=\"company\" label=\"Company\" required=\"true\"/>")
             );
@@ -74,22 +78,59 @@ class SubscriptionFormQueryServiceImplTest {
         }
 
         @Test
-        void should_return_empty_when_form_not_found() throws TechnicalException {
-            when(repository.findByEnvironmentId("environment-id")).thenReturn(Optional.empty());
-
-            var result = service.findDefaultForEnvironmentId("environment-id");
+        void should_return_empty_when_no_subscription_form_item_exists() {
+            var result = service.findDefaultForEnvironmentId(ENV_ID);
 
             assertThat(result).isEmpty();
         }
 
         @Test
-        void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
-            when(repository.findByEnvironmentId("environment-id")).thenThrow(new TechnicalException("Database error"));
+        void should_return_empty_for_a_different_environment() {
+            var contentId = PortalPageContentId.random();
+            pageContentQueryService.initWith(
+                List.of(PortalPageContentFixtures.aGraviteeMarkdownPageContent(contentId, "org-id", ENV_ID, "content"))
+            );
+            navigationItemsQueryService
+                .storage()
+                .add(PortalNavigationItemFixtures.aSubscriptionForm("00000000-0000-0000-0000-000000000031", contentId));
 
-            assertThatThrownBy(() -> service.findDefaultForEnvironmentId("environment-id"))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to find a SubscriptionForm for environment: environment-id")
-                .hasCauseInstanceOf(TechnicalException.class);
+            var result = service.findDefaultForEnvironmentId("other-env");
+
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    class FindByIdAndEnvironmentId {
+
+        @Test
+        void should_return_the_form_when_the_id_matches_the_default_item() {
+            var contentId = PortalPageContentId.random();
+            pageContentQueryService.initWith(
+                List.of(PortalPageContentFixtures.aGraviteeMarkdownPageContent(contentId, "org-id", ENV_ID, "content"))
+            );
+            navigationItemsQueryService
+                .storage()
+                .add(PortalNavigationItemFixtures.aSubscriptionForm("00000000-0000-0000-0000-000000000032", contentId));
+
+            var result = service.findByIdAndEnvironmentId(ENV_ID, SubscriptionFormId.of("00000000-0000-0000-0000-000000000032"));
+
+            assertThat(result).isPresent();
+        }
+
+        @Test
+        void should_return_empty_when_the_id_does_not_match() {
+            var contentId = PortalPageContentId.random();
+            pageContentQueryService.initWith(
+                List.of(PortalPageContentFixtures.aGraviteeMarkdownPageContent(contentId, "org-id", ENV_ID, "content"))
+            );
+            navigationItemsQueryService
+                .storage()
+                .add(PortalNavigationItemFixtures.aSubscriptionForm("00000000-0000-0000-0000-000000000033", contentId));
+
+            var result = service.findByIdAndEnvironmentId(ENV_ID, SubscriptionFormId.of("00000000-0000-0000-0000-000000000099"));
+
+            assertThat(result).isEmpty();
         }
     }
 }

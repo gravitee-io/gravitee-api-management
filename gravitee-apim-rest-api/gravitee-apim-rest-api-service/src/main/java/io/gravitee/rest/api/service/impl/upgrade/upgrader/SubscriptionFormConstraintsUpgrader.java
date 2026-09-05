@@ -20,7 +20,7 @@ import static io.gravitee.rest.api.service.impl.upgrade.upgrader.UpgraderOrder.S
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormConstraintsFactory;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSchemaGenerator;
-import io.gravitee.apim.infra.adapter.SubscriptionFormAdapter;
+import io.gravitee.apim.infra.adapter.PortalNavigationItemAdapter;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -70,7 +70,7 @@ public class SubscriptionFormConstraintsUpgrader implements Upgrader {
             try {
                 var schema = schemaGenerator.generate(GraviteeMarkdown.of(form.getGmdContent()));
                 var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
-                String json = SubscriptionFormAdapter.writeFieldConstraintsJson(constraints);
+                String json = PortalNavigationItemAdapter.writeFieldConstraintsJson(constraints);
                 form.setValidationConstraints(json);
                 subscriptionFormRepository.update(form);
                 updated++;
