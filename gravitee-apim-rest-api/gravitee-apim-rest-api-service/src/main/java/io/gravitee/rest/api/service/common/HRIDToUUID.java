@@ -202,6 +202,10 @@ public final class HRIDToUUID {
         public NavigationInApi api(String apiId) {
             return new NavigationInApi(organizationId, environmentId, apiId);
         }
+
+        public EnvironmentNavigationItemResult subscriptionFormDefault() {
+            return new EnvironmentNavigationItemResult(organizationId, environmentId, "subscription-form-default");
+        }
     }
 
     public record NavigationInPortal(String organizationId, String environmentId, String portalId) {
@@ -237,6 +241,16 @@ public final class HRIDToUUID {
     public record ApiNavigationItemResult(String organizationId, String environmentId, String apiId, String kind, String identifier) {
         public String id() {
             return UuidString.generateFrom(organizationId, environmentId, apiId, kind, identifier);
+        }
+    }
+
+    /**
+     * Scoped to the environment alone (no portal or API parent) — for navigation items that are a
+     * singleton per environment, such as the default subscription form.
+     */
+    public record EnvironmentNavigationItemResult(String organizationId, String environmentId, String kind) {
+        public String id() {
+            return UuidString.generateFrom(organizationId, environmentId, kind);
         }
     }
 

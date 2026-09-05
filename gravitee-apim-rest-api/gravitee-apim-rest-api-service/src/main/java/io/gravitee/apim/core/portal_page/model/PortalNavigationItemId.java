@@ -65,6 +65,14 @@ public class PortalNavigationItemId implements Comparable<PortalNavigationItemId
     }
 
     /**
+     * Identifies the one environment-default subscription-form item without needing a separate
+     * uniqueness query — there is exactly one per environment.
+     */
+    public static PortalNavigationItemId forSubscriptionFormDefault(AuditInfo auditInfo) {
+        return of(HRIDToUUID.navigation().context(auditInfo).subscriptionFormDefault().id());
+    }
+
+    /**
      * A link has no separate content object (unlike Documentation/Listing), so this id doubles as
      * both the nav item id and the automation resource's own id — the single source of truth shared
      * by {@code PortalLinkSyncDomainService} (materialize/dematerialize) and {@code GetPortalLinkUseCase}.

@@ -81,6 +81,24 @@ public class PortalNavigationItemsRepositoryFixtures {
             .build();
     }
 
+    public static PortalNavigationItem aSubscriptionForm(String id, String portalPageContentId) {
+        var configuration = String.format("{\"portalPageContentId\":\"%s\",\"validationConstraints\":{}}", portalPageContentId);
+        return PortalNavigationItem.builder()
+            .id(id)
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .title("Subscription Form")
+            .segment("subscription-form")
+            .type(Type.SUBSCRIPTION_FORM)
+            .area(Area.SUBSCRIPTION_FORM)
+            .order(0)
+            .rootId(id)
+            .configuration(configuration)
+            .published(true)
+            .visibility(Visibility.PUBLIC)
+            .build();
+    }
+
     public static PortalNavigationItem aLink(String id, String title, String url, String parentId) {
         return aLink(id, title, url, parentId, parentId == null ? id : parentId);
     }
