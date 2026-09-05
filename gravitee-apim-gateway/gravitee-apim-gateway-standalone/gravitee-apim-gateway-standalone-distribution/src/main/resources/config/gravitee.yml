@@ -235,16 +235,34 @@ secrets:
 #    brokerDomainPattern: "broker-{brokerId}-{apiHost}.{domain}"
 #    # Where:
 #    # {apiHost}         is a placeholder that will be replaced when the API is deployed, by the API Host Prefix.
-#    # {brokerId}        is a placeholder that stands for the broker id
+#    # {brokerId}        is a placeholder that stands for the broker id as advertised to clients. On an API
+#                        backed by a Kafka Virtual Cluster, broker ids are rewritten so they stay unique
+#                        across backends: (backend position + 1) * 10000 + real broker id. So a Virtual
+#                        Cluster over two backends advertises broker ids 10000.. and 20000..
+#    # {realBrokerId}    is a placeholder that stands for the broker id as configured on the backend,
+#                        without that rewriting.
+#    # {clusterIndex}    is a placeholder that stands for the backend's zero-based position in the
+#                        Virtual Cluster. Always 0 outside a Virtual Cluster.
 #    # {brokerPrefix}    is a placeholder for the 'brokerPrefix' property above
 #    # {domainSeparator} is a placeholder for the 'domainSeparator' property above
 #    # {domain}          is a placeholder for the domain being evaluated: the patterns are applied once per
+<<<<<<< HEAD:gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/src/main/resources/config/gravitee.yml
 #    #                   entry of `domains`, or once to `defaultDomain` when `domains` is not set.
 #    #                   Writing a domain literally here instead of using {domain} makes every entry resolve
 #    #                   to that same hostname, leaving the other domains unroutable. The gateway logs a
 #    #                   warning when it detects it. `{defaultDomain}` is still accepted as a deprecated
 #    #                   alias of `{domain}`.
 #    # The built-in defaults, used when both patterns are left unset, are "{apiHost}.{defaultDomain}" and
+=======
+#                        entry of `domains`, or once to `defaultDomain` when `domains` is not set.
+#                        An entry that itself contains {apiHost} becomes the bootstrap pattern, and both
+#                        patterns configured here are then ignored.
+#                        Writing a domain literally here instead of using {domain} makes every entry resolve
+#                        to that same hostname, leaving the other domains unroutable. The gateway logs a
+#                        warning when it detects it. `{defaultDomain}` is still accepted as a deprecated
+#                        alias of `{domain}`.
+#    # The built-in defaults, used for whichever pattern is left unset, are "{apiHost}.{defaultDomain}" and
+>>>>>>> af2c136 (docs(gateway): document the Kafka Virtual Cluster broker domain pattern):gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/src/main/resources/config/gravitee.yml
 #    # "{brokerPrefix}{brokerId}{domainSeparator}{apiHost}.{defaultDomain}".
 #
 #    # It can be overridden to fit your DNS configuration.
@@ -259,6 +277,22 @@ secrets:
 #    #      myapi-broker0.mycompany.org        myapi-broker0.mycompany.com
 #    #      myapi-broker1.mycompany.org        myapi-broker1.mycompany.com
 #    #      ...
+#
+#    # Broker domain pattern applied to APIs backed by a Kafka Virtual Cluster only. Optional:
+#    # when unset, Virtual Clusters follow 'brokerDomainPattern' like every other API.
+#    # Setting it separately means adopting a Virtual Cluster does not move the domains of the
+#    # plain Kafka APIs already served by this gateway.
+#    # Example, keeping brokers numbered as they are on their backend:
+#    #   brokerDomainPattern: broker{brokerId}-{apiHost}.mycompany.org
+#    #   virtualClusterBrokerDomainPattern: broker{realBrokerId}-c{clusterIndex}-{apiHost}.mycompany.org
+#    #
+#    #   Broker 3 of the second backend is then reached at broker3-c1-mymesh.mycompany.org,
+#    #   while a plain API keeps broker3-myapi.mycompany.org.
+#    #
+#    # A Virtual Cluster domain must tell the backends apart, through either {brokerId} (which
+#    # encodes the backend) or {clusterIndex}. Built from {realBrokerId} alone, broker 3 of every
+#    # backend would collide on the same domain.
+#    virtualClusterBrokerDomainPattern: broker{realBrokerId}-c{clusterIndex}-{apiHost}.mycompany.org
 #
 #  # Kafka probe
 #  probe:
