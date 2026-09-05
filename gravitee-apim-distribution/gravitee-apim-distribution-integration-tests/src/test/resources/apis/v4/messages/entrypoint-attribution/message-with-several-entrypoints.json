@@ -1,0 +1,64 @@
+{
+    "id": "entrypoint-attribution-message",
+    "name": "entrypoint-attribution-message",
+    "apiVersion": "1.0",
+    "definitionVersion": "4.0.0",
+    "type": "message",
+    "description": "Message API exposing several entrypoints, to check which one a refused request is attributed to",
+    "listeners": [
+        {
+            "type": "http",
+            "paths": [
+                {
+                    "path": "/entrypoint-attribution-message"
+                }
+            ],
+            "entrypoints": [
+                {
+                    "type": "http-get",
+                    "configuration": {
+                        "messagesLimitCount": 12,
+                        "messagesLimitDurationMs": 500,
+                        "headersInPayload": true,
+                        "metadataInPayload": true
+                    }
+                },
+                {
+                    "type": "http-post",
+                    "configuration": {
+                        "requestHeadersToMessage": true
+                    }
+                },
+                {
+                    "type": "sse"
+                },
+                {
+                    "type": "websocket"
+                }
+            ]
+        }
+    ],
+    "endpointGroups": [
+        {
+            "name": "default",
+            "type": "mock",
+            "endpoints": [
+                {
+                    "name": "default-endpoint",
+                    "type": "mock",
+                    "weight": 1,
+                    "inheritConfiguration": false,
+                    "configuration": {
+                        "messageInterval": 1,
+                        "messageContent": "Mock data",
+                        "messageCount": 15
+                    }
+                }
+            ]
+        }
+    ],
+    "flows": [],
+    "analytics": {
+        "enabled": true
+    }
+}

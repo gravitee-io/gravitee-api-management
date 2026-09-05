@@ -628,6 +628,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.graviteesource.entrypoint</groupId>
+            <artifactId>gravitee-entrypoint-mcp-tool-server</artifactId>
+            <version>${gravitee-entrypoint-mcp-tool-server.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.graviteesource.connector</groupId>
             <artifactId>gravitee-entrypoint-native-kafka</artifactId>
             <version>${gravitee-reactor-native-kafka.version}</version>

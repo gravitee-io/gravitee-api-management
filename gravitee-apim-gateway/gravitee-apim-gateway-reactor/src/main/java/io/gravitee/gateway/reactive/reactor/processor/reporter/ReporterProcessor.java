@@ -15,13 +15,17 @@
  */
 package io.gravitee.gateway.reactive.reactor.processor.reporter;
 
+import static io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR_RESOLVER;
+
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.connector.Connector;
+import io.gravitee.gateway.reactive.api.connector.entrypoint.BaseEntrypointConnector;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
+import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.reporter.api.common.Request;
@@ -117,10 +121,33 @@ public class ReporterProcessor implements Processor {
             .onErrorComplete();
     }
 
+    /**
+     * The connector that handled the request wins. A request refused before one was selected (plan 401/403, CORS
+     * preflight, request validation, timeout or client abort during the security chain) is attributed to the
+     * entrypoint it was addressed to, resolved now with the rules accepted traffic goes through. The connector
+     * attribute itself stays untouched: setting it means "this connector handled the request", and readers act on
+     * that (endpoint resolution, the connector's own response handling).
+     */
     private static void setEntrypointId(HttpExecutionContextInternal ctx, Metrics metrics) {
         final Connector connector = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
         if (connector != null) {
             metrics.setEntrypointId(connector.id());
+            return;
+        }
+        final DefaultEntrypointConnectorResolver resolver = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR_RESOLVER);
+        if (resolver == null) {
+            return;
+        }
+        try {
+            final BaseEntrypointConnector<HttpExecutionContextInternal> addressed = resolver.resolve(ctx);
+            if (addressed != null) {
+                metrics.setEntrypointId(addressed.id());
+            }
+        } catch (Exception e) {
+            // Connector matching is plugin code; a failure here must not cost the whole report.
+            ctx
+                .withLogger(log)
+                .warn("Unable to attribute request [{}] of api [{}] to an entrypoint", metrics.getRequestId(), metrics.getApiId(), e);
         }
     }
 

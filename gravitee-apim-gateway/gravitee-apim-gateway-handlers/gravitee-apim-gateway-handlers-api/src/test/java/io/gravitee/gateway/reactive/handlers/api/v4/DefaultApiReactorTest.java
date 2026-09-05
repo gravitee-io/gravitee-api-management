@@ -21,6 +21,7 @@ import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_INVOKER_SKIP;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_VALIDATE_SUBSCRIPTION;
+import static io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR_RESOLVER;
 import static io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactor.PENDING_REQUESTS_TIMEOUT_PROPERTY;
 import static io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactor.REQUEST_TIMEOUT_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -459,6 +460,27 @@ class DefaultApiReactorTest {
         verify(ctx).setAttribute(ContextAttributes.ATTR_API, API_ID);
         verify(ctx).setAttribute(ContextAttributes.ATTR_ORGANIZATION, ORGANIZATION_ID);
         verify(ctx).setAttribute(ContextAttributes.ATTR_ENVIRONMENT, ENVIRONMENT_ID);
+    }
+
+    @Test
+    void shouldPublishEntrypointResolverWithContextAttributes() {
+        cut.handle(ctx).test().assertComplete();
+
+        InOrder inOrder = inOrder(ctx);
+        inOrder.verify(ctx).setAttribute(ContextAttributes.ATTR_CONTEXT_PATH, CONTEXT_PATH);
+        inOrder.verify(ctx).setInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR_RESOLVER, entrypointConnectorResolver);
+    }
+
+    @Test
+    void shouldPublishEntrypointResolverWithoutResolvingWhenSecurityChainRefusesTheRequest() {
+        // The reporter attributes the refused request through the published resolver; the reactor itself still
+        // resolves the entrypoint only after the security chain, so 401 keeps precedence over 404.
+        when(securityChain.execute(ctx)).thenReturn(spyInterruptionFailureException);
+
+        cut.handle(ctx).test().assertComplete();
+
+        verify(ctx).setInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR_RESOLVER, entrypointConnectorResolver);
+        verify(entrypointConnectorResolver, never()).resolve(any());
     }
 
     private static LogEntry<?> requestMethodLogEntry;
