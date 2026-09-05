@@ -27,6 +27,12 @@ public class VertxDebugHttpClientConfiguration {
     public static final int MAX_CONNECTION_TIMEOUT = 5000;
     public static final int MAX_REQUEST_TIMEOUT = 30000;
 
+    /**
+     * Extra time granted, on top of the connect and request timeouts, to the whole debug sequence:
+     * updating the event, sending the request and reading back the response body.
+     */
+    public static final int GLOBAL_TIMEOUT_MARGIN = 5000;
+
     private boolean compressionSupported;
 
     private boolean alpn;
@@ -38,6 +44,8 @@ public class VertxDebugHttpClientConfiguration {
     private int connectTimeout;
 
     private int requestTimeout;
+
+    private int globalTimeout;
 
     private int port;
 
@@ -81,5 +89,18 @@ public class VertxDebugHttpClientConfiguration {
 
     public void setRequestTimeout(int requestTimeout) {
         this.requestTimeout = requestTimeout;
+    }
+
+    /**
+     * Upper bound for a whole debug run, after which the deployed handler is torn down. Defaults to
+     * the sum of the connect and request timeouts plus a margin, so it can only fire once the
+     * per-request timeouts had their chance.
+     */
+    public int getGlobalTimeout() {
+        return globalTimeout > 0 ? globalTimeout : getConnectTimeout() + getRequestTimeout() + GLOBAL_TIMEOUT_MARGIN;
+    }
+
+    public void setGlobalTimeout(int globalTimeout) {
+        this.globalTimeout = globalTimeout;
     }
 }

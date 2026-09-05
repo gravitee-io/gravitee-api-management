@@ -51,6 +51,7 @@ public class VertxDebugConfiguration {
             .alpn(options.isAlpn())
             .connectTimeout(environment.getProperty("debug.timeout.connect", Integer.class, 5000))
             .requestTimeout(environment.getProperty("debug.timeout.request", Integer.class, 30000))
+            .globalTimeout(environment.getProperty("debug.timeout.global", Integer.class, 0))
             .build();
     }
 
