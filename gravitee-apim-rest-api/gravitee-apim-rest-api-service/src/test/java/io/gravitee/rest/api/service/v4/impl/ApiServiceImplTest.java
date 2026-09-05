@@ -115,6 +115,7 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.v4.api.properties.PropertyEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.AlertService;
 import io.gravitee.rest.api.service.ApiMetadataService;
@@ -1015,6 +1016,25 @@ public class ApiServiceImplTest {
             ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
             verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
         });
+    }
+
+    @Test
+    public void shouldNotUpdate_EncryptedPropertyBecomesPlain() throws TechnicalException, JsonProcessingException {
+        prepareUpdate();
+
+        io.gravitee.definition.model.v4.Api apiDefinition = new io.gravitee.definition.model.v4.Api();
+        apiDefinition.setId(API_ID);
+        apiDefinition.setName(API_NAME);
+        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().path("/context").build())).build();
+        apiDefinition.setListeners(singletonList(httpListener));
+        apiDefinition.setProperties(List.of(new Property("secret-key", "encrypted-value", true)));
+        api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
+
+        updateApiEntity.setProperties(List.of(new PropertyEntity("secret-key", "plain-value", false, false)));
+
+        assertThrows(InvalidDataException.class, () ->
+            apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME)
+        );
     }
 
     @Test
