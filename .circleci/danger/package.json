@@ -4,6 +4,6 @@
         "danger": "danger ci"
     },
     "devDependencies": {
-        "danger": "12.3.4"
+        "danger": "13.0.8"
     }
 }
