@@ -20,7 +20,7 @@ import io.gravitee.apim.core.analytics_engine.use_case.ResolveFilterLabelsUseCas
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
+import io.gravitee.gamma.rest.core.observability.filter.exception.FilterCatalogDriftException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterValue;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterValuesPage;
@@ -106,10 +106,10 @@ public class ObservabilityFilterDataPortAdapter implements ObservabilityFilterDa
                 ? valuesPage.totalFilteredCount()
                 : (long) (page - 1) * perPage + data.size();
             return new FilterValuesPage(data, total);
-        } catch (ValidationDomainException e) {
-            // The platform analytics catalog doesn't list values for this filter yet (unknown name or
-            // unsupported type on its side) — surface a coherent "not supported" 400 for the caller.
-            throw UnsupportedObservabilityFilterException.valueListingNotSupported(filterName, "KEYWORD");
+        } catch (ValidationDomainException | UnsupportedOperationException e) {
+            // Page bounds and unlistable filters are refused by the use case before this call, so what the
+            // platform rejects here is a filter its catalog or its store does not know: drift, not caller input.
+            throw new FilterCatalogDriftException(filterName, e);
         }
     }
 

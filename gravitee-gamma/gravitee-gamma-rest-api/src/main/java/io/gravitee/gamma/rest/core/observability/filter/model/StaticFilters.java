@@ -112,7 +112,8 @@ public enum StaticFilters {
     CONSUMER_IP("Consumer IP", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     HTTP_USER_AGENT_OS_NAME("User Agent OS", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     HTTP_USER_AGENT_DEVICE("User Agent Device", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
-    ERROR_KEY("Error Key", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP_A2A_NATIVE),
+    // The analytics engine has no error-key dimension; the platform catalog serves it for logs only.
+    ERROR_KEY("Error Key", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A_NATIVE),
     REQUEST_ID("Request ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.REQUEST_BEARING_KINDS),
     TRANSACTION_ID("Transaction ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A_NATIVE),
     PAYLOAD("Payload content", FilterType.STRING, Defs.CONTAINS_ONLY, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A),
@@ -236,7 +237,8 @@ public enum StaticFilters {
      * is unbounded, and the set of Kafka protocol operations grows with the protocol. Neither is
      * resolvable from the management database, so the filter bar offers no value suggestions for
      * them until a value lookup over the event-metrics index is wired in; faceting (Top topics, Top
-     * operations) works regardless.
+     * operations) works regardless. The values endpoint answers 400 for both; see
+     * {@link #withoutValueListing()}.
      */
     NATIVE_TOPIC("Kafka Topic", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.NATIVE)),
     NATIVE_OPERATION("Kafka Operation", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.NATIVE)),
@@ -280,6 +282,13 @@ public enum StaticFilters {
 
     public FilterSpec toSpec() {
         return new FilterSpec(name(), label, type, operators, enumValues, range, signals, apiTypes);
+    }
+
+    /** KEYWORD filters whose store holds no value pool to list: the values endpoint refuses them with a 400. */
+    private static final Set<String> WITHOUT_VALUE_LISTING = Set.of(NATIVE_TOPIC.name(), NATIVE_OPERATION.name());
+
+    public static Set<String> withoutValueListing() {
+        return WITHOUT_VALUE_LISTING;
     }
 
     /**

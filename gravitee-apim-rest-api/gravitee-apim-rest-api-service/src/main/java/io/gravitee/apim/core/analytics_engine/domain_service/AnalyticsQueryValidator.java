@@ -153,8 +153,9 @@ public class AnalyticsQueryValidator {
      * from a list kept in step with it by hand.
      *
      * <p>A name the catalog does not describe at all is accepted, as it was before the axis existed: the
-     * catalog omits several names the engines still know ({@code URI}, {@code ENTRYPOINT}, the edge ones), and
-     * rejecting those here would be a behaviour change rather than a refactor.
+     * catalog omits a few names the engines still know ({@code MESSAGE_CONNECTOR_ID} and the edge dimensions, pinned by
+     * AnalyticsDefinitionYAMLQueryServiceTest for their owners to decide), and rejecting those here would be a
+     * behaviour change rather than a refactor.
      */
     private boolean supportsAnalytics(FilterSpec.Name name) {
         return definition

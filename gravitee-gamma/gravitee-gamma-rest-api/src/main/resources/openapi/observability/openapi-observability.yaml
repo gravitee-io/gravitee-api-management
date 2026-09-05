@@ -182,8 +182,10 @@ paths:
             description: |
                 Paginated selectable values for one filter. ENUM filters return their static labelled
                 values (optionally filtered by a case-insensitive substring `query`). KEYWORD filters
-                return distinct values from the data store. NUMBER and STRING filters have no
-                enumerable values and return 400.
+                return distinct values from the data store, except `NATIVE_TOPIC` and `NATIVE_OPERATION`,
+                whose values live in a stream the store does not aggregate over and which return 400.
+                NUMBER and STRING filters have no enumerable values and return 400. `page` is capped at
+                10000; a larger page returns 400.
             operationId: getObservabilityFilterValues
             parameters:
                 - name: filterName

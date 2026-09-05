@@ -22,6 +22,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterValue;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterValuesPage;
+import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.ObservabilityFilterDataPort;
 import java.util.List;
@@ -39,15 +40,16 @@ import lombok.AllArgsConstructor;
  *   <li><b>{@code KEYWORD}</b> — distinct values from the data store via
  *       {@link ObservabilityFilterDataPort} (id-based listing for
  *       {@code API}/{@code APPLICATION}/{@code PLAN}/{@code API_PRODUCT}, direct values otherwise).
- *       The port surfaces {@link UnsupportedObservabilityFilterException#valueListingNotSupported}
- *       for filters the backing store cannot list yet.</li>
+ *       Filters the catalog marks as having no value pool ({@link StaticFilters#withoutValueListing()})
+ *       answer {@link UnsupportedObservabilityFilterException#valueListingNotSupported} before the port
+ *       is called.</li>
  *   <li><b>{@code NUMBER} / {@code STRING} / {@code BOOLEAN}</b> — no enumerable value pool, so
  *       value listing is unsupported (HTTP 400).</li>
  * </ul>
  *
  * <p>An unknown {@code filterName} yields {@link ObservabilityFilterNotFoundException} → HTTP 404
  * (the filter is addressed via the URL path). Pagination is <b>1-based</b>; {@code perPage} is
- * clamped to {@value #MAX_PER_PAGE}.
+ * clamped to {@value #MAX_PER_PAGE} and a {@code page} above {@value #MAX_PAGE} is refused (HTTP 400).
  *
  * @author GraviteeSource Team
  */
@@ -59,6 +61,9 @@ public class GetObservabilityFilterValuesUseCase {
 
     /** Hard cap matching apim's values endpoint — keeps the slice (and future ES round-trips) bounded. */
     private static final int MAX_PER_PAGE = 100;
+
+    /** Same ceiling as the platform values use case, checked here so the port never sees it. */
+    private static final int MAX_PAGE = 10_000;
 
     private final FilterRegistry filterRegistry;
     private final ObservabilityFilterDataPort filterDataPort;
@@ -78,7 +83,7 @@ public class GetObservabilityFilterValuesUseCase {
         int perPage = resolvePerPage(input);
         FilterValuesPage values = switch (spec.type()) {
             case ENUM -> handleEnum(spec, input, apiTypes, page, perPage);
-            case KEYWORD -> filterDataPort.listKeywordValues(spec.name(), input.query(), input.from(), input.to(), page, perPage, apiTypes);
+            case KEYWORD -> listKeywordValues(spec, input, apiTypes, page, perPage);
             case NUMBER, STRING, BOOLEAN -> throw UnsupportedObservabilityFilterException.valueListingNotSupported(
                 spec.name(),
                 spec.type().name()
@@ -88,11 +93,21 @@ public class GetObservabilityFilterValuesUseCase {
     }
 
     private static int resolvePage(Input input) {
+        if (input.page() != null && input.page() > MAX_PAGE) {
+            throw UnsupportedObservabilityFilterException.valuesPageOutOfRange(input.page(), MAX_PAGE);
+        }
         return (input.page() != null && input.page() > 0) ? input.page() : 1;
     }
 
     private static int resolvePerPage(Input input) {
         return (input.perPage() != null && input.perPage() > 0) ? Math.min(input.perPage(), MAX_PER_PAGE) : DEFAULT_PER_PAGE;
+    }
+
+    private FilterValuesPage listKeywordValues(FilterSpec spec, Input input, Set<ApiType> apiTypes, int page, int perPage) {
+        if (StaticFilters.withoutValueListing().contains(spec.name())) {
+            throw UnsupportedObservabilityFilterException.valueListingNotSupported(spec.name(), spec.type().name());
+        }
+        return filterDataPort.listKeywordValues(spec.name(), input.query(), input.from(), input.to(), page, perPage, apiTypes);
     }
 
     private FilterSpec lookupFilter(String filterName, Set<ApiType> apiTypes) {

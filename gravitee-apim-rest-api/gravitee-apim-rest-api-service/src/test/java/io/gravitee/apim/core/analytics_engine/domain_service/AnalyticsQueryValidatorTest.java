@@ -219,10 +219,10 @@ class AnalyticsQueryValidatorTest {
 
         @Test
         void should_keep_accepting_names_the_catalog_does_not_describe() {
-            // URI, ENTRYPOINT and the edge filters are known to the engines but absent from the catalog.
-            // Deriving from the catalog must not start rejecting them.
-            assertThat(accepts(FilterSpec.Name.URI)).isTrue();
-            assertThat(accepts(FilterSpec.Name.ENTRYPOINT)).isTrue();
+            // MESSAGE_CONNECTOR_ID and the edge dimensions are known to the engines but absent from the catalog
+            // (pinned by AnalyticsDefinitionYAMLQueryServiceTest). Deriving from the catalog must not start
+            // rejecting them.
+            assertThat(accepts(FilterSpec.Name.MESSAGE_CONNECTOR_ID)).isTrue();
             assertThat(accepts(FilterSpec.Name.EDGE_VERSION)).isTrue();
         }
 
