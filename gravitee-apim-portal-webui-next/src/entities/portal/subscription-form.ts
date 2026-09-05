@@ -15,11 +15,21 @@
  */
 
 /**
- * Subscription form from Portal API.
- * Returned only when the form exists and is enabled (404 otherwise).
- * Portal does not expose id or enabled flag to consumers.
+ * Subscription form, composed client-side from the generic portal navigation item content
+ * endpoint (gmdContent) and the API-scoped subscription-form endpoint (resolvedOptions). See
+ * `PortalService.getSubscriptionForm`. Portal does not expose id or enabled flag to consumers.
  */
 export interface SubscriptionForm {
   gmdContent: string;
+  resolvedOptions?: Record<string, string[]>;
+}
+
+/**
+ * Response of `GET /apis/{apiId}/subscription-form`: the subscription form's resolved dynamic
+ * options for a specific API, and the visibility check for that API. Content is fetched
+ * separately via the generic portal navigation item content endpoint.
+ * Returned only when the form exists, is enabled, and the API is visible (404 otherwise).
+ */
+export interface ResolvedSubscriptionFormOptions {
   resolvedOptions?: Record<string, string[]>;
 }
