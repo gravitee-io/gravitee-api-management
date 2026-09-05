@@ -13,23 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    Alert,
-    AlertDescription,
-    AlertTitle,
-    Button,
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-    Field,
-    FieldLabel,
-    Input,
-    Separator,
-    Spinner,
-    cn,
-} from '@gravitee/graphene-core';
+import { Alert, AlertDescription, AlertTitle, Button, Field, FieldLabel, Input, Separator, Spinner } from '@gravitee/graphene-core';
 import { useEffect, useState, type SubmitEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -38,6 +22,7 @@ import { useIdentityProviders, useLocalLoginEnabled, useLogin } from '../auth.se
 import { useAuthStore } from '../auth.store';
 import type { SocialIdentityProvider } from '../auth.types';
 import { getProviderTextColor } from '../idp.utils';
+import { AuthPageShell } from './AuthPageShell';
 import { IdpIcon } from './IdpIcons';
 
 const NO_LOGIN_METHOD_MESSAGE = 'No login method available. Please contact your administrator.';
@@ -100,83 +85,75 @@ export function LoginPage() {
     const description = loginCardDescription(noLoginMethod, localLoginEnabled);
 
     return (
-        <div className={cn('flex min-h-screen flex-col items-center justify-center p-4', 'font-sans text-foreground')}>
-            <Card className="w-full max-w-md shadow-md">
-                <CardHeader className="space-y-1 text-center">
-                    <CardTitle className="text-2xl">Sign in</CardTitle>
-                    <CardDescription>{description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {displayError ? (
-                        <Alert variant="destructive" role="alert" className="mb-4">
-                            <AlertTitle>{error ? 'Could not sign in' : 'Sign-in unavailable'}</AlertTitle>
-                            <AlertDescription>{displayError}</AlertDescription>
-                        </Alert>
-                    ) : null}
+        <AuthPageShell title="Sign in" description={description}>
+            {displayError ? (
+                <Alert variant="destructive" role="alert" className="mb-4">
+                    <AlertTitle>{error ? 'Could not sign in' : 'Sign-in unavailable'}</AlertTitle>
+                    <AlertDescription>{displayError}</AlertDescription>
+                </Alert>
+            ) : null}
 
-                    {localLoginEnabled ? (
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <Field orientation="vertical" className="gap-2">
-                                <FieldLabel htmlFor="login-username">Username</FieldLabel>
-                                <Input
-                                    id="login-username"
-                                    name="username"
-                                    type="text"
-                                    value={username}
-                                    onChange={e => setUsername(e.target.value)}
-                                    required
-                                    autoComplete="username"
-                                    placeholder="Enter your username"
-                                    // eslint-disable-next-line jsx-a11y/no-autofocus
-                                    autoFocus
-                                />
-                            </Field>
+            {localLoginEnabled ? (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <Field orientation="vertical" className="gap-2">
+                        <FieldLabel htmlFor="login-username">Username</FieldLabel>
+                        <Input
+                            id="login-username"
+                            name="username"
+                            type="text"
+                            value={username}
+                            onChange={e => setUsername(e.target.value)}
+                            required
+                            autoComplete="username"
+                            placeholder="Enter your username"
+                            // eslint-disable-next-line jsx-a11y/no-autofocus
+                            autoFocus
+                        />
+                    </Field>
 
-                            <Field orientation="vertical" className="gap-2">
-                                <FieldLabel htmlFor="login-password">Password</FieldLabel>
-                                <Input
-                                    id="login-password"
-                                    name="password"
-                                    type="password"
-                                    value={password}
-                                    onChange={e => setPassword(e.target.value)}
-                                    required
-                                    autoComplete="current-password"
-                                    placeholder="Enter your password"
-                                />
-                            </Field>
+                    <Field orientation="vertical" className="gap-2">
+                        <FieldLabel htmlFor="login-password">Password</FieldLabel>
+                        <Input
+                            id="login-password"
+                            name="password"
+                            type="password"
+                            value={password}
+                            onChange={e => setPassword(e.target.value)}
+                            required
+                            autoComplete="current-password"
+                            placeholder="Enter your password"
+                        />
+                    </Field>
 
-                            <Button type="submit" className="w-full" size="lg" disabled={!canSubmit}>
-                                {loading ? (
-                                    <span className="inline-flex items-center justify-center gap-2">
-                                        <Spinner className="size-4 shrink-0" aria-hidden />
-                                        Signing in…
-                                    </span>
-                                ) : (
-                                    'Sign in'
-                                )}
-                            </Button>
-                        </form>
-                    ) : null}
+                    <Button type="submit" className="w-full" size="lg" disabled={!canSubmit}>
+                        {loading ? (
+                            <span className="inline-flex items-center justify-center gap-2">
+                                <Spinner className="size-4 shrink-0" aria-hidden />
+                                Signing in…
+                            </span>
+                        ) : (
+                            'Sign in'
+                        )}
+                    </Button>
+                </form>
+            ) : null}
 
-                    {localLoginEnabled && identityProviders.length > 0 ? (
-                        <div className="my-4 flex items-center gap-3">
-                            <Separator className="flex-1" />
-                            <span className="text-muted-foreground text-sm">or</span>
-                            <Separator className="flex-1" />
-                        </div>
-                    ) : null}
+            {localLoginEnabled && identityProviders.length > 0 ? (
+                <div className="my-4 flex items-center gap-3">
+                    <Separator className="flex-1" />
+                    <span className="text-muted-foreground text-sm">or</span>
+                    <Separator className="flex-1" />
+                </div>
+            ) : null}
 
-                    {identityProviders.length > 0 ? (
-                        <div className="flex flex-col gap-3">
-                            {identityProviders.map(provider => (
-                                <IdpButton key={provider.id} provider={provider} onClick={() => handleIdpLogin(provider.id)} />
-                            ))}
-                        </div>
-                    ) : null}
-                </CardContent>
-            </Card>
-        </div>
+            {identityProviders.length > 0 ? (
+                <div className="flex flex-col gap-3">
+                    {identityProviders.map(provider => (
+                        <IdpButton key={provider.id} provider={provider} onClick={() => handleIdpLogin(provider.id)} />
+                    ))}
+                </div>
+            ) : null}
+        </AuthPageShell>
     );
 }
 

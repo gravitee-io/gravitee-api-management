@@ -13,29 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    Alert,
-    AlertDescription,
-    AlertTitle,
-    Button,
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-    Field,
-    FieldLabel,
-    Input,
-    Spinner,
-    cn,
-} from '@gravitee/graphene-core';
+import { Alert, AlertDescription, AlertTitle, Button, Field, FieldLabel, Input, Spinner } from '@gravitee/graphene-core';
 import { useMemo, useState, type SubmitEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
+import { AuthPageShell } from './AuthPageShell';
 import { PasswordRequirements, isPasswordPolicySatisfied } from '../../../shared/password-policy';
 import { usePasswordPolicy } from '../hooks/usePasswordPolicy';
 import { finalizeResetPassword } from '../services/resetPassword.service';
-import { isResetPasswordTokenExpired, parseResetPasswordToken } from '../utils/resetPasswordToken';
+import { isAuthTokenExpired, parseAuthToken } from '../utils/authToken';
 
 function passwordsMatch(password: string, confirmPassword: string): boolean {
     return password.length > 0 && password === confirmPassword;
@@ -43,7 +29,7 @@ function passwordsMatch(password: string, confirmPassword: string): boolean {
 
 export function ResetPasswordPage() {
     const { token = '' } = useParams<{ token: string }>();
-    const tokenClaims = useMemo(() => parseResetPasswordToken(token), [token]);
+    const tokenClaims = useMemo(() => parseAuthToken(token), [token]);
     const tokenError = useMemo(() => {
         if (!token) {
             return 'Invalid password reset token!';
@@ -51,7 +37,7 @@ export function ResetPasswordPage() {
         if (!tokenClaims) {
             return 'Invalid password reset token!';
         }
-        if (isResetPasswordTokenExpired(tokenClaims)) {
+        if (isAuthTokenExpired(tokenClaims)) {
             return 'Your password reset token has expired!';
         }
         if (!tokenClaims.sub) {
@@ -116,109 +102,105 @@ export function ResetPasswordPage() {
     }
 
     return (
-        <div className={cn('flex min-h-screen flex-col items-center justify-center p-4', 'font-sans text-foreground')}>
-            <Card className="w-full max-w-md shadow-md">
-                <CardHeader className="space-y-1 text-center">
-                    <CardTitle className="text-2xl">Reset password</CardTitle>
-                    <CardDescription>to access Gravitee Gamma</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {tokenError ? (
+        <AuthPageShell
+            title="Reset password"
+            description="to access Gravitee Gamma"
+            footer={
+                <>
+                    Go to{' '}
+                    <Link to="/login" className="text-primary underline-offset-4 hover:underline">
+                        Sign in
+                    </Link>
+                </>
+            }
+        >
+            {tokenError ? (
+                <Alert variant="destructive" role="alert">
+                    <AlertTitle>Could not reset password</AlertTitle>
+                    <AlertDescription>{tokenError}</AlertDescription>
+                </Alert>
+            ) : null}
+
+            {success ? (
+                <Alert role="status">
+                    <AlertTitle>Password successfully reset</AlertTitle>
+                    <AlertDescription>You can now sign in with your new password.</AlertDescription>
+                </Alert>
+            ) : null}
+
+            {!tokenError && !success ? (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    {passwordPolicyError ? (
                         <Alert variant="destructive" role="alert">
-                            <AlertTitle>Could not reset password</AlertTitle>
-                            <AlertDescription>{tokenError}</AlertDescription>
+                            <AlertTitle>Could not load password requirements</AlertTitle>
+                            <AlertDescription>{passwordPolicyError}</AlertDescription>
                         </Alert>
                     ) : null}
 
-                    {success ? (
-                        <Alert role="status">
-                            <AlertTitle>Password successfully reset</AlertTitle>
-                            <AlertDescription>You can now sign in with your new password.</AlertDescription>
+                    {error ? (
+                        <Alert variant="destructive" role="alert">
+                            <AlertTitle>Reset failed</AlertTitle>
+                            <AlertDescription>{error}</AlertDescription>
                         </Alert>
                     ) : null}
 
-                    {!tokenError && !success ? (
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            {passwordPolicyError ? (
-                                <Alert variant="destructive" role="alert">
-                                    <AlertTitle>Could not load password requirements</AlertTitle>
-                                    <AlertDescription>{passwordPolicyError}</AlertDescription>
-                                </Alert>
-                            ) : null}
+                    <Field orientation="vertical" className="gap-2">
+                        <FieldLabel htmlFor="reset-first-name">First name</FieldLabel>
+                        <Input id="reset-first-name" value={tokenClaims?.firstname ?? ''} disabled readOnly />
+                    </Field>
 
-                            {error ? (
-                                <Alert variant="destructive" role="alert">
-                                    <AlertTitle>Reset failed</AlertTitle>
-                                    <AlertDescription>{error}</AlertDescription>
-                                </Alert>
-                            ) : null}
+                    <Field orientation="vertical" className="gap-2">
+                        <FieldLabel htmlFor="reset-last-name">Last name</FieldLabel>
+                        <Input id="reset-last-name" value={tokenClaims?.lastname ?? ''} disabled readOnly />
+                    </Field>
 
-                            <Field orientation="vertical" className="gap-2">
-                                <FieldLabel htmlFor="reset-first-name">First name</FieldLabel>
-                                <Input id="reset-first-name" value={tokenClaims?.firstname ?? ''} disabled readOnly />
-                            </Field>
+                    <Field orientation="vertical" className="gap-2">
+                        <FieldLabel htmlFor="reset-email">Email</FieldLabel>
+                        <Input id="reset-email" type="email" value={tokenClaims?.email ?? ''} disabled readOnly />
+                    </Field>
 
-                            <Field orientation="vertical" className="gap-2">
-                                <FieldLabel htmlFor="reset-last-name">Last name</FieldLabel>
-                                <Input id="reset-last-name" value={tokenClaims?.lastname ?? ''} disabled readOnly />
-                            </Field>
+                    <Field orientation="vertical" className="gap-2">
+                        <FieldLabel htmlFor="reset-password">Password</FieldLabel>
+                        <Input
+                            id="reset-password"
+                            type="password"
+                            value={password}
+                            onChange={event => setPassword(event.target.value)}
+                            required
+                            autoComplete="new-password"
+                            // eslint-disable-next-line jsx-a11y/no-autofocus
+                            autoFocus
+                        />
+                        <PasswordRequirements rules={passwordPolicy.rules} password={password} showStrengthMeter />
+                    </Field>
 
-                            <Field orientation="vertical" className="gap-2">
-                                <FieldLabel htmlFor="reset-email">Email</FieldLabel>
-                                <Input id="reset-email" type="email" value={tokenClaims?.email ?? ''} disabled readOnly />
-                            </Field>
+                    <Field orientation="vertical" className="gap-2">
+                        <FieldLabel htmlFor="reset-confirm-password">Confirm password</FieldLabel>
+                        <Input
+                            id="reset-confirm-password"
+                            type="password"
+                            value={confirmPassword}
+                            onChange={event => setConfirmPassword(event.target.value)}
+                            required
+                            autoComplete="new-password"
+                        />
+                        {passwordMismatch ? (
+                            <p className="text-sm text-destructive">Password and confirm password must be the same.</p>
+                        ) : null}
+                    </Field>
 
-                            <Field orientation="vertical" className="gap-2">
-                                <FieldLabel htmlFor="reset-password">Password</FieldLabel>
-                                <Input
-                                    id="reset-password"
-                                    type="password"
-                                    value={password}
-                                    onChange={event => setPassword(event.target.value)}
-                                    required
-                                    autoComplete="new-password"
-                                    // eslint-disable-next-line jsx-a11y/no-autofocus
-                                    autoFocus
-                                />
-                                <PasswordRequirements rules={passwordPolicy.rules} password={password} showStrengthMeter />
-                            </Field>
-
-                            <Field orientation="vertical" className="gap-2">
-                                <FieldLabel htmlFor="reset-confirm-password">Confirm password</FieldLabel>
-                                <Input
-                                    id="reset-confirm-password"
-                                    type="password"
-                                    value={confirmPassword}
-                                    onChange={event => setConfirmPassword(event.target.value)}
-                                    required
-                                    autoComplete="new-password"
-                                />
-                                {passwordMismatch ? (
-                                    <p className="text-sm text-destructive">Password and confirm password must be the same.</p>
-                                ) : null}
-                            </Field>
-
-                            <Button type="submit" className="w-full" size="lg" disabled={!canSubmit}>
-                                {loading ? (
-                                    <span className="inline-flex items-center justify-center gap-2">
-                                        <Spinner className="size-4 shrink-0" aria-hidden />
-                                        Resetting password…
-                                    </span>
-                                ) : (
-                                    'Reset password'
-                                )}
-                            </Button>
-                        </form>
-                    ) : null}
-
-                    <p className="mt-4 text-center text-sm text-muted-foreground">
-                        Go to{' '}
-                        <Link to="/login" className="text-primary underline-offset-4 hover:underline">
-                            Sign in
-                        </Link>
-                    </p>
-                </CardContent>
-            </Card>
-        </div>
+                    <Button type="submit" className="w-full" size="lg" disabled={!canSubmit}>
+                        {loading ? (
+                            <span className="inline-flex items-center justify-center gap-2">
+                                <Spinner className="size-4 shrink-0" aria-hidden />
+                                Resetting password…
+                            </span>
+                        ) : (
+                            'Reset password'
+                        )}
+                    </Button>
+                </form>
+            ) : null}
+        </AuthPageShell>
     );
 }
