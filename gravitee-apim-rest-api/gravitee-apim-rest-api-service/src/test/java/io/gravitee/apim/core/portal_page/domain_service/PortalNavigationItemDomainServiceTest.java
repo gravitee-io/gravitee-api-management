@@ -26,14 +26,19 @@ import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.common.utils.TimeProvider;
@@ -52,6 +57,11 @@ import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class PortalNavigationItemDomainServiceTest {
+
+    /** What PortalLinkSyncDomainService stamps on a portal-attached link: a real portal, never PortalId.ZERO. */
+    private static final NavigationItemReference A_PORTAL = new NavigationItemReference.PortalReference(
+        PortalId.of("11111111-1111-1111-1111-111111111111")
+    );
 
     private final PortalNavigationItemsCrudServiceInMemory portalNavigationItemsCrudService =
         new PortalNavigationItemsCrudServiceInMemory();
@@ -365,6 +375,42 @@ public class PortalNavigationItemDomainServiceTest {
 
             assertThat(created.getSegment()).isEqualTo("q-a-2");
         }
+
+        @Test
+        void should_append_suffix_when_a_portal_attached_root_link_already_holds_the_slug() {
+            var link = aRootLink("00000000-0000-0000-0000-0000000000c1", "Q&A", 0);
+            portalNavigationItemsCrudService.initWith(List.of(link));
+            portalNavigationItemsQueryService.initWith(List.of(link));
+
+            var toCreate = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.FOLDER)
+                .title("Q/A")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .build();
+
+            var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
+
+            assertThat(created.getSegment()).isEqualTo("q-a-2");
+        }
+
+        @Test
+        void should_place_a_new_root_after_portal_attached_root_links_when_no_order_is_given() {
+            var first = aRootLink("00000000-0000-0000-0000-0000000000c2", "Docs", 0);
+            var second = aRootLink("00000000-0000-0000-0000-0000000000c3", "Status", 1);
+            portalNavigationItemsCrudService.initWith(List.of(first, second));
+            portalNavigationItemsQueryService.initWith(List.of(first, second));
+
+            var toCreate = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.FOLDER)
+                .title("Guides")
+                .area(PortalArea.TOP_NAVBAR)
+                .build();
+
+            var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
+
+            assertThat(created.getOrder()).isEqualTo(2);
+        }
     }
 
     @Nested
@@ -408,6 +454,82 @@ public class PortalNavigationItemDomainServiceTest {
             )
                 .containsOnlyKeys(expected.keySet())
                 .containsAllEntriesOf(expected);
+        }
+
+        @Test
+        void deleting_a_portal_root_does_not_reorder_api_subtree_roots() {
+            var portalRoot = PortalNavigationPage.builder()
+                .id(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000a010"))
+                .organizationId(PortalNavigationItemFixtures.ORG_ID)
+                .environmentId(PortalNavigationItemFixtures.ENV_ID)
+                .title("Portal Root")
+                .segment("portal-root")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(PortalPageContentId.random())
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
+            portalRoot.markAsRoot();
+
+            var apiRoot1 = PortalNavigationPage.builder()
+                .id(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000a011"))
+                .organizationId(PortalNavigationItemFixtures.ORG_ID)
+                .environmentId(PortalNavigationItemFixtures.ENV_ID)
+                .title("API 1 Root")
+                .segment("api-1-root")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(1)
+                .portalPageContentId(PortalPageContentId.random())
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .reference(new NavigationItemReference.ApiReference("api-1"))
+                .build();
+            apiRoot1.markAsRoot();
+
+            var apiRoot2 = PortalNavigationPage.builder()
+                .id(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000a012"))
+                .organizationId(PortalNavigationItemFixtures.ORG_ID)
+                .environmentId(PortalNavigationItemFixtures.ENV_ID)
+                .title("API 2 Root")
+                .segment("api-2-root")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(2)
+                .portalPageContentId(PortalPageContentId.random())
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .reference(new NavigationItemReference.ApiReference("api-2"))
+                .build();
+            apiRoot2.markAsRoot();
+
+            portalNavigationItemsCrudService.initWith(List.of(portalRoot, apiRoot1, apiRoot2));
+            portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
+
+            domainService.delete(portalRoot);
+
+            var reloaded = portalNavigationItemsCrudService
+                .storage()
+                .stream()
+                .collect(Collectors.toMap(PortalNavigationItem::getId, item -> item));
+            assertThat(reloaded.get(apiRoot1.getId()).getOrder()).isEqualTo(1);
+            assertThat(reloaded.get(apiRoot2.getId()).getOrder()).isEqualTo(2);
+        }
+
+        @Test
+        void deleting_a_console_root_reorders_portal_attached_root_links() {
+            var consoleRoot = PortalNavigationItemFixtures.aFolder("00000000-0000-0000-0000-0000000000d1", "Console Root", null);
+            var link = aRootLink("00000000-0000-0000-0000-0000000000d2", "Docs", 1);
+
+            portalNavigationItemsCrudService.initWith(List.of(consoleRoot, link));
+            portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
+
+            domainService.delete(consoleRoot);
+
+            var reloaded = portalNavigationItemsCrudService
+                .storage()
+                .stream()
+                .collect(Collectors.toMap(PortalNavigationItem::getId, item -> item));
+            assertThat(reloaded.get(link.getId()).getOrder()).isEqualTo(0);
         }
 
         @Test
@@ -770,6 +892,36 @@ public class PortalNavigationItemDomainServiceTest {
             )
                 .containsOnlyKeys(expected.keySet())
                 .containsAllEntriesOf(expected);
+        }
+
+        @Test
+        void moving_a_console_root_reorders_portal_attached_root_links() {
+            // Completes the trio around create and delete: reordering an existing root has to see the
+            // whole rendered root list, which mixes a console root's PortalId.ZERO with a portal-attached
+            // link's own portal id.
+            var consoleRoot = PortalNavigationItemFixtures.aFolder("00000000-0000-0000-0000-0000000000e1", "Console Root", null);
+            var first = aRootLink("00000000-0000-0000-0000-0000000000e2", "Docs", 1);
+            var second = aRootLink("00000000-0000-0000-0000-0000000000e3", "Status", 2);
+            portalNavigationItemsCrudService.initWith(List.of(consoleRoot, first, second));
+            portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
+
+            var toUpdate = UpdatePortalNavigationItem.builder()
+                .order(2)
+                .title(consoleRoot.getTitle())
+                .visibility(consoleRoot.getVisibility())
+                .type(consoleRoot.getType())
+                .parentId(consoleRoot.getParentId())
+                .published(consoleRoot.getPublished())
+                .build();
+
+            var result = domainService.update(toUpdate, consoleRoot);
+
+            assertThat(result.getOrder()).isEqualTo(2);
+            var orders = portalNavigationItemsCrudService
+                .storage()
+                .stream()
+                .collect(Collectors.toMap(PortalNavigationItem::getId, PortalNavigationItem::getOrder));
+            assertThat(orders).containsEntry(first.getId(), 0).containsEntry(second.getId(), 1).containsEntry(consoleRoot.getId(), 2);
         }
 
         @Test
@@ -1346,5 +1498,23 @@ public class PortalNavigationItemDomainServiceTest {
                 .containsEntry(childFolder.getId(), false)
                 .containsEntry(grandChildPage.getId(), false);
         }
+    }
+
+    private static PortalNavigationLink aRootLink(String id, String title, int order) {
+        var link = PortalNavigationLink.builder()
+            .id(PortalNavigationItemId.of(id))
+            .organizationId(PortalNavigationItemFixtures.ORG_ID)
+            .environmentId(PortalNavigationItemFixtures.ENV_ID)
+            .title(title)
+            .segment(PortalNavigationItem.slugify(title).value())
+            .area(PortalArea.TOP_NAVBAR)
+            .order(order)
+            .url("https://example.com")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .reference(A_PORTAL)
+            .build();
+        link.markAsRoot();
+        return link;
     }
 }
