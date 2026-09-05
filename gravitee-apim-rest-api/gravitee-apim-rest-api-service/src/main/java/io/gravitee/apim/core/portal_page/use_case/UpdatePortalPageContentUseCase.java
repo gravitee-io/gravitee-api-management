@@ -16,17 +16,21 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
+import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
+import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormConstraintsFactory;
+import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSchemaGenerator;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -39,6 +43,8 @@ public class UpdatePortalPageContentUseCase {
     private final PortalPageContentValidatorService validatorService;
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
     private final PortalNavigationSourcedItemsDomainService sourcedItemsDomainService;
+    private final SubscriptionFormSchemaGenerator schemaGenerator;
+    private final PortalNavigationItemCrudService portalNavigationItemCrudService;
 
     public Output execute(Input input) {
         // Check if portal page content is existing
@@ -69,7 +75,31 @@ public class UpdatePortalPageContentUseCase {
 
         targetContent.update(input.updatePortalPageContent());
 
-        return new Output(portalPageContentCrudService.update(targetContent));
+        var updatedContent = portalPageContentCrudService.update(targetContent);
+
+        regenerateSubscriptionFormConstraintsIfNeeded(input.environmentId(), updatedContent);
+
+        return new Output(updatedContent);
+    }
+
+    /**
+     * A SUBSCRIPTION_FORM item's validationConstraints are derived from its content, but the two are
+     * stored separately (the item and its content are independently editable). Whenever the content
+     * changes, the constraints enforced at subscription-submission time must be regenerated to match -
+     * otherwise validation keeps enforcing whatever the form looked like when the constraints were last
+     * generated, silently drifting from what the editor shows.
+     */
+    private void regenerateSubscriptionFormConstraintsIfNeeded(String environmentId, PortalPageContent<?> content) {
+        if (!(content instanceof GraviteeMarkdownPageContent gmdContent)) {
+            return;
+        }
+        portalNavigationItemsQueryService
+            .findSubscriptionFormByPortalPageContentId(environmentId, content.getId())
+            .ifPresent(subscriptionForm -> {
+                var schema = schemaGenerator.generate(gmdContent.getContent());
+                subscriptionForm.updateValidationConstraints(SubscriptionFormConstraintsFactory.fromSchema(schema));
+                portalNavigationItemCrudService.update(subscriptionForm);
+            });
     }
 
     /** File import can change the content type: rebuild the content under its new type, keeping the same id. */
