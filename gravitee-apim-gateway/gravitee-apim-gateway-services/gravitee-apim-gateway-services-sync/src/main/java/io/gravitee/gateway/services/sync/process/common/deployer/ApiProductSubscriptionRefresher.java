@@ -143,19 +143,27 @@ public class ApiProductSubscriptionRefresher {
         if (apiProductId == null) {
             return Completable.complete();
         }
-        return Completable.fromRunnable(() -> {
-            subscriptionService.unregisterByApiProductId(apiProductId);
-            apiKeyService.unregisterByApiProductId(apiProductId);
-            log.debug("Unregistered subscriptions and API keys of API Product [{}]", apiProductId);
-        });
+        // Only Errors are trapped here, and translated rather than swallowed: ApiProductDeployer#undeploy
+        // turns a failure into a SyncException and stops, so absorbing one would mark the product gone while
+        // its subscription certificates are still in the trust store and its API keys still cached.
+        return Completable.fromRunnable(() ->
+            SyncIsolation.translateErrors(
+                () -> "unregister subscriptions and API keys of API Product [%s]".formatted(apiProductId),
+                () -> {
+                    subscriptionService.unregisterByApiProductId(apiProductId);
+                    apiKeyService.unregisterByApiProductId(apiProductId);
+                    log.debug("Unregistered subscriptions and API keys of API Product [{}]", apiProductId);
+                }
+            )
+        );
     }
 
     private void quietly(final Runnable action, final String itemId, final String type) {
-        try {
-            action.run();
-        } catch (Exception e) {
-            log.warn("Failed to deploy {} [{}]", type, itemId, e);
-        }
+        SyncIsolation.isolate(
+            () -> "deploy %s [%s]".formatted(type, itemId),
+            action,
+            t -> log.warn("Failed to deploy {} [{}]", type, itemId, t)
+        );
     }
 
     /**

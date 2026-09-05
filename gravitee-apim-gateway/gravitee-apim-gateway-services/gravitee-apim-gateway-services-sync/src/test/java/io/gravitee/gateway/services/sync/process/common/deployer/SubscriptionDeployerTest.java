@@ -129,6 +129,51 @@ class SubscriptionDeployerTest {
             verifyNoMoreInteractions(subscriptionService);
         }
 
+        /**
+         * BouncyCastle FIPS raises FipsUnapprovedOperationError — an AssertionError, not a LinkageError — when a
+         * key or algorithm falls outside the approved set. RxJava does not treat it as fatal, so it would error
+         * the whole Completable and skip the deployable's remaining subscriptions rather than just this one.
+         */
+        @Test
+        void should_ignore_subscription_failing_with_an_assertion_error() {
+            Subscription subscription1 = Subscription.builder().plan("plan").id("subscription1").build();
+            Subscription subscription2 = Subscription.builder().plan("plan").id("subscription2").build();
+            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
+                .apiId("apiId")
+                .reactableApi(mock(ReactableApi.class))
+                .subscribablePlans(Set.of("plan"))
+                .subscriptions(List.of(subscription1, subscription2))
+                .build();
+            doThrow(new AssertionError("attempt to use unapproved algorithm")).when(subscriptionService).register(subscription1);
+            cut.deploy(apiReactorDeployable).test().assertComplete();
+            verify(subscriptionService).register(subscription1);
+            verify(subscriptionService).register(subscription2);
+            verifyNoMoreInteractions(subscriptionService);
+        }
+
+        /**
+         * Registering a client certificate links BouncyCastle classes lazily, so a mismatched provider on the
+         * class path surfaces here as an Error rather than an Exception. Uncaught it escapes the runnable and
+         * kills the sync deployer thread, which leaves initial sync unfinished and the node permanently not
+         * ready — one unusable subscription taking down the whole gateway.
+         */
+        @Test
+        void should_ignore_subscription_failing_with_a_linkage_error() {
+            Subscription subscription1 = Subscription.builder().plan("plan").id("subscription1").build();
+            Subscription subscription2 = Subscription.builder().plan("plan").id("subscription2").build();
+            ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
+                .apiId("apiId")
+                .reactableApi(mock(ReactableApi.class))
+                .subscribablePlans(Set.of("plan"))
+                .subscriptions(List.of(subscription1, subscription2))
+                .build();
+            doThrow(new NoSuchFieldError("BCObjectIdentifiers.sphincsPlus_sha2_128s_r3")).when(subscriptionService).register(subscription1);
+            cut.deploy(apiReactorDeployable).test().assertComplete();
+            verify(subscriptionService).register(subscription1);
+            verify(subscriptionService).register(subscription2);
+            verifyNoMoreInteractions(subscriptionService);
+        }
+
         @Test
         void should_dispatch_when_subscription_registered_to_be_dispatched() {
             Subscription subscriptionToDispatch = Subscription.builder()

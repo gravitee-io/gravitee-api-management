@@ -30,6 +30,38 @@ RUN apk add --no-cache libjemalloc2 \
 FROM base AS builder
 COPY --chown=graviteeio:graviteeio ./distribution ${GRAVITEEIO_HOME}/
 USER root
+# The FIPS base image ships BouncyCastle FIPS under /usr/share/java/bouncycastle-fips and puts that
+# directory on the JVM --module-path, but bin/gravitee starts the JVM with `-cp <bootstrap jar>`,
+# which drops the CLASSPATH the image exports. Only bc-fips ends up resolved that way, so the
+# extension class loader over lib/ext resolves org.bouncycastle.asn1.bc from bc-fips while
+# org.bouncycastle.cms and .operator still come from the non-FIPS jars sitting there. Both
+# distributions publish those package names, so classes link across the two and fail on first use:
+# NoSuchFieldError on BCObjectIdentifiers.sphincsPlus_sha2_128s_r3, which kills the sync deployer
+# thread as soon as a subscription carries a client certificate, and the node never becomes ready.
+# Swapping lib/ext over to the FIPS artifacts keeps every BouncyCastle class coming from a single
+# distribution. It is a no-op on the non-FIPS base image, which exports no such variable.
+# The swap is entered on JAVA_FIPS_CLASSPATH, which the FIPS base image exports and which names where
+# it keeps those jars: that is the capability itself, so it still holds when the base is pinned by
+# digest or its tag is renamed. BASE_IMAGE only serves the reverse check — a base that calls itself
+# FIPS while exporting nothing fails the build rather than silently shipping the broken mix again.
+ARG BASE_IMAGE
+RUN if [ -n "${JAVA_FIPS_CLASSPATH}" ]; then \
+        BC_FIPS_DIR=$(dirname "${JAVA_FIPS_CLASSPATH}"); \
+        for jar in bcpkix-fips.jar bcutil-fips.jar; do \
+            [ -f "${BC_FIPS_DIR}/${jar}" ] || { echo "FIPS base image provides no ${BC_FIPS_DIR}/${jar}" >&2; exit 1; }; \
+        done; \
+        ls ${GRAVITEEIO_HOME}/lib/ext/bcprov-jdk18on-*.jar >/dev/null 2>&1 || \
+            { echo "no non-FIPS BouncyCastle jar in lib/ext: the swap below would be a silent no-op" >&2; exit 1; }; \
+        rm -f ${GRAVITEEIO_HOME}/lib/ext/bcprov-jdk18on-*.jar \
+              ${GRAVITEEIO_HOME}/lib/ext/bcpkix-jdk18on-*.jar \
+              ${GRAVITEEIO_HOME}/lib/ext/bcutil-jdk18on-*.jar; \
+        cp "${BC_FIPS_DIR}/bcpkix-fips.jar" "${BC_FIPS_DIR}/bcutil-fips.jar" ${GRAVITEEIO_HOME}/lib/ext/; \
+        chmod 644 ${GRAVITEEIO_HOME}/lib/ext/bcpkix-fips.jar ${GRAVITEEIO_HOME}/lib/ext/bcutil-fips.jar; \
+    else \
+        case "${BASE_IMAGE}" in \
+            *fips*) echo "BASE_IMAGE names a FIPS base but it exports no JAVA_FIPS_CLASSPATH" >&2; exit 1 ;; \
+        esac; \
+    fi
 RUN chgrp -R 0 ${GRAVITEEIO_HOME} && \
     chmod -R g=u ${GRAVITEEIO_HOME}
 
