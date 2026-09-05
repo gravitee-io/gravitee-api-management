@@ -15,17 +15,14 @@
  */
 package io.gravitee.apim.infra.performance_target;
 
-import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
-import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
-import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
-import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
+import io.gravitee.apim.core.analytics_engine.model.GroupedMeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.GroupedMeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.Measure;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresRequest;
-import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.model.TimeRange;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
@@ -49,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -61,15 +59,15 @@ import org.springframework.stereotype.Service;
  * Evaluates targets through the analytics engine query services the dashboards use, with the same
  * {@code API IN [...]} filter a single-API dashboard applies, so a breach shows the number the chart shows.
  *
- * <p>One target: rules sharing a filter set (resolved API ids plus rule filters) are answered by one measures request
+ * <p>One target: rules sharing a scope (resolved API ids plus rule filters) are answered by one measures request
  * that also carries the request-count metric of the subject's API family; that count is the sample size every rule
- * of the set is judged on.
+ * of the scope is judged on.
  *
- * <p>Many targets: those whose every rule resolves to a single API and carries no filter are answered per
- * environment and window by facets requests grouped by API, one bucket per API, so a thousand targets cost a
- * handful of requests. A cheap request-count query comes first and the aggregation only covers the APIs with enough
- * samples. Any other target is evaluated on its own. Analytics calls from the scheduler and from evaluate-on-demand
- * share a cap on the queries in flight.
+ * <p>Many targets: those whose subject belongs to the HTTP API family are answered per environment and window by
+ * grouped measures requests, one group per distinct scope shared by every rule that reads it, so a thousand targets
+ * cost a handful of requests whatever the number of APIs a subject holds. A cheap request-count request comes first
+ * and the measures request only covers the scopes with enough samples. A target of another API family is evaluated
+ * on its own. Analytics calls from the scheduler and from evaluate-on-demand share a cap on the queries in flight.
  *
  * <p>The engine is called without a caller context on purpose: a target is validated against its environment when
  * it is written, and the scheduler evaluates it with no user at hand.
@@ -81,8 +79,8 @@ import org.springframework.stereotype.Service;
 @CustomLog
 public class PerformanceTargetEvaluatorImpl implements PerformanceTargetEvaluator {
 
-    /** Targets per facets request, which bounds the number of buckets a single response carries. */
-    static final int MAX_TARGETS_PER_REQUEST = 500;
+    /** Scopes per grouped request, which bounds the number of buckets a single response carries. */
+    static final int MAX_GROUPS_PER_REQUEST = 500;
 
     private static final int DEFAULT_CONCURRENCY = 2;
 
@@ -109,6 +107,18 @@ public class PerformanceTargetEvaluatorImpl implements PerformanceTargetEvaluato
         new MetricMeasuresRequest(MetricSpec.Name.EDGE_DETECTION_COUNT, List.of(MetricSpec.Measure.COUNT)),
         ApiType.AUTHZ,
         new MetricMeasuresRequest(MetricSpec.Name.AUTHZ_OPERATIONS, List.of(MetricSpec.Measure.COUNT))
+    );
+
+    /**
+     * The API types whose documents share the HTTP analytics indices and can be measured per group; Edge lives
+     * behind another entrypoint filter and the other families have engines of their own.
+     */
+    private static final Set<ApiType> GROUPABLE_API_TYPES = Set.of(
+        ApiType.PROXY,
+        ApiType.LLM_PROXY,
+        ApiType.MCP_PROXY,
+        ApiType.A2A_PROXY,
+        ApiType.MESSAGE
     );
 
     private final ApiCrudService apiCrudService;
@@ -165,12 +175,9 @@ public class PerformanceTargetEvaluatorImpl implements PerformanceTargetEvaluato
             }
         }
         batches.forEach((batch, indexes) -> {
-            for (int from = 0; from < indexes.size(); from += MAX_TARGETS_PER_REQUEST) {
-                var chunk = indexes.subList(from, Math.min(from + MAX_TARGETS_PER_REQUEST, indexes.size()));
-                var evaluations = evaluateBatch(batch, chunk.stream().map(targets::get).toList(), now, apiTypesById);
-                for (int k = 0; k < chunk.size(); k++) {
-                    results[chunk.get(k)] = evaluations.get(k);
-                }
+            var evaluations = evaluateBatch(batch, indexes.stream().map(targets::get).toList(), now, apiTypesById);
+            for (int k = 0; k < indexes.size(); k++) {
+                results[indexes.get(k)] = evaluations.get(k);
             }
         });
         return Arrays.stream(results).filter(Objects::nonNull).toList();
@@ -199,12 +206,11 @@ public class PerformanceTargetEvaluatorImpl implements PerformanceTargetEvaluato
         var results = new PerformanceTargetEvaluation.RuleResult[rules.size()];
         var ruleIndexesByScope = new LinkedHashMap<Scope, List<Integer>>();
         for (int i = 0; i < rules.size(); i++) {
-            var rule = rules.get(i);
-            var apiIds = scopeApiIds(target, rule, apiTypesById);
-            if (apiIds.isEmpty()) {
-                results[i] = rule.evaluate(null, 0, target.minSampleSize());
+            var scope = scopeOf(target, rules.get(i), apiTypesById);
+            if (scope == null) {
+                results[i] = rules.get(i).evaluate(null, 0, target.minSampleSize());
             } else {
-                ruleIndexesByScope.computeIfAbsent(new Scope(apiIds, rule.filters()), scope -> new ArrayList<>()).add(i);
+                ruleIndexesByScope.computeIfAbsent(scope, s -> new ArrayList<>()).add(i);
             }
         }
 
@@ -232,21 +238,18 @@ public class PerformanceTargetEvaluatorImpl implements PerformanceTargetEvaluato
     }
 
     /**
-     * A target is batchable when every rule can be read from an API bucket: one API, no rule filter, and an API
-     * family whose analytics can be grouped by API, which excludes Edge.
+     * A target is batchable when its subject belongs to the HTTP family and every rule metric is served by an engine
+     * that computes measures per group.
      */
-    private static boolean isBatchable(PerformanceTarget target, Map<String, ApiType> knownApiTypes) {
+    private boolean isBatchable(PerformanceTarget target, Map<String, ApiType> knownApiTypes) {
         var apiTypesById = subjectApiTypes(target, knownApiTypes);
-        for (var rule : target.rules()) {
-            if (!rule.filters().isEmpty()) {
-                return false;
-            }
-            var apiIds = scopeApiIds(target, rule, apiTypesById);
-            if (apiIds.size() > 1 || (apiIds.size() == 1 && apiTypesById.get(apiIds.getFirst()) == ApiType.EDGE)) {
-                return false;
-            }
-        }
-        return true;
+        return (
+            GROUPABLE_API_TYPES.containsAll(apiTypesById.values()) &&
+            target
+                .rules()
+                .stream()
+                .allMatch(rule -> queryContextProvider.resolve(rule.metric()).supportsGroupedMeasures())
+        );
     }
 
     private List<PerformanceTargetEvaluation> evaluateBatch(
@@ -258,67 +261,71 @@ public class PerformanceTargetEvaluatorImpl implements PerformanceTargetEvaluato
         var window = new TimeRange(now.minus(batch.window()), now);
         var executionContext = executionContext(batch.environmentId());
 
-        var subjects = targets.stream().collect(Collectors.toMap(PerformanceTarget::id, target -> subjectApiTypes(target, knownApiTypes)));
-        // the API each rule reads its bucket from, by target then rule position; null when the rule has no API
-        var ruleApiIds = new HashMap<String, List<String>>();
-        var apiIds = new LinkedHashSet<String>();
-        for (var target : targets) {
-            var perRule = new ArrayList<String>();
-            for (var rule : target.rules()) {
-                var scope = scopeApiIds(target, rule, subjects.get(target.id()));
-                perRule.add(scope.isEmpty() ? null : scope.getFirst());
-                apiIds.addAll(scope);
-            }
-            ruleApiIds.put(target.id(), perRule);
-        }
-
-        var countMetrics = apiIds
+        var subjects = targets
             .stream()
-            .map(apiId -> SAMPLE_COUNT_METRICS.get(knownApiTypes.get(apiId)))
-            .distinct()
+            .map(target -> subjectApiTypes(target, knownApiTypes))
             .toList();
-        var counts = apiIds.isEmpty()
-            ? Map.<String, MeasuresResponse>of()
-            : searchFacetsByApi(executionContext, window, List.copyOf(apiIds), countMetrics);
-        var sampleCounts = new HashMap<String, Long>();
-        for (var apiId : apiIds) {
-            var countMetric = SAMPLE_COUNT_METRICS.get(knownApiTypes.get(apiId));
-            sampleCounts.put(apiId, counts.containsKey(apiId) ? sampleCount(counts.get(apiId), countMetric) : 0L);
+        // one group per distinct scope, shared by every rule that reads it; null when the rule has no API
+        var groupKeys = new LinkedHashMap<Scope, String>();
+        var ruleScopes = new ArrayList<List<Scope>>();
+        for (int t = 0; t < targets.size(); t++) {
+            var target = targets.get(t);
+            var scopes = new ArrayList<Scope>();
+            for (var rule : target.rules()) {
+                var scope = scopeOf(target, rule, subjects.get(t));
+                if (scope != null) {
+                    groupKeys.computeIfAbsent(scope, s -> "scope-" + groupKeys.size());
+                }
+                scopes.add(scope);
+            }
+            ruleScopes.add(scopes);
         }
 
-        var measuredApiIds = new LinkedHashSet<String>();
+        var scopesByCountMetric = new LinkedHashMap<MetricMeasuresRequest, List<Scope>>();
+        for (var scope : groupKeys.keySet()) {
+            scopesByCountMetric.computeIfAbsent(sampleCountMetric(scope.apiIds(), knownApiTypes), metric -> new ArrayList<>()).add(scope);
+        }
+        var sampleCounts = new HashMap<Scope, Long>();
+        scopesByCountMetric.forEach((countMetric, scopes) ->
+            searchGroupedMeasures(executionContext, window, scopes, groupKeys, List.of(countMetric)).forEach((scope, measures) ->
+                sampleCounts.put(scope, sampleCount(measures, countMetric))
+            )
+        );
+
+        var measuredScopes = new LinkedHashSet<Scope>();
         var measuresByMetric = new LinkedHashMap<MetricSpec.Name, LinkedHashSet<MetricSpec.Measure>>();
-        for (var target : targets) {
-            var rules = target.rules();
-            for (int i = 0; i < rules.size(); i++) {
-                var apiId = ruleApiIds.get(target.id()).get(i);
-                if (apiId != null && sampleCounts.get(apiId) >= target.minSampleSize()) {
-                    measuredApiIds.add(apiId);
-                    measuresByMetric.computeIfAbsent(rules.get(i).metric(), metric -> new LinkedHashSet<>()).add(rules.get(i).measure());
+        for (int t = 0; t < targets.size(); t++) {
+            var target = targets.get(t);
+            for (int i = 0; i < target.rules().size(); i++) {
+                var scope = ruleScopes.get(t).get(i);
+                if (scope != null && sampleCounts.get(scope) >= target.minSampleSize()) {
+                    var rule = target.rules().get(i);
+                    measuredScopes.add(scope);
+                    measuresByMetric.computeIfAbsent(rule.metric(), metric -> new LinkedHashSet<>()).add(rule.measure());
                 }
             }
         }
-        var measures = measuredApiIds.isEmpty()
-            ? Map.<String, MeasuresResponse>of()
-            : searchFacetsByApi(executionContext, window, List.copyOf(measuredApiIds), metrics(measuresByMetric));
+        var measures = measuredScopes.isEmpty()
+            ? Map.<Scope, MeasuresResponse>of()
+            : searchGroupedMeasures(executionContext, window, List.copyOf(measuredScopes), groupKeys, metrics(measuresByMetric));
 
         var evaluations = new ArrayList<PerformanceTargetEvaluation>();
-        for (var target : targets) {
-            var rules = target.rules();
+        for (int t = 0; t < targets.size(); t++) {
+            var target = targets.get(t);
             var results = new ArrayList<PerformanceTargetEvaluation.RuleResult>();
-            for (int i = 0; i < rules.size(); i++) {
-                var rule = rules.get(i);
-                var apiId = ruleApiIds.get(target.id()).get(i);
-                if (apiId == null) {
+            for (int i = 0; i < target.rules().size(); i++) {
+                var rule = target.rules().get(i);
+                var scope = ruleScopes.get(t).get(i);
+                if (scope == null) {
                     results.add(rule.evaluate(null, 0, target.minSampleSize()));
                 } else {
-                    var observed = Optional.ofNullable(measures.get(apiId))
+                    var observed = Optional.ofNullable(measures.get(scope))
                         .flatMap(m -> value(m, rule.metric(), rule.measure()))
                         .orElse(null);
-                    results.add(rule.evaluate(observed, sampleCounts.get(apiId), target.minSampleSize()));
+                    results.add(rule.evaluate(observed, sampleCounts.get(scope), target.minSampleSize()));
                 }
             }
-            evaluations.add(evaluation(target, window, results, subjects.get(target.id()), now));
+            evaluations.add(evaluation(target, window, results, subjects.get(t), now));
         }
         return evaluations;
     }
@@ -370,8 +377,10 @@ public class PerformanceTargetEvaluatorImpl implements PerformanceTargetEvaluato
         return apiTypesById;
     }
 
-    private static List<String> scopeApiIds(PerformanceTarget target, PerformanceTarget.Rule rule, Map<String, ApiType> apiTypesById) {
-        return target.apiIdsFor(rule, apiTypesById).stream().filter(apiTypesById::containsKey).toList();
+    /** The documents a rule is measured on, or {@code null} when none of its API types is in the subject. */
+    private static Scope scopeOf(PerformanceTarget target, PerformanceTarget.Rule rule, Map<String, ApiType> apiTypesById) {
+        var apiIds = target.apiIdsFor(rule, apiTypesById).stream().filter(apiTypesById::containsKey).toList();
+        return apiIds.isEmpty() ? null : new Scope(apiIds, rule.filters());
     }
 
     private static MetricMeasuresRequest sampleCountMetric(List<String> apiIds, Map<String, ApiType> apiTypesById) {
@@ -414,11 +423,7 @@ public class PerformanceTargetEvaluatorImpl implements PerformanceTargetEvaluato
             measuresByMetric.computeIfAbsent(rule.metric(), metric -> new LinkedHashSet<>()).add(rule.measure());
         }
 
-        var filters = new ArrayList<Filter>();
-        filters.add(apiIn(scope.apiIds()));
-        filters.addAll(scope.filters());
-
-        var request = new MeasuresRequest(window, filters, metrics(measuresByMetric));
+        var request = new MeasuresRequest(window, scope.filters(), metrics(measuresByMetric));
         return MeasuresResponse.merge(
             queryContextProvider
                 .resolve(request)
@@ -429,44 +434,40 @@ public class PerformanceTargetEvaluatorImpl implements PerformanceTargetEvaluato
         );
     }
 
-    /** One facets request grouped by API; the answer is read back as one measures response per API id. */
-    private Map<String, MeasuresResponse> searchFacetsByApi(
+    /**
+     * The measures of every scope, {@value #MAX_GROUPS_PER_REQUEST} scopes per request. The request is pre-filtered
+     * on the union of the scopes' API ids so a group only has to narrow it down.
+     */
+    private Map<Scope, MeasuresResponse> searchGroupedMeasures(
         ExecutionContext executionContext,
         TimeRange window,
-        List<String> apiIds,
+        List<Scope> scopes,
+        Map<Scope, String> groupKeys,
         List<MetricMeasuresRequest> metrics
     ) {
-        var request = new FacetsRequest(
-            window,
-            List.of(apiIn(apiIds)),
-            metrics
-                .stream()
-                .map(metric -> new FacetMetricMeasuresRequest(metric.name(), metric.measures(), List.of()))
-                .toList(),
-            List.of(FacetSpec.Name.API),
-            apiIds.size(),
-            List.of()
-        );
-        var response = FacetsResponse.merge(
-            queryContextProvider
-                .resolve(request)
-                .entrySet()
-                .stream()
-                .map(entry -> withPermit(() -> entry.getKey().searchFacets(executionContext, entry.getValue())))
-                .toList()
-        );
-
-        var metricsByApi = new HashMap<String, List<MetricMeasuresResponse>>();
-        for (var metric : response.metrics()) {
-            for (var bucket : metric.buckets()) {
-                metricsByApi
-                    .computeIfAbsent(bucket.key(), apiId -> new ArrayList<>())
-                    .add(new MetricMeasuresResponse(metric.metric(), metric.unit(), bucket.measures()));
+        var byScope = new HashMap<Scope, MeasuresResponse>();
+        for (int from = 0; from < scopes.size(); from += MAX_GROUPS_PER_REQUEST) {
+            var chunk = scopes.subList(from, Math.min(from + MAX_GROUPS_PER_REQUEST, scopes.size()));
+            var groups = new LinkedHashMap<String, List<Filter>>();
+            var apiIds = new LinkedHashSet<String>();
+            for (var scope : chunk) {
+                groups.put(groupKeys.get(scope), scope.filters());
+                apiIds.addAll(scope.apiIds());
+            }
+            var request = new GroupedMeasuresRequest(window, List.of(apiIn(List.copyOf(apiIds))), metrics, groups);
+            var response = GroupedMeasuresResponse.merge(
+                queryContextProvider
+                    .resolve(request)
+                    .entrySet()
+                    .stream()
+                    .map(entry -> withPermit(() -> entry.getKey().searchGroupedMeasures(executionContext, entry.getValue())))
+                    .toList()
+            );
+            for (var scope : chunk) {
+                byScope.put(scope, response.groups().getOrDefault(groupKeys.get(scope), new MeasuresResponse(List.of())));
             }
         }
-        var byApi = new HashMap<String, MeasuresResponse>();
-        metricsByApi.forEach((apiId, apiMetrics) -> byApi.put(apiId, new MeasuresResponse(apiMetrics)));
-        return byApi;
+        return byScope;
     }
 
     private <T> T withPermit(Supplier<T> query) {
@@ -501,8 +502,16 @@ public class PerformanceTargetEvaluatorImpl implements PerformanceTargetEvaluato
     }
 
     /** The documents a set of rules is measured on: the API ids they resolve to, narrowed by their own filters. */
-    private record Scope(List<String> apiIds, List<Filter> filters) {}
+    private record Scope(List<String> apiIds, List<Filter> ruleFilters) {
+        /** The API filter first, then the rule filters, the order the single-target requests have always used. */
+        List<Filter> filters() {
+            var filters = new ArrayList<Filter>();
+            filters.add(apiIn(apiIds));
+            filters.addAll(ruleFilters);
+            return filters;
+        }
+    }
 
-    /** Targets answered by one facets request: same environment, hence same indices, and same window. */
+    /** Targets answered by the same grouped requests: same environment, hence same indices, and same window. */
     private record Batch(String environmentId, Duration window) {}
 }
