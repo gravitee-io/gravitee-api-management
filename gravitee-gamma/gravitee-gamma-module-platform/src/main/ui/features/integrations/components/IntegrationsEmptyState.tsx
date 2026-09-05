@@ -14,28 +14,18 @@
  * limitations under the License.
  */
 
-/**
- * Subset of GET /organizations/{orgId}/console (ConsoleConfigEntity; Angular `entities/consoleSettings`).
- * Extend here when platform features need more org settings fields.
- */
-export interface ConsoleSettings {
-    userGroup?: {
-        required?: {
-            enabled?: boolean;
-        };
-    };
-    cloudHosted?: {
-        enabled?: boolean;
-    };
-    alert?: {
-        enabled?: boolean;
-    };
-    management?: {
-        systemRoleEdition?: {
-            enabled?: boolean;
-        };
-    };
-    federation?: {
-        enabled?: boolean;
-    };
+import { DataTableEmptyState } from '@gravitee/graphene-core';
+import { PlugIcon } from '@gravitee/graphene-core/icons';
+
+export function IntegrationsEmptyState() {
+    return (
+        <div className="rounded-lg border">
+            <DataTableEmptyState
+                variant="first-use"
+                icon={<PlugIcon className="size-8" aria-hidden />}
+                title="No integrations yet"
+                description="Create an integration to start importing APIs and event streams from a 3rd-party provider."
+            />
+        </div>
+    );
 }

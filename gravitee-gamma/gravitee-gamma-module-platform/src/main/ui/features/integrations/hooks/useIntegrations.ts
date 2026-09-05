@@ -14,28 +14,19 @@
  * limitations under the License.
  */
 
-/**
- * Subset of GET /organizations/{orgId}/console (ConsoleConfigEntity; Angular `entities/consoleSettings`).
- * Extend here when platform features need more org settings fields.
- */
-export interface ConsoleSettings {
-    userGroup?: {
-        required?: {
-            enabled?: boolean;
-        };
-    };
-    cloudHosted?: {
-        enabled?: boolean;
-    };
-    alert?: {
-        enabled?: boolean;
-    };
-    management?: {
-        systemRoleEdition?: {
-            enabled?: boolean;
-        };
-    };
-    federation?: {
-        enabled?: boolean;
-    };
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+
+import { listIntegrations } from '../services/integrationList';
+import { integrationKeys } from '../utils/queryKeys';
+
+export function useIntegrations({ page, perPage }: { page: number; perPage: number }) {
+    const env = useEnvironment();
+
+    return useQuery({
+        queryKey: integrationKeys.list(env?.id ?? '', page, perPage),
+        queryFn: () => listIntegrations(env!.id, { page, perPage }),
+        enabled: Boolean(env),
+        placeholderData: keepPreviousData,
+    });
 }
