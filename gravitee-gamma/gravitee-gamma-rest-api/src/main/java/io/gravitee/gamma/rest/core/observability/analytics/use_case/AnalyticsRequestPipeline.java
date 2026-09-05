@@ -45,7 +45,22 @@ public class AnalyticsRequestPipeline {
 
     static final Set<ApiType> ANALYTICS_SUPPORTED_API_TYPES = ApiType.ALL;
 
-    static final Set<String> DEFAULT_ENTRYPOINT_IDS = Set.of("http-get", "http-post", "http-proxy", "llm-proxy", "mcp-proxy", "a2a-proxy");
+    /**
+     * Entrypoints whose traffic these screens describe, injected when the caller names none.
+     *
+     * <p>An entrypoint missing from here is invisible rather than unfiltered: the condition is an allowlist,
+     * so its traffic is excluded at every time range, which reads as "nothing happened" rather than as a
+     * scoping choice. Adding an entrypoint kind means adding it here too.
+     */
+    static final Set<String> DEFAULT_ENTRYPOINT_IDS = Set.of(
+        "http-get",
+        "http-post",
+        "http-proxy",
+        "llm-proxy",
+        "mcp-proxy",
+        "mcp-studio",
+        "a2a-proxy"
+    );
 
     private final ObservabilityFilterValidator filterValidator;
     private final AccessibleApiScopeDomainService accessibleApiScope;

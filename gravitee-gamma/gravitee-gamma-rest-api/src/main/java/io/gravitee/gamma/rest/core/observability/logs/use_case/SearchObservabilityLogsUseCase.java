@@ -75,6 +75,9 @@ public class SearchObservabilityLogsUseCase {
      * unfiltered logs total includes native connections while dashboard totals do not — aligning
      * the analytics side is a pending decision with the Gamma team. The ES query builder adds a
      * field-missing fallback alongside these terms.
+     *
+     * <p>As in the analytics pipeline, this is an allowlist: an entrypoint absent from it has no logs, at any
+     * time range, rather than merely unfiltered ones.
      */
     static final Set<String> DEFAULT_ENTRYPOINT_IDS = Set.of(
         "http-get",
@@ -82,6 +85,7 @@ public class SearchObservabilityLogsUseCase {
         "http-proxy",
         "llm-proxy",
         "mcp-proxy",
+        "mcp-studio",
         "a2a-proxy",
         "native-kafka"
     );

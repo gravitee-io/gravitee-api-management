@@ -237,8 +237,30 @@ class AnalyticsRequestPipelineTest {
                 "http-proxy",
                 "llm-proxy",
                 "mcp-proxy",
+                "mcp-studio",
                 "a2a-proxy"
             );
+        }
+
+        @Test
+        void should_include_mcp_studio_so_studio_mode_servers_are_not_silently_invisible() {
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
+            );
+
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), null, null, analyticsDataPort);
+
+            // An MCP server built in studio mode reports entrypoint-id mcp-studio. Leaving it out of the
+            // allowlist does not widen the query - it excludes that traffic at every time range, so the
+            // screens read as "no traffic" rather than as "filtered out", which is indistinguishable from
+            // a broken gateway to whoever is looking.
+            var entrypoint = scope
+                .filters()
+                .stream()
+                .filter(c -> "ENTRYPOINT".equals(c.name()))
+                .findFirst();
+            assertThat(entrypoint).isPresent();
+            assertThat(entrypoint.get().values()).contains("mcp-studio");
         }
 
         @Test
