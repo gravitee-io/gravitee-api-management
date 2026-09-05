@@ -26,17 +26,15 @@ import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.PerformanceTargetFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.EnvironmentCrudServiceInMemory;
-import io.gravitee.apim.core.analytics_engine.model.FacetBucketResponse;
-import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
-import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
+import io.gravitee.apim.core.analytics_engine.model.GroupedMeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.GroupedMeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.Measure;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
-import io.gravitee.apim.core.analytics_engine.model.MetricFacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
@@ -57,6 +55,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,6 +63,7 @@ import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -347,13 +347,7 @@ class PerformanceTargetEvaluatorImplTest {
     @Test
     void should_count_samples_with_the_metric_of_the_subject_api_family() {
         apiCrudService.initWith(List.of(ApiFixtures.aNativeApi().toBuilder().id("kafka-api").build()));
-        var throughput = PerformanceTarget.Rule.builder()
-            .metric(MetricSpec.Name.NATIVE_OPERATION_BROKER_DURATION)
-            .measure(MetricSpec.Measure.AVG)
-            .operator(PerformanceTarget.Operator.LTE)
-            .threshold(50)
-            .build();
-        var target = anAgentTarget(throughput)
+        var target = anAgentTarget(BROKER_DURATION)
             .toBuilder()
             .subject(new PerformanceTarget.Subject(List.of("kafka-api"), "kafka-api"))
             .build();
@@ -370,13 +364,34 @@ class PerformanceTargetEvaluatorImplTest {
             );
     }
 
+    private static final PerformanceTarget.Rule BROKER_DURATION = PerformanceTarget.Rule.builder()
+        .metric(MetricSpec.Name.NATIVE_OPERATION_BROKER_DURATION)
+        .measure(MetricSpec.Measure.AVG)
+        .operator(PerformanceTarget.Operator.LTE)
+        .threshold(50)
+        .build();
+
     private static PerformanceTarget anAgentTarget(PerformanceTarget.Rule... rules) {
-        return PerformanceTargetFixtures.aTarget()
+        return aTarget("target-id", List.of(A2A_API_ID, LLM_API_ID), "agent-42", WINDOW, rules);
+    }
+
+    private static PerformanceTarget aTarget(
+        String id,
+        List<String> apiIds,
+        String reference,
+        Duration window,
+        PerformanceTarget.Rule... rules
+    ) {
+        return PerformanceTargetFixtures.aTarget(id)
             .toBuilder()
-            .subject(new PerformanceTarget.Subject(List.of(A2A_API_ID, LLM_API_ID), "agent-42"))
-            .window(WINDOW)
+            .subject(new PerformanceTarget.Subject(apiIds, reference))
+            .window(window)
             .rules(List.of(rules))
             .build();
+    }
+
+    private static PerformanceTarget aSingleApiTarget(String apiId, Duration window, PerformanceTarget.Rule... rules) {
+        return aTarget(apiId, List.of(apiId), apiId, window, rules);
     }
 
     private static Filter apiIn(String... apiIds) {
@@ -395,6 +410,14 @@ class PerformanceTargetEvaluatorImplTest {
     class EvaluateAll {
 
         private static final PerformanceTarget.Rule LATENCY = PerformanceTargetFixtures.aLatencyRule();
+        private static final MetricMeasuresRequest REQUEST_COUNT = new MetricMeasuresRequest(
+            MetricSpec.Name.HTTP_REQUESTS,
+            List.of(MetricSpec.Measure.COUNT)
+        );
+        private static final MetricMeasuresRequest LATENCY_P95 = new MetricMeasuresRequest(
+            MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME,
+            List.of(MetricSpec.Measure.P95)
+        );
 
         @Test
         void should_evaluate_a_thousand_single_api_targets_of_one_window_with_a_bounded_number_of_requests() {
@@ -418,7 +441,7 @@ class PerformanceTargetEvaluatorImplTest {
             var evaluations = evaluator.evaluateAll(targets, NOW);
 
             assertThat(analytics.requests).isEmpty();
-            assertThat(analytics.facetsRequests).hasSizeLessThanOrEqualTo(4);
+            assertThat(analytics.groupedRequests).hasSizeLessThanOrEqualTo(4);
             assertThat(evaluations)
                 .hasSize(1000)
                 .allSatisfy(evaluation -> {
@@ -433,7 +456,54 @@ class PerformanceTargetEvaluatorImplTest {
         }
 
         @Test
-        void should_count_first_and_aggregate_only_the_targets_with_enough_samples() {
+        void should_evaluate_a_thousand_targets_half_of_them_on_two_apis_with_a_bounded_number_of_requests() {
+            var apiIds = IntStream.range(0, 1000)
+                .mapToObj(i -> "api-" + i)
+                .toList();
+            apiCrudService.initWith(
+                apiIds
+                    .stream()
+                    .<Api>map(id -> ApiFixtures.aProxyApiV4().toBuilder().id(id).build())
+                    .toList()
+            );
+            var targets = new ArrayList<PerformanceTarget>();
+            for (int i = 0; i < apiIds.size(); i += 2) {
+                var first = apiIds.get(i);
+                var second = apiIds.get(i + 1);
+                analytics.given(
+                    Set.of(first),
+                    requests(50),
+                    measure(MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME, MetricSpec.Measure.P95, 1000)
+                );
+                analytics.given(
+                    Set.of(first, second),
+                    requests(120),
+                    measure(MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME, MetricSpec.Measure.P95, 1800)
+                );
+                targets.add(aSingleApiTarget(first, WINDOW, LATENCY));
+                targets.add(aTarget("agent-" + i, List.of(first, second), "agent-" + i, WINDOW, LATENCY));
+            }
+
+            var evaluations = evaluator.evaluateAll(targets, NOW);
+
+            assertThat(analytics.requests).isEmpty();
+            assertThat(analytics.groupedRequests).hasSizeLessThanOrEqualTo(4);
+            assertThat(evaluations)
+                .hasSize(1000)
+                .allSatisfy(evaluation -> assertThat(evaluation.status()).isEqualTo(PASS));
+            assertThat(evaluations)
+                .filteredOn(evaluation -> evaluation.coveredApiIds().size() == 2)
+                .hasSize(500)
+                .allSatisfy(evaluation ->
+                    assertThat(evaluation.rules())
+                        .singleElement()
+                        .extracting(PerformanceTargetEvaluation.RuleResult::sampleCount, PerformanceTargetEvaluation.RuleResult::observed)
+                        .containsExactly(120L, 1800.0)
+                );
+        }
+
+        @Test
+        void should_count_first_and_measure_only_the_scopes_with_enough_samples() {
             analytics.givenApi(A2A_API_ID, requests(63), measure(MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME, MetricSpec.Measure.P95, 4810));
             analytics.givenApi(LLM_API_ID, requests(5), measure(MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME, MetricSpec.Measure.P95, 100));
 
@@ -443,29 +513,18 @@ class PerformanceTargetEvaluatorImplTest {
             );
 
             assertThat(analytics.contexts).containsOnly(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID));
-            assertThat(analytics.facetsRequests)
-                .allSatisfy(request -> {
-                    assertThat(request.timeRange()).isEqualTo(new TimeRange(NOW.minus(WINDOW), NOW));
-                    assertThat(request.facets()).containsExactly(FacetSpec.Name.API);
-                })
+            assertThat(analytics.groupedRequests)
+                .allSatisfy(request -> assertThat(request.timeRange()).isEqualTo(new TimeRange(NOW.minus(WINDOW), NOW)))
                 .satisfiesExactly(
                     count -> {
                         assertThat(count.filters()).containsExactly(apiIn(A2A_API_ID, LLM_API_ID));
-                        assertThat(count.limit()).isEqualTo(2);
-                        assertThat(count.metrics()).containsExactly(
-                            new FacetMetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT), List.of())
-                        );
+                        assertThat(count.groups().values()).containsExactly(List.of(apiIn(A2A_API_ID)), List.of(apiIn(LLM_API_ID)));
+                        assertThat(count.metrics()).containsExactly(REQUEST_COUNT);
                     },
-                    aggregation -> {
-                        assertThat(aggregation.filters()).containsExactly(apiIn(A2A_API_ID));
-                        assertThat(aggregation.limit()).isEqualTo(1);
-                        assertThat(aggregation.metrics()).containsExactly(
-                            new FacetMetricMeasuresRequest(
-                                MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME,
-                                List.of(MetricSpec.Measure.P95),
-                                List.of()
-                            )
-                        );
+                    measures -> {
+                        assertThat(measures.filters()).containsExactly(apiIn(A2A_API_ID));
+                        assertThat(measures.groups().values()).containsExactly(List.of(apiIn(A2A_API_ID)));
+                        assertThat(measures.metrics()).containsExactly(LATENCY_P95);
                     }
                 );
             assertThat(evaluations)
@@ -482,7 +541,7 @@ class PerformanceTargetEvaluatorImplTest {
         }
 
         @Test
-        void should_skip_the_aggregation_when_no_target_has_enough_samples() {
+        void should_skip_the_measures_when_no_scope_has_enough_samples() {
             analytics.givenApi(A2A_API_ID, requests(3));
 
             var evaluations = evaluator.evaluateAll(
@@ -490,7 +549,7 @@ class PerformanceTargetEvaluatorImplTest {
                 NOW
             );
 
-            assertThat(analytics.facetsRequests).hasSize(1);
+            assertThat(analytics.groupedRequests).hasSize(1);
             assertThat(evaluations)
                 .flatExtracting(PerformanceTargetEvaluation::rules)
                 .extracting(PerformanceTargetEvaluation.RuleResult::sampleCount, PerformanceTargetEvaluation.RuleResult::status)
@@ -525,8 +584,8 @@ class PerformanceTargetEvaluatorImplTest {
                 NOW
             );
 
-            assertThat(analytics.facetsRequests)
-                .extracting(FacetsRequest::timeRange, FacetsRequest::filters)
+            assertThat(analytics.groupedRequests)
+                .extracting(GroupedMeasuresRequest::timeRange, GroupedMeasuresRequest::filters)
                 .containsExactlyInAnyOrder(
                     tuple(new TimeRange(NOW.minus(WINDOW), NOW), List.of(apiIn(A2A_API_ID, LLM_API_ID))),
                     tuple(new TimeRange(NOW.minus(hour), NOW), List.of(apiIn("hourly-api"))),
@@ -540,7 +599,7 @@ class PerformanceTargetEvaluatorImplTest {
         }
 
         @Test
-        void should_fall_back_to_a_per_target_evaluation_when_a_rule_spans_several_apis_or_carries_filters() {
+        void should_batch_targets_whose_rules_span_several_apis_or_carry_filters() {
             var searchTool = new Filter(FilterSpec.Name.MCP_PROXY_TOOL, FilterOperator.EQ, "search");
             var filtered = aSingleApiTarget(A2A_API_ID, WINDOW, ERROR_RATE.toBuilder().filters(List.of(searchTool)).build());
 
@@ -549,10 +608,17 @@ class PerformanceTargetEvaluatorImplTest {
                 NOW
             );
 
-            assertThat(analytics.requests)
-                .extracting(MeasuresRequest::filters)
-                .containsExactly(List.of(apiIn(A2A_API_ID, LLM_API_ID)), List.of(apiIn(A2A_API_ID), searchTool));
-            assertThat(analytics.facetsRequests).singleElement().extracting(FacetsRequest::filters).isEqualTo(List.of(apiIn(LLM_API_ID)));
+            assertThat(analytics.requests).isEmpty();
+            assertThat(analytics.groupedRequests)
+                .singleElement()
+                .satisfies(count -> {
+                    assertThat(count.filters()).containsExactly(apiIn(A2A_API_ID, LLM_API_ID));
+                    assertThat(count.groups().values()).containsExactly(
+                        List.of(apiIn(A2A_API_ID, LLM_API_ID)),
+                        List.of(apiIn(A2A_API_ID), searchTool),
+                        List.of(apiIn(LLM_API_ID))
+                    );
+                });
             assertThat(evaluations)
                 .extracting(PerformanceTargetEvaluation::targetId)
                 .containsExactly("target-id", filtered.id(), LLM_API_ID);
@@ -570,7 +636,7 @@ class PerformanceTargetEvaluatorImplTest {
             var evaluations = evaluator.evaluateAll(List.of(anAgentTarget(A2A_LATENCY, LLM_COST)), NOW);
 
             assertThat(analytics.requests).isEmpty();
-            assertThat(analytics.facetsRequests).hasSize(2);
+            assertThat(analytics.groupedRequests).hasSize(2);
             assertThat(evaluations)
                 .singleElement()
                 .satisfies(evaluation -> {
@@ -587,6 +653,59 @@ class PerformanceTargetEvaluatorImplTest {
         }
 
         @Test
+        void should_evaluate_a_target_in_a_batch_like_on_its_own() {
+            analytics.given(
+                Set.of(A2A_API_ID),
+                requests(63),
+                measure(MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME, MetricSpec.Measure.P95, 4810)
+            );
+            analytics.given(
+                Set.of(A2A_API_ID, LLM_API_ID),
+                requests(91),
+                measure(MetricSpec.Name.HTTP_ERROR_RATE, MetricSpec.Measure.PERCENTAGE, 1.5)
+            );
+            analytics.given(
+                Set.of(LLM_API_ID),
+                requests(40),
+                measure(MetricSpec.Name.LLM_PROMPT_TOKEN_TOTAL_COST, MetricSpec.Measure.AVG, 0.02)
+            );
+            var target = anAgentTarget(A2A_LATENCY, ERROR_RATE, LLM_COST);
+
+            var alone = evaluator.evaluate(target, NOW);
+            var batched = evaluator.evaluateAll(List.of(target), NOW);
+
+            assertThat(batched).singleElement().isEqualTo(alone);
+            assertThat(alone.status()).isEqualTo(BREACH);
+            assertThat(alone.rules())
+                .extracting(
+                    PerformanceTargetEvaluation.RuleResult::observed,
+                    PerformanceTargetEvaluation.RuleResult::sampleCount,
+                    PerformanceTargetEvaluation.RuleResult::status
+                )
+                .containsExactly(tuple(4810.0, 63L, BREACH), tuple(1.5, 91L, PASS), tuple(0.02, 40L, BREACH));
+        }
+
+        @Test
+        void should_evaluate_a_target_of_another_api_family_on_its_own() {
+            apiCrudService.initWith(
+                List.of(
+                    ApiFixtures.anA2AProxyApiV4().toBuilder().id(A2A_API_ID).build(),
+                    ApiFixtures.aNativeApi().toBuilder().id("kafka-api").build()
+                )
+            );
+            var kafka = aTarget("kafka-target", List.of("kafka-api"), "kafka-api", WINDOW, BROKER_DURATION);
+
+            var evaluations = evaluator.evaluateAll(List.of(kafka, aSingleApiTarget(A2A_API_ID, WINDOW, LATENCY)), NOW);
+
+            assertThat(analytics.requests).singleElement().extracting(MeasuresRequest::filters).isEqualTo(List.of(apiIn("kafka-api")));
+            assertThat(analytics.groupedRequests)
+                .singleElement()
+                .extracting(GroupedMeasuresRequest::filters)
+                .isEqualTo(List.of(apiIn(A2A_API_ID)));
+            assertThat(evaluations).extracting(PerformanceTargetEvaluation::targetId).containsExactly("kafka-target", A2A_API_ID);
+        }
+
+        @Test
         void should_keep_the_input_order_and_leave_out_a_target_that_cannot_be_evaluated() {
             apiCrudService.initWith(
                 List.of(
@@ -594,11 +713,7 @@ class PerformanceTargetEvaluatorImplTest {
                     ApiFixtures.aNativeApi().toBuilder().id("kafka-api").build()
                 )
             );
-            var mixedFamilies = PerformanceTargetFixtures.aTarget("mixed")
-                .toBuilder()
-                .subject(new PerformanceTarget.Subject(List.of(A2A_API_ID, "kafka-api"), "mixed"))
-                .rules(List.of(ERROR_RATE))
-                .build();
+            var mixedFamilies = aTarget("mixed", List.of(A2A_API_ID, "kafka-api"), "mixed", WINDOW, ERROR_RATE);
 
             var evaluations = evaluator.evaluateAll(
                 List.of(aSingleApiTarget(A2A_API_ID, WINDOW, LATENCY), mixedFamilies, anAgentTarget(ERROR_RATE)),
@@ -611,7 +726,7 @@ class PerformanceTargetEvaluatorImplTest {
         @Test
         void should_return_nothing_for_no_target() {
             assertThat(evaluator.evaluateAll(List.of(), NOW)).isEmpty();
-            assertThat(analytics.facetsRequests).isEmpty();
+            assertThat(analytics.groupedRequests).isEmpty();
             assertThat(analytics.requests).isEmpty();
         }
     }
@@ -659,28 +774,18 @@ class PerformanceTargetEvaluatorImplTest {
         }
     }
 
-    private static PerformanceTarget aSingleApiTarget(String apiId, Duration window, PerformanceTarget.Rule... rules) {
-        return PerformanceTargetFixtures.aTarget(apiId)
-            .toBuilder()
-            .subject(new PerformanceTarget.Subject(List.of(apiId), apiId))
-            .window(window)
-            .rules(List.of(rules))
-            .build();
-    }
-
     /**
-     * Answers a measures request with the metrics configured for the API ids it filters on, merging several
-     * configured responses for the same metric, and a facets request with one API bucket per API id that has
-     * configured metrics, the way Elasticsearch returns no bucket for an API without documents. Records what it was
-     * asked so tests can assert the query shape.
+     * Answers a measures request, or each group of a grouped request, with the metrics configured for the API ids it
+     * filters on, restricted to the metrics asked for, the way the engine answers only what it is asked. A group with
+     * nothing configured comes back without metrics, which reads as zero samples. Records what it was asked so tests
+     * can assert the query shape.
      */
     static class RecordingAnalyticsEngineQueryService implements AnalyticsEngineQueryService {
 
         final List<ExecutionContext> contexts = new ArrayList<>();
         final List<MeasuresRequest> requests = new ArrayList<>();
-        final List<FacetsRequest> facetsRequests = new ArrayList<>();
+        final List<GroupedMeasuresRequest> groupedRequests = new ArrayList<>();
         private final Map<Set<String>, List<MetricMeasuresResponse>> responsesByApiIds = new HashMap<>();
-        private final Map<String, List<MetricMeasuresResponse>> responsesByApi = new HashMap<>();
 
         void given(Set<String> apiIds, MetricMeasuresResponse... metrics) {
             for (var metric : metrics) {
@@ -689,9 +794,7 @@ class PerformanceTargetEvaluatorImplTest {
         }
 
         void givenApi(String apiId, MetricMeasuresResponse... metrics) {
-            for (var metric : metrics) {
-                responsesByApi.computeIfAbsent(apiId, id -> new ArrayList<>()).add(metric);
-            }
+            given(Set.of(apiId), metrics);
         }
 
         @Override
@@ -703,9 +806,30 @@ class PerformanceTargetEvaluatorImplTest {
         public MeasuresResponse searchMeasures(ExecutionContext context, MeasuresRequest request) {
             contexts.add(context);
             requests.add(request);
+            return response(apiIdsOf(request.filters()), request.metrics());
+        }
+
+        @Override
+        public boolean supportsGroupedMeasures() {
+            return true;
+        }
+
+        @Override
+        public GroupedMeasuresResponse searchGroupedMeasures(ExecutionContext context, GroupedMeasuresRequest request) {
+            contexts.add(context);
+            groupedRequests.add(request);
+            var groups = new LinkedHashMap<String, MeasuresResponse>();
+            request.groups().forEach((key, filters) -> groups.put(key, response(apiIdsOf(filters), request.metrics())));
+            return new GroupedMeasuresResponse(groups);
+        }
+
+        private MeasuresResponse response(Set<String> apiIds, List<MetricMeasuresRequest> metrics) {
+            var requested = metrics.stream().map(MetricMeasuresRequest::name).collect(Collectors.toSet());
             var byMetric = new HashMap<MetricSpec.Name, List<Measure>>();
-            for (var response : responsesByApiIds.getOrDefault(apiIdsOf(request.filters()), List.of())) {
-                byMetric.computeIfAbsent(response.name(), name -> new ArrayList<>()).addAll(response.measures());
+            for (var response : responsesByApiIds.getOrDefault(apiIds, List.of())) {
+                if (requested.contains(response.name())) {
+                    byMetric.computeIfAbsent(response.name(), name -> new ArrayList<>()).addAll(response.measures());
+                }
             }
             return new MeasuresResponse(
                 new TreeSet<>(byMetric.keySet())
@@ -713,40 +837,6 @@ class PerformanceTargetEvaluatorImplTest {
                     .map(name -> new MetricMeasuresResponse(name, null, byMetric.get(name)))
                     .toList()
             );
-        }
-
-        @Override
-        public FacetsResponse searchFacets(ExecutionContext context, FacetsRequest request) {
-            contexts.add(context);
-            facetsRequests.add(request);
-            var apiIds = new TreeSet<>(apiIdsOf(request.filters()));
-            return new FacetsResponse(
-                request
-                    .metrics()
-                    .stream()
-                    .map(metric ->
-                        new MetricFacetsResponse(
-                            metric.name(),
-                            null,
-                            apiIds
-                                .stream()
-                                .map(apiId -> new FacetBucketResponse(apiId, null, null, measuresOf(apiId, metric)))
-                                .filter(bucket -> !bucket.measures().isEmpty())
-                                .toList()
-                        )
-                    )
-                    .toList()
-            );
-        }
-
-        private List<Measure> measuresOf(String apiId, FacetMetricMeasuresRequest metric) {
-            return responsesByApi
-                .getOrDefault(apiId, List.of())
-                .stream()
-                .filter(response -> response.name() == metric.name())
-                .flatMap(response -> response.measures().stream())
-                .filter(measure -> metric.measures().contains(measure.name()))
-                .toList();
         }
 
         @SuppressWarnings("unchecked")
@@ -757,6 +847,11 @@ class PerformanceTargetEvaluatorImplTest {
                 .findFirst()
                 .map(filter -> Set.copyOf((Collection<String>) filter.value()))
                 .orElse(Set.of());
+        }
+
+        @Override
+        public FacetsResponse searchFacets(ExecutionContext context, FacetsRequest request) {
+            throw new UnsupportedOperationException("targets are no longer evaluated through facets");
         }
 
         @Override
