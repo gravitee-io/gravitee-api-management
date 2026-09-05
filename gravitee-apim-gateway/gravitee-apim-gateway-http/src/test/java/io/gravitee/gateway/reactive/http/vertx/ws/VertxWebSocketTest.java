@@ -241,6 +241,17 @@ class VertxWebSocketTest {
             obs.assertComplete();
             verifyNoInteractions(webSocket);
         }
+
+        @Test
+        void should_fail_to_write_if_closed() {
+            ReflectionTestUtils.setField(cut, "upgraded", true);
+            ReflectionTestUtils.setField(cut, "webSocket", webSocket);
+            when(webSocket.isClosed()).thenReturn(true);
+
+            final TestObserver<Void> obs = cut.write(io.gravitee.gateway.api.buffer.Buffer.buffer("test")).test();
+            obs.assertError(HttpClosedException.class);
+            verify(webSocket, never()).rxWrite(any(Buffer.class));
+        }
     }
 
     @Nested
@@ -304,6 +315,16 @@ class VertxWebSocketTest {
 
             cut.writePing().test().assertComplete();
             verifyNoInteractions(webSocket);
+        }
+
+        @Test
+        void should_fail_to_write_ping_frame_if_closed() {
+            ReflectionTestUtils.setField(cut, "upgraded", true);
+            ReflectionTestUtils.setField(cut, "webSocket", webSocket);
+            when(webSocket.isClosed()).thenReturn(true);
+
+            cut.writePing().test().assertError(HttpClosedException.class);
+            verify(webSocket, never()).writePing(any(Buffer.class));
         }
     }
 
