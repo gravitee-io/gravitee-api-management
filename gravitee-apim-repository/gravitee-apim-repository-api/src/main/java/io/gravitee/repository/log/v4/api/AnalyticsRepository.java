@@ -16,9 +16,11 @@
 package io.gravitee.repository.log.v4.api;
 
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
+import io.gravitee.repository.analytics.engine.api.query.GroupedMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
 import io.gravitee.repository.analytics.engine.api.result.FacetsResult;
+import io.gravitee.repository.analytics.engine.api.result.GroupedMeasuresResult;
 import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
 import io.gravitee.repository.analytics.engine.api.result.TimeSeriesResult;
 import io.gravitee.repository.analytics.query.events.EventAnalyticsAggregate;
@@ -65,6 +67,12 @@ public interface AnalyticsRepository {
     Optional<EventAnalyticsAggregate> searchEventAnalytics(QueryContext queryContext, HistogramQuery query);
 
     MeasuresResult searchHTTPMeasures(QueryContext queryContext, MeasuresQuery query);
+
+    /**
+     * The same HTTP measures computed once per group of documents in a single request, each group selecting its
+     * documents with its own filters. Answers every requested group, with zeroed measures when nothing matched.
+     */
+    GroupedMeasuresResult searchHTTPGroupedMeasures(QueryContext queryContext, GroupedMeasuresQuery query);
 
     FacetsResult searchHTTPFacets(QueryContext queryContext, FacetsQuery query);
 

@@ -1598,6 +1598,61 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         }
 
         @Nested
+        class HTTPGroupedMeasures {
+
+            private static final String FIRST_API = "4a6895d5-a1bc-4041-a895-d5a1bce041ae";
+            private static final String SECOND_API = "llm-api-001";
+            private static final MetricMeasuresQuery REQUESTS = new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT));
+
+            @Test
+            void should_measure_each_group_over_the_union_of_its_apis_in_one_request() {
+                var groups = new java.util.LinkedHashMap<String, List<Filter>>();
+                groups.put("first", List.of(new Filter(Filter.Name.API, Filter.Operator.IN, List.of(FIRST_API))));
+                groups.put("pair", List.of(new Filter(Filter.Name.API, Filter.Operator.IN, List.of(FIRST_API, SECOND_API))));
+                groups.put("nothing", List.of(new Filter(Filter.Name.API, Filter.Operator.IN, List.of("no-such-api"))));
+                var query = new io.gravitee.repository.analytics.engine.api.query.GroupedMeasuresQuery(
+                    buildTimeRange(),
+                    List.of(new Filter(Filter.Name.API, Filter.Operator.IN, List.of(FIRST_API, SECOND_API, "no-such-api"))),
+                    List.of(REQUESTS, new MetricMeasuresQuery(Metric.HTTP_GATEWAY_RESPONSE_TIME, Set.of(Measure.MAX))),
+                    groups
+                );
+
+                var result = cut.searchHTTPGroupedMeasures(QUERY_CONTEXT, query);
+
+                var first = count(cut.searchHTTPMeasures(QUERY_CONTEXT, measuresOf(FIRST_API)));
+                var second = count(cut.searchHTTPMeasures(QUERY_CONTEXT, measuresOf(SECOND_API)));
+                assertThat(first).isPositive();
+                assertThat(second).isPositive();
+                assertThat(result.groups().keySet()).containsExactly("first", "pair", "nothing");
+                assertThat(count(result.groups().get("first"))).isEqualTo(first);
+                assertThat(count(result.groups().get("pair"))).isEqualTo(first + second);
+                assertThat(count(result.groups().get("nothing"))).isZero();
+                assertThat(result.groups().get("pair").measures())
+                    .filteredOn(metric -> metric.metric() == Metric.HTTP_GATEWAY_RESPONSE_TIME)
+                    .singleElement()
+                    .satisfies(max -> assertThat(max.measures().get(Measure.MAX).doubleValue()).isPositive());
+            }
+
+            private static MeasuresQuery measuresOf(String apiId) {
+                return new MeasuresQuery(
+                    buildTimeRange(),
+                    List.of(new Filter(Filter.Name.API, Filter.Operator.IN, List.of(apiId))),
+                    List.of(REQUESTS)
+                );
+            }
+
+            private static long count(io.gravitee.repository.analytics.engine.api.result.MeasuresResult result) {
+                return result
+                    .measures()
+                    .stream()
+                    .filter(metric -> metric.metric() == Metric.HTTP_REQUESTS)
+                    .map(metric -> metric.measures().get(Measure.COUNT).longValue())
+                    .findFirst()
+                    .orElseThrow();
+            }
+        }
+
+        @Nested
         class HTTPMeasures {
 
             static MeasuresQuery buildQuery() {

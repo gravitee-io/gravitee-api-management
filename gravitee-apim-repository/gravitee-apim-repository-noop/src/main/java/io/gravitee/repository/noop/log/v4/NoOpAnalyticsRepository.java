@@ -16,9 +16,11 @@
 package io.gravitee.repository.noop.log.v4;
 
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
+import io.gravitee.repository.analytics.engine.api.query.GroupedMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
 import io.gravitee.repository.analytics.engine.api.result.FacetsResult;
+import io.gravitee.repository.analytics.engine.api.result.GroupedMeasuresResult;
 import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
 import io.gravitee.repository.analytics.engine.api.result.TimeSeriesResult;
 import io.gravitee.repository.analytics.query.events.EventAnalyticsAggregate;
@@ -118,6 +120,11 @@ public class NoOpAnalyticsRepository implements AnalyticsRepository {
 
     @Override
     public MeasuresResult searchHTTPMeasures(QueryContext queryContext, MeasuresQuery query) {
+        return null;
+    }
+
+    @Override
+    public GroupedMeasuresResult searchHTTPGroupedMeasures(QueryContext queryContext, GroupedMeasuresQuery query) {
         return null;
     }
 
