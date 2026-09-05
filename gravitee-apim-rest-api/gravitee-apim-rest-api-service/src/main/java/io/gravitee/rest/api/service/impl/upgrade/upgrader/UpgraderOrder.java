@@ -71,6 +71,7 @@ public class UpgraderOrder {
     public static final int CLASSIC_CATEGORIES_MIGRATION_UPGRADER = 722;
     public static final int PORTAL_NAVIGATION_STRUCTURE_UPGRADER = 723;
     public static final int PORTAL_NAVIGATION_ITEM_AUTOMATION_METADATA_UPGRADER = 724;
+    public static final int SUBSCRIPTION_FORM_TO_PORTAL_NAVIGATION_ITEM_UPGRADER = 725;
     public static final int CLUSTER_ROLES_UPGRADER = 900;
     public static final int CLUSTER_CROSS_ID_UPGRADER = 901;
     public static final int API_ENDPOINT_WEIGHT_UPGRADER = 560;
