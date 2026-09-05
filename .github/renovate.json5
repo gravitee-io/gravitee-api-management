@@ -59,9 +59,23 @@
             "enabled": false
         },
         {
-            // Update Gravitee NPM packages at any time
-            "matchPackageNames": ["^@gravitee/*"],
+            // Legacy Angular console packages - move together on their own line
+            "matchPackageNames": ["@gravitee/ui-**"],
             "groupName": "@gravitee/ui"
+        },
+        {
+            // Graphene design system - three packages, released in lockstep
+            "matchPackageNames": [
+                "@gravitee/graphene-core",
+                "@gravitee/graphene-charts",
+                "@gravitee/graphene-policy-studio"
+            ],
+            "groupName": "graphene"
+        },
+        {
+            // Separate release cycle from graphene; adoption is a deliberate decision
+            "matchPackageNames": ["@gravitee/gamma-lib-observability"],
+            "groupName": "gamma-lib-observability"
         }
     ]
 }
