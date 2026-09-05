@@ -18,10 +18,12 @@ package io.gravitee.repository.elasticsearch.v4.analytics;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
+import io.gravitee.repository.analytics.engine.api.query.GroupedMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.Query;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
 import io.gravitee.repository.analytics.engine.api.result.FacetsResult;
+import io.gravitee.repository.analytics.engine.api.result.GroupedMeasuresResult;
 import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
 import io.gravitee.repository.analytics.engine.api.result.TimeSeriesResult;
 import io.gravitee.repository.analytics.query.events.EventAnalyticsAggregate;
@@ -52,6 +54,8 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         new SearchResponseStatusOverTimeAdapter();
 
     private final HTTPMeasuresQueryAdapter httpMeasuresQueryAdapter = new HTTPMeasuresQueryAdapter();
+    private final HTTPGroupedMeasuresQueryAdapter httpGroupedMeasuresQueryAdapter = new HTTPGroupedMeasuresQueryAdapter();
+    private final GroupedMeasuresResponseAdapter groupedMeasuresResponseAdapter = new GroupedMeasuresResponseAdapter();
     private final HTTPFacetsQueryAdapter httpFacetsQueryAdapter = new HTTPFacetsQueryAdapter();
     private final NativeFacetsQueryAdapter nativeFacetsQueryAdapter = new NativeFacetsQueryAdapter();
     private final HTTPTimeSeriesQueryAdapter httpTimeSeriesQueryAdapter = new HTTPTimeSeriesQueryAdapter();
@@ -278,6 +282,19 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         return client
             .search(index, null, esQuery)
             .map(response -> measuresResponseAdapter.adapt(response, query))
+            .blockingGet();
+    }
+
+    @Override
+    public GroupedMeasuresResult searchHTTPGroupedMeasures(QueryContext queryContext, GroupedMeasuresQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var esQuery = httpGroupedMeasuresQueryAdapter.adapt(query);
+
+        log.debug("HTTP grouped measures query: {}", esQuery);
+
+        return client
+            .search(index, null, esQuery)
+            .map(response -> groupedMeasuresResponseAdapter.adapt(response, query))
             .blockingGet();
     }
 

@@ -27,7 +27,9 @@ import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.Query;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
 import io.gravitee.repository.analytics.engine.api.result.FacetBucketResult;
+import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
 import io.gravitee.repository.analytics.engine.api.result.MetricFacetsResult;
+import io.gravitee.repository.analytics.engine.api.result.MetricMeasuresResult;
 import io.gravitee.repository.analytics.engine.api.result.MetricTimeSeriesResult;
 import io.gravitee.repository.analytics.engine.api.result.TimeSeriesBucketResult;
 import java.util.ArrayList;
@@ -67,6 +69,16 @@ public class AggregationAdapter {
      */
     public static String adaptName(Metric metric, Measure measure) {
         return metric.name() + AGG_NAME_SEPARATOR + measure.name();
+    }
+
+    /** The measures of one bucket whose sub-aggregations are the metrics of {@code query}, zero for a metric it lacks. */
+    public static MeasuresResult toBucketMeasures(JsonNode bucket, Query query) {
+        var metricAndMeasures = toMetricsAndMeasures(toAggregations(bucket, adaptNames(query)), query);
+        var results = new ArrayList<MetricMeasuresResult>();
+        for (var metric : query.metrics()) {
+            results.add(new MetricMeasuresResult(metric.metric(), getMeasuresWithDefaults(metric.metric(), metricAndMeasures, query)));
+        }
+        return new MeasuresResult(results);
     }
 
     public static String adaptName(Metric metric, Facet facet) {
