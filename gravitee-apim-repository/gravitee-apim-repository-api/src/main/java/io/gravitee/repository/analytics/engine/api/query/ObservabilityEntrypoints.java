@@ -16,6 +16,7 @@
 package io.gravitee.repository.analytics.engine.api.query;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -34,13 +35,13 @@ import java.util.stream.Stream;
  * behaviour change owned by OBS-69, not by this registry.
  *
  * <p>The set is declared by hand rather than derived from the installed entrypoint plugins, because
- * the scope is a dashboard decision, not a plugin property: {@code mcp} carries the same metadata as
- * {@code http-proxy} yet is not counted yet, and {@code http-get} / {@code http-post} are Message
- * entrypoints counted on purpose. A derived set would also fail silently — the gateway and the
- * Management API load separate plugin trees, an entrypoint missing on one side would simply vanish
- * from the totals, and uninstalling a plugin would erase its historical traffic — while
- * {@code FilterAdapter} runs inside the Elasticsearch repository plugin and cannot see the plugin
- * registry at all.
+ * the scope is a dashboard decision, not a plugin property: {@code native-kafka} carries the same
+ * plugin metadata as any HTTP entrypoint yet is served by logs alone, and {@code http-get} /
+ * {@code http-post} are Message entrypoints counted on purpose. A derived set would also fail
+ * silently — the gateway and the Management API load separate plugin trees, an entrypoint missing on
+ * one side would simply vanish from the totals, and uninstalling a plugin would erase its historical
+ * traffic — while {@code FilterAdapter} runs inside the Elasticsearch repository plugin and cannot
+ * see the plugin registry at all.
  *
  * <p>Two tests hold the registry to the product instead: {@code ObservabilityEntrypointsTest} checks
  * the artifacts the distribution pom bundles (fast, runs whenever this module changes), and
@@ -59,6 +60,9 @@ public enum ObservabilityEntrypoints {
     LLM_PROXY("llm-proxy", "gravitee-entrypoint-llm-proxy", Scope.HTTP),
     MCP_PROXY("mcp-proxy", "gravitee-entrypoint-mcp-proxy", Scope.HTTP),
     A2A_PROXY("a2a-proxy", "gravitee-entrypoint-a2a-proxy", Scope.HTTP),
+    MCP("mcp", "gravitee-entrypoint-mcp-tool-server", Scope.HTTP),
+    MCP_STUDIO("mcp-studio", "gravitee-entrypoint-mcp-studio", Scope.HTTP),
+    AGENT_TO_AGENT("agent-to-agent", "gravitee-entrypoint-agent-to-agent", Scope.HTTP),
 
     NATIVE_KAFKA("native-kafka", "gravitee-entrypoint-native-kafka", Scope.LOGS_ONLY),
 
@@ -66,10 +70,6 @@ public enum ObservabilityEntrypoints {
     EDGE("edge", null, Scope.DEDICATED_FAMILY),
     /** The plugin id differs from the artifact name: {@code plugin.properties} of gravitee-entrypoint-authz 1.2.0 says {@code authzen}. */
     AUTHZ("authzen", "gravitee-entrypoint-authz", Scope.DEDICATED_FAMILY),
-
-    MCP("mcp", "gravitee-entrypoint-mcp-tool-server", Scope.PENDING),
-    MCP_STUDIO("mcp-studio", "gravitee-entrypoint-mcp-studio", Scope.PENDING),
-    AGENT_TO_AGENT("agent-to-agent", "gravitee-entrypoint-agent-to-agent", Scope.PENDING),
 
     SSE("sse", "gravitee-entrypoint-sse", Scope.EXCLUDED),
     WEBHOOK("webhook", "gravitee-entrypoint-webhook", Scope.EXCLUDED),
@@ -87,7 +87,7 @@ public enum ObservabilityEntrypoints {
         /**
          * Served by Gamma logs but not by analytics. Native connections have their own documents and
          * their own dashboard tiles; adding them to the analytics default would change every
-         * environment-wide total. The divergence is deliberate and tracked by OBS-18.
+         * environment-wide total. The divergence is deliberate.
          */
         LOGS_ONLY,
 
@@ -97,24 +97,17 @@ public enum ObservabilityEntrypoints {
          */
         DEDICATED_FAMILY,
 
-        /**
-         * Carries traffic observability should count but does not yet. Listed so the gap is visible
-         * rather than accidental; OBS-18 promotes these to {@link #HTTP}.
-         */
-        PENDING,
-
         /** Message and TCP APIs, outside what the observability signals cover today. */
         EXCLUDED,
     }
 
     /** Entrypoints counted by the analytics engine, Gamma analytics and Gamma logs alike. */
-    public static final List<String> HTTP_SCOPE_IDS = idsWithScope(Scope.HTTP);
+    public static final List<String> HTTP_SCOPE_IDS = Collections.unmodifiableList(idsWithScope(Scope.HTTP));
 
     /** {@link #HTTP_SCOPE_IDS} plus the entrypoints only the logs signal serves. */
-    public static final List<String> LOGS_SCOPE_IDS = Stream.concat(
-        HTTP_SCOPE_IDS.stream(),
-        idsWithScope(Scope.LOGS_ONLY).stream()
-    ).toList();
+    public static final List<String> LOGS_SCOPE_IDS = Collections.unmodifiableList(
+        Stream.concat(HTTP_SCOPE_IDS.stream(), idsWithScope(Scope.LOGS_ONLY).stream()).toList()
+    );
 
     private final String id;
     private final String pluginArtifactId;

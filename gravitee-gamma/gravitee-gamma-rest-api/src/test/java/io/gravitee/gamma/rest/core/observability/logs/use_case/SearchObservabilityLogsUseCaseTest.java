@@ -548,6 +548,9 @@ class SearchObservabilityLogsUseCaseTest {
                 "llm-proxy",
                 "mcp-proxy",
                 "a2a-proxy",
+                "mcp",
+                "mcp-studio",
+                "agent-to-agent",
                 "native-kafka"
             );
         }
