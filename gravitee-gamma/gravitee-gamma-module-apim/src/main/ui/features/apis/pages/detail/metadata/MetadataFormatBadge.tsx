@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-export * from './alert';
-export * from './analytics';
-export * from './api';
-export * from './apiCreation';
-export * from './apiImport';
-export * from './auditLogs.types';
-export * from './broadcast';
-export * from './healthCheck';
-export * from './members.types';
-export * from './metadata';
-export * from './notification';
-export * from './plan';
-export * from './resource';
-export * from './subscription';
+import { Badge } from '@gravitee/graphene-core';
+
+import type { MetadataFormat } from '../../../types/metadata';
+import { METADATA_FORMAT_LABELS } from '../../../utils/apiMetadata';
+
+export function MetadataFormatBadge({ format }: Readonly<{ format: MetadataFormat }>) {
+    return <Badge variant="default">{METADATA_FORMAT_LABELS[format] ?? format}</Badge>;
+}

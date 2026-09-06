@@ -118,6 +118,11 @@ export const apiNotificationKeys = {
     hooks: (envId: string) => [...apiNotificationKeys.all, 'hooks', envId] as const,
 };
 
+export const apiMetadataKeys = {
+    all: ['api-metadata'] as const,
+    list: (envId: string, apiId: string, params: object) => [...apiMetadataKeys.all, 'list', envId, apiId, params] as const,
+};
+
 export const apiPlanKeys = {
     all: ['api-plans'] as const,
     list: (envId: string, ctx: PlanContext, statuses: PlanStatus[], page: number, perPage: number) =>

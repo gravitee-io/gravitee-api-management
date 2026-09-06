@@ -19,6 +19,7 @@ import {
     BellIcon,
     ChevronDownIcon,
     ChevronRightIcon,
+    DatabaseIcon,
     FlaskConicalIcon,
     GlobeIcon,
     LayoutDashboardIcon,
@@ -87,6 +88,7 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
             { path: 'api-score', label: 'API Score', icon: SparklesIcon, comingSoon: true },
             { path: 'response-templates', label: 'Response Templates', icon: ScrollTextIcon, comingSoon: true },
             { path: 'cors', label: 'CORS', icon: ShieldCheckIcon },
+            { path: 'metadata', label: 'Metadata', icon: DatabaseIcon },
         ],
     },
     {
@@ -167,6 +169,14 @@ export function withTcpRestrictions(groups: DetailNavGroup[], apiHasTcpListeners
             if (!disabled.children) return disabled;
             return { ...disabled, children: disabled.children.filter(child => !TCP_OMITTED_CHILD_PATHS.has(child.path)) };
         }),
+    }));
+}
+
+export function withMetadataPermission(groups: DetailNavGroup[], canReadMetadata: boolean): DetailNavGroup[] {
+    if (canReadMetadata) return groups;
+    return groups.map(group => ({
+        ...group,
+        items: group.items.filter(item => item.path !== 'metadata'),
     }));
 }
 

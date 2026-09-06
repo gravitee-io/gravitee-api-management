@@ -40,7 +40,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useId, useState } from 'react';
 import { Navigate, Outlet, useParams } from 'react-router-dom';
 
-import { API_PROXY_NAV_GROUPS, ApiDetailSidebarNav, withTcpRestrictions } from './ApiDetailSidebarNav';
+import { API_PROXY_NAV_GROUPS, ApiDetailSidebarNav, withMetadataPermission, withTcpRestrictions } from './ApiDetailSidebarNav';
 import { useDetailBasePath } from '../../../../shared/hooks/useDetailBasePath';
 import { ApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDetail } from '../../hooks/useApiDetail';
@@ -253,6 +253,7 @@ export function ApiDetailLayout() {
     const { data: api, isLoading, isError } = useApiDetail(apiId);
     const { permissionsReady } = useApiPermissions(apiId);
     const canDeploy = useHasPermission({ anyOf: ['api-definition-u'] });
+    const canReadMetadata = useHasPermission({ anyOf: ['api-metadata-r'] });
     const queryClient = useQueryClient();
     const [contextExpanded, setContextExpanded] = useState(true);
     const [showDeployDialog, setShowDeployDialog] = useState(false);
@@ -271,7 +272,7 @@ export function ApiDetailLayout() {
     });
 
     const showDeployBanner = !isError && api?.deploymentState === 'NEED_REDEPLOY' && canDeploy;
-    const navGroups = withTcpRestrictions(API_PROXY_NAV_GROUPS, hasTcpListeners(api));
+    const navGroups = withMetadataPermission(withTcpRestrictions(API_PROXY_NAV_GROUPS, hasTcpListeners(api)), canReadMetadata);
 
     useLayoutConfig(
         {
@@ -292,7 +293,7 @@ export function ApiDetailLayout() {
             ) : null,
             bannerSticky: true,
         },
-        [contextExpanded, api, isLoading, basePath, permissionsReady, showDeployBanner, deployMutation.isPending],
+        [contextExpanded, api, isLoading, basePath, permissionsReady, showDeployBanner, deployMutation.isPending, canReadMetadata],
     );
 
     if (isError) {
