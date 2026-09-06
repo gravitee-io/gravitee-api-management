@@ -40,7 +40,7 @@ public record ScoreRequest(
         }
     }
 
-    public record CustomRuleset(String content, Format format) {
+    public record CustomRuleset(String content, ScoringRuleset.Format format) {
         public CustomRuleset(String content) {
             this(content, null);
         }

@@ -18,8 +18,10 @@ package io.gravitee.apim.core.scoring.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.async_job.crud_service.AsyncJobCrudService;
+import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.core.scoring.crud_service.ScoringReportCrudService;
 import io.gravitee.apim.core.scoring.domain_service.ScoreComputingDomainService;
+import io.gravitee.apim.core.scoring.domain_service.ScoringResponseAggregator;
 import io.gravitee.apim.core.scoring.model.ScoringReport;
 import io.gravitee.common.utils.TimeProvider;
 import io.reactivex.rxjava3.core.Completable;
@@ -41,21 +43,35 @@ public class SaveScoringResponseUseCase {
     private final AsyncJobCrudService asyncJobCrudService;
     private final ScoringReportCrudService scoringReportCrudService;
     private final ScoreComputingDomainService scoreComputingDomainService;
+    private final ScoringResponseAggregator scoringResponseAggregator;
 
     public Completable execute(Input input) {
         return Maybe.defer(() -> Maybe.fromOptional(asyncJobCrudService.findById(input.jobId)))
             .subscribeOn(Schedulers.computation())
             .flatMapCompletable(job -> {
+                if (job.getStatus() != AsyncJob.Status.PENDING) {
+                    // Clean up any accumulated partial responses for this non-pending job to prevent memory leaks
+                    scoringResponseAggregator.cleanup(input.jobId);
+                    return Completable.complete();
+                }
+
+                var expectedResponses = job.getUpperLimit() == null ? 1L : job.getUpperLimit();
+                var analyzedAssets = scoringResponseAggregator.accumulate(input.jobId, expectedResponses, input.analyzedAssets);
+                if (analyzedAssets.isEmpty()) {
+                    return Completable.complete();
+                }
+
                 String apiId = job.getSourceId();
                 String environmentId = job.getEnvironmentId();
+                var assets = analyzedAssets.get();
 
                 var report = ScoringReport.builder()
                     .id(job.getId())
                     .apiId(apiId)
                     .environmentId(environmentId)
                     .createdAt(TimeProvider.now())
-                    .summary(processSummary(input.analyzedAssets))
-                    .assets(input.analyzedAssets)
+                    .summary(processSummary(assets))
+                    .assets(assets)
                     .build();
 
                 return Completable.fromRunnable(() -> scoringReportCrudService.deleteByApi(apiId))

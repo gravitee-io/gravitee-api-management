@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.scoring;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.scoring.model.ScoreRequest;
+import io.gravitee.apim.core.scoring.model.ScoringRuleset;
 import io.gravitee.apim.core.scoring.service_provider.ScoringProvider;
 import io.gravitee.cockpit.api.CockpitConnector;
 import io.gravitee.cockpit.api.command.v1.scoring.request.ScoringRequestCommand;
@@ -67,7 +68,7 @@ public class ScoringProviderImpl implements ScoringProvider {
                                 a.assetName(),
                                 a.content(),
                                 detectContentType(a.content()),
-                                format(a.assetType().format())
+                                assetFormat(a.assetType().format())
                             )
                         )
                         .toList(),
@@ -75,7 +76,7 @@ public class ScoringProviderImpl implements ScoringProvider {
                     request
                         .customRulesets()
                         .stream()
-                        .map(r -> new CustomRuleset(format(r.format()), r.content()))
+                        .map(r -> new CustomRuleset(rulesetFormat(r.format()), r.content()))
                         .toList(),
                     request
                         .customFunctions()
@@ -107,7 +108,7 @@ public class ScoringProviderImpl implements ScoringProvider {
         };
     }
 
-    private Format format(ScoreRequest.Format format) {
+    private Format assetFormat(ScoreRequest.Format format) {
         return switch (format) {
             case null -> null;
             case GRAVITEE_PROXY -> Format.GRAVITEE_PROXY;
@@ -115,6 +116,20 @@ public class ScoringProviderImpl implements ScoringProvider {
             case GRAVITEE_FEDERATED -> Format.GRAVITEE_FEDERATED;
             case GRAVITEE_NATIVE -> Format.GRAVITEE_NATIVE;
             case GRAVITEE_V2 -> Format.GRAVITEE_V2;
+        };
+    }
+
+    private Format rulesetFormat(ScoringRuleset.Format format) {
+        return switch (format) {
+            case null -> null;
+            case GRAVITEE_PROXY -> Format.GRAVITEE_PROXY;
+            case GRAVITEE_MESSAGE -> Format.GRAVITEE_MESSAGE;
+            case GRAVITEE_FEDERATION -> Format.GRAVITEE_FEDERATED;
+            case GRAVITEE_NATIVE -> Format.GRAVITEE_NATIVE;
+            case GRAVITEE_V2 -> Format.GRAVITEE_V2;
+            // Cockpit Format has no OPENAPI/ASYNCAPI values. After partitioning, these rulesets only
+            // travel with matching documentation assets, so null format is scoped correctly.
+            case OPENAPI, ASYNCAPI -> null;
         };
     }
 

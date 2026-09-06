@@ -24,6 +24,7 @@ import inmemory.InMemoryAlternative;
 import inmemory.ScoringReportCrudServiceInMemory;
 import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.core.scoring.domain_service.ScoreComputingDomainService;
+import io.gravitee.apim.core.scoring.domain_service.ScoringResponseAggregator;
 import io.gravitee.apim.core.scoring.model.ScoringAssetType;
 import io.gravitee.apim.core.scoring.model.ScoringReport;
 import io.gravitee.apim.core.scoring.use_case.SaveScoringResponseUseCase.Input;
@@ -122,7 +123,12 @@ class SaveScoringResponseUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new SaveScoringResponseUseCase(asyncJobCrudService, scoringReportCrudService, new ScoreComputingDomainService());
+        useCase = new SaveScoringResponseUseCase(
+            asyncJobCrudService,
+            scoringReportCrudService,
+            new ScoreComputingDomainService(),
+            new ScoringResponseAggregator()
+        );
     }
 
     @AfterEach
@@ -133,9 +139,7 @@ class SaveScoringResponseUseCaseTest {
     @Test
     void should_store_scoring_result() {
         // Given
-        givenAnAsyncJob(
-            aPendingScoringRequestJob().toBuilder().id(JOB_ID).sourceId(API_ID).initiatorId(USER_ID).environmentId(ENVIRONMENT_ID).build()
-        );
+        givenAnAsyncJob(aSingleResponseScoringJob());
 
         // When
         useCase.execute(new Input(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
@@ -156,9 +160,7 @@ class SaveScoringResponseUseCaseTest {
     @Test
     void should_complete_scoring_job_when_succeed() {
         // Given
-        var job = givenAnAsyncJob(
-            aPendingScoringRequestJob().toBuilder().id(JOB_ID).sourceId(API_ID).initiatorId(USER_ID).environmentId(ENVIRONMENT_ID).build()
-        );
+        var job = givenAnAsyncJob(aSingleResponseScoringJob());
 
         // When
         useCase.execute(new Input(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
@@ -173,9 +175,7 @@ class SaveScoringResponseUseCaseTest {
     void should_remove_previous_report_if_exists() {
         // Given
         givenExistingScoringReports(ScoringReportFixture.aScoringReport().toBuilder().apiId(API_ID).build());
-        var job = givenAnAsyncJob(
-            aPendingScoringRequestJob().toBuilder().id(JOB_ID).sourceId(API_ID).initiatorId(USER_ID).environmentId(ENVIRONMENT_ID).build()
-        );
+        var job = givenAnAsyncJob(aSingleResponseScoringJob());
 
         // When
         useCase.execute(new Input(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
@@ -198,9 +198,7 @@ class SaveScoringResponseUseCaseTest {
     @Test
     void should_compute_average_score_of_all_assets() {
         // Given
-        givenAnAsyncJob(
-            aPendingScoringRequestJob().toBuilder().id(JOB_ID).sourceId(API_ID).initiatorId(USER_ID).environmentId(ENVIRONMENT_ID).build()
-        );
+        givenAnAsyncJob(aSingleResponseScoringJob());
 
         // When
         useCase
@@ -218,9 +216,7 @@ class SaveScoringResponseUseCaseTest {
     @Test
     void should_ignore_assets_with_validation_errors_for_computing_average_score() {
         // Given
-        givenAnAsyncJob(
-            aPendingScoringRequestJob().toBuilder().id(JOB_ID).sourceId(API_ID).initiatorId(USER_ID).environmentId(ENVIRONMENT_ID).build()
-        );
+        givenAnAsyncJob(aSingleResponseScoringJob());
 
         // When
         useCase.execute(new Input(JOB_ID, List.of(ANALYZED_ASSET_4))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
@@ -232,6 +228,30 @@ class SaveScoringResponseUseCaseTest {
     }
 
     @Test
+    void should_wait_for_all_partitioned_responses_before_saving_report() {
+        // Given
+        givenAnAsyncJob(
+            aPendingScoringRequestJob()
+                .toBuilder()
+                .id(JOB_ID)
+                .sourceId(API_ID)
+                .initiatorId(USER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .upperLimit(2L)
+                .build()
+        );
+
+        // When
+        useCase.execute(new Input(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        useCase.execute(new Input(JOB_ID, List.of(ANALYZED_ASSET_2))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+
+        // Then
+        assertThat(scoringReportCrudService.storage()).hasSize(1);
+        assertThat(scoringReportCrudService.storage().get(0).assets()).containsExactly(ANALYZED_ASSET_1, ANALYZED_ASSET_2);
+        assertThat(asyncJobCrudService.storage()).extracting(AsyncJob::getStatus).containsExactly(AsyncJob.Status.SUCCESS);
+    }
+
+    @Test
     void should_do_nothing_when_job_does_not_exists() {
         // Given
 
@@ -240,6 +260,81 @@ class SaveScoringResponseUseCaseTest {
 
         // Then
         assertThat(scoringReportCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_ignore_response_for_already_completed_job() {
+        // Given
+        givenAnAsyncJob(
+            aPendingScoringRequestJob()
+                .toBuilder()
+                .id(JOB_ID)
+                .sourceId(API_ID)
+                .initiatorId(USER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .status(AsyncJob.Status.SUCCESS) // Already completed
+                .build()
+        );
+
+        // When
+        useCase.execute(new Input(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+
+        // Then
+        assertThat(scoringReportCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_ignore_response_for_timed_out_job() {
+        // Given
+        givenAnAsyncJob(
+            aPendingScoringRequestJob()
+                .toBuilder()
+                .id(JOB_ID)
+                .sourceId(API_ID)
+                .initiatorId(USER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .status(AsyncJob.Status.TIMEOUT)
+                .build()
+        );
+
+        // When
+        useCase.execute(new Input(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+
+        // Then
+        assertThat(scoringReportCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_ignore_response_for_errored_job() {
+        // Given
+        givenAnAsyncJob(
+            aPendingScoringRequestJob()
+                .toBuilder()
+                .id(JOB_ID)
+                .sourceId(API_ID)
+                .initiatorId(USER_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .status(AsyncJob.Status.ERROR)
+                .errorMessage("Some error")
+                .build()
+        );
+
+        // When
+        useCase.execute(new Input(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+
+        // Then
+        assertThat(scoringReportCrudService.storage()).isEmpty();
+    }
+
+    private AsyncJob aSingleResponseScoringJob() {
+        return aPendingScoringRequestJob()
+            .toBuilder()
+            .id(JOB_ID)
+            .sourceId(API_ID)
+            .initiatorId(USER_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .upperLimit(1L)
+            .build();
     }
 
     private AsyncJob givenAnAsyncJob(AsyncJob job) {

@@ -306,11 +306,81 @@ class ScoreApiRequestUseCaseTest {
                 .hasEnvironmentId(ENVIRONMENT_ID)
                 .hasApiId(api.getId())
                 .hasCustomRulesets(
-                    new ScoreRequest.CustomRuleset(CUSTOM_RULESET_1.payload(), ScoreRequest.Format.GRAVITEE_FEDERATED),
-                    new ScoreRequest.CustomRuleset(CUSTOM_RULESET_2.payload()),
-                    new ScoreRequest.CustomRuleset(CUSTOM_RULESET_3.payload())
+                    new ScoreRequest.CustomRuleset(CUSTOM_RULESET_1.payload(), ScoringRuleset.Format.GRAVITEE_FEDERATION),
+                    new ScoreRequest.CustomRuleset(CUSTOM_RULESET_2.payload())
                 );
         });
+    }
+
+    @Test
+    public void should_keep_openapi_and_asyncapi_ruleset_formats_and_partition_requests() {
+        // Given
+        var api = givenExistingApi(ApiFixtures.aFederatedApi());
+        var swaggerPage = PageFixtures.aPage()
+            .toBuilder()
+            .referenceType(Page.ReferenceType.API)
+            .referenceId(api.getId())
+            .type(Page.Type.SWAGGER)
+            .build();
+        var asyncApiPage = PageFixtures.aPage()
+            .toBuilder()
+            .id("async-page")
+            .referenceType(Page.ReferenceType.API)
+            .referenceId(api.getId())
+            .type(Page.Type.ASYNCAPI)
+            .build();
+        pageQueryService.initWith(List.of(swaggerPage, asyncApiPage));
+        var openApiRuleset = ScoringRulesetFixture.aRuleset("ruleset-openapi", ScoringRuleset.Format.OPENAPI).withReferenceId(
+            ENVIRONMENT_ID
+        );
+        givenExistingRulesets(CUSTOM_RULESET_1, openApiRuleset, CUSTOM_RULESET_3);
+
+        // When
+        scoreApiRequestUseCase
+            .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
+            .test()
+            .awaitDone(5, TimeUnit.SECONDS)
+            .assertComplete();
+
+        // Then
+        assertThat(scoringProvider.pendingRequests()).hasSize(3);
+        assertThat(scoringProvider.pendingRequests())
+            .filteredOn(request ->
+                request
+                    .assets()
+                    .stream()
+                    .anyMatch(asset -> asset.assetType().type() == ScoringAssetType.GRAVITEE_DEFINITION)
+            )
+            .satisfiesOnlyOnce(request ->
+                assertThat(request).hasCustomRulesets(
+                    new ScoreRequest.CustomRuleset(CUSTOM_RULESET_1.payload(), ScoringRuleset.Format.GRAVITEE_FEDERATION)
+                )
+            );
+        assertThat(scoringProvider.pendingRequests())
+            .filteredOn(request ->
+                request
+                    .assets()
+                    .stream()
+                    .anyMatch(asset -> asset.assetId().equals(swaggerPage.getId()))
+            )
+            .satisfiesOnlyOnce(request ->
+                assertThat(request).hasCustomRulesets(
+                    new ScoreRequest.CustomRuleset(openApiRuleset.payload(), ScoringRuleset.Format.OPENAPI)
+                )
+            );
+        assertThat(scoringProvider.pendingRequests())
+            .filteredOn(request ->
+                request
+                    .assets()
+                    .stream()
+                    .anyMatch(asset -> asset.assetId().equals(asyncApiPage.getId()))
+            )
+            .satisfiesOnlyOnce(request ->
+                assertThat(request).hasCustomRulesets(
+                    new ScoreRequest.CustomRuleset(CUSTOM_RULESET_3.payload(), ScoringRuleset.Format.ASYNCAPI)
+                )
+            );
+        assertThat(asyncJobCrudService.storage()).satisfiesOnlyOnce(job -> assertThat(job.getUpperLimit()).isEqualTo(3L));
     }
 
     @ParameterizedTest
