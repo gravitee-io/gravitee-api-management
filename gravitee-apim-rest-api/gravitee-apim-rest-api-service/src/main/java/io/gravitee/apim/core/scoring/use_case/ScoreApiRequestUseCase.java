@@ -126,10 +126,18 @@ public class ScoreApiRequestUseCase {
     private ScoreRequest.AssetToScore assetToScore(Page page) {
         return new ScoreRequest.AssetToScore(
             page.getId(),
-            new ScoreRequest.AssetType(ScoringAssetType.fromPageType(page.getType())),
+            new ScoreRequest.AssetType(ScoringAssetType.fromPageType(page.getType()), documentationFormat(page)),
             page.getName(),
             page.getContent()
         );
+    }
+
+    private static ScoreRequest.Format documentationFormat(Page page) {
+        return switch (page.getType()) {
+            case SWAGGER -> ScoreRequest.Format.OPENAPI;
+            case ASYNCAPI -> ScoreRequest.Format.ASYNCAPI;
+            default -> null;
+        };
     }
 
     private ScoreRequest.AssetToScore assetToScore(GraviteeDefinition definition) throws JsonProcessingException {
@@ -168,7 +176,8 @@ public class ScoreApiRequestUseCase {
             case GRAVITEE_PROXY -> ScoreRequest.Format.GRAVITEE_PROXY;
             case GRAVITEE_NATIVE -> ScoreRequest.Format.GRAVITEE_NATIVE;
             case GRAVITEE_V2 -> ScoreRequest.Format.GRAVITEE_V2;
-            case OPENAPI, ASYNCAPI -> null;
+            case OPENAPI -> ScoreRequest.Format.OPENAPI;
+            case ASYNCAPI -> ScoreRequest.Format.ASYNCAPI;
         };
     }
 
