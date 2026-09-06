@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { render, screen } from '@testing-library/react';
 
-export * from './alert';
-export * from './analytics';
-export * from './api';
-export * from './apiCreation';
-export * from './apiImport';
-export * from './auditLogs.types';
-export * from './broadcast';
-export * from './healthCheck';
-export * from './members.types';
-export * from './metadata';
-export * from './notification';
-export * from './plan';
-export * from './resource';
-export * from './subscription';
+import { MetadataFormatBadge } from './MetadataFormatBadge';
+import type { MetadataFormat } from '../../../types/metadata';
+
+describe('MetadataFormatBadge', () => {
+    it.each<[MetadataFormat, string]>([
+        ['STRING', 'String'],
+        ['NUMERIC', 'Numeric'],
+        ['BOOLEAN', 'Boolean'],
+        ['DATE', 'Date'],
+        ['MAIL', 'Mail'],
+        ['URL', 'URL'],
+    ])('renders %s as %s', (format, expectedLabel) => {
+        render(<MetadataFormatBadge format={format} />);
+        expect(screen.queryByText(expectedLabel)).not.toBeNull();
+    });
+});

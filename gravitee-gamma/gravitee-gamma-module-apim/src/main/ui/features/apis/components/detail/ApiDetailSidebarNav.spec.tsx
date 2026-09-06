@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { DatabaseIcon } from '@gravitee/graphene-core/icons';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router-dom';
 
-import { API_PROXY_NAV_GROUPS, ApiDetailSidebarNav, withTcpRestrictions } from './ApiDetailSidebarNav';
+import { API_PROXY_NAV_GROUPS, ApiDetailSidebarNav, withMetadataPermission, withTcpRestrictions } from './ApiDetailSidebarNav';
 
 const GROUPS = API_PROXY_NAV_GROUPS;
 const BASE = '/env/apis/abc-123';
@@ -56,6 +57,17 @@ describe('API_PROXY_NAV_GROUPS', () => {
         expect(deployment.children).toHaveLength(2);
         expect(deployment.children!.map(c => c.path)).toEqual(['configuration', 'history']);
     });
+
+    it('places Metadata immediately after CORS in the General group', () => {
+        const general = GROUPS.find(g => g.label === 'General')!;
+        const visiblePaths = general.items.filter(item => !item.comingSoon).map(item => item.path);
+        expect(visiblePaths[visiblePaths.indexOf('cors') + 1]).toBe('metadata');
+    });
+
+    it('uses the same Metadata icon as Platform Environment metadata', () => {
+        const metadata = GROUPS.find(g => g.label === 'General')!.items.find(item => item.path === 'metadata')!;
+        expect(metadata.icon).toBe(DatabaseIcon);
+    });
 });
 
 // ─── Flat nav links ───────────────────────────────────────────────────────────
@@ -77,6 +89,11 @@ describe('ApiDetailSidebarNav — flat links', () => {
     it('renders the Resources link with the correct href', () => {
         renderNav(`${BASE}/overview`);
         expect(screen.getByRole('link', { name: /^resources$/i })).toHaveAttribute('href', `${BASE}/resources`);
+    });
+
+    it('renders the Metadata link with the correct href', () => {
+        renderNav(`${BASE}/overview`);
+        expect(screen.getByRole('link', { name: /^metadata$/i })).toHaveAttribute('href', `${BASE}/metadata`);
     });
 
     it('renders "coming soon" items (API Score, Response Templates, Authorization) as disabled, non-navigable rows', () => {
@@ -130,6 +147,19 @@ describe('withTcpRestrictions', () => {
     it('keeps Failover and Health Check Dashboard in the Endpoints children for non-TCP APIs', () => {
         const endpoints = GROUPS.find(g => g.label === 'Gateway')!.items.find(i => i.path === 'endpoints')!;
         expect(endpoints.children!.map(c => c.path)).toEqual(['list', 'failover', 'health-check-dashboard']);
+    });
+});
+
+describe('withMetadataPermission', () => {
+    it('returns the groups unchanged when the user can read metadata', () => {
+        expect(withMetadataPermission(GROUPS, true)).toBe(GROUPS);
+    });
+
+    it('omits Metadata from the General group when the user lacks api-metadata-r', () => {
+        const restricted = withMetadataPermission(GROUPS, false);
+        const general = restricted.find(g => g.label === 'General')!;
+        expect(general.items.find(item => item.path === 'metadata')).toBeUndefined();
+        expect(general.items.find(item => item.path === 'cors')).toBeDefined();
     });
 });
 

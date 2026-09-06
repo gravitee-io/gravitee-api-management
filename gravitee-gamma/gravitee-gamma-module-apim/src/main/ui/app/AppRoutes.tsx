@@ -60,6 +60,7 @@ import { ApiHealthCheckDashboardPage } from '../features/apis/pages/detail/endpo
 import { ApiEntrypointsPage } from '../features/apis/pages/detail/entrypoints/ApiEntrypointsPage';
 import { ApiFailoverPage } from '../features/apis/pages/detail/failover/ApiFailoverPage';
 import { ApiGeneralPage } from '../features/apis/pages/detail/general/ApiGeneralPage';
+import { ApiMetadataPage } from '../features/apis/pages/detail/metadata/ApiMetadataPage';
 import { ApiNotificationFormPage } from '../features/apis/pages/detail/notifications/ApiNotificationFormPage';
 import { ApiNotificationsPage } from '../features/apis/pages/detail/notifications/ApiNotificationsPage';
 import { ApiPlanFormPage } from '../features/apis/pages/detail/plans/ApiPlanFormPage';
@@ -231,6 +232,7 @@ export function AppRoutes() {
                                 </Route>
                                 <Route path="entrypoints" element={<ApiEntrypointsPage />} />
                                 <Route path="cors" element={<ApiCorsPage />} />
+                                <Route path="metadata" element={<ApiMetadataPage />} />
                                 <Route path="endpoints">
                                     <Route index element={<Navigate to="list" replace />} />
                                     <Route path="list" element={<ApiEndpointsPage />} />
