@@ -2277,6 +2277,19 @@
                 </dependency>
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-ai-routing</artifactId>
+                    <version>${gravitee-policy-ai-routing.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-pii-filtering</artifactId>
                     <version>${gravitee-policy-pii-filtering.version}</version>
                     <type>zip</type>
