@@ -44,6 +44,6 @@ public class ScoringRulesetFixture {
     }
 
     public static ScoringRuleset aRuleset(String id, ScoringRuleset.Format format) {
-        return aRuleset().toBuilder().format(format).build();
+        return aRuleset(id).toBuilder().format(format).build();
     }
 }
