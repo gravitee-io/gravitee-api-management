@@ -42,7 +42,7 @@ export const makeItem = (
     case 'API_PRODUCT':
       return fakePortalNavigationApiProduct({ id, title, order, parentId, rootId: root });
     case 'AGENT':
-      return fakePortalNavigationAgent({ id, title, order, parentId, rootId: root, agentId: `api-${id}` });
+      return fakePortalNavigationAgent({ id, title, order, parentId, rootId: root, apiId: `api-${id}` });
     case 'PAGE':
     default:
       return fakePortalNavigationPage({ id, title, order, parentId, rootId: root });

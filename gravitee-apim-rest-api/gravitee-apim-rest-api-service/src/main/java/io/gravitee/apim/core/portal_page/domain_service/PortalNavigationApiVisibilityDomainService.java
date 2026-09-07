@@ -135,14 +135,14 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
     /**
      * Checks if an API is visible in portal navigation for the given user, looking it up by API ID.
      * An API is visible when a published API navigation item references it, or when a published
-     * AGENT navigation item references it as its backing A2A proxy ({@code agentId}).
+     * AGENT navigation item references it as its backing A2A proxy ({@code apiId}).
      */
     public boolean isApiVisibleToUser(String environmentId, String apiId, @Nullable String userId) {
         return findPublishedApiItem(environmentId, apiId)
             .map(item -> isLinkedApiVisibleToUser(item.getApiId(), item.getVisibility(), userId))
             .or(() ->
                 findPublishedAgentItem(environmentId, apiId).map(item ->
-                    isLinkedApiVisibleToUser(item.getAgentId(), item.getVisibility(), userId)
+                    isLinkedApiVisibleToUser(item.getApiId(), item.getVisibility(), userId)
                 )
             )
             .orElse(false);
@@ -170,7 +170,7 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
      * A2A proxy API backing an agent navigation item.
      */
     public boolean isAgentItemHidden(PortalNavigationAgent item, PortalNavigationItemViewerContext viewerContext) {
-        return isLinkedItemHidden(item.getAgentId(), item.getVisibility(), viewerContext);
+        return isLinkedItemHidden(item.getApiId(), item.getVisibility(), viewerContext);
     }
 
     public boolean isAgentItemHidden(
@@ -181,7 +181,7 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
         if (!viewerContext.isPortalMode() || PortalVisibility.PUBLIC.equals(item.getVisibility())) {
             return false;
         }
-        return !viewerContext.isAuthenticated() || !accessibleAgentApiIds.contains(item.getAgentId());
+        return !viewerContext.isAuthenticated() || !accessibleAgentApiIds.contains(item.getApiId());
     }
 
     /**
@@ -202,7 +202,7 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
         Set<String> privateAgentApiIds = fetchAgentItems(environmentId)
             .stream()
             .filter(item -> !PortalVisibility.PUBLIC.equals(item.getVisibility()))
-            .map(PortalNavigationAgent::getAgentId)
+            .map(PortalNavigationAgent::getApiId)
             .collect(Collectors.toSet());
         if (privateAgentApiIds.isEmpty()) {
             return Set.of();
@@ -280,7 +280,7 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
             .findFirst();
     }
 
-    private Optional<PortalNavigationAgent> findPublishedAgentItem(String environmentId, String agentId) {
+    private Optional<PortalNavigationAgent> findPublishedAgentItem(String environmentId, String apiId) {
         return queryService
             .search(
                 PortalNavigationItemQueryCriteria.builder()
@@ -288,7 +288,7 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
                     .published(true)
                     .root(false)
                     .type(PortalNavigationItemType.AGENT)
-                    .agentIds(Set.of(agentId))
+                    .apiIds(Set.of(apiId))
                     .build()
             )
             .stream()

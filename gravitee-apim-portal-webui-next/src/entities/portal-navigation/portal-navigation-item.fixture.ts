@@ -156,6 +156,7 @@ export function fakePortalNavigationAgent(
     type: 'AGENT',
     order: 1,
     area: 'HOMEPAGE',
+    apiId: 'api-1',
     agentId: 'agent-1',
     published: true,
     rootId: 'nav-agent-1',

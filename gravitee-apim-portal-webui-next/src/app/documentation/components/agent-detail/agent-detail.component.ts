@@ -20,7 +20,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { of } from 'rxjs';
+import { catchError, of } from 'rxjs';
 
 import { DocumentationSkeletonComponent } from '../../../../components/documentation-skeleton/documentation-skeleton.component';
 import { AgentCatalogItem, AgentCapabilities, AgentDefinition, AgentSkill } from '../../../../entities/agent/agent-catalog-info';
@@ -33,24 +33,39 @@ import { AgentCatalogService } from '../../../../services/agent-catalog.service'
   styleUrl: './agent-detail.component.scss',
 })
 export class AgentDetailComponent {
+  private static readonly FALLBACK_METADATA: Record<string, string> = {
+    protocol: 'A2A (Agent-to-Agent)',
+    runtime: 'Gravitee AI Gateway',
+    'max-tokens': '8 192',
+    'rate-limit': '60 req / min',
+    region: 'eu-west-1',
+  };
+
   private readonly agentCatalogService = inject(AgentCatalogService);
 
-  agentName = input.required<string>();
+  agentId = input<string>();
+  title = input<string>();
   orgId = input.required<string>();
   envId = input.required<string>();
 
-  agent = rxResource<AgentCatalogItem | null, { name: string; orgId: string; envId: string }>({
-    params: computed(() => ({ name: this.agentName(), orgId: this.orgId(), envId: this.envId() })),
+  agent = rxResource<AgentCatalogItem | null, { agentId?: string; title?: string; orgId: string; envId: string }>({
+    params: computed(() => ({ agentId: this.agentId(), title: this.title(), orgId: this.orgId(), envId: this.envId() })),
     stream: ({ params }) => {
-      if (!params.name || !params.orgId || !params.envId) {
+      if (!params.orgId || !params.envId) {
         return of(null);
       }
-      return this.agentCatalogService.findAgentByName(params.orgId, params.envId, params.name);
+      if (params.agentId) {
+        return this.agentCatalogService.getAgentById(params.orgId, params.envId, params.agentId).pipe(catchError(() => of(null)));
+      }
+      if (params.title) {
+        return this.agentCatalogService.findAgentByName(params.orgId, params.envId, params.title);
+      }
+      return of(null);
     },
   });
 
   private readonly fallbackDefinition = computed<AgentDefinition>(() => ({
-    name: this.agentName(),
+    name: this.title() ?? '',
     description:
       'An AI-powered agent that understands your API ecosystem. It can answer questions about API specifications, ' +
       'assist with subscription configuration, generate code snippets for popular languages, and provide ' +
@@ -66,7 +81,8 @@ export class AgentDetailComponent {
       {
         id: 'skill-api-explorer',
         name: 'API Explorer',
-        description: 'Navigates and explains OpenAPI / AsyncAPI specifications. Summarizes endpoints, schemas, and authentication requirements.',
+        description:
+          'Navigates and explains OpenAPI / AsyncAPI specifications. Summarizes endpoints, schemas, and authentication requirements.',
         tags: ['openapi', 'asyncapi', 'discovery'],
         examples: ['List all POST endpoints in the Payments API', 'What authentication does the Orders API require?'],
       },
@@ -100,13 +116,6 @@ export class AgentDetailComponent {
   provider = computed(() => this.definition()?.provider ?? null);
   capabilities = computed(() => this.definition()?.capabilities ?? null);
   skills = computed(() => this.definition()?.skills ?? []);
-  private static readonly FALLBACK_METADATA: Record<string, string> = {
-    protocol: 'A2A (Agent-to-Agent)',
-    runtime: 'Gravitee AI Gateway',
-    'max-tokens': '8 192',
-    'rate-limit': '60 req / min',
-    region: 'eu-west-1',
-  };
 
   metadata = computed(() => this.agent.value()?.metadata ?? AgentDetailComponent.FALLBACK_METADATA);
 
@@ -130,16 +139,6 @@ export class AgentDetailComponent {
   hasOutputModes = computed(() => (this.definition()?.defaultOutputModes?.length ?? 0) > 0);
   hasIoModes = computed(() => this.hasInputModes() || this.hasOutputModes());
 
-  skillsDiffer(skill: AgentSkill): boolean {
-    const def = this.definition();
-    if (!def) return false;
-    const defIn = (def.defaultInputModes ?? []).join(',');
-    const defOut = (def.defaultOutputModes ?? []).join(',');
-    const skillIn = (skill.inputModes ?? []).join(',');
-    const skillOut = (skill.outputModes ?? []).join(',');
-    return skillIn !== defIn || skillOut !== defOut;
-  }
-
   metadataEntries = computed(() => {
     const meta = this.metadata();
     if (!meta) return [];
@@ -150,4 +149,14 @@ export class AgentDetailComponent {
     const raw = this.agent.value()?.updateDate;
     return raw ? new Date(raw) : new Date('2026-08-28T10:00:00Z');
   });
+
+  skillsDiffer(skill: AgentSkill): boolean {
+    const def = this.definition();
+    if (!def) return false;
+    const defIn = (def.defaultInputModes ?? []).join(',');
+    const defOut = (def.defaultOutputModes ?? []).join(',');
+    const skillIn = (skill.inputModes ?? []).join(',');
+    const skillOut = (skill.outputModes ?? []).join(',');
+    return skillIn !== defIn || skillOut !== defOut;
+  }
 }

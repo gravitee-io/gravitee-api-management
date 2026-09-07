@@ -3531,7 +3531,7 @@ describe('PortalNavigationItemsComponent', () => {
       const createdAgents = agents.map((agent, index) =>
         fakePortalNavigationAgent({
           id: `nav-agent-${index + 1}`,
-          agentId: agent.id,
+          apiId: agent.id,
           title: agent.name,
           parentId: folder.id,
           order: index,
@@ -3562,7 +3562,7 @@ describe('PortalNavigationItemsComponent', () => {
           area: 'TOP_NAVBAR',
           parentId: folder.id,
           visibility: 'PUBLIC',
-          agentId: agent.id,
+          apiId: agent.id,
         })),
         fakePortalNavigationItemsResponse({ items: [createdAgents[1], createdAgents[0]] }),
       );

@@ -147,7 +147,7 @@ class GetAgentTermsAndConditionsUseCaseTest {
             .segment(PortalNavigationItem.slugify("Nav for " + agentId).value())
             .area(PortalArea.TOP_NAVBAR)
             .order(0)
-            .agentId(agentId)
+            .apiId(agentId)
             .termsAndConditionsPageContentId(termsContentId)
             .termsAndConditionsEnabled(true)
             .published(true)

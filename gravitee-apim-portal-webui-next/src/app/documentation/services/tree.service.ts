@@ -74,7 +74,7 @@ export class TreeService {
         apiId ??= node.data.apiId;
       }
       if (node.data?.type === 'AGENT') {
-        apiId ??= node.data.agentId;
+        apiId ??= node.data.apiId;
       }
       if (node.data?.type === 'API_PRODUCT') {
         return {

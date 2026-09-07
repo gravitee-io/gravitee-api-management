@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TestBed } from '@angular/core/testing';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
 
 import { AgentCatalogService } from './agent-catalog.service';
 import { ConfigService } from './config.service';
@@ -50,7 +50,14 @@ describe('AgentCatalogService', () => {
           {
             id: 'agent-1',
             kind: 'agent',
-            definition: { name: 'Test Agent', version: '1.0.0', capabilities: {}, skills: [], defaultInputModes: [], defaultOutputModes: [] },
+            definition: {
+              name: 'Test Agent',
+              version: '1.0.0',
+              capabilities: {},
+              skills: [],
+              defaultInputModes: [],
+              defaultOutputModes: [],
+            },
           },
         ],
         pagination: { page: 1, perPage: 5, pageCount: 1, totalCount: 1 },
@@ -62,7 +69,9 @@ describe('AgentCatalogService', () => {
       });
 
       const req = httpMock.expectOne(
-        r => r.url.includes('/gamma/organizations/DEFAULT/environments/DEFAULT/modules/aim/catalog/agents') && r.params.get('q') === 'Test Agent',
+        r =>
+          r.url.includes('/gamma/organizations/DEFAULT/environments/DEFAULT/modules/aim/catalog/agents') &&
+          r.params.get('q') === 'Test Agent',
       );
       expect(req.request.method).toBe('GET');
       req.flush(mockResponse);
@@ -94,12 +103,26 @@ describe('AgentCatalogService', () => {
           {
             id: 'agent-other',
             kind: 'agent',
-            definition: { name: 'Other Agent', version: '1.0.0', capabilities: {}, skills: [], defaultInputModes: [], defaultOutputModes: [] },
+            definition: {
+              name: 'Other Agent',
+              version: '1.0.0',
+              capabilities: {},
+              skills: [],
+              defaultInputModes: [],
+              defaultOutputModes: [],
+            },
           },
           {
             id: 'agent-1',
             kind: 'agent',
-            definition: { name: 'Test Agent', version: '1.0.0', capabilities: {}, skills: [], defaultInputModes: [], defaultOutputModes: [] },
+            definition: {
+              name: 'Test Agent',
+              version: '1.0.0',
+              capabilities: {},
+              skills: [],
+              defaultInputModes: [],
+              defaultOutputModes: [],
+            },
           },
         ],
         pagination: { page: 1, perPage: 5, pageCount: 1, totalCount: 2 },
@@ -120,7 +143,14 @@ describe('AgentCatalogService', () => {
           {
             id: 'agent-fuzzy',
             kind: 'agent',
-            definition: { name: 'Fuzzy Match', version: '1.0.0', capabilities: {}, skills: [], defaultInputModes: [], defaultOutputModes: [] },
+            definition: {
+              name: 'Fuzzy Match',
+              version: '1.0.0',
+              capabilities: {},
+              skills: [],
+              defaultInputModes: [],
+              defaultOutputModes: [],
+            },
           },
         ],
         pagination: { page: 1, perPage: 5, pageCount: 1, totalCount: 1 },

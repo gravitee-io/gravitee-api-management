@@ -72,7 +72,8 @@
     } @else if (selectedAgent(); as agent) {
       <app-agent-detail
         animate.enter="documentation-folder__main-content-enter"
-        [agentName]="agent.title"
+        [agentId]="agent.agentId"
+        [title]="agent.title"
         [orgId]="agent.organizationId"
         [envId]="agent.environmentId"
       />

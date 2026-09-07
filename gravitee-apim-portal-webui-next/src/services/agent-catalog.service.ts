@@ -27,19 +27,6 @@ export class AgentCatalogService {
   private readonly http = inject(HttpClient);
   private readonly configService = inject(ConfigService);
 
-  /**
-   * Derives the Gamma catalog API base URL from the portal base URL.
-   *
-   * Portal baseURL shape: `{host}/portal/environments/{envId}`
-   * Gamma catalog shape:  `{host}/gamma/organizations/{orgId}/environments/{envId}/modules/aim/catalog`
-   */
-  private buildGammaBaseUrl(orgId: string, envId: string): string {
-    const portalBase = this.configService.baseURL;
-    const hostEnd = portalBase.indexOf('/portal');
-    const host = hostEnd >= 0 ? portalBase.substring(0, hostEnd) : portalBase;
-    return `${host}/gamma/organizations/${orgId}/environments/${envId}/modules/aim/catalog`;
-  }
-
   searchAgents(orgId: string, envId: string, query: string): Observable<AgentCatalogPage> {
     const baseUrl = this.buildGammaBaseUrl(orgId, envId);
     const params = new HttpParams().set('q', query).set('perPage', '5');
@@ -59,5 +46,18 @@ export class AgentCatalogService {
     return this.searchAgents(orgId, envId, agentName).pipe(
       map(page => page.data?.find(a => a.definition?.name === agentName) ?? page.data?.[0] ?? null),
     );
+  }
+
+  /**
+   * Derives the Gamma catalog API base URL from the portal base URL.
+   *
+   * Portal baseURL shape: `{host}/portal/environments/{envId}`
+   * Gamma catalog shape:  `{host}/gamma/organizations/{orgId}/environments/{envId}/modules/aim/catalog`
+   */
+  private buildGammaBaseUrl(orgId: string, envId: string): string {
+    const portalBase = this.configService.baseURL;
+    const hostEnd = portalBase.indexOf('/portal');
+    const host = hostEnd >= 0 ? portalBase.substring(0, hostEnd) : portalBase;
+    return `${host}/gamma/organizations/${orgId}/environments/${envId}/modules/aim/catalog`;
   }
 }

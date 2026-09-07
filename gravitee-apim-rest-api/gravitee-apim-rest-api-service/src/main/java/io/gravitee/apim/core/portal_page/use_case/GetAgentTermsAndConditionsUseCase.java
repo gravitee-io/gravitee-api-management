@@ -77,7 +77,7 @@ public class GetAgentTermsAndConditionsUseCase {
             .stream()
             .filter(PortalNavigationAgent.class::isInstance)
             .map(PortalNavigationAgent.class::cast)
-            .filter(item -> agentId.equals(item.getAgentId()))
+            .filter(item -> agentId.equals(item.getApiId()))
             .findFirst();
     }
 

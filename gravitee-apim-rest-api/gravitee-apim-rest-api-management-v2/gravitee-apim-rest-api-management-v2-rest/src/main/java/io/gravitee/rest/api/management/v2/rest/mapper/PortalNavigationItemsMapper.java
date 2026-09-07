@@ -94,6 +94,7 @@ public interface PortalNavigationItemsMapper {
     );
 
     @Mapping(target = "type", constant = "AGENT")
+    @Mapping(target = "apiId", source = "apiId")
     @Mapping(target = "agentId", source = "agentId")
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "portalNavigationItemIdToUuid")
     @Mapping(
@@ -154,6 +155,7 @@ public interface PortalNavigationItemsMapper {
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(CreatePortalNavigationApiProduct apiProduct);
 
     @Mapping(target = "contentType", constant = "GRAVITEE_MARKDOWN")
+    @Mapping(target = "apiId", source = "apiId")
     @Mapping(target = "agentId", source = "agentId")
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(CreatePortalNavigationAgent agent);
 

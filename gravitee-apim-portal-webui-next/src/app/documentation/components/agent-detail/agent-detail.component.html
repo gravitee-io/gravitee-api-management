@@ -16,11 +16,7 @@
 
 -->
 @if (agent.isLoading()) {
-  <app-documentation-skeleton
-    aria-busy="true"
-    i18n-aria-label="@@agentDetailLoadingAria"
-    aria-label="Loading agent details"
-  />
+  <app-documentation-skeleton aria-busy="true" i18n-aria-label="@@agentDetailLoadingAria" aria-label="Loading agent details" />
 } @else if (definition(); as def) {
   <div class="agent-detail">
     <!-- Hero -->
@@ -43,12 +39,7 @@
         }
         <div class="agent-detail__hero__actions">
           @if (def.documentationUrl) {
-            <a
-              mat-stroked-button
-              [href]="def.documentationUrl"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <a mat-stroked-button [href]="def.documentationUrl" target="_blank" rel="noopener noreferrer">
               <mat-icon>open_in_new</mat-icon>
               <span i18n="@@agentDetailDocLink">Documentation</span>
             </a>
@@ -196,7 +187,9 @@
     <!-- Footer -->
     @if (updatedDate()) {
       <footer class="agent-detail__footer">
-        <span class="next-gen-caption"><span i18n="@@agentDetailLastUpdatedLabel">Last updated</span> {{ updatedDate() | date:'mediumDate' }}</span>
+        <span class="next-gen-caption"
+          ><span i18n="@@agentDetailLastUpdatedLabel">Last updated</span> {{ updatedDate() | date: 'mediumDate' }}</span
+        >
         @if (definition()?.version; as ver) {
           <span class="agent-detail__footer__separator">|</span>
           <span class="next-gen-caption">{{ ver }}</span>

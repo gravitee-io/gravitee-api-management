@@ -195,7 +195,7 @@ export class PortalNavigationItemsService {
       }
 
       if (item.type === 'AGENT') {
-        const api = apiById.get(item.agentId);
+        const api = apiById.get(item.apiId);
         if (!api) return [];
 
         return [

@@ -180,7 +180,8 @@ class PortalNavigationItemAdapterTest {
             assertThat(entity).isInstanceOf(PortalNavigationAgent.class);
             var agent = (PortalNavigationAgent) entity;
             assertThat(agent.getId()).isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440060"));
-            assertThat(agent.getAgentId()).isEqualTo("a2a-proxy-api-id");
+            assertThat(agent.getApiId()).isEqualTo("a2a-proxy-api-id");
+            assertThat(agent.getAgentId()).isNull();
             assertThat(agent.getTermsAndConditionsPageContentId()).isNull();
             assertThat(agent.isTermsAndConditionsEnabled()).isTrue();
             assertThat(agent.getCategoryIds()).containsExactly(categoryId);
@@ -581,7 +582,8 @@ class PortalNavigationItemAdapterTest {
 
             assertThat(repositoryItem.getId()).isEqualTo("550e8400-e29b-41d4-a716-446655440062");
             assertThat(repositoryItem.getType()).isEqualTo(PortalNavigationItem.Type.AGENT);
-            assertThat(repositoryItem.getAgentId()).isEqualTo("a2a-proxy-api-id");
+            assertThat(repositoryItem.getApiId()).isEqualTo("a2a-proxy-api-id");
+            assertThat(repositoryItem.getAgentId()).isNull();
             assertThat(repositoryItem.getCategoryIds()).containsExactly(categoryId.toString());
             assertThat(repositoryItem.getConfiguration()).isEqualTo("{\"termsAndConditionsEnabled\":true}");
             assertThat(repositoryItem.getRootId()).isEqualTo("00000000-0000-0000-0000-000000000000");

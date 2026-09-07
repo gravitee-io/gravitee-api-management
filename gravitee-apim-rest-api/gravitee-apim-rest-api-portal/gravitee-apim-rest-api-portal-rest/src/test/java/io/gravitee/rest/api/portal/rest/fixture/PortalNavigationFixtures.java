@@ -115,7 +115,7 @@ public final class PortalNavigationFixtures {
             .segment(PortalNavigationItem.slugify(title).value())
             .area(area)
             .order(1)
-            .agentId(agentId)
+            .apiId(agentId)
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
             .build();

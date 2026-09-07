@@ -801,7 +801,7 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
             .area(PortalArea.TOP_NAVBAR)
             .order(0)
             .parentId(parentId)
-            .agentId(agentId)
+            .apiId(agentId)
             .published(true)
             .visibility(visibility)
             .categoryIds(categoryIds)

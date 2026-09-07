@@ -178,7 +178,7 @@ class PortalCatalogNavigationVisibilityDomainServiceTest {
         var agent = agent("agent-item", null, PortalVisibility.PRIVATE);
         var items = List.<PortalNavigationItem>of(agent);
 
-        var result = filter(List.of(agent), items, Set.of(), Set.of(), Set.of(agent.getAgentId()));
+        var result = filter(List.of(agent), items, Set.of(), Set.of(), Set.of(agent.getApiId()));
 
         assertThat(result).containsExactly(agent);
     }
@@ -293,7 +293,7 @@ class PortalCatalogNavigationVisibilityDomainServiceTest {
             .area(PortalArea.TOP_NAVBAR)
             .order(0)
             .parentId(parentId)
-            .agentId(id)
+            .apiId(id)
             .published(true)
             .visibility(visibility)
             .build();

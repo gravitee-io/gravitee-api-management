@@ -40,9 +40,9 @@ import { AgentSubscriptionAccess, AgentSubscriptionService } from '../../../../s
 import { ApiService } from '../../../../services/api.service';
 import { CurrentUserService } from '../../../../services/current-user.service';
 import { PortalNavigationItemsService } from '../../../../services/portal-navigation-items.service';
-import { AgentDetailComponent } from '../agent-detail/agent-detail.component';
 import { ApiTabToolsComponent } from '../../../api/api-details/api-tab-tools/api-tab-tools.component';
 import { DocumentationActionContext, TreeNode, TreeService } from '../../services/tree.service';
+import { AgentDetailComponent } from '../agent-detail/agent-detail.component';
 
 interface FolderData {
   children: PortalNavigationItem[];
@@ -210,7 +210,7 @@ export class DocumentationFolderComponent {
 
     if (child.type === 'AGENT') {
       this.selectedAgent.set(child);
-      this.documentationActionContext.set({ apiId: child.agentId, subscriptionTarget: { type: 'API', apiId: child.agentId } });
+      this.documentationActionContext.set({ apiId: child.apiId, subscriptionTarget: { type: 'API', apiId: child.apiId } });
       return of({ children, selectedPageContent: null }).pipe(
         tap(() => this.breadcrumbs.set(this.treeService.getBreadcrumbsByNodeId(selectedId))),
       );

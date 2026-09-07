@@ -56,15 +56,6 @@ $folder-indent-step: $indent-step;
       @extend .next-gen-small-bold;
       color: theme.$primary-main-color;
     }
-
-    &--agent {
-      cursor: default;
-
-      .tree__label {
-        cursor: pointer;
-        flex: 1;
-      }
-    }
   }
 
   &__icon {
@@ -77,15 +68,6 @@ $folder-indent-step: $indent-step;
 
     &:not(.expanded) {
       transform: rotate(-90deg) translateX(2px);
-    }
-
-    &--clickable {
-      cursor: pointer;
-      border-radius: 50%;
-
-      &:hover {
-        background: theme.$primary-highlight-color;
-      }
     }
   }
 

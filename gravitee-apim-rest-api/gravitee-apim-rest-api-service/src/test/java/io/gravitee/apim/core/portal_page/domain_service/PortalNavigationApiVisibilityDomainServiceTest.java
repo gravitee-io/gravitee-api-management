@@ -408,7 +408,7 @@ class PortalNavigationApiVisibilityDomainServiceTest {
             .segment(PortalNavigationItem.slugify("Nav for " + agentId).value())
             .area(PortalArea.TOP_NAVBAR)
             .order(0)
-            .agentId(agentId)
+            .apiId(agentId)
             .published(published)
             .visibility(visibility)
             .build();

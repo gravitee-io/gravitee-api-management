@@ -40,7 +40,7 @@ public class PortalNavigationEnclosingApiDomainService {
                 return Optional.of(api.getApiId());
             }
             if (current instanceof PortalNavigationAgent agent) {
-                return Optional.of(agent.getAgentId());
+                return Optional.of(agent.getApiId());
             }
         }
         return Optional.empty();

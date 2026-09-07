@@ -310,7 +310,7 @@ public class GetVisiblePortalCatalogItemsUseCase {
     }
 
     private Map<String, Api> loadAgentApis(String environmentId, List<PortalNavigationAgent> items) {
-        Set<String> ids = items.stream().map(PortalNavigationAgent::getAgentId).collect(Collectors.toSet());
+        Set<String> ids = items.stream().map(PortalNavigationAgent::getApiId).collect(Collectors.toSet());
         return loadApis(environmentId, ids).stream().collect(Collectors.toMap(Api::getId, Function.identity(), (first, ignored) -> first));
     }
 
@@ -337,9 +337,9 @@ public class GetVisiblePortalCatalogItemsUseCase {
             .toList();
         List<CatalogEntry> agentEntries = visibleAgents
             .stream()
-            .filter(item -> visibleAgentsById.containsKey(item.getAgentId()))
-            .filter(item -> matchesQuery(visibleAgentsById.get(item.getAgentId()).getName(), query, typoToleranceEnabled))
-            .map(item -> new CatalogEntry(item, visibleAgentsById.get(item.getAgentId()).getName()))
+            .filter(item -> visibleAgentsById.containsKey(item.getApiId()))
+            .filter(item -> matchesQuery(visibleAgentsById.get(item.getApiId()).getName(), query, typoToleranceEnabled))
+            .map(item -> new CatalogEntry(item, visibleAgentsById.get(item.getApiId()).getName()))
             .toList();
 
         return java.util.stream.Stream.concat(
@@ -526,7 +526,7 @@ public class GetVisiblePortalCatalogItemsUseCase {
             .map(CatalogEntry::item)
             .filter(PortalNavigationAgent.class::isInstance)
             .map(PortalNavigationAgent.class::cast)
-            .map(PortalNavigationAgent::getAgentId)
+            .map(PortalNavigationAgent::getApiId)
             .map(visibleAgentsById::get)
             .filter(java.util.Objects::nonNull)
             .forEach(api -> includedAgentApisById.putIfAbsent(api.getId(), api));

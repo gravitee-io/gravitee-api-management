@@ -220,7 +220,7 @@ public class PortalNavigationItemDomainServiceTest {
                 .title("My Agent")
                 .area(PortalArea.TOP_NAVBAR)
                 .order(0)
-                .agentId("a2a-proxy-api-id")
+                .apiId("a2a-proxy-api-id")
                 .build();
 
             var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);

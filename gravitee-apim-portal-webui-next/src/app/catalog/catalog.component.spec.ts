@@ -92,7 +92,7 @@ describe('CatalogComponent', () => {
           categoryIds: ['cat-1'],
         }),
         fakePortalNavigationApi({ id: 'api-nav-2', rootId: 'api-root-2', apiId: mcpApi.id }),
-        fakePortalNavigationAgent({ id: 'agent-nav-1', rootId: 'agent-root-1', agentId: agent.id }),
+        fakePortalNavigationAgent({ id: 'agent-nav-1', rootId: 'agent-root-1', apiId: agent.id }),
       ],
       apis: [api, mcpApi, agent],
       apiProducts: [apiProduct],
@@ -353,8 +353,8 @@ describe('CatalogComponent', () => {
     await init(
       createCatalogResponse({
         data: [
-          fakePortalNavigationAgent({ id: 'agent-nav-1', rootId: 'agent-root-1', agentId: agent.id }),
-          fakePortalNavigationAgent({ id: 'agent-nav-orphan', rootId: 'agent-root-orphan', agentId: 'deleted-api-id' }),
+          fakePortalNavigationAgent({ id: 'agent-nav-1', rootId: 'agent-root-1', apiId: agent.id }),
+          fakePortalNavigationAgent({ id: 'agent-nav-orphan', rootId: 'agent-root-orphan', apiId: 'deleted-api-id' }),
         ],
         apis: [agent],
         apiProducts: [],
@@ -384,8 +384,8 @@ describe('CatalogComponent', () => {
     await init(
       createCatalogResponse({
         data: [
-          fakePortalNavigationAgent({ id: 'agent-nav-old', rootId: 'agent-root-old', agentId: olderAgent.id }),
-          fakePortalNavigationAgent({ id: 'agent-nav-new', rootId: 'agent-root-new', agentId: newerAgent.id }),
+          fakePortalNavigationAgent({ id: 'agent-nav-old', rootId: 'agent-root-old', apiId: olderAgent.id }),
+          fakePortalNavigationAgent({ id: 'agent-nav-new', rootId: 'agent-root-new', apiId: newerAgent.id }),
         ],
         apis: [olderAgent, newerAgent],
         apiProducts: [],
@@ -918,7 +918,7 @@ describe('CatalogComponent', () => {
 
     expectCatalogRequest().flush(
       createCatalogResponse({
-        data: [fakePortalNavigationAgent({ id: 'agent-nav-first', rootId: 'agent-root-first', agentId: firstAgent.id })],
+        data: [fakePortalNavigationAgent({ id: 'agent-nav-first', rootId: 'agent-root-first', apiId: firstAgent.id })],
         apis: [firstAgent],
         apiProducts: [],
       }),
@@ -932,8 +932,8 @@ describe('CatalogComponent', () => {
     expectCatalogRequest().flush(
       createCatalogResponse({
         data: [
-          fakePortalNavigationAgent({ id: 'agent-nav-first', rootId: 'agent-root-first', agentId: firstAgent.id }),
-          fakePortalNavigationAgent({ id: 'agent-nav-second', rootId: 'agent-root-second', agentId: secondAgent.id }),
+          fakePortalNavigationAgent({ id: 'agent-nav-first', rootId: 'agent-root-first', apiId: firstAgent.id }),
+          fakePortalNavigationAgent({ id: 'agent-nav-second', rootId: 'agent-root-second', apiId: secondAgent.id }),
         ],
         apis: [firstAgent, secondAgent],
         apiProducts: [],

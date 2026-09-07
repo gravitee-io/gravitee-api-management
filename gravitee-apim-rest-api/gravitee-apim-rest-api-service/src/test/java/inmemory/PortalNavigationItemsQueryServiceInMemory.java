@@ -107,7 +107,8 @@ public class PortalNavigationItemsQueryServiceInMemory
                     (criteria.getType() == null || matchesType(item, criteria.getType())) &&
                     (criteria.getApiIds() == null ||
                         criteria.getApiIds().isEmpty() ||
-                        (item instanceof PortalNavigationApi api && criteria.getApiIds().contains(api.getApiId()))) &&
+                        (item instanceof PortalNavigationApi api && criteria.getApiIds().contains(api.getApiId())) ||
+                        (item instanceof PortalNavigationAgent agent && criteria.getApiIds().contains(agent.getApiId()))) &&
                     (criteria.getApiProductIds() == null ||
                         criteria.getApiProductIds().isEmpty() ||
                         (item instanceof PortalNavigationApiProduct apiProduct &&

@@ -3160,10 +3160,14 @@ components:
       allOf:
         - $ref: "#/components/schemas/BasePortalNavigationItem"
         - properties:
-            agentId:
+            apiId:
               type: string
               description: The ID of the A2A proxy API that backs this agent
               example: 3f2504e0-4f89-41d3-9a0c-0305e82c3301
+            agentId:
+              type: string
+              description: The ID of the agent in the Gamma catalog. Used for direct catalog lookup.
+              example: gamma-agent-abc123
             termsAndConditionsPageContentId:
               type: string
               format: uuid
@@ -3179,7 +3183,7 @@ components:
                 type: string
                 format: uuid
               example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
-          required: [ agentId ]
+          required: [ apiId ]
     PortalNavigationItem:
       oneOf:
         - $ref: "#/components/schemas/PortalNavigationPage"
@@ -3344,10 +3348,13 @@ components:
       allOf:
         - $ref: "#/components/schemas/BaseCreatePortalNavigationItem"
         - properties:
-            agentId:
+            apiId:
               type: string
               description: The ID of the A2A proxy API that backs this agent
               example: "3f2504e0-4f89-41d3-9a0c-0305e82c3301"
+            agentId:
+              type: string
+              description: The ID of the agent in the Gamma catalog
             categoryIds:
               type: array
               description: The IDs of the Portal Next categories this agent navigation item is assigned to. Defaults to an empty list if not provided.
@@ -3355,7 +3362,7 @@ components:
                 type: string
                 format: uuid
               example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
-          required: [ agentId ]
+          required: [ apiId ]
     CreatePortalNavigationItem:
       oneOf:
         - $ref: "#/components/schemas/CreatePortalNavigationPage"
@@ -3510,7 +3517,7 @@ components:
     UpdatePortalNavigationAgent:
       type: object
       title: "UpdatePortalNavigationAgent"
-      description: Portal navigation agent item to update. The linked agent is immutable; an agentId property supplied in an update payload is ignored.
+      description: Portal navigation agent item to update. The linked A2A proxy is immutable; an apiId property supplied in an update payload is ignored.
       allOf:
         - $ref: "#/components/schemas/BaseUpdatePortalNavigationItem"
         - properties:
