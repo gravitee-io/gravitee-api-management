@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 import static java.util.Optional.ofNullable;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
@@ -174,7 +175,7 @@ public class AggregationAdapter {
 
             if (query.facets() != null && !query.facets().isEmpty()) {
                 var facets = new ArrayList<>(query.facets());
-                var facetBucketResults = toFacetBucketResults(metric, bucket, facets, aggNames, query.toFacetQuery());
+                var facetBucketResults = toFacetBucketResults(metric, bucket, null, facets, aggNames, query.toFacetQuery());
                 result.add(TimeSeriesBucketResult.ofBuckets(key, timestamp, facetBucketResults));
             } else {
                 var aggregations = toAggregations(bucket, aggNames);
@@ -187,9 +188,14 @@ public class AggregationAdapter {
         return result;
     }
 
+    /**
+     * @param bucketFacet the facet {@code bucket} belongs to; {@code null} for a date histogram bucket, whose key is
+     *                    never read here
+     */
     private static List<FacetBucketResult> toFacetBucketResults(
         Metric metric,
         JsonNode bucket,
+        Facet bucketFacet,
         List<Facet> facets,
         List<String> aggNames,
         FacetsQuery query
@@ -198,8 +204,7 @@ public class AggregationAdapter {
             var aggregations = toAggregations(bucket, aggNames);
             var metricAndMeasures = toMetricsAndMeasures(aggregations, query);
             var measures = getMeasuresWithDefaults(metric, metricAndMeasures, query);
-            var key = bucket.get(ES_KEY_PROP).asText();
-            return List.of(FacetBucketResult.ofMeasures(key, measures));
+            return List.of(FacetBucketResult.ofMeasures(bucketKey(bucketFacet, bucket), measures));
         }
 
         var nextFacets = new ArrayList<>(facets);
@@ -215,13 +220,12 @@ public class AggregationAdapter {
         var results = new ArrayList<FacetBucketResult>();
 
         for (var facetBucket : facetBuckets) {
-            var key = facetBucket.get(ES_KEY_PROP).asText();
-            var nestedResults = toFacetBucketResults(metric, facetBucket, new ArrayList<>(nextFacets), aggNames, query);
+            var nestedResults = toFacetBucketResults(metric, facetBucket, nextFacet, new ArrayList<>(nextFacets), aggNames, query);
 
             if (nextFacets.isEmpty()) {
                 results.addAll(nestedResults);
             } else {
-                results.add(FacetBucketResult.ofBuckets(key, nestedResults));
+                results.add(FacetBucketResult.ofBuckets(bucketKey(nextFacet, facetBucket), nestedResults));
             }
         }
 
@@ -241,19 +245,20 @@ public class AggregationAdapter {
         var agg = aggregations.get(aggName);
         var buckets = agg.getBuckets();
         for (var bucket : buckets) {
-            results.add(toFacetBucketResult(metric, bucket, facets, aggNames, query));
+            results.add(toFacetBucketResult(metric, facet, bucket, facets, aggNames, query));
         }
         return results;
     }
 
     private static FacetBucketResult toFacetBucketResult(
         Metric metric,
+        Facet facet,
         JsonNode bucket,
         List<Facet> facets,
         List<String> aggNames,
         FacetsQuery query
     ) {
-        var key = bucket.get(ES_KEY_PROP).asText();
+        var key = bucketKey(facet, bucket);
         if (facets.isEmpty()) {
             var aggregations = toAggregations(bucket, aggNames);
             var metricAndMeasures = toMetricsAndMeasures(aggregations, query);
@@ -265,12 +270,16 @@ public class AggregationAdapter {
         var nextAggName = adaptName(metric, nextFacet);
         var next = bucket.get(nextAggName);
         var buckets = next.get(ES_BUCKETS_PROP);
-        return FacetBucketResult.ofBuckets(key, toFacetBucketResults(metric, toBucketList(buckets), nextFacets, aggNames, query));
+        return FacetBucketResult.ofBuckets(
+            key,
+            toFacetBucketResults(metric, toBucketList(buckets), nextFacet, nextFacets, aggNames, query)
+        );
     }
 
     private static List<FacetBucketResult> toFacetBucketResults(
         Metric metric,
         List<JsonNode> buckets,
+        Facet bucketsFacet,
         List<Facet> facets,
         List<String> aggNames,
         FacetsQuery query
@@ -278,11 +287,10 @@ public class AggregationAdapter {
         var results = new ArrayList<FacetBucketResult>();
         if (facets.isEmpty()) {
             for (var bucket : buckets) {
-                var key = bucket.get(ES_KEY_PROP).asText();
                 var aggregations = toAggregations(bucket, aggNames);
                 var metricAndMeasures = toMetricsAndMeasures(aggregations, query);
                 var measures = getMeasuresWithDefaults(metric, metricAndMeasures, query);
-                results.add(FacetBucketResult.ofMeasures(key, measures));
+                results.add(FacetBucketResult.ofMeasures(bucketKey(bucketsFacet, bucket), measures));
             }
             return results;
         }
@@ -292,7 +300,7 @@ public class AggregationAdapter {
         var nextAggName = adaptName(metric, nextFacet);
 
         for (var bucket : buckets) {
-            var key = bucket.get(ES_KEY_PROP).asText();
+            var key = bucketKey(bucketsFacet, bucket);
             var next = bucket.get(nextAggName);
             if (next == null) {
                 continue;
@@ -301,12 +309,21 @@ public class AggregationAdapter {
             results.add(
                 FacetBucketResult.ofBuckets(
                     key,
-                    toFacetBucketResults(metric, toBucketList(nextBuckets), new ArrayList<>(nextFacets), aggNames, query)
+                    toFacetBucketResults(metric, toBucketList(nextBuckets), nextFacet, new ArrayList<>(nextFacets), aggNames, query)
                 )
             );
         }
 
         return results;
+    }
+
+    /** The gateway reports the HTTP method as its {@link HttpMethod#code()}; the catalog names it. */
+    private static String bucketKey(Facet facet, JsonNode bucket) {
+        var key = bucket.get(ES_KEY_PROP);
+        if (facet == Facet.HTTP_METHOD && key.canConvertToInt()) {
+            return ofNullable(HttpMethod.get(key.asInt())).map(HttpMethod::name).orElseGet(key::asText);
+        }
+        return key.asText();
     }
 
     private static Map<String, Aggregation> toAggregations(JsonNode bucket, List<String> aggNames) {

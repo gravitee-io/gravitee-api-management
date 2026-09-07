@@ -43,6 +43,57 @@ class AggregationAdapterTest {
     private static final TimeRange TIME_RANGE = new TimeRange(Instant.now().minusSeconds(3600), Instant.now());
 
     @Test
+    void should_name_http_method_buckets_after_the_method_rather_than_its_reported_code() {
+        var query = new FacetsQuery(
+            TIME_RANGE,
+            List.of(),
+            List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT))),
+            List.of(Facet.HTTP_METHOD)
+        );
+
+        var get = JSON.createObjectNode().put("key", 3).put("doc_count", 30);
+        get.putObject("HTTP_REQUESTS#COUNT").put("value", 30);
+        var post = JSON.createObjectNode().put("key", 7).put("doc_count", 12);
+        post.putObject("HTTP_REQUESTS#COUNT").put("value", 12);
+
+        var facetAgg = new Aggregation();
+        facetAgg.setBuckets(List.of(get, post));
+
+        var result = AggregationAdapter.toMetricsAndBuckets(Map.of("HTTP_REQUESTS#HTTP_METHOD", facetAgg), query);
+
+        assertThat(result.get(0).buckets())
+            .extracting(bucket -> bucket.key(), bucket -> bucket.measures().get(Measure.COUNT).longValue())
+            .containsExactly(org.assertj.core.groups.Tuple.tuple("GET", 30L), org.assertj.core.groups.Tuple.tuple("POST", 12L));
+    }
+
+    @Test
+    void should_name_http_method_buckets_nested_under_another_facet() {
+        var query = new FacetsQuery(
+            TIME_RANGE,
+            List.of(),
+            List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT))),
+            List.of(Facet.API, Facet.HTTP_METHOD)
+        );
+
+        var get = JSON.createObjectNode().put("key", 3).put("doc_count", 30);
+        get.putObject("HTTP_REQUESTS#COUNT").put("value", 30);
+        var api = JSON.createObjectNode().put("key", "api-1").put("doc_count", 30);
+        api.putObject("HTTP_REQUESTS#HTTP_METHOD").putArray("buckets").add(get);
+
+        var facetAgg = new Aggregation();
+        facetAgg.setBuckets(List.of(api));
+
+        var result = AggregationAdapter.toMetricsAndBuckets(Map.of("HTTP_REQUESTS#API", facetAgg), query);
+
+        var apiBucket = result.get(0).buckets().get(0);
+        assertThat(apiBucket.key()).isEqualTo("api-1");
+        assertThat(apiBucket.buckets())
+            .singleElement()
+            .extracting(bucket -> bucket.key())
+            .isEqualTo("GET");
+    }
+
+    @Test
     void should_report_the_same_total_for_measures_and_for_the_sum_of_its_facet_buckets() throws Exception {
         // Counts on a busy API run well past 2^24, where a float can no longer hold every integer.
         var applicationCounts = Map.of("application-a", 120_800_000L, "application-b", 12_767L);
