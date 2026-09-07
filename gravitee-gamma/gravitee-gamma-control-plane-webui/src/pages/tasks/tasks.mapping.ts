@@ -52,19 +52,38 @@ type ConsumerLevel = 'detail' | 'list' | 'none';
 interface ApiTypeConfig {
     readonly area: TaskArea;
     readonly moduleId: string;
-    readonly route?: { readonly section: string; readonly consumers: ConsumerLevel };
+    /**
+     * `consumersSegment` is the path segment the owning module serves its subscriptions under: `apim`
+     * and `aim` say `consumers`, `esm` says `subscriptions`. Defaults to `consumers`.
+     */
+    readonly route?: { readonly section: string; readonly consumers: ConsumerLevel; readonly consumersSegment?: string };
 }
 
 const API_MANAGEMENT_AREA: TaskArea = { key: 'apim', label: 'API Management' };
 const USERS_AREA: TaskArea = { key: 'users', label: 'Users' };
 
+const EVENT_STREAM_AREA: TaskArea = { key: 'esm', label: 'Event Stream Management' };
+
+/**
+ * `message` and `native` APIs are served by the `esm` module, not by `apim`: sending them to
+ * `apim/apis/{id}` renders a Message API as an HTTP proxy and offers screens it does not have. The
+ * esm module has no subscription *detail* route, so their subscription tasks land on the list.
+ */
 const API_TYPE_CONFIG: Record<string, ApiTypeConfig> = {
     proxy: { area: API_MANAGEMENT_AREA, moduleId: 'apim', route: { section: 'apis', consumers: 'detail' } },
-    message: { area: API_MANAGEMENT_AREA, moduleId: 'apim', route: { section: 'apis', consumers: 'detail' } },
+    message: {
+        area: EVENT_STREAM_AREA,
+        moduleId: 'esm',
+        route: { section: 'message-apis', consumers: 'list', consumersSegment: 'subscriptions' },
+    },
     'mcp-proxy': { area: { key: 'mcp', label: 'MCP' }, moduleId: 'aim', route: { section: 'mcp-proxy', consumers: 'detail' } },
     'llm-proxy': { area: { key: 'llm', label: 'LLM' }, moduleId: 'aim', route: { section: 'llm-proxy', consumers: 'detail' } },
     'a2a-proxy': { area: { key: 'ai', label: 'AI Agent' }, moduleId: 'aim', route: { section: 'agent-runtime', consumers: 'none' } },
-    native: { area: { key: 'kafka', label: 'Kafka' }, moduleId: 'esm' },
+    native: {
+        area: { key: 'kafka', label: 'Kafka' },
+        moduleId: 'esm',
+        route: { section: 'kafka-apis', consumers: 'list', consumersSegment: 'subscriptions' },
+    },
 };
 
 const DEFAULT_CONFIG: ApiTypeConfig = { area: API_MANAGEMENT_AREA, moduleId: 'apim', route: { section: 'apis', consumers: 'detail' } };
@@ -166,12 +185,12 @@ function resolveConsumerTarget(config: ApiTypeConfig, envHrid: string, refId: st
     if (!config.route || !refId) {
         return moduleRoot(envHrid, config.moduleId);
     }
-    const { section, consumers } = config.route;
+    const { section, consumers, consumersSegment = 'consumers' } = config.route;
     if (consumers === 'detail' && subscriptionId) {
-        return envPath(envHrid, config.moduleId, section, refId, 'consumers', subscriptionId);
+        return envPath(envHrid, config.moduleId, section, refId, consumersSegment, subscriptionId);
     }
     if (consumers === 'list') {
-        return envPath(envHrid, config.moduleId, section, refId, 'consumers');
+        return envPath(envHrid, config.moduleId, section, refId, consumersSegment);
     }
     return envPath(envHrid, config.moduleId, section, refId);
 }

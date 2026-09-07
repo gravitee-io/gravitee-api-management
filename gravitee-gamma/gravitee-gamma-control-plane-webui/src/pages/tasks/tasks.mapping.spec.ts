@@ -77,6 +77,7 @@ describe('toTaskView', () => {
         'api-llm': { name: 'Concierge Agent', apiType: 'llm-proxy' },
         'api-a2a': { name: 'Dispatch Agent', apiType: 'a2a-proxy' },
         'api-kafka': { name: 'Orders Stream', apiType: 'native' },
+        'api-message': { name: 'Booking Events', apiType: 'message' },
         'product-1': { name: 'Travel Suite' },
     };
 
@@ -145,12 +146,21 @@ describe('toTaskView', () => {
         expect(a2a.to).toBe('/environments/prod/aim/agent-runtime/api-a2a');
     });
 
-    it('labels a native subscription as Kafka and routes it to the Event Stream Management module', () => {
+    // The esm module has no subscription *detail* route, so the deep link stops at the list.
+    it('labels a native subscription as Kafka and deep-links it to the esm subscriptions list', () => {
         const view = toTaskView(subscription('api-kafka'), metadata, resolveEnvHrid);
 
         expect(view.area).toEqual({ key: 'kafka', label: 'Kafka' });
         expect(view.toModuleId).toBe('esm');
-        expect(view.to).toBe('/environments/prod/esm');
+        expect(view.to).toBe('/environments/prod/esm/kafka-apis/api-kafka/subscriptions');
+    });
+
+    it('deep-links a message subscription to the esm subscriptions list, not to apim', () => {
+        const view = toTaskView(subscription('api-message'), metadata, resolveEnvHrid);
+
+        expect(view.area).toEqual({ key: 'esm', label: 'Event Stream Management' });
+        expect(view.toModuleId).toBe('esm');
+        expect(view.to).toBe('/environments/prod/esm/message-apis/api-message/subscriptions');
     });
 
     it('builds an API Product subscription with a deep link into the apim api-products area', () => {
@@ -189,6 +199,26 @@ describe('toTaskView', () => {
         expect(view.area.key).toBe('llm');
         expect(view.toModuleId).toBe('aim');
         expect(view.to).toBe('/environments/prod/aim/llm-proxy/api-llm');
+    });
+
+    // apim/apis/{id} renders a Message API as an HTTP proxy, with screens it does not have.
+    it('deep-links a message review task to the esm module instead of apim', () => {
+        const entity: TaskEntity = { type: 'IN_REVIEW', created_at: 1, data: { referenceId: 'api-message' } };
+
+        const view = toTaskView(entity, metadata, resolveEnvHrid);
+
+        expect(view.area.key).toBe('esm');
+        expect(view.toModuleId).toBe('esm');
+        expect(view.to).toBe('/environments/prod/esm/message-apis/api-message');
+    });
+
+    it('deep-links a native review task to the esm kafka-apis page', () => {
+        const entity: TaskEntity = { type: 'IN_REVIEW', created_at: 1, data: { referenceId: 'api-kafka' } };
+
+        const view = toTaskView(entity, metadata, resolveEnvHrid);
+
+        expect(view.toModuleId).toBe('esm');
+        expect(view.to).toBe('/environments/prod/esm/kafka-apis/api-kafka');
     });
 
     it('deep-links an MCP review task to the mcp-proxy API page', () => {

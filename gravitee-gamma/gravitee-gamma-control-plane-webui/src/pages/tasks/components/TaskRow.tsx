@@ -32,6 +32,7 @@ const ICONS: Record<TaskIconKey, LucideIcon> = {
 
 const AREA_CLASS: Record<TaskAreaKey, string> = {
     apim: 'border-primary/30 text-primary',
+    esm: 'border-warning/30 text-warning',
     mcp: 'border-highlight/30 text-highlight',
     ai: 'border-highlight/30 text-highlight',
     llm: 'border-highlight/30 text-highlight',
