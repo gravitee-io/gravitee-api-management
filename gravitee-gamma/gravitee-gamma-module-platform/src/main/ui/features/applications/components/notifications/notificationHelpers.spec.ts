@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 import {
+    buildNewNotificationRow,
     groupHooksByCategory,
     mapApplicationNotificationsToRows,
     notificationNotifierOptions,
+    notificationSheetTitle,
     notifierTypeLabel,
     resolveNotifierName,
 } from './notificationHelpers';
@@ -110,6 +112,57 @@ describe('notificationHelpers', () => {
             );
             expect(rows[0].isReadonly).toBe(true);
             expect(rows[0].notifierName).toBe('Console');
+        });
+    });
+
+    describe('notificationSheetTitle', () => {
+        const notifiers: ApplicationNotifier[] = [{ id: 'email-notifier', type: 'EMAIL', name: 'Email' }];
+
+        it('uses Add notification for create', () => {
+            expect(notificationSheetTitle(buildNewNotificationRow('app-1', notifiers))).toBe('Add notification');
+        });
+
+        it('does not treat a closed sheet as create', () => {
+            expect(notificationSheetTitle(null)).toBe('');
+        });
+
+        it('uses Edit Console Notification for the PORTAL row', () => {
+            expect(
+                notificationSheetTitle({
+                    key: 'PORTAL',
+                    name: 'Console Notification',
+                    subscribedEvents: 0,
+                    notifierName: 'Console',
+                    notification: {
+                        name: 'Console Notification',
+                        referenceType: 'ENVIRONMENT',
+                        referenceId: 'env-1',
+                        config_type: 'PORTAL',
+                        hooks: [],
+                    },
+                    isReadonly: false,
+                }),
+            ).toBe('Edit Console Notification');
+        });
+
+        it('uses the GENERIC row name for other edits', () => {
+            expect(
+                notificationSheetTitle({
+                    key: 'n1',
+                    name: 'Subscription alerts',
+                    subscribedEvents: 1,
+                    notifierName: 'Email',
+                    notification: {
+                        id: 'n1',
+                        name: 'Subscription alerts',
+                        referenceType: 'APPLICATION',
+                        referenceId: 'app-1',
+                        config_type: 'GENERIC',
+                        hooks: [],
+                    },
+                    isReadonly: false,
+                }),
+            ).toBe('Edit Subscription alerts');
         });
     });
 });

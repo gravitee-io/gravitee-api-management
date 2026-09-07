@@ -66,7 +66,10 @@ describe('platform navigation config', () => {
         expect(sectionKeys('Environment', 'APIs & Assets')).toEqual(['applications', 'metadata', 'dictionaries', 'shared-policy-groups']);
     });
 
-    it('places Access Management, Gateways, Alerts, Notification settings, Security Plan Types, and Audit under Environment / System & Security', () => {
+    it('places Access Management, Gateways, Alerts, Notifications, Security Plan Types, and Audit under Environment / System & Security', () => {
+        const systemItems =
+            NAV_SECTIONS.find(section => section.key === 'environment')?.groups.find(group => group.label === 'System & Security')?.items ??
+            [];
         expect(sectionKeys('Environment', 'System & Security')).toEqual([
             'access-management',
             'gateways',
@@ -75,6 +78,7 @@ describe('platform navigation config', () => {
             'security-plan-types',
             'environment-audit',
         ]);
+        expect(systemItems.find(item => item.key === 'notification-settings')?.title).toBe('Notifications');
     });
 
     it('places Users, Groups, and Roles under Team', () => {

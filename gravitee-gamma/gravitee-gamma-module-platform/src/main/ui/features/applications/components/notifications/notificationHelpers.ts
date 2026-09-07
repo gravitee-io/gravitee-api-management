@@ -43,6 +43,16 @@ export function isCreateNotificationRow(row: ApplicationNotificationRow | null):
     return row?.key === NOTIFICATION_CREATE_ROW_KEY;
 }
 
+export function notificationSheetTitle(row: ApplicationNotificationRow | null): string {
+    if (!row) {
+        return '';
+    }
+    if (isCreateNotificationRow(row)) {
+        return 'Add notification';
+    }
+    return `Edit ${row.name}`;
+}
+
 export function buildNewNotificationRow(applicationId: string, notifiers: ApplicationNotifier[]): ApplicationNotificationRow {
     const defaultNotifier = notifiers.find(item => item.id);
     const notifierId = defaultNotifier?.id ?? '';

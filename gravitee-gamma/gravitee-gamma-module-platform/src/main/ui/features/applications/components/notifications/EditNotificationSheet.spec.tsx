@@ -79,13 +79,34 @@ describe('EditNotificationSheet', () => {
                 onCreate={jest.fn()}
             />,
         );
-        expect(querySheetHeading('Edit Console Notification')).toBeNull();
+        expect(querySheetHeading('Add notification')).toBeNull();
+        expect(querySheetHeading('Edit Subscription alerts')).toBeNull();
     });
 
-    it('shows sheet title and description when row is set', () => {
+    it('shows the GENERIC row name in the edit title', () => {
         renderSheet();
-        expect(screen.getByRole('heading', { name: 'Edit Console Notification' })).not.toBeNull();
+        expect(screen.getByRole('heading', { name: 'Edit Subscription alerts' })).not.toBeNull();
         expect(screen.getByText(/Configure notifier settings and subscribed events for Subscription alerts/i)).not.toBeNull();
+    });
+
+    it('shows Edit Console Notification for the PORTAL row', () => {
+        renderSheet({
+            row: {
+                key: 'PORTAL',
+                name: 'Console Notification',
+                subscribedEvents: 0,
+                notifierName: 'Console',
+                notification: {
+                    name: 'Console Notification',
+                    referenceType: 'ENVIRONMENT',
+                    referenceId: 'env-1',
+                    config_type: 'PORTAL',
+                    hooks: [],
+                },
+                isReadonly: false,
+            },
+        });
+        expect(screen.getByRole('heading', { name: 'Edit Console Notification' })).not.toBeNull();
     });
 
     it('invokes onCancel when Cancel is clicked', () => {
@@ -145,6 +166,7 @@ describe('EditNotificationSheet', () => {
 
     it('shows name and notifier fields in create mode', () => {
         renderSheet({ row: buildNewNotificationRow('app-1', notifiers) });
+        expect(screen.getByRole('heading', { name: 'Add notification' })).not.toBeNull();
         expect(screen.getByLabelText(/^Name/)).not.toBeNull();
         expect(screen.getByLabelText(/^Notifier/)).not.toBeNull();
         expect(screen.getByRole('button', { name: 'Add notification' })).not.toBeNull();

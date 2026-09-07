@@ -292,7 +292,7 @@ describe('platform nav visibility', () => {
         });
     });
 
-    it('gates Notification settings on environment-notification-r without the org settings gate', () => {
+    it('gates Notifications on environment-notification-r without the org settings gate', () => {
         expect(requiresOrganizationSettingsGate('notification-settings')).toBe(false);
         expect(pageGuardForNavItem('notification-settings')).toEqual({ anyOf: ['environment-notification-r'] });
         expect(isNavItemVisible('notification-settings', visibility(['environment-notification-r']))).toBe(true);

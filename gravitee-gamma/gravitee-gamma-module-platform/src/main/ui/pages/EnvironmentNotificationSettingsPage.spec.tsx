@@ -190,7 +190,7 @@ describe('EnvironmentNotificationSettingsPage', () => {
 
     it('renders the page title', () => {
         renderPage();
-        expect(screen.queryByRole('heading', { name: 'Notification settings' })).not.toBeNull();
+        expect(screen.queryByRole('heading', { name: 'Notifications' })).not.toBeNull();
     });
 
     it('renders both the Console Notification row and GENERIC rows', () => {

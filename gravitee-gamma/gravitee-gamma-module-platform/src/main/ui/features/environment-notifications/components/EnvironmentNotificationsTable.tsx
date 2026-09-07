@@ -66,6 +66,18 @@ function EventCountBadge({ count }: Readonly<{ count: number }>) {
     );
 }
 
+function NotificationTargetCell({ row }: Readonly<{ row: ApplicationNotificationRow }>) {
+    const target = notificationTarget(row);
+    return (
+        <span
+            className="block min-w-0 max-w-full truncate font-mono text-xs text-muted-foreground"
+            title={target === '—' ? undefined : target}
+        >
+            {target}
+        </span>
+    );
+}
+
 function rowActionVisibility(
     row: ApplicationNotificationRow,
     canUpdate: (row: ApplicationNotificationRow) => boolean,
@@ -159,10 +171,10 @@ function buildColumns({
         {
             id: 'target',
             header: 'Target',
+            size: 288,
+            maxSize: 288,
             enableSorting: false,
-            cell: ({ row }: ColCell<ApplicationNotificationRow>) => (
-                <span className="block max-w-72 truncate font-mono text-xs text-muted-foreground">{notificationTarget(row.original)}</span>
-            ),
+            cell: ({ row }: ColCell<ApplicationNotificationRow>) => <NotificationTargetCell row={row.original} />,
         },
     ];
 

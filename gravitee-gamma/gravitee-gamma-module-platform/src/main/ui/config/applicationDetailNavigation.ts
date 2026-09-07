@@ -53,7 +53,7 @@ export const APPLICATION_NAV_GROUPS: ApplicationDetailNavGroup[] = [
         items: [
             {
                 path: 'notifications',
-                label: 'Notification settings',
+                label: 'Notifications',
                 icon: BellIcon,
                 permissions: ['application-notification-r', 'application-alert-r'],
             },
