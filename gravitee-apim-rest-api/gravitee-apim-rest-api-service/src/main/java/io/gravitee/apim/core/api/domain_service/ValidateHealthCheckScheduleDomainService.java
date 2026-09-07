@@ -25,7 +25,6 @@ import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
-import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.gravitee.definition.model.v4.service.Service;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -49,66 +48,100 @@ public class ValidateHealthCheckScheduleDomainService {
             if (!(group instanceof EndpointGroup httpGroup)) {
                 continue;
             }
-            validateGroupHealthCheck(httpGroup.getName(), httpGroup.getServices(), errors);
-            if (httpGroup.getEndpoints() == null) {
+            validateHttpGroup(httpGroup, errors);
+        }
+    }
+
+    private void validateHttpGroup(EndpointGroup group, List<Validator.Error> errors) {
+        if (group.getEndpoints() == null) {
+            return;
+        }
+        Service groupHealthCheck = healthCheckOf(group.getServices());
+        boolean groupScheduleReported = false;
+        for (Endpoint endpoint : group.getEndpoints()) {
+            if (!probeMayRun(groupHealthCheck, endpoint)) {
                 continue;
             }
-            for (Endpoint endpoint : httpGroup.getEndpoints()) {
-                validateEndpointHealthCheck(httpGroup, endpoint, errors);
+            Service endpointHealthCheck = healthCheckOf(endpoint);
+            if (overridesGroupConfiguration(endpointHealthCheck)) {
+                validateSchedule(
+                    "endpointGroups[%s].endpoints[%s].services.healthCheck.configuration.schedule".formatted(
+                        group.getName(),
+                        endpoint.getName()
+                    ),
+                    endpointHealthCheck,
+                    errors
+                );
+            } else if (!groupScheduleReported) {
+                validateSchedule(
+                    "endpointGroups[%s].services.healthCheck.configuration.schedule".formatted(group.getName()),
+                    groupHealthCheck,
+                    errors
+                );
+                groupScheduleReported = true;
             }
         }
     }
 
-    private void validateEndpointHealthCheck(EndpointGroup group, Endpoint endpoint, List<Validator.Error> errors) {
-        EndpointServices endpointServices = endpoint.getServices();
-        if (endpointServices == null || endpointServices.getHealthCheck() == null) {
-            return;
+    /**
+     * Mirrors {@code HttpHealthCheckHelper.isServiceEnabled}: the probe runs when the endpoint enables it,
+     * or when the group enables it and the endpoint does not enable its own.
+     * This will check secondary endpoints CRON expression as well. This is done on purpose to cover the case when
+     * the endpoint is promoted to primary. As a result, the Gateway will then start a probe;
+     * hence a valid CRON expression is expected.
+     */
+    private static boolean probeMayRun(Service groupHealthCheck, Endpoint endpoint) {
+        Service endpointHealthCheck = healthCheckOf(endpoint);
+        if (isEnabledHttpHealthCheck(endpointHealthCheck)) {
+            return true;
         }
-        Service endpointHealthCheck = endpointServices.getHealthCheck();
-        if (!isEnabledHttpHealthCheck(endpointHealthCheck)) {
-            return;
-        }
-        if (!endpointHealthCheck.isOverrideConfiguration()) {
-            return;
-        }
-        validateSchedule(
-            "endpointGroups[%s].endpoints[%s].services.healthCheck.configuration.schedule".formatted(group.getName(), endpoint.getName()),
-            endpointHealthCheck.getConfiguration(),
-            errors
-        );
+        return isEnabledHttpHealthCheck(groupHealthCheck) && (endpointHealthCheck == null || !endpointHealthCheck.isEnabled());
     }
 
-    private void validateGroupHealthCheck(String groupName, EndpointGroupServices services, List<Validator.Error> errors) {
-        if (services == null || services.getHealthCheck() == null) {
+    private static boolean overridesGroupConfiguration(Service endpointHealthCheck) {
+        return endpointHealthCheck != null && endpointHealthCheck.isOverrideConfiguration();
+    }
+
+    private void validateSchedule(String fieldPath, Service healthCheck, List<Validator.Error> errors) {
+        ParsedSchedule schedule = parseSchedule(fieldPath, healthCheck, errors);
+        if (schedule.jsonInvalid()) {
             return;
         }
-        Service groupHealthCheck = services.getHealthCheck();
-        if (!isEnabledHttpHealthCheck(groupHealthCheck)) {
+        if (schedule.isPresent()) {
+            validateCron(fieldPath, schedule.value(), errors);
             return;
         }
-        validateSchedule(
-            "endpointGroups[%s].services.healthCheck.configuration.schedule".formatted(groupName),
-            groupHealthCheck.getConfiguration(),
-            errors
-        );
+        errors.add(Validator.Error.severe("property [%s] is required", fieldPath));
+    }
+
+    private static Service healthCheckOf(EndpointGroupServices services) {
+        return services == null ? null : services.getHealthCheck();
+    }
+
+    private static Service healthCheckOf(Endpoint endpoint) {
+        if (endpoint.getServices() == null) {
+            return null;
+        }
+        return endpoint.getServices().getHealthCheck();
     }
 
     private static boolean isEnabledHttpHealthCheck(Service healthCheck) {
-        return healthCheck.isEnabled() && HTTP_HEALTH_CHECK_TYPE.equals(healthCheck.getType());
+        return healthCheck != null && healthCheck.isEnabled() && HTTP_HEALTH_CHECK_TYPE.equals(healthCheck.getType());
     }
 
-    private void validateSchedule(String fieldPath, String configuration, List<Validator.Error> errors) {
-        String schedule;
+    private ParsedSchedule parseSchedule(String fieldPath, Service healthCheck, List<Validator.Error> errors) {
+        if (healthCheck == null) {
+            return ParsedSchedule.missing();
+        }
         try {
-            schedule = readSchedule(configuration);
+            return ParsedSchedule.of(readSchedule(healthCheck.getConfiguration()));
         } catch (JsonProcessingException e) {
             errors.add(Validator.Error.severe("property [%s] has invalid JSON configuration", fieldPath));
-            return;
+            return ParsedSchedule.jsonError();
         }
-        if (schedule == null || schedule.isBlank()) {
-            errors.add(Validator.Error.severe("property [%s] is required", fieldPath));
-            return;
-        }
+    }
+
+    private void validateCron(String fieldPath, String schedule, List<Validator.Error> errors) {
         try {
             new CronTrigger(schedule);
         } catch (IllegalArgumentException e) {
@@ -126,5 +159,27 @@ public class ValidateHealthCheckScheduleDomainService {
             return null;
         }
         return scheduleNode.asText();
+    }
+
+    private static boolean hasText(String value) {
+        return value != null && !value.isBlank();
+    }
+
+    private record ParsedSchedule(String value, boolean jsonInvalid) {
+        static ParsedSchedule missing() {
+            return new ParsedSchedule(null, false);
+        }
+
+        static ParsedSchedule jsonError() {
+            return new ParsedSchedule(null, true);
+        }
+
+        static ParsedSchedule of(String value) {
+            return new ParsedSchedule(value, false);
+        }
+
+        boolean isPresent() {
+            return hasText(value);
+        }
     }
 }
