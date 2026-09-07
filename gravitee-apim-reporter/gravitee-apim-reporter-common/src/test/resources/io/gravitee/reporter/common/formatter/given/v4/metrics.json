@@ -3,6 +3,8 @@
   "enabled": true,
   "requestId": "076aea69-6024-4590-aaea-6960247590a0",
   "transactionId": "076aea69-6024-4590-aaea-6960247590a0",
+  "traceId": "4bf92f3577b34da6a3ce929d0e0e4736",
+  "spanId": "00f067aa0ba902b7",
   "apiId": "5f67b38f-0700-4557-a7b3-8f0700855779",
   "apiName": "API Name",
   "apiProductId": "my-product-id",

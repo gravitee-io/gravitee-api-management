@@ -22,6 +22,7 @@ import io.gravitee.apim.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.mapping.es7.ES7IndexPreparer;
 import io.gravitee.apim.reporter.elasticsearch.mapping.es8.ES8IndexPreparer;
 import io.gravitee.apim.reporter.elasticsearch.mapping.es9.ES9IndexPreparer;
+import io.gravitee.apim.reporter.elasticsearch.mapping.opensearch.OpenSearchIndexPreparer;
 import io.gravitee.common.templating.FreeMarkerComponent;
 import io.gravitee.elasticsearch.utils.Type;
 import java.nio.charset.StandardCharsets;
@@ -133,6 +134,19 @@ class IndexTemplateTest {
         }
     }
 
+    @ParameterizedTest(name = "{0} renders trace-id and span-id as keyword next to request-id")
+    @ValueSource(strings = { "es7x", "es8x", "es9x", "opensearch" })
+    void should_render_the_trace_correlation_keys_as_keyword(String esDir) {
+        // The gateway writes trace-id/span-id on every metrics document. Left unmapped, the dynamic mapping
+        // guesses a type, and a text field breaks the term query an operator uses to jump from a trace to its
+        // traffic. Asserted on the rendered body, and pinned next to request-id — a keyword mapping that came
+        // out in the wrong properties block would satisfy the type assertion on its own.
+        assertThat(preparerFor(esDir, configurationWithPolicies()).generateIndexTemplate(Type.V4_METRICS))
+            .containsPattern("\"trace-id\"\\s*:\\s*\\{\\s*\"type\"\\s*:\\s*\"keyword\"")
+            .containsPattern("\"span-id\"\\s*:\\s*\\{\\s*\"type\"\\s*:\\s*\"keyword\"")
+            .containsSubsequence("\"request-id\"", "\"trace-id\"", "\"span-id\"");
+    }
+
     @Test
     void should_render_default_ilm_keys_for_an_untouched_elasticsearch_configuration() {
         assertThat(preparerFor("es8x", configurationWithPolicies()).generateIndexTemplate(Type.LOG))
@@ -220,6 +234,7 @@ class IndexTemplateTest {
             case "es7x" -> new ES7IndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, null);
             case "es8x" -> new ES8IndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, null);
             case "es9x" -> new ES9IndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, null);
+            case "opensearch" -> new OpenSearchIndexPreparer(configuration, pipelineConfiguration, freeMarkerComponent, null);
             default -> throw new IllegalArgumentException("Unknown es dir: " + esDir);
         };
     }

@@ -75,6 +75,18 @@ public class MetricsProcessor implements Processor {
                     .host(request.host())
                     .uri(request.uri())
                     .pathInfo(request.pathInfo());
+
+                // The context falls back to a NoOpTracer when tracing is off: its trace id is empty, and an
+                // empty string indexed as a correlation key correlates nothing.
+                var tracer = ctx.getTracer();
+                String traceId = tracer.traceId();
+                if (traceId != null && !traceId.isEmpty()) {
+                    // This processor runs in the pre-processor chain, where the only open span is the one the
+                    // dispatcher created, so the reported span id is always the request's root span — never a
+                    // policy or endpoint span opened later on.
+                    metricsBuilder.traceId(traceId).spanId(tracer.spanId());
+                }
+
                 if (request.headers() != null) {
                     metricsBuilder.userAgent(request.headers().get(HttpHeaderNames.USER_AGENT));
                 }
