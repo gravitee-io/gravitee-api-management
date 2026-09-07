@@ -16,12 +16,14 @@
 package io.gravitee.gateway.reactive.reactor.processor.metrics;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.gateway.reactive.reactor.processor.AbstractProcessorTest;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.reporter.api.v4.metric.Metrics;
@@ -154,6 +156,51 @@ class MetricsProcessorTest extends AbstractProcessorTest {
             Metrics metrics = ctx.metrics();
             assertThat(metrics.getTenant()).isNull();
             assertThat(metrics.getZone()).isNull();
+        }
+
+        @Test
+        void should_set_trace_id_and_span_id_from_tracer() {
+            // Given
+            Api api = new Api();
+            api.setAnalytics(new Analytics());
+            when(reactableApi.getDefinitionVersion()).thenReturn(api.getDefinitionVersion());
+            when(reactableApi.getDefinition()).thenReturn(api);
+            ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, reactableApi);
+            Tracer mockTracer = mock(Tracer.class);
+            when(mockTracer.traceId()).thenReturn("4bf92f3577b34da6a3ce929d0e0e4736");
+            when(mockTracer.spanId()).thenReturn("00f067aa0ba902b7");
+            ctx.tracer(mockTracer);
+            metricsProcessor = new MetricsProcessor(gatewayConfiguration, true);
+
+            // When
+            metricsProcessor.execute(ctx).test().assertComplete();
+
+            // Then
+            Metrics metrics = ctx.metrics();
+            assertThat(metrics.getTraceId()).isEqualTo("4bf92f3577b34da6a3ce929d0e0e4736");
+            assertThat(metrics.getSpanId()).isEqualTo("00f067aa0ba902b7");
+        }
+
+        @Test
+        void should_not_set_trace_id_and_span_id_when_tracing_is_disabled() {
+            // Given
+            Api api = new Api();
+            api.setAnalytics(new Analytics());
+            when(reactableApi.getDefinitionVersion()).thenReturn(api.getDefinitionVersion());
+            when(reactableApi.getDefinition()).thenReturn(api);
+            ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, reactableApi);
+            Tracer noopTracer = mock(Tracer.class);
+            when(noopTracer.traceId()).thenReturn("");
+            ctx.tracer(noopTracer);
+            metricsProcessor = new MetricsProcessor(gatewayConfiguration, true);
+
+            // When
+            metricsProcessor.execute(ctx).test().assertComplete();
+
+            // Then
+            Metrics metrics = ctx.metrics();
+            assertThat(metrics.getTraceId()).isNull();
+            assertThat(metrics.getSpanId()).isNull();
         }
     }
 
