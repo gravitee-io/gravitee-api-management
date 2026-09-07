@@ -54,6 +54,8 @@ class HTTPFieldResolverTest {
             "LLM_PROMPT_TOKEN_RECEIVED",
             "LLM_PROMPT_TOKEN_SENT_COST",
             "LLM_PROMPT_TOKEN_RECEIVED_COST",
+            "LLM_PROMPT_TOKEN_REASONING",
+            "LLM_PROMPT_TOKEN_REASONING_COST",
             "MCP_PROXY_TOOL_COST",
         }
     )
