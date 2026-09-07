@@ -19144,18 +19144,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:3.3.2":
-  version: 3.3.2
-  resolution: "dompurify@npm:3.3.2"
-  dependencies:
-    "@types/trusted-types": "npm:^2.0.7"
-  dependenciesMeta:
-    "@types/trusted-types":
-      optional: true
-  checksum: 10c0/8989525f003dd062e829137982b5412143421342991b2732bd621a1efd98b2c3cdc4f37547601d0727d3bc20f1d0eb2a0ecca287d3688f168cdb54ced867ca8f
-  languageName: node
-  linkType: hard
-
 "dompurify@npm:3.4.12":
   version: 3.4.12
   resolution: "dompurify@npm:3.4.12"
@@ -19165,6 +19153,18 @@ __metadata:
     "@types/trusted-types":
       optional: true
   checksum: 10c0/127a13817353d4e20e75a991a9022a04c3af12af7479f68e2b8bee6dbc7330a96edfb8f4ebff96f4f0f24cd43e8dbba46214131f510c3aa87a843bd8b610d0ab
+  languageName: node
+  linkType: hard
+
+"dompurify@npm:3.4.13":
+  version: 3.4.13
+  resolution: "dompurify@npm:3.4.13"
+  dependencies:
+    "@types/trusted-types": "npm:^2.0.7"
+  dependenciesMeta:
+    "@types/trusted-types":
+      optional: true
+  checksum: 10c0/9c2a1a71e1a1d8b77953db7a39ffc935ef4ed4f10fe40770232128c2cbfd4c3dc677d3d7bae51eb24cc52d9ff3548612dc540ecb4343e89b26e809d2be2e0cfe
   languageName: node
   linkType: hard
 
@@ -21982,7 +21982,7 @@ __metadata:
     date-fns: "npm:4.1.0"
     diff: "npm:3.5.0"
     diff2html: "npm:3.4.51"
-    dompurify: "npm:3.3.2"
+    dompurify: "npm:3.4.13"
     eslint: "npm:8.57.1"
     eslint-config-angular: "npm:0.5.0"
     eslint-config-prettier: "npm:10.1.8"
