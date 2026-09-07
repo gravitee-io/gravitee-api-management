@@ -58,7 +58,8 @@ public class HTTPFieldResolver implements FieldResolver {
             case Filter.Name.ZONE -> "zone";
             case Filter.Name.HTTP_METHOD -> "http-method";
             case Filter.Name.HTTP_STATUS_CODE_GROUP, HTTP_STATUS -> "status";
-            case Filter.Name.HTTP_PATH -> "path";
+            // the gateway reports the path after the context path as path-info; `path` is declared but never written
+            case Filter.Name.HTTP_PATH -> "path-info.keyword";
             case Filter.Name.HTTP_PATH_MAPPING -> "mapped-path";
             case Filter.Name.GEO_IP_COUNTRY -> "geoip.country_iso_code";
             case Filter.Name.GEO_IP_REGION -> "geoip.region_name";
@@ -104,7 +105,7 @@ public class HTTPFieldResolver implements FieldResolver {
             case ZONE -> "zone";
             case HTTP_METHOD -> "http-method";
             case HTTP_STATUS_CODE_GROUP, HTTP_STATUS -> "status";
-            case HTTP_PATH -> "path";
+            case HTTP_PATH -> "path-info.keyword";
             case HTTP_PATH_MAPPING -> "mapped-path";
             case GEO_IP_COUNTRY -> "geoip.country_iso_code";
             case GEO_IP_REGION -> "geoip.region_name";

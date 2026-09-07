@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.atIndex;
 import static org.assertj.core.api.Assertions.not;
 import static org.assertj.core.api.Assertions.offset;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.Assertions.withPrecision;
 
 import io.gravitee.common.http.HttpMethod;
@@ -1679,6 +1680,33 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     bucket -> assertThat(bucket.key()).isEqualTo("400-499"),
                     bucket -> assertThat(bucket.key()).isEqualTo("500-599")
                 );
+            }
+        }
+
+        /** The fixture holds 22 documents on the HTTP entrypoints, two of them on {@code /tools/call}, reported as {@code path-info}. */
+        @Nested
+        class HTTPPathFilters {
+
+            private static final MetricMeasuresQuery REQUESTS = new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT));
+
+            @Test
+            void should_count_the_requests_of_one_path() {
+                var filter = new Filter(Filter.Name.HTTP_PATH, Filter.Operator.EQ, "/tools/call");
+
+                var result = cut.searchHTTPMeasures(QUERY_CONTEXT, new MeasuresQuery(buildTimeRange(), List.of(filter), List.of(REQUESTS)));
+
+                assertThat(result.measures().getFirst().measures().get(Measure.COUNT).longValue()).isEqualTo(2L);
+            }
+
+            @Test
+            void should_bucket_the_requests_by_path() {
+                var query = new FacetsQuery(buildTimeRange(), List.of(), List.of(REQUESTS), List.of(Facet.HTTP_PATH));
+
+                var result = cut.searchHTTPFacets(QUERY_CONTEXT, query);
+
+                assertThat(result.metrics().getFirst().buckets())
+                    .extracting(bucket -> bucket.key(), bucket -> bucket.measures().get(Measure.COUNT).longValue())
+                    .contains(tuple("/tools/call", 2L), tuple("/chat", 2L), tuple("/", 13L));
             }
         }
 
