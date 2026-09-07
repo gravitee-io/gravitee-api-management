@@ -172,6 +172,19 @@ class IndexTemplateTest {
         );
     }
 
+    @ParameterizedTest(name = "{0} renders trace-id and span-id as keyword next to request-id")
+    @MethodSource("all_trees")
+    void should_render_the_trace_correlation_keys_as_keyword(String esDir) {
+        // The gateway writes trace-id/span-id on every metrics document. Left unmapped, the dynamic mapping
+        // guesses a type, and a text field breaks the term query an operator uses to jump from a trace to its
+        // traffic. Asserted on the rendered body, and pinned next to request-id — a keyword mapping that came
+        // out in the wrong properties block would satisfy the type assertion on its own.
+        assertThat(preparerFor(esDir, configurationWithPolicies()).generateIndexTemplate(Type.V4_METRICS))
+            .containsPattern("\"trace-id\"\\s*:\\s*\\{\\s*\"type\"\\s*:\\s*\"keyword\"")
+            .containsPattern("\"span-id\"\\s*:\\s*\\{\\s*\"type\"\\s*:\\s*\"keyword\"")
+            .containsSubsequence("\"request-id\"", "\"trace-id\"", "\"span-id\"");
+    }
+
     @Test
     void should_render_default_ilm_keys_for_an_untouched_elasticsearch_configuration() {
         assertThat(preparerFor("es8x", configurationWithPolicies()).generateIndexTemplate(Type.LOG))
