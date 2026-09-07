@@ -1,0 +1,47 @@
+suite: Test Gateway configmap - http2 flow-control windows
+templates:
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Default configmap doesn't have any http2 config
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \s http2:\s*
+
+  - it: Sets configmap http2 config globally
+    set:
+      gateway:
+        http:
+          http2:
+            connectionWindowSize: 20971520
+            streamWindowSize: 20971520
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \s http2:\s*
+            \s   connectionWindowSize: 20971520
+            \s   streamWindowSize: 20971520
+          multiline: true
+
+  - it: Sets configmap http2 config in servers
+    set:
+      gateway:
+        servers:
+          - type: http
+            port: 8082
+            http2:
+              connectionWindowSize: 20971520
+              streamWindowSize: 20971520
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            servers:
+              - type: http
+                port: 8082
+                host: 0.0.0.0
+                http2:\s*
+                  connectionWindowSize: 20971520
+                  streamWindowSize: 20971520
