@@ -18,6 +18,7 @@ package io.gravitee.apim.core.performance_target.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.performance_target.crud_service.PerformanceTargetCrudService;
 import io.gravitee.apim.core.performance_target.crud_service.PerformanceTargetEvaluationCrudService;
+import io.gravitee.apim.core.performance_target.domain_service.PerformanceTargetScheduleStateDomainService;
 import io.gravitee.apim.core.performance_target.exception.PerformanceTargetEvaluatedTooRecentlyException;
 import io.gravitee.apim.core.performance_target.model.PerformanceTargetEvaluation;
 import io.gravitee.apim.core.performance_target.query_service.PerformanceTargetEvaluationQueryService;
@@ -44,6 +45,7 @@ public class EvaluatePerformanceTargetUseCase {
     private final PerformanceTargetEvaluationQueryService performanceTargetEvaluationQueryService;
     private final PerformanceTargetEvaluationCrudService performanceTargetEvaluationCrudService;
     private final PerformanceTargetEvaluator performanceTargetEvaluator;
+    private final PerformanceTargetScheduleStateDomainService scheduleState;
 
     public Output execute(Input input) {
         var target = performanceTargetCrudService.get(input.environmentId(), input.targetId());
@@ -63,6 +65,8 @@ public class EvaluatePerformanceTargetUseCase {
         var evaluation = performanceTargetEvaluator.evaluate(target, now).toBuilder().id(UuidString.generateRandom()).latest(true).build();
         var stored = performanceTargetEvaluationCrudService.create(evaluation);
         performanceTargetEvaluationCrudService.pruneHistory(target.id(), PerformanceTargetEvaluation.HISTORY_RETENTION);
+        // The scheduler judges a backoff on the latest evaluations it knows of; this one counts as much as its own.
+        scheduleState.record(target.id(), stored);
         return new Output(stored);
     }
 

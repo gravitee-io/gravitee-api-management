@@ -24,6 +24,7 @@ import inmemory.PerformanceTargetEvaluationCrudServiceInMemory;
 import inmemory.PerformanceTargetEvaluationQueryServiceInMemory;
 import inmemory.PerformanceTargetEvaluatorInMemory;
 import inmemory.PerformanceTargetQueryServiceInMemory;
+import io.gravitee.apim.core.performance_target.domain_service.PerformanceTargetScheduleStateDomainService;
 import io.gravitee.apim.core.performance_target.model.PerformanceTarget;
 import io.gravitee.apim.core.performance_target.model.PerformanceTargetEvaluation;
 import io.gravitee.apim.core.performance_target.model.PerformanceTargetSchedule;
@@ -54,8 +55,9 @@ class EvaluateDuePerformanceTargetsUseCaseTest {
         evaluationCrudService
     );
     PerformanceTargetEvaluatorInMemory evaluator = new PerformanceTargetEvaluatorInMemory();
+    PerformanceTargetScheduleStateDomainService scheduleState = new PerformanceTargetScheduleStateDomainService();
 
-    EvaluateDuePerformanceTargetsUseCase useCase = newUseCase(evaluator);
+    EvaluateDuePerformanceTargetsUseCase useCase = newUseCase(evaluator, scheduleState);
 
     @AfterEach
     void tearDown() {
@@ -305,8 +307,75 @@ class EvaluateDuePerformanceTargetsUseCaseTest {
         assertThat(evaluationCrudService.storage()).isEmpty();
     }
 
+    @Test
+    void should_end_the_backoff_of_an_idle_target_as_soon_as_an_on_demand_evaluation_finds_traffic() {
+        var target = aTarget("idle");
+        targetCrudService.initWith(List.of(target));
+        evaluator.status(PerformanceTargetEvaluation.Status.NOT_EVALUABLE);
+        var now = T0;
+        while (now.isBefore(T0.plus(Duration.ofHours(5)))) {
+            tick(now);
+            now = now.plus(TICK);
+        }
+        var lastScheduled = evaluationCrudService
+            .storage()
+            .stream()
+            .map(PerformanceTargetEvaluation::evaluatedAt)
+            .max(Instant::compareTo)
+            .get();
+        // the target is backed off to the cap: nothing is due for the better part of an hour
+        assertThat(tick(lastScheduled.plus(INTERVAL.multipliedBy(2))).evaluations()).isEmpty();
+
+        evaluator.status(PerformanceTargetEvaluation.Status.PASS);
+        var onDemand = new EvaluatePerformanceTargetUseCase(
+            targetCrudService,
+            evaluationQueryService,
+            evaluationCrudService,
+            evaluator,
+            scheduleState
+        );
+        var clicked = lastScheduled.plus(INTERVAL.multipliedBy(2)).plusSeconds(30);
+        input(clicked);
+        onDemand.execute(new EvaluatePerformanceTargetUseCase.Input(target.environmentId(), target.id()));
+
+        var nextSlot = tick(clicked.plus(INTERVAL).plus(TICK));
+
+        assertThat(nextSlot.evaluations()).extracting(PerformanceTargetEvaluation::targetId).containsExactly("idle");
+    }
+
+    @Test
+    void should_evaluate_an_updated_target_at_the_next_tick_whatever_its_backoff_was() {
+        var target = aTarget("idle");
+        targetCrudService.initWith(List.of(target));
+        evaluator.status(PerformanceTargetEvaluation.Status.NOT_EVALUABLE);
+        var now = T0;
+        while (now.isBefore(T0.plus(Duration.ofHours(5)))) {
+            tick(now);
+            now = now.plus(TICK);
+        }
+        assertThat(tick(now).evaluations()).isEmpty();
+
+        scheduleState.reset(target.id());
+
+        assertThat(tick(now.plus(TICK)).evaluations()).extracting(PerformanceTargetEvaluation::targetId).containsExactly("idle");
+    }
+
+    /** Another node: its own schedule state, the same stores. */
     private EvaluateDuePerformanceTargetsUseCase newUseCase(PerformanceTargetEvaluatorInMemory evaluator) {
-        return new EvaluateDuePerformanceTargetsUseCase(targetQueryService, evaluationQueryService, evaluationCrudService, evaluator);
+        return newUseCase(evaluator, new PerformanceTargetScheduleStateDomainService());
+    }
+
+    private EvaluateDuePerformanceTargetsUseCase newUseCase(
+        PerformanceTargetEvaluatorInMemory evaluator,
+        PerformanceTargetScheduleStateDomainService scheduleState
+    ) {
+        return new EvaluateDuePerformanceTargetsUseCase(
+            targetQueryService,
+            evaluationQueryService,
+            evaluationCrudService,
+            evaluator,
+            scheduleState
+        );
     }
 
     private EvaluateDuePerformanceTargetsUseCase.Output tick(Instant now) {
