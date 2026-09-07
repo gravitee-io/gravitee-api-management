@@ -113,8 +113,8 @@ secrets:
 #  Raising them costs gateway memory per connection and per concurrent request respectively, so size them against
 #  the payloads you actually accept and the concurrency you expect, not against a single upload. Neither is capped.
 #  http2:
-#    streamWindowSize: 20971520 # per-request window, in bytes
 #    connectionWindowSize: 20971520 # per-connection window, in bytes
+#    streamWindowSize: 20971520 # per-request window, in bytes
 #  ssl:
 #    clientAuth: none # Supports none, request, required
 #    Whether the configured truststore is sent to clients as the list of acceptable certificate authorities during
