@@ -3,6 +3,9 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.10.31
+- Expose the gateway HTTP/2 flow-control windows through `gateway.http.http2.connectionWindowSize` and `gateway.http.http2.streamWindowSize` (also per server under `gateway.servers[]`), unset by default so the 65535 bytes protocol default is kept (APIM-15040). Upload throughput over HTTP/2 is bounded by window size / round-trip time, so the default throttles large request bodies as soon as there is real network latency, where HTTP/1.1 is unaffected. Set both or neither: the initial settings the gateway sends reach streams only, never the connection, so raising `streamWindowSize` alone leaves the connection window at 65535 bytes and it stays the bottleneck. They cost gateway memory per connection and per concurrent request respectively, and neither is capped.
+
 ### 4.10.21
 - fix gateway requestTimeout ignored when gateway.servers is configured (APIM-14276)
 
