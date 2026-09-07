@@ -171,6 +171,7 @@ import io.gravitee.apim.core.notification.crud_service.NotificationConfigCrudSer
 import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificationDomainService;
 import io.gravitee.apim.core.open_api.OpenApiValidator;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
+import io.gravitee.apim.core.performance_target.domain_service.PerformanceTargetScheduleStateDomainService;
 import io.gravitee.apim.core.performance_target.domain_service.ValidatePerformanceTargetDomainService;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
@@ -1599,6 +1600,11 @@ public class ResourceContextConfiguration {
         AnalyticsDefinitionQueryService analyticsDefinitionQueryService
     ) {
         return new ValidatePerformanceTargetDomainService(apiCrudServiceInMemory, analyticsDefinitionQueryService);
+    }
+
+    @Bean
+    public PerformanceTargetScheduleStateDomainService performanceTargetScheduleStateDomainService() {
+        return new PerformanceTargetScheduleStateDomainService();
     }
 
     @Bean

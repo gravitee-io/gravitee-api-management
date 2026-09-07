@@ -17,6 +17,7 @@ package io.gravitee.apim.core.performance_target.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.performance_target.crud_service.PerformanceTargetCrudService;
+import io.gravitee.apim.core.performance_target.domain_service.PerformanceTargetScheduleStateDomainService;
 import io.gravitee.apim.core.performance_target.domain_service.ValidatePerformanceTargetDomainService;
 import io.gravitee.apim.core.performance_target.model.PerformanceTarget;
 import io.gravitee.common.utils.TimeProvider;
@@ -28,6 +29,7 @@ public class UpdatePerformanceTargetUseCase {
 
     private final PerformanceTargetCrudService performanceTargetCrudService;
     private final ValidatePerformanceTargetDomainService validatePerformanceTargetDomainService;
+    private final PerformanceTargetScheduleStateDomainService scheduleState;
 
     public Output execute(Input input) {
         var updated = performanceTargetCrudService
@@ -41,7 +43,10 @@ public class UpdatePerformanceTargetUseCase {
             .updatedAt(TimeProvider.now())
             .build();
         validatePerformanceTargetDomainService.validate(updated);
-        return new Output(performanceTargetCrudService.update(updated));
+        var stored = performanceTargetCrudService.update(updated);
+        // A redefined target is a new declaration: it is due at the next tick, whatever backoff the old one had earned.
+        scheduleState.reset(stored.id());
+        return new Output(stored);
     }
 
     /**

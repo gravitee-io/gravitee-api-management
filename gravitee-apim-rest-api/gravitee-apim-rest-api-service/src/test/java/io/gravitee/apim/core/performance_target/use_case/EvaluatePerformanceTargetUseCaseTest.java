@@ -24,6 +24,7 @@ import inmemory.PerformanceTargetCrudServiceInMemory;
 import inmemory.PerformanceTargetEvaluationCrudServiceInMemory;
 import inmemory.PerformanceTargetEvaluationQueryServiceInMemory;
 import inmemory.PerformanceTargetEvaluatorInMemory;
+import io.gravitee.apim.core.performance_target.domain_service.PerformanceTargetScheduleStateDomainService;
 import io.gravitee.apim.core.performance_target.exception.PerformanceTargetEvaluatedTooRecentlyException;
 import io.gravitee.apim.core.performance_target.exception.PerformanceTargetNotFoundException;
 import io.gravitee.apim.core.performance_target.model.PerformanceTargetEvaluation;
@@ -52,11 +53,14 @@ class EvaluatePerformanceTargetUseCaseTest {
         evaluationCrudService
     );
 
+    PerformanceTargetScheduleStateDomainService scheduleState = new PerformanceTargetScheduleStateDomainService();
+
     EvaluatePerformanceTargetUseCase useCase = new EvaluatePerformanceTargetUseCase(
         targetCrudService,
         evaluationQueryService,
         evaluationCrudService,
-        new PerformanceTargetEvaluatorInMemory()
+        new PerformanceTargetEvaluatorInMemory(),
+        scheduleState
     );
 
     @BeforeEach
@@ -81,6 +85,15 @@ class EvaluatePerformanceTargetUseCaseTest {
         assertThat(output.evaluation().latest()).isTrue();
         assertThat(output.evaluation().evaluatedAt()).isEqualTo(NOW);
         assertThat(evaluationCrudService.storage()).containsExactly(output.evaluation());
+    }
+
+    @Test
+    void should_tell_the_scheduler_about_the_evaluation_so_a_backoff_ends_with_it() {
+        scheduleState.stateOf(TARGET_ID, () -> new PerformanceTargetScheduleStateDomainService.State(NOW.minusSeconds(3600), 6));
+
+        useCase.execute(new EvaluatePerformanceTargetUseCase.Input(ENVIRONMENT_ID, TARGET_ID));
+
+        assertThat(scheduleState.current(TARGET_ID)).contains(new PerformanceTargetScheduleStateDomainService.State(NOW, 0));
     }
 
     @Test
