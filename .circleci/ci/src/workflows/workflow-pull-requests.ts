@@ -525,7 +525,9 @@ export class PullRequestsWorkflow {
     }
 
     // compute check-workflow job
-    if (addValidationJob && requires.length > 0) {
+    // This is the required status check on master and on the support branches. It only aggregates
+    // what ran, so with nothing to wait for it must still post, alone and green.
+    if (addValidationJob) {
       const checkWorkflowJob = new Job('job-validate-workflow-status', BaseExecutor.create('small'), [
         new commands.Run({
           name: 'Check workflow jobs',
@@ -533,7 +535,12 @@ export class PullRequestsWorkflow {
         }),
       ]);
       dynamicConfig.addJob(checkWorkflowJob);
-      jobs.push(new workflow.WorkflowJob(checkWorkflowJob, { name: 'Validate workflow status', requires }));
+      jobs.push(
+        new workflow.WorkflowJob(
+          checkWorkflowJob,
+          requires.length > 0 ? { name: 'Validate workflow status', requires } : { name: 'Validate workflow status' },
+        ),
+      );
     }
 
     return jobs;
