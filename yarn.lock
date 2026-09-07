@@ -22044,7 +22044,7 @@ __metadata:
     react-router-dom: "npm:7.13.1"
     redoc: "npm:2.4.0"
     rxjs: "npm:7.8.2"
-    storybook: "npm:9.1.19"
+    storybook: "npm:9.1.20"
     stylelint: "npm:16.15.0"
     stylelint-config-idiomatic-order: "npm:10.0.0"
     stylelint-config-prettier-scss: "npm:1.0.0"
@@ -33264,9 +33264,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"storybook@npm:9.1.19":
-  version: 9.1.19
-  resolution: "storybook@npm:9.1.19"
+"storybook@npm:9.1.20":
+  version: 9.1.20
+  resolution: "storybook@npm:9.1.20"
   dependencies:
     "@storybook/global": "npm:^5.0.0"
     "@testing-library/jest-dom": "npm:^6.6.3"
@@ -33287,7 +33287,7 @@ __metadata:
       optional: true
   bin:
     storybook: ./bin/index.cjs
-  checksum: 10c0/0a231a42c1e6c525c53036467cfc6cf7f2885cfc833c89b5a6ed6de2db4881c5e718fc64db381604b719ea48994f4622da9c7d125a09f39bac7bb6f22ece98d5
+  checksum: 10c0/d510837e81297e83119a8cf827818231ff9c99299d7c4f29407a8317ac151803d8784d891fa1a4983be1998417abbcaad27cd21e47dd33f4da2d246014eb68cf
   languageName: node
   linkType: hard
 
