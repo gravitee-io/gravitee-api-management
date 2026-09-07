@@ -56,6 +56,14 @@ describe('API_PROXY_NAV_GROUPS', () => {
         expect(deployment.children).toHaveLength(2);
         expect(deployment.children!.map(c => c.path)).toEqual(['configuration', 'history']);
     });
+
+    it('lists Targets under Monitoring, next to Alerts', () => {
+        const monitoring = GROUPS.find(g => g.label === 'Monitoring')!;
+        expect(monitoring.items.map(i => i.path)).toEqual(['alerts', 'targets', 'audit-logs']);
+        const targets = monitoring.items.find(i => i.path === 'targets');
+        expect(targets?.label).toBe('Targets');
+        expect(targets?.comingSoon).toBeUndefined();
+    });
 });
 
 // ─── Flat nav links ───────────────────────────────────────────────────────────

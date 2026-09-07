@@ -22,6 +22,7 @@ import { ApisEmptyLanding } from '../components';
 import { ApisPageSkeleton } from '../components/ApisPageSkeleton';
 import { ApisListView } from '../components/list';
 import { toApiListSortBy } from '../components/list/ApiListTable';
+import { ApiTargetsProvider } from '../components/targets/ApiTargetsProvider';
 import { useApiList } from '../hooks/useApiList';
 
 type SortingState = NonNullable<DataTableProps<unknown>['sorting']>;
@@ -77,21 +78,23 @@ export function ApisPage() {
     }
 
     return (
-        <ApisListView
-            apis={apis}
-            totalCount={totalCount}
-            isLoading={isLoading}
-            search={search}
-            debouncedSearch={debouncedSearch}
-            page={page}
-            perPage={perPage}
-            sorting={sorting}
-            onSortingChange={handleSortingChange}
-            onSearchChange={handleSearchChange}
-            onPageChange={setPage}
-            onPerPageChange={handlePerPageChange}
-            onCreateProxy={handleCreateProxy}
-            canCreate={canCreate}
-        />
+        <ApiTargetsProvider>
+            <ApisListView
+                apis={apis}
+                totalCount={totalCount}
+                isLoading={isLoading}
+                search={search}
+                debouncedSearch={debouncedSearch}
+                page={page}
+                perPage={perPage}
+                sorting={sorting}
+                onSortingChange={handleSortingChange}
+                onSearchChange={handleSearchChange}
+                onPageChange={setPage}
+                onPerPageChange={handlePerPageChange}
+                onCreateProxy={handleCreateProxy}
+                canCreate={canCreate}
+            />
+        </ApiTargetsProvider>
     );
 }

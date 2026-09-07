@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { TargetStatusBadge, useLatestTargetEvaluations, type LatestTargetEvaluations } from '@gravitee/gamma-lib-observability';
 import {
     Badge,
     Button,
@@ -123,7 +124,10 @@ function ApiActionsMenu({ apiId, onNavigate }: { apiId: string; onNavigate: (pat
 
 // ─── Column definitions ───────────────────────────────────────────────────────
 
-function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<ApiListItem>['columns'] {
+function buildColumns(
+    navigate: ReturnType<typeof useNavigate>,
+    latestTargets: LatestTargetEvaluations | undefined,
+): DataTableProps<ApiListItem>['columns'] {
     return [
         {
             id: 'API Name',
@@ -160,6 +164,13 @@ function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<
             header: 'Sync Status',
             enableSorting: false,
             cell: ({ row }: ColCell<ApiListItem>) => <SyncStatusBadge deploymentState={row.original.deploymentState} />,
+        },
+        {
+            id: 'Targets',
+            header: 'Targets',
+            enableSorting: false,
+            // One batch request answers the whole page; a row only reads its own entry.
+            cell: ({ row }: ColCell<ApiListItem>) => <TargetStatusBadge evaluation={latestTargets?.[row.original.id]} />,
         },
         {
             id: 'access',
@@ -235,7 +246,8 @@ export function ApiListTable({
     toolbar,
 }: ApiListTableProps) {
     const navigate = useNavigate();
-    const columns = buildColumns(navigate);
+    const latestTargets = useLatestTargetEvaluations(apis.map(api => api.id));
+    const columns = buildColumns(navigate, latestTargets.data);
 
     return (
         <DataTable
