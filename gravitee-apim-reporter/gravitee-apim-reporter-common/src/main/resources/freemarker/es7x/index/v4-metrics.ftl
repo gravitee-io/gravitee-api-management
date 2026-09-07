@@ -28,6 +28,12 @@
   </#if>
   ,"@timestamp":"${@timestamp}"
   ,"request-id":"${metrics.getRequestId()}"
+  <#if metrics.getTraceId()?has_content>
+  ,"trace-id":"${metrics.getTraceId()}"
+  </#if>
+  <#if metrics.getSpanId()?has_content>
+  ,"span-id":"${metrics.getSpanId()}"
+  </#if>
   <#if metrics.getClientIdentifier()??>
   ,"client-identifier":"${metrics.getClientIdentifier()}"
   </#if>

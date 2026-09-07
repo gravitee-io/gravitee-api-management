@@ -39,6 +39,12 @@
                 "request-id": {
                     "type": "keyword"
                 },
+                "trace-id": {
+                    "type": "keyword"
+                },
+                "span-id": {
+                    "type": "keyword"
+                },
                 "plan-id": {
                     "type": "keyword"
                 },
