@@ -70,8 +70,10 @@ export class TreeNodeComponent {
       case 'FOLDER':
       case 'API':
       case 'API_PRODUCT':
-      case 'AGENT':
         this.toggleNode();
+        break;
+      case 'AGENT':
+        this.selectNode();
         break;
       case 'PAGE':
         this.selectNode();

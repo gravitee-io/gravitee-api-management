@@ -540,7 +540,7 @@ describe('DocumentationFolderComponent', () => {
   });
 
   describe('agent', () => {
-    it('should redirect an Agent selection to its first readable descendant', async () => {
+    it('should show agent detail when an Agent is selected', async () => {
       const agent = makeItem('agent1', 'AGENT', 'Helpdesk Agent', 0, undefined, 'root1');
       const agentFolder = makeItem('agent-folder1', 'FOLDER', 'Agent Documentation', 0, 'agent1', 'root1');
       const overviewPage = makeItem('agent-overview1', 'PAGE', 'Agent Overview', 0, 'agent-folder1', 'root1');
@@ -552,15 +552,8 @@ describe('DocumentationFolderComponent', () => {
         content: MOCK_CONTENT,
       });
 
-      expect(routerSpy.navigate).toHaveBeenCalledWith([], {
-        relativeTo: expect.anything(),
-        queryParams: { selectedId: 'agent-overview1' },
-      });
+      expect(routerSpy.navigate).not.toHaveBeenCalled();
       expect(navigationServiceSpy.getNavigationItemContent).not.toHaveBeenCalledWith('agent1');
-      expect(navigationServiceSpy.getNavigationItemContent).toHaveBeenCalledWith('agent-overview1');
-
-      const breadcrumbs = await harness.getBreadcrumbs();
-      expect(await breadcrumbs?.getText()).toEqual('Test item/Helpdesk Agent/Agent Documentation/Agent Overview');
     });
 
     it('should show a subscription action for agent documentation and navigate to the API flow', async () => {

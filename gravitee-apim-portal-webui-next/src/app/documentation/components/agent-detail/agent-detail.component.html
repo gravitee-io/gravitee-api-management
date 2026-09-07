@@ -1,0 +1,207 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+@if (agent.isLoading()) {
+  <app-documentation-skeleton
+    aria-busy="true"
+    i18n-aria-label="@@agentDetailLoadingAria"
+    aria-label="Loading agent details"
+  />
+} @else if (definition(); as def) {
+  <div class="agent-detail">
+    <!-- Hero -->
+    <header class="agent-detail__hero">
+      <div class="agent-detail__hero__icon" aria-hidden="true">
+        <mat-icon>smart_toy</mat-icon>
+      </div>
+      <div class="agent-detail__hero__info">
+        <div class="agent-detail__hero__title-row">
+          <h1 class="next-gen-h3 agent-detail__hero__name">{{ def.name }}</h1>
+          @if (def.version) {
+            <span class="agent-detail__badge agent-detail__badge--outline">{{ def.version }}</span>
+          }
+          @if (provider(); as prov) {
+            <span class="agent-detail__badge agent-detail__badge--secondary">{{ prov.organization }}</span>
+          }
+        </div>
+        @if (def.description) {
+          <p class="next-gen-body agent-detail__hero__description">{{ def.description }}</p>
+        }
+        <div class="agent-detail__hero__actions">
+          @if (def.documentationUrl) {
+            <a
+              mat-stroked-button
+              [href]="def.documentationUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <mat-icon>open_in_new</mat-icon>
+              <span i18n="@@agentDetailDocLink">Documentation</span>
+            </a>
+          }
+        </div>
+      </div>
+    </header>
+
+    <!-- Capabilities -->
+    @if (hasAnyCapability()) {
+      <section class="agent-detail__section">
+        <h2 class="next-gen-h5 agent-detail__section-title" i18n="@@agentDetailCapabilities">Capabilities</h2>
+        <div class="agent-detail__chip-list">
+          @for (cap of enabledCapabilities(); track cap.key) {
+            <span class="agent-detail__capability-chip">
+              <mat-icon class="agent-detail__capability-chip__icon">check_circle</mat-icon>
+              {{ cap.label }}
+            </span>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Provider -->
+    @if (provider(); as prov) {
+      <section class="agent-detail__section">
+        <h2 class="next-gen-h5 agent-detail__section-title" i18n="@@agentDetailProvider">Provider</h2>
+        <dl class="agent-detail__definition-list">
+          <div class="agent-detail__definition-row">
+            <dt class="agent-detail__definition-label" i18n="@@agentDetailOrganization">Organization</dt>
+            <dd class="agent-detail__definition-value">{{ prov.organization }}</dd>
+          </div>
+          @if (prov.url) {
+            <div class="agent-detail__definition-row">
+              <dt class="agent-detail__definition-label" i18n="@@agentDetailWebsite">Website</dt>
+              <dd class="agent-detail__definition-value">
+                <a [href]="prov.url" target="_blank" rel="noopener noreferrer" class="agent-detail__link">
+                  {{ prov.url }}
+                  <mat-icon class="icon-small">open_in_new</mat-icon>
+                </a>
+              </dd>
+            </div>
+          }
+        </dl>
+      </section>
+    }
+
+    <!-- I/O Modes -->
+    @if (hasIoModes()) {
+      <section class="agent-detail__section">
+        <h2 class="next-gen-h5 agent-detail__section-title" i18n="@@agentDetailIoModes">Input / Output</h2>
+        <dl class="agent-detail__definition-list">
+          @if (hasInputModes()) {
+            <div class="agent-detail__definition-row">
+              <dt class="agent-detail__definition-label" i18n="@@agentDetailInput">Input</dt>
+              <dd class="agent-detail__definition-value">
+                <div class="agent-detail__chip-list">
+                  @for (mode of def.defaultInputModes; track mode) {
+                    <span class="agent-detail__mode-chip">{{ mode }}</span>
+                  }
+                </div>
+              </dd>
+            </div>
+          }
+          @if (hasOutputModes()) {
+            <div class="agent-detail__definition-row">
+              <dt class="agent-detail__definition-label" i18n="@@agentDetailOutput">Output</dt>
+              <dd class="agent-detail__definition-value">
+                <div class="agent-detail__chip-list">
+                  @for (mode of def.defaultOutputModes; track mode) {
+                    <span class="agent-detail__mode-chip">{{ mode }}</span>
+                  }
+                </div>
+              </dd>
+            </div>
+          }
+        </dl>
+      </section>
+    }
+
+    <!-- Skills -->
+    @if (skills().length > 0) {
+      <section class="agent-detail__section">
+        <h2 class="next-gen-h5 agent-detail__section-title">
+          <span i18n="@@agentDetailSkills">Skills</span>
+          <span class="agent-detail__section-count">({{ skills().length }})</span>
+        </h2>
+        <div class="agent-detail__skills-grid">
+          @for (skill of skills(); track skill.id) {
+            <div class="agent-detail__skill-card">
+              <div class="agent-detail__skill-header">
+                <span class="next-gen-body-strong">{{ skill.name }}</span>
+                @if (skill.tags && skill.tags.length > 0) {
+                  <div class="agent-detail__chip-list agent-detail__skill-tags">
+                    @for (tag of skill.tags; track tag) {
+                      <span class="agent-detail__tag-chip">{{ tag }}</span>
+                    }
+                  </div>
+                }
+              </div>
+              @if (skill.description) {
+                <p class="next-gen-small agent-detail__skill-description">{{ skill.description }}</p>
+              }
+              @if (skill.examples && skill.examples.length > 0) {
+                <div class="agent-detail__skill-examples">
+                  <span class="next-gen-caption agent-detail__skill-examples-label" i18n="@@agentDetailExamples">Examples</span>
+                  <ul class="agent-detail__skill-examples-list">
+                    @for (example of skill.examples; track example) {
+                      <li class="next-gen-small agent-detail__skill-example-item">"{{ example }}"</li>
+                    }
+                  </ul>
+                </div>
+              }
+              @if (skillsDiffer(skill)) {
+                <div class="agent-detail__skill-io next-gen-caption">
+                  @if (skill.inputModes && skill.inputModes.length > 0) {
+                    <span><strong i18n="@@agentDetailSkillIn">In:</strong> {{ skill.inputModes.join(', ') }}</span>
+                  }
+                  @if (skill.outputModes && skill.outputModes.length > 0) {
+                    <span><strong i18n="@@agentDetailSkillOut">Out:</strong> {{ skill.outputModes.join(', ') }}</span>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Metadata -->
+    @if (metadataEntries().length > 0) {
+      <section class="agent-detail__section">
+        <h2 class="next-gen-h5 agent-detail__section-title" i18n="@@agentDetailMetadata">Metadata</h2>
+        <dl class="agent-detail__definition-list">
+          @for (entry of metadataEntries(); track entry[0]) {
+            <div class="agent-detail__definition-row">
+              <dt class="agent-detail__definition-label">{{ entry[0] }}</dt>
+              <dd class="agent-detail__definition-value">{{ entry[1] }}</dd>
+            </div>
+          }
+        </dl>
+      </section>
+    }
+
+    <!-- Footer -->
+    @if (updatedDate()) {
+      <footer class="agent-detail__footer">
+        <span class="next-gen-caption"><span i18n="@@agentDetailLastUpdatedLabel">Last updated</span> {{ updatedDate() | date:'mediumDate' }}</span>
+        @if (definition()?.version; as ver) {
+          <span class="agent-detail__footer__separator">|</span>
+          <span class="next-gen-caption">{{ ver }}</span>
+        }
+      </footer>
+    }
+  </div>
+}

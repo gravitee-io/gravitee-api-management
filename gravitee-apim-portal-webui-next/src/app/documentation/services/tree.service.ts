@@ -102,7 +102,7 @@ export class TreeService {
 
   private findFirstPageIdRecursively(nodes: TreeNode[]): string | null {
     for (const node of nodes) {
-      if (node.type === 'PAGE') {
+      if (node.type === 'PAGE' || node.type === 'AGENT') {
         return node.id;
       } else {
         const id = this.findFirstPageIdRecursively(node.children ?? []);
@@ -160,7 +160,12 @@ export class TreeService {
     return nodes.map(node => {
       const children = (node.children ?? []) as ProcessingNode[];
       const newBreadcrumbs = [...breadcrumbs, { id: node.id, label: node.label }];
-      if (children.length > 0) {
+      if (node.type === 'AGENT') {
+        node.breadcrumbs = newBreadcrumbs;
+        if (children.length > 0) {
+          node.children = this.attachBreadcrumbs(children, newBreadcrumbs);
+        }
+      } else if (children.length > 0) {
         node.children = this.attachBreadcrumbs(children, newBreadcrumbs);
       } else if (node.type === 'PAGE') {
         node.breadcrumbs = newBreadcrumbs;

@@ -32,8 +32,31 @@
     {{ node().label }}
     <span class="material-icons tree__link__icon" aria-hidden="true">open_in_new</span>
   </a>
+} @else if (node().type === 'AGENT') {
+  <div
+    class="tree__row tree__row--agent nav-button next-gen-small"
+    role="treeitem"
+    [class.agent]="true"
+    [class.selected]="isSelected()"
+    [class.child]="level() > 0"
+    [style.--level]="level()"
+    [attr.aria-level]="level() + 1"
+    [attr.aria-selected]="isSelected()"
+    [attr.aria-expanded]="isExpanded()"
+    (keydown.arrowright)="isExpanded.set(true)"
+    (keydown.arrowleft)="isExpanded.set(false)"
+  >
+    <span
+      class="material-icons tree__icon tree__icon--clickable"
+      [class.expanded]="isExpanded()"
+      [attr.data-test-icon]="'toggle'"
+      aria-hidden="true"
+      (click)="toggleNode()"
+    >{{ 'keyboard_arrow_down' }}</span>
+    <span class="tree__label" (click)="selectNode()">{{ node().label }}</span>
+  </div>
 } @else {
-  @let isContainer = node().type === 'FOLDER' || node().type === 'API' || node().type === 'API_PRODUCT' || node().type === 'AGENT';
+  @let isContainer = node().type === 'FOLDER' || node().type === 'API' || node().type === 'API_PRODUCT';
 
   <button
     class="tree__row nav-button next-gen-small"
@@ -42,7 +65,6 @@
     [class.folder]="node().type === 'FOLDER'"
     [class.api]="node().type === 'API'"
     [class.api-product]="node().type === 'API_PRODUCT'"
-    [class.agent]="node().type === 'AGENT'"
     [class.selected]="isSelected()"
     [class.child]="level() > 0"
     [style.--level]="level()"

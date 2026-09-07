@@ -236,7 +236,7 @@ describe('TreeNodeComponent', () => {
       expect(await harness.isExpanded()).toBe(true);
     });
 
-    it('should toggle expansion without selecting the node', async () => {
+    it('should toggle expansion and select the node', async () => {
       await init({ node });
       const nodeSelected = jest.fn();
       component.nodeSelected.subscribe(nodeSelected);
@@ -245,7 +245,7 @@ describe('TreeNodeComponent', () => {
 
       expect(await harness.getAriaExpanded()).toBe('false');
       expect(await harness.isExpanded()).toBe(false);
-      expect(nodeSelected).not.toHaveBeenCalled();
+      expect(nodeSelected).toHaveBeenCalledWith('agent1');
     });
   });
 
