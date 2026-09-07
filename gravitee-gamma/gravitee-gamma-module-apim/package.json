@@ -2,7 +2,7 @@
     "name": "gravitee-gamma-module-apim",
     "private": true,
     "dependencies": {
-        "@gravitee/gamma-lib-observability": "3.2.0-amp-demo.da2facd",
+        "@gravitee/gamma-lib-observability": "3.3.0-beta.1",
         "@gravitee/gamma-modules-sdk": "1.2.0",
         "@gravitee/graphene-charts": "3.14.0",
         "@gravitee/graphene-core": "3.14.0",
