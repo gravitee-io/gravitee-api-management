@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useLatestTargetEvaluations } from '@gravitee/gamma-lib-observability';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useNavigate } from 'react-router-dom';
@@ -28,9 +29,16 @@ jest.mock('react-router-dom', () => ({
 jest.mock('@gravitee/gamma-lib-observability', () => ({
     DEFAULT_TIME_RANGE: { type: 'relative', period: '5m' },
     encodeObservabilityState: () => ({ q: 'ENCODED_Q', v: '1' }),
+    TargetStatusBadge: ({ evaluation }: { evaluation: { status: string } | null | undefined }) => (
+        <span data-testid="target-status">
+            {evaluation === undefined ? 'loading' : evaluation === null ? 'No target' : evaluation.status}
+        </span>
+    ),
+    useLatestTargetEvaluations: jest.fn(() => ({ data: undefined })),
 }));
 
 const mockNavigate = jest.fn();
+const mockUseLatestTargetEvaluations = useLatestTargetEvaluations as jest.Mock;
 
 function makeApi(overrides: Partial<ApiListItem> = {}): ApiListItem {
     return { id: 'api-1', name: 'Test API', apiVersion: '1.0', type: 'PROXY', definitionVersion: 'V4', ...overrides };
@@ -149,5 +157,31 @@ describe('ApiListTable', () => {
         const api = makeApi({ primaryOwner: { displayName: 'Jane Doe' } });
         renderTable({ apis: [api] });
         expect(screen.queryByText('Jane Doe')).not.toBeNull();
+    });
+
+    describe('Targets column', () => {
+        it('asks for the latest evaluation of the whole page in one call and hands each row its own answer', () => {
+            mockUseLatestTargetEvaluations.mockReturnValue({
+                data: { 'api-1': { status: 'BREACH' }, 'api-2': null },
+            });
+            renderTable({ apis: [makeApi({ id: 'api-1', name: 'Orders' }), makeApi({ id: 'api-2', name: 'Users' })] });
+
+            expect(mockUseLatestTargetEvaluations).toHaveBeenCalledTimes(1);
+            expect(mockUseLatestTargetEvaluations).toHaveBeenCalledWith(['api-1', 'api-2']);
+            expect(screen.getAllByTestId('target-status').map(cell => cell.textContent)).toEqual(['BREACH', 'No target']);
+        });
+
+        it('shows the badges as loading until the batch answers', () => {
+            mockUseLatestTargetEvaluations.mockReturnValue({ data: undefined });
+            renderTable({ apis: [makeApi()] });
+
+            expect(screen.getByTestId('target-status')).toHaveTextContent('loading');
+        });
+
+        it('names the column so it can be hidden like the others', () => {
+            renderTable({ apis: [makeApi()] });
+
+            expect(screen.getByRole('columnheader', { name: /Targets/ })).toBeInTheDocument();
+        });
     });
 });

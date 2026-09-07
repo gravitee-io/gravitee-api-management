@@ -68,6 +68,7 @@ import { ApiDynamicPropertiesPage } from '../features/apis/pages/detail/properti
 import { ApiReporterSettingsPage } from '../features/apis/pages/detail/reporter-settings/ApiReporterSettingsPage';
 import { ApiResourcesPage } from '../features/apis/pages/detail/resources/ApiResourcesPage';
 import { ApiResourceWizardPage } from '../features/apis/pages/detail/resources/ApiResourceWizardPage';
+import { ApiTargetsPage } from '../features/apis/pages/detail/targets/ApiTargetsPage';
 import { UserPermissionsPage } from '../features/apis/pages/detail/user-permissions/UserPermissionsPage';
 import { ImportApiPage } from '../features/apis/pages/ImportApiPage';
 import { PolicyStudioPage } from '../features/apis/pages/policy-studio/PolicyStudioPage';
@@ -256,6 +257,7 @@ export function AppRoutes() {
                                     <Route path=":alertId" element={<AlertFormPage />} />
                                 </Route>
                                 <Route path="audit-logs" element={<AuditLogsPage />} />
+                                <Route path="targets" element={<ApiTargetsPage />} />
                                 <Route path="deployment">
                                     <Route index element={<Navigate to="configuration" replace />} />
                                     <Route path="configuration" element={<DeploymentConfigurationPage />} />

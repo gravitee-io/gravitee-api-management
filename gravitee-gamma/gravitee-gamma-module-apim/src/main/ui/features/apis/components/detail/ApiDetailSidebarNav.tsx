@@ -19,6 +19,7 @@ import {
     BellIcon,
     ChevronDownIcon,
     ChevronRightIcon,
+    CircleDotIcon,
     GlobeIcon,
     LayoutDashboardIcon,
     ListIcon,
@@ -122,6 +123,7 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
         label: 'Monitoring',
         items: [
             { path: 'alerts', label: 'Alerts', icon: ActivityIcon },
+            { path: 'targets', label: 'Targets', icon: CircleDotIcon },
             { path: 'audit-logs', label: 'Audit Logs', icon: ScrollTextIcon },
         ],
     },
