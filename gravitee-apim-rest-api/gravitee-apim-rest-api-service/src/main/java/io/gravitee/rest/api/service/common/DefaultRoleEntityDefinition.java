@@ -144,6 +144,14 @@ public interface DefaultRoleEntityDefinition {
             )
             .put(EnvironmentPermission.AUTHZ_PDP.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(EnvironmentPermission.AUTHZ_SCHEMA.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+            .put(
+                EnvironmentPermission.AUTHZ_SCIM_CONNECTION.getName(),
+                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
+            )
+            .put(
+                EnvironmentPermission.AUTHZ_SCIM_SYNC.getName(),
+                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
+            )
             .build()
     );
 
