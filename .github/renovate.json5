@@ -76,6 +76,16 @@
             // Separate release cycle from graphene; adoption is a deliberate decision
             "matchPackageNames": ["@gravitee/gamma-lib-observability"],
             "groupName": "gamma-lib-observability"
+        },
+        {
+            // Gravitee Maven artifacts are released by us and bumped here on purpose, so they
+            // must not queue behind the shared PR budget. Renovate resolves prConcurrentLimit
+            // and prHourlyLimit per branch from the matching packageRules, and 0 means "no
+            // limit" — branchConcurrentLimit inherits prConcurrentLimit, so it needs no entry.
+            "matchDatasources": ["maven"],
+            "matchPackageNames": ["com.graviteesource{/,}**", "io.gravitee{/,}**"],
+            "prConcurrentLimit": 0,
+            "prHourlyLimit": 0
         }
     ]
 }
