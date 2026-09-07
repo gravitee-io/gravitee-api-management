@@ -59,6 +59,17 @@ public class DebugApiV2V2Test {
         assertThat(first.hashCode()).isEqualTo(second.hashCode());
     }
 
+    @Test
+    public void should_carry_the_event_as_revision_so_two_runs_get_distinct_secret_descriptors() {
+        final DebugApiV2 first = new DebugApiV2("evt-1", anApiDefinition());
+        final DebugApiV2 second = new DebugApiV2("evt-2", anApiDefinition());
+
+        // The revision is the only per-run discriminator the secret discovery descriptor carries; left
+        // null, the first run to finish would revoke the contexts of the one still running.
+        assertThat(first.getRevision()).isEqualTo("evt-1");
+        assertThat(second.getRevision()).isEqualTo("evt-2");
+    }
+
     private static io.gravitee.definition.model.debug.DebugApiV2 anApiDefinition() {
         final io.gravitee.definition.model.debug.DebugApiV2 debugApi = Stubs.getADebugApiDefinition();
         debugApi.setId("api-id");
