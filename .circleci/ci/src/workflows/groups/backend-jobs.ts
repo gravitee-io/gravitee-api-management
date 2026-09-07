@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Config, Job, workflow } from '../../circleci-config';
-import { BuildBackendJob, SetupJob, SonarCloudAnalysisJob, ValidateJob } from '../../jobs';
+import { BuildBackendJob, CheckGrapheneVersionsJob, SetupJob, SonarCloudAnalysisJob, ValidateJob } from '../../jobs';
 import { analysisJobFor, BACKEND_SUITES, suiteJobFor } from './analysed-projects';
 import { CircleCIEnvironment } from '../../pipelines';
 import { config } from '../../config';
@@ -48,6 +48,9 @@ export function backendJobs(
   const buildBackendJob = BuildBackendJob.create(dynamicConfig, environment);
   dynamicConfig.addJob(buildBackendJob);
 
+  const checkGrapheneVersionsJob = CheckGrapheneVersionsJob.create();
+  dynamicConfig.addJob(checkGrapheneVersionsJob);
+
   jobs.push(
     new workflow.WorkflowJob(setupJob, { name: 'Setup', context: config.jobContext }),
     new workflow.WorkflowJob(validateBackendJob, {
@@ -60,8 +63,13 @@ export function backendJobs(
       context: config.jobContext,
       requires: ['Validate backend'],
     }),
+    new workflow.WorkflowJob(checkGrapheneVersionsJob, {
+      name: 'Check graphene versions',
+      context: config.jobContext,
+      requires: ['Build backend'],
+    }),
   );
-  requires.push('Build backend');
+  requires.push('Build backend', 'Check graphene versions');
 
   // Created on the first project that survives the predicate: a pipeline that analyses nothing
   // must not emit an analysis job definition no workflow references.
