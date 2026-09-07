@@ -4627,25 +4627,31 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/gamma-lib-observability@npm:1.39.2":
-  version: 1.39.2
-  resolution: "@gravitee/gamma-lib-observability@npm:1.39.2"
+"@gravitee/gamma-lib-observability@npm:3.2.0-amp-demo.da2facd":
+  version: 3.2.0-amp-demo.da2facd
+  resolution: "@gravitee/gamma-lib-observability@npm:3.2.0-amp-demo.da2facd"
   peerDependencies:
-    "@gravitee/graphene-charts": ^3.7.0
-    "@gravitee/graphene-core": ^3.7.0
+    "@gravitee/graphene-charts": ^3.13.0
+    "@gravitee/graphene-core": ^3.13.0
+    "@monaco-editor/react": ^4.7.0
     "@tanstack/react-query": ^5.0.0
     "@xyflow/react": ^12.0.0
+    monaco-editor: ">=0.50.0 <1"
     react: ^19.0.0
     react-dom: ^19.0.0
     react-grid-layout: ^2.0.0
     react-router-dom: ^7.0.0
     tailwindcss: ^4.0.0
   peerDependenciesMeta:
+    "@monaco-editor/react":
+      optional: true
     "@xyflow/react":
+      optional: true
+    monaco-editor:
       optional: true
     tailwindcss:
       optional: true
-  checksum: 10c0/7211182f355a57d35772e30f36d06b689153ec9efe85b19148c144965c347d2c444fd6dcfd83dbc77e3a75fbb15a7a021a2544eabbbd928e967938927e6a8732
+  checksum: 10c0/68a4e13b4c160df3746e1d6975c4270f5b860212af673c150ff87d4eed5e77ccf1d87c6392694d2fae06f3c5bb3b43efeb944f71b59f2e43d55329b175aaa63b
   languageName: node
   linkType: hard
 
@@ -21895,7 +21901,7 @@ __metadata:
     "@fontsource/material-icons-two-tone": "npm:5.2.5"
     "@fontsource/montserrat": "npm:5.2.5"
     "@fontsource/roboto": "npm:5.2.5"
-    "@gravitee/gamma-lib-observability": "npm:1.39.2"
+    "@gravitee/gamma-lib-observability": "npm:3.2.0-amp-demo.da2facd"
     "@gravitee/gamma-modules-sdk": "npm:1.2.0"
     "@gravitee/graphene-charts": "npm:3.14.0"
     "@gravitee/graphene-core": "npm:3.14.0"
