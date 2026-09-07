@@ -80,7 +80,7 @@ describe('EnvironmentNotificationsTable', () => {
 
         expect(screen.getByText('Console')).not.toBeNull();
         expect(screen.getByText('None')).not.toBeNull();
-        expect(screen.getByText('—')).not.toBeNull();
+        expect(screen.getByText('—').getAttribute('title')).toBeNull();
     });
 
     it('shows the Email channel badge, event count, and config target on GENERIC rows', () => {
@@ -88,7 +88,24 @@ describe('EnvironmentNotificationsTable', () => {
 
         expect(screen.getByText('Email')).not.toBeNull();
         expect(screen.getByText('2 events')).not.toBeNull();
-        expect(screen.getByText('ops@example.com')).not.toBeNull();
+        expect(screen.getByText('ops@example.com').getAttribute('title')).toBe('ops@example.com');
+    });
+
+    it('keeps the full target in the cell and exposes it on title for CSS truncation', () => {
+        const longTarget = 'https://webhook.site/e389f278-aaaa,https://webhook.site/e389f278-bbbb,https://webhook.site/e389f278-cccc';
+        render(
+            <EnvironmentNotificationsTable
+                {...baseProps}
+                rows={[buildRow({ notification: { ...buildRow().notification, config: longTarget } })]}
+                canUpdate={() => true}
+            />,
+        );
+
+        const target = screen.getByText(longTarget);
+        expect(target.className).toContain('truncate');
+        expect(target.className).toContain('min-w-0');
+        expect(target.className).toContain('max-w-full');
+        expect(target.getAttribute('title')).toBe(longTarget);
     });
 
     it('puts row actions behind a three-dot menu, not inline edit/delete icons', () => {

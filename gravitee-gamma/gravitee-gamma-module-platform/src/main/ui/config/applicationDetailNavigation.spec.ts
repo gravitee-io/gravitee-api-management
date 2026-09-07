@@ -39,6 +39,11 @@ describe('applicationDetailNavigation permissions', () => {
     const hasDefinitionRead = (permissions: string[]) => permissions.includes('application-definition-r');
     const hasMemberRead = (permissions: string[]) => permissions.includes('application-member-r');
 
+    it('labels the notifications tab Notifications', () => {
+        const settings = APPLICATION_NAV_GROUPS.find(group => group.label === 'Settings');
+        expect(settings?.items.find(item => item.path === 'notifications')?.label).toBe('Notifications');
+    });
+
     it('maps general tab to application-definition-r', () => {
         expect(getApplicationDetailTabPermissions('general')).toEqual(['application-definition-r']);
     });

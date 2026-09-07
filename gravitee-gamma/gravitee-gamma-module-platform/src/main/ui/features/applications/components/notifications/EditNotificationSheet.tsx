@@ -34,7 +34,7 @@ import {
 } from '@gravitee/graphene-core';
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { isCreateNotificationRow, notificationNotifierOptions } from './notificationHelpers';
+import { isCreateNotificationRow, notificationNotifierOptions, notificationSheetTitle } from './notificationHelpers';
 import { NotificationHookCategorySection } from './NotificationHookCategorySection';
 import type {
     ApplicationNotificationHookCategory,
@@ -182,7 +182,7 @@ export function EditNotificationSheet({
         <Sheet open={row !== null} onOpenChange={handleOpenChange}>
             <SheetContent side="right" className="flex max-h-full flex-col" style={sheetWidthStyle}>
                 <SheetHeader>
-                    <SheetTitle>Edit Console Notification</SheetTitle>
+                    <SheetTitle>{notificationSheetTitle(row)}</SheetTitle>
                     <SheetDescription>Configure notifier settings and subscribed events for {sheetSubject}.</SheetDescription>
                 </SheetHeader>
 

@@ -164,7 +164,7 @@ export function EnvironmentNotificationSettingsPage() {
         <div className="space-y-6">
             <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold tracking-tight">Notification settings</h1>
+                    <h1 className="text-2xl font-semibold tracking-tight">Notifications</h1>
                     <p className="text-sm text-muted-foreground">Configure how this environment notifies you and your team about events.</p>
                 </div>
                 {canAddNotification ? (

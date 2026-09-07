@@ -802,7 +802,7 @@ describe('AppRoutes', () => {
         expect(visibleNavKeys()).not.toContain('alerts');
     });
 
-    it('routes to the Notification settings page under the platform module', () => {
+    it('routes to the Notifications page under the platform module', () => {
         render(
             <MemoryRouter initialEntries={['/notification-settings']}>
                 <AppRoutes />
@@ -812,13 +812,13 @@ describe('AppRoutes', () => {
         expect(screen.getByTestId('environment-notification-settings-page')).not.toBeNull();
     });
 
-    it('shows the Notification settings nav item when the user has read permission', () => {
+    it('shows the Notifications nav item when the user has read permission', () => {
         renderPlatform();
 
         expect(visibleNavKeys()).toContain('notification-settings');
     });
 
-    it('hides the Notification settings nav item when the user lacks environment-notification-r', () => {
+    it('hides the Notifications nav item when the user lacks environment-notification-r', () => {
         mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-notification-r'));
 
         renderPlatform();
@@ -826,7 +826,7 @@ describe('AppRoutes', () => {
         expect(visibleNavKeys()).not.toContain('notification-settings');
     });
 
-    it('redirects away from Notification settings when the user lacks environment-notification-r', () => {
+    it('redirects away from Notifications when the user lacks environment-notification-r', () => {
         mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-notification-r'));
 
         render(

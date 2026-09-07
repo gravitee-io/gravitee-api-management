@@ -60,7 +60,7 @@ export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: s
     'entrypoints-and-sharding-tags': { path: 'entrypoints-and-sharding-tags', label: 'Entrypoints & Sharding Tags' },
     'policy-studio': { path: 'policy-studio', label: 'Policy Studio' },
     alerts: { path: 'alerts', label: 'Alerts' },
-    'notification-settings': { path: 'notification-settings', label: 'Notification settings' },
+    'notification-settings': { path: 'notification-settings', label: 'Notifications' },
     'organization-audit': { path: 'organization-audit', label: 'Audit' },
     'environment-audit': { path: 'environment-audit', label: 'Audit' },
     'management-and-schedulers': { path: 'management-and-schedulers', label: 'Management & Schedulers' },
