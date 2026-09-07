@@ -38,6 +38,8 @@ public class HTTPFieldResolver implements FieldResolver {
             case LLM_PROMPT_TOKEN_RECEIVED -> "additional-metrics.long_llm-proxy_tokens-received";
             case LLM_PROMPT_TOKEN_SENT_COST -> "additional-metrics.double_llm-proxy_sent-cost";
             case LLM_PROMPT_TOKEN_RECEIVED_COST -> "additional-metrics.double_llm-proxy_received-cost";
+            case LLM_PROMPT_TOKEN_REASONING -> "additional-metrics.long_llm-proxy_tokens-reasoning";
+            case LLM_PROMPT_TOKEN_REASONING_COST -> "additional-metrics.double_llm-proxy_reasoning-cost";
             case MCP_PROXY_TOOL_COST -> "additional-metrics.double_mcp-proxy_tool-cost";
             case EDGE_DETECTION_COUNT -> "additional-metrics.long_edge_count";
             case EDGE_TOKENS_IN -> "additional-metrics.long_edge_tokens_in";
