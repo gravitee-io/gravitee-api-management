@@ -5,6 +5,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 
 ### 4.11.28
 - Expose the gateway HTTP/2 flow-control windows through `gateway.http.http2.connectionWindowSize` and `gateway.http.http2.streamWindowSize` (also per server under `gateway.servers[]`), unset by default so the 65535 bytes protocol default is kept (APIM-15040). Upload throughput over HTTP/2 is bounded by window size / round-trip time, so the default throttles large request bodies as soon as there is real network latency, where HTTP/1.1 is unaffected. Set both or neither: the initial settings the gateway sends reach streams only, never the connection, so raising `streamWindowSize` alone leaves the connection window at 65535 bytes and it stays the bottleneck. They cost gateway memory per connection and per concurrent request respectively, and neither is capped.
+- Bump the Gravitee node Hazelcast cache and cluster plugins to 8.3.1, to stay consistent with `gravitee-node.version` in the APIM `pom.xml`.
 
 ### 4.11.27
 - Bump the Gravitee node Hazelcast cache and cluster plugins to 8.3.0, to stay consistent with `gravitee-node.version` in the APIM `pom.xml`.
