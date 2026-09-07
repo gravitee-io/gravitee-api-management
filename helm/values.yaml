@@ -1060,6 +1060,12 @@ gateway:
 #      haproxy: # Support for https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt
 #        proxyProtocol: false
 #        proxyProtocolTimeout: 10000
+#      # HTTP/2 flow-control windows, in bytes. Unset by default, which keeps the 65535 bytes protocol
+#      # default. Set both or neither, and keep connectionWindowSize >= streamWindowSize. See
+#      # gateway.http.http2 below for what raising them buys and what they cost.
+#      http2:
+#        connectionWindowSize: 20971520
+#        streamWindowSize: 20971520
 #          # in the case of having multiple servers configured, this can be used for mapping the ports
 #      service:
 #        type: ClusterIP
@@ -1107,6 +1113,8 @@ gateway:
     # bottleneck. Keep connectionWindowSize >= streamWindowSize.
     # Raising them costs gateway memory per connection and per concurrent request respectively,
     # and neither is capped, so size them against the concurrency you expect.
+    # Read only when gateway.servers is unset. With gateway.servers configured this block is
+    # ignored, and http2 goes on each gateway.servers[] entry, as websocket and haproxy do.
     # http2:
     #   connectionWindowSize: 20971520
     #   streamWindowSize: 20971520
