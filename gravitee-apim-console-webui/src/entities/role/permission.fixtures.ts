@@ -47,6 +47,8 @@ export function fakePermissionsByScopes(attributes?: Partial<PermissionsByScopes
       'AUTHZ_PDP',
       'AUTHZ_POLICIES',
       'AUTHZ_SCHEMA',
+      'AUTHZ_SCIM_CONNECTION',
+      'AUTHZ_SCIM_SYNC',
       'CATEGORY',
       'CLIENT_REGISTRATION_PROVIDER',
       'DASHBOARD',
