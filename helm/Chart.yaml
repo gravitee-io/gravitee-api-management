@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.12.19
-appVersion: 4.12.19
+version: 4.12.20
+appVersion: 4.12.20
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -29,14 +29,4 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: |
-    - kind: added
-      description: "`gateway.kafka.routingHostMode.virtualClusterBrokerDomainPattern` sets a broker domain pattern for Kafka APIs backed by a Virtual Cluster only, leaving the other Kafka APIs' domains untouched"
-      links:
-        - name: Github PR
-          url: https://github.com/gravitee-io/gravitee-api-management/pull/19201
-    - kind: added
-      description: "`gateway.ssl.keystore.certificates` and `gateway.servers[].ssl.keystore.certificates` declare a PEM keystore (list of `cert`/`key` pairs) on the gateway HTTP listeners, the only keystore format usable under BC-FIPS approved-only mode"
-      links:
-        - name: Github PR
-          url: https://github.com/gravitee-io/gravitee-api-management/pull/19547
+  artifacthub.io/changes: 
