@@ -36,6 +36,7 @@ describe('Pull requests workflow tests', () => {
     ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-reporter']}          | ${'pull-requests-custom-branch-backend-reporter-only.yml'}
     ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-repository']}        | ${'pull-requests-custom-branch-backend-only.yml'}
     ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-rest-api']}          | ${'pull-requests-custom-branch-backend-rest-api-only.yml'}
+    ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['.github/renovate.json5']}          | ${'pull-requests-custom-branch-no-source-changes.yml'}
   `(
     'should generate pull-requests config for branch $branchName with changedFiles $changedFiles',
     ({ baseBranch, branch, changedFiles, expectedFileName }) => {
