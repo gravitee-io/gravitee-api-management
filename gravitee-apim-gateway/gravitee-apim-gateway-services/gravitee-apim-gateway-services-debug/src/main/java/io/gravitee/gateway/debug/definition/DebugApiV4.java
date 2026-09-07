@@ -49,6 +49,12 @@ public class DebugApiV4 extends Api implements ReactableDebugApi<io.gravitee.def
     public void setEventId(String eventId) {
         this.eventId = eventId;
 
+        // Secret discovery keys its registry by the definition descriptor, whose discriminator is the
+        // revision (see ApiV4DefinitionSecretRefsFinder#toDefinitionDescriptor). A debug reactable has no
+        // deployment number, so without this both runs of an API would share one descriptor and the first
+        // run to finish would revoke the other run's secret contexts. The event is that per-run identity.
+        this.setRevision(eventId);
+
         if (definition.getListeners() != null) {
             definition
                 .getListeners()
