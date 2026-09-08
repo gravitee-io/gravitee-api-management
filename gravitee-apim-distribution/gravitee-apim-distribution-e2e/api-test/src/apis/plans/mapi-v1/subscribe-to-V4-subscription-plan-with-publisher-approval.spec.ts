@@ -29,7 +29,7 @@ import { verifyWiremockRequest } from '@gravitee/utils/wiremock';
 import { faker } from '@faker-js/faker';
 import { sleep } from '@gravitee/utils/apim-http';
 import { describeIfV4EmulationEngine } from '@lib/jest-utils';
-import { Api, APIPlansApi, APIsApi, Plan, PlanMode, PlanValidation } from '@gravitee/management-v2-webclient-sdk/src/lib';
+import { Api, APIPlansApi, APIsApi, CreateApi, Plan, PlanMode, PlanValidation } from '@gravitee/management-v2-webclient-sdk/src/lib';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -50,7 +50,7 @@ describeIfV4EmulationEngine('V4 subscription plan subscription and approval work
     // create a V4 API with a webhook entrypoint and a mock endpoint
     api = await apisResource.createApi({
       envId,
-      createApiV4: MAPIV2ApisFaker.newApi({
+      createApi: MAPIV2ApisFaker.newApi({
         listeners: [
           MAPIV2ApisFaker.newSubscriptionListener({
             entrypoints: [
@@ -75,7 +75,7 @@ describeIfV4EmulationEngine('V4 subscription plan subscription and approval work
             ],
           },
         ],
-      }),
+      }) as CreateApi,
     });
 
     // create a subscription plan
