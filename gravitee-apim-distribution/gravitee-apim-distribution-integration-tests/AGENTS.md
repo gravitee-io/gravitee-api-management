@@ -68,7 +68,7 @@ Its parent is `io.gravitee:gravitee-parent`, the organisation pom — not `gravi
 
 - **Jacoco is not in the chain.** Never add `@{argLine}` to a surefire argument line: nothing defines the property, surefire passes the token through literally, and the fork dies on `could not open '{argLine}'` before a single test runs.
 - The integration suites need their `--add-opens` flags in `surefireArgLine`; they reflect into `java.base`.
-- Dependency versions come from one BOM import, `gravitee-apim-bom:${apim.server.version}`.
+- Dependency versions come from one BOM import, `gravitee-apim-bom:${apim.core.version}`.
 
 ## Versions
 

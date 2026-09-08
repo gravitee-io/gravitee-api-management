@@ -26,7 +26,7 @@
             The organisation parent, like every other Gravitee deliverable — not the product one.
             The distribution assembles the product, it is not part of it. Everything it needs from
             the product side comes through the gravitee-apim-bom import below, pinned at
-            ${apim.server.version}, so there is a single point of coupling to the engine.
+            ${apim.core.version}, so there is a single point of coupling to the core.
         -->
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
@@ -69,7 +69,7 @@
             without that profile assembles the released engine, which is what a release does and
             almost never what you want locally — the Taskfile handles it for you.
         -->
-        <apim.server.version>4.12.14</apim.server.version>
+        <apim.core.version>4.12.14</apim.core.version>
 
         <!--
             Versions shared with the engine. They are declared here as well because the distribution
@@ -297,7 +297,7 @@
             <dependency>
                 <groupId>io.gravitee.apim</groupId>
                 <artifactId>gravitee-apim-bom</artifactId>
-                <version>${apim.server.version}</version>
+                <version>${apim.core.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -463,7 +463,7 @@
         <profile>
             <id>engine-snapshot</id>
             <properties>
-                <apim.server.version>${revision}${sha1}${changelist}</apim.server.version>
+                <apim.core.version>${revision}${sha1}${changelist}</apim.core.version>
             </properties>
         </profile>
 

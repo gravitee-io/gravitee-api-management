@@ -67,7 +67,7 @@
         <dependency>
             <groupId>io.gravitee.apim.repository</groupId>
             <artifactId>gravitee-apim-repository-jdbc</artifactId>
-            <version>${apim.server.version}</version>
+            <version>${apim.core.version}</version>
             <type>zip</type>
             <exclusions>
                 <exclusion>
@@ -330,7 +330,7 @@
                                 </goals>
                                 <configuration>
                                     <appendAssemblyId>false</appendAssemblyId>
-                                    <finalName>${project.artifactId}-${apim.server.version}</finalName>
+                                    <finalName>${project.artifactId}-${apim.core.version}</finalName>
                                     <descriptors>
                                         <descriptor>src/main/assembly/migrations-assembly.xml</descriptor>
                                     </descriptors>
