@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { changedFiles, diffRef, isBlank, isSupportBranchOrMaster } from './utils';
+import { changedFiles, coreVersionFromTag, diffRef, isBlank, isSupportBranchOrMaster } from './utils';
 import { argv } from 'node:process';
 import { buildCIPipeline, CircleCIEnvironment } from './pipelines';
 import * as fs from 'fs';
@@ -30,6 +30,7 @@ const CI_DOCKER_TAG_AS_LATEST: string | undefined = process.env.CI_DOCKER_TAG_AS
 const GIT_BASE_BRANCH: string = process.env.GIT_BASE_BRANCH ?? 'master';
 const GIT_COMMON_COMMIT_HASH: string = process.env.GIT_COMMON_COMMIT_HASH ?? '';
 const APIM_VERSION_PATH: string | undefined = process.env.APIM_VERSION_PATH;
+const CIRCLE_TAG: string = process.env.CIRCLE_TAG ?? '';
 
 if (isBlank(CIRCLE_SHA1)) {
   console.error('No CIRCLE_SHA1 defined');
@@ -37,13 +38,21 @@ if (isBlank(CIRCLE_SHA1)) {
 }
 
 /**
+ * A core release tag carries everything the lane needs: which pipeline to build, and the version to
+ * publish. Nothing is passed as a pipeline parameter on that path, so the artefacts come from the
+ * tagged tree rather than from a branch head that has moved on since.
+ */
+const coreReleaseVersion = coreVersionFromTag(CIRCLE_TAG);
+
+/**
  * The pipeline generation is available according to different conditions:
  *     - if the branch is supported ( CIRCLE_BRANCH is master or a support branch )
  *     - if we are working on a branch with changes committed on the base branch
  */
-const changed = isSupportBranchOrMaster(CIRCLE_BRANCH)
-  ? Promise.resolve([])
-  : changedFiles(diffRef(GIT_COMMON_COMMIT_HASH, GIT_BASE_BRANCH));
+const changed =
+  coreReleaseVersion !== undefined || isSupportBranchOrMaster(CIRCLE_BRANCH)
+    ? Promise.resolve([])
+    : changedFiles(diffRef(GIT_COMMON_COMMIT_HASH, GIT_BASE_BRANCH));
 
 changed
   .then(
@@ -54,9 +63,13 @@ changed
         buildNum: CIRCLE_BUILD_NUM, // TODO merge this line with the next one when everything is working on the CI
         buildId: CIRCLE_BUILD_NUM,
         sha1: CIRCLE_SHA1,
-        action: CI_ACTION ?? 'pull_requests',
-        isDryRun: CI_DRY_RUN !== 'false',
-        graviteeioVersion: CI_GRAVITEEIO_VERSION,
+        action: coreReleaseVersion !== undefined ? 'core_release' : (CI_ACTION ?? 'pull_requests'),
+        tag: CIRCLE_TAG === '' ? undefined : CIRCLE_TAG,
+        // A tag is never a rehearsal. `dry_run` defaults to true and no parameter reaches this path,
+        // so without this a pushed tag would publish nothing and go green. Rehearsals keep the API
+        // trigger, which is where the flag belongs.
+        isDryRun: coreReleaseVersion !== undefined ? false : CI_DRY_RUN !== 'false',
+        graviteeioVersion: coreReleaseVersion ?? CI_GRAVITEEIO_VERSION,
         changedFiles: changes,
         apimVersionPath: APIM_VERSION_PATH ?? '/home/circleci/project/pom.xml',
         dockerTagAsLatest: CI_DOCKER_TAG_AS_LATEST === 'true',

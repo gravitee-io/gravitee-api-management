@@ -20,6 +20,8 @@ export type CircleCIEnvironment = {
   buildId: string;
   sha1: string;
   action: string;
+  /** The tag that started the pipeline, when one did. Absent on every branch build. */
+  tag?: string;
   isDryRun: boolean;
   dockerTagAsLatest?: boolean;
   graviteeioVersion: string;

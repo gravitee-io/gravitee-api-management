@@ -16,6 +16,7 @@
 export * from './branch';
 export * from './git';
 export * from './maven';
+export * from './release-tag';
 export * from './string';
 export * from './tags';
 export * from './versions';
