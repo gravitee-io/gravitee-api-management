@@ -29,7 +29,9 @@ export class SetupJob {
         'var-name': 'MAVEN_SETTINGS',
       }),
       new commands.Run({
-        command: `echo $MAVEN_SETTINGS > ${config.maven.settingsFile} `,
+        // Quoted: without them the shell collapses the XML onto a single line. It stays valid,
+        // but becomes unreadable the day a build has to be debugged.
+        command: `echo "$MAVEN_SETTINGS" > ${config.maven.settingsFile}`,
       }),
       new commands.workspace.Persist({
         root: '.',

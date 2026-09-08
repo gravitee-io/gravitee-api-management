@@ -154,7 +154,7 @@ jobs:
           secret-url: keeper://7CgijuGiFDSLynRJt1Dm9w/custom_field/xml
           var-name: MAVEN_SETTINGS
       - run:
-          command: "echo $MAVEN_SETTINGS > .gravitee.settings.xml "
+          command: echo "$MAVEN_SETTINGS" > .gravitee.settings.xml
       - persist_to_workspace:
           root: .
           paths:
