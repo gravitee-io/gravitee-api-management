@@ -3408,7 +3408,6 @@ components:
         type: array
         items:
           $ref: "#/components/schemas/ApiType"
-
     clusterTypeParam:
       name: type
       in: query

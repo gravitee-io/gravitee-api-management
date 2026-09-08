@@ -31,6 +31,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
@@ -206,7 +207,7 @@ class GetEnvironmentReportsUseCaseTest {
 
         // When
         var report = useCase.execute(
-            new GetEnvironmentReportsUseCase.Input(ENVIRONMENT_1, List.of(ApiType.MESSAGE, ApiType.NATIVE), (Pageable) null)
+            new GetEnvironmentReportsUseCase.Input(ENVIRONMENT_1, List.of(ApiType.MESSAGE, ApiType.NATIVE), Optional.empty())
         );
 
         // Then
@@ -247,7 +248,7 @@ class GetEnvironmentReportsUseCaseTest {
         scoringReportQueryService.giveApiType(API_ID_2, ApiType.PROXY);
 
         // When
-        var report = useCase.execute(new GetEnvironmentReportsUseCase.Input(ENVIRONMENT_1, List.of(), (Pageable) null));
+        var report = useCase.execute(new GetEnvironmentReportsUseCase.Input(ENVIRONMENT_1, List.of(), Optional.empty()));
 
         // Then
         Assertions.assertThat(report)

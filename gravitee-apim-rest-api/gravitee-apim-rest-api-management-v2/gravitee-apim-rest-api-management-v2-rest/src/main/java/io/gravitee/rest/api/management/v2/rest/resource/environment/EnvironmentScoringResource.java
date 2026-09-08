@@ -39,6 +39,7 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.List;
+import java.util.Optional;
 import lombok.CustomLog;
 
 @CustomLog
@@ -71,7 +72,7 @@ public class EnvironmentScoringResource extends AbstractResource {
             new GetEnvironmentReportsUseCase.Input(
                 executionContext.getEnvironmentId(),
                 ScoringReportMapper.INSTANCE.mapApiTypes(apiTypes),
-                new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())
+                Optional.of(new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage()))
             )
         );
 
