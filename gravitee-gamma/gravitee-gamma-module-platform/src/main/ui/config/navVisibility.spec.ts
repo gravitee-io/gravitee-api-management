@@ -77,6 +77,7 @@ const ENVIRONMENT_ADMIN = [
     'environment-settings-r',
     'environment-audit-r',
     'environment-am_configuration-r',
+    'environment-message-c',
 ] as const;
 
 const ORGANIZATION_ADMIN = [
@@ -133,6 +134,7 @@ describe('platform nav visibility', () => {
     it('shows Applications, Shared Policy Groups, Groups, and Roles for ENVIRONMENT:USER with org USER', () => {
         const keys = visibleNavItemKeys(visibility([...ORGANIZATION_USER, ...ENVIRONMENT_USER]));
         expect(keys.sort()).toEqual(['applications', 'groups', 'roles', 'shared-policy-groups']);
+        expect(keys).not.toContain('broadcasts');
         expect(
             firstVisibleNavItemKey(NAV_SECTIONS, itemKey =>
                 isNavItemVisible(itemKey, visibility([...ORGANIZATION_USER, ...ENVIRONMENT_USER])),
@@ -319,6 +321,14 @@ describe('platform nav visibility', () => {
             anyOf: ['organization-tenant-r'],
             alsoAnyOf: ['organization-settings-r', 'organization-settings-u'],
         });
+    });
+
+    it('gates Broadcasts on environment-message-c without the org settings gate', () => {
+        expect(requiresOrganizationSettingsGate('broadcasts')).toBe(false);
+        expect(pageGuardForNavItem('broadcasts')).toEqual({ anyOf: ['environment-message-c'] });
+        expect(isNavItemVisible('broadcasts', visibility(['environment-message-c']))).toBe(true);
+        expect(isNavItemVisible('broadcasts', visibility([...ORGANIZATION_USER, ...ENVIRONMENT_USER]))).toBe(false);
+        expect(landingNavItemKey(visibility(['environment-application-r', 'environment-message-c']))).toBe('applications');
     });
 
     it('gates Notifications on environment-notification-r without the org settings gate', () => {

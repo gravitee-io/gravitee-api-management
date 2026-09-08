@@ -13,7 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CloudIcon, FileTextIcon, GlobeIcon, MailIcon, ShieldIcon, UsersIcon, UsersRoundIcon } from '@gravitee/graphene-core/icons';
+import {
+    CloudIcon,
+    FileTextIcon,
+    GlobeIcon,
+    MailIcon,
+    MessageSquareIcon,
+    ShieldIcon,
+    UsersIcon,
+    UsersRoundIcon,
+} from '@gravitee/graphene-core/icons';
 
 import { filterNavSections, findNavSectionKey, firstNavItemKey, lockNavItem, NAV_SECTIONS, platformPrimaryNavItems } from './navigation';
 import { PLATFORM_ROUTE_CONFIG, ROUTES } from './routes';
@@ -62,14 +71,19 @@ describe('platform navigation config', () => {
         expect(systemItems.find(item => item.key === 'templates')?.icon).toBe(FileTextIcon);
     });
 
-    it('places Applications, Integrations, Metadata, Dictionaries, and Shared Policy Groups under Environment / APIs & Assets', () => {
+    it('places Applications, Integrations, Metadata, Dictionaries, Shared Policy Groups, then Broadcasts under Environment / APIs & Assets', () => {
         expect(sectionKeys('Environment', 'APIs & Assets')).toEqual([
             'applications',
             'integrations',
             'metadata',
             'dictionaries',
             'shared-policy-groups',
+            'broadcasts',
         ]);
+        const assetItems =
+            NAV_SECTIONS.find(section => section.key === 'environment')?.groups.find(group => group.label === 'APIs & Assets')?.items ?? [];
+        expect(assetItems.find(item => item.key === 'broadcasts')?.icon).toBe(MessageSquareIcon);
+        expect(assetItems.find(item => item.key === 'broadcasts')?.title).toBe('Broadcasts');
     });
 
     it('places Access Management, Gateways, Alerts, Notifications, Security Plan Types, and Audit under Environment / System & Security', () => {
@@ -185,6 +199,12 @@ describe('platform navigation config', () => {
     it('declares the shared-policy-groups route in platform routing config', () => {
         expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('shared-policy-groups');
         expect(ROUTES['shared-policy-groups']).toEqual({ path: 'shared-policy-groups', label: 'Shared Policy Groups' });
+    });
+
+    it('declares the broadcasts route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('broadcasts');
+        expect(ROUTES.broadcasts).toEqual({ path: 'broadcasts', label: 'Broadcasts' });
+        expect(findNavSectionKey(NAV_SECTIONS, 'broadcasts')).toBe('environment');
     });
 
     it('declares organization console settings routes', () => {

@@ -67,6 +67,7 @@ import { AlertsPage } from '../pages/AlertsPage';
 import { ApplicationDetailSubscriptionPage } from '../pages/ApplicationDetailSubscriptionPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { AuthenticationPage } from '../pages/AuthenticationPage';
+import { BroadcastsPage } from '../pages/BroadcastsPage';
 import { CorsSettingsPage } from '../pages/CorsSettingsPage';
 import { CreateIdentityProviderPage } from '../pages/CreateIdentityProviderPage';
 import { DictionariesPage } from '../pages/DictionariesPage';
@@ -633,6 +634,14 @@ export function AppRoutes() {
                                     }
                                 />
                             </Route>
+                            <Route
+                                path="broadcasts"
+                                element={
+                                    <NavPermissionGuard itemKey="broadcasts">
+                                        <BroadcastsPage />
+                                    </NavPermissionGuard>
+                                }
+                            />
                             <Route
                                 path="shared-policy-groups"
                                 element={
