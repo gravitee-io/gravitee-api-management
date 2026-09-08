@@ -23,7 +23,7 @@ import { AzureCliExecutor } from '../executors/executor-azure-cli';
 export class DeployOnAzureJob {
   private static jobName = 'job-deploy-on-azure-cluster';
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
-    const k8sNamespace = `apim-apim-${environment.branch.replaceAll('.', '-')}`;
+    const k8sNamespace = `apim-apim-${environment.branch.replaceAll('.', '-').replaceAll('_', '-')}`;
 
     dynamicConfig.importOrb(orbs.keeper);
 
