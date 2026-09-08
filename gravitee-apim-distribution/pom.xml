@@ -69,7 +69,7 @@
             without that profile assembles the released engine, which is what a release does and
             almost never what you want locally — the Taskfile handles it for you.
         -->
-        <apim.server.version>4.12.14</apim.server.version>
+        <apim.server.version>4.12.19</apim.server.version>
 
         <!--
             Versions shared with the engine. They are declared here as well because the distribution
