@@ -85,6 +85,7 @@ export const NAV_ITEM_PERMISSIONS: Readonly<Record<string, readonly string[]>> =
     gateways: ['environment-instance-r'],
     alerts: [ENVIRONMENT_ALERT_READ_PERMISSION],
     'notification-settings': ['environment-notification-r'],
+    'api-health-check': ['environment-api-r'],
     'environment-smtp': [ENVIRONMENT_SETTINGS_READ_PERMISSION],
     'security-plan-types': [ENVIRONMENT_SETTINGS_READ_PERMISSION],
     'environment-audit': [ENVIRONMENT_AUDIT_READ_PERMISSION],

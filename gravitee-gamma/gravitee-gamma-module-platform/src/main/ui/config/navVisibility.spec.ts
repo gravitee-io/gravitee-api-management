@@ -133,7 +133,7 @@ describe('platform nav visibility', () => {
 
     it('shows Applications, Shared Policy Groups, Groups, and Roles for ENVIRONMENT:USER with org USER', () => {
         const keys = visibleNavItemKeys(visibility([...ORGANIZATION_USER, ...ENVIRONMENT_USER]));
-        expect(keys.sort()).toEqual(['applications', 'groups', 'roles', 'shared-policy-groups']);
+        expect(keys.sort()).toEqual(['api-health-check', 'applications', 'groups', 'roles', 'shared-policy-groups']);
         expect(keys).not.toContain('broadcasts');
         expect(
             firstVisibleNavItemKey(NAV_SECTIONS, itemKey =>
@@ -198,6 +198,7 @@ describe('platform nav visibility', () => {
                 'notification-settings',
                 'environment-smtp',
                 'security-plan-types',
+                'api-health-check',
                 'environment-audit',
                 'access-management',
                 'groups',
@@ -309,6 +310,17 @@ describe('platform nav visibility', () => {
         expect(requiresOrganizationSettingsGate('users')).toBe(true);
         expect(isNavItemVisible('users', visibility(['organization-user-r']))).toBe(false);
         expect(isNavItemVisible('users', visibility(['organization-settings-r', 'organization-user-r']))).toBe(true);
+    });
+
+    it('hides API Health Check without environment-api-r', () => {
+        expect(requiresOrganizationSettingsGate('api-health-check')).toBe(false);
+        expect(pageGuardForNavItem('api-health-check')).toEqual({ anyOf: ['environment-api-r'] });
+        expect(isNavItemVisible('api-health-check', visibility(['environment-api-r']))).toBe(true);
+        expect(isNavItemVisible('api-health-check', visibility([...ORGANIZATION_USER, 'environment-application-r']))).toBe(false);
+        expect(visibleNavItemKeys(visibility([...ORGANIZATION_USER, ...ENVIRONMENT_USER]))).toContain('api-health-check');
+        expect(visibleNavItemKeys(visibility([...ORGANIZATION_USER, 'environment-application-r', 'environment-group-r']))).not.toContain(
+            'api-health-check',
+        );
     });
 
     it('builds page guards from the same map as nav visibility', () => {

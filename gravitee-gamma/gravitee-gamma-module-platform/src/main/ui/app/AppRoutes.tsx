@@ -64,6 +64,7 @@ import { SharedPolicyGroupDetailLayout } from '../features/shared-policy-groups/
 import { ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION } from '../features/shared-policy-groups/utils/sharedPolicyGroupPermissions';
 import { AccessManagementPage } from '../pages/AccessManagementPage';
 import { AlertsPage } from '../pages/AlertsPage';
+import { ApiHealthCheckPage } from '../pages/ApiHealthCheckPage';
 import { ApplicationDetailSubscriptionPage } from '../pages/ApplicationDetailSubscriptionPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { AuthenticationPage } from '../pages/AuthenticationPage';
@@ -742,6 +743,14 @@ export function AppRoutes() {
                                         <RequireIntegrationsAvailable>
                                             <IntegrationsPage />
                                         </RequireIntegrationsAvailable>
+                                    </NavPermissionGuard>
+                                }
+                            />
+                            <Route
+                                path="api-health-check"
+                                element={
+                                    <NavPermissionGuard itemKey="api-health-check">
+                                        <ApiHealthCheckPage />
                                     </NavPermissionGuard>
                                 }
                             />

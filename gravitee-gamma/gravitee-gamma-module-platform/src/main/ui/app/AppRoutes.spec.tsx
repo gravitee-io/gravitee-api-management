@@ -272,6 +272,10 @@ jest.mock('../features/security-plan-types/SecurityPlanTypesPage', () => ({
     SecurityPlanTypesPage: () => <div data-testid="security-plan-types-page" />,
 }));
 
+jest.mock('../pages/ApiHealthCheckPage', () => ({
+    ApiHealthCheckPage: () => <div data-testid="api-health-check-page" />,
+}));
+
 jest.mock('../pages/GatewayInstancesPage', () => ({
     GatewayInstancesPage: () => <div data-testid="gateways-page" />,
 }));
@@ -1744,6 +1748,21 @@ describe('AppRoutes', () => {
         renderPlatform();
 
         expect(visibleNavKeys()).not.toContain('security-plan-types');
+    });
+
+    it('does not render API Health Check for a pasted URL without environment-api-r', () => {
+        denyPermissions('environment-api-r');
+        renderPlatform('/api-health-check');
+
+        expect(screen.queryByTestId('api-health-check-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('hides API Health Check without environment-api-r', () => {
+        denyPermissions('environment-api-r');
+        renderPlatform();
+
+        expect(visibleNavKeys()).not.toContain('api-health-check');
     });
 
     it('renders Access Management from a pasted URL without organization-settings', () => {
