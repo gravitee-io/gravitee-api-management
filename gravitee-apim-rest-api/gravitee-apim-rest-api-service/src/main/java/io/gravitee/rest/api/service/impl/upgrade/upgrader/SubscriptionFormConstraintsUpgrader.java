@@ -64,7 +64,9 @@ public class SubscriptionFormConstraintsUpgrader implements Upgrader {
         int updated = 0;
 
         for (var form : forms) {
-            if (!form.getValidationConstraints().equals("{}")) {
+            // Rows without inline GMD were created (or migrated) after constraint generation existed, so
+            // their constraints are already derived: nothing to compute from here.
+            if (form.getGmdContent() == null || !form.getValidationConstraints().equals("{}")) {
                 continue;
             }
             try {

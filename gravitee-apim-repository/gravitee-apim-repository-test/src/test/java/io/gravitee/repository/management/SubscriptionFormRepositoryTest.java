@@ -40,7 +40,8 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
         SubscriptionForm form = optional.get();
         assertThat(form.getId()).isEqualTo("sub-form-find-by-id");
         assertThat(form.getEnvironmentId()).isEqualTo("env-1");
-        assertThat(form.getGmdContent()).contains("gmd-grid");
+        assertThat(form.getGmdContent()).isNull();
+        assertThat(form.getPortalPageContentId()).isEqualTo("5d1f0c1e-3a3b-4b7e-9c2a-8f6e1d2c3b4a");
         assertThat(form.isEnabled()).isTrue();
         assertThat(form.getValidationConstraints()).isEqualTo("{\"email\":[{\"type\":\"required\"}]}");
     }
@@ -95,7 +96,8 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
         SubscriptionForm form = SubscriptionForm.builder()
             .id("sub-form-new")
             .environmentId("env-new")
-            .gmdContent("<gmd-card><gmd-input name=\"field\" label=\"Field\" fieldKey=\"field\"/></gmd-card>")
+            .gmdContent(null)
+            .portalPageContentId("9b2d7c4e-1f3a-4d5b-8e6f-0a1b2c3d4e5f")
             .enabled(false)
             .validationConstraints("{\"field\":[]}")
             .build();
@@ -111,7 +113,8 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
 
         SubscriptionForm saved = optional.get();
         assertThat(saved.getEnvironmentId()).isEqualTo("env-new");
-        assertThat(saved.getGmdContent()).contains("gmd-input");
+        assertThat(saved.getGmdContent()).isNull();
+        assertThat(saved.getPortalPageContentId()).isEqualTo("9b2d7c4e-1f3a-4d5b-8e6f-0a1b2c3d4e5f");
         assertThat(saved.isEnabled()).isFalse();
         assertThat(saved.getValidationConstraints()).isEqualTo("{\"field\":[]}");
     }
@@ -126,20 +129,23 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
 
         SubscriptionForm updated = existing
             .toBuilder()
-            .gmdContent("<gmd-card><gmd-input name=\"updated\" label=\"Updated\" fieldKey=\"updated\"/></gmd-card>")
+            .gmdContent(null)
+            .portalPageContentId("3e4d5c6b-7a89-4f01-b2c3-d4e5f6a7b8c9")
             .enabled(true)
             .validationConstraints("{\"updated\":[]}")
             .build();
 
         SubscriptionForm result = subscriptionFormRepository.update(updated);
 
-        assertThat(result.getGmdContent()).contains("updated");
+        assertThat(result.getGmdContent()).isNull();
+        assertThat(result.getPortalPageContentId()).isEqualTo("3e4d5c6b-7a89-4f01-b2c3-d4e5f6a7b8c9");
         assertThat(result.isEnabled()).isTrue();
         assertThat(result.getValidationConstraints()).contains("updated");
 
         Optional<SubscriptionForm> reloaded = subscriptionFormRepository.findById("sub-form-update");
         assertThat(reloaded).isPresent();
-        assertThat(reloaded.get().getGmdContent()).contains("updated");
+        assertThat(reloaded.get().getGmdContent()).isNull();
+        assertThat(reloaded.get().getPortalPageContentId()).isEqualTo("3e4d5c6b-7a89-4f01-b2c3-d4e5f6a7b8c9");
         assertThat(reloaded.get().isEnabled()).isTrue();
         assertThat(reloaded.get().getValidationConstraints()).contains("updated");
     }

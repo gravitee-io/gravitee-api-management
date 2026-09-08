@@ -16,6 +16,8 @@
 package io.gravitee.apim.core.subscription_form.model;
 
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import jakarta.annotation.Nullable;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -41,6 +43,15 @@ public class SubscriptionForm {
     private final SubscriptionFormId id;
     private final String environmentId;
 
+    /**
+     * The {@link io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent} holding the form
+     * definition, shared with every other GMD-backed portal content. {@code null} only until the form has
+     * been persisted: the content is created alongside the form by the CRUD service.
+     */
+    @Nullable
+    private final PortalPageContentId portalPageContentId;
+
+    /** The form definition, loaded from {@link #portalPageContentId}. */
     private GraviteeMarkdown gmdContent;
     private boolean enabled;
     private SubscriptionFormFieldConstraints validationConstraints;

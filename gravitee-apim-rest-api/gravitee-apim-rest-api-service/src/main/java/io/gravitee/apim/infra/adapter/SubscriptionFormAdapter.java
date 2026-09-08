@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.subscription_form.model.Constraint;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstraints;
@@ -32,6 +33,12 @@ import org.mapstruct.factory.Mappers;
 
 /**
  * MapStruct adapter for converting between SubscriptionForm (domain) and repository model.
+ *
+ * <p>The form definition (GMD) is not part of the repository row anymore: it lives in a
+ * {@code PortalPageContent} referenced by {@code portalPageContentId}. The repository row's legacy
+ * {@code gmdContent} column is therefore never written by {@link #toRepository}, and
+ * {@link #toEntity(io.gravitee.repository.management.model.SubscriptionForm, GraviteeMarkdown)}
+ * takes the already-loaded content as a separate argument.</p>
  *
  * @author Gravitee.io Team
  */
@@ -66,13 +73,17 @@ public interface SubscriptionFormAdapter {
         }
     }
 
-    @Mapping(target = "id", source = "id", qualifiedByName = "idToSubscriptionFormId")
-    @Mapping(target = "gmdContent", source = "gmdContent", qualifiedByName = "stringToGraviteeMarkdown")
-    @Mapping(target = "validationConstraints", source = "validationConstraints", qualifiedByName = "jsonToFieldConstraints")
-    SubscriptionForm toEntity(io.gravitee.repository.management.model.SubscriptionForm subscriptionForm);
+    @Mapping(target = "id", source = "form.id", qualifiedByName = "idToSubscriptionFormId")
+    @Mapping(target = "environmentId", source = "form.environmentId")
+    @Mapping(target = "portalPageContentId", source = "form.portalPageContentId", qualifiedByName = "idToPortalPageContentId")
+    @Mapping(target = "gmdContent", source = "content")
+    @Mapping(target = "enabled", source = "form.enabled")
+    @Mapping(target = "validationConstraints", source = "form.validationConstraints", qualifiedByName = "jsonToFieldConstraints")
+    SubscriptionForm toEntity(io.gravitee.repository.management.model.SubscriptionForm form, GraviteeMarkdown content);
 
     @Mapping(target = "id", source = "id", qualifiedByName = "subscriptionFormIdToId")
-    @Mapping(target = "gmdContent", source = "gmdContent", qualifiedByName = "graviteeMarkdownToString")
+    @Mapping(target = "portalPageContentId", source = "portalPageContentId", qualifiedByName = "portalPageContentIdToId")
+    @Mapping(target = "gmdContent", ignore = true)
     @Mapping(target = "validationConstraints", source = "validationConstraints", qualifiedByName = "fieldConstraintsToJson")
     io.gravitee.repository.management.model.SubscriptionForm toRepository(SubscriptionForm subscriptionForm);
 
@@ -86,14 +97,14 @@ public interface SubscriptionFormAdapter {
         return id != null ? id.toString() : null;
     }
 
-    @Named("stringToGraviteeMarkdown")
-    default GraviteeMarkdown stringToGraviteeMarkdown(String value) {
-        return value != null ? GraviteeMarkdown.of(value) : null;
+    @Named("idToPortalPageContentId")
+    default PortalPageContentId idToPortalPageContentId(String id) {
+        return id != null ? PortalPageContentId.of(id) : null;
     }
 
-    @Named("graviteeMarkdownToString")
-    default String graviteeMarkdownToString(GraviteeMarkdown gmd) {
-        return gmd != null ? gmd.value() : null;
+    @Named("portalPageContentIdToId")
+    default String portalPageContentIdToId(PortalPageContentId id) {
+        return id != null ? id.toString() : null;
     }
 
     @Named("jsonToFieldConstraints")
