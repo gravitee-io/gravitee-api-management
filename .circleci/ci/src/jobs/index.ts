@@ -25,6 +25,7 @@ export * from './job-deploy-on-next-gen-integration';
 export * from './job-package-bundle';
 export * from './job-publish-pr-env-urls';
 export * from './job-publish-rpm-packages';
+export * from './job-prepare-core-release';
 export * from './job-release-commit-and-prepare-next-version';
 export * from './job-release-notes-apim';
 export * from './job-setup';

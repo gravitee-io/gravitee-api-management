@@ -54,6 +54,26 @@ export function parse(graviteeioVersion: string): GraviteeioVersion {
   };
 }
 
+/**
+ * The version a branch goes back to developing once `graviteeioVersion` is released.
+ *
+ * A final release opens the next patch; a qualified one keeps its number and increments the
+ * qualifier, so `4.12.17-hotfix.1` is followed by `4.12.17-hotfix.2` rather than by a patch nobody
+ * asked for.
+ */
+export function nextDevelopmentVersion(graviteeioVersion: string): { version: string; qualifier: string } {
+  const parsed = parse(graviteeioVersion);
+  const { major, minor, patch } = parsed.version;
+
+  if (parsed.qualifier.full === '') {
+    return { version: `${major}.${minor}.${Number(patch) + 1}`, qualifier: '' };
+  }
+  return {
+    version: `${major}.${minor}.${patch}`,
+    qualifier: `-${parsed.qualifier.name}.${Number(parsed.qualifier.version) + 1}`,
+  };
+}
+
 export function computeApimVersion(environment: CircleCIEnvironment): string {
   if (!fs.existsSync(environment.apimVersionPath)) {
     throw new Error('computeApiVersion - No file at specified path: ' + environment.apimVersionPath);

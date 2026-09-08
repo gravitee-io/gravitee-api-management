@@ -25,6 +25,7 @@ import { generateBuildChainguardFipsImagesConfig } from './pipeline-build-chaing
 import { generatePullRequestsConfig } from './pipeline-pull-requests';
 import { generateCoreReleaseConfig } from './pipeline-core-release';
 import { generateFullReleaseConfig } from './pipeline-full-release';
+import { generatePrepareCoreReleaseConfig } from './pipeline-prepare-core-release';
 import { generateHelmTestsConfig } from './pipeline-helm-tests';
 import { generateMavenReleaseConfig } from './pipeline-maven-release';
 import { generateRunE2ETestsConfig } from './pipeline-run-e2e-tests';
@@ -55,6 +56,8 @@ export function buildCIPipeline(environment: CircleCIEnvironment): Config | null
       return generateMavenReleaseConfig(environment);
     case 'core_release':
       return generateCoreReleaseConfig(environment);
+    case 'prepare_core_release':
+      return generatePrepareCoreReleaseConfig(environment);
     case 'run_e2e_tests':
       return generateRunE2ETestsConfig(environment);
   }
