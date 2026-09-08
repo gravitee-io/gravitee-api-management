@@ -182,6 +182,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             builder
                 .timestamp(parseTimestamp(metrics.getTimestamp()))
                 .transactionId(metrics.getTransactionId())
+                .traceId(metrics.getTraceId())
                 .method(metrics.getMethod() != null ? metrics.getMethod().name() : null)
                 .uri(metrics.getUri())
                 .status(metrics.getStatus())
@@ -584,6 +585,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .planId(log.getPlanId())
             .applicationId(log.getApplicationId())
             .transactionId(log.getTransactionId())
+            .traceId(log.getTraceId())
             .status(log.getStatus())
             .requestEnded(log.isRequestEnded())
             .gatewayResponseTime(safeToInteger(log.getGatewayResponseTime()))

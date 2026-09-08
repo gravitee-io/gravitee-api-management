@@ -32,6 +32,8 @@ public class Metrics {
     private String planId;
     private String clientIdentifier;
     private String transactionId;
+    /** OTel trace id of the request, written by the gateway only when tracing is enabled. */
+    private String traceId;
     private HttpMethod method;
     private int status;
     private boolean requestEnded;

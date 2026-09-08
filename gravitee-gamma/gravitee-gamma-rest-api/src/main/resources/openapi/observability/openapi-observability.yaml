@@ -1848,6 +1848,12 @@ components:
                     type: string
                     description: Correlation id shared across chained requests.
                     example: "txn-xyz-789"
+                traceId:
+                    type: string
+                    description: >-
+                        OpenTelemetry trace id of the request, usable against the traces endpoints.
+                        Absent when tracing is disabled on the API.
+                    example: "4bf92f3577b34da6a3ce929d0e0e4736"
                 clientIdentifier:
                     type: string
                     description: Client identifier extracted by the gateway.
@@ -2079,6 +2085,12 @@ components:
                     type: string
                     description: Correlation id shared across chained requests in the same transaction.
                     example: "txn-xyz-789"
+                traceId:
+                    type: string
+                    description: >-
+                        OpenTelemetry trace id of the request, usable against the traces endpoints.
+                        Absent when tracing is disabled on the API.
+                    example: "4bf92f3577b34da6a3ce929d0e0e4736"
                 status:
                     type: integer
                     description: HTTP status code returned to the client.

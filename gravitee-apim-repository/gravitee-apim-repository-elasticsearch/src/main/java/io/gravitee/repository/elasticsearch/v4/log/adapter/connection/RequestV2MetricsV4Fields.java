@@ -51,6 +51,8 @@ public class RequestV2MetricsV4Fields {
     // Fields with different names in each index
     public static final Field MESSAGE = new Field("message", "error-message");
     public static final Field REQUEST_ID = new Field("_id", "request-id");
+    // Only the v4-metrics index carries the OTel correlation key; the v2 request index never had one.
+    public static final Field TRACE_ID = new Field(null, "trace-id");
     public static final Field APPLICATION_ID = new Field("application", "application-id");
     public static final Field API_ID = new Field("api", "api-id");
     public static final Field PLAN_ID = new Field("plan", "plan-id");
