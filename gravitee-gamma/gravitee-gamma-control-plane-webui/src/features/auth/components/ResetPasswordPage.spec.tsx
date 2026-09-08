@@ -157,6 +157,65 @@ describe('ResetPasswordPage', () => {
         expect(await screen.findByText('Password does not meet policy requirements.')).toBeTruthy();
     });
 
+    it('keeps submit disabled, and says why, when the pattern refuses a password every listed rule accepts', async () => {
+        const user = userEvent.setup();
+        server.use(
+            http.get(`${TEST_MANAGEMENT_BASE}/configuration/password-policy`, () =>
+                // '\\d' defeats the parser, so only the length rule is derived: the false green this page used to show.
+                HttpResponse.json({
+                    description: '',
+                    pattern: '^(?=.*\\d).{8,}$',
+                    rules: [{ id: 'minLength', label: 'At least 8 characters', pattern: '^.{8,}$' }],
+                }),
+            ),
+        );
+
+        renderResetPasswordPage();
+
+        await waitFor(() => {
+            expect(screen.getByText('At least 8 characters')).toBeTruthy();
+        });
+
+        await user.type(screen.getByLabelText('Password'), 'abcdefghij');
+        await user.type(screen.getByLabelText('Confirm password'), 'abcdefghij');
+
+        expect(screen.getByText("This password doesn't meet the full policy yet. One of its requirements isn't listed here.")).toBeTruthy();
+        expect((screen.getByRole('button', { name: 'Reset password' }) as HTMLButtonElement).disabled).toBe(true);
+    });
+
+    it.each([
+        ['cannot compile', '^[a-z]++$'],
+        ['would misread', '^\\p{Lower}{8,}$'],
+    ])('leaves the verdict to the server for a pattern JavaScript %s', async (_, pattern) => {
+        const user = userEvent.setup();
+        const changePasswordTracker = trackHandler('post', `${TEST_MANAGEMENT_BASE}/users/user-1/changePassword`, null, 204);
+        server.use(
+            http.get(`${TEST_MANAGEMENT_BASE}/configuration/password-policy`, () =>
+                HttpResponse.json({
+                    description: '',
+                    pattern,
+                    rules: [{ id: 'lowercase', label: 'Contains lowercase letter', pattern: '[a-z]' }],
+                }),
+            ),
+        );
+
+        renderResetPasswordPage();
+
+        await waitFor(() => {
+            expect(screen.getByText('Contains lowercase letter')).toBeTruthy();
+        });
+
+        await user.type(screen.getByLabelText('Password'), 'abcdefgh');
+        await user.type(screen.getByLabelText('Confirm password'), 'abcdefgh');
+
+        // Only the server can read this pattern, so the page must not refuse on its behalf.
+        const submitButton = screen.getByRole('button', { name: 'Reset password' }) as HTMLButtonElement;
+        expect(submitButton.disabled).toBe(false);
+        await user.click(submitButton);
+
+        await waitFor(() => expect(changePasswordTracker.callCount).toBe(1));
+    });
+
     it('blocks submit when password policy cannot be loaded', async () => {
         server.use(
             http.get(`${TEST_MANAGEMENT_BASE}/configuration/password-policy`, () =>

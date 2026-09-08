@@ -16,11 +16,22 @@
 import { cn } from '@gravitee/graphene-core';
 import { CircleCheckIcon } from '@gravitee/graphene-core/icons';
 
-import type { PasswordPolicyRule } from './types';
-import { evaluatePasswordPolicyRule, resolvePasswordStrengthLabel, resolvePasswordStrengthLevel } from './passwordPolicyRules';
+import type { PasswordPolicy } from './types';
+import {
+    assessPassword,
+    describablePasswordRules,
+    evaluatePasswordPolicyRule,
+    resolvePasswordStrengthLabel,
+    resolvePasswordStrengthLevel,
+} from './passwordPolicyRules';
 
 interface PasswordRequirementsProps {
-    readonly rules: PasswordPolicyRule[];
+    /**
+     * The whole policy, not only its rules, so the checklist cannot contradict the verdict that gates
+     * submission. Its description is shown where no rule can be listed, and where the pattern refuses
+     * a password every listed rule accepts; anywhere else a checklist says the same thing item by item.
+     */
+    readonly policy: PasswordPolicy;
     readonly password?: string;
     readonly showStrengthMeter?: boolean;
     readonly className?: string;
@@ -47,19 +58,27 @@ const STRENGTH_FILLED_BARS: Record<ReturnType<typeof resolvePasswordStrengthLeve
     strong: 4,
 };
 
-export function PasswordRequirements({ rules, password = '', showStrengthMeter = false, className }: PasswordRequirementsProps) {
-    // No rules means the policy could not be loaded. Nothing here can say anything about the
-    // password in that state: a heading over an empty list reads as "there are no requirements",
-    // and a meter scored against no rules reports "Weak" for every password ever typed. The
-    // caller surfaces the failure.
-    const hasRules = rules.length > 0;
-    const strengthLevel = resolvePasswordStrengthLevel(password, rules);
+const UNLISTED_REQUIREMENT = "This password doesn't meet the full policy yet. One of its requirements isn't listed here.";
+
+export function PasswordRequirements({ policy, password = '', showStrengthMeter = false, className }: PasswordRequirementsProps) {
+    // Nothing listable means either the policy could not be loaded or its pattern defeated the
+    // parser. Nothing here can say anything about the password in that state: a heading over an
+    // empty list reads as "there are no requirements", and a meter scored against no rules reports
+    // "Weak" for every password ever typed.
+    const listedRules = describablePasswordRules(policy.rules);
+    // Every box ticked and still refused: what the password lacks is a requirement no rule could list.
+    const refusedDespiteChecklist =
+        listedRules.length > 0 &&
+        listedRules.every(rule => evaluatePasswordPolicyRule(rule, password)) &&
+        assessPassword(password, policy) === 'unsatisfied';
+    // "Strong" tells the reader they are done, which the policy says they are not.
+    const strengthLevel = refusedDespiteChecklist ? 'good' : resolvePasswordStrengthLevel(password, listedRules);
     const strengthLabel = resolvePasswordStrengthLabel(strengthLevel);
     const filledBars = showStrengthMeter ? STRENGTH_FILLED_BARS[strengthLevel] : 0;
 
     return (
         <div className={cn('space-y-3', className)}>
-            {showStrengthMeter && password && hasRules ? (
+            {showStrengthMeter && password && listedRules.length > 0 ? (
                 <div className="space-y-1">
                     <div className="flex gap-1" aria-hidden>
                         {Array.from({ length: 4 }, (_, index) => (
@@ -76,11 +95,14 @@ export function PasswordRequirements({ rules, password = '', showStrengthMeter =
                 </div>
             ) : null}
 
-            {hasRules ? (
+            {/* Where the operator wrote a sentence of their own, it is the only guidance left. */}
+            {listedRules.length === 0 && policy.description ? <p className="text-sm text-muted-foreground">{policy.description}</p> : null}
+
+            {listedRules.length > 0 ? (
                 <div className="space-y-2">
                     <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Requirements</p>
                     <ul className="space-y-1.5">
-                        {rules.map(rule => {
+                        {listedRules.map(rule => {
                             const satisfied = password ? evaluatePasswordPolicyRule(rule, password) : false;
                             return (
                                 <li key={rule.id} className="flex items-start gap-2 text-sm">
@@ -99,6 +121,13 @@ export function PasswordRequirements({ rules, password = '', showStrengthMeter =
                             );
                         })}
                     </ul>
+                </div>
+            ) : null}
+
+            {refusedDespiteChecklist ? (
+                <div className="space-y-1">
+                    <p className="text-sm text-destructive">{UNLISTED_REQUIREMENT}</p>
+                    {policy.description ? <p className="text-sm text-muted-foreground">{policy.description}</p> : null}
                 </div>
             ) : null}
         </div>

@@ -18,7 +18,7 @@ import { useMemo, useState, type ReactNode, type SubmitEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { AuthPageShell } from './AuthPageShell';
-import { PasswordRequirements, isPasswordPolicySatisfied } from '../../../shared/password-policy';
+import { PasswordRequirements, assessPassword } from '../../../shared/password-policy';
 import { usePasswordPolicy } from '../hooks/usePasswordPolicy';
 import { finalizeResetPassword } from '../services/resetPassword.service';
 import { isAuthTokenExpired, parseAuthToken, type AuthTokenClaims } from '../utils/authToken';
@@ -88,13 +88,15 @@ export function ResetPasswordPage() {
 
     const accountName = [tokenClaims?.firstname, tokenClaims?.lastname].filter(Boolean).join(' ');
     const passwordMismatch = confirmPassword.length > 0 && password !== confirmPassword;
-    const passwordPolicySatisfied = isPasswordPolicySatisfied(password, passwordPolicy.rules);
+    // 'undecidable' means the browser cannot read the configured pattern as the server does. Blocking on that
+    // would refuse a password the server would accept, so only an outright failure stops submission.
+    const policyRefusesPassword = assessPassword(password, passwordPolicy) === 'unsatisfied';
     const canSubmit =
         Boolean(tokenClaims?.sub) &&
         password.length > 0 &&
         confirmPassword.length > 0 &&
         passwordsMatch(password, confirmPassword) &&
-        passwordPolicySatisfied &&
+        !policyRefusesPassword &&
         !passwordPolicyLoading &&
         !passwordPolicyError &&
         !loading &&
@@ -109,7 +111,7 @@ export function ResetPasswordPage() {
             passwordPolicyLoading ||
             loading ||
             !passwordsMatch(password, confirmPassword) ||
-            !isPasswordPolicySatisfied(password, passwordPolicy.rules)
+            policyRefusesPassword
         ) {
             return;
         }
@@ -195,7 +197,7 @@ export function ResetPasswordPage() {
                         // eslint-disable-next-line jsx-a11y/no-autofocus
                         autoFocus
                     />
-                    <PasswordRequirements rules={passwordPolicy.rules} password={password} showStrengthMeter />
+                    <PasswordRequirements policy={passwordPolicy} password={password} showStrengthMeter />
                 </Field>
 
                 <Field orientation="vertical" className="gap-2">
