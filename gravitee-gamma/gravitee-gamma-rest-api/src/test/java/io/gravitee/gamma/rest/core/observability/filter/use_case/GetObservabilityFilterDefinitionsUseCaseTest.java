@@ -42,8 +42,8 @@ class GetObservabilityFilterDefinitionsUseCaseTest {
         assertThat(output.filters()).hasSize(StaticFilters.values().length + ExtensibleFilters.values().length);
         assertThat(output.filters())
             .extracting(FilterSpec::name)
-            .contains("API", "API_TYPE", "HTTP_GATEWAY_RESPONSE_TIME", "MCP_PROXY_METHOD", "URI")
-            .doesNotContain("HTTP_PATH", "HTTP_PATH_MAPPING");
+            .contains("API", "API_TYPE", "HTTP_GATEWAY_RESPONSE_TIME", "MCP_PROXY_METHOD", "URI", "HTTP_PATH")
+            .doesNotContain("HTTP_PATH_MAPPING");
     }
 
     @Test

@@ -212,7 +212,9 @@ class ObservabilityFiltersDefinitionResourceTest extends AbstractResourceTest {
                     "HTTP_METHOD",
                     "HTTP_STATUS",
                     "HTTP_STATUS_CODE_GROUP",
-                    "HTTP_PATH",
+                    // URI, not HTTP_PATH: a log document carries uri and no path-info, so the path
+                    // filter is split by signal — HTTP_PATH is the ANALYTICS counterpart.
+                    "URI",
                     "HTTP_GATEWAY_RESPONSE_TIME",
                     "MCP_PROXY_METHOD",
                     "API_TYPE",

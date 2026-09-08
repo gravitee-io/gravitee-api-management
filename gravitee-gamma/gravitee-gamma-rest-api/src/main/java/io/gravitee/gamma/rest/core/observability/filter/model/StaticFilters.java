@@ -33,10 +33,15 @@ import java.util.Set;
  * two discovery axes ({@link Signal} × {@link ApiType}) shared by the logs and analytics surfaces.
  *
  * <p>Names are reconciled across the legacy logs and analytics engines (see GMA-422): e.g. the
- * gateway response time is {@code HTTP_GATEWAY_RESPONSE_TIME} (not the logs-side {@code RESPONSE_TIME}),
- * the MCP method is {@code MCP_PROXY_METHOD} (not {@code MCP_METHOD}), and request-path filtering is
- * {@code URI} (the v4-populated field) — the analytics {@code HTTP_PATH} is dropped (empty on v4) and
- * {@code HTTP_PATH_MAPPING} is an analytics facet, not a filter, so neither appears here.
+ * gateway response time is {@code HTTP_GATEWAY_RESPONSE_TIME} (not the logs-side {@code RESPONSE_TIME})
+ * and the MCP method is {@code MCP_PROXY_METHOD} (not {@code MCP_METHOD}). {@code HTTP_PATH_MAPPING}
+ * is an analytics facet, not a filter, so it does not appear here.
+ *
+ * <p>Request-path filtering is <b>two filters, one per signal</b>, because they read two different
+ * fields: {@link #HTTP_PATH} is ANALYTICS and reads {@code path-info}, the templated path a metrics
+ * document stores; {@link #URI} is LOGS and reads {@code uri}, the concrete request, which is the only
+ * path a log document carries. A concrete URI is a poor analytics dimension anyway — unbounded
+ * cardinality gives one bucket per request.
  *
  * <p>Operators advertised here are restricted to what the v4 analytics/logs engines actually
  * translate today: {@code EQ, IN} for KEYWORD/ENUM and for the identifier-shaped STRING filters
@@ -90,7 +95,11 @@ public enum StaticFilters {
         Defs.LOGS_ANALYTICS,
         Defs.HTTP_CONNECTION_KINDS
     ),
-    URI("HTTP Path", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.LOGS_ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
+    // Two fields, two names, one signal each — see the class javadoc. Advertising one of them on
+    // both signals would make the same `=` match the templated path on a dashboard and the concrete
+    // request in the logs.
+    HTTP_PATH("HTTP Path", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
+    URI("Request URI", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.LOGS, Defs.HTTP_CONNECTION_KINDS),
     HOST("Host", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_CONNECTION_KINDS),
     HTTP_GATEWAY_RESPONSE_TIME(
         "Gateway Response Time",

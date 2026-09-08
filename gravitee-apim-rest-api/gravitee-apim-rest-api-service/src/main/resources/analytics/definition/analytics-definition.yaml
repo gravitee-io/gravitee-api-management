@@ -1856,12 +1856,16 @@ spec:
               - LTE
               - GTE
 
-        # EQ only: the logs engine matches a single exact path, and IN over full paths has no
-        # known consumer. Gamma's reconciled vocabulary made the same call (URI is EQ-only).
+        # ANALYTICS only, and URI is the LOGS counterpart: the two are different fields, not two
+        # spellings. HTTP_PATH reads path-info, the templated path a metrics document stores; a log
+        # document has no path-info at all, only uri. Advertising HTTP_PATH on both signals made one
+        # name mean the templated path on a dashboard and the concrete request in the logs, so the
+        # same `=` matched different things depending on the screen.
+        #
+        # EQ only: a full path is matched exactly, and IN over full paths has no known consumer.
         - name: HTTP_PATH
           label: HTTP Path
           signals:
-              - LOGS
               - ANALYTICS
           type: STRING
           operators:
@@ -1874,10 +1878,15 @@ spec:
               - EQ
               - IN
 
-        # EQ only, for the reason HTTP_PATH gives above: a full path is matched exactly, and IN over
-        # full paths has no known consumer.
+        # LOGS only, the counterpart of HTTP_PATH above: uri is the concrete request, query string
+        # included, and it is the only path a log document carries. It is a poor analytics dimension
+        # anyway — unbounded cardinality gives one bucket per request.
+        #
+        # EQ only, for the reason HTTP_PATH gives: a full path is matched exactly.
         - name: URI
           label: Request URI
+          signals:
+              - LOGS
           type: STRING
           operators:
               - EQ
