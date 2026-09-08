@@ -213,7 +213,10 @@ class AnalyticsQueryValidatorTest {
                 FilterSpec.Name.TRANSACTION_ID,
                 // A version detached from its library is not a readable grouping — several clients share
                 // version numbers — so it narrows a library on the logs screen and has no analytics dimension.
-                FilterSpec.Name.NATIVE_CLIENT_SOFTWARE_VERSION
+                FilterSpec.Name.NATIVE_CLIENT_SOFTWARE_VERSION,
+                // The path filter is split by signal: URI reads uri, the only path a log document carries,
+                // and HTTP_PATH reads the templated path-info an analytics query groups by.
+                FilterSpec.Name.URI
             );
         }
 
