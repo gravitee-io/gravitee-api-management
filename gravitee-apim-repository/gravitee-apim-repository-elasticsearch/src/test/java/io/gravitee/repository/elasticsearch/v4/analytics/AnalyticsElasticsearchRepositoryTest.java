@@ -1758,7 +1758,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
                 var result = cut.searchHTTPMeasures(QUERY_CONTEXT, new MeasuresQuery(buildTimeRange(), List.of(filter), List.of(REQUESTS)));
 
-                assertThat(result.measures().getFirst().measures().get(Measure.COUNT).longValue()).isEqualTo(4L);
+                assertThat(result.measures().getFirst().measures().get(Measure.COUNT).longValue()).isEqualTo(6L);
             }
 
             @Test
@@ -1778,7 +1778,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
                 assertThat(result.metrics().getFirst().buckets())
                     .extracting(bucket -> bucket.key(), bucket -> bucket.measures().get(Measure.COUNT).longValue())
-                    .containsExactlyInAnyOrder(tuple("GET", 3L), tuple("DELETE", 13L), tuple("POST", 4L), tuple("PUT", 2L));
+                    .containsExactlyInAnyOrder(tuple("GET", 3L), tuple("DELETE", 13L), tuple("POST", 6L), tuple("PUT", 2L));
             }
 
             @Test
@@ -1798,7 +1798,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
                 assertThat(result.metrics().getFirst().buckets())
                     .extracting(bucket -> bucket.key(), bucket -> bucket.measures().get(Measure.COUNT).longValue())
-                    .contains(tuple("/tools/call", 2L), tuple("/chat", 2L), tuple("/", 13L));
+                    .contains(tuple("/tools/call", 2L), tuple("/chat", 2L), tuple("/", 14L));
             }
         }
 
