@@ -51,10 +51,6 @@ public class GetEnvironmentReportsUseCase {
         public Input(String environmentId, Pageable pageable) {
             this(environmentId, null, Optional.ofNullable(pageable));
         }
-
-        public Input(String environmentId, Collection<ApiType> apiTypes, Pageable pageable) {
-            this(environmentId, apiTypes, Optional.ofNullable(pageable));
-        }
     }
 
     public record Output(Page<EnvironmentApiScoringReport> reports) {}

@@ -432,9 +432,13 @@ class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScoringRow>
     };
 
     /**
-     * The `apis.type` column is null for every API predating v4 (and for federated ones), so a report
-     * row can legitimately carry no type. Unknown values are read as null rather than failing the whole
-     * page: a type this build does not know about must not hide an API from its own scoring list.
+     * Converts the raw `apis.type` column. `JdbcApiRepository` already declares that column as an
+     * {@code ApiType} enum, but this query is read through a {@link ResultSetExtractor} over a join,
+     * not through that repository's row mapper, so the ORM conversion never runs here.
+     *
+     * The column is null for every API predating v4 (and for federated ones), so a report row can
+     * legitimately carry no type. Unknown values are read as null rather than failing the whole page:
+     * a type this build does not know about must not hide an API from its own scoring list.
      */
     private static ApiType toApiType(String value) {
         if (value == null) {
