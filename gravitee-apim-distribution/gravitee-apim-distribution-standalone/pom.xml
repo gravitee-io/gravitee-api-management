@@ -2264,6 +2264,19 @@
                 </dependency>
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-human-approval</artifactId>
+                    <version>${gravitee-policy-human-approval.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-ai-semantic-caching</artifactId>
                     <version>${gravitee-policy-ai-semantic-caching.version}</version>
                     <type>zip</type>
