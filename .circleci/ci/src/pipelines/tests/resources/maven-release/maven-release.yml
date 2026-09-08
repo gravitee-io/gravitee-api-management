@@ -111,7 +111,7 @@ jobs:
           command: |
             # Remove `-SNAPSHOT` from source
             # Backend. Both poms: since the reactor cut, the distribution carries its own version triplet,
-            # and engine-snapshot resolves apim.server.version from its properties, not the root's. Leaving
+            # and engine-snapshot resolves apim.core.version from its properties, not the root's. Leaving
             # it behind makes the two drift, and the drift is silent — the previous version's snapshot is on
             # Nexus, so a later build resolves it and assembles the wrong engine instead of failing.
             POMS="pom.xml gravitee-apim-distribution/pom.xml"

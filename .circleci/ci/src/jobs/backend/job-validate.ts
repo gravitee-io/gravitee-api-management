@@ -49,7 +49,7 @@ export class ValidateJob {
       }),
       new commands.Run({
         // The two reactors each carry a version triplet and they must stay in step: engine-snapshot
-        // resolves apim.server.version from the distribution's own properties, so a stale triplet
+        // resolves apim.core.version from the distribution's own properties, so a stale triplet
         // does not fail — it resolves the previous version's snapshot from Nexus and quietly
         // assembles the wrong engine. Cheap to check, expensive to notice otherwise.
         name: 'Check both reactors carry the same version',
