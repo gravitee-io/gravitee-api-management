@@ -74,6 +74,33 @@ Either way, look at what the job actually did before replaying it. None of the s
 | `--branch` | Release from a branch other than the derived one. The version commit and the tag are pushed there.
 |===
 
+== Releasing the core on its own
+
+The product reactor — the engine and the libraries — releases separately from the distribution, under a tag of its own:
+
+[source,shell]
+----
+yarn prepare_core_release --version=4.13.0
+----
+
+The command publishes nothing. CI commits `4.13.0`, tags it `core_4.13.0`, reopens the branch on `4.13.1-SNAPSHOT`, then pushes the branch and, after it, the tag. *Pushing that tag is what publishes*: a second pipeline starts from it and deploys the reactor.
+
+Two things follow from that, and both are the point of it:
+
+* The artefacts are built from the tag, so re-running the publishing pipeline on the same tag produces the same result. `full_release` builds from the branch head and creates the tag afterwards, on a commit that did not exist when the build ran.
+* The branch is pushed before the tag. The reverse order leaves a published version sitting on no branch, should the branch push then fail.
+
+The tag is prefixed because *the product keeps the bare version*: `4.13.0` names the images and the bundle. Only this lane's tags carry `core_`.
+
+Before triggering anything, the command checks two things, both read-only, so they refuse in a second rather than after a pipeline has spun up:
+
+* the version matches the poms of the branch it will release from — the same check `full_release` makes;
+* `core_4.13.0` does not already exist. An existing tag means that version has already been released, and pushing it again fails halfway — after the branch has been committed to and reopened on the next version, a state that has to be unwound by hand.
+
+`--dry-run` runs the same job with the pushes disarmed. It is the only rehearsal this lane has: a tag cannot be pushed provisionally.
+
+Only the root pom moves. `gravitee-apim-distribution/pom.xml` carries its own triplet, so a core release leaves it alone — and so does the distribution's `apim.core.version`, the version of the core it assembles. Advancing that pin is a separate change, reviewed like any other: it is the moment someone decides a core is ready to ship.
+
 == Hotfixes
 
 When an urgent fix has to ship and the support branch already carries work that is not ready to go out with it, releasing from that branch would drag the lot along. Take the released tag instead:
