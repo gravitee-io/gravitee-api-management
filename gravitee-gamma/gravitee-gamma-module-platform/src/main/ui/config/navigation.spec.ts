@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import {
+    ActivityIcon,
     CloudIcon,
     FileTextIcon,
     GlobeIcon,
@@ -87,12 +88,13 @@ describe('platform navigation config', () => {
         expect(assetItems.find(item => item.key === 'broadcasts')?.title).toBe('Broadcasts');
     });
 
-    it('places Access Management, Gateways, Alerts, Notification settings, SMTP, Security Plan Types, and Audit under Environment / System & Security', () => {
+    it('places Access Management, Gateways, Alerts, Notifications, API Health Check, SMTP, Security Plan Types, and Audit under Environment / System & Security', () => {
         expect(sectionKeys('Environment', 'System & Security')).toEqual([
             'access-management',
             'gateways',
             'alerts',
             'notification-settings',
+            'api-health-check',
             'environment-smtp',
             'security-plan-types',
             'environment-audit',
@@ -101,7 +103,15 @@ describe('platform navigation config', () => {
             NAV_SECTIONS.find(section => section.key === 'environment')?.groups.find(group => group.label === 'System & Security')?.items ??
             [];
         expect(systemItems.find(item => item.key === 'notification-settings')?.title).toBe('Notifications');
+        expect(systemItems.find(item => item.key === 'api-health-check')?.icon).toBe(ActivityIcon);
+        expect(systemItems.find(item => item.key === 'api-health-check')?.title).toBe('API Health Check');
         expect(systemItems.find(item => item.key === 'environment-smtp')?.icon).toBe(SettingsIcon);
+    });
+
+    it('declares the api-health-check route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('api-health-check');
+        expect(ROUTES['api-health-check']).toEqual({ path: 'api-health-check', label: 'API Health Check' });
+        expect(findNavSectionKey(NAV_SECTIONS, 'api-health-check')).toBe('environment');
     });
 
     it('places Users, Groups, and Roles under Team', () => {
