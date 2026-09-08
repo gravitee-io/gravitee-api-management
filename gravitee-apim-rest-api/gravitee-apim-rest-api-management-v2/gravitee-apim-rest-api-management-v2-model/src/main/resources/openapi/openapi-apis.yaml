@@ -638,6 +638,7 @@ paths:
                   in: query
                   required: false
                   description: Exclude additional data from the API definition export
+                  explode: false
                   schema:
                       type: array
                       items:
@@ -2155,6 +2156,7 @@ paths:
                 - name: expands
                   in: query
                   description: Expansion of data to return in subscriptions.
+                  explode: false
                   schema:
                       type: array
                       items:
@@ -9507,6 +9509,7 @@ components:
             name: expands
             in: query
             description: Expansion of data to return in APIs.
+            explode: false
             schema:
                 type: array
                 items:
@@ -9517,6 +9520,7 @@ components:
             name: expands
             in: query
             description: Expansion of data to return in APIs.
+            explode: false
             schema:
                 type: array
                 items:

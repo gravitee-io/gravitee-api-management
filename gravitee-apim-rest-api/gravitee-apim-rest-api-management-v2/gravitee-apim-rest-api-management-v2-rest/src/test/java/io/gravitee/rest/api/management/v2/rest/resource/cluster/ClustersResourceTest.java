@@ -326,4 +326,53 @@ class ClustersResourceTest extends AbstractResourceTest {
             );
         }
     }
+
+    /**
+     * Multi-value query parameters in Management v2 are comma-separated, not repeated:
+     * {@link io.gravitee.rest.api.management.v2.rest.provider.CommaSeparatedQueryParamConverterProvider}
+     * is registered application-wide and binds a whole {@code List}/{@code Set} from ONE value, so a
+     * repeated parameter contributes only its first occurrence.
+     *
+     * These two tests pin that contract, which the OpenAPI declares with `explode: false`.
+     */
+    @Nested
+    class MultiValueQueryParameters {
+
+        // The shared use-case mock is not reset by the class tearDown, so each of these tests starts
+        // from a clean invocation count rather than counting a neighbour's call.
+        @BeforeEach
+        public void resetUseCase() {
+            reset(searchClusterUseCase);
+        }
+
+        @Test
+        public void should_bind_every_value_of_a_comma_separated_parameter() {
+            when(searchClusterUseCase.execute(any())).thenReturn(new SearchClusterUseCase.Output(new Page<>(List.of(), 1, 10, 0)));
+
+            final Response response = rootTarget().queryParam("lifecycleState", "DEPLOYED,UNDEPLOYED").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var captor = ArgumentCaptor.forClass(SearchClusterUseCase.Input.class);
+            verify(searchClusterUseCase).execute(captor.capture());
+            assertThat(captor.getValue().lifecycleStates()).containsExactly("DEPLOYED", "UNDEPLOYED");
+        }
+
+        @Test
+        public void should_keep_only_the_first_occurrence_of_a_repeated_parameter() {
+            when(searchClusterUseCase.execute(any())).thenReturn(new SearchClusterUseCase.Output(new Page<>(List.of(), 1, 10, 0)));
+
+            final Response response = rootTarget()
+                .queryParam("lifecycleState", "DEPLOYED")
+                .queryParam("lifecycleState", "UNDEPLOYED")
+                .request()
+                .get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var captor = ArgumentCaptor.forClass(SearchClusterUseCase.Input.class);
+            verify(searchClusterUseCase).execute(captor.capture());
+            // Not [DEPLOYED, UNDEPLOYED]: the second occurrence is dropped. Documenting the parameter
+            // as repeatable would make a generated client filter on one state without saying so.
+            assertThat(captor.getValue().lifecycleStates()).containsExactly("DEPLOYED");
+        }
+    }
 }

@@ -802,6 +802,7 @@ paths:
           in: query
           description: Filter by plan status(es)
           required: false
+          explode: false
           schema:
             type: array
             items:
@@ -811,6 +812,7 @@ paths:
           in: query
           description: Filter by security type(s)
           required: true
+          explode: false
           schema:
             type: array
             items:

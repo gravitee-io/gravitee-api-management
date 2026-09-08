@@ -256,8 +256,9 @@ paths:
                 - name: signal
                   in: query
                   required: false
-                  description: Observability signal(s) to narrow the catalog by. Repeat for multiple values.
+                  description: Observability signal(s) to narrow the catalog by. Comma-separate multiple values.
                   example: LOGS
+                  explode: false
                   schema:
                       type: array
                       items:
