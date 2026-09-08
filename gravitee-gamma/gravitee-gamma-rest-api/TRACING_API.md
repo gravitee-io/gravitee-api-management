@@ -218,6 +218,32 @@ Example (MVP — what the server returns today):
 }
 ```
 
+### Per-module filters
+
+`module` selects **one** contributor on top of the cross-module ones, matched on an exact id
+(`SpiTraceFilterRegistry#getFiltersForModule`). Shipped today:
+
+| `module` | Contributor | Filters |
+| --- | --- | --- |
+| *(any / omitted)* | `CommonTraceFilterContributor` | `HTTP_METHOD`, `HTTP_STATUS_CODE`, `HTTP_ROUTE` |
+| `esm` | `EsmTraceFilterContributor` | `KAFKA_API_KEY`, `KAFKA_CLIENT_ID`, `KAFKA_CONSUMER_GROUP`, `ERROR_ORIGIN` |
+
+The ESM filters map to the span attributes the native Kafka reactor emits (`kafka.api.key`,
+`messaging.client.id`, `messaging.consumer.group.name`, `gravitee.error.origin`) — see
+`KafkaTracingHelper` in `gravitee-reactor-native-kafka`.
+
+There is deliberately **no topic filter**: the reactor joins a batched request's topics with commas
+and falls back to `id:<uuid>` when the request carries topic ids rather than names (fetch v12+, what
+a modern client sends), so an exact term against `messaging.destination.name` silently misses those
+spans. It ships when the reactor emits topics as a repeated attribute.
+
+Both contributors live in this module rather than in their gamma module plugin, because gamma
+modules load in isolated plugin classloaders while the registry's `ServiceLoader` scans the
+rest-api classpath. Move them out once the plugin handler grows a registration hook.
+
+`TraceFilterContributorContractTest` pins every advertised filter against the translator, so the
+discovery and search surfaces cannot drift apart.
+
 ### MVP scope
 
 Today's discovery surface is deliberately narrow — the server only exposes filters / operators
