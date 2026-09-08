@@ -72,7 +72,6 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.PoolOptions;
 import io.vertx.rxjava3.core.Vertx;
-import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientAgent;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import io.vertx.rxjava3.core.http.HttpClientResponse;
@@ -318,16 +317,9 @@ class DebugReactorEventListenerTest {
             verify(reactorHandlerRegistry, times(1)).contains(any(DebugApiV2.class));
             verify(reactorHandlerRegistry, timeout(10000).times(1)).remove(any(DebugApiV2.class));
 
-<<<<<<< HEAD
-            verify(eventRepository, timeout(10000).times(2)).update(eventCaptor.capture());
-
-            final List<io.gravitee.repository.management.model.Event> events = eventCaptor.getAllValues();
-            assertThat(events.get(1).getProperties()).containsEntry(API_DEBUG_STATUS.getValue(), ApiDebugStatus.ERROR.name());
-=======
             verify(eventRepository, times(1)).update(any());
             verify(eventRepository, timeout(10000)).createOrPatch(eventCaptor.capture());
             assertThat(eventCaptor.getValue().getProperties()).containsEntry(API_DEBUG_STATUS.getValue(), ApiDebugStatus.ERROR.name());
->>>>>>> 98ab010 (fix(gateway): scope debug secret discovery and event failure per run)
 
             verify(eventManager, timeout(10000)).publishEvent(eq(SecretDiscoveryEventType.REVOKE), secretDiscoveryEventCaptor.capture());
 
@@ -921,7 +913,7 @@ class DebugReactorEventListenerTest {
 
         private void givenAStalledDebugRequest() throws JsonProcessingException {
             when(objectMapper.readValue(anyString(), any(DebugApiV2.class.getClass()))).thenAnswer(invocation -> anApiDefinition());
-            final HttpClient httpClient = mock(HttpClient.class);
+            final HttpClientAgent httpClient = mock(HttpClientAgent.class);
             when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(httpClient);
             when(httpClient.rxRequest(any())).thenReturn(Single.never());
         }
