@@ -94,7 +94,7 @@ class ClustersResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        reset(createClusterUseCase, getDeployedClustersUseCase);
+        reset(createClusterUseCase, getDeployedClustersUseCase, searchClusterUseCase, countClustersByLifecycleStateUseCase);
     }
 
     @Nested
@@ -337,13 +337,6 @@ class ClustersResourceTest extends AbstractResourceTest {
      */
     @Nested
     class MultiValueQueryParameters {
-
-        // The shared use-case mock is not reset by the class tearDown, so each of these tests starts
-        // from a clean invocation count rather than counting a neighbour's call.
-        @BeforeEach
-        public void resetUseCase() {
-            reset(searchClusterUseCase);
-        }
 
         @Test
         public void should_bind_every_value_of_a_comma_separated_parameter() {
