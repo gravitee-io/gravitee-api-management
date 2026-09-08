@@ -78,24 +78,6 @@ describe('AgentCatalogService', () => {
     });
   });
 
-  describe('getAgentById', () => {
-    it('should fetch a single agent by ID', () => {
-      const mockAgent = {
-        id: 'agent-1',
-        kind: 'agent',
-        definition: { name: 'Test Agent', version: '1.0.0', capabilities: {}, skills: [], defaultInputModes: [], defaultOutputModes: [] },
-      };
-
-      service.getAgentById('DEFAULT', 'DEFAULT', 'agent-1').subscribe(result => {
-        expect(result.id).toBe('agent-1');
-      });
-
-      const req = httpMock.expectOne(r => r.url.endsWith('/agents/agent-1'));
-      expect(req.request.method).toBe('GET');
-      req.flush(mockAgent);
-    });
-  });
-
   describe('findAgentByName', () => {
     it('should return the agent matching the exact name', () => {
       const mockResponse = {
@@ -137,7 +119,7 @@ describe('AgentCatalogService', () => {
       req.flush(mockResponse);
     });
 
-    it('should return the first result when no exact name match', () => {
+    it('should return null when no exact name match exists', () => {
       const mockResponse = {
         data: [
           {
@@ -157,8 +139,7 @@ describe('AgentCatalogService', () => {
       };
 
       service.findAgentByName('DEFAULT', 'DEFAULT', 'Not Found').subscribe(result => {
-        expect(result).not.toBeNull();
-        expect(result!.id).toBe('agent-fuzzy');
+        expect(result).toBeNull();
       });
 
       const req = httpMock.expectOne(r => r.url.includes('/agents') && r.params.get('q') === 'Not Found');

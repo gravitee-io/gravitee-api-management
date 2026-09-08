@@ -310,7 +310,11 @@ public class GetVisiblePortalCatalogItemsUseCase {
     }
 
     private Map<String, Api> loadAgentApis(String environmentId, List<PortalNavigationAgent> items) {
-        Set<String> ids = items.stream().map(PortalNavigationAgent::getApiId).collect(Collectors.toSet());
+        Set<String> ids = items
+            .stream()
+            .map(PortalNavigationAgent::getApiId)
+            .filter(java.util.Objects::nonNull)
+            .collect(Collectors.toSet());
         return loadApis(environmentId, ids).stream().collect(Collectors.toMap(Api::getId, Function.identity(), (first, ignored) -> first));
     }
 

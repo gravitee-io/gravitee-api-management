@@ -203,6 +203,7 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
             .stream()
             .filter(item -> !PortalVisibility.PUBLIC.equals(item.getVisibility()))
             .map(PortalNavigationAgent::getApiId)
+            .filter(java.util.Objects::nonNull)
             .collect(Collectors.toSet());
         if (privateAgentApiIds.isEmpty()) {
             return Set.of();

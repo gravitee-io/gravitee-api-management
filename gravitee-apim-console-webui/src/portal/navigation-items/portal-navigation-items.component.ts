@@ -1521,7 +1521,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     const itemsById = new Map(navigationItems.map(item => [item.id, item]));
 
     return navigationItems
-      .filter(item => item.type === 'API')
+      .filter((item): item is PortalNavigationApi | PortalNavigationAgent => item.type === 'API' || item.type === 'AGENT')
       .filter(item => {
         const itemApiProductContext = this.findApiProductNavigationContext(item, itemsById);
         return apiProductContext
@@ -1539,7 +1539,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   private extractAgentIdsFromNavigationItems(): string[] {
     return this.menuLinks()
-      .filter((item): item is PortalNavigationAgent => item.type === 'AGENT')
+      .filter((item): item is PortalNavigationAgent | PortalNavigationApi => item.type === 'AGENT' || item.type === 'API')
       .map(item => item.apiId);
   }
 

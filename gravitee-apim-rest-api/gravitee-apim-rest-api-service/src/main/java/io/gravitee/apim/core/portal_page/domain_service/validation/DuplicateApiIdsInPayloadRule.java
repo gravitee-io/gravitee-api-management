@@ -31,7 +31,7 @@ public class DuplicateApiIdsInPayloadRule implements BulkCreatePortalNavigationI
     public void validate(List<CreatePortalNavigationItem> items, String environmentId, CreateValidationContext ctx) {
         var seenApiReferences = new HashSet<ApiReference>();
         for (CreatePortalNavigationItem item : items) {
-            if (item.getType() != PortalNavigationItemType.API) {
+            if (item.getType() != PortalNavigationItemType.API && item.getType() != PortalNavigationItemType.AGENT) {
                 continue;
             }
             String apiId = item.getApiId();

@@ -38,8 +38,8 @@
           <p class="next-gen-body agent-detail__hero__description">{{ def.description }}</p>
         }
         <div class="agent-detail__hero__actions">
-          @if (def.documentationUrl) {
-            <a mat-stroked-button [href]="def.documentationUrl" target="_blank" rel="noopener noreferrer">
+          @if (safeDocumentationUrl(); as safeUrl) {
+            <a mat-stroked-button [href]="safeUrl" target="_blank" rel="noopener noreferrer">
               <mat-icon>open_in_new</mat-icon>
               <span i18n="@@agentDetailDocLink">Documentation</span>
             </a>
@@ -72,12 +72,12 @@
             <dt class="agent-detail__definition-label" i18n="@@agentDetailOrganization">Organization</dt>
             <dd class="agent-detail__definition-value">{{ prov.organization }}</dd>
           </div>
-          @if (prov.url) {
+          @if (safeProviderUrl(); as safeUrl) {
             <div class="agent-detail__definition-row">
               <dt class="agent-detail__definition-label" i18n="@@agentDetailWebsite">Website</dt>
               <dd class="agent-detail__definition-value">
-                <a [href]="prov.url" target="_blank" rel="noopener noreferrer" class="agent-detail__link">
-                  {{ prov.url }}
+                <a [href]="safeUrl" target="_blank" rel="noopener noreferrer" class="agent-detail__link">
+                  {{ safeUrl }}
                   <mat-icon class="icon-small">open_in_new</mat-icon>
                 </a>
               </dd>
@@ -153,7 +153,7 @@
                   </ul>
                 </div>
               }
-              @if (skillsDiffer(skill)) {
+              @if (skill.inputModes?.length || skill.outputModes?.length) {
                 <div class="agent-detail__skill-io next-gen-caption">
                   @if (skill.inputModes && skill.inputModes.length > 0) {
                     <span><strong i18n="@@agentDetailSkillIn">In:</strong> {{ skill.inputModes.join(', ') }}</span>

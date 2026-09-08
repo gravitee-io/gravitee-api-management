@@ -33,19 +33,12 @@ export class AgentCatalogService {
     return this.http.get<AgentCatalogPage>(`${baseUrl}/agents`, { params });
   }
 
-  getAgentById(orgId: string, envId: string, agentId: string): Observable<AgentCatalogItem> {
-    const baseUrl = this.buildGammaBaseUrl(orgId, envId);
-    return this.http.get<AgentCatalogItem>(`${baseUrl}/agents/${agentId}`);
-  }
-
   /**
    * Finds the catalog agent matching a given agent name.
    * Uses full-text search then picks the first exact name match.
    */
   findAgentByName(orgId: string, envId: string, agentName: string): Observable<AgentCatalogItem | null> {
-    return this.searchAgents(orgId, envId, agentName).pipe(
-      map(page => page.data?.find(a => a.definition?.name === agentName) ?? page.data?.[0] ?? null),
-    );
+    return this.searchAgents(orgId, envId, agentName).pipe(map(page => page.data?.find(a => a.definition?.name === agentName) ?? null));
   }
 
   /**

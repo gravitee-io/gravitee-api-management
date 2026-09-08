@@ -69,11 +69,10 @@ function fakeAgent(overrides?: Partial<AgentCatalogItem>): AgentCatalogItem {
 }
 
 @Component({
-  template: '<app-agent-detail [agentId]="agentId" [title]="title" [orgId]="orgId" [envId]="envId" />',
+  template: '<app-agent-detail [title]="title" [orgId]="orgId" [envId]="envId" />',
   imports: [AgentDetailComponent],
 })
 class TestHostComponent {
-  agentId: string | undefined = 'agent-1';
   title = 'Test Agent';
   orgId = 'DEFAULT';
   envId = 'DEFAULT';
@@ -100,8 +99,11 @@ describe('AgentDetailComponent', () => {
 
     fixture.detectChanges();
 
-    const req = http.expectOne(r => r.url.endsWith('/agents/agent-1'));
-    req.flush(agent);
+    const req = http.expectOne(r => r.url.includes('/agents') && r.params.get('q') === 'Test Agent');
+    req.flush({
+      data: agent ? [agent] : [],
+      pagination: { page: 1, perPage: 5, pageCount: agent ? 1 : 0, totalCount: agent ? 1 : 0 },
+    });
 
     await fixture.whenStable();
     fixture.detectChanges();
@@ -202,38 +204,8 @@ describe('AgentDetailComponent', () => {
     expect(el.querySelector('.agent-detail__capability-chip')).toBeFalsy();
   });
 
-  it('should look up the agent by catalog id when agentId is set', async () => {
+  it('should look up the agent by name search', async () => {
     await setup();
-    http.expectNone(r => r.url.includes('/agents') && r.params.has('q'));
-  });
-
-  it('should fall back to name search when agentId is absent', async () => {
-    await TestBed.configureTestingModule({
-      imports: [TestHostComponent, MatIconTestingModule],
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        provideNoopAnimations(),
-        provideRouter([]),
-        { provide: ConfigService, useValue: { baseURL: TESTING_BASE_URL } },
-      ],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(TestHostComponent);
-    fixture.componentInstance.agentId = undefined;
-    http = TestBed.inject(HttpTestingController);
-
-    fixture.detectChanges();
-
-    const req = http.expectOne(r => r.url.includes('/agents') && r.params.get('q') === 'Test Agent');
-    req.flush({
-      data: [fakeAgent()],
-      pagination: { page: 1, perPage: 5, pageCount: 1, totalCount: 1 },
-    });
-
-    await fixture.whenStable();
-    fixture.detectChanges();
-
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('.agent-detail__hero__name')?.textContent?.trim()).toBe('Test Agent');
   });
@@ -255,7 +227,7 @@ describe('AgentDetailComponent', () => {
 
     fixture.detectChanges();
 
-    const req = http.expectOne(r => r.url.endsWith('/agents/agent-1'));
+    const req = http.expectOne(r => r.url.includes('/agents') && r.params.get('q') === 'Test Agent');
     req.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
 
     await fixture.whenStable();

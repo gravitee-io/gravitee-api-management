@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator;
+import io.gravitee.apim.core.portal_page.domain_service.validation.AgentItemCreateRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ApiDocumentationAreaRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ApiItemCreateRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ApiItemUpdateRule;
@@ -95,6 +96,7 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
             titleRequiredRule,
             new ApiItemCreateRule(apiProductQueryService),
             new ApiProductItemCreateRule(apiProductQueryService),
+            new AgentItemCreateRule(),
             new ApiDocumentationAreaRule(),
             linkUrlRule,
             parentRule,
@@ -261,7 +263,12 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
     private static boolean hasApiOrApiProductItems(List<CreatePortalNavigationItem> items) {
         return items
             .stream()
-            .anyMatch(item -> item.getType() == PortalNavigationItemType.API || item.getType() == PortalNavigationItemType.API_PRODUCT);
+            .anyMatch(
+                item ->
+                    item.getType() == PortalNavigationItemType.API ||
+                    item.getType() == PortalNavigationItemType.API_PRODUCT ||
+                    item.getType() == PortalNavigationItemType.AGENT
+            );
     }
 
     private void applyValidationRules(PendingUpdate pending, UpdateValidationContext updateCtx) {

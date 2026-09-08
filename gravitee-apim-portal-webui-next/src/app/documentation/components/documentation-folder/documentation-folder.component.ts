@@ -102,6 +102,11 @@ export class DocumentationFolderComponent {
     stream: ({ params }) => (params ? this.apiService.details(params) : of(null)),
   });
   apiHasMcp = computed(() => !this.api.error() && !!this.api.value()?.mcp);
+  isSelectedAgentA2A = computed(() => {
+    if (!this.selectedAgent()) return false;
+    const api = this.api.error() ? null : this.api.value();
+    return api?.type !== 'MCP_PROXY';
+  });
 
   // Every read of api.value() is guarded: an errored resource throws from value(), and this page
   // must still render its tree and breadcrumbs when the api call fails.
@@ -180,7 +185,10 @@ export class DocumentationFolderComponent {
             return of(this.folderData());
         }
       }),
-      catchError(() => of({ children: [], selectedPageContent: null })),
+      catchError(() => {
+        this.selectedAgent.set(null);
+        return of({ children: [], selectedPageContent: null });
+      }),
     );
   }
 
@@ -210,7 +218,7 @@ export class DocumentationFolderComponent {
 
     if (child.type === 'AGENT') {
       this.selectedAgent.set(child);
-      this.documentationActionContext.set({ apiId: child.apiId, subscriptionTarget: { type: 'API', apiId: child.apiId } });
+      this.documentationActionContext.set(this.treeService.getDocumentationActionContext(selectedId));
       return of({ children, selectedPageContent: null }).pipe(
         tap(() => this.breadcrumbs.set(this.treeService.getBreadcrumbsByNodeId(selectedId))),
       );
@@ -218,7 +226,7 @@ export class DocumentationFolderComponent {
 
     if (child.type === 'API' || child.type === 'API_PRODUCT' || child.type === 'FOLDER') {
       // APIs, API Products, and folders are not selectable, so navigate to their first page.
-      const firstPageId = this.treeService.findFirstPageIdWithinNode(selectedId);
+      const firstPageId = this.treeService.findFirstSelectableIdWithinNode(selectedId);
       return of({ children, selectedPageContent: null }).pipe(tap(() => firstPageId && this.navigateToPage(firstPageId)));
     }
 
@@ -231,7 +239,7 @@ export class DocumentationFolderComponent {
   }
 
   private navigateToFirstPage() {
-    const firstPageId = this.treeService.findFirstPageId();
+    const firstPageId = this.treeService.findFirstSelectableId();
     if (firstPageId) {
       this.navigateToPage(firstPageId);
     }

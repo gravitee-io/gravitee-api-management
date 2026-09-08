@@ -90,22 +90,22 @@ export class TreeService {
     };
   }
 
-  findFirstPageId(): string | null {
-    return this.findFirstPageIdRecursively(this.treeNodes);
+  findFirstSelectableId(): string | null {
+    return this.findFirstSelectableIdRecursively(this.treeNodes);
   }
 
-  findFirstPageIdWithinNode(nodeId: string): string | null {
+  findFirstSelectableIdWithinNode(nodeId: string): string | null {
     const node = this.treeNodesById.get(nodeId);
     if (!node?.children?.length) return null;
-    return this.findFirstPageIdRecursively(node.children as TreeNode[]);
+    return this.findFirstSelectableIdRecursively(node.children as TreeNode[]);
   }
 
-  private findFirstPageIdRecursively(nodes: TreeNode[]): string | null {
+  private findFirstSelectableIdRecursively(nodes: TreeNode[]): string | null {
     for (const node of nodes) {
       if (node.type === 'PAGE' || node.type === 'AGENT') {
         return node.id;
       } else {
-        const id = this.findFirstPageIdRecursively(node.children ?? []);
+        const id = this.findFirstSelectableIdRecursively(node.children ?? []);
         if (id) return id;
       }
     }

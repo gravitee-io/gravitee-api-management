@@ -191,7 +191,7 @@
 
   &__definition-row {
     display: grid;
-    grid-template-columns: 140px 1fr;
+    grid-template-columns: minmax(140px, max-content) 1fr;
     gap: 12px;
     align-items: baseline;
   }
@@ -206,6 +206,7 @@
     font-size: 14px;
     color: app-theme.$default-text-color;
     margin: 0;
+    overflow-wrap: anywhere;
   }
 
   &__link {
