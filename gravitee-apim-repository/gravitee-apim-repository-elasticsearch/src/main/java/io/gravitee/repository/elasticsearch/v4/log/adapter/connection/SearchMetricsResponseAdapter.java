@@ -85,6 +85,7 @@ public class SearchMetricsResponseAdapter {
             .planId(asTextOrNull(json.get(RequestV2MetricsV4Fields.PLAN_ID.v4Metrics())))
             .clientIdentifier(asTextOrNull(json.get(RequestV2MetricsV4Fields.CLIENT_IDENTIFIER.v4Metrics())))
             .transactionId(asTextOrNull(json.get(RequestV2MetricsV4Fields.TRANSACTION_ID.v4Metrics())))
+            .traceId(asTextOrNull(json.get(RequestV2MetricsV4Fields.TRACE_ID.v4Metrics())))
             .method(HttpMethod.get(asIntOr(json.get(RequestV2MetricsV4Fields.HTTP_METHOD.v4Metrics()), 0)))
             .requestEnded(asBooleanOrFalse(json.get(RequestV2MetricsV4Fields.REQUEST_ENDED.v4Metrics())))
             .entrypointId(asTextOrNull(json.get(RequestV2MetricsV4Fields.ENTRYPOINT_ID.v4Metrics())))

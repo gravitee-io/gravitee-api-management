@@ -54,6 +54,7 @@ public class FindApiMetricsDetailResponseAdapter {
             .apiId(coalesceText(json, "api-id", "api"))
             .requestId(requestId != null ? requestId : hitId)
             .transactionId(coalesceText(json, "transaction-id", "transaction"))
+            .traceId(asTextOrNull(json.get("trace-id")))
             .host(asTextOrNull(json.get("host")))
             .applicationId(coalesceText(json, "application-id", "application"))
             .planId(coalesceText(json, "plan-id", "plan"))

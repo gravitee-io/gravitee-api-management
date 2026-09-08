@@ -30,6 +30,8 @@ public class ApiMetricsDetail {
     String apiId;
     String requestId;
     String transactionId;
+    /** OTel trace id of the request, written by the gateway only when tracing is enabled. */
+    String traceId;
     String host;
     String applicationId;
     String planId;
