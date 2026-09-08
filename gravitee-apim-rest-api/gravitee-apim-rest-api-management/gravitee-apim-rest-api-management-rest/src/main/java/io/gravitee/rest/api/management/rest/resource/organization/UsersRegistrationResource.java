@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -35,6 +36,7 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
@@ -70,8 +72,19 @@ public class UsersRegistrationResource extends AbstractResource {
         content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = UserEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    public Response registerUser(@Valid NewExternalUserEntity newExternalUserEntity) {
-        UserEntity newUser = userService.register(GraviteeContext.getExecutionContext(), newExternalUserEntity);
+    public Response registerUser(
+        @Parameter(
+            description = "Optional activation page target. When set to `gamma`, the activation email link targets the " +
+                "Gravitee Gamma console registration page. When omitted, the APIM Console page is used. Only this fixed " +
+                "keyword is accepted; a URL is rejected."
+        ) @QueryParam("registrationTarget") String registrationTarget,
+        @Valid NewExternalUserEntity newExternalUserEntity
+    ) {
+        UserEntity newUser = userService.registerWithTarget(
+            GraviteeContext.getExecutionContext(),
+            newExternalUserEntity,
+            registrationTarget
+        );
         if (newUser != null) {
             return Response.ok().entity(newUser).build();
         }

@@ -30,6 +30,7 @@ import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.USER_CREATION
 import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.USER_REGISTRATION;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
+import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.GAMMA_REGISTRATION_PATH;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.GAMMA_RESET_PASSWORD_PATH;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.REGISTRATION_PATH;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.RESET_PASSWORD_PATH;
@@ -173,6 +174,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
@@ -200,6 +202,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
      * A default source used for user registration.
      */
     private static final String IDP_SOURCE_GRAVITEE = "gravitee";
+
+    /** The only email link destination a caller may name. Never a URL -- see registerWithTarget. */
+    private static final String GAMMA_TARGET = "gamma";
     private static final String TEMPLATE_ENGINE_PROFILE_ATTRIBUTE = "profile";
     private static final String TEMPLATE_ENGINE_ACCESSTOKEN_ATTRIBUTE = "accessToken";
     private static final String TEMPLATE_ENGINE_IDTOKEN_ATTRIBUTE = "idToken";
@@ -892,6 +897,42 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         final NewExternalUserEntity newExternalUserEntity,
         final String confirmationPageUrl
     ) {
+        return doRegister(executionContext, newExternalUserEntity, () -> sanitizePortalRedirectUrl(executionContext, confirmationPageUrl));
+    }
+
+    @Override
+    public UserEntity registerWithTarget(
+        ExecutionContext executionContext,
+        final NewExternalUserEntity newExternalUserEntity,
+        final String registrationTarget
+    ) {
+        if (registrationTarget == null || registrationTarget.isBlank()) {
+            return register(executionContext, newExternalUserEntity, null);
+        }
+
+        if (GAMMA_TARGET.equalsIgnoreCase(registrationTarget.trim())) {
+            // Built from installation configuration rather than from the caller, so it deliberately does
+            // not pass through sanitizePortalRedirectUrl: that whitelist exists for caller-supplied portal
+            // URLs and would drop a trusted one built here.
+            return doRegister(executionContext, newExternalUserEntity, () ->
+                buildGammaRegistrationPageUrl(executionContext.getOrganizationId())
+            );
+        }
+
+        throw new ValidationDomainException("Unsupported registration target: " + registrationTarget);
+    }
+
+    /**
+     * @param confirmationPageUrl resolved only once registration is known to be enabled, and trusted by
+     *     then -- either sanitised from a caller or built here from installation configuration. It is a
+     *     supplier so a request rejected for a disabled registration does no whitelist lookup and no
+     *     installation lookup on its way out.
+     */
+    private UserEntity doRegister(
+        ExecutionContext executionContext,
+        final NewExternalUserEntity newExternalUserEntity,
+        final Supplier<String> confirmationPageUrl
+    ) {
         final ReferenceContext currentContext = executionContext.getReferenceContext();
 
         checkUserRegistrationEnabled(executionContext);
@@ -901,7 +942,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             executionContext,
             newExternalUserEntity,
             USER_REGISTRATION,
-            sanitizePortalRedirectUrl(executionContext, confirmationPageUrl),
+            confirmationPageUrl.get(),
             autoRegistrationEnabled,
             false
         );
@@ -1543,7 +1584,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             return;
         }
 
-        if ("gamma".equalsIgnoreCase(resetTarget.trim())) {
+        if (GAMMA_TARGET.equalsIgnoreCase(resetTarget.trim())) {
             doResetPassword(executionContext, id, buildGammaResetPasswordPageUrl(executionContext.getOrganizationId()));
             return;
         }
@@ -1552,6 +1593,14 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     private String buildGammaResetPasswordPageUrl(final String organizationId) {
+        return buildGammaPageUrl(organizationId, GAMMA_RESET_PASSWORD_PATH);
+    }
+
+    private String buildGammaRegistrationPageUrl(final String organizationId) {
+        return buildGammaPageUrl(organizationId, GAMMA_REGISTRATION_PATH);
+    }
+
+    private String buildGammaPageUrl(final String organizationId, final String path) {
         String gammaUrl = installationAccessQueryService.getGammaUrl(organizationId);
         if (gammaUrl == null || gammaUrl.isBlank()) {
             throw new ValidationDomainException("Gamma URL is not configured for organization: " + organizationId);
@@ -1559,7 +1608,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         if (gammaUrl.endsWith("/")) {
             gammaUrl = gammaUrl.substring(0, gammaUrl.length() - 1);
         }
-        return gammaUrl + GAMMA_RESET_PASSWORD_PATH;
+        return gammaUrl + path;
     }
 
     @Override
