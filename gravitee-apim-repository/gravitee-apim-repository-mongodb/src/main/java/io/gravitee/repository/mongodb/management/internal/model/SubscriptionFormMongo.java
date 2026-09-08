@@ -36,6 +36,7 @@ public class SubscriptionFormMongo {
 
     private String environmentId;
     private String gmdContent;
+    private String portalPageContentId;
     private boolean enabled;
 
     @NonNull

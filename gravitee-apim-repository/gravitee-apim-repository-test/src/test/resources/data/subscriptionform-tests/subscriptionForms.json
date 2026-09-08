@@ -2,7 +2,8 @@
    {
       "id": "sub-form-find-by-id",
       "environmentId": "env-1",
-      "gmdContent": "<gmd-grid columns=\"2\"><gmd-card><gmd-card-title>Info</gmd-card-title><gmd-input name=\"email\" label=\"Email\" fieldKey=\"email\" required=\"true\"/></gmd-card></gmd-grid>",
+      "gmdContent": null,
+      "portalPageContentId": "5d1f0c1e-3a3b-4b7e-9c2a-8f6e1d2c3b4a",
       "enabled": true,
       "validationConstraints": "{\"email\":[{\"type\":\"required\"}]}"
    },

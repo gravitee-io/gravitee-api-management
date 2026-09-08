@@ -16,6 +16,10 @@
 package io.gravitee.apim.infra.query_service.subscription_form;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.apim.core.subscription_form.query_service.SubscriptionFormQueryService;
@@ -29,24 +33,32 @@ import org.springframework.stereotype.Component;
 /**
  * Infrastructure implementation of SubscriptionFormQueryService.
  *
+ * <p>Reads the {@code subscription_forms} row and resolves its definition from the referenced
+ * {@link GraviteeMarkdownPageContent}. Rows that still carry their GMD inline (not yet migrated by
+ * {@code SubscriptionFormPageContentUpgrader}) are served from that inline content.</p>
+ *
  * @author Gravitee.io Team
  */
 @Component
 public class SubscriptionFormQueryServiceImpl implements SubscriptionFormQueryService {
 
-    private final SubscriptionFormRepository subscriptionFormRepository;
     private static final SubscriptionFormAdapter subscriptionFormAdapter = SubscriptionFormAdapter.INSTANCE;
 
-    public SubscriptionFormQueryServiceImpl(@Lazy SubscriptionFormRepository subscriptionFormRepository) {
+    private final SubscriptionFormRepository subscriptionFormRepository;
+    private final PortalPageContentQueryService pageContentQueryService;
+
+    public SubscriptionFormQueryServiceImpl(
+        @Lazy SubscriptionFormRepository subscriptionFormRepository,
+        @Lazy PortalPageContentQueryService pageContentQueryService
+    ) {
         this.subscriptionFormRepository = subscriptionFormRepository;
+        this.pageContentQueryService = pageContentQueryService;
     }
 
     @Override
     public Optional<SubscriptionForm> findByIdAndEnvironmentId(String environmentId, SubscriptionFormId subscriptionFormId) {
         try {
-            return subscriptionFormRepository
-                .findByIdAndEnvironmentId(subscriptionFormId.toString(), environmentId)
-                .map(subscriptionFormAdapter::toEntity);
+            return subscriptionFormRepository.findByIdAndEnvironmentId(subscriptionFormId.toString(), environmentId).map(this::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
                 String.format(
@@ -62,12 +74,40 @@ public class SubscriptionFormQueryServiceImpl implements SubscriptionFormQuerySe
     @Override
     public Optional<SubscriptionForm> findDefaultForEnvironmentId(String environmentId) {
         try {
-            return subscriptionFormRepository.findByEnvironmentId(environmentId).map(subscriptionFormAdapter::toEntity);
+            return subscriptionFormRepository.findByEnvironmentId(environmentId).map(this::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
                 String.format("An error occurred while trying to find a SubscriptionForm for environment: %s", environmentId),
                 e
             );
         }
+    }
+
+    private SubscriptionForm toEntity(io.gravitee.repository.management.model.SubscriptionForm form) {
+        var gmdContent = form.getPortalPageContentId() == null
+            ? GraviteeMarkdown.of(form.getGmdContent())
+            : loadContent(form.getId(), PortalPageContentId.of(form.getPortalPageContentId()));
+        return subscriptionFormAdapter.toEntity(form, gmdContent);
+    }
+
+    private GraviteeMarkdown loadContent(String subscriptionFormId, PortalPageContentId contentId) {
+        var content = pageContentQueryService
+            .findById(contentId)
+            .orElseThrow(() ->
+                new TechnicalDomainException(
+                    String.format("SubscriptionForm %s references a missing page content: %s", subscriptionFormId, contentId)
+                )
+            );
+        if (!(content instanceof GraviteeMarkdownPageContent gmdPageContent)) {
+            throw new TechnicalDomainException(
+                String.format(
+                    "SubscriptionForm %s references page content %s of type %s instead of GRAVITEE_MARKDOWN",
+                    subscriptionFormId,
+                    contentId,
+                    content.getType()
+                )
+            );
+        }
+        return gmdPageContent.getContent();
     }
 }
