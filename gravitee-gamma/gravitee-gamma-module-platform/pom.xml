@@ -34,7 +34,7 @@
 
     <properties>
         <skip.ui.build>false</skip.ui.build>
-        <gravitee-am-management-api-sdk-java.version>4.12.0-alpha.4</gravitee-am-management-api-sdk-java.version>
+        <gravitee-am-management-api-sdk-java.version>4.12.0-alpha.6</gravitee-am-management-api-sdk-java.version>
     </properties>
 
     <dependencyManagement>
