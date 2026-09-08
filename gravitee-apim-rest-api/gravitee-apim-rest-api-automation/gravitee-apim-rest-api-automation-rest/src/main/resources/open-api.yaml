@@ -1649,11 +1649,30 @@ components:
       properties:
         properties:
           type: object
-          description: Dictionary data are key/value pairs for `MANUAL` properties
+          description: >-
+            Dictionary data are key/value pairs for `MANUAL` properties. Each value is
+            either a plain string (the pre-encryption-support shape, always unencrypted)
+            or an object carrying the value plus its encryption status.
           additionalProperties:
-            type: string
+            $ref: "#/components/schemas/DictionaryPropertyValue"
       required:
         - properties
+    DictionaryPropertyValue:
+      description: >-
+        A single MANUAL dictionary property value. Accepts a bare string for
+        backward compatibility with dictionaries declared before encryption support;
+        always returned as the typed object.
+      oneOf:
+        - type: string
+        - type: object
+          properties:
+            value:
+              type: string
+            encrypted:
+              type: boolean
+              readOnly: true
+          required:
+            - value
     DynamicDictionarySpec:
       description: A dynamic dictionary populated from an external provider on a schedule.
       type: object

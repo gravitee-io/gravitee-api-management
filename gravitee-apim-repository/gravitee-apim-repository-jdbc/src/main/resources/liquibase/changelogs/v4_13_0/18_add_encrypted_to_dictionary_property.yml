@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.13.0_18_add_encrypted_to_dictionary_property
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}dictionary_property
+            columns:
+              - column: {name: encrypted, type: boolean, defaultValueBoolean: false, constraints: { nullable: false } }
