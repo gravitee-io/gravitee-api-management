@@ -19,8 +19,10 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.scoring.model.EnvironmentApiScoringReport;
 import io.gravitee.apim.core.scoring.query_service.ScoringReportQueryService;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import java.util.Collection;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
@@ -33,18 +35,25 @@ public class GetEnvironmentReportsUseCase {
     public Output execute(Input input) {
         var pageable = input.pageable.orElse(new PageableImpl(1, 10));
 
-        var result = scoringReportQueryService.findEnvironmentLatestReports(input.environmentId(), pageable);
+        var result = scoringReportQueryService.findEnvironmentLatestReports(input.environmentId(), input.apiTypes(), pageable);
 
         return new Output(result);
     }
 
-    public record Input(String environmentId, Optional<Pageable> pageable) {
+    /**
+     * @param apiTypes restricts the result to these API types; {@code null} or empty returns every type.
+     */
+    public record Input(String environmentId, Collection<ApiType> apiTypes, Optional<Pageable> pageable) {
         public Input(String environmentId) {
-            this(environmentId, Optional.empty());
+            this(environmentId, null, Optional.empty());
         }
 
         public Input(String environmentId, Pageable pageable) {
-            this(environmentId, Optional.ofNullable(pageable));
+            this(environmentId, null, Optional.ofNullable(pageable));
+        }
+
+        public Input(String environmentId, Collection<ApiType> apiTypes, Pageable pageable) {
+            this(environmentId, apiTypes, Optional.ofNullable(pageable));
         }
     }
 

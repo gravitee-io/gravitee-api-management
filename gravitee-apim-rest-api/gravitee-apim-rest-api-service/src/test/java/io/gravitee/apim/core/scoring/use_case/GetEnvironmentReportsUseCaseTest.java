@@ -24,6 +24,8 @@ import io.gravitee.apim.core.scoring.model.EnvironmentApiScoringReport;
 import io.gravitee.apim.core.scoring.model.ScoringAssetType;
 import io.gravitee.apim.core.scoring.model.ScoringReport;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -121,11 +123,11 @@ class GetEnvironmentReportsUseCaseTest {
             .asInstanceOf(InstanceOfAssertFactories.LIST)
             .contains(
                 new EnvironmentApiScoringReport(
-                    new EnvironmentApiScoringReport.Api(API_ID_1, "api-name", UPDATED_AT),
+                    new EnvironmentApiScoringReport.Api(API_ID_1, "api-name", null, UPDATED_AT),
                     new EnvironmentApiScoringReport.Summary(REPORT_ID, CREATED_AT, 0.84D, 1L, 1L, 1L, 1L)
                 ),
                 new EnvironmentApiScoringReport(
-                    new EnvironmentApiScoringReport.Api(API_ID_2, "api-name", UPDATED_AT),
+                    new EnvironmentApiScoringReport.Api(API_ID_2, "api-name", null, UPDATED_AT),
                     new EnvironmentApiScoringReport.Summary(REPORT_ID, CREATED_AT, 0.84D, 1L, 1L, 1L, 1L)
                 )
             );
@@ -146,7 +148,7 @@ class GetEnvironmentReportsUseCaseTest {
             .asInstanceOf(InstanceOfAssertFactories.LIST)
             .contains(
                 new EnvironmentApiScoringReport(
-                    new EnvironmentApiScoringReport.Api(API_ID_1, "api-name", UPDATED_AT),
+                    new EnvironmentApiScoringReport.Api(API_ID_1, "api-name", null, UPDATED_AT),
                     new EnvironmentApiScoringReport.Summary(REPORT_ID, CREATED_AT, 0.84D, 1L, 1L, 1L, 1L)
                 )
             );
@@ -192,5 +194,66 @@ class GetEnvironmentReportsUseCaseTest {
 
     private void givenExistingScoringReports(List<ScoringReport> reports) {
         scoringReportQueryService.initWith(reports);
+    }
+
+    @Test
+    void should_restrict_the_reports_to_the_requested_api_types() {
+        // Given
+        givenExistingScoringReports(aReport().withApiId(API_ID_1), aReport().withApiId(API_ID_2), aReport().withApiId(API_ID_3));
+        scoringReportQueryService.giveApiType(API_ID_1, ApiType.MESSAGE);
+        scoringReportQueryService.giveApiType(API_ID_2, ApiType.NATIVE);
+        scoringReportQueryService.giveApiType(API_ID_3, ApiType.PROXY);
+
+        // When
+        var report = useCase.execute(
+            new GetEnvironmentReportsUseCase.Input(ENVIRONMENT_1, List.of(ApiType.MESSAGE, ApiType.NATIVE), (Pageable) null)
+        );
+
+        // Then
+        Assertions.assertThat(report)
+            .extracting(GetEnvironmentReportsUseCase.Output::reports)
+            .extracting(Page::getContent)
+            .asInstanceOf(InstanceOfAssertFactories.LIST)
+            .extracting(r -> ((EnvironmentApiScoringReport) r).api().apiId())
+            .containsExactlyInAnyOrder(API_ID_1, API_ID_2);
+    }
+
+    @Test
+    void should_return_every_api_type_when_no_type_is_requested() {
+        // Given
+        givenExistingScoringReports(aReport().withApiId(API_ID_1), aReport().withApiId(API_ID_2), aReport().withApiId(API_ID_3));
+        scoringReportQueryService.giveApiType(API_ID_1, ApiType.MESSAGE);
+        scoringReportQueryService.giveApiType(API_ID_2, ApiType.NATIVE);
+        scoringReportQueryService.giveApiType(API_ID_3, ApiType.PROXY);
+
+        // When
+        var report = useCase.execute(new GetEnvironmentReportsUseCase.Input(ENVIRONMENT_1));
+
+        // Then
+        Assertions.assertThat(report)
+            .extracting(GetEnvironmentReportsUseCase.Output::reports)
+            .extracting(Page::getContent)
+            .asInstanceOf(InstanceOfAssertFactories.LIST)
+            .hasSize(3);
+    }
+
+    // An empty list is "no filter", not "match nothing" — a caller passing an unfiltered collection
+    // must not silently get an empty page.
+    @Test
+    void should_return_every_api_type_when_the_requested_types_are_empty() {
+        // Given
+        givenExistingScoringReports(aReport().withApiId(API_ID_1), aReport().withApiId(API_ID_2));
+        scoringReportQueryService.giveApiType(API_ID_1, ApiType.MESSAGE);
+        scoringReportQueryService.giveApiType(API_ID_2, ApiType.PROXY);
+
+        // When
+        var report = useCase.execute(new GetEnvironmentReportsUseCase.Input(ENVIRONMENT_1, List.of(), (Pageable) null));
+
+        // Then
+        Assertions.assertThat(report)
+            .extracting(GetEnvironmentReportsUseCase.Output::reports)
+            .extracting(Page::getContent)
+            .asInstanceOf(InstanceOfAssertFactories.LIST)
+            .hasSize(2);
     }
 }

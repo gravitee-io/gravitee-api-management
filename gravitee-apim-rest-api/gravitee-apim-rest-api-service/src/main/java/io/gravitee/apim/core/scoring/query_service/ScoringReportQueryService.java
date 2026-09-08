@@ -19,11 +19,13 @@ import io.gravitee.apim.core.scoring.model.EnvironmentApiScoringReport;
 import io.gravitee.apim.core.scoring.model.EnvironmentOverview;
 import io.gravitee.apim.core.scoring.model.ScoringReport;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.model.common.Pageable;
+import java.util.Collection;
 import java.util.Optional;
 
 public interface ScoringReportQueryService {
     Optional<ScoringReport> findLatestByApiId(String apiId);
-    Page<EnvironmentApiScoringReport> findEnvironmentLatestReports(String environmentId, Pageable pageable);
+    Page<EnvironmentApiScoringReport> findEnvironmentLatestReports(String environmentId, Collection<ApiType> apiTypes, Pageable pageable);
     EnvironmentOverview getEnvironmentScoringSummary(String environmentId);
 }

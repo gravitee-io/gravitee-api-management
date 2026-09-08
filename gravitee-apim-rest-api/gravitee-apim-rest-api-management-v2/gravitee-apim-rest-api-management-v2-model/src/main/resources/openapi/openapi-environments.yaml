@@ -332,9 +332,13 @@ paths:
         - Scoring
       summary: Get the scoring of all APIs
       operationId: getApisScoring
+      description: |-
+        Returns every API of the environment, including those that have never been evaluated —
+        those come back without a score. Use `apiTypes` to restrict the result to some API types.
       parameters:
         - $ref: "#/components/parameters/pageParam"
         - $ref: "#/components/parameters/perPageParam"
+        - $ref: "#/components/parameters/scoringApiTypesParam"
       responses:
         "200":
           $ref: "#/components/responses/EnvironmentApisScoringResponse"
@@ -1891,6 +1895,8 @@ components:
         name:
           type: string
           description: API name
+        type:
+          $ref: "#/components/schemas/ApiType"
         pictureUrl:
           type: string
           description: The URL to the API's picture
@@ -3390,6 +3396,19 @@ components:
       schema:
         type: string
         example: my cluster
+    scoringApiTypesParam:
+      name: apiTypes
+      in: query
+      required: false
+      description: |-
+        Filter the scored APIs by type. Comma-separate several types
+        (`?apiTypes=MESSAGE,NATIVE`). Omitted, every type is returned.
+      explode: false
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/ApiType"
+
     clusterTypeParam:
       name: type
       in: query

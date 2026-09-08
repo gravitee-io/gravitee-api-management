@@ -20,10 +20,12 @@ import io.gravitee.apim.core.scoring.model.EnvironmentOverview;
 import io.gravitee.apim.core.scoring.model.ScoringReportView;
 import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.management.v2.rest.model.ApiScoring;
+import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentApiScore;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentScoringOverview;
 import io.gravitee.rest.api.management.v2.rest.utils.ManagementApiLinkHelper;
 import jakarta.ws.rs.core.UriInfo;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -39,6 +41,7 @@ public interface ScoringReportMapper {
 
     @Mapping(target = "id", source = "source.api.apiId")
     @Mapping(target = "name", source = "source.api.name")
+    @Mapping(target = "type", source = "source.api.type")
     @Mapping(target = "score", source = "source.summary.score")
     @Mapping(target = "errors", source = "source.summary.errors")
     @Mapping(target = "warnings", source = "source.summary.warnings")
@@ -49,6 +52,13 @@ public interface ScoringReportMapper {
 
     @Mapping(target = "id", source = "source.environmentId")
     EnvironmentScoringOverview map(EnvironmentOverview source);
+
+    /**
+     * The `apiTypes` query filter, from the REST enum to the definition one — MapStruct maps them by
+     * name, the two enums declaring the same constants. An absent parameter arrives as null and stays
+     * null; every layer below reads null and empty alike as "no filter", never as "match nothing".
+     */
+    List<io.gravitee.definition.model.v4.ApiType> mapApiTypes(List<ApiType> apiTypes);
 
     @Named("computeApiLinks")
     default String computePictureUrl(EnvironmentApiScoringReport report, UriInfo uriInfo) {

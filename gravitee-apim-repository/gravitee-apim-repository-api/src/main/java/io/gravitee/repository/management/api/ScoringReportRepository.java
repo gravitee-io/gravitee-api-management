@@ -16,6 +16,7 @@
 package io.gravitee.repository.management.api;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.ScoringEnvironmentApi;
@@ -29,7 +30,14 @@ public interface ScoringReportRepository {
     ScoringReport create(ScoringReport report) throws TechnicalException;
     Optional<ScoringReport> findLatestFor(String apiId) throws TechnicalException;
     Stream<ScoringReport> findLatestReports(Collection<String> apiIds) throws TechnicalException;
-    Page<ScoringEnvironmentApi> findEnvironmentLatestReports(String environmentId, Pageable pageable) throws TechnicalException;
+    /**
+     * Latest scoring of every API of an environment, including APIs that were never evaluated.
+     *
+     * @param apiTypes when non-empty, restricts the result to APIs of these types; {@code null} or
+     *                 empty returns every type.
+     */
+    Page<ScoringEnvironmentApi> findEnvironmentLatestReports(String environmentId, Collection<ApiType> apiTypes, Pageable pageable)
+        throws TechnicalException;
     void deleteByApi(String api) throws TechnicalException;
 
     ScoringEnvironmentSummary getScoringEnvironmentSummary(String environmentId) throws TechnicalException;

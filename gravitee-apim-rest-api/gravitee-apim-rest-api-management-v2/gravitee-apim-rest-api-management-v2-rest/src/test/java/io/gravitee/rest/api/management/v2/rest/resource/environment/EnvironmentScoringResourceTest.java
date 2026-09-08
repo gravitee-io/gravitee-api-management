@@ -25,6 +25,7 @@ import inmemory.ScoringReportQueryServiceInMemory;
 import inmemory.ScoringRulesetCrudServiceInMemory;
 import io.gravitee.apim.core.scoring.model.ScoringReport;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentApiScore;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentApisScoringResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentScoringOverview;
@@ -102,6 +103,7 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
         void should_return_environment_api_score() {
             // Given
             scoringReportQueryService.initWith(List.of(aReport("report1").withApiId("api1")));
+            scoringReportQueryService.giveApiType("api1", io.gravitee.definition.model.v4.ApiType.MESSAGE);
 
             // When
             Response response = scoringApisTarget.request().get();
@@ -117,6 +119,7 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
                             new EnvironmentApiScore()
                                 .id("api1")
                                 .name("api-name")
+                                .type(ApiType.MESSAGE)
                                 .pictureUrl(apisTarget.path("api1").path("picture").queryParam("hash", "1697969730000").getUri().toString())
                                 .score(0.84)
                                 .errors(1)
@@ -191,6 +194,54 @@ class EnvironmentScoringResourceTest extends AbstractResourceTest {
                         .last(scoringApisTarget.queryParam("page", 4).queryParam("perPage", pageSize).getUri().toString())
                         .previous(scoringApisTarget.queryParam("page", 1).queryParam("perPage", pageSize).getUri().toString())
                         .next(scoringApisTarget.queryParam("page", 3).queryParam("perPage", pageSize).getUri().toString())
+                );
+        }
+
+        @Test
+        void should_restrict_the_result_to_the_requested_api_types() {
+            // Given
+            scoringReportQueryService.initWith(
+                List.of(aReport("report1").withApiId("api1"), aReport("report2").withApiId("api2"), aReport("report3").withApiId("api3"))
+            );
+            scoringReportQueryService.giveApiType("api1", io.gravitee.definition.model.v4.ApiType.MESSAGE);
+            scoringReportQueryService.giveApiType("api2", io.gravitee.definition.model.v4.ApiType.NATIVE);
+            scoringReportQueryService.giveApiType("api3", io.gravitee.definition.model.v4.ApiType.PROXY);
+
+            // When
+            // Multi-value query params are comma-separated in Management v2, not repeated:
+            // CommaSeparatedQueryParamConverterProvider binds a List<T> from a single CSV value.
+            Response response = scoringApisTarget
+                .queryParam("apiTypes", ApiType.MESSAGE.getValue() + "," + ApiType.NATIVE.getValue())
+                .request()
+                .get();
+
+            // Then
+            assertThat(response)
+                .hasStatus(HttpStatusCode.OK_200)
+                .asEntity(EnvironmentApisScoringResponse.class)
+                .satisfies(result -> {
+                    assertThat(result.getData()).extracting(EnvironmentApiScore::getId).containsExactlyInAnyOrder("api1", "api2");
+                    // The page total must count the filtered set, not the whole environment.
+                    assertThat(result.getPagination().getTotalCount()).isEqualTo(2L);
+                });
+        }
+
+        @Test
+        void should_return_every_api_type_when_no_type_is_requested() {
+            // Given
+            scoringReportQueryService.initWith(List.of(aReport("report1").withApiId("api1"), aReport("report2").withApiId("api2")));
+            scoringReportQueryService.giveApiType("api1", io.gravitee.definition.model.v4.ApiType.MESSAGE);
+            scoringReportQueryService.giveApiType("api2", io.gravitee.definition.model.v4.ApiType.PROXY);
+
+            // When
+            Response response = scoringApisTarget.request().get();
+
+            // Then
+            assertThat(response)
+                .hasStatus(HttpStatusCode.OK_200)
+                .asEntity(EnvironmentApisScoringResponse.class)
+                .satisfies(result ->
+                    assertThat(result.getData()).extracting(EnvironmentApiScore::getId).containsExactlyInAnyOrder("api1", "api2")
                 );
         }
     }

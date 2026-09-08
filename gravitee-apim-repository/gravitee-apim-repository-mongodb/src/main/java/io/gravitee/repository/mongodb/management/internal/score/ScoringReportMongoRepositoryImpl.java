@@ -18,7 +18,9 @@ package io.gravitee.repository.mongodb.management.internal.score;
 import static com.mongodb.client.model.Accumulators.avg;
 import static com.mongodb.client.model.Accumulators.sum;
 import static com.mongodb.client.model.Aggregates.*;
+import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Filters.ne;
 import static java.util.Map.entry;
 import static java.util.Map.ofEntries;
@@ -26,6 +28,7 @@ import static java.util.Map.ofEntries;
 import com.mongodb.client.model.Facet;
 import com.mongodb.client.model.UnwindOptions;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.ScoringEnvironmentApi;
 import io.gravitee.repository.management.model.ScoringEnvironmentSummary;
@@ -56,10 +59,30 @@ public class ScoringReportMongoRepositoryImpl implements ScoringReportMongoRepos
         return mongoTemplate.find(query, ScoringReportMongo.class);
     }
 
+    /** `ApiMongo.type` is a free-form String and is absent on pre-v4 APIs; an unknown value reads as null. */
+    private static ApiType toApiType(String value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            return ApiType.valueOf(value);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
     @Override
-    public Page<ScoringEnvironmentApi> findEnvironmentLatestReports(String environmentId, Pageable pageable) {
+    public Page<ScoringEnvironmentApi> findEnvironmentLatestReports(String environmentId, Collection<ApiType> apiTypes, Pageable pageable) {
         List<Bson> aggregations = new ArrayList<>();
-        aggregations.add(match(eq("environmentId", environmentId)));
+        // Both criteria go in the initial $match, against the API collection this pipeline starts from,
+        // so the $facet count below counts the filtered set and not the whole environment.
+        aggregations.add(
+            match(
+                apiTypes == null || apiTypes.isEmpty()
+                    ? eq("environmentId", environmentId)
+                    : and(eq("environmentId", environmentId), in("type", apiTypes.stream().map(Enum::name).toList()))
+            )
+        );
         aggregations.add(lookup(mongoTemplate.getCollectionName(ScoringReportMongo.class), "_id", "apiId", "scoringReport"));
         aggregations.add(unwind("$scoringReport", new UnwindOptions().preserveNullAndEmptyArrays(true)));
         aggregations.add(
@@ -73,6 +96,7 @@ public class ScoringReportMongoRepositoryImpl implements ScoringReportMongoRepos
                         entry("environmentId", 1),
                         entry("createdAt", "$scoringReport.createdAt"),
                         entry("pageId", "$scoringReport.pageId"),
+                        entry("apiType", "$type"),
                         entry("type", "$scoringReport.type"),
                         entry("summary", "$scoringReport.summary"),
                         entry("assets", "$scoringReport.assets")
@@ -101,6 +125,7 @@ public class ScoringReportMongoRepositoryImpl implements ScoringReportMongoRepos
                     return ScoringEnvironmentApi.builder()
                         .apiId(document.getString("apiId"))
                         .apiName(document.getString("name"))
+                        .apiType(toApiType(document.getString("apiType")))
                         .apiUpdatedAt(document.getDate("updatedAt"))
                         .reportId(document.getString("_id"))
                         .reportCreatedAt(document.getDate("createdAt"))

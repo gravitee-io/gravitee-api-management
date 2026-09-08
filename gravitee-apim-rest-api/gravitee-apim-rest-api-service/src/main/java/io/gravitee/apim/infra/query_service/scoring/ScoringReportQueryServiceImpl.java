@@ -21,11 +21,13 @@ import io.gravitee.apim.core.scoring.model.ScoringReport;
 import io.gravitee.apim.core.scoring.query_service.ScoringReportQueryService;
 import io.gravitee.apim.infra.adapter.ScoringReportAdapter;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ScoringReportRepository;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
+import java.util.Collection;
 import java.util.Optional;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
@@ -52,10 +54,14 @@ public class ScoringReportQueryServiceImpl extends AbstractService implements Sc
     }
 
     @Override
-    public Page<EnvironmentApiScoringReport> findEnvironmentLatestReports(String environmentId, Pageable pageable) {
+    public Page<EnvironmentApiScoringReport> findEnvironmentLatestReports(
+        String environmentId,
+        Collection<ApiType> apiTypes,
+        Pageable pageable
+    ) {
         try {
             return scoringReportRepository
-                .findEnvironmentLatestReports(environmentId, convert(pageable))
+                .findEnvironmentLatestReports(environmentId, apiTypes, convert(pageable))
                 .map(ScoringReportAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             log.error("An error occurred while finding latest Scoring Reports for environment", e);

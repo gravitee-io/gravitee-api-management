@@ -20,6 +20,7 @@ import io.gravitee.apim.core.scoring.use_case.GetEnvironmentScoringOverviewUseCa
 import io.gravitee.apim.core.scoring.use_case.ImportEnvironmentRulesetUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ScoringReportMapper;
+import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentApisScoringResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentScoringOverview;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
@@ -33,9 +34,11 @@ import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.UriInfo;
+import java.util.List;
 import lombok.CustomLog;
 
 @CustomLog
@@ -59,11 +62,15 @@ public class EnvironmentScoringResource extends AbstractResource {
     @Path("apis")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public EnvironmentApisScoringResponse getApisScoring(@BeanParam @Valid PaginationParam paginationParam) {
+    public EnvironmentApisScoringResponse getApisScoring(
+        @QueryParam("apiTypes") List<ApiType> apiTypes,
+        @BeanParam @Valid PaginationParam paginationParam
+    ) {
         var executionContext = GraviteeContext.getExecutionContext();
         var result = getEnvironmentReportsUseCase.execute(
             new GetEnvironmentReportsUseCase.Input(
                 executionContext.getEnvironmentId(),
+                ScoringReportMapper.INSTANCE.mapApiTypes(apiTypes),
                 new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage())
             )
         );

@@ -18,6 +18,7 @@ package io.gravitee.repository.management;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.common.utils.UUID;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.ScoringEnvironmentApi;
@@ -207,12 +208,17 @@ public class ScoringReportRepositoryTest extends AbstractManagementRepositoryTes
     // findEnvironmentLatestReports
     @Test
     public void findEnvironmentLatestReports_should_return_reports() throws Exception {
-        var result = scoringReportRepository.findEnvironmentLatestReports("env1", new PageableBuilder().pageNumber(0).pageSize(3).build());
+        var result = scoringReportRepository.findEnvironmentLatestReports(
+            "env1",
+            null,
+            new PageableBuilder().pageNumber(0).pageSize(3).build()
+        );
 
         Assertions.assertThat(result.getContent()).contains(
             new ScoringEnvironmentApi(
                 "api1",
                 "api 1",
+                ApiType.MESSAGE,
                 new Date(1439022010883L),
                 "1e9013a0-fc13-4bd0-b2e2-cdf2b1895b46",
                 new Date(1470157767000L),
@@ -225,6 +231,7 @@ public class ScoringReportRepositoryTest extends AbstractManagementRepositoryTes
             new ScoringEnvironmentApi(
                 "api3",
                 "api 3",
+                ApiType.NATIVE,
                 new Date(1439022010883L),
                 "b1419ea8-75c6-4fd9-a8c8-b43a6bda6ee9",
                 new Date(1470157767000L),
@@ -237,6 +244,7 @@ public class ScoringReportRepositoryTest extends AbstractManagementRepositoryTes
             new ScoringEnvironmentApi(
                 "api5",
                 "api 5",
+                ApiType.PROXY,
                 new Date(1439022010883L),
                 "26a590f2-05fa-433e-a982-d64c0a274ee9",
                 new Date(1470157767000L),
@@ -251,14 +259,22 @@ public class ScoringReportRepositoryTest extends AbstractManagementRepositoryTes
 
     @Test
     public void findEnvironmentLatestReports_should_return_apis_without_reports() throws Exception {
-        var result = scoringReportRepository.findEnvironmentLatestReports("env2", new PageableBuilder().pageNumber(0).pageSize(3).build());
+        var result = scoringReportRepository.findEnvironmentLatestReports(
+            "env2",
+            null,
+            new PageableBuilder().pageNumber(0).pageSize(3).build()
+        );
 
-        Assertions.assertThat(result.getContent()).contains(new ScoringEnvironmentApi("api7", "api 7", new Date(1439022010883L)));
+        Assertions.assertThat(result.getContent()).contains(new ScoringEnvironmentApi("api7", "api 7", null, new Date(1439022010883L)));
     }
 
     @Test
     public void findEnvironmentLatestReports_should_return_paginated_reports() throws Exception {
-        var result = scoringReportRepository.findEnvironmentLatestReports("env1", new PageableBuilder().pageNumber(1).pageSize(3).build());
+        var result = scoringReportRepository.findEnvironmentLatestReports(
+            "env1",
+            null,
+            new PageableBuilder().pageNumber(1).pageSize(3).build()
+        );
 
         SoftAssertions.assertSoftly(softly -> {
             softly.assertThat(result.getContent()).hasSize(3);
@@ -266,6 +282,57 @@ public class ScoringReportRepositoryTest extends AbstractManagementRepositoryTes
             softly.assertThat(result.getPageElements()).isEqualTo(3);
             softly.assertThat(result.getPageNumber()).isOne();
         });
+    }
+
+    @Test
+    public void findEnvironmentLatestReports_should_filter_on_api_types() throws Exception {
+        var result = scoringReportRepository.findEnvironmentLatestReports(
+            "env1",
+            List.of(ApiType.MESSAGE, ApiType.NATIVE),
+            new PageableBuilder().pageNumber(0).pageSize(10).build()
+        );
+
+        SoftAssertions.assertSoftly(softly -> {
+            softly
+                .assertThat(result.getContent())
+                .extracting(ScoringEnvironmentApi::getApiId)
+                .containsExactlyInAnyOrder("api1", "api2", "api3");
+            // The total must count the filtered set: this query paginates in memory, so a total taken
+            // before the filter would page over rows the caller never receives.
+            softly.assertThat(result.getTotalElements()).isEqualTo(3);
+        });
+    }
+
+    @Test
+    public void findEnvironmentLatestReports_should_return_every_type_when_no_type_is_given() throws Exception {
+        var noFilter = scoringReportRepository.findEnvironmentLatestReports(
+            "env1",
+            null,
+            new PageableBuilder().pageNumber(0).pageSize(10).build()
+        );
+        var emptyFilter = scoringReportRepository.findEnvironmentLatestReports(
+            "env1",
+            List.of(),
+            new PageableBuilder().pageNumber(0).pageSize(10).build()
+        );
+
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(noFilter.getTotalElements()).isEqualTo(6);
+            // An empty collection means "no filter", not "match nothing".
+            softly.assertThat(emptyFilter.getTotalElements()).isEqualTo(6);
+        });
+    }
+
+    @Test
+    public void findEnvironmentLatestReports_should_exclude_apis_without_a_type_when_filtering() throws Exception {
+        var result = scoringReportRepository.findEnvironmentLatestReports(
+            "env2",
+            List.of(ApiType.MESSAGE),
+            new PageableBuilder().pageNumber(0).pageSize(10).build()
+        );
+
+        // api7 carries no type, as every pre-v4 API does; a type filter cannot match it.
+        Assertions.assertThat(result.getContent()).isEmpty();
     }
 
     // DeleteByApi

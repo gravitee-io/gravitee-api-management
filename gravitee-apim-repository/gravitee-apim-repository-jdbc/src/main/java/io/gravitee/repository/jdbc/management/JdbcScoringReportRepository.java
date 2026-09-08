@@ -18,6 +18,7 @@ package io.gravitee.repository.jdbc.management;
 import static java.util.stream.Collectors.groupingBy;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.management.model.JdbcScoringRow;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
@@ -231,11 +232,17 @@ class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScoringRow>
     }
 
     @Override
-    public Page<ScoringEnvironmentApi> findEnvironmentLatestReports(String environmentId, Pageable pageable) throws TechnicalException {
+    public Page<ScoringEnvironmentApi> findEnvironmentLatestReports(String environmentId, Collection<ApiType> apiTypes, Pageable pageable)
+        throws TechnicalException {
+        // The type filter belongs in the WHERE, not in a post-filter: this query is paginated in
+        // memory (getResultAsPage below), so filtering afterwards would leave totalCount counting
+        // rows the caller never sees.
+        var filtered = apiTypes != null && !apiTypes.isEmpty();
         var query =
             "SELECT " +
             "a.id as api_id, " +
             "a.name as api_name, " +
+            "a.type as api_type, " +
             "a.updated_at as api_updated_at, " +
             "sr.report_id as report_id, " +
             "sr.created_at as report_created_at, " +
@@ -250,9 +257,16 @@ class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScoringRow>
             SCORING_REPORT_SUMMARY +
             " sr ON a.id = sr.api_id " +
             "WHERE a.environment_id = ? " +
+            (filtered ? "AND a.type IN (" + getOrm().buildInClause(apiTypes) + ") " : "") +
             "ORDER BY score DESC";
 
-        var result = jdbcTemplate.query(query, ENVIRONMENT_API_SUMMARY_MAPPER, environmentId);
+        var arguments = new ArrayList<Object>();
+        arguments.add(environmentId);
+        if (filtered) {
+            apiTypes.forEach(apiType -> arguments.add(apiType.name()));
+        }
+
+        var result = jdbcTemplate.query(query, ENVIRONMENT_API_SUMMARY_MAPPER, arguments.toArray());
 
         return JdbcAbstractPageableRepository.getResultAsPage(pageable, result);
     }
@@ -417,6 +431,22 @@ class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScoringRow>
             .build();
     };
 
+    /**
+     * The `apis.type` column is null for every API predating v4 (and for federated ones), so a report
+     * row can legitimately carry no type. Unknown values are read as null rather than failing the whole
+     * page: a type this build does not know about must not hide an API from its own scoring list.
+     */
+    private static ApiType toApiType(String value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            return ApiType.valueOf(value);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
     private static final ResultSetExtractor<List<ScoringEnvironmentApi>> ENVIRONMENT_API_SUMMARY_MAPPER = rs -> {
         var result = new ArrayList<ScoringEnvironmentApi>();
         while (rs.next()) {
@@ -425,6 +455,7 @@ class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScoringRow>
                 ScoringEnvironmentApi.builder()
                     .apiId(rs.getString("api_id"))
                     .apiName(rs.getString("api_name"))
+                    .apiType(toApiType(rs.getString("api_type")))
                     .apiUpdatedAt(new Date(rs.getTimestamp("api_updated_at").getTime()))
                     .reportId(reportId)
                     .reportCreatedAt(reportId != null ? new Date(rs.getTimestamp("report_created_at").getTime()) : null)
