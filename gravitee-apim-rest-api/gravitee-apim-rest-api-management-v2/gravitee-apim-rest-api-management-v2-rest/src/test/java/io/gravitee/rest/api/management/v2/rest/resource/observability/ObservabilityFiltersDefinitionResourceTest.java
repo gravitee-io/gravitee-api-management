@@ -74,10 +74,11 @@ class ObservabilityFiltersDefinitionResourceTest extends AbstractResourceTest {
             .satisfies(filters -> {
                 // The bare count keeps every catalog addition a deliberate decision. On its own it
                 // says nothing about what broke, so the names of the last additions come with it.
-                assertThat(filters).hasSize(60);
+                assertThat(filters).hasSize(61);
                 assertThat(filters)
                     .extracting(filter -> filter.getName().getValue())
                     .contains(
+                        "ENTRYPOINT",
                         "NATIVE_FAILURE_SIDE",
                         "NATIVE_CLIENT_ID",
                         "NATIVE_CLIENT_SOFTWARE_NAME",
@@ -206,6 +207,7 @@ class ObservabilityFiltersDefinitionResourceTest extends AbstractResourceTest {
                     "API",
                     "APPLICATION",
                     "PLAN",
+                    "ENTRYPOINT",
                     "API_PRODUCT",
                     "HTTP_METHOD",
                     "HTTP_STATUS",
