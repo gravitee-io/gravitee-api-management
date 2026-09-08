@@ -25,6 +25,22 @@ export interface FinalizeResetPasswordPayload {
 
 const RESET_PASSWORD_FALLBACK_ERROR = 'An error occurred while resetting your password.';
 
+/** The server's identifier for a password the policy refuses. */
+const PASSWORD_FORMAT_INVALID = 'passwordFormat.invalid';
+
+/**
+ * The server refused the password itself, rather than the request around it.
+ *
+ * Worth its own type because the reader's next action is in the password field: the caller can put
+ * the message where they are looking instead of at the top of the page.
+ */
+export class PasswordRejectedError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'PasswordRejectedError';
+    }
+}
+
 export async function finalizeResetPassword(userId: string, payload: FinalizeResetPasswordPayload): Promise<void> {
     const reCaptchaToken = await resolveReCaptchaToken('register');
     const extraHeaders: Record<string, string> = {};
@@ -45,7 +61,8 @@ export async function finalizeResetPassword(userId: string, payload: FinalizeRes
         );
     } catch (error) {
         if (error instanceof ApiError) {
-            throw new Error(error.message || RESET_PASSWORD_FALLBACK_ERROR);
+            const message = error.message || RESET_PASSWORD_FALLBACK_ERROR;
+            throw error.technicalCode === PASSWORD_FORMAT_INVALID ? new PasswordRejectedError(message) : new Error(message);
         }
         throw error;
     }

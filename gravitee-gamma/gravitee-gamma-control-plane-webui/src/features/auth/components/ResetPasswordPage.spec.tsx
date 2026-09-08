@@ -157,6 +157,67 @@ describe('ResetPasswordPage', () => {
         expect(await screen.findByText('Password does not meet policy requirements.')).toBeTruthy();
     });
 
+    it('renders a rejected password against the field rather than as a page-level alert', async () => {
+        const user = userEvent.setup();
+        server.use(
+            http.post(`${TEST_MANAGEMENT_BASE}/users/user-1/changePassword`, () =>
+                HttpResponse.json(
+                    { message: 'The password is not valid according to policy rules.', technicalCode: 'passwordFormat.invalid' },
+                    { status: 400 },
+                ),
+            ),
+        );
+
+        renderResetPasswordPage();
+
+        await waitFor(() => {
+            expect(screen.getByText('At least 12 characters')).toBeTruthy();
+        });
+
+        await user.type(screen.getByLabelText('Password'), 'NewPassword1!a');
+        await user.type(screen.getByLabelText('Confirm password'), 'NewPassword1!a');
+        await user.click(screen.getByRole('button', { name: 'Reset password' }));
+
+        // The reader's next action is in the password field, so the message belongs beside it.
+        const rejection = await screen.findByText('The password is not valid according to policy rules.');
+        expect(screen.queryByText('Reset failed')).toBeNull();
+
+        // Out of the page-level alert, it has to announce itself and be tied to the field.
+        expect(rejection.getAttribute('role')).toBe('alert');
+        const passwordInput = screen.getByLabelText('Password');
+        expect(passwordInput.getAttribute('aria-describedby')).toBe(rejection.id);
+        expect(passwordInput.getAttribute('aria-invalid')).toBe('true');
+    });
+
+    it('withdraws a rejected password once the reader edits it', async () => {
+        const user = userEvent.setup();
+        server.use(
+            http.post(`${TEST_MANAGEMENT_BASE}/users/user-1/changePassword`, () =>
+                HttpResponse.json(
+                    { message: 'The password is not valid according to policy rules.', technicalCode: 'passwordFormat.invalid' },
+                    { status: 400 },
+                ),
+            ),
+        );
+
+        renderResetPasswordPage();
+
+        await waitFor(() => {
+            expect(screen.getByText('At least 12 characters')).toBeTruthy();
+        });
+
+        await user.type(screen.getByLabelText('Password'), 'NewPassword1!a');
+        await user.type(screen.getByLabelText('Confirm password'), 'NewPassword1!a');
+        await user.click(screen.getByRole('button', { name: 'Reset password' }));
+        await screen.findByText('The password is not valid according to policy rules.');
+
+        await user.type(screen.getByLabelText('Password'), 'b');
+
+        // The verdict was on the password that was sent, not on the one now in the field.
+        expect(screen.queryByText('The password is not valid according to policy rules.')).toBeNull();
+        expect(screen.getByLabelText('Password').getAttribute('aria-invalid')).not.toBe('true');
+    });
+
     it('keeps submit disabled, and says why, when the pattern refuses a password every listed rule accepts', async () => {
         const user = userEvent.setup();
         server.use(
