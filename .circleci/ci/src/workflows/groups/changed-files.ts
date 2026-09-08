@@ -144,17 +144,42 @@ export function shouldTestReporter(changedFiles: string[]): boolean {
 
 export function shouldTestRepository(changedFiles: string[]): boolean {
   const mavenProjectsIdentifiers = ['gravitee-apim-definition', 'gravitee-apim-repository'];
+  // gravitee-apim-repository-elasticsearch takes these two at test scope: it seeds its fixtures
+  // through the reporter's index templates. A reporter-only change can therefore turn this suite
+  // red while waking only `Test reporters` — which is how the v4-metrics templates were changed
+  // without anything verifying the queries that read them.
+  const testScopeDependencies = ['gravitee-apim-reporter-common', 'gravitee-apim-reporter-elasticsearch'];
   return (
     shouldTestAllBackend(changedFiles) ||
-    changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
+    changedFiles.some((file) => [...mavenProjectsIdentifiers, ...testScopeDependencies].some((identifier) => file.includes(identifier)))
   );
+}
+
+/**
+ * The gateway subtree the plugin test suite cannot be affected by.
+ *
+ * The plugin modules take gravitee-apim-gateway-core and gravitee-apim-gateway-tests-sdk at test
+ * scope, and those two reach 24 of the 36 gateway modules transitively — so most of the tree can
+ * turn `Test plugins` red. gravitee-apim-gateway-services is the one subtree none of them reach:
+ * sync, healthcheck, heartbeat, debug and endpoint-discovery are loaded by the gateway at runtime,
+ * never by a plugin test. They are also 28% of the gateway commits on master over the last six
+ * months, which is what makes the exception worth stating rather than taking the whole tree.
+ *
+ * Excluding a subtree rather than listing the 24 modules errs the safe way: a gateway module added
+ * anywhere else wakes the suite without anyone remembering to add it here.
+ */
+const GATEWAY_SUBTREE_WITHOUT_PLUGIN_TESTS = 'gravitee-apim-gateway/gravitee-apim-gateway-services/';
+
+function affectsPluginTests(file: string): boolean {
+  return file.includes('gravitee-apim-gateway') && !file.startsWith(GATEWAY_SUBTREE_WITHOUT_PLUGIN_TESTS);
 }
 
 export function shouldTestPlugin(changedFiles: string[]): boolean {
   const mavenProjectsIdentifiers = ['gravitee-apim-definition', 'gravitee-apim-plugin'];
   return (
     shouldTestAllBackend(changedFiles) ||
-    changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
+    changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier))) ||
+    changedFiles.some(affectsPluginTests)
   );
 }
 
