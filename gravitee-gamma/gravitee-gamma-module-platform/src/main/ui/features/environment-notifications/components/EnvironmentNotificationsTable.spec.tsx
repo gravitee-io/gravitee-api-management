@@ -106,6 +106,7 @@ describe('EnvironmentNotificationsTable', () => {
         expect(target.className).toContain('min-w-0');
         expect(target.className).toContain('max-w-full');
         expect(target.getAttribute('title')).toBe(longTarget);
+        expect(document.querySelector('table')?.style.tableLayout).toBe('fixed');
     });
 
     it('puts row actions behind a three-dot menu, not inline edit/delete icons', () => {

@@ -197,7 +197,7 @@ function buildColumns({
         });
     }
 
-    return columns;
+    return columns.map(column => ({ ...column, enableResizing: false }));
 }
 
 export function EnvironmentNotificationsTable({
@@ -246,7 +246,7 @@ export function EnvironmentNotificationsTable({
                         ))}
                     </div>
                 ) : (
-                    <DataTable columns={columns} data={rows} emptyMessage="No notifications configured." />
+                    <DataTable enableColumnResizing columns={columns} data={rows} emptyMessage="No notifications configured." />
                 )}
             </CardContent>
         </Card>
