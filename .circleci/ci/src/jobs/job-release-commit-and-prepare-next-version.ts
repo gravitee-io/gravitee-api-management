@@ -41,6 +41,7 @@ export class ReleaseCommitAndPrepareNextVersionJob {
     const parsedVersion = parse(environment.graviteeioVersion);
 
     dynamicConfig.importOrb(orbs.keeper);
+    dynamicConfig.importOrb(orbs.github);
 
     let nextVersion = '';
     let nextQualifier = '';
@@ -55,7 +56,11 @@ export class ReleaseCommitAndPrepareNextVersionJob {
     const steps: Command[] = [
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
-      new commands.AddSSHKeys({ fingerprints: config.ssh.fingerprints }),
+      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
+        'secret-url': config.secrets.githubApiToken,
+        'var-name': 'GITHUB_TOKEN',
+      }),
+      new reusable.ReusedCommand(orbs.github.commands['setup']),
       new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
         'secret-url': config.secrets.gitUserName,
         'var-name': 'GIT_USER_NAME',
@@ -68,6 +73,16 @@ export class ReleaseCommitAndPrepareNextVersionJob {
         name: 'Git config',
         command: `git config --global user.name "\${GIT_USER_NAME}"
  git config --global user.email "\${GIT_USER_EMAIL}"`,
+      }),
+      new commands.Run({
+        // A push over the project SSH key produces no webhook, so the tag it carries starts nothing.
+        // The bot token does, which is what makes the tag a trigger rather than a label. The remote
+        // has to move to HTTPS for the credential helper to be consulted at all: \`checkout\` leaves
+        // it on SSH. \`gh auth setup-git\` reads the token from the helper, so it stays out of
+        // .git/config and out of any command that prints the remote.
+        name: 'Push over HTTPS, so that pushing a tag triggers a pipeline',
+        command: `gh auth setup-git
+git remote set-url origin "https://github.com/\${CIRCLE_PROJECT_USERNAME}/\${CIRCLE_PROJECT_REPONAME}.git"`,
       }),
       new commands.Run({
         name: `Git release ${environment.isDryRun ? '- Dry Run' : ''}`,
