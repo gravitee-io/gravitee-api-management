@@ -49,6 +49,7 @@ public record LogDetail(
      */
     String apiType,
     String transactionId,
+    String traceId,
     String clientIdentifier,
     Instant timestamp,
     Boolean requestEnded,

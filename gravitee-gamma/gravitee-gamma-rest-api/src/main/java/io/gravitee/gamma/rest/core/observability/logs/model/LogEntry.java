@@ -42,6 +42,7 @@ public record LogEntry(
     String applicationId,
     String applicationName,
     String transactionId,
+    String traceId,
     Integer status,
     Boolean requestEnded,
     Integer gatewayResponseTime,
