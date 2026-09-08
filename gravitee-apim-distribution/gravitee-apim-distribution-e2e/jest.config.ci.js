@@ -24,7 +24,18 @@ module.exports = {
   // A map from regular expressions to paths to transformers
   transform: {
     '^.+\\.xml$': '<rootDir>/lib/jest-raw-loader.js',
+    // @faker-js/faker dropped its CommonJS build in v10. These suites run as CommonJS, and
+    // Jest's module registry cannot `require` an ES module, so the package is transpiled on
+    // the way in. The pattern stays on the package itself: transpiling all of node_modules
+    // would cost far more than it buys.
+    '/node_modules/@faker-js/faker/.+\\.js$': [
+      'ts-jest',
+      { tsconfig: { allowJs: true, module: 'CommonJS', moduleResolution: 'Node10', target: 'ES2020' } },
+    ],
   },
+
+  // The default would skip node_modules entirely, faker included.
+  transformIgnorePatterns: ['/node_modules/(?!(@faker-js)/)', '\\.pnp\\.[^\\/]+$'],
 
   setupFilesAfterEnv: ['<rootDir>/dist/api-test/jest.setup.js'],
 
