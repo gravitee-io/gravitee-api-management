@@ -218,6 +218,40 @@ Example (MVP — what the server returns today):
 }
 ```
 
+### Per-module filters
+
+`module` selects **one** contributor on top of the cross-module ones, matched on an exact id
+(`SpiTraceFilterRegistry#getFiltersForModule`). Shipped today:
+
+| `module` | Contributor | Filters |
+| --- | --- | --- |
+| *(any / omitted)* | `CommonTraceFilterContributor` | `HTTP_METHOD`, `HTTP_STATUS_CODE`, `HTTP_ROUTE` |
+| `esm` | `EsmTraceFilterContributor` | `KAFKA_API_KEY`, `KAFKA_CLIENT_ID` |
+
+The ESM filters map to the span attributes the native Kafka reactor emits (`kafka.api.key`,
+`messaging.client.id`) — see `KafkaTracingHelper` in `gravitee-reactor-native-kafka`.
+
+**Why so few.** Attribute filters are ANDed inside one span document (`bool.filter` of terms) and the
+matching spans are then grouped by `trace_id`, so two filters that are never carried by one and the
+same span can never match together. A filter is therefore only admitted when its attribute is on
+*every* per-request span. Three candidates fail that rule and are deliberately absent:
+
+| Candidate | Why it is out |
+| --- | --- |
+| `messaging.destination.name` (topic) | Joined with commas for batched requests, and `id:<uuid>` when the request carries topic ids (fetch v12+). An exact term misses those spans. |
+| `messaging.consumer.group.name` | Set for `JOIN_GROUP`, `HEARTBEAT`, `OFFSET_COMMIT`, `LEAVE_GROUP`, `SYNC_GROUP` only — so "consumer group + operation = FETCH" is structurally empty. |
+| `gravitee.error.origin` (failure origin) | Written on the root `Kafka connection` span, never on a per-request one. |
+
+All three want trace-scoped evaluation — resolve matching `trace_id`s per filter, then intersect —
+rather than a per-document AND. That is a repository-level change.
+
+Both contributors live in this module rather than in their gamma module plugin, because gamma
+modules load in isolated plugin classloaders while the registry's `ServiceLoader` scans the
+rest-api classpath. Move them out once the plugin handler grows a registration hook.
+
+`TraceFilterContributorContractTest` pins every advertised filter against the translator, so the
+discovery and search surfaces cannot drift apart.
+
 ### MVP scope
 
 Today's discovery surface is deliberately narrow — the server only exposes filters / operators
