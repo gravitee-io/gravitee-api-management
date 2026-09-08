@@ -162,6 +162,45 @@ class PasswordPolicyPatternParserTest {
         assertThat(parser.parse("(?=.*[unclosed")).isEmpty();
     }
 
+    @Test
+    void should_report_no_untranslated_fragments_for_the_default_pattern() {
+        assertThat(parser.untranslatedFragments(DEFAULT_PATTERN)).isEmpty();
+    }
+
+    @Test
+    void should_report_a_lookahead_it_cannot_turn_into_a_rule() {
+        // Letters outside a-z / A-Z classify as neither case nor special, so no rule describes them.
+        assertThat(parser.untranslatedFragments("^(?=.*[0-9])(?=.*[\u00e0\u00e9\u00ee]).{8,}$")).containsExactly(
+            "(?=.*[\u00e0\u00e9\u00ee])"
+        );
+    }
+
+    @Test
+    void should_report_nothing_when_there_is_no_pattern() {
+        assertThat(parser.untranslatedFragments(null)).isEmpty();
+        assertThat(parser.untranslatedFragments("   ")).isEmpty();
+    }
+
+    @Test
+    void should_report_a_lookahead_whose_rule_an_earlier_one_already_claimed() {
+        // Both classes are "special", so parse keeps the first and drops the second: the requirement
+        // to include a hyphen or underscore reaches no rule, and a password without one is refused
+        // after every rule the client did receive was satisfied.
+        assertThat(parser.parse("^(?=.*[!@#])(?=.*[\\-_]).{12,}$")).extracting("id").containsExactly("minLength", "special");
+
+        assertThat(parser.untranslatedFragments("^(?=.*[!@#])(?=.*[\\-_]).{12,}$")).containsExactly("(?=.*[\\-_])");
+    }
+
+    @Test
+    void should_not_report_a_lookahead_that_merely_repeats_one_it_already_translated() {
+        assertThat(parser.untranslatedFragments("^(?=.*[A-Z])(?=.*[A-Z]).{12,}$")).isEmpty();
+    }
+
+    @Test
+    void should_report_a_repeated_untranslatable_lookahead_once() {
+        assertThat(parser.untranslatedFragments("^(?=.*[àéî])(?=.*[àéî]).{8,}$")).containsExactly("(?=.*[àéî])");
+    }
+
     private static String buildPasswordWithoutTripleConsecutive(String prefix, int targetLength) {
         StringBuilder password = new StringBuilder(prefix);
         char[] alternates = { 'y', 'z' };

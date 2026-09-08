@@ -43,9 +43,7 @@ class PasswordPolicyServiceImplTest {
 
         PasswordPolicyEntity policy = passwordPolicyService.getPasswordPolicy();
 
-        assertThat(policy.getDescription()).contains("At least 10 characters");
-        assertThat(policy.getDescription()).contains("At most 64 characters");
-        assertThat(policy.getDescription()).doesNotContain("At least 12 characters");
+        assertThat(policy.getDescription()).isEmpty();
         assertThat(policy.getPattern()).contains(".{10,64}");
         assertThat(policy.getRules())
             .extracting("id")
@@ -63,7 +61,7 @@ class PasswordPolicyServiceImplTest {
         assertThat(policy.getRules()).hasSize(1);
         assertThat(policy.getRules().getFirst().getId()).isEqualTo("policyPattern");
         assertThat(policy.getRules().getFirst().getPattern()).isEqualTo("^\\d{8,}$");
-        assertThat(policy.getDescription()).contains("Matches the configured password policy");
+        assertThat(policy.getRules().getFirst().getLabel()).isEqualTo("Matches the configured password policy");
     }
 
     @Test
@@ -123,5 +121,75 @@ class PasswordPolicyServiceImplTest {
         PasswordPolicyEntity policy = passwordPolicyService.getPasswordPolicy();
 
         assertThat(policy.getDescription()).isEqualTo("Custom password policy description.");
+    }
+
+    @Test
+    void should_carry_the_operator_description_verbatim() {
+        ReflectionTestUtils.setField(passwordPolicyService, "passwordPolicyDescription", "  Ask IT for the house rules.  ");
+        ReflectionTestUtils.setField(passwordPolicyService, "passwordPolicyPattern", PasswordPolicyServiceImpl.DEFAULT_PATTERN);
+
+        assertThat(passwordPolicyService.getPasswordPolicy().getDescription()).isEqualTo("Ask IT for the house rules.");
+    }
+
+    @Test
+    void should_leave_the_description_empty_when_nobody_wrote_one() {
+        ReflectionTestUtils.setField(passwordPolicyService, "passwordPolicyDescription", "   ");
+        ReflectionTestUtils.setField(passwordPolicyService, "passwordPolicyPattern", PasswordPolicyServiceImpl.DEFAULT_PATTERN);
+
+        PasswordPolicyEntity policy = passwordPolicyService.getPasswordPolicy();
+
+        // The rules are the guidance. Restating them here would leave a client unable to tell a
+        // sentence someone wrote from one this service invented.
+        assertThat(policy.getDescription()).isEmpty();
+        assertThat(policy.getRules()).isNotEmpty();
+    }
+
+    @Test
+    void should_warn_when_a_customized_pattern_leaves_users_without_authored_guidance() {
+        ReflectionTestUtils.setField(passwordPolicyService, "passwordPolicyDescription", "   ");
+        ReflectionTestUtils.setField(passwordPolicyService, "passwordPolicyPattern", "^\\d{8,}$");
+
+        assertThat(passwordPolicyService.configurationWarnings()).anySatisfy(warning ->
+            assertThat(warning).contains("user.password.policy.description")
+        );
+    }
+
+    @Test
+    void should_warn_that_a_blank_pattern_carries_no_rule_rather_than_calling_it_customized() {
+        ReflectionTestUtils.setField(passwordPolicyService, "passwordPolicyDescription", "   ");
+        ReflectionTestUtils.setField(passwordPolicyService, "passwordPolicyPattern", "   ");
+
+        assertThat(passwordPolicyService.configurationWarnings())
+            .singleElement()
+            .satisfies(warning -> {
+                assertThat(warning).contains("user.password.policy.pattern is set but blank");
+                assertThat(warning).doesNotContain("customized");
+            });
+    }
+
+    @Test
+    void should_not_warn_about_a_blank_description_on_the_default_pattern() {
+        ReflectionTestUtils.setField(passwordPolicyService, "passwordPolicyDescription", "   ");
+        ReflectionTestUtils.setField(passwordPolicyService, "passwordPolicyPattern", PasswordPolicyServiceImpl.DEFAULT_PATTERN);
+
+        assertThat(passwordPolicyService.configurationWarnings()).isEmpty();
+    }
+
+    @Test
+    void should_not_warn_when_the_operator_wrote_a_description() {
+        ReflectionTestUtils.setField(passwordPolicyService, "passwordPolicyDescription", "Ask IT for the house rules.");
+        ReflectionTestUtils.setField(passwordPolicyService, "passwordPolicyPattern", "^\\d{8,}$");
+
+        assertThat(passwordPolicyService.configurationWarnings()).isEmpty();
+    }
+
+    @Test
+    void should_name_the_pattern_fragments_it_could_not_translate() {
+        ReflectionTestUtils.setField(passwordPolicyService, "passwordPolicyDescription", "Ask IT for the house rules.");
+        ReflectionTestUtils.setField(passwordPolicyService, "passwordPolicyPattern", "^(?=.*[0-9])(?=.*[\u00e0\u00e9\u00ee]).{8,}$");
+
+        assertThat(passwordPolicyService.configurationWarnings()).anySatisfy(warning ->
+            assertThat(warning).contains("(?=.*[\u00e0\u00e9\u00ee])")
+        );
     }
 }
