@@ -127,7 +127,7 @@
     <gravitee-policy-geoip-filtering.version>2.2.2</gravitee-policy-geoip-filtering.version>
     <gravitee-policy-groovy.version>5.1.1</gravitee-policy-groovy.version>
     <gravitee-policy-html-json.version>1.6.3</gravitee-policy-html-json.version>
-    <gravitee-policy-http-signature.version>1.7.0</gravitee-policy-http-signature.version>
+    <gravitee-policy-http-signature.version>1.8.0</gravitee-policy-http-signature.version>
     <gravitee-policy-interrupt.version>2.2.1</gravitee-policy-interrupt.version>
     <gravitee-policy-ipfiltering.version>3.0.1</gravitee-policy-ipfiltering.version>
     <gravitee-policy-js.version>1.2.0</gravitee-policy-js.version>
