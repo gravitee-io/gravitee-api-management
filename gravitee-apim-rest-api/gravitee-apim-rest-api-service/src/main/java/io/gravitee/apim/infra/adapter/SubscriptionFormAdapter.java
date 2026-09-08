@@ -34,9 +34,9 @@ import org.mapstruct.factory.Mappers;
 /**
  * MapStruct adapter for converting between SubscriptionForm (domain) and repository model.
  *
- * <p>The form definition (GMD) is not part of the repository row anymore: it lives in a
- * {@code PortalPageContent} referenced by {@code portalPageContentId}. The repository row's legacy
- * {@code gmdContent} column is therefore never written by {@link #toRepository}, and
+ * <p>The form definition (GMD) lives in a {@code PortalPageContent} referenced by
+ * {@code portalPageContentId}; the repository row's inline {@code gmdContent} only survives on rows not
+ * migrated yet. That column is therefore never written by {@link #toRepository}, and
  * {@link #toEntity(io.gravitee.repository.management.model.SubscriptionForm, GraviteeMarkdown)}
  * takes the already-loaded content as a separate argument.</p>
  *

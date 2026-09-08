@@ -36,9 +36,10 @@ import org.springframework.stereotype.Component;
  * Moves each subscription form's definition out of the inline {@code gmd_content} column into a
  * {@link GraviteeMarkdownPageContent}, and links the row to it through {@code portal_page_content_id}.
  *
- * <p>Idempotent: rows that already reference a page content are skipped, so re-running after a partial
- * failure only migrates what is still missing. A row whose migration fails keeps its inline content
- * and is still served from it (see {@code SubscriptionFormQueryServiceImpl}) until the next attempt.</p>
+ * <p>Rows that already reference a page content are skipped. A row whose migration fails is logged and
+ * left untouched: it is still served from its inline content by {@code SubscriptionFormQueryServiceImpl},
+ * and {@code SubscriptionFormCrudServiceImpl} moves the content out on its next write. This upgrader is
+ * recorded as applied after one run and does not retry on later boots.</p>
  *
  * @author Gravitee.io Team
  */
@@ -53,7 +54,7 @@ public class SubscriptionFormPageContentUpgrader implements Upgrader {
     public SubscriptionFormPageContentUpgrader(
         @Lazy SubscriptionFormRepository subscriptionFormRepository,
         @Lazy EnvironmentRepository environmentRepository,
-        @Lazy PortalPageContentCrudService pageContentCrudService
+        PortalPageContentCrudService pageContentCrudService
     ) {
         this.subscriptionFormRepository = subscriptionFormRepository;
         this.environmentRepository = environmentRepository;
@@ -79,20 +80,20 @@ public class SubscriptionFormPageContentUpgrader implements Upgrader {
         return true;
     }
 
-    private boolean migrate(SubscriptionForm form) throws TechnicalException {
+    private boolean migrate(SubscriptionForm form) {
         if (form.getGmdContent() == null) {
             log.warn("Skipping subscription form [{}] migration: it has neither inline content nor a page content", form.getId());
             return false;
         }
 
         var environmentId = form.getEnvironmentId();
-        var organizationId = environmentRepository.findById(environmentId).map(Environment::getOrganizationId).orElse(null);
-        if (organizationId == null) {
-            log.warn("Skipping subscription form [{}] migration: environment [{}] no longer exists", form.getId(), environmentId);
-            return false;
-        }
-
         try {
+            var organizationId = environmentRepository.findById(environmentId).map(Environment::getOrganizationId).orElse(null);
+            if (organizationId == null) {
+                log.warn("Skipping subscription form [{}] migration: environment [{}] no longer exists", form.getId(), environmentId);
+                return false;
+            }
+
             var content = pageContentCrudService.create(
                 new GraviteeMarkdownPageContent(
                     PortalPageContentId.random(),
