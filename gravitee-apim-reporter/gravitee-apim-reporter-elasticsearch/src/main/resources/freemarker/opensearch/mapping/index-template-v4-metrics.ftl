@@ -73,8 +73,13 @@
                 "uri": {
                     "type": "keyword"
                 },
-                "path": {
-                    "type": "keyword"
+                "path-info": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword"
+                        }
+                    }
                 },
                 "mapped-path": {
                     "type": "keyword"
