@@ -76,6 +76,25 @@ class FindApiMetricsDetailResponseAdapterTest extends AbstractAdapterTest {
         }
 
         @Test
+        void should_map_the_trace_id_when_the_document_carries_one() {
+            final SearchResponse searchResponse = buildSearchHit("api-proxy-v4-metrics-with-trace.json");
+
+            var result = FindApiMetricsDetailResponseAdapter.adaptFirst(searchResponse).orElseThrow();
+
+            assertThat(result.getTraceId()).isEqualTo("4bf92f3577b34da6a3ce929d0e0e4736");
+        }
+
+        @Test
+        void should_leave_the_trace_id_null_when_tracing_was_disabled() {
+            // The gateway writes trace-id only when a real tracer is in play, so most documents omit it.
+            final SearchResponse searchResponse = buildSearchHit("api-proxy-v4-metrics.json");
+
+            var result = FindApiMetricsDetailResponseAdapter.adaptFirst(searchResponse).orElseThrow();
+
+            assertThat(result.getTraceId()).isNull();
+        }
+
+        @Test
         void should_leave_the_security_credential_null_when_the_document_omits_the_fields() {
             // security-type / security-token sit at the document root, not in additional-metrics, so they are
             // read explicitly — and read the same way on a v2 document, which uses the identical field names

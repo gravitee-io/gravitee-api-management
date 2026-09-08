@@ -70,6 +70,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ObservabilityLogsDataPortAdapterTest {
 
+    private static final String TRACE_ID = "4bf92f3577b34da6a3ce929d0e0e4736";
+
     private static final String ORG = "org-1";
     private static final String ENV = "env-1";
 
@@ -135,6 +137,32 @@ class ObservabilityLogsDataPortAdapterTest {
         assertThat(page.data()).hasSize(1);
         assertThat(page.data().getFirst().apiType()).isEqualTo("HTTP_PROXY");
         assertThat(page.data().getFirst().apiName()).isEqualTo("API 1");
+    }
+
+    @Test
+    void should_carry_the_trace_id_onto_log_rows() {
+        // The correlation key is what turns a request row into a jump to its OTel trace, so it has to
+        // travel on the light row, not only on the detail the drawer fetches afterwards.
+        when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
+            new SearchLogsResponse<>(1, List.of(BaseConnectionLog.builder().apiId("api-1").traceId(TRACE_ID).build()))
+        );
+
+        var row = adapter.searchLogs(ORG, ENV, queryWith()).data().getFirst();
+
+        assertThat(row.traceId()).isEqualTo(TRACE_ID);
+    }
+
+    @Test
+    void should_leave_the_trace_id_null_on_a_request_recorded_without_tracing() {
+        // Tracing is off on most APIs; the row must then carry no key at all so the UI can drop the
+        // action rather than offer a link to a trace that was never recorded.
+        when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
+            new SearchLogsResponse<>(1, List.of(BaseConnectionLog.builder().apiId("api-1").build()))
+        );
+
+        var row = adapter.searchLogs(ORG, ENV, queryWith()).data().getFirst();
+
+        assertThat(row.traceId()).isNull();
     }
 
     @Test
@@ -793,6 +821,24 @@ class ObservabilityLogsDataPortAdapterTest {
             // The type stays: knowing the connection authenticated with an API key is not a leak.
             assertThat(detail.securityType()).isEqualTo("API_KEY");
             assertThat(detail.securityToken()).isNull();
+        }
+
+        @Test
+        void should_carry_the_trace_id_onto_the_detail() {
+            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1"))).thenReturn(
+                Optional.of(
+                    io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder()
+                        .apiId("api-1")
+                        .requestId("req-1")
+                        .traceId(TRACE_ID)
+                        .build()
+                )
+            );
+            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any())).thenReturn(Optional.empty());
+
+            var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            assertThat(detail.traceId()).isEqualTo(TRACE_ID);
         }
 
         @Test

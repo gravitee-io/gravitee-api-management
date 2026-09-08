@@ -100,6 +100,45 @@ class SearchMetricsResponseAdapterTest extends AbstractAdapterTest {
     }
 
     @Nested
+    class TraceId {
+
+        @Test
+        void should_map_trace_id_from_v4_metrics_hit() {
+            var searchResponse = buildSearchHit("api-proxy-v4-metrics-with-trace.json");
+
+            var result = SearchMetricsResponseAdapter.adapt(searchResponse);
+
+            assertThat(result.data()).hasSize(1);
+            Metrics metrics = result.data().getFirst();
+            assertThat(metrics.getTraceId()).isEqualTo("4bf92f3577b34da6a3ce929d0e0e4736");
+        }
+
+        @Test
+        void should_map_trace_id_as_null_when_tracing_was_disabled() {
+            // The gateway writes the key only when a real tracer is in play, so most documents lack it.
+            var searchResponse = buildSearchHit("api-proxy-v4-metrics.json");
+
+            var result = SearchMetricsResponseAdapter.adapt(searchResponse);
+
+            assertThat(result.data()).hasSize(1);
+            Metrics metrics = result.data().getFirst();
+            assertThat(metrics.getTraceId()).isNull();
+        }
+
+        @Test
+        void should_not_map_trace_id_for_v2_request_index_hit() {
+            // The v2 request index never carried the correlation key, whatever the document holds.
+            var searchResponse = buildSearchHitWithIndex("api-proxy-v4-metrics-with-trace.json", "gravitee-request-2025.01.01");
+
+            var result = SearchMetricsResponseAdapter.adapt(searchResponse);
+
+            assertThat(result.data()).hasSize(1);
+            Metrics metrics = result.data().getFirst();
+            assertThat(metrics.getTraceId()).isNull();
+        }
+    }
+
+    @Nested
     class BasicFieldMapping {
 
         @Test

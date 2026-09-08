@@ -37,6 +37,7 @@ public record LogDetail(
     String requestId,
     String apiId,
     String transactionId,
+    String traceId,
     String clientIdentifier,
     Instant timestamp,
     Boolean requestEnded,

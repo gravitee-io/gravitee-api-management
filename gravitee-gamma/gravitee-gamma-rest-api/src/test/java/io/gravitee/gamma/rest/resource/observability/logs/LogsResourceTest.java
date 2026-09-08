@@ -127,6 +127,23 @@ class LogsResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_emit_the_trace_id_only_on_a_traced_request() {
+            // NON_NULL keeps the key out of the payload entirely when tracing is off, so the UI reads its
+            // absence as "no trace to open" rather than having to treat an empty string as a special case.
+            var traced = LogEntry.builder().apiId("api-1").requestId("req-1").traceId("4bf92f3577b34da6a3ce929d0e0e4736").build();
+            var untraced = LogEntry.builder().apiId("api-1").requestId("req-2").build();
+            when(searchLogsUseCase.execute(any())).thenReturn(
+                new SearchObservabilityLogsUseCase.Output(new LogsPage(List.of(traced, untraced), 2), 1, 20)
+            );
+
+            Response response = rootTarget("search").request().post(Entity.entity(Map.of(), MediaType.APPLICATION_JSON_TYPE));
+
+            JsonNode body = response.readEntity(JsonNode.class);
+            assertThat(body.get("data").get(0).get("traceId").asText()).isEqualTo("4bf92f3577b34da6a3ce929d0e0e4736");
+            assertThat(body.get("data").get(1).has("traceId")).isFalse();
+        }
+
+        @Test
         void should_forward_page_and_perPage_to_use_case() {
             when(searchLogsUseCase.execute(any())).thenReturn(new SearchObservabilityLogsUseCase.Output(LogsPage.EMPTY, 2, 5));
 
@@ -195,6 +212,7 @@ class LogsResourceTest extends AbstractResourceTest {
                 .requestId(REQUEST_ID)
                 .apiId(API_ID)
                 .transactionId("txn-1")
+                .traceId("4bf92f3577b34da6a3ce929d0e0e4736")
                 .timestamp(Instant.parse("2026-06-10T14:32:01Z"))
                 .status(200)
                 .method("GET")
@@ -220,6 +238,7 @@ class LogsResourceTest extends AbstractResourceTest {
             assertThat(body.get("timestampEpochMs").isIntegralNumber()).isTrue();
             assertThat(body.get("timestampEpochMs").asLong()).isEqualTo(Instant.parse("2026-06-10T14:32:01Z").toEpochMilli());
             assertThat(body.get("planName").asText()).isEqualTo("Gold");
+            assertThat(body.get("traceId").asText()).isEqualTo("4bf92f3577b34da6a3ce929d0e0e4736");
             assertThat(body.get("entrypointRequest").get("method").asText()).isEqualTo("GET");
             assertThat(body.get("entrypointResponse").get("body").asText()).isEqualTo("{\"id\":42}");
         }
