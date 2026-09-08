@@ -53,13 +53,8 @@ import java.security.GeneralSecurityException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-<<<<<<< HEAD
-import lombok.CustomLog;
-=======
 import java.util.concurrent.TimeUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
->>>>>>> 0042aee (fix(gateway): key debug handlers by event id)
+import lombok.CustomLog;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -320,7 +315,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
             return patchEventStatus(debugEvent, ApiDebugStatus.ERROR);
         })
             .subscribeOn(Schedulers.io())
-            .subscribe(() -> {}, throwable -> logger.error("Failed to update event {} to ERROR status", debugEvent.getId(), throwable));
+            .subscribe(() -> {}, throwable -> log.error("Failed to update event {} to ERROR status", debugEvent.getId(), throwable));
     }
 
     /**

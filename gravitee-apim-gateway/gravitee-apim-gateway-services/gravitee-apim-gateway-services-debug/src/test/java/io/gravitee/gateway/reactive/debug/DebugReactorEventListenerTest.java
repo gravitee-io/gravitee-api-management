@@ -72,7 +72,6 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.PoolOptions;
 import io.vertx.rxjava3.core.Vertx;
-import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.http.HttpClientAgent;
 import io.vertx.rxjava3.core.http.HttpClientRequest;
 import io.vertx.rxjava3.core.http.HttpClientResponse;
@@ -914,7 +913,7 @@ class DebugReactorEventListenerTest {
 
         private void givenAStalledDebugRequest() throws JsonProcessingException {
             when(objectMapper.readValue(anyString(), any(DebugApiV2.class.getClass()))).thenAnswer(invocation -> anApiDefinition());
-            final HttpClient httpClient = mock(HttpClient.class);
+            final HttpClientAgent httpClient = mock(HttpClientAgent.class);
             when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(httpClient);
             when(httpClient.rxRequest(any())).thenReturn(Single.never());
         }
