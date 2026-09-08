@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './workflow-bridge-compatibility-tests';
-export * from './workflow-build-chainguard-images';
-export * from './workflow-build-chainguard-fips-images';
-export * from './workflow-core-release';
-export * from './workflow-full-release';
-export * from './workflow-repositories-tests';
-export * from './workflow-publish-docker-images';
-export * from './workflow-prepare-core-release';
-export * from './workflow-pull-requests';
-export * from './workflow-maven-release';
-export * from './workflow-run-e2e-tests';
-export * from './workflow-integration-tests';
-export * from './workflow-nightly';
+import { CircleCIEnvironment } from './circleci-environment';
+import { Config } from '../circleci-config';
+import { WorkflowPrepareCoreRelease } from '../workflows';
+import { validateGraviteeioVersion } from '../utils';
+import { initDynamicConfig } from './config-factory';
+
+export function generatePrepareCoreReleaseConfig(environment: CircleCIEnvironment): Config {
+  validateGraviteeioVersion(environment.graviteeioVersion);
+
+  const dynamicConfig = initDynamicConfig();
+  const workflow = WorkflowPrepareCoreRelease.create(dynamicConfig, environment);
+  dynamicConfig.addWorkflow(workflow);
+  return dynamicConfig;
+}

@@ -1,0 +1,87 @@
+# This file is generated from the TypeScript sources in .circleci/ci.
+# Do not edit it by hand — run `npm run generate` instead.
+
+version: 2.1
+setup: false
+parameters:
+  gio_action:
+    type: string
+    default: pull_requests
+    description: ""
+  dry_run:
+    type: boolean
+    default: true
+    description: Run in dry run mode?
+  docker_tag_as_latest:
+    type: boolean
+    default: false
+    description: Is this version the latest version available?
+  graviteeio_version:
+    type: string
+    default: ""
+    description: Version of APIM to be used in docker images
+  apim_version_path:
+    type: string
+    default: /home/circleci/project/pom.xml
+    description: Path to pom.xml with APIM version
+jobs:
+  job-prepare-core-release:
+    docker:
+      - image: cimg/base:stable
+    resource_class: medium
+    steps:
+      - checkout
+      - keeper/env-export:
+          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+          var-name: GITHUB_TOKEN
+      - gh/setup
+      - keeper/env-export:
+          secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
+          var-name: GIT_USER_NAME
+      - keeper/env-export:
+          secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/custom_field/email
+          var-name: GIT_USER_EMAIL
+      - run:
+          name: Git config
+          command: |-
+            git config --global user.name "${GIT_USER_NAME}"
+            git config --global user.email "${GIT_USER_EMAIL}"
+      - run:
+          name: Push over HTTPS, so that pushing the tag triggers the release
+          command: |-
+            gh auth setup-git
+            git remote set-url origin "https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git"
+      - run:
+          name: "Tag core 4.13.0 "
+          command: |
+            # Only the root pom moves here. The distribution carries its own triplet and releases
+            # under its own tag, so a core release must leave it alone.
+            sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
+
+            git add --update
+            git commit -m "core_4.13.0"
+            git tag core_4.13.0
+
+            sed -i "s#<revision>.*</revision>#<revision>4.13.1</revision>#" pom.xml
+            sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
+            # <sha1 /> is self-closing when the qualifier is empty, which the plain <sha1>.*</sha1> pattern
+            # never matches — the qualifier was silently kept on any pom already holding the empty form.
+            sed -i -E "s#<sha1( */>|>[^<]*</sha1>)#<sha1></sha1>#" pom.xml
+
+            git add --update
+            git commit -m 'chore: prepare next core version [skip ci]'
+
+            # The branch first: the reverse order publishes a version that sits on no branch, should the
+            # branch push then fail.
+            git push  origin 4.13.x
+            git push  origin core_4.13.0
+workflows:
+  prepare_core_release:
+    jobs:
+      - job-prepare-core-release:
+          context:
+            - cicd-orchestrator
+          name: Tag the core release
+orbs:
+  keeper: gravitee-io/keeper@0.7.1
+  gh: circleci/github-cli@1.0.5

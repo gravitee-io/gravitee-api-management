@@ -15,6 +15,7 @@
     "prettier:fix": "prettier --write \"**/*.{js,mjs,json}\"",
     "full_release": "zx steps/full_release.mjs",
     "prepare_hotfix": "zx steps/prepare_hotfix.mjs",
+    "prepare_core_release": "zx steps/prepare_core_release.mjs",
     "maven_release": "zx steps/maven_release.mjs",
     "zx": "zx --quiet"
   },

@@ -24,6 +24,7 @@ parameters:
                 nightly,
                 helm_tests,
                 maven_release,
+                prepare_core_release,
                 run_e2e_tests,
             ]
         default: pull_requests

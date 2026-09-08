@@ -94,3 +94,28 @@ export async function assertVersionMatchesPom(version, branch) {
     process.exit(1);
   }
 }
+
+/**
+ * Refuses a version whose core tag already exists.
+ *
+ * The tag is the trigger, so an existing one means the release already ran. Pushing it again fails
+ * halfway through, after the branch has been committed to and reopened on the next version — a state
+ * that has to be unwound by hand. Cheaper to refuse before anything is written.
+ * @param {string} version the version passed to the command
+ */
+export async function assertCoreTagIsFree(version) {
+  const tag = `core_${version}`;
+  const url = `https://api.github.com/repos/gravitee-io/gravitee-api-management/git/ref/tags/${tag}`;
+  const response = await fetch(url, { headers: { Accept: 'application/vnd.github+json' } });
+
+  if (response.ok) {
+    console.log(chalk.red(`${tag} already exists: ${version} has already been released.`));
+    console.log(`Release the next version, or delete the tag if it was pushed by mistake.`);
+    process.exit(1);
+  }
+  if (response.status !== 404) {
+    console.log(chalk.red(`Cannot check whether ${tag} exists: ${response.status} ${response.statusText}`));
+    console.log(`Checked ${url}`);
+    process.exit(1);
+  }
+}

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { computeApimVersion, parse, validateGraviteeioVersion } from '../versions';
+import { computeApimVersion, nextDevelopmentVersion, parse, validateGraviteeioVersion } from '../versions';
 
 describe('version', function () {
   describe('parse', function () {
@@ -105,5 +105,23 @@ describe('version', function () {
         fail('Should not throw exception');
       }
     });
+  });
+});
+
+describe('nextDevelopmentVersion', () => {
+  it.each([
+    ['4.13.0', '4.13.1', ''],
+    ['4.12.17', '4.12.18', ''],
+    ['4.12.9', '4.12.10', ''],
+  ])('opens the next patch after the final release %s', (released, version, qualifier) => {
+    expect(nextDevelopmentVersion(released)).toEqual({ version, qualifier });
+  });
+
+  it.each([
+    ['4.13.0-alpha.1', '4.13.0', '-alpha.2'],
+    ['4.13.0-rc.9', '4.13.0', '-rc.10'],
+    ['4.12.17-hotfix.1', '4.12.17', '-hotfix.2'],
+  ])('increments the qualifier after %s, keeping the number', (released, version, qualifier) => {
+    expect(nextDevelopmentVersion(released)).toEqual({ version, qualifier });
   });
 });

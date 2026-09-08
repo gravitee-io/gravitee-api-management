@@ -24,3 +24,32 @@ export async function checkToken() {
     console.log(chalk.green(`Logged as ${body.login}\n`));
   }
 }
+
+/**
+ * Starts a pipeline on CircleCI and reports where to watch it.
+ *
+ * `full_release.mjs` and `maven_release.mjs` still carry their own copy of this; they should adopt
+ * it when the second of them goes.
+ * @param {string} branch the branch the pipeline runs on
+ * @param {object} parameters the pipeline parameters
+ */
+export async function triggerPipeline(branch, parameters) {
+  const response = await fetch('https://circleci.com/api/v2/project/gh/gravitee-io/gravitee-api-management/pipeline', {
+    method: 'post',
+    body: JSON.stringify({ branch, parameters }),
+    headers: {
+      'Content-Type': 'application/json',
+      'Circle-Token': process.env.CIRCLECI_TOKEN,
+    },
+  });
+
+  const data = await response.json();
+  if (response.status !== 201) {
+    console.log(chalk.red('Something went wrong'));
+    console.log(data);
+    process.exit(1);
+  }
+
+  console.log(chalk.green(`Pipeline created with number: ${data.number}`));
+  echo`Follow its progress on: https://app.circleci.com/pipelines/github/gravitee-io/gravitee-api-management/${data.number}`;
+}

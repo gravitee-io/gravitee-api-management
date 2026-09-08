@@ -17,7 +17,7 @@ import { Command, Config, Job, commands, reusable } from '../circleci-config';
 import { BaseExecutor } from '../executors';
 import { config } from '../config';
 import { orbs } from '../orbs';
-import { parse } from '../utils';
+import { nextDevelopmentVersion } from '../utils';
 import { CircleCIEnvironment } from '../pipelines';
 
 export class ReleaseCommitAndPrepareNextVersionJob {
@@ -38,20 +38,10 @@ export class ReleaseCommitAndPrepareNextVersionJob {
   }
 
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
-    const parsedVersion = parse(environment.graviteeioVersion);
-
     dynamicConfig.importOrb(orbs.keeper);
     dynamicConfig.importOrb(orbs.github);
 
-    let nextVersion = '';
-    let nextQualifier = '';
-    if (parsedVersion.qualifier.full === '') {
-      nextVersion = `${parsedVersion.version.major}.${parsedVersion.version.minor}.${Number(parsedVersion.version.patch) + 1}`;
-      nextQualifier = '';
-    } else {
-      nextVersion = `${parsedVersion.version.major}.${parsedVersion.version.minor}.${parsedVersion.version.patch}`;
-      nextQualifier = `-${parsedVersion.qualifier.name}.${Number(parsedVersion.qualifier.version) + 1}`;
-    }
+    const { version: nextVersion, qualifier: nextQualifier } = nextDevelopmentVersion(environment.graviteeioVersion);
 
     const steps: Command[] = [
       new commands.Checkout(),

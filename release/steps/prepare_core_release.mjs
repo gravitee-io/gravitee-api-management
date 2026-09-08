@@ -1,0 +1,35 @@
+#!/usr/bin/env zx
+
+import { checkToken, triggerPipeline } from '../helpers/circleci-helper.mjs';
+import { assertCoreTagIsFree, assertVersionMatchesPom, computeVersion, extractVersion } from '../helpers/version-helper.mjs';
+import { getTargetBranch } from '../helpers/option-helper.mjs';
+
+await checkToken();
+
+const releasingVersion = await extractVersion();
+const versions = computeVersion(releasingVersion);
+const targetBranch = getTargetBranch(versions);
+const isDryRun = argv['dry-run'] === true;
+
+// Read-only, and run here rather than in CI: they refuse in a second instead of after a pipeline
+// has spun up, and they refuse before anything has been written.
+await assertVersionMatchesPom(releasingVersion, targetBranch);
+await assertCoreTagIsFree(releasingVersion);
+
+console.log(chalk.green(`💪 Preparing the core release of ${releasingVersion}${isDryRun ? ' - Dry Run' : ''}\n`));
+console.log(chalk.blue(`Branch: ${targetBranch}`));
+console.log(chalk.blue(`Tag: core_${releasingVersion}\n`));
+console.log(`CI will commit ${releasingVersion}, tag it, and reopen ${targetBranch} on the next version.`);
+console.log(`Pushing that tag is what publishes the core — the branch is pushed first.\n`);
+
+const confirmed = await question(chalk.blue(`Should we continue? (y/n)\n`));
+if (confirmed === 'n') {
+  console.log(chalk.yellow(`🚦 Nothing was triggered.`));
+  process.exit(1);
+}
+
+await triggerPipeline(targetBranch, {
+  gio_action: 'prepare_core_release',
+  dry_run: isDryRun,
+  graviteeio_version: releasingVersion,
+});
