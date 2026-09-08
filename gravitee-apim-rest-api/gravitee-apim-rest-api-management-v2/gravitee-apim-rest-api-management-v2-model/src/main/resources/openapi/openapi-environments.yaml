@@ -3404,7 +3404,8 @@ components:
       in: query
       required: false
       description: |-
-        Filter clusters by lifecycle state. Repeat the parameter to match several states.
+        Filter clusters by lifecycle state. Comma-separate several states (`?lifecycleState=DEPLOYED,PENDING`).
+      explode: false
       schema:
         type: array
         items:
@@ -3435,6 +3436,7 @@ components:
       description: >
         Comma-separated list of fields to expand. Possible value: 'content'
       required: false
+      explode: false
       schema:
         type: array
         items:
