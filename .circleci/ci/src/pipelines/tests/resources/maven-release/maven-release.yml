@@ -92,9 +92,10 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
-      - add_ssh_keys:
-          fingerprints:
-            - ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c
+      - keeper/env-export:
+          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+          var-name: GITHUB_TOKEN
+      - gh/setup
       - keeper/env-export:
           secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
           var-name: GIT_USER_NAME
@@ -106,6 +107,11 @@ jobs:
           command: |-
             git config --global user.name "${GIT_USER_NAME}"
              git config --global user.email "${GIT_USER_EMAIL}"
+      - run:
+          name: Push over HTTPS, so that pushing a tag triggers a pipeline
+          command: |-
+            gh auth setup-git
+            git remote set-url origin "https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git"
       - run:
           name: "Git release "
           command: |
@@ -196,3 +202,4 @@ workflows:
             - Commit and prepare next version
 orbs:
   keeper: gravitee-io/keeper@0.7.1
+  gh: circleci/github-cli@1.0.5
