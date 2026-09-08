@@ -87,6 +87,26 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
     }
 
     @Nested
+    class Operators {
+
+        // A filter with no operator is unusable: the filter bar renders it with nothing to pick, and the
+        // catalog is the only place that says what an engine accepts — nothing downstream validates it.
+        @Test
+        void should_advertise_at_least_one_operator_for_every_filter() {
+            var service = new AnalyticsDefinitionYAMLQueryService();
+
+            var withoutOperator = service
+                .getAllFilters()
+                .stream()
+                .filter(spec -> spec.operators() == null || spec.operators().isEmpty())
+                .map(FilterSpec::name)
+                .toList();
+
+            assertThat(withoutOperator).isEmpty();
+        }
+    }
+
+    @Nested
     class Apis {
 
         // getApis() is what GET /analytics/definition/apis returns, and a metric declaring an api kind

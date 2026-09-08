@@ -1874,13 +1874,21 @@ spec:
               - EQ
               - IN
 
+        # EQ only, for the reason HTTP_PATH gives above: a full path is matched exactly, and IN over
+        # full paths has no known consumer.
         - name: URI
           label: Request URI
           type: STRING
+          operators:
+              - EQ
 
+        # IN as well as EQ: `ENTRYPOINT IN [...]` is the default scoping Gamma injects on every query.
         - name: ENTRYPOINT
           label: Entrypoint
           type: KEYWORD
+          operators:
+              - EQ
+              - IN
 
         - name: HOST
           label: Host
