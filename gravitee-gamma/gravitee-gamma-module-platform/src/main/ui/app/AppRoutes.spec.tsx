@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { License } from '@gravitee/gamma-modules-sdk/types';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import type { ComponentType } from 'react';
 import { MemoryRouter, useLocation, useNavigationType } from 'react-router-dom';
 
@@ -406,19 +406,29 @@ const NO_INTEGRATIONS_RESPONSE = {
 
 const INTEGRATIONS_REQUEST_URL = 'https://apim.test/management/v2/environments/env-1/integrations?page=1&perPage=10';
 
-function jsonResponse(body: unknown) {
-    return Promise.resolve(new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } }));
+function jsonResponse(body: unknown, status = 200) {
+    return Promise.resolve(new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } }));
+}
+
+function okIntegrationsResponse() {
+    return jsonResponse(NO_INTEGRATIONS_RESPONSE);
+}
+
+// 403 rather than 5xx so retryTransientRequest gives up after the first attempt: a retried request would
+// only report isError after react-query's backoff, well past any reasonable wait budget.
+function forbiddenIntegrationsResponse() {
+    return jsonResponse({ httpStatus: 403, message: 'You do not have permission to list integrations.' }, 403);
 }
 
 // The API client resolves /constants.json then /ui/bootstrap before any environment-scoped call and caches
 // the result process-wide, so both have to answer here for an integrations request to be attempted at all.
-function spyOnApimFetch() {
+function spyOnApimFetch(integrationsResponse: () => Promise<Response> = okIntegrationsResponse) {
     resetApimClientForTests();
     return jest.spyOn(global, 'fetch').mockImplementation(input => {
         const url = String(input);
         if (url.endsWith('/constants.json')) return jsonResponse({ gammaBaseURL: APIM_BOOTSTRAP.gammaBaseURL });
         if (url.endsWith('/ui/bootstrap')) return jsonResponse(APIM_BOOTSTRAP);
-        return jsonResponse(NO_INTEGRATIONS_RESPONSE);
+        return integrationsResponse();
     });
 }
 
@@ -724,7 +734,9 @@ describe('AppRoutes', () => {
         expect(screen.getByTestId('integrations-page')).not.toBeNull();
     });
 
-    it('surfaces no error notification while the Integrations gate runs without environment-integration-r', () => {
+    it('surfaces no error notification while the Integrations gate runs without environment-integration-r', async () => {
+        mockUseRealIntegrationsPage = true;
+        const fetchSpy = spyOnApimFetch(forbiddenIntegrationsResponse);
         const notifyError = jest.spyOn(notify, 'error').mockImplementation(() => undefined);
         mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
         mockSetLicense(ENTITLED_LICENSE);
@@ -733,8 +745,31 @@ describe('AppRoutes', () => {
         renderPlatform();
         renderIntegrationsUrl();
 
-        expect(notifyError).not.toHaveBeenCalled();
+        // A refused route starts no async work, so there is nothing to await here: only waitFor's own
+        // timeout gives the mount path — bootstrap, list request, error state, notify effect — time to run.
+        await expect(waitFor(() => expect(notifyError).toHaveBeenCalled())).rejects.toThrow();
         notifyError.mockRestore();
+        fetchSpy.mockRestore();
+    });
+
+    // Positive control for the assertion above: the same failing integrations response does reach
+    // notify.error once the gate lets the page mount, so silence there means the gate refused the route.
+    it('surfaces an error notification once the gate lets the Integrations page mount and its list request fails', async () => {
+        mockUseRealIntegrationsPage = true;
+        const fetchSpy = spyOnApimFetch(forbiddenIntegrationsResponse);
+        const notifyError = jest.spyOn(notify, 'error').mockImplementation(() => undefined);
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        renderIntegrationsUrl();
+
+        expect(await screen.findByText('Integrations could not be loaded. Please refresh and try again.')).not.toBeNull();
+        expect(notifyError).toHaveBeenCalledWith(
+            expect.any(ApimApiError),
+            'Integrations could not be loaded. Please refresh and try again.',
+        );
+        notifyError.mockRestore();
+        fetchSpy.mockRestore();
     });
 
     it('requests no integrations endpoint while deciding whether Integrations is available', async () => {
