@@ -189,6 +189,52 @@ commands:
           from: << parameters.folder-to-sync>>
           to: s3://gravitee-releases-downloads/pre-releases
     description: Sync folder content to Gravitee download website
+  cmd-azure-artifacts-token:
+    steps:
+      - keeper/env-export:
+          secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/login
+          var-name: AZURE_SP_CLIENT_ID
+      - keeper/env-export:
+          secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/password
+          var-name: AZURE_SP_CLIENT_SECRET
+      - keeper/env-export:
+          secret-url: keeper://UryantA7MvZe8fkWwcUt8g/custom_field/tenant
+          var-name: AZURE_SP_TENANT
+      - run:
+          name: Get an Azure Artifacts token
+          command: |-
+            TOKEN=$(curl -sf -X POST \
+              "https://login.microsoftonline.com/${AZURE_SP_TENANT}/oauth2/v2.0/token" \
+              -d "client_id=${AZURE_SP_CLIENT_ID}" \
+              -d "client_secret=${AZURE_SP_CLIENT_SECRET}" \
+              -d "scope=499b84ac-1321-427f-aa17-267ca6975798/.default" \
+              -d "grant_type=client_credentials" \
+              | sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p')
+
+            if [ -z "$TOKEN" ]; then
+              echo "Could not obtain an Entra token for the service principal." >&2
+              echo "The client secret is the one used to push images: if it expired, those are failing too." >&2
+              exit 1
+            fi
+
+            # Through BASH_ENV so the value survives to the following steps, and never appears on a
+            # command line or in a process listing.
+            echo "export AZURE_ARTIFACTS_PAT='${TOKEN}'" >> "$BASH_ENV"
+      - run:
+          name: Check the feed answers
+          command: |-
+            CODE=$(curl -s -o /dev/null -w '%{http_code}' -m 30 \
+              -u "bot:${AZURE_ARTIFACTS_PAT}" \
+              "https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee/maven/v1/io/gravitee/canary/feed-canary/1.0.0/feed-canary-1.0.0.pom")
+
+            case "$CODE" in
+              200) echo "The feed resolves the canary." ;;
+              401) echo "401 — the feed rejected the token." >&2; exit 1 ;;
+              403) echo "403 — Gravitee.io Bot has no role on the feed." >&2; exit 1 ;;
+              404) echo "404 — token accepted but the canary is gone; publish it again." >&2; exit 1 ;;
+              *)   echo "HTTP $CODE from the feed." >&2; exit 1 ;;
+            esac
+    description: Get a short-lived Azure Artifacts token
 jobs:
   job-setup:
     docker:
@@ -197,7 +243,7 @@ jobs:
     steps:
       - checkout
       - keeper/env-export:
-          secret-url: keeper://7CgijuGiFDSLynRJt1Dm9w/custom_field/xml
+          secret-url: keeper://7CgijuGiFDSLynRJt1Dm9w/custom_field/xml_azure
           var-name: MAVEN_SETTINGS
       - run:
           command: echo "$MAVEN_SETTINGS" > .gravitee.settings.xml
@@ -485,6 +531,7 @@ jobs:
           at: .
       - cmd-restore-maven-job-cache:
           jobName: job-backend-build-and-publish-on-download-website
+      - cmd-azure-artifacts-token
       - run:
           name: Remove `-SNAPSHOT` from versions
           command: |-
@@ -836,6 +883,7 @@ jobs:
       - attach_workspace:
           at: .
       - cmd-prepare-gpg
+      - cmd-azure-artifacts-token
       - run:
           name: Release on Nexus
           command: mvn clean deploy --activate-profiles gravitee-release --batch-mode -T 4 -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true --settings .gravitee.settings.xml --update-snapshots
