@@ -71,6 +71,7 @@ public class UsersRegistrationResource extends AbstractResource {
         description = "User successfully registered",
         content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = UserEntity.class))
     )
+    @ApiResponse(responseCode = "400", description = "Unsupported registration target, or no Gamma URL configured")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response registerUser(
         @Parameter(
