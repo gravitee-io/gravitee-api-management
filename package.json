@@ -69,7 +69,7 @@
         "angular-material-icons": "0.7.1",
         "angular-messages": "1.8.3",
         "angular-moment-picker": "0.10.2",
-        "angular-oauth2-oidc": "20.0.2",
+        "angular-oauth2-oidc": "20.0.3",
         "angular-permission": "6.0.0",
         "angular-sanitize": "1.8.3",
         "angular-schema-form": "0.8.14",

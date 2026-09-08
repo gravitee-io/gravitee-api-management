@@ -15515,15 +15515,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"angular-oauth2-oidc@npm:20.0.2":
-  version: 20.0.2
-  resolution: "angular-oauth2-oidc@npm:20.0.2"
+"angular-oauth2-oidc@npm:20.0.3":
+  version: 20.0.3
+  resolution: "angular-oauth2-oidc@npm:20.0.3"
   dependencies:
     tslib: "npm:^2.5.2"
   peerDependencies:
     "@angular/common": ">=20.0.0"
     "@angular/core": ">=20.0.0"
-  checksum: 10c0/db22f23d4906dd6b413b2a01d832a35aa8f7e8db236eafc7d0c63fdf7e29e08ca3aea13241b16e7ca63d27f586d365dc6b1cce690a6fb6d6aaf3f88aeb89a21b
+  checksum: 10c0/99f8c3d80ecbbfc6437dd2d6e64216d7eda89e8e895f23be7ea9eaf3383588f465bc6ff45cd67fbdb65e12ebc5590527b86f9d7adfc7aeb159888115bfb8a22b
   languageName: node
   linkType: hard
 
@@ -22089,7 +22089,7 @@ __metadata:
     angular-messages: "npm:1.8.3"
     angular-mocks: "npm:1.8.3"
     angular-moment-picker: "npm:0.10.2"
-    angular-oauth2-oidc: "npm:20.0.2"
+    angular-oauth2-oidc: "npm:20.0.3"
     angular-permission: "npm:6.0.0"
     angular-sanitize: "npm:1.8.3"
     angular-schema-form: "npm:0.8.14"
