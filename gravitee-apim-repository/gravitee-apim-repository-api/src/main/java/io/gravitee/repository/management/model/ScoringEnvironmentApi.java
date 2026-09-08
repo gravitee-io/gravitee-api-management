@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
+import io.gravitee.definition.model.v4.ApiType;
 import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,6 +30,7 @@ public final class ScoringEnvironmentApi {
 
     private String apiId;
     private String apiName;
+    private ApiType apiType;
     private Date apiUpdatedAt;
 
     private String reportId;
@@ -40,9 +42,10 @@ public final class ScoringEnvironmentApi {
     private Long infos;
     private Long hints;
 
-    public ScoringEnvironmentApi(String apiId, String apiName, Date apiUpdatedAt) {
+    public ScoringEnvironmentApi(String apiId, String apiName, ApiType apiType, Date apiUpdatedAt) {
         this.apiId = apiId;
         this.apiName = apiName;
+        this.apiType = apiType;
         this.apiUpdatedAt = apiUpdatedAt;
     }
 }

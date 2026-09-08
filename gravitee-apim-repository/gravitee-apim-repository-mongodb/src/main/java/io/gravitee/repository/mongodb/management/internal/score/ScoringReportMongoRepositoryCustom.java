@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management.internal.score;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.ScoringEnvironmentApi;
 import io.gravitee.repository.management.model.ScoringEnvironmentSummary;
@@ -27,6 +28,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ScoringReportMongoRepositoryCustom {
     List<ScoringReportMongo> findLatestReports(Collection<String> apiIds);
-    Page<ScoringEnvironmentApi> findEnvironmentLatestReports(String environmentId, Pageable pageable);
+    Page<ScoringEnvironmentApi> findEnvironmentLatestReports(String environmentId, Collection<ApiType> apiTypes, Pageable pageable);
     ScoringEnvironmentSummary getScoringEnvironmentSummary(String environmentId);
 }

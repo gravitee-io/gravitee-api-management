@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.scoring.model;
 
+import io.gravitee.definition.model.v4.ApiType;
 import java.time.ZonedDateTime;
 import lombok.Builder;
 
@@ -22,5 +23,5 @@ import lombok.Builder;
 public record EnvironmentApiScoringReport(Api api, Summary summary) {
     public record Summary(String id, ZonedDateTime createdAt, double score, long errors, long warnings, long infos, long hints) {}
 
-    public record Api(String apiId, String name, ZonedDateTime updatedAt) {}
+    public record Api(String apiId, String name, ApiType type, ZonedDateTime updatedAt) {}
 }

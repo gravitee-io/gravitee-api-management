@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ScoringReportRepository;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -67,9 +68,9 @@ public class MongoScoringReportRepository implements ScoringReportRepository {
     }
 
     @Override
-    public Page<ScoringEnvironmentApi> findEnvironmentLatestReports(String environmentId, Pageable pageable) {
+    public Page<ScoringEnvironmentApi> findEnvironmentLatestReports(String environmentId, Collection<ApiType> apiTypes, Pageable pageable) {
         log.debug("Find all latest scoring reports of environment {}", environmentId);
-        var result = internalRepository.findEnvironmentLatestReports(environmentId, pageable);
+        var result = internalRepository.findEnvironmentLatestReports(environmentId, apiTypes, pageable);
         log.debug("Find all latest scoring reports of environment {} - DONE", environmentId);
         return result;
     }

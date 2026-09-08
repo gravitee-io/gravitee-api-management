@@ -38,6 +38,7 @@ public interface ScoringReportAdapter {
 
     @Mapping(target = "apiId", source = "apiId")
     @Mapping(target = "name", source = "apiName")
+    @Mapping(target = "type", source = "apiType")
     @Mapping(target = "updatedAt", source = "apiUpdatedAt")
     EnvironmentApiScoringReport.Api toEnvironmentApiScoringReportApi(io.gravitee.repository.management.model.ScoringEnvironmentApi source);
 

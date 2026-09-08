@@ -26,6 +26,7 @@ import io.gravitee.apim.core.scoring.model.EnvironmentOverview;
 import io.gravitee.apim.core.scoring.model.ScoringAssetType;
 import io.gravitee.apim.core.scoring.model.ScoringReport;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ScoringReportRepository;
 import io.gravitee.repository.management.model.ScoringEnvironmentApi;
@@ -131,12 +132,12 @@ public class ScoringReportQueryServiceImplTest {
         void should_find_scoring_report() {
             // Given
             var pageable = new PageableImpl(1, 5);
-            when(scoringReportRepository.findEnvironmentLatestReports(any(), any())).thenAnswer(invocation ->
+            when(scoringReportRepository.findEnvironmentLatestReports(any(), any(), any())).thenAnswer(invocation ->
                 new Page<>(List.of(aScoringEnvironmentApi()), 1, 5, 1)
             );
 
             // When
-            var result = service.findEnvironmentLatestReports("environment-id", pageable);
+            var result = service.findEnvironmentLatestReports("environment-id", null, pageable);
 
             // Then
             SoftAssertions.assertSoftly(softly -> {
@@ -147,6 +148,7 @@ public class ScoringReportQueryServiceImplTest {
                             new EnvironmentApiScoringReport.Api(
                                 "api-id",
                                 "api-name",
+                                ApiType.MESSAGE,
                                 Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault())
                             ),
                             new EnvironmentApiScoringReport.Summary(
@@ -170,10 +172,10 @@ public class ScoringReportQueryServiceImplTest {
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
             // Given
             var pageable = new PageableImpl(1, 5);
-            when(scoringReportRepository.findEnvironmentLatestReports(any(), any())).thenThrow(TechnicalException.class);
+            when(scoringReportRepository.findEnvironmentLatestReports(any(), any(), any())).thenThrow(TechnicalException.class);
 
             // When
-            Throwable throwable = catchThrowable(() -> service.findEnvironmentLatestReports("environment-id", pageable));
+            Throwable throwable = catchThrowable(() -> service.findEnvironmentLatestReports("environment-id", null, pageable));
 
             // Then
             assertThat(throwable)
@@ -257,6 +259,7 @@ public class ScoringReportQueryServiceImplTest {
         return ScoringEnvironmentApi.builder()
             .apiId("api-id")
             .apiName("api-name")
+            .apiType(ApiType.MESSAGE)
             .apiUpdatedAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
             .reportCreatedAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
             .reportId("report-id")
