@@ -45,8 +45,6 @@ yarn full_release --version=4.12.18
 
 It asks for confirmation on the JIRA release and on leftover alpha qualifiers, then runs every step. Add `--latest` to tag the Docker images as `latest`, or it will ask.
 
-`yarn maven_release --version=4.12.18` publishes to Maven Central on its own, outside that path.
-
 === If a release stops halfway
 
 Nothing resumes it. In the CircleCI workflow, *Rerun from failed* restarts the failed job **and everything that depends on it** — which is not always what you want.

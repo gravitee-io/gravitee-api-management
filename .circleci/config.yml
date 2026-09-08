@@ -23,7 +23,6 @@ parameters:
                 integration_tests,
                 nightly,
                 helm_tests,
-                maven_release,
                 prepare_core_release,
                 run_e2e_tests,
             ]
