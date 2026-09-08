@@ -20,11 +20,12 @@ import { Link, useParams } from 'react-router-dom';
 import { AuthPageShell } from './AuthPageShell';
 import { PasswordRequirements, assessPassword } from '../../../shared/password-policy';
 import { usePasswordPolicy } from '../hooks/usePasswordPolicy';
-import { finalizeResetPassword } from '../services/resetPassword.service';
+import { PasswordRejectedError, finalizeResetPassword } from '../services/resetPassword.service';
 import { isAuthTokenExpired, parseAuthToken, type AuthTokenClaims } from '../utils/authToken';
 
 const INVALID_LINK = "This reset link isn't valid. Ask your administrator to send a new one.";
 const EXPIRED_LINK = 'This reset link has expired. Ask your administrator to send a new one.';
+const PASSWORD_REJECTION_ID = 'reset-password-rejection';
 
 function passwordsMatch(password: string, confirmPassword: string): boolean {
     return password.length > 0 && password === confirmPassword;
@@ -82,6 +83,7 @@ export function ResetPasswordPage() {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
+    const [passwordRejection, setPasswordRejection] = useState('');
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
     const { policy: passwordPolicy, loading: passwordPolicyLoading, error: passwordPolicyError } = usePasswordPolicy();
@@ -117,6 +119,7 @@ export function ResetPasswordPage() {
         }
 
         setError('');
+        setPasswordRejection('');
         setLoading(true);
         try {
             await finalizeResetPassword(tokenClaims.sub, {
@@ -131,7 +134,11 @@ export function ResetPasswordPage() {
                 console.error('Password reset failed', submitError);
             }
             const message = submitError instanceof Error ? submitError.message : 'An error occurred while resetting your password.';
-            setError(message);
+            if (submitError instanceof PasswordRejectedError) {
+                setPasswordRejection(message);
+            } else {
+                setError(message);
+            }
         } finally {
             setLoading(false);
         }
@@ -191,13 +198,24 @@ export function ResetPasswordPage() {
                     <PasswordInput
                         id="reset-password"
                         value={password}
-                        onChange={event => setPassword(event.target.value)}
+                        onChange={event => {
+                            setPassword(event.target.value);
+                            // The server's verdict was on the password it was sent, not on this one.
+                            setPasswordRejection('');
+                        }}
+                        aria-invalid={Boolean(passwordRejection)}
+                        aria-describedby={passwordRejection ? PASSWORD_REJECTION_ID : undefined}
                         required
                         autoComplete="new-password"
                         // eslint-disable-next-line jsx-a11y/no-autofocus
                         autoFocus
                     />
                     <PasswordRequirements policy={passwordPolicy} password={password} showStrengthMeter />
+                    {passwordRejection ? (
+                        <p id={PASSWORD_REJECTION_ID} role="alert" className="text-sm text-destructive">
+                            {passwordRejection}
+                        </p>
+                    ) : null}
                 </Field>
 
                 <Field orientation="vertical" className="gap-2">

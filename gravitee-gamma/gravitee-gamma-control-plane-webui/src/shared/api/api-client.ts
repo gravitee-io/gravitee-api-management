@@ -41,17 +41,23 @@ function setCsrfToken(value: string) {
     localStorage.setItem('XSRF-TOKEN', value);
 }
 
-async function resolveErrorMessage(res: Response, fallback: string): Promise<string> {
+interface ResolvedError {
+    readonly message: string;
+    /** The server's stable identifier for this failure, where it sent one. */
+    readonly technicalCode?: string;
+}
+
+async function resolveError(res: Response, fallback: string): Promise<ResolvedError> {
     const text = await res.text().catch(() => '');
     if (!text) {
-        return fallback;
+        return { message: fallback };
     }
 
     try {
-        const parsed = JSON.parse(text) as { message?: string };
-        return parsed.message?.trim() || fallback;
+        const parsed = JSON.parse(text) as { message?: string; technicalCode?: string };
+        return { message: parsed.message?.trim() || fallback, technicalCode: parsed.technicalCode };
     } catch {
-        return text.trim() || fallback;
+        return { message: text.trim() || fallback };
     }
 }
 
@@ -72,7 +78,8 @@ export async function request<T>(backend: Backend, path: string, init?: RequestI
 
     if (!res.ok) {
         const fallback = `${init?.method ?? 'GET'} ${path} failed`;
-        throw new ApiError(res.status, await resolveErrorMessage(res, fallback));
+        const resolved = await resolveError(res, fallback);
+        throw new ApiError(res.status, resolved.message, resolved.technicalCode);
     }
 
     if (res.status === 204) return undefined as T;
@@ -85,6 +92,9 @@ export class ApiError extends Error {
     constructor(
         public readonly status: number,
         message: string,
+        /** The server's stable identifier for this failure, so callers can branch on the cause
+         *  rather than on wording that is free to change. */
+        public readonly technicalCode?: string,
     ) {
         super(message);
         this.name = 'ApiError';
