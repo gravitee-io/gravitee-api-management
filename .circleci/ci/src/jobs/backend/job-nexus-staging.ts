@@ -22,7 +22,11 @@ import { keeper } from '../../orbs/keeper';
 
 export class NexusStagingJob {
   private static jobName: string = 'job-nexus-staging';
-  public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
+  /**
+   * @param checkoutRef the tag holding the tree to publish. Defaults to the bare version, which is
+   * what the product's own lanes tag; the core lane prefixes its tags, so it passes its own.
+   */
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment, checkoutRef: string = environment.graviteeioVersion): Job {
     dynamicConfig.importOrb(keeper);
 
     const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
@@ -37,8 +41,8 @@ export class NexusStagingJob {
     const steps: Command[] = [
       new commands.Checkout(),
       new commands.Run({
-        name: `Checkout tag ${environment.graviteeioVersion}`,
-        command: `git checkout ${environment.graviteeioVersion}`,
+        name: `Checkout tag ${checkoutRef}`,
+        command: `git checkout ${checkoutRef}`,
       }),
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: NexusStagingJob.jobName }),
       new commands.workspace.Attach({ at: '.' }),

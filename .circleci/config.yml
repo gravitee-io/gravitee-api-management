@@ -63,6 +63,10 @@ jobs:
                   condition:
                       not:
                           or:
+                              # A tag build has no branch to diff against, and the search below halts
+                              # the pipeline when it finds none. Nothing is compared on that path: the
+                              # release publishes the tag, whatever changed to get there.
+                              - << pipeline.git.tag >>
                               - equal: ["master", << pipeline.git.branch >>]
                               - matches:
                                     pattern: "^[0-9]+\\.[0-9]+\\.x$"
@@ -146,8 +150,35 @@ jobs:
             - continuation/continue:
                   configuration_path: /tmp/dynamicConfig.yml
 
+# Filters on both tags and branches are needed on every job below: CircleCI does not run a job for a
+# tag unless the job says so, and does not stop running it for branches unless the job says that too.
 workflows:
     dynamic-workflow:
+        when:
+            not: << pipeline.git.tag >>
         jobs:
             - generate-config:
                   context: cicd-orchestrator
+                  filters:
+                      tags:
+                          ignore:
+                              - /.*/
+
+    # The core reactor publishes from its own tag. The version is the tag, so nothing is passed as a
+    # pipeline parameter and the artefacts are built from the tagged tree rather than from a branch
+    # head that has moved on.
+    core-release:
+        when:
+            matches:
+                pattern: "/^core_(\\d+\\.\\d+\\.\\d+(-[a-z]+\\.\\d+)?)$/"
+                value: << pipeline.git.tag >>
+        jobs:
+            - generate-config:
+                  context: cicd-orchestrator
+                  filters:
+                      branches:
+                          ignore:
+                              - /.*/
+                      tags:
+                          only:
+                              - /^core_(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
