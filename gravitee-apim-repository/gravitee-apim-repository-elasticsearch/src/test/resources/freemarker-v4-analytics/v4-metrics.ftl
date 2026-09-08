@@ -78,7 +78,9 @@
 
 <#-- The entrypoints promoted to the HTTP request scope (OBS-18), plus an sse subscription of the same
      API that must stay out of it, so the default scope is proven on documents and not only on the
-     query body. A dedicated api-id keeps every environment-wide assertion above unchanged. -->
+     query body. The dedicated api-id only shields the assertions that filter by api: the facet
+     assertions above pass no filter at all and count the whole environment, so mcp-studio's
+     "/" request lands in their buckets. Adding a document here means re-checking them. -->
 { "index" :{ ${indexNameToday}, "_id": "promoted-entrypoint-001"}}
 { "entrypoint-id": "mcp", "gateway": "2c99d50d-d318-42d3-99d5-0dd31862d3d2", "@timestamp": "${dateToday}T12:00:00.000Z", "request-id": "promoted-entrypoint-001", "transaction-id": "promoted-entrypoint-001", "api-id": "promoted-entrypoints-api-001", "plan-id": "733b78f1-1a16-4c16-bb78-f11a16ac1693", "application-id": "613dc986-41ce-4b5b-bdc9-8641cedb5bdb", "subscription-id": "127.0.0.1", "http-method": 7, "local-address": "10.0.2.208", "remote-address": "127.0.0.1", "host": "apim-master-gateway.team-apim.gravitee.dev", "uri": "/promoted/mcp", "path-info": "/mcp", "user-agent": "", "request-ended": "true", "status": 200, "response-content-length": 10, "gateway-response-time-ms": 20 }
 { "index" :{ ${indexNameToday}, "_id": "promoted-entrypoint-002"}}
