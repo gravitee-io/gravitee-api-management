@@ -677,8 +677,15 @@ user:
   # Passwords should require a minimum level of complexity that makes sense for the application and its user population.
   password:
     policy:
-      # description field is used to display a message to the user enter a password that does not match the policy. Leave it blank to disable the message.
-      description: Password must be at least 12 characters long, contain at least one digit, one upper case letter, one lower case letter, one special character, and no more than 2 consecutive equal characters.
+      # description is your own explanation of the policy. GET /configuration/password-policy carries
+      # it exactly as written here, and carries it empty when you leave it blank -- Gravitee never
+      # writes one for you, so a client can treat any text here as yours and show it. The response
+      # also carries the rules this service can derive from the pattern below, which will not cover
+      # a requirement the pattern states in a way the parser cannot read: write a description
+      # whenever you change the pattern. Changing the pattern without writing one logs a warning at
+      # startup. Left blank by default because the rules already say what the example below says.
+      # Example : Password must be at least 12 characters long, contain at least one digit, one upper case letter, one lower case letter, one special character, and no more than 2 consecutive equal characters.
+      description:
       pattern: ^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!~<>.,;:_=?/*+\-#\"'&§`£€%°()|\[\]$^@])(?!.*(.)\1{2,}).{12,128}$
               # Example : ^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!~<>.,;:_=?/*+\-#\"'&§`£€%°()|\[\]$^@])(?!.*(.)\1{2,}).{12,128}$
               # ^                                            # start-of-string

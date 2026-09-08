@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,7 +28,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PasswordPolicyEntity {
 
+    @Schema(
+        description = "The operator's own explanation of the policy, carried exactly as configured. " +
+            "Empty when none was configured: this service never writes one on their behalf."
+    )
     private String description;
+
     private String pattern;
     private List<PasswordPolicyRuleEntity> rules;
 }

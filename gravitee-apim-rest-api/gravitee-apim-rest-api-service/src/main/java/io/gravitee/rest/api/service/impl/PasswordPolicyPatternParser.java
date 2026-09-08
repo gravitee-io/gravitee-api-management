@@ -17,8 +17,10 @@ package io.gravitee.rest.api.service.impl;
 
 import io.gravitee.rest.api.model.PasswordPolicyRuleEntity;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -66,8 +68,10 @@ public class PasswordPolicyPatternParser {
             }
         }
 
-        for (String charClass : extractPositiveLookaheadCharClasses(policyPattern)) {
-            classifyLookahead(charClass).ifPresent(rule -> addRule(rules, seenRuleIds, rule));
+        for (PasswordPolicyRuleEntity lookaheadRule : lookaheadContributions(policyPattern).values()) {
+            if (lookaheadRule != null) {
+                addRule(rules, seenRuleIds, lookaheadRule);
+            }
         }
 
         if (policyPattern.contains("(?!.*(.)\\1{2,})")) {
@@ -83,6 +87,51 @@ public class PasswordPolicyPatternParser {
         }
 
         return List.copyOf(rules);
+    }
+
+    /**
+     * The lookaheads this parser examined without producing a rule for them.
+     *
+     * <p>A requirement it cannot express is one a user only discovers by having their password
+     * rejected, so the fragments are named rather than dropped in silence. A lookahead is reported
+     * whether it could not be classified at all or was classified onto a rule another lookahead had
+     * already claimed — {@code (?=.*[!@#])(?=.*[\-_])} yields one "special" rule, and the second
+     * requirement is as invisible as one the parser never recognised.
+     */
+    public List<String> untranslatedFragments(String policyPattern) {
+        if (policyPattern == null || policyPattern.isBlank()) {
+            return List.of();
+        }
+
+        List<String> untranslated = new ArrayList<>();
+        lookaheadContributions(policyPattern).forEach((charClass, rule) -> {
+            if (rule == null) {
+                untranslated.add(POSITIVE_LOOKAHEAD_PREFIX + charClass + "])");
+            }
+        });
+        return List.copyOf(untranslated);
+    }
+
+    /**
+     * Each distinct lookahead character class in the pattern, mapped to the rule it contributes to
+     * {@link #parse}, or {@code null} when it contributes none.
+     *
+     * <p>One walk answers both "which rules does this pattern produce?" and "which of its lookaheads
+     * produced nothing?", so the two cannot disagree about what was dropped.
+     */
+    private static Map<String, PasswordPolicyRuleEntity> lookaheadContributions(String policyPattern) {
+        Map<String, PasswordPolicyRuleEntity> contributions = new LinkedHashMap<>();
+        Set<String> claimedRuleIds = new LinkedHashSet<>();
+
+        for (String charClass : extractPositiveLookaheadCharClasses(policyPattern)) {
+            if (contributions.containsKey(charClass)) {
+                continue;
+            }
+            PasswordPolicyRuleEntity rule = classifyLookahead(charClass).orElse(null);
+            contributions.put(charClass, rule != null && claimedRuleIds.add(rule.getId()) ? rule : null);
+        }
+
+        return contributions;
     }
 
     private static List<String> extractPositiveLookaheadCharClasses(String policyPattern) {
