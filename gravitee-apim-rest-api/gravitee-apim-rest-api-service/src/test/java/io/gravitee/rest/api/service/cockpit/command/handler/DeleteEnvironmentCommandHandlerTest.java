@@ -620,6 +620,24 @@ public class DeleteEnvironmentCommandHandlerTest {
     }
 
     @Test
+    public void should_delete_the_subscription_form_page_content() throws TechnicalException {
+        var subscriptionForm = io.gravitee.repository.management.model.SubscriptionForm.builder()
+            .id("subscription-form")
+            .environmentId(ENV_ID)
+            .portalPageContentId("subscription-form-content")
+            .build();
+        when(subscriptionFormRepository.findByEnvironmentId(ENV_ID)).thenReturn(Optional.of(subscriptionForm));
+
+        DeleteEnvironmentReply reply = cut
+            .handle(new DeleteEnvironmentCommand(new DeleteEnvironmentCommandPayload("delete-env", ENV_ID, COCKPIT_USER_ID)))
+            .blockingGet();
+
+        assertEquals(CommandStatus.SUCCEEDED, reply.getCommandStatus());
+        verify(portalPageContentRepository).delete("subscription-form-content");
+        verify(subscriptionFormRepository).deleteByEnvironmentId(ENV_ID);
+    }
+
+    @Test
     public void should_delete_all_api_products_in_environment() throws TechnicalException {
         ApiProduct apiProduct1 = ApiProduct.builder().id(API_PRODUCT_ID_1).environmentId(ENV_ID).name("Product 1").build();
         ApiProduct apiProduct2 = ApiProduct.builder().id(API_PRODUCT_ID_2).environmentId(ENV_ID).name("Product 2").build();

@@ -101,6 +101,7 @@ import io.gravitee.repository.management.model.PortalNavigationItem;
 import io.gravitee.repository.management.model.QualityRule;
 import io.gravitee.repository.management.model.RatingReferenceType;
 import io.gravitee.repository.management.model.RoleReferenceType;
+import io.gravitee.repository.management.model.SubscriptionForm;
 import io.gravitee.repository.management.model.ThemeReferenceType;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.media.api.MediaRepository;
@@ -469,7 +470,18 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         clientRegistrationProviderRepository.deleteByEnvironmentId(environment.getId());
         qualityRuleRepository.deleteByReferenceIdAndReferenceType(environment.getId(), QualityRule.ReferenceType.ENVIRONMENT);
         clusterRepository.deleteByEnvironmentId(environment.getId());
+        deleteSubscriptionFormPageContent(environment);
         subscriptionFormRepository.deleteByEnvironmentId(environment.getId());
+    }
+
+    private void deleteSubscriptionFormPageContent(EnvironmentEntity environment) throws TechnicalException {
+        var pageContentId = subscriptionFormRepository
+            .findByEnvironmentId(environment.getId())
+            .map(SubscriptionForm::getPortalPageContentId)
+            .orElse(null);
+        if (pageContentId != null) {
+            portalPageContentRepository.delete(pageContentId);
+        }
     }
 
     private void deletePortalNavigationItems(EnvironmentEntity environment) throws TechnicalException {

@@ -49,7 +49,7 @@ public class SubscriptionFormQueryServiceImpl implements SubscriptionFormQuerySe
 
     public SubscriptionFormQueryServiceImpl(
         @Lazy SubscriptionFormRepository subscriptionFormRepository,
-        @Lazy PortalPageContentQueryService pageContentQueryService
+        PortalPageContentQueryService pageContentQueryService
     ) {
         this.subscriptionFormRepository = subscriptionFormRepository;
         this.pageContentQueryService = pageContentQueryService;
@@ -84,10 +84,19 @@ public class SubscriptionFormQueryServiceImpl implements SubscriptionFormQuerySe
     }
 
     private SubscriptionForm toEntity(io.gravitee.repository.management.model.SubscriptionForm form) {
-        var gmdContent = form.getPortalPageContentId() == null
-            ? GraviteeMarkdown.of(form.getGmdContent())
-            : loadContent(form.getId(), PortalPageContentId.of(form.getPortalPageContentId()));
-        return subscriptionFormAdapter.toEntity(form, gmdContent);
+        return subscriptionFormAdapter.toEntity(form, resolveContent(form));
+    }
+
+    private GraviteeMarkdown resolveContent(io.gravitee.repository.management.model.SubscriptionForm form) {
+        if (form.getPortalPageContentId() != null) {
+            return loadContent(form.getId(), PortalPageContentId.of(form.getPortalPageContentId()));
+        }
+        if (form.getGmdContent() != null) {
+            return GraviteeMarkdown.of(form.getGmdContent());
+        }
+        throw new TechnicalDomainException(
+            String.format("SubscriptionForm %s has neither inline content nor a page content", form.getId())
+        );
     }
 
     private GraviteeMarkdown loadContent(String subscriptionFormId, PortalPageContentId contentId) {

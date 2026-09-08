@@ -101,6 +101,16 @@ class SubscriptionFormQueryServiceImplTest {
         }
 
         @Test
+        void should_throw_when_the_row_has_neither_inline_content_nor_page_content() throws TechnicalException {
+            var brokenRow = aMigratedRow().toBuilder().portalPageContentId(null).gmdContent(null).build();
+            when(repository.findByEnvironmentId(ENVIRONMENT_ID)).thenReturn(Optional.of(brokenRow));
+
+            assertThatThrownBy(() -> service.findDefaultForEnvironmentId(ENVIRONMENT_ID))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("SubscriptionForm " + FORM_ID + " has neither inline content nor a page content");
+        }
+
+        @Test
         void should_return_empty_when_form_not_found() throws TechnicalException {
             when(repository.findByEnvironmentId(ENVIRONMENT_ID)).thenReturn(Optional.empty());
 

@@ -45,8 +45,9 @@ public class SubscriptionForm {
 
     /**
      * The {@link io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent} holding the form
-     * definition, shared with every other GMD-backed portal content. {@code null} only until the form has
-     * been persisted: the content is created alongside the form by the CRUD service.
+     * definition, shared with every other GMD-backed portal content. {@code null} until the form has been
+     * persisted, and on a legacy form whose definition is still stored inline: the CRUD service creates
+     * the content on the next write in both cases.
      */
     @Nullable
     private final PortalPageContentId portalPageContentId;
