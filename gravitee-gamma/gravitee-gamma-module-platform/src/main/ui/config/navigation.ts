@@ -27,6 +27,7 @@ import {
     KeyIcon,
     LayersIcon,
     MailIcon,
+    MessageSquareIcon,
     RadioIcon,
     ScrollTextIcon,
     ServerIcon,
@@ -101,6 +102,7 @@ export const NAV_SECTIONS: PlatformNavSection[] = [
                     { key: 'metadata', title: ROUTES.metadata.label, icon: DatabaseIcon },
                     { key: 'dictionaries', title: ROUTES.dictionaries.label, icon: BookOpenIcon },
                     { key: 'shared-policy-groups', title: ROUTES['shared-policy-groups'].label, icon: LayersIcon },
+                    { key: 'broadcasts', title: ROUTES.broadcasts.label, icon: MessageSquareIcon },
                 ],
             },
             {

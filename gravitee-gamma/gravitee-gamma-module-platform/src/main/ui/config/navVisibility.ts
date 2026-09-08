@@ -81,6 +81,7 @@ export const NAV_ITEM_PERMISSIONS: Readonly<Record<string, readonly string[]>> =
     metadata: ['environment-metadata-r'],
     dictionaries: ['environment-dictionary-r'],
     'shared-policy-groups': [ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION],
+    broadcasts: ['environment-message-c'],
     gateways: ['environment-instance-r'],
     alerts: [ENVIRONMENT_ALERT_READ_PERMISSION],
     'notification-settings': ['environment-notification-r'],

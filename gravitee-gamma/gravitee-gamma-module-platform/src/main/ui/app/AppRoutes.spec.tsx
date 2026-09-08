@@ -305,6 +305,10 @@ jest.mock('../pages/EnvironmentNotificationSettingsPage', () => ({
     EnvironmentNotificationSettingsPage: () => <div data-testid="environment-notification-settings-page" />,
 }));
 
+jest.mock('../pages/BroadcastsPage', () => ({
+    BroadcastsPage: () => <div data-testid="broadcasts-page" />,
+}));
+
 function LocationProbe() {
     return <div data-testid="location">{useLocation().pathname}</div>;
 }
@@ -566,6 +570,7 @@ describe('AppRoutes', () => {
             'metadata',
             'dictionaries',
             'shared-policy-groups',
+            'broadcasts',
         ]);
         expect(navItemAccess('integrations')).toBeUndefined();
     });
@@ -1223,6 +1228,43 @@ describe('AppRoutes', () => {
         renderPlatform();
 
         expect(visibleNavKeys()).toContain('notification-settings');
+    });
+
+    it('shows the Broadcasts nav item when the user has environment-message-c', () => {
+        renderPlatform();
+
+        expect(visibleNavKeys()).toContain('broadcasts');
+    });
+
+    it('hides the Broadcasts nav item when the user lacks environment-message-c', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-message-c'));
+
+        renderPlatform();
+
+        expect(visibleNavKeys()).not.toContain('broadcasts');
+    });
+
+    it('redirects away from Broadcasts when the user lacks environment-message-c', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-message-c'));
+
+        render(
+            <MemoryRouter initialEntries={['/broadcasts']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.queryByTestId('broadcasts-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('routes to the Broadcasts page under the platform module', () => {
+        render(
+            <MemoryRouter initialEntries={['/broadcasts']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('broadcasts-page')).not.toBeNull();
     });
 
     it('hides the Notifications nav item when the user lacks environment-notification-r', () => {
