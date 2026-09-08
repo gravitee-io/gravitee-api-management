@@ -70,6 +70,19 @@ public interface UserService {
 
     UserEntity register(ExecutionContext executionContext, NewExternalUserEntity newExternalUserEntity, String confirmationPageUrl);
 
+    /**
+     * Register a user, sending the activation link to a named product rather than a caller-supplied URL.
+     *
+     * @param registrationTarget {@code gamma}, or null/blank for the classic console. Anything else is
+     *     rejected: this endpoint is anonymous and the link carries a signed token, so a caller who could
+     *     name the destination could have it emailed to themselves.
+     */
+    UserEntity registerWithTarget(
+        ExecutionContext executionContext,
+        NewExternalUserEntity newExternalUserEntity,
+        String registrationTarget
+    );
+
     UserEntity finalizeRegistration(ExecutionContext executionContext, RegisterUserEntity registerUserEntity);
 
     UserEntity finalizeResetPassword(ExecutionContext executionContext, ResetPasswordUserEntity registerUserEntity);

@@ -50,6 +50,7 @@ public class NotificationParamsBuilder {
     public static final String REGISTRATION_PATH = "/#!/_sign-up-confirm/";
     public static final String RESET_PASSWORD_PATH = "/#!/_reset-password/";
     public static final String GAMMA_RESET_PASSWORD_PATH = "/reset-password";
+    public static final String GAMMA_REGISTRATION_PATH = "/registration";
     private final Map<String, Object> params = new HashMap<>();
 
     public Map<String, Object> build() {
