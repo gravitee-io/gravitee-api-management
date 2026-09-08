@@ -22,7 +22,7 @@ import { AppRoutes } from './AppRoutes';
 import { ROUTES } from '../config/routes';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
-import { ApimApiError } from '../shared/api/apimClient';
+import { ApimApiError, resetApimClientForTests } from '../shared/api/apimClient';
 import { useEnvironmentPermissionsReady } from '../shared/hooks/useEnvironmentPermissions';
 import { markNavItemDenied, resetDeniedNavItemsForEnvironment } from '../shared/nav/deniedNavItems';
 import { notify } from '../shared/notify/notify';
@@ -145,9 +145,17 @@ jest.mock('../pages/ApplicationsPage', () => ({
     ApplicationsPage: () => <div data-testid="applications-page" />,
 }));
 
-jest.mock('../pages/IntegrationsPage', () => ({
-    IntegrationsPage: () => <div data-testid="integrations-page" />,
-}));
+// The routing assertions only need a marker, but the fetch assertions need the real page: its
+// useIntegrations hook is the only code in the module that ever calls the integrations endpoint, so a
+// permanently stubbed page would make "no integrations request happened" true no matter what the gate does.
+let mockUseRealIntegrationsPage = false;
+
+jest.mock('../pages/IntegrationsPage', () => {
+    const { IntegrationsPage: RealIntegrationsPage } = jest.requireActual<{ IntegrationsPage: ComponentType }>('../pages/IntegrationsPage');
+    return {
+        IntegrationsPage: () => (mockUseRealIntegrationsPage ? <RealIntegrationsPage /> : <div data-testid="integrations-page" />),
+    };
+});
 
 jest.mock('../pages/UsersPage', () => ({
     UsersPage: () => <div data-testid="users-page" />,
@@ -385,6 +393,39 @@ function primaryNavKeys(): string[] {
     return primaryNav()?.props?.items?.map(item => item.key) ?? [];
 }
 
+const APIM_BOOTSTRAP = {
+    managementBaseURL: 'https://apim.test/management',
+    gammaBaseURL: 'https://apim.test/gamma',
+    organizationId: 'org-1',
+};
+
+const NO_INTEGRATIONS_RESPONSE = {
+    data: [],
+    pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 },
+};
+
+const INTEGRATIONS_REQUEST_URL = 'https://apim.test/management/v2/environments/env-1/integrations?page=1&perPage=10';
+
+function jsonResponse(body: unknown) {
+    return Promise.resolve(new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } }));
+}
+
+// The API client resolves /constants.json then /ui/bootstrap before any environment-scoped call and caches
+// the result process-wide, so both have to answer here for an integrations request to be attempted at all.
+function spyOnApimFetch() {
+    resetApimClientForTests();
+    return jest.spyOn(global, 'fetch').mockImplementation(input => {
+        const url = String(input);
+        if (url.endsWith('/constants.json')) return jsonResponse({ gammaBaseURL: APIM_BOOTSTRAP.gammaBaseURL });
+        if (url.endsWith('/ui/bootstrap')) return jsonResponse(APIM_BOOTSTRAP);
+        return jsonResponse(NO_INTEGRATIONS_RESPONSE);
+    });
+}
+
+function integrationsRequestUrls(fetchSpy: ReturnType<typeof spyOnApimFetch>): string[] {
+    return fetchSpy.mock.calls.map(([input]) => String(input)).filter(url => /integration/i.test(url));
+}
+
 describe('AppRoutes', () => {
     beforeEach(() => {
         mockUseLayoutConfig.mockClear();
@@ -393,6 +434,7 @@ describe('AppRoutes', () => {
             navigateToKey: jest.fn(),
             rootPath: '/platform',
         });
+        mockUseRealIntegrationsPage = false;
         mockUseHasPermission.mockReset().mockReturnValue(true);
         mockUseHasFeature.mockReset().mockReturnValue(true);
         mockUseHasEnvironmentPermission.mockReset().mockReturnValue(true);
@@ -695,17 +737,33 @@ describe('AppRoutes', () => {
         notifyError.mockRestore();
     });
 
-    it('requests no integrations endpoint while deciding whether Integrations is available', () => {
-        const fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue(new Response('[]'));
+    it('requests no integrations endpoint while deciding whether Integrations is available', async () => {
+        mockUseRealIntegrationsPage = true;
+        const fetchSpy = spyOnApimFetch();
         mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
         mockSetLicense(ENTITLED_LICENSE);
         denyPermissions('environment-integration-r');
 
         renderPlatform();
         renderIntegrationsUrl();
+        await act(async () => {});
 
-        const requestedUrls = fetchSpy.mock.calls.map(([input]) => String(input));
-        expect(requestedUrls.filter(url => /integration/i.test(url))).toEqual([]);
+        expect(integrationsRequestUrls(fetchSpy)).toEqual([]);
+        fetchSpy.mockRestore();
+    });
+
+    // Positive control for the assertion above: it proves the real page does reach the endpoint, so an
+    // empty list there means the gate refused the route rather than that no fetch was ever reachable.
+    it('requests the integrations endpoint once the gate lets the Integrations page mount', async () => {
+        mockUseRealIntegrationsPage = true;
+        const fetchSpy = spyOnApimFetch();
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        renderIntegrationsUrl();
+
+        expect(await screen.findByText('No integrations yet')).not.toBeNull();
+        expect(integrationsRequestUrls(fetchSpy)).toEqual([INTEGRATIONS_REQUEST_URL]);
         fetchSpy.mockRestore();
     });
 
