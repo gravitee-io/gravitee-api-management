@@ -157,7 +157,7 @@
     <gravitee-policy-ratelimit.version>5.0.2</gravitee-policy-ratelimit.version>
     <gravitee-policy-regex-threat-protection.version>1.6.0</gravitee-policy-regex-threat-protection.version>
     <gravitee-policy-request-content-limit.version>1.8.1</gravitee-policy-request-content-limit.version>
-    <gravitee-policy-request-validation.version>1.15.1</gravitee-policy-request-validation.version>
+    <gravitee-policy-request-validation.version>1.16.0</gravitee-policy-request-validation.version>
     <gravitee-policy-resource-filtering.version>2.0.2</gravitee-policy-resource-filtering.version>
     <gravitee-policy-rest-to-soap.version>1.14.1</gravitee-policy-rest-to-soap.version>
     <gravitee-policy-retry.version>5.0.0</gravitee-policy-retry.version>
