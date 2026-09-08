@@ -86,6 +86,23 @@
             "matchPackageNames": ["com.graviteesource{/,}**", "io.gravitee{/,}**"],
             "prConcurrentLimit": 0,
             "prHourlyLimit": 0
+        },
+        {
+            // A prerelease stays on its own channel. Moving from alpha to beta, or out of a
+            // prerelease altogether, is a decision about the release line rather than a dependency
+            // update — it is taken once, by hand, when the line itself moves. matchCurrentVersion
+            // reads what the pom already holds, so this needs no per-module list and nothing to
+            // maintain when a module appears.
+            "matchDatasources": ["maven"],
+            "matchPackageNames": ["com.graviteesource{/,}**", "io.gravitee{/,}**"],
+            "matchCurrentVersion": "/-alpha\\./",
+            "allowedVersions": "/-alpha\\./"
+        },
+        {
+            "matchDatasources": ["maven"],
+            "matchPackageNames": ["com.graviteesource{/,}**", "io.gravitee{/,}**"],
+            "matchCurrentVersion": "/-beta\\./",
+            "allowedVersions": "/-beta\\./"
         }
     ]
 }
