@@ -50,8 +50,10 @@ import io.vertx.core.net.OpenSSLEngineOptions;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.security.GeneralSecurityException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import lombok.CustomLog;
 
 /**
@@ -143,6 +145,9 @@ public class DebugReactorEventListener extends ReactorEventListener {
                                 .ignoreElement();
                         })
                     )
+                    // Neither the event update nor the response body read is bounded on its own: without
+                    // this, a stalled run never reaches a terminal callback and leaks its handler forever.
+                    .timeout(debugHttpClientConfiguration.getGlobalTimeout(), TimeUnit.MILLISECONDS)
                     .subscribeOn(Schedulers.io())
                     .subscribe(
                         () -> {
@@ -154,7 +159,7 @@ public class DebugReactorEventListener extends ReactorEventListener {
                             log.error("Debugging API has failed for API [{}], removing the handler.", debugApi.getId(), throwable);
                             eventManager.publishEvent(SecretDiscoveryEventType.REVOKE, secretDiscoveryEvent);
                             reactorHandlerRegistry.remove(debugApi);
-                            failEvent(debugEvent);
+                            failEventIfNotCompleted(debugEvent);
                         }
                     );
             }
@@ -283,6 +288,58 @@ public class DebugReactorEventListener extends ReactorEventListener {
             headers.forEach(headersMultiMap::set);
         }
         return headersMultiMap;
+    }
+
+    /**
+     * Marks the debug event as failed, unless the debug already succeeded.
+     *
+     * <p>The debug completion processor stores the debug result on that very same event, so two
+     * precautions are taken. The status is written as a patch carrying nothing but
+     * {@code API_DEBUG_STATUS}: a full update built from a copy read earlier would erase the result.
+     * And an event that already reached {@link ApiDebugStatus#SUCCESS} is left alone, so a run that
+     * completed just as the timeout fired is not reported as failed.
+     *
+     * <p>That read is best effort — a completion landing between it and the patch still flips the
+     * status to {@code ERROR}. There is no conditional write on {@code EventRepository} to close that
+     * window; what the patch guarantees is that the debug result itself survives it.
+     */
+    private void failEventIfNotCompleted(io.gravitee.repository.management.model.Event debugEvent) {
+        if (debugEvent == null) {
+            return;
+        }
+        Completable.defer(() -> {
+            var latest = eventRepository.findById(debugEvent.getId());
+            if (latest.isPresent() && isSuccessful(latest.get())) {
+                return Completable.complete();
+            }
+            return patchEventStatus(debugEvent, ApiDebugStatus.ERROR);
+        })
+            .subscribeOn(Schedulers.io())
+            .subscribe(() -> {}, throwable -> log.error("Failed to update event {} to ERROR status", debugEvent.getId(), throwable));
+    }
+
+    /**
+     * Writes a single property on the event, leaving every other field — the debug payload above all —
+     * untouched. Both the Mongo and JDBC repositories implement {@code createOrPatch} as a per-property
+     * merge.
+     */
+    private Completable patchEventStatus(io.gravitee.repository.management.model.Event debugEvent, ApiDebugStatus apiDebugStatus) {
+        return Completable.fromAction(() -> {
+            var patch = new io.gravitee.repository.management.model.Event();
+            patch.setId(debugEvent.getId());
+            patch.setType(debugEvent.getType());
+            patch.setProperties(
+                Map.of(io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS.getValue(), apiDebugStatus.name())
+            );
+            patch.setUpdatedAt(new Date());
+            eventRepository.createOrPatch(patch);
+        });
+    }
+
+    private boolean isSuccessful(io.gravitee.repository.management.model.Event event) {
+        return ApiDebugStatus.SUCCESS.name().equals(
+            event.getProperties().get(io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_STATUS.getValue())
+        );
     }
 
     private void failEvent(io.gravitee.repository.management.model.Event debugEvent) {

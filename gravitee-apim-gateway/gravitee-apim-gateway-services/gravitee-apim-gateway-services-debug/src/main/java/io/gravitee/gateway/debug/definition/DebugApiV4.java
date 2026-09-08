@@ -21,6 +21,7 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.gateway.debug.reactor.handler.context.PathTransformer;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
+import java.util.Objects;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -48,6 +49,12 @@ public class DebugApiV4 extends Api implements ReactableDebugApi<io.gravitee.def
     public void setEventId(String eventId) {
         this.eventId = eventId;
 
+        // Secret discovery keys its registry by the definition descriptor, whose discriminator is the
+        // revision (see ApiV4DefinitionSecretRefsFinder#toDefinitionDescriptor). A debug reactable has no
+        // deployment number, so without this both runs of an API would share one descriptor and the first
+        // run to finish would revoke the other run's secret contexts. The event is that per-run identity.
+        this.setRevision(eventId);
+
         if (definition.getListeners() != null) {
             definition
                 .getListeners()
@@ -60,6 +67,30 @@ public class DebugApiV4 extends Api implements ReactableDebugApi<io.gravitee.def
                         .forEach(path -> path.setPath(PathTransformer.computePathWithEventId(this.eventId, path.getPath())));
                 });
         }
+    }
+
+    /**
+     * A debug API is identified by the event that requested it, not only by the API it debugs.
+     *
+     * <p>Reactables are keyed by equality in the handler registry, and the inherited equality
+     * compares API ids alone: two debug runs of the same API would collide and the second one would
+     * look like an already deployed duplicate. Entrypoint paths are already unique per event (see
+     * {@link #setEventId(String)}), so both runs can safely be registered side by side.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ReactableDebugApi<?> that)) {
+            return false;
+        }
+        return Objects.equals(getId(), that.getId()) && Objects.equals(eventId, that.getEventId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId(), eventId);
     }
 
     @Override
