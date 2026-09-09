@@ -57,7 +57,7 @@ jobs:
             # Both poms, even though only the root reactor is published here. `Check both reactors carry
             # the same version` runs on every pull request and exits 1 when the triplets differ, so moving the
             # root alone would redden the branch until the next full release. The two lineages part company only
-            # once engine-snapshot stops overriding the pin — until then they have to advance together.
+            # once that check goes — until then they have to advance together.
             POMS="pom.xml gravitee-apim-distribution/pom.xml"
             for POM in ${POMS}; do
               sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" "${POM}"

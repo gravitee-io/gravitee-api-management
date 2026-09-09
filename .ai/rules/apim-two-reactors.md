@@ -17,4 +17,4 @@ Consequences for any Maven command:
 - `mvn -pl gravitee-apim-distribution/…` from the root fails with *Could not find the selected project in the reactor*. Use `-f gravitee-apim-distribution/pom.xml`; inside that reactor, `-pl` paths are relative to it.
 - Building the distribution takes two phases: install the engine first, then assemble against it. `task build-quick` does both.
 
-The distribution assembles a **pinned released** engine unless `-Pengine-snapshot` is passed. Leaving the profile out does not fail — it produces a distribution without the change under test. `task which-engine` prints which engine actually got bundled.
+The distribution assembles the **pinned released** core unless `-Dapim.core.version=<root triplet>` is passed. Leaving it out does not fail — it produces a distribution without the change under test. `task build-distribution` passes it for you, and `task which-engine` prints which core actually got bundled.

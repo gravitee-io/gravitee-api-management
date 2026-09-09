@@ -294,7 +294,7 @@ jobs:
             MAVEN_OPTS: -Xmx2048m
       - run:
           name: Build distribution
-          command: mvn -s .gravitee.settings.xml -f gravitee-apim-distribution/pom.xml clean install --no-transfer-progress -nsu -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8 -Dbundle=dev -Pengine-snapshot,integration-tests-modules -DwithJavadoc
+          command: mvn -s .gravitee.settings.xml -f gravitee-apim-distribution/pom.xml clean install --no-transfer-progress -nsu -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8 -Dbundle=dev -Pintegration-tests-modules -Dapim.core.version=4.2.0 -DwithJavadoc
           environment:
             MAVEN_OPTS: -Xmx2048m
       - cmd-notify-on-failure

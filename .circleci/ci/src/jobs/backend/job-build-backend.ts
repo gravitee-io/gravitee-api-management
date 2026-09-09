@@ -18,7 +18,7 @@ import { OpenJdkNodeExecutor } from '../../executors';
 import { InstallYarnCommand, NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
 import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
-import { mavenParallelism } from '../../utils';
+import { computeApimVersion, mavenParallelism } from '../../utils';
 
 export class BuildBackendJob {
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
@@ -57,7 +57,7 @@ export class BuildBackendJob {
         // Second phase: assemble against the engine just installed above, not the released one.
         // -nsu so a published snapshot cannot take its place.
         name: 'Build distribution',
-        command: `mvn -s ${config.maven.settingsFile} -f gravitee-apim-distribution/pom.xml clean install --no-transfer-progress -nsu -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false ${mavenParallelism('large')} -Dbundle=dev -Pengine-snapshot,integration-tests-modules -DwithJavadoc`,
+        command: `mvn -s ${config.maven.settingsFile} -f gravitee-apim-distribution/pom.xml clean install --no-transfer-progress -nsu -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false ${mavenParallelism('large')} -Dbundle=dev -Pintegration-tests-modules -Dapim.core.version=${computeApimVersion(environment)} -DwithJavadoc`,
         environment: {
           MAVEN_OPTS: '-Xmx2048m',
         },

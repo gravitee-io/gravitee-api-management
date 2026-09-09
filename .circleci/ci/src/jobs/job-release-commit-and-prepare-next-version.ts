@@ -78,9 +78,8 @@ git remote set-url origin "https://github.com/\${CIRCLE_PROJECT_USERNAME}/\${CIR
         name: `Git release ${environment.isDryRun ? '- Dry Run' : ''}`,
         command: `# Remove \`-SNAPSHOT\` from source
 # Backend. Both poms: since the reactor cut, the distribution carries its own version triplet,
-# and engine-snapshot resolves apim.core.version from its properties, not the root's. Leaving
-# it behind makes the two drift, and the drift is silent — the previous version's snapshot is on
-# Nexus, so a later build resolves it and assembles the wrong engine instead of failing.
+# and a CI check on every pull request requires the two to agree. Leaving one behind reddens the
+# branch until the next release puts them back in step.
 POMS="pom.xml gravitee-apim-distribution/pom.xml"
 for POM in \${POMS}; do
   sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" "\${POM}"

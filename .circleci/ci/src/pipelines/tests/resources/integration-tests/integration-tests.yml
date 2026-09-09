@@ -166,7 +166,7 @@ jobs:
             MAVEN_OPTS: -Xmx2048m
       - run:
           name: Build distribution
-          command: mvn -s .gravitee.settings.xml -f gravitee-apim-distribution/pom.xml clean install --no-transfer-progress -nsu -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8 -Dbundle=dev -Pengine-snapshot,integration-tests-modules -DwithJavadoc
+          command: mvn -s .gravitee.settings.xml -f gravitee-apim-distribution/pom.xml clean install --no-transfer-progress -nsu -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8 -Dbundle=dev -Pintegration-tests-modules -Dapim.core.version=4.2.0 -DwithJavadoc
           environment:
             MAVEN_OPTS: -Xmx2048m
       - cmd-notify-on-failure
@@ -228,7 +228,7 @@ jobs:
             cat tests-to-run
 
             # Run tests with rerunFailingTestsCount=3 because some integration tests related to RabbitMQ or Websocket are randomly failing on the CI
-            mvn --fail-fast -s ../../.gravitee.settings.xml test --no-transfer-progress -nsu -Pengine-snapshot -Dskip.validation=true -Dgravitee.archrules.skip=true -Dsurefire.excludesFile=/tmp/ignore_list -Dsurefire.rerunFailingTestsCount=3 -Dsurefire.exitTimeout=300
+            mvn --fail-fast -s ../../.gravitee.settings.xml test --no-transfer-progress -nsu -Dapim.core.version=4.2.0 -Dskip.validation=true -Dgravitee.archrules.skip=true -Dsurefire.excludesFile=/tmp/ignore_list -Dsurefire.rerunFailingTestsCount=3 -Dsurefire.exitTimeout=300
       - run:
           name: Save test results
           command: |-

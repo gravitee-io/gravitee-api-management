@@ -21,10 +21,10 @@ env:
   DOCKER_TAG: '{{.DOCKER_TAG | default "local"}}'
 
 tasks:
-  # The distribution is a reactor of its own and assembles a released engine by default. Anything
-  # that has to run YOUR engine therefore takes two steps: install it, then assemble against it with
-  # the engine-snapshot profile. These tasks do that in order — prefer them over calling mvn by hand,
-  # or you will quietly assemble the released engine and wonder where your changes went.
+  # The distribution is a reactor of its own and assembles the released core it pins by default.
+  # Anything that has to run YOUR core therefore takes two steps: install it, then assemble against
+  # it by passing the version explicitly. These tasks do that in order — prefer them over calling mvn
+  # by hand, or you will quietly assemble the released core and wonder where your changes went.
 
   build-quick:
     desc: "Build management-api & gateway quickly without running tests & validations steps"
@@ -39,10 +39,16 @@ tasks:
 
   build-distribution:
     desc: "Assemble the distribution against the engine currently installed locally"
+    vars:
+      # The root reactor's version, which is what `build-engine` has just installed. Read from Maven
+      # rather than parsed out of the pom: the version is a triplet of properties, and Maven is the
+      # one thing guaranteed to compose it the same way the build will.
+      CORE_VERSION:
+        sh: mvn -q -N help:evaluate -Dexpression=project.version -DforceStdout
     cmds:
       # -nsu: do not go looking for a newer snapshot upstream. You have just built the engine; a
       # published snapshot must not silently take its place.
-      - mvn -f gravitee-apim-distribution/pom.xml clean install -Pengine-snapshot -nsu -DskipTests -Dskip.validation -Dbundle=dev -T 1C
+      - mvn -f gravitee-apim-distribution/pom.xml clean install -Dapim.core.version={{.CORE_VERSION}} -nsu -DskipTests -Dskip.validation -Dbundle=dev -T 1C
       - task: which-engine
 
   which-engine:
@@ -62,13 +68,16 @@ tasks:
     desc: "Run all tests in gravitee-apim-distribution/gravitee-apim-distribution-integration-tests"
     env:
       JDK_JAVA_OPTIONS: -XX:+MaxFDLimit
+    vars:
+      CORE_VERSION:
+        sh: mvn -q -N help:evaluate -Dexpression=project.version -DforceStdout
     cmds:
-      # Installing the engine first is what makes these tests exercise your working tree: with the
-      # engine-snapshot profile and nothing installed, Maven would happily pull the published snapshot.
+      # Installing the engine first is what makes these tests exercise your working tree: asking for
+      # that version with nothing installed, Maven would happily pull the published snapshot.
       - task: build-engine
-      - mvn -f gravitee-apim-distribution/pom.xml -T2C -nsu -pl gravitee-apim-distribution-integration-tests -am clean install -Pengine-snapshot,integration-tests-modules -Dskip.validation=true -DskipTests -Dbundle=dev -Dmaven.test.skip
+      - mvn -f gravitee-apim-distribution/pom.xml -T2C -nsu -pl gravitee-apim-distribution-integration-tests -am clean install -Pintegration-tests-modules -Dapim.core.version={{.CORE_VERSION}} -Dskip.validation=true -DskipTests -Dbundle=dev -Dmaven.test.skip
       - ulimit -n 102400
-      - mvn -f gravitee-apim-distribution/pom.xml -fae -nsu -pl gravitee-apim-distribution-integration-tests install -Pengine-snapshot,integration-tests-modules -Dbundle=dev
+      - mvn -f gravitee-apim-distribution/pom.xml -fae -nsu -pl gravitee-apim-distribution-integration-tests install -Pintegration-tests-modules -Dapim.core.version={{.CORE_VERSION}} -Dbundle=dev
 
   docker:
     desc: "Build all 🐳 images"

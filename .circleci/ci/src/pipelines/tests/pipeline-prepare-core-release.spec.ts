@@ -27,7 +27,7 @@ const environment: CircleCIEnvironment = {
   buildId: '1234',
   graviteeioVersion: '4.13.0',
   isDryRun: false,
-  apimVersionPath: '',
+  apimVersionPath: './src/pipelines/tests/resources/common/pom.xml',
 };
 
 const tagStep = (config: { stringify: () => string }) => config.stringify();

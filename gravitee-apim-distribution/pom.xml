@@ -64,10 +64,10 @@
             Advancing it is the deliberate act of shipping a new engine, reviewed like any other
             change. Bump it when a new engine version is released.
 
-            Development and pull-request builds do not use this value: they activate the
-            engine-snapshot profile below to assemble the engine currently being worked on. Building
-            without that profile assembles the released engine, which is what a release does and
-            almost never what you want locally — the Taskfile handles it for you.
+            Development and pull-request builds override it on the command line, with
+            -Dapim.core.version=<root triplet>, to assemble the core currently being worked on.
+            Building without that override assembles the released core, which is what a release
+            does and almost never what you want locally — the Taskfile handles it for you.
         -->
         <apim.core.version>4.12.14</apim.core.version>
 
@@ -454,19 +454,6 @@
     </modules>
 
     <profiles>
-        <!--
-            Assemble the engine as it currently stands rather than the released one. Used by local
-            development and by pull-request CI, so that a change to the engine is actually exercised
-            by what gets assembled and tested. Requires that engine to be installed first — the
-            Taskfile does both steps in order.
-        -->
-        <profile>
-            <id>engine-snapshot</id>
-            <properties>
-                <apim.core.version>${revision}${sha1}${changelist}</apim.core.version>
-            </properties>
-        </profile>
-
         <!--
             The integration tests moved here with the rest of the verification layer. Opt-in, as they
             were under the root pom and under the same profile id, so that assembling a distribution

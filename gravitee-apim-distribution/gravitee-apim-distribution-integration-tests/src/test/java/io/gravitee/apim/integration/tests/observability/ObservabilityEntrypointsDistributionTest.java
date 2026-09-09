@@ -185,10 +185,7 @@ class ObservabilityEntrypointsDistributionTest {
                     }
                 }
                 if (dirs.isEmpty()) {
-                    return fail(
-                        "No assembled distribution under %s. Assemble it first: mvn -f gravitee-apim-distribution/pom.xml install -Pengine-snapshot -DskipTests -Dbundle=dev",
-                        root
-                    );
+                    return fail("No assembled distribution under %s. Assemble it first: task build-distribution", root);
                 }
                 return dirs;
             }

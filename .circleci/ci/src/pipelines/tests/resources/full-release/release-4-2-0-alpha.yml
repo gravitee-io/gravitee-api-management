@@ -502,7 +502,7 @@ jobs:
             GIT_COMMIT: 784ff35ca
       - run:
           name: Maven build APIM distribution
-          command: mvn --settings .gravitee.settings.xml -B -nsu -f gravitee-apim-distribution/pom.xml -P gio-release,engine-snapshot -Dbundle clean verify -DskipTests=true -Dskip.validation -Dgravitee.archrules.skip=true -T 4 --no-transfer-progress
+          command: mvn --settings .gravitee.settings.xml -B -nsu -f gravitee-apim-distribution/pom.xml -P gio-release -Dapim.core.version=4.2.0-alpha.1-SNAPSHOT -Dbundle clean verify -DskipTests=true -Dskip.validation -Dgravitee.archrules.skip=true -T 4 --no-transfer-progress
           environment:
             BUILD_ID: "1234"
             BUILD_NUMBER: "1234"
@@ -586,9 +586,8 @@ jobs:
           command: |
             # Remove `-SNAPSHOT` from source
             # Backend. Both poms: since the reactor cut, the distribution carries its own version triplet,
-            # and engine-snapshot resolves apim.core.version from its properties, not the root's. Leaving
-            # it behind makes the two drift, and the drift is silent — the previous version's snapshot is on
-            # Nexus, so a later build resolves it and assembles the wrong engine instead of failing.
+            # and a CI check on every pull request requires the two to agree. Leaving one behind reddens the
+            # branch until the next release puts them back in step.
             POMS="pom.xml gravitee-apim-distribution/pom.xml"
             for POM in ${POMS}; do
               sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" "${POM}"
