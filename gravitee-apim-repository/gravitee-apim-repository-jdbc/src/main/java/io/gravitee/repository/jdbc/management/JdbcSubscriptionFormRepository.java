@@ -48,7 +48,7 @@ public class JdbcSubscriptionFormRepository
         return JdbcObjectMapper.builder(SubscriptionForm.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("gmd_content", Types.LONGNVARCHAR, String.class)
+            .addColumn("gmd_content", Types.NVARCHAR, String.class)
             .addColumn("portal_page_content_id", Types.NVARCHAR, String.class)
             .addColumn("enabled", Types.BIT, boolean.class)
             .addColumn("validation_constraints", Types.CLOB, String.class)
