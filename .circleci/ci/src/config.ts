@@ -146,7 +146,7 @@ const secrets = {
   graviteeLicense: 'keeper://w8WBpALVCgYdxtV5pVrQsw/custom_field/base64',
   graviteePackageCloudToken: 'keeper://8CG6HxY5gYsl-85eJKuIoA/field/password',
   jiraToken: 'keeper://hfnQD5TEfxzwRXUKhJhM-A/field/password',
-  mavenSettings: 'keeper://7CgijuGiFDSLynRJt1Dm9w/custom_field/xml',
+  mavenSettings: 'keeper://7CgijuGiFDSLynRJt1Dm9w/custom_field/xml_azure',
   slackAccessToken: 'keeper://ZOz4db245GNaETVwmPBk8w/field/password',
   sonarToken: 'keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password',
 };
