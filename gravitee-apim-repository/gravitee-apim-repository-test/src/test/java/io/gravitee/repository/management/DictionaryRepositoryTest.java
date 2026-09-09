@@ -19,6 +19,7 @@ import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.management.model.Dictionary;
+import io.gravitee.repository.management.model.DictionaryProperty;
 import io.gravitee.repository.management.model.DictionaryType;
 import java.util.*;
 import org.junit.jupiter.api.Assertions;
@@ -36,7 +37,7 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
         final Set<Dictionary> dictionaries = dictionaryRepository.findAll();
 
         assertNotNull(dictionaries);
-        assertEquals(7, dictionaries.size());
+        assertEquals(8, dictionaries.size());
     }
 
     @Test
@@ -52,7 +53,7 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
         final Set<Dictionary> dictionaries = dictionaryRepository.findAllByEnvironments(Collections.emptySet());
 
         assertNotNull(dictionaries);
-        assertEquals(7, dictionaries.size());
+        assertEquals(8, dictionaries.size());
     }
 
     @Test
@@ -96,7 +97,7 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
         Assertions.assertTrue(compareDate(new Date(1000000000000L), dictionary.getCreatedAt()), "Invalid dictionary createdAt.");
         Assertions.assertTrue(compareDate(new Date(1439032010883L), dictionary.getUpdatedAt()), "Invalid dictionary updatedAt.");
         Assertions.assertEquals(3, dictionary.getProperties().size(), "Invalid dictionary properties.");
-        Assertions.assertEquals("127.0.0.1:8082", dictionary.getProperties().get("127.0.0.1:8082"), "Invalid dictionary property.");
+        Assertions.assertEquals("127.0.0.1:8082", dictionary.getProperties().get("127.0.0.1:8082").value(), "Invalid dictionary property.");
     }
 
     @Test
@@ -110,10 +111,10 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
         dictionary.setCreatedAt(new Date(1000000000000L));
         dictionary.setUpdatedAt(new Date(1439032010883L));
         dictionary.setType(DictionaryType.MANUAL);
-        final Map<String, String> properties = new HashMap<>();
-        properties.put("localhost", "localhost");
-        properties.put("localhost:8082", "localhost:8082");
-        properties.put("127.0.0.1:8082", "127.0.0.1:8082");
+        final Map<String, DictionaryProperty> properties = new HashMap<>();
+        properties.put("localhost", new DictionaryProperty("localhost", false));
+        properties.put("localhost:8082", new DictionaryProperty("localhost:8082", false));
+        properties.put("127.0.0.1:8082", new DictionaryProperty("127.0.0.1:8082", false));
         dictionary.setProperties(properties);
 
         int nbDictionariesBeforeCreation = dictionaryRepository.findAll().size();
@@ -149,10 +150,10 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
         dictionary.setCreatedAt(new Date(1000000000000L));
         dictionary.setUpdatedAt(new Date(1486771200000L));
         dictionary.setType(DictionaryType.DYNAMIC);
-        final Map<String, String> properties = new HashMap<>();
-        properties.put("localhost", "localhost");
-        properties.put("localhost:8082", "localhost:8082");
-        properties.put("127.0.0.1:8082", "127.0.0.1:8082");
+        final Map<String, DictionaryProperty> properties = new HashMap<>();
+        properties.put("localhost", new DictionaryProperty("localhost", false));
+        properties.put("localhost:8082", new DictionaryProperty("localhost:8082", false));
+        properties.put("127.0.0.1:8082", new DictionaryProperty("127.0.0.1:8082", false));
         dictionary.setProperties(properties);
 
         int nbDictionariesBeforeUpdate = dictionaryRepository.findAll().size();
@@ -240,5 +241,31 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(2, nbBeforeDeletion);
         assertEquals(2, deleted);
         assertEquals(0, nbAfterDeletion);
+    }
+
+    @Test
+    public void shouldReadMixedLegacyAndTypedProperties() throws Exception {
+        final Optional<Dictionary> found = dictionaryRepository.findById("dic-mixed");
+
+        assertTrue(found.isPresent());
+        final Dictionary dictionary = found.get();
+
+        assertEquals("plain-value", dictionary.getProperties().get("plain-legacy").value());
+        assertFalse(dictionary.getProperties().get("plain-legacy").encrypted());
+
+        assertEquals("ENC(cipher)", dictionary.getProperties().get("already-encrypted").value());
+        assertTrue(dictionary.getProperties().get("already-encrypted").encrypted());
+    }
+
+    @Test
+    public void shouldRoundTripEncryptedFlagThroughUpdate() throws Exception {
+        final Dictionary dictionary = dictionaryRepository.findById("dic-mixed").orElseThrow();
+
+        // Simulate an unrelated field changing while properties are resubmitted unchanged.
+        dictionary.setDescription("Updated description");
+        final Dictionary updated = dictionaryRepository.update(dictionary);
+
+        assertTrue(updated.getProperties().get("already-encrypted").encrypted());
+        assertEquals("ENC(cipher)", updated.getProperties().get("already-encrypted").value());
     }
 }

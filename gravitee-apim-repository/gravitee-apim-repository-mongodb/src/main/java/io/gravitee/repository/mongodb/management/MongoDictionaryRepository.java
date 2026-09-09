@@ -18,10 +18,12 @@ package io.gravitee.repository.mongodb.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.model.Dictionary;
+import io.gravitee.repository.management.model.DictionaryProperty;
 import io.gravitee.repository.management.model.DictionaryProvider;
 import io.gravitee.repository.management.model.DictionaryTrigger;
 import io.gravitee.repository.mongodb.management.internal.dictionary.DictionaryMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.DictionaryMongo;
+import io.gravitee.repository.mongodb.management.internal.model.DictionaryPropertyMongo;
 import io.gravitee.repository.mongodb.management.internal.model.DictionaryProviderMongo;
 import io.gravitee.repository.mongodb.management.internal.model.DictionaryTriggerMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
@@ -63,7 +65,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
         Dictionary res = mapper.map(page);
 
         if (res != null && res.getProperties() != null) {
-            final Map<String, String> properties = new HashMap<>(res.getProperties().size());
+            final Map<String, DictionaryProperty> properties = new HashMap<>(res.getProperties().size());
             res.getProperties().forEach((key, value) -> properties.put(computeOriginalKey(key), value));
             res.setProperties(properties);
         }
@@ -79,7 +81,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
         DictionaryMongo dictionaryMongo = mapper.map(dictionary);
 
         if (dictionaryMongo.getProperties() != null) {
-            final Map<String, String> properties = new HashMap<>(dictionaryMongo.getProperties().size());
+            final Map<String, DictionaryPropertyMongo> properties = new HashMap<>(dictionaryMongo.getProperties().size());
             dictionaryMongo.getProperties().forEach((key, value) -> properties.put(computeMongoDBCompliantKey(key), value));
             dictionaryMongo.setProperties(properties);
         }
@@ -89,7 +91,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
         Dictionary res = mapper.map(createdDictionaryMongo);
 
         if (res != null && res.getProperties() != null) {
-            final Map<String, String> properties = new HashMap<>(res.getProperties().size());
+            final Map<String, DictionaryProperty> properties = new HashMap<>(res.getProperties().size());
             res.getProperties().forEach((key, value) -> properties.put(computeOriginalKey(key), value));
             res.setProperties(properties);
         }
@@ -118,8 +120,12 @@ public class MongoDictionaryRepository implements DictionaryRepository {
             dictionaryMongo.setDeployedAt(dictionary.getDeployedAt());
 
             if (dictionary.getProperties() != null) {
-                final Map<String, String> properties = new HashMap<>(dictionary.getProperties().size());
-                dictionary.getProperties().forEach((key, value) -> properties.put(computeMongoDBCompliantKey(key), value));
+                final Map<String, DictionaryPropertyMongo> properties = new HashMap<>(dictionary.getProperties().size());
+                dictionary
+                    .getProperties()
+                    .forEach((key, value) ->
+                        properties.put(computeMongoDBCompliantKey(key), new DictionaryPropertyMongo(value.value(), value.encrypted()))
+                    );
                 dictionaryMongo.setProperties(properties);
             }
 
@@ -144,7 +150,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
             final Dictionary res = mapper.map(dictionaryMongoUpdated);
 
             if (res != null && res.getProperties() != null) {
-                final Map<String, String> properties = new HashMap<>(res.getProperties().size());
+                final Map<String, DictionaryProperty> properties = new HashMap<>(res.getProperties().size());
                 res.getProperties().forEach((key, value) -> properties.put(computeOriginalKey(key), value));
                 res.setProperties(properties);
             }

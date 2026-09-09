@@ -26,6 +26,7 @@ import com.mongodb.client.vault.ClientEncryptions;
 import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
 import io.gravitee.repository.mongodb.common.MongoFactory;
 import io.gravitee.repository.mongodb.encryption.EncryptionEnabledCondition;
+import io.gravitee.repository.mongodb.management.converters.LegacyDictionaryPropertyReadingConverter;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.config.MongoUpgraderConfiguration;
 import jakarta.inject.Inject;
 import java.util.Arrays;
@@ -88,6 +89,11 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
         final Resource yamlResource = new ClassPathResource("graviteeTest.yml");
         yaml.setResources(yamlResource);
         return yaml.getObject();
+    }
+
+    @Bean
+    public LegacyDictionaryPropertyReadingConverter legacyDictionaryPropertyReadingConverter() {
+        return new LegacyDictionaryPropertyReadingConverter();
     }
 
     @Bean(destroyMethod = "stop")
