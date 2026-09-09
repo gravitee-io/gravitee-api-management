@@ -1062,6 +1062,7 @@ jobs:
       - checkout
       - cmd-restore-maven-job-cache:
           jobName: job-community-build
+      - cmd-install-yarn
       - run:
           name: Build project
           command: mvn clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8
