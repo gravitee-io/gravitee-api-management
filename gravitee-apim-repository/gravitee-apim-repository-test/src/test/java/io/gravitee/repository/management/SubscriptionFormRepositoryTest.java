@@ -128,6 +128,7 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
 
         SubscriptionForm updated = existing
             .toBuilder()
+            .gmdContent(null)
             .portalPageContentId("3e4d5c6b-7a89-4f01-b2c3-d4e5f6a7b8c9")
             .enabled(true)
             .validationConstraints("{\"updated\":[]}")
