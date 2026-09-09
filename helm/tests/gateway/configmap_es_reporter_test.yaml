@@ -140,6 +140,7 @@ tests:
             request: request
             health: health
             log: log
+            eventMetrics: eventMetrics
     asserts:
       - hasDocuments:
           count: 1
@@ -163,6 +164,7 @@ tests:
                     request: request
                     health: health
                     log: log
+                    event_metrics: eventMetrics
                 index: gravitee
                 settings:
                   number_of_replicas: 1

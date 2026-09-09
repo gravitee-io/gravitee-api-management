@@ -63,3 +63,8 @@ annotations:
       links:
         - name: Github PR
           url: https://github.com/gravitee-io/gravitee-api-management/pull/19547
+    - kind: added
+      description: "`es.lifecycle.policies.eventMetrics` sets the ILM policy for the gravitee-event-metrics-* data streams, which the chart previously could not render"
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/19361

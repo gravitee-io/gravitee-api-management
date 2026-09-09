@@ -372,6 +372,7 @@ es:
       request: my_policy ## ILM policy for the gravitee-request-* indexes
       health: my_policy ## ILM policy for the gravitee-health-* indexes
       log: my_policy ## ILM policy for the gravitee-log-* indexes
+      eventMetrics: "" ## ILM policy for the gravitee-event-metrics-* data streams. Unset by default, unlike its siblings: no deployment can be relying on it yet, and an empty value renders a key the gateway ignores.
     # http:
       # timeout: 10000
   ssl:
