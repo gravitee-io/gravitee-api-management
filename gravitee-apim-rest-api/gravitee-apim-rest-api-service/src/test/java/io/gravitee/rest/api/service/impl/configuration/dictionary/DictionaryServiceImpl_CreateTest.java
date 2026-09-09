@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.model.Dictionary;
@@ -43,7 +44,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -78,6 +78,9 @@ public class DictionaryServiceImpl_CreateTest {
     @Mock
     private Appender<ILoggingEvent> appender;
 
+    @Mock
+    private DataEncryptor dataEncryptor;
+
     @BeforeEach
     public void setUp() {
         Logger logger = (Logger) LoggerFactory.getLogger(DictionaryServiceImpl.class);
@@ -102,7 +105,7 @@ public class DictionaryServiceImpl_CreateTest {
     }
 
     @Test
-    public void shouldCreateWithExplicitKeyLegacy() throws TechnicalException {
+    public void should_create_with_explicit_key_legacy() throws TechnicalException {
         NewDictionaryEntity newDictionary = new NewDictionaryEntity();
         newDictionary.setKey("my-key");
         newDictionary.setName("My Dictionary");
@@ -125,7 +128,7 @@ public class DictionaryServiceImpl_CreateTest {
     }
 
     @Test
-    public void shouldCreateWithExplicitKeyWhenIdAlreadyTaken() throws TechnicalException {
+    public void should_create_with_explicit_key_when_id_already_taken() throws TechnicalException {
         NewDictionaryEntity newDictionary = new NewDictionaryEntity();
         newDictionary.setKey("my-key");
         newDictionary.setName("My Dictionary");
@@ -148,7 +151,7 @@ public class DictionaryServiceImpl_CreateTest {
     }
 
     @Test
-    public void shouldCreateWithGeneratedKeyWhenKeyIsNull() throws TechnicalException {
+    public void should_create_with_generated_key_when_key_is_null() throws TechnicalException {
         NewDictionaryEntity newDictionary = new NewDictionaryEntity();
         newDictionary.setName("My Dictionary");
         newDictionary.setType(DictionaryType.MANUAL);
@@ -165,7 +168,7 @@ public class DictionaryServiceImpl_CreateTest {
     }
 
     @Test
-    public void shouldNotCreateWhenKeyAlreadyExistsInSameEnvironment() throws TechnicalException {
+    public void should_not_create_when_key_already_exists_in_same_environment() throws TechnicalException {
         NewDictionaryEntity newDictionary = new NewDictionaryEntity();
         newDictionary.setKey("my-key");
         newDictionary.setName("My Dictionary");
@@ -183,7 +186,7 @@ public class DictionaryServiceImpl_CreateTest {
     }
 
     @Test
-    public void shouldNotCreateWhenExplicitKeyMatchesExistingIdInSameEnvironment() throws TechnicalException {
+    public void should_not_create_when_explicit_key_matches_existing_id_in_same_environment() throws TechnicalException {
         NewDictionaryEntity newDictionary = new NewDictionaryEntity();
         newDictionary.setKey("idp-server-details");
         newDictionary.setName("tf_idp-server-details");
@@ -215,7 +218,6 @@ public class DictionaryServiceImpl_CreateTest {
         when(dictionaryRepository.findById("my-key")).thenReturn(Optional.empty());
         when(dictionaryRepository.findByKeyAndEnvironment("my-key", ENVIRONMENT_ID)).thenReturn(Optional.empty());
         when(dictionaryRepository.create(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
         dictionaryService.create(GraviteeContext.getExecutionContext(), newDictionary);
 
         verify(dictionaryRepository).create(
@@ -230,7 +232,7 @@ public class DictionaryServiceImpl_CreateTest {
     }
 
     @Test
-    public void should_not_log_encrypted_property_values_on_create() throws TechnicalException {
+    public void should_not_log_encrypted_property_values_on_create() throws Exception {
         NewDictionaryEntity newDictionary = new NewDictionaryEntity();
         newDictionary.setKey("my-key");
         newDictionary.setName("My Dictionary");
@@ -241,6 +243,7 @@ public class DictionaryServiceImpl_CreateTest {
         when(dictionaryRepository.findById("my-key")).thenReturn(Optional.empty());
         when(dictionaryRepository.findByKeyAndEnvironment("my-key", ENVIRONMENT_ID)).thenReturn(Optional.empty());
         when(dictionaryRepository.create(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(dataEncryptor.encrypt("super-secret-value")).thenReturn("ENC(cipher)");
 
         dictionaryService.create(GraviteeContext.getExecutionContext(), newDictionary);
 
@@ -248,7 +251,7 @@ public class DictionaryServiceImpl_CreateTest {
     }
 
     @Test
-    public void shouldSetStoppedStateOnCreate() throws TechnicalException {
+    public void should_set_stopped_state_on_create() throws TechnicalException {
         NewDictionaryEntity newDictionary = new NewDictionaryEntity();
         newDictionary.setKey("my-key");
         newDictionary.setName("My Dictionary");

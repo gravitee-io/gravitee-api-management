@@ -26,8 +26,10 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
@@ -42,6 +44,7 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -79,6 +82,9 @@ public class DictionaryServiceImpl_UpdateTest {
 
     @Mock
     private AuditService auditService;
+
+    @Mock
+    private DataEncryptor dataEncryptor;
 
     @Test
     public void should_update_dictionary() throws TechnicalException {
@@ -237,7 +243,7 @@ public class DictionaryServiceImpl_UpdateTest {
 
     @Test
     public void should_keep_value_verbatim_when_the_options_declare_it_encrypted() throws TechnicalException {
-        givenStoredDictionary(new HashMap<>());
+        given_stored_dictionary(new HashMap<>());
 
         UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
             Map.of("secret", "cipher"),
@@ -253,7 +259,7 @@ public class DictionaryServiceImpl_UpdateTest {
 
     @Test
     public void should_store_plain_property_when_no_options_are_sent() throws TechnicalException {
-        givenStoredDictionary(new HashMap<>());
+        given_stored_dictionary(new HashMap<>());
 
         UpdateDictionaryEntity updateDictionaryEntity = anUpdate(Map.of("hostname", "api.example.com"), null);
 
@@ -272,7 +278,7 @@ public class DictionaryServiceImpl_UpdateTest {
     public void should_not_downgrade_an_encrypted_property_when_the_options_omit_it() throws TechnicalException {
         Map<String, DictionaryProperty> stored = new HashMap<>();
         stored.put("secret", new DictionaryProperty("cipher", true));
-        givenStoredDictionary(stored);
+        given_stored_dictionary(stored);
 
         // What a caller that knows nothing about encryption sends: the property map alone.
         UpdateDictionaryEntity updateDictionaryEntity = anUpdate(Map.of("secret", "cipher"), null);
@@ -286,7 +292,7 @@ public class DictionaryServiceImpl_UpdateTest {
     public void should_reject_an_explicit_downgrade_of_an_encrypted_property() throws TechnicalException {
         Map<String, DictionaryProperty> stored = new HashMap<>();
         stored.put("secret", new DictionaryProperty("cipher", true));
-        givenStoredDictionaryWithoutUpdateStub(stored);
+        given_stored_dictionary_without_update_stub(stored);
 
         UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
             Map.of("secret", "plain-again"),
@@ -301,7 +307,7 @@ public class DictionaryServiceImpl_UpdateTest {
 
     @Test
     public void should_reject_options_naming_a_property_that_does_not_exist() throws TechnicalException {
-        givenStoredDictionaryWithoutUpdateStub(new HashMap<>());
+        given_stored_dictionary_without_update_stub(new HashMap<>());
 
         UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
             Map.of("hostname", "api.example.com"),
@@ -316,7 +322,7 @@ public class DictionaryServiceImpl_UpdateTest {
 
     @Test
     public void should_reject_options_asking_for_both_encrypted_and_encryptable() throws TechnicalException {
-        givenStoredDictionaryWithoutUpdateStub(new HashMap<>());
+        given_stored_dictionary_without_update_stub(new HashMap<>());
 
         UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
             Map.of("secret", "cipher"),
@@ -334,7 +340,7 @@ public class DictionaryServiceImpl_UpdateTest {
         Map<String, DictionaryProperty> stored = new HashMap<>();
         stored.put("plain", new DictionaryProperty("value", false));
         stored.put("secret", new DictionaryProperty("cipher", true));
-        givenStoredDictionary(stored);
+        given_stored_dictionary(stored);
 
         UpdateDictionaryEntity updateDictionaryEntity = anUpdate(Map.of("plain", "value", "secret", "cipher"), null);
 
@@ -347,7 +353,7 @@ public class DictionaryServiceImpl_UpdateTest {
 
     @Test
     public void should_return_properties_ordered_by_key() throws TechnicalException {
-        givenStoredDictionary(new HashMap<>());
+        given_stored_dictionary(new HashMap<>());
 
         UpdateDictionaryEntity updateDictionaryEntity = anUpdate(Map.of("zebra", "z", "alpha", "a"), null);
 
@@ -363,7 +369,7 @@ public class DictionaryServiceImpl_UpdateTest {
     public void should_reapply_options_sent_by_an_automation_manifest() throws TechnicalException {
         Map<String, DictionaryProperty> stored = new HashMap<>();
         stored.put("secret", new DictionaryProperty("cipher", true));
-        givenStoredDictionary(stored);
+        given_stored_dictionary(stored);
 
         // A GitOps reconcile resubmits exactly what the read returned.
         UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
@@ -380,7 +386,7 @@ public class DictionaryServiceImpl_UpdateTest {
 
     @Test
     public void should_reject_a_property_submitted_without_a_value() throws TechnicalException {
-        givenStoredDictionaryWithoutUpdateStub(new HashMap<>());
+        given_stored_dictionary_without_update_stub(new HashMap<>());
 
         Map<String, String> properties = new HashMap<>();
         properties.put("hostname", "api.example.com");
@@ -394,41 +400,32 @@ public class DictionaryServiceImpl_UpdateTest {
     }
 
     @Test
-    public void should_reject_a_new_plaintext_value_for_an_encrypted_property() throws TechnicalException {
+    public void should_renew_an_encrypted_property_when_its_value_is_edited_without_options()
+        throws TechnicalException, GeneralSecurityException {
         Map<String, DictionaryProperty> stored = new HashMap<>();
         stored.put("secret", new DictionaryProperty("cipher", true));
-        givenStoredDictionaryWithoutUpdateStub(stored);
+        given_stored_dictionary(stored);
+        when(dataEncryptor.encrypt("renewed-plaintext")).thenReturn("renewed-cipher");
 
+        // The Console edits the value and sends no options: the property stays encrypted, and the new
+        // plaintext is encrypted on the way in rather than stored as typed.
         UpdateDictionaryEntity updateDictionaryEntity = anUpdate(Map.of("secret", "renewed-plaintext"), null);
 
-        assertThatThrownBy(() -> dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity))
-            .isInstanceOf(DictionaryPropertyEncryptedToPlainException.class)
-            .hasMessageContaining("secret");
-        verify(dictionaryRepository, never()).update(any());
-    }
+        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
 
-    @Test
-    public void should_reject_a_new_plaintext_value_when_the_options_state_no_classification() throws TechnicalException {
-        Map<String, DictionaryProperty> stored = new HashMap<>();
-        stored.put("secret", new DictionaryProperty("cipher", true));
-        givenStoredDictionaryWithoutUpdateStub(stored);
-
-        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
-            Map.of("secret", "renewed-plaintext"),
-            Map.of("secret", DictionaryPropertyOptions.builder().build())
+        verify(dictionaryRepository).update(
+            argThat(
+                dict ->
+                    dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("renewed-cipher")
+            )
         );
-
-        assertThatThrownBy(() -> dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity))
-            .isInstanceOf(DictionaryPropertyEncryptedToPlainException.class)
-            .hasMessageContaining("secret");
-        verify(dictionaryRepository, never()).update(any());
     }
 
     @Test
     public void should_store_a_renewed_ciphertext_when_the_options_declare_it_encrypted() throws TechnicalException {
         Map<String, DictionaryProperty> stored = new HashMap<>();
         stored.put("secret", new DictionaryProperty("cipher", true));
-        givenStoredDictionary(stored);
+        given_stored_dictionary(stored);
 
         UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
             Map.of("secret", "renewed-cipher"),
@@ -443,34 +440,192 @@ public class DictionaryServiceImpl_UpdateTest {
                     dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("renewed-cipher")
             )
         );
+        verifyNoInteractions(dataEncryptor);
     }
 
     @Test
-    public void should_reject_options_asking_for_encryptable() throws TechnicalException {
-        givenStoredDictionaryWithoutUpdateStub(new HashMap<>());
+    public void should_encrypt_a_value_the_options_mark_encryptable() throws TechnicalException, GeneralSecurityException {
+        given_stored_dictionary(new HashMap<>());
+        when(dataEncryptor.encrypt("plaintext")).thenReturn("cipher");
 
         UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
             Map.of("secret", "plaintext"),
             Map.of("secret", DictionaryPropertyOptions.builder().encryptable(true).build())
         );
 
-        assertThatThrownBy(() -> dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity))
-            .isInstanceOf(InvalidDictionaryPropertyOptionsException.class)
-            .hasMessageContaining("not supported yet");
+        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
+
+        verify(dictionaryRepository).update(
+            argThat(dict -> dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("cipher"))
+        );
+    }
+
+    @Test
+    public void should_keep_the_stored_ciphertext_when_the_client_echoes_the_mask() throws TechnicalException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("cipher", true));
+        given_stored_dictionary(stored);
+
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(Map.of("secret", DictionaryServiceImpl.ENCRYPTED_VALUE_MASK), null);
+
+        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
+
+        verify(dictionaryRepository).update(
+            argThat(dict -> dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("cipher"))
+        );
+        verifyNoInteractions(dataEncryptor);
+    }
+
+    @Test
+    public void should_reject_an_explicit_downgrade_when_the_client_echoes_the_mask() throws TechnicalException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("cipher", true));
+        given_stored_dictionary_without_update_stub(stored);
+
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
+            Map.of("secret", DictionaryServiceImpl.ENCRYPTED_VALUE_MASK),
+            Map.of("secret", DictionaryPropertyOptions.builder().encrypted(false).build())
+        );
+
+        assertThatThrownBy(() ->
+            dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity)
+        ).isInstanceOf(DictionaryPropertyEncryptedToPlainException.class);
         verify(dictionaryRepository, never()).update(any());
     }
 
-    private void givenStoredDictionary(Map<String, DictionaryProperty> properties) throws TechnicalException {
-        givenStoredDictionaryWithoutUpdateStub(properties);
+    @Test
+    public void should_reject_contradictory_options_when_the_client_echoes_the_mask() throws TechnicalException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("cipher", true));
+        given_stored_dictionary_without_update_stub(stored);
+
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
+            Map.of("secret", DictionaryServiceImpl.ENCRYPTED_VALUE_MASK),
+            Map.of("secret", DictionaryPropertyOptions.builder().encrypted(true).encryptable(true).build())
+        );
+
+        assertThatThrownBy(() ->
+            dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity)
+        ).isInstanceOf(InvalidDictionaryPropertyOptionsException.class);
+        verify(dictionaryRepository, never()).update(any());
+    }
+
+    @Test
+    public void should_keep_the_stored_ciphertext_when_the_mask_is_echoed_with_encrypted_declared() throws TechnicalException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("cipher", true));
+        given_stored_dictionary(stored);
+
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
+            Map.of("secret", DictionaryServiceImpl.ENCRYPTED_VALUE_MASK),
+            Map.of("secret", DictionaryPropertyOptions.builder().encrypted(true).build())
+        );
+
+        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
+
+        verify(dictionaryRepository).update(
+            argThat(dict -> dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("cipher"))
+        );
+    }
+
+    @Test
+    public void should_encrypt_a_dynamic_dictionary_value_the_options_mark_encryptable()
+        throws TechnicalException, GeneralSecurityException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("fetched-key", new DictionaryProperty("fetched-value", false));
+        given_stored_dictionary(stored, io.gravitee.repository.management.model.DictionaryType.DYNAMIC);
+        when(dataEncryptor.encrypt("fetched-value")).thenReturn("cipher");
+
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
+            Map.of("fetched-key", "fetched-value"),
+            Map.of("fetched-key", DictionaryPropertyOptions.builder().encryptable(true).build()),
+            DictionaryType.DYNAMIC
+        );
+
+        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
+
+        verify(dictionaryRepository).update(
+            argThat(
+                dict ->
+                    dict.getProperties().get("fetched-key").encrypted() &&
+                    dict.getProperties().get("fetched-key").value().equals("cipher")
+            )
+        );
+    }
+
+    @Test
+    public void should_keep_the_stored_properties_when_an_update_omits_them() throws TechnicalException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("cipher", true));
+        stored.put("plain", new DictionaryProperty("value", false));
+        given_stored_dictionary(stored);
+
+        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, anUpdate(null, null));
+
+        verify(dictionaryRepository).update(
+            argThat(
+                dict ->
+                    dict.getProperties().keySet().equals(Set.of("secret", "plain")) &&
+                    dict.getProperties().get("secret").encrypted() &&
+                    dict.getProperties().get("secret").value().equals("cipher") &&
+                    !dict.getProperties().get("plain").encrypted()
+            )
+        );
+    }
+
+    @Test
+    public void should_clear_the_stored_properties_when_an_update_sends_an_empty_map() throws TechnicalException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("cipher", true));
+        given_stored_dictionary(stored);
+
+        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, anUpdate(Map.of(), null));
+
+        verify(dictionaryRepository).update(argThat(dict -> dict.getProperties().isEmpty()));
+    }
+
+    @Test
+    public void should_reject_property_options_when_the_update_omits_the_properties() throws TechnicalException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("cipher", true));
+        given_stored_dictionary_without_update_stub(stored);
+
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
+            null,
+            Map.of("secret", DictionaryPropertyOptions.builder().encryptable(true).build())
+        );
+
+        assertThatThrownBy(() ->
+            dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity)
+        ).isInstanceOf(InvalidDictionaryPropertyOptionsException.class);
+        verify(dictionaryRepository, never()).update(any());
+    }
+
+    private void given_stored_dictionary(Map<String, DictionaryProperty> properties) throws TechnicalException {
+        given_stored_dictionary(properties, io.gravitee.repository.management.model.DictionaryType.MANUAL);
+    }
+
+    private void given_stored_dictionary(
+        Map<String, DictionaryProperty> properties,
+        io.gravitee.repository.management.model.DictionaryType type
+    ) throws TechnicalException {
+        given_stored_dictionary_without_update_stub(properties, type);
         when(dictionaryRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
-    private void givenStoredDictionaryWithoutUpdateStub(Map<String, DictionaryProperty> properties) throws TechnicalException {
+    private void given_stored_dictionary_without_update_stub(Map<String, DictionaryProperty> properties) throws TechnicalException {
+        given_stored_dictionary_without_update_stub(properties, io.gravitee.repository.management.model.DictionaryType.MANUAL);
+    }
+
+    private void given_stored_dictionary_without_update_stub(
+        Map<String, DictionaryProperty> properties,
+        io.gravitee.repository.management.model.DictionaryType type
+    ) throws TechnicalException {
         Dictionary existing = new Dictionary();
         existing.setId(DICTIONARY_ID);
         existing.setName("My Dictionary");
         existing.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
-        existing.setType(io.gravitee.repository.management.model.DictionaryType.MANUAL);
+        existing.setType(type);
         existing.setState(LifecycleState.STOPPED);
         existing.setProperties(properties);
 
@@ -478,9 +633,17 @@ public class DictionaryServiceImpl_UpdateTest {
     }
 
     private static UpdateDictionaryEntity anUpdate(Map<String, String> properties, Map<String, DictionaryPropertyOptions> options) {
+        return anUpdate(properties, options, DictionaryType.MANUAL);
+    }
+
+    private static UpdateDictionaryEntity anUpdate(
+        Map<String, String> properties,
+        Map<String, DictionaryPropertyOptions> options,
+        DictionaryType type
+    ) {
         UpdateDictionaryEntity updateDictionaryEntity = new UpdateDictionaryEntity();
         updateDictionaryEntity.setName("My Dictionary");
-        updateDictionaryEntity.setType(DictionaryType.MANUAL);
+        updateDictionaryEntity.setType(type);
         updateDictionaryEntity.setProperties(properties);
         updateDictionaryEntity.setPropertyOptions(options);
         return updateDictionaryEntity;
