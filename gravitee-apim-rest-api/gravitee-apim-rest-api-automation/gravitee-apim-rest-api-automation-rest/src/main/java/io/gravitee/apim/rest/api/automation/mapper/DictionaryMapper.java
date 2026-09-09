@@ -17,6 +17,8 @@ package io.gravitee.apim.rest.api.automation.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.dictionary.model.Dictionary;
+import io.gravitee.apim.rest.api.automation.model.DictionaryPropertyValue;
+import io.gravitee.apim.rest.api.automation.model.DictionaryPropertyValueOneOf;
 import io.gravitee.apim.rest.api.automation.model.DictionaryProvider;
 import io.gravitee.apim.rest.api.automation.model.DictionarySpec;
 import io.gravitee.apim.rest.api.automation.model.DictionaryState;
@@ -47,10 +49,34 @@ public interface DictionaryMapper {
     // ===== DictionarySpec → Dictionary (core) =====
 
     @Mapping(source = "type", target = "type")
-    @Mapping(source = "manual.properties", target = "properties")
+    @Mapping(target = "properties", expression = "java(mapManualProperties(spec))")
     @Mapping(source = "dynamic.provider", target = "provider")
     @Mapping(source = "dynamic.trigger", target = "trigger")
     Dictionary toDictionary(DictionarySpec spec);
+
+    default Map<String, String> mapManualProperties(DictionarySpec spec) {
+        if (spec.getManual() == null || spec.getManual().getProperties() == null) {
+            return null;
+        }
+        Map<String, String> result = new java.util.HashMap<>();
+        spec
+            .getManual()
+            .getProperties()
+            .forEach((key, propertyValue) -> result.put(key, extractStringValue(propertyValue)));
+        return result;
+    }
+
+    default String extractStringValue(DictionaryPropertyValue propertyValue) {
+        if (propertyValue == null) return null;
+        Object actual = propertyValue.getActualInstance();
+        if (actual instanceof String legacy) {
+            return legacy;
+        }
+        if (actual instanceof DictionaryPropertyValueOneOf typed) {
+            return typed.getValue();
+        }
+        return null;
+    }
 
     io.gravitee.apim.core.dictionary.model.DictionaryType toCoreType(DictionaryType type);
 
@@ -85,7 +111,11 @@ public interface DictionaryMapper {
         if (entity.getType() == io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL) {
             state.setDeployed(entity.getDeployedAt() != null);
             ManualDictionarySpec manual = new ManualDictionarySpec();
-            manual.setProperties(entity.getProperties() != null ? entity.getProperties() : Map.of());
+            Map<String, DictionaryPropertyValue> properties = new java.util.HashMap<>();
+            if (entity.getProperties() != null) {
+                entity.getProperties().forEach((key, value) -> properties.put(key, toDictionaryPropertyValue(value, false)));
+            }
+            manual.setProperties(properties);
             state.setManual(manual);
         } else {
             state.setDeployed(isEntityStarted(entity));
@@ -95,6 +125,10 @@ public interface DictionaryMapper {
             state.setDynamic(dynamic);
         }
         return state;
+    }
+
+    default DictionaryPropertyValue toDictionaryPropertyValue(String value, boolean encrypted) {
+        return new DictionaryPropertyValue(new DictionaryPropertyValueOneOf(encrypted).value(value));
     }
 
     default DictionaryState toDictionaryState(DictionarySpec spec) {

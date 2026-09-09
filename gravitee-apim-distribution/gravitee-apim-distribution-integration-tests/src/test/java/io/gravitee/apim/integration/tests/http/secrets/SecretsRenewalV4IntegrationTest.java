@@ -37,6 +37,7 @@ import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.secrets.SecretProviderBuilder;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.dictionary.model.Dictionary;
+import io.gravitee.gateway.dictionary.model.DictionaryProperty;
 import io.gravitee.node.secrets.plugins.SecretProviderPlugin;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
@@ -99,7 +100,7 @@ public class SecretsRenewalV4IntegrationTest extends AbstractGatewayTest {
         testDictionary.setId("test");
         testDictionary.setKey("test");
         testDictionary.setEnvironmentId("DEFAULT");
-        testDictionary.setProperties(Map.of("value4", "/vault/secret/test:value4?renewable=true"));
+        testDictionary.setProperties(Map.of("value4", new DictionaryProperty("/vault/secret/test:value4?renewable=true", false)));
         dictionaries.add(testDictionary);
     }
 
