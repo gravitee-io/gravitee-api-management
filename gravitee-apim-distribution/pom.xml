@@ -58,18 +58,21 @@
         <changelist>-SNAPSHOT</changelist>
 
         <!--
-            The APIM engine this distribution assembles: a released version, so the distribution can
-            be built and released on its own — a plugin bump needs no engine release.
+            The APIM core this distribution assembles.
 
-            Advancing it is the deliberate act of shipping a new engine, reviewed like any other
-            change. Bump it when a new engine version is released.
+            On a support branch it holds a released version, so the distribution can be built and
+            released on its own — a plugin bump needs no core release. Advancing it is the
+            deliberate act of shipping a new core, reviewed like any other change.
+
+            Here on master it tracks this branch's own version, and the -SNAPSHOT is what keeps
+            master structurally unreleasable: a release refuses a SNAPSHOT pin, a mutable core
+            being one that would not rebuild to the same artefacts.
 
             Development and pull-request builds override it on the command line, with
-            -Dapim.core.version=<root triplet>, to assemble the core currently being worked on.
-            Building without that override assembles the released core, which is what a release
-            does and almost never what you want locally — the Taskfile handles it for you.
+            -Dapim.core.version=<root triplet>, to assemble the core currently being worked on —
+            the Taskfile handles it for you.
         -->
-        <apim.core.version>4.12.14</apim.core.version>
+        <apim.core.version>4.13.0-SNAPSHOT</apim.core.version>
 
         <!--
             Versions shared with the engine. They are declared here as well because the distribution
