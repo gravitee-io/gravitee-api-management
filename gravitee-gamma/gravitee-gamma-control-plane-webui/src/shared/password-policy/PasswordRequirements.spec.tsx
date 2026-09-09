@@ -52,6 +52,21 @@ describe('PasswordRequirements', () => {
         expect(screen.getByText('At least 12 characters')).toBeTruthy();
     });
 
+    it('renders no heading when the policy could not be loaded', () => {
+        renderWithGraphene(<PasswordRequirements rules={[]} password="" showStrengthMeter />);
+
+        // A heading over an empty list reads as "no requirements" rather than "unknown".
+        expect(screen.queryByText('Requirements')).toBeNull();
+    });
+
+    it('scores no strength when the policy could not be loaded', () => {
+        renderWithGraphene(<PasswordRequirements rules={[]} password="LongEnough1!a" showStrengthMeter />);
+
+        // Every password scores "Weak" against an empty rule set, which reads as a verdict on
+        // the password rather than on the missing policy.
+        expect(screen.queryByText('Weak')).toBeNull();
+    });
+
     it('shows a weaker strength label when only some rules are satisfied', () => {
         renderWithGraphene(<PasswordRequirements rules={TEST_RULES} password="LongEnough1" showStrengthMeter />);
 

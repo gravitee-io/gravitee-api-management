@@ -13,38 +13,71 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Alert, AlertDescription, AlertTitle, Button, Field, FieldLabel, Input, Spinner } from '@gravitee/graphene-core';
-import { useMemo, useState, type SubmitEvent } from 'react';
+import { Alert, AlertDescription, AlertTitle, Button, Field, FieldLabel, PasswordInput, Spinner } from '@gravitee/graphene-core';
+import { useMemo, useState, type ReactNode, type SubmitEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { AuthPageShell } from './AuthPageShell';
 import { PasswordRequirements, isPasswordPolicySatisfied } from '../../../shared/password-policy';
 import { usePasswordPolicy } from '../hooks/usePasswordPolicy';
 import { finalizeResetPassword } from '../services/resetPassword.service';
-import { isAuthTokenExpired, parseAuthToken } from '../utils/authToken';
+import { isAuthTokenExpired, parseAuthToken, type AuthTokenClaims } from '../utils/authToken';
+
+const INVALID_LINK = "This reset link isn't valid. Ask your administrator to send a new one.";
+const EXPIRED_LINK = 'This reset link has expired. Ask your administrator to send a new one.';
 
 function passwordsMatch(password: string, confirmPassword: string): boolean {
     return password.length > 0 && password === confirmPassword;
 }
 
+/**
+ * Why a reset link cannot be used, or null when it can.
+ *
+ * Expiry is reported before a missing subject so a well-formed link that has simply
+ * timed out says so, rather than reading as malformed.
+ */
+function resetTokenError(token: string, claims: AuthTokenClaims | null): string | null {
+    if (!token || !claims) {
+        return INVALID_LINK;
+    }
+    if (isAuthTokenExpired(claims)) {
+        return EXPIRED_LINK;
+    }
+    if (!claims.sub) {
+        return INVALID_LINK;
+    }
+    return null;
+}
+
+/**
+ * The page's frame, so each of the three outcomes states only its own content.
+ *
+ * The description instructs; only the branch that can be acted on passes one. Over a dead link
+ * or a finished reset it would tell the reader to do something the page is not offering.
+ */
+function ResetPasswordShell({ description, children }: { description?: string; children: ReactNode }) {
+    return (
+        <AuthPageShell
+            title="Reset password"
+            description={description}
+            footer={
+                <>
+                    Back to{' '}
+                    <Link to="/login" className="text-primary underline-offset-4 hover:underline">
+                        sign in
+                    </Link>
+                </>
+            }
+        >
+            {children}
+        </AuthPageShell>
+    );
+}
+
 export function ResetPasswordPage() {
     const { token = '' } = useParams<{ token: string }>();
     const tokenClaims = useMemo(() => parseAuthToken(token), [token]);
-    const tokenError = useMemo(() => {
-        if (!token) {
-            return 'Invalid password reset token!';
-        }
-        if (!tokenClaims) {
-            return 'Invalid password reset token!';
-        }
-        if (isAuthTokenExpired(tokenClaims)) {
-            return 'Your password reset token has expired!';
-        }
-        if (!tokenClaims.sub) {
-            return 'Invalid password reset token!';
-        }
-        return null;
-    }, [token, tokenClaims]);
+    const tokenError = useMemo(() => resetTokenError(token, tokenClaims), [token, tokenClaims]);
 
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -53,6 +86,7 @@ export function ResetPasswordPage() {
     const [loading, setLoading] = useState(false);
     const { policy: passwordPolicy, loading: passwordPolicyLoading, error: passwordPolicyError } = usePasswordPolicy();
 
+    const accountName = [tokenClaims?.firstname, tokenClaims?.lastname].filter(Boolean).join(' ');
     const passwordMismatch = confirmPassword.length > 0 && password !== confirmPassword;
     const passwordPolicySatisfied = isPasswordPolicySatisfied(password, passwordPolicy.rules);
     const canSubmit =
@@ -101,106 +135,92 @@ export function ResetPasswordPage() {
         }
     }
 
-    return (
-        <AuthPageShell
-            title="Reset password"
-            description="to access Gravitee Gamma"
-            footer={
-                <>
-                    Go to{' '}
-                    <Link to="/login" className="text-primary underline-offset-4 hover:underline">
-                        Sign in
-                    </Link>
-                </>
-            }
-        >
-            {tokenError ? (
+    if (tokenError) {
+        return (
+            <ResetPasswordShell>
                 <Alert variant="destructive" role="alert">
                     <AlertTitle>Could not reset password</AlertTitle>
                     <AlertDescription>{tokenError}</AlertDescription>
                 </Alert>
-            ) : null}
+            </ResetPasswordShell>
+        );
+    }
 
-            {success ? (
+    if (success) {
+        return (
+            <ResetPasswordShell>
                 <Alert role="status">
-                    <AlertTitle>Password successfully reset</AlertTitle>
+                    <AlertTitle>Password updated</AlertTitle>
                     <AlertDescription>You can now sign in with your new password.</AlertDescription>
                 </Alert>
-            ) : null}
+            </ResetPasswordShell>
+        );
+    }
 
-            {!tokenError && !success ? (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    {passwordPolicyError ? (
-                        <Alert variant="destructive" role="alert">
-                            <AlertTitle>Could not load password requirements</AlertTitle>
-                            <AlertDescription>{passwordPolicyError}</AlertDescription>
-                        </Alert>
-                    ) : null}
+    return (
+        <ResetPasswordShell description="Choose a new password for your account.">
+            <form onSubmit={handleSubmit} className="space-y-4">
+                {passwordPolicyError ? (
+                    <Alert variant="destructive" role="alert">
+                        <AlertTitle>{"Couldn't load password rules"}</AlertTitle>
+                        <AlertDescription>{passwordPolicyError}</AlertDescription>
+                    </Alert>
+                ) : null}
 
-                    {error ? (
-                        <Alert variant="destructive" role="alert">
-                            <AlertTitle>Reset failed</AlertTitle>
-                            <AlertDescription>{error}</AlertDescription>
-                        </Alert>
-                    ) : null}
+                {error ? (
+                    <Alert variant="destructive" role="alert">
+                        <AlertTitle>Reset failed</AlertTitle>
+                        <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                ) : null}
 
-                    <Field orientation="vertical" className="gap-2">
-                        <FieldLabel htmlFor="reset-first-name">First name</FieldLabel>
-                        <Input id="reset-first-name" value={tokenClaims?.firstname ?? ''} disabled readOnly />
-                    </Field>
+                {/* The account is context, not input. Three disabled fields read as a form the
+                reader cannot fill: they fail contrast, keyboard navigation skips them, and
+                assistive technology never reaches the name they carry. */}
+                {accountName || tokenClaims?.email ? (
+                    <div className="text-sm">
+                        {accountName ? <p className="font-medium">{accountName}</p> : null}
+                        {tokenClaims?.email ? <p className="text-muted-foreground">{tokenClaims.email}</p> : null}
+                    </div>
+                ) : null}
 
-                    <Field orientation="vertical" className="gap-2">
-                        <FieldLabel htmlFor="reset-last-name">Last name</FieldLabel>
-                        <Input id="reset-last-name" value={tokenClaims?.lastname ?? ''} disabled readOnly />
-                    </Field>
+                <Field orientation="vertical" className="gap-2">
+                    <FieldLabel htmlFor="reset-password">Password</FieldLabel>
+                    <PasswordInput
+                        id="reset-password"
+                        value={password}
+                        onChange={event => setPassword(event.target.value)}
+                        required
+                        autoComplete="new-password"
+                        // eslint-disable-next-line jsx-a11y/no-autofocus
+                        autoFocus
+                    />
+                    <PasswordRequirements rules={passwordPolicy.rules} password={password} showStrengthMeter />
+                </Field>
 
-                    <Field orientation="vertical" className="gap-2">
-                        <FieldLabel htmlFor="reset-email">Email</FieldLabel>
-                        <Input id="reset-email" type="email" value={tokenClaims?.email ?? ''} disabled readOnly />
-                    </Field>
+                <Field orientation="vertical" className="gap-2">
+                    <FieldLabel htmlFor="reset-confirm-password">Confirm password</FieldLabel>
+                    <PasswordInput
+                        id="reset-confirm-password"
+                        value={confirmPassword}
+                        onChange={event => setConfirmPassword(event.target.value)}
+                        required
+                        autoComplete="new-password"
+                    />
+                    {passwordMismatch ? <p className="text-sm text-destructive">Both passwords must match.</p> : null}
+                </Field>
 
-                    <Field orientation="vertical" className="gap-2">
-                        <FieldLabel htmlFor="reset-password">Password</FieldLabel>
-                        <Input
-                            id="reset-password"
-                            type="password"
-                            value={password}
-                            onChange={event => setPassword(event.target.value)}
-                            required
-                            autoComplete="new-password"
-                            // eslint-disable-next-line jsx-a11y/no-autofocus
-                            autoFocus
-                        />
-                        <PasswordRequirements rules={passwordPolicy.rules} password={password} showStrengthMeter />
-                    </Field>
-
-                    <Field orientation="vertical" className="gap-2">
-                        <FieldLabel htmlFor="reset-confirm-password">Confirm password</FieldLabel>
-                        <Input
-                            id="reset-confirm-password"
-                            type="password"
-                            value={confirmPassword}
-                            onChange={event => setConfirmPassword(event.target.value)}
-                            required
-                            autoComplete="new-password"
-                        />
-                        {passwordMismatch ? (
-                            <p className="text-sm text-destructive">Password and confirm password must be the same.</p>
-                        ) : null}
-                    </Field>
-
-                    <Button type="submit" className="w-full" size="lg" disabled={!canSubmit}>
-                        {loading ? (
-                            <span className="inline-flex items-center justify-center gap-2">
-                                <Spinner className="size-4 shrink-0" aria-hidden />
-                                Resetting password…
-                            </span>
-                        ) : (
-                            'Reset password'
-                        )}
-                    </Button>
-                </form>
-            ) : null}
-        </AuthPageShell>
+                <Button type="submit" className="w-full" size="lg" disabled={!canSubmit}>
+                    {loading ? (
+                        <span className="inline-flex items-center justify-center gap-2">
+                            <Spinner className="size-4 shrink-0" aria-hidden />
+                            Resetting password…
+                        </span>
+                    ) : (
+                        'Reset password'
+                    )}
+                </Button>
+            </form>
+        </ResetPasswordShell>
     );
 }

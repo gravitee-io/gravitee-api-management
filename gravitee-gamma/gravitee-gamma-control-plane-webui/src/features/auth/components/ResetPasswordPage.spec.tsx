@@ -55,15 +55,18 @@ describe('ResetPasswordPage', () => {
         const user = userEvent.setup();
         const changePasswordTracker = trackHandler('post', `${TEST_MANAGEMENT_BASE}/users/user-1/changePassword`, null, 204);
 
-        renderResetPasswordPage();
+        const { container } = renderResetPasswordPage();
 
         await waitFor(() => {
             expect(screen.getByText('At least 12 characters')).toBeTruthy();
         });
 
-        expect((screen.getByLabelText('First name') as HTMLInputElement).value).toBe('norm1');
-        expect((screen.getByLabelText('Last name') as HTMLInputElement).value).toBe('norm1');
-        expect((screen.getByLabelText('Email') as HTMLInputElement).value).toBe('norm1@gmail.com');
+        // The account is shown as context, not as form controls the reader cannot fill.
+        expect(screen.getByText('norm1 norm1')).toBeTruthy();
+        expect(screen.getByText('norm1@gmail.com')).toBeTruthy();
+        expect(screen.queryByLabelText('First name')).toBeNull();
+        expect(screen.queryByLabelText('Last name')).toBeNull();
+        expect(screen.queryByLabelText('Email')).toBeNull();
 
         await user.type(screen.getByLabelText('Password'), 'NewPassword1!a');
         await user.type(screen.getByLabelText('Confirm password'), 'NewPassword1!a');
@@ -73,19 +76,48 @@ describe('ResetPasswordPage', () => {
         await user.click(submitButton);
 
         await waitFor(() => expect(changePasswordTracker.callCount).toBe(1));
-        expect(screen.getByText('Password successfully reset')).toBeTruthy();
+        expect(screen.getByText('Password updated')).toBeTruthy();
+        // Nothing is left to choose, so the instruction goes with the form.
+        expect(container.querySelector('[data-slot="card-description"]')).toBeNull();
+    });
+
+    it('instructs the outcome that can be acted on', async () => {
+        renderResetPasswordPage();
+
+        await screen.findByLabelText('Password');
+        expect(screen.getByText('Choose a new password for your account.')).toBeTruthy();
+    });
+
+    it('does not instruct a dead link', () => {
+        // Nothing here can be acted on, so telling the reader to choose a password is wrong.
+        const { container } = renderResetPasswordPage('invalid-token');
+
+        expect(container.querySelector('[data-slot="card-description"]')).toBeNull();
+    });
+
+    it('lets the person see the password they are typing', async () => {
+        const user = userEvent.setup();
+        renderResetPasswordPage();
+
+        const field = await screen.findByLabelText('Password');
+        expect(field.getAttribute('type')).toBe('password');
+
+        // Two fields, two toggles; the first belongs to the password being chosen.
+        await user.click(screen.getAllByRole('button', { name: 'Show password' })[0]);
+
+        expect(screen.getByLabelText('Password').getAttribute('type')).toBe('text');
     });
 
     it('shows an error when the token is invalid', () => {
         renderResetPasswordPage('invalid-token');
 
-        expect(screen.getByText('Invalid password reset token!')).toBeTruthy();
+        expect(screen.getByText("This reset link isn't valid. Ask your administrator to send a new one.")).toBeTruthy();
     });
 
     it('shows an error when the token is expired', () => {
         renderResetPasswordPage(EXPIRED_TOKEN);
 
-        expect(screen.getByText('Your password reset token has expired!')).toBeTruthy();
+        expect(screen.getByText('This reset link has expired. Ask your administrator to send a new one.')).toBeTruthy();
     });
 
     it('keeps submit disabled when passwords do not match', async () => {
@@ -100,7 +132,7 @@ describe('ResetPasswordPage', () => {
         await user.type(screen.getByLabelText('Password'), 'NewPassword1!a');
         await user.type(screen.getByLabelText('Confirm password'), 'DifferentPassword1!a');
 
-        expect(screen.getByText('Password and confirm password must be the same.')).toBeTruthy();
+        expect(screen.getByText('Both passwords must match.')).toBeTruthy();
         expect((screen.getByRole('button', { name: 'Reset password' }) as HTMLButtonElement).disabled).toBe(true);
     });
 
@@ -134,7 +166,7 @@ describe('ResetPasswordPage', () => {
 
         renderResetPasswordPage();
 
-        expect(await screen.findByText('Unable to load password requirements. Please refresh the page and try again.')).toBeTruthy();
+        expect(await screen.findByText("Couldn't load the password rules. Refresh the page to try again.")).toBeTruthy();
         expect((screen.getByRole('button', { name: 'Reset password' }) as HTMLButtonElement).disabled).toBe(true);
     });
 
@@ -147,7 +179,7 @@ describe('ResetPasswordPage', () => {
 
         renderResetPasswordPage();
 
-        expect(await screen.findByText('Unable to load password requirements. Please refresh the page and try again.')).toBeTruthy();
+        expect(await screen.findByText("Couldn't load the password rules. Refresh the page to try again.")).toBeTruthy();
         expect((screen.getByRole('button', { name: 'Reset password' }) as HTMLButtonElement).disabled).toBe(true);
     });
 });

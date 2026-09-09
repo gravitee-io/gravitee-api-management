@@ -48,13 +48,18 @@ const STRENGTH_FILLED_BARS: Record<ReturnType<typeof resolvePasswordStrengthLeve
 };
 
 export function PasswordRequirements({ rules, password = '', showStrengthMeter = false, className }: PasswordRequirementsProps) {
+    // No rules means the policy could not be loaded. Nothing here can say anything about the
+    // password in that state: a heading over an empty list reads as "there are no requirements",
+    // and a meter scored against no rules reports "Weak" for every password ever typed. The
+    // caller surfaces the failure.
+    const hasRules = rules.length > 0;
     const strengthLevel = resolvePasswordStrengthLevel(password, rules);
     const strengthLabel = resolvePasswordStrengthLabel(strengthLevel);
     const filledBars = showStrengthMeter ? STRENGTH_FILLED_BARS[strengthLevel] : 0;
 
     return (
         <div className={cn('space-y-3', className)}>
-            {showStrengthMeter && password ? (
+            {showStrengthMeter && password && hasRules ? (
                 <div className="space-y-1">
                     <div className="flex gap-1" aria-hidden>
                         {Array.from({ length: 4 }, (_, index) => (
@@ -71,29 +76,31 @@ export function PasswordRequirements({ rules, password = '', showStrengthMeter =
                 </div>
             ) : null}
 
-            <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Requirements</p>
-                <ul className="space-y-1.5">
-                    {rules.map(rule => {
-                        const satisfied = password ? evaluatePasswordPolicyRule(rule, password) : false;
-                        return (
-                            <li key={rule.id} className="flex items-start gap-2 text-sm">
-                                {satisfied ? (
-                                    <CircleCheckIcon className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
-                                ) : (
-                                    <span
-                                        className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border border-muted-foreground/40"
-                                        aria-hidden
-                                    />
-                                )}
-                                <span className={cn(satisfied && password ? 'text-foreground' : 'text-muted-foreground')}>
-                                    {rule.label}
-                                </span>
-                            </li>
-                        );
-                    })}
-                </ul>
-            </div>
+            {hasRules ? (
+                <div className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Requirements</p>
+                    <ul className="space-y-1.5">
+                        {rules.map(rule => {
+                            const satisfied = password ? evaluatePasswordPolicyRule(rule, password) : false;
+                            return (
+                                <li key={rule.id} className="flex items-start gap-2 text-sm">
+                                    {satisfied ? (
+                                        <CircleCheckIcon className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
+                                    ) : (
+                                        <span
+                                            className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border border-muted-foreground/40"
+                                            aria-hidden
+                                        />
+                                    )}
+                                    <span className={cn(satisfied && password ? 'text-foreground' : 'text-muted-foreground')}>
+                                        {rule.label}
+                                    </span>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </div>
+            ) : null}
         </div>
     );
 }
