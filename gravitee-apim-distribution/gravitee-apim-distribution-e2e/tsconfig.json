@@ -7,8 +7,7 @@
     "baseUrl": ".",
     "allowJs": true,
     "resolveJsonModule": true,
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "node20",
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "paths": {
