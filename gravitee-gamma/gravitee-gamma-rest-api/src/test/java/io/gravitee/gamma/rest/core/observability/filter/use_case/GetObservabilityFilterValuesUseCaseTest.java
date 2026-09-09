@@ -128,6 +128,29 @@ class GetObservabilityFilterValuesUseCaseTest {
     }
 
     @Test
+    void should_reject_a_page_below_the_first_one_before_reaching_the_data_port() {
+        // The OpenAPI parameter declares `minimum: 1`, and the platform use case refuses both bounds.
+        // Normalising a non-positive page to 1 would serve a different page than the caller asked for.
+        dataPort.givenKeywordValues("ENTRYPOINT", List.of(new FilterValue("http-proxy", null)));
+
+        assertThatThrownBy(() -> useCase.execute(new GetObservabilityFilterValuesUseCase.Input("ENTRYPOINT", null, null, null, 0, null)))
+            .isInstanceOf(UnsupportedObservabilityFilterException.class)
+            .extracting("technicalCode")
+            .isEqualTo("observability.filter.values_page_out_of_range");
+        assertThat(dataPort.lastCall()).isEmpty();
+    }
+
+    @Test
+    void should_default_an_absent_page_to_the_first_one() {
+        // `page` is optional and defaults to 1 in the spec: absent is not the same as out of range.
+        dataPort.givenKeywordValues("ENTRYPOINT", List.of(new FilterValue("http-proxy", null)));
+
+        var output = useCase.execute(new GetObservabilityFilterValuesUseCase.Input("ENTRYPOINT", null, null, null, null, null));
+
+        assertThat(output.page()).isEqualTo(1);
+    }
+
+    @Test
     void should_not_touch_the_data_port_for_number_filter() {
         assertThatThrownBy(() ->
             useCase.execute(new GetObservabilityFilterValuesUseCase.Input("HTTP_STATUS", null, null, null, null, null))
