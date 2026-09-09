@@ -15,14 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.PARAM_REGISTRATION_URL;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
@@ -37,10 +33,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
- * The registration email's link target, mirroring {@link UserServiceResetPasswordTargetTest}.
+ * Which registration targets are refused, mirroring {@link UserServiceResetPasswordTargetTest}.
  *
- * <p>These cases stop before the email is composed. What matters here is which URL the target
- * resolves to and that nothing else is accepted; {@code UserServiceTest} already covers the send.
+ * <p>Only the rejections live here: they are the cases that never reach registration, so no fixture
+ * beyond the installation lookup is needed to state them. The accepted {@code gamma} target is
+ * covered end-to-end in {@code UserServiceRegistrationApprovalTest}, on the emitted email.
  */
 @ExtendWith(MockitoExtension.class)
 class UserServiceRegistrationTargetTest {
@@ -59,27 +56,6 @@ class UserServiceRegistrationTargetTest {
         SecurityContextHolder.clearContext();
         userService = new UserServiceImpl();
         ReflectionTestUtils.setField(userService, "installationAccessQueryService", installationAccessQueryService);
-    }
-
-    @Test
-    void should_build_the_gamma_registration_url_from_installation_config() {
-        when(installationAccessQueryService.getGammaUrl("DEFAULT")).thenReturn("http://gamma.example.com/");
-
-        String url = ReflectionTestUtils.invokeMethod(userService, "buildGammaRegistrationPageUrl", "DEFAULT");
-
-        assertThat(url).isEqualTo("http://gamma.example.com/registration");
-    }
-
-    @Test
-    void should_reject_registration_when_no_gamma_url_is_configured() {
-        when(installationAccessQueryService.getGammaUrl("DEFAULT")).thenReturn(null);
-
-        // Failing loudly beats silently emailing a classic-console link the recipient cannot use.
-        // Asserted on the builder because the URL is resolved only after registration is known to be
-        // enabled -- a disabled registration should say so rather than blame the Gamma configuration.
-        assertThatThrownBy(() -> ReflectionTestUtils.invokeMethod(userService, "buildGammaRegistrationPageUrl", "DEFAULT"))
-            .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("Gamma URL is not configured");
     }
 
     @Test
