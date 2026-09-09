@@ -15,21 +15,45 @@
  */
 package io.gravitee.gateway.dictionary.model;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.io.IOException;
 
 /**
  * A single dictionary property value, as deployed to the gateway. Dual-reads a legacy
  * bare-string value (produced by a not-yet-upgraded Management API) as {@code encrypted=false}.
+ * Symmetrically, an unencrypted value serialises back to that same bare string — not the typed
+ * object — so redistributing a dictionary to peer gateway nodes (cluster/distributed sync)
+ * doesn't change wire shape until a value is genuinely encrypted, keeping a not-yet-upgraded
+ * peer node able to read it.
  *
  * @author GraviteeSource Team
  */
+@JsonSerialize(using = DictionaryProperty.Serializer.class)
 @JsonDeserialize(using = DictionaryProperty.Deserializer.class)
 public record DictionaryProperty(String value, boolean encrypted) {
+    static class Serializer extends JsonSerializer<DictionaryProperty> {
+
+        @Override
+        public void serialize(DictionaryProperty property, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+            if (property.encrypted()) {
+                gen.writeStartObject();
+                gen.writeStringField("value", property.value());
+                gen.writeBooleanField("encrypted", true);
+                gen.writeEndObject();
+            } else {
+                gen.writeString(property.value());
+            }
+        }
+    }
+
     static class Deserializer extends JsonDeserializer<DictionaryProperty> {
 
         @Override
