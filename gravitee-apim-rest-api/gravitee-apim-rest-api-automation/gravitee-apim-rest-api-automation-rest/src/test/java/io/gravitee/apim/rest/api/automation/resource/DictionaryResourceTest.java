@@ -98,7 +98,10 @@ class DictionaryResourceTest extends AbstractResourceTest {
                     soft.assertThat(state.getDeployed()).isTrue();
                     soft.assertThat(state.getManual()).isNotNull();
                     soft.assertThat(state.getManual().getProperties()).isNotNull();
-                    soft.assertThat(state.getManual().getProperties()).containsEntry("key1", "value1");
+                    soft.assertThat(state.getManual().getProperties()).containsKey("key1");
+                    soft
+                        .assertThat(state.getManual().getProperties().get("key1").getDictionaryPropertyValueOneOf().getValue())
+                        .isEqualTo("value1");
                 });
             }
         }

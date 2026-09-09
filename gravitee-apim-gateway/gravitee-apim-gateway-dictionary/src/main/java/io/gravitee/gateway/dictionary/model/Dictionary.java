@@ -48,5 +48,5 @@ public class Dictionary {
 
     private Date deployedAt;
 
-    private Map<String, String> properties;
+    private Map<String, DictionaryProperty> properties;
 }
