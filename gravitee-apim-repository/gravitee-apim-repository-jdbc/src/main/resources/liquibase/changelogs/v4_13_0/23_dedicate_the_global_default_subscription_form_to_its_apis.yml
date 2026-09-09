@@ -1,0 +1,30 @@
+databaseChangeLog:
+  # Before the catalog, the single form of an environment applied to all its APIs; it is now the "Global Default
+  # Form" (changeset 20), and a form only applies to the APIs it is dedicated to. So that the APIs of an environment
+  # keep the form they were shown, an enabled Global Default Form is dedicated to every API of its environment not
+  # already mapped to another form; a disabled one stays mapped to no API. The supported databases spell booleans
+  # differently, hence one changeset per family.
+  - changeSet:
+      id: 4.13.0_23_dedicate_the_global_default_subscription_form_to_its_apis
+      author: GraviteeSource Team
+      dbms: postgresql, mysql, mariadb
+      changes:
+        - sql:
+            sql: >-
+              insert into ${gravitee_prefix}subscription_form_apis (form_id, api_id)
+              select f.id, a.id from ${gravitee_prefix}subscription_forms f
+              join ${gravitee_prefix}apis a on a.environment_id = f.environment_id
+              where f.normalized_name = 'global default form' and f.enabled = true
+              and not exists (select 1 from ${gravitee_prefix}subscription_form_apis m where m.api_id = a.id)
+  - changeSet:
+      id: 4.13.0_23_dedicate_the_global_default_subscription_form_to_its_apis_mssql
+      author: GraviteeSource Team
+      dbms: mssql
+      changes:
+        - sql:
+            sql: >-
+              insert into ${gravitee_prefix}subscription_form_apis (form_id, api_id)
+              select f.id, a.id from ${gravitee_prefix}subscription_forms f
+              join ${gravitee_prefix}apis a on a.environment_id = f.environment_id
+              where f.normalized_name = 'global default form' and f.enabled = 1
+              and not exists (select 1 from ${gravitee_prefix}subscription_form_apis m where m.api_id = a.id)

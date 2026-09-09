@@ -30,10 +30,10 @@ import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Portal use case: load the subscription form that applies to an API with dynamic options resolved
- * against that API, after enforcing portal navigation visibility for that API
+ * Portal use case: load the subscription form dedicated to an API with dynamic options resolved against that API,
+ * after enforcing portal navigation visibility for that API
  * ({@link PortalNavigationApiVisibilityDomainService}, same rules as {@link io.gravitee.apim.core.api.use_case.GetApiForPortalUseCase}).
- * Only an <em>enabled</em> form is returned; a disabled form yields {@link SubscriptionFormNotFoundException}.
+ * Only an <em>enabled</em> form is returned; no applicable form yields {@link SubscriptionFormNotFoundException}.
  *
  * @author Gravitee.io Team
  */

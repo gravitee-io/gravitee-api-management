@@ -17,19 +17,23 @@ package io.gravitee.apim.core.subscription_form.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
+import io.gravitee.apim.core.subscription_form.query_service.SubscriptionFormQueryService;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 
 /**
- * Decides which subscription form applies when a consumer subscribes to an API. A form only applies to the APIs it
- * is dedicated to, and forms cannot be dedicated to APIs yet: no API has a form, so its subscription skips the form
- * step.
+ * Decides which subscription form applies when a consumer subscribes: the form dedicated to the API, when it
+ * is enabled. An API without an enabled dedicated form has no form, and its subscription skips the form step.
  *
  * @author Gravitee.io Team
  */
 @DomainService
+@RequiredArgsConstructor
 public class SubscriptionFormResolutionDomainService {
 
+    private final SubscriptionFormQueryService subscriptionFormQueryService;
+
     public Optional<SubscriptionForm> resolveForApi(String environmentId, String apiId) {
-        return Optional.empty();
+        return subscriptionFormQueryService.findByApiId(environmentId, apiId).filter(SubscriptionForm::isEnabled);
     }
 }
