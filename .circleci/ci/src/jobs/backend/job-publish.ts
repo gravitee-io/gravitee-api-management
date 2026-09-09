@@ -16,7 +16,7 @@
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { config } from '../../config';
-import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
+import { AzureArtifactsTokenCommand, NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
 import { OpenJdkNodeExecutor } from '../../executors';
 import { CircleCIEnvironment } from '../../pipelines';
 import { mavenParallelism } from '../../utils';
@@ -28,14 +28,17 @@ export class PublishJob {
     const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig, environment);
+    const azureArtifactsTokenCmd = AzureArtifactsTokenCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(saveMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
+    dynamicConfig.addReusableCommand(azureArtifactsTokenCmd);
 
     const steps: Command[] = [
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName }),
+      new reusable.ReusedCommand(azureArtifactsTokenCmd),
       target === 'nexus'
         ? new commands.Run({
             name: 'Maven Package and deploy to Nexus Snapshots',
