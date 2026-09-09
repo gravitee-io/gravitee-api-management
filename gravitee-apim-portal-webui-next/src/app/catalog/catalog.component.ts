@@ -324,8 +324,10 @@ export class CatalogComponent {
     }
   }
 
-  navigateToSubscribe(apiId: string) {
-    this.router.navigate(['api', apiId, 'subscribe'], { relativeTo: this.route });
+  navigateToSubscribe(item: CatalogApiVM) {
+    this.router.navigate(['/documentation', item.rootId, 'api', item.id, 'subscribe'], {
+      queryParams: { selectedId: item.navItemId },
+    });
   }
 
   trackById(_index: number, item: CatalogCardVM) {
@@ -445,7 +447,7 @@ export class CatalogComponent {
               picture: item._links?.picture,
               isEnabledMcpServer: !!item.mcp,
               labels: item.labels,
-              isAgent: item.type === 'AGENT' || isAgent(item.apiType, !!item.mcp),
+              isAgent: item.type === 'AGENT' || isAgent(item.apiType),
               capabilities: skills.length ? skills.map(skill => skill.name) : (item.labels ?? []),
               skills,
               endpoint: item.entrypoints?.[0],

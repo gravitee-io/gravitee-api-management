@@ -22,7 +22,7 @@ import { toSvg } from 'jdenticon';
   template: `
     <img
       i18n-alt="@@apiPicture"
-      alt="API Picture"
+      alt="Picture"
       class="round"
       [src]="picture"
       [height]="size"

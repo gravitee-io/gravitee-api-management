@@ -183,7 +183,7 @@ describe('CatalogComponent', () => {
 
     const apiCards = await harnessLoader.getAllHarnesses(ApiCardHarness);
 
-    expect(await Promise.all(apiCards.map(card => card.getTitle()))).toEqual(['Helpdesk Agent', 'MCP Server API']);
+    expect(await Promise.all(apiCards.map(card => card.getTitle()))).toEqual(['Helpdesk Agent']);
     expect(await apiCards[0].getType()).toBe('AGENT');
     expect(await harnessLoader.getAllHarnesses(ApiProductCardHarness)).toHaveLength(0);
   });
@@ -191,8 +191,8 @@ describe('CatalogComponent', () => {
   it('should take an item the backend calls an agent at its word', async () => {
     await init();
 
-    expect(await catalogHarness.getKindCounts()).toEqual(['2', '2']);
-    expect(await catalogHarness.getTally()).toBe('2 Agents');
+    expect(await catalogHarness.getKindCounts()).toEqual(['1', '3']);
+    expect(await catalogHarness.getTally()).toBe('1 Agent');
   });
 
   it('should render APIs and API Products together on the APIs side', async () => {
@@ -204,9 +204,10 @@ describe('CatalogComponent', () => {
     const apiCards = await harnessLoader.getAllHarnesses(ApiCardHarness);
     const productCards = await harnessLoader.getAllHarnesses(ApiProductCardHarness);
 
-    expect(apiCards).toHaveLength(1);
-    expect(await apiCards[0].getTitle()).toBe('Weather API');
+    expect(apiCards).toHaveLength(2);
+    expect(await Promise.all(apiCards.map(card => card.getTitle()))).toEqual(['MCP Server API', 'Weather API']);
     expect(await apiCards[0].getType()).toBe('API');
+    expect(await apiCards[1].getType()).toBe('API');
     expect(productCards).toHaveLength(1);
     expect(await productCards[0].getTitle()).toBe('AI Workspace');
     expect(await productCards[0].getApiCount()).toContain('2 APIS INCLUDED');
@@ -220,13 +221,17 @@ describe('CatalogComponent', () => {
     fixture.detectChanges();
 
     const rows = await catalogHarness.getAllRowsCellText();
-    expect(rows).toHaveLength(2);
+    expect(rows).toHaveLength(3);
     expect(rows[0]).toMatchObject({
       name: expect.stringContaining('AI Workspace'),
       labels: expect.stringContaining('Included APIs: 2'),
       version: '3.0',
     });
     expect(rows[1]).toMatchObject({
+      name: expect.stringContaining('MCP Server API'),
+      version: '2.0',
+    });
+    expect(rows[2]).toMatchObject({
       name: expect.stringContaining('Weather API'),
       labels: expect.stringContaining('# weather'),
       version: '1.0',
@@ -254,8 +259,8 @@ describe('CatalogComponent', () => {
 
     await (await harnessLoader.getAllHarnesses(ApiCardHarness))[0].select();
 
-    expect(navigate).toHaveBeenCalledWith(['/documentation', 'api-root-1'], {
-      queryParams: { selectedId: 'api-nav-1' },
+    expect(navigate).toHaveBeenCalledWith(['/documentation', 'api-root-2'], {
+      queryParams: { selectedId: 'api-nav-2' },
     });
   });
 
@@ -575,8 +580,8 @@ describe('CatalogComponent', () => {
       await init();
 
       expect(await catalogHarness.getKinds()).toEqual(['Agents', 'APIs']);
-      expect(await catalogHarness.getKindCounts()).toEqual(['2', '2']);
-      expect(await catalogHarness.getTally()).toBe('2 Agents');
+      expect(await catalogHarness.getKindCounts()).toEqual(['1', '3']);
+      expect(await catalogHarness.getTally()).toBe('1 Agent');
     });
 
     it('should put the chosen side in the URL', async () => {
@@ -603,8 +608,8 @@ describe('CatalogComponent', () => {
       flushPlans();
       fixture.detectChanges();
 
-      expect(await catalogHarness.getTally()).toBe('2 APIs');
-      expect(await (await harnessLoader.getAllHarnesses(ApiCardHarness))[0].getTitle()).toBe('Weather API');
+      expect(await catalogHarness.getTally()).toBe('3 APIs');
+      expect(await (await harnessLoader.getAllHarnesses(ApiCardHarness))[0].getTitle()).toBe('MCP Server API');
     });
 
     it('should switch sides without asking the server again', async () => {
@@ -613,14 +618,14 @@ describe('CatalogComponent', () => {
       await catalogHarness.selectKind('APIs');
       fixture.detectChanges();
 
-      expect(await harnessLoader.getAllHarnesses(ApiCardHarness)).toHaveLength(1);
-      expect(await catalogHarness.getTally()).toBe('2 APIs');
+      expect(await harnessLoader.getAllHarnesses(ApiCardHarness)).toHaveLength(2);
+      expect(await catalogHarness.getTally()).toBe('3 APIs');
       httpTestingController.expectNone(request => request.url === `${TESTING_BASE_URL}/portal-navigation-items/_search`);
 
       await catalogHarness.selectKind('Agents');
       fixture.detectChanges();
 
-      expect(await catalogHarness.getTally()).toBe('2 Agents');
+      expect(await catalogHarness.getTally()).toBe('1 Agent');
     });
 
     it('should read the access state off the plans and filter by it', async () => {
@@ -633,8 +638,10 @@ describe('CatalogComponent', () => {
       fixture.detectChanges();
 
       const cards = await harnessLoader.getAllHarnesses(ApiCardHarness);
-      expect(await cards[0].getAccess()).toBe('No key needed');
-      expect(await catalogHarness.getFilterValues('access')).toEqual(['No key needed 1']);
+      expect(await Promise.all(cards.map(card => card.getTitle()))).toEqual(['MCP Server API', 'Weather API']);
+      expect(await cards[0].getAccess()).toBe('Approval needed');
+      expect(await cards[1].getAccess()).toBe('No key needed');
+      expect(await catalogHarness.getFilterValues('access')).toEqual(['No key needed 1', 'Approval needed 1']);
 
       await catalogHarness.pickFilterValue('access', 'No key needed');
       fixture.detectChanges();
@@ -682,19 +689,21 @@ describe('CatalogComponent', () => {
       fixture.detectChanges();
 
       expect(await catalogHarness.hasClearFilters()).toBe(false);
-      expect(await harnessLoader.getAllHarnesses(ApiCardHarness)).toHaveLength(1);
+      expect(await harnessLoader.getAllHarnesses(ApiCardHarness)).toHaveLength(2);
     });
 
     it('should show the tools of an MCP server as its capabilities, and labels otherwise', async () => {
       stubOverflowLabelsLayout({ containerWidth: 500 });
       await init();
 
-      expect(await (await harnessLoader.getAllHarnesses(ApiCardHarness))[1].getCapabilities()).toEqual(['MCP Tool']);
+      expect(await (await harnessLoader.getAllHarnesses(ApiCardHarness))[0].getCapabilities()).toEqual(['helpdesk']);
 
       await catalogHarness.selectKind('APIs');
       fixture.detectChanges();
 
-      expect(await (await harnessLoader.getAllHarnesses(ApiCardHarness))[0].getCapabilities()).toEqual(['weather']);
+      const apiCards = await harnessLoader.getAllHarnesses(ApiCardHarness);
+      expect(await apiCards[0].getCapabilities()).toEqual(['MCP Tool']);
+      expect(await apiCards[1].getCapabilities()).toEqual(['weather']);
     });
 
     it('should say when the filters hide everything, instead of claiming the catalog is empty', async () => {
@@ -882,8 +891,12 @@ describe('CatalogComponent', () => {
       flushPlans({ 'api-2': [fakePlan({ security: 'API_KEY' })] });
       fixture.detectChanges();
 
+      await catalogHarness.selectKind('APIs');
+      fixture.detectChanges();
+
       const cards = await harnessLoader.getAllHarnesses(ApiCardHarness);
-      expect(await cards[1].getAccess()).toBe('Subscribed');
+      expect(await cards[0].getTitle()).toBe('MCP Server API');
+      expect(await cards[0].getAccess()).toBe('Subscribed');
     });
 
     it('should ask for its own subscriptions without listing every api in the url', async () => {
@@ -945,13 +958,32 @@ describe('CatalogComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should send the reader to the subscribe page of the catalog, not the root', async () => {
+  it('should send an agent card Subscribe to the documentation subscribe page', async () => {
     await init();
     const navigate = jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
 
-    fixture.componentInstance.navigateToSubscribe('api-2');
+    const card = (await harnessLoader.getAllHarnesses(ApiCardHarness))[0];
+    await card.toggleDetails();
+    await card.clickDetailAction('subscribe');
 
-    expect(navigate).toHaveBeenCalledWith(['api', 'api-2', 'subscribe'], { relativeTo: expect.anything() });
+    expect(navigate).toHaveBeenCalledWith(['/documentation', 'agent-root-1', 'api', 'agent-api-1', 'subscribe'], {
+      queryParams: { selectedId: 'agent-nav-1' },
+    });
+  });
+
+  it('should send an API card Subscribe to the documentation subscribe page', async () => {
+    await init();
+    await catalogHarness.selectKind('APIs');
+    fixture.detectChanges();
+    const navigate = jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+    const card = (await harnessLoader.getAllHarnesses(ApiCardHarness))[0];
+    await card.toggleDetails();
+    await card.clickDetailAction('subscribe');
+
+    expect(navigate).toHaveBeenCalledWith(['/documentation', 'api-root-2', 'api', 'api-2', 'subscribe'], {
+      queryParams: { selectedId: 'api-nav-2' },
+    });
   });
 
   function flushPlanRequestsAndReturnApiIds(): string[] {

@@ -17,7 +17,7 @@
 -->
 <div class="content">
   <div class="api-list__header" [appIsMobile]="'api-list__header--mobile'">
-    <div class="next-gen-h1" i18n="@@catalogTitle">Marketplace</div>
+    <div class="next-gen-h1" i18n="@@catalogTitle">Catalog</div>
   </div>
 
   <div class="api-list__search-row" [appIsMobile]="'api-list__search-row--mobile'">
@@ -94,7 +94,7 @@
                     [typeLabel]="item.isAgent ? agentTypeLabel : apiTypeLabel"
                     (cardSelect)="navigateToDocumentation(item)"
                     (documentationSelect)="navigateToDocumentation(item)"
-                    (subscribeSelect)="navigateToSubscribe(item.id)"
+                    (subscribeSelect)="navigateToSubscribe(item)"
                   />
                 }
               }
@@ -172,7 +172,7 @@
                 <th mat-header-cell *matHeaderCellDef></th>
                 <td mat-cell *matCellDef="let item" class="api-list__table__mcp-cell">
                   @if (item.type !== 'API_PRODUCT' && item.isEnabledMcpServer) {
-                    <app-badge i18n-label label="MCP" i18n-matTooltip matTooltip="MCP available for this API" />
+                    <app-badge i18n-label label="MCP" i18n-matTooltip matTooltip="MCP available" />
                   }
                 </td>
               </ng-container>

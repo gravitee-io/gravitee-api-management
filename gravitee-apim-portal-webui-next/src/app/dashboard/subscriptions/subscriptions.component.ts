@@ -311,7 +311,7 @@ export default class SubscriptionsComponent {
 
     switch (subscription.reference_type) {
       case 'API':
-        return $localize`:@@unavailableApiSubscriptionTarget:Unavailable API`;
+        return $localize`:@@unavailableApiSubscriptionTarget:Unavailable`;
       case 'API_PRODUCT':
         return $localize`:@@unavailableApiProductSubscriptionTarget:Unavailable API Product`;
       default:

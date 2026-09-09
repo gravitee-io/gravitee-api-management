@@ -35,7 +35,6 @@ export class AgentChatComponent {
   private readonly store = inject(AgentChatStore);
 
   agentName = input.required<string>();
-  applicationName = input.required<string>();
   target = input.required<ChatTarget>();
 
   protected readonly draft = new FormControl<string>('', { nonNullable: true });

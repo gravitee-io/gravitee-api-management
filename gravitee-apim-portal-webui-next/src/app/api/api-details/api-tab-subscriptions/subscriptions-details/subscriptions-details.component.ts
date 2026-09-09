@@ -126,9 +126,9 @@ export class SubscriptionsDetailsComponent implements OnInit {
 
   closeSubscription() {
     const dialogData: ConfirmDialogData = {
-      title: $localize`:@@titleCancelSubscriptionDialog:Close this subscription?`,
-      content: $localize`:@@contentCancelSubscriptionDialog:You will lose access to the API.`,
-      confirmLabel: $localize`:@@confirmCancelSubscriptionDialog:Yes, close`,
+      title: $localize`:@@titleCancelSubscriptionDialog:Cancel this subscription?`,
+      content: $localize`:@@contentCancelSubscriptionDialog:You will lose access.`,
+      confirmLabel: $localize`:@@confirmCancelSubscriptionDialog:Yes, cancel`,
       cancelLabel: $localize`:@@cancelCancelSubscriptionDialog:Cancel`,
     };
     this.dialog

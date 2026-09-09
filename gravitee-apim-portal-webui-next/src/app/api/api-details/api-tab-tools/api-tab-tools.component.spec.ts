@@ -54,7 +54,7 @@ describe('ApiTabToolsComponent', () => {
     const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiTabToolsComponentHarness);
     const emptyMessage = await harness.getEmptyToolsMessageText();
     expect(emptyMessage).not.toBeNull();
-    expect(emptyMessage).toContain('It seems that there are currently no tools available for this API.');
+    expect(emptyMessage).toContain('No tools available.');
   });
 
   it('should show tools when available', async () => {

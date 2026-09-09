@@ -21,7 +21,6 @@ import { isActiveApiKey, Subscription } from '../entities/subscription';
 
 export interface AgentSubscriptionAccess {
   apiKey: string;
-  applicationName: string;
 }
 
 const MAX_CANDIDATES = 10;
@@ -37,7 +36,7 @@ export class AgentSubscriptionService {
       map(response => response.data ?? []),
       // Only get() returns the keys, so each candidate needs its own call; they go out together
       // rather than one after another, and the first usable one in listing order wins so the
-      // application named in the panel stays the same between visits.
+      // same key is used between visits.
       switchMap(candidates =>
         candidates.length
           ? forkJoin(candidates.map(candidate => this.subscriptionService.get(candidate.id).pipe(catchError(() => of(null)))))
@@ -55,7 +54,6 @@ export class AgentSubscriptionService {
     }
     return {
       apiKey: usableKey.key,
-      applicationName: usableKey.application?.name ?? '',
     };
   }
 }

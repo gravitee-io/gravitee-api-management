@@ -48,7 +48,7 @@ describe('AgentSubscriptionService', () => {
     subscriptionService.get.mockReturnValue(of(accepted('sub-1', [aKey('key-1', 'My App')])));
 
     service.findForAgent('agent-1').subscribe(access => {
-      expect(access).toEqual({ apiKey: 'key-1', applicationName: 'My App' });
+      expect(access).toEqual({ apiKey: 'key-1' });
       done();
     });
   });
@@ -68,7 +68,7 @@ describe('AgentSubscriptionService', () => {
     );
 
     service.findForAgent('agent-1').subscribe(access => {
-      expect(access).toEqual({ apiKey: 'key-2', applicationName: 'Live App' });
+      expect(access).toEqual({ apiKey: 'key-2' });
       done();
     });
   });

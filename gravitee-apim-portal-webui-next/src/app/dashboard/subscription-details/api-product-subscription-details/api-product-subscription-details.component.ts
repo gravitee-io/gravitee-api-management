@@ -273,7 +273,7 @@ export class ApiProductSubscriptionDetailsComponent {
           this.apiKeyRenewed.emit();
           this.apiKeyFeedback.set({
             type: 'success',
-            message: $localize`:@@apiKeyRenewSuccess:API key renewed successfully. You can now use it to access the API.`,
+            message: $localize`:@@apiKeyRenewSuccess:API key renewed successfully. You can now use it to get access.`,
           });
         },
         error: () => {

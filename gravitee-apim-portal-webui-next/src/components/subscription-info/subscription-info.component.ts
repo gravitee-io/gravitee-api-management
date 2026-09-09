@@ -19,7 +19,7 @@ import { MatIcon } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 
-import { Api } from '../../entities/api/api';
+import { Api, isAgentApi } from '../../entities/api/api';
 import { Application } from '../../entities/application/application';
 import { getPlanSecurityTypeLabel, PlanSecurityEnum, PlanUsageConfiguration, PlanValidationEnum } from '../../entities/plan/plan';
 import { Subscription, SubscriptionConsumerStatusEnum } from '../../entities/subscription';
@@ -96,6 +96,7 @@ export class SubscriptionInfoComponent implements OnInit {
   public authentication: string = '';
 
   protected readonly SubscriptionConsumerStatusEnum = SubscriptionConsumerStatusEnum;
+  protected readonly isAgentApi = isAgentApi;
 
   ngOnInit() {
     this.authentication = getPlanSecurityTypeLabel(this.planSecurity);
