@@ -323,8 +323,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
      * falls back to its default link instead of exfiltrating the token to an attacker-controlled domain.
      * Only {@link #register} and the caller-facing {@link #resetPassword(ExecutionContext, String, String)}
      * receive an externally-supplied redirect URL; other callers of {@code getTokenRegistrationParams} (gamma
-     * reset target, registration-approval flow) build their target page URL themselves from trusted installation
-     * configuration and must not be sanitized here.
+     * reset target, gamma registration target, registration-approval flow) build their target page URL themselves
+     * from trusted installation configuration and must not be sanitized here.
      */
     private String sanitizePortalRedirectUrl(ExecutionContext executionContext, String url) {
         if (url == null || url.isBlank()) {
