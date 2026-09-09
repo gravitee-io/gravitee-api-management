@@ -197,3 +197,26 @@ export function shouldTestRestApi(changedFiles: string[]): boolean {
     changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
   );
 }
+
+/**
+ * Whether a change can only affect the distribution, and should therefore be assembled against the
+ * core it pins rather than the one this branch is developing.
+ *
+ * The pull request that advances the pin is the case this exists for: built against the branch's
+ * core it would exercise something other than what merging it ships, and go green having proved
+ * nothing. An empty list means the changed files are unknown — a master or support-branch build —
+ * and those keep assembling the branch's own core.
+ *
+ * It is deliberately no narrower than the whole reactor, because it cannot be: `keepFirstPathItem`
+ * reduces every path to its first segment before it reaches here, so a change to the integration
+ * tests and a change to the pom arrive as the same string. A test-only change is therefore in scope,
+ * and on a support branch it runs against the pinned core rather than the branch's — which is what
+ * the distribution will ship, so it is the more honest of the two answers anyway.
+ */
+export function assemblesPinnedCore(changedFiles: string[]): boolean {
+  const distribution = 'gravitee-apim-distribution';
+  // Anchored rather than `includes`, unlike the predicates above: a false positive here assembles a
+  // core the change is not about, so a sibling directory whose name merely starts the same way must
+  // not match.
+  return changedFiles.length > 0 && changedFiles.every((file) => file === distribution || file.startsWith(`${distribution}/`));
+}
