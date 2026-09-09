@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
-import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
+import { AzureArtifactsTokenCommand, NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
 import { Executor } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Executors';
 import { config } from '../../config';
 import { JobOptionalProperties } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Job/types/Job.types';
@@ -33,9 +33,11 @@ export abstract class AbstractTestJob {
     const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig, environment);
+    const azureArtifactsTokenCmd = AzureArtifactsTokenCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(saveMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
+    dynamicConfig.addReusableCommand(azureArtifactsTokenCmd);
 
     return new Job(
       jobName,
