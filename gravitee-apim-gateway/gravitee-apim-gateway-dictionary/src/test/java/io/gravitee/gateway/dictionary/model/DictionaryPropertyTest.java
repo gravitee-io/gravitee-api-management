@@ -39,4 +39,27 @@ class DictionaryPropertyTest {
         assertThat(property.value()).isEqualTo("cipher");
         assertThat(property.encrypted()).isTrue();
     }
+
+    @Test
+    void should_serialize_an_unencrypted_value_as_a_bare_string() throws Exception {
+        String json = mapper.writeValueAsString(new DictionaryProperty("x", false));
+
+        assertThat(json).isEqualTo("\"x\"");
+    }
+
+    @Test
+    void should_serialize_an_encrypted_value_as_the_typed_object() throws Exception {
+        String json = mapper.writeValueAsString(new DictionaryProperty("cipher", true));
+
+        assertThat(json).isEqualTo("{\"value\":\"cipher\",\"encrypted\":true}");
+    }
+
+    @Test
+    void should_round_trip_an_unencrypted_value_through_serialize_then_deserialize() throws Exception {
+        DictionaryProperty original = new DictionaryProperty("plain-value", false);
+
+        DictionaryProperty roundTripped = mapper.readValue(mapper.writeValueAsString(original), DictionaryProperty.class);
+
+        assertThat(roundTripped).isEqualTo(original);
+    }
 }
