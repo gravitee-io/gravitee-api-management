@@ -424,6 +424,77 @@ public class ApplicationService_UpdateTest {
     }
 
     @Test
+    public void shouldKeepTheStoredIdentityWhenAnUpdateStaysSilentAboutIt() throws TechnicalException {
+        // Null is an omission: the stored identity and client id survive an update that says nothing about them.
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setAgent(new AgentSettings("agent.support", CLIENT_ID, null));
+        stubAnAgentApplicationCarryingAnIdentity(settings);
+
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        verify(applicationRepository).update(
+            argThat(application -> "am-agent-1".equals(application.getMetadata().get("agent_identity_id")))
+        );
+    }
+
+    @Test
+    public void shouldClearTheIdentityAndClientIdWhenTheCallerSaysSoExplicitly() throws TechnicalException {
+        // An empty identity id is the explicit word: the identity leaves, and the client id it brought with it.
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setAgent(new AgentSettings("agent.support", null, ""));
+        stubAnAgentApplicationCarryingAnIdentity(settings);
+
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        verify(applicationRepository).update(
+            argThat(
+                application ->
+                    !application.getMetadata().containsKey("agent_identity_id") &&
+                    !application.getMetadata().containsKey("client_id") &&
+                    "agent.support".equals(application.getMetadata().get("agent_entity_id"))
+            )
+        );
+    }
+
+    private void stubAnAgentApplicationCarryingAnIdentity(ApplicationSettings settings) throws TechnicalException {
+        when(
+            parameterService.findAsBoolean(
+                GraviteeContext.getExecutionContext(),
+                Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        ).thenReturn(true);
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(getConsoleConfigEntity(true));
+
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(existingApplication.getType()).thenReturn(ApplicationType.AGENT);
+        when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+        when(existingApplication.getMetadata()).thenReturn(
+            Map.of("agent_entity_id", "agent.support", "agent_identity_id", "am-agent-1", "client_id", "client-abc")
+        );
+
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(updateApplication.getDescription()).thenReturn("Acts for an agent");
+        when(updateApplication.getApiKeyMode()).thenReturn(io.gravitee.rest.api.model.ApiKeyMode.SHARED);
+        when(updateApplication.getGroups()).thenReturn(Set.of("group1"));
+
+        final Application updatedApplication = mock(Application.class);
+        when(updatedApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(updatedApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(updatedApplication.getType()).thenReturn(ApplicationType.AGENT);
+        when(updatedApplication.getGroups()).thenReturn(Set.of("group1"));
+        when(updatedApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+
+        when(applicationRepository.update(any())).thenReturn(updatedApplication);
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(getPrimaryOwner()));
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+    }
+
+    @Test
     public void shouldThrowExceptionWhenUserGroupsRequiredButNotPresent() {
         ApplicationSettings settings = new ApplicationSettings();
         ConsoleConfigEntity config = getConsoleConfigEntity(true);

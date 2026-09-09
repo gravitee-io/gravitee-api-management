@@ -706,10 +706,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 AgentSettings updatedAgentSettings = updateApplicationEntity.getSettings().getAgent();
                 updatedAgentSettings.setEntityId(applicationToUpdate.getMetadata().get(METADATA_AGENT_ENTITY_ID));
 
-                // The identity, unlike the agent, is the caller's to set — that is how one gets attached. Only an
-                // update that stays silent about it keeps the stored one; it is never cleared by omission.
-                if (StringUtils.isBlank(updatedAgentSettings.getIdentityId())) {
+                // The identity, unlike the agent, is the caller's to set — that is how one gets attached and, later,
+                // detached. An update that stays silent about it (null) keeps the stored one; one that says so
+                // explicitly (an empty string) clears it, and a null client id alongside drops that too — the
+                // identity and the client id it brought leave together.
+                if (updatedAgentSettings.getIdentityId() == null) {
                     updatedAgentSettings.setIdentityId(applicationToUpdate.getMetadata().get(METADATA_AGENT_IDENTITY_ID));
+                } else if (updatedAgentSettings.getIdentityId().isBlank()) {
+                    updatedAgentSettings.setIdentityId(null);
                 }
 
                 // The name is shared with the agent identity and set at provisioning; a rename is refused
