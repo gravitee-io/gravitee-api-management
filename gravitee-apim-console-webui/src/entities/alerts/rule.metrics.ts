@@ -21,6 +21,13 @@ import { Metrics, Scope } from '../alert';
 
 type RuleCategory = 'API metrics' | 'Application' | 'Health-check' | 'Node';
 
+const RULE_CATEGORY_ORDER: Record<RuleCategory, number> = {
+  Node: 0,
+  'API metrics': 1,
+  'Health-check': 2,
+  Application: 3,
+};
+
 export class Rule {
   static API_METRICS_THRESHOLD: Rule = new Rule(
     'REQUEST',
@@ -169,17 +176,9 @@ export class Rule {
   }
 
   static findCategoriesByScope(scope: Scope, cloudEnabled: boolean): RuleCategory[] {
-    const baseCategories: Record<Scope, RuleCategory[]> = {
-      [Scope.ENVIRONMENT]: ['Node', 'API metrics', 'Health-check'],
-      [Scope.API]: ['API metrics'],
-      [Scope.APPLICATION]: ['Application'],
-    };
-    const categories = [...baseCategories[scope]];
-
-    if (scope === Scope.ENVIRONMENT && cloudEnabled) {
-      return categories.filter((c) => c !== 'Node');
-    }
-    return categories;
+    return [...new Set(Rule.findByScope(scope, cloudEnabled).map((rule) => rule.category))].sort(
+      (firstCategory, secondCategory) => RULE_CATEGORY_ORDER[firstCategory] - RULE_CATEGORY_ORDER[secondCategory],
+    );
   }
 
   constructor(source: string, type: string, description: string, scopes: Scope[], category: RuleCategory, metrics?: Metrics[]) {
