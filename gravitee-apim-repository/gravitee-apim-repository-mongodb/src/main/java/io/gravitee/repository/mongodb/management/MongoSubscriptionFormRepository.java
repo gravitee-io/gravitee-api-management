@@ -75,6 +75,14 @@ public class MongoSubscriptionFormRepository implements SubscriptionFormReposito
     }
 
     @Override
+    public Optional<SubscriptionForm> findByEnvironmentIdAndApiId(String environmentId, String apiId) throws TechnicalException {
+        log.debug("Find subscription form by environment ID [{}] and API ID [{}]", environmentId, apiId);
+        Optional<SubscriptionForm> result = internalSubscriptionFormRepo.findByEnvironmentIdAndApiId(environmentId, apiId).map(mapper::map);
+        log.debug("Find subscription form by environment ID [{}] and API ID [{}] - Done", environmentId, apiId);
+        return result;
+    }
+
+    @Override
     public Optional<SubscriptionForm> findDefaultByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("Find default subscription form by environment ID [{}]", environmentId);
         var defaults = internalSubscriptionFormRepo.findAllByEnvironmentIdAndDefaultFormTrue(environmentId);

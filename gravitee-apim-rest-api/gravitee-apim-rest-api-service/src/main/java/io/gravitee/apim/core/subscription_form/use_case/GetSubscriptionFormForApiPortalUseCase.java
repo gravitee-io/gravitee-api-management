@@ -19,10 +19,10 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormElResolverDomainService;
+import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormResolutionDomainService;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSchemaGenerator;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoundException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
-import io.gravitee.apim.core.subscription_form.query_service.SubscriptionFormQueryService;
 import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
@@ -30,10 +30,10 @@ import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Portal use case: load the environment default subscription form with dynamic options resolved
- * against a specific API, after enforcing portal navigation visibility for that API
+ * Portal use case: load the subscription form that applies to an API (its dedicated form, else the
+ * environment default) with dynamic options resolved against that API, after enforcing portal navigation visibility for that API
  * ({@link PortalNavigationApiVisibilityDomainService}, same rules as {@link io.gravitee.apim.core.api.use_case.GetApiForPortalUseCase}).
- * Only an <em>enabled</em> form is returned; a disabled form yields {@link SubscriptionFormNotFoundException}.
+ * Only an <em>enabled</em> form is returned; no applicable form yields {@link SubscriptionFormNotFoundException}.
  *
  * @author Gravitee.io Team
  */
@@ -42,7 +42,7 @@ import lombok.RequiredArgsConstructor;
 public class GetSubscriptionFormForApiPortalUseCase {
 
     private final PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService;
-    private final SubscriptionFormQueryService subscriptionFormQueryService;
+    private final SubscriptionFormResolutionDomainService subscriptionFormResolutionDomainService;
     private final SubscriptionFormSchemaGenerator schemaGenerator;
     private final SubscriptionFormElResolverDomainService elResolver;
 
@@ -51,13 +51,9 @@ public class GetSubscriptionFormForApiPortalUseCase {
             throw new ApiNotFoundException(input.apiId());
         }
 
-        var subscriptionForm = subscriptionFormQueryService
-            .findDefaultForEnvironmentId(input.environmentId())
+        var subscriptionForm = subscriptionFormResolutionDomainService
+            .resolveForApi(input.environmentId(), input.apiId())
             .orElseThrow(() -> new SubscriptionFormNotFoundException(input.environmentId()));
-
-        if (!subscriptionForm.isEnabled()) {
-            throw new SubscriptionFormNotFoundException(input.environmentId());
-        }
 
         var schema = schemaGenerator.generate(subscriptionForm.getGmdContent());
         var resolvedOptions = elResolver.resolveSchemaOptions(schema, input.environmentId(), input.apiId());

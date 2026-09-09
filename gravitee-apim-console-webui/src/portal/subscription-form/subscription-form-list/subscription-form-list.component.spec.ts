@@ -63,7 +63,19 @@ describe('SubscriptionFormListComponent', () => {
 
     const table = await harnessLoader.getHarness(MatTableHarness);
     const headerRows = await table.getHeaderRows();
-    expect(await headerRows[0].getCellTextByIndex()).toEqual(['Name', 'Visible']);
+    expect(await headerRows[0].getCellTextByIndex()).toEqual(['Name', 'APIs', 'Visible']);
+  });
+
+  it('should show the number of dedicated APIs, or that the default form covers every other API', async () => {
+    await init([
+      defaultForm,
+      fakeSubscriptionForm({ id: 'form-partner', name: 'Partners', defaultForm: false, apiIds: ['api-1', 'api-2'] }),
+    ]);
+
+    expect(fixture.debugElement.query(By.css('[data-testid=api-count-form-default]')).nativeElement.textContent.trim()).toBe(
+      'All other APIs',
+    );
+    expect(fixture.debugElement.query(By.css('[data-testid=api-count-form-partner]')).nativeElement.textContent.trim()).toBe('2');
   });
 
   it('should show an empty row when there is no form', async () => {
