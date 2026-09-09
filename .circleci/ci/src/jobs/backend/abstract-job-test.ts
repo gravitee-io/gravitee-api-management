@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 import { Command, Config, Executor, Job, JobOptionalProperties, commands, reusable } from '../../circleci-config';
-import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand, withJdk } from '../../commands';
+import {
+  AzureArtifactsTokenCommand,
+  NotifyOnFailureCommand,
+  RestoreMavenJobCacheCommand,
+  SaveMavenJobCacheCommand,
+  withJdk,
+} from '../../commands';
 import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
 
@@ -31,9 +37,11 @@ export abstract class AbstractTestJob {
     const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig, environment);
+    const azureArtifactsTokenCmd = AzureArtifactsTokenCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(saveMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
+    dynamicConfig.addReusableCommand(azureArtifactsTokenCmd);
 
     return new Job(
       jobName,
@@ -46,6 +54,7 @@ export abstract class AbstractTestJob {
         new commands.cache.Restore({
           keys: [`${config.cache.prefix}-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}`],
         }),
+        new reusable.ReusedCommand(azureArtifactsTokenCmd),
         ...testSteps,
         new commands.Run({
           name: 'Save test results',

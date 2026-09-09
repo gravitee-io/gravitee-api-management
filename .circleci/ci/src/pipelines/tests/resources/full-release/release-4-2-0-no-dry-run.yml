@@ -137,6 +137,67 @@ commands:
             - gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
             - gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}
     description: Restore Maven cache for a dedicated job
+  cmd-azure-artifacts-token:
+    steps:
+      - keeper/install
+      - run:
+          name: Get an Azure Artifacts token
+          command: |-
+            CLIENT_ID=$(ksm secret notation keeper://UryantA7MvZe8fkWwcUt8g/field/login)
+            CLIENT_SECRET=$(ksm secret notation keeper://UryantA7MvZe8fkWwcUt8g/field/password)
+            TENANT=$(ksm secret notation keeper://UryantA7MvZe8fkWwcUt8g/custom_field/tenant)
+
+            # --data-urlencode rather than -d, which sends its argument verbatim: a client secret holding
+            # a +, & or = is mangled by the form decoder on the other side. Entra secrets routinely do.
+            #
+            # The status is captured instead of being left to --fail. Steps run under `bash -eo pipefail`,
+            # where a failing command substitution aborts the step on the spot — the diagnostics below would
+            # never run, and the job would die without printing anything at all.
+            RESPONSE=$(curl -sS --retry 3 --retry-all-errors --retry-delay 5 --max-time 30 \
+              -w '\n%{http_code}' -X POST \
+              "https://login.microsoftonline.com/${TENANT}/oauth2/v2.0/token" \
+              --data-urlencode "client_id=${CLIENT_ID}" \
+              --data-urlencode "client_secret=${CLIENT_SECRET}" \
+              --data-urlencode "scope=499b84ac-1321-427f-aa17-267ca6975798/.default" \
+              --data-urlencode "grant_type=client_credentials") || RESPONSE=""
+
+            CODE=$(printf '%s' "$RESPONSE" | tail -1)
+            BODY=$(printf '%s' "$RESPONSE" | sed '$d')
+
+            if [ "$CODE" != "200" ]; then
+              echo "Entra refused to issue a token (HTTP ${CODE:-no answer})." >&2
+              printf '%s' "$BODY" | sed -n 's/.*"error_description":"\([^"]*\)".*/  \1/p' >&2
+              echo "Same secret as job-deploy-on-azure: if it expired, that job is failing too." >&2
+              exit 1
+            fi
+
+            TOKEN=$(printf '%s' "$BODY" | sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p')
+            if [ -z "$TOKEN" ]; then
+              echo "Entra answered 200 with no access_token in the body." >&2
+              exit 1
+            fi
+
+            # The one value that has to reach the next steps, so it goes through BASH_ENV. It is a JWT —
+            # base64url and dots, nothing the shell can expand — and it never came from Keeper.
+            echo "export AZURE_ARTIFACTS_PAT='${TOKEN}'" >> "$BASH_ENV"
+      - run:
+          name: Check the feed answers
+          command: |-
+            CODE=$(curl -s -o /dev/null -w '%{http_code}' --retry 3 --retry-all-errors --retry-delay 5 --max-time 30 \
+              -u "bot:${AZURE_ARTIFACTS_PAT}" \
+              "https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee/maven/v1/io/gravitee/canary/feed-canary/1.0.0/feed-canary-1.0.0.pom") || CODE=000
+
+            case "$CODE" in
+              200) echo "The feed resolves the canary." ;;
+              401) echo "401 — the feed rejected the token." >&2; exit 1 ;;
+              403) echo "403 — Gravitee.io Bot has no role on the feed." >&2; exit 1 ;;
+              404) echo "404 — token accepted but the canary is gone; publish it again." >&2; exit 1 ;;
+              # Everything else is the feed being unavailable rather than misconfigured, and that is what
+              # the Artifactory fallback exists to absorb. Failing here would remove the resilience this
+              # design was built around.
+              *)   echo "The feed answered HTTP ${CODE}; carrying on, Maven falls back to Artifactory." >&2 ;;
+            esac
+    description: Get a short-lived Azure Artifacts token
   cmd-prepare-gpg:
     steps:
       - keeper/install
@@ -200,7 +261,7 @@ jobs:
       - run:
           name: Get the Maven settings
           command: |-
-            ksm secret notation keeper://7CgijuGiFDSLynRJt1Dm9w/custom_field/xml > .gravitee.settings.xml
+            ksm secret notation keeper://7CgijuGiFDSLynRJt1Dm9w/custom_field/xml_azure > .gravitee.settings.xml
 
             # An empty or truncated file would only surface later, in another job, as an unreadable
             # settings or a 401 blamed on the credentials.
@@ -492,6 +553,7 @@ jobs:
           at: .
       - cmd-restore-maven-job-cache:
           jobName: job-backend-build-and-publish-on-download-website
+      - cmd-azure-artifacts-token
       - run:
           name: Remove `-SNAPSHOT` from versions
           command: |-
@@ -889,6 +951,7 @@ jobs:
       - attach_workspace:
           at: .
       - cmd-prepare-gpg
+      - cmd-azure-artifacts-token
       - run:
           name: Release on Nexus
           command: mvn clean deploy --activate-profiles gravitee-release --batch-mode -T 4 -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true --settings .gravitee.settings.xml --update-snapshots

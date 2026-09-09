@@ -15,7 +15,13 @@
  */
 import { Command, Config, Job, commands, reusable } from '../../circleci-config';
 import { OpenJdkNodeExecutor } from '../../executors';
-import { PrepareGpgCmd, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand, SyncFolderToS3Command } from '../../commands';
+import {
+  AzureArtifactsTokenCommand,
+  PrepareGpgCmd,
+  RestoreMavenJobCacheCommand,
+  SaveMavenJobCacheCommand,
+  SyncFolderToS3Command,
+} from '../../commands';
 import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
 import { parse } from '../../utils';
@@ -25,7 +31,9 @@ export class BackendBuildAndPublishOnDownloadWebsiteJob {
 
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment, publishOnDownloadWebsite: boolean): Job {
     const restoreMavenJobCacheCommand = RestoreMavenJobCacheCommand.get(environment);
+    const azureArtifactsTokenCmd = AzureArtifactsTokenCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCommand);
+    dynamicConfig.addReusableCommand(azureArtifactsTokenCmd);
 
     const prepareGpgCommand = PrepareGpgCmd.get(dynamicConfig);
     dynamicConfig.addReusableCommand(prepareGpgCommand);
@@ -37,6 +45,7 @@ export class BackendBuildAndPublishOnDownloadWebsiteJob {
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(restoreMavenJobCacheCommand, { jobName: BackendBuildAndPublishOnDownloadWebsiteJob.jobName }),
+      new reusable.ReusedCommand(azureArtifactsTokenCmd),
       new commands.Run({
         // The distribution carries its own version properties now, so it needs the same treatment.
         name: 'Remove `-SNAPSHOT` from versions',
