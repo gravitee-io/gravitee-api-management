@@ -24,6 +24,7 @@ import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -101,4 +102,13 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
     List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException;
 
     boolean existsMetadataEntryForEnv(String key, String value, String environmentId);
+
+    /**
+     * The id of the active application carrying this metadata entry in the environment, when one does. Sibling of
+     * {@link #existsMetadataEntryForEnv}: the same lookup, for callers that need the application itself rather
+     * than a yes-or-no — reading an agent's application back from the agent it acts for, for instance.
+     *
+     * @return the application id, or empty when no active application in the environment carries the entry
+     */
+    Optional<String> findIdByMetadataEntryForEnv(String key, String value, String environmentId);
 }

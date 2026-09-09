@@ -39,6 +39,7 @@ import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.application.AgentSettings;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
@@ -57,6 +58,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.converter.ApplicationConverter;
+import io.gravitee.rest.api.service.exceptions.AgentAlreadyLinkedException;
 import io.gravitee.rest.api.service.exceptions.ApplicationGrantTypesNotAllowedException;
 import io.gravitee.rest.api.service.exceptions.ApplicationGrantTypesNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApplicationRedirectUrisNotFound;
@@ -65,6 +67,7 @@ import io.gravitee.rest.api.service.exceptions.ClientCertificateAuthorityExcepti
 import io.gravitee.rest.api.service.exceptions.ClientCertificateEmptyException;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateInvalidException;
 import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.InvalidAgentSettingsException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import java.util.Arrays;
@@ -259,6 +262,61 @@ public class ApplicationService_CreateTest {
             any(),
             argThat(cert -> "cert-2".equals(cert.name()) && "another-pem".equals(cert.certificate()))
         );
+    }
+
+    @Test
+    public void shouldCreateAgentApplicationFromAgentSettings() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setAgent(new AgentSettings("agent.support", CLIENT_ID));
+        when(newApplication.getSettings()).thenReturn(settings);
+        when(application.getName()).thenReturn(APPLICATION_NAME);
+        when(application.getType()).thenReturn(ApplicationType.AGENT);
+        when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+        when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(applicationRepository.create(any())).thenReturn(application);
+        when(newApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(newApplication.getDescription()).thenReturn("Acts for an agent");
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(UserEntity.class));
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
+
+        final ApplicationEntity applicationEntity = applicationService.create(
+            GraviteeContext.getExecutionContext(),
+            newApplication,
+            USER_NAME
+        );
+
+        assertNotNull(applicationEntity);
+        verify(applicationRepository).create(
+            argThat(
+                appToCreate ->
+                    appToCreate.getType() == ApplicationType.AGENT &&
+                    "agent.support".equals(appToCreate.getMetadata().get("agent_entity_id"))
+            )
+        );
+    }
+
+    @Test
+    public void shouldNotCreateAgentApplicationWithoutTheAgentLink() {
+        assertThrows(InvalidAgentSettingsException.class, () -> {
+            ApplicationSettings settings = new ApplicationSettings();
+            settings.setAgent(new AgentSettings(" ", CLIENT_ID));
+            when(newApplication.getSettings()).thenReturn(settings);
+
+            applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
+        });
+    }
+
+    @Test
+    public void shouldNotCreateASecondApplicationForTheSameAgent() {
+        assertThrows(AgentAlreadyLinkedException.class, () -> {
+            ApplicationSettings settings = new ApplicationSettings();
+            settings.setAgent(new AgentSettings("agent.support", CLIENT_ID));
+            when(newApplication.getSettings()).thenReturn(settings);
+            when(applicationRepository.existsMetadataEntryForEnv("agent_entity_id", "agent.support", "DEFAULT")).thenReturn(true);
+
+            applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
+        });
     }
 
     @Test

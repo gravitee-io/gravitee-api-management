@@ -636,6 +636,19 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
         return jdbcTemplate.queryForObject(sql, Boolean.class, key, value, environmentId, ApplicationStatus.ACTIVE.name());
     }
 
+    @Override
+    public Optional<String> findIdByMetadataEntryForEnv(String key, String value, String environmentId) {
+        String sql =
+            "SELECT am.application_id FROM " +
+            APPLICATION_METADATA +
+            " am JOIN " +
+            tableName +
+            " a ON a.id = am.application_id " +
+            "WHERE am.k=? AND am.v=? AND a.environment_id=? AND a.status=?";
+        List<String> ids = jdbcTemplate.queryForList(sql, String.class, key, value, environmentId, ApplicationStatus.ACTIVE.name());
+        return ids.stream().findFirst();
+    }
+
     private String toSortDirection(Sortable sortable) {
         if (sortable != null) {
             return Order.DESC.equals(sortable.order()) ? "desc" : "asc";
