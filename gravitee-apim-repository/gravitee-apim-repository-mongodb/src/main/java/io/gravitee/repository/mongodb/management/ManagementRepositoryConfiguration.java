@@ -22,6 +22,7 @@ import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
 import io.gravitee.repository.mongodb.common.MongoFactory;
 import io.gravitee.repository.mongodb.encryption.EncryptionConfiguration;
 import io.gravitee.repository.mongodb.management.converters.BsonUndefinedToNullReadingConverter;
+import io.gravitee.repository.mongodb.management.converters.LegacyDictionaryPropertyReadingConverter;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -65,6 +66,11 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
     @Bean
     public BsonUndefinedToNullReadingConverter bsonUndefinedToNullReadingConverter() {
         return new BsonUndefinedToNullReadingConverter();
+    }
+
+    @Bean
+    public LegacyDictionaryPropertyReadingConverter legacyDictionaryPropertyReadingConverter() {
+        return new LegacyDictionaryPropertyReadingConverter();
     }
 
     @Bean(name = "managementMongo")

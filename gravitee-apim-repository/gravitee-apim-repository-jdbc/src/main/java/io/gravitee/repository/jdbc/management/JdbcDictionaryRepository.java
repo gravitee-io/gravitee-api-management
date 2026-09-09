@@ -24,6 +24,7 @@ import io.gravitee.repository.jdbc.orm.JdbcColumn;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.model.Dictionary;
+import io.gravitee.repository.management.model.DictionaryProperty;
 import io.gravitee.repository.management.model.DictionaryProvider;
 import io.gravitee.repository.management.model.DictionaryTrigger;
 import io.gravitee.repository.management.model.DictionaryType;
@@ -82,13 +83,13 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
     }
 
     private static final JdbcHelper.ChildAdder<Dictionary> CHILD_ADDER = (Dictionary parent, ResultSet rs) -> {
-        Map<String, String> properties = parent.getProperties();
+        Map<String, DictionaryProperty> properties = parent.getProperties();
         if (properties == null) {
             properties = new HashMap<>();
             parent.setProperties(properties);
         }
         if (rs.getString("k") != null) {
-            properties.put(rs.getString("k"), rs.getString("v"));
+            properties.put(rs.getString("k"), new DictionaryProperty(rs.getString("v"), rs.getBoolean("encrypted")));
         }
     };
 
@@ -236,15 +237,16 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
             jdbcTemplate.update("delete from " + DICTIONARY_PROPERTY + " where dictionary_id = ?", dictionary.getId());
         }
         if (dictionary.getProperties() != null && !dictionary.getProperties().isEmpty()) {
-            List<Map.Entry<String, String>> entries = new ArrayList<>(dictionary.getProperties().entrySet());
+            List<Map.Entry<String, DictionaryProperty>> entries = new ArrayList<>(dictionary.getProperties().entrySet());
             jdbcTemplate.batchUpdate(
-                "insert into " + DICTIONARY_PROPERTY + " ( dictionary_id, k, v ) values ( ?, ?, ? )",
+                "insert into " + DICTIONARY_PROPERTY + " ( dictionary_id, k, v, encrypted ) values ( ?, ?, ?, ? )",
                 new BatchPreparedStatementSetter() {
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
                         ps.setString(1, dictionary.getId());
                         ps.setString(2, entries.get(i).getKey());
-                        ps.setString(3, entries.get(i).getValue());
+                        ps.setString(3, entries.get(i).getValue().value());
+                        ps.setBoolean(4, entries.get(i).getValue().encrypted());
                     }
 
                     @Override
