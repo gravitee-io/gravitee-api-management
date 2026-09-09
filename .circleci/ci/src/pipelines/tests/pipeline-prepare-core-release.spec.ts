@@ -61,8 +61,10 @@ describe('Prepare core release workflow tests', () => {
     expect(generated).toContain('<sha1>-alpha.2</sha1>');
   });
 
-  it('should leave the distribution pom alone', function () {
-    expect(tagStep(generatePrepareCoreReleaseConfig(environment))).not.toContain('gravitee-apim-distribution/pom.xml');
+  it('should advance both poms, which a pull request check requires to agree', function () {
+    const generated = tagStep(generatePrepareCoreReleaseConfig(environment));
+
+    expect(generated).toContain('POMS="pom.xml gravitee-apim-distribution/pom.xml"');
   });
 
   it('should push nothing on a dry run', function () {

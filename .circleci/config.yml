@@ -169,6 +169,10 @@ workflows:
     # head that has moved on.
     core-release:
         when:
+            # The delimiting slashes are optional here — the `matches` above, on the branch, has none
+            # and both forms work. This spelling is the one proven on tags: it is what the plugin
+            # repositories run, and their release workflow does start on a pushed tag. Nothing in the
+            # test suite covers this file, so leave it as it is rather than aligning the two by eye.
             matches:
                 pattern: "/^core_(\\d+\\.\\d+\\.\\d+(-[a-z]+\\.\\d+)?)$/"
                 value: << pipeline.git.tag >>
