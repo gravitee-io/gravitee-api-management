@@ -116,7 +116,7 @@ describe('LoginPage', () => {
             await user.click(screen.getByRole('button', { name: 'Sign in' }));
 
             expect(await screen.findByRole('alert')).toBeTruthy();
-            expect(screen.getByText('Login failed! Check username and password.')).toBeTruthy();
+            expect(screen.getByText("That username and password don't match. Try again.")).toBeTruthy();
         });
 
         it('should call login successfully', async () => {
@@ -137,7 +137,7 @@ describe('LoginPage', () => {
             stubLoginMethods([], false);
             renderLoginPage();
 
-            expect(await screen.findByText('No login method available. Please contact your administrator.')).toBeTruthy();
+            expect(await screen.findByText('No sign-in method is configured. Contact your administrator.')).toBeTruthy();
             expect(screen.queryByLabelText('Username')).toBeNull();
             expect(screen.queryByLabelText('Password')).toBeNull();
             expect(screen.queryByRole('button', { name: 'Sign in' })).toBeNull();
@@ -166,7 +166,7 @@ describe('LoginPage', () => {
             expect(screen.queryByLabelText('Loading sign-in options')).toBeNull();
 
             release();
-            expect(await screen.findByText('No login method available. Please contact your administrator.')).toBeTruthy();
+            expect(await screen.findByText('No sign-in method is configured. Contact your administrator.')).toBeTruthy();
             expect(screen.queryByLabelText('Username')).toBeNull();
         });
 
@@ -202,9 +202,9 @@ describe('LoginPage', () => {
             stubLoginMethods([googleProvider, githubProvider]);
             renderLoginPage();
 
-            expect(await screen.findByText('Sign in with Google')).toBeTruthy();
+            expect(await screen.findByText('Google')).toBeTruthy();
             expect(screen.getByText('or')).toBeTruthy();
-            expect(screen.getByText('Sign in with GitHub')).toBeTruthy();
+            expect(screen.getByText('GitHub')).toBeTruthy();
         });
 
         it('should drop identity providers that are no longer returned for login', async () => {
@@ -213,7 +213,7 @@ describe('LoginPage', () => {
             renderLoginPage();
 
             await screen.findByLabelText('Username');
-            expect(screen.queryByText('Sign in with Google')).toBeNull();
+            expect(screen.queryByText('Google')).toBeNull();
         });
 
         it('should keep previous identity providers when social-identities cannot be loaded', async () => {
@@ -221,45 +221,90 @@ describe('LoginPage', () => {
             respondWithError('get', `${TEST_MANAGEMENT_BASE}/social-identities`, 500);
             renderLoginPage();
 
-            expect(await screen.findByText('Sign in with Google')).toBeTruthy();
+            expect(await screen.findByText('Google')).toBeTruthy();
+        });
+
+        it('should explain the identity provider route when it is the only one', async () => {
+            stubLoginMethods([googleProvider], false);
+            renderLoginPage();
+
+            expect(await screen.findByText('Continue with your identity provider.')).toBeTruthy();
+        });
+
+        it('should not describe the card when the labelled fields already do', async () => {
+            stubLoginMethods([googleProvider]);
+            const { container } = renderLoginPage();
+
+            await screen.findByLabelText('Username');
+            expect(container.querySelector('[data-slot="card-description"]')).toBeNull();
+        });
+
+        it('should not describe the card when no sign-in method is configured', async () => {
+            stubLoginMethods([], false);
+            const { container } = renderLoginPage();
+
+            await screen.findByText('No sign-in method is configured. Contact your administrator.');
+            expect(container.querySelector('[data-slot="card-description"]')).toBeNull();
         });
 
         it('should show identity providers without the password form when local login is disabled', async () => {
             stubLoginMethods([googleProvider], false);
             renderLoginPage();
 
-            expect(await screen.findByText('Sign in with Google')).toBeTruthy();
+            expect(await screen.findByText('Google')).toBeTruthy();
             expect(screen.queryByLabelText('Username')).toBeNull();
             expect(screen.queryByText('or')).toBeNull();
         });
 
-        it('should apply provider color as background', async () => {
+        it('should edge the chip with the provider color rather than filling it', async () => {
             stubLoginMethods([googleProvider]);
             renderLoginPage();
 
-            const button = (await screen.findByText('Sign in with Google')).closest('button')!;
-            expect(button.style.backgroundColor).toBe('rgb(66, 133, 244)');
-            // #4285F4 has luminance ~0.24 (above 0.179 threshold), so text is black
-            expect(button.style.color).toBe('black');
+            const button = (await screen.findByText('Google')).closest('button')!;
+            const chip = button.querySelector('[aria-hidden]') as HTMLElement;
+
+            expect(chip.style.borderColor.toLowerCase()).toBe('#4285f4');
+            // A fill would put a multi-colour glyph on an administrator-chosen colour it cannot
+            // adapt to, so the chip surface stays neutral and the glyph stays legible.
+            expect(chip.style.backgroundColor).toBe('');
+            expect(chip.className).toContain('bg-muted');
+            expect(button.style.backgroundColor).toBe('');
         });
 
-        it('should not apply inline color when provider has no color', async () => {
+        it('should leave the chip on its neutral border when provider has no color', async () => {
             stubLoginMethods([noColorProvider]);
             renderLoginPage();
 
-            const button = (await screen.findByText('Sign in with Corporate SSO')).closest('button')!;
-            // No inline styles — uses Button variant="outline" default styling
-            expect(button.style.backgroundColor).toBe('');
-            expect(button.style.color).toBe('');
+            const button = (await screen.findByText('Corporate SSO')).closest('button')!;
+            const chip = button.querySelector('[aria-hidden]') as HTMLElement;
+
+            // The provider is still named and still has its icon.
+            expect(chip.style.borderColor).toBe('');
+            expect(chip.className).toContain('bg-muted');
+            // `Button`'s outline variant hovers to bg-muted; the border is what keeps the chip
+            // visible under the pointer whether or not a colour was configured.
+            expect(chip.className).toContain('border');
         });
 
-        it('should use white text on dark provider color', async () => {
-            const darkProvider: SocialIdentityProvider = { ...githubProvider, color: '#111111' };
-            stubLoginMethods([darkProvider]);
+        it('should keep the neutral border when the provider color is not a color', async () => {
+            // `border-color` takes per-side lists and var() references; an administrator's value
+            // is a colour or it is nothing.
+            stubLoginMethods([{ ...googleProvider, color: 'red blue green yellow' }]);
             renderLoginPage();
 
-            const button = (await screen.findByText('Sign in with GitHub')).closest('button')!;
-            expect(button.style.color).toBe('white');
+            const button = (await screen.findByText('Google')).closest('button')!;
+            const chip = button.querySelector('[aria-hidden]') as HTMLElement;
+
+            expect(chip.style.borderColor).toBe('');
+        });
+
+        it('should name the provider for assistive technology', async () => {
+            stubLoginMethods([googleProvider]);
+            renderLoginPage();
+
+            // The visible label is just the name so a list of providers stays scannable; the
+            // accessible name still carries the action.
+            expect(await screen.findByRole('button', { name: 'Continue with Google' })).toBeTruthy();
         });
 
         it('should call loginWithProvider on IdP button click', async () => {
@@ -268,7 +313,7 @@ describe('LoginPage', () => {
             const loginWithProviderSpy = jest.spyOn(useAuthStore.getState(), 'loginWithProvider').mockResolvedValue();
             renderLoginPage();
 
-            await user.click(await screen.findByText('Sign in with Google'));
+            await user.click(await screen.findByText('Google'));
 
             expect(loginWithProviderSpy).toHaveBeenCalledWith('google-idp', '/');
             loginWithProviderSpy.mockRestore();
@@ -280,10 +325,10 @@ describe('LoginPage', () => {
             jest.spyOn(useAuthStore.getState(), 'loginWithProvider').mockRejectedValue(new Error('IdP error'));
             renderLoginPage();
 
-            await user.click(await screen.findByText('Sign in with Google'));
+            await user.click(await screen.findByText('Google'));
 
             expect(await screen.findByRole('alert')).toBeTruthy();
-            expect(screen.getByText('Failed to start identity provider authentication.')).toBeTruthy();
+            expect(screen.getByText("Couldn't reach that identity provider. Try again.")).toBeTruthy();
         });
 
         it('should pass redirect param to loginWithProvider', async () => {
@@ -297,7 +342,7 @@ describe('LoginPage', () => {
                 </MemoryRouter>,
             );
 
-            await user.click(await screen.findByText('Sign in with Google'));
+            await user.click(await screen.findByText('Google'));
 
             expect(loginWithProviderSpy).toHaveBeenCalledWith('google-idp', '/dashboard');
             loginWithProviderSpy.mockRestore();

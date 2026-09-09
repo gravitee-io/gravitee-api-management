@@ -34,7 +34,7 @@ export function usePasswordPolicy() {
                     const rules = fetchedPolicy.rules ?? [];
                     if (rules.length === 0) {
                         setPolicy(EMPTY_POLICY);
-                        setError('Unable to load password requirements. Please refresh the page and try again.');
+                        setError("Couldn't load the password rules. Refresh the page to try again.");
                         return;
                     }
 
@@ -49,7 +49,7 @@ export function usePasswordPolicy() {
             .catch(() => {
                 if (!cancelled) {
                     setPolicy(EMPTY_POLICY);
-                    setError('Unable to load password requirements. Please refresh the page and try again.');
+                    setError("Couldn't load the password rules. Refresh the page to try again.");
                 }
             })
             .finally(() => {
