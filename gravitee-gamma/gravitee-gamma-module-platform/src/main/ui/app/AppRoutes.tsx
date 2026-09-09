@@ -65,6 +65,7 @@ import { ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION } from '../features/sha
 import { AccessManagementPage } from '../pages/AccessManagementPage';
 import { AlertsPage } from '../pages/AlertsPage';
 import { ApiHealthCheckPage } from '../pages/ApiHealthCheckPage';
+import { ApiLoggingSettingsPage } from '../pages/ApiLoggingSettingsPage';
 import { ApplicationDetailSubscriptionPage } from '../pages/ApplicationDetailSubscriptionPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { AuthenticationPage } from '../pages/AuthenticationPage';
@@ -725,6 +726,14 @@ export function AppRoutes() {
                                 element={
                                     <NavPermissionGuard itemKey="policy-studio">
                                         <OrganizationPolicyStudioPage />
+                                    </NavPermissionGuard>
+                                }
+                            />
+                            <Route
+                                path="api-logging"
+                                element={
+                                    <NavPermissionGuard itemKey="api-logging">
+                                        <ApiLoggingSettingsPage />
                                     </NavPermissionGuard>
                                 }
                             />

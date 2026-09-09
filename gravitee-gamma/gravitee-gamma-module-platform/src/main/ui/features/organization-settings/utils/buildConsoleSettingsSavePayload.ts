@@ -16,7 +16,7 @@
 
 import { PASSWORD_SENTINEL, type ConsoleSettings, type ConsoleSettingsEmail } from '../types/consoleSettings';
 
-export type ConsoleSettingsSection = 'management' | 'cors' | 'email';
+export type ConsoleSettingsSection = 'management' | 'cors' | 'email' | 'logging';
 
 function mergeEmail(current: ConsoleSettingsEmail | undefined, overlay: ConsoleSettingsEmail | undefined): ConsoleSettingsEmail {
     const password = overlay?.password === PASSWORD_SENTINEL || !overlay?.password ? current?.password : overlay?.password;
@@ -37,7 +37,7 @@ function mergeEmail(current: ConsoleSettingsEmail | undefined, overlay: ConsoleS
 export function buildConsoleSettingsSavePayload(
     current: ConsoleSettings,
     section: ConsoleSettingsSection,
-    overlay: Pick<ConsoleSettings, 'management' | 'scheduler' | 'cors' | 'email'>,
+    overlay: Pick<ConsoleSettings, 'management' | 'scheduler' | 'cors' | 'email' | 'logging'>,
 ): ConsoleSettings {
     const trialHidesEmail = Boolean(current.trialInstance?.enabled);
 
@@ -56,5 +56,6 @@ export function buildConsoleSettingsSavePayload(
         scheduler: section === 'management' ? { ...current.scheduler, ...overlay.scheduler } : current.scheduler,
         cors: section === 'cors' ? { ...current.cors, ...overlay.cors } : current.cors,
         email: section === 'email' && !trialHidesEmail ? mergeEmail(current.email, overlay.email) : current.email,
+        logging: section === 'logging' ? { ...current.logging, ...overlay.logging } : current.logging,
     };
 }

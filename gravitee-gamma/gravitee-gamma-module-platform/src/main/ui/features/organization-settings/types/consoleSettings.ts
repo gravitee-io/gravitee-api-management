@@ -85,6 +85,27 @@ export interface ConsoleSettingsAuthentication {
     oauth2?: ConsoleSettingsClientId;
 }
 
+export interface ConsoleSettingsLoggingSamplingPair<T> {
+    default?: T;
+    limit?: T;
+}
+
+export interface ConsoleSettingsLogging {
+    maxDurationMillis?: number;
+    audit?: DisableableFeature & {
+        trail?: DisableableFeature;
+    };
+    user?: {
+        displayed?: boolean;
+    };
+    messageSampling?: {
+        probabilistic?: ConsoleSettingsLoggingSamplingPair<number>;
+        count?: ConsoleSettingsLoggingSamplingPair<number>;
+        temporal?: ConsoleSettingsLoggingSamplingPair<string>;
+        windowedCount?: ConsoleSettingsLoggingSamplingPair<string>;
+    };
+}
+
 /**
  * Org console settings from GET/POST `/organizations/{orgId}/settings`.
  * Extra backend fields are preserved via index signature so a section save cannot drop them.
@@ -95,6 +116,7 @@ export interface ConsoleSettings {
     cors?: ConsoleSettingsCors;
     scheduler?: ConsoleSettingsScheduler;
     management?: ConsoleSettingsManagement;
+    logging?: ConsoleSettingsLogging;
     trialInstance?: DisableableFeature;
     authentication?: ConsoleSettingsAuthentication;
     [key: string]: unknown;

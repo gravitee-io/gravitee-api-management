@@ -42,6 +42,7 @@ export const ROUTE_KEYS: readonly string[] = [
     'environment-smtp',
     'smtp',
     'templates',
+    'api-logging',
     'no-access',
 ];
 export type RouteKey = (typeof ROUTE_KEYS)[number];
@@ -75,6 +76,7 @@ export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: s
     smtp: { path: 'smtp', label: 'SMTP' },
     'environment-smtp': { path: 'environment/smtp', label: 'SMTP' },
     templates: { path: 'templates', label: 'Templates' },
+    'api-logging': { path: 'api-logging', label: 'API Logging' },
     'no-access': { path: 'no-access', label: 'No access' },
 };
 

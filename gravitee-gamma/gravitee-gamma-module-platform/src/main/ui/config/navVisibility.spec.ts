@@ -243,20 +243,27 @@ describe('platform nav visibility', () => {
         expect(isFederationAvailable({ federationEnabled: true, license: ENTITLED_LICENSE })).toBe(true);
     });
 
-    it('hides Management, CORS, and SMTP when the user has organization-settings-u without -r', () => {
+    it('hides Management, CORS, SMTP, and API Logging when the user has organization-settings-u without -r', () => {
         const onlyUpdate = visibility(['organization-settings-u']);
         expect(isNavItemVisible('management-and-schedulers', onlyUpdate)).toBe(false);
         expect(isNavItemVisible('cors', onlyUpdate)).toBe(false);
         expect(isNavItemVisible('smtp', onlyUpdate)).toBe(false);
+        expect(isNavItemVisible('api-logging', onlyUpdate)).toBe(false);
         expect(isNavItemVisible('users', visibility(['organization-settings-u', 'organization-user-r']))).toBe(true);
     });
 
-    it('shows Management, CORS, and SMTP when the user has organization-settings-r', () => {
+    it('shows Management, CORS, SMTP, and API Logging when the user has organization-settings-r', () => {
         const canRead = visibility(['organization-settings-r']);
         expect(isNavItemVisible('management-and-schedulers', canRead)).toBe(true);
         expect(isNavItemVisible('cors', canRead)).toBe(true);
         expect(isNavItemVisible('smtp', canRead)).toBe(true);
+        expect(isNavItemVisible('api-logging', canRead)).toBe(true);
         expect(isNavItemVisible('templates', canRead)).toBe(false);
+    });
+
+    it('hides API Logging for environment admin without org settings', () => {
+        expect(isNavItemVisible('api-logging', visibility([...ENVIRONMENT_ADMIN]))).toBe(false);
+        expect(isNavItemVisible('api-logging', visibility([...ORGANIZATION_USER, ...ENVIRONMENT_ADMIN]))).toBe(false);
     });
 
     it('gates Templates on organization-notification_templates-r after the org settings gate', () => {
@@ -327,6 +334,10 @@ describe('platform nav visibility', () => {
         expect(pageGuardForNavItem('applications')).toEqual({ anyOf: ['environment-application-r'] });
         expect(pageGuardForNavItem('access-management')).toEqual({ anyOf: ['environment-am_configuration-r'] });
         expect(pageGuardForNavItem('cors')).toEqual({
+            anyOf: ['organization-settings-r'],
+            alsoAnyOf: ['organization-settings-r', 'organization-settings-u'],
+        });
+        expect(pageGuardForNavItem('api-logging')).toEqual({
             anyOf: ['organization-settings-r'],
             alsoAnyOf: ['organization-settings-r', 'organization-settings-u'],
         });
