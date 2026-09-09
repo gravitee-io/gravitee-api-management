@@ -24,7 +24,7 @@ import {
 } from '../../commands';
 import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
-import { computeApimVersion, parse } from '../../utils';
+import { parse } from '../../utils';
 
 export class BackendBuildAndPublishOnDownloadWebsiteJob {
   private static jobName = 'job-backend-build-and-publish-on-download-website';
@@ -74,11 +74,11 @@ sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" gravitee-apim-
         // reaches it; the property activation does. Without this the released zip and images ship
         // without those two jars, and no pull-request build would show it — job-build-backend
         // passes -Dbundle=dev and so activates the profile by property already.
-        // The core version passed here is the root pom's, which the step above has just set to the
-        // version being released: the distribution ships the core this build produced, not the one
-        // its pom is pinned to.
+        // Nothing overrides apim.core.version here, so the distribution assembles the core it pins.
+        // That is the whole point of pinning: what ships is what someone reviewed and chose, not
+        // whatever this build happened to compile.
         name: 'Maven build APIM distribution',
-        command: `mvn --settings ${config.maven.settingsFile} -B -nsu -f gravitee-apim-distribution/pom.xml -P gio-release -Dapim.core.version=${computeApimVersion(environment)} -Dbundle clean verify -DskipTests=true -Dskip.validation -Dgravitee.archrules.skip=true -T 4 --no-transfer-progress`,
+        command: `mvn --settings ${config.maven.settingsFile} -B -nsu -f gravitee-apim-distribution/pom.xml -P gio-release -Dbundle clean verify -DskipTests=true -Dskip.validation -Dgravitee.archrules.skip=true -T 4 --no-transfer-progress`,
         environment: {
           BUILD_ID: environment.buildId,
           BUILD_NUMBER: environment.buildNum,

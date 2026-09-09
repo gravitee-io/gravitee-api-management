@@ -590,7 +590,7 @@ jobs:
             GIT_COMMIT: 784ff35ca
       - run:
           name: Maven build APIM distribution
-          command: mvn --settings .gravitee.settings.xml -B -nsu -f gravitee-apim-distribution/pom.xml -P gio-release -Dapim.core.version=4.2.0-SNAPSHOT -Dbundle clean verify -DskipTests=true -Dskip.validation -Dgravitee.archrules.skip=true -T 4 --no-transfer-progress
+          command: mvn --settings .gravitee.settings.xml -B -nsu -f gravitee-apim-distribution/pom.xml -P gio-release -Dbundle clean verify -DskipTests=true -Dskip.validation -Dgravitee.archrules.skip=true -T 4 --no-transfer-progress
           environment:
             BUILD_ID: "1234"
             BUILD_NUMBER: "1234"
