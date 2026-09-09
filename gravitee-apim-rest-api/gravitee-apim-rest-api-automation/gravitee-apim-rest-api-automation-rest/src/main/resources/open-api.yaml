@@ -1754,9 +1754,7 @@ components:
       type: object
       properties:
         value:
-          description: >-
-            The plaintext value to encrypt on save. Not honoured yet: a request that supplies it is
-            rejected, so that a value asking to be encrypted is never stored as plaintext instead.
+          description: The plaintext value to encrypt on save.
           type: string
           writeOnly: true
       required:
