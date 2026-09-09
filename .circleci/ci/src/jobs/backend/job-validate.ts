@@ -50,31 +50,6 @@ export class ValidateJob {
         name: 'Validate distribution',
         command: `mvn -s ${config.maven.settingsFile} -f gravitee-apim-distribution/pom.xml validate -nsu -Dgravitee.archrules.skip=true --no-transfer-progress -Pintegration-tests-modules ${mavenParallelism('large')}`,
       }),
-      new commands.Run({
-        // The two reactors each carry a version triplet, and this holds them in step. It no longer
-        // guards what gets assembled — the core version is now passed explicitly, so the
-        // distribution's own triplet cannot pull in the wrong core — it only enforces a single
-        // lineage, which is what has to go before the two can be released apart.
-        name: 'Check both reactors carry the same version',
-        command: `triplet() {
-  rev=$(grep -o '<revision>[^<]*</revision>' "$1" | head -1 | sed -E 's#</?revision>##g')
-  chg=$(grep -o '<changelist>[^<]*</changelist>' "$1" | head -1 | sed -E 's#</?changelist>##g')
-  # <sha1 /> and <sha1></sha1> mean the same thing; normalise both to the empty string.
-  sha=$(grep -oE '<sha1 */>|<sha1>[^<]*</sha1>' "$1" | head -1 | sed -E 's#<sha1 */>##; s#</?sha1>##g')
-  echo "revision=$rev sha1=$sha changelist=$chg"
-}
-ROOT=$(triplet pom.xml)
-DIST=$(triplet gravitee-apim-distribution/pom.xml)
-echo "root:         $ROOT"
-echo "distribution: $DIST"
-if [ "$ROOT" != "$DIST" ]; then
-  echo
-  echo "The root pom and the distribution pom disagree on the version being built."
-  echo "Both must be bumped together — see release/code-freeze/_common.sh and"
-  echo "job-release-commit-and-prepare-next-version."
-  exit 1
-fi`,
-      }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new reusable.ReusedCommand(saveMavenJobCacheCmd, { jobName: ValidateJob.jobName }),
     ];

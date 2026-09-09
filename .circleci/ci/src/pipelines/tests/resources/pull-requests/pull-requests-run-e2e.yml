@@ -362,27 +362,6 @@ jobs:
       - run:
           name: Validate distribution
           command: mvn -s .gravitee.settings.xml -f gravitee-apim-distribution/pom.xml validate -nsu -Dgravitee.archrules.skip=true --no-transfer-progress -Pintegration-tests-modules -T 8
-      - run:
-          name: Check both reactors carry the same version
-          command: |-
-            triplet() {
-              rev=$(grep -o '<revision>[^<]*</revision>' "$1" | head -1 | sed -E 's#</?revision>##g')
-              chg=$(grep -o '<changelist>[^<]*</changelist>' "$1" | head -1 | sed -E 's#</?changelist>##g')
-              # <sha1 /> and <sha1></sha1> mean the same thing; normalise both to the empty string.
-              sha=$(grep -oE '<sha1 */>|<sha1>[^<]*</sha1>' "$1" | head -1 | sed -E 's#<sha1 */>##; s#</?sha1>##g')
-              echo "revision=$rev sha1=$sha changelist=$chg"
-            }
-            ROOT=$(triplet pom.xml)
-            DIST=$(triplet gravitee-apim-distribution/pom.xml)
-            echo "root:         $ROOT"
-            echo "distribution: $DIST"
-            if [ "$ROOT" != "$DIST" ]; then
-              echo
-              echo "The root pom and the distribution pom disagree on the version being built."
-              echo "Both must be bumped together — see release/code-freeze/_common.sh and"
-              echo "job-release-commit-and-prepare-next-version."
-              exit 1
-            fi
       - cmd-notify-on-failure
       - cmd-save-maven-job-cache:
           jobName: job-validate
