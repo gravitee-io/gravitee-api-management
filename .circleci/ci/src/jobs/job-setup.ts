@@ -24,12 +24,22 @@ export class SetupJob {
 
     const steps: Command[] = [
       new commands.Checkout(),
-      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-        'secret-url': config.secrets.mavenSettings,
-        'var-name': 'MAVEN_SETTINGS',
-      }),
+      new reusable.ReusedCommand(orbs.keeper.commands['install']),
       new commands.Run({
-        command: `echo $MAVEN_SETTINGS > ${config.maven.settingsFile} `,
+        name: 'Get the Maven settings',
+        // Written straight to its file, never through the environment. `env-export` puts the
+        // value in $BASH_ENV inside an unquoted heredoc, where the shell expands whatever looks
+        // like a variable: a settings.xml holding ${env.SOMETHING} — the syntax Maven uses to
+        // read a token — breaks the export and leaves the remaining lines to be run as commands,
+        // which prints the file, credentials included, in the job output.
+        command: `ksm secret notation ${config.secrets.mavenSettings} > ${config.maven.settingsFile}
+
+# An empty or truncated file would only surface later, in another job, as an unreadable
+# settings or a 401 blamed on the credentials.
+if ! grep -q '</settings>' ${config.maven.settingsFile}; then
+  echo "The Maven settings read from Keeper are empty or truncated." >&2
+  exit 1
+fi`,
       }),
       new commands.workspace.Persist({
         root: '.',
