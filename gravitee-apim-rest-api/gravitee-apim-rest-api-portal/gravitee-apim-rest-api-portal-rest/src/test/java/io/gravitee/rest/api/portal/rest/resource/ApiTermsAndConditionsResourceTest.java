@@ -71,7 +71,7 @@ class ApiTermsAndConditionsResourceTest extends AbstractResourceTest {
         var contentId = PortalPageContentId.random();
         portalNavigationItemsQueryService.initWith(List.of(publishedAgent(API_ID, contentId)));
         portalPageContentQueryService.initWith(
-            List.of(new GraviteeMarkdownPageContent(contentId, "DEFAULT", ENV_ID, GraviteeMarkdown.of("# Agent usage terms")))
+            List.of(new GraviteeMarkdownPageContent(contentId, "DEFAULT", ENV_ID, GraviteeMarkdown.of("## Agent Usage Terms")))
         );
 
         Response response = target(API_ID + "/terms-and-conditions").request().get();
@@ -79,7 +79,7 @@ class ApiTermsAndConditionsResourceTest extends AbstractResourceTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         var result = response.readEntity(PortalPageContent.class);
         assertThat(result.getType()).isEqualTo(PortalPageContentType.GRAVITEE_MARKDOWN);
-        assertThat(result.getContent()).isEqualTo("# Agent usage terms");
+        assertThat(result.getContent()).isEqualTo("## Agent Usage Terms");
     }
 
     @Test

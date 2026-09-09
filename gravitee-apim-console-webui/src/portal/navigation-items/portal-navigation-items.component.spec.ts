@@ -1554,7 +1554,7 @@ describe('PortalNavigationItemsComponent', () => {
       });
       fixture.detectChanges();
       flushPendingLinkedApiSearchRequests();
-      expectGetPageContent('agent-terms-content-1', '# Agent usage terms');
+      expectGetPageContent('agent-terms-content-1', '## Agent Usage Terms');
       await fixture.whenStable();
       fixture.detectChanges();
     });
@@ -1562,7 +1562,7 @@ describe('PortalNavigationItemsComponent', () => {
     it('should load agent terms and conditions into the GMD editor', async () => {
       const gmdEditor = await harness.getGmdEditor();
       expect(gmdEditor).toBeTruthy();
-      expect(await harness.getEditorContentText()).toBe('# Agent usage terms');
+      expect(await harness.getEditorContentText()).toBe('## Agent Usage Terms');
       expect(await harness.isSaveButtonDisabled()).toBe(true);
     });
 
@@ -1621,7 +1621,7 @@ describe('PortalNavigationItemsComponent', () => {
         }),
       );
       flushPendingLinkedApiSearchRequests();
-      expectGetPageContent('agent-terms-content-1', '# Agent usage terms');
+      expectGetPageContent('agent-terms-content-1', '## Agent Usage Terms');
       await fixture.whenStable();
       fixture.detectChanges();
 
@@ -3568,7 +3568,7 @@ describe('PortalNavigationItemsComponent', () => {
       );
 
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, ...createdAgents] }));
-      await expectGetPageContent(createdAgents[0].termsAndConditionsPageContentId, 'Agent terms');
+      await expectGetPageContent(createdAgents[0].termsAndConditionsPageContentId, '## Agent Usage Terms');
 
       expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdAgents[0].id } }));
     });

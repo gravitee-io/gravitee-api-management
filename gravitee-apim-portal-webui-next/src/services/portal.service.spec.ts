@@ -130,7 +130,7 @@ describe('PortalService', () => {
     const apiId = 'api-123';
     const mockTerms: PortalPageContent = {
       type: 'GRAVITEE_MARKDOWN',
-      content: '# Agent usage terms',
+      content: '## Agent Usage Terms',
     };
 
     service.getAgentTermsAndConditions(apiId).subscribe(terms => {
