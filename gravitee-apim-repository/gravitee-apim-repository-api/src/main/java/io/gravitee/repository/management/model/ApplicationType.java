@@ -25,4 +25,9 @@ public enum ApplicationType {
     WEB,
     NATIVE,
     BACKEND_TO_BACKEND,
+    /**
+     * A machine identity acting for an AI agent. Behaves like {@link #SIMPLE} — the client_id is supplied
+     * externally (e.g. by an identity provisioning flow), no dynamic client registration is involved.
+     */
+    AGENT,
 }

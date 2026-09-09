@@ -481,4 +481,15 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
     public void should_return_false_on_existing_client_id_in_different_env() {
         assertFalse(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, "my-client-id", "DEFAULT"));
     }
+
+    @Test
+    public void should_find_the_application_carrying_a_metadata_entry_in_env() {
+        assertThat(applicationRepository.findIdByMetadataEntryForEnv(METADATA_CLIENT_ID, "my-client-id", "PROD")).isPresent();
+    }
+
+    @Test
+    public void should_find_no_application_for_a_metadata_entry_of_another_env_or_an_archived_one() {
+        assertThat(applicationRepository.findIdByMetadataEntryForEnv(METADATA_CLIENT_ID, "my-client-id", "DEFAULT")).isEmpty();
+        assertThat(applicationRepository.findIdByMetadataEntryForEnv(METADATA_CLIENT_ID, "my-client-id-old", "PROD")).isEmpty();
+    }
 }

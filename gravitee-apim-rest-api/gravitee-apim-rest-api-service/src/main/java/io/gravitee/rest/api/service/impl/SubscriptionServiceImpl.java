@@ -696,7 +696,11 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             // Extract the client_id according to the application type
             String clientId = null;
             if (planSecurityType == PlanSecurityType.OAUTH2 || planSecurityType == PlanSecurityType.JWT) {
-                if (ApplicationType.SIMPLE.name().equals(applicationEntity.getType())) {
+                if (ApplicationType.AGENT.name().equals(applicationEntity.getType())) {
+                    clientId = (applicationEntity.getSettings() != null && applicationEntity.getSettings().getAgent() != null)
+                        ? applicationEntity.getSettings().getAgent().getClientId()
+                        : null;
+                } else if (ApplicationType.SIMPLE.name().equals(applicationEntity.getType())) {
                     clientId = (applicationEntity.getSettings() != null && applicationEntity.getSettings().getApp() != null)
                         ? applicationEntity.getSettings().getApp().getClientId()
                         : null;

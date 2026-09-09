@@ -31,6 +31,7 @@ import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
@@ -140,10 +141,20 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
 
     @Override
     public boolean existsMetadataEntryForEnv(String key, String value, String environmentId) {
+        return mongoTemplate.exists(metadataEntryQuery(key, value, environmentId), ApplicationMongo.class);
+    }
+
+    @Override
+    public Optional<String> findIdByMetadataEntryForEnv(String key, String value, String environmentId) {
+        var found = mongoTemplate.findOne(metadataEntryQuery(key, value, environmentId), ApplicationMongo.class);
+        return Optional.ofNullable(found).map(ApplicationMongo::getId);
+    }
+
+    private static Query metadataEntryQuery(String key, String value, String environmentId) {
         Query query = new Query();
         query.addCriteria(Criteria.where("environmentId").is(environmentId));
         query.addCriteria(Criteria.where("metadata." + key).is(value));
         query.addCriteria(Criteria.where("status").is(ApplicationStatus.ACTIVE.name()));
-        return mongoTemplate.exists(query, ApplicationMongo.class);
+        return query;
     }
 }

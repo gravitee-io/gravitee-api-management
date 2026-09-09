@@ -10,6 +10,15 @@
             "mandatory_grant_types": []
         },
         {
+            "id": "agent",
+            "name": "Agent",
+            "description": "A machine identity acting for an AI agent, with an externally supplied client_id. No DCR involved.",
+            "requires_redirect_uris": false,
+            "allowed_grant_types": [],
+            "default_grant_types": [],
+            "mandatory_grant_types": []
+        },
+        {
             "id": "browser",
             "name": "SPA",
             "description": "Front-end JS apps (React, Angular, Vue) using DCR for authentication.",

@@ -20,6 +20,8 @@ import static io.gravitee.repository.management.model.Application.AuditEvent.APP
 import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_RESTORED;
 import static io.gravitee.repository.management.model.Application.AuditEvent.APPLICATION_UPDATED;
 import static io.gravitee.repository.management.model.Application.METADATA_ADDITIONAL_CLIENT_METADATA;
+import static io.gravitee.repository.management.model.Application.METADATA_AGENT_ENTITY_ID;
+import static io.gravitee.repository.management.model.Application.METADATA_AGENT_IDENTITY_ID;
 import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
 import static io.gravitee.repository.management.model.Application.METADATA_REGISTRATION_PAYLOAD;
 import static io.gravitee.repository.management.model.Application.METADATA_TYPE;
@@ -70,6 +72,7 @@ import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.application.AgentSettings;
 import io.gravitee.rest.api.model.application.ApplicationExcludeFilter;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationQuery;
@@ -113,6 +116,9 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.converter.ApplicationConverter;
+import io.gravitee.rest.api.service.exceptions.AgentAlreadyLinkedException;
+import io.gravitee.rest.api.service.exceptions.AgentNameImmutableException;
+import io.gravitee.rest.api.service.exceptions.AgentSettingsRequiredException;
 import io.gravitee.rest.api.service.exceptions.ApplicationActiveException;
 import io.gravitee.rest.api.service.exceptions.ApplicationArchivedException;
 import io.gravitee.rest.api.service.exceptions.ApplicationClientIdException;
@@ -123,6 +129,7 @@ import io.gravitee.rest.api.service.exceptions.ApplicationRedirectUrisNotFound;
 import io.gravitee.rest.api.service.exceptions.ApplicationRenewClientSecretException;
 import io.gravitee.rest.api.service.exceptions.ApplicationTypeNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.InvalidAgentSettingsException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationTypeException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
@@ -154,6 +161,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -239,6 +247,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     private MtlsSubscriptionSyncDomainService applicationCertificatesUpdateDomainService;
 
     private final ObjectMapper mapper = new ObjectMapper();
+
+    @Override
+    public Optional<ApplicationEntity> findByAgentEntityId(final ExecutionContext executionContext, String agentEntityId) {
+        log.debug("Find agent application by agent entity ID: {}", agentEntityId);
+        return applicationRepository
+            .findIdByMetadataEntryForEnv(METADATA_AGENT_ENTITY_ID, agentEntityId, executionContext.getEnvironmentId())
+            .map(applicationId -> findById(executionContext, applicationId));
+    }
 
     @Override
     public ApplicationEntity findById(final ExecutionContext executionContext, String applicationId) {
@@ -415,8 +431,29 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         // Create application metadata
         Map<String, String> metadata = new HashMap<>();
 
-        // Create a simple "internal" application
-        if (newApplicationEntity.getSettings().getApp() != null) {
+        if (newApplicationEntity.getSettings().getAgent() != null) {
+            // Create an agent application: the settings are the authoritative link to the one agent it acts
+            // for, so a blank link or an agent that already has an application are both refused up front.
+            AgentSettings agentSettings = newApplicationEntity.getSettings().getAgent();
+            if (StringUtils.isBlank(agentSettings.getEntityId())) {
+                throw new InvalidAgentSettingsException();
+            }
+            if (
+                applicationRepository.existsMetadataEntryForEnv(
+                    METADATA_AGENT_ENTITY_ID,
+                    agentSettings.getEntityId(),
+                    executionContext.getEnvironmentId()
+                )
+            ) {
+                throw new AgentAlreadyLinkedException(agentSettings.getEntityId());
+            }
+
+            // If clientId is set, check for uniqueness
+            if (StringUtils.isNotBlank(agentSettings.getClientId())) {
+                checkClientIdIsUniqueForEnv(agentSettings.getClientId(), executionContext.getEnvironmentId());
+            }
+        } else if (newApplicationEntity.getSettings().getApp() != null) {
+            // Create a simple "internal" application
             // If client registration is enabled, check that the simple type is allowed
             if (
                 isClientRegistrationEnabled(executionContext, executionContext.getEnvironmentId()) &&
@@ -509,13 +546,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     private void creationPreFlightChecks(ExecutionContext executionContext, NewApplicationEntity newApplicationEntity) {
-        // Check that only one settings is defined
-        if (newApplicationEntity.getSettings().getApp() != null && newApplicationEntity.getSettings().getOauth() != null) {
-            throw new InvalidApplicationTypeException();
-        }
-
-        // Check that a type is defined
-        if (newApplicationEntity.getSettings().getApp() == null && newApplicationEntity.getSettings().getOauth() == null) {
+        // Check that exactly one settings kind is defined
+        if (countSettingsKinds(newApplicationEntity.getSettings()) != 1) {
             throw new InvalidApplicationTypeException();
         }
 
@@ -660,10 +692,46 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // Update application metadata
             Map<String, String> metadata = new HashMap<>();
 
-            // Update a simple application
-            if (applicationToUpdate.getType() == ApplicationType.SIMPLE && updateApplicationEntity.getSettings().getApp() != null) {
+            if (applicationToUpdate.getType() == ApplicationType.AGENT) {
+                // An application's metadata is rebuilt from whatever settings the payload carries, so an update
+                // sending app or oauth settings for an agent application would erase the link to the agent it acts
+                // for — leaving the AI catalog seeing an agent with no application. Generic settings screens send
+                // exactly that, so the refusal lives here rather than in each of them.
+                if (updateApplicationEntity.getSettings().getAgent() == null) {
+                    throw new AgentSettingsRequiredException();
+                }
+
+                // Update an agent application. The agent link is server-authoritative: whatever the payload
+                // says, the stored agent is kept — re-targeting an application to another agent is not a thing.
+                AgentSettings updatedAgentSettings = updateApplicationEntity.getSettings().getAgent();
+                updatedAgentSettings.setEntityId(applicationToUpdate.getMetadata().get(METADATA_AGENT_ENTITY_ID));
+
+                // The identity, unlike the agent, is the caller's to set — that is how one gets attached. Only an
+                // update that stays silent about it keeps the stored one; it is never cleared by omission.
+                if (StringUtils.isBlank(updatedAgentSettings.getIdentityId())) {
+                    updatedAgentSettings.setIdentityId(applicationToUpdate.getMetadata().get(METADATA_AGENT_IDENTITY_ID));
+                }
+
+                // The name is shared with the agent identity and set at provisioning; a rename is refused
+                // rather than silently dropped, because the caller typed it and must hear it did not land.
+                if (!applicationToUpdate.getName().equals(StringUtils.trim(updateApplicationEntity.getName()))) {
+                    throw new AgentNameImmutableException(applicationToUpdate.getName());
+                }
+
                 // If clientId is set, check for uniqueness
-                checkClientIdUniqueness(executionContext, updateApplicationEntity, applicationToUpdate);
+                checkClientIdUniqueness(
+                    executionContext,
+                    updateApplicationEntity.getSettings().getAgent().getClientId(),
+                    applicationToUpdate
+                );
+            } else if (applicationToUpdate.getType() == ApplicationType.SIMPLE && updateApplicationEntity.getSettings().getApp() != null) {
+                // Update a simple application
+                // If clientId is set, check for uniqueness
+                checkClientIdUniqueness(
+                    executionContext,
+                    updateApplicationEntity.getSettings().getApp().getClientId(),
+                    applicationToUpdate
+                );
             } else {
                 // Check that client registration is enabled
                 checkClientRegistrationEnabled(executionContext, executionContext.getEnvironmentId());
@@ -851,13 +919,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             });
     }
 
-    private void checkClientIdUniqueness(
-        ExecutionContext executionContext,
-        UpdateApplicationEntity updateApplicationEntity,
-        Application applicationToUpdate
-    ) throws TechnicalException {
-        String clientId = updateApplicationEntity.getSettings().getApp().getClientId();
-
+    private void checkClientIdUniqueness(ExecutionContext executionContext, String clientId, Application applicationToUpdate)
+        throws TechnicalException {
         if (!StringUtils.isBlank(clientId)) {
             log.debug("Check that client_id is unique among all applications");
             final Set<Application> applications = applicationRepository.findAllByEnvironment(
@@ -889,15 +952,14 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             throw new ApplicationArchivedException(applicationToUpdate.getName());
         }
 
-        // Check that only one settings is defined
-        if (updateApplicationEntity.getSettings().getApp() != null && updateApplicationEntity.getSettings().getOauth() != null) {
+        // Check that exactly one settings kind is defined
+        if (countSettingsKinds(updateApplicationEntity.getSettings()) != 1) {
             throw new InvalidApplicationTypeException();
         }
+    }
 
-        // Check that a type is defined
-        if (updateApplicationEntity.getSettings().getApp() == null && updateApplicationEntity.getSettings().getOauth() == null) {
-            throw new InvalidApplicationTypeException();
-        }
+    private static long countSettingsKinds(ApplicationSettings settings) {
+        return Stream.of(settings.getApp(), settings.getOauth(), settings.getAgent()).filter(Objects::nonNull).count();
     }
 
     private void updateClientRegistration(
@@ -1469,7 +1531,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
     private ApplicationSettings getSettings(final ExecutionContext executionContext, Application application, boolean fetchCertificate) {
         final ApplicationSettings settings = new ApplicationSettings();
-        if (application.getType() == ApplicationType.SIMPLE) {
+        if (application.getType() == ApplicationType.AGENT) {
+            setAgentSettings(application, settings);
+        } else if (application.getType() == ApplicationType.SIMPLE) {
             setSimpleAppSettings(application, settings);
         } else {
             setOAuthSettings(executionContext, application, settings);
@@ -1549,6 +1613,16 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             }
         }
         settings.setOauth(clientSettings);
+    }
+
+    private static void setAgentSettings(Application application, ApplicationSettings settings) {
+        AgentSettings agentSettings = new AgentSettings();
+        if (application.getMetadata() != null) {
+            agentSettings.setEntityId(application.getMetadata().get(METADATA_AGENT_ENTITY_ID));
+            agentSettings.setClientId(application.getMetadata().get(METADATA_CLIENT_ID));
+            agentSettings.setIdentityId(application.getMetadata().get(METADATA_AGENT_IDENTITY_ID));
+        }
+        settings.setAgent(agentSettings);
     }
 
     private static void setSimpleAppSettings(Application application, ApplicationSettings settings) {

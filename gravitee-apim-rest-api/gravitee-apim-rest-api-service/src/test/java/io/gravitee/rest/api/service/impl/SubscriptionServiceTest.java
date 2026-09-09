@@ -93,6 +93,7 @@ import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.application.AgentSettings;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
 import io.gravitee.rest.api.model.application.TlsSettings;
@@ -1264,6 +1265,46 @@ public class SubscriptionServiceTest {
         verify(acceptSubscriptionDomainService, times(1)).autoAccept(eq(SUBSCRIPTION_ID), any(), eq(null), any(), eq(null), any());
         assertThat(subscriptionEntity.getId()).isNotNull();
         assertThat(subscriptionEntity.getApplication()).isNotNull();
+    }
+
+    @Test
+    public void shouldCreateForAgentApplicationResolvingClientIdFromAgentSettings() throws Exception {
+        // An AGENT application carries its client_id in its agent settings, and a JWT plan subscription must
+        // resolve it from there rather than from absent oauth settings.
+        planEntity.setValidation(PlanValidationType.AUTO);
+        planEntity.setSecurity(PlanSecurityType.JWT);
+
+        SecurityContextHolder.setContext(generateSecurityContext());
+
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setAgent(new AgentSettings("agent.support", "agent-client-id"));
+        ApplicationEntity subscriberApplication = new ApplicationEntity();
+        subscriberApplication.setId(SUBSCRIBER_ID);
+        subscriberApplication.setType("AGENT");
+        subscriberApplication.setSettings(settings);
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(subscriberApplication);
+        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
+        when(subscriptionRepository.create(any())).thenAnswer(
+            (Answer<Subscription>) invocation -> {
+                Subscription subscription1 = (Subscription) invocation.getArguments()[0];
+                subscription1.setId(SUBSCRIPTION_ID);
+                return subscription1;
+            }
+        );
+
+        when(acceptSubscriptionDomainService.autoAccept(any(String.class), any(), any(), any(), any(), any())).thenReturn(
+            io.gravitee.apim.core.subscription.model.SubscriptionEntity.builder().id(SUBSCRIPTION_ID).applicationId(APPLICATION_ID).build()
+        );
+
+        final SubscriptionEntity subscriptionEntity = subscriptionService.create(
+            GraviteeContext.getExecutionContext(),
+            new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID)
+        );
+
+        verify(subscriptionRepository, times(1)).create(argThat(sub -> "agent-client-id".equals(sub.getClientId())));
+        assertThat(subscriptionEntity.getId()).isNotNull();
     }
 
     private SecurityContext generateSecurityContext() {
