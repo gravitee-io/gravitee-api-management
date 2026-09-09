@@ -19,6 +19,7 @@ import io.gravitee.apim.reporter.common.formatter.AbstractFormatter;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.v4.metric.WithAdditional;
 import io.vertx.core.buffer.Buffer;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -202,6 +203,10 @@ public abstract class SingleValueFormatter<T extends Reportable> extends Abstrac
         Map<String, String> keywordAdditionalMetrics = withAdditional.keywordAdditionalMetrics();
         if (keywordAdditionalMetrics != null) {
             keywordAdditionalMetrics.values().forEach(value -> appendString(buffer, value, true, false));
+        }
+        Map<String, List<String>> keywordListAdditionalMetrics = withAdditional.keywordListAdditionalMetrics();
+        if (keywordListAdditionalMetrics != null) {
+            keywordListAdditionalMetrics.values().forEach(values -> appendString(buffer, String.join(",", values), true, false));
         }
         Map<String, Boolean> boolAdditionalMetrics = withAdditional.boolAdditionalMetrics();
         if (boolAdditionalMetrics != null) {
