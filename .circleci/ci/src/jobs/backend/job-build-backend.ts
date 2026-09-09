@@ -19,6 +19,7 @@ import { InstallYarnCommand, NotifyOnFailureCommand, RestoreMavenJobCacheCommand
 import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
 import { computeApimVersion, mavenParallelism } from '../../utils';
+import { assemblesPinnedCore } from '../../workflows/groups/changed-files';
 
 export class BuildBackendJob {
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
@@ -35,6 +36,12 @@ export class BuildBackendJob {
     dynamicConfig.addReusableCommand(saveMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
     dynamicConfig.addReusableCommand(installYarnCmd);
+
+    // A change that can only affect the distribution is assembled against the core it pins, not the
+    // one this branch is developing: the pull request that advances the pin would otherwise exercise
+    // something other than what merging it ships. The `Build engine` step above is then wasted work,
+    // which is worth removing on its own once this has settled.
+    const coreVersion = assemblesPinnedCore(environment.changedFiles) ? '' : ` -Dapim.core.version=${computeApimVersion(environment)}`;
 
     const steps: Command[] = [
       new commands.Checkout(),
@@ -57,7 +64,7 @@ export class BuildBackendJob {
         // Second phase: assemble against the engine just installed above, not the released one.
         // -nsu so a published snapshot cannot take its place.
         name: 'Build distribution',
-        command: `mvn -s ${config.maven.settingsFile} -f gravitee-apim-distribution/pom.xml clean install --no-transfer-progress -nsu -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false ${mavenParallelism('large')} -Dbundle=dev -Pintegration-tests-modules -Dapim.core.version=${computeApimVersion(environment)} -DwithJavadoc`,
+        command: `mvn -s ${config.maven.settingsFile} -f gravitee-apim-distribution/pom.xml clean install --no-transfer-progress -nsu -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false ${mavenParallelism('large')} -Dbundle=dev -Pintegration-tests-modules${coreVersion} -DwithJavadoc`,
         environment: {
           MAVEN_OPTS: '-Xmx2048m',
         },
