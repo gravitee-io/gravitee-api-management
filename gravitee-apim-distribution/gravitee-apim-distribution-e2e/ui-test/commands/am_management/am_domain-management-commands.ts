@@ -17,7 +17,7 @@
 export function am_createDomain(token: string, name: string) {
   return cy.request({
     method: 'POST',
-    url: `${Cypress.env('am_managementAPI')}/domains`,
+    url: `${Cypress.expose('am_managementAPI')}/domains`,
     auth: { bearer: token },
     body: {
       name,
@@ -29,7 +29,7 @@ export function am_createDomain(token: string, name: string) {
 export function am_deleteDomain(token: string, domainId: string) {
   return cy.request({
     method: 'DELETE',
-    url: `${Cypress.env('am_managementAPI')}/domains/${domainId}`,
+    url: `${Cypress.expose('am_managementAPI')}/domains/${domainId}`,
     auth: { bearer: token },
     body: {
       name,
@@ -41,7 +41,7 @@ export function am_deleteDomain(token: string, domainId: string) {
 export function am_enableDomain(token: string, domainId: string) {
   return cy.request({
     method: 'PATCH',
-    url: `${Cypress.env('am_managementAPI')}/domains/${domainId}`,
+    url: `${Cypress.expose('am_managementAPI')}/domains/${domainId}`,
     auth: { bearer: token },
     body: { enabled: true },
   });

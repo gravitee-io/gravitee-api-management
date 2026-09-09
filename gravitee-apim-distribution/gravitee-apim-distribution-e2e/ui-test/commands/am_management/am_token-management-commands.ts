@@ -18,7 +18,7 @@ import { BasicAuthentication } from '@model/users';
 export function am_getApiToken(auth: BasicAuthentication) {
   return cy.request({
     method: 'POST',
-    url: `${Cypress.env('am_gatewayServer')}/management/auth/token`,
+    url: `${Cypress.expose('am_gatewayServer')}/management/auth/token`,
     form: true,
     body: {
       grant_type: 'password',

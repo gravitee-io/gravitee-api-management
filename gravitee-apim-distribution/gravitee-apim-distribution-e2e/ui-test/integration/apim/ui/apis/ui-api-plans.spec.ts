@@ -26,7 +26,7 @@ describe('API Plans Feature', () => {
     cy.log('Import (create) v2 API');
     cy.request({
       method: 'POST',
-      url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/import`,
+      url: `${Cypress.expose('managementApi')}${Cypress.expose('defaultOrgEnv')}/apis/import`,
       auth: { username: ADMIN_USER.username, password: ADMIN_USER.password },
       body: ApisFaker.apiImport({ visibility: Visibility.PUBLIC }),
     }).then((response) => {

@@ -32,7 +32,7 @@ describe('API metadata screen', () => {
   before(() => {
     cy.request({
       method: 'POST',
-      url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/import`,
+      url: `${Cypress.expose('managementApi')}${Cypress.expose('defaultOrgEnv')}/apis/import`,
       auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
       body: ApisFaker.apiImport({
         plans: [PlansFaker.plan({ status: PlanStatus.PUBLISHED })],
@@ -54,14 +54,14 @@ describe('API metadata screen', () => {
     // delete (close) Plan
     cy.request({
       method: 'POST',
-      url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${api.id}/plans/${api.plans[0].id}/_close`,
+      url: `${Cypress.expose('managementApi')}${Cypress.expose('defaultOrgEnv')}/apis/${api.id}/plans/${api.plans[0].id}/_close`,
       auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
     });
 
     // delete API
     cy.request({
       method: 'DELETE',
-      url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${api.id}`,
+      url: `${Cypress.expose('managementApi')}${Cypress.expose('defaultOrgEnv')}/apis/${api.id}`,
       auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
     });
   });
@@ -228,7 +228,7 @@ describe('API metadata screen', () => {
     before(() => {
       cy.request({
         method: 'POST',
-        url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/configuration/metadata`,
+        url: `${Cypress.expose('managementApi')}${Cypress.expose('defaultOrgEnv')}/configuration/metadata`,
         auth: { username: ADMIN_USER.username, password: ADMIN_USER.password },
         body: {
           format: 'STRING',
@@ -273,7 +273,7 @@ describe('API metadata screen', () => {
       cy.clearCookie('Auth-Graviteeio-APIM');
       cy.request({
         method: 'DELETE',
-        url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/configuration/metadata/${globalMetadataKey}`,
+        url: `${Cypress.expose('managementApi')}${Cypress.expose('defaultOrgEnv')}/configuration/metadata/${globalMetadataKey}`,
         auth: { username: ADMIN_USER.username, password: ADMIN_USER.password },
       });
     });

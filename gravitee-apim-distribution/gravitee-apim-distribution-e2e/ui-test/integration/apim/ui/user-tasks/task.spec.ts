@@ -53,7 +53,7 @@ describe('Task screen', () => {
         // create API
         cy.request({
           method: 'POST',
-          url: `${Cypress.env('managementApi')}/management/organizations/${orgId}/environments/${envId}/apis/import`,
+          url: `${Cypress.expose('managementApi')}/management/organizations/${orgId}/environments/${envId}/apis/import`,
           auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
           body: ApisFaker.apiImport({
             plans: [PlansFaker.plan({ status: PlanStatus.PUBLISHED })],
@@ -65,7 +65,7 @@ describe('Task screen', () => {
           // change API review state to 'ASK'
           cy.request({
             method: 'POST',
-            url: `${Cypress.env('managementApi')}/management/organizations/${orgId}/environments/${envId}/apis/${api.id}/reviews`,
+            url: `${Cypress.expose('managementApi')}/management/organizations/${orgId}/environments/${envId}/apis/${api.id}/reviews`,
             auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
             body: { message: 'my test message' },
             qs: { action: ReviewAction.ASK },
@@ -99,7 +99,7 @@ describe('Task screen', () => {
         // create API with key plan and manual validation
         cy.request({
           method: 'POST',
-          url: `${Cypress.env('managementApi')}/management/organizations/${orgId}/environments/${envId}/apis/import`,
+          url: `${Cypress.expose('managementApi')}/management/organizations/${orgId}/environments/${envId}/apis/import`,
           auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
           body: ApisFaker.apiImport({
             plans: [
@@ -113,7 +113,7 @@ describe('Task screen', () => {
           // create an application to subscribe to the API Key plan
           cy.request({
             method: 'POST',
-            url: `${Cypress.env('managementApi')}/management/organizations/${orgId}/environments/${envId}/applications`,
+            url: `${Cypress.expose('managementApi')}/management/organizations/${orgId}/environments/${envId}/applications`,
             auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
             body: ApplicationsFaker.newApplication(),
           }).then((response) => {
@@ -123,7 +123,7 @@ describe('Task screen', () => {
             // subscribe application to plan
             cy.request({
               method: 'POST',
-              url: `${Cypress.env('managementApi')}/management/organizations/${orgId}/environments/${envId}/applications/${
+              url: `${Cypress.expose('managementApi')}/management/organizations/${orgId}/environments/${envId}/applications/${
                 application.id
               }/subscriptions`,
               auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
@@ -165,7 +165,7 @@ describe('Task screen', () => {
       before(() => {
         cy.request({
           method: 'POST',
-          url: `${Cypress.env('managementApi')}/management/organizations/${orgId}/settings`,
+          url: `${Cypress.expose('managementApi')}/management/organizations/${orgId}/settings`,
           auth: { username: ADMIN_USER.username, password: ADMIN_USER.password },
           body: {
             management: {
@@ -177,7 +177,7 @@ describe('Task screen', () => {
 
           cy.request({
             method: 'POST',
-            url: `${Cypress.env('managementApi')}/management/organizations/${orgId}/users/registration`,
+            url: `${Cypress.expose('managementApi')}/management/organizations/${orgId}/users/registration`,
             body: { email, firstname, lastname },
           }).then((response) => {
             expect(response.status).to.eq(200);
@@ -201,7 +201,7 @@ describe('Task screen', () => {
         cy.request({
           method: 'DELETE',
           auth: { username: ADMIN_USER.username, password: ADMIN_USER.password },
-          url: `${Cypress.env('managementApi')}/management/organizations/${orgId}/users/${userId}`,
+          url: `${Cypress.expose('managementApi')}/management/organizations/${orgId}/users/${userId}`,
         });
       });
     });

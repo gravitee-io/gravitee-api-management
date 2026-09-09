@@ -29,7 +29,7 @@ describe('API events screen', () => {
   before(() => {
     cy.request({
       method: 'POST',
-      url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/import`,
+      url: `${Cypress.expose('managementApi')}${Cypress.expose('defaultOrgEnv')}/apis/import`,
       auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
       body: ApisFaker.apiImport({
         plans: [PlansFaker.plan({ status: PlanStatus.PUBLISHED })],
