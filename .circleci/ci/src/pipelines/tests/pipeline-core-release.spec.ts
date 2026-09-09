@@ -28,7 +28,7 @@ const environment: CircleCIEnvironment = {
   graviteeioVersion: '4.13.0',
   tag: 'core_4.13.0',
   isDryRun: false,
-  apimVersionPath: '',
+  apimVersionPath: './src/pipelines/tests/resources/common/pom.xml',
 };
 
 describe('Core release workflow tests', () => {

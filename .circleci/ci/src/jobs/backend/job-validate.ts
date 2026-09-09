@@ -42,19 +42,19 @@ export class ValidateJob {
         command: `mvn -s ${config.maven.settingsFile} validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pall-modules ${mavenParallelism('large')}`,
       }),
       new commands.Run({
-        // Its own reactor, so validated separately. No engine-snapshot here: the profile makes the
-        // BOM import resolve ${revision}${sha1}${changelist}, and this step runs before anything is
-        // installed. It works only for as long as that snapshot happens to be on Nexus — right
-        // after a <revision> bump none exists, and validation would hard-fail on every pull request
-        // until the first publication. License and prettier do not care which engine is pinned.
+        // Its own reactor, so validated separately. The core version is left at whatever the pom
+        // pins: overriding it here would make the BOM import resolve a snapshot, and this step runs
+        // before anything is installed — right after a <revision> bump none exists, and validation
+        // would hard-fail on every pull request until the first publication. License and prettier do
+        // not care which core is pinned.
         name: 'Validate distribution',
         command: `mvn -s ${config.maven.settingsFile} -f gravitee-apim-distribution/pom.xml validate -nsu -Dgravitee.archrules.skip=true --no-transfer-progress -Pintegration-tests-modules ${mavenParallelism('large')}`,
       }),
       new commands.Run({
-        // The two reactors each carry a version triplet and they must stay in step: engine-snapshot
-        // resolves apim.core.version from the distribution's own properties, so a stale triplet
-        // does not fail — it resolves the previous version's snapshot from Nexus and quietly
-        // assembles the wrong engine. Cheap to check, expensive to notice otherwise.
+        // The two reactors each carry a version triplet, and this holds them in step. It no longer
+        // guards what gets assembled — the core version is now passed explicitly, so the
+        // distribution's own triplet cannot pull in the wrong core — it only enforces a single
+        // lineage, which is what has to go before the two can be released apart.
         name: 'Check both reactors carry the same version',
         command: `triplet() {
   rev=$(grep -o '<revision>[^<]*</revision>' "$1" | head -1 | sed -E 's#</?revision>##g')
