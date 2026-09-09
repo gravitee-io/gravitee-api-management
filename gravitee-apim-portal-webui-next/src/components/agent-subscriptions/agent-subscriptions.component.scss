@@ -1,0 +1,63 @@
+@use '@angular/material' as mat;
+@use '../../scss/theme' as app-theme;
+
+.agent-subscriptions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 520px;
+  max-width: 100%;
+
+  @include mat.expansion-overrides(
+    (
+      header-hover-state-layer-color: transparent,
+      header-focus-state-layer-color: transparent,
+      container-shape: app-theme.$container-shape,
+    )
+  );
+
+  &__header {
+    padding-right: 40px;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__item {
+    position: relative;
+  }
+
+  &__details-link {
+    position: absolute;
+    top: 0;
+    right: 48px;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    height: var(--mat-expansion-header-collapsed-state-height, 48px);
+  }
+
+  &__item:has(mat-expansion-panel.mat-expanded) &__details-link {
+    height: var(--mat-expansion-header-expanded-state-height, 64px);
+  }
+
+  mat-expansion-panel {
+    border: app-theme.$border-width solid app-theme.$border-color;
+  }
+
+  mat-expansion-panel-header {
+    padding: 0 10px;
+    background-color: app-theme.$table-header-background-color;
+  }
+
+  mat-panel-description {
+    margin-right: 140px;
+  }
+
+  mat-expansion-panel.mat-expanded mat-expansion-panel-header {
+    border-bottom: app-theme.$border-width solid app-theme.$border-color;
+  }
+}
