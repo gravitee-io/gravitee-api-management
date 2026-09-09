@@ -62,19 +62,26 @@ git remote set-url origin "https://github.com/\${CIRCLE_PROJECT_USERNAME}/\${CIR
       }),
       new commands.Run({
         name: `Tag core ${environment.graviteeioVersion} ${environment.isDryRun ? '- Dry Run' : ''}`,
-        command: `# Only the root pom moves here. The distribution carries its own triplet and releases
-# under its own tag, so a core release must leave it alone.
-sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
+        command: `# Both poms, even though only the root reactor is published here. \`Check both reactors carry
+# the same version\` runs on every pull request and exits 1 when the triplets differ, so moving the
+# root alone would redden the branch until the next full release. The two lineages part company only
+# once engine-snapshot stops overriding the pin — until then they have to advance together.
+POMS="pom.xml gravitee-apim-distribution/pom.xml"
+for POM in \${POMS}; do
+  sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" "\${POM}"
+done
 
 git add --update
 git commit -m "${tag}"
 git tag ${tag}
 
-sed -i "s#<revision>.*</revision>#<revision>${nextVersion}</revision>#" pom.xml
-sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
-# <sha1 /> is self-closing when the qualifier is empty, which the plain <sha1>.*</sha1> pattern
-# never matches — the qualifier was silently kept on any pom already holding the empty form.
-sed -i -E "s#<sha1( */>|>[^<]*</sha1>)#<sha1>${nextQualifier}</sha1>#" pom.xml
+for POM in \${POMS}; do
+  sed -i "s#<revision>.*</revision>#<revision>${nextVersion}</revision>#" "\${POM}"
+  sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" "\${POM}"
+  # <sha1 /> is self-closing when the qualifier is empty, which the plain <sha1>.*</sha1> pattern
+  # never matches — the qualifier was silently kept on any pom already holding the empty form.
+  sed -i -E "s#<sha1( */>|>[^<]*</sha1>)#<sha1>${nextQualifier}</sha1>#" "\${POM}"
+done
 
 git add --update
 git commit -m 'chore: prepare next core version [skip ci]'
