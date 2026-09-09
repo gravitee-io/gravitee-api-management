@@ -66,8 +66,6 @@ public interface UserService {
 
     Page<UserEntity> search(ExecutionContext executionContext, UserCriteria criteria, Pageable pageable);
 
-    UserEntity register(ExecutionContext executionContext, NewExternalUserEntity newExternalUserEntity);
-
     UserEntity register(ExecutionContext executionContext, NewExternalUserEntity newExternalUserEntity, String confirmationPageUrl);
 
     /**

@@ -171,7 +171,7 @@ class UserServiceRegistrationApprovalTest {
     void should_not_send_the_registration_email_when_the_request_has_to_be_approved() throws TechnicalException {
         givenUserRegistrationEnabled(false);
 
-        userService.register(PORTAL_CONTEXT, newExternalUser());
+        userService.register(PORTAL_CONTEXT, newExternalUser(), null);
 
         verify(emailService, never()).sendAsyncEmailNotification(eq(PORTAL_CONTEXT), any());
         verify(notifierService).trigger(eq(PORTAL_CONTEXT), eq(PortalHook.USER_REGISTRATION_REQUEST), any());
@@ -181,7 +181,7 @@ class UserServiceRegistrationApprovalTest {
     void should_create_a_pending_user_when_the_request_has_to_be_approved() throws TechnicalException {
         givenUserRegistrationEnabled(false);
 
-        userService.register(PORTAL_CONTEXT, newExternalUser());
+        userService.register(PORTAL_CONTEXT, newExternalUser(), null);
 
         verify(userRepository).create(argThat(user -> user.getStatus() == UserStatus.PENDING));
     }
@@ -190,7 +190,7 @@ class UserServiceRegistrationApprovalTest {
     void should_send_the_registration_email_when_registrations_are_automatically_validated() throws TechnicalException {
         givenUserRegistrationEnabled(true);
 
-        userService.register(PORTAL_CONTEXT, newExternalUser());
+        userService.register(PORTAL_CONTEXT, newExternalUser(), null);
 
         assertThat(capturedEmails()).anyMatch(this::isRegistrationEmail);
         verify(notifierService).trigger(eq(PORTAL_CONTEXT), eq(PortalHook.USER_REGISTERED), any());
