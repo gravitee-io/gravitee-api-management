@@ -75,7 +75,7 @@ describe('GvDocumentationComponent', () => {
 
     linkToPage.click();
 
-    expect(component.onPageChange).toBeCalledTimes(0);
+    expect(component.onPageChange).toHaveBeenCalledTimes(0);
   });
 
   describe('when page type is asyncApi', () => {
