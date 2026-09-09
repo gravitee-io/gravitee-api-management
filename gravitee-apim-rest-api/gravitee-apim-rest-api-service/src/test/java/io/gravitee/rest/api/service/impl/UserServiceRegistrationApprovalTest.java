@@ -351,6 +351,24 @@ class UserServiceRegistrationApprovalTest {
         verify(userRepository, never()).create(any(User.class));
     }
 
+    @Test
+    void should_link_the_registration_email_to_the_console_when_no_target_is_named() throws TechnicalException {
+        givenUserRegistrationEnabled(true);
+        when(installationAccessQueryService.getPortalUrl(ENVIRONMENT)).thenReturn(InstallationAccessQueryService.DEFAULT_PORTAL_URL);
+        when(installationAccessQueryService.getConsoleUrl(ORGANIZATION)).thenReturn(CONSOLE_URL);
+
+        userService.registerWithTarget(PORTAL_CONTEXT, newExternalUser(), null);
+
+        EmailNotification registrationEmail = capturedEmails()
+            .stream()
+            .filter(this::isRegistrationEmail)
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("no registration email has been sent"));
+
+        assertThat((String) registrationEmail.getParams().get(PARAM_REGISTRATION_URL)).startsWith(CONSOLE_URL + REGISTRATION_PATH);
+        verify(installationAccessQueryService, never()).getGammaUrl(any());
+    }
+
     private void givenUserRegistrationEnabled(boolean automaticValidation) throws TechnicalException {
         when(
             parameterService.findAsBoolean(PORTAL_CONTEXT, Key.PORTAL_USERCREATION_ENABLED, ENVIRONMENT, ParameterReferenceType.ENVIRONMENT)
