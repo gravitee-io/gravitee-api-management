@@ -34,7 +34,7 @@
     "@angular/platform-browser-dynamic": "20.3.31",
     "@angular/router": "20.3.31",
     "@asciidoctor/core": "3.0.4",
-    "@asyncapi/web-component": "2.6.5",
+    "@asyncapi/web-component": "3.1.8",
     "@emoji-mart/data": "1.2.1",
     "@fontsource/dm-mono": "5.3.0",
     "@fontsource/dm-sans": "5.3.0",
