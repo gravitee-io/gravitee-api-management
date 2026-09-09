@@ -887,11 +887,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     @Override
-    public UserEntity register(ExecutionContext executionContext, final NewExternalUserEntity newExternalUserEntity) {
-        return register(executionContext, newExternalUserEntity, null);
-    }
-
-    @Override
     public UserEntity register(
         ExecutionContext executionContext,
         final NewExternalUserEntity newExternalUserEntity,
