@@ -161,6 +161,11 @@
         </dependency>
 
         <dependency>
+            <groupId>io.gravitee.resource</groupId>
+            <artifactId>gravitee-resource-guardian-agent-api</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.graviteesource.agent.stores</groupId>
             <artifactId>gravitee-agent-store-api</artifactId>
         </dependency>

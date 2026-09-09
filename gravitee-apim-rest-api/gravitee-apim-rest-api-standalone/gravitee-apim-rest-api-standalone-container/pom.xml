@@ -127,6 +127,10 @@
             <artifactId>gravitee-resource-oauth2-provider-api</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.gravitee.resource</groupId>
+            <artifactId>gravitee-resource-guardian-agent-api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.graviteesource.agent.skills</groupId>
             <artifactId>gravitee-agent-skill-api</artifactId>
         </dependency>
