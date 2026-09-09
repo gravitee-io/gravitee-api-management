@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ApimApiError } from '@gravitee/gamma-ui-shared/api';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -32,6 +33,14 @@ const mockUseApiList = useApiList as jest.Mock;
 const mockUseApiStats = useApiStats as jest.Mock;
 
 const STUB_STATS = { total: 0, private: 0, published: 0, isLoading: false };
+
+const NATIVE_PROXY_NAME = 'Payments Proxy';
+const FEDERATED_API_NAME = 'Federated Orders';
+
+const API_ROWS = [
+    { id: 'native-1', name: NATIVE_PROXY_NAME, apiVersion: '1.0', type: 'PROXY', definitionVersion: 'V4' },
+    { id: 'federated-1', name: FEDERATED_API_NAME, apiVersion: '1.0', type: 'PROXY', definitionVersion: 'V4' },
+];
 
 function renderPage() {
     return render(
@@ -58,6 +67,33 @@ describe('ApisPage', () => {
 
         expect(screen.queryByText('Why add an API proxy?')).not.toBeNull();
         expect(screen.queryByPlaceholderText('Search APIs...')).toBeNull();
+    });
+
+    it('renders an API row of either kind when the search succeeds', () => {
+        mockUseApiList.mockReturnValue({
+            data: { data: API_ROWS, pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: API_ROWS.length } },
+            isLoading: false,
+            isFetching: false,
+        });
+        renderPage();
+
+        expect(screen.queryByText(NATIVE_PROXY_NAME)).not.toBeNull();
+        expect(screen.queryByText(FEDERATED_API_NAME)).not.toBeNull();
+    });
+
+    it('renders no API row of either kind when the search is refused with 403', () => {
+        mockUseApiList.mockReturnValue({
+            data: undefined,
+            isLoading: false,
+            isFetching: false,
+            isPlaceholderData: false,
+            isError: true,
+            error: new ApimApiError(403, 'Forbidden'),
+        });
+        renderPage();
+
+        expect(screen.queryByText(NATIVE_PROXY_NAME)).toBeNull();
+        expect(screen.queryByText(FEDERATED_API_NAME)).toBeNull();
     });
 
     it('shows the list view when APIs exist', () => {
