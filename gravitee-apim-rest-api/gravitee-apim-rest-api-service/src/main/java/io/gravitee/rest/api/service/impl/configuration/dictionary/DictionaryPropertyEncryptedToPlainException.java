@@ -41,8 +41,7 @@ public class DictionaryPropertyEncryptedToPlainException extends AbstractValidat
             propertyKey +
             "] on dictionary [" +
             dictionaryId +
-            "] is encrypted. Its value cannot be replaced with plaintext, and it cannot be declared plain; " +
-            "supply the already-encrypted value with 'encrypted' set to true, or leave the value unchanged."
+            "] is already encrypted; it cannot be made plain again. Renew it with a new value instead."
         );
     }
 

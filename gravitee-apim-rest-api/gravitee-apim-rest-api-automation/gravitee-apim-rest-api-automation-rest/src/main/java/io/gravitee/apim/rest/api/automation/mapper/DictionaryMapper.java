@@ -16,6 +16,7 @@
 package io.gravitee.apim.rest.api.automation.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.dictionary.domain_service.DictionaryAutomationDomainService;
 import io.gravitee.apim.core.dictionary.model.Dictionary;
 import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
 import io.gravitee.apim.rest.api.automation.model.DictionaryPropertyOptions;
@@ -33,11 +34,9 @@ import io.gravitee.rest.api.model.configuration.dictionary.DictionaryProviderEnt
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryTriggerEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.impl.configuration.dictionary.InvalidDictionaryPropertyOptionsException;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -121,26 +120,46 @@ public interface DictionaryMapper {
         return null;
     }
 
-    default Map<String, DictionaryPropertyOptions> toSpecPropertyOptions(
-        Map<String, io.gravitee.rest.api.model.configuration.dictionary.DictionaryPropertyOptions> options
-    ) {
-        if (options == null) {
+    default Map<String, String> toSpecProperties(Map<String, DictionaryProperty> stored) {
+        if (stored == null) {
             return Map.of();
         }
-        return options
+        return stored
             .entrySet()
             .stream()
+            .sorted(Map.Entry.comparingByKey())
+            .collect(LinkedHashMap::new, (values, entry) -> values.put(entry.getKey(), entry.getValue().getValue()), LinkedHashMap::putAll);
+    }
+
+    default Map<String, DictionaryPropertyOptions> toSpecPropertyOptions(Map<String, DictionaryProperty> stored) {
+        if (stored == null) {
+            return Map.of();
+        }
+        return stored
+            .entrySet()
+            .stream()
+            .filter(entry -> Boolean.TRUE.equals(entry.getValue().getEncrypted()))
+            .sorted(Map.Entry.comparingByKey())
             .collect(
                 LinkedHashMap::new,
-                (specOptions, entry) ->
-                    specOptions.put(entry.getKey(), new DictionaryPropertyOptions().encrypted(entry.getValue().getEncrypted())),
+                (options, entry) -> options.put(entry.getKey(), new DictionaryPropertyOptions().encrypted(true)),
                 LinkedHashMap::putAll
             );
     }
 
     // ===== DictionaryEntity → DictionaryState =====
 
-    default DictionaryState toDictionaryState(DictionaryEntity entity, ExecutionContext executionContext) {
+    /**
+     * The flat {@code DictionaryEntity} passed in may hold a masked value for an encrypted key (the
+     * Console-facing read masks ciphertext) — this method never reads its properties directly. It
+     * fetches the typed properties itself, unmasked: the Automation API round-trips real ciphertext
+     * for GitOps reconcile, and never masks.
+     */
+    default DictionaryState toDictionaryState(
+        DictionaryEntity entity,
+        ExecutionContext executionContext,
+        DictionaryAutomationDomainService dictionaryService
+    ) {
         DictionaryState state = new DictionaryState(
             entity.getId(),
             executionContext.getEnvironmentId(),
@@ -154,8 +173,9 @@ public interface DictionaryMapper {
         if (entity.getType() == io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL) {
             state.setDeployed(entity.getDeployedAt() != null);
             ManualDictionarySpec manual = new ManualDictionarySpec();
-            manual.setProperties(entity.getProperties() == null ? Map.of() : entity.getProperties());
-            manual.setPropertyOptions(toSpecPropertyOptions(entity.getPropertyOptions()));
+            Map<String, DictionaryProperty> stored = dictionaryService.findTypedPropertiesById(executionContext, entity.getId());
+            manual.setProperties(toSpecProperties(stored));
+            manual.setPropertyOptions(toSpecPropertyOptions(stored));
             state.setManual(manual);
         } else {
             state.setDeployed(isEntityStarted(entity));

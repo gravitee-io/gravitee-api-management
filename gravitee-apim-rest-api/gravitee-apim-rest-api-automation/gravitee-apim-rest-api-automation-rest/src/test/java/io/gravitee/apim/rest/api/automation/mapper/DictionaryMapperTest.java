@@ -17,7 +17,9 @@ package io.gravitee.apim.rest.api.automation.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.dictionary.domain_service.DictionaryAutomationDomainService;
 import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
 import io.gravitee.apim.rest.api.automation.model.DictionaryPropertyOptions;
 import io.gravitee.apim.rest.api.automation.model.DictionarySpec;
@@ -32,6 +34,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class DictionaryMapperTest {
@@ -88,11 +91,21 @@ class DictionaryMapperTest {
                 )
             )
             .build();
+        DictionaryAutomationDomainService dictionaryService = Mockito.mock(DictionaryAutomationDomainService.class);
+        when(dictionaryService.findTypedPropertiesById(EXECUTION_CONTEXT, "dic-1")).thenReturn(
+            Map.of(
+                "plain-key",
+                DictionaryProperty.builder().value("plain-value").build(),
+                "secret-key",
+                DictionaryProperty.builder().value("ENC(cipher)").encrypted(true).build()
+            )
+        );
 
-        DictionaryState state = DictionaryMapper.INSTANCE.toDictionaryState(entity, EXECUTION_CONTEXT);
+        DictionaryState state = DictionaryMapper.INSTANCE.toDictionaryState(entity, EXECUTION_CONTEXT, dictionaryService);
 
+        // The values come from the unmasked read, so the encrypted one is real ciphertext.
         assertThat(state.getManual().getProperties()).containsExactlyInAnyOrderEntriesOf(
-            Map.of("plain-key", "plain-value", "secret-key", "cipher")
+            Map.of("plain-key", "plain-value", "secret-key", "ENC(cipher)")
         );
         assertThat(state.getManual().getPropertyOptions()).containsOnlyKeys("secret-key");
         assertThat(state.getManual().getPropertyOptions().get("secret-key").getEncrypted()).isTrue();
@@ -113,15 +126,18 @@ class DictionaryMapperTest {
             .properties(
                 dictionary.getProperties().stream().collect(Collectors.toMap(DictionaryProperty::getKey, DictionaryProperty::getValue))
             )
-            .propertyOptions(
-                Map.of(
-                    "secret-key",
-                    io.gravitee.rest.api.model.configuration.dictionary.DictionaryPropertyOptions.builder().encrypted(true).build()
-                )
-            )
             .build();
+        DictionaryAutomationDomainService dictionaryService = Mockito.mock(DictionaryAutomationDomainService.class);
+        when(dictionaryService.findTypedPropertiesById(EXECUTION_CONTEXT, "dic-1")).thenReturn(
+            Map.of(
+                "plain-key",
+                DictionaryProperty.builder().value("plain-value").build(),
+                "secret-key",
+                DictionaryProperty.builder().value("cipher").encrypted(true).build()
+            )
+        );
 
-        DictionaryState state = DictionaryMapper.INSTANCE.toDictionaryState(entity, EXECUTION_CONTEXT);
+        DictionaryState state = DictionaryMapper.INSTANCE.toDictionaryState(entity, EXECUTION_CONTEXT, dictionaryService);
 
         assertThat(state.getManual().getProperties()).containsExactlyInAnyOrderEntriesOf(spec.getManual().getProperties());
         assertThat(state.getManual().getPropertyOptions()).isEqualTo(spec.getManual().getPropertyOptions());

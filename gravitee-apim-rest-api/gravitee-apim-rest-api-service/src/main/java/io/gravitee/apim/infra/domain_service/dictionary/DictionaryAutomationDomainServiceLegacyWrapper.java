@@ -55,6 +55,31 @@ public class DictionaryAutomationDomainServiceLegacyWrapper implements Dictionar
         return dictionaryService.update(executionContext, id, toUpdateDictionaryEntity(dictionary));
     }
 
+    @Override
+    public Map<String, DictionaryProperty> findTypedPropertiesById(ExecutionContext executionContext, String id) {
+        Map<String, io.gravitee.definition.model.dictionary.DictionaryProperty> properties = dictionaryService.findTypedPropertiesById(
+            executionContext,
+            id
+        );
+        return properties
+            .entrySet()
+            .stream()
+            .filter(entry -> entry.getValue() != null)
+            .collect(
+                LinkedHashMap::new,
+                (result, entry) ->
+                    result.put(
+                        entry.getKey(),
+                        DictionaryProperty.builder()
+                            .key(entry.getKey())
+                            .value(entry.getValue().value())
+                            .encrypted(entry.getValue().encrypted())
+                            .build()
+                    ),
+                LinkedHashMap::putAll
+            );
+    }
+
     public Optional<DictionaryEntity> findById(ExecutionContext executionContext, String id) {
         try {
             return Optional.of(dictionaryService.findById(executionContext, id));

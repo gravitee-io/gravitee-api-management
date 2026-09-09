@@ -88,16 +88,13 @@ public class DictionaryRefresher implements Handler<Long> {
                 )
             );
 
-        // Compare properties with latest values
-        if (!properties.equals(dictionary.getProperties())) {
-            try {
-                // Get a fresh version of the dictionary before updating its properties.
-                dictionary = dictionaryService.updateProperties(dictionary.getId(), properties);
-            } catch (DictionaryNotFoundException e) {
-                log.debug("Trying to update a deleted dictionary {} - nothing to do...", dictionary.getId());
-            } catch (Exception ex) {
-                log.error("Unexpected error while updating and deploying the dictionary {}", dictionary.getId(), ex);
-            }
+        try {
+            // Get a fresh version of the dictionary before updating its properties.
+            dictionary = dictionaryService.updateProperties(dictionary.getId(), properties);
+        } catch (DictionaryNotFoundException e) {
+            log.debug("Trying to update a deleted dictionary {} - nothing to do...", dictionary.getId());
+        } catch (Exception ex) {
+            log.error("Unexpected error while updating and deploying the dictionary {}", dictionary.getId(), ex);
         }
     }
 
