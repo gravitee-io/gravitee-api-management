@@ -345,7 +345,14 @@ jobs:
       - run:
           name: Build docker image for << parameters.apim-project >>
           command: |-
+            CORE_VERSION_FILE="<< parameters.docker-context >>/distribution/core.version"
+            CORE_ARG=""
+            if [ -f "$CORE_VERSION_FILE" ]; then
+              CORE_ARG="--build-arg CORE_VERSION=$(cat "$CORE_VERSION_FILE")"
+              echo "This image embeds core $(cat "$CORE_VERSION_FILE")"
+            fi
             docker buildx build --push --quiet --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
+            ${CORE_ARG} \
             -t graviteeio/<< parameters.docker-image-name >>:4.2.0 -t graviteeio/<< parameters.docker-image-name >>:4.2 -t graviteeio/<< parameters.docker-image-name >>:4 -t graviteeio/<< parameters.docker-image-name >>:latest \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project-workdir >>
@@ -382,14 +389,28 @@ jobs:
       - run:
           name: Build docker image for << parameters.apim-project >>-alpine
           command: |-
+            CORE_VERSION_FILE="<< parameters.docker-context >>/distribution/core.version"
+            CORE_ARG=""
+            if [ -f "$CORE_VERSION_FILE" ]; then
+              CORE_ARG="--build-arg CORE_VERSION=$(cat "$CORE_VERSION_FILE")"
+              echo "This image embeds core $(cat "$CORE_VERSION_FILE")"
+            fi
             docker buildx build --push --quiet --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
+            ${CORE_ARG} \
             -t graviteeio/<< parameters.docker-image-name >>:4.2.0 -t graviteeio/<< parameters.docker-image-name >>:4.2 -t graviteeio/<< parameters.docker-image-name >>:4 -t graviteeio/<< parameters.docker-image-name >>:latest \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project-workdir >>
       - run:
           name: Build docker image for << parameters.apim-project >>-debian
           command: |-
+            CORE_VERSION_FILE="<< parameters.docker-context >>/distribution/core.version"
+            CORE_ARG=""
+            if [ -f "$CORE_VERSION_FILE" ]; then
+              CORE_ARG="--build-arg CORE_VERSION=$(cat "$CORE_VERSION_FILE")"
+              echo "This image embeds core $(cat "$CORE_VERSION_FILE")"
+            fi
             docker buildx build --push --quiet --platform=linux/arm64,linux/amd64 -f docker/Dockerfile.debian \
+            ${CORE_ARG} \
             -t graviteeio/<< parameters.docker-image-name >>:4.2.0-debian -t graviteeio/<< parameters.docker-image-name >>:4.2-debian -t graviteeio/<< parameters.docker-image-name >>:4-debian -t graviteeio/<< parameters.docker-image-name >>:latest-debian \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project-workdir >>
@@ -427,7 +448,14 @@ jobs:
       - run:
           name: Build Chainguard docker image for << parameters.apim-project >>
           command: |-
+            CORE_VERSION_FILE="<< parameters.docker-context >>/distribution/core.version"
+            CORE_ARG=""
+            if [ -f "$CORE_VERSION_FILE" ]; then
+              CORE_ARG="--build-arg CORE_VERSION=$(cat "$CORE_VERSION_FILE")"
+              echo "This image embeds core $(cat "$CORE_VERSION_FILE")"
+            fi
             docker buildx build --push --quiet --platform=linux/arm64,linux/amd64 -f docker/Dockerfile.chainguard \
+            ${CORE_ARG} \
             -t graviteeio/<< parameters.docker-image-name >>:4.2.0-chainguard -t graviteeio/<< parameters.docker-image-name >>:4.2-chainguard -t graviteeio/<< parameters.docker-image-name >>:4-chainguard -t graviteeio/<< parameters.docker-image-name >>:latest-chainguard \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project-workdir >>
@@ -469,8 +497,15 @@ jobs:
       - run:
           name: Build Chainguard FIPS docker image for << parameters.apim-project >>
           command: |-
+            CORE_VERSION_FILE="<< parameters.docker-context >>/distribution/core.version"
+            CORE_ARG=""
+            if [ -f "$CORE_VERSION_FILE" ]; then
+              CORE_ARG="--build-arg CORE_VERSION=$(cat "$CORE_VERSION_FILE")"
+              echo "This image embeds core $(cat "$CORE_VERSION_FILE")"
+            fi
             docker buildx build --push --quiet --platform=linux/arm64,linux/amd64 -f docker/Dockerfile.chainguard \
             --build-arg BASE_IMAGE=<< parameters.docker-fips-base-image >> \
+            ${CORE_ARG} \
             -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.2.0-chainguard-fips -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.2-chainguard-fips -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4-chainguard-fips -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:latest-chainguard-fips \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project-workdir >>

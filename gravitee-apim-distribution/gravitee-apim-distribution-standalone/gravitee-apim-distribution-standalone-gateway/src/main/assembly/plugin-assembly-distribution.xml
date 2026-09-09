@@ -119,6 +119,22 @@
                 <exclude>*</exclude>
             </excludes>
         </fileSet>
+
+        <!--
+            Which core this distribution embeds. Once the product version and the core version stop
+            being the same number, nothing published would tell support what is actually running.
+            Filtered, so it carries the version the build resolved rather than the one the pom pins:
+            a development build overrides it, and the file has to say what was really assembled.
+        -->
+        <fileSet>
+            <directory>src/main/resources/metadata</directory>
+            <outputDirectory>.</outputDirectory>
+            <includes>
+                <include>core.version</include>
+            </includes>
+            <fileMode>644</fileMode>
+            <filtered>true</filtered>
+        </fileSet>
     </fileSets>
 
     <dependencySets>
