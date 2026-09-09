@@ -26,6 +26,7 @@ import static io.gravitee.repository.management.model.Subscription.Status.ACCEPT
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.handlers.api.context.SubscriptionVariable;
@@ -48,6 +49,8 @@ public class SubscriptionProcessor implements Processor {
     public static final String ID = "processor-subscription";
     public static final String ATTR_API_PRODUCT = ExecutionContext.ATTR_PREFIX + "apiProduct";
     public static final String DEFAULT_CLIENT_IDENTIFIER_HEADER = "X-Gravitee-Client-Identifier";
+    public static final String SPAN_APPLICATION_ID_ATTR = "gravitee.application.id";
+    public static final String SPAN_APPLICATION_NAME_ATTR = "gravitee.application.name";
     static final String APPLICATION_ANONYMOUS = "1";
     static final String PLAN_ANONYMOUS = "1";
     static final String SUBSCRIPTION_CONTEXT_ATTRIBUTE = "subscription";
@@ -143,6 +146,9 @@ public class SubscriptionProcessor implements Processor {
                 ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
             }
             metrics.setApplicationName(subscription.getApplicationName());
+            final Tracer tracer = ctx.getTracer();
+            tracer.deferRootSpanAttribute(SPAN_APPLICATION_ID_ATTR, applicationId);
+            tracer.deferRootSpanAttribute(SPAN_APPLICATION_NAME_ATTR, subscription.getApplicationName());
             if (subscription.getApiProductId() != null) {
                 ctx.setAttribute(ATTR_API_PRODUCT, subscription.getApiProductId());
                 metrics.setApiProductId(subscription.getApiProductId());
