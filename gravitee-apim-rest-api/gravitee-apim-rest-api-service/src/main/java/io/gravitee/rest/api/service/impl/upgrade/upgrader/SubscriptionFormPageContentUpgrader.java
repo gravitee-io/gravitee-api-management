@@ -87,6 +87,7 @@ public class SubscriptionFormPageContentUpgrader implements Upgrader {
         }
 
         var environmentId = form.getEnvironmentId();
+        PortalPageContentId contentId = null;
         try {
             var organizationId = environmentRepository.findById(environmentId).map(Environment::getOrganizationId).orElse(null);
             if (organizationId == null) {
@@ -94,21 +95,34 @@ public class SubscriptionFormPageContentUpgrader implements Upgrader {
                 return false;
             }
 
-            var content = pageContentCrudService.create(
-                new GraviteeMarkdownPageContent(
-                    PortalPageContentId.random(),
-                    organizationId,
-                    environmentId,
-                    GraviteeMarkdown.of(form.getGmdContent())
+            contentId = pageContentCrudService
+                .create(
+                    new GraviteeMarkdownPageContent(
+                        PortalPageContentId.random(),
+                        organizationId,
+                        environmentId,
+                        GraviteeMarkdown.of(form.getGmdContent())
+                    )
                 )
-            );
-            form.setPortalPageContentId(content.getId().toString());
+                .getId();
+            form.setPortalPageContentId(contentId.toString());
             form.setGmdContent(null);
             subscriptionFormRepository.update(form);
             return true;
         } catch (Exception e) {
+            if (contentId != null) {
+                deleteQuietly(contentId, e);
+            }
             log.error("Failed to move subscription form [{}] content to a page content", form.getId(), e);
             return false;
+        }
+    }
+
+    private void deleteQuietly(PortalPageContentId contentId, Exception cause) {
+        try {
+            pageContentCrudService.delete(contentId);
+        } catch (RuntimeException cleanupFailure) {
+            cause.addSuppressed(cleanupFailure);
         }
     }
 

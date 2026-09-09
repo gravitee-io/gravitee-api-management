@@ -162,6 +162,20 @@ class SubscriptionFormPageContentUpgraderTest {
     }
 
     @Test
+    void should_delete_the_page_content_when_the_row_update_fails() throws Exception {
+        var form = aLegacyForm("form-1", "env-1");
+        when(subscriptionFormRepository.findAll()).thenReturn(Set.of(form));
+        when(environmentRepository.findById("env-1")).thenReturn(Optional.of(anEnvironment("env-1", "org-1")));
+        when(subscriptionFormRepository.update(any())).thenThrow(new TechnicalException("Database error"));
+
+        assertThat(upgrader.upgrade()).isTrue();
+
+        var contentCaptor = ArgumentCaptor.forClass(PortalPageContent.class);
+        verify(pageContentCrudService).create(contentCaptor.capture());
+        verify(pageContentCrudService).delete(contentCaptor.getValue().getId());
+    }
+
+    @Test
     void should_wrap_technical_exception_from_repository() throws Exception {
         when(subscriptionFormRepository.findAll()).thenThrow(new TechnicalException("Database error"));
 
