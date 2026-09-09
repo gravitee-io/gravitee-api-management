@@ -49,6 +49,7 @@ const ORGANIZATION_SETTINGS_GATED_ITEMS: ReadonlySet<string> = new Set([
     'cors',
     'smtp',
     'templates',
+    'api-logging',
     'organization-audit',
     'users',
 ]);
@@ -75,6 +76,7 @@ export const NAV_ITEM_PERMISSIONS: Readonly<Record<string, readonly string[]>> =
     cors: [ORGANIZATION_SETTINGS_READ_PERMISSION],
     smtp: [ORGANIZATION_SETTINGS_READ_PERMISSION],
     templates: [ORGANIZATION_NOTIFICATION_TEMPLATES_READ],
+    'api-logging': [ORGANIZATION_SETTINGS_READ_PERMISSION],
     'organization-audit': [ORGANIZATION_AUDIT_READ_PERMISSION],
     applications: [ENVIRONMENT_APPLICATION_READ_PERMISSION],
     integrations: [ENVIRONMENT_INTEGRATION_READ_PERMISSION],

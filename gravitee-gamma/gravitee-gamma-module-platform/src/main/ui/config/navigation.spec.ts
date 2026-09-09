@@ -88,7 +88,7 @@ describe('platform navigation config', () => {
         expect(assetItems.find(item => item.key === 'broadcasts')?.title).toBe('Broadcasts');
     });
 
-    it('places Access Management, Gateways, Alerts, Notifications, API Health Check, SMTP, Security Plan Types, and Audit under Environment / System & Security', () => {
+    it('places Access Management, Gateways, Alerts, Notifications, API Health Check, SMTP, API Logging, Security Plan Types, and Audit under Environment / System & Security', () => {
         expect(sectionKeys('Environment', 'System & Security')).toEqual([
             'access-management',
             'gateways',
@@ -96,6 +96,7 @@ describe('platform navigation config', () => {
             'notification-settings',
             'api-health-check',
             'environment-smtp',
+            'api-logging',
             'security-plan-types',
             'environment-audit',
         ]);
