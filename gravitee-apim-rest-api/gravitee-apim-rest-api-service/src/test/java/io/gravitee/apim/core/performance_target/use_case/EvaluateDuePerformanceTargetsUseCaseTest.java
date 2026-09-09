@@ -360,6 +360,63 @@ class EvaluateDuePerformanceTargetsUseCaseTest {
         assertThat(tick(now.plus(TICK)).evaluations()).extracting(PerformanceTargetEvaluation::targetId).containsExactly("idle");
     }
 
+    /**
+     * Only the primary node schedules, but an on-demand evaluation is served by whichever node answers the request:
+     * its result reaches the primary through the store, not through the primary's memory.
+     */
+    @Test
+    void should_end_the_backoff_when_another_node_ran_the_on_demand_evaluation() {
+        var target = aTarget("idle");
+        targetCrudService.initWith(List.of(target));
+        evaluator.status(PerformanceTargetEvaluation.Status.NOT_EVALUABLE);
+        var now = T0;
+        while (now.isBefore(T0.plus(Duration.ofHours(5)))) {
+            tick(now);
+            now = now.plus(TICK);
+        }
+        var lastScheduled = evaluationCrudService
+            .storage()
+            .stream()
+            .map(PerformanceTargetEvaluation::evaluatedAt)
+            .max(Instant::compareTo)
+            .get();
+        assertThat(tick(lastScheduled.plus(INTERVAL.multipliedBy(2))).evaluations()).isEmpty();
+
+        evaluator.status(PerformanceTargetEvaluation.Status.PASS);
+        var onAnotherNode = new EvaluatePerformanceTargetUseCase(
+            targetCrudService,
+            evaluationQueryService,
+            evaluationCrudService,
+            evaluator,
+            new PerformanceTargetScheduleStateDomainService()
+        );
+        var clicked = lastScheduled.plus(INTERVAL.multipliedBy(2)).plusSeconds(30);
+        input(clicked);
+        onAnotherNode.execute(new EvaluatePerformanceTargetUseCase.Input(target.environmentId(), target.id()));
+
+        var nextSlot = tick(clicked.plus(INTERVAL).plus(TICK));
+
+        assertThat(nextSlot.evaluations()).extracting(PerformanceTargetEvaluation::targetId).containsExactly("idle");
+    }
+
+    @Test
+    void should_evaluate_a_target_another_node_redefined_at_the_next_tick() {
+        var target = aTarget("idle");
+        targetCrudService.initWith(List.of(target));
+        evaluator.status(PerformanceTargetEvaluation.Status.NOT_EVALUABLE);
+        var now = T0;
+        while (now.isBefore(T0.plus(Duration.ofHours(5)))) {
+            tick(now);
+            now = now.plus(TICK);
+        }
+        assertThat(tick(now).evaluations()).isEmpty();
+
+        // the store holds the new definition; this node's memory still holds the backoff
+        targetCrudService.update(target.toBuilder().updatedAt(now.atZone(ZoneId.systemDefault())).build());
+
+        assertThat(tick(now.plus(TICK)).evaluations()).extracting(PerformanceTargetEvaluation::targetId).containsExactly("idle");
+    }
+
     /** Another node: its own schedule state, the same stores. */
     private EvaluateDuePerformanceTargetsUseCase newUseCase(PerformanceTargetEvaluatorInMemory evaluator) {
         return newUseCase(evaluator, new PerformanceTargetScheduleStateDomainService());

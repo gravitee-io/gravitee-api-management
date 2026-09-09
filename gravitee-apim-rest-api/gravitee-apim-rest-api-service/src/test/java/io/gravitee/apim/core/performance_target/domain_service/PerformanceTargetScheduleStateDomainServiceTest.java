@@ -90,6 +90,58 @@ class PerformanceTargetScheduleStateDomainServiceTest {
         assertThat(service.current("gone")).isEmpty();
     }
 
+    @Test
+    void should_adopt_an_evaluation_another_node_stored_after_its_own_last_one() {
+        service.stateOf("t", () -> new State(T0, 5));
+
+        var state = service.reconcile("t", null, evaluation(PerformanceTargetEvaluation.Status.PASS, T0.plusSeconds(90)));
+
+        assertThat(state).isEqualTo(new State(T0.plusSeconds(90), 0));
+        assertThat(service.current("t")).contains(state);
+    }
+
+    @Test
+    void should_keep_its_state_when_the_stored_latest_is_not_newer_than_what_it_knows() {
+        service.stateOf("t", () -> new State(T0, 5));
+
+        var same = service.reconcile("t", null, evaluation(PerformanceTargetEvaluation.Status.NOT_EVALUABLE, T0));
+        var older = service.reconcile("t", null, evaluation(PerformanceTargetEvaluation.Status.PASS, T0.minusSeconds(60)));
+
+        assertThat(same).isEqualTo(new State(T0, 5));
+        assertThat(older).isEqualTo(new State(T0, 5));
+    }
+
+    @Test
+    void should_start_afresh_when_the_target_was_redefined_after_its_last_evaluation() {
+        service.stateOf("t", () -> new State(T0, 5));
+
+        assertThat(service.reconcile("t", T0.minusSeconds(10), null)).isEqualTo(new State(T0, 5));
+        assertThat(service.reconcile("t", T0.plusSeconds(10), null)).isEqualTo(State.FRESH);
+    }
+
+    @Test
+    void should_adopt_only_the_evaluations_that_followed_a_redefinition() {
+        service.stateOf("t", () -> new State(T0, 5));
+
+        var before = service.reconcile("t", T0.plusSeconds(10), evaluation(PerformanceTargetEvaluation.Status.PASS, T0.plusSeconds(5)));
+        var after = service.reconcile(
+            "t",
+            T0.plusSeconds(10),
+            evaluation(PerformanceTargetEvaluation.Status.NOT_EVALUABLE, T0.plusSeconds(40))
+        );
+
+        assertThat(before).isEqualTo(State.FRESH);
+        assertThat(after).isEqualTo(new State(T0.plusSeconds(40), 1));
+    }
+
+    @Test
+    void should_reconcile_a_target_it_has_not_seen_yet_from_the_stored_latest() {
+        var state = service.reconcile("t", null, evaluation(PerformanceTargetEvaluation.Status.BREACH, T0));
+
+        assertThat(state).isEqualTo(new State(T0, 0));
+        assertThat(service.current("t")).contains(state);
+    }
+
     private static PerformanceTargetEvaluation evaluation(PerformanceTargetEvaluation.Status status, Instant evaluatedAt) {
         return PerformanceTargetFixtures.anEvaluation("e-" + evaluatedAt.getEpochSecond(), "t", status, evaluatedAt);
     }
