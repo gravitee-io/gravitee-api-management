@@ -16,8 +16,10 @@
 package io.gravitee.apim.core.dictionary.domain_service;
 
 import io.gravitee.apim.core.dictionary.model.Dictionary;
+import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.Map;
 import java.util.Optional;
 
 public interface DictionaryAutomationDomainService {
@@ -30,4 +32,6 @@ public interface DictionaryAutomationDomainService {
     DictionaryEntity handleDeployment(ExecutionContext executionContext, DictionaryEntity dictionary, boolean deploy);
 
     Optional<DictionaryEntity> findById(ExecutionContext executionContext, String id);
+
+    Map<String, DictionaryProperty> findTypedPropertiesById(ExecutionContext executionContext, String id);
 }

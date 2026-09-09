@@ -21,6 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.common.util.DataEncryptor;
+import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.model.Dictionary;
@@ -32,8 +34,10 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -67,8 +71,11 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
     @Mock
     private AuditService auditService;
 
+    @Mock
+    private DataEncryptor dataEncryptor;
+
     @Test
-    public void shouldUpdatePropertiesUsingDictionaryEnvironment() throws TechnicalException {
+    public void should_update_properties_using_dictionary_environment() throws TechnicalException {
         Dictionary dictionaryInDb = new Dictionary();
         dictionaryInDb.setId(DICTIONARY_ID);
         dictionaryInDb.setCreatedAt(new Date());
@@ -113,11 +120,113 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
     }
 
     @Test
-    public void shouldNotUpdatePropertiesBecauseNotFound() throws TechnicalException {
+    public void should_not_update_properties_because_not_found() throws TechnicalException {
         assertThrows(DictionaryNotFoundException.class, () -> {
             when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.empty());
 
             dictionaryService.updateProperties(DICTIONARY_ID, Map.of("key", "value"));
         });
+    }
+
+    @Test
+    public void should_re_encrypt_sticky_key_on_refresh_even_when_nothing_changed() throws TechnicalException, GeneralSecurityException {
+        Dictionary existing = new Dictionary();
+        existing.setId(DICTIONARY_ID);
+        existing.setState(LifecycleState.STARTED);
+        existing.setEnvironmentId(ENVIRONMENT_ID);
+        existing.setType(io.gravitee.repository.management.model.DictionaryType.DYNAMIC);
+        Map<String, DictionaryProperty> existingProperties = new HashMap<>();
+        existingProperties.put("secret", new DictionaryProperty("ENC(old-cipher-of-unchanged-plaintext)", true));
+        existing.setProperties(existingProperties);
+
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
+        when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId(ENVIRONMENT_ID);
+        environment.setOrganizationId(ORGANIZATION_ID);
+        when(environmentService.findById(ENVIRONMENT_ID)).thenReturn(environment);
+
+        when(dataEncryptor.encrypt("unchanged-plaintext")).thenReturn("ENC(old-cipher-of-unchanged-plaintext)");
+
+        Map<String, String> freshlyFetched = Map.of("secret", "unchanged-plaintext");
+
+        dictionaryService.updateProperties(DICTIONARY_ID, freshlyFetched);
+
+        // No skip-on-no-change: every refresh persists and republishes, even when the re-derived
+        // ciphertext is identical to what's already stored. See
+        // should_retry_publication_when_a_previous_attempt_persisted_but_failed_to_publish for why.
+        verify(dictionaryRepository).update(
+            argThat(
+                dict ->
+                    dict.getProperties().get("secret").encrypted() &&
+                    dict.getProperties().get("secret").value().equals("ENC(old-cipher-of-unchanged-plaintext)")
+            )
+        );
+        verify(eventService).createDictionaryEvent(any(), any(), any(), eq(EventType.PUBLISH_DICTIONARY), any(Dictionary.class));
+    }
+
+    @Test
+    public void should_retry_publication_when_a_previous_attempt_persisted_but_failed_to_publish() throws TechnicalException {
+        // Simulates the state left behind by a prior refresh tick that persisted the new value but then
+        // failed to publish it: storage already reflects the fresh value, so a naive "did the resolved
+        // value change?" check would see no difference and skip republishing forever.
+        Dictionary existing = new Dictionary();
+        existing.setId(DICTIONARY_ID);
+        existing.setState(LifecycleState.STARTED);
+        existing.setEnvironmentId(ENVIRONMENT_ID);
+        existing.setType(io.gravitee.repository.management.model.DictionaryType.DYNAMIC);
+        Map<String, DictionaryProperty> existingProperties = new HashMap<>();
+        existingProperties.put("plain", new DictionaryProperty("plain-value", false));
+        existing.setProperties(existingProperties);
+
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
+        when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId(ENVIRONMENT_ID);
+        environment.setOrganizationId(ORGANIZATION_ID);
+        when(environmentService.findById(ENVIRONMENT_ID)).thenReturn(environment);
+
+        Map<String, String> freshlyFetched = Map.of("plain", "plain-value");
+
+        dictionaryService.updateProperties(DICTIONARY_ID, freshlyFetched);
+
+        verify(dictionaryRepository).update(any(Dictionary.class));
+        verify(eventService).createDictionaryEvent(any(), any(), any(), eq(EventType.PUBLISH_DICTIONARY), any(Dictionary.class));
+    }
+
+    @Test
+    public void should_re_encrypt_sticky_key_on_refresh_when_the_underlying_value_genuinely_changed()
+        throws TechnicalException, GeneralSecurityException {
+        Dictionary existing = new Dictionary();
+        existing.setId(DICTIONARY_ID);
+        existing.setState(LifecycleState.STARTED);
+        existing.setEnvironmentId(ENVIRONMENT_ID);
+        existing.setType(io.gravitee.repository.management.model.DictionaryType.DYNAMIC);
+        Map<String, DictionaryProperty> existingProperties = new HashMap<>();
+        existingProperties.put("secret", new DictionaryProperty("ENC(old-cipher-of-unchanged-plaintext)", true));
+        existing.setProperties(existingProperties);
+
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
+        when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId(ENVIRONMENT_ID);
+        environment.setOrganizationId(ORGANIZATION_ID);
+        when(environmentService.findById(ENVIRONMENT_ID)).thenReturn(environment);
+
+        when(dataEncryptor.encrypt("new-plaintext")).thenReturn("ENC(new-cipher)");
+
+        Map<String, String> freshlyFetched = Map.of("secret", "new-plaintext");
+
+        dictionaryService.updateProperties(DICTIONARY_ID, freshlyFetched);
+
+        verify(dictionaryRepository).update(
+            argThat(
+                dict ->
+                    dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("ENC(new-cipher)")
+            )
+        );
     }
 }

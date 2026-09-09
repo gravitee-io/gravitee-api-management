@@ -26,6 +26,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
@@ -39,6 +40,7 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -74,6 +76,9 @@ public class DictionaryServiceImpl_UpdateTest {
 
     @Mock
     private AuditService auditService;
+
+    @Mock
+    private DataEncryptor dataEncryptor;
 
     @Test
     public void should_update_dictionary() throws TechnicalException {
@@ -282,7 +287,7 @@ public class DictionaryServiceImpl_UpdateTest {
     }
 
     @Test
-    public void should_mark_a_new_value_as_encrypted_when_named_in_the_encrypted_hint() throws TechnicalException {
+    public void should_encrypt_a_new_value_named_in_the_encrypted_hint() throws TechnicalException, GeneralSecurityException {
         Dictionary existing = new Dictionary();
         existing.setId(DICTIONARY_ID);
         existing.setName("My Dictionary");
@@ -293,22 +298,25 @@ public class DictionaryServiceImpl_UpdateTest {
 
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
         when(dictionaryRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(dataEncryptor.encrypt("plain-secret")).thenReturn("ENC(cipher)");
 
         UpdateDictionaryEntity updateDictionaryEntity = new UpdateDictionaryEntity();
         updateDictionaryEntity.setName("My Dictionary");
         updateDictionaryEntity.setType(DictionaryType.MANUAL);
-        updateDictionaryEntity.setProperties(Map.of("secret", "cipher"));
+        updateDictionaryEntity.setProperties(Map.of("secret", "plain-secret"));
         updateDictionaryEntity.setEncryptedPropertyKeys(java.util.Set.of("secret"));
 
         dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
 
         verify(dictionaryRepository).update(
-            argThat(dict -> dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("cipher"))
+            argThat(
+                dict -> dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("ENC(cipher)")
+            )
         );
     }
 
     @Test
-    public void should_unencrypt_a_key_moved_out_of_the_encrypted_hint_even_when_its_value_is_unchanged() throws TechnicalException {
+    public void should_reject_removing_the_encrypted_hint_from_an_already_encrypted_key() throws TechnicalException {
         Dictionary existing = new Dictionary();
         existing.setId(DICTIONARY_ID);
         existing.setName("My Dictionary");
@@ -316,23 +324,149 @@ public class DictionaryServiceImpl_UpdateTest {
         existing.setType(io.gravitee.repository.management.model.DictionaryType.MANUAL);
         existing.setState(LifecycleState.STOPPED);
         Map<String, DictionaryProperty> existingProperties = new HashMap<>();
-        existingProperties.put("secret", new DictionaryProperty("cipher", true));
+        existingProperties.put("secret", new DictionaryProperty("ENC(cipher)", true));
+        existing.setProperties(existingProperties);
+
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
+
+        // Automation manifest moves "secret" from encryptedProperties to properties, value unchanged:
+        // an explicit statement that this key should no longer be encrypted. Encryption is one-way,
+        // so this must be rejected rather than silently applied.
+        UpdateDictionaryEntity updateDictionaryEntity = new UpdateDictionaryEntity();
+        updateDictionaryEntity.setName("My Dictionary");
+        updateDictionaryEntity.setType(DictionaryType.MANUAL);
+        updateDictionaryEntity.setProperties(Map.of("secret", "ENC(cipher)"));
+        updateDictionaryEntity.setEncryptedPropertyKeys(java.util.Set.of());
+
+        assertThrows(DictionaryPropertyEncryptedToPlainException.class, () ->
+            dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity)
+        );
+        verify(dictionaryRepository, never()).update(any());
+    }
+
+    @Test
+    public void should_renew_encrypted_value_rather_than_reject() throws TechnicalException, GeneralSecurityException {
+        Dictionary existing = new Dictionary();
+        existing.setId(DICTIONARY_ID);
+        existing.setName("My Dictionary");
+        existing.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+        existing.setType(io.gravitee.repository.management.model.DictionaryType.MANUAL);
+        existing.setState(LifecycleState.STOPPED);
+        Map<String, DictionaryProperty> existingProperties = new HashMap<>();
+        existingProperties.put("secret", new DictionaryProperty("ENC(cipher)", true));
+        existing.setProperties(existingProperties);
+
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
+        when(dictionaryRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(dataEncryptor.encrypt("now-plaintext")).thenReturn("ENC(renewed-cipher)");
+
+        UpdateDictionaryEntity updateDictionaryEntity = new UpdateDictionaryEntity();
+        updateDictionaryEntity.setName("My Dictionary");
+        updateDictionaryEntity.setType(DictionaryType.MANUAL);
+        Map<String, String> incoming = new HashMap<>();
+        incoming.put("secret", "now-plaintext"); // a genuine new value, not the mask, not a no-op
+        updateDictionaryEntity.setProperties(incoming);
+
+        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
+
+        verify(dictionaryRepository).update(
+            argThat(
+                dict ->
+                    dict.getProperties().get("secret").encrypted() &&
+                    dict.getProperties().get("secret").value().equals("ENC(renewed-cipher)")
+            )
+        );
+    }
+
+    @Test
+    public void should_preserve_ciphertext_when_client_echoes_the_mask() throws TechnicalException, GeneralSecurityException {
+        Dictionary existing = new Dictionary();
+        existing.setId(DICTIONARY_ID);
+        existing.setName("My Dictionary");
+        existing.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+        existing.setType(io.gravitee.repository.management.model.DictionaryType.MANUAL);
+        existing.setState(LifecycleState.STOPPED);
+        Map<String, DictionaryProperty> existingProperties = new HashMap<>();
+        existingProperties.put("secret", new DictionaryProperty("ENC(real-cipher)", true));
         existing.setProperties(existingProperties);
 
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
         when(dictionaryRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // Automation manifest moves "secret" from encryptedProperties to properties, value unchanged.
         UpdateDictionaryEntity updateDictionaryEntity = new UpdateDictionaryEntity();
         updateDictionaryEntity.setName("My Dictionary");
         updateDictionaryEntity.setType(DictionaryType.MANUAL);
-        updateDictionaryEntity.setProperties(Map.of("secret", "cipher"));
-        updateDictionaryEntity.setEncryptedPropertyKeys(java.util.Set.of());
+        updateDictionaryEntity.setProperties(Map.of("secret", DictionaryServiceImpl.ENCRYPTED_VALUE_MASK));
 
         dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
 
         verify(dictionaryRepository).update(
-            argThat(dict -> !dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("cipher"))
+            argThat(
+                dict ->
+                    dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("ENC(real-cipher)")
+            )
+        );
+        verify(dataEncryptor, never()).encrypt(any());
+    }
+
+    @Test
+    public void should_preserve_existing_properties_when_incoming_properties_is_null() throws TechnicalException {
+        Dictionary existing = new Dictionary();
+        existing.setId(DICTIONARY_ID);
+        existing.setName("My Dictionary");
+        existing.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+        existing.setType(io.gravitee.repository.management.model.DictionaryType.MANUAL);
+        existing.setState(LifecycleState.STOPPED);
+        Map<String, DictionaryProperty> existingProperties = new HashMap<>();
+        existingProperties.put("secret", new DictionaryProperty("ENC(real-cipher)", true));
+        existingProperties.put("plain", new DictionaryProperty("plain-value", false));
+        existing.setProperties(existingProperties);
+
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
+        when(dictionaryRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Simulates a metadata-only update (e.g. a rename via automation) that carries no properties
+        // at all — the dictionary's stored properties must survive untouched.
+        UpdateDictionaryEntity updateDictionaryEntity = new UpdateDictionaryEntity();
+        updateDictionaryEntity.setName("My Dictionary");
+        updateDictionaryEntity.setType(DictionaryType.MANUAL);
+        updateDictionaryEntity.setProperties(null);
+
+        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
+
+        verify(dictionaryRepository).update(
+            argThat(dict -> dict.getProperties() != null && dict.getProperties().equals(existingProperties))
+        );
+    }
+
+    @Test
+    public void should_renew_an_encrypted_value_when_a_genuinely_new_value_arrives() throws GeneralSecurityException, TechnicalException {
+        Dictionary existing = new Dictionary();
+        existing.setId(DICTIONARY_ID);
+        existing.setName("My Dictionary");
+        existing.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+        existing.setType(io.gravitee.repository.management.model.DictionaryType.MANUAL);
+        existing.setState(LifecycleState.STOPPED);
+        Map<String, DictionaryProperty> existingProperties = new HashMap<>();
+        existingProperties.put("secret", new DictionaryProperty("ENC(old-cipher)", true));
+        existing.setProperties(existingProperties);
+
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
+        when(dictionaryRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(dataEncryptor.encrypt("new-secret-value")).thenReturn("ENC(new-cipher)");
+
+        UpdateDictionaryEntity updateDictionaryEntity = new UpdateDictionaryEntity();
+        updateDictionaryEntity.setName("My Dictionary");
+        updateDictionaryEntity.setType(DictionaryType.MANUAL);
+        updateDictionaryEntity.setProperties(Map.of("secret", "new-secret-value"));
+
+        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
+
+        verify(dictionaryRepository).update(
+            argThat(
+                dict ->
+                    dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("ENC(new-cipher)")
+            )
         );
     }
 }

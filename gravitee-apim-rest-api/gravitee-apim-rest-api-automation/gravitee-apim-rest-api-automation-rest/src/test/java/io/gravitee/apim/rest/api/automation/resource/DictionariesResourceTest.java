@@ -23,7 +23,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.dictionary.domain_service.DictionaryAutomationDomainService;
 import io.gravitee.apim.core.dictionary.domain_service.ValidateDictionaryDomainService;
+import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
 import io.gravitee.apim.core.dictionary.use_case.CreateOrUpdateDictionaryUseCase;
 import io.gravitee.apim.rest.api.automation.model.DictionaryState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
@@ -49,9 +51,12 @@ class DictionariesResourceTest extends AbstractResourceTest {
     @Inject
     private ValidateDictionaryDomainService validateDictionaryDomainService;
 
+    @Inject
+    private DictionaryAutomationDomainService dictionaryAutomationDomainService;
+
     @AfterEach
     void tearDown() {
-        reset(createOrUpdateDictionaryUseCase, validateDictionaryDomainService);
+        reset(createOrUpdateDictionaryUseCase, validateDictionaryDomainService, dictionaryAutomationDomainService);
     }
 
     @Override
@@ -108,6 +113,9 @@ class DictionariesResourceTest extends AbstractResourceTest {
                 .deployedAt(new Date())
                 .build();
             when(createOrUpdateDictionaryUseCase.execute(any())).thenReturn(new CreateOrUpdateDictionaryUseCase.Output(entity));
+            when(dictionaryAutomationDomainService.findTypedPropertiesById(any(), any())).thenReturn(
+                Map.of("key1", DictionaryProperty.builder().value("value1").build())
+            );
 
             try (
                 var response = rootTarget()

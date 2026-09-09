@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.model.Dictionary;
@@ -75,6 +76,9 @@ public class DictionaryServiceImpl_CreateTest {
 
     @Mock
     private Appender<ILoggingEvent> appender;
+
+    @Mock
+    private DataEncryptor dataEncryptor;
 
     @BeforeEach
     public void setUp() {
@@ -185,17 +189,18 @@ public class DictionaryServiceImpl_CreateTest {
     }
 
     @Test
-    public void should_mark_named_keys_as_encrypted_on_create() throws TechnicalException {
+    public void should_mark_named_keys_as_encrypted_on_create() throws Exception {
         NewDictionaryEntity newDictionary = new NewDictionaryEntity();
         newDictionary.setKey("my-key");
         newDictionary.setName("My Dictionary");
         newDictionary.setType(DictionaryType.MANUAL);
-        newDictionary.setProperties(Map.of("plain", "plain-value", "secret", "cipher"));
+        newDictionary.setProperties(Map.of("plain", "plain-value", "secret", "plain-secret"));
         newDictionary.setEncryptedPropertyKeys(Set.of("secret"));
 
         when(dictionaryRepository.findById("my-key")).thenReturn(Optional.empty());
         when(dictionaryRepository.findByKeyAndEnvironment("my-key", ENVIRONMENT_ID)).thenReturn(Optional.empty());
         when(dictionaryRepository.create(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(dataEncryptor.encrypt("plain-secret")).thenReturn("ENC(cipher)");
 
         dictionaryService.create(GraviteeContext.getExecutionContext(), newDictionary);
 
@@ -203,7 +208,7 @@ public class DictionaryServiceImpl_CreateTest {
             argThat(
                 dict ->
                     dict.getProperties().get("secret").encrypted() &&
-                    dict.getProperties().get("secret").value().equals("cipher") &&
+                    dict.getProperties().get("secret").value().equals("ENC(cipher)") &&
                     !dict.getProperties().get("plain").encrypted() &&
                     dict.getProperties().get("plain").value().equals("plain-value")
             )
@@ -211,7 +216,7 @@ public class DictionaryServiceImpl_CreateTest {
     }
 
     @Test
-    public void should_not_log_encrypted_property_values_on_create() throws TechnicalException {
+    public void should_not_log_encrypted_property_values_on_create() throws Exception {
         NewDictionaryEntity newDictionary = new NewDictionaryEntity();
         newDictionary.setKey("my-key");
         newDictionary.setName("My Dictionary");
@@ -222,6 +227,7 @@ public class DictionaryServiceImpl_CreateTest {
         when(dictionaryRepository.findById("my-key")).thenReturn(Optional.empty());
         when(dictionaryRepository.findByKeyAndEnvironment("my-key", ENVIRONMENT_ID)).thenReturn(Optional.empty());
         when(dictionaryRepository.create(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(dataEncryptor.encrypt("super-secret-value")).thenReturn("ENC(cipher)");
 
         dictionaryService.create(GraviteeContext.getExecutionContext(), newDictionary);
 

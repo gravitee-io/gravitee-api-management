@@ -19,6 +19,7 @@ import static io.gravitee.repository.management.model.Audit.AuditProperties.DICT
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -45,6 +46,7 @@ import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -81,6 +83,15 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
     @Autowired
     private ObjectMapper mapper;
+
+    @Autowired
+    private DataEncryptor dataEncryptor;
+
+    /**
+     * Server-owned sentinel a client cannot legitimately type. Echoed back on read for an
+     * encrypted value; recognised on write as "leave the stored ciphertext alone."
+     */
+    static final String ENCRYPTED_VALUE_MASK = "••••••••••••";
 
     @Override
     public Set<DictionaryEntity> findAll(ExecutionContext executionContext) {
@@ -340,7 +351,11 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 log.warn("Update dictionary {} properties not applied: dictionary is {}", id, dictionary.getState());
                 return convert(dictionary);
             }
-            dictionary.setProperties(toTypedProperties(properties, dictionary.getProperties(), null));
+            // No skip-on-no-change here: persisting and publishing are two separate, non-transactional
+            // side effects, so "is the resolved value identical to what's stored" cannot tell a genuinely
+            // unchanged refresh apart from a prior tick that persisted successfully but failed to publish.
+            // Always doing both means a failed publish is retried on the very next tick.
+            dictionary.setProperties(toStickyRefreshedProperties(id, properties, dictionary.getProperties()));
             dictionary.setUpdatedAt(new Date());
             dictionary.setDeployedAt(dictionary.getUpdatedAt());
             Dictionary updatedDictionary = dictionaryRepository.update(dictionary);
@@ -424,6 +439,20 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         }
     }
 
+    @Override
+    public Map<String, DictionaryProperty> findTypedPropertiesById(ExecutionContext executionContext, String id) {
+        try {
+            Dictionary dictionary = dictionaryRepository
+                .findById(id)
+                .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
+                .orElseThrow(() -> new DictionaryNotFoundException(id));
+            Map<String, DictionaryProperty> properties = dictionary.getProperties();
+            return properties == null ? Map.of() : properties;
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("An error occurs while trying to find dictionary '" + id + "' properties", ex);
+        }
+    }
+
     private void createAuditLog(
         ExecutionContext executionContext,
         Audit.AuditEvent event,
@@ -490,7 +519,23 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         }
     }
 
-    private static Map<String, DictionaryProperty> toTypedProperties(
+    /**
+     * Resolves a flat incoming map against what is stored, deciding per key whether the result stays
+     * encrypted, becomes encrypted, or (via {@code encryptedKeyHints}) is explicitly asked to become
+     * plain. {@code encryptedKeyHints} is the authoritative desired encrypted-key set when the caller
+     * provides one (Automation, which can express "encrypted" and "not encrypted" explicitly); when it
+     * is {@code null} (the flat Console path, which cannot express that distinction), an already
+     * encrypted key stays encrypted, and only the mask sentinel or a genuinely new value are possible.
+     *
+     * <p>A key that is currently encrypted and whose incoming value is the mask sentinel is left
+     * untouched (Console round trip). A key that should end up encrypted and whose incoming value
+     * differs from the currently stored ciphertext is treated as fresh plaintext and encrypted — this
+     * covers both "encrypt this new value" and "renew this already-encrypted value". A key that is
+     * currently encrypted but should not be (per an explicit hint saying so) is rejected: encryption is
+     * one-way.
+     */
+    private Map<String, DictionaryProperty> toTypedProperties(
+        String dictionaryId,
         Map<String, String> incoming,
         Map<String, DictionaryProperty> existing,
         Set<String> encryptedKeyHints
@@ -500,19 +545,67 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         }
         Map<String, DictionaryProperty> result = new HashMap<>(incoming.size());
         incoming.forEach((key, value) -> {
-            boolean encrypted;
-            if (encryptedKeyHints != null) {
-                // Automation-sourced update: the hint is an authoritative statement of the full
-                // desired encrypted-key set, not just an additive signal — a key resubmitted with
-                // an unchanged value but no longer named in the hint must be able to decrypt.
-                encrypted = encryptedKeyHints.contains(key);
-            } else {
-                DictionaryProperty previous = existing == null ? null : existing.get(key);
-                encrypted = previous != null && Objects.equals(previous.value(), value) && previous.encrypted();
+            DictionaryProperty previous = existing == null ? null : existing.get(key);
+            boolean wasEncrypted = previous != null && previous.encrypted();
+
+            if (wasEncrypted && ENCRYPTED_VALUE_MASK.equals(value)) {
+                result.put(key, previous); // client echoed the mask untouched — keep the real ciphertext.
+                return;
             }
-            result.put(key, new DictionaryProperty(value, encrypted));
+
+            boolean desiredEncrypted = encryptedKeyHints != null ? encryptedKeyHints.contains(key) : wasEncrypted;
+
+            if (!desiredEncrypted) {
+                if (wasEncrypted) {
+                    throw new DictionaryPropertyEncryptedToPlainException(dictionaryId, key);
+                }
+                result.put(key, new DictionaryProperty(value, false));
+                return;
+            }
+
+            if (wasEncrypted && Objects.equals(previous.value(), value)) {
+                result.put(key, previous); // resubmitted unchanged, e.g. an automation reconcile.
+            } else {
+                result.put(key, new DictionaryProperty(encryptOrFail(dictionaryId, key, value), true)); // new or renewed.
+            }
         });
         return result;
+    }
+
+    /**
+     * DYNAMIC refresh chokepoint: {@code freshlyFetched} is always genuinely fresh plaintext from the
+     * provider, never a mask, never a renewal request — a key that is currently encrypted stays
+     * encrypted by re-encrypting the fresh value; the comparison never happens plaintext-vs-ciphertext.
+     */
+    private Map<String, DictionaryProperty> toStickyRefreshedProperties(
+        String dictionaryId,
+        Map<String, String> freshlyFetched,
+        Map<String, DictionaryProperty> existing
+    ) {
+        if (freshlyFetched == null) {
+            return null;
+        }
+        Map<String, DictionaryProperty> result = new HashMap<>(freshlyFetched.size());
+        freshlyFetched.forEach((key, freshPlaintext) -> {
+            DictionaryProperty previous = existing == null ? null : existing.get(key);
+            if (previous != null && previous.encrypted()) {
+                result.put(key, new DictionaryProperty(encryptOrFail(dictionaryId, key, freshPlaintext), true));
+            } else {
+                result.put(key, new DictionaryProperty(freshPlaintext, false));
+            }
+        });
+        return result;
+    }
+
+    private String encryptOrFail(String dictionaryId, String key, String value) {
+        try {
+            return dataEncryptor.encrypt(value);
+        } catch (GeneralSecurityException e) {
+            throw new TechnicalManagementException(
+                "Failed to encrypt dictionary property [" + key + "] on dictionary [" + dictionaryId + "]",
+                e
+            );
+        }
     }
 
     private static Map<String, String> toFlatProperties(Map<String, DictionaryProperty> typed) {
@@ -522,7 +615,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         Map<String, String> result = new HashMap<>(typed.size());
         typed.forEach((key, property) -> {
             if (property != null) {
-                result.put(key, property.value());
+                result.put(key, property.encrypted() ? ENCRYPTED_VALUE_MASK : property.value());
             }
         });
         return result;
@@ -545,13 +638,18 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
         dictionary.setName(updateDictionaryEntity.getName());
         dictionary.setDescription(updateDictionaryEntity.getDescription());
-        dictionary.setProperties(
-            toTypedProperties(
-                updateDictionaryEntity.getProperties(),
-                existing.getProperties(),
-                updateDictionaryEntity.getEncryptedPropertyKeys()
-            )
-        );
+        if (updateDictionaryEntity.getProperties() != null) {
+            dictionary.setProperties(
+                toTypedProperties(
+                    existing.getId(),
+                    updateDictionaryEntity.getProperties(),
+                    existing.getProperties(),
+                    updateDictionaryEntity.getEncryptedPropertyKeys()
+                )
+            );
+        } else {
+            dictionary.setProperties(existing.getProperties());
+        }
 
         final io.gravitee.rest.api.model.configuration.dictionary.DictionaryType type = updateDictionaryEntity.getType();
         if (type != null) {
@@ -582,7 +680,12 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
         if (type == io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL) {
             dictionary.setProperties(
-                toTypedProperties(newDictionaryEntity.getProperties(), null, newDictionaryEntity.getEncryptedPropertyKeys())
+                toTypedProperties(
+                    dictionary.getId(),
+                    newDictionaryEntity.getProperties(),
+                    null,
+                    newDictionaryEntity.getEncryptedPropertyKeys()
+                )
             );
         } else {
             dictionary.setProvider(convert(newDictionaryEntity.getProvider()));

@@ -33,7 +33,6 @@ import io.gravitee.rest.api.model.configuration.dictionary.DictionaryTriggerEnti
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -97,7 +96,17 @@ public interface DictionaryMapper {
 
     // ===== DictionaryEntity → DictionaryState =====
 
-    default DictionaryState toDictionaryState(DictionaryEntity entity, ExecutionContext executionContext) {
+    /**
+     * The flat {@code DictionaryEntity} passed in may hold a masked value for an encrypted key (the
+     * Console-facing read masks ciphertext) — this method never reads its properties directly. It
+     * fetches the typed properties itself, unmasked: the Automation API round-trips real ciphertext
+     * for GitOps reconcile, and never masks.
+     */
+    default DictionaryState toDictionaryState(
+        DictionaryEntity entity,
+        ExecutionContext executionContext,
+        io.gravitee.apim.core.dictionary.domain_service.DictionaryAutomationDomainService dictionaryService
+    ) {
         DictionaryState state = new DictionaryState(
             entity.getId(),
             executionContext.getEnvironmentId(),
@@ -113,18 +122,15 @@ public interface DictionaryMapper {
             ManualDictionarySpec manual = new ManualDictionarySpec();
             Map<String, String> plain = new HashMap<>();
             Map<String, String> encrypted = new HashMap<>();
-            if (entity.getProperties() != null) {
-                Set<String> encryptedKeys = entity.getEncryptedPropertyKeys();
-                entity
-                    .getProperties()
-                    .forEach((key, value) -> {
-                        if (encryptedKeys != null && encryptedKeys.contains(key)) {
-                            encrypted.put(key, value);
-                        } else {
-                            plain.put(key, value);
-                        }
-                    });
-            }
+            dictionaryService
+                .findTypedPropertiesById(executionContext, entity.getId())
+                .forEach((key, value) -> {
+                    if (value.isEncrypted()) {
+                        encrypted.put(key, value.getValue());
+                    } else {
+                        plain.put(key, value.getValue());
+                    }
+                });
             manual.setProperties(plain);
             manual.setEncryptedProperties(encrypted.isEmpty() ? null : encrypted);
             state.setManual(manual);
