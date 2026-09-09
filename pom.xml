@@ -196,7 +196,7 @@
     <gravitee-policy-generate-http-signature.version>1.5.1</gravitee-policy-generate-http-signature.version>
     <gravitee-policy-generate-jwt.version>1.8.0</gravitee-policy-generate-jwt.version>
     <gravitee-policy-generate-wssecurity.version>1.0.0</gravitee-policy-generate-wssecurity.version>
-    <gravitee-policy-geoip-filtering.version>2.2.2</gravitee-policy-geoip-filtering.version>
+    <gravitee-policy-geoip-filtering.version>2.2.3</gravitee-policy-geoip-filtering.version>
     <gravitee-policy-groovy.version>5.1.0</gravitee-policy-groovy.version>
     <gravitee-policy-html-json.version>1.6.3</gravitee-policy-html-json.version>
     <gravitee-policy-http-signature.version>1.7.0</gravitee-policy-http-signature.version>
@@ -281,7 +281,7 @@
     <!-- Management API & Gateway -->
     <!-- Community plugins -->
     <gravitee-policy-aws-lambda.version>3.4.1</gravitee-policy-aws-lambda.version>
-    <gravitee-policy-geoip-filtering.version>2.2.2</gravitee-policy-geoip-filtering.version>
+    <gravitee-policy-geoip-filtering.version>2.2.3</gravitee-policy-geoip-filtering.version>
     <gravitee-resource-auth-provider-http.version>2.0.0</gravitee-resource-auth-provider-http.version>
     <gravitee-resource-auth-provider-inline.version>1.4.0</gravitee-resource-auth-provider-inline.version>
     <gravitee-resource-auth-provider-ldap.version>2.0.1</gravitee-resource-auth-provider-ldap.version>
