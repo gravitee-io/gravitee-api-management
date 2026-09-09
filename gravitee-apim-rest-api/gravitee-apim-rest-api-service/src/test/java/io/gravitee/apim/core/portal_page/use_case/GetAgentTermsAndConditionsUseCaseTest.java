@@ -75,7 +75,7 @@ class GetAgentTermsAndConditionsUseCaseTest {
     void should_return_terms_content_when_agent_is_public_and_content_is_present() {
         var contentId = PortalPageContentId.random();
         navQueryService.initWith(List.of(publishedAgent(API_ID, PortalVisibility.PUBLIC, contentId)));
-        var content = new GraviteeMarkdownPageContent(contentId, ORG_ID, ENV_ID, GraviteeMarkdown.of("# Agent terms"));
+        var content = new GraviteeMarkdownPageContent(contentId, ORG_ID, ENV_ID, GraviteeMarkdown.of("## Agent Usage Terms"));
         pageContentQueryService.initWith(List.of(content));
 
         var result = useCase.execute(new GetAgentTermsAndConditionsUseCase.Input(ENV_ID, API_ID, USER_ID));
