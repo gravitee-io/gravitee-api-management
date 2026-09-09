@@ -22,8 +22,10 @@ console.log(chalk.blue(`Tag: core_${releasingVersion}\n`));
 console.log(`CI will commit ${releasingVersion}, tag it, and reopen ${targetBranch} on the next version.`);
 console.log(`Pushing that tag is what publishes the core — the branch is pushed first.\n`);
 
+// Anything but a yes stops here. Testing for 'n' would let the empty answer through — the one a
+// stray Enter produces — and this prompt guards a push that publishes.
 const confirmed = await question(chalk.blue(`Should we continue? (y/n)\n`));
-if (confirmed === 'n') {
+if (confirmed.trim().toLowerCase() !== 'y') {
   console.log(chalk.yellow(`🚦 Nothing was triggered.`));
   process.exit(1);
 }
