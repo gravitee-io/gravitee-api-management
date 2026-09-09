@@ -37,9 +37,9 @@ describe('ScrollServiceService', () => {
     const anchorId = 'anchorId';
 
     service.scrollToAnchor(anchorId).finally(() => {
-      expect(document.getElementById).toBeCalledTimes(1);
-      expect(document.getElementById).toBeCalledWith(anchorId);
-      expect(window.scrollBy).toBeCalledTimes(2);
+      expect(document.getElementById).toHaveBeenCalledTimes(1);
+      expect(document.getElementById).toHaveBeenCalledWith(anchorId);
+      expect(window.scrollBy).toHaveBeenCalledTimes(2);
       done();
     });
   });
@@ -52,8 +52,8 @@ describe('ScrollServiceService', () => {
     const anchorId = '#anchorId';
 
     service.scrollToAnchor(anchorId).finally(() => {
-      expect(document.querySelector).toBeCalledWith(anchorId);
-      expect(window.scrollBy).toBeCalledTimes(2);
+      expect(document.querySelector).toHaveBeenCalledWith(anchorId);
+      expect(window.scrollBy).toHaveBeenCalledTimes(2);
       done();
     });
   });
@@ -69,9 +69,9 @@ describe('ScrollServiceService', () => {
     const anchorId = '#anchorId';
 
     service.scrollToAnchor(anchorId).finally(() => {
-      expect(document.querySelector).toBeCalledWith(anchorId);
-      expect(document.querySelector).toBeCalledWith(`a[name=${anchorId.substr(1)}]`);
-      expect(window.scrollBy).toBeCalledTimes(2);
+      expect(document.querySelector).toHaveBeenCalledWith(anchorId);
+      expect(document.querySelector).toHaveBeenCalledWith(`a[name=${anchorId.substr(1)}]`);
+      expect(window.scrollBy).toHaveBeenCalledTimes(2);
       done();
     });
   });
