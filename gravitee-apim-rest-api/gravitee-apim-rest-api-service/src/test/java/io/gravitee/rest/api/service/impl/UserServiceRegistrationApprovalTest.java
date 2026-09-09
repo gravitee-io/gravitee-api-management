@@ -34,6 +34,7 @@ import static org.mockito.Mockito.when;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.user.domain_service.AssignUserDefaultRolesDomainService;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -318,6 +319,36 @@ class UserServiceRegistrationApprovalTest {
             .orElseThrow(() -> new AssertionError("no registration email has been sent"));
 
         assertThat((String) registrationEmail.getParams().get(PARAM_REGISTRATION_URL)).startsWith(CONSOLE_URL + REGISTRATION_PATH);
+    }
+
+    @Test
+    void should_link_the_registration_email_to_gamma_when_the_gamma_target_is_named() throws TechnicalException {
+        givenUserRegistrationEnabled(true);
+        when(installationAccessQueryService.getGammaUrl(ORGANIZATION)).thenReturn("https://gamma.example.com");
+
+        userService.registerWithTarget(PORTAL_CONTEXT, newExternalUser(), "gamma");
+
+        EmailNotification registrationEmail = capturedEmails()
+            .stream()
+            .filter(this::isRegistrationEmail)
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("no registration email has been sent"));
+
+        assertThat((String) registrationEmail.getParams().get(PARAM_REGISTRATION_URL)).startsWith(
+            "https://gamma.example.com/registration/"
+        );
+    }
+
+    @Test
+    void should_reject_the_gamma_target_when_no_gamma_url_is_configured() throws TechnicalException {
+        givenUserRegistrationEnabled(true);
+        when(installationAccessQueryService.getGammaUrl(ORGANIZATION)).thenReturn(null);
+
+        assertThatThrownBy(() -> userService.registerWithTarget(PORTAL_CONTEXT, newExternalUser(), "gamma"))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("Gamma URL is not configured");
+
+        verify(userRepository, never()).create(any(User.class));
     }
 
     private void givenUserRegistrationEnabled(boolean automaticValidation) throws TechnicalException {
