@@ -5,6 +5,15 @@ export function isDryRun() {
 const HOTFIX_QUALIFIER = /-hotfix\.\d+$/;
 
 /**
+ * Whether a version is released from a branch cut off a tag rather than from its support line.
+ * @param {string} version
+ * @returns {boolean}
+ */
+export function isHotfixVersion(version) {
+  return HOTFIX_QUALIFIER.test(version);
+}
+
+/**
  * Branch the release runs on: the one --branch names, otherwise the one the version implies.
  *
  * That is not always versions.branch. A hotfix runs on the branch cut from the tag it fixes, while
