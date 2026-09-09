@@ -44,7 +44,7 @@
     "@highcharts/map-collection": "2.3.3",
     "@ngx-translate/core": "14.0.0",
     "@ngx-translate/http-loader": "7.0.0",
-    "@types/swagger-ui": "3.52.4",
+    "@types/swagger-ui": "5.32.0",
     "angular-oauth2-oidc": "13.0.1",
     "asciidoctor": "3.0.4",
     "asciidoctor-highlight.js": "0.4.0",

@@ -3677,7 +3677,7 @@ __metadata:
     "@types/jest": "npm:29.5.14"
     "@types/js-yaml": "npm:4.0.9"
     "@types/node": "npm:22.20.2"
-    "@types/swagger-ui": "npm:3.52.4"
+    "@types/swagger-ui": "npm:5.32.0"
     "@typescript-eslint/eslint-plugin": "npm:6.21.0"
     "@typescript-eslint/parser": "npm:6.21.0"
     "@webcomponents/webcomponentsjs": "npm:2.8.0"
@@ -7416,10 +7416,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/swagger-ui@npm:3.52.4":
-  version: 3.52.4
-  resolution: "@types/swagger-ui@npm:3.52.4"
-  checksum: 10c0/d156d1126f5d395c45b4bdcef1308d0d0612001c350d04e77063472eb05ee63d7a1036e486988fc2b7a7b1a4a8a187678056e5e5b54fe717e86c689643a31687
+"@types/swagger-ui@npm:5.32.0":
+  version: 5.32.0
+  resolution: "@types/swagger-ui@npm:5.32.0"
+  checksum: 10c0/3d25ba87dfa6acb6323e6d487a42119951c363ecc8fedfa989510ddd973d156f906cab26a02eaf6dd99c08ec3205e2ff5b18c98baedf0ef27642174bd47b70e3
   languageName: node
   linkType: hard
 
