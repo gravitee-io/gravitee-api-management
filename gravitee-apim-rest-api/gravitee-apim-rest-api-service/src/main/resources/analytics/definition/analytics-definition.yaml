@@ -1788,6 +1788,16 @@ spec:
               - EQ
               - IN
 
+        - name: ENTRYPOINT
+          label: Entrypoint
+          signals:
+              - LOGS
+              - ANALYTICS
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
         - name: TENANT
           label: Tenant
           signals:
