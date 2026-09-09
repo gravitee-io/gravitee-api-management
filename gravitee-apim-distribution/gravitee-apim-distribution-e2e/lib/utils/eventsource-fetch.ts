@@ -19,7 +19,6 @@
  */
 
 import { EventSourceMessage, getBytes, getLines, getMessages } from './eventsource-parse';
-import fetchApi from 'node-fetch';
 import { sleep } from './apim-http';
 
 export const EventStreamContentType = 'text/event-stream';
@@ -97,7 +96,7 @@ export function fetchEventSource(
     async function create() {
       curRequestController = new AbortController();
       try {
-        const response = await fetchApi(url, {
+        const response = await fetch(url, {
           headers,
         });
 

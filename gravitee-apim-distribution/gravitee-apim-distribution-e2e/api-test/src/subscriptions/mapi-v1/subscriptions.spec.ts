@@ -29,7 +29,6 @@ import { APIPlansApi } from '@gravitee/management-webclient-sdk/src/lib/apis/API
 import { ApplicationApi as PortalApplicationApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApplicationApi';
 import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
-import fetchApi from 'node-fetch';
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
 import { PlanValidationType } from '@gravitee/management-webclient-sdk/src/lib/models/PlanValidationType';
 import { PlanEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PlanEntity';
@@ -122,7 +121,7 @@ describe.each([PlanValidationType.AUTO, PlanValidationType.MANUAL])('Subscriptio
     });
 
     test('should get the api from api._links', async () => {
-      const selfLinkApi = await fetchApi(api._links.self, { method: 'GET' });
+      const selfLinkApi = await fetch(api._links.self, { method: 'GET' });
 
       expect(selfLinkApi).toBeTruthy();
       expect(selfLinkApi.status).toEqual(200);
@@ -133,7 +132,7 @@ describe.each([PlanValidationType.AUTO, PlanValidationType.MANUAL])('Subscriptio
     });
 
     test('should get the api picture from api._links', async () => {
-      const apiPicture = await fetchApi(api._links.picture, { method: 'GET' });
+      const apiPicture = await fetch(api._links.picture, { method: 'GET' });
 
       expect(apiPicture).toBeTruthy();
       expect(apiPicture.status).toEqual(200);
@@ -141,7 +140,7 @@ describe.each([PlanValidationType.AUTO, PlanValidationType.MANUAL])('Subscriptio
     });
 
     test('should get the api plans from api._links', async () => {
-      const apiPlans = await fetchApi(api._links.plans, { method: 'GET' }).then((response) => response.json());
+      const apiPlans = await fetch(api._links.plans, { method: 'GET' }).then((response) => response.json());
 
       expect(apiPlans.data).toHaveLength(1);
       expect(apiPlans.metadata.data.total).toStrictEqual(apiPlans.data.length);

@@ -15,7 +15,6 @@
  */
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 import 'dotenv/config';
-import fetch from 'node-fetch';
 import { APIsApi, ApiType, ApiV4, HttpListener, PlanMode, PlanSecurityType } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { adminAuthHeader, applicationsResourceAsAdmin, envId, managementV2BaseUrl, orgId } from '@gravitee/utils/api-products';
 import { forManagementV2AsApiUser, forPortalAsAdminUser } from '@gravitee/utils/configuration';

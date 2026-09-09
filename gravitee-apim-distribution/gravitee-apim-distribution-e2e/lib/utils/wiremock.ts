@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import fetchApi from 'node-fetch';
 
 export async function setWiremockState(scenarioName: string, state: string) {
-  const { status } = await fetchApi(`${process.env.WIREMOCK_BASE_URL}/__admin/scenarios/${scenarioName}/state`, {
+  const { status } = await fetch(`${process.env.WIREMOCK_BASE_URL}/__admin/scenarios/${scenarioName}/state`, {
     method: 'PUT',
     body: JSON.stringify({ state }),
     headers: {
@@ -30,7 +29,7 @@ export async function setWiremockState(scenarioName: string, state: string) {
 }
 
 export async function verifyWiremockRequest(url: string, method: string) {
-  return fetchApi(`${process.env.WIREMOCK_BASE_URL_FOR_JEST}/__admin/requests/count`, {
+  return fetch(`${process.env.WIREMOCK_BASE_URL_FOR_JEST}/__admin/requests/count`, {
     method: 'POST',
     body: JSON.stringify({ method, url }),
   });
