@@ -17,6 +17,41 @@ import * as fs from 'fs';
 import { generateFullReleaseConfig } from '../pipeline-full-release';
 
 describe('Full release tests', () => {
+  const guardOf = (version: string) =>
+    generateFullReleaseConfig({
+      action: 'full_release',
+      baseBranch: 'master',
+      branch: 'master',
+      sha1: '784ff35ca',
+      changedFiles: [],
+      buildNum: '1234',
+      buildId: '1234',
+      graviteeioVersion: version,
+      isDryRun: false,
+      apimVersionPath: './src/pipelines/tests/resources/common/pom.xml',
+    }).stringify();
+
+  it('should refuse a core pin that is a SNAPSHOT', () => {
+    expect(guardOf('4.12.16')).toContain('A release cannot assemble a SNAPSHOT core');
+  });
+
+  it('should refuse a core pin from another version line', () => {
+    // The pin may trail by patches, so the comparison is on the line rather than on the version.
+    expect(guardOf('4.12.16')).toContain('"${PIN_BASE%.*}" != "4.12"');
+  });
+
+  it('should check the pin before anything is built', () => {
+    // Behind the engine build it fired roughly half an hour into the release, and a mispinned
+    // release is the expected first outcome after a code freeze.
+    const generated = guardOf('4.12.16');
+
+    expect(generated.indexOf('Refuse a core pin this release cannot assemble')).toBeLessThan(generated.indexOf('Maven build APIM engine'));
+  });
+
+  it('should take the line from a qualified version too', () => {
+    expect(guardOf('4.13.0-alpha.1')).toContain('"${PIN_BASE%.*}" != "4.13"');
+  });
+
   it.each`
     baseBranch | branch            | isDryRun | dockerTagAsLatest | graviteeioVersion   | apimVersionPath                                              | expectedResult
     ${'4.2.x'} | ${'4.2.x'}        | ${true}  | ${false}          | ${'4.2.0'}          | ${'./src/pipelines/tests/resources/common/pom-snapshot.xml'} | ${'release-4-2-0-dry-run.yml'}
