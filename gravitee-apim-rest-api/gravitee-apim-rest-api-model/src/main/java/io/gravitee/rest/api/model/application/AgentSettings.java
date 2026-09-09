@@ -40,7 +40,8 @@ public class AgentSettings {
     /**
      * The agent identity backing this application in the identity service, when one does. It lives here rather
      * than on the agent so the whole link — which agent, which identity, which client id it presents — is one
-     * object with one owner.
+     * object with one owner. On update, {@code null} keeps whatever is stored and an empty string clears it: an
+     * omission never detaches an identity, only an explicit word does.
      */
     @JsonProperty("identity_id")
     private String identityId;
