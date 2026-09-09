@@ -635,7 +635,7 @@ describe('DocumentationFolderComponent', () => {
   });
 
   describe('agent chat', () => {
-    const AGENT_ACCESS: AgentSubscriptionAccess = { apiKey: 'key-1', applicationName: 'My App' };
+    const AGENT_ACCESS: AgentSubscriptionAccess = { apiKey: 'key-1' };
 
     const realFetch = globalThis.fetch;
 

@@ -19,7 +19,7 @@
   <h1 class="next-gen-h3" i18n="@@subscriptionDetailsHeader">Subscription Details</h1>
   @if (subscription?.status === 'ACCEPTED' || subscription?.status === 'PAUSED') {
     <button mat-stroked-button color="warn" (click)="closeSubscription.emit()" data-testid="close-subscription-button">
-      <span class="next-gen-small-bold" i18n="@@subscriptionDetailsCloseSubscription">Close subscription</span>
+      <span class="next-gen-small-bold" i18n="@@subscriptionDetailsCloseSubscription">Cancel subscription</span>
     </button>
   }
 </div>
@@ -52,7 +52,7 @@
           <div class="subscription-info__content-row">
             <span class="next-gen-body">
               <span class="material-icons icon-small">api</span>
-              <span i18n="@@subscriptionDetailsHeaderApi">Subscribed API:</span>
+              <span i18n="@@subscriptionDetailsHeaderApi">Subscribed to:</span>
             </span>
             @if (api && api.id && documentationNavigationTarget) {
               <a
@@ -68,7 +68,7 @@
                 data-testid="subscription-api-label"
                 class="next-gen-body"
                 i18n-matTooltip="@@subscriptionApiUnpublishedTooltip"
-                matTooltip="The API has been unpublished from the Developer Portal"
+                matTooltip="No longer published in the Developer Portal"
                 matTooltipPosition="above"
                 >{{ resolvedApiName }}</span
               >
@@ -76,7 +76,7 @@
           </div>
         }
 
-        @if (application) {
+        @if (application && !isAgentApi(api)) {
           <div class="subscription-info__content-row">
             <span class="next-gen-body">
               <span class="material-icons icon-small">web_asset</span>

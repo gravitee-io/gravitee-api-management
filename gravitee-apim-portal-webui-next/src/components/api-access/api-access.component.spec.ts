@@ -255,7 +255,7 @@ describe('ApiAccessComponent', () => {
           fixture.detectChanges();
 
           expect(apiKeyRenewedSpy).toHaveBeenCalled();
-          expect(getApiKeyFeedbackText()).toContain('API key renewed successfully. You can now use it to access the API.');
+          expect(getApiKeyFeedbackText()).toContain('API key renewed successfully. You can now use it to get access.');
           expect(getApiKeyFeedbackAttribute('aria-live')).toBe('polite');
           expect(getApiKeyFeedbackAttribute('role')).toBeNull();
         });
@@ -513,7 +513,7 @@ describe('ApiAccessComponent', () => {
           await revokeButton!.click();
           const confirmDialog = await rootLoader.getHarness(ConfirmDialogHarness);
           expect(await confirmDialog.getTitle()).toContain('Close this API key?');
-          expect(await confirmDialog.getContent()).toContain('Applications using it will no longer be able to access the API.');
+          expect(await confirmDialog.getContent()).toContain('Anything using it will no longer have access.');
           expect(await confirmDialog.getCancelText()).toContain('Cancel');
           expect(await confirmDialog.getConfirmText()).toContain('Yes, revoke');
 
@@ -866,7 +866,7 @@ describe('ApiAccessComponent', () => {
           fixture.detectChanges();
 
           expect(apiKeyRenewedSpy).toHaveBeenCalled();
-          expect(getApiKeyFeedbackText()).toContain('API key renewed successfully. You can now use it to access the API.');
+          expect(getApiKeyFeedbackText()).toContain('API key renewed successfully. You can now use it to get access.');
         });
 
         describe('Multiple Entrypoint URLs', () => {

@@ -198,7 +198,7 @@ export class ApiAccessComponent {
 
     const dialogData: ConfirmDialogData = {
       title: $localize`:@@apiKeyRevokeDialogTitle:Close this API key?`,
-      content: $localize`:@@apiKeyRevokeDialogContent:Applications using it will no longer be able to access the API.`,
+      content: $localize`:@@apiKeyRevokeDialogContent:Anything using it will no longer have access.`,
       confirmLabel: $localize`:@@apiKeyRevokeDialogConfirm:Yes, revoke`,
       cancelLabel: $localize`:@@apiKeyRevokeDialogCancel:Cancel`,
     };
@@ -266,7 +266,7 @@ export class ApiAccessComponent {
           this.apiKeyRevoked.emit();
           this.apiKeyFeedback.set({
             type: 'success',
-            message: $localize`:@@apiKeyRevokeSuccess:API key revoked successfully. Applications using it will no longer be able to access the API.`,
+            message: $localize`:@@apiKeyRevokeSuccess:API key revoked successfully. Anything using it will no longer have access.`,
           });
         },
         error: () => {
@@ -297,7 +297,7 @@ export class ApiAccessComponent {
           this.apiKeyRenewed.emit();
           this.apiKeyFeedback.set({
             type: 'success',
-            message: $localize`:@@apiKeyRenewSuccess:API key renewed successfully. You can now use it to access the API.`,
+            message: $localize`:@@apiKeyRenewSuccess:API key renewed successfully. You can now use it to get access.`,
           });
         },
         error: () => {

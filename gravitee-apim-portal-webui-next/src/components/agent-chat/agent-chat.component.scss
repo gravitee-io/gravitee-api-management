@@ -13,10 +13,6 @@
     flex-direction: column;
     gap: 4px;
     padding-right: 40px;
-
-    &__application {
-      color: app-theme.$paragraph-color;
-    }
   }
 
   &__log {

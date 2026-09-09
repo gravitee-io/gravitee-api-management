@@ -16,17 +16,15 @@
 import type { LocalizeFn } from '@angular/localize/init';
 
 import { ApiCardAccess } from '../../components/api-card/api-card.component';
-import { ApiType } from '../../entities/api/api';
+import { ApiType, isAgentApi } from '../../entities/api/api';
 import { Plan } from '../../entities/plan/plan';
 
 declare const $localize: LocalizeFn;
 
 export type CatalogKind = 'agents' | 'apis';
 
-const AGENT_API_TYPES: ApiType[] = ['A2A_PROXY', 'MCP_PROXY', 'LLM_PROXY'];
-
-export function isAgent(apiType: ApiType | undefined, hasMcpServer: boolean): boolean {
-  return (!!apiType && AGENT_API_TYPES.includes(apiType)) || hasMcpServer;
+export function isAgent(apiType: ApiType | undefined): boolean {
+  return isAgentApi({ type: apiType });
 }
 
 const PROTOCOL_LABELS: Partial<Record<ApiType, string>> = {

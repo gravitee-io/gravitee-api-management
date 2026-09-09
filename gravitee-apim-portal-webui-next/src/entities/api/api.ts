@@ -77,3 +77,9 @@ export interface Api {
 }
 
 export type ApiType = 'NATIVE' | 'MESSAGE' | 'PROXY' | 'A2A_PROXY' | 'LLM_PROXY' | 'MCP_PROXY';
+
+const AGENT_API_TYPES: ApiType[] = ['A2A_PROXY', 'MCP_PROXY', 'LLM_PROXY'];
+
+export function isAgentApi(api: Pick<Api, 'type'> | undefined): boolean {
+  return !!api?.type && AGENT_API_TYPES.includes(api.type);
+}

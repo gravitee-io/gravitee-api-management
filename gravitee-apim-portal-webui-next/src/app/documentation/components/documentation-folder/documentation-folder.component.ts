@@ -122,8 +122,7 @@ export class DocumentationFolderComponent {
   chatSession = computed(() => {
     const target = this.chatTarget();
     const agentName = this.api.error() ? null : this.api.value()?.name;
-    const applicationName = this.agentAccess.value()?.applicationName;
-    return target && agentName ? { target, agentName, applicationName: applicationName ?? '' } : null;
+    return target && agentName ? { target, agentName } : null;
   });
 
   hasBreadcrumbActions = computed(() => !!this.subscriptionTarget() || this.apiHasMcp() || !!this.chatTarget());

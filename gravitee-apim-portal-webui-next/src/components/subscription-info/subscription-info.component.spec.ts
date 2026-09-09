@@ -20,6 +20,9 @@ import { provideRouter } from '@angular/router';
 import { SubscriptionInfoComponent } from './subscription-info.component';
 import { SubscriptionInfoHarness } from './subscription-info.harness';
 import { Api } from '../../entities/api/api';
+import { fakeApi } from '../../entities/api/api.fixtures';
+import { Application } from '../../entities/application/application';
+import { fakeApplication } from '../../entities/application/application.fixture';
 import { Subscription } from '../../entities/subscription';
 import { ApiDocumentationNavigationTarget } from '../../services/portal-navigation-items.service';
 
@@ -33,6 +36,7 @@ describe('SubscriptionInfoComponent', () => {
     options?: {
       api?: Api;
       apiName?: string;
+      application?: Application;
       documentationNavigationTarget?: ApiDocumentationNavigationTarget;
     },
   ) => {
@@ -46,6 +50,7 @@ describe('SubscriptionInfoComponent', () => {
     component.subscription = subscription;
     component.api = options?.api;
     component.apiName = options?.apiName;
+    component.application = options?.application;
     component.documentationNavigationTarget = options?.documentationNavigationTarget;
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, SubscriptionInfoHarness);
     fixture.detectChanges();
@@ -136,6 +141,31 @@ describe('SubscriptionInfoComponent', () => {
       expect(getApiLink()).toBeTruthy();
       expect(getApiLink()?.textContent?.trim()).toStrictEqual('My API');
       expect(getApiLabel()).toBeNull();
+    });
+  });
+
+  describe('application row', () => {
+    const application = fakeApplication({ name: 'My App' });
+
+    it('shows the application for a regular API', async () => {
+      await init({ status: 'ACCEPTED' } as Subscription, { api: fakeApi({ type: 'PROXY' }), application });
+
+      expect(fixture.nativeElement.textContent).toContain('Application:');
+      expect(fixture.nativeElement.textContent).toContain('My App');
+    });
+
+    it('shows the application for a PROXY API that has an MCP server', async () => {
+      await init({ status: 'ACCEPTED' } as Subscription, { api: fakeApi({ type: 'PROXY', mcp: { mcpPath: '/mcp' } }), application });
+
+      expect(fixture.nativeElement.textContent).toContain('Application:');
+      expect(fixture.nativeElement.textContent).toContain('My App');
+    });
+
+    it('hides the application for an agent', async () => {
+      await init({ status: 'ACCEPTED' } as Subscription, { api: fakeApi({ type: 'A2A_PROXY' }), application });
+
+      expect(fixture.nativeElement.textContent).not.toContain('Application:');
+      expect(fixture.nativeElement.textContent).not.toContain('My App');
     });
   });
 });

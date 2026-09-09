@@ -21,7 +21,7 @@
       <app-subscribe-to-api-step-header [stepNumber]="stepNumberOf(SubscribeStep.PLAN_SELECTION)">
         <div class="next-gen-h5" i18n="@@subscribeChoosePlan">Choose a plan</div>
         <div class="next-gen-body" i18n="@@subscribeChoosePlanDescription">
-          A plan lets an application access an API. Once subscribed and approved, the application gets credentials to use it.
+          A plan sets your access level and usage limits. Once your request is approved, you get the credentials to start using it.
         </div>
       </app-subscribe-to-api-step-header>
       <mat-card-content>
@@ -42,8 +42,7 @@
       <app-subscribe-to-api-step-header [stepNumber]="stepNumberOf(SubscribeStep.APP_SELECTION)">
         <div class="next-gen-h5" i18n="@@subscribeChooseApplication">Choose an application</div>
         <div class="next-gen-body" i18n="@@subscribeChooseApplicationDescription">
-          An application represents a developer's project that interacts with the API. It acts as a means to manage access control to APIs
-          via subscriptions.
+          An application holds your credentials and keeps track of what you have subscribed to.
         </div>
       </app-subscribe-to-api-step-header>
       <mat-card-content>
@@ -74,8 +73,8 @@
       <app-subscribe-to-api-step-header [stepNumber]="stepNumberOf(SubscribeStep.REVIEW)">
         <div class="next-gen-h5" i18n="@@subscribeReview">Review</div>
         @if (currentPlan()?.security === 'KEY_LESS') {
-          <div class="next-gen-body" i18n="@@subscribeChooseApplicationDescription">
-            This plan does not need any subscription to consume the API.
+          <div class="next-gen-body" i18n="@@subscribeReviewKeylessDescription">
+            This plan does not need a subscription. You can start using it right away.
           </div>
         }
       </app-subscribe-to-api-step-header>

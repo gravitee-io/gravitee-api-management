@@ -22,13 +22,13 @@ const plan = (overrides: Partial<Plan>): Plan =>
 describe('catalog item', () => {
   describe('isAgent', () => {
     it.each([
-      ['A2A_PROXY' as const, false, true],
-      ['MCP_PROXY' as const, false, true],
-      ['PROXY' as const, true, true],
-      ['PROXY' as const, false, false],
-      [undefined, false, false],
-    ])('reads %s / mcp=%s as agent=%s', (apiType, hasMcpServer, expected) => {
-      expect(isAgent(apiType, hasMcpServer)).toBe(expected);
+      ['A2A_PROXY' as const, true],
+      ['MCP_PROXY' as const, true],
+      ['LLM_PROXY' as const, true],
+      ['PROXY' as const, false],
+      [undefined, false],
+    ])('reads %s as agent=%s', (apiType, expected) => {
+      expect(isAgent(apiType)).toBe(expected);
     });
   });
 

@@ -20,7 +20,7 @@
     @if (subscription?.status === 'ACCEPTED' || planSecurity === 'KEY_LESS') {
       <mat-card-header>
         <div class="api-access__header-row">
-          <div class="next-gen-h5 api-access__header" i18n="@@subscriptionDetailsApiAccessHeader">API access</div>
+          <div class="next-gen-h5 api-access__header" i18n="@@subscriptionDetailsApiAccessHeader">Access</div>
           @if (planSecurity === 'API_KEY' && subscription?.status === 'ACCEPTED' && canManageApiKey) {
             <button
               mat-stroked-button
@@ -66,7 +66,7 @@
         } @else {
           @if (shouldShowApiAccessContent()) {
             <div class="api-access__copy-code-content__calling-api">
-              <div class="next-gen-h5" i18n="@@subscriptionDetailsApiAccessCallingTheApi">Calling the API</div>
+              <div class="next-gen-h5" i18n="@@subscriptionDetailsApiAccessCallingTheApi">Making requests</div>
               @if (entrypointUrlValues().length === 1) {
                 <app-copy-code id="base-url" title="Base URL" [text]="entrypointUrlValues()[0]" />
               } @else if (entrypointUrlValues().length > 1) {

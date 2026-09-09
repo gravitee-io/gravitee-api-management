@@ -57,17 +57,17 @@ describe('AgentChatComponent', () => {
 
     fixture = TestBed.createComponent(AgentChatComponent);
     fixture.componentRef.setInput('agentName', 'Incident Commander');
-    fixture.componentRef.setInput('applicationName', 'My App');
     fixture.componentRef.setInput('target', TARGET);
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, AgentChatComponentHarness);
     fixture.detectChanges();
   });
 
-  it('names the agent and the application whose key is used', async () => {
+  it('names the agent without exposing the application', async () => {
     const header = await harness.getHeaderText();
 
     expect(header).toContain('Incident Commander');
-    expect(header).toContain('My App');
+    expect(header).not.toContain('My App');
+    expect(header).not.toContain('Calling as');
   });
 
   it('invites the viewer to start before anything has been said', async () => {

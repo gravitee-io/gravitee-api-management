@@ -58,8 +58,7 @@
                 (selectItem)="apiKeyMode.set('EXCLUSIVE')"
               >
                 <div i18n="@@subscribeToApiGeneratedApiKeyDescription" class="m3-body-medium">
-                  A new API Key will be generated for each new subscription of the chosen application, ensuring secure and unique access for
-                  every user.
+                  A new API Key will be generated for each new subscription, ensuring secure and unique access.
                 </div>
               </app-radio-card>
               <app-radio-card
@@ -70,7 +69,7 @@
                 (selectItem)="apiKeyMode.set('SHARED')"
               >
                 <div i18n="@@subscribeToApiSharedApiKeyDescription" class="m3-body-medium">
-                  The same API Key will be used for each new subscription, simplifying management across multiple APIs.
+                  The same API Key will be used for each new subscription, simplifying management across multiple subscriptions.
                 </div>
               </app-radio-card>
             </div>
