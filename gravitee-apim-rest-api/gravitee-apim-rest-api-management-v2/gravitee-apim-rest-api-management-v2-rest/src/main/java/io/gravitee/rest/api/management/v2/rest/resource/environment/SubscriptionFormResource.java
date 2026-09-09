@@ -88,7 +88,8 @@ public class SubscriptionFormResource extends AbstractResource {
                 GraviteeContext.getCurrentEnvironment(),
                 subscriptionFormId(),
                 request.getName(),
-                request.getGmdContent()
+                request.getGmdContent(),
+                request.getApiIds()
             )
         );
         return Response.ok(mapper.toResponse(output.subscriptionForm())).build();

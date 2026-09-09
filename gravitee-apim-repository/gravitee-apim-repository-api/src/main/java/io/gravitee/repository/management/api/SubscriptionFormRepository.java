@@ -47,6 +47,16 @@ public interface SubscriptionFormRepository extends CrudRepository<SubscriptionF
     List<SubscriptionForm> findAllByEnvironmentId(String environmentId) throws TechnicalException;
 
     /**
+     * Finds the form dedicated to an API, if any.
+     *
+     * @param environmentId the environment ID
+     * @param apiId the API ID
+     * @return Optional containing the form mapped to the API
+     * @throws TechnicalException if a technical error occurs
+     */
+    Optional<SubscriptionForm> findByEnvironmentIdAndApiId(String environmentId, String apiId) throws TechnicalException;
+
+    /**
      * Deletes every subscription form of an environment.
      *
      * @param environmentId the environment ID

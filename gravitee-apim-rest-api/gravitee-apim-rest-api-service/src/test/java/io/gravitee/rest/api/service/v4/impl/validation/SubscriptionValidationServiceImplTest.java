@@ -26,7 +26,15 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.SubscriptionFormFixtures;
 import inmemory.SubscriptionFormElResolverInMemory;
+import inmemory.SubscriptionFormQueryServiceInMemory;
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormConstraintsFactory;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormResolutionDomainService;
+import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormValidationException;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstraints;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.NewSubscriptionEntity;
@@ -40,7 +48,9 @@ import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.exception.SubscriptionEntrypointIdMissingException;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionMetadataSanitizer;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
+import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -67,14 +77,17 @@ public class SubscriptionValidationServiceImplTest {
     @Mock
     private SubscriptionMetadataSanitizer subscriptionMetadataSanitizer;
 
+    private SubscriptionFormQueryServiceInMemory subscriptionFormQueryService;
+
     private PlanEntity planEntity;
 
     @BeforeEach
     void setUp() {
+        subscriptionFormQueryService = new SubscriptionFormQueryServiceInMemory();
         cut = new SubscriptionValidationServiceImpl(
             entrypointConnectorPluginService,
             subscriptionMetadataSanitizer,
-            new SubscriptionFormResolutionDomainService(),
+            new SubscriptionFormResolutionDomainService(subscriptionFormQueryService),
             new SubscriptionFormElResolverInMemory()
         );
         lenient()
@@ -83,6 +96,11 @@ public class SubscriptionValidationServiceImplTest {
 
         planEntity = new PlanEntity();
         planEntity.setSecurity(new PlanSecurity());
+    }
+
+    @AfterEach
+    void tearDown() {
+        subscriptionFormQueryService.reset();
     }
 
     @Nested
@@ -258,6 +276,12 @@ public class SubscriptionValidationServiceImplTest {
     @Nested
     class Subscription_form_metadata {
 
+        private static SubscriptionFormFieldConstraints required_email_constraints() {
+            return SubscriptionFormConstraintsFactory.fromSchema(
+                new SubscriptionFormSchema(List.of(new SubscriptionFormSchema.InputField("email", true, null, null, null, null)))
+            );
+        }
+
         @BeforeEach
         void beforeEach() {
             planEntity.setEnvironmentId(SubscriptionFormFixtures.ENVIRONMENT_ID);
@@ -266,7 +290,42 @@ public class SubscriptionValidationServiceImplTest {
         }
 
         @Test
-        void should_not_validate_a_new_subscription_as_no_form_applies_to_the_api() {
+        void should_throw_when_form_enabled_and_metadata_invalid() {
+            subscriptionFormQueryService.initWith(
+                List.of(
+                    SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                        .apiIds(List.of("api-1"))
+                        .enabled(true)
+                        .validationConstraints(required_email_constraints())
+                        .gmdContent(GraviteeMarkdown.of("<p/>"))
+                        .build()
+                )
+            );
+
+            var subscription = new NewSubscriptionEntity();
+            subscription.setSubscriptionFormMetadataValidationRequired(true);
+            subscription.setMetadata(Map.of());
+
+            assertThatThrownBy(() -> cut.validateAndSanitize(planEntity, subscription)).isInstanceOf(
+                SubscriptionFormValidationException.class
+            );
+        }
+
+        @Test
+        void should_not_validate_a_plan_that_does_not_belong_to_an_api() {
+            planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API_PRODUCT);
+            planEntity.setReferenceId("api-product-1");
+            subscriptionFormQueryService.initWith(
+                List.of(
+                    SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                        .apiIds(List.of("api-1"))
+                        .enabled(true)
+                        .validationConstraints(required_email_constraints())
+                        .gmdContent(GraviteeMarkdown.of("<p/>"))
+                        .build()
+                )
+            );
+
             var subscription = new NewSubscriptionEntity();
             subscription.setSubscriptionFormMetadataValidationRequired(true);
             subscription.setMetadata(Map.of());
@@ -275,21 +334,367 @@ public class SubscriptionValidationServiceImplTest {
         }
 
         @Test
-        void should_not_validate_a_subscription_update_as_no_form_applies_to_the_api() {
-            var subscription = new UpdateSubscriptionEntity();
+        void should_validate_against_the_form_dedicated_to_the_api_of_the_plan() {
+            subscriptionFormQueryService.initWith(
+                List.of(
+                    SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                        .apiIds(List.of("another-api"))
+                        .enabled(true)
+                        .gmdContent(GraviteeMarkdown.of("<p/>"))
+                        .build(),
+                    SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                        .id(SubscriptionFormId.random())
+                        .name("Dedicated")
+                        .enabled(true)
+                        .apiIds(List.of("api-1"))
+                        .validationConstraints(required_email_constraints())
+                        .gmdContent(GraviteeMarkdown.of("<p/>"))
+                        .build()
+                )
+            );
+
+            var subscription = new NewSubscriptionEntity();
             subscription.setSubscriptionFormMetadataValidationRequired(true);
             subscription.setMetadata(Map.of());
 
-            assertThatCode(() -> cut.validateAndSanitize(planEntity, subscription, APP_ID)).doesNotThrowAnyException();
+            assertThatThrownBy(() -> cut.validateAndSanitize(planEntity, subscription)).isInstanceOf(
+                SubscriptionFormValidationException.class
+            );
         }
 
         @Test
-        void should_not_validate_a_configuration_update_as_no_form_applies_to_the_api() {
-            var subscription = new UpdateSubscriptionConfigurationEntity();
+        void should_not_throw_when_form_enabled_and_metadata_valid() {
+            subscriptionFormQueryService.initWith(
+                List.of(
+                    SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                        .apiIds(List.of("api-1"))
+                        .enabled(true)
+                        .validationConstraints(required_email_constraints())
+                        .gmdContent(GraviteeMarkdown.of("<p/>"))
+                        .build()
+                )
+            );
+
+            var subscription = new NewSubscriptionEntity();
+            subscription.setSubscriptionFormMetadataValidationRequired(true);
+            subscription.setMetadata(Map.of("email", "user@example.com"));
+
+            assertThatCode(() -> cut.validateAndSanitize(planEntity, subscription)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_not_validate_when_validation_constraints_null() {
+            subscriptionFormQueryService.initWith(
+                List.of(
+                    SubscriptionForm.builder()
+                        .apiIds(List.of("api-1"))
+                        .id(SubscriptionFormId.of(SubscriptionFormFixtures.FORM_ID))
+                        .environmentId(SubscriptionFormFixtures.ENVIRONMENT_ID)
+                        .gmdContent(GraviteeMarkdown.of("<p/>"))
+                        .enabled(true)
+                        .validationConstraints(null)
+                        .build()
+                )
+            );
+
+            var subscription = new NewSubscriptionEntity();
             subscription.setSubscriptionFormMetadataValidationRequired(true);
             subscription.setMetadata(Map.of());
 
             assertThatCode(() -> cut.validateAndSanitize(planEntity, subscription)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_not_validate_when_validation_constraints_empty() {
+            subscriptionFormQueryService.initWith(
+                List.of(
+                    SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                        .apiIds(List.of("api-1"))
+                        .enabled(true)
+                        .validationConstraints(SubscriptionFormFieldConstraints.empty())
+                        .gmdContent(GraviteeMarkdown.of("<p/>"))
+                        .build()
+                )
+            );
+
+            var subscription = new NewSubscriptionEntity();
+            subscription.setSubscriptionFormMetadataValidationRequired(true);
+            subscription.setMetadata(Map.of());
+
+            assertThatCode(() -> cut.validateAndSanitize(planEntity, subscription)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_not_validate_when_form_disabled_even_if_constraints_present() {
+            subscriptionFormQueryService.initWith(
+                List.of(
+                    SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                        .apiIds(List.of("api-1"))
+                        .enabled(false)
+                        .validationConstraints(required_email_constraints())
+                        .gmdContent(GraviteeMarkdown.of("<p/>"))
+                        .build()
+                )
+            );
+
+            var subscription = new NewSubscriptionEntity();
+            subscription.setSubscriptionFormMetadataValidationRequired(true);
+            subscription.setMetadata(Map.of());
+
+            assertThatCode(() -> cut.validateAndSanitize(planEntity, subscription)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_not_validate_when_no_form_for_environment() {
+            // storage is empty — no form registered for any environment
+
+            var subscription = new NewSubscriptionEntity();
+            subscription.setSubscriptionFormMetadataValidationRequired(true);
+            subscription.setMetadata(Map.of());
+
+            assertThatCode(() -> cut.validateAndSanitize(planEntity, subscription)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_treat_null_metadata_as_empty_map_when_validating() {
+            subscriptionFormQueryService.initWith(
+                List.of(
+                    SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                        .apiIds(List.of("api-1"))
+                        .enabled(true)
+                        .validationConstraints(required_email_constraints())
+                        .gmdContent(GraviteeMarkdown.of("<p/>"))
+                        .build()
+                )
+            );
+
+            var subscription = new NewSubscriptionEntity();
+            subscription.setSubscriptionFormMetadataValidationRequired(true);
+            subscription.setMetadata(null);
+
+            assertThatThrownBy(() -> cut.validateAndSanitize(planEntity, subscription)).isInstanceOf(
+                SubscriptionFormValidationException.class
+            );
+        }
+    }
+
+    @Nested
+    class Subscription_form_metadata_on_update_configuration {
+
+        private static SubscriptionFormFieldConstraints required_email_constraints() {
+            return SubscriptionFormConstraintsFactory.fromSchema(
+                new SubscriptionFormSchema(List.of(new SubscriptionFormSchema.InputField("email", true, null, null, null, null)))
+            );
+        }
+
+        @BeforeEach
+        void beforeEach() {
+            planEntity.setEnvironmentId(SubscriptionFormFixtures.ENVIRONMENT_ID);
+            planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            planEntity.setReferenceId("api-1");
+        }
+
+        @Test
+        void should_throw_when_form_enabled_and_metadata_invalid() {
+            subscriptionFormQueryService.initWith(
+                List.of(
+                    SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                        .apiIds(List.of("api-1"))
+                        .enabled(true)
+                        .validationConstraints(required_email_constraints())
+                        .gmdContent(GraviteeMarkdown.of("<p/>"))
+                        .build()
+                )
+            );
+
+            var subscriptionConfig = new UpdateSubscriptionConfigurationEntity();
+            subscriptionConfig.setSubscriptionFormMetadataValidationRequired(true);
+            subscriptionConfig.setMetadata(Map.of());
+
+            assertThatThrownBy(() -> cut.validateAndSanitize(planEntity, subscriptionConfig)).isInstanceOf(
+                SubscriptionFormValidationException.class
+            );
+        }
+
+        @Test
+        void should_not_throw_when_form_enabled_and_metadata_valid() {
+            subscriptionFormQueryService.initWith(
+                List.of(
+                    SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                        .apiIds(List.of("api-1"))
+                        .enabled(true)
+                        .validationConstraints(required_email_constraints())
+                        .gmdContent(GraviteeMarkdown.of("<p/>"))
+                        .build()
+                )
+            );
+
+            var subscriptionConfig = new UpdateSubscriptionConfigurationEntity();
+            subscriptionConfig.setSubscriptionFormMetadataValidationRequired(true);
+            subscriptionConfig.setMetadata(Map.of("email", "user@example.com"));
+
+            assertThatCode(() -> cut.validateAndSanitize(planEntity, subscriptionConfig)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_not_validate_when_form_disabled() {
+            subscriptionFormQueryService.initWith(
+                List.of(
+                    SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                        .apiIds(List.of("api-1"))
+                        .enabled(false)
+                        .validationConstraints(required_email_constraints())
+                        .gmdContent(GraviteeMarkdown.of("<p/>"))
+                        .build()
+                )
+            );
+
+            var subscriptionConfig = new UpdateSubscriptionConfigurationEntity();
+            subscriptionConfig.setSubscriptionFormMetadataValidationRequired(true);
+            subscriptionConfig.setMetadata(Map.of());
+
+            assertThatCode(() -> cut.validateAndSanitize(planEntity, subscriptionConfig)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_not_validate_when_no_form_for_environment() {
+            var subscriptionConfig = new UpdateSubscriptionConfigurationEntity();
+            subscriptionConfig.setSubscriptionFormMetadataValidationRequired(true);
+            subscriptionConfig.setMetadata(Map.of());
+
+            assertThatCode(() -> cut.validateAndSanitize(planEntity, subscriptionConfig)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_treat_null_metadata_as_empty_map_when_validating() {
+            subscriptionFormQueryService.initWith(
+                List.of(
+                    SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                        .apiIds(List.of("api-1"))
+                        .enabled(true)
+                        .validationConstraints(required_email_constraints())
+                        .gmdContent(GraviteeMarkdown.of("<p/>"))
+                        .build()
+                )
+            );
+
+            var subscriptionConfig = new UpdateSubscriptionConfigurationEntity();
+            subscriptionConfig.setSubscriptionFormMetadataValidationRequired(true);
+            subscriptionConfig.setMetadata(null);
+
+            assertThatThrownBy(() -> cut.validateAndSanitize(planEntity, subscriptionConfig)).isInstanceOf(
+                SubscriptionFormValidationException.class
+            );
+        }
+    }
+
+    @Nested
+    class Subscription_form_metadata_on_update_subscription {
+
+        private static SubscriptionFormFieldConstraints required_email_constraints() {
+            return SubscriptionFormConstraintsFactory.fromSchema(
+                new SubscriptionFormSchema(List.of(new SubscriptionFormSchema.InputField("email", true, null, null, null, null)))
+            );
+        }
+
+        @BeforeEach
+        void beforeEach() {
+            planEntity.setEnvironmentId(SubscriptionFormFixtures.ENVIRONMENT_ID);
+            planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            planEntity.setReferenceId("api-1");
+        }
+
+        @Test
+        void should_throw_when_form_enabled_and_metadata_invalid() {
+            subscriptionFormQueryService.initWith(
+                List.of(
+                    SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                        .apiIds(List.of("api-1"))
+                        .enabled(true)
+                        .validationConstraints(required_email_constraints())
+                        .gmdContent(GraviteeMarkdown.of("<p/>"))
+                        .build()
+                )
+            );
+
+            var updateSubscription = new UpdateSubscriptionEntity();
+            updateSubscription.setSubscriptionFormMetadataValidationRequired(true);
+            updateSubscription.setMetadata(Map.of());
+
+            assertThatThrownBy(() -> cut.validateAndSanitize(planEntity, updateSubscription, APP_ID)).isInstanceOf(
+                SubscriptionFormValidationException.class
+            );
+        }
+
+        @Test
+        void should_not_throw_when_form_enabled_and_metadata_valid() {
+            subscriptionFormQueryService.initWith(
+                List.of(
+                    SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                        .apiIds(List.of("api-1"))
+                        .enabled(true)
+                        .validationConstraints(required_email_constraints())
+                        .gmdContent(GraviteeMarkdown.of("<p/>"))
+                        .build()
+                )
+            );
+
+            var updateSubscription = new UpdateSubscriptionEntity();
+            updateSubscription.setSubscriptionFormMetadataValidationRequired(true);
+            updateSubscription.setMetadata(Map.of("email", "user@example.com"));
+
+            assertThatCode(() -> cut.validateAndSanitize(planEntity, updateSubscription, APP_ID)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_not_validate_when_form_disabled() {
+            subscriptionFormQueryService.initWith(
+                List.of(
+                    SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                        .apiIds(List.of("api-1"))
+                        .enabled(false)
+                        .validationConstraints(required_email_constraints())
+                        .gmdContent(GraviteeMarkdown.of("<p/>"))
+                        .build()
+                )
+            );
+
+            var updateSubscription = new UpdateSubscriptionEntity();
+            updateSubscription.setSubscriptionFormMetadataValidationRequired(true);
+            updateSubscription.setMetadata(Map.of());
+
+            assertThatCode(() -> cut.validateAndSanitize(planEntity, updateSubscription, APP_ID)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_not_validate_when_no_form_for_environment() {
+            var updateSubscription = new UpdateSubscriptionEntity();
+            updateSubscription.setSubscriptionFormMetadataValidationRequired(true);
+            updateSubscription.setMetadata(Map.of());
+
+            assertThatCode(() -> cut.validateAndSanitize(planEntity, updateSubscription, APP_ID)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_treat_null_metadata_as_empty_map_when_validating() {
+            subscriptionFormQueryService.initWith(
+                List.of(
+                    SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                        .apiIds(List.of("api-1"))
+                        .enabled(true)
+                        .validationConstraints(required_email_constraints())
+                        .gmdContent(GraviteeMarkdown.of("<p/>"))
+                        .build()
+                )
+            );
+
+            var updateSubscription = new UpdateSubscriptionEntity();
+            updateSubscription.setSubscriptionFormMetadataValidationRequired(true);
+            updateSubscription.setMetadata(null);
+
+            assertThatThrownBy(() -> cut.validateAndSanitize(planEntity, updateSubscription, APP_ID)).isInstanceOf(
+                SubscriptionFormValidationException.class
+            );
         }
     }
 
@@ -300,6 +705,22 @@ public class SubscriptionValidationServiceImplTest {
         void beforeEach() {
             clearInvocations(subscriptionMetadataSanitizer);
             planEntity.setEnvironmentId(SubscriptionFormFixtures.ENVIRONMENT_ID);
+            subscriptionFormQueryService.initWith(
+                List.of(
+                    SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                        .apiIds(List.of("api-1"))
+                        .enabled(true)
+                        .validationConstraints(
+                            SubscriptionFormConstraintsFactory.fromSchema(
+                                new SubscriptionFormSchema(
+                                    List.of(new SubscriptionFormSchema.InputField("email", true, null, null, null, null))
+                                )
+                            )
+                        )
+                        .gmdContent(GraviteeMarkdown.of("<p/>"))
+                        .build()
+                )
+            );
         }
 
         @Test
