@@ -3717,7 +3717,7 @@ __metadata:
     resize-observer-polyfill: "npm:1.5.1"
     rxjs: "npm:6.6.7"
     swagger-ui: "npm:5.32.15"
-    ts-node: "npm:8.10.2"
+    ts-node: "npm:10.9.2"
     tslib: "npm:2.8.1"
     typescript: "npm:5.9.3"
     url: "npm:0.11.4"
@@ -17317,7 +17317,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"source-map-support@npm:0.5.21, source-map-support@npm:^0.5.17":
+"source-map-support@npm:0.5.21":
   version: 0.5.21
   resolution: "source-map-support@npm:0.5.21"
   dependencies:
@@ -18102,27 +18102,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-node@npm:8.10.2":
-  version: 8.10.2
-  resolution: "ts-node@npm:8.10.2"
-  dependencies:
-    arg: "npm:^4.1.0"
-    diff: "npm:^4.0.1"
-    make-error: "npm:^1.1.1"
-    source-map-support: "npm:^0.5.17"
-    yn: "npm:3.1.1"
-  peerDependencies:
-    typescript: ">=2.7"
-  bin:
-    ts-node: dist/bin.js
-    ts-node-script: dist/bin-script.js
-    ts-node-transpile-only: dist/bin-transpile.js
-    ts-script: dist/bin-script-deprecated.js
-  checksum: 10c0/628343f62fff2543b4559a93eb27005084aea7609945e77f311031c5e96c4099736646856e1792605b90e8007d2c060fe80783be21c94788d91d6f259aab92e2
-  languageName: node
-  linkType: hard
-
-"ts-node@npm:^10.0.0":
+"ts-node@npm:10.9.2, ts-node@npm:^10.0.0":
   version: 10.9.2
   resolution: "ts-node@npm:10.9.2"
   dependencies:
