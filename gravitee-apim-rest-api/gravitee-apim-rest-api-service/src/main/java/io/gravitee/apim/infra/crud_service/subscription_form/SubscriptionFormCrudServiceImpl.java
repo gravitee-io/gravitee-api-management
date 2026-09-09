@@ -85,7 +85,7 @@ public class SubscriptionFormCrudServiceImpl implements SubscriptionFormCrudServ
             var result = subscriptionFormRepository.create(toCreate);
             return subscriptionFormAdapter.toEntity(result, gmdContent);
         } catch (TechnicalException e) {
-            pageContentCrudService.delete(contentId);
+            deleteQuietly(contentId, e);
             throw new TechnicalDomainException(
                 String.format("An error occurred while trying to create a SubscriptionForm for env: %s", toCreate.getEnvironmentId()),
                 e
@@ -114,7 +114,7 @@ public class SubscriptionFormCrudServiceImpl implements SubscriptionFormCrudServ
             return subscriptionFormAdapter.toEntity(result, gmdContent);
         } catch (TechnicalException e) {
             if (migratingLegacyContent) {
-                pageContentCrudService.delete(contentId);
+                deleteQuietly(contentId, e);
             }
             throw new TechnicalDomainException(
                 String.format(
@@ -132,6 +132,15 @@ public class SubscriptionFormCrudServiceImpl implements SubscriptionFormCrudServ
             new GraviteeMarkdownPageContent(PortalPageContentId.random(), environment.getOrganizationId(), environmentId, gmdContent)
         );
         return created.getId();
+    }
+
+    /** Compensates a failed row write without masking its cause when the cleanup itself fails. */
+    private void deleteQuietly(PortalPageContentId contentId, Exception cause) {
+        try {
+            pageContentCrudService.delete(contentId);
+        } catch (RuntimeException cleanupFailure) {
+            cause.addSuppressed(cleanupFailure);
+        }
     }
 
     private void updatePageContent(SubscriptionFormId subscriptionFormId, PortalPageContentId contentId, GraviteeMarkdown gmdContent) {
