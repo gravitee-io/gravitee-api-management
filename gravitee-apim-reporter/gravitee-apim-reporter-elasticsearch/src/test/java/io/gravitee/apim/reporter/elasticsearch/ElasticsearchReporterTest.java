@@ -46,6 +46,7 @@ import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -164,6 +165,7 @@ class ElasticsearchReporterTest {
                     new AdditionalMetric.IntegerMetric("int_additional", 42),
                     new AdditionalMetric.LongMetric("long_additional", 1L),
                     new AdditionalMetric.KeywordMetric("keyword_additional", "alpha"),
+                    new AdditionalMetric.KeywordListMetric("keyword_additional_list", List.of("alpha", "beta")),
                     new AdditionalMetric.BooleanMetric("bool_additional", true)
                 )
             )

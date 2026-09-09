@@ -43,6 +43,11 @@
   "duration-nanos": 4416541,
   "additional-metrics": {
     "keyword_agent_type": "HOSTED_DELEGATED",
+    "keyword_tool_names": [
+      "the \"tool\"",
+      "other"
+    ],
+    "keyword_tools": [],
     "int_batch_index": 2
   }
 }

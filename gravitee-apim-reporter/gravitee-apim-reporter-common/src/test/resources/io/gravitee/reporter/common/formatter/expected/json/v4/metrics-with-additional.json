@@ -39,6 +39,7 @@
     { "name": "long_tokenCount", "value": 12 },
     { "name": "double_valueAvg", "value": 12.6 },
     { "name": "keyword_name", "value": "the \"name\"" },
+    { "name": "keyword_tools", "value": ["the \"tool\"", "other"] },
     { "name": "bool_name", "value": true },
     { "name": "int_name", "value": 42 },
     { "name": "string_name", "value": "the \"string\" name" },

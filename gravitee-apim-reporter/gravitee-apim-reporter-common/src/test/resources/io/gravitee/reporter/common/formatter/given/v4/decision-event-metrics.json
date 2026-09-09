@@ -32,6 +32,8 @@
   "durationNanos": 4416541,
   "additionalMetrics": [
     { "name": "keyword_agent_type", "value": "HOSTED_DELEGATED" },
+    { "name": "keyword_tools", "value": [] },
+    { "name": "keyword_tool_names", "value": ["the \"tool\"", "other"] },
     { "name": "int_batch_index", "value": 2 }
   ]
 }

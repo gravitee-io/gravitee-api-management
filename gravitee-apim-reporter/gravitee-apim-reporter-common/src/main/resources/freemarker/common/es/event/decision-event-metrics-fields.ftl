@@ -117,7 +117,7 @@
 <#if metrics.getWaitedNanos()??>
     ,"waited-nanos": ${metrics.getWaitedNanos()?c}
 </#if>
-<#if (metrics.longAdditionalMetrics())?? || (metrics.doubleAdditionalMetrics())?? || (metrics.keywordAdditionalMetrics())?? || (metrics.boolAdditionalMetrics())?? || (metrics.intAdditionalMetrics())?? || (metrics.stringAdditionalMetrics())?? || (metrics.jsonAdditionalMetrics())??>
+<#if (metrics.longAdditionalMetrics())?? || (metrics.doubleAdditionalMetrics())?? || (metrics.keywordAdditionalMetrics())?? || (metrics.boolAdditionalMetrics())?? || (metrics.intAdditionalMetrics())?? || (metrics.stringAdditionalMetrics())?? || (metrics.jsonAdditionalMetrics())?? || (metrics.keywordListAdditionalMetrics())??>
     ,"additional-metrics": {
     <#assign additionalMetrics = []>
     <#if (metrics.longAdditionalMetrics())??>
@@ -133,6 +133,11 @@
     <#if (metrics.keywordAdditionalMetrics())??>
       <#list metrics.keywordAdditionalMetrics() as propKey, propValue>
         <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":"' + propValue?j_string + '"']>
+      </#list>
+    </#if>
+    <#if (metrics.keywordListAdditionalMetrics())??>
+      <#list metrics.keywordListAdditionalMetrics() as propKey, propValues>
+        <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":[' + propValues?map(v -> '"' + v?j_string + '"')?join(',') + ']']>
       </#list>
     </#if>
     <#if (metrics.boolAdditionalMetrics())??>
