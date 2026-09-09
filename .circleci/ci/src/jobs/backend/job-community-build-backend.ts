@@ -43,6 +43,11 @@ export class CommunityBuildBackendJob {
       new commands.Run({
         name: 'Build project',
         command: `mvn clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false ${mavenParallelism('large')}`,
+        environment: {
+          // Cap the maven JVM heap: its default is derived from the memory of the
+          // underlying CI host, not from the resource class of the job.
+          MAVEN_OPTS: '-Xmx2048m',
+        },
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new reusable.ReusedCommand(saveMavenJobCacheCmd, { jobName: jobName }),
