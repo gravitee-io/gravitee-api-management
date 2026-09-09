@@ -42,6 +42,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
+import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 /**
@@ -71,6 +72,16 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
     @Bean
     public LegacyDictionaryPropertyReadingConverter legacyDictionaryPropertyReadingConverter() {
         return new LegacyDictionaryPropertyReadingConverter();
+    }
+
+    @Override
+    protected void configureConverters(MongoCustomConversions.MongoConverterConfigurationAdapter adapter) {
+        super.configureConverters(adapter);
+        // AbstractMongoClientConfiguration never scans the context for @ReadingConverter/@WritingConverter
+        // beans on its own — declaring one with @Bean alone does not register it with MongoCustomConversions.
+        // Every custom Converter bean in this class must also be added here explicitly.
+        adapter.registerConverter(bsonUndefinedToNullReadingConverter());
+        adapter.registerConverter(legacyDictionaryPropertyReadingConverter());
     }
 
     @Bean(name = "managementMongo")

@@ -55,6 +55,7 @@ import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.utility.DockerImageName;
@@ -94,6 +95,14 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
     @Bean
     public LegacyDictionaryPropertyReadingConverter legacyDictionaryPropertyReadingConverter() {
         return new LegacyDictionaryPropertyReadingConverter();
+    }
+
+    @Override
+    protected void configureConverters(MongoCustomConversions.MongoConverterConfigurationAdapter adapter) {
+        super.configureConverters(adapter);
+        // Mirrors ManagementRepositoryConfiguration's own override — declaring a @Bean alone does not
+        // register a Converter with MongoCustomConversions, regardless of profile.
+        adapter.registerConverter(legacyDictionaryPropertyReadingConverter());
     }
 
     @Bean(destroyMethod = "stop")
