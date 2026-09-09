@@ -31,23 +31,16 @@ import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
 import io.gravitee.repository.analytics.engine.api.result.MetricMeasuresResult;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
-import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResourceTest;
+import io.gravitee.rest.api.management.v2.rest.resource.AbstractNonAdminResourceTest;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.container.ContainerRequestFilter;
-import jakarta.ws.rs.core.SecurityContext;
-import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,8 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author GraviteeSource Team
  */
-@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class AnalyticsComputationResourcePermissionsTest extends ApiResourceTest {
+class AnalyticsComputationResourcePermissionsTest extends AbstractNonAdminResourceTest {
 
     @Autowired
     AnalyticsRepository analyticsRepository;
@@ -72,54 +64,6 @@ class AnalyticsComputationResourcePermissionsTest extends ApiResourceTest {
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT + "/analytics";
-    }
-
-    @Override
-    protected void decorate(ResourceConfig resourceConfig) {
-        resourceConfig.register(
-            (ContainerRequestFilter) requestContext ->
-                requestContext.setSecurityContext(
-                    new SecurityContext() {
-                        @Override
-                        public Principal getUserPrincipal() {
-                            var userDetails = new io.gravitee.rest.api.management.v2.rest.UserDetails(USER_NAME, "", List.of());
-                            userDetails.setOrganizationId(ORGANIZATION);
-                            var principal = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                new Object()
-                            );
-                            org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(principal);
-                            return principal;
-                        }
-
-                        @Override
-                        public boolean isUserInRole(String string) {
-                            return false;
-                        }
-
-                        @Override
-                        public boolean isSecure() {
-                            return true;
-                        }
-
-                        @Override
-                        public String getAuthenticationScheme() {
-                            return "BASIC";
-                        }
-                    }
-                ),
-            5
-        );
-        resourceConfig.register(GraviteeContextRequestFilter.class);
-        var mockResponse = Mockito.mock(HttpServletResponse.class);
-        resourceConfig.register(
-            new org.glassfish.hk2.utilities.binding.AbstractBinder() {
-                @Override
-                protected void configure() {
-                    bind(mockResponse).to(HttpServletResponse.class);
-                }
-            }
-        );
     }
 
     @BeforeEach

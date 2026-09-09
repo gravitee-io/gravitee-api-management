@@ -288,7 +288,7 @@ export function ApiDetailLayout() {
             contextExpanded,
             contextSidebar: (
                 <ContextSidebar header={<ApiInfoHeader api={api ?? null} isLoading={isLoading} />}>
-                    <ApiDetailSidebarNav groups={navGroups} basePath={basePath} permissionsReady={permissionsReady} />
+                    {isError ? null : <ApiDetailSidebarNav groups={navGroups} basePath={basePath} permissionsReady={permissionsReady} />}
                 </ContextSidebar>
             ),
             leading: <ContextToggleButton expanded={contextExpanded} onToggle={() => setContextExpanded(v => !v)} />,
@@ -305,6 +305,7 @@ export function ApiDetailLayout() {
             contextExpanded,
             api,
             isLoading,
+            isError,
             basePath,
             permissionsReady,
             showDeployBanner,

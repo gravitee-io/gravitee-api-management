@@ -63,6 +63,7 @@ jest.mock('../../utils/queryKeys', () => ({
 }));
 
 let mockCapturedLayoutConfig: Record<string, unknown> | null = null;
+let mockPublishedLayoutDeps: unknown[] | null = null;
 let mockBannerHost: HTMLDivElement | null = null;
 
 jest.mock('@gravitee/graphene-core', () => {
@@ -82,6 +83,11 @@ jest.mock('@gravitee/graphene-core', () => {
             </button>
         ),
         Skeleton: () => <div />,
+        cn: (...classes: unknown[]) => classes.filter(Boolean).join(' '),
+        TooltipProvider: ({ children }: { children?: ReactNode }) => <>{children}</>,
+        Tooltip: ({ children }: { children?: ReactNode }) => <>{children}</>,
+        TooltipTrigger: ({ children }: { children?: ReactNode }) => <>{children}</>,
+        TooltipContent: ({ children }: { children?: ReactNode }) => <>{children}</>,
         ContextSidebar: ({ children, header }: { children?: ReactNode; header?: ReactNode }) => (
             <div>
                 {header}
@@ -99,7 +105,16 @@ jest.mock('@gravitee/graphene-core', () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Input: (props: any) => <input {...props} />,
         Label: ({ children, htmlFor }: { children?: ReactNode; htmlFor?: string }) => <label htmlFor={htmlFor}>{children}</label>,
-        useLayoutConfig: jest.fn((config: Record<string, unknown>) => {
+        // The real hook publishes from an effect keyed on the caller's dependency list, so a re-render only reaches
+        // the host layout when a dependency changed. A fake that captured on every render would stay green with a
+        // dependency missing from that list.
+        useLayoutConfig: jest.fn((config: Record<string, unknown>, deps: unknown[] = []) => {
+            const unchanged =
+                mockPublishedLayoutDeps !== null &&
+                mockPublishedLayoutDeps.length === deps.length &&
+                mockPublishedLayoutDeps.every((dep, index) => Object.is(dep, deps[index]));
+            if (unchanged) return;
+            mockPublishedLayoutDeps = deps;
             mockCapturedLayoutConfig = { ...(mockCapturedLayoutConfig ?? {}), ...config };
         }),
     };
@@ -107,17 +122,10 @@ jest.mock('@gravitee/graphene-core', () => {
 
 jest.mock('@gravitee/graphene-core/icons', () => new Proxy({}, { get: () => () => null }));
 
-jest.mock('./ApiDetailSidebarNav', () => ({
-    API_PROXY_NAV_GROUPS: [],
-    ApiDetailSidebarNav: () => <div />,
-    withTcpRestrictions: (groups: unknown[]) => groups,
-    withMetadataPermission: (groups: unknown[]) => groups,
-    withApiScoreEnabled: (groups: unknown[]) => groups,
-}));
-
 import { ApiDetailIndexRedirect, ApiDetailLayout } from './ApiDetailLayout';
 import { useDetailBasePath } from '../../../../shared/hooks/useDetailBasePath';
 import { useApiDetail } from '../../hooks/useApiDetail';
+import { useApiPermissions } from '../../hooks/useApiPermissions';
 import { deployApi } from '../../services/apis';
 
 const mockUseEnvironment = useEnvironment as jest.Mock;
@@ -125,25 +133,31 @@ const mockUseHasPermission = useHasPermission as jest.Mock;
 const mockUseMutation = useMutation as jest.Mock;
 const mockDeployApi = deployApi as jest.Mock;
 
-function renderLayout(apiId = 'abc-123') {
-    mockCapturedLayoutConfig = null;
-    mockBannerHost = document.createElement('div');
-    document.body.appendChild(mockBannerHost);
-
-    render(
+function layoutTree(apiId: string) {
+    return (
         <MemoryRouter initialEntries={[`/apis/${apiId}/overview`]}>
             <Routes>
                 <Route path="apis/:apiId" element={<ApiDetailLayout />}>
                     <Route path="overview" element={<div />} />
                 </Route>
             </Routes>
-        </MemoryRouter>,
+        </MemoryRouter>
     );
+}
+
+function renderLayout(apiId = 'abc-123') {
+    mockCapturedLayoutConfig = null;
+    mockPublishedLayoutDeps = null;
+    mockBannerHost = document.createElement('div');
+    document.body.appendChild(mockBannerHost);
+
+    const view = render(layoutTree(apiId));
 
     const layoutConfig = mockCapturedLayoutConfig as Record<string, unknown> | null;
     if (layoutConfig?.banner) {
         render(layoutConfig.banner as ReactElement, { container: mockBannerHost! });
     }
+    return view;
 }
 
 // ─── useApiBasePath (via useDetailBasePath) ───────────────────────────────────
@@ -343,7 +357,7 @@ describe('DeployBanner', () => {
 
 function renderSidebar() {
     if (mockCapturedLayoutConfig?.contextSidebar) {
-        render(mockCapturedLayoutConfig.contextSidebar as ReactElement);
+        render(<MemoryRouter>{mockCapturedLayoutConfig.contextSidebar as ReactElement}</MemoryRouter>);
     }
 }
 
@@ -421,5 +435,80 @@ describe('ApiAvatar', () => {
         });
         renderLayout();
         expect(screen.queryByRole('img', { name: 'Payment Gateway' })).not.toBeInTheDocument();
+    });
+});
+
+// ─── ApiInfoHeader ────────────────────────────────────────────────────────────
+
+describe('ApiInfoHeader', () => {
+    afterEach(() => jest.clearAllMocks());
+
+    it('renders no API name when the API detail request failed', () => {
+        (useApiDetail as jest.Mock).mockReturnValue({ data: undefined, isLoading: false, isError: true });
+        renderLayout();
+        renderSidebar();
+        expect(screen.queryByText('Payment Gateway')).not.toBeInTheDocument();
+    });
+
+    it('renders the API name when the API detail request succeeded', () => {
+        (useApiDetail as jest.Mock).mockReturnValue({ data: { id: 'abc-123', name: 'Payment Gateway' }, isLoading: false });
+        renderLayout();
+        renderSidebar();
+        expect(screen.getByText('Payment Gateway')).toBeInTheDocument();
+    });
+});
+
+// ─── Sidebar navigation ───────────────────────────────────────────────────────
+
+// One label per API_PROXY_NAV_GROUPS group, so a nav missing a whole group cannot pass.
+const NAV_ITEM_LABELS = ['Overview', 'Entrypoints', 'Policy Studio', 'Plans', 'User Permissions', 'Audit Logs', 'Deployment'];
+
+// Every API_PROXY_NAV_GROUPS item renders as exactly one of these: a NavLink, a collapsible parent button, or a
+// coming-soon row carrying role="button" — so an empty result for both roles means no nav item rendered at all.
+const NAV_ITEM_ROLES = ['link', 'button'] as const;
+
+describe('ApiDetailSidebarNav in the detail layout', () => {
+    beforeEach(() => {
+        (useApiPermissions as jest.Mock).mockReturnValue({ permissionsReady: true });
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+        (useApiPermissions as jest.Mock).mockReturnValue({ permissionsReady: false });
+    });
+
+    it('renders no navigation item when the API detail request failed', () => {
+        (useApiDetail as jest.Mock).mockReturnValue({ data: undefined, isLoading: false, isError: true });
+        renderLayout();
+        renderSidebar();
+
+        for (const role of NAV_ITEM_ROLES) {
+            expect(screen.queryAllByRole(role)).toHaveLength(0);
+        }
+    });
+
+    it('renders every navigation item when the API detail request succeeded', () => {
+        (useApiDetail as jest.Mock).mockReturnValue({ data: { id: 'abc-123', name: 'Payment Gateway' }, isLoading: false, isError: false });
+        renderLayout();
+        renderSidebar();
+
+        for (const label of NAV_ITEM_LABELS) {
+            expect(screen.getByText(label)).toBeInTheDocument();
+        }
+    });
+
+    it('renders no navigation item once a refetch fails on an already-loaded API', () => {
+        // A failed refetch keeps the last successful data, so isError is the only value that changes.
+        const loadedApi = { id: 'abc-123', name: 'Payment Gateway' };
+        (useApiDetail as jest.Mock).mockReturnValue({ data: loadedApi, isLoading: false, isError: false });
+        const { rerender } = renderLayout();
+
+        (useApiDetail as jest.Mock).mockReturnValue({ data: loadedApi, isLoading: false, isError: true });
+        rerender(layoutTree('abc-123'));
+        renderSidebar();
+
+        for (const role of NAV_ITEM_ROLES) {
+            expect(screen.queryAllByRole(role)).toHaveLength(0);
+        }
     });
 });
