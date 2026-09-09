@@ -99,7 +99,7 @@ Before triggering anything, the command checks two things, both read-only, so th
 
 `--dry-run` runs the same job with the pushes disarmed. It is the only rehearsal this lane has: a tag cannot be pushed provisionally.
 
-Both poms are advanced, even though only the root reactor is published. `Check both reactors carry the same version` runs on every pull request and fails when the triplets differ, so moving the root alone would redden the branch until the next full release. The two lineages will part company only once that check goes away.
+Only the root pom is advanced. The distribution carries its own triplet and releases under its own tag, so a core release leaves it where it is.
 
 What a core release never touches is `apim.core.version` — the version of the core the distribution assembles. Advancing that pin is a separate, reviewed change: it is the moment someone decides a core is ready to ship. Renovate opens it on its own, as an ordinary dependency update.
 

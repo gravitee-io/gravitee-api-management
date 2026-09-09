@@ -30,8 +30,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 POM_FILE="$REPO_ROOT/pom.xml"
 # The distribution carries its own <revision>/<sha1>/<changelist> since it left the product
-# reactor. Both triplets must stay in step while a CI check enforces it, which is what the
-# release scripts assume; that check goes away when the two reactors start releasing apart.
+# reactor. The two no longer have to agree; what the distribution assembles is its own
+# apim.core.version, which a code freeze has to move onto a released core.
 DISTRIBUTION_POM_FILE="$REPO_ROOT/gravitee-apim-distribution/pom.xml"
 PARENT_DIR="$(dirname "$REPO_ROOT")"
 

@@ -610,9 +610,8 @@ jobs:
           name: "Git release "
           command: |
             # Remove `-SNAPSHOT` from source
-            # Backend. Both poms: since the reactor cut, the distribution carries its own version triplet,
-            # and a CI check on every pull request requires the two to agree. Leaving one behind reddens the
-            # branch until the next release puts them back in step.
+            # Backend. Both poms: this releases the two reactors at once, so both carry the version being
+            # released. The core lane moves the root alone, the distribution lane will move the other.
             POMS="pom.xml gravitee-apim-distribution/pom.xml"
             for POM in ${POMS}; do
               sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" "${POM}"
