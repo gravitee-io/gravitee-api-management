@@ -574,6 +574,31 @@ jobs:
           jobName: job-backend-build-and-publish-on-download-website
       - cmd-azure-artifacts-token
       - run:
+          name: Refuse a core pin this release cannot assemble
+          command: |-
+            PIN=$(mvn --settings .gravitee.settings.xml -q -N -f gravitee-apim-distribution/pom.xml help:evaluate -Dexpression=apim.core.version -DforceStdout)
+            echo "Releasing 4.2.0-alpha.1, which pins core $PIN"
+
+            case "$PIN" in
+            *-SNAPSHOT)
+              echo
+              echo "A release cannot assemble a SNAPSHOT core: it is mutable, so this tag would not rebuild to"
+              echo "the same artefacts. Release the core first, then merge the pull request that pins it."
+              exit 1
+              ;;
+            esac
+
+            # The pin may trail the release by a few patches — it moves only when someone decides a core is
+            # ready — but never by a minor. A pin from another line is a hand-edit, or a branch whose code
+            # freeze never moved it off the previous line, and either ships a core nobody meant to ship.
+            PIN_BASE=${PIN%%-*}
+            if [ "${PIN_BASE%.*}" != "4.2" ]; then
+              echo
+              echo "core $PIN is not on the 4.2 line, which 4.2.0-alpha.1 releases."
+              echo "Release a 4.2 core and merge the pull request that pins it, or fix the pin by hand."
+              exit 1
+            fi
+      - run:
           name: Remove `-SNAPSHOT` from versions
           command: |-
             mvn -B -s .gravitee.settings.xml versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
