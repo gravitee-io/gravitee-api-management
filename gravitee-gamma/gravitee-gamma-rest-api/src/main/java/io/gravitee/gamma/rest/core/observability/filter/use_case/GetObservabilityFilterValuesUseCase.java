@@ -48,8 +48,10 @@ import lombok.AllArgsConstructor;
  * </ul>
  *
  * <p>An unknown {@code filterName} yields {@link ObservabilityFilterNotFoundException} → HTTP 404
- * (the filter is addressed via the URL path). Pagination is <b>1-based</b>; {@code perPage} is
- * clamped to {@value #MAX_PER_PAGE} and a {@code page} above {@value #MAX_PAGE} is refused (HTTP 400).
+ * (the filter is addressed via the URL path). Pagination is <b>1-based</b>: {@code perPage} is clamped
+ * to {@value #MAX_PER_PAGE}, while a {@code page} outside 1..{@value #MAX_PAGE} is refused (HTTP 400)
+ * rather than clamped — serving a different page than the caller asked for would hide their bug. An
+ * absent {@code page} is the documented default of 1, not an out-of-range value.
  *
  * @author GraviteeSource Team
  */
@@ -93,10 +95,13 @@ public class GetObservabilityFilterValuesUseCase {
     }
 
     private static int resolvePage(Input input) {
-        if (input.page() != null && input.page() > MAX_PAGE) {
+        if (input.page() == null) {
+            return 1;
+        }
+        if (input.page() < 1 || input.page() > MAX_PAGE) {
             throw UnsupportedObservabilityFilterException.valuesPageOutOfRange(input.page(), MAX_PAGE);
         }
-        return (input.page() != null && input.page() > 0) ? input.page() : 1;
+        return input.page();
     }
 
     private static int resolvePerPage(Input input) {
