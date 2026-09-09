@@ -18,6 +18,7 @@ package io.gravitee.gateway.dictionary;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.gateway.dictionary.model.Dictionary;
+import io.gravitee.gateway.dictionary.model.DictionaryProperty;
 import java.util.Date;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -152,7 +153,7 @@ class MultiEnvironmentDictionaryManagerTest {
         dictionary.setEnvironmentId(environmentId);
         dictionary.setName(id);
         dictionary.setDeployedAt(new Date(deployedAt));
-        dictionary.setProperties(Map.of("MY_PROP", propertyValue));
+        dictionary.setProperties(Map.of("MY_PROP", new DictionaryProperty(propertyValue, false)));
         return dictionary;
     }
 }

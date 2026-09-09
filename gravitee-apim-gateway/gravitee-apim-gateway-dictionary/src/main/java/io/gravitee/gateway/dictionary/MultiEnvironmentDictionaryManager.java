@@ -60,7 +60,13 @@ public class MultiEnvironmentDictionaryManager implements DictionaryManager {
 
             log.info("Dictionary {} has been deployed with {} properties", dictionary, dictionary.getProperties().size());
             dictionaries.get(environmentId).put(key, dictionary);
-            values.get(environmentId).put(key, dictionary.getProperties());
+            // EL only ever sees plaintext key/value pairs. Today every value's .value() already
+            // is plaintext (no encrypted dictionary property can exist until a later story adds
+            // encryption); that later story's gateway-side decrypt hook belongs exactly here, in
+            // place of the plain .value() extraction below.
+            Map<String, String> flattenedProperties = new HashMap<>();
+            dictionary.getProperties().forEach((propKey, property) -> flattenedProperties.put(propKey, property.value()));
+            values.get(environmentId).put(key, flattenedProperties);
         }
     }
 
