@@ -27,6 +27,7 @@ import { completed, respondingGateway } from '../../../../components/agent-chat/
 import { ApiType } from '../../../../entities/api/api';
 import { PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
 import { fakePortalNavigationApiProduct } from '../../../../entities/portal-navigation/portal-navigation-item.fixture';
+import { fakeSubscription } from '../../../../entities/subscription';
 import { makeItem, MOCK_ITEMS } from '../../../../mocks/portal-navigation-item.mocks';
 import { AgentSubscriptionAccess, AgentSubscriptionService } from '../../../../services/agent-subscription.service';
 import { ApiService } from '../../../../services/api.service';
@@ -39,7 +40,7 @@ describe('DocumentationFolderComponent', () => {
   let harness: DocumentationFolderComponentHarness;
   let navigationServiceSpy: PortalNavigationItemsService;
   let apiServiceSpy: { details: jest.Mock };
-  let agentSubscriptionServiceSpy: { findForAgent: jest.Mock };
+  let agentSubscriptionServiceSpy: { findForAgent: jest.Mock; loadAccessContexts: jest.Mock };
   let routerSpy: jest.Mocked<Router>;
   let queryParamsSubject: BehaviorSubject<{ selectedId?: string }>;
 
@@ -48,6 +49,34 @@ describe('DocumentationFolderComponent', () => {
   const MOCK_CONTENT = 'MOCK_CONTENT';
 
   const gmdViewerContent = (content: string) => `<p>${content}</p>\n`;
+
+  const EMPTY_AGENT_ACCESS: AgentSubscriptionAccess = { subscriptions: [], chatCredentials: null };
+
+  const agentAccessWith = (
+    params: {
+      statuses?: Array<'ACCEPTED' | 'PENDING' | 'PAUSED'>;
+      chatCredentials?: AgentSubscriptionAccess['chatCredentials'];
+    } = {},
+  ): AgentSubscriptionAccess => {
+    const statuses = params.statuses ?? [];
+    const subscriptions = statuses.map((status, index) => ({
+      subscription: fakeSubscription({
+        id: `sub-${index + 1}`,
+        status,
+        keys: status === 'ACCEPTED' ? [{ id: 'key-1-id', key: 'key-1', application: { id: 'app-1', name: 'My App' } }] : [],
+      }),
+      planName: 'Gold',
+      planSecurity: 'API_KEY' as const,
+      applicationName: 'My App',
+    }));
+    const chatCredentials =
+      params.chatCredentials !== undefined
+        ? params.chatCredentials
+        : statuses.includes('ACCEPTED')
+          ? { apiKey: 'key-1', applicationName: 'My App' }
+          : null;
+    return { subscriptions, chatCredentials };
+  };
 
   const baseApiDetails = {
     name: 'API',
@@ -80,6 +109,9 @@ describe('DocumentationFolderComponent', () => {
         if (options?.queryParams) queryParamsSubject.next(options.queryParams);
         return Promise.resolve(true);
       }),
+      createUrlTree: jest.fn().mockReturnValue({}),
+      serializeUrl: jest.fn().mockReturnValue(''),
+      events: of(),
     } as unknown as jest.Mocked<Router>;
 
     navigationServiceSpy = {
@@ -99,7 +131,10 @@ describe('DocumentationFolderComponent', () => {
         }),
       ),
     };
-    agentSubscriptionServiceSpy = { findForAgent: jest.fn().mockReturnValue(of(params.agentAccess ?? null)) };
+    agentSubscriptionServiceSpy = {
+      findForAgent: jest.fn().mockReturnValue(of(params.agentAccess ?? EMPTY_AGENT_ACCESS)),
+      loadAccessContexts: jest.fn().mockReturnValue(of(new Map())),
+    };
 
     await TestBed.configureTestingModule({
       animationsEnabled: true,
@@ -635,7 +670,7 @@ describe('DocumentationFolderComponent', () => {
   });
 
   describe('agent chat', () => {
-    const AGENT_ACCESS: AgentSubscriptionAccess = { apiKey: 'key-1' };
+    const AGENT_ACCESS: AgentSubscriptionAccess = agentAccessWith({ statuses: ['ACCEPTED'] });
 
     const realFetch = globalThis.fetch;
 
@@ -780,6 +815,131 @@ describe('DocumentationFolderComponent', () => {
       await initAgentPage({ apiType: 'PROXY' });
 
       expect(agentSubscriptionServiceSpy.findForAgent).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('agent subscriptions', () => {
+    const AGENT_ACCESS: AgentSubscriptionAccess = agentAccessWith({ statuses: ['ACCEPTED'] });
+
+    const initAgentPage = async (params: {
+      apiType?: ApiType;
+      agentAccess?: AgentSubscriptionAccess | null;
+      isAuthenticated?: boolean;
+      apiEntrypoints?: string[];
+    }) => {
+      const agentItem = makeItem('agent1', 'AGENT', 'Agent 1', 0, undefined);
+      const agentPage = makeItem('p-agent1', 'PAGE', 'Agent 1 Documentation', 0, 'agent1');
+      await init({ items: [agentItem, agentPage], queryParams: { selectedId: 'p-agent1' }, content: MOCK_CONTENT, ...params });
+      await settle();
+    };
+
+    const settle = async () => {
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+    };
+
+    const openSubscriptions = async () => {
+      await (await harness.getSubscriptionsButton())!.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+    };
+
+    it('should replace Subscribe with the Subscription button once the viewer is subscribed', async () => {
+      await initAgentPage({ apiType: 'A2A_PROXY', agentAccess: AGENT_ACCESS });
+
+      expect(await harness.getSubscriptionsButton()).not.toBeNull();
+      expect(await harness.getSubscribeButton()).toBeNull();
+    });
+
+    it('should keep the Subscribe button for an agent the viewer is not subscribed to', async () => {
+      await initAgentPage({ apiType: 'A2A_PROXY' });
+
+      expect(await harness.getSubscribeButton()).not.toBeNull();
+      expect(await harness.getSubscriptionsButton()).toBeNull();
+    });
+
+    it('should open the subscriptions panel when the Subscription button is clicked', async () => {
+      await initAgentPage({ apiType: 'A2A_PROXY', agentAccess: AGENT_ACCESS });
+
+      expect(await harness.getAgentSubscriptions()).toBeNull();
+
+      await openSubscriptions();
+
+      expect(await harness.getAgentSubscriptions()).not.toBeNull();
+      expect(await (await harness.getSidePanel())!.getPanelTestId()).toBe('agent-subscriptions-drawer');
+    });
+
+    it('should list a pending subscription so the viewer does not subscribe twice', async () => {
+      await initAgentPage({ apiType: 'A2A_PROXY', agentAccess: agentAccessWith({ statuses: ['PENDING'] }) });
+
+      expect(await harness.getSubscriptionsButton()).not.toBeNull();
+      expect(await harness.getSubscribeButton()).toBeNull();
+
+      await openSubscriptions();
+
+      expect(await (await harness.getAgentSubscriptions())!.getHeaderTexts()).toEqual([
+        expect.objectContaining({ description: 'Gold - Pending' }),
+      ]);
+    });
+
+    it('should navigate to the subscribe flow from the panel', async () => {
+      await initAgentPage({ apiType: 'A2A_PROXY', agentAccess: AGENT_ACCESS });
+      await openSubscriptions();
+
+      await (await harness.getAgentSubscriptions())!.clickNewSubscription();
+      fixture.detectChanges();
+
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['api', 'api-agent1', 'subscribe'], {
+        relativeTo: expect.anything(),
+        queryParamsHandling: 'preserve',
+      });
+      expect(await harness.getAgentSubscriptions()).toBeNull();
+    });
+
+    it('should keep the Subscribe button for a non-agent api that has subscriptions', async () => {
+      const apiItem = makeItem('api1', 'API', 'API 1', 0, undefined);
+      const apiPage = makeItem('p-api1', 'PAGE', 'API 1 Documentation', 0, 'api1');
+      await init({
+        items: [apiItem, apiPage],
+        queryParams: { selectedId: 'p-api1' },
+        content: MOCK_CONTENT,
+        apiType: 'PROXY',
+        agentAccess: AGENT_ACCESS,
+      });
+      await settle();
+
+      expect(await harness.getSubscribeButton()).not.toBeNull();
+      expect(await harness.getSubscriptionsButton()).toBeNull();
+    });
+
+    it('should close the subscriptions panel when the viewer navigates to another item', async () => {
+      const agentItem = makeItem('agent1', 'AGENT', 'Agent 1', 0, undefined);
+      const agentPage = makeItem('p-agent1', 'PAGE', 'Agent 1 Documentation', 0, 'agent1');
+      const otherAgent = makeItem('agent2', 'AGENT', 'Agent 2', 1, undefined);
+      const otherAgentPage = makeItem('p-agent2', 'PAGE', 'Agent 2 Documentation', 0, 'agent2');
+      await init({
+        items: [agentItem, agentPage, otherAgent, otherAgentPage],
+        queryParams: { selectedId: 'p-agent1' },
+        content: MOCK_CONTENT,
+        apiType: 'A2A_PROXY',
+        agentAccess: AGENT_ACCESS,
+      });
+      await settle();
+      await openSubscriptions();
+      expect(await harness.getAgentSubscriptions()).not.toBeNull();
+
+      queryParamsSubject.next({ selectedId: 'p-agent2' });
+      await settle();
+      expect(await harness.getAgentSubscriptions()).toBeNull();
+
+      queryParamsSubject.next({ selectedId: 'p-agent1' });
+      await settle();
+
+      expect(await harness.getAgentSubscriptions()).toBeNull();
     });
   });
 });

@@ -20,6 +20,7 @@ import { GraviteeMarkdownViewerHarness } from '@gravitee/gravitee-markdown';
 
 import { TreeComponentHarness } from './tree/tree.component.harness';
 import { AgentChatComponentHarness } from '../../../../components/agent-chat/agent-chat.harness';
+import { AgentSubscriptionsComponentHarness } from '../../../../components/agent-subscriptions/agent-subscriptions.harness';
 import { BreadcrumbSkeletonComponentHarness } from '../../../../components/breadcrumb-skeleton/breadcrumb-skeleton.component.harness';
 import { BreadcrumbsComponentHarness } from '../../../../components/breadcrumbs/breadcrumbs.component.harness';
 import { DocumentationSkeletonComponentHarness } from '../../../../components/documentation-skeleton/documentation-skeleton.component.harness';
@@ -47,8 +48,12 @@ export class DocumentationFolderComponentHarness extends ComponentHarness {
   private readonly getSubscribeMatButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="subscribe-button"]' }));
   private readonly getMcpMatButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="mcp-button"]' }));
   private readonly getChatMatButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="chat-button"]' }));
+  private readonly getSubscriptionsMatButton = this.locatorForOptional(
+    MatButtonHarness.with({ selector: '[data-testid="subscriptions-button"]' }),
+  );
   private readonly locateApiTabTools = this.locatorForOptional(ApiTabToolsComponentHarness);
   private readonly locateAgentChat = this.locatorForOptional(AgentChatComponentHarness);
+  private readonly locateAgentSubscriptions = this.locatorForOptional(AgentSubscriptionsComponentHarness);
   private readonly locateSidePanel = this.locatorForOptional(SidePanelComponentHarness);
 
   async getSidenavToggleButton(): Promise<SidenavToggleButtonComponentHarness | null> {
@@ -108,6 +113,14 @@ export class DocumentationFolderComponentHarness extends ComponentHarness {
 
   async getAgentChat(): Promise<AgentChatComponentHarness | null> {
     return this.locateAgentChat();
+  }
+
+  async getSubscriptionsButton(): Promise<MatButtonHarness | null> {
+    return this.getSubscriptionsMatButton();
+  }
+
+  async getAgentSubscriptions(): Promise<AgentSubscriptionsComponentHarness | null> {
+    return this.locateAgentSubscriptions();
   }
 
   async getSidePanel(): Promise<SidePanelComponentHarness | null> {

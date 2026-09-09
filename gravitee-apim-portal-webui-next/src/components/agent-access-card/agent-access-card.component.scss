@@ -1,0 +1,8 @@
+@use '../../scss/theme' as app-theme;
+
+.agent-access-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 25px 0 10px;
+}

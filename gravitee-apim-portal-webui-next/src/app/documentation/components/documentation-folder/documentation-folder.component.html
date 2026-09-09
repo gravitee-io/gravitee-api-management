@@ -24,13 +24,19 @@
         </button>
       }
       @if (subscriptionTarget()) {
-        <button mat-stroked-button (click)="onSubscribe()" [disabled]="!currentUser()" data-testid="subscribe-button">
-          @if (currentUser()) {
-            <span i18n="@@subscribeToApiButton">Subscribe</span>
-          } @else {
-            <span i18n="@@signInToSubscribeButton">Sign in to subscribe</span>
-          }
-        </button>
+        @if (hasAgentSubscriptions()) {
+          <button mat-stroked-button type="button" (click)="subscriptionsOpen.set(true)" data-testid="subscriptions-button">
+            <span i18n="@@agentSubscriptionsButton">Subscription</span>
+          </button>
+        } @else {
+          <button mat-stroked-button (click)="onSubscribe()" [disabled]="!currentUser()" data-testid="subscribe-button">
+            @if (currentUser()) {
+              <span i18n="@@subscribeToApiButton">Subscribe</span>
+            } @else {
+              <span i18n="@@signInToSubscribeButton">Sign in to subscribe</span>
+            }
+          </button>
+        }
       }
       @if (chatTarget()) {
         <button mat-flat-button type="button" (click)="chatOpen.set(true)" data-testid="chat-button">
@@ -106,5 +112,22 @@
     (closed)="chatOpen.set(false)"
   >
     <app-agent-chat [agentName]="session.agentName" [target]="session.target" />
+  </app-side-panel>
+}
+
+@if (subscriptionsOpen() && hasAgentSubscriptions()) {
+  <app-side-panel
+    panelTestId="agent-subscriptions-drawer"
+    i18n-ariaLabel="@@agentSubscriptionsPanelAria"
+    ariaLabel="Agent subscriptions"
+    animate.leave="side-panel-leave"
+    (closed)="subscriptionsOpen.set(false)"
+  >
+    <app-agent-subscriptions
+      [agentName]="api.value()?.name ?? ''"
+      [entrypointUrls]="agentEntrypointUrls()"
+      [subscriptions]="agentSubscriptions()"
+      (newSubscription)="onNewSubscription()"
+    />
   </app-side-panel>
 }

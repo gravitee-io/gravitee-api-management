@@ -1,0 +1,59 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="agent-access-card">
+  @if (showApplicationName() && applicationName()) {
+    <div class="next-gen-body" data-testid="application-name">{{ applicationName() }}</div>
+  }
+
+  @if (isAccepted()) {
+    @if (planSecurity() === 'API_KEY' && apiKey()) {
+      <app-copy-code id="api-key" class="next-gen-small" title="API Key" i18n-title="@@agentAccessCardApiKey" [text]="apiKey()" />
+    }
+    @if (planSecurity() === 'OAUTH2' || planSecurity() === 'JWT') {
+      <app-copy-code id="client-id" class="next-gen-small" title="Client ID" i18n-title="@@agentAccessCardClientId" [text]="clientId()" />
+      @if (clientSecret()) {
+        <app-copy-code
+          id="client-secret"
+          class="next-gen-small"
+          title="Client Secret"
+          i18n-title="@@agentAccessCardClientSecret"
+          [text]="clientSecret()"
+          mode="PASSWORD"
+        />
+      }
+    }
+    @if (entrypointUrl()) {
+      <app-copy-code id="base-url" class="next-gen-small" title="Base URL" i18n-title="@@agentAccessCardBaseUrl" [text]="entrypointUrl()" />
+    }
+    @if (curlCmd()) {
+      <app-copy-code id="command-line" class="next-gen-small" title="cURL" i18n-title="@@agentAccessCardCurl" [text]="curlCmd()" />
+    }
+  } @else {
+    @switch (subscription().status) {
+      @case ('PENDING') {
+        <div class="next-gen-h5" i18n="@@subscriptionDetailsPendingHeader">Subscription in progress</div>
+        <div class="next-gen-body" i18n="@@subscriptionDetailsPendingContent">
+          Your subscription request is being validated. Come back later.
+        </div>
+      }
+      @case ('PAUSED') {
+        <div class="next-gen-h5" i18n="@@subscriptionDetailsPasueddHeader">Subscription paused</div>
+      }
+    }
+  }
+</div>

@@ -22,18 +22,19 @@ import { catchError, debounceTime, finalize, map, merge, Observable, switchMap, 
 import { of } from 'rxjs/internal/observable/of';
 
 import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
-import { Api } from 'src/entities/api/api';
 
 import { TreeComponent } from './tree/tree.component';
 import { isChattableAgent, resolveChatTarget } from '../../../../components/agent-chat/agent-chat-access';
 import { AgentChatComponent } from '../../../../components/agent-chat/agent-chat.component';
 import { AgentChatStore } from '../../../../components/agent-chat/agent-chat.store';
+import { AgentSubscriptionsComponent } from '../../../../components/agent-subscriptions/agent-subscriptions.component';
 import { Breadcrumb } from '../../../../components/breadcrumbs/breadcrumbs.component';
 import { DocumentationSkeletonComponent } from '../../../../components/documentation-skeleton/documentation-skeleton.component';
 import { NavigationItemContentViewerComponent } from '../../../../components/navigation-item-content-viewer/navigation-item-content-viewer.component';
 import { SidePanelComponent } from '../../../../components/side-panel/side-panel.component';
 import { SidenavLayoutComponent } from '../../../../components/sidenav-layout/sidenav-layout.component';
 import { SidenavSkeletonComponent } from '../../../../components/sidenav-skeleton/sidenav-skeleton.component';
+import { Api, isAgentApi } from '../../../../entities/api/api';
 import { PortalNavigationAgent, PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
 import { PortalPageContent } from '../../../../entities/portal-navigation/portal-page-content';
 import { AgentSubscriptionAccess, AgentSubscriptionService } from '../../../../services/agent-subscription.service';
@@ -69,6 +70,7 @@ enum NavParamsChange {
     ApiTabToolsComponent,
     AgentDetailComponent,
     AgentChatComponent,
+    AgentSubscriptionsComponent,
   ],
   templateUrl: './documentation-folder.component.html',
   styleUrl: './documentation-folder.component.scss',
@@ -95,6 +97,7 @@ export class DocumentationFolderComponent {
   selectedAgent = signal<PortalNavigationAgent | null>(null);
   mcpDrawerOpen = signal(false);
   chatOpen = signal(false);
+  subscriptionsOpen = signal(false);
   subscriptionTarget = computed(() => this.documentationActionContext().subscriptionTarget);
   apiId = computed(() => this.documentationActionContext().apiId);
   api = rxResource<Api | null, string | null>({
@@ -112,13 +115,22 @@ export class DocumentationFolderComponent {
   // must still render its tree and breadcrumbs when the api call fails.
   private readonly agentApiId = computed(() => {
     const api = this.api.error() ? null : this.api.value();
+    return isAgentApi(api ?? undefined) && this.currentUser() ? (api?.id ?? null) : null;
+  });
+  private readonly chattableAgentId = computed(() => {
+    const api = this.api.error() ? null : this.api.value();
     return isChattableAgent(api) && this.currentUser() ? (api?.id ?? null) : null;
   });
   agentAccess = rxResource<AgentSubscriptionAccess | null, string | null>({
     params: this.agentApiId,
     stream: ({ params }) => (params ? this.agentSubscriptionService.findForAgent(params) : of(null)),
   });
-  chatTarget = computed(() => (this.api.error() ? null : resolveChatTarget(this.api.value(), this.agentAccess.value()?.apiKey)));
+  agentSubscriptions = computed(() => this.agentAccess.value()?.subscriptions ?? []);
+  hasAgentSubscriptions = computed(() => this.agentSubscriptions().length > 0);
+  agentEntrypointUrls = computed(() => (this.api.error() ? [] : (this.api.value()?.entrypoints ?? [])));
+  chatTarget = computed(() =>
+    this.api.error() ? null : resolveChatTarget(this.api.value(), this.agentAccess.value()?.chatCredentials?.apiKey),
+  );
   chatSession = computed(() => {
     const target = this.chatTarget();
     const agentName = this.api.error() ? null : this.api.value()?.name;
@@ -134,14 +146,20 @@ export class DocumentationFolderComponent {
     private readonly treeService: TreeService,
   ) {
     effect(() => {
-      const agentId = this.agentApiId();
-      if (!agentId) {
+      const chattableId = this.chattableAgentId();
+      if (!chattableId) {
         // Selecting another page clears the api context, and a panel left open would otherwise
         // reopen itself once the next agent resolves.
         this.chatOpen.set(false);
-        return;
+      } else {
+        this.chatStore.resetFor(chattableId);
       }
-      this.chatStore.resetFor(agentId);
+    });
+
+    effect(() => {
+      if (!this.agentApiId()) {
+        this.subscriptionsOpen.set(false);
+      }
     });
   }
 
@@ -160,6 +178,11 @@ export class DocumentationFolderComponent {
       relativeTo: this.activatedRoute,
       queryParamsHandling: 'preserve',
     });
+  }
+
+  onNewSubscription() {
+    this.subscriptionsOpen.set(false);
+    this.onSubscribe();
   }
 
   private loadFolderData(): Observable<FolderData | undefined> {
