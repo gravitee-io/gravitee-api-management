@@ -15,13 +15,24 @@
  */
 package io.gravitee.apim.integration.tests.tracing;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static io.gravitee.apim.integration.tests.messages.sse.SseAssertions.assertOnMessage;
 import static io.gravitee.apim.integration.tests.messages.sse.SseAssertions.assertRetry;
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.APPLICATION_ID;
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.PLAN_APIKEY_ID;
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.configurePlans;
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.createSubscription;
+import static io.gravitee.apim.integration.tests.plan.PlanHelper.getApiPath;
+import static io.gravitee.gateway.reactive.api.policy.SecurityToken.TokenType.API_KEY;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 import com.graviteesource.entrypoint.sse.SseEntrypointConnectorFactory;
 import com.graviteesource.reactor.message.MessageApiReactorFactory;
@@ -41,6 +52,9 @@ import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.tracing.Tracing;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.api.service.ApiKey;
+import io.gravitee.gateway.api.service.ApiKeyService;
+import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
@@ -49,12 +63,16 @@ import io.gravitee.plugin.endpoint.mock.MockEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import io.gravitee.policy.apikey.ApiKeyPolicy;
+import io.gravitee.policy.apikey.ApiKeyPolicyInitializer;
+import io.gravitee.policy.apikey.configuration.ApiKeyPolicyConfiguration;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterAll;
@@ -72,6 +90,9 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
     private static final JaegerTestContainer container = new JaegerTestContainer();
 
     public static final String MESSAGE = "{ \"message\": \"hello\" }";
+
+    private static final String API_KEY_API_ID = "v4-proxy-api";
+    private static final String API_KEY_VALUE = "apiKeyValue";
 
     @AfterAll
     static void stop() {
@@ -113,8 +134,11 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
         analytics.setEnabled(true);
         analytics.setTracing(tracing);
 
-        if (api.getDefinition() instanceof Api) {
-            ((Api) api.getDefinition()).setAnalytics(analytics);
+        if (api.getDefinition() instanceof Api apiDefinition) {
+            apiDefinition.setAnalytics(analytics);
+            if (API_KEY_API_ID.equals(apiDefinition.getId())) {
+                configurePlans(apiDefinition, Set.of("api-key"));
+            }
         }
     }
 
@@ -122,6 +146,10 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
     public void configurePolicies(Map<String, PolicyPlugin> policies) {
         policies.put("latency", PolicyBuilder.build("latency", LatencyPolicy.class, LatencyPolicy.LatencyConfiguration.class));
         policies.put("message-flow-ready", PolicyBuilder.build("message-flow-ready", MessageFlowReadyPolicy.class));
+        policies.put(
+            "api-key",
+            PolicyBuilder.build("api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class)
+        );
     }
 
     @Test
@@ -177,6 +205,10 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
                 JsonObject body = response.bodyAsJsonObject();
                 assertData(body, expectedOperationNames);
                 assertExactlyOneSpanWithKind(body, "POST /test", "server");
+
+                var rootSpan = rootSpan(body);
+                assertThat(spanTag(rootSpan, "gravitee.application.id")).isEqualTo("1");
+                assertThat(spanTag(rootSpan, "gravitee.application.name")).isNull();
             });
     }
 
@@ -239,6 +271,64 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
             });
     }
 
+    @Test
+    @DeployApi("/apis/plan/v4-proxy-api.json")
+    void should_trace_consuming_application_on_root_span(HttpClient httpClient) {
+        final ApiKey apiKey = new ApiKey();
+        apiKey.setApi(API_KEY_API_ID);
+        apiKey.setApplication(APPLICATION_ID);
+        apiKey.setSubscription("subscription-id");
+        apiKey.setPlan(PLAN_APIKEY_ID);
+        apiKey.setKey(API_KEY_VALUE);
+        when(getBean(ApiKeyService.class).getByApiAndKey(any(), any())).thenReturn(Optional.of(apiKey));
+        when(
+            getBean(SubscriptionService.class).getByApiAndSecurityToken(
+                eq(API_KEY_API_ID),
+                argThat(
+                    securityToken ->
+                        securityToken.getTokenType().equals(API_KEY.name()) && securityToken.getTokenValue().equals(API_KEY_VALUE)
+                ),
+                eq(PLAN_APIKEY_ID)
+            )
+        ).thenReturn(Optional.of(createSubscription(API_KEY_API_ID, PLAN_APIKEY_ID, false)));
+
+        wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
+
+        httpClient
+            .rxRequest(HttpMethod.GET, getApiPath(API_KEY_API_ID))
+            .flatMap(request -> {
+                request.putHeader("X-Gravitee-Api-Key", API_KEY_VALUE);
+                return request.rxSend();
+            })
+            .flatMapPublisher(response -> {
+                assertThat(response.statusCode()).isEqualTo(200);
+                return response.toFlowable();
+            })
+            .test()
+            .awaitDone(30, SECONDS)
+            .assertComplete()
+            .assertNoErrors();
+
+        await()
+            .atMost(30, SECONDS)
+            .untilAsserted(() -> {
+                var client = container.client(vertx.getDelegate());
+                var response = client
+                    .get("/api/traces")
+                    .addQueryParam("service", "gio-apim-gateway")
+                    .addQueryParam("tags", "{\"gravitee.api.id\":\"" + API_KEY_API_ID + "\"}")
+                    .send()
+                    .toCompletionStage()
+                    .toCompletableFuture()
+                    .get();
+
+                assertThat(response.statusCode()).isEqualTo(200);
+                var rootSpan = rootSpan(response.bodyAsJsonObject());
+                assertThat(spanTag(rootSpan, "gravitee.application.id")).isEqualTo(APPLICATION_ID);
+                assertThat(spanTag(rootSpan, "gravitee.application.name")).isEqualTo("Application name");
+            });
+    }
+
     private static TestSubscriber<Buffer> startSseStream(HttpClient httpClient) {
         return httpClient
             .rxRequest(HttpMethod.GET, "/test")
@@ -277,6 +367,33 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
             .toList();
         assertThat(matchingSpans).as("spans with kind=%s", expectedKind).hasSize(1);
         assertThat(matchingSpans.get(0).getString("operationName")).as("entry span operation name").isEqualTo(expectedOperationName);
+    }
+
+    private static JsonObject rootSpan(JsonObject json) {
+        var data = json.getJsonArray("data");
+        assertThat(data).isNotEmpty();
+        return data
+            .getJsonObject(0)
+            .getJsonArray("spans")
+            .stream()
+            .map(JsonObject.class::cast)
+            .filter(span -> hasSpanKind(span, "server"))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("no span with kind=server"));
+    }
+
+    private static String spanTag(JsonObject span, String key) {
+        var tags = span.getJsonArray("tags");
+        if (tags == null) {
+            return null;
+        }
+        return tags
+            .stream()
+            .map(JsonObject.class::cast)
+            .filter(tag -> key.equals(tag.getString("key")))
+            .map(tag -> tag.getString("value"))
+            .findFirst()
+            .orElse(null);
     }
 
     private static boolean hasSpanKind(JsonObject span, String expectedKind) {
