@@ -1164,7 +1164,8 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             .title("My Agent")
             .segment("my-agent")
             .type(PortalNavigationItem.Type.AGENT)
-            .agentId("a2a-proxy-api-id-1")
+            .apiId("a2a-proxy-api-id-1")
+            .agentId("gamma-agent-1")
             .area(PortalNavigationItem.Area.TOP_NAVBAR)
             .order(4)
             .published(true)
@@ -1176,7 +1177,8 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         try {
             PortalNavigationItem created = portalNavigationItemRepository.create(item);
             assertThat(created.getType()).isEqualTo(PortalNavigationItem.Type.AGENT);
-            assertThat(created.getAgentId()).isEqualTo("a2a-proxy-api-id-1");
+            assertThat(created.getApiId()).isEqualTo("a2a-proxy-api-id-1");
+            assertThat(created.getAgentId()).isEqualTo("gamma-agent-1");
             assertThat(created.isPublished()).isTrue();
 
             created.setTitle("Updated Agent");
@@ -1185,14 +1187,16 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             );
             PortalNavigationItem updated = portalNavigationItemRepository.update(created);
             assertThat(updated.getTitle()).isEqualTo("Updated Agent");
-            assertThat(updated.getAgentId()).isEqualTo("a2a-proxy-api-id-1");
+            assertThat(updated.getApiId()).isEqualTo("a2a-proxy-api-id-1");
+            assertThat(updated.getAgentId()).isEqualTo("gamma-agent-1");
             assertThat(updated.getConfiguration()).isEqualTo(
                 "{\"termsAndConditionsEnabled\":true,\"termsAndConditionsPageContentId\":\"550e8400-e29b-41d4-a716-446655440099\"}"
             );
 
             var found = portalNavigationItemRepository.findById(item.getId());
             assertThat(found).isPresent();
-            assertThat(found.orElseThrow().getAgentId()).isEqualTo("a2a-proxy-api-id-1");
+            assertThat(found.orElseThrow().getApiId()).isEqualTo("a2a-proxy-api-id-1");
+            assertThat(found.orElseThrow().getAgentId()).isEqualTo("gamma-agent-1");
         } finally {
             portalNavigationItemRepository.delete(item.getId());
         }

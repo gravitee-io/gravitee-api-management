@@ -36,7 +36,7 @@ class PortalNavigationItemTest {
             .area(PortalArea.TOP_NAVBAR)
             .order(0)
             .type(PortalNavigationItemType.AGENT)
-            .agentId("00000000-0000-0000-0000-000000000030")
+            .apiId("00000000-0000-0000-0000-000000000030")
             .build();
 
         var item = PortalNavigationItem.from(create, "organization-id", "environment-id", null);

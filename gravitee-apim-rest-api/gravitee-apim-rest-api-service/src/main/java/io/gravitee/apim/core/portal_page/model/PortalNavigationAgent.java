@@ -35,6 +35,10 @@ public final class PortalNavigationAgent extends PortalNavigationItem implements
 
     @Setter
     @Nonnull
+    private String apiId;
+
+    @Setter
+    @Nullable
     private String agentId;
 
     @Setter
@@ -56,12 +60,14 @@ public final class PortalNavigationAgent extends PortalNavigationItem implements
         @Nonnull String title,
         @Nonnull PortalArea area,
         @Nonnull Integer order,
-        @Nonnull String agentId,
+        @Nonnull String apiId,
+        @Nullable String agentId,
         @Nonnull Boolean published,
         @Nonnull PortalVisibility visibility,
         List<PortalCategoryId> categoryIds
     ) {
         super(id, organizationId, environmentId, title, area, order, published, visibility);
+        this.apiId = apiId;
         this.agentId = agentId;
         this.categoryIds = normalizeCategoryIds(categoryIds);
         this.termsAndConditionsEnabled = TERMS_AND_CONDITIONS_ENABLED_BY_DEFAULT;

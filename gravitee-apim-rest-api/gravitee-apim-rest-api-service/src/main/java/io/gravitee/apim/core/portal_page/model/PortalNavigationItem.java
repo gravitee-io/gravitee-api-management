@@ -219,6 +219,7 @@ public abstract sealed class PortalNavigationItem
                 title,
                 area,
                 order,
+                apiId,
                 agentId,
                 published,
                 visibility,

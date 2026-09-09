@@ -228,7 +228,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   });
   readonly selectedAgentId = computed(() => {
     const selectedItem = this.selectedNavigationItem()?.data;
-    return selectedItem?.type === 'AGENT' ? selectedItem.agentId : null;
+    return selectedItem?.type === 'AGENT' ? selectedItem.apiId : null;
   });
   readonly selectedLinkedAgentName = rxResource({
     params: () => this.selectedAgentId(),
@@ -808,7 +808,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       area: 'TOP_NAVBAR',
       parentId,
       visibility,
-      agentId: agent.id,
+      apiId: agent.id,
     }));
 
     return this.portalNavigationItemsService.createNavigationItemsInBulk(items).pipe(
@@ -1521,7 +1521,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     const itemsById = new Map(navigationItems.map(item => [item.id, item]));
 
     return navigationItems
-      .filter(item => item.type === 'API')
+      .filter((item): item is PortalNavigationApi | PortalNavigationAgent => item.type === 'API' || item.type === 'AGENT')
       .filter(item => {
         const itemApiProductContext = this.findApiProductNavigationContext(item, itemsById);
         return apiProductContext
@@ -1539,8 +1539,8 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   private extractAgentIdsFromNavigationItems(): string[] {
     return this.menuLinks()
-      .filter((item): item is PortalNavigationAgent => item.type === 'AGENT')
-      .map(item => item.agentId);
+      .filter((item): item is PortalNavigationAgent | PortalNavigationApi => item.type === 'AGENT' || item.type === 'API')
+      .map(item => item.apiId);
   }
 
   private findApiProductNavigationContext(

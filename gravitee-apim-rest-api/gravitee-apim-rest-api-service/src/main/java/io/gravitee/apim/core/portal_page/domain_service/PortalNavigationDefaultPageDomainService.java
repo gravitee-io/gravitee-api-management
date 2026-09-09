@@ -122,7 +122,7 @@ public class PortalNavigationDefaultPageDomainService {
         }
         if (navigationItem instanceof PortalNavigationAgent agentNavigationItem) {
             return apiCrudService
-                .findById(agentNavigationItem.getAgentId())
+                .findById(agentNavigationItem.getApiId())
                 .filter(api -> ApiType.MCP_PROXY == api.getType())
                 .map(api -> MCP_PROXY_OVERVIEW_TEMPLATE)
                 .orElse(AGENT_OVERVIEW_TEMPLATE);

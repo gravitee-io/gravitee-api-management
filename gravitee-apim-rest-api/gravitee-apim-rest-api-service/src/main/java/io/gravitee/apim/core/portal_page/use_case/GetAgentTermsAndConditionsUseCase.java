@@ -64,7 +64,7 @@ public class GetAgentTermsAndConditionsUseCase {
         return new Output(content);
     }
 
-    private Optional<PortalNavigationAgent> findPublishedAgent(String environmentId, String agentId) {
+    private Optional<PortalNavigationAgent> findPublishedAgent(String environmentId, String apiId) {
         return portalNavigationItemsQueryService
             .search(
                 PortalNavigationItemQueryCriteria.builder()
@@ -77,7 +77,7 @@ public class GetAgentTermsAndConditionsUseCase {
             .stream()
             .filter(PortalNavigationAgent.class::isInstance)
             .map(PortalNavigationAgent.class::cast)
-            .filter(item -> agentId.equals(item.getAgentId()))
+            .filter(item -> apiId.equals(item.getApiId()))
             .findFirst();
     }
 

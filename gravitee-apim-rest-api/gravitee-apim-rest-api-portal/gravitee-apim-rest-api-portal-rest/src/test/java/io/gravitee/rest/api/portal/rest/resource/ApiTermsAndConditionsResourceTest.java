@@ -113,7 +113,7 @@ class ApiTermsAndConditionsResourceTest extends AbstractResourceTest {
             .segment(PortalNavigationItem.slugify("Nav for " + agentId).value())
             .area(PortalArea.TOP_NAVBAR)
             .order(0)
-            .agentId(agentId)
+            .apiId(agentId)
             .termsAndConditionsPageContentId(termsContentId)
             .published(true)
             .visibility(PortalVisibility.PUBLIC)

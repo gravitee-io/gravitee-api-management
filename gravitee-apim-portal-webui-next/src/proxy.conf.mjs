@@ -55,4 +55,11 @@ export default [
     },
     logLevel: 'debug',
   },
+  {
+    context: ['/gamma'],
+    target,
+    secure: false,
+    changeOrigin: true,
+    logLevel: 'debug',
+  },
 ];

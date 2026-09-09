@@ -1,0 +1,315 @@
+/*
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@use '../../../../scss/theme' as app-theme;
+
+:host {
+  display: block;
+  padding: 24px 32px;
+}
+
+.agent-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  max-width: 1440px;
+  padding: 0;
+
+  &__error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 24px;
+    color: app-theme.$error-main-color;
+  }
+
+  // Hero
+  &__hero {
+    display: flex;
+    gap: 16px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid app-theme.$border-color;
+
+    &__icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 56px;
+      height: 56px;
+      flex-shrink: 0;
+      border-radius: app-theme.$container-shape;
+      background: app-theme.$badge-container-color;
+      color: app-theme.$badge-label-text-color;
+
+      mat-icon {
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+      }
+    }
+
+    &__info {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    &__title-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    &__name {
+      margin: 0;
+    }
+
+    &__description {
+      margin: 0;
+      color: app-theme.$paragraph-color;
+    }
+
+    &__actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+  }
+
+  // Badges
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: app-theme.$chip-shape;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 20px;
+    white-space: nowrap;
+
+    &--outline {
+      border: 1px solid app-theme.$border-color;
+      color: app-theme.$default-text-color;
+    }
+
+    &--secondary {
+      background: app-theme.$chip-container-color;
+      color: app-theme.$chip-label-text-color;
+    }
+  }
+
+  // Sections
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__section-title {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  &__section-count {
+    font-weight: normal;
+    color: app-theme.$paragraph-color;
+  }
+
+  // Chip lists
+  &__chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  &__capability-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: app-theme.$chip-shape;
+    background: app-theme.$badge-container-color;
+    color: app-theme.$badge-label-text-color;
+    font-size: 14px;
+
+    &__icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  &__mode-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: app-theme.$chip-shape;
+    border: 1px solid app-theme.$border-color;
+    font-size: 13px;
+    font-family: monospace;
+    color: app-theme.$default-text-color;
+  }
+
+  &__tag-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 8px;
+    border-radius: app-theme.$chip-shape;
+    background: app-theme.$chip-container-color;
+    color: app-theme.$chip-label-text-color;
+    font-size: 12px;
+  }
+
+  // Definition lists
+  &__definition-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+    padding: 16px;
+    border: 1px solid app-theme.$border-color;
+    border-radius: app-theme.$container-shape;
+    background: app-theme.$card-background-color;
+  }
+
+  &__definition-row {
+    display: grid;
+    grid-template-columns: minmax(140px, max-content) 1fr;
+    gap: 12px;
+    align-items: baseline;
+  }
+
+  &__definition-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: app-theme.$paragraph-color;
+  }
+
+  &__definition-value {
+    font-size: 14px;
+    color: app-theme.$default-text-color;
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  &__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: app-theme.$badge-label-text-color;
+    text-decoration: none;
+    word-break: break-all;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  // Skills
+  &__skills-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__skill-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    border: 1px solid app-theme.$border-color;
+    border-radius: app-theme.$container-shape;
+    background: app-theme.$card-background-color;
+  }
+
+  &__skill-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  &__skill-tags {
+    gap: 4px;
+  }
+
+  &__skill-description {
+    margin: 0;
+    color: app-theme.$paragraph-color;
+  }
+
+  &__skill-examples {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 4px;
+  }
+
+  &__skill-examples-label {
+    font-weight: 500;
+    color: app-theme.$paragraph-color;
+  }
+
+  &__skill-examples-list {
+    margin: 0;
+    padding-left: 16px;
+    list-style: none;
+
+    li {
+      position: relative;
+      padding-left: 8px;
+      color: app-theme.$paragraph-color;
+      font-style: italic;
+
+      &::before {
+        content: '>';
+        position: absolute;
+        left: -8px;
+        color: app-theme.$chip-label-text-color;
+        font-style: normal;
+      }
+    }
+  }
+
+  &__skill-io {
+    display: flex;
+    gap: 16px;
+    color: app-theme.$paragraph-color;
+
+    strong {
+      color: app-theme.$default-text-color;
+    }
+  }
+
+  // Footer
+  &__footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-top: 16px;
+    border-top: 1px solid app-theme.$border-color;
+    color: app-theme.$paragraph-color;
+
+    &__separator {
+      color: app-theme.$border-color;
+    }
+  }
+}

@@ -167,7 +167,7 @@ class GetApiForPortalUseCaseTest {
             .segment(PortalNavigationItem.slugify("Nav for " + agentId).value())
             .area(PortalArea.TOP_NAVBAR)
             .order(0)
-            .agentId(agentId)
+            .apiId(agentId)
             .published(true)
             .visibility(visibility)
             .build();

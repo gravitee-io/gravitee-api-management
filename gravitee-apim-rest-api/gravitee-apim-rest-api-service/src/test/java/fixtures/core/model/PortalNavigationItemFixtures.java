@@ -340,7 +340,7 @@ public class PortalNavigationItemFixtures {
             .segment(PortalNavigationItem.slugify(title).value())
             .area(PortalArea.TOP_NAVBAR)
             .order(0)
-            .agentId(agentId)
+            .apiId(agentId)
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
             .parentId(parentId)
@@ -356,7 +356,7 @@ public class PortalNavigationItemFixtures {
             .segment("my-agent")
             .area(PortalArea.TOP_NAVBAR)
             .order(5)
-            .agentId("a2a-proxy-api-id")
+            .apiId("a2a-proxy-api-id")
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
             .build();

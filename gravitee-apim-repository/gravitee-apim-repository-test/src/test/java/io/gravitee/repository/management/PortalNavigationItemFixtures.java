@@ -53,7 +53,7 @@ public final class PortalNavigationItemFixtures {
     }
 
     public static PortalNavigationItem.PortalNavigationItemBuilder anAgent(String id, String agentId) {
-        return anItem(id, PortalNavigationItem.Type.AGENT).agentId(agentId);
+        return anItem(id, PortalNavigationItem.Type.AGENT).apiId(agentId);
     }
 
     public static PortalNavigationItem.PortalNavigationItemBuilder aPage(String id, String portalPageContentId) {

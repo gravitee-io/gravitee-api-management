@@ -339,7 +339,7 @@ describe('PortalNavigationItemsService', () => {
       data: [
         {
           type: 'AGENT' as const,
-          agentId: api.id,
+          apiId: api.id,
           id: 'agent-nav-1',
           rootId: 'agent-root-1',
           categoryIds: ['cat-1'],

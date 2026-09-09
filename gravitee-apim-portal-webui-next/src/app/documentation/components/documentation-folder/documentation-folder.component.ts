@@ -34,7 +34,7 @@ import { NavigationItemContentViewerComponent } from '../../../../components/nav
 import { SidePanelComponent } from '../../../../components/side-panel/side-panel.component';
 import { SidenavLayoutComponent } from '../../../../components/sidenav-layout/sidenav-layout.component';
 import { SidenavSkeletonComponent } from '../../../../components/sidenav-skeleton/sidenav-skeleton.component';
-import { PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
+import { PortalNavigationAgent, PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
 import { PortalPageContent } from '../../../../entities/portal-navigation/portal-page-content';
 import { AgentSubscriptionAccess, AgentSubscriptionService } from '../../../../services/agent-subscription.service';
 import { ApiService } from '../../../../services/api.service';
@@ -42,6 +42,7 @@ import { CurrentUserService } from '../../../../services/current-user.service';
 import { PortalNavigationItemsService } from '../../../../services/portal-navigation-items.service';
 import { ApiTabToolsComponent } from '../../../api/api-details/api-tab-tools/api-tab-tools.component';
 import { DocumentationActionContext, TreeNode, TreeService } from '../../services/tree.service';
+import { AgentDetailComponent } from '../agent-detail/agent-detail.component';
 
 interface FolderData {
   children: PortalNavigationItem[];
@@ -66,6 +67,7 @@ enum NavParamsChange {
     MatButtonModule,
     SidePanelComponent,
     ApiTabToolsComponent,
+    AgentDetailComponent,
     AgentChatComponent,
   ],
   templateUrl: './documentation-folder.component.html',
@@ -90,6 +92,7 @@ export class DocumentationFolderComponent {
   breadcrumbs = signal<Breadcrumb[]>([]);
 
   documentationActionContext = signal<DocumentationActionContext>({ apiId: null, subscriptionTarget: null });
+  selectedAgent = signal<PortalNavigationAgent | null>(null);
   mcpDrawerOpen = signal(false);
   chatOpen = signal(false);
   subscriptionTarget = computed(() => this.documentationActionContext().subscriptionTarget);
@@ -99,6 +102,11 @@ export class DocumentationFolderComponent {
     stream: ({ params }) => (params ? this.apiService.details(params) : of(null)),
   });
   apiHasMcp = computed(() => !this.api.error() && !!this.api.value()?.mcp);
+  isSelectedAgentA2A = computed(() => {
+    if (!this.selectedAgent()) return false;
+    const api = this.api.error() ? null : this.api.value();
+    return api?.type !== 'MCP_PROXY';
+  });
 
   // Every read of api.value() is guarded: an errored resource throws from value(), and this page
   // must still render its tree and breadcrumbs when the api call fails.
@@ -177,7 +185,10 @@ export class DocumentationFolderComponent {
             return of(this.folderData());
         }
       }),
-      catchError(() => of({ children: [], selectedPageContent: null })),
+      catchError(() => {
+        this.selectedAgent.set(null);
+        return of({ children: [], selectedPageContent: null });
+      }),
     );
   }
 
@@ -191,6 +202,7 @@ export class DocumentationFolderComponent {
 
   private loadContentOrRedirect(selectedId: string, children = this.folderData()?.children ?? []): Observable<FolderData> {
     this.documentationActionContext.set({ apiId: null, subscriptionTarget: null });
+    this.selectedAgent.set(null);
 
     if (!selectedId) {
       return of({ children, selectedPageContent: null }).pipe(
@@ -204,9 +216,17 @@ export class DocumentationFolderComponent {
       return of({ children, selectedPageContent: null }).pipe(tap(() => this.navigateToNotFound()));
     }
 
-    if (child.type === 'API' || child.type === 'API_PRODUCT' || child.type === 'FOLDER' || child.type === 'AGENT') {
+    if (child.type === 'AGENT') {
+      this.selectedAgent.set(child);
+      this.documentationActionContext.set(this.treeService.getDocumentationActionContext(selectedId));
+      return of({ children, selectedPageContent: null }).pipe(
+        tap(() => this.breadcrumbs.set(this.treeService.getBreadcrumbsByNodeId(selectedId))),
+      );
+    }
+
+    if (child.type === 'API' || child.type === 'API_PRODUCT' || child.type === 'FOLDER') {
       // APIs, API Products, and folders are not selectable, so navigate to their first page.
-      const firstPageId = this.treeService.findFirstPageIdWithinNode(selectedId);
+      const firstPageId = this.treeService.findFirstSelectableIdWithinNode(selectedId);
       return of({ children, selectedPageContent: null }).pipe(tap(() => firstPageId && this.navigateToPage(firstPageId)));
     }
 
@@ -219,7 +239,7 @@ export class DocumentationFolderComponent {
   }
 
   private navigateToFirstPage() {
-    const firstPageId = this.treeService.findFirstPageId();
+    const firstPageId = this.treeService.findFirstSelectableId();
     if (firstPageId) {
       this.navigateToPage(firstPageId);
     }

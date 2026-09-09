@@ -69,6 +69,13 @@
         i18n-aria-label="@@documentationContentLoadingAria"
         aria-label="Loading content"
       />
+    } @else if (isSelectedAgentA2A() && selectedAgent(); as agent) {
+      <app-agent-detail
+        animate.enter="documentation-folder__main-content-enter"
+        [title]="agent.title"
+        [orgId]="agent.organizationId"
+        [envId]="agent.environmentId"
+      />
     } @else {
       <app-navigation-item-content-viewer
         animate.enter="documentation-folder__main-content-enter"

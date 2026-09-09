@@ -8700,9 +8700,12 @@ components:
           allOf:
             - $ref: "#/components/schemas/BasePortalNavigationItem"
             - properties:
-                agentId:
+                apiId:
                   type: string
                   description: The ID of the A2A proxy API that backs this agent
+                agentId:
+                  type: string
+                  description: The ID of the agent in the Gamma catalog
                 termsAndConditionsPageContentId:
                   type: string
                   format: uuid
@@ -8716,7 +8719,7 @@ components:
                   items:
                     type: string
                     format: uuid
-              required: [ agentId ]
+              required: [ apiId ]
         PortalNavigationItem:
             oneOf:
                 - $ref: "#/components/schemas/PortalNavigationPage"

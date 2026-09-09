@@ -51,10 +51,20 @@ describe('DocumentationTreeService', () => {
     expect(itemsTree[1].id).toEqual('p3');
   });
 
-  it('should find first page', () => {
-    const page = service.findFirstPageId();
+  it('should find first selectable item', () => {
+    const page = service.findFirstSelectableId();
     expect(page).toBeTruthy();
     expect(page).toEqual('p1');
+  });
+
+  it('should find agent as first selectable item when it comes first', () => {
+    const items = [
+      makeItem('f1', 'FOLDER', 'Folder 1', 0),
+      makeItem('agent1', 'AGENT', 'Agent 1', 0, 'f1', 'f1'),
+      makeItem('p1', 'PAGE', 'Page 1', 1, 'f1', 'f1'),
+    ];
+    service.init(parentItem, items);
+    expect(service.findFirstSelectableId()).toEqual('agent1');
   });
 
   describe('test breadcrumbs', () => {
@@ -95,33 +105,43 @@ describe('DocumentationTreeService', () => {
     });
   });
 
-  describe('findFirstPageIdWithinNode', () => {
+  describe('findFirstSelectableIdWithinNode', () => {
     it('should return first page within folder', () => {
-      expect(service.findFirstPageIdWithinNode('f1')).toEqual('p1');
-      expect(service.findFirstPageIdWithinNode('f2')).toEqual('p1');
+      expect(service.findFirstSelectableIdWithinNode('f1')).toEqual('p1');
+      expect(service.findFirstSelectableIdWithinNode('f2')).toEqual('p1');
     });
 
-    it('should return null when node has no pages', () => {
+    it('should return null when node has no selectable items', () => {
       const items = [
         makeItem('f1', 'FOLDER', 'Folder 1', 0),
         makeItem('f2', 'FOLDER', 'Folder 2', 0, 'f1'),
         makeItem('l1', 'LINK', 'Link 1', 0, 'f2'),
       ];
       service.init(parentItem, items);
-      expect(service.findFirstPageIdWithinNode('f1')).toBeNull();
-      expect(service.findFirstPageIdWithinNode('f2')).toBeNull();
+      expect(service.findFirstSelectableIdWithinNode('f1')).toBeNull();
+      expect(service.findFirstSelectableIdWithinNode('f2')).toBeNull();
     });
 
     it('should return first page within API node', () => {
       const items = [makeItem('api1', 'API', 'API 1', 0), makeItem('p-api1', 'PAGE', 'API doc', 0, 'api1')];
       service.init(parentItem, items);
-      expect(service.findFirstPageIdWithinNode('api1')).toEqual('p-api1');
+      expect(service.findFirstSelectableIdWithinNode('api1')).toEqual('p-api1');
     });
 
     it('should return first page within Agent node', () => {
       const items = [makeItem('agent1', 'AGENT', 'Agent 1', 0), makeItem('p-agent1', 'PAGE', 'Agent doc', 0, 'agent1')];
       service.init(parentItem, items);
-      expect(service.findFirstPageIdWithinNode('agent1')).toEqual('p-agent1');
+      expect(service.findFirstSelectableIdWithinNode('agent1')).toEqual('p-agent1');
+    });
+
+    it('should return agent as first selectable within folder containing an agent', () => {
+      const items = [
+        makeItem('f1', 'FOLDER', 'Folder 1', 0),
+        makeItem('agent1', 'AGENT', 'Agent 1', 0, 'f1', 'f1'),
+        makeItem('p1', 'PAGE', 'Page 1', 1, 'f1', 'f1'),
+      ];
+      service.init(parentItem, items);
+      expect(service.findFirstSelectableIdWithinNode('f1')).toEqual('agent1');
     });
   });
 

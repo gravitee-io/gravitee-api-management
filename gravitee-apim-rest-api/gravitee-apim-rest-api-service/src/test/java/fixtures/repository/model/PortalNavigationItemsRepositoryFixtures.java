@@ -162,7 +162,7 @@ public class PortalNavigationItemsRepositoryFixtures {
             .configuration("{}")
             .published(true)
             .visibility(Visibility.PUBLIC)
-            .agentId(agentId)
+            .apiId(agentId)
             .build();
     }
 
