@@ -50,8 +50,7 @@ export class ApplicationCreationStep3Component implements OnInit, OnDestroy {
   @Output() updated = new EventEmitter<any[]>();
   @Input() subscribeList: any[];
   @Output() changeStep = new EventEmitter<{ step: number; fragment: string }>();
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  @Input() hasValidClientId: Function;
+  @Input() hasValidClientId: (plan: unknown) => boolean;
   @ViewChild('searchApiAutocomplete') searchApiAutocomplete;
 
   planForm: PlanFormType;

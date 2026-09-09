@@ -104,7 +104,7 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
       let contentAsJson;
       try {
         contentAsJson = JSON.parse(page.content);
-      } catch (e) {
+      } catch {
         contentAsJson = readYaml(page.content);
       }
 
