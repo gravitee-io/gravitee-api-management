@@ -1066,6 +1066,8 @@ jobs:
       - run:
           name: Build project
           command: mvn clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8
+          environment:
+            MAVEN_OPTS: -Xmx2048m
       - cmd-notify-on-failure
       - cmd-save-maven-job-cache:
           jobName: job-community-build
