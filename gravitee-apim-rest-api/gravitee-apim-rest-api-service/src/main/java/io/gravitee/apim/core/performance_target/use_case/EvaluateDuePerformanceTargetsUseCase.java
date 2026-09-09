@@ -16,6 +16,8 @@
 package io.gravitee.apim.core.performance_target.use_case;
 
 import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
@@ -34,7 +36,10 @@ import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -44,8 +49,9 @@ import lombok.RequiredArgsConstructor;
  * <p>The schedule state of a target, when it was last evaluated and how many times in a row it was not evaluable,
  * lives in {@link PerformanceTargetScheduleStateDomainService} and is seeded from its stored evaluations the first
  * time the target is seen, so a restart resumes where the previous node left off instead of evaluating everything at
- * once. A target the evaluator leaves out is still counted as attempted: it is retried at its next slot, not at every
- * tick.
+ * once. Every tick then reconciles that memory with the store, one query per environment, so an on-demand evaluation
+ * or an update served by another node counts here too. A target the evaluator leaves out is still counted as
+ * attempted: it is retried at its next slot, not at every tick.
  */
 @RequiredArgsConstructor
 @UseCase
@@ -62,11 +68,13 @@ public class EvaluateDuePerformanceTargetsUseCase {
         var now = TimeProvider.instantNow();
         var targets = performanceTargetQueryService.findAll();
         scheduleState.retain(targets.stream().map(PerformanceTarget::id).collect(toSet()));
+        var storedLatest = storedLatestByTarget(targets);
 
         var due = targets
             .stream()
             .filter(target -> {
-                var state = scheduleState.stateOf(target.id(), () -> seed(target, schedule));
+                scheduleState.stateOf(target.id(), () -> seed(target, schedule));
+                var state = scheduleState.reconcile(target.id(), redefinedAt(target), storedLatest.get(target.id()));
                 return schedule.isDue(target, state.lastEvaluatedAt(), state.consecutiveNotEvaluable(), now);
             })
             .toList();
@@ -105,6 +113,30 @@ public class EvaluateDuePerformanceTargetsUseCase {
      */
     private static String evaluationId(PerformanceTarget target, Instant slotStart) {
         return UuidString.generateForEnvironment(target.environmentId(), target.id(), String.valueOf(slotStart.getEpochSecond()));
+    }
+
+    /**
+     * The latest stored evaluation of every target, whichever node stored it: one query per environment, since the
+     * store indexes latest evaluations by environment and subject reference.
+     */
+    private Map<String, PerformanceTargetEvaluation> storedLatestByTarget(List<PerformanceTarget> targets) {
+        var referencesByEnvironment = targets
+            .stream()
+            .filter(target -> target.subject() != null && target.subject().reference() != null)
+            .collect(groupingBy(PerformanceTarget::environmentId, mapping(target -> target.subject().reference(), toSet())));
+        var latest = new HashMap<String, PerformanceTargetEvaluation>();
+        referencesByEnvironment.forEach((environmentId, references) ->
+            performanceTargetEvaluationQueryService
+                .findLatestByReferences(environmentId, references)
+                .forEach(evaluation ->
+                    latest.merge(evaluation.targetId(), evaluation, (a, b) -> a.evaluatedAt().isAfter(b.evaluatedAt()) ? a : b)
+                )
+        );
+        return latest;
+    }
+
+    private static Instant redefinedAt(PerformanceTarget target) {
+        return Objects.isNull(target.updatedAt()) ? null : target.updatedAt().toInstant();
     }
 
     private State seed(PerformanceTarget target, PerformanceTargetSchedule schedule) {
