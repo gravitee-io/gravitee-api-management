@@ -18,7 +18,9 @@ package io.gravitee.apim.core.subscription_form.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.SubscriptionFormFixtures;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.SubscriptionFormCrudServiceInMemory;
 import inmemory.SubscriptionFormQueryServiceInMemory;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
@@ -42,16 +44,19 @@ class UpdateSubscriptionFormUseCaseTest {
 
     private final SubscriptionFormCrudServiceInMemory crudService = new SubscriptionFormCrudServiceInMemory();
     private final SubscriptionFormQueryServiceInMemory queryService = new SubscriptionFormQueryServiceInMemory();
+    private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private UpdateSubscriptionFormUseCase useCase;
 
     @BeforeEach
     void setUp() {
         crudService.reset();
         queryService.reset();
+        apiCrudService.reset();
         var definitionDomainService = new SubscriptionFormDefinitionDomainService(
             new GraviteeMarkdownValidator(),
             new SubscriptionFormSchemaGeneratorImpl(),
-            queryService
+            queryService,
+            apiCrudService
         );
         useCase = new UpdateSubscriptionFormUseCase(crudService, queryService, definitionDomainService);
     }
@@ -72,6 +77,41 @@ class UpdateSubscriptionFormUseCaseTest {
         assertThat(result.subscriptionForm().getValidationConstraints().byFieldKey()).containsKey("updated");
         assertThat(result.subscriptionForm().isDefaultForm()).isEqualTo(existingForm.isDefaultForm());
         assertThat(result.subscriptionForm().isEnabled()).isEqualTo(existingForm.isEnabled());
+    }
+
+    @Test
+    void should_replace_the_dedicated_apis() {
+        SubscriptionForm existingForm = SubscriptionFormFixtures.aSubscriptionFormBuilder().apiIds(List.of("api-old")).build();
+        crudService.initWith(List.of(existingForm));
+        queryService.initWith(List.of(existingForm));
+        apiCrudService.initWith(
+            List.of(ApiFixtures.aProxyApiV4().toBuilder().id("api-new").environmentId(existingForm.getEnvironmentId()).build())
+        );
+
+        var result = useCase.execute(
+            new UpdateSubscriptionFormUseCase.Input(
+                existingForm.getEnvironmentId(),
+                existingForm.getId(),
+                existingForm.getName(),
+                GMD,
+                List.of("api-new")
+            )
+        );
+
+        assertThat(result.subscriptionForm().getApiIds()).containsExactly("api-new");
+    }
+
+    @Test
+    void should_clear_the_dedicated_apis_when_none_is_given() {
+        SubscriptionForm existingForm = SubscriptionFormFixtures.aSubscriptionFormBuilder().apiIds(List.of("api-old")).build();
+        crudService.initWith(List.of(existingForm));
+        queryService.initWith(List.of(existingForm));
+
+        var result = useCase.execute(
+            new UpdateSubscriptionFormUseCase.Input(existingForm.getEnvironmentId(), existingForm.getId(), existingForm.getName(), GMD)
+        );
+
+        assertThat(result.subscriptionForm().getApiIds()).isEmpty();
     }
 
     @Test

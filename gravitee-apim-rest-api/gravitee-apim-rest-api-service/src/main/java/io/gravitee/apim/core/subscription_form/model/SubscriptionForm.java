@@ -18,6 +18,7 @@ package io.gravitee.apim.core.subscription_form.model;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import jakarta.annotation.Nullable;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -62,6 +63,10 @@ public class SubscriptionForm {
     /** Whether this form is the environment default. */
     private boolean defaultForm;
 
+    /** Identifiers of the APIs this form is dedicated to. An API is mapped to at most one form. */
+    @Builder.Default
+    private List<String> apiIds = List.of();
+
     private SubscriptionFormFieldConstraints validationConstraints;
 
     /**
@@ -91,6 +96,13 @@ public class SubscriptionForm {
      */
     public void disable() {
         this.enabled = false;
+    }
+
+    /**
+     * Replaces the APIs this form is dedicated to (mutates in place).
+     */
+    public void assignApis(List<String> apiIds) {
+        this.apiIds = List.copyOf(apiIds);
     }
 
     /**

@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.13.0_20_add_subscription_form_apis_table
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}subscription_form_apis
+            columns:
+              - column: {name: form_id, type: nvarchar(64), constraints: {nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}subscription_form_apis"}}
+              - column: {name: api_id, type: nvarchar(64), constraints: {nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}subscription_form_apis"}}
+        # An API is mapped to at most one form.
+        - addUniqueConstraint:
+            constraintName: uk_${gravitee_prefix}subscription_form_apis_api_id
+            columnNames: api_id
+            tableName: ${gravitee_prefix}subscription_form_apis

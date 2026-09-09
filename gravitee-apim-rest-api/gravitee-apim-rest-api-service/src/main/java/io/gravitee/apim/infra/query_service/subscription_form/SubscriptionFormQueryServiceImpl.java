@@ -85,6 +85,22 @@ public class SubscriptionFormQueryServiceImpl implements SubscriptionFormQuerySe
     }
 
     @Override
+    public Optional<SubscriptionForm> findByApiId(String environmentId, String apiId) {
+        try {
+            return subscriptionFormRepository.findByEnvironmentIdAndApiId(environmentId, apiId).map(this::toEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format(
+                    "An error occurred while trying to find the SubscriptionForm of API %s in environment: %s",
+                    apiId,
+                    environmentId
+                ),
+                e
+            );
+        }
+    }
+
+    @Override
     public Optional<SubscriptionForm> findDefaultForEnvironmentId(String environmentId) {
         try {
             return subscriptionFormRepository.findDefaultByEnvironmentId(environmentId).map(this::toEntity);

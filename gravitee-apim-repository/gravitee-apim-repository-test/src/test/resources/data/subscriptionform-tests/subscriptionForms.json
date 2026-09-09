@@ -13,6 +13,7 @@
       "id": "sub-form-partner",
       "environmentId": "env-1",
       "name": "Partner onboarding",
+      "apiIds": ["api-partner-1", "api-partner-2"],
       "gmdContent": "<gmd-card><gmd-input name=\"company\" label=\"Company\"/></gmd-card>",
       "enabled": false,
       "defaultForm": false,

@@ -34,8 +34,10 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisib
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormResolutionDomainService;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoundException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.apim.infra.domain_service.subscription_form.SubscriptionFormSchemaGeneratorImpl;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +78,12 @@ class GetSubscriptionFormForApiPortalUseCaseTest {
             apiQueryService
         );
         var visibility = new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService);
-        useCase = new GetSubscriptionFormForApiPortalUseCase(visibility, queryService, schemaGenerator, elResolver);
+        useCase = new GetSubscriptionFormForApiPortalUseCase(
+            visibility,
+            new SubscriptionFormResolutionDomainService(queryService),
+            schemaGenerator,
+            elResolver
+        );
     }
 
     @Test
@@ -143,6 +150,44 @@ class GetSubscriptionFormForApiPortalUseCaseTest {
         navQueryService.initWith(List.of(publishedApiNavItem(API_ID, PortalVisibility.PUBLIC)));
         SubscriptionForm disabledForm = SubscriptionFormFixtures.aSubscriptionFormBuilder().environmentId(ENV_ID).enabled(false).build();
         queryService.initWith(List.of(disabledForm));
+
+        var input = GetSubscriptionFormForApiPortalUseCase.Input.builder().environmentId(ENV_ID).apiId(API_ID).userId(null).build();
+
+        assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(SubscriptionFormNotFoundException.class);
+    }
+
+    @Test
+    void should_return_the_form_dedicated_to_the_api_rather_than_the_default() {
+        navQueryService.initWith(List.of(publishedApiNavItem(API_ID, PortalVisibility.PUBLIC)));
+        var defaultForm = enabledFormWithDynamicSelect();
+        var dedicatedForm = SubscriptionFormFixtures.aSubscriptionFormBuilder()
+            .id(SubscriptionFormId.random())
+            .environmentId(ENV_ID)
+            .name("Dedicated")
+            .defaultForm(false)
+            .enabled(true)
+            .apiIds(List.of(API_ID))
+            .build();
+        queryService.initWith(List.of(defaultForm, dedicatedForm));
+
+        var result = useCase.execute(
+            GetSubscriptionFormForApiPortalUseCase.Input.builder().environmentId(ENV_ID).apiId(API_ID).userId(USER_ID).build()
+        );
+
+        assertThat(result.subscriptionForm()).isEqualTo(dedicatedForm);
+    }
+
+    @Test
+    void should_throw_when_the_dedicated_form_is_disabled_even_if_the_default_is_enabled() {
+        navQueryService.initWith(List.of(publishedApiNavItem(API_ID, PortalVisibility.PUBLIC)));
+        var dedicatedForm = SubscriptionFormFixtures.aSubscriptionFormBuilder()
+            .id(SubscriptionFormId.random())
+            .environmentId(ENV_ID)
+            .defaultForm(false)
+            .enabled(false)
+            .apiIds(List.of(API_ID))
+            .build();
+        queryService.initWith(List.of(enabledFormWithDynamicSelect(), dedicatedForm));
 
         var input = GetSubscriptionFormForApiPortalUseCase.Input.builder().environmentId(ENV_ID).apiId(API_ID).userId(null).build();
 

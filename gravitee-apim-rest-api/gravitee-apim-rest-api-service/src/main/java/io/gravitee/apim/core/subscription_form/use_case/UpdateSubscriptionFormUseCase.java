@@ -22,11 +22,13 @@ import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoun
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.apim.core.subscription_form.query_service.SubscriptionFormQueryService;
+import jakarta.annotation.Nullable;
+import java.util.List;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Updates the name and definition of an existing subscription form.
+ * Updates the name, definition and dedicated APIs of an existing subscription form.
  * This operation does NOT change the enabled or default state - use the dedicated use cases for that.
  *
  * @author Gravitee.io Team
@@ -50,16 +52,28 @@ public class UpdateSubscriptionFormUseCase {
                 )
             );
         definitionDomainService.validateName(input.environmentId(), input.name(), input.subscriptionFormId());
+        var apiIds = definitionDomainService.validateApiIds(input.environmentId(), input.apiIds(), input.subscriptionFormId());
         var definition = definitionDomainService.compile(input.gmdContent());
 
         existingForm.rename(input.name().trim());
         existingForm.update(definition.gmdContent(), definition.constraints());
+        existingForm.assignApis(apiIds);
         var savedForm = subscriptionFormCrudService.update(existingForm);
         log.info("Updated subscription form [{}] for environment [{}]", input.subscriptionFormId(), input.environmentId());
         return new Output(savedForm);
     }
 
-    public record Input(String environmentId, SubscriptionFormId subscriptionFormId, String name, String gmdContent) {}
+    public record Input(
+        String environmentId,
+        SubscriptionFormId subscriptionFormId,
+        String name,
+        String gmdContent,
+        @Nullable List<String> apiIds
+    ) {
+        public Input(String environmentId, SubscriptionFormId subscriptionFormId, String name, String gmdContent) {
+            this(environmentId, subscriptionFormId, name, gmdContent, null);
+        }
+    }
 
     public record Output(SubscriptionForm subscriptionForm) {}
 }

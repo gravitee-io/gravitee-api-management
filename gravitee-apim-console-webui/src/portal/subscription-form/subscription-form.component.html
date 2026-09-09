@@ -104,6 +104,35 @@
     </header>
 
     @if (hasSelection()) {
+      <section class="editor-panel__apis" data-testid="subscription-form-apis">
+        <span class="editor-panel__apis__label">Dedicated to</span>
+        <mat-chip-set aria-label="APIs this form is dedicated to">
+          @for (api of selectedApis(); track api.id) {
+            <mat-chip [attr.data-testid]="'api-chip-' + api.id" [removable]="canUpdate()" (removed)="removeApi(api.id)">
+              {{ api.name }}
+              @if (canUpdate()) {
+                <button matChipRemove [attr.aria-label]="'Remove ' + api.name">
+                  <mat-icon>cancel</mat-icon>
+                </button>
+              }
+            </mat-chip>
+          } @empty {
+            <span class="editor-panel__apis__empty">
+              {{ selectedFormIsDefault() ? 'Every API without a dedicated form' : 'No API yet' }}
+            </span>
+          }
+        </mat-chip-set>
+        <button
+          *gioPermission="{ anyOf: ['environment-metadata-u'] }"
+          mat-stroked-button
+          type="button"
+          data-testid="subscription-form-add-api-button"
+          (click)="addApi()"
+        >
+          <mat-icon>add</mat-icon>
+          Add API
+        </button>
+      </section>
       <gmd-form-editor [formControl]="contentControl" />
     } @else {
       <div class="empty-editor">

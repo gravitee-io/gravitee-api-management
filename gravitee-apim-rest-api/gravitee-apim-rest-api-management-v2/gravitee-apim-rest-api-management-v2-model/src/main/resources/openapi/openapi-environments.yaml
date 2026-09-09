@@ -1439,7 +1439,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "409":
-          description: A subscription form with the same name already exists in this environment
+          description: A subscription form with the same name already exists in this environment, or another form already claims one of the APIs
           content:
             application/json:
               schema:
@@ -1539,7 +1539,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "409":
-          description: Another subscription form of this environment already has this name
+          description: Another subscription form of this environment already has this name, or already claims one of the APIs
           content:
             application/json:
               schema:
@@ -3338,6 +3338,12 @@ components:
           type: boolean
           description: Whether the form is the environment default, used for every API without a dedicated form
           example: true
+        apiIds:
+          type: array
+          description: Identifiers of the APIs this form is dedicated to. An API is mapped to at most one form.
+          items:
+            type: string
+          example: [ "6c530064-0b2c-4004-9300-640b2ca00499" ]
         resolvedOptions:
           type: object
           description: |-
@@ -3354,6 +3360,7 @@ components:
         - gmdContent
         - enabled
         - defaultForm
+        - apiIds
     SubscriptionFormTemplate:
       type: object
       description: The Gravitee Markdown definition a new subscription form starts from
@@ -3385,6 +3392,11 @@ components:
             # Subscription Information
             
             <gmd-input name="consumer_company_name" label="Company Name" required="true"/>
+        apiIds:
+          type: array
+          description: Identifiers of the APIs this form is dedicated to. Each must belong to the environment and to no other form.
+          items:
+            type: string
       required:
         - name
         - gmdContent
@@ -3411,6 +3423,11 @@ components:
             
             <gmd-input name="consumer_company_name" label="Company Name" required="true"/>
             <gmd-textarea name="consumer_use_case" label="Use Case" required="true"/>
+        apiIds:
+          type: array
+          description: Identifiers of the APIs this form is dedicated to, replacing the current ones. Each must belong to the environment and to no other form.
+          items:
+            type: string
       required:
         - name
         - gmdContent

@@ -19,6 +19,7 @@ export interface SubscriptionForm {
   gmdContent: string;
   enabled: boolean;
   defaultForm: boolean;
+  apiIds: string[];
   resolvedOptions?: Record<string, string[]>;
 }
 
@@ -29,9 +30,11 @@ export interface SubscriptionFormTemplate {
 export interface CreateSubscriptionForm {
   name: string;
   gmdContent: string;
+  apiIds?: string[];
 }
 
 export interface UpdateSubscriptionForm {
   name: string;
   gmdContent: string;
+  apiIds?: string[];
 }
