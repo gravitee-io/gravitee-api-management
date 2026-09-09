@@ -15,7 +15,7 @@
  */
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { OpenJdkNodeExecutor } from '../../executors';
-import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
+import { InstallYarnCommand, NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
@@ -28,14 +28,20 @@ export class BuildBackendJob {
     const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig, environment);
+    // The reactor installs the yarn workspace (gravitee-gamma runs `yarn install` in
+    // generate-resources). Without corepack the image's yarn 1 cannot read the berry lockfile
+    // and resolves the whole workspace from the registry instead.
+    const installYarnCmd = InstallYarnCommand.get();
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(saveMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
+    dynamicConfig.addReusableCommand(installYarnCmd);
 
     const steps: Command[] = [
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: jobName }),
+      new reusable.ReusedCommand(installYarnCmd),
       new commands.Run({
         name: 'Build project',
         command: `mvn -s ${config.maven.settingsFile} clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false ${mavenParallelism('large')} -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc`,
