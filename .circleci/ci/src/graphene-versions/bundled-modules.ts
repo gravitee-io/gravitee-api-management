@@ -53,7 +53,7 @@ function runUnzip(args: string[]): string | undefined {
     // Without unzip every module would look like it ships no UI, and the run would fail as 'no
     // modules found' instead of naming the real cause.
     if (failure.code === 'ENOENT') {
-      throw new Error('unzip is not on the PATH. This check reads each module manifest out of its plugin zip.');
+      throw new Error('unzip is not on the PATH. This check reads each module manifest out of its plugin zip.', { cause: error });
     }
 
     if (failure.status === UNZIP_NOTHING_MATCHED) {
@@ -64,7 +64,7 @@ function runUnzip(args: string[]): string | undefined {
     // for a corrupt or truncated zip, ENOBUFS when an entry outgrows maxBuffer. Reading those as
     // 'ships no UI' is how a damaged artifact passes the check clean.
     const cause = failure.status === undefined || failure.status === null ? failure.code : `exit ${failure.status}`;
-    throw new Error(`unzip could not read ${path.basename(args[1])} (${cause})`);
+    throw new Error(`unzip could not read ${path.basename(args[1])} (${cause})`, { cause: error });
   }
 }
 
