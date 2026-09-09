@@ -17,8 +17,8 @@ import { defineConfig } from 'cypress';
 import cypressConfig from '../../cypress.config';
 
 export default defineConfig({
-  env: {
-    ...cypressConfig.env,
+  expose: {
+    ...cypressConfig.expose,
     failOnStatusCode: false,
     api_publisher_user_login: 'api1',
     api_publisher_user_password: 'api1',

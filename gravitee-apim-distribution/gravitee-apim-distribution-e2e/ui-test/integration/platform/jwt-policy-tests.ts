@@ -107,7 +107,7 @@ context('Create and test JWT policy', () => {
 
             const fakeJwksApi = ApiFakers.jwtApi({
               publicKeyResolver: 'JWKS_URL',
-              resolverParameter: `${Cypress.env('am_gatewayServer')}/auth/${am_domainHrid}/oidc/.well-known/jwks.json`,
+              resolverParameter: `${Cypress.expose('am_gatewayServer')}/auth/${am_domainHrid}/oidc/.well-known/jwks.json`,
               signature: 'RSA_RS256',
             });
 
@@ -137,7 +137,7 @@ context('Create and test JWT policy', () => {
     it('should successfully call API endpoint when using JWT token', () => {
       const jwtToken_hs256 = sign({ exp: 1900000000 }, secret, { noTimestamp: true });
       requestGateway({
-        url: `${Cypress.env('gatewayServer')}${hs256Api.context_path}`,
+        url: `${Cypress.expose('gatewayServer')}${hs256Api.context_path}`,
         auth: { bearer: jwtToken_hs256 },
       }).should((response: Cypress.Response<any>) => {
         expect(response.body).to.have.property('headers');
@@ -147,7 +147,7 @@ context('Create and test JWT policy', () => {
 
     it('should fail to call API endpoint without JWT token', () => {
       requestGateway(
-        { url: `${Cypress.env('gatewayServer')}${hs256Api.context_path}` },
+        { url: `${Cypress.expose('gatewayServer')}${hs256Api.context_path}` },
         { validWhen: (response) => response.status === 401 },
       )
         .its('body')
@@ -159,7 +159,7 @@ context('Create and test JWT policy', () => {
       const jwtToken_expired = sign({ exp: 1600000000 }, secret, { noTimestamp: true });
       requestGateway(
         {
-          url: `${Cypress.env('gatewayServer')}${hs256Api.context_path}`,
+          url: `${Cypress.expose('gatewayServer')}${hs256Api.context_path}`,
           auth: { bearer: jwtToken_expired },
         },
         {
@@ -175,7 +175,7 @@ context('Create and test JWT policy', () => {
       const invalidToken = sign({ exp: 1900000000 }, secret, { noTimestamp: true }).slice(0, -1);
       requestGateway(
         {
-          url: `${Cypress.env('gatewayServer')}${hs256Api.context_path}`,
+          url: `${Cypress.expose('gatewayServer')}${hs256Api.context_path}`,
           auth: { bearer: invalidToken },
         },
         {
@@ -193,7 +193,7 @@ context('Create and test JWT policy', () => {
       cy.readFile('cypress/fixtures/keys/jwtRS256.key').then((privateKey) => {
         const jwtToken_rs256 = sign({ exp: 1900000000 }, privateKey, { noTimestamp: true, algorithm: 'RS256' });
         requestGateway({
-          url: `${Cypress.env('gatewayServer')}${rs256Api.context_path}`,
+          url: `${Cypress.expose('gatewayServer')}${rs256Api.context_path}`,
           auth: { bearer: jwtToken_rs256 },
         }).should((response: Cypress.Response<any>) => {
           expect(response.body).to.have.property('date');
@@ -207,7 +207,7 @@ context('Create and test JWT policy', () => {
         const jwtToken_rs512 = sign({ exp: 1900000000 }, privateKey, { noTimestamp: true, algorithm: 'RS512' });
         requestGateway(
           {
-            url: `${Cypress.env('gatewayServer')}${rs256Api.context_path}`,
+            url: `${Cypress.expose('gatewayServer')}${rs256Api.context_path}`,
             auth: { bearer: jwtToken_rs512 },
           },
           {
@@ -222,7 +222,7 @@ context('Create and test JWT policy', () => {
 
     it('should fail to call API endpoint without JWT token', () => {
       requestGateway(
-        { url: `${Cypress.env('gatewayServer')}${rs256Api.context_path}` },
+        { url: `${Cypress.expose('gatewayServer')}${rs256Api.context_path}` },
         { validWhen: (response) => response.status === 401 },
       )
         .its('body')
@@ -234,7 +234,7 @@ context('Create and test JWT policy', () => {
       const jwtToken_noSignature = sign({ exp: 1900000000 }, null, { noTimestamp: true, algorithm: 'none' });
       requestGateway(
         {
-          url: `${Cypress.env('gatewayServer')}${rs256Api.context_path}`,
+          url: `${Cypress.expose('gatewayServer')}${rs256Api.context_path}`,
           auth: { bearer: jwtToken_noSignature },
         },
         {
@@ -251,7 +251,7 @@ context('Create and test JWT policy', () => {
     it('should send Authorization header to backend API if auth header propagation is switched on', () => {
       const jwtToken_hs256 = sign({ exp: 1900000000 }, secret, { noTimestamp: true });
       requestGateway({
-        url: `${Cypress.env('gatewayServer')}${hs256Api.context_path}`,
+        url: `${Cypress.expose('gatewayServer')}${hs256Api.context_path}`,
         auth: { bearer: jwtToken_hs256 },
       }).should((response: Cypress.Response<any>) => {
         expect(response.body.headers).to.have.property('Authorization', `Bearer ${jwtToken_hs256}`);
@@ -261,7 +261,7 @@ context('Create and test JWT policy', () => {
     it('should not send Authorization header to backend API if auth header propagation is switched off', () => {
       const jwtToken_hs256 = sign({ exp: 1900000000 }, secret, { noTimestamp: true });
       requestGateway({
-        url: `${Cypress.env('gatewayServer')}${noAuthPropApi.context_path}`,
+        url: `${Cypress.expose('gatewayServer')}${noAuthPropApi.context_path}`,
         auth: { bearer: jwtToken_hs256 },
       }).should((response: Cypress.Response<any>) => {
         expect(response.body).to.have.property('query_params');
@@ -276,7 +276,7 @@ context('Create and test JWT policy', () => {
       cy.log('-----  Retrieve access token from AM server  -----');
       requestGateway({
         method: 'POST',
-        url: `${Cypress.env('am_gatewayServer')}/auth/${am_domainHrid}/oauth/token`,
+        url: `${Cypress.expose('am_gatewayServer')}/auth/${am_domainHrid}/oauth/token`,
         form: true,
         auth: {
           username: am_jwksTestApplication.settings.oauth.client_id,
@@ -290,7 +290,7 @@ context('Create and test JWT policy', () => {
 
     it('should successfully call API endpoint', () => {
       requestGateway({
-        url: `${Cypress.env('gatewayServer')}${jwksApi.context_path}`,
+        url: `${Cypress.expose('gatewayServer')}${jwksApi.context_path}`,
         auth: { bearer: jwksToken },
       }).should((response: Cypress.Response<any>) => {
         expect(response.body).to.have.property('date');
@@ -301,7 +301,7 @@ context('Create and test JWT policy', () => {
     it('should fail to call API endpoint without access token', () => {
       requestGateway(
         {
-          url: `${Cypress.env('gatewayServer')}${jwksApi.context_path}`,
+          url: `${Cypress.expose('gatewayServer')}${jwksApi.context_path}`,
         },
         {
           validWhen: (response) => response.status === 401,
@@ -316,7 +316,7 @@ context('Create and test JWT policy', () => {
       const wrongToken = sign({ exp: 1900000000 }, secret, { noTimestamp: true });
       requestGateway(
         {
-          url: `${Cypress.env('gatewayServer')}${jwksApi.context_path}`,
+          url: `${Cypress.expose('gatewayServer')}${jwksApi.context_path}`,
           auth: { bearer: wrongToken },
         },
         {

@@ -32,7 +32,7 @@ describe('Create and modify a flow in Policy Studio', () => {
     cy.log('Create v4 API');
     cy.request({
       method: 'POST',
-      url: `${Cypress.env('managementApi')}/management/v2/environments/DEFAULT/apis`,
+      url: `${Cypress.expose('managementApi')}/management/v2/environments/DEFAULT/apis`,
       auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
       body: MAPIV2ApisFaker.newApi({
         type: ApiType.PROXY,
@@ -46,7 +46,7 @@ describe('Create and modify a flow in Policy Studio', () => {
       cy.log('Create a plan with a flow');
       cy.request({
         method: 'POST',
-        url: `${Cypress.env('managementApi')}/management/v2/environments/${envId}/apis/${v4api.id}/plans`,
+        url: `${Cypress.expose('managementApi')}/management/v2/environments/${envId}/apis/${v4api.id}/plans`,
         auth: { username: ADMIN_USER.username, password: ADMIN_USER.password },
         body: MAPIV2PlansFaker.newPlanV4(),
       })
@@ -58,7 +58,7 @@ describe('Create and modify a flow in Policy Studio', () => {
           cy.log('Publish Plan');
           cy.request({
             method: 'POST',
-            url: `${Cypress.env('managementApi')}/management/v2/environments/DEFAULT/apis/${v4api.id}/plans/${planId}/_publish`,
+            url: `${Cypress.expose('managementApi')}/management/v2/environments/DEFAULT/apis/${v4api.id}/plans/${planId}/_publish`,
             auth: { username: ADMIN_USER.username, password: ADMIN_USER.password },
           }).then((response) => {
             expect(response.status).to.eq(200);
@@ -68,7 +68,7 @@ describe('Create and modify a flow in Policy Studio', () => {
       cy.log('Deploy API');
       cy.request({
         method: 'POST',
-        url: `${Cypress.env('managementApi')}/management/v2/environments/${envId}/apis/${v4api.id}/deployments`,
+        url: `${Cypress.expose('managementApi')}/management/v2/environments/${envId}/apis/${v4api.id}/deployments`,
         auth: { username: ADMIN_USER.username, password: ADMIN_USER.password },
       }).then((response) => {
         expect(response.status).to.eq(202);
@@ -77,7 +77,7 @@ describe('Create and modify a flow in Policy Studio', () => {
       cy.log('Start API');
       cy.request({
         method: 'POST',
-        url: `${Cypress.env('managementApi')}/management/v2/environments/${envId}/apis/${v4api.id}/_start`,
+        url: `${Cypress.expose('managementApi')}/management/v2/environments/${envId}/apis/${v4api.id}/_start`,
         auth: { username: ADMIN_USER.username, password: ADMIN_USER.password },
       }).then((response) => {
         expect(response.status).to.eq(204);

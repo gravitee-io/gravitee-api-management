@@ -1,7 +1,7 @@
 import { defineConfig } from 'cypress';
 
 export default defineConfig({
-  env: {
+  expose: {
     managementApi: 'http://localhost:8083',
     wiremockUrl: 'http://wiremock:8080',
     gatewayServer: 'http://localhost:8082',

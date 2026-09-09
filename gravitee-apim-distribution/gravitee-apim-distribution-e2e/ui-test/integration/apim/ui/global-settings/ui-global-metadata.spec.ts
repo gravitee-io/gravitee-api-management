@@ -194,7 +194,7 @@ describe('Global metadata screen', () => {
     before(() => {
       cy.request({
         method: 'POST',
-        url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/configuration/metadata`,
+        url: `${Cypress.expose('managementApi')}${Cypress.expose('defaultOrgEnv')}/configuration/metadata`,
         auth: { username: ADMIN_USER.username, password: ADMIN_USER.password },
         body: {
           format: 'STRING',
@@ -217,7 +217,7 @@ describe('Global metadata screen', () => {
       cy.clearCookie('Auth-Graviteeio-APIM');
       cy.request({
         method: 'DELETE',
-        url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/configuration/metadata/${globalMetadataKey}`,
+        url: `${Cypress.expose('managementApi')}${Cypress.expose('defaultOrgEnv')}/configuration/metadata/${globalMetadataKey}`,
         auth: { username: ADMIN_USER.username, password: ADMIN_USER.password },
       });
     });

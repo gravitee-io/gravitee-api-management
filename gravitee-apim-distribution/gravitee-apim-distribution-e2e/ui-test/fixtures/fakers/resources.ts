@@ -25,7 +25,7 @@ export class ResourceFakers {
         useSystemProxy: false,
         version: 'V3_X',
         userClaim: 'sub',
-        serverURL: `${Cypress.env('am_gatewayServer')}/auth`,
+        serverURL: `${Cypress.expose('am_gatewayServer')}/auth`,
         securityDomain,
         clientId,
         clientSecret,

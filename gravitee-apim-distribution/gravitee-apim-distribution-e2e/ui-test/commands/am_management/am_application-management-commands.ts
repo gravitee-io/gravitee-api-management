@@ -19,7 +19,7 @@ import { NewApplication } from '@model/am_applications';
 export function am_createApplication(token: string, name: string, domainId: string, attributes?: Partial<NewApplication>) {
   return cy.request({
     method: 'POST',
-    url: `${Cypress.env('am_managementAPI')}/domains/${domainId}/applications`,
+    url: `${Cypress.expose('am_managementAPI')}/domains/${domainId}/applications`,
     auth: { bearer: token },
     body: {
       name,
@@ -32,7 +32,7 @@ export function am_createApplication(token: string, name: string, domainId: stri
 export function am_deleteApplication(token: string, domainId: string, applicationId: string) {
   return cy.request({
     method: 'DELETE',
-    url: `${Cypress.env('am_managementAPI')}/domains/${domainId}/applications/${applicationId}`,
+    url: `${Cypress.expose('am_managementAPI')}/domains/${domainId}/applications/${applicationId}`,
     auth: {
       bearer: token,
     },
@@ -42,7 +42,7 @@ export function am_deleteApplication(token: string, domainId: string, applicatio
 export function am_patchApplication(token: string, domainId: string, applicationId: string, body: any) {
   return cy.request({
     method: 'PATCH',
-    url: `${Cypress.env('am_managementAPI')}/domains/${domainId}/applications/${applicationId}`,
+    url: `${Cypress.expose('am_managementAPI')}/domains/${domainId}/applications/${applicationId}`,
     auth: { bearer: token },
     body,
   });

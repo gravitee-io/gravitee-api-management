@@ -16,15 +16,18 @@
 import { BasicAuthentication } from '@model/users';
 
 export const API_PUBLISHER_USER: BasicAuthentication = {
-  username: Cypress.env('api_publisher_user_login'),
-  password: Cypress.env('api_publisher_user_password'),
+  username: Cypress.expose('api_publisher_user_login'),
+  password: Cypress.expose('api_publisher_user_password'),
 };
-export const ADMIN_USER: BasicAuthentication = { username: Cypress.env('admin_user_login'), password: Cypress.env('admin_user_password') };
+export const ADMIN_USER: BasicAuthentication = {
+  username: Cypress.expose('admin_user_login'),
+  password: Cypress.expose('admin_user_password'),
+};
 export const APPLICATION_USER: BasicAuthentication = {
-  username: Cypress.env('application_user_login'),
-  password: Cypress.env('application_user_password'),
+  username: Cypress.expose('application_user_login'),
+  password: Cypress.expose('application_user_password'),
 };
 export const LOW_PERMISSION_USER: BasicAuthentication = {
-  username: Cypress.env('low_permission_user_login'),
-  password: Cypress.env('low_permission_user_password'),
+  username: Cypress.expose('low_permission_user_login'),
+  password: Cypress.expose('low_permission_user_password'),
 };

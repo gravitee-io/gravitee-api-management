@@ -68,7 +68,7 @@ describe('API List feature', { defaultCommandTimeout: 10000 }, () => {
         cy.log('Create v4 API');
         cy.request({
           method: 'POST',
-          url: `${Cypress.env('managementApi')}/management/v2/environments/DEFAULT/apis`,
+          url: `${Cypress.expose('managementApi')}/management/v2/environments/DEFAULT/apis`,
           auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
           body: MAPIV2ApisFaker.newApi({
             listeners: [
@@ -104,7 +104,7 @@ describe('API List feature', { defaultCommandTimeout: 10000 }, () => {
         cy.log('Import (create) v2 API');
         cy.request({
           method: 'POST',
-          url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/import`,
+          url: `${Cypress.expose('managementApi')}${Cypress.expose('defaultOrgEnv')}/apis/import`,
           auth: { username: ADMIN_USER.username, password: ADMIN_USER.password },
           body: ApisFaker.apiImport({ visibility: Visibility.PUBLIC }),
         }).then((response) => {
@@ -183,7 +183,7 @@ describe('API List feature', { defaultCommandTimeout: 10000 }, () => {
       Cypress._.times(noOfApis, (i) => {
         cy.request({
           method: 'DELETE',
-          url: `${Cypress.env('managementApi')}/management/v2/environments/${envId}/apis/${v4api[i].id}?closePlans=true`,
+          url: `${Cypress.expose('managementApi')}/management/v2/environments/${envId}/apis/${v4api[i].id}?closePlans=true`,
           auth: { username: ADMIN_USER.username, password: ADMIN_USER.password },
         }).then((response) => {
           expect(response.status).to.eq(204);
