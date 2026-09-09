@@ -192,6 +192,74 @@ jobs:
           command: mvn clean deploy --activate-profiles gravitee-release --batch-mode -T 4 -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true --settings .gravitee.settings.xml --update-snapshots
       - cmd-save-maven-job-cache:
           jobName: job-nexus-staging
+  job-pin-core:
+    docker:
+      - image: cimg/base:stable
+    resource_class: medium
+    steps:
+      - checkout
+      - keeper/env-export:
+          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+          var-name: GITHUB_TOKEN
+      - gh/setup
+      - keeper/env-export:
+          secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
+          var-name: GIT_USER_NAME
+      - keeper/env-export:
+          secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/custom_field/email
+          var-name: GIT_USER_EMAIL
+      - run:
+          name: Git config
+          command: |-
+            git config --global user.name "${GIT_USER_NAME}"
+            git config --global user.email "${GIT_USER_EMAIL}"
+            gh auth setup-git
+            git remote set-url origin "https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git"
+      - run:
+          name: Pin core 4.13.0 on 4.13.x
+          command: |-
+            # The lane checked out the tag, and the branch has moved on since — it carries the commit
+            # reopening the next development version. The pin has to be advanced there, not on the tag.
+            # --no-track: a remote starting point sets an upstream on its own, and this branch is pushed
+            # explicitly below.
+            git fetch origin 4.13.x
+            git checkout -B chore/pin-core-4.13.x --no-track origin/4.13.x
+
+            sed -i "s#<apim.core.version>.*</apim.core.version>#<apim.core.version>4.13.0</apim.core.version>#" gravitee-apim-distribution/pom.xml
+
+            # The sed above no-ops if the property line ever changes shape, and an empty diff would then read
+            # as "already pinned" and exit 0 on a pin that never moved. Assert the outcome, not the absence of
+            # a change.
+            if ! grep -q "<apim.core.version>4.13.0</apim.core.version>" gravitee-apim-distribution/pom.xml; then
+              echo "The pin was not set to 4.13.0. The property is not the shape this edit expects."
+              exit 1
+            fi
+
+            if git diff --quiet; then
+              echo "4.13.x already pins 4.13.0, nothing to do."
+              exit 0
+            fi
+
+            git add --update
+            git commit -m "chore(distribution): pin core 4.13.0"
+            # Rebuilt from the base branch every time, so the push replaces whatever was there. A release that
+            # lands before the previous pin was merged updates that pull request instead of opening a rival —
+            # only the newest core is worth reviewing. Anything pushed onto this branch by hand goes with it.
+            git push --force origin chore/pin-core-4.13.x
+
+            TITLE="chore(distribution): pin core 4.13.0"
+            BODY="Core 4.13.0 has been published. Merging this makes the distribution assemble it.
+
+            Its integration tests run against the pinned core, so a green build here is the evidence that this core is ready to ship. Until it is merged, 4.13.x keeps releasing on the core it already pins.
+
+            This branch is rebuilt on every core release: a newer core replaces this one rather than opening a second pull request."
+
+            if [ "$(gh pr list --head chore/pin-core-4.13.x --state open --json number --jq 'length')" = "0" ]; then
+              gh pr create --base 4.13.x --head chore/pin-core-4.13.x --title "$TITLE" --body "$BODY"
+            else
+              echo "A pin pull request is already open on chore/pin-core-4.13.x, bringing it up to core 4.13.0."
+              gh pr edit chore/pin-core-4.13.x --title "$TITLE" --body "$BODY"
+            fi
 workflows:
   core_release:
     jobs:
@@ -219,5 +287,19 @@ workflows:
             tags:
               only:
                 - /^core_(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
+      - job-pin-core:
+          context:
+            - cicd-orchestrator
+          name: Open the pinning pull request
+          requires:
+            - Nexus staging
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^core_(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
 orbs:
   keeper: gravitee-io/keeper@0.7.1
+  gh: circleci/github-cli@1.0.5

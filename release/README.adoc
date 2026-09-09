@@ -97,7 +97,7 @@ Before triggering anything, the command checks two things, both read-only, so th
 * the version matches the poms of the branch it will release from — the same check `full_release` makes;
 * `core_4.13.0` does not already exist. An existing tag means that version has already been released, and pushing it again fails halfway — after the branch has been committed to and reopened on the next version, a state that has to be unwound by hand.
 
-`--dry-run` runs the same job with the pushes disarmed. It is the only rehearsal this lane has: a tag cannot be pushed provisionally.
+`--dry-run` runs the same job with the pushes disarmed, which is as far as a rehearsal goes here: a tag cannot be pushed provisionally, so what it rehearses is the commit, the tag and the bump — not the publication, and not the pull request that follows it.
 
 Only the root pom is advanced. The distribution carries its own triplet and releases under its own tag, so a core release leaves it where it is.
 

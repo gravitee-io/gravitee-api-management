@@ -43,10 +43,13 @@ export class ValidateJob {
       }),
       new commands.Run({
         // Its own reactor, so validated separately. The core version is left at whatever the pom
-        // pins: overriding it here would make the BOM import resolve a snapshot, and this step runs
-        // before anything is installed — right after a <revision> bump none exists, and validation
-        // would hard-fail on every pull request until the first publication. License and prettier do
-        // not care which core is pinned.
+        // pins — license and prettier do not care which core it names, and this step runs before
+        // anything is installed, so the coordinate has to be one somebody publishes.
+        //
+        // On master that is the branch's own snapshot, republished on every merge. Elsewhere it is a
+        // release. What this depends on is that the pin never names a version nobody produces any
+        // more: a branch whose code freeze left the pin behind would make every pull request here
+        // rest on Nexus not purging a snapshot. BX-383 is what closes that.
         name: 'Validate distribution',
         command: `mvn -s ${config.maven.settingsFile} -f gravitee-apim-distribution/pom.xml validate -nsu -Dgravitee.archrules.skip=true --no-transfer-progress -Pintegration-tests-modules ${mavenParallelism('large')}`,
       }),
