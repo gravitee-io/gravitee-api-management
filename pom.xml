@@ -63,7 +63,7 @@
     <gravitee-expression-language.version>4.4.1</gravitee-expression-language.version>
     <gravitee-fetcher-api.version>2.1.0</gravitee-fetcher-api.version>
     <gravitee-gateway-api.version>6.4.0</gravitee-gateway-api.version>
-    <gravitee-integration-api.version>5.1.0</gravitee-integration-api.version>
+    <gravitee-integration-api.version>6.0.1</gravitee-integration-api.version>
     <gravitee-json-validation.version>3.0.2</gravitee-json-validation.version>
     <gravitee-kubernetes.version>4.0.0</gravitee-kubernetes.version>
     <gravitee-node.version>9.10.1</gravitee-node.version>
