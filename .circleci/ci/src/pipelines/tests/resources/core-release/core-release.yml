@@ -25,50 +25,6 @@ parameters:
     default: /home/circleci/project/pom.xml
     description: Path to pom.xml with APIM version
 commands:
-  cmd-restore-maven-job-cache:
-    parameters:
-      jobName:
-        type: string
-        default: ""
-        description: The job name
-    steps:
-      - restore_cache:
-          keys:
-            - gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}
-            - gravitee-api-management-v15-<< parameters.jobName >>-master
-    description: Restore Maven cache for a dedicated job
-  cmd-prepare-gpg:
-    steps:
-      - keeper/install
-      - run:
-          command: |-
-            ksm secret notation keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/armor_format_pub_key > pub.key
-            gpg --import pub.key
-
-            ksm secret notation keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/armor_format_private_key > private.key
-            # Need --batch to be able to import private key
-            gpg --import --batch private.key
-    description: Prepare GPG command
-  cmd-save-maven-job-cache:
-    parameters:
-      jobName:
-        type: string
-        default: ""
-        description: The job name
-    steps:
-      - run:
-          name: Exclude all APIM artefacts from cache.
-          command: rm -rf ~/.m2/repository/io/gravitee/apim
-      - run:
-          name: Drop failed resolution markers from cache.
-          command: find ~/.m2 -name '*.lastUpdated' -delete
-      - save_cache:
-          key: gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-          paths:
-            - ~/.m2
-          when: always
-    description: Save Maven cache for a dedicated job
   cmd-azure-artifacts-token:
     steps:
       - keeper/install
@@ -130,10 +86,54 @@ commands:
               *)   echo "The feed answered HTTP ${CODE}; carrying on, Maven falls back to Artifactory." >&2 ;;
             esac
     description: Get a short-lived Azure Artifacts token
+  cmd-restore-maven-job-cache:
+    parameters:
+      jobName:
+        type: string
+        default: ""
+        description: The job name
+    steps:
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}
+            - gravitee-api-management-v15-<< parameters.jobName >>-master
+    description: Restore Maven cache for a dedicated job
+  cmd-prepare-gpg:
+    steps:
+      - keeper/install
+      - run:
+          command: |-
+            ksm secret notation keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/armor_format_pub_key > pub.key
+            gpg --import pub.key
+
+            ksm secret notation keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/armor_format_private_key > private.key
+            # Need --batch to be able to import private key
+            gpg --import --batch private.key
+    description: Prepare GPG command
+  cmd-save-maven-job-cache:
+    parameters:
+      jobName:
+        type: string
+        default: ""
+        description: The job name
+    steps:
+      - run:
+          name: Exclude all APIM artefacts from cache.
+          command: rm -rf ~/.m2/repository/io/gravitee/apim
+      - run:
+          name: Drop failed resolution markers from cache.
+          command: find ~/.m2 -name '*.lastUpdated' -delete
+      - save_cache:
+          key: gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+          paths:
+            - ~/.m2
+          when: always
+    description: Save Maven cache for a dedicated job
 jobs:
   job-setup:
     docker:
-      - image: cimg/base:stable
+      - image: cimg/openjdk:25.0.3
     resource_class: small
     steps:
       - checkout
@@ -149,6 +149,23 @@ jobs:
               echo "The Maven settings read from Keeper are empty or truncated." >&2
               exit 1
             fi
+      - cmd-azure-artifacts-token
+      - run:
+          name: Check Maven resolves from the feed
+          command: |-
+            if ! mvn -B -q -s .gravitee.settings.xml \
+              org.apache.maven.plugins:maven-dependency-plugin:3.8.1:get \
+              -Dartifact=io.gravitee.canary:feed-canary:1.0.0:pom; then
+              echo "Maven could not resolve the canary from the feed." >&2
+              echo "The token itself was accepted over HTTPS a step earlier, so what is left is the" >&2
+              echo "settings wiring: a <server> id that does not match the repository id, or" >&2
+              # Single quotes: the shell would try to expand this one, and a dot is not a valid
+              # variable name — the message would come out as a bad substitution instead.
+              echo '${env.AZURE_ARTIFACTS_PAT} not being interpolated.' >&2
+              exit 1
+            fi
+
+            echo "Maven resolved io.gravitee.canary:feed-canary from the feed."
       - persist_to_workspace:
           root: .
           paths:
