@@ -214,16 +214,21 @@ export class SubscriptionsDetailsComponent implements OnInit {
           application: this.applicationService.get(subscription.application),
           applicationPermissions: this.getApplicationPermissions$(subscription.application),
           hasDocumentationAccess: of(!!apiPermissions),
-          documentationNavigationTarget: apiPermissions
-            ? this.portalNavigationItemsService.searchNavigationItemsWithApis(1, this.apiId, 10).pipe(
-                map(res => {
-                  const item = res.data.find(i => i.id === this.apiId);
-                  return item ? { rootId: item.rootId, navItemId: item.navItemId } : null;
-                }),
-                catchError(() => of(null)),
-              )
-            : of(null),
         }),
+      ),
+      switchMap(({ subscription, apiPermissions, plan, api, application, applicationPermissions, hasDocumentationAccess }) =>
+        (apiPermissions ? this.portalNavigationItemsService.findDocumentationNavigationTarget(this.apiId, api?.name) : of(null)).pipe(
+          map(documentationNavigationTarget => ({
+            subscription,
+            apiPermissions,
+            plan,
+            api,
+            application,
+            applicationPermissions,
+            hasDocumentationAccess,
+            documentationNavigationTarget,
+          })),
+        ),
       ),
       map(
         ({

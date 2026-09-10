@@ -55,7 +55,7 @@ describe('SubscriptionsDetailsComponent', () => {
   let httpTestingController: HttpTestingController;
   let harnessLoader: HarnessLoader;
   let rootLoader: HarnessLoader;
-  let searchNavigationItemsWithApisMock: jest.Mock;
+  let findDocumentationNavigationTargetMock: jest.Mock;
 
   const API_ID = 'testApiId';
   const CONFIGURATION_KAFKA_SASL_MECHANISMS = ['PLAIN', 'SCRAM-SHA-256', 'SCRAM-SHA-512'];
@@ -77,20 +77,10 @@ describe('SubscriptionsDetailsComponent', () => {
   }
 
   beforeEach(async () => {
-    searchNavigationItemsWithApisMock = jest.fn().mockReturnValue(
+    findDocumentationNavigationTargetMock = jest.fn().mockReturnValue(
       of({
-        data: [
-          {
-            id: API_ID,
-            name: 'API',
-            version: '1',
-            description: '',
-            rootId: 'root-id',
-            navItemId: 'nav-item-id',
-          },
-        ],
-        metadata: {},
-        links: {},
+        rootId: 'root-id',
+        navItemId: 'nav-item-id',
       }),
     );
 
@@ -104,8 +94,7 @@ describe('SubscriptionsDetailsComponent', () => {
         {
           provide: PortalNavigationItemsService,
           useValue: {
-            searchNavigationItemsWithApis: (page: number, query: string, size: number) =>
-              searchNavigationItemsWithApisMock(page, query, size),
+            findDocumentationNavigationTarget: (apiId: string, apiName?: string) => findDocumentationNavigationTargetMock(apiId, apiName),
           },
         },
       ],
@@ -678,7 +667,7 @@ describe('SubscriptionsDetailsComponent', () => {
 
   describe('when documentation is available but navigation target cannot be resolved', () => {
     beforeEach(() => {
-      searchNavigationItemsWithApisMock.mockReturnValue(of({ data: [], metadata: {}, links: {} }));
+      findDocumentationNavigationTargetMock.mockReturnValue(of(null));
       expectSubscriptionWithKeys(fakeSubscription({ status: 'ACCEPTED' }));
       expectGetApiPermissions();
       expectPlansList(fakePlansResponse());
@@ -691,6 +680,37 @@ describe('SubscriptionsDetailsComponent', () => {
 
       expect(fixture.nativeElement.querySelector('[data-testid="subscription-api-link"]')).toBeNull();
       expect(fixture.nativeElement.querySelector('[data-testid="subscription-api-label"]')).not.toBeNull();
+    });
+  });
+
+  describe('when the subscribed API is an agent with a documentation target', () => {
+    const AGENT_NAME = 'Helpdesk Agent';
+    const AGENT_ROOT_ID = 'agent-root-id';
+    const AGENT_NAV_ITEM_ID = 'agent-nav-item-id';
+
+    beforeEach(() => {
+      findDocumentationNavigationTargetMock.mockReturnValue(
+        of({
+          rootId: AGENT_ROOT_ID,
+          navItemId: AGENT_NAV_ITEM_ID,
+        }),
+      );
+      expectSubscriptionWithKeys(fakeSubscription({ status: 'ACCEPTED' }));
+      expectGetApiPermissions();
+      expectPlansList(fakePlansResponse());
+      expectApplicationsList(fakeApplication());
+      expectGetApi(fakeApi({ id: API_ID, name: AGENT_NAME, entrypoints: ['https://gw/entrypoint'] }));
+    });
+
+    it('should link the agent name to its documentation page', async () => {
+      fixture.detectChanges();
+
+      expect(findDocumentationNavigationTargetMock).toHaveBeenCalledWith(API_ID, AGENT_NAME);
+      const apiLink = fixture.nativeElement.querySelector('[data-testid="subscription-api-link"]');
+      expect(apiLink).not.toBeNull();
+      expect(apiLink.getAttribute('href')).toContain(`/documentation/${AGENT_ROOT_ID}`);
+      expect(apiLink.getAttribute('href')).toContain(`selectedId=${AGENT_NAV_ITEM_ID}`);
+      expect(apiLink.textContent?.trim()).toBe(AGENT_NAME);
     });
   });
 
