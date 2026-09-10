@@ -30,8 +30,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 POM_FILE="$REPO_ROOT/pom.xml"
 # The distribution carries its own <revision>/<sha1>/<changelist> since it left the product
-# reactor. The two no longer have to agree; what the distribution assembles is its own
-# apim.core.version, which a code freeze has to move onto a released core.
+# reactor, and the two no longer have to agree. What it assembles is its own apim.core.version.
+#
+# These scripts do NOT touch that pin, and they need to: a branch cut from master inherits master's
+# SNAPSHOT pin and cannot release until a core is released and its pinning pull request merged,
+# while master keeps pinning a version it stops publishing as soon as <revision> moves on.
+# Until BX-383 lands, both are gestures someone has to remember.
+# https://gravitee.atlassian.net/browse/BX-383
 DISTRIBUTION_POM_FILE="$REPO_ROOT/gravitee-apim-distribution/pom.xml"
 PARENT_DIR="$(dirname "$REPO_ROOT")"
 
