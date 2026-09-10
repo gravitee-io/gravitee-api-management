@@ -77,31 +77,11 @@ $outline-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80)
     }
   }
 
-  &__default-badge {
-    margin-left: 8px;
-  }
-
   &__tree__container {
     height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
     width: 100%;
-
-    table {
-      width: 100%;
-    }
-
-    tr[mat-row] {
-      cursor: pointer;
-
-      &:hover {
-        background-color: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, lighter60);
-      }
-
-      &.selected {
-        background-color: mat.m2-get-color-from-palette(gio.$mat-accent-palette, lighter20);
-      }
-    }
   }
 }
 
