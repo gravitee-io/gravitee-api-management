@@ -279,6 +279,9 @@
     <gravitee-gamma-module-edge.version>2.0.0-alpha.12</gravitee-gamma-module-edge.version>
     <gravitee-gamma-module-esm.version>1.5.0-alpha.6</gravitee-gamma-module-esm.version>
 
+    <!-- Agent plugins, all released together from gravitee-reactor-agent -->
+    <gravitee-reactor-agent.version>1.0.0-agent-gateway-SNAPSHOT</gravitee-reactor-agent.version>
+
     <!-- Authz plugins -->
     <gravitee-service-authz-pdp.version>2.1.1</gravitee-service-authz-pdp.version>
     <gravitee-policy-authz-pep.version>1.4.0</gravitee-policy-authz-pep.version>

@@ -1576,6 +1576,112 @@
                 </dependency>
 
 
+                <!-- Agent entrypoints -->
+                <dependency>
+                    <groupId>com.graviteesource.agent.entrypoints</groupId>
+                    <artifactId>gravitee-agent-entrypoint-a2a</artifactId>
+                    <version>${gravitee-reactor-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.agent.entrypoints</groupId>
+                    <artifactId>gravitee-agent-entrypoint-ag-ui</artifactId>
+                    <version>${gravitee-reactor-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.agent.entrypoints</groupId>
+                    <artifactId>gravitee-agent-entrypoint-guardian</artifactId>
+                    <version>${gravitee-reactor-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.agent.entrypoints</groupId>
+                    <artifactId>gravitee-agent-entrypoint-http</artifactId>
+                    <version>${gravitee-reactor-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.agent.entrypoints</groupId>
+                    <artifactId>gravitee-agent-entrypoint-openresponses</artifactId>
+                    <version>${gravitee-reactor-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.agent.entrypoints</groupId>
+                    <artifactId>gravitee-agent-entrypoint-playground</artifactId>
+                    <version>${gravitee-reactor-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.agent.entrypoints</groupId>
+                    <artifactId>gravitee-agent-entrypoint-slack</artifactId>
+                    <version>${gravitee-reactor-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.agent.entrypoints</groupId>
+                    <artifactId>gravitee-agent-entrypoint-web-ai-assistant</artifactId>
+                    <version>${gravitee-reactor-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+
                 <!-- Endpoints -->
                 <dependency>
                     <groupId>com.graviteesource.endpoint</groupId>
@@ -1773,6 +1879,73 @@
                     </exclusions>
                 </dependency>
 
+                <!-- Agent endpoints: the responses endpoint, and the tools an agent calls out through -->
+                <dependency>
+                    <groupId>com.graviteesource.agent.endpoints</groupId>
+                    <artifactId>gravitee-agent-endpoint-responses</artifactId>
+                    <version>${gravitee-reactor-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.agent.tools</groupId>
+                    <artifactId>gravitee-agent-tool-http</artifactId>
+                    <version>${gravitee-reactor-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.agent.tools</groupId>
+                    <artifactId>gravitee-agent-tool-mcp</artifactId>
+                    <version>${gravitee-reactor-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.agent.tools</groupId>
+                    <artifactId>gravitee-agent-tool-mcp-studio-inline</artifactId>
+                    <version>${gravitee-reactor-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.agent.tools</groupId>
+                    <artifactId>gravitee-agent-tool-sandbox</artifactId>
+                    <version>${gravitee-reactor-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+
                 <!-- Gamma -->
                 <dependency>
                     <groupId>com.graviteesource.gamma.module</groupId>
@@ -1939,6 +2112,112 @@
                     <groupId>com.graviteesource.resource</groupId>
                     <artifactId>gravitee-resource-schema-registry-embedded</artifactId>
                     <version>${gravitee-resource-schema-registry-embedded.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+
+                <!-- Agent resources: channels, sandboxes, skills and stores -->
+                <dependency>
+                    <groupId>com.graviteesource.agent.channels</groupId>
+                    <artifactId>gravitee-agent-channel-slack</artifactId>
+                    <version>${gravitee-reactor-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.agent.channels</groupId>
+                    <artifactId>gravitee-agent-channel-webhook</artifactId>
+                    <version>${gravitee-reactor-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.agent.sandboxes</groupId>
+                    <artifactId>gravitee-agent-sandbox-docker</artifactId>
+                    <version>${gravitee-reactor-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.agent.sandboxes</groupId>
+                    <artifactId>gravitee-agent-sandbox-e2b</artifactId>
+                    <version>${gravitee-reactor-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.agent.sandboxes</groupId>
+                    <artifactId>gravitee-agent-sandbox-local</artifactId>
+                    <version>${gravitee-reactor-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.agent.skills</groupId>
+                    <artifactId>gravitee-agent-skill-inline</artifactId>
+                    <version>${gravitee-reactor-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.agent.stores</groupId>
+                    <artifactId>gravitee-agent-store-inmemory</artifactId>
+                    <version>${gravitee-reactor-agent.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.agent.stores</groupId>
+                    <artifactId>gravitee-agent-store-redis</artifactId>
+                    <version>${gravitee-reactor-agent.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
@@ -2424,6 +2703,21 @@
                     <groupId>com.graviteesource.reactor</groupId>
                     <artifactId>gravitee-reactor-edge</artifactId>
                     <version>${gravitee-reactor-edge.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+
+                <!-- Agent reactor -->
+                <dependency>
+                    <groupId>com.graviteesource.reactor</groupId>
+                    <artifactId>gravitee-reactor-agent</artifactId>
+                    <version>${gravitee-reactor-agent.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
