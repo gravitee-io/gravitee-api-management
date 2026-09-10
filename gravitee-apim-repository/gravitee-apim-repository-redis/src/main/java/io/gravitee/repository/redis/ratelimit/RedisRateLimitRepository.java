@@ -18,7 +18,6 @@ package io.gravitee.repository.redis.ratelimit;
 import static io.gravitee.repository.redis.ratelimit.RateLimitRepositoryConfiguration.SCRIPT_RATELIMIT_KEY;
 
 import io.gravitee.repository.exception.RedisNotConnectedException;
-import io.gravitee.repository.exception.RedisOperationTimeoutException;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
 import io.gravitee.repository.redis.vertx.RedisClient;
@@ -31,7 +30,6 @@ import io.vertx.rxjava3.SingleHelper;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -79,17 +77,47 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
                             weight,
                             newRate
                         );
+<<<<<<< HEAD
                         Future<Response> evalFuture = redisAPI.evalsha(scriptArgs);
                         Future<Response> timedFuture = evalFuture.timeout(operationTimeout, TimeUnit.MILLISECONDS);
                         return timedFuture.recover(this::mapTimeout);
+=======
+                        return redisAPI
+                            .evalsha(scriptArgs)
+                            .recover(t -> {
+                                if (!RedisScriptSupport.isNoScript(t)) {
+                                    return Future.failedFuture(t);
+                                }
+                                final String source = this.redisClient.scriptSource(SCRIPT_RATELIMIT_KEY);
+                                if (source == null) {
+                                    return Future.failedFuture(
+                                        new IllegalStateException(
+                                            "Cannot recover from NOSCRIPT: rate-limit script source unavailable (script was never loaded)"
+                                        )
+                                    );
+                                }
+                                // On Redis Cluster, SCRIPT LOAD only reaches the contacted node, so an
+                                // EVALSHA routed by hash slot to another master returns NOSCRIPT. Fall back
+                                // to EVAL with the script source, which caches it on that node for next time.
+                                // NOSCRIPT means the script did not execute, so replaying via EVAL cannot double-count.
+                                log.debug(
+                                    "EVALSHA returned NOSCRIPT; falling back to EVAL to load the rate-limit script on the target node"
+                                );
+                                return redisAPI
+                                    .eval(convertToList(source, REDIS_KEY_PREFIX + key, weight, newRate))
+                                    .recover(evalError -> {
+                                        // Preserve the original NOSCRIPT cause for diagnostics under a fallback storm.
+                                        evalError.addSuppressed(t);
+                                        return Future.failedFuture(evalError);
+                                    });
+                            })
+                            .timeout(operationTimeout, TimeUnit.MILLISECONDS)
+                            .recover(t -> RedisScriptSupport.mapTimeout(t, operationTimeout));
+>>>>>>> faaee94 (fix(redis): reconnect when Sentinel leaves a READONLY replica)
                     })
                     .onFailure(t -> {
                         logOperationFailure(t);
-                        // Timeouts are not connection failures; notifying would force unnecessary reconnects
-                        // (RxJava timeout previously sat outside this Vert.x chain and never notified).
-                        if (!(t instanceof RedisOperationTimeoutException)) {
-                            redisClient.notifyConnectionFailure(t);
-                        }
+                        redisClient.notifyConnectionFailure(t);
                     })
                     .onComplete(asyncResultHandler)
         ).map(response -> {
@@ -109,6 +137,7 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
         });
     }
 
+<<<<<<< HEAD
     private Future<Response> mapTimeout(Throwable t) {
         if (t instanceof TimeoutException) {
             return Future.failedFuture(new RedisOperationTimeoutException(operationTimeout));
@@ -116,6 +145,8 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
         return Future.failedFuture(t);
     }
 
+=======
+>>>>>>> faaee94 (fix(redis): reconnect when Sentinel leaves a READONLY replica)
     private void logOperationFailure(Throwable t) {
         long failureCount = operationFailureCounter.getAndIncrement();
         if (failureCount < 10) {
