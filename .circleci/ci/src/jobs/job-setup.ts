@@ -16,11 +16,15 @@
 import { Command, Config, Job, commands, reusable } from '../circleci-config';
 import { orbs } from '../orbs';
 import { config } from '../config';
-import { BaseExecutor } from '../executors';
+import { OpenJdkExecutor } from '../executors';
+import { AzureArtifactsTokenCommand } from '../commands';
 
 export class SetupJob {
   public static create(dynamicConfig: Config): Job {
     dynamicConfig.importOrb(orbs.keeper);
+
+    const azureArtifactsTokenCmd = AzureArtifactsTokenCommand.get(dynamicConfig);
+    dynamicConfig.addReusableCommand(azureArtifactsTokenCmd);
 
     const steps: Command[] = [
       new commands.Checkout(),
@@ -41,11 +45,45 @@ if ! grep -q '</settings>' ${config.maven.settingsFile}; then
   exit 1
 fi`,
       }),
+      new reusable.ReusedCommand(azureArtifactsTokenCmd),
+      new commands.Run({
+        name: 'Check Maven resolves from the feed',
+        // Once per pipeline, on the settings this job just wrote, rather than in every job that
+        // runs Maven: the wiring is the same for all of them, since they all attach this one file.
+        //
+        // dependency:get runs project-less, so its remote repositories come from the active
+        // profile in the settings — the part a raw HTTPS request never exercises: the <server> id
+        // matching the repository id, and ${env.AZURE_ARTIFACTS_PAT} actually being interpolated.
+        // A settings with a mismatched server id passes a curl check and falls back to Artifactory
+        // for good.
+        //
+        // The plugin GAV is pinned: an unpinned one resolves maven-metadata.xml first, a round
+        // trip that proves nothing.
+        //
+        // Scaffolding, to be removed with Artifactory. This check and the HTTPS one in
+        // cmd-azure-artifacts-token both exist because the settings declare Artifactory behind
+        // the feed, so a feed that answers 401 leaves the build green. Once Artifactory is off
+        // there is no fallback left to hide behind, a broken feed fails on its own, and the two
+        // checks — along with io.gravitee.canary:feed-canary itself — can go.
+        command: `if ! mvn -B -q -s ${config.maven.settingsFile} \\
+  org.apache.maven.plugins:maven-dependency-plugin:${config.maven.dependencyPluginVersion}:get \\
+  -Dartifact=io.gravitee.canary:feed-canary:1.0.0:pom; then
+  echo "Maven could not resolve the canary from the feed." >&2
+  echo "The token itself was accepted over HTTPS a step earlier, so what is left is the" >&2
+  echo "settings wiring: a <server> id that does not match the repository id, or" >&2
+  # Single quotes: the shell would try to expand this one, and a dot is not a valid
+  # variable name — the message would come out as a bad substitution instead.
+  echo '\${env.AZURE_ARTIFACTS_PAT} not being interpolated.' >&2
+  exit 1
+fi
+
+echo "Maven resolved io.gravitee.canary:feed-canary from the feed."`,
+      }),
       new commands.workspace.Persist({
         root: '.',
         paths: [config.maven.settingsFile],
       }),
     ];
-    return new Job('job-setup', BaseExecutor.create('small'), steps);
+    return new Job('job-setup', OpenJdkExecutor.create('small'), steps);
   }
 }

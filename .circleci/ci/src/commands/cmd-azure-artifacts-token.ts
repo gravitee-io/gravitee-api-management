@@ -97,6 +97,8 @@ echo "export AZURE_ARTIFACTS_PAT='\${TOKEN}'" >> "$BASH_ENV"`,
         //
         // io.gravitee.canary:feed-canary:1.0.0 exists on the feed and nowhere else, so
         // resolving it proves the feed answered, and answered to this token.
+        //
+        // Scaffolding, to be removed with Artifactory: see the note on job-setup's Maven check.
         command: `CODE=$(curl -s -o /dev/null -w '%{http_code}' --retry 3 --retry-all-errors --retry-delay 5 --max-time 30 \\
   -u "bot:\${AZURE_ARTIFACTS_PAT}" \\
   "https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee/maven/v1/io/gravitee/canary/feed-canary/1.0.0/feed-canary-1.0.0.pom") || CODE=000
