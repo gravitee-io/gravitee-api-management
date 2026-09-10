@@ -27,9 +27,9 @@ interface MenuItem {
 }
 
 const MENU_ITEMS: MenuItem[] = [
-  { path: 'analytics', title: $localize`:@@analyticsTitle:Analytics` },
-  { path: 'applications', title: $localize`:@@applicationsTitle:Applications` },
   { path: 'subscriptions', title: $localize`:@@subscriptionsTitle:Subscriptions` },
+  { path: 'applications', title: $localize`:@@applicationsTitle:Applications` },
+  { path: 'analytics', title: $localize`:@@analyticsTitle:Analytics` },
 ];
 
 @Component({

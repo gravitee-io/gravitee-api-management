@@ -1,5 +1,5 @@
 {
   "baseURL": "http://localhost:8083/management",
-  "defaultPortal": "classic",
+  "defaultPortal": "next",
   "production": true
 }

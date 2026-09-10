@@ -472,6 +472,25 @@ class ConfigServiceTest {
     }
 
     @Test
+    void shouldGetPortalSettingsWithPortalNextAccessEnabledByDefault() {
+        when(
+            mockParameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                any(List.class),
+                any(Function.class),
+                eq("DEFAULT"),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        ).thenReturn(new HashMap<>());
+        when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
+        when(reCaptchaService.isEnabled()).thenReturn(false);
+
+        PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
+
+        assertThat(portalSettings.getPortalNext().getAccess().isEnabled()).as("portalNext access.enabled enabled by default").isTrue();
+    }
+
+    @Test
     void shouldSavePortalNextToggles() {
         PortalSettingsEntity portalSettingsEntity = new PortalSettingsEntity();
         portalSettingsEntity.getPortalNext().getApplications().getMembership().setEnabled(true);
