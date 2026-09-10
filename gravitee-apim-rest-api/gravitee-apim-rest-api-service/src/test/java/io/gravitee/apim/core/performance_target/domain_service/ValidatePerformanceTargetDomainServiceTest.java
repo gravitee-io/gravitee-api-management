@@ -117,17 +117,51 @@ class ValidatePerformanceTargetDomainServiceTest {
     }
 
     @Test
-    void should_reject_rule_api_types_that_are_not_in_the_subject() {
+    void should_accept_rule_api_types_that_are_not_in_the_subject_yet() {
+        // A subject grows and shrinks as its dependencies change; a rule scoped to a type the subject does not hold
+        // right now is NOT_EVALUABLE at evaluation time, not a reason to refuse the whole target.
         var rule = aRule(MetricSpec.Name.HTTP_ERROR_RATE, MetricSpec.Measure.PERCENTAGE, 5)
             .toBuilder()
             .apiTypes(Set.of(ApiType.LLM_PROXY))
             .build();
         var target = aTarget(List.of(A2A_API), rule);
 
+        assertThatCode(() -> service.validate(target)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void should_still_reject_a_metric_unavailable_for_the_rule_api_types_even_when_they_are_absent_from_the_subject() {
+        var rule = aRule(MetricSpec.Name.LLM_PROMPT_TOKEN_TOTAL_COST, MetricSpec.Measure.AVG, 0.01)
+            .toBuilder()
+            .apiTypes(Set.of(ApiType.A2A_PROXY))
+            .build();
+        var target = aTarget(List.of(LLM_API), rule);
+
         assertThatThrownBy(() -> service.validate(target))
             .isInstanceOf(InvalidPerformanceTargetException.class)
-            .hasMessageContaining("LLM_PROXY")
-            .hasMessageContaining("subject");
+            .hasMessageContaining("LLM_PROMPT_TOKEN_TOTAL_COST")
+            .hasMessageContaining("A2A_PROXY");
+    }
+
+    @Test
+    void should_accept_scoped_rules_on_a_subject_without_api_ids() {
+        // The shape a catalog agent is seeded with before any API is attributed to it.
+        var latency = aRule(MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME, MetricSpec.Measure.P95, 4500)
+            .toBuilder()
+            .apiTypes(Set.of(ApiType.A2A_PROXY))
+            .build();
+        var errors = aRule(MetricSpec.Name.HTTP_ERROR_RATE, MetricSpec.Measure.PERCENTAGE, 5);
+        var cost = aRule(MetricSpec.Name.LLM_PROMPT_TOKEN_TOTAL_COST, MetricSpec.Measure.AVG, 0.06)
+            .toBuilder()
+            .apiTypes(Set.of(ApiType.LLM_PROXY))
+            .build();
+        var tokens = aRule(MetricSpec.Name.LLM_PROMPT_TOTAL_TOKEN, MetricSpec.Measure.AVG, 4000)
+            .toBuilder()
+            .apiTypes(Set.of(ApiType.LLM_PROXY))
+            .build();
+        var target = aTarget(List.of(), latency, errors, cost, tokens);
+
+        assertThatCode(() -> service.validate(target)).doesNotThrowAnyException();
     }
 
     @Test
