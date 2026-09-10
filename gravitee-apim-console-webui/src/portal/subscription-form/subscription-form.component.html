@@ -55,7 +55,15 @@
       @if (hasSelection()) {
         <div class="panel-header__title">
           <mat-form-field appearance="outline" subscriptSizing="dynamic" class="panel-header__title__field">
-            <input matInput [formControl]="nameControl" required placeholder="Name" data-testid="subscription-form-name-input" />
+            <input
+              id="subscription-form-name"
+              matInput
+              [formControl]="nameControl"
+              required
+              placeholder="Name"
+              aria-label="Name"
+              data-testid="subscription-form-name-input"
+            />
           </mat-form-field>
 
           @if (!isCreating()) {
