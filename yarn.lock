@@ -4677,16 +4677,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/gamma-modules-sdk@npm:1.2.0":
-  version: 1.2.0
-  resolution: "@gravitee/gamma-modules-sdk@npm:1.2.0"
+"@gravitee/gamma-modules-sdk@npm:1.2.1":
+  version: 1.2.1
+  resolution: "@gravitee/gamma-modules-sdk@npm:1.2.1"
   dependencies:
     yaml: "npm:2.9.0"
   peerDependencies:
     react: ">=19"
     react-dom: ">=19"
     react-router-dom: ">=6"
-  checksum: 10c0/d4bf271b1bbda71d78c2a0862b2a3b16dfaae7892241a3c946687611ed105fd3345a1a5f194709ca0d2545a5e9cc64857d12c0fee60d19d452676658024c0bb4
+  checksum: 10c0/6358b6b758759f541cb0a8ad832c9925b0c453f1eebe96b279a3eb5083e4bfc23b32f54dd8fe00c21d9f3fd980c945f4b1b6566fe19d9889c8bfa8fc563e98e2
   languageName: node
   linkType: hard
 
@@ -22020,7 +22020,7 @@ __metadata:
     "@fontsource/montserrat": "npm:5.2.5"
     "@fontsource/roboto": "npm:5.2.5"
     "@gravitee/gamma-lib-observability": "npm:1.39.2"
-    "@gravitee/gamma-modules-sdk": "npm:1.2.0"
+    "@gravitee/gamma-modules-sdk": "npm:1.2.1"
     "@gravitee/graphene-charts": "npm:3.16.1"
     "@gravitee/graphene-core": "npm:3.16.1"
     "@gravitee/graphene-policy-studio": "npm:3.16.1"

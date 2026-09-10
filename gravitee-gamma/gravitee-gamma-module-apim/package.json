@@ -3,7 +3,7 @@
     "private": true,
     "dependencies": {
         "@gravitee/gamma-lib-observability": "1.39.2",
-        "@gravitee/gamma-modules-sdk": "1.2.0",
+        "@gravitee/gamma-modules-sdk": "1.2.1",
         "@gravitee/graphene-charts": "3.16.1",
         "@gravitee/graphene-core": "3.16.1",
         "@gravitee/graphene-policy-studio": "3.16.1",
