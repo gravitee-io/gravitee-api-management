@@ -1522,6 +1522,56 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             return new io.gravitee.repository.analytics.engine.api.query.TimeRange(YESTERDAY, TOMORROW);
         }
 
+        /**
+         * One API exposing every entrypoint family (see the fixture's "Entrypoint scope API" block): what an
+         * unfiltered HTTP query counts, and what an explicit ENTRYPOINT condition selects.
+         */
+        @Nested
+        class HttpEntrypointScope {
+
+            private static final String SCOPE_API = "entrypoint-scope-api-001";
+
+            private static List<MetricMeasuresQuery> requestCount() {
+                return List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+            }
+
+            private static Filter api() {
+                return new Filter(Filter.Name.API, Filter.Operator.IN, List.of(SCOPE_API));
+            }
+
+            private static Filter entrypoints(String... values) {
+                return new Filter(Filter.Name.ENTRYPOINT, Filter.Operator.IN, List.of(values));
+            }
+
+            private long count(Filter... filters) {
+                var result = cut.searchHTTPMeasures(QUERY_CONTEXT, new MeasuresQuery(buildTimeRange(), List.of(filters), requestCount()));
+                return result.measures().getFirst().measures().get(Measure.COUNT).longValue();
+            }
+
+            @Test
+            void should_count_every_request_the_registry_does_not_leave_out_including_unknown_and_unattributed_ones() {
+                // six HTTP-scope entrypoints, one request refused without an entrypoint id, one unknown entrypoint;
+                // sse, native-kafka and edge stay out.
+                assertThat(count(api())).isEqualTo(8L);
+            }
+
+            @Test
+            void should_count_only_the_given_entrypoint_when_the_filter_is_explicit() {
+                assertThat(count(api(), entrypoints("llm-proxy"))).isEqualTo(1L);
+            }
+
+            @Test
+            void should_honour_an_explicit_filter_even_on_an_entrypoint_the_default_scope_leaves_out() {
+                assertThat(count(api(), entrypoints("sse"))).isEqualTo(1L);
+            }
+
+            @Test
+            void should_reach_requests_without_an_entrypoint_only_through_the_synthetic_value() {
+                assertThat(count(api(), entrypoints("(none)"))).isEqualTo(1L);
+                assertThat(count(api(), entrypoints("mcp", "(none)"))).isEqualTo(2L);
+            }
+        }
+
         @Nested
         class AuthzDecisions {
 
@@ -1706,7 +1756,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
                 assertThat(result.metrics().getFirst().buckets())
                     .extracting(bucket -> bucket.key(), bucket -> bucket.measures().get(Measure.COUNT).longValue())
-                    .contains(tuple("/tools/call", 2L), tuple("/chat", 2L), tuple("/", 14L));
+                    .contains(tuple("/tools/call", 2L), tuple("/chat", 2L), tuple("/", 22L));
             }
         }
 
@@ -1895,16 +1945,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             @Test
             void should_count_the_promoted_entrypoints_only() {
-                // mcp and mcp-studio; the agent-to-agent and sse documents of the same API are left out.
-                assertThat(countWith(api())).isEqualTo(2L);
-            }
-
-            @Test
-            void should_leave_the_deferred_entrypoint_out_of_the_default_scope() {
-                var entrypoint = new Filter(Filter.Name.ENTRYPOINT, Filter.Operator.IN, List.of("agent-to-agent"));
-
-                assertThat(countWith(api(), entrypoint)).isEqualTo(1L);
-                assertThat(countWith(api())).isEqualTo(2L);
+                // mcp, mcp-studio and agent-to-agent; the sse document of the same API is left out.
+                assertThat(countWith(api())).isEqualTo(3L);
             }
 
             @Test
