@@ -1,4 +1,4 @@
 {
   "baseURL": "/management",
-  "defaultPortal": "classic"
+  "defaultPortal": "next"
 }

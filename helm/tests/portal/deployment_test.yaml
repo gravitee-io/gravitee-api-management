@@ -243,23 +243,8 @@ tests:
           path: spec.template.spec.serviceAccountName
           value: "apim-portal"
 
-  - it: Should set DEFAULT_PORTAL environment variable with classic value by default
+  - it: Should set DEFAULT_PORTAL environment variable with next value by default
     template: portal/portal-deployment.yaml
-    asserts:
-      - hasDocuments:
-          count: 1
-      - equal:
-          path: spec.template.spec.containers[0].env[2].name
-          value: "DEFAULT_PORTAL"
-      - equal:
-          path: spec.template.spec.containers[0].env[2].value
-          value: "classic"
-
-  - it: Should override DEFAULT_PORTAL environment variable value with next
-    template: portal/portal-deployment.yaml
-    set:
-      portal:
-        defaultPortal: "next"
     asserts:
       - hasDocuments:
           count: 1
@@ -269,6 +254,21 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].env[2].value
           value: "next"
+
+  - it: Should override DEFAULT_PORTAL environment variable value with classic
+    template: portal/portal-deployment.yaml
+    set:
+      portal:
+        defaultPortal: "classic"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[2].name
+          value: "DEFAULT_PORTAL"
+      - equal:
+          path: spec.template.spec.containers[0].env[2].value
+          value: "classic"
 
   - it: Should set PORTAL_API_URL from httpRoute portal when ingress is disabled
     template: portal/portal-deployment.yaml

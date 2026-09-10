@@ -79,6 +79,13 @@ public class DefaultThemeDomainService {
         throw new ThemeTypeNotSupportedException(themeType.name());
     }
 
+    private String resolveCustomCss(String parameterValue) {
+        if (parameterValue != null && !parameterValue.isEmpty()) {
+            return parameterValue;
+        }
+        return themePortalNextAssetsDomainService.getDefaultCustomCss();
+    }
+
     private Theme getPortalNextDefaultTheme(ExecutionContext executionContext) {
         Map<Key, String> parameters = parametersDomainService.getEnvironmentParameters(executionContext, PORTAL_NEXT_THEME_KEYS);
 
@@ -105,7 +112,7 @@ public class DefaultThemeDomainService {
                             )
                             .build()
                     )
-                    .customCss(parameters.get(Key.PORTAL_NEXT_THEME_CUSTOM_CSS))
+                    .customCss(resolveCustomCss(parameters.get(Key.PORTAL_NEXT_THEME_CUSTOM_CSS)))
                     .font(ThemeDefinition.Font.builder().fontFamily(parameters.get(Key.PORTAL_NEXT_THEME_FONT_FAMILY)).build())
                     .build()
             )

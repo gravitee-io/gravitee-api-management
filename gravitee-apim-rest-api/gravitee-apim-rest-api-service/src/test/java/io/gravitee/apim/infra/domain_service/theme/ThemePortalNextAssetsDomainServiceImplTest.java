@@ -19,7 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.ThemePortalNextAssetsDomainServiceInMemory;
 import io.gravitee.apim.core.theme.domain_service.ThemePortalNextAssetsDomainService;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Base64;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 public class ThemePortalNextAssetsDomainServiceImplTest {
@@ -41,5 +45,30 @@ public class ThemePortalNextAssetsDomainServiceImplTest {
     void should_get_default_favicon() {
         var result = service.getPortalNextFavicon();
         assertThat(result).isEqualTo("favicon.png");
+    }
+
+    @Nested
+    class FilesystemAndClasspathLogo {
+
+        @Test
+        void should_return_classpath_logo_when_filesystem_logo_is_missing() {
+            var cut = new ThemePortalNextAssetsDomainServiceImpl("/this/path/does/not/exist/next");
+
+            var result = cut.getPortalNextLogo();
+
+            assertThat(result).startsWith("data:").contains("base64,");
+        }
+
+        @Test
+        void should_prefer_filesystem_logo_when_present() throws Exception {
+            Path themeDir = Files.createTempDirectory("portal-next-theme");
+            byte[] filesystemLogo = new byte[] { 0x01, 0x02, 0x03, 0x04 };
+            Files.write(themeDir.resolve("logo.png"), filesystemLogo);
+            var cut = new ThemePortalNextAssetsDomainServiceImpl(themeDir.toString());
+
+            var result = cut.getPortalNextLogo();
+
+            assertThat(result).contains(Base64.getEncoder().encodeToString(filesystemLogo));
+        }
     }
 }

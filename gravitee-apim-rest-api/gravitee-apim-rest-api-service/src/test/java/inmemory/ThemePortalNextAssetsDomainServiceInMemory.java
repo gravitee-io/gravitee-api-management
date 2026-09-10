@@ -51,4 +51,9 @@ public class ThemePortalNextAssetsDomainServiceInMemory implements ThemePortalNe
     public String getPortalNextLogo() {
         return "logo.png";
     }
+
+    @Override
+    public String getDefaultCustomCss() {
+        return null;
+    }
 }
