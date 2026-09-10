@@ -37,7 +37,7 @@ export function ChipInput({
     return (
         <div className="flex flex-wrap gap-1.5 rounded-md border bg-muted/30 p-2" style={{ minHeight: '38px' }}>
             {values.map(v => (
-                <Badge key={v} variant="secondary" style={{ fontSize: '11px', gap: '2px' }}>
+                <Badge key={v} variant="secondary" className="gap-0.5">
                     {v}
                     <button type="button" onClick={() => remove(v)} className="hover:text-destructive ml-0.5" aria-label={`Remove ${v}`}>
                         <XIcon className="size-3" />

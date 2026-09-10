@@ -24,7 +24,7 @@ import { useDashboardRecentApis } from '../hooks/useDashboardRecentApis';
 function DeploymentBadge({ state }: { state?: ApiDeploymentState }) {
     if (state === 'NEED_REDEPLOY') {
         return (
-            <Badge variant="outline" className="text-warning border-warning/30 shrink-0 gap-1">
+            <Badge variant="warning" className="shrink-0 gap-1">
                 <TriangleAlertIcon className="size-3" aria-hidden />
                 Needs redeploy
             </Badge>
@@ -32,7 +32,7 @@ function DeploymentBadge({ state }: { state?: ApiDeploymentState }) {
     }
     if (state === 'DEPLOYED') {
         return (
-            <Badge variant="outline" className="text-success border-success/20 shrink-0">
+            <Badge variant="outline" className="shrink-0">
                 Deployed
             </Badge>
         );

@@ -22,15 +22,15 @@ import { toInstanceStatusTone } from '../utils/instanceStatus';
 
 /**
  * Detail-header status badge.
- * Matches prototype: outline Badge + check icon + "Running" (Graphene tokens instead of raw emerald).
+ * Matches prototype: Badge + check icon + "Running", coloured by Graphene's Badge variants.
  */
 export function GatewayInstanceStatusBadge({ state }: Readonly<{ state: string | undefined }>) {
     const tone = toInstanceStatusTone((state as InstanceState) || 'UNKNOWN');
 
     if (tone === 'running') {
         return (
-            <Badge variant="outline" className="gap-1 rounded-md text-[11px] border-success/40 text-success">
-                <CircleCheckIcon className="size-3 text-success" aria-hidden />
+            <Badge variant="success" className="gap-1 rounded-md">
+                <CircleCheckIcon className="size-3" aria-hidden />
                 Running
             </Badge>
         );
@@ -38,16 +38,16 @@ export function GatewayInstanceStatusBadge({ state }: Readonly<{ state: string |
 
     if (tone === 'error') {
         return (
-            <Badge variant="outline" className="gap-1 rounded-md text-[11px] border-destructive/40 text-destructive">
-                <CircleStopIcon className="size-3 text-destructive" aria-hidden />
+            <Badge variant="secondary" className="gap-1 rounded-md">
+                <CircleStopIcon className="size-3" aria-hidden />
                 Stopped
             </Badge>
         );
     }
 
     return (
-        <Badge variant="outline" className="gap-1 rounded-md text-[11px] text-muted-foreground">
-            <CircleHelpIcon className="size-3 text-muted-foreground" aria-hidden />
+        <Badge variant="outline" className="gap-1 rounded-md">
+            <CircleHelpIcon className="size-3" aria-hidden />
             Unknown
         </Badge>
     );
