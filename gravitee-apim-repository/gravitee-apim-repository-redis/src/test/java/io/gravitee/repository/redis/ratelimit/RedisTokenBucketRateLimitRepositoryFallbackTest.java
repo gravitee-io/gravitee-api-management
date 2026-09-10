@@ -17,6 +17,7 @@ package io.gravitee.repository.redis.ratelimit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -36,8 +37,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Mock-based coverage of the token-bucket Redis repository's {@code NOSCRIPT -> EVAL} Redis-Cluster
- * fallback and the {@code isNoScript} cause-chain matcher — neither is exercised by the container test
- * (which only hits the EVALSHA happy path).
+ * fallback — not exercised by the container test (which only hits the EVALSHA happy path).
  *
  * @author GraviteeSource Team
  */
@@ -89,16 +89,28 @@ class RedisTokenBucketRateLimitRepositoryFallbackTest {
             repository.refillAndTryConsume("my-key", 1, 10, 1_000L, 20, 1_000L, () -> new TokenBucket("my-key")).blockingGet()
         ).hasMessageContaining("LOADING");
         verify(redisAPI, never()).eval(anyList());
+        verify(redisClient).notifyConnectionFailure(any());
     }
 
     @Test
-    void isNoScript_matches_through_the_cause_chain_only() {
-        assertThat(RedisTokenBucketRateLimitRepository.isNoScript(new RuntimeException("NOSCRIPT No matching script"))).isTrue();
-        assertThat(
-            RedisTokenBucketRateLimitRepository.isNoScript(new RuntimeException("wrapper", new IllegalStateException("NOSCRIPT x")))
-        ).isTrue();
-        assertThat(RedisTokenBucketRateLimitRepository.isNoScript(new RuntimeException("LOADING dataset"))).isFalse();
-        assertThat(RedisTokenBucketRateLimitRepository.isNoScript(new RuntimeException((String) null))).isFalse();
+    void notifies_connection_failure_on_readonly_without_falling_back_to_eval() {
+        RedisClient redisClient = mock(RedisClient.class);
+        RedisAPI redisAPI = mock(RedisAPI.class);
+
+        when(redisClient.isConnected()).thenReturn(true);
+        when(redisClient.scriptSha1("token-bucket")).thenReturn("the-sha");
+        when(redisClient.redisApi()).thenReturn(Future.succeededFuture(redisAPI));
+        when(redisAPI.evalsha(anyList())).thenReturn(
+            Future.failedFuture(new RuntimeException("READONLY You can't write against a read only replica."))
+        );
+
+        var repository = new RedisTokenBucketRateLimitRepository(redisClient, 2000);
+
+        assertThatThrownBy(() ->
+            repository.refillAndTryConsume("my-key", 1, 10, 1_000L, 20, 1_000L, () -> new TokenBucket("my-key")).blockingGet()
+        ).hasMessageContaining("READONLY");
+        verify(redisAPI, never()).eval(anyList());
+        verify(redisClient).notifyConnectionFailure(any());
     }
 
     private static Response consumeResponse(long allowed, long tokens) {
