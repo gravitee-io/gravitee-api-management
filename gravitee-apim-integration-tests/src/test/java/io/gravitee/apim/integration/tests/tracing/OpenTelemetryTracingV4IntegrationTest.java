@@ -371,15 +371,16 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
 
     private static JsonObject rootSpan(JsonObject json) {
         var data = json.getJsonArray("data");
-        assertThat(data).isNotEmpty();
-        return data
+        assertThat(data).as("traces").hasSize(1);
+        var serverSpans = data
             .getJsonObject(0)
             .getJsonArray("spans")
             .stream()
             .map(JsonObject.class::cast)
             .filter(span -> hasSpanKind(span, "server"))
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("no span with kind=server"));
+            .toList();
+        assertThat(serverSpans).as("spans with kind=server").hasSize(1);
+        return serverSpans.get(0);
     }
 
     private static String spanTag(JsonObject span, String key) {
@@ -397,13 +398,6 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
     }
 
     private static boolean hasSpanKind(JsonObject span, String expectedKind) {
-        var tags = span.getJsonArray("tags");
-        if (tags == null) {
-            return false;
-        }
-        return tags
-            .stream()
-            .map(JsonObject.class::cast)
-            .anyMatch(tag -> "span.kind".equals(tag.getString("key")) && expectedKind.equals(tag.getString("value")));
+        return expectedKind.equals(spanTag(span, "span.kind"));
     }
 }
