@@ -15,26 +15,21 @@
  */
 package io.gravitee.gateway.reactive.reactor.processor.tracing;
 
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_TRACING_ROOT_SPAN;
-
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.core.tracing.AbstractTracingHook;
-import io.gravitee.node.api.opentelemetry.Span;
 import io.reactivex.rxjava3.core.Completable;
 
 /**
  * Enriches the root OTel span with Gravitee request identifiers once they are available.
  *
- * <p>The root span is created in {@code DefaultHttpRequestDispatcher.doOnSubscribe()} and stored
- * under {@code ATTR_INTERNAL_TRACING_ROOT_SPAN} before the pre-processor chain runs. At that point
- * {@code transactionId} has not yet been assigned by
- * {@link io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessor}.
- * This processor runs immediately after {@code TransactionPreProcessor}, so both
- * {@code gravitee.request.id} and {@code gravitee.transaction.id} are guaranteed to be set.
+ * <p>The attributes are deferred on the request-scoped {@link Tracer} and stamped when the root span
+ * closes, so this processor never needs a reference to the span itself. It runs immediately after
+ * {@link io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessor}, so
+ * {@code gravitee.transaction.id} is already assigned by the time it reads it.
  *
- * <p>This processor is only registered when OTel traces are enabled. When tracing is disabled the
- * root span is never stored in context, so this processor would be a no-op regardless.
+ * <p>This processor is only registered when OTel traces are enabled.
  *
  * @author GraviteeSource Team
  */
@@ -48,12 +43,10 @@ public class TracingPreProcessor implements Processor {
     @Override
     public Completable execute(final HttpExecutionContextInternal ctx) {
         return Completable.fromRunnable(() -> {
-            Span rootSpan = ctx.getInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN);
-            if (rootSpan != null && ctx.request() != null) {
-                rootSpan.withAttribute(AbstractTracingHook.SPAN_REQUEST_ID_ATTR, ctx.request().id());
-                if (ctx.request().transactionId() != null) {
-                    rootSpan.withAttribute(AbstractTracingHook.SPAN_TRANSACTION_ID_ATTR, ctx.request().transactionId());
-                }
+            if (ctx.request() != null) {
+                final Tracer tracer = ctx.getTracer();
+                tracer.deferRootSpanAttribute(AbstractTracingHook.SPAN_REQUEST_ID_ATTR, ctx.request().id());
+                tracer.deferRootSpanAttribute(AbstractTracingHook.SPAN_TRANSACTION_ID_ATTR, ctx.request().transactionId());
             }
         });
     }
