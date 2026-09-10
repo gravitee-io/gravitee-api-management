@@ -21,7 +21,7 @@
         "@asciidoctor/core": "3.0.4",
         "@asyncapi/react-component": "2.6.5",
         "@asyncapi/web-component": "2.6.3",
-        "@dagrejs/dagre": "1.1.4",
+        "@dagrejs/dagre": "1.1.8",
         "@danielmoncada/angular-datetime-picker": "20.0.1",
         "@danielmoncada/angular-datetime-picker-moment-adapter": "7.0.1",
         "@emoji-mart/data": "1.2.1",

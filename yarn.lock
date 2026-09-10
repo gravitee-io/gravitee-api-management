@@ -3422,12 +3422,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dagrejs/dagre@npm:1.1.4":
-  version: 1.1.4
-  resolution: "@dagrejs/dagre@npm:1.1.4"
+"@dagrejs/dagre@npm:1.1.8":
+  version: 1.1.8
+  resolution: "@dagrejs/dagre@npm:1.1.8"
   dependencies:
     "@dagrejs/graphlib": "npm:2.2.4"
-  checksum: 10c0/1717ecb1667a70199881871a69990fc2521b9e002e9cc5088cad55ae6fffe349b0bfd8fcb8a7c30e6d19c29dc6a080138bff2e675336bb5f85d5439e12581bf5
+  checksum: 10c0/3f4f99beb1c791c4c35fcab7a6891731a712931f076ae27b380afa4077e81a1f46341cd0ac8f21df29bf7b458e631b780e819846140a9e4f89e36faf907cdc66
   languageName: node
   linkType: hard
 
@@ -22003,7 +22003,7 @@ __metadata:
     "@asciidoctor/core": "npm:3.0.4"
     "@asyncapi/react-component": "npm:2.6.5"
     "@asyncapi/web-component": "npm:2.6.3"
-    "@dagrejs/dagre": "npm:1.1.4"
+    "@dagrejs/dagre": "npm:1.1.8"
     "@danielmoncada/angular-datetime-picker": "npm:20.0.1"
     "@danielmoncada/angular-datetime-picker-moment-adapter": "npm:7.0.1"
     "@emoji-mart/data": "npm:1.2.1"
