@@ -50,6 +50,7 @@ export class PinCoreJob {
 
     const steps: Command[] = [
       new commands.Checkout(),
+      new commands.AddSSHKeys({ fingerprints: config.ssh.fingerprints }),
       new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
         'secret-url': config.secrets.githubApiToken,
         'var-name': 'GITHUB_TOKEN',
@@ -64,11 +65,11 @@ export class PinCoreJob {
         'var-name': 'GIT_USER_EMAIL',
       }),
       new commands.Run({
+        // The token is for `gh` alone — it opens and updates the pull request below. Git pushes over
+        // the remote `checkout` left in place, which is SSH.
         name: 'Git config',
         command: `git config --global user.name "\${GIT_USER_NAME}"
-git config --global user.email "\${GIT_USER_EMAIL}"
-gh auth setup-git
-git remote set-url origin "https://github.com/\${CIRCLE_PROJECT_USERNAME}/\${CIRCLE_PROJECT_REPONAME}.git"`,
+git config --global user.email "\${GIT_USER_EMAIL}"`,
       }),
       new commands.Run({
         name: `Pin core ${version} on ${branch}`,

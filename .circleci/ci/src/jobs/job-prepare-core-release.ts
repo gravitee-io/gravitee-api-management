@@ -29,18 +29,13 @@ export class PrepareCoreReleaseJob {
 
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     dynamicConfig.importOrb(orbs.keeper);
-    dynamicConfig.importOrb(orbs.github);
 
     const { version: nextVersion, qualifier: nextQualifier } = nextDevelopmentVersion(environment.graviteeioVersion);
     const tag = `core_${environment.graviteeioVersion}`;
 
     const steps: Command[] = [
       new commands.Checkout(),
-      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-        'secret-url': config.secrets.githubApiToken,
-        'var-name': 'GITHUB_TOKEN',
-      }),
-      new reusable.ReusedCommand(orbs.github.commands['setup']),
+      new commands.AddSSHKeys({ fingerprints: config.ssh.fingerprints }),
       new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
         'secret-url': config.secrets.gitUserName,
         'var-name': 'GIT_USER_NAME',
@@ -53,12 +48,6 @@ export class PrepareCoreReleaseJob {
         name: 'Git config',
         command: `git config --global user.name "\${GIT_USER_NAME}"
 git config --global user.email "\${GIT_USER_EMAIL}"`,
-      }),
-      new commands.Run({
-        // A push over the project SSH key produces no webhook, so the tag it carries starts nothing.
-        name: 'Push over HTTPS, so that pushing the tag triggers the release',
-        command: `gh auth setup-git
-git remote set-url origin "https://github.com/\${CIRCLE_PROJECT_USERNAME}/\${CIRCLE_PROJECT_REPONAME}.git"`,
       }),
       new commands.Run({
         name: `Tag core ${environment.graviteeioVersion} ${environment.isDryRun ? '- Dry Run' : ''}`,

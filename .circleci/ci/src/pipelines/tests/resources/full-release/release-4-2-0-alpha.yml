@@ -709,10 +709,9 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
-      - keeper/env-export:
-          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
-          var-name: GITHUB_TOKEN
-      - gh/setup
+      - add_ssh_keys:
+          fingerprints:
+            - ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c
       - keeper/env-export:
           secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
           var-name: GIT_USER_NAME
@@ -724,11 +723,6 @@ jobs:
           command: |-
             git config --global user.name "${GIT_USER_NAME}"
              git config --global user.email "${GIT_USER_EMAIL}"
-      - run:
-          name: Push over HTTPS, so that pushing a tag triggers a pipeline
-          command: |-
-            gh auth setup-git
-            git remote set-url origin "https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git"
       - run:
           name: "Git release "
           command: |
@@ -1428,6 +1422,6 @@ orbs:
   slack: circleci/slack@4.12.5
   aws-cli: circleci/aws-cli@5.1.2
   aws-s3: circleci/aws-s3@4.1.0
-  gh: circleci/github-cli@1.0.5
   helm: circleci/helm@3.0.0
+  gh: circleci/github-cli@1.0.5
   aikido: gravitee-io/aikido@1.0.3
