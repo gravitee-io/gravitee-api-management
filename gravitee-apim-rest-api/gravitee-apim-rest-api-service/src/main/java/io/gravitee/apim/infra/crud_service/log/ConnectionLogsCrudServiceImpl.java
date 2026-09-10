@@ -218,6 +218,7 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             .statusRanges(ConnectionLogAdapter.INSTANCE.convertStatusRanges(searchLogsFilters.statusRanges()))
             .statusCodeGroups(searchLogsFilters.statusCodeGroups())
             .entrypointIds(searchLogsFilters.entrypointIds())
+            .entrypointScope(ConnectionLogAdapter.INSTANCE.convertEntrypointScope(searchLogsFilters.entrypointScope()))
             .requestIds(searchLogsFilters.requestIds())
             .transactionIds(searchLogsFilters.transactionIds())
             .uri(searchLogsFilters.uri())

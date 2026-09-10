@@ -28,12 +28,7 @@ import java.util.List;
 public class EntrypointScopeProviderAdapter implements EntrypointScopeProvider {
 
     @Override
-    public List<String> analyticsScope() {
-        return ObservabilityEntrypoints.HTTP_SCOPE_IDS;
-    }
-
-    @Override
-    public List<String> logsScope() {
-        return ObservabilityEntrypoints.LOGS_SCOPE_IDS;
+    public List<String> excludedFromLogs() {
+        return ObservabilityEntrypoints.LOGS_EXCLUDED_IDS;
     }
 }

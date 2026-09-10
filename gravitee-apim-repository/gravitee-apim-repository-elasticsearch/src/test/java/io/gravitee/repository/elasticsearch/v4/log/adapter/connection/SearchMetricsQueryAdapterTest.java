@@ -782,6 +782,108 @@ class SearchMetricsQueryAdapterTest {
     }
 
     @Nested
+    class EntrypointScopeFilter {
+
+        @Test
+        void should_exclude_the_scope_ids_on_the_field_and_its_keyword_sub_field() {
+            var result = SearchMetricsQueryAdapter.adapt(
+                MetricsQuery.builder()
+                    .page(1)
+                    .size(20)
+                    .filter(
+                        MetricsQuery.Filter.builder()
+                            .entrypointScope(MetricsQuery.Filter.EntrypointScope.excluding(List.of("sse", "edge")))
+                            .build()
+                    )
+                    .build()
+            );
+
+            assertThatJson(result)
+                .node("query.bool.must")
+                .isEqualTo(
+                    """
+                    [
+                        {
+                            "bool": {
+                                "must_not": [
+                                    { "terms": { "entrypoint-id": ["sse", "edge"] } },
+                                    { "terms": { "entrypoint-id.keyword": ["sse", "edge"] } }
+                                ]
+                            }
+                        }
+                    ]
+                    """
+                );
+        }
+
+        @Test
+        void should_select_exactly_the_given_entrypoints_without_the_field_missing_fallback() {
+            var result = SearchMetricsQueryAdapter.adapt(
+                MetricsQuery.builder()
+                    .page(1)
+                    .size(20)
+                    .filter(
+                        MetricsQuery.Filter.builder()
+                            .entrypointScope(MetricsQuery.Filter.EntrypointScope.exactly(List.of("mcp-studio")))
+                            .build()
+                    )
+                    .build()
+            );
+
+            assertThatJson(result)
+                .node("query.bool.must")
+                .isEqualTo(
+                    """
+                    [{"bool":{"should":[{"terms":{"entrypoint-id":["mcp-studio"]}},{"terms":{"entrypoint-id.keyword":["mcp-studio"]}}],"minimum_should_match":1}}]
+                    """
+                );
+        }
+
+        @Test
+        void should_select_documents_without_an_entrypoint_for_the_synthetic_value() {
+            var result = SearchMetricsQueryAdapter.adapt(
+                MetricsQuery.builder()
+                    .page(1)
+                    .size(20)
+                    .filter(
+                        MetricsQuery.Filter.builder()
+                            .entrypointScope(MetricsQuery.Filter.EntrypointScope.exactly(List.of("(none)")))
+                            .build()
+                    )
+                    .build()
+            );
+
+            assertThatJson(result)
+                .node("query.bool.must")
+                .isEqualTo("[{ \"bool\": { \"must_not\": { \"exists\": { \"field\": \"entrypoint-id\" } } } }]");
+        }
+
+        @Test
+        void should_let_the_scope_replace_the_legacy_ids_when_both_are_given() {
+            var result = SearchMetricsQueryAdapter.adapt(
+                MetricsQuery.builder()
+                    .page(1)
+                    .size(20)
+                    .filter(
+                        MetricsQuery.Filter.builder()
+                            .entrypointIds(Set.of("http-proxy"))
+                            .entrypointScope(MetricsQuery.Filter.EntrypointScope.exactly(List.of("mcp")))
+                            .build()
+                    )
+                    .build()
+            );
+
+            assertThatJson(result)
+                .node("query.bool.must")
+                .isEqualTo(
+                    """
+                    [{"bool":{"should":[{"terms":{"entrypoint-id":["mcp"]}},{"terms":{"entrypoint-id.keyword":["mcp"]}}],"minimum_should_match":1}}]
+                    """
+                );
+        }
+    }
+
+    @Nested
     class ApiProductIdsFilter {
 
         @Test

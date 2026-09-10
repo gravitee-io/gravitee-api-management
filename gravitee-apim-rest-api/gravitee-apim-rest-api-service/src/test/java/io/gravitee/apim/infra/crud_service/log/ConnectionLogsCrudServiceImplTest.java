@@ -753,4 +753,33 @@ class ConnectionLogsCrudServiceImplTest {
             );
         }
     }
+
+    @Nested
+    class SearchApiConnectionLogsEntrypointScope {
+
+        @Test
+        void should_pass_the_entrypoint_scope_to_the_metrics_query() throws AnalyticsException {
+            when(metricsRepository.searchMetrics(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V4)))).thenReturn(
+                new LogResponse<>(0, List.of())
+            );
+
+            logCrudService.searchApiConnectionLogs(
+                GraviteeContext.getExecutionContext(),
+                Set.of("api-1"),
+                SearchLogsFilters.builder()
+                    .from(0L)
+                    .to(1L)
+                    .entrypointScope(SearchLogsFilters.EntrypointScope.exactly(List.of("mcp-studio", "(none)")))
+                    .build(),
+                new PageableImpl(1, 10),
+                List.of(DefinitionVersion.V4)
+            );
+
+            var metricsCaptor = ArgumentCaptor.forClass(MetricsQuery.class);
+            verify(metricsRepository).searchMetrics(any(QueryContext.class), metricsCaptor.capture(), eq(List.of(DefinitionVersion.V4)));
+            assertThat(metricsCaptor.getValue().getFilter().getEntrypointScope()).isEqualTo(
+                new MetricsQuery.Filter.EntrypointScope(MetricsQuery.Filter.EntrypointScope.Kind.EXACTLY, List.of("mcp-studio", "(none)"))
+            );
+        }
+    }
 }

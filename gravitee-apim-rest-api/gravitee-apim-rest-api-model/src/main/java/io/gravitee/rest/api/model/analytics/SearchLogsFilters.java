@@ -16,7 +16,9 @@
 package io.gravitee.rest.api.model.analytics;
 
 import io.gravitee.common.http.HttpMethod;
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import lombok.Builder;
 
@@ -50,11 +52,37 @@ public record SearchLogsFilters(
     Set<String> nativeClientSoftwareNames,
     Set<String> nativeClientSoftwareVersions,
     Set<String> failureOrigins,
-    Set<String> tenants
+    Set<String> tenants,
+    EntrypointScope entrypointScope
 ) {
     /**
      * An inclusive HTTP status code range bound for {@code HTTP_STATUS GTE/LTE}.
      */
     @Builder
     public record StatusRange(Integer gte, Integer lte) {}
+
+    /**
+     * Replaces {@code entrypointIds} when present: a default scope excludes the given ids (and keeps documents
+     * without an entrypoint id by construction), an explicit condition selects exactly the given values, the
+     * synthetic {@code (none)} value standing for documents without an entrypoint id.
+     */
+    public record EntrypointScope(Kind kind, List<String> ids) {
+        public EntrypointScope {
+            Objects.requireNonNull(kind, "An entrypoint scope needs a kind");
+            ids = List.copyOf(ids);
+        }
+
+        public enum Kind {
+            EXCLUDING,
+            EXACTLY,
+        }
+
+        public static EntrypointScope excluding(Collection<String> ids) {
+            return new EntrypointScope(Kind.EXCLUDING, List.copyOf(ids));
+        }
+
+        public static EntrypointScope exactly(Collection<String> values) {
+            return new EntrypointScope(Kind.EXACTLY, List.copyOf(values));
+        }
+    }
 }

@@ -40,5 +40,7 @@ public record LogsSearchQuery(
     Long to,
     int page,
     int perPage,
-    RecordType recordType
+    RecordType recordType,
+    /** Absent for decision rows, which carry no entrypoint. */
+    EntrypointScope entrypointScope
 ) {}
