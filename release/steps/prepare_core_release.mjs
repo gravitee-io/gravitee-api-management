@@ -1,7 +1,7 @@
 #!/usr/bin/env zx
 
 import { checkToken, triggerPipeline } from '../helpers/circleci-helper.mjs';
-import { assertCoreTagIsFree, assertVersionMatchesPom, computeVersion, extractVersion } from '../helpers/version-helper.mjs';
+import { assertCoreTagIsFree, assertVersionMatchesPoms, computeVersion, extractVersion, ROOT_POM } from '../helpers/version-helper.mjs';
 import { getTargetBranch, isDryRun, isHotfixVersion } from '../helpers/option-helper.mjs';
 
 await checkToken();
@@ -23,7 +23,7 @@ if (isHotfixVersion(releasingVersion)) {
 
 // Read-only, and run here rather than in CI: they refuse in a second instead of after a pipeline
 // has spun up, and they refuse before anything has been written.
-await assertVersionMatchesPom(releasingVersion, targetBranch);
+await assertVersionMatchesPoms(releasingVersion, targetBranch, [ROOT_POM]);
 await assertCoreTagIsFree(releasingVersion);
 
 console.log(chalk.green(`💪 Preparing the core release of ${releasingVersion}${dryRun ? ' - Dry Run' : ''}\n`));

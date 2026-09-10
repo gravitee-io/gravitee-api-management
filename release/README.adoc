@@ -18,7 +18,7 @@ Three things, and they are not the same thing.
 | After releasing, the branch is bumped to the next version. `4.12.18` leaves it at `4.12.19-SNAPSHOT`; a qualified version like `4.13.0-alpha.1` leaves it at `4.13.0-alpha.2-SNAPSHOT`.
 |===
 
-The second row is the one that surprises people, so the command checks it: before triggering anything it reads the root pom of the branch it is about to release from, and refuses when the two disagree. Without that check the tag would say one thing and the artefacts another, and nothing downstream would notice.
+The second row is the one that surprises people, so the command checks it: before triggering anything it reads the poms of the branch it is about to release from, and refuses when they disagree with `--version`. Without that check the tag would say one thing and the artefacts another, and nothing downstream would notice. `full_release` releases both reactors, so it requires both poms to carry the version; a core release moves the root alone, so it only reads that one.
 
 == Setup
 
@@ -94,7 +94,7 @@ The tag is prefixed because *the product keeps the bare version*: `4.13.0` names
 
 Before triggering anything, the command checks two things, both read-only, so they refuse in a second rather than after a pipeline has spun up:
 
-* the version matches the poms of the branch it will release from — the same check `full_release` makes;
+* the version matches the root pom of the branch it will release from — the same check `full_release` makes, narrowed to the one reactor this lane moves;
 * `core_4.13.0` does not already exist. An existing tag means that version has already been released, and pushing it again fails halfway — after the branch has been committed to and reopened on the next version, a state that has to be unwound by hand.
 
 `--dry-run` runs the same job with the pushes disarmed, which is as far as a rehearsal goes here: a tag cannot be pushed provisionally, so what it rehearses is the commit, the tag and the bump — not the publication, and not the pull request that follows it.
