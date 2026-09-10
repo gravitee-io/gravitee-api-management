@@ -14,28 +14,33 @@
  * limitations under the License.
  */
 import {
-    BotIcon,
-    FolderOpenIcon,
+    BoxesIcon,
     GlobeIcon,
     LayoutDashboardIcon,
     ListIcon,
+    NetworkIcon,
+    PlugIcon,
+    SearchIcon,
     ServerIcon,
+    SparklesIcon,
     type LucideIcon,
 } from '@gravitee/graphene-core/icons';
 
 import type { RoleScope } from '../types/role';
 
-/** Mirrors OrgSettingsRolesComponent.getScopeIcon; CLUSTER/EXPLORER intentionally have no icon, same as the Angular default case. */
-const ROLE_SCOPE_ICONS: Partial<Record<RoleScope, LucideIcon>> = {
+/** Classic `OrgSettingsRolesComponent.getScopeIcon`: ORGANIZATION → corporate_fare, ENVIRONMENT → dns. */
+const ROLE_SCOPE_ICONS: Record<RoleScope, LucideIcon> = {
+    ORGANIZATION: ServerIcon,
+    ENVIRONMENT: GlobeIcon,
     API: LayoutDashboardIcon,
     APPLICATION: ListIcon,
-    ENVIRONMENT: ServerIcon,
-    ORGANIZATION: GlobeIcon,
-    INTEGRATION: ListIcon,
-    API_PRODUCT: FolderOpenIcon,
-    AI_WORKSPACE: BotIcon,
+    INTEGRATION: PlugIcon,
+    CLUSTER: NetworkIcon,
+    EXPLORER: SearchIcon,
+    API_PRODUCT: BoxesIcon,
+    AI_WORKSPACE: SparklesIcon,
 };
 
-export function getRoleScopeIcon(scope: RoleScope): LucideIcon | undefined {
+export function getRoleScopeIcon(scope: RoleScope): LucideIcon {
     return ROLE_SCOPE_ICONS[scope];
 }

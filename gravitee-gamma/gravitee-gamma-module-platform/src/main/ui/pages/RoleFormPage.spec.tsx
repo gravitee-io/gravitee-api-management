@@ -221,7 +221,7 @@ describe('RoleFormPage', () => {
 
             // Save stays disabled until something actually changes (mirrors gio-save-bar's dirty gating).
             await user.type(screen.getByLabelText('Role description'), '!');
-            await user.click(screen.getByRole('button', { name: 'Save' }));
+            await user.click(screen.getByRole('button', { name: 'Save changes' }));
 
             await waitFor(() => {
                 expect(mutateAsync).toHaveBeenCalledWith(

@@ -70,7 +70,7 @@ describe('RolePermissionsTable', () => {
         const value = toFormPermissions(role, ['DEFINITION', 'MEMBER']);
         render(<RolePermissionsTable scope="API" permissionNames={['DEFINITION', 'MEMBER']} value={value} onChange={jest.fn()} />);
 
-        expect(screen.getByRole('checkbox', { name: /all Read/ })).toHaveAttribute('data-state', 'indeterminate');
+        expect(screen.getByRole('checkbox', { name: /all Read/ })).toHaveAttribute('aria-checked', 'mixed');
     });
 
     it('disables every checkbox when the table is read-only', () => {
