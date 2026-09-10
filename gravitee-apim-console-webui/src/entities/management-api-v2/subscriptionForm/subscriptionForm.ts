@@ -13,33 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/**
- * Subscription form definition used by API consumers when subscribing to APIs
- */
 export interface SubscriptionForm {
-  /**
-   * Unique identifier of the subscription form
-   */
   id: string;
-  /**
-   * Gravitee Markdown (GMD) content defining the form.
-   * Supports form components like gmd-input, gmd-textarea, gmd-select, gmd-checkbox, gmd-radio.
-   */
+  name: string;
   gmdContent: string;
-  /**
-   * Whether the form is enabled and visible to API consumers in the Developer Portal
-   */
   enabled: boolean;
+  defaultForm: boolean;
+  resolvedOptions?: Record<string, string[]>;
 }
 
-/**
- * Payload for updating a subscription form
- */
+export interface CreateSubscriptionForm {
+  name: string;
+  gmdContent: string;
+}
+
 export interface UpdateSubscriptionForm {
-  /**
-   * Gravitee Markdown (GMD) content defining the form.
-   * Content is validated for security - malicious HTML/scripts will be rejected.
-   */
+  name: string;
   gmdContent: string;
 }
