@@ -3425,12 +3425,16 @@ components:
             <gmd-textarea name="consumer_use_case" label="Use Case" required="true"/>
         apiIds:
           type: array
-          description: Identifiers of the APIs this form is dedicated to, replacing the current ones. Each must belong to the environment and to no other form.
+          description: |-
+            Identifiers of the APIs this form is dedicated to, replacing the current ones like the name and the
+            definition. Required: an absent or empty list unmaps every API. Each must belong to the environment
+            and to no other form.
           items:
             type: string
       required:
         - name
         - gmdContent
+        - apiIds
 
   parameters:
     pageParam:
