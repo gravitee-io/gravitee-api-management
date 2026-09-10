@@ -48,10 +48,12 @@ export class BackendBuildAndPublishOnDownloadWebsiteJob {
       new reusable.ReusedCommand(azureArtifactsTokenCmd),
       new commands.Run({
         // The distribution carries its own version properties now, so it needs the same treatment.
+        // Both calls resolve versions-maven-plugin, so they take the shared settings like every
+        // other Maven invocation — without it they reach Maven Central directly.
         name: 'Remove `-SNAPSHOT` from versions',
-        command: `mvn -B versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
+        command: `mvn -B -s ${config.maven.settingsFile} versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
 sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
-mvn -B -f gravitee-apim-distribution/pom.xml versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
+mvn -B -s ${config.maven.settingsFile} -f gravitee-apim-distribution/pom.xml versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
 sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" gravitee-apim-distribution/pom.xml`,
       }),
       new reusable.ReusedCommand(prepareGpgCommand),
