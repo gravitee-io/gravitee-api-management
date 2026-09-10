@@ -148,7 +148,8 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
             var existingForm = givenAForm(false, true);
             UpdateSubscriptionForm request = new UpdateSubscriptionForm()
                 .name("Renamed")
-                .gmdContent("<gmd-card>Updated Content</gmd-card>");
+                .gmdContent("<gmd-card>Updated Content</gmd-card>")
+                .apiIds(List.of());
 
             var response = rootTarget.path(existingForm.getId().toString()).request().put(Entity.json(request));
 
@@ -164,7 +165,10 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_404_when_form_not_exists() {
-            UpdateSubscriptionForm request = new UpdateSubscriptionForm().name("Any").gmdContent("<gmd-card>Content</gmd-card>");
+            UpdateSubscriptionForm request = new UpdateSubscriptionForm()
+                .name("Any")
+                .gmdContent("<gmd-card>Content</gmd-card>")
+                .apiIds(List.of());
 
             var response = rootTarget.path(UNKNOWN_ID).request().put(Entity.json(request));
 
@@ -190,7 +194,10 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
                 .defaultForm(false)
                 .build();
             subscriptionFormQueryService.initWith(List.of(otherForm));
-            UpdateSubscriptionForm request = new UpdateSubscriptionForm().name("Partners").gmdContent("<gmd-card>Content</gmd-card>");
+            UpdateSubscriptionForm request = new UpdateSubscriptionForm()
+                .name("Partners")
+                .gmdContent("<gmd-card>Content</gmd-card>")
+                .apiIds(List.of());
 
             var response = rootTarget.path(existingForm.getId().toString()).request().put(Entity.json(request));
 
@@ -210,7 +217,10 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
         @Test
         void should_return_403_if_incorrect_permissions() {
             var existingForm = givenAForm(false, true);
-            UpdateSubscriptionForm request = new UpdateSubscriptionForm().name("Any").gmdContent("<gmd-card>Content</gmd-card>");
+            UpdateSubscriptionForm request = new UpdateSubscriptionForm()
+                .name("Any")
+                .gmdContent("<gmd-card>Content</gmd-card>")
+                .apiIds(List.of());
 
             shouldReturn403(RolePermission.ENVIRONMENT_METADATA, ENVIRONMENT, RolePermissionAction.UPDATE, () ->
                 rootTarget.path(existingForm.getId().toString()).request().put(Entity.json(request))
