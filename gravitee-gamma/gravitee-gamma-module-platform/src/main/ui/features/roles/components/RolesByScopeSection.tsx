@@ -16,6 +16,7 @@
 import {
     Badge,
     Button,
+    cn,
     Card,
     CardContent,
     CardHeader,
@@ -66,9 +67,9 @@ function RoleRowActions({ role, scope, canSeeMembers, canDeleteRole, onViewMembe
                 ) : null}
                 {canSeeMembers && canDeleteRole ? <DropdownMenuSeparator /> : null}
                 {canDeleteRole ? (
-                    <DropdownMenuItem onSelect={() => onDeleteRole(scope, role)} className="text-destructive focus:text-destructive">
+                    <DropdownMenuItem variant="destructive" onSelect={() => onDeleteRole(scope, role)}>
                         <Trash2Icon className="size-4 shrink-0" aria-hidden />
-                        <span className="whitespace-nowrap">Delete role</span>
+                        <span className="whitespace-nowrap">Delete</span>
                     </DropdownMenuItem>
                 ) : null}
             </DropdownMenuContent>
@@ -111,14 +112,16 @@ export function RolesByScopeSection({
 
     return (
         <Card>
-            <CardHeader className="space-y-0">
-                <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-2">
-                        {ScopeIcon ? <ScopeIcon className="size-4 shrink-0 text-primary" aria-hidden /> : null}
-                        <CardTitle>{group.label}</CardTitle>
+            <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
+                <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/5 text-primary">
+                        <ScopeIcon className="size-4" aria-hidden />
                     </div>
+                    <CardTitle className="text-base">{group.label}</CardTitle>
+                </div>
+                <div className="flex shrink-0 items-center">
                     {canCreate ? (
-                        <Button onClick={handleCreateClick}>
+                        <Button size="sm" className="shrink-0" onClick={handleCreateClick}>
                             {hasCustomRolesLicense ? (
                                 <PlusIcon className="size-4" aria-hidden />
                             ) : (
@@ -129,65 +132,67 @@ export function RolesByScopeSection({
                     ) : null}
                 </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-0 pb-0">
                 {group.isLoading ? (
-                    <div className="space-y-2">
+                    <div className="space-y-2 px-6 pb-6">
                         <Skeleton className="h-10 w-full rounded-md" />
                         <Skeleton className="h-10 w-full rounded-md" />
                     </div>
                 ) : group.isError ? (
-                    <SectionError message="Failed to load roles for this scope. Please refresh and try again." />
+                    <div className="px-6 pb-6">
+                        <SectionError message="Failed to load roles for this scope. Please refresh and try again." />
+                    </div>
                 ) : group.roles.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No role</p>
+                    <p className="px-6 pb-6 text-sm text-muted-foreground">No role</p>
                 ) : (
                     // A plain list, not DataTable, is a deliberate Classic-faithful choice (Classic's roles
                     // page is a mat-list, not a table) — it costs this page a search affordance DataTable
                     // would have given for free on scopes with many roles. Revisit if that becomes a problem.
-                    <ul className="divide-y">
-                        {group.roles.map(role => (
-                            <li key={role.name} className="flex items-center justify-between gap-4 py-3">
-                                {/* Name-as-link, not full-row-click: the row also carries row actions
-                                    (view members/delete), so the clickable target for "open this role" stays
-                                    scoped to its name instead of swallowing the whole row. */}
-                                <div className="flex min-w-0 flex-1 items-start gap-3">
-                                    <span className="min-w-0">
-                                        <span className="flex min-w-0 items-center gap-2 font-medium">
-                                            <Button
-                                                type="button"
-                                                variant="link"
-                                                className="h-auto min-w-0 shrink truncate p-0 text-left text-sm font-medium text-foreground hover:underline"
-                                                onClick={() => onSelectRole(group.scope, role.name)}
-                                            >
-                                                {role.name}
-                                            </Button>
-                                            {role.system ? (
-                                                <Badge variant="outline" className="shrink-0">
-                                                    System
-                                                </Badge>
+                    <ul>
+                        {group.roles.map(role => {
+                            const description = role.description?.trim();
+                            return (
+                                <li key={role.name} className="flex items-stretch border-t border-border transition-colors hover:bg-muted">
+                                    <button
+                                        type="button"
+                                        className={cn(
+                                            'min-h-16 min-w-0 flex-1 px-6 py-3 text-left',
+                                            description ? undefined : 'flex items-center',
+                                        )}
+                                        onClick={() => onSelectRole(group.scope, role.name)}
+                                    >
+                                        <div className="min-w-0">
+                                            <div className="flex min-w-0 items-center gap-2">
+                                                <span className="min-w-0 shrink truncate text-sm font-medium">{role.name}</span>
+                                                {role.system ? (
+                                                    <Badge variant="secondary" className="h-5 shrink-0 px-1.5 text-xs font-normal">
+                                                        System
+                                                    </Badge>
+                                                ) : null}
+                                                {role.default ? (
+                                                    <Badge variant="highlight" className="shrink-0">
+                                                        Default
+                                                    </Badge>
+                                                ) : null}
+                                            </div>
+                                            {description ? (
+                                                <span className="mt-1 block truncate text-xs text-muted-foreground">{description}</span>
                                             ) : null}
-                                            {role.default ? (
-                                                <Badge variant="highlight" className="shrink-0">
-                                                    Default
-                                                </Badge>
-                                            ) : null}
-                                        </span>
-                                        {role.description ? (
-                                            <span className="block truncate text-sm text-muted-foreground">{role.description}</span>
-                                        ) : null}
-                                    </span>
-                                </div>
-                                <div className="flex shrink-0 items-center">
-                                    <RoleRowActions
-                                        role={role}
-                                        scope={group.scope}
-                                        canSeeMembers={canManageMembers && group.scope === 'ORGANIZATION'}
-                                        canDeleteRole={canDelete && canRoleBeDeleted(role)}
-                                        onViewMembers={onViewMembers}
-                                        onDeleteRole={onDeleteRole}
-                                    />
-                                </div>
-                            </li>
-                        ))}
+                                        </div>
+                                    </button>
+                                    <div className="flex shrink-0 items-center pr-4">
+                                        <RoleRowActions
+                                            role={role}
+                                            scope={group.scope}
+                                            canSeeMembers={canManageMembers && group.scope === 'ORGANIZATION'}
+                                            canDeleteRole={canDelete && canRoleBeDeleted(role)}
+                                            onViewMembers={onViewMembers}
+                                            onDeleteRole={onDeleteRole}
+                                        />
+                                    </div>
+                                </li>
+                            );
+                        })}
                     </ul>
                 )}
             </CardContent>

@@ -62,7 +62,12 @@ export function RolesPage() {
 
     return (
         <div className="space-y-6">
-            <h1 className="text-2xl font-semibold tracking-tight">Roles</h1>
+            <div className="space-y-1">
+                <h1 className="text-2xl font-semibold tracking-tight">Roles</h1>
+                <p className="text-sm text-muted-foreground">
+                    Define what users can create, read, update, and delete in each part of the platform.
+                </p>
+            </div>
 
             {groups.map(group => (
                 <RolesByScopeSection
