@@ -404,19 +404,7 @@ export function CreateApiProxyPage() {
                                             <div className="min-w-0 flex-1 space-y-0.5">
                                                 <div className="flex flex-wrap items-center gap-2">
                                                     <p className="text-sm font-medium leading-snug">{tpl.title}</p>
-                                                    {tpl.notRecommended && (
-                                                        <Badge
-                                                            variant="outline"
-                                                            style={{
-                                                                fontSize: '10px',
-                                                                color: '#92400e',
-                                                                borderColor: 'rgba(245,158,11,0.5)',
-                                                                backgroundColor: 'rgba(245,158,11,0.1)',
-                                                            }}
-                                                        >
-                                                            Not recommended
-                                                        </Badge>
-                                                    )}
+                                                    {tpl.notRecommended && <Badge variant="warning">Not recommended</Badge>}
                                                 </div>
                                                 <p className="text-xs text-muted-foreground">{tpl.subtitle}</p>
                                             </div>

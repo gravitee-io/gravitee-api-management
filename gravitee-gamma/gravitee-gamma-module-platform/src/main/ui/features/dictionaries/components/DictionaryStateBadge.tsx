@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-import { Badge, cn } from '@gravitee/graphene-core';
+import { Badge, type BadgeVariant } from '@gravitee/graphene-core';
 
 import type { DictionaryLifecycleState } from '../types/dictionary';
 
-const STATE_CONFIG: Record<DictionaryLifecycleState, { label: string; className: string }> = {
-    STARTED: { label: 'Started', className: 'bg-success/10 text-success border-transparent' },
-    STOPPED: { label: 'Stopped', className: 'bg-muted text-muted-foreground border-transparent' },
+const STATE_CONFIG: Record<DictionaryLifecycleState, { label: string; variant: BadgeVariant }> = {
+    STARTED: { label: 'Started', variant: 'success' },
+    STOPPED: { label: 'Stopped', variant: 'secondary' },
 };
 
 export function DictionaryStateBadge({ state }: Readonly<{ state: DictionaryLifecycleState | undefined }>) {
     if (!state) {
         return <span className="text-sm text-muted-foreground">—</span>;
     }
-    const config = STATE_CONFIG[state] ?? { label: state, className: '' };
-    return <Badge className={cn('font-normal text-xs', config.className)}>{config.label}</Badge>;
+    const config = STATE_CONFIG[state] ?? { label: state, variant: 'default' };
+    return (
+        <Badge variant={config.variant} className="font-normal text-xs">
+            {config.label}
+        </Badge>
+    );
 }
