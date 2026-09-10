@@ -115,5 +115,11 @@ public interface AnalyticsRepository {
 
     TimeSeriesResult searchAuthzTimeSeries(QueryContext queryContext, TimeSeriesQuery query);
 
+    MeasuresResult searchHumanApprovalMeasures(QueryContext queryContext, MeasuresQuery query);
+
+    FacetsResult searchHumanApprovalFacets(QueryContext queryContext, FacetsQuery query);
+
+    TimeSeriesResult searchHumanApprovalTimeSeries(QueryContext queryContext, TimeSeriesQuery query);
+
     FilterValuesResult searchFilterValues(QueryContext queryContext, FilterValuesQuery query);
 }

@@ -127,5 +127,7 @@ public record FilterSpec(
         AUTHZ_ACTION,
         AUTHZ_RESOURCE_ID,
         AUTHZ_REASON,
+        HUMAN_APPROVAL_VERDICT,
+        HUMAN_APPROVAL_TOOL,
     }
 }

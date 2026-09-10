@@ -74,6 +74,8 @@ public record FacetSpec(Name name, String label, String type, List<Object> enumV
         AUTHZ_ACTION,
         AUTHZ_RESOURCE_ID,
         AUTHZ_REASON,
+        HUMAN_APPROVAL_VERDICT,
+        HUMAN_APPROVAL_TOOL,
     }
 
     public enum Type {

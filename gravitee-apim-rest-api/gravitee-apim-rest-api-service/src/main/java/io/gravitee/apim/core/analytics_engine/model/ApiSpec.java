@@ -25,5 +25,6 @@ public record ApiSpec(Name name, String label) {
         NATIVE,
         EDGE,
         AUTHZ,
+        HUMAN_APPROVAL,
     }
 }

@@ -90,6 +90,8 @@ public record MetricSpec(
         AUTHZ_SEARCHES,
         AUTHZ_FAILURES,
         AUTHZ_EVAL_DURATION,
+        HUMAN_APPROVALS,
+        HUMAN_APPROVAL_COST,
     }
 
     public enum Unit {

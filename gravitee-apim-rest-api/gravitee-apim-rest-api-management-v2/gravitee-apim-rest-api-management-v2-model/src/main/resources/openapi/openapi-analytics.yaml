@@ -1335,6 +1335,7 @@ components:
                 - NATIVE
                 - EDGE
                 - AUTHZ
+                - HUMAN_APPROVAL
             description: Available API names for analytics queries
             example: "HTTP_PROXY"
 
@@ -1404,6 +1405,8 @@ components:
                 - AUTHZ_SEARCHES
                 - AUTHZ_FAILURES
                 - AUTHZ_EVAL_DURATION
+                - HUMAN_APPROVALS
+                - HUMAN_APPROVAL_COST
             description: Available metric names for analytics queries
 
         FacetName:
@@ -1463,6 +1466,8 @@ components:
                 - AUTHZ_ACTION
                 - AUTHZ_RESOURCE_ID
                 - AUTHZ_REASON
+                - HUMAN_APPROVAL_VERDICT
+                - HUMAN_APPROVAL_TOOL
             description: Available facet names for grouping analytics data
 
         FilterName:
@@ -1536,6 +1541,8 @@ components:
                 - AUTHZ_ACTION
                 - AUTHZ_RESOURCE_ID
                 - AUTHZ_REASON
+                - HUMAN_APPROVAL_VERDICT
+                - HUMAN_APPROVAL_TOOL
             description: Available filter names for filtering analytics data
 
         ObservabilityFilterName:
@@ -1611,6 +1618,8 @@ components:
                 - AUTHZ_ACTION
                 - AUTHZ_RESOURCE_ID
                 - AUTHZ_REASON
+                - HUMAN_APPROVAL_VERDICT
+                - HUMAN_APPROVAL_TOOL
             description: Filter names for observability filter definitions, including logs-only filters such as PAYLOAD
 
         Operator:
