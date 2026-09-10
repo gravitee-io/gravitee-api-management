@@ -71,14 +71,14 @@ describe('Azure Artifacts token', () => {
       'repositories-tests': generateRepositoriesTestsConfig({
         ...baseEnvironment,
         action: 'repositories_tests',
-        apimVersionPath: '',
+        apimVersionPath: './src/pipelines/tests/resources/common/pom.xml',
         changedFiles: [],
         graviteeioVersion: '4.2.0',
       }),
       'integration-tests': generateIntegrationTestsConfig({
         ...baseEnvironment,
         action: 'integration_tests',
-        apimVersionPath: '',
+        apimVersionPath: './src/pipelines/tests/resources/common/pom.xml',
         changedFiles: [],
         graviteeioVersion: '4.2.0',
       }),
