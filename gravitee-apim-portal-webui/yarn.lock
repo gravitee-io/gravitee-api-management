@@ -3721,8 +3721,8 @@ __metadata:
     "@highcharts/map-collection": "npm:2.3.3"
     "@messageformat/core": "npm:3.4.0"
     "@ngneat/spectator": "npm:22.1.0"
-    "@ngx-translate/core": "npm:15.0.0"
-    "@ngx-translate/http-loader": "npm:8.0.0"
+    "@ngx-translate/core": "npm:17.0.0"
+    "@ngx-translate/http-loader": "npm:17.0.0"
     "@types/jest": "npm:29.5.14"
     "@types/js-yaml": "npm:4.0.9"
     "@types/node": "npm:22.20.2"
@@ -3759,7 +3759,7 @@ __metadata:
     marked-highlight: "npm:2.2.4"
     ng-packagr: "npm:20.3.2"
     ngx-cookie-service: "npm:20.1.1"
-    ngx-translate-messageformat-compiler: "npm:6.5.1"
+    ngx-translate-messageformat-compiler: "npm:7.3.0"
     path: "npm:0.12.7"
     prettier: "npm:3.9.6"
     redoc: "npm:2.5.3"
@@ -5094,26 +5094,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ngx-translate/core@npm:15.0.0":
-  version: 15.0.0
-  resolution: "@ngx-translate/core@npm:15.0.0"
+"@ngx-translate/core@npm:17.0.0":
+  version: 17.0.0
+  resolution: "@ngx-translate/core@npm:17.0.0"
+  dependencies:
+    tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/common": ">=16.0.0"
-    "@angular/core": ">=16.0.0"
-    rxjs: ^6.5.5 || ^7.4.0
-  checksum: 10c0/a79c80f1ed9dc36285fb7cef82957089d7f7682a0cc6f97bb6682a8587beaebc5daddb3f44408a09f58991a7a68abb6a05d252a2f0e4d091366bc059cad7edfa
+    "@angular/common": ">=16"
+    "@angular/core": ">=16"
+  checksum: 10c0/c1f51c788c76081c5e13d7b504fe2e9a868d965e2f67d60b45260104f45096984f2a21bab62136754f51b70d41a01f30dced6f8518393a8d1f910ab7082923e3
   languageName: node
   linkType: hard
 
-"@ngx-translate/http-loader@npm:8.0.0":
-  version: 8.0.0
-  resolution: "@ngx-translate/http-loader@npm:8.0.0"
+"@ngx-translate/http-loader@npm:17.0.0":
+  version: 17.0.0
+  resolution: "@ngx-translate/http-loader@npm:17.0.0"
+  dependencies:
+    tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/common": ">=16.0.0"
-    "@angular/core": ">=16.0.0"
-    "@ngx-translate/core": ">=15.0.0"
-    rxjs: ^6.5.5 || ^7.4.0
-  checksum: 10c0/200ad76239a51dec431c12d8e87160281c156252f1bae164fbee2d66ee0d34a4e2eb5102dd3cb040f743a4d7221e486fe33186e8955064e5afcfb6a546e45f56
+    "@angular/common": ">=16"
+    "@angular/core": ">=16"
+  checksum: 10c0/88bfc4c965a990c807d730082619a7ea6ab01673feb16b6edd1a9ae2b3155d325677cb1f14bbc55979fd703d5b9932db62f2338295486a80150503d299e0d364
   languageName: node
   linkType: hard
 
@@ -5926,6 +5927,13 @@ __metadata:
 "@rollup/rollup-linux-x64-gnu@npm:4.39.0":
   version: 4.39.0
   resolution: "@rollup/rollup-linux-x64-gnu@npm:4.39.0"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@rollup/rollup-linux-x64-gnu@npm:4.46.2":
+  version: 4.46.2
+  resolution: "@rollup/rollup-linux-x64-gnu@npm:4.46.2"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
@@ -14327,16 +14335,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ngx-translate-messageformat-compiler@npm:6.5.1":
-  version: 6.5.1
-  resolution: "ngx-translate-messageformat-compiler@npm:6.5.1"
+"ngx-translate-messageformat-compiler@npm:7.3.0":
+  version: 7.3.0
+  resolution: "ngx-translate-messageformat-compiler@npm:7.3.0"
   dependencies:
-    tslib: "npm:^2.5.0"
+    "@rollup/rollup-linux-x64-gnu": "npm:4.46.2"
+    tslib: "npm:2.8.1"
   peerDependencies:
     "@angular/core": ">=13.0.0"
     "@messageformat/core": ^3.2.0
-    "@ngx-translate/core": ^14.0.0 || ^15.0.0
-  checksum: 10c0/3f4281fbe16cef9569c80a5d16463f7e433db8fd615b9f5f6036cbea9f3f41db3204d31620bca180923a6136e8ee03a0330d92283b9a4e33f02cfab52845f79d
+    "@ngx-translate/core": ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
+  dependenciesMeta:
+    "@rollup/rollup-linux-x64-gnu":
+      optional: true
+  checksum: 10c0/1a900d3d718cddfff71af6b2f5fc260aad9d657ac54edd3952ceb3b625efd3696154127e5afc8d169ad5c2e301905b2a622f8c612a4dd2244119a65cdd4dd8e3
   languageName: node
   linkType: hard
 
@@ -17980,7 +17992,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:2.8.1, tslib@npm:^2.0.0, tslib@npm:^2.1.0, tslib@npm:^2.2.0, tslib@npm:^2.3.0, tslib@npm:^2.5.0, tslib@npm:^2.5.2, tslib@npm:^2.6.0, tslib@npm:^2.6.2, tslib@npm:^2.8.0, tslib@npm:^2.8.1":
+"tslib@npm:2.8.1, tslib@npm:^2.0.0, tslib@npm:^2.1.0, tslib@npm:^2.2.0, tslib@npm:^2.3.0, tslib@npm:^2.5.2, tslib@npm:^2.6.0, tslib@npm:^2.6.2, tslib@npm:^2.8.0, tslib@npm:^2.8.1":
   version: 2.8.1
   resolution: "tslib@npm:2.8.1"
   checksum: 10c0/9c4759110a19c53f992d9aae23aac5ced636e99887b51b9e61def52611732872ff7668757d4e4c61f19691e36f4da981cd9485e869b4a7408d689f6bf1f14e62

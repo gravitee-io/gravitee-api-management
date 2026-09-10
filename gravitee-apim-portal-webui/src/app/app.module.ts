@@ -17,11 +17,11 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { BrowserModule } from '@angular/platform-browser';
 import { CookieService } from 'ngx-cookie-service';
 import { filter } from 'rxjs/operators';
-import { HTTP_INTERCEPTORS, HttpClient } from '@angular/common/http';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { MESSAGE_FORMAT_CONFIG, TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-compiler';
 import { APP_INITIALIZER, CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { Router, Scroll } from '@angular/router';
-import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { TRANSLATE_HTTP_LOADER_CONFIG, TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { TranslateCompiler, TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { ViewportScroller } from '@angular/common';
 
@@ -114,8 +114,7 @@ import { TicketsHistoryComponent } from './components/gv-tickets-history/tickets
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
-        useFactory: (http: HttpClient) => new TranslateHttpLoader(http, './assets/i18n/'),
-        deps: [HttpClient],
+        useClass: TranslateHttpLoader,
       },
       compiler: {
         provide: TranslateCompiler,
@@ -124,6 +123,10 @@ import { TicketsHistoryComponent } from './components/gv-tickets-history/tickets
     }),
   ],
   providers: [
+    {
+      provide: TRANSLATE_HTTP_LOADER_CONFIG,
+      useValue: { prefix: './assets/i18n/' },
+    },
     {
       provide: APP_INITIALIZER,
       useFactory: initApp,

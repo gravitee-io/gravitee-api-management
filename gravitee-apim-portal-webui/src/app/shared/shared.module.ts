@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClient, HttpClientModule, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HttpClientModule, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { TranslateCompiler, TranslateLoader, TranslateModule } from '@ngx-translate/core';
-import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { TRANSLATE_HTTP_LOADER_CONFIG, TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-compiler';
 
@@ -75,8 +75,7 @@ import { ApiLabelsPipe } from '../pipes/api-labels.pipe';
     TranslateModule.forChild({
       loader: {
         provide: TranslateLoader,
-        useFactory: (http: HttpClient) => new TranslateHttpLoader(http, './assets/i18n/'),
-        deps: [HttpClient],
+        useClass: TranslateHttpLoader,
       },
       compiler: {
         provide: TranslateCompiler,
@@ -84,6 +83,13 @@ import { ApiLabelsPipe } from '../pipes/api-labels.pipe';
       },
     }),
   ],
-  providers: [ApiLabelsPipe, ApiStatesPipe, MarkdownDescriptionPipe, LocalizedDatePipe, provideHttpClient(withInterceptorsFromDi())],
+  providers: [
+    ApiLabelsPipe,
+    ApiStatesPipe,
+    MarkdownDescriptionPipe,
+    LocalizedDatePipe,
+    provideHttpClient(withInterceptorsFromDi()),
+    { provide: TRANSLATE_HTTP_LOADER_CONFIG, useValue: { prefix: './assets/i18n/' } },
+  ],
 })
 export class SharedModule {}
