@@ -20,7 +20,7 @@ import { MemoryRouter } from 'react-router-dom';
 
 import { SignUpPage } from './SignUpPage';
 import { TEST_MANAGEMENT_BASE } from '../../../testing/factories';
-import { respondWith, trackHandler } from '../../../testing/helpers';
+import { respondWith, seedBootstrap, trackHandler } from '../../../testing/helpers';
 import { server } from '../../../testing/server';
 import type { CustomUserField } from '../services/registration.service';
 
@@ -321,6 +321,34 @@ describe('SignUpPage', () => {
 
             await screen.findByText('Check your email');
             expect(screen.queryByRole('button', { name: /resend|send again/i })).toBeNull();
+        });
+
+        it('points to the spam folder when requests are validated automatically', async () => {
+            const user = userEvent.setup();
+            seedBootstrap({ automaticValidationEnabled: true });
+            trackHandler('post', REGISTRATION_URL, {});
+            renderSignUpPage();
+
+            await fillIdentity(user);
+            await waitFor(() => expect(submitButton().disabled).toBe(false));
+            await user.click(submitButton());
+
+            expect(await screen.findByText(/check your spam folder/)).toBeTruthy();
+            expect(screen.queryByText(/administrator/)).toBeNull();
+        });
+
+        it('says an administrator approves the request first when requests are not validated automatically', async () => {
+            const user = userEvent.setup();
+            seedBootstrap({ automaticValidationEnabled: false });
+            trackHandler('post', REGISTRATION_URL, {});
+            renderSignUpPage();
+
+            await fillIdentity(user);
+            await waitFor(() => expect(submitButton().disabled).toBe(false));
+            await user.click(submitButton());
+
+            expect(await screen.findByText(/An administrator reviews each request/)).toBeTruthy();
+            expect(screen.queryByText(/spam folder/)).toBeNull();
         });
 
         it('is identical for an address that already has an account', async () => {

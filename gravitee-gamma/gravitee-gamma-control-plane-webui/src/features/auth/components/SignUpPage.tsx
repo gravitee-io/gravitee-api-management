@@ -37,6 +37,7 @@ import { useEffect, useState, type SubmitEvent } from 'react';
 import { Link } from 'react-router-dom';
 
 import { AuthPageShell } from './AuthPageShell';
+import { useBootstrapStore } from '../../../shared/config/bootstrap.store';
 import { fetchCustomUserFields, submitRegistration, type CustomUserField } from '../services/registration.service';
 
 /**
@@ -80,6 +81,7 @@ export function SignUpPage() {
     const [formError, setFormError] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [sentTo, setSentTo] = useState<string | null>(null);
+    const automaticValidationEnabled = useBootstrapStore(s => s.config?.automaticValidationEnabled ?? false);
 
     useEffect(() => {
         let active = true;
@@ -167,12 +169,12 @@ export function SignUpPage() {
                         Your request has been sent. The activation link goes to{' '}
                         <span className="font-medium text-foreground">{sentTo}</span>.
                     </p>
-                    {/* Deliberately does not promise the email has already left. With
-                        `automaticValidation` off nothing is sent until an administrator
-                        approves, and this page cannot see that setting until FOUND-261 reads it. */}
+                    {/* With automatic validation off the server emails nothing until an
+                        administrator approves, so the page must not promise an email yet. */}
                     <p>
-                        If it has not arrived within a few minutes, check your spam folder — an administrator may need to approve the
-                        request first.
+                        {automaticValidationEnabled
+                            ? 'If it has not arrived within a few minutes, check your spam folder.'
+                            : 'An administrator reviews each request first. The link is sent once yours is approved.'}
                     </p>
                 </div>
                 {/* The only thing left to do here, so it is the page's control rather than muted

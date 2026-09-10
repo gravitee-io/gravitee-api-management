@@ -115,6 +115,57 @@ describe('bootstrapStore', () => {
         expect(useBootstrapStore.getState().loginMethodsFetchedAt).toBeNull();
     });
 
+    it('should store the registration settings from console settings', async () => {
+        respondWith('get', `${TEST_MANAGEMENT_BASE}/console`, {
+            authentication: { localLogin: { enabled: true } },
+            management: { userCreation: { enabled: true }, automaticValidation: { enabled: true } },
+            reCaptcha: { enabled: false },
+        });
+
+        await useBootstrapStore.getState().initialize();
+
+        expect(useBootstrapStore.getState().config?.registrationEnabled).toBe(true);
+        expect(useBootstrapStore.getState().config?.automaticValidationEnabled).toBe(true);
+    });
+
+    it('should treat missing registration settings as disabled', async () => {
+        respondWith('get', `${TEST_MANAGEMENT_BASE}/console`, { reCaptcha: { enabled: false } });
+
+        await useBootstrapStore.getState().initialize();
+
+        expect(useBootstrapStore.getState().config?.registrationEnabled).toBe(false);
+        expect(useBootstrapStore.getState().config?.automaticValidationEnabled).toBe(false);
+    });
+
+    it('should leave registration disabled when console fetch fails', async () => {
+        respondWithError('get', `${TEST_MANAGEMENT_BASE}/console`, 500);
+
+        await useBootstrapStore.getState().initialize();
+
+        expect(useBootstrapStore.getState().config?.registrationEnabled).toBe(false);
+        expect(useBootstrapStore.getState().config?.automaticValidationEnabled).toBe(false);
+    });
+
+    it('should keep local login and registration off when the console body is unreadable', async () => {
+        respondWith('get', `${TEST_MANAGEMENT_BASE}/console`, null);
+
+        await useBootstrapStore.getState().initialize();
+
+        expect(useBootstrapStore.getState().config?.localLoginEnabled).toBe(false);
+        expect(useBootstrapStore.getState().config?.registrationEnabled).toBe(false);
+        expect(useBootstrapStore.getState().loginMethodsFetchedAt).toBeNull();
+    });
+
+    it('should refresh the registration settings without a full reload', async () => {
+        await useBootstrapStore.getState().initialize();
+        useBootstrapStore.setState({ loginMethodsFetchedAt: 0 });
+        respondWith('get', `${TEST_MANAGEMENT_BASE}/console`, { management: { userCreation: { enabled: true } } });
+
+        await useBootstrapStore.getState().refreshLoginMethods();
+
+        expect(useBootstrapStore.getState().config?.registrationEnabled).toBe(true);
+    });
+
     it('should skip a refresh when login methods were just fetched', async () => {
         await useBootstrapStore.getState().initialize();
         const tracker = trackHandler('get', `${TEST_MANAGEMENT_BASE}/social-identities`, [GOOGLE_PROVIDER]);
@@ -150,6 +201,24 @@ describe('bootstrapStore', () => {
 
         expect(useBootstrapStore.getState().config?.identityProviders).toEqual([GOOGLE_PROVIDER]);
         expect(useBootstrapStore.getState().config?.localLoginEnabled).toBe(false);
+    });
+
+    it('should keep the previous console settings when a refresh body is unreadable', async () => {
+        respondWith('get', `${TEST_MANAGEMENT_BASE}/console`, {
+            authentication: { localLogin: { enabled: false } },
+            management: { userCreation: { enabled: true }, automaticValidation: { enabled: true } },
+        });
+        await useBootstrapStore.getState().initialize();
+        useBootstrapStore.setState({ loginMethodsFetchedAt: 0 });
+        respondWith('get', `${TEST_MANAGEMENT_BASE}/console`, null);
+
+        await useBootstrapStore.getState().refreshLoginMethods();
+
+        const { config, loginMethodsFetchedAt } = useBootstrapStore.getState();
+        expect(config?.localLoginEnabled).toBe(false);
+        expect(config?.registrationEnabled).toBe(true);
+        expect(config?.automaticValidationEnabled).toBe(true);
+        expect(loginMethodsFetchedAt).toBe(0);
     });
 
     it('should ignore an older refresh that finishes after a newer one', async () => {

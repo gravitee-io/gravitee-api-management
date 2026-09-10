@@ -23,6 +23,8 @@ export const TEST_CONFIG: BootstrapConfig = {
     gammaBaseURL: 'http://api.test/gamma',
     identityProviders: [],
     localLoginEnabled: true,
+    registrationEnabled: false,
+    automaticValidationEnabled: false,
 };
 
 export const TEST_MANAGEMENT_BASE = `${TEST_CONFIG.managementBaseURL}/organizations/${TEST_CONFIG.organizationId}`;
