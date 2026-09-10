@@ -2,7 +2,7 @@
     "name": "gravitee-gamma-module-portals",
     "private": true,
     "dependencies": {
-        "@gravitee/gamma-modules-sdk": "1.2.0",
+        "@gravitee/gamma-modules-sdk": "1.2.1",
         "@gravitee/graphene-core": "3.16.1",
         "@tanstack/react-query": "5.100.14",
         "react": "19.2.6",
