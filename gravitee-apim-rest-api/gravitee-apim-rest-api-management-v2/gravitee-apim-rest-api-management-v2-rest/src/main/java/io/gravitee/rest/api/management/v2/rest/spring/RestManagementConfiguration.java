@@ -106,8 +106,12 @@ public class RestManagementConfiguration {
     }
 
     @Bean
-    public UserContextLoader userContextLoader(ApiAuthorizationService apiAuthorizationService, @Lazy ApiRepository apiRepository) {
-        return new UserContextLoaderImpl(apiAuthorizationService, apiRepository);
+    public UserContextLoader userContextLoader(
+        ApiAuthorizationService apiAuthorizationService,
+        @Lazy ApiRepository apiRepository,
+        PermissionService permissionService
+    ) {
+        return new UserContextLoaderImpl(apiAuthorizationService, apiRepository, permissionService);
     }
 
     @Bean

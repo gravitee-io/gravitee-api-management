@@ -137,7 +137,7 @@ class LogsSearchResourceTest extends AbstractResourceTest {
 
         when(apiRepository.search(any(), any())).thenReturn(List.of(GIO_API_1, GIO_API_2));
 
-        var realContextManager = new UserContextLoaderImpl(apiAuthorizationService, apiRepository);
+        var realContextManager = new UserContextLoaderImpl(apiAuthorizationService, apiRepository, permissionService);
         when(userContextLoader.loadApis(any(UserContext.class))).thenAnswer(invocation ->
             realContextManager.loadApis(invocation.getArgument(0))
         );
