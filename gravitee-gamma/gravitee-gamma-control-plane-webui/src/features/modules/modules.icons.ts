@@ -22,6 +22,7 @@ import {
     GioEventApiManagementIcon,
     GioHomeIcon,
     GioPlatformIcon,
+    GioSecureIcon,
 } from '@gravitee/graphene-core/icons';
 import type { LucideIcon } from '@gravitee/graphene-core/icons';
 
@@ -35,6 +36,7 @@ export const HOME_ICON = GioHomeIcon;
 
 /** Every catalog product must have an icon; lookups by an arbitrary module id may miss. */
 export const MODULE_ICONS: Record<ModuleId, LucideIcon> & Partial<Record<string, LucideIcon>> = {
+    act: GioSecureIcon,
     aim: GioAgentManagementIcon,
     apim: GioApiManagementIcon,
     platform: GioPlatformIcon,
