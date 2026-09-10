@@ -145,13 +145,10 @@ public class SubscriptionProcessor implements Processor {
                 subscription.setStatus(ACCEPTED.name());
                 ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
             }
-<<<<<<< HEAD
-=======
             metrics.setApplicationName(subscription.getApplicationName());
             final Tracer tracer = ctx.getTracer();
             tracer.deferRootSpanAttribute(SPAN_APPLICATION_ID_ATTR, applicationId);
             tracer.deferRootSpanAttribute(SPAN_APPLICATION_NAME_ATTR, subscription.getApplicationName());
->>>>>>> 279ee86 (feat(tracing): add the consuming application to the root span)
             if (subscription.getApiProductId() != null) {
                 ctx.setAttribute(ATTR_API_PRODUCT, subscription.getApiProductId());
                 metrics.setApiProductId(subscription.getApiProductId());
