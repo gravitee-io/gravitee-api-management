@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
+import io.gravitee.apim.core.subscription_form.use_case.DeleteSubscriptionFormUseCase;
 import io.gravitee.apim.core.subscription_form.use_case.DisableSubscriptionFormUseCase;
 import io.gravitee.apim.core.subscription_form.use_case.EnableSubscriptionFormUseCase;
 import io.gravitee.apim.core.subscription_form.use_case.GetSubscriptionFormUseCase;
@@ -34,6 +35,7 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
@@ -71,6 +73,9 @@ public class SubscriptionFormResource extends AbstractResource {
     @Inject
     private SetDefaultSubscriptionFormUseCase setDefaultSubscriptionFormUseCase;
 
+    @Inject
+    private DeleteSubscriptionFormUseCase deleteSubscriptionFormUseCase;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.READ }) })
@@ -96,6 +101,15 @@ public class SubscriptionFormResource extends AbstractResource {
             )
         );
         return Response.ok(mapper.toResponse(output.subscriptionForm())).build();
+    }
+
+    @DELETE
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.DELETE }) })
+    public Response deleteSubscriptionForm() {
+        deleteSubscriptionFormUseCase.execute(
+            new DeleteSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), SubscriptionFormId.of(subscriptionFormId))
+        );
+        return Response.noContent().build();
     }
 
     @POST

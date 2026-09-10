@@ -128,6 +128,22 @@ public class SubscriptionFormCrudServiceImpl implements SubscriptionFormCrudServ
         }
     }
 
+    @Override
+    public void delete(SubscriptionForm subscriptionForm) {
+        var id = subscriptionForm.getId().toString();
+        try {
+            subscriptionFormRepository.delete(id);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format("An error occurred while trying to delete a SubscriptionForm with id: %s", id),
+                e
+            );
+        }
+        if (subscriptionForm.getPortalPageContentId() != null) {
+            pageContentCrudService.delete(subscriptionForm.getPortalPageContentId());
+        }
+    }
+
     /**
      * A duplicate key is not a technical failure: the row collides with another form of its environment (a second
      * default form, an API already mapped to another form), which the caller reports as a conflict.

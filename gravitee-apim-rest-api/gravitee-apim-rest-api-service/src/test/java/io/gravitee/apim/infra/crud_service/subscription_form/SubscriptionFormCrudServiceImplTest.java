@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -353,6 +354,42 @@ class SubscriptionFormCrudServiceImplTest {
                 .satisfies(e ->
                     assertThat(e.getCause().getSuppressed()).extracting(Throwable::getMessage).containsExactly("restore failed")
                 );
+        }
+    }
+
+    @Nested
+    class Delete {
+
+        @Test
+        void should_delete_the_row_then_its_page_content() throws TechnicalException {
+            var subscriptionForm = SubscriptionFormFixtures.aSubscriptionForm();
+
+            service.delete(subscriptionForm);
+
+            var order = inOrder(repository, pageContentCrudService);
+            order.verify(repository).delete(SubscriptionFormFixtures.FORM_ID);
+            order.verify(pageContentCrudService).delete(SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID);
+        }
+
+        @Test
+        void should_only_delete_the_row_of_a_legacy_form_without_page_content() throws TechnicalException {
+            var legacyForm = SubscriptionFormFixtures.aSubscriptionFormBuilder().portalPageContentId(null).build();
+
+            service.delete(legacyForm);
+
+            verify(repository).delete(SubscriptionFormFixtures.FORM_ID);
+            verify(pageContentCrudService, never()).delete(any());
+        }
+
+        @Test
+        void should_throw_and_keep_the_page_content_when_the_row_cannot_be_deleted() throws TechnicalException {
+            doThrow(new TechnicalException("Database error")).when(repository).delete(SubscriptionFormFixtures.FORM_ID);
+            var subscriptionForm = SubscriptionFormFixtures.aSubscriptionForm();
+
+            assertThatThrownBy(() -> service.delete(subscriptionForm))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurred while trying to delete a SubscriptionForm with id: " + SubscriptionFormFixtures.FORM_ID);
+            verify(pageContentCrudService, never()).delete(any());
         }
     }
 

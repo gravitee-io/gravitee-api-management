@@ -321,6 +321,41 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
       .subscribe();
   }
 
+  deleteForm(): void {
+    const form = this.selectedForm();
+    if (!form || form.defaultForm) return;
+    const data: GioConfirmDialogData = {
+      title: 'Delete subscription form?',
+      content: `"${form.name}" will be removed from the catalog. APIs it was dedicated to will use the default form instead. This action cannot be undone.`,
+      confirmButton: 'Delete',
+    };
+
+    this.confirm(data)
+      .pipe(
+        switchMap(() =>
+          this.subscriptionFormService.delete(form.id).pipe(
+            tap(() => {
+              this.snackbarService.success(`Subscription form "${form.name}" has been deleted.`);
+              this.initialName.set('');
+              this.initialContent.set('');
+              this.initialApiIds.set([]);
+              this.selectedApis.set([]);
+              this.nameControl.reset('', { emitEvent: true });
+              this.contentControl.reset('', { emitEvent: true });
+              this.selectedFormId.set(null);
+              this.refreshList.next();
+            }),
+            catchError(({ error }) => {
+              this.snackbarService.error(error?.message ?? 'Failed to delete the subscription form.');
+              return EMPTY;
+            }),
+          ),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
   onResizeStart(event: MouseEvent): void {
     event.preventDefault();
 

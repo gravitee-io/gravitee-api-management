@@ -394,6 +394,49 @@ describe('SubscriptionFormComponent', () => {
     });
   });
 
+  describe('delete', () => {
+    it('should hide the delete button on the default form', async () => {
+      await init(true);
+      const form = fakeSubscriptionForm({ id: 'form-a', defaultForm: true });
+      expectList([form]);
+      expectGet(form);
+
+      await expect(
+        harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=subscription-form-delete-button]' })),
+      ).rejects.toThrow();
+    });
+
+    it('should delete the selected form after confirmation and clear the editor', async () => {
+      await init(true);
+      const defaultForm = fakeSubscriptionForm({ id: 'form-a', name: 'Form A', defaultForm: true });
+      const otherForm = fakeSubscriptionForm({ id: 'form-b', name: 'Form B', defaultForm: false });
+      expectList([defaultForm, otherForm]);
+      expectGet(defaultForm);
+
+      fixture.debugElement.query(By.css('[data-testid=subscription-form-row-form-b]')).nativeElement.click();
+      fixture.detectChanges();
+      expectGet(otherForm);
+
+      const deleteButton = await harnessLoader.getHarness(
+        MatButtonHarness.with({ selector: '[data-testid=subscription-form-delete-button]' }),
+      );
+      await deleteButton.click();
+
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      const confirmButton = await dialog.getHarness(MatButtonHarness.with({ text: /Delete/ }));
+      await confirmButton.click();
+
+      httpTestingController
+        .expectOne({ method: 'DELETE', url: `${baseUrl}/form-b` })
+        .flush(null, { status: 204, statusText: 'No Content' });
+
+      expect(snackBarService.success).toHaveBeenCalledWith('Subscription form "Form B" has been deleted.');
+      expectList([defaultForm]);
+      expectGet(defaultForm);
+      expect(fixture.componentInstance.selectedForm()?.id).toBe('form-a');
+    });
+  });
+
   describe('dedicated APIs', () => {
     function expectApiSearch(ids: string[], apis: { id: string; name: string }[]): void {
       const req = httpTestingController.expectOne(

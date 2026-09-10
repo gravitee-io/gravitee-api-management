@@ -81,6 +81,18 @@
       <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-metadata-u'] }">
         @if (hasSelection() && !isCreating() && !selectedFormIsDefault()) {
           <button
+            *gioPermission="{ anyOf: ['environment-metadata-d'] }"
+            mat-stroked-button
+            type="button"
+            data-testid="subscription-form-delete-button"
+            [matTooltip]="'Remove this form from the catalog'"
+            (click)="deleteForm()"
+          >
+            Delete
+          </button>
+        }
+        @if (hasSelection() && !isCreating() && !selectedFormIsDefault()) {
+          <button
             mat-stroked-button
             type="button"
             data-testid="subscription-form-set-default-button"

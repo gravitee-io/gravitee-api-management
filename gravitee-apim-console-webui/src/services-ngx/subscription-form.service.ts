@@ -57,6 +57,10 @@ export class SubscriptionFormService {
     return this.http.post<SubscriptionForm>(`${this.constants.env.v2BaseURL}/subscription-forms/${id}/_disable`, {});
   }
 
+  public delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.constants.env.v2BaseURL}/subscription-forms/${id}`);
+  }
+
   public setDefault(id: string): Observable<SubscriptionForm> {
     return this.http.post<SubscriptionForm>(`${this.constants.env.v2BaseURL}/subscription-forms/${id}/_default`, {});
   }
