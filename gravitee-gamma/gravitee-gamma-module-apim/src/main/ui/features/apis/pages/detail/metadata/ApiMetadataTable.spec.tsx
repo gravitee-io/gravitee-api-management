@@ -89,9 +89,11 @@ describe('ApiMetadataTable', () => {
         expect(screen.queryByText('Platform Engineering')).not.toBeNull();
     });
 
-    it('shows a Global badge for inherited metadata and falls back to the default value', () => {
+    it('shows a Global badge only on the row the API has not overridden, and falls back to its default value', () => {
         renderTable();
-        expect(screen.getAllByText('Global').length).toBe(2);
+        // GLOBAL_OVERRIDE also carries a defaultValue, but the API has its own value now — badging it
+        // "Global" would tell the operator the environment's value is in effect when it is not.
+        expect(screen.getAllByText('Global').length).toBe(1);
         expect(screen.queryByText('help@example.com')).not.toBeNull();
     });
 

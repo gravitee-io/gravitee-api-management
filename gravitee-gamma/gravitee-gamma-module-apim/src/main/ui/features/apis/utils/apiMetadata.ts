@@ -54,7 +54,7 @@ export function displayMetadataValue(metadata: ApiMetadata): string {
 }
 
 export function isInheritedGlobal(metadata: ApiMetadata): boolean {
-    return Boolean(metadata.defaultValue);
+    return metadata.value === undefined;
 }
 
 /** API-level override exists, so the row can be deleted or reset to the global default. */

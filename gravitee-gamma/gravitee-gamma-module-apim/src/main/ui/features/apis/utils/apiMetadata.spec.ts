@@ -52,10 +52,12 @@ describe('apiMetadata helpers', () => {
     });
 
     describe('inheritance flags', () => {
-        it('marks rows with a defaultValue as inherited global metadata', () => {
+        it('marks a row as inherited global metadata only while the API has not overridden it', () => {
             expect(isInheritedGlobal(API_ONLY)).toBe(false);
             expect(isInheritedGlobal(GLOBAL_INHERITED)).toBe(true);
-            expect(isInheritedGlobal(GLOBAL_OVERRIDE)).toBe(true);
+            // A defaultValue alone does not make this inherited: the API has its own value now, so it owns
+            // this row the same as API_ONLY does — the environment still defining the key is irrelevant.
+            expect(isInheritedGlobal(GLOBAL_OVERRIDE)).toBe(false);
         });
 
         it('allows delete only when an API-level value exists', () => {
