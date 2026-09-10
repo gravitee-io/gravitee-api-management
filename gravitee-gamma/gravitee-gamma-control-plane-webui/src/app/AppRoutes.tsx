@@ -15,7 +15,7 @@
  */
 import { Navigate, Route, Routes } from 'react-router-dom';
 
-import { LoginPage, ProtectedRoute, PublicOnlyRoute, ResetPasswordPage, SignUpPage } from '../features/auth';
+import { LoginPage, ProtectedRoute, PublicOnlyRoute, RegistrationEnabledRoute, ResetPasswordPage, SignUpPage } from '../features/auth';
 import { EnvironmentGuard, RootRedirect } from '../features/environment';
 import { type GammaModule, RemoteModuleRoute, useGammaModules } from '../features/modules';
 import { HomePage } from '../pages/home';
@@ -33,7 +33,9 @@ export function AppRoutes() {
                 <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
                 <Route element={<PublicOnlyRoute />}>
                     <Route path="/login" element={<LoginPage />} />
-                    <Route path="/sign-up" element={<SignUpPage />} />
+                    <Route element={<RegistrationEnabledRoute />}>
+                        <Route path="/sign-up" element={<SignUpPage />} />
+                    </Route>
                 </Route>
                 <Route element={<ProtectedRoute />}>
                     <Route path="/environments/:envHrid" element={<ShellLayout modules={[]} />}>
@@ -53,7 +55,9 @@ export function AppRoutes() {
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
             <Route element={<PublicOnlyRoute />}>
                 <Route path="/login" element={<LoginPage />} />
-                <Route path="/sign-up" element={<SignUpPage />} />
+                <Route element={<RegistrationEnabledRoute />}>
+                    <Route path="/sign-up" element={<SignUpPage />} />
+                </Route>
             </Route>
             <Route element={<ProtectedRoute />}>
                 <Route path="/environments/:envHrid" element={<ShellLayout modules={modules} />}>
