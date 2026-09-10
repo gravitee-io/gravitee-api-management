@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -155,6 +156,18 @@ class RedisClientTest {
     }
 
     @Test
+    void should_reconnect_when_readonly_is_notified() throws Exception {
+        await_connected_on_context(client);
+
+        long idBefore = client_id_on_context(client);
+        notify_connection_failure_on_context(client, new Exception("READONLY You can't write against a read only replica."));
+        await_connected_passive_on_context(client);
+
+        assertThat(client_id_on_context(client)).isNotEqualTo(idBefore);
+        assertThat(ping_on_context(client)).isEqualTo("PONG");
+    }
+
+    @Test
     void should_ignore_non_connection_operation_failures() throws Exception {
         await_connected_on_context(client);
 
@@ -171,12 +184,29 @@ class RedisClientTest {
     void should_not_invalidate_on_operation_timeout() throws Exception {
         await_connected_on_context(client);
 
+        long idBefore = client_id_on_context(client);
         notify_connection_failure_on_context(client, new RedisOperationTimeoutException(30_000));
 
         CountDownLatch latch = new CountDownLatch(1);
         vertx.runOnContext(v -> vertx.setTimer(500, id -> latch.countDown()));
         assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
 
+        assertThat(client_id_on_context(client)).isEqualTo(idBefore);
+        assertThat(ping_on_context(client)).isEqualTo("PONG");
+    }
+
+    @Test
+    void should_not_invalidate_on_distributed_sync_timeout() throws Exception {
+        await_connected_on_context(client);
+
+        long idBefore = client_id_on_context(client);
+        notify_connection_failure_on_context(client, new TimeoutException("The source did not signal an event for 10000 milliseconds"));
+
+        CountDownLatch latch = new CountDownLatch(1);
+        vertx.runOnContext(v -> vertx.setTimer(500, id -> latch.countDown()));
+        assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
+
+        assertThat(client_id_on_context(client)).isEqualTo(idBefore);
         assertThat(ping_on_context(client)).isEqualTo("PONG");
     }
 
@@ -257,6 +287,18 @@ class RedisClientTest {
                 .subscribe(result::complete, result::completeExceptionally)
         );
         return result.get(10, TimeUnit.SECONDS);
+    }
+
+    private long client_id_on_context(RedisClient redisClient) throws Exception {
+        CompletableFuture<Long> clientId = new CompletableFuture<>();
+        vertx.runOnContext(v ->
+            redisClient
+                .redisApi()
+                .compose(api -> api.client(List.of("ID")))
+                .onSuccess(response -> clientId.complete(response.toLong()))
+                .onFailure(clientId::completeExceptionally)
+        );
+        return clientId.get(10, TimeUnit.SECONDS);
     }
 
     private String ping_on_context(RedisClient redisClient) throws Exception {
