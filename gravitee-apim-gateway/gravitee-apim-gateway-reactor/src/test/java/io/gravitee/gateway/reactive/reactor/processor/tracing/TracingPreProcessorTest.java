@@ -15,16 +15,19 @@
  */
 package io.gravitee.gateway.reactive.reactor.processor.tracing;
 
-import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_TRACING_ROOT_SPAN;
 import static io.gravitee.gateway.reactive.core.tracing.AbstractTracingHook.SPAN_REQUEST_ID_ATTR;
 import static io.gravitee.gateway.reactive.core.tracing.AbstractTracingHook.SPAN_TRANSACTION_ID_ATTR;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.gateway.reactive.reactor.processor.AbstractProcessorTest;
 import io.gravitee.node.api.opentelemetry.Span;
+import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,23 +37,25 @@ import org.junit.jupiter.api.Test;
 class TracingPreProcessorTest extends AbstractProcessorTest {
 
     private TracingPreProcessor processor;
+    private Tracer tracer;
     private Span rootSpan;
 
     @BeforeEach
     public void setUp() {
         processor = new TracingPreProcessor();
+        tracer = new Tracer(null, new NoOpTracer());
+        ctx.tracer(tracer);
         rootSpan = mock(Span.class);
+        when(rootSpan.isRoot()).thenReturn(true);
     }
 
     @Test
     void should_set_request_id_and_transaction_id_on_root_span() {
         when(mockRequest.id()).thenReturn("req-id");
         when(mockRequest.transactionId()).thenReturn("tx-id");
-        when(rootSpan.withAttribute(SPAN_REQUEST_ID_ATTR, "req-id")).thenReturn(rootSpan);
-        when(rootSpan.withAttribute(SPAN_TRANSACTION_ID_ATTR, "tx-id")).thenReturn(rootSpan);
-        ctx.putInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN, rootSpan);
 
         processor.execute(ctx).test().assertComplete();
+        tracer.end(rootSpan);
 
         verify(rootSpan).withAttribute(SPAN_REQUEST_ID_ATTR, "req-id");
         verify(rootSpan).withAttribute(SPAN_TRANSACTION_ID_ATTR, "tx-id");
@@ -60,19 +65,11 @@ class TracingPreProcessorTest extends AbstractProcessorTest {
     void should_set_only_request_id_when_transaction_id_is_null() {
         when(mockRequest.id()).thenReturn("req-id");
         when(mockRequest.transactionId()).thenReturn(null);
-        when(rootSpan.withAttribute(SPAN_REQUEST_ID_ATTR, "req-id")).thenReturn(rootSpan);
-        ctx.putInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN, rootSpan);
 
         processor.execute(ctx).test().assertComplete();
+        tracer.end(rootSpan);
 
         verify(rootSpan).withAttribute(SPAN_REQUEST_ID_ATTR, "req-id");
-        verify(rootSpan, never()).withAttribute(SPAN_TRANSACTION_ID_ATTR, null);
-    }
-
-    @Test
-    void should_do_nothing_when_no_root_span_in_context() {
-        processor.execute(ctx).test().assertComplete();
-
-        verify(rootSpan, never()).withAttribute(SPAN_REQUEST_ID_ATTR, "req-id");
+        verify(rootSpan, never()).withAttribute(eq(SPAN_TRANSACTION_ID_ATTR), any());
     }
 }
