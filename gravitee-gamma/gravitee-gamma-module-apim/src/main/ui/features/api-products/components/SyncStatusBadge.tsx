@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Badge, cn } from '@gravitee/graphene-core';
+import { Badge } from '@gravitee/graphene-core';
 import { CircleCheckIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 
 import type { ApiProductDeploymentState } from '../types/apiProduct';
@@ -29,7 +29,7 @@ export function SyncStatusBadge({ state, compact }: SyncStatusBadgeProps) {
 
     if (state === 'NEED_REDEPLOY') {
         return (
-            <Badge variant="outline" className={cn(cls, 'text-warning border-warning/30')}>
+            <Badge variant="warning" className={cls}>
                 <TriangleAlertIcon className="size-3" aria-hidden />
                 Out of sync
             </Badge>
@@ -37,7 +37,7 @@ export function SyncStatusBadge({ state, compact }: SyncStatusBadgeProps) {
     }
     if (state === 'DEPLOYED') {
         return (
-            <Badge variant="outline" className={cn(cls, 'text-success border-success/20')}>
+            <Badge variant="outline" className={cls}>
                 <CircleCheckIcon className="size-3" aria-hidden />
                 {compact ? 'Synced' : 'In sync'}
             </Badge>

@@ -18,6 +18,7 @@ import {
     AvatarFallback,
     AvatarImage,
     Badge,
+    type BadgeVariant,
     Button,
     DataTable,
     DataTableColumnHeader,
@@ -44,11 +45,11 @@ import type { AvailabilityView } from '../utils/availability';
 import { HEALTH_CHECK_FILTER_QUERY } from '../utils/healthCheckQuery';
 import { AVAILABILITY_ERROR_THRESHOLD, AVAILABILITY_WARNING_THRESHOLD } from '../utils/reportBuckets';
 
-const WORKFLOW_BADGE: Partial<Record<string, { label: string; className: string }>> = {
-    DEPRECATED: { label: 'Deprecated', className: 'border-destructive/20 text-destructive' },
-    DRAFT: { label: 'Draft', className: 'border-primary/20 text-primary' },
-    IN_REVIEW: { label: 'In Review', className: 'border-destructive/20 text-destructive' },
-    REQUEST_FOR_CHANGES: { label: 'Need changes', className: 'border-destructive/20 text-destructive' },
+const WORKFLOW_BADGE: Partial<Record<string, { label: string; variant: BadgeVariant }>> = {
+    DEPRECATED: { label: 'Deprecated', variant: 'destructive' },
+    DRAFT: { label: 'Draft', variant: 'default' },
+    IN_REVIEW: { label: 'In Review', variant: 'outline' },
+    REQUEST_FOR_CHANGES: { label: 'Need changes', variant: 'warning' },
 };
 
 function AvailabilityGauge({ pct }: Readonly<{ pct: number }>) {
@@ -130,36 +131,26 @@ function ApiStates({ api }: Readonly<{ api: EnvironmentHealthApi }>) {
     return (
         <div className="flex flex-wrap items-center gap-1.5">
             {api.state === 'STARTED' ? (
-                <Badge variant="outline" className="border-success/20 text-success">
+                <Badge variant="success">
                     <CircleCheckIcon className="mr-1 size-3" aria-hidden />
                     Started
                 </Badge>
             ) : (
-                <Badge variant="outline" className="border-destructive/20 text-destructive">
+                <Badge variant="secondary">
                     <CircleXIcon className="mr-1 size-3" aria-hidden />
                     Stopped
                 </Badge>
             )}
             {api.lifecycleState === 'PUBLISHED' ? (
-                <Badge variant="outline" className="border-success/20 text-success">
+                <Badge variant="success">
                     <GlobeIcon className="mr-1 size-3" aria-hidden />
                     Published
                 </Badge>
             ) : (
-                <Badge variant="outline" className="text-muted-foreground">
-                    Unpublished
-                </Badge>
+                <Badge variant="outline">Unpublished</Badge>
             )}
-            {api.origin === 'KUBERNETES' ? (
-                <Badge variant="outline" className="text-muted-foreground">
-                    Kubernetes
-                </Badge>
-            ) : null}
-            {workflow ? (
-                <Badge variant="outline" className={workflow.className}>
-                    {workflow.label}
-                </Badge>
-            ) : null}
+            {api.origin === 'KUBERNETES' ? <Badge variant="outline">Kubernetes</Badge> : null}
+            {workflow ? <Badge variant={workflow.variant}>{workflow.label}</Badge> : null}
         </div>
     );
 }
