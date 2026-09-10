@@ -22,6 +22,10 @@ export interface SubscriptionForm {
   resolvedOptions?: Record<string, string[]>;
 }
 
+export interface SubscriptionFormTemplate {
+  gmdContent: string;
+}
+
 export interface CreateSubscriptionForm {
   name: string;
   gmdContent: string;

@@ -18,7 +18,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { CreateSubscriptionForm, SubscriptionForm, UpdateSubscriptionForm } from '../entities/management-api-v2';
+import { CreateSubscriptionForm, SubscriptionForm, SubscriptionFormTemplate, UpdateSubscriptionForm } from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
@@ -35,6 +35,10 @@ export class SubscriptionFormService {
 
   public get(id: string): Observable<SubscriptionForm> {
     return this.http.get<SubscriptionForm>(`${this.constants.env.v2BaseURL}/subscription-forms/${id}`);
+  }
+
+  public getTemplate(): Observable<SubscriptionFormTemplate> {
+    return this.http.get<SubscriptionFormTemplate>(`${this.constants.env.v2BaseURL}/subscription-forms/_template`);
   }
 
   public create(form: CreateSubscriptionForm): Observable<SubscriptionForm> {

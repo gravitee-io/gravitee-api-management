@@ -199,7 +199,21 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
   }
 
   startCreate(): void {
-    this.checkUnsavedChangesAndRun(() => this.selectedFormId.set('new'));
+    this.checkUnsavedChangesAndRun(() => {
+      this.selectedFormId.set('new');
+      this.subscriptionFormService
+        .getTemplate()
+        .pipe(
+          catchError(() => of({ gmdContent: '' })),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe(template => {
+          // The template is the starting point, not a pending change: only what the user types counts as unsaved.
+          if (!this.isCreating()) return;
+          this.initialContent.set(template.gmdContent);
+          this.contentControl.reset(template.gmdContent, { emitEvent: true });
+        });
+    });
   }
 
   save(): void {

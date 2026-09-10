@@ -80,6 +80,12 @@ describe('SubscriptionFormComponent', () => {
     fixture.detectChanges();
   }
 
+  function expectTemplate(gmdContent = 'Template content'): void {
+    const req = httpTestingController.expectOne({ method: 'GET', url: `${baseUrl}/_template` });
+    req.flush({ gmdContent });
+    fixture.detectChanges();
+  }
+
   function expectGet(form: SubscriptionForm): void {
     const req = httpTestingController.expectOne({ method: 'GET', url: `${baseUrl}/${form.id}` });
     req.flush(form);
@@ -151,7 +157,7 @@ describe('SubscriptionFormComponent', () => {
   });
 
   describe('create flow', () => {
-    it('should keep Save disabled until both name and content are provided', async () => {
+    it('should prefill the editor with the default template and enable Save once a name is given', async () => {
       await init(true);
       expectList([]);
 
@@ -161,6 +167,29 @@ describe('SubscriptionFormComponent', () => {
       await createButton.click();
       fixture.detectChanges();
       expect(fixture.componentInstance.isCreating()).toBe(true);
+      expectTemplate('# Template');
+      expect(fixture.componentInstance.contentControl.value).toBe('# Template');
+
+      const saveButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=subscription-form-save-button]' }));
+      expect(await saveButton.isDisabled()).toBe(true);
+
+      fixture.componentInstance.nameControl.setValue('New Form');
+      fixture.detectChanges();
+      expect(await saveButton.isDisabled()).toBe(false);
+    });
+
+    it('should keep Save disabled until both name and content are provided when the template is unavailable', async () => {
+      await init(true);
+      expectList([]);
+
+      const createButton = await harnessLoader.getHarness(
+        MatButtonHarness.with({ selector: '[data-testid=create-subscription-form-button]' }),
+      );
+      await createButton.click();
+      fixture.detectChanges();
+      expect(fixture.componentInstance.isCreating()).toBe(true);
+      httpTestingController.expectOne({ method: 'GET', url: `${baseUrl}/_template` }).flush(null, { status: 500, statusText: 'Error' });
+      fixture.detectChanges();
 
       const saveButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=subscription-form-save-button]' }));
       expect(await saveButton.isDisabled()).toBe(true);
@@ -183,6 +212,7 @@ describe('SubscriptionFormComponent', () => {
       );
       await createButton.click();
       fixture.detectChanges();
+      expectTemplate();
 
       fixture.componentInstance.nameControl.setValue('New Form');
       fixture.componentInstance.contentControl.setValue('New content');
@@ -211,6 +241,7 @@ describe('SubscriptionFormComponent', () => {
       );
       await createButton.click();
       fixture.detectChanges();
+      expectTemplate();
       fixture.componentInstance.nameControl.setValue('Default');
       fixture.componentInstance.contentControl.setValue('Content');
       fixture.detectChanges();
