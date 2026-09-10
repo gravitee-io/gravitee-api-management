@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation;
 
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.LlmProxyFields;
 import io.vertx.core.json.JsonObject;
 import java.util.Map;
 
@@ -27,19 +28,16 @@ import java.util.Map;
  */
 public class LLMTotalTokenBuilder {
 
-    private static final String SENT_TOKENS_FIELD = "additional-metrics.long_llm-proxy_tokens-sent";
-    private static final String RECEIVED_TOKENS_FIELD = "additional-metrics.long_llm-proxy_tokens-received";
-
     private static final String SCRIPT_SOURCE = """
         (doc.containsKey('%s') && doc['%s'].size() > 0 ? doc['%s'].value : 0) + \
         (doc.containsKey('%s') && doc['%s'].size() > 0 ? doc['%s'].value : 0)
         """.formatted(
-            SENT_TOKENS_FIELD,
-            SENT_TOKENS_FIELD,
-            SENT_TOKENS_FIELD,
-            RECEIVED_TOKENS_FIELD,
-            RECEIVED_TOKENS_FIELD,
-            RECEIVED_TOKENS_FIELD
+            LlmProxyFields.TOKENS_SENT,
+            LlmProxyFields.TOKENS_SENT,
+            LlmProxyFields.TOKENS_SENT,
+            LlmProxyFields.TOKENS_RECEIVED,
+            LlmProxyFields.TOKENS_RECEIVED,
+            LlmProxyFields.TOKENS_RECEIVED
         );
 
     public Map<String, JsonObject> buildSum(String aggName) {

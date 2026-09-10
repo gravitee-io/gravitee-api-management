@@ -54,6 +54,8 @@ public record Filter(Filter.Name name, Operator operator, Object value) {
         HTTP_RESPONSE_CONTENT_LENGTH,
         LLM_PROXY_MODEL,
         LLM_PROXY_PROVIDER,
+        LLM_PROXY_CONVERSATION,
+        LLM_PROXY_REQUEST_KIND,
         MCP_PROXY_METHOD,
         MCP_PROXY_TOOL,
         MCP_PROXY_RESOURCE,
