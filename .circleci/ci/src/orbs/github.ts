@@ -20,6 +20,6 @@ export const github = new orb.OrbImport('gh', 'circleci', 'github-cli', config.o
   jobs: {},
   executors: {},
   commands: {
-    setup: new parameters.CustomParametersList(),
+    setup: new parameters.CustomParametersList([new parameters.CustomParameter('version', 'string')]),
   },
 });

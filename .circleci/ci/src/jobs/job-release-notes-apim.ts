@@ -59,7 +59,7 @@ export class ReleaseNotesApimJob {
         command: `git config --global user.name "\${GIT_USER_NAME}"
 git config --global user.email "\${GIT_USER_EMAIL}"`,
       }),
-      new reusable.ReusedCommand(github.commands['setup']),
+      new reusable.ReusedCommand(github.commands['setup'], { version: config.githubCli.version }),
       new reusable.ReusedCommand(installYarnCmd),
       new commands.Run({
         name: 'Install dependencies',

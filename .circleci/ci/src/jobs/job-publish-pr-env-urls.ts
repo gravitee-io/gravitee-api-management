@@ -37,7 +37,7 @@ export class PublishPrEnvUrlsJob {
         'secret-url': config.secrets.githubApiToken,
         'var-name': 'GITHUB_TOKEN',
       }),
-      new reusable.ReusedCommand(orbs.github.commands['setup']),
+      new reusable.ReusedCommand(orbs.github.commands['setup'], { version: config.githubCli.version }),
       new commands.Run({
         name: 'Edit Pull Request Description',
         command: `# First check there is an associated pull request, otherwise just stop the job here

@@ -54,7 +54,7 @@ export class PinCoreJob {
         'secret-url': config.secrets.githubApiToken,
         'var-name': 'GITHUB_TOKEN',
       }),
-      new reusable.ReusedCommand(orbs.github.commands['setup']),
+      new reusable.ReusedCommand(orbs.github.commands['setup'], { version: config.githubCli.version }),
       new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
         'secret-url': config.secrets.gitUserName,
         'var-name': 'GIT_USER_NAME',

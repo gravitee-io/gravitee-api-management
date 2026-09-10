@@ -201,7 +201,8 @@ jobs:
       - keeper/env-export:
           secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
           var-name: GITHUB_TOKEN
-      - gh/setup
+      - gh/setup:
+          version: 2.100.0
       - keeper/env-export:
           secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
           var-name: GIT_USER_NAME
@@ -302,4 +303,4 @@ workflows:
                 - /^core_(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
 orbs:
   keeper: gravitee-io/keeper@0.7.1
-  gh: circleci/github-cli@1.0.5
+  gh: circleci/github-cli@2.7.2

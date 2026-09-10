@@ -483,7 +483,8 @@ jobs:
       - keeper/env-export:
           secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
           var-name: GITHUB_TOKEN
-      - gh/setup
+      - gh/setup:
+          version: 2.100.0
       - run:
           name: Edit Pull Request Description
           command: |-
@@ -660,5 +661,5 @@ workflows:
 orbs:
   keeper: gravitee-io/keeper@0.7.1
   slack: circleci/slack@4.12.5
-  gh: circleci/github-cli@1.0.5
+  gh: circleci/github-cli@2.7.2
   aikido: gravitee-io/aikido@1.0.3

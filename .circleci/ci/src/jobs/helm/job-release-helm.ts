@@ -53,7 +53,7 @@ export class ReleaseHelmJob {
         command: `git config --global user.name "\${GIT_USER_NAME}"
 git config --global user.email "\${GIT_USER_EMAIL}"`,
       }),
-      new reusable.ReusedCommand(orbs.github.commands['setup']),
+      new reusable.ReusedCommand(orbs.github.commands['setup'], { version: config.githubCli.version }),
       new reusable.ReusedCommand(orbs.helm.commands['install_helm_client'], { version: config.helm.defaultVersion }),
     ];
 

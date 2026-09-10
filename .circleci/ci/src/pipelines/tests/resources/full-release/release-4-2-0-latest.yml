@@ -712,7 +712,8 @@ jobs:
       - keeper/env-export:
           secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
           var-name: GITHUB_TOKEN
-      - gh/setup
+      - gh/setup:
+          version: 2.100.0
       - keeper/env-export:
           secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
           var-name: GIT_USER_NAME
@@ -836,7 +837,8 @@ jobs:
           command: |-
             git config --global user.name "${GIT_USER_NAME}"
             git config --global user.email "${GIT_USER_EMAIL}"
-      - gh/setup
+      - gh/setup:
+          version: 2.100.0
       - helm/install_helm_client:
           version: v3.12.3
       - run:
@@ -982,7 +984,8 @@ jobs:
           command: |-
             git config --global user.name "${GIT_USER_NAME}"
             git config --global user.email "${GIT_USER_EMAIL}"
-      - gh/setup
+      - gh/setup:
+          version: 2.100.0
       - cmd-install-yarn
       - run:
           name: Install dependencies
@@ -1474,6 +1477,6 @@ orbs:
   slack: circleci/slack@4.12.5
   aws-cli: circleci/aws-cli@5.1.2
   aws-s3: circleci/aws-s3@4.1.0
-  gh: circleci/github-cli@1.0.5
+  gh: circleci/github-cli@2.7.2
   helm: circleci/helm@3.0.0
   aikido: gravitee-io/aikido@1.0.3

@@ -109,12 +109,19 @@ const yarn = {
   version: '4.1.1',
 };
 
+// The gh CLI the github-cli orb installs. The orb's own default is `latest`, which would let the
+// release lanes change under us from one run to the next; and 1.0.5 pinned 1.9.2, which predates
+// `gh auth setup-git` altogether.
+const githubCli = {
+  version: '2.100.0',
+};
+
 const orbs = {
   aikido: '1.0.3',
   artifactory: '1.0.1',
   awsCli: '5.1.2',
   awsS3: '4.1.0',
-  github: '1.0.5',
+  github: '2.7.2',
   gravitee: 'dev:4.5.0',
   helm: '3.0.0',
   keeper: '0.7.1',
@@ -187,6 +194,7 @@ export const config = {
   cache,
   components,
   executor,
+  githubCli,
   helm,
   jobContext,
   maven,
