@@ -165,6 +165,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "portal_page_contents",
         "portal_navigation_items",
         "subscription_forms",
+        "subscription_form_apis",
         "kafka_port_ranges",
         "am_connections",
         "portals",
