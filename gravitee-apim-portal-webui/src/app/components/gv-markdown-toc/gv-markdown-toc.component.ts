@@ -15,7 +15,7 @@
  */
 import { Component, OnInit, OnDestroy, HostListener, ElementRef, AfterViewInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { lexer, Parser, Renderer, TextRenderer, Tokens } from 'marked';
+import { lexer, Parser, TextRenderer, Tokens } from 'marked';
 import { Subscription } from 'rxjs';
 import GithubSlugger from 'github-slugger';
 
@@ -115,11 +115,11 @@ export class GvMarkdownTocComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   _computeText(item: any) {
-    return this.parser.parseInline(item.tokens, this.textRenderer as Renderer);
+    return this.parser.parseInline(item.tokens, this.textRenderer);
   }
 
   _computeAnchor(item: any) {
-    return this.slugger.slug(this._unescape(this.parser.parseInline(item.tokens, this.textRenderer as Renderer)));
+    return this.slugger.slug(this._unescape(this.parser.parseInline(item.tokens, this.textRenderer)));
   }
 
   _findParentNode(tokens: TocModel[], child: TocModel, childIndex: number): any {
