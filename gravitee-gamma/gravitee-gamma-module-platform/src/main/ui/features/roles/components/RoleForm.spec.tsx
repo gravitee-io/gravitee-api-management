@@ -72,10 +72,35 @@ describe('RoleForm', () => {
         );
 
         expect(screen.getByLabelText('Role name')).toBeDisabled();
-        expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
     });
 
-    it('mirrors gio-save-bar: Save stays disabled in edit mode until a field actually changes', async () => {
+    it('mirrors gio-save-bar: sticky save bar appears when toggling default role in edit mode', async () => {
+        const user = userEvent.setup();
+        const role: Role = { name: 'CUSTOM', scope: 'API', default: false, permissions: {} };
+        render(
+            <RoleForm
+                scope="API"
+                role={role}
+                permissionNames={[]}
+                isReadOnly={false}
+                isSaving={false}
+                onSubmit={jest.fn()}
+                onCancel={jest.fn()}
+            />,
+        );
+
+        expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
+
+        await user.click(screen.getByLabelText('Default role'));
+
+        const saveButton = screen.getByRole('button', { name: 'Save changes' });
+        expect(saveButton).toBeEnabled();
+        expect(saveButton.closest('.sticky.bottom-0')).not.toBeNull();
+        expect(screen.getByText('You have unsaved changes.')).toBeInTheDocument();
+    });
+
+    it('mirrors gio-save-bar: sticky save bar also appears when editing the description', async () => {
         const user = userEvent.setup();
         const role: Role = { name: 'CUSTOM', scope: 'API', description: 'Original', permissions: {} };
         render(
@@ -90,11 +115,31 @@ describe('RoleForm', () => {
             />,
         );
 
-        expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
-
         await user.type(screen.getByLabelText('Role description'), '!');
 
-        expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
+        expect(screen.getByRole('button', { name: 'Save changes' })).toBeEnabled();
+    });
+
+    it('discards edit-mode changes from the sticky save bar', async () => {
+        const user = userEvent.setup();
+        const role: Role = { name: 'CUSTOM', scope: 'API', description: 'Original', permissions: {} };
+        render(
+            <RoleForm
+                scope="API"
+                role={role}
+                permissionNames={[]}
+                isReadOnly={false}
+                isSaving={false}
+                onSubmit={jest.fn()}
+                onCancel={jest.fn()}
+            />,
+        );
+
+        await user.type(screen.getByLabelText('Role description'), '!');
+        await user.click(screen.getByRole('button', { name: 'Discard' }));
+
+        expect(screen.getByLabelText('Role description')).toHaveValue('Original');
+        expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
     });
 
     it('disables description and default for a system role even when the permission matrix stays editable', () => {
@@ -112,7 +157,7 @@ describe('RoleForm', () => {
         );
 
         expect(screen.getByLabelText('Role description')).toBeDisabled();
-        expect(screen.getByLabelText('Default role toggle')).toBeDisabled();
+        expect(screen.getByLabelText('Default role')).toBeDisabled();
         expect(screen.getByRole('checkbox', { name: 'Create permission for DEFINITION' })).toBeEnabled();
     });
 
@@ -130,9 +175,9 @@ describe('RoleForm', () => {
             />,
         );
 
-        expect(screen.getByText('System role are not editable')).toBeInTheDocument();
+        expect(screen.getByText('System roles are not editable.')).toBeInTheDocument();
         expect(screen.getByRole('checkbox', { name: 'Create permission for SETTINGS' })).toBeDisabled();
-        expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+        expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
     });
 
     it('requires a name before submitting', async () => {
