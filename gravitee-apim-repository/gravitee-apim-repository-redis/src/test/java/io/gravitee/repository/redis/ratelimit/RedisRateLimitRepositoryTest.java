@@ -175,8 +175,8 @@ class RedisRateLimitRepositoryTest {
         assertThat(done.await(5, TimeUnit.SECONDS)).isTrue();
         assertThat(error.get()).isInstanceOf(RedisOperationTimeoutException.class);
         assertThat(error.get().getMessage()).contains(String.valueOf(OPERATION_TIMEOUT_MS));
-        // Timeouts must not look like connection failures (would force reconnect storms).
-        assertThat(connectionFailureNotifications.get()).isZero();
+        // Repo always notifies; RedisClient.notifyConnectionFailure swallows timeouts.
+        assertThat(connectionFailureNotifications.get()).isEqualTo(1);
     }
 
     @Test
