@@ -92,4 +92,9 @@ public enum Metric {
     AUTHZ_SEARCHES,
     AUTHZ_FAILURES,
     AUTHZ_EVAL_DURATION,
+
+    // Human approval decisions, from the `decisions` data stream under decision-point-type: human-approval.
+    // The index is shared with the other decision points, so every query of this family is scoped to that type.
+    HUMAN_APPROVALS,
+    HUMAN_APPROVAL_COST,
 }

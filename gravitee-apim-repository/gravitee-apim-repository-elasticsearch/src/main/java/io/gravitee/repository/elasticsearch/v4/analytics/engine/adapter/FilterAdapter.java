@@ -107,6 +107,21 @@ public class FilterAdapter {
         Filter.Name.NATIVE_OPERATION
     );
 
+    /**
+     * Human approval decisions. Narrow on purpose: a {@code decisions} document carries the routing
+     * dimensions plus what was decided and on what. Anything else reaching this family — typically the
+     * default {@code ENTRYPOINT IN [...]} scoping Gamma injects — is dropped by the allow-list rather
+     * than failing the query, matching how the other families behave.
+     */
+    static final List<Filter.Name> HUMAN_APPROVAL_FILTER_NAMES = List.of(
+        Filter.Name.API,
+        Filter.Name.APPLICATION,
+        Filter.Name.PLAN,
+        Filter.Name.GATEWAY,
+        Filter.Name.HUMAN_APPROVAL_VERDICT,
+        Filter.Name.HUMAN_APPROVAL_TOOL
+    );
+
     static final List<Filter.Name> EDGE_FILTER_NAMES = List.of(
         Filter.Name.API,
         Filter.Name.GATEWAY,
@@ -230,6 +245,28 @@ public class FilterAdapter {
             }
         }
         return jsonFilters;
+    }
+
+    /**
+     * The two terms that make a document belong to the human approval family — see {@link HumanApprovalFieldResolver}
+     * — are built in here rather than added by the caller onto what this method returns: a factory that already
+     * carries the complete, family-scoped filter set has no shared or reused value for a later change to mutate.
+     */
+    public JsonArray adaptForHumanApproval(Query query) {
+        var jsonFilters = JsonArray.of(TimeRangeAdapter.adapt(query));
+        for (var filter : query.filters()) {
+            if (HUMAN_APPROVAL_FILTER_NAMES.contains(filter.name())) {
+                jsonFilters.add(filter(filter));
+            }
+        }
+        jsonFilters
+            .add(term(HumanApprovalFieldResolver.DECISION_POINT_TYPE_FIELD, HumanApprovalFieldResolver.DECISION_POINT_TYPE_HUMAN_APPROVAL))
+            .add(term(HumanApprovalFieldResolver.PHASE_FIELD, HumanApprovalFieldResolver.PHASE_RESOLVED));
+        return jsonFilters;
+    }
+
+    private static JsonObject term(String field, String value) {
+        return JsonObject.of("term", JsonObject.of(field, value));
     }
 
     public boolean shouldAdaptForAuthz(Filter filter) {

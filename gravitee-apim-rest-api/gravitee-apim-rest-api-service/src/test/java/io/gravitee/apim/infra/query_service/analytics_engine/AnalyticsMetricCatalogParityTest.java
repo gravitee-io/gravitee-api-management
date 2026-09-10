@@ -65,7 +65,8 @@ class AnalyticsMetricCatalogParityTest {
             new MessageDataPlaneQueryService(repository),
             new NativeApiAnalyticsQueryService(repository),
             new EventMetricsAnalyticsQueryService(repository),
-            new AuthzAnalyticsQueryService(repository)
+            new AuthzAnalyticsQueryService(repository),
+            new HumanApprovalAnalyticsQueryService(repository)
         );
     }
 }

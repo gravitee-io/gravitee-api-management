@@ -16,6 +16,8 @@ spec:
           label: Edge
         - name: AUTHZ
           label: Authz
+        - name: HUMAN_APPROVAL
+          label: Human approval
 
     metrics:
         - name: HTTP_REQUESTS
@@ -2457,6 +2459,51 @@ spec:
               - AUTHZ_REASON
               - AUTHZ_CALLER
 
+        - name: HUMAN_APPROVALS
+          label: Human approvals
+          apis:
+              - HUMAN_APPROVAL
+          unit: NUMBER
+          measures:
+              - COUNT
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - GATEWAY
+              - HUMAN_APPROVAL_VERDICT
+              - HUMAN_APPROVAL_TOOL
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+              - GATEWAY
+              - HUMAN_APPROVAL_VERDICT
+              - HUMAN_APPROVAL_TOOL
+
+        - name: HUMAN_APPROVAL_COST
+          label: Human approval cost
+          apis:
+              - HUMAN_APPROVAL
+          unit: NUMBER
+          measures:
+              - COUNT
+              - AVG
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - GATEWAY
+              - HUMAN_APPROVAL_VERDICT
+              - HUMAN_APPROVAL_TOOL
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+              - GATEWAY
+              - HUMAN_APPROVAL_VERDICT
+              - HUMAN_APPROVAL_TOOL
+
     filters:
         - name: API
           label: API
@@ -3066,6 +3113,26 @@ spec:
           operators:
               - EQ
               - IN
+        - name: HUMAN_APPROVAL_VERDICT
+          label: Verdict
+          type: ENUM
+          enumValues:
+              - APPROVE
+              - EDIT
+              - REJECT
+              - EXPIRED
+              - NO_MATCH
+          operators:
+              - EQ
+              - IN
+
+        - name: HUMAN_APPROVAL_TOOL
+          label: Tool
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
     facets:
         - name: API
           label: API
@@ -3265,4 +3332,12 @@ spec:
 
         - name: AUTHZ_REASON
           label: Reason
+          type: KEYWORD
+
+        - name: HUMAN_APPROVAL_VERDICT
+          label: Verdict
+          type: KEYWORD
+
+        - name: HUMAN_APPROVAL_TOOL
+          label: Tool
           type: KEYWORD

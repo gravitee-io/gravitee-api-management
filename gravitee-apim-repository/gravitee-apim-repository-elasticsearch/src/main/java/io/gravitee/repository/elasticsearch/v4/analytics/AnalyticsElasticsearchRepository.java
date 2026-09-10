@@ -72,6 +72,9 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     private final AuthzMeasuresQueryAdapter authzMeasuresQueryAdapter = new AuthzMeasuresQueryAdapter();
     private final AuthzFacetsQueryAdapter authzFacetsQueryAdapter = new AuthzFacetsQueryAdapter();
     private final AuthzTimeSeriesQueryAdapter authzTimeSeriesQueryAdapter = new AuthzTimeSeriesQueryAdapter();
+    private final HumanApprovalMeasuresQueryAdapter humanApprovalMeasuresQueryAdapter = new HumanApprovalMeasuresQueryAdapter();
+    private final HumanApprovalFacetsQueryAdapter humanApprovalFacetsQueryAdapter = new HumanApprovalFacetsQueryAdapter();
+    private final HumanApprovalTimeSeriesQueryAdapter humanApprovalTimeSeriesQueryAdapter = new HumanApprovalTimeSeriesQueryAdapter();
     private final FilterValuesQueryAdapter filterValuesQueryAdapter = new FilterValuesQueryAdapter();
     private final FilterValuesResponseAdapter filterValuesResponseAdapter = new FilterValuesResponseAdapter();
 
@@ -434,6 +437,45 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         var esQuery = authzTimeSeriesQueryAdapter.adapt(query);
 
         log.debug("Authz time series query: {}", esQuery);
+
+        return client
+            .search(index, null, esQuery)
+            .map(response -> timeSeriesResponseAdapter.adapt(response, query))
+            .blockingGet();
+    }
+
+    @Override
+    public MeasuresResult searchHumanApprovalMeasures(QueryContext queryContext, MeasuresQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.DECISIONS, clusters);
+        var esQuery = humanApprovalMeasuresQueryAdapter.adapt(query);
+
+        log.debug("Human approval measures query: {}", esQuery);
+
+        return client
+            .search(index, null, esQuery)
+            .map(response -> measuresResponseAdapter.adapt(response, query))
+            .blockingGet();
+    }
+
+    @Override
+    public FacetsResult searchHumanApprovalFacets(QueryContext queryContext, FacetsQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.DECISIONS, clusters);
+        var esQuery = humanApprovalFacetsQueryAdapter.adapt(query);
+
+        log.debug("Human approval facets query: {}", esQuery);
+
+        return client
+            .search(index, null, esQuery)
+            .map(response -> facetsResponseAdapter.adapt(response, query))
+            .blockingGet();
+    }
+
+    @Override
+    public TimeSeriesResult searchHumanApprovalTimeSeries(QueryContext queryContext, TimeSeriesQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.DECISIONS, clusters);
+        var esQuery = humanApprovalTimeSeriesQueryAdapter.adapt(query);
+
+        log.debug("Human approval time series query: {}", esQuery);
 
         return client
             .search(index, null, esQuery)
