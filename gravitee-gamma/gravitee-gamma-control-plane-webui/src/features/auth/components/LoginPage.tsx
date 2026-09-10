@@ -26,10 +26,10 @@ import {
     Spinner,
 } from '@gravitee/graphene-core';
 import { useEffect, useState, type SubmitEvent } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { useBootstrapStore } from '../../../shared/config/bootstrap.store';
-import { useIdentityProviders, useLocalLoginEnabled, useLogin } from '../auth.selectors';
+import { useIdentityProviders, useLocalLoginEnabled, useLogin, useRegistrationEnabled } from '../auth.selectors';
 import { useAuthStore } from '../auth.store';
 import type { SocialIdentityProvider } from '../auth.types';
 import { AuthPageShell } from './AuthPageShell';
@@ -56,6 +56,7 @@ export function LoginPage() {
     const [searchParams] = useSearchParams();
     const identityProviders = useIdentityProviders();
     const localLoginEnabled = useLocalLoginEnabled();
+    const registrationEnabled = useRegistrationEnabled();
     const refreshLoginMethods = useBootstrapStore(s => s.refreshLoginMethods);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -95,7 +96,23 @@ export function LoginPage() {
     const description = loginCardDescription(noLoginMethod, localLoginEnabled);
 
     return (
-        <AuthPageShell title="Sign in" description={description}>
+        <AuthPageShell
+            title="Sign in"
+            description={description}
+            // The footer trails the identity providers: sign-up is the least frequent action here.
+            // It is absent, not disabled, unless both registration and local login are on: sign-up
+            // creates a local account, so without local login it would lead to one nobody can use.
+            footer={
+                registrationEnabled && localLoginEnabled ? (
+                    <>
+                        {"Don't have an account?"}{' '}
+                        <Link to="/sign-up" className="text-primary underline-offset-4 hover:underline">
+                            Request an account
+                        </Link>
+                    </>
+                ) : undefined
+            }
+        >
             {displayError ? (
                 <Alert variant="destructive" role="alert" className="mb-4">
                     <AlertTitle>{error ? 'Could not sign in' : 'Sign-in unavailable'}</AlertTitle>
