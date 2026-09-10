@@ -362,6 +362,24 @@ describe('SubscriptionFormComponent', () => {
       expectList([{ ...form, enabled: false }]);
     });
 
+    it('should warn that the dedicated APIs lose their form when disabling a dedicated form', async () => {
+      await init(true);
+      const form = fakeSubscriptionForm({ id: 'form-a', name: 'Form A', enabled: true, defaultForm: false, apiIds: ['api-1', 'api-2'] });
+      expectList([form]);
+      expectGet(form);
+      httpTestingController
+        .expectOne(request => request.method === 'POST' && request.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search`))
+        .flush({ data: [] });
+      fixture.detectChanges();
+
+      const toggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[data-testid=enable-toggle-form-a]' }));
+      await toggle.toggle();
+
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      expect(await dialog.getText()).toContain('The 2 APIs it is dedicated to will have no subscription form until it is enabled again.');
+      await (await dialog.getHarness(MatButtonHarness.with({ text: /Cancel/ }))).click();
+    });
+
     it('should not call the backend when the confirmation dialog is cancelled', async () => {
       await init(true);
       const form = fakeSubscriptionForm({ id: 'form-a', enabled: false });
