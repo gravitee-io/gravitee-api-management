@@ -17,8 +17,8 @@ package io.gravitee.apim.rest.api.automation.resource;
 
 import io.gravitee.apim.core.portal_page.exception.PortalLinkNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
-import io.gravitee.apim.core.portal_page.use_case.DeletePortalLinkUseCase;
-import io.gravitee.apim.core.portal_page.use_case.GetPortalLinkUseCase;
+import io.gravitee.apim.core.portal_page.use_case.DeleteApiLinkUseCase;
+import io.gravitee.apim.core.portal_page.use_case.GetApiLinkUseCase;
 import io.gravitee.apim.rest.api.automation.exception.HRIDNotFoundException;
 import io.gravitee.apim.rest.api.automation.mapper.PortalLinkMapper;
 import io.gravitee.common.http.MediaType;
@@ -38,37 +38,37 @@ import java.util.List;
 /**
  * @author GraviteeSource Team
  */
-public class PortalLinkResource extends AbstractResource {
+public class ApiLinkResource extends AbstractResource {
 
     @Inject
-    private GetPortalLinkUseCase getPortalLinkUseCase;
+    private GetApiLinkUseCase getApiLinkUseCase;
 
     @Inject
-    private DeletePortalLinkUseCase deletePortalLinkUseCase;
+    private DeleteApiLinkUseCase deleteApiLinkUseCase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.READ) })
-    public Response getPortalLinkByHRID(@PathParam("hrid") String portalHrid, @PathParam("linkHrid") String linkHrid) {
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.READ) })
+    public Response getApiLinkByHRID(@PathParam("apiHrid") String apiHrid, @PathParam("linkHrid") String linkHrid) {
         var auditInfo = getAuditInfo();
-        var portalId = HRIDToUUID.portal().context(auditInfo).hrid(portalHrid).id();
-        var linkId = PortalNavigationItemId.forPortalLink(auditInfo, portalId, linkHrid);
+        var apiId = HRIDToUUID.api().context(auditInfo).hrid(apiHrid).id();
+        var linkId = PortalNavigationItemId.forApiLink(auditInfo, apiId, linkHrid);
         try {
-            var output = getPortalLinkUseCase.execute(new GetPortalLinkUseCase.Input(auditInfo, linkId));
-            return Response.ok(PortalLinkMapper.INSTANCE.toPortalLinkState(output.link(), linkHrid, List.of(), portalHrid)).build();
+            var output = getApiLinkUseCase.execute(new GetApiLinkUseCase.Input(auditInfo, linkId));
+            return Response.ok(PortalLinkMapper.INSTANCE.toApiLinkState(output.link(), linkHrid, List.of(), apiHrid)).build();
         } catch (PortalLinkNotFoundException e) {
             throw new HRIDNotFoundException(linkHrid);
         }
     }
 
     @DELETE
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.DELETE) })
-    public Response deletePortalLinkByHrid(@PathParam("hrid") String portalHrid, @PathParam("linkHrid") String linkHrid) {
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.DELETE) })
+    public Response deleteApiLinkByHrid(@PathParam("apiHrid") String apiHrid, @PathParam("linkHrid") String linkHrid) {
         var auditInfo = getAuditInfo();
-        var portalId = HRIDToUUID.portal().context(auditInfo).hrid(portalHrid).id();
-        var linkId = PortalNavigationItemId.forPortalLink(auditInfo, portalId, linkHrid);
+        var apiId = HRIDToUUID.api().context(auditInfo).hrid(apiHrid).id();
+        var linkId = PortalNavigationItemId.forApiLink(auditInfo, apiId, linkHrid);
         try {
-            deletePortalLinkUseCase.execute(new DeletePortalLinkUseCase.Input(auditInfo, linkId));
+            deleteApiLinkUseCase.execute(new DeleteApiLinkUseCase.Input(auditInfo, linkId));
         } catch (PortalLinkNotFoundException e) {
             throw new HRIDNotFoundException(linkHrid);
         }

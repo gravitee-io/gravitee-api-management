@@ -1054,6 +1054,86 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  # API Links
+  /organizations/{orgId}/environments/{envId}/apis/{apiHrid}/links:
+    put:
+      operationId: createOrUpdateApiLink
+      tags:
+        - API Links
+      summary: Create or update an API Link
+      description: Create or update a Link attached to an API
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiHridParam"
+        - $ref: "#/components/parameters/dryRunQueryParam"
+      requestBody:
+        description: Portal Link specification
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/PortalLinkSpec"
+        required: true
+      responses:
+        "200":
+          description: State of the successfully created/updated Link
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalLinkState"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        default:
+          $ref: "#/components/responses/Error"
+  /organizations/{orgId}/environments/{envId}/apis/{apiHrid}/links/{hrid}:
+    parameters:
+      - $ref: "#/components/parameters/orgIdParam"
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiHridParam"
+      - $ref: "#/components/parameters/hridParam"
+    get:
+      operationId: getApiLink
+      tags:
+        - API Links
+      summary: Get one API Link
+      description: Get an API Link using HRID
+      responses:
+        "200":
+          description: Link successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalLinkState"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: deleteApiLink
+      tags:
+        - API Links
+      summary: Delete one API Link
+      description: Delete an API Link using HRID
+      responses:
+        "204":
+          description: Link successfully deleted
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
+
 components:
   schemas:
     Hrid:
@@ -3560,6 +3640,7 @@ components:
       description: |
         Specification of a Portal Link.
         An external navigation entry placed in a portal's navigation — a thin wrapper around a URL, with no separate content of its own.
+        A link is attached to either a portal or an API, determined by the endpoint used.
       type: object
       properties:
         hrid:
@@ -3578,6 +3659,9 @@ components:
           type: string
           description: |
             The path in the navigation hierarchy where this link should appear.
+            Resolved against the portal's navigation for a portal-attached link, and against the API's own
+            navigation for an API-attached link — the same path string therefore denotes a different tree
+            depending on which endpoint was used.
           examples:
             - /projects/alpha
         order:
@@ -3590,14 +3674,20 @@ components:
         - name
         - href
     PortalLinkStatus:
-      description: Status information for a Portal Link after import.
+      description: |
+        Status information for a Portal Link after import.
+        Exactly one of `portalHrid` / `apiHrid` is populated depending on the parent endpoint used.
       allOf:
         - $ref: "#/components/schemas/BaseStatus"
         - type: object
           properties:
             portalHrid:
               type: string
-              description: The HRID of the portal this link belongs to.
+              description: The HRID of the portal this link belongs to (when attached to a portal).
+              readOnly: true
+            apiHrid:
+              type: string
+              description: The HRID of the API this link belongs to (when attached to an API).
               readOnly: true
     PortalLinkState:
       description: State of a Portal Link that has been created/updated.
