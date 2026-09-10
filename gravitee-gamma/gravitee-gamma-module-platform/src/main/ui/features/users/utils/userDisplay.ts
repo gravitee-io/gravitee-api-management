@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { BadgeVariant } from '@gravitee/graphene-core';
+
 import { formatTruncatedNameSummary } from '../../../shared/utils/truncatedList';
 import type { OrganizationUser } from '../types/user';
 
@@ -57,7 +59,7 @@ export function formatUserStatus(status: string | undefined): string {
     return normalized.charAt(0) + normalized.slice(1).toLowerCase();
 }
 
-export type StatusBadgeVariant = 'success' | 'warning' | 'destructive' | 'secondary';
+export type StatusBadgeVariant = Extract<BadgeVariant, 'success' | 'warning' | 'destructive' | 'secondary'>;
 
 export function statusBadgeVariant(status: string | undefined): StatusBadgeVariant {
     switch (status?.toUpperCase()) {
@@ -99,7 +101,7 @@ export function formatSourceLabel(source: string | undefined): string {
     return source.charAt(0).toUpperCase() + source.slice(1);
 }
 
-export type SourceBadgeVariant = 'warning' | 'outline';
+export type SourceBadgeVariant = Extract<BadgeVariant, 'warning' | 'outline'>;
 
 export function sourceBadgeVariant(source: string | undefined): SourceBadgeVariant {
     const normalized = source?.toLowerCase() ?? '';

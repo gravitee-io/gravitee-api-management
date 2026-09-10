@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-import { Badge, cn } from '@gravitee/graphene-core';
+import { Badge, type BadgeVariant, cn } from '@gravitee/graphene-core';
 
 import type { DictionaryType } from '../types/dictionary';
-
-type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline';
 
 const TYPE_CONFIG: Record<DictionaryType, { label: string; variant: BadgeVariant; className?: string }> = {
     MANUAL: { label: 'Manual', variant: 'outline', className: 'text-muted-foreground' },
@@ -26,7 +24,7 @@ const TYPE_CONFIG: Record<DictionaryType, { label: string; variant: BadgeVariant
 };
 
 export function DictionaryTypeBadge({ type }: Readonly<{ type: DictionaryType }>) {
-    const config = TYPE_CONFIG[type] ?? { label: type, variant: 'outline' as BadgeVariant };
+    const config = TYPE_CONFIG[type] ?? { label: type, variant: 'outline' };
     return (
         <Badge variant={config.variant} className={cn('font-normal text-xs', config.className)}>
             {config.label}
