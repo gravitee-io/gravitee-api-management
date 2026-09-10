@@ -86,7 +86,7 @@
     "@angular/language-service": "20.3.31",
     "@babel/preset-env": "8.0.2",
     "@messageformat/core": "3.4.0",
-    "@ngneat/spectator": "19.6.2",
+    "@ngneat/spectator": "22.1.0",
     "@types/jest": "29.5.14",
     "@types/js-yaml": "4.0.9",
     "@types/node": "22.20.2",
