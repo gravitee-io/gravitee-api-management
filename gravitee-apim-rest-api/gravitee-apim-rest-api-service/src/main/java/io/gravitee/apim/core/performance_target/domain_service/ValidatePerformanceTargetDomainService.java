@@ -38,6 +38,10 @@ import lombok.RequiredArgsConstructor;
  * Checks a target against the analytics definition and against the APIs of its subject, so that every rule can be
  * evaluated from gateway telemetry: the metric, measure and filters exist for the API types the rule covers, the
  * threshold fits the metric's unit, and the subject only lists v4 APIs of the target's environment.
+ *
+ * <p>A rule may name API types the subject does not hold yet. Its metric is still checked against those types, but
+ * the subject is not required to contain them: a subject grows and shrinks as its dependencies change, and such a
+ * rule is simply NOT_EVALUABLE until an API of that type joins it.
  */
 @DomainService
 @RequiredArgsConstructor
@@ -114,11 +118,9 @@ public class ValidatePerformanceTargetDomainService {
     }
 
     private void validateRule(PerformanceTarget.Rule rule, Set<ApiType> subjectApiTypes) {
-        for (var apiType : rule.apiTypes()) {
-            if (!subjectApiTypes.contains(apiType)) {
-                throw new InvalidPerformanceTargetException("API type %s is not part of the subject".formatted(apiType));
-            }
-        }
+        // A rule scoped to API types the subject does not hold right now is accepted: the metric is checked against
+        // the rule's own types, and the evaluator reports it NOT_EVALUABLE until the subject grows an API of that
+        // type. A subject changes as its dependencies come and go, so a scope must not pin it.
         var ruleApiTypes = rule.apiTypes().isEmpty() ? subjectApiTypes : rule.apiTypes();
 
         var metric = analyticsDefinition
