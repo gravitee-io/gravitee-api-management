@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { Badge } from '@gravitee/graphene-core';
-import { useEffect, type ComponentProps } from 'react';
+import { Badge, type BadgeVariant } from '@gravitee/graphene-core';
+import { useEffect } from 'react';
 
 import type { IntegrationAgentStatus } from '../types/integration';
 
-const STATUS_CONFIG: Record<IntegrationAgentStatus, { label: string; variant: ComponentProps<typeof Badge>['variant'] }> = {
+const STATUS_CONFIG: Record<IntegrationAgentStatus, { label: string; variant: BadgeVariant }> = {
     CONNECTED: { label: 'Connected', variant: 'success' },
     DISCONNECTED: { label: 'Disconnected', variant: 'destructive' },
 };

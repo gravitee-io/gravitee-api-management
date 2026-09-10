@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Badge } from '@gravitee/graphene-core';
+import { Badge, type BadgeVariant } from '@gravitee/graphene-core';
 
 import type { SubscriptionStatus } from '../../../types/subscription';
-
-type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline';
 
 interface StatusConfig {
     label: string;
@@ -35,7 +33,7 @@ const STATUS_CONFIG: Record<SubscriptionStatus, StatusConfig> = {
 };
 
 export function SubscriptionStatusBadge({ status }: { status: SubscriptionStatus }) {
-    const config = STATUS_CONFIG[status] ?? { label: status, variant: 'outline' as BadgeVariant };
+    const config = STATUS_CONFIG[status] ?? { label: status, variant: 'outline' };
     return (
         <Badge variant={config.variant} className={config.className}>
             {config.label}
