@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Badge } from '@gravitee/graphene-core';
+import { Badge, type BadgeVariant } from '@gravitee/graphene-core';
 
 import type { PlanStatus } from '../../../types/plan';
 
-const STATUS_CONFIG: Record<PlanStatus, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+const STATUS_CONFIG: Record<PlanStatus, { label: string; variant: BadgeVariant }> = {
     STAGING: { label: 'Staging', variant: 'outline' },
     PUBLISHED: { label: 'Published', variant: 'default' },
     DEPRECATED: { label: 'Deprecated', variant: 'secondary' },
