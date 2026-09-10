@@ -3730,7 +3730,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:8.70.0"
     "@typescript-eslint/parser": "npm:8.70.0"
     "@webcomponents/webcomponentsjs": "npm:2.8.0"
-    angular-oauth2-oidc: "npm:13.0.1"
+    angular-oauth2-oidc: "npm:20.0.3"
     asciidoctor: "npm:3.0.4"
     asciidoctor-highlight.js: "npm:0.4.0"
     babel-jest: "npm:28.1.3"
@@ -7983,16 +7983,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"angular-oauth2-oidc@npm:13.0.1":
-  version: 13.0.1
-  resolution: "angular-oauth2-oidc@npm:13.0.1"
+"angular-oauth2-oidc@npm:20.0.3":
+  version: 20.0.3
+  resolution: "angular-oauth2-oidc@npm:20.0.3"
   dependencies:
-    fast-sha256: "npm:^1.3.0"
-    tslib: "npm:^2.0.0"
+    tslib: "npm:^2.5.2"
   peerDependencies:
-    "@angular/common": ">=12.0.0"
-    "@angular/core": ">=12.0.0"
-  checksum: 10c0/8e1e4e5971fa589cf30619b350805a5f174d2ec6dc0c41be6054132b0dc6e2e84e4e24e8e274f86f5cedf426ed769c387d4f4088a4a9eac0b6b8376ff1fef3ef
+    "@angular/common": ">=20.0.0"
+    "@angular/core": ">=20.0.0"
+  checksum: 10c0/99f8c3d80ecbbfc6437dd2d6e64216d7eda89e8e895f23be7ea9eaf3383588f465bc6ff45cd67fbdb65e12ebc5590527b86f9d7adfc7aeb159888115bfb8a22b
   languageName: node
   linkType: hard
 
@@ -10787,13 +10786,6 @@ __metadata:
   version: 2.1.1
   resolution: "fast-safe-stringify@npm:2.1.1"
   checksum: 10c0/d90ec1c963394919828872f21edaa3ad6f1dddd288d2bd4e977027afff09f5db40f94e39536d4646f7e01761d704d72d51dce5af1b93717f3489ef808f5f4e4d
-  languageName: node
-  linkType: hard
-
-"fast-sha256@npm:^1.3.0":
-  version: 1.3.0
-  resolution: "fast-sha256@npm:1.3.0"
-  checksum: 10c0/87f9e4baa7639576cf60a2b6235c9f436e1a1c52323abbd8a705b5bea8355500acf176f2aed0c14f2ecd6d6007e26151461bab2f27b8953bcca8d9d6b76a86e4
   languageName: node
   linkType: hard
 
@@ -18024,7 +18016,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:2.8.1, tslib@npm:^2.0.0, tslib@npm:^2.1.0, tslib@npm:^2.2.0, tslib@npm:^2.3.0, tslib@npm:^2.5.0, tslib@npm:^2.6.0, tslib@npm:^2.6.2, tslib@npm:^2.8.0, tslib@npm:^2.8.1":
+"tslib@npm:2.8.1, tslib@npm:^2.0.0, tslib@npm:^2.1.0, tslib@npm:^2.2.0, tslib@npm:^2.3.0, tslib@npm:^2.5.0, tslib@npm:^2.5.2, tslib@npm:^2.6.0, tslib@npm:^2.6.2, tslib@npm:^2.8.0, tslib@npm:^2.8.1":
   version: 2.8.1
   resolution: "tslib@npm:2.8.1"
   checksum: 10c0/9c4759110a19c53f992d9aae23aac5ced636e99887b51b9e61def52611732872ff7668757d4e4c61f19691e36f4da981cd9485e869b4a7408d689f6bf1f14e62
