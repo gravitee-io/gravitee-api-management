@@ -61,7 +61,7 @@
     "marked-extended-tables": "1.1.1",
     "marked-gfm-heading-id": "3.2.0",
     "marked-highlight": "2.2.4",
-    "ngx-cookie-service": "19.1.2",
+    "ngx-cookie-service": "20.1.1",
     "ngx-translate-messageformat-compiler": "6.5.1",
     "redoc": "2.5.3",
     "resize-observer-polyfill": "1.5.1",
