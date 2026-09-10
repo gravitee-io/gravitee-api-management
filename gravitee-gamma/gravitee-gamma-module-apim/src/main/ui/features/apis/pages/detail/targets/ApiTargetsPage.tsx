@@ -20,31 +20,39 @@ import { Skeleton } from '@gravitee/graphene-core';
 import { ApiTargetsProvider } from '../../../components/targets/ApiTargetsProvider';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
 
+/** Skeleton height, inline: one group of the panel is about this tall. */
+const ROW_HEIGHT = { height: 208 } as const;
+
 /**
  * The "Targets" tab: the shared panel mounted on this API as its own subject.
- * Targets are environment resources on the REST side, so the writes follow the
- * environment API permissions rather than the API-scoped ones.
+ * The panel reads what the API's own telemetry saw, so a rule can be narrowed
+ * to the paths and methods it actually served. Targets are environment
+ * resources on the REST side, so the writes follow the environment API
+ * permissions rather than the API-scoped ones.
  */
 export function ApiTargetsPage() {
     const { api } = useApiDetailContext();
     const canManage = useHasPermission({ anyOf: ['environment-api-c', 'environment-api-u'] });
 
     return (
-        <div className="space-y-6">
-            <div className="space-y-1">
+        <div className="flex min-w-0 flex-col gap-6">
+            <div className="min-w-0 space-y-1">
                 <h1 className="text-2xl font-semibold tracking-tight">Targets</h1>
-                <p className="text-sm text-muted-foreground">
-                    What good looks like for this API: rules over its gateway telemetry, evaluated continuously against the thresholds you
-                    declare.
-                </p>
+                <p className="text-muted-foreground max-w-prose text-sm">The thresholds this API is held to.</p>
             </div>
             {api ? (
                 <ApiTargetsProvider>
                     {/* The module only manages V4 HTTP proxies (`PROXY`), which the list search enforces server-side. */}
-                    <TargetsPanel reference={api.id} apiIds={[api.id]} apiTypes={[api.type ?? 'PROXY']} readOnly={!canManage} />
+                    <TargetsPanel
+                        reference={api.id}
+                        apiIds={[api.id]}
+                        apiTypes={[api.type ?? 'PROXY']}
+                        readOnly={!canManage}
+                        emptyDescription="Nothing is watching this API yet."
+                    />
                 </ApiTargetsProvider>
             ) : (
-                <Skeleton className="h-40 w-full" />
+                <Skeleton className="rounded-xl" style={ROW_HEIGHT} />
             )}
         </div>
     );
