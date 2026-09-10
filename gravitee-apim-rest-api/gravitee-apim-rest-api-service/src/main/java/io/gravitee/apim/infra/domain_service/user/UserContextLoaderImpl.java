@@ -22,8 +22,11 @@ import io.gravitee.apim.infra.domain_service.analytics_engine.mapper.ApiMapper;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import java.util.Collection;
@@ -46,6 +49,16 @@ public class UserContextLoaderImpl implements UserContextLoader {
 
     private final ApiAuthorizationService apiAuthorizationService;
     private final ApiRepository apiRepository;
+    private final PermissionService permissionService;
+
+    /**
+     * Read access an environment role grants over every API, which {@code findApiIdsByUserId} cannot see: it
+     * resolves memberships only. Asked first, exactly as the platform's analytics context loader does, so the
+     * two agree on what a user may observe.
+     */
+    private boolean canReadEnvironmentApis(ExecutionContext executionContext, String environmentId) {
+        return permissionService.hasPermission(executionContext, RolePermission.ENVIRONMENT_API, environmentId, RolePermissionAction.READ);
+    }
 
     private boolean isAdmin() {
         return SecurityContextHolder.getContext()
@@ -67,7 +80,7 @@ public class UserContextLoaderImpl implements UserContextLoader {
 
         ApiCriteria.Builder apiCriteriaBuilder = new ApiCriteria.Builder().environmentId(environmentId);
 
-        if (!isAdmin()) {
+        if (!isAdmin() && !canReadEnvironmentApis(executionContext, environmentId)) {
             Set<String> userApiIds = apiAuthorizationService.findApiIdsByUserId(executionContext, userId, null, true);
             if (userApiIds.isEmpty()) {
                 return context.withApis(Collections.emptyList()).withApiNamesById(Collections.emptyMap());
@@ -87,8 +100,8 @@ public class UserContextLoaderImpl implements UserContextLoader {
         var environmentId = context.auditInfo().environmentId();
         var userId = context.auditInfo().actor().userId();
 
-        if (!isAdmin()) {
-            ExecutionContext executionContext = new ExecutionContext(organizationId, environmentId);
+        ExecutionContext executionContext = new ExecutionContext(organizationId, environmentId);
+        if (!isAdmin() && !canReadEnvironmentApis(executionContext, environmentId)) {
             Set<String> userApiIds = apiAuthorizationService.findApiIdsByUserId(executionContext, userId, null, true);
             if (!userApiIds.contains(apiId)) {
                 return context.withApis(Collections.emptyList()).withApiNamesById(Collections.emptyMap());
