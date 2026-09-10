@@ -278,7 +278,7 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
       title: `${action} subscription form?`,
       content: enabling
         ? `"${form.name}" will be shown to API consumers in the Developer Portal when subscribing to the APIs it applies to.`
-        : `"${form.name}" will no longer be shown to API consumers in the Developer Portal. You can show it again at any time.`,
+        : `"${form.name}" will no longer be shown to API consumers in the Developer Portal. ${disableImpact(form)}`,
       confirmButton: action,
     };
 
@@ -414,7 +414,17 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
 }
 
 function sameIds(left: string[], right: string[]): boolean {
-  if (left.length !== right.length) return false;
-  const sortedRight = [...right].sort();
-  return [...left].sort().every((id, index) => id === sortedRight[index]);
+  const rightIds = new Set(right);
+  return left.length === right.length && left.every(id => rightIds.has(id));
+}
+
+/** A disabled form is not replaced by the default one: say who loses their form. */
+function disableImpact(form: SubscriptionForm): string {
+  if (form.defaultForm) {
+    return 'Every API without a dedicated form will have no subscription form until it is shown again.';
+  }
+  if (form.apiIds.length === 0) {
+    return 'It is not dedicated to any API yet, so no consumer is affected.';
+  }
+  return `The ${form.apiIds.length} API${form.apiIds.length > 1 ? 's' : ''} it is dedicated to will have no subscription form until it is shown again.`;
 }
