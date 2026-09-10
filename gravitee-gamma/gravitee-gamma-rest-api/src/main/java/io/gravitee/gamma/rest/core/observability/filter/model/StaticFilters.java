@@ -135,6 +135,20 @@ public enum StaticFilters {
     // --- LLM ------------------------------------------------------------------------------------
     LLM_PROXY_MODEL("LLM Model", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.LLM)),
     LLM_PROXY_PROVIDER("LLM Provider", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.LLM)),
+    /**
+     * Whether the user asked for an exchange or the client made it for the conversation itself — an
+     * autocomplete, a welcome-back recap, a transcript classifier. Enumerated rather than KEYWORD: the
+     * proxy writes exactly these two values, so the filter bar can offer them instead of a free text box.
+     */
+    LLM_PROXY_REQUEST_KIND(
+        "LLM Request Kind",
+        FilterType.ENUM,
+        Defs.EQ_IN,
+        List.of(new EnumValue("turn", "Turn"), new EnumValue("side", "Side call")),
+        null,
+        Defs.LOGS_ANALYTICS,
+        Set.of(ApiType.LLM)
+    ),
 
     // --- MCP ------------------------------------------------------------------------------------
     MCP_PROXY_METHOD("MCP Method", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.MCP)),

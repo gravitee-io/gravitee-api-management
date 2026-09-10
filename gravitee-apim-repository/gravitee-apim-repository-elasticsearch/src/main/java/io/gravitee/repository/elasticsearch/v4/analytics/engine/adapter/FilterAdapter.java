@@ -62,6 +62,8 @@ public class FilterAdapter {
         Filter.Name.HTTP_RESPONSE_CONTENT_LENGTH,
         Filter.Name.LLM_PROXY_MODEL,
         Filter.Name.LLM_PROXY_PROVIDER,
+        Filter.Name.LLM_PROXY_CONVERSATION,
+        Filter.Name.LLM_PROXY_REQUEST_KIND,
         Filter.Name.MCP_PROXY_METHOD,
         Filter.Name.MCP_PROXY_TOOL,
         Filter.Name.MCP_PROXY_TOOL_PRICE_STATUS,

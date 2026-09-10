@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.LlmProxyFields;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
 
 /**
@@ -34,13 +35,14 @@ public class HTTPFieldResolver implements FieldResolver {
             case HTTP_ENDPOINT_RESPONSE_TIME -> "endpoint-response-time-ms";
             case HTTP_GATEWAY_RESPONSE_TIME -> "gateway-response-time-ms";
             case HTTP_GATEWAY_LATENCY -> "gateway-latency-ms";
-            case LLM_PROMPT_TOKEN_SENT -> "additional-metrics.long_llm-proxy_tokens-sent";
-            case LLM_PROMPT_TOKEN_RECEIVED -> "additional-metrics.long_llm-proxy_tokens-received";
-            case LLM_PROMPT_TOKEN_SENT_COST -> "additional-metrics.double_llm-proxy_sent-cost";
-            case LLM_PROMPT_TOKEN_RECEIVED_COST -> "additional-metrics.double_llm-proxy_received-cost";
-            case LLM_PROMPT_TOKEN_REASONING -> "additional-metrics.long_llm-proxy_tokens-reasoning";
-            case LLM_PROMPT_TOKEN_REASONING_COST -> "additional-metrics.double_llm-proxy_reasoning-cost";
+            case LLM_PROMPT_TOKEN_SENT -> LlmProxyFields.TOKENS_SENT;
+            case LLM_PROMPT_TOKEN_RECEIVED -> LlmProxyFields.TOKENS_RECEIVED;
+            case LLM_PROMPT_TOKEN_SENT_COST -> LlmProxyFields.SENT_COST;
+            case LLM_PROMPT_TOKEN_RECEIVED_COST -> LlmProxyFields.RECEIVED_COST;
+            case LLM_PROMPT_TOKEN_REASONING -> LlmProxyFields.TOKENS_REASONING;
+            case LLM_PROMPT_TOKEN_REASONING_COST -> LlmProxyFields.REASONING_COST;
             case MCP_PROXY_TOOL_COST -> "additional-metrics.double_mcp-proxy_tool-cost";
+            case LLM_LARGEST_TURN -> LlmProxyFields.CALL_NUMBER;
             case EDGE_DETECTION_COUNT -> "additional-metrics.long_edge_count";
             case EDGE_TOKENS_IN -> "additional-metrics.long_edge_tokens_in";
             case EDGE_TOKENS_OUT -> "additional-metrics.long_edge_tokens_out";
@@ -71,8 +73,10 @@ public class HTTPFieldResolver implements FieldResolver {
             case Filter.Name.CONSUMER_IP -> "remote-address";
             case Filter.Name.HTTP_USER_AGENT_OS_NAME -> "user_agent.os_name";
             case Filter.Name.HTTP_USER_AGENT_DEVICE -> "user_agent.device.name";
-            case Filter.Name.LLM_PROXY_MODEL -> "additional-metrics.keyword_llm-proxy_model";
-            case Filter.Name.LLM_PROXY_PROVIDER -> "additional-metrics.keyword_llm-proxy_provider";
+            case Filter.Name.LLM_PROXY_MODEL -> LlmProxyFields.MODEL;
+            case Filter.Name.LLM_PROXY_PROVIDER -> LlmProxyFields.PROVIDER;
+            case Filter.Name.LLM_PROXY_CONVERSATION -> LlmProxyFields.CONVERSATION_ID;
+            case Filter.Name.LLM_PROXY_REQUEST_KIND -> LlmProxyFields.REQUEST_KIND;
             case Filter.Name.MCP_PROXY_METHOD -> "additional-metrics.keyword_mcp-proxy_method";
             case Filter.Name.MCP_PROXY_TOOL -> "additional-metrics.keyword_mcp-proxy_tools/call";
             case Filter.Name.MCP_PROXY_RESOURCE -> "additional-metrics.keyword_mcp-proxy_resources/read";
@@ -119,8 +123,10 @@ public class HTTPFieldResolver implements FieldResolver {
             case CONSUMER_IP -> "remote-address";
             case HTTP_USER_AGENT_OS_NAME -> "user_agent.os_name";
             case HTTP_USER_AGENT_DEVICE -> "user_agent.device.name";
-            case LLM_PROXY_MODEL -> "additional-metrics.keyword_llm-proxy_model";
-            case LLM_PROXY_PROVIDER -> "additional-metrics.keyword_llm-proxy_provider";
+            case LLM_PROXY_MODEL -> LlmProxyFields.MODEL;
+            case LLM_PROXY_PROVIDER -> LlmProxyFields.PROVIDER;
+            case LLM_PROXY_CONVERSATION -> LlmProxyFields.CONVERSATION_ID;
+            case LLM_PROXY_REQUEST_KIND -> LlmProxyFields.REQUEST_KIND;
             case MCP_PROXY_METHOD -> "additional-metrics.keyword_mcp-proxy_method";
             case MCP_PROXY_TOOL -> "additional-metrics.keyword_mcp-proxy_tools/call";
             case MCP_PROXY_RESOURCE -> "additional-metrics.keyword_mcp-proxy_resources/read";

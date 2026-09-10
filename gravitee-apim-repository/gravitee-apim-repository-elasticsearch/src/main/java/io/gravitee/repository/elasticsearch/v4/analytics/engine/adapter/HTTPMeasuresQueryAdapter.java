@@ -24,6 +24,7 @@ import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.Fiel
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.CountBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.CountWithSumBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.HttpErrorRateBuilder;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.LLMConversationBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.LLMTotalCostBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.LLMTotalTokenBuilder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.RateBuilder;
@@ -41,6 +42,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -58,6 +60,8 @@ public class HTTPMeasuresQueryAdapter {
     private final CountBuilder countWithSumBuilder = new CountWithSumBuilder();
     private final SimpleAVGBuilder avgBuilder = new SimpleAVGBuilder();
     private final SimpleSUMBuilder sumBuilder = new SimpleSUMBuilder();
+
+    private final LLMConversationBuilder llmConversationBuilder = new LLMConversationBuilder();
     private final HttpErrorRateBuilder errorRateBuilder = new HttpErrorRateBuilder(400);
     private final HttpErrorRateBuilder serverErrorRateBuilder = new HttpErrorRateBuilder(500);
     private final RateBuilder rateBuilder = new RateBuilder();
@@ -121,7 +125,16 @@ public class HTTPMeasuresQueryAdapter {
 
     private boolean isComputedMetric(Metric metric) {
         return switch (metric) {
-            case LLM_PROMPT_TOTAL_TOKEN, LLM_PROMPT_TOKEN_TOTAL_COST, HTTP_ERROR_RATE, HTTP_SERVER_ERROR_RATE -> true;
+            case
+                LLM_PROMPT_TOTAL_TOKEN,
+                LLM_PROMPT_TOKEN_TOTAL_COST,
+                LLM_CONVERSATIONS,
+                LLM_TURNS,
+                LLM_TURNS_PER_CONVERSATION,
+                LLM_CALLS_PER_TURN,
+                LLM_COST_PER_CONVERSATION,
+                HTTP_ERROR_RATE,
+                HTTP_SERVER_ERROR_RATE -> true;
             default -> false;
         };
     }
@@ -129,6 +142,11 @@ public class HTTPMeasuresQueryAdapter {
     private Optional<Map<String, JsonObject>> aggregate(String aggName, String field, Metric metric, Measure measure, Duration rateWindow) {
         return switch (metric) {
             case LLM_PROMPT_TOTAL_TOKEN -> aggregateLLMTotalToken(aggName, measure);
+            case LLM_CONVERSATIONS -> whenCounted(measure, () -> llmConversationBuilder.buildConversations(aggName));
+            case LLM_TURNS -> whenCounted(measure, () -> llmConversationBuilder.buildTurns(aggName));
+            case LLM_TURNS_PER_CONVERSATION -> whenAveraged(measure, () -> llmConversationBuilder.buildTurnsPerConversation(aggName));
+            case LLM_CALLS_PER_TURN -> whenAveraged(measure, () -> llmConversationBuilder.buildCallsPerTurn(aggName));
+            case LLM_COST_PER_CONVERSATION -> whenAveraged(measure, () -> llmConversationBuilder.buildCostPerConversation(aggName));
             case LLM_PROMPT_TOKEN_TOTAL_COST -> aggregateLLMTotalCost(aggName, measure);
             case HTTP_ERROR_RATE -> aggregateHTTPErrorRate(aggName, measure, errorRateBuilder);
             case HTTP_SERVER_ERROR_RATE -> aggregateHTTPErrorRate(aggName, measure, serverErrorRateBuilder);
@@ -142,6 +160,16 @@ public class HTTPMeasuresQueryAdapter {
             case RATE -> Optional.of(rateBuilder.build(aggName, field, rateWindow));
             default -> Optional.empty();
         };
+    }
+
+    /** A distinct count answers COUNT and nothing else; any other measure has no meaning over it. */
+    private Optional<Map<String, JsonObject>> whenCounted(Measure measure, Supplier<Map<String, JsonObject>> aggregation) {
+        return measure == Measure.COUNT ? Optional.of(aggregation.get()) : Optional.empty();
+    }
+
+    /** A ratio is an average by construction: it yields one value per bucket, so it has no max or spread. */
+    private Optional<Map<String, JsonObject>> whenAveraged(Measure measure, Supplier<Map<String, JsonObject>> aggregation) {
+        return measure == Measure.AVG ? Optional.of(aggregation.get()) : Optional.empty();
     }
 
     private Optional<Map<String, JsonObject>> aggregateLLMTotalToken(String aggName, Measure measure) {

@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation;
 
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.LlmProxyFields;
 import io.vertx.core.json.JsonObject;
 import java.util.Map;
 
@@ -27,16 +28,28 @@ import java.util.Map;
  */
 public class LLMTotalCostBuilder {
 
-    private static final String SENT_COST_FIELD = "additional-metrics.double_llm-proxy_sent-cost";
-    private static final String RECEIVED_COST_FIELD = "additional-metrics.double_llm-proxy_received-cost";
-
     private static final String SCRIPT_SOURCE = """
         (doc.containsKey('%s') && doc['%s'].size() > 0 ? doc['%s'].value : 0) + \
         (doc.containsKey('%s') && doc['%s'].size() > 0 ? doc['%s'].value : 0)
-        """.formatted(SENT_COST_FIELD, SENT_COST_FIELD, SENT_COST_FIELD, RECEIVED_COST_FIELD, RECEIVED_COST_FIELD, RECEIVED_COST_FIELD);
+        """.formatted(
+            LlmProxyFields.SENT_COST,
+            LlmProxyFields.SENT_COST,
+            LlmProxyFields.SENT_COST,
+            LlmProxyFields.RECEIVED_COST,
+            LlmProxyFields.RECEIVED_COST,
+            LlmProxyFields.RECEIVED_COST
+        );
 
     public Map<String, JsonObject> buildSum(String aggName) {
-        return Map.of(aggName, json().put("sum", json().put("script", script())));
+        return Map.of(aggName, sum());
+    }
+
+    /**
+     * The summed cost on its own, for a caller that nests it inside another aggregation — dividing it per
+     * conversation, say — rather than reading it back under a name of its own.
+     */
+    public JsonObject sum() {
+        return json().put("sum", json().put("script", script()));
     }
 
     public Map<String, JsonObject> buildAvg(String aggName) {
