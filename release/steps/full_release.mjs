@@ -1,7 +1,7 @@
 #!/usr/bin/env zx
 
 import { checkToken } from '../helpers/circleci-helper.mjs';
-import { assertVersionMatchesPom, computeVersion, extractVersion } from '../helpers/version-helper.mjs';
+import { assertVersionMatchesPoms, computeVersion, DISTRIBUTION_POM, extractVersion, ROOT_POM } from '../helpers/version-helper.mjs';
 import { isDryRun, getTargetBranch } from '../helpers/option-helper.mjs';
 
 await checkToken();
@@ -9,7 +9,7 @@ await checkToken();
 const releasingVersion = await extractVersion();
 const versions = computeVersion(releasingVersion);
 const targetBranch = getTargetBranch(versions);
-await assertVersionMatchesPom(releasingVersion, targetBranch);
+await assertVersionMatchesPoms(releasingVersion, targetBranch, [ROOT_POM, DISTRIBUTION_POM]);
 
 console.log(chalk.green(`💪 Triggering Release Pipeline!\n`));
 

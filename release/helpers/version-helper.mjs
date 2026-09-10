@@ -73,26 +73,71 @@ export function versionFromPom(pomXml) {
  * @param {string} version the version passed to the command
  * @param {string} branch the branch the release will run on
  */
-export async function assertVersionMatchesPom(version, branch) {
+export const ROOT_POM = 'pom.xml';
+export const DISTRIBUTION_POM = 'gravitee-apim-distribution/pom.xml';
+
+async function readPom(pom, branch) {
   // The contents API rather than raw.githubusercontent.com: the latter is served with a five-minute
   // cache, long enough for a release started right after a version bump to read the previous pom and
   // refuse a correct release. This is cached for one minute, and `Accept: raw` returns the file
   // itself rather than a base64 envelope, so the same parsing applies.
-  const url = `https://api.github.com/repos/gravitee-io/gravitee-api-management/contents/pom.xml?ref=${branch}`;
+  const url = `https://api.github.com/repos/gravitee-io/gravitee-api-management/contents/${pom}?ref=${branch}`;
   const response = await fetch(url, { headers: { Accept: 'application/vnd.github.raw' } });
+  if (response.status === 404) {
+    return undefined;
+  }
   if (!response.ok) {
-    console.log(chalk.red(`Cannot read pom.xml on '${branch}': ${response.status} ${response.statusText}`));
+    console.log(chalk.red(`Cannot read ${pom} on '${branch}': ${response.status} ${response.statusText}`));
     console.log(`Checked ${url}`);
     process.exit(1);
   }
+  return response.text();
+}
 
-  const published = versionFromPom(await response.text());
-  if (published !== version) {
-    console.log(chalk.red(`'${branch}' publishes ${published}, not ${version}.`));
-    console.log(`The published version comes from the poms; --version only names the tag. Fix the poms, or release ${published}.`);
-    console.log(chalk.yellow(`If you have just pushed a version bump, wait a minute: this reads GitHub through a one-minute cache.`));
-    process.exit(1);
+/**
+ * Refuses a version that the poms of `branch` do not publish.
+ *
+ * They are two independent inputs and nothing downstream reconciles them: the artefacts carry what
+ * the poms say, the git tag carries what --version says. A mismatch therefore ships one version
+ * under the name of another, without failing anywhere.
+ *
+ * Which poms to check is the caller's decision, because it depends on what is being released. A
+ * release of both reactors has to find the version in both — the product's published name comes
+ * from the distribution's triplet, not the root's — while a core release moves the root alone and
+ * leaves the distribution where it is on purpose.
+ * @param {string} version the version passed to the command
+ * @param {string} branch the branch the release will run on
+ * @param {string[]} poms the poms that have to carry it
+ */
+export async function assertVersionMatchesPoms(version, branch, poms) {
+  const published = {};
+  for (const pom of poms) {
+    const content = await readPom(pom, branch);
+    // The distribution only carries a triplet of its own where the reactor was cut; elsewhere it
+    // inherits the root's, and there is nothing separate to check.
+    if (content === undefined || !/<revision>/.test(content)) {
+      console.log(chalk.yellow(`Skipped ${pom}: it inherits the root version on '${branch}'.`));
+      continue;
+    }
+    published[pom] = versionFromPom(content);
   }
+
+  const wrong = Object.entries(published).filter(([, v]) => v !== version);
+  if (wrong.length === 0) {
+    return;
+  }
+
+  for (const [pom, v] of wrong) {
+    console.log(chalk.red(`'${branch}' publishes ${v} from ${pom}, not ${version}.`));
+  }
+  const distinct = new Set(Object.values(published));
+  if (distinct.size > 1) {
+    console.log(`The two reactors have drifted apart. Both have to carry the version being released, so set them together.`);
+  } else {
+    console.log(`The published version comes from the poms; --version only names the tag. Fix the poms, or release ${[...distinct][0]}.`);
+  }
+  console.log(chalk.yellow(`If you have just pushed a version bump, wait a minute: this reads GitHub through a one-minute cache.`));
+  process.exit(1);
 }
 
 /**
