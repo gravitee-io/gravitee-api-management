@@ -390,4 +390,92 @@ describe('PortalNavigationItemsService', () => {
     );
     req.flush(rawResponse);
   });
+
+  describe('findDocumentationNavigationTarget', () => {
+    const apiId = 'api-1';
+    const apiName = 'Helpdesk Agent';
+
+    it('should return the type=api search hit and skip the catalog', done => {
+      const api = fakeApi({ id: apiId, name: 'Weather API' });
+
+      service.findDocumentationNavigationTarget(apiId, apiName).subscribe(target => {
+        expect(target).toEqual({ rootId: 'root-1', navItemId: 'nav-1' });
+        done();
+      });
+
+      const apiSearch = httpMock.expectOne(
+        r =>
+          r.method === 'GET' &&
+          r.url === `${baseURL}/portal-navigation-items/_search` &&
+          r.params.get('type') === 'api' &&
+          r.params.get('query') === apiId &&
+          r.params.get('size') === '10',
+      );
+      apiSearch.flush({
+        data: [{ type: 'API' as const, apiId: api.id, id: 'nav-1', rootId: 'root-1' }],
+        apis: [api],
+      });
+    });
+
+    it('should fall back to an AGENT catalog item matching the api id when type=api search misses', done => {
+      const agentApi = fakeApi({ id: apiId, name: apiName });
+
+      service.findDocumentationNavigationTarget(apiId, apiName).subscribe(target => {
+        expect(target).toEqual({ rootId: 'agent-root-1', navItemId: 'agent-nav-1' });
+        done();
+      });
+
+      const apiSearch = httpMock.expectOne(
+        r => r.method === 'GET' && r.url === `${baseURL}/portal-navigation-items/_search` && r.params.get('type') === 'api',
+      );
+      apiSearch.flush({ data: [], apis: [] });
+
+      const catalogSearch = httpMock.expectOne(
+        r =>
+          r.method === 'GET' &&
+          r.url === `${baseURL}/portal-navigation-items/_search` &&
+          r.params.get('type') === 'catalog' &&
+          r.params.get('query') === apiName &&
+          r.params.get('size') === '10',
+      );
+      catalogSearch.flush({
+        data: [
+          {
+            type: 'AGENT' as const,
+            apiId: agentApi.id,
+            id: 'agent-nav-1',
+            rootId: 'agent-root-1',
+          },
+        ],
+        apis: [agentApi],
+      });
+    });
+
+    it('should return null when neither the type=api search nor the AGENT catalog fallback matches', done => {
+      service.findDocumentationNavigationTarget(apiId, apiName).subscribe(target => {
+        expect(target).toBeNull();
+        done();
+      });
+
+      httpMock
+        .expectOne(r => r.url === `${baseURL}/portal-navigation-items/_search` && r.params.get('type') === 'api')
+        .flush({
+          data: [],
+          apis: [],
+        });
+      httpMock
+        .expectOne(r => r.url === `${baseURL}/portal-navigation-items/_search` && r.params.get('type') === 'catalog')
+        .flush({
+          data: [
+            {
+              type: 'API' as const,
+              apiId: 'other-api',
+              id: 'other-nav',
+              rootId: 'other-root',
+            },
+          ],
+          apis: [fakeApi({ id: 'other-api', name: apiName })],
+        });
+    });
+  });
 });

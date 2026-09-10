@@ -110,6 +110,27 @@ export class PortalNavigationItemsService {
       .pipe(map(res => this.mapToCatalogSearchResponse(res)));
   }
 
+  findDocumentationNavigationTarget(apiId: string, apiName?: string): Observable<ApiDocumentationNavigationTarget | null> {
+    return this.searchNavigationItemsWithApis(1, apiId, 10).pipe(
+      switchMap(res => {
+        const item = res.data.find(i => i.id === apiId);
+        if (item) {
+          return of({ rootId: item.rootId, navItemId: item.navItemId });
+        }
+        if (!apiName) {
+          return of(null);
+        }
+        return this.searchCatalogItems(1, apiName, 10).pipe(
+          map(catalog => {
+            const agent = catalog.data.find(i => i.type === 'AGENT' && i.id === apiId);
+            return agent ? { rootId: agent.rootId, navItemId: agent.navItemId } : null;
+          }),
+        );
+      }),
+      catchError(() => of(null)),
+    );
+  }
+
   private mapToSearchResponse(res: PortalNavigationItemsSearchResponse): PortalNavigationApisSearchResponse {
     const navItems = res.data ?? [];
     const apis = res.apis ?? [];
