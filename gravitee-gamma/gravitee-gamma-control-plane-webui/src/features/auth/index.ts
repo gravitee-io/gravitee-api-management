@@ -13,10 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { useUser, useIsAuthenticated, useLogin, useLogout, useIdentityProviders, useLocalLoginEnabled } from './auth.selectors';
+export {
+    useUser,
+    useIsAuthenticated,
+    useLogin,
+    useLogout,
+    useIdentityProviders,
+    useLocalLoginEnabled,
+    useRegistrationEnabled,
+} from './auth.selectors';
 export { useAuthStore } from './auth.store';
 export type { CurrentUser as User, SocialIdentityProvider, IdentityProviderType } from './auth.types';
 export { LoginPage } from './components/LoginPage';
 export { ResetPasswordPage } from './components/ResetPasswordPage';
 export { SignUpPage } from './components/SignUpPage';
 export { ProtectedRoute, PublicOnlyRoute } from './components/ProtectedRoute';
+export { RegistrationEnabledRoute } from './components/RegistrationEnabledRoute';
