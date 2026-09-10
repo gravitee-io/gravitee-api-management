@@ -130,13 +130,13 @@ function ProxyPanel() {
 function EndpointStatusBadge({ status }: { status: EndpointStatus }) {
     if (status === 'Healthy') {
         return (
-            <Badge variant="outline" className="ml-auto h-4 border-success/20 text-success shrink-0">
+            <Badge variant="success" className="ml-auto shrink-0">
                 {status}
             </Badge>
         );
     }
     return (
-        <Badge variant="outline" className="ml-auto h-4 shrink-0 text-warning border-warning/30">
+        <Badge variant="warning" className="ml-auto shrink-0">
             {status}
         </Badge>
     );

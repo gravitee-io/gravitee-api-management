@@ -471,7 +471,7 @@ export function ApiGeneralPage() {
                                             <GlobeIcon className="size-3" /> Visibility
                                         </dt>
                                         <dd>
-                                            <Badge variant="outline" className="gap-1" style={{ fontSize: '10px' }}>
+                                            <Badge variant="outline" className="gap-1">
                                                 {api?.visibility === 'PUBLIC' ? (
                                                     <EyeIcon className="size-2.5" />
                                                 ) : (
@@ -484,9 +484,7 @@ export function ApiGeneralPage() {
                                     <div className="flex items-center justify-between gap-2">
                                         <dt className="text-muted-foreground shrink-0 text-xs">Lifecycle</dt>
                                         <dd>
-                                            <Badge variant="secondary" style={{ fontSize: '10px' }}>
-                                                {api?.lifecycleState ?? '—'}
-                                            </Badge>
+                                            <Badge variant="secondary">{api?.lifecycleState ?? '—'}</Badge>
                                         </dd>
                                     </div>
                                     <div className="flex items-center justify-between gap-2">
@@ -689,21 +687,17 @@ function DetailRow({ label, value }: Readonly<{ label: React.ReactNode; value: s
 function StatusBadge({ state }: Readonly<{ state?: string }>) {
     if (state === 'STARTED') {
         return (
-            <Badge variant="outline" className="gap-1 border-success/20 text-success" style={{ fontSize: '10px' }}>
-                <div className="size-1.5 rounded-full bg-success" /> Started
+            <Badge variant="success" className="gap-1">
+                <div className="size-1.5 rounded-full bg-current" /> Started
             </Badge>
         );
     }
     if (state === 'STOPPED') {
         return (
-            <Badge variant="outline" className="gap-1 text-warning" style={{ fontSize: '10px', borderColor: 'var(--color-warning)' }}>
-                <div className="size-1.5 rounded-full" style={{ backgroundColor: 'var(--color-warning)' }} /> Stopped
+            <Badge variant="secondary" className="gap-1">
+                <div className="size-1.5 rounded-full bg-current" /> Stopped
             </Badge>
         );
     }
-    return (
-        <Badge variant="secondary" style={{ fontSize: '10px' }}>
-            {state ?? '—'}
-        </Badge>
-    );
+    return <Badge variant="secondary">{state ?? '—'}</Badge>;
 }

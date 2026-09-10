@@ -19,24 +19,19 @@ import type { SubscriptionStatus } from '../../../types/subscription';
 
 interface StatusConfig {
     label: string;
-    variant?: BadgeVariant;
-    className?: string;
+    variant: BadgeVariant;
 }
 
 const STATUS_CONFIG: Record<SubscriptionStatus, StatusConfig> = {
-    ACCEPTED: { label: 'Accepted', className: 'bg-success/10 text-success border-transparent' },
-    RESUMED: { label: 'Resumed', className: 'bg-success/10 text-success border-transparent' },
-    PENDING: { label: 'Pending', variant: 'outline', className: 'border-warning/30 text-warning' },
-    PAUSED: { label: 'Paused', variant: 'outline', className: 'border-warning/30 text-warning' },
+    ACCEPTED: { label: 'Accepted', variant: 'success' },
+    RESUMED: { label: 'Resumed', variant: 'success' },
+    PENDING: { label: 'Pending', variant: 'warning' },
+    PAUSED: { label: 'Paused', variant: 'warning' },
     REJECTED: { label: 'Rejected', variant: 'destructive' },
     CLOSED: { label: 'Closed', variant: 'secondary' },
 };
 
 export function SubscriptionStatusBadge({ status }: { status: SubscriptionStatus }) {
     const config = STATUS_CONFIG[status] ?? { label: status, variant: 'outline' };
-    return (
-        <Badge variant={config.variant} className={config.className}>
-            {config.label}
-        </Badge>
-    );
+    return <Badge variant={config.variant}>{config.label}</Badge>;
 }

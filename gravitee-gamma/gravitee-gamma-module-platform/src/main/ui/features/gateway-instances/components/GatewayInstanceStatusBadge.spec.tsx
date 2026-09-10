@@ -20,12 +20,13 @@ import { GatewayInstanceStatusBadge } from './GatewayInstanceStatusBadge';
 
 describe('GatewayInstanceStatusBadge', () => {
     it.each([
-        ['STARTED', 'Running'],
-        ['STOPPED', 'Stopped'],
-        ['UNKNOWN', 'Unknown'],
-        [undefined, 'Unknown'],
-    ] as const)('renders %s as %s', (state, label) => {
+        ['STARTED', 'Running', 'success'],
+        ['STOPPED', 'Stopped', 'secondary'],
+        ['UNKNOWN', 'Unknown', 'outline'],
+        [undefined, 'Unknown', 'outline'],
+    ] as const)('renders %s as %s (%s badge)', (state, label, variant) => {
         render(<GatewayInstanceStatusBadge state={state} />);
         expect(screen.queryByText(label)).not.toBeNull();
+        expect(screen.getByText(label).closest('[data-slot="badge"]')?.getAttribute('data-variant')).toBe(variant);
     });
 });
