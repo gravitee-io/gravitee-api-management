@@ -144,6 +144,23 @@ class ReporterProcessorTest extends AbstractProcessorTest {
         }
 
         @Test
+        void should_set_consuming_application_on_log_when_metrics_has_one() {
+            // Given
+            when(reactableApi.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+            ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, reactableApi);
+            ctx.metrics().setApplicationId("application-id");
+            ctx.metrics().setApplicationName("Application name");
+            ctx.metrics().setLog(Log.builder().build());
+
+            // When
+            reporterProcessor.execute(ctx).test().assertResult();
+
+            // Then
+            assertThat(ctx.metrics().getLog().getApplicationId()).isEqualTo("application-id");
+            assertThat(ctx.metrics().getLog().getApplicationName()).isEqualTo("Application name");
+        }
+
+        @Test
         void should_attribute_endpoint_component_when_translating_error_with_endpoint() {
             // Given
             when(reactableApi.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
