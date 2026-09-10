@@ -83,7 +83,7 @@ export function CategorySelectInput({ id, selectedKeys, categories, isLoading, d
                         <span className="text-muted-foreground text-sm flex-1">{disabled ? '' : 'Select categories…'}</span>
                     ) : (
                         selectedCategories.map(c => (
-                            <Badge key={c.key} variant="secondary" style={{ fontSize: '11px', gap: '2px' }}>
+                            <Badge key={c.key} variant="secondary" className="gap-0.5">
                                 {c.name}
                                 {!disabled && (
                                     <button

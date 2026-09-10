@@ -89,7 +89,7 @@ export function ChipInput({
         <div className="relative">
             <div className={`flex min-h-9 flex-wrap gap-1.5 rounded-md border bg-muted/30 p-2 ${disabled ? 'opacity-50' : ''}`}>
                 {values.map((value, index) => (
-                    <Badge key={`${value}-${index}`} variant="secondary" className="gap-0.5 pr-1 text-[11px] font-normal">
+                    <Badge key={`${value}-${index}`} variant="secondary" className="gap-0.5 pr-1 font-normal">
                         {value}
                         <Button
                             type="button"

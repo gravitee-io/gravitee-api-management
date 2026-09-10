@@ -45,7 +45,7 @@ import { formatApplicationOwnerLabel, formatApplicationSecurityTypeLabel } from 
 function StatusBadge({ status }: { status: ApplicationStatus }) {
     if (status === 'ACTIVE') {
         return (
-            <Badge className="gap-1 h-5 w-fit px-1.5 text-xs font-medium bg-success/10 text-success border-transparent">
+            <Badge variant="success" className="gap-1 h-5 w-fit px-1.5 text-xs font-medium">
                 <CircleCheckIcon className="size-3" />
                 Active
             </Badge>

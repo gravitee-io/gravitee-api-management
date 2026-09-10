@@ -63,24 +63,20 @@ function RuntimeStatusBadge({ state }: { state: ApiState | undefined }) {
     switch (state) {
         case 'STARTED':
             return (
-                <Badge variant="outline" className="border-success/20 text-success">
+                <Badge variant="success">
                     <CircleCheckIcon className="size-3 mr-1" aria-hidden />
                     Started
                 </Badge>
             );
         case 'STOPPED':
             return (
-                <Badge variant="outline" className="border-destructive/20 text-destructive">
+                <Badge variant="secondary">
                     <CircleXIcon className="size-3 mr-1" aria-hidden />
                     Stopped
                 </Badge>
             );
         case 'CLOSED':
-            return (
-                <Badge variant="outline" className="text-muted-foreground">
-                    Closed
-                </Badge>
-            );
+            return <Badge variant="outline">Closed</Badge>;
         default:
             return <span className="text-muted-foreground text-xs">—</span>;
     }
@@ -89,14 +85,14 @@ function RuntimeStatusBadge({ state }: { state: ApiState | undefined }) {
 function SyncStatusBadge({ deploymentState }: { deploymentState: ApiDeploymentState | undefined }) {
     if (deploymentState === 'NEED_REDEPLOY') {
         return (
-            <Badge variant="outline" className="border-warning/30 text-warning">
+            <Badge variant="warning">
                 <AlertCircleIcon className="size-3 mr-1" aria-hidden />
                 Out of sync
             </Badge>
         );
     }
     return (
-        <Badge variant="outline" className="border-success/20 text-success">
+        <Badge variant="outline">
             <RefreshCwIcon className="size-3 mr-1" aria-hidden />
             In sync
         </Badge>
