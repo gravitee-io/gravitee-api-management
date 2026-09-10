@@ -55,12 +55,15 @@ describe('ApiTargetsPage', () => {
         renderPage(API);
 
         expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Targets');
+        // One short line, as on the agent's page: the panel carries the rest.
+        expect(screen.getByText('The thresholds this API is held to.')).toBeInTheDocument();
         expect(screen.getByTestId('targets-provider')).toContainElement(screen.getByTestId('targets-panel'));
         expect(mockTargetsPanel.mock.calls[0][0]).toEqual({
             reference: 'api-1',
             apiIds: ['api-1'],
             apiTypes: ['PROXY'],
             readOnly: false,
+            emptyDescription: 'Nothing is watching this API yet.',
         });
     });
 
