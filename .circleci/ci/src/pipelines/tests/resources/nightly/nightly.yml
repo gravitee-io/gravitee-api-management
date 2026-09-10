@@ -117,12 +117,14 @@ commands:
 
             if [ "$CODE" != "200" ]; then
               echo "Entra refused to issue a token (HTTP ${CODE:-no answer})." >&2
-              printf '%s' "$BODY" | sed -n 's/.*"error_description":"\([^"]*\)".*/  \1/p' >&2
+              # || true: a non-JSON body would make jq exit non-zero and, under pipefail, cut the two
+              # lines below — losing the diagnostics this branch exists to print.
+              printf '%s' "$BODY" | jq -r '.error_description // empty' >&2 || true
               echo "Same secret as job-deploy-on-azure: if it expired, that job is failing too." >&2
               exit 1
             fi
 
-            TOKEN=$(printf '%s' "$BODY" | sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p')
+            TOKEN=$(printf '%s' "$BODY" | jq -r '.access_token // empty') || TOKEN=''
             if [ -z "$TOKEN" ]; then
               echo "Entra answered 200 with no access_token in the body." >&2
               exit 1
