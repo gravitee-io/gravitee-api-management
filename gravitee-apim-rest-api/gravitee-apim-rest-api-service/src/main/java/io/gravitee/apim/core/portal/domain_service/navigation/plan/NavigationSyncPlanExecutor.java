@@ -48,18 +48,6 @@ public final class NavigationSyncPlanExecutor {
     private final PortalNavigationItemsQueryService queryService;
     private final PortalPageContentCrudService pageContentCrudService;
 
-    /** Transitional: callers that do not yet carry a reference plan in the default namespace. */
-    public void execute(
-        NavigationSyncPlan plan,
-        AuditInfo auditInfo,
-        PortalArea area,
-        @Nullable PortalNavigationItemContainer root,
-        Function<String, PortalNavigationItemId> idFactory,
-        DeleteStrategy strategy
-    ) {
-        execute(plan, auditInfo, area, root, NavigationItemReference.defaultReference(), idFactory, strategy);
-    }
-
     public void execute(
         NavigationSyncPlan plan,
         AuditInfo auditInfo,
