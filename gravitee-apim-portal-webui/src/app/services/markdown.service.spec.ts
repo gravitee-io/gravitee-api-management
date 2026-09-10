@@ -16,7 +16,7 @@
 import { createServiceFactory, mockProvider, SpectatorService } from '@ngneat/spectator/jest';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClient } from '@angular/common/http';
-import { RendererObject } from 'marked';
+import { Parser, RendererObject, Tokens } from 'marked';
 
 import { Page } from '../../../projects/portal-webclient-sdk/src/lib';
 
@@ -99,12 +99,29 @@ describe('MarkdownService', () => {
     renderer = service.service.renderer(BASE_URL, PAGE_BASE_URL, PAGES);
   });
 
+  // Since marked 13 a renderer receives a token instead of positional arguments, and reads a link's
+  // display text from its children. marked also binds the renderer to the parser doing the rendering.
+  const parser = new Parser();
+
+  const renderImage = (href: string, title: string, text: string) =>
+    renderer.image.call({ parser }, { type: 'image', raw: '', href, title, text, tokens: [] } as Tokens.Image);
+
+  const renderLink = (href: string, title: string, text: string) =>
+    renderer.link.call({ parser }, {
+      type: 'link',
+      raw: '',
+      href,
+      title,
+      text,
+      tokens: text ? [{ type: 'text', raw: text, text, escaped: false } as Tokens.Text] : [],
+    } as Tokens.Link);
+
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
 
   it('should use correct portal media url', () => {
-    const renderedImage = renderer.image(
+    const renderedImage = renderImage(
       'https://host:port/contextpath/management/organizations/DEFAULT/environments/DEFAULT/portal/media/123456789',
       'title',
       'text',
@@ -115,7 +132,7 @@ describe('MarkdownService', () => {
   });
 
   it('should use correct api media url', () => {
-    const renderedImage = renderer.image(
+    const renderedImage = renderImage(
       'https://host:port/contextpath/management/organizations/DEFAULT/environments/DEFAULT/apis/1A2Z3E4R5T6Y/media/123456789',
       'title',
       'text',
@@ -126,21 +143,21 @@ describe('MarkdownService', () => {
   });
 
   it('should use a.internal-link for render an portal page link', () => {
-    const renderedLink = renderer.link('/#!/settings/pages/123456789', 'title', 'text');
+    const renderedLink = renderLink('/#!/settings/pages/123456789', 'title', 'text');
 
     expect(renderedLink).not.toBeNull();
     expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=123456789">text</a>');
   });
 
   it('should use a.internal-link for render an api page link', () => {
-    const renderedLink = renderer.link('/#!/apis/1A2Z3E4R5T6Y/documentation/123456789', 'title', 'text');
+    const renderedLink = renderLink('/#!/apis/1A2Z3E4R5T6Y/documentation/123456789', 'title', 'text');
 
     expect(renderedLink).not.toBeNull();
     expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=123456789">text</a>');
   });
 
   it('should use a.anchor for render an anchor', () => {
-    const renderedLink = renderer.link('#anchor', 'Anchor', '');
+    const renderedLink = renderLink('#anchor', 'Anchor', '');
 
     expect(renderedLink).not.toBeNull();
     expect(renderedLink).toEqual('<a class="anchor" href="#anchor"></a>');
@@ -149,63 +166,63 @@ describe('MarkdownService', () => {
   describe('Relative link -- /#!/documentation', () => {
     describe('within Api scope -- /api', () => {
       it('should find page by its name', () => {
-        const renderedLink = renderer.link('/#!/documentation/api/myPage#MARKDOWN', 'title', 'text');
+        const renderedLink = renderLink('/#!/documentation/api/myPage#MARKDOWN', 'title', 'text');
 
         expect(renderedLink).not.toBeNull();
         expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=123456789">text</a>');
       });
 
       it('should find page by its name and file type', () => {
-        const renderedLink = renderer.link('/#!/documentation/api/myPage#SWAGGER', 'title', 'text');
+        const renderedLink = renderLink('/#!/documentation/api/myPage#SWAGGER', 'title', 'text');
 
         expect(renderedLink).not.toBeNull();
         expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=22">text</a>');
       });
 
       it('should find SWAGGER page by OPENAPI file reference', () => {
-        const renderedLink = renderer.link('/#!/documentation/api/myPage#OPENAPI', 'title', 'text');
+        const renderedLink = renderLink('/#!/documentation/api/myPage#OPENAPI', 'title', 'text');
 
         expect(renderedLink).not.toBeNull();
         expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=22">text</a>');
       });
 
       it('should find page by its name with spaces', () => {
-        const renderedLink = renderer.link('/#!/documentation/api/my%20Page#MARKDOWN', 'title', 'text');
+        const renderedLink = renderLink('/#!/documentation/api/my%20Page#MARKDOWN', 'title', 'text');
 
         expect(renderedLink).not.toBeNull();
         expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=33">text</a>');
       });
 
       it('should find page by its name and path', () => {
-        const renderedLink = renderer.link('/#!/documentation/api/parent/myPage#MARKDOWN', 'title', 'text');
+        const renderedLink = renderLink('/#!/documentation/api/parent/myPage#MARKDOWN', 'title', 'text');
 
         expect(renderedLink).not.toBeNull();
         expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=44">text</a>');
       });
 
       it('should find page with multi layer path with spaces', () => {
-        const renderedLink = renderer.link('/#!/documentation/api/grand%20parent/my%20parent/my%20page#MARKDOWN', 'title', 'text');
+        const renderedLink = renderLink('/#!/documentation/api/grand%20parent/my%20parent/my%20page#MARKDOWN', 'title', 'text');
 
         expect(renderedLink).not.toBeNull();
         expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=55">text</a>');
       });
 
       it('should find page with symbols its name', () => {
-        const renderedLink = renderer.link('/#!/documentation/api/my#$%^&*(){}?>.\\|éàêcrazy@%20page#MARKDOWN', 'title', 'text');
+        const renderedLink = renderLink('/#!/documentation/api/my#$%^&*(){}?>.\\|éàêcrazy@%20page#MARKDOWN', 'title', 'text');
 
         expect(renderedLink).not.toBeNull();
         expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=66">text</a>');
       });
 
       it('should return link with file name even if not found', () => {
-        const renderedLink = renderer.link('/#!/documentation/api/doesNotExist#MARKDOWN', 'title', 'text');
+        const renderedLink = renderLink('/#!/documentation/api/doesNotExist#MARKDOWN', 'title', 'text');
 
         expect(renderedLink).not.toBeNull();
         expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=doesNotExist">text</a>');
       });
 
       it('should return link with file name even if parent id invalid', () => {
-        const renderedLink = renderer.link('/#!/documentation/api/doesNotExist/myPage#MARKDOWN', 'title', 'text');
+        const renderedLink = renderLink('/#!/documentation/api/doesNotExist/myPage#MARKDOWN', 'title', 'text');
 
         expect(renderedLink).not.toBeNull();
         expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=myPage">text</a>');
@@ -215,7 +232,7 @@ describe('MarkdownService', () => {
         'Bad format path: %s -- should return original link',
         async (path: string) => {
           const link = `/#!/documentation/api/${path}`;
-          const renderedLink = renderer.link(link, 'title', 'text');
+          const renderedLink = renderLink(link, 'title', 'text');
 
           expect(renderedLink).not.toBeNull();
           expect(renderedLink).toEqual(`<a href="${link}" title="title">text</a>`);

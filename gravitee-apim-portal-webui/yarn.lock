@@ -3751,11 +3751,11 @@ __metadata:
     jest-preset-angular: "npm:14.6.2"
     js-yaml: "npm:4.3.2"
     license-check-and-add: "npm:4.0.5"
-    marked: "npm:12.0.2"
+    marked: "npm:15.0.12"
     marked-alert: "npm:2.1.2"
-    marked-emoji: "npm:1.4.3"
-    marked-extended-tables: "npm:1.1.1"
-    marked-gfm-heading-id: "npm:3.2.0"
+    marked-emoji: "npm:2.0.3"
+    marked-extended-tables: "npm:2.0.1"
+    marked-gfm-heading-id: "npm:4.1.4"
     marked-highlight: "npm:2.2.4"
     ng-packagr: "npm:20.3.2"
     ngx-cookie-service: "npm:20.1.1"
@@ -13760,32 +13760,32 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked-emoji@npm:1.4.3":
-  version: 1.4.3
-  resolution: "marked-emoji@npm:1.4.3"
+"marked-emoji@npm:2.0.3":
+  version: 2.0.3
+  resolution: "marked-emoji@npm:2.0.3"
   peerDependencies:
-    marked: ">=4 <16"
-  checksum: 10c0/4a91fdb6440678d811000bdaee25b8327faa3d4c912d45cfffc7f966092447e9879169b47c7355a3d7959a876b4bfcec00afe5f8809a8b890d7aa6ecaff7871a
+    marked: ">=4 <19"
+  checksum: 10c0/7ef7654c1d0c87317eae0172fc03e0048c131a2544d8b0610566327996102c011951a8c9442d0bad818dd6ffcf59e52265e5dc744edb49f007c1f4cd92fcbc7f
   languageName: node
   linkType: hard
 
-"marked-extended-tables@npm:1.1.1":
-  version: 1.1.1
-  resolution: "marked-extended-tables@npm:1.1.1"
+"marked-extended-tables@npm:2.0.1":
+  version: 2.0.1
+  resolution: "marked-extended-tables@npm:2.0.1"
   peerDependencies:
     marked: ">=3 <16"
-  checksum: 10c0/3361e7d61a20e43698b20f1d4f7f8a475d4f0a096a6121437ae441947e9db7f9016bdca35397ccf9f68238e424836c0296a574580202660d23b5793f1d1760f9
+  checksum: 10c0/5c647ce51124e3b34a5b4fd2a4d3514b74f2b229a3a7dfdfa3057aa361fa332c98a162525befd08472125c72c23ea79a63bc1d64e0e999fae544bbe32d0cdc4a
   languageName: node
   linkType: hard
 
-"marked-gfm-heading-id@npm:3.2.0":
-  version: 3.2.0
-  resolution: "marked-gfm-heading-id@npm:3.2.0"
+"marked-gfm-heading-id@npm:4.1.4":
+  version: 4.1.4
+  resolution: "marked-gfm-heading-id@npm:4.1.4"
   dependencies:
     github-slugger: "npm:^2.0.0"
   peerDependencies:
-    marked: ">=4 <13"
-  checksum: 10c0/aba170f042049248047db4c1202c9cf3434858ca8e15b1b0d42905a6086135e98ac5edc8437c48c1206402cdb1f0fd0fbdcad410792a7d7150bec6095108b365
+    marked: ">=13 <19"
+  checksum: 10c0/677982332f26e64fce426c00219b7b6ee9a45dd87e3e83ee0606b42bdb0548fe04789767aa2119573343db0143d8417afd60654d9fc7f3ba421ca3030f9755f4
   languageName: node
   linkType: hard
 
@@ -13798,12 +13798,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked@npm:12.0.2":
-  version: 12.0.2
-  resolution: "marked@npm:12.0.2"
+"marked@npm:15.0.12":
+  version: 15.0.12
+  resolution: "marked@npm:15.0.12"
   bin:
     marked: bin/marked.js
-  checksum: 10c0/45ae2e1e3f06b30a5b5f64efc6cde9830c81d1d024fd7668772a3217f1bc0f326e66a6b8970482d9783edf1f581fecac7023a7fa160f2c14dbcc16e064b4eafb
+  checksum: 10c0/e09da211544b787ecfb25fed07af206060bf7cd6d9de6cb123f15c496a57f83b7aabea93340aaa94dae9c94e097ae129377cad6310abc16009590972e85f4212
   languageName: node
   linkType: hard
 
