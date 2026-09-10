@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Badge } from '@gravitee/graphene-core';
+import { Badge, type BadgeVariant } from '@gravitee/graphene-core';
 
 import type { AlertSeverity } from '../types/alert';
-
-type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline';
 
 const SEVERITY_CONFIG: Record<AlertSeverity, { label: string; variant: BadgeVariant }> = {
     CRITICAL: { label: 'critical', variant: 'destructive' },
@@ -27,7 +25,7 @@ const SEVERITY_CONFIG: Record<AlertSeverity, { label: string; variant: BadgeVari
 
 /** Colored severity pill for the env alerts list (and later create/edit). */
 export function SeverityBadge({ severity }: { severity: AlertSeverity }) {
-    const config = SEVERITY_CONFIG[severity] ?? { label: severity.toLowerCase(), variant: 'outline' as BadgeVariant };
+    const config = SEVERITY_CONFIG[severity] ?? { label: severity.toLowerCase(), variant: 'outline' };
     return (
         <Badge variant={config.variant} className="text-xs font-normal capitalize">
             {config.label}

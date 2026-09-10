@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { BadgeVariant } from '@gravitee/graphene-core';
+
 import type { ClientCertificate, ClientCertificateStatus } from '../../types/applicationCertificate';
 
 export function certificateStatusLabel(status: ClientCertificateStatus): string {
@@ -29,7 +31,7 @@ export function certificateStatusLabel(status: ClientCertificateStatus): string 
     }
 }
 
-export function certificateStatusVariant(status: ClientCertificateStatus): 'default' | 'secondary' | 'destructive' | 'outline' {
+export function certificateStatusVariant(status: ClientCertificateStatus): BadgeVariant {
     if (status === 'REVOKED') return 'destructive';
     if (status === 'SCHEDULED') return 'outline';
     return 'secondary';
