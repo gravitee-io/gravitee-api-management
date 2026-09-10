@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.crud_service.subscription_form;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -379,6 +380,16 @@ class SubscriptionFormCrudServiceImplTest {
 
             verify(repository).delete(SubscriptionFormFixtures.FORM_ID);
             verify(pageContentCrudService, never()).delete(any());
+        }
+
+        @Test
+        void should_keep_the_deletion_when_the_page_content_cannot_be_deleted() throws TechnicalException {
+            doThrow(new IllegalStateException("boom")).when(pageContentCrudService).delete(SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID);
+            var subscriptionForm = SubscriptionFormFixtures.aSubscriptionForm();
+
+            assertThatCode(() -> service.delete(subscriptionForm)).doesNotThrowAnyException();
+
+            verify(repository).delete(SubscriptionFormFixtures.FORM_ID);
         }
 
         @Test
