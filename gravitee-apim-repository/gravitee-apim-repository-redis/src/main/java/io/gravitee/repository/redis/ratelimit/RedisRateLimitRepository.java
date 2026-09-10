@@ -18,7 +18,6 @@ package io.gravitee.repository.redis.ratelimit;
 import static io.gravitee.repository.redis.ratelimit.RateLimitRepositoryConfiguration.SCRIPT_RATELIMIT_KEY;
 
 import io.gravitee.repository.exception.RedisNotConnectedException;
-import io.gravitee.repository.exception.RedisOperationTimeoutException;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
 import io.gravitee.repository.redis.vertx.RedisClient;
@@ -31,7 +30,6 @@ import io.vertx.rxjava3.SingleHelper;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -82,7 +80,7 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
                         return redisAPI
                             .evalsha(scriptArgs)
                             .recover(t -> {
-                                if (!isNoScript(t)) {
+                                if (!RedisScriptSupport.isNoScript(t)) {
                                     return Future.failedFuture(t);
                                 }
                                 final String source = this.redisClient.scriptSource(SCRIPT_RATELIMIT_KEY);
@@ -109,15 +107,11 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
                                     });
                             })
                             .timeout(operationTimeout, TimeUnit.MILLISECONDS)
-                            .recover(this::mapTimeout);
+                            .recover(t -> RedisScriptSupport.mapTimeout(t, operationTimeout));
                     })
                     .onFailure(t -> {
                         logOperationFailure(t);
-                        // Timeouts are not connection failures; notifying would force unnecessary reconnects
-                        // (RxJava timeout previously sat outside this Vert.x chain and never notified).
-                        if (!(t instanceof RedisOperationTimeoutException)) {
-                            redisClient.notifyConnectionFailure(t);
-                        }
+                        redisClient.notifyConnectionFailure(t);
                     })
                     .onComplete(asyncResultHandler)
         ).map(response -> {
@@ -135,32 +129,6 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
 
             return newRate;
         });
-    }
-
-    private Future<Response> mapTimeout(Throwable t) {
-        if (t instanceof TimeoutException) {
-            return Future.failedFuture(new RedisOperationTimeoutException(operationTimeout));
-        }
-        return Future.failedFuture(t);
-    }
-
-    private static final String NOSCRIPT_PREFIX = "NOSCRIPT";
-
-    /**
-     * Returns true only when the error (or one of its causes) is a Redis {@code NOSCRIPT} reply.
-     * Matches the error-code prefix (Redis error replies start with the uppercase code), not a
-     * substring, so unrelated messages can't trigger a (non-idempotent) EVAL replay; walks the
-     * cause chain and is case-insensitive to survive wrapping.
-     */
-    private static boolean isNoScript(Throwable t) {
-        int depth = 0;
-        for (Throwable cause = t; cause != null && depth < 20; cause = cause.getCause(), depth++) {
-            String message = cause.getMessage();
-            if (message != null && message.stripLeading().regionMatches(true, 0, NOSCRIPT_PREFIX, 0, NOSCRIPT_PREFIX.length())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private void logOperationFailure(Throwable t) {
