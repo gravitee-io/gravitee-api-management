@@ -3721,8 +3721,8 @@ __metadata:
     "@highcharts/map-collection": "npm:2.3.3"
     "@messageformat/core": "npm:3.4.0"
     "@ngneat/spectator": "npm:22.1.0"
-    "@ngx-translate/core": "npm:14.0.0"
-    "@ngx-translate/http-loader": "npm:7.0.0"
+    "@ngx-translate/core": "npm:15.0.0"
+    "@ngx-translate/http-loader": "npm:8.0.0"
     "@types/jest": "npm:29.5.14"
     "@types/js-yaml": "npm:4.0.9"
     "@types/node": "npm:22.20.2"
@@ -5094,28 +5094,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ngx-translate/core@npm:14.0.0":
-  version: 14.0.0
-  resolution: "@ngx-translate/core@npm:14.0.0"
-  dependencies:
-    tslib: "npm:^2.3.0"
+"@ngx-translate/core@npm:15.0.0":
+  version: 15.0.0
+  resolution: "@ngx-translate/core@npm:15.0.0"
   peerDependencies:
-    "@angular/core": ">=13.0.0"
-    rxjs: ^6.5.3 || ^7.4.0
-  checksum: 10c0/6c1cd10a0209c1c3227b7c70cb16257208f7fc4d193632af800ca152d0bd80dfe3a5f5a244022dc48fee70bfc3d332e696d5268bfed1b5c072d1bec4785498fe
+    "@angular/common": ">=16.0.0"
+    "@angular/core": ">=16.0.0"
+    rxjs: ^6.5.5 || ^7.4.0
+  checksum: 10c0/a79c80f1ed9dc36285fb7cef82957089d7f7682a0cc6f97bb6682a8587beaebc5daddb3f44408a09f58991a7a68abb6a05d252a2f0e4d091366bc059cad7edfa
   languageName: node
   linkType: hard
 
-"@ngx-translate/http-loader@npm:7.0.0":
-  version: 7.0.0
-  resolution: "@ngx-translate/http-loader@npm:7.0.0"
-  dependencies:
-    tslib: "npm:^2.3.0"
+"@ngx-translate/http-loader@npm:8.0.0":
+  version: 8.0.0
+  resolution: "@ngx-translate/http-loader@npm:8.0.0"
   peerDependencies:
-    "@angular/common": ">=13.0.0"
-    "@ngx-translate/core": ">=14.0.0"
-    rxjs: ^6.5.3 || ^7.4.0
-  checksum: 10c0/a95de5e19fe30d9c8b92f1f6e9e688b2254550ccf30cf3ec74bf8d7d4f49f472440c2d61d2dc81dae3de220347dc4315fffc46d02dde9f351b5dc88243319aaa
+    "@angular/common": ">=16.0.0"
+    "@angular/core": ">=16.0.0"
+    "@ngx-translate/core": ">=15.0.0"
+    rxjs: ^6.5.5 || ^7.4.0
+  checksum: 10c0/200ad76239a51dec431c12d8e87160281c156252f1bae164fbee2d66ee0d34a4e2eb5102dd3cb040f743a4d7221e486fe33186e8955064e5afcfb6a546e45f56
   languageName: node
   linkType: hard
 
