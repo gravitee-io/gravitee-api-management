@@ -73,12 +73,14 @@ BODY=$(printf '%s' "$RESPONSE" | sed '$d')
 
 if [ "$CODE" != "200" ]; then
   echo "Entra refused to issue a token (HTTP \${CODE:-no answer})." >&2
-  printf '%s' "$BODY" | sed -n 's/.*"error_description":"\\([^"]*\\)".*/  \\1/p' >&2
+  # || true: a non-JSON body would make jq exit non-zero and, under pipefail, cut the two
+  # lines below — losing the diagnostics this branch exists to print.
+  printf '%s' "$BODY" | jq -r '.error_description // empty' >&2 || true
   echo "Same secret as job-deploy-on-azure: if it expired, that job is failing too." >&2
   exit 1
 fi
 
-TOKEN=$(printf '%s' "$BODY" | sed -n 's/.*"access_token":"\\([^"]*\\)".*/\\1/p')
+TOKEN=$(printf '%s' "$BODY" | jq -r '.access_token // empty') || TOKEN=''
 if [ -z "$TOKEN" ]; then
   echo "Entra answered 200 with no access_token in the body." >&2
   exit 1
@@ -101,7 +103,7 @@ echo "export AZURE_ARTIFACTS_PAT='\${TOKEN}'" >> "$BASH_ENV"`,
         // Scaffolding, to be removed with Artifactory: see the note on job-setup's Maven check.
         command: `CODE=$(curl -s -o /dev/null -w '%{http_code}' --retry 3 --retry-all-errors --retry-delay 5 --max-time 30 \\
   -u "bot:\${AZURE_ARTIFACTS_PAT}" \\
-  "https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee/maven/v1/io/gravitee/canary/feed-canary/1.0.0/feed-canary-1.0.0.pom") || CODE=000
+  "${config.maven.azureFeedUrl}/io/gravitee/canary/feed-canary/1.0.0/feed-canary-1.0.0.pom") || CODE=000
 
 case "$CODE" in
   200) echo "The feed resolves the canary." ;;
