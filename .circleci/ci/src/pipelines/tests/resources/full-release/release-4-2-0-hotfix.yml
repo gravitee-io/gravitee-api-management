@@ -577,9 +577,9 @@ jobs:
       - run:
           name: Remove `-SNAPSHOT` from versions
           command: |-
-            mvn -B versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
+            mvn -B -s .gravitee.settings.xml versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
             sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
-            mvn -B -f gravitee-apim-distribution/pom.xml versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
+            mvn -B -s .gravitee.settings.xml -f gravitee-apim-distribution/pom.xml versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
             sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" gravitee-apim-distribution/pom.xml
       - cmd-prepare-gpg
       - run:
