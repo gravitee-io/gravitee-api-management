@@ -99,9 +99,11 @@ Before triggering anything, the command checks two things, both read-only, so th
 
 `--dry-run` runs the same job with the pushes disarmed, which is as far as a rehearsal goes here: a tag cannot be pushed provisionally, so what it rehearses is the commit, the tag and the bump — not the publication, and not the pull request that follows it.
 
-Only the root pom is advanced. The distribution carries its own triplet and releases under its own tag, so a core release leaves it where it is.
+Only the root pom is advanced. The distribution carries its own triplet, so a core release leaves it where it is; `full_release` is still what releases it, until it gets a lane of its own.
 
-What a core release never touches is `apim.core.version` — the version of the core the distribution assembles. Advancing that pin is a separate, reviewed change: it is the moment someone decides a core is ready to ship. Renovate opens it on its own, as an ordinary dependency update.
+What a core release never touches is `apim.core.version` — the version of the core the distribution assembles. Advancing that pin is a separate, reviewed change: it is the moment someone decides a core is ready to ship.
+
+The release lane opens that pull request itself, once the core is published, and brings it up to date on every later core release rather than opening a second one. Merging it is the decision; leaving it costs nothing, the branch keeping the core it already pins.
 
 == Hotfixes
 

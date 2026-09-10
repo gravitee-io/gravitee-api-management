@@ -49,9 +49,12 @@
     <properties>
         <!--
             The distribution carries its own CI-friendly version properties: gravitee-parent does not
-            define them, and this reactor now sets its own version. Kept in step with the engine for
-            now — the two release together — which is what makes a later split of the two cadences a
-            change of these three lines rather than a restructuring.
+            define them, and this reactor sets its own version. It no longer has to agree with the
+            core's: a core release moves the root pom alone, and what this reactor assembles is the
+            apim.core.version below, never its own triplet.
+
+            The two still move together in a full release, which is the one command releasing both
+            reactors at once. That ends when the distribution gets a lane of its own.
         -->
         <revision>4.13.0</revision>
         <sha1 />

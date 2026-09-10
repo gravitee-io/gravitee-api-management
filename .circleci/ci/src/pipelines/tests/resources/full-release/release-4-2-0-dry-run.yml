@@ -645,8 +645,8 @@ jobs:
           name: Git release - Dry Run
           command: |
             # Remove `-SNAPSHOT` from source
-            # Backend. Both poms: this releases the two reactors at once, so both carry the version being
-            # released. The core lane moves the root alone, the distribution lane will move the other.
+            # Backend. Both poms: this is the one command that releases the two reactors at once, so both
+            # carry the version being released. The core lane moves the root alone.
             POMS="pom.xml gravitee-apim-distribution/pom.xml"
             for POM in ${POMS}; do
               sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" "${POM}"
