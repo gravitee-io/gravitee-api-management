@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest.core.observability.filter.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 
 import io.gravitee.gamma.rest.core.observability.filter.exception.ObservabilityFilterNotFoundException;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
@@ -43,11 +44,7 @@ class GetObservabilityFilterValuesUseCaseTest {
         assertThat(output.values().totalElements()).isEqualTo(8L);
         assertThat(output.values().data())
             .extracting(FilterValue::value, FilterValue::label)
-            .contains(
-                org.assertj.core.api.Assertions.tuple("NATIVE", "Kafka (native)"),
-                org.assertj.core.api.Assertions.tuple("HTTP_PROXY", "HTTP Proxy"),
-                org.assertj.core.api.Assertions.tuple("A2A", "A2A")
-            );
+            .contains(tuple("NATIVE", "Kafka (native)"), tuple("HTTP_PROXY", "HTTP Proxy"), tuple("A2A", "A2A"));
     }
 
     @Test
@@ -96,13 +93,67 @@ class GetObservabilityFilterValuesUseCaseTest {
     }
 
     @Test
-    void should_list_entrypoint_values_from_the_data_port() {
+    void should_offer_the_no_entrypoint_value_after_the_stored_entrypoint_ids() {
         dataPort.givenKeywordValues("ENTRYPOINT", List.of(new FilterValue("http-proxy", null), new FilterValue("mcp-studio", null)));
 
         var output = useCase.execute(new GetObservabilityFilterValuesUseCase.Input("ENTRYPOINT", null, null, null, null, null));
 
-        assertThat(output.values().data()).extracting(FilterValue::value).containsExactly("http-proxy", "mcp-studio");
-        assertThat(output.values().totalElements()).isEqualTo(2L);
+        assertThat(output.values().data())
+            .extracting(FilterValue::value, FilterValue::label)
+            .containsExactly(
+                tuple("http-proxy", null),
+                tuple("mcp-studio", null),
+                tuple("(none)", "No entrypoint (refused before routing)")
+            );
+        assertThat(output.values().totalElements()).isEqualTo(3L);
+    }
+
+    @Test
+    void should_place_the_no_entrypoint_value_right_after_the_last_stored_id_across_pages() {
+        dataPort.givenKeywordValues(
+            "ENTRYPOINT",
+            List.of(new FilterValue("a", null), new FilterValue("b", null), new FilterValue("c", null))
+        );
+
+        var firstPage = useCase.execute(new GetObservabilityFilterValuesUseCase.Input("ENTRYPOINT", null, null, null, 1, 2));
+        var secondPage = useCase.execute(new GetObservabilityFilterValuesUseCase.Input("ENTRYPOINT", null, null, null, 2, 2));
+
+        assertThat(firstPage.values().data()).extracting(FilterValue::value).containsExactly("a", "b");
+        assertThat(firstPage.values().totalElements()).isEqualTo(4L);
+        assertThat(secondPage.values().data()).extracting(FilterValue::value).containsExactly("c", "(none)");
+    }
+
+    @Test
+    void should_open_a_page_for_the_no_entrypoint_value_when_the_stored_ids_fill_the_last_one() {
+        dataPort.givenKeywordValues("ENTRYPOINT", List.of(new FilterValue("a", null), new FilterValue("b", null)));
+
+        var secondPage = useCase.execute(new GetObservabilityFilterValuesUseCase.Input("ENTRYPOINT", null, null, null, 2, 2));
+
+        assertThat(secondPage.values().data()).extracting(FilterValue::value).containsExactly("(none)");
+        assertThat(secondPage.values().totalElements()).isEqualTo(3L);
+    }
+
+    @Test
+    void should_narrow_the_no_entrypoint_value_the_way_the_store_narrows_stored_ids() {
+        // The store matches a KEYWORD value exactly, case-insensitively; offering the synthetic value on a
+        // partial query would make it the only answer to any prefix of its label.
+        dataPort.givenKeywordValues("ENTRYPOINT", List.of(new FilterValue("http-proxy", null)));
+
+        var exact = useCase.execute(new GetObservabilityFilterValuesUseCase.Input("ENTRYPOINT", "(NONE)", null, null, null, null));
+        var partial = useCase.execute(new GetObservabilityFilterValuesUseCase.Input("ENTRYPOINT", "refused", null, null, null, null));
+
+        assertThat(exact.values().data()).extracting(FilterValue::value).containsExactly("(none)");
+        assertThat(partial.values().data()).extracting(FilterValue::value).doesNotContain("(none)");
+    }
+
+    @Test
+    void should_keep_the_synthetic_value_out_of_other_keyword_filters() {
+        dataPort.givenKeywordValues("API", List.of(new FilterValue("api-1", "Petstore")));
+
+        var output = useCase.execute(new GetObservabilityFilterValuesUseCase.Input("API", null, null, null, null, null));
+
+        assertThat(output.values().data()).extracting(FilterValue::value).containsExactly("api-1");
+        assertThat(output.values().totalElements()).isEqualTo(1L);
     }
 
     @Test
