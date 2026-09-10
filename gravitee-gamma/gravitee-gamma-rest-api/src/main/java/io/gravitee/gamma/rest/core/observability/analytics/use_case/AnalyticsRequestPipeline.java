@@ -23,7 +23,6 @@ import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
-import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.EntrypointScopeProvider;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -34,9 +33,11 @@ import lombok.AllArgsConstructor;
 
 /**
  * Shared pipeline for the three analytics use cases: validates incoming filter conditions against
- * the {@link Signal#ANALYTICS} catalog, computes the RBAC-scoped API set, applies default
- * entrypoint scoping, and returns a prepared scope using only Gamma-native types. All APIM
- * analytics-engine type translation is deferred to the infra adapter.
+ * the {@link Signal#ANALYTICS} catalog, computes the RBAC-scoped API set, strips the scope-only
+ * conditions, and returns a prepared scope using only Gamma-native types. The entrypoint scope is the
+ * engine's: it applies its fail-open default to a query without an {@code ENTRYPOINT} condition and
+ * honours an explicit one exactly. All APIM analytics-engine type translation is deferred to the infra
+ * adapter.
  *
  * @author GraviteeSource Team
  */
@@ -48,7 +49,6 @@ public class AnalyticsRequestPipeline {
 
     private final ObservabilityFilterValidator filterValidator;
     private final AccessibleApiScopeDomainService accessibleApiScope;
-    private final EntrypointScopeProvider entrypointScope;
 
     /**
      * Validated and RBAC-scoped request data, expressed entirely in Gamma-native types. The infra
@@ -79,20 +79,16 @@ public class AnalyticsRequestPipeline {
         var userApiFilter = extractApiFilter(conditions);
         var scope = accessibleApiScope.computeScope(accessibleApis, ANALYTICS_SUPPORTED_API_TYPES, userApiFilter);
 
-        if (scope.apiIds().isEmpty() && !userApiFilter.isEmpty()) {
+        // Nothing readable means nothing to query, whether the caller named APIs it cannot read or none at
+        // all: an analytics query never runs environment-wide.
+        if (scope.apiIds().isEmpty()) {
             return PreparedScope.EMPTY;
         }
 
-        var withoutApi = removeApiConditions(conditions);
-        var isAuthzDecision = isAuthzDecisionRequest(withoutApi);
-        var withoutRecordType = removeRecordTypeConditions(withoutApi);
-        // Entrypoints only exist on request documents; injecting them would match nothing on a decision.
-        var effectiveConditions = isAuthzDecision ? withoutRecordType : applyDefaultEntrypointScoping(withoutRecordType);
+        var effectiveConditions = removeRecordTypeConditions(removeApiConditions(conditions));
 
         var allFilters = new ArrayList<>(effectiveConditions);
-        if (!scope.apiIds().isEmpty()) {
-            allFilters.add(new FilterCondition("API", FilterOperator.IN, List.copyOf(scope.apiIds())));
-        }
+        allFilters.add(new FilterCondition("API", FilterOperator.IN, List.copyOf(scope.apiIds())));
 
         return new PreparedScope(from, to, List.copyOf(allFilters), scope.apiIds());
     }
@@ -116,20 +112,6 @@ public class AnalyticsRequestPipeline {
             .stream()
             .filter(c -> !"API".equals(c.name()))
             .toList();
-    }
-
-    private List<FilterCondition> applyDefaultEntrypointScoping(List<FilterCondition> conditions) {
-        boolean hasEntrypoint = conditions.stream().anyMatch(c -> "ENTRYPOINT".equals(c.name()));
-        if (hasEntrypoint) {
-            return conditions;
-        }
-        var result = new ArrayList<>(conditions);
-        result.add(new FilterCondition("ENTRYPOINT", FilterOperator.IN, entrypointScope.analyticsScope()));
-        return List.copyOf(result);
-    }
-
-    private static boolean isAuthzDecisionRequest(List<FilterCondition> conditions) {
-        return conditions.stream().anyMatch(c -> "RECORD_TYPE".equals(c.name()) && c.values().contains("AUTHZ_DECISION"));
     }
 
     private static List<FilterCondition> removeRecordTypeConditions(List<FilterCondition> conditions) {

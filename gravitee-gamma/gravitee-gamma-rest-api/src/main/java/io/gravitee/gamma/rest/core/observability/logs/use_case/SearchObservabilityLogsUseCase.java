@@ -27,11 +27,11 @@ import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.EntrypointScopeProvider;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
+import io.gravitee.gamma.rest.core.observability.logs.model.EntrypointScope;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsPage;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -42,8 +42,8 @@ import lombok.AllArgsConstructor;
  * Environment-wide log search returning light rows from the {@code v4-metrics} index. Validates
  * every incoming {@link FilterCondition} against the unified filter registry for the
  * {@link Signal#LOGS} signal, computes the RBAC-scoped API set via
- * {@link AccessibleApiScopeDomainService}, applies default entrypoint scoping so table totals match
- * the dashboard, and delegates the actual search to the data port.
+ * {@link AccessibleApiScopeDomainService}, resolves the entrypoint scope (exact when the caller named
+ * entrypoints, the registry's logs exclusion otherwise), and delegates the actual search to the data port.
  *
  * @author GraviteeSource Team
  */
@@ -72,7 +72,7 @@ public class SearchObservabilityLogsUseCase {
     private final ObservabilityLogsDataPort logsDataPort;
     private final ObservabilityFilterValidator filterValidator;
     private final AccessibleApiScopeDomainService accessibleApiScope;
-    private final EntrypointScopeProvider entrypointScope;
+    private final EntrypointScopeProvider entrypointScopeProvider;
 
     public record Input(
         String organizationId,
@@ -97,11 +97,13 @@ public class SearchObservabilityLogsUseCase {
 
         var recordType = extractRecordType(conditions);
         var effectiveConditions = removeScopeConditions(conditions);
+        EntrypointScope entrypointScope = null;
         if (recordType == RecordType.AUTHZ_DECISION) {
             rejectConditionsTheDecisionSearchCannotApply(effectiveConditions);
         } else {
-            // Entrypoints only exist on request documents; injecting them would match nothing on a decision.
-            effectiveConditions = applyDefaultEntrypointScoping(effectiveConditions);
+            // Entrypoints only exist on request documents: a decision search carries no scope.
+            entrypointScope = resolveEntrypointScope(effectiveConditions);
+            effectiveConditions = removeEntrypointConditions(effectiveConditions);
         }
 
         var accessibleApis = logsDataPort.loadAccessibleApis(input.organizationId, input.environmentId);
@@ -123,6 +125,7 @@ public class SearchObservabilityLogsUseCase {
             .page(page)
             .perPage(perPage)
             .recordType(recordType)
+            .entrypointScope(entrypointScope)
             .build();
 
         var result = logsDataPort.searchLogs(input.organizationId, input.environmentId, query);
@@ -249,19 +252,42 @@ public class SearchObservabilityLogsUseCase {
     }
 
     /**
-     * If the caller didn't supply an explicit entrypoint filter, inject the canonical logs
-     * entrypoint scope. It is wider than the analytics one — native connections are served by the
-     * logs signal alone — so an unfiltered logs total exceeds the dashboard total on a mixed
-     * environment. The difference is deliberate and recorded on {@link EntrypointScopeProvider}.
-     * The ES query builder adds a field-missing fallback alongside these terms.
+     * An explicit {@code ENTRYPOINT} condition is exact. Without one, the search leaves out only the entrypoints
+     * the registry keeps outside the logs scope, so an entrypoint the registry does not know and a request
+     * refused before an entrypoint was selected both stay visible. The scope replaces the conditions it was
+     * built from: the data port translates it as a single predicate.
      */
-    private List<FilterCondition> applyDefaultEntrypointScoping(List<FilterCondition> conditions) {
-        boolean hasEntrypoint = conditions.stream().anyMatch(c -> "ENTRYPOINT".equals(c.name()));
-        if (hasEntrypoint) {
-            return conditions;
+    private EntrypointScope resolveEntrypointScope(List<FilterCondition> conditions) {
+        var explicitValues = conditions
+            .stream()
+            .filter(SearchObservabilityLogsUseCase::isEntrypointCondition)
+            .flatMap(SearchObservabilityLogsUseCase::selectedEntrypoints)
+            .toList();
+        return explicitValues.isEmpty()
+            ? EntrypointScope.excluding(entrypointScopeProvider.excludedFromLogs())
+            : EntrypointScope.exactly(explicitValues);
+    }
+
+    private static List<FilterCondition> removeEntrypointConditions(List<FilterCondition> conditions) {
+        return conditions
+            .stream()
+            .filter(condition -> !isEntrypointCondition(condition))
+            .toList();
+    }
+
+    /**
+     * The values one condition selects, read as the analytics engine reads the same condition: {@code EQ} names a
+     * single entrypoint, so both signals answer a given filter chip with the same set.
+     */
+    private static Stream<String> selectedEntrypoints(FilterCondition condition) {
+        var values = condition.values();
+        if (values.isEmpty()) {
+            return Stream.empty();
         }
-        var result = new ArrayList<>(conditions);
-        result.add(new FilterCondition("ENTRYPOINT", FilterOperator.IN, entrypointScope.logsScope()));
-        return List.copyOf(result);
+        return condition.operator() == FilterOperator.EQ ? Stream.of(values.getFirst()) : values.stream();
+    }
+
+    private static boolean isEntrypointCondition(FilterCondition condition) {
+        return StaticFilters.ENTRYPOINT.filterName().equals(condition.name());
     }
 }

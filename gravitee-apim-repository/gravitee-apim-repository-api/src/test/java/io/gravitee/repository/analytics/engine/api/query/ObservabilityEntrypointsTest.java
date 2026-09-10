@@ -49,41 +49,42 @@ class ObservabilityEntrypointsTest {
             assertThat(ids).doesNotHaveDuplicates();
         }
 
+        /**
+         * The analytics default is a complement: it names what is left out, so an entrypoint nobody has
+         * declared is counted rather than dropped. Asserted in declaration order, which is the order the
+         * ids reach Elasticsearch.
+         */
         @Test
-        void should_expose_the_http_scope_in_declaration_order() {
-            assertThat(ObservabilityEntrypoints.HTTP_SCOPE_IDS).containsExactly(
-                "http-get",
-                "http-post",
-                "http-proxy",
-                "llm-proxy",
-                "mcp-proxy",
-                "a2a-proxy",
-                "mcp",
-                "mcp-studio"
+        void should_exclude_from_analytics_everything_outside_the_http_scope() {
+            assertThat(ObservabilityEntrypoints.ANALYTICS_EXCLUDED_IDS).containsExactly(
+                "native-kafka",
+                "edge",
+                "authzen",
+                "sse",
+                "webhook",
+                "websocket",
+                "tcp-proxy"
             );
         }
 
         /**
-         * The logs signal serves two families analytics does not: native Kafka connections, and the
-         * async entrypoints of Message APIs. Asserted in declaration order, which is the order the
-         * ids reach Elasticsearch.
+         * Narrower than the analytics exclusion: the logs screen lists connections, so it serves the
+         * async entrypoints of Message APIs and native Kafka connections that the dashboards leave out.
          */
         @Test
-        void should_extend_the_http_scope_with_the_logs_only_entrypoints() {
-            assertThat(ObservabilityEntrypoints.LOGS_SCOPE_IDS).containsExactly(
-                "http-get",
-                "http-post",
-                "http-proxy",
-                "llm-proxy",
-                "mcp-proxy",
-                "a2a-proxy",
-                "mcp",
-                "mcp-studio",
-                "native-kafka",
-                "sse",
-                "webhook",
-                "websocket"
-            );
+        void should_exclude_from_logs_only_the_dedicated_families_and_the_unsupported() {
+            assertThat(ObservabilityEntrypoints.LOGS_EXCLUDED_IDS).containsExactly("edge", "authzen", "tcp-proxy");
+        }
+
+        @Test
+        void should_recognise_a_declared_entrypoint_id() {
+            assertThat(ObservabilityEntrypoints.declares("mcp-studio")).isTrue();
+        }
+
+        /** What the startup warning keys off: an installed entrypoint nobody has decided on. */
+        @Test
+        void should_not_recognise_an_entrypoint_id_no_one_declared() {
+            assertThat(ObservabilityEntrypoints.declares("acme-custom")).isFalse();
         }
     }
 

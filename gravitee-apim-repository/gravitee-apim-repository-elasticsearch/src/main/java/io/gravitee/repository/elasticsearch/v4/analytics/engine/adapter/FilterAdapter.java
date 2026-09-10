@@ -19,6 +19,7 @@ import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.ObservabilityEntrypoints;
 import io.gravitee.repository.analytics.engine.api.query.Query;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
+import io.gravitee.repository.elasticsearch.v4.shared.EntrypointScopeClause;
 import io.gravitee.repository.elasticsearch.v4.shared.StatusCodeGroups;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -30,7 +31,7 @@ import java.util.*;
  */
 public class FilterAdapter {
 
-    static final String ENTRYPOINT_FIELD = "entrypoint-id";
+    static final String ENTRYPOINT_FIELD = EntrypointScopeClause.FIELD;
 
     static final List<Filter.Name> HTTP_FILTER_NAMES = List.of(
         Filter.Name.API,
@@ -99,9 +100,9 @@ public class FilterAdapter {
 
     /**
      * Native Kafka event metrics. Deliberately narrow: the `event-metrics` documents only carry the
-     * routing dimensions plus `topic` / `operation`. Anything else reaching this family — typically
-     * the default `ENTRYPOINT IN [...]` scoping Gamma injects — is dropped by the allow-list rather
-     * than failing the query, matching how the other families behave.
+     * routing dimensions plus `topic` / `operation`. Anything else reaching this family — an explicit
+     * `ENTRYPOINT` condition, for instance — is dropped by the allow-list rather than failing the
+     * query, matching how the other families behave.
      */
     static final List<Filter.Name> EVENT_METRICS_FILTER_NAMES = List.of(
         Filter.Name.API,
@@ -166,7 +167,7 @@ public class FilterAdapter {
             }
         }
         if (!hasEntrypointFilter) {
-            jsonFilters.add(httpFilter());
+            jsonFilters.add(defaultHttpEntrypointScope());
         }
         return jsonFilters;
     }
@@ -174,15 +175,17 @@ public class FilterAdapter {
     /**
      * Selects the connection documents whose messages a message query aggregates over.
      *
-     * <p>Deliberately carries no entrypoint predicate. Which API a connection belongs to is already
+     * <p>Adds no entrypoint predicate of its own. A condition the caller wrote is still applied — it reaches
+     * this family through {@link #HTTP_FILTER_NAMES} — but the default scope never does. Which API a connection
+     * belongs to is already
      * expressed by the {@code API} filter every query carries — {@code ApiTypeFilterTransformer}
      * appends one unconditionally — and the second phase keeps only the request ids that have
      * message documents, an index no other api type writes to. An entrypoint predicate would
      * restate that guess in terms the entrypoint ids cannot support: they name plugins, and
      * {@code http-get} / {@code http-post} serve Message APIs and LLM/MCP proxies alike.
      *
-     * <p>This used to be {@code must_not(httpFilter())}, which read as "not a plain HTTP proxy" when
-     * {@code httpFilter()} held a single id. Every later widening of that list silently narrowed
+     * <p>This used to be the negation of the default HTTP entrypoint scope, which read as "not a plain HTTP
+     * proxy" when that scope held a single id. Every later widening of that list silently narrowed
      * this one, and GMA-513 — adding http-get and http-post to fix LLM/MCP dashboards — made every
      * Message API exposed over them invisible to message analytics.
      */
@@ -264,19 +267,13 @@ public class FilterAdapter {
         return EDGE_FILTER_NAMES.contains(filter.name());
     }
 
-    public JsonObject httpFilter() {
-        JsonObject termsFilter = JsonObject.of(
-            "terms",
-            JsonObject.of(ENTRYPOINT_FIELD, new JsonArray(new ArrayList<>(ObservabilityEntrypoints.HTTP_SCOPE_IDS)))
-        );
-
-        // This is needed for now to get APIs that don't pass the security chain.
-        JsonObject fieldMissingFilter = JsonObject.of(
-            "bool",
-            JsonObject.of("must_not", JsonObject.of("exists", JsonObject.of("field", ENTRYPOINT_FIELD)))
-        );
-
-        return JsonObject.of("bool", JsonObject.of("should", JsonArray.of(termsFilter, fieldMissingFilter), "minimum_should_match", 1));
+    /**
+     * The scope an HTTP query gets when it carries no {@code ENTRYPOINT} condition: every entrypoint the
+     * registry does not declare outside the HTTP scope, documents without an entrypoint id included (requests
+     * refused before an entrypoint was selected, on gateways predating report-time attribution).
+     */
+    JsonObject defaultHttpEntrypointScope() {
+        return EntrypointScopeClause.analyticsDefault();
     }
 
     /*
@@ -299,10 +296,34 @@ public class FilterAdapter {
         if (filter.name() == Filter.Name.HTTP_STATUS_CODE_GROUP) {
             return statusCodeGroupFilter(filter);
         }
+        if (
+            filter.name() == Filter.Name.ENTRYPOINT && (filter.operator() == Filter.Operator.EQ || filter.operator() == Filter.Operator.IN)
+        ) {
+            return entrypointFilter(filter);
+        }
         if (filter.operator() == Filter.Operator.GTE || filter.operator() == Filter.Operator.LTE) {
             return rangeFilter(filter);
         }
         return JsonObject.of(filterName(filter), filterValue(filter));
+    }
+
+    /**
+     * An explicit entrypoint condition is exact: it selects the given values and nothing else. The value is read
+     * as tolerantly as the generic path it replaces — a caller may send a single id under {@code IN} — so a
+     * shape the query builders used to accept still yields a query rather than an error.
+     */
+    private static JsonObject entrypointFilter(Filter filter) {
+        return EntrypointScopeClause.exactly(entrypointValues(filter.value()));
+    }
+
+    private static List<String> entrypointValues(Object value) {
+        if (value == null) {
+            return List.of();
+        }
+        if (value instanceof Collection<?> values) {
+            return values.stream().filter(Objects::nonNull).map(String::valueOf).toList();
+        }
+        return List.of(String.valueOf(value));
     }
 
     private JsonObject rangeFilter(Filter filter) {

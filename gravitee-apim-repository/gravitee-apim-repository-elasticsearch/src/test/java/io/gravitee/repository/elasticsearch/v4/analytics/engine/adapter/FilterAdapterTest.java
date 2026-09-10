@@ -438,85 +438,133 @@ class FilterAdapterTest {
         private final FilterAdapter filterAdapter = new FilterAdapter(new HTTPFieldResolver());
 
         @Test
-        void should_include_all_http_entrypoint_ids_in_http_filter() {
-            var httpFilter = filterAdapter.httpFilter();
+        void should_leave_out_every_entrypoint_outside_the_http_scope_by_default() {
+            var scope = filterAdapter.defaultHttpEntrypointScope();
 
-            var termsFilter = httpFilter.getJsonObject("bool").getJsonArray("should").getJsonObject(0);
-
-            var entrypointIds = termsFilter.getJsonObject("terms").getJsonArray(ENTRYPOINT_FIELD);
-
-            assertThat(entrypointIds.getList()).containsExactly(
-                "http-get",
-                "http-post",
-                "http-proxy",
-                "llm-proxy",
-                "mcp-proxy",
-                "a2a-proxy",
-                "mcp",
-                "mcp-studio"
+            var mustNot = scope.getJsonObject("bool").getJsonArray("must_not");
+            assertThat(mustNot).hasSize(2);
+            assertThat(mustNot.getJsonObject(0).getJsonObject("terms").getJsonArray(ENTRYPOINT_FIELD).getList()).containsExactly(
+                "native-kafka",
+                "edge",
+                "authzen",
+                "sse",
+                "webhook",
+                "websocket",
+                "tcp-proxy"
             );
+            assertThat(
+                mustNot.getJsonObject(1).getJsonObject("terms").getJsonArray(ENTRYPOINT_FIELD + ".keyword").getList()
+            ).containsExactly("native-kafka", "edge", "authzen", "sse", "webhook", "websocket", "tcp-proxy");
         }
 
         @Test
-        void should_include_field_missing_clause_in_http_filter() {
-            var httpFilter = filterAdapter.httpFilter();
+        void should_not_carry_a_field_missing_fallback_since_an_exclusion_keeps_documents_without_an_entrypoint() {
+            var scope = filterAdapter.defaultHttpEntrypointScope();
 
-            var shouldClauses = httpFilter.getJsonObject("bool").getJsonArray("should");
-            assertThat(shouldClauses).hasSize(2);
-
-            var fieldMissingClause = shouldClauses.getJsonObject(1);
-            var mustNot = fieldMissingClause.getJsonObject("bool").getJsonObject("must_not");
-            var existsField = mustNot.getJsonObject("exists").getString("field");
-
-            assertThat(existsField).isEqualTo(ENTRYPOINT_FIELD);
+            assertThat(scope.encode()).doesNotContain("exists");
         }
 
         @Test
-        void should_skip_default_http_filter_when_entrypoint_filter_is_present() throws JsonProcessingException {
-            var entrypointValues = List.of("mcp-proxy");
-            var filters = List.of(new Filter(Filter.Name.ENTRYPOINT, Filter.Operator.IN, entrypointValues));
+        void should_honour_an_explicit_entrypoint_filter_exactly_and_skip_the_default_scope() throws JsonProcessingException {
+            var filters = List.of(new Filter(Filter.Name.ENTRYPOINT, Filter.Operator.IN, List.of("mcp-proxy", "sse")));
             var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
             var query = new MeasuresQuery(buildTimeRange(), filters, metrics);
 
-            var queryString = new HTTPMeasuresQueryAdapter().adapt(query);
-            var jsonQuery = JSON.readTree(queryString);
+            var jsonQuery = JSON.readTree(new HTTPMeasuresQueryAdapter().adapt(query));
 
             var filterArray = jsonQuery.at("/query/bool/filter");
-            assertThat(filterArray.isArray()).isTrue();
-
-            var termsFilter = jsonQuery.at("/query/bool/filter/1/terms/entrypoint-id");
-            assertThat(termsFilter.isMissingNode()).isFalse();
-            assertThat(termsFilter.isArray()).isTrue();
-            assertThat(termsFilter.get(0).asText()).isEqualTo("mcp-proxy");
-
-            boolean hasHardcodedHttpFilter = false;
+            var terms = jsonQuery.at("/query/bool/filter/1/bool/should/0/terms/entrypoint-id");
+            assertThat(terms.isArray()).isTrue();
+            assertThat(terms.get(0).asText()).isEqualTo("mcp-proxy");
+            assertThat(terms.get(1).asText()).isEqualTo("sse");
             for (var node : filterArray) {
-                if (node.has("bool") && node.get("bool").has("should")) {
-                    hasHardcodedHttpFilter = true;
-                }
+                assertThat(node.has("bool") && node.get("bool").has("must_not"))
+                    .as("the default scope must not be added next to an explicit ENTRYPOINT filter")
+                    .isFalse();
             }
-            assertThat(hasHardcodedHttpFilter)
-                .as("Hardcoded httpFilter() should NOT be present when ENTRYPOINT filter is explicit")
-                .isFalse();
         }
 
         @Test
-        void should_add_default_http_filter_when_no_entrypoint_filter() throws JsonProcessingException {
+        void should_reach_documents_without_an_entrypoint_through_the_synthetic_value() throws JsonProcessingException {
+            var filters = List.of(new Filter(Filter.Name.ENTRYPOINT, Filter.Operator.EQ, "(none)"));
+            var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+            var query = new MeasuresQuery(buildTimeRange(), filters, metrics);
+
+            var jsonQuery = JSON.readTree(new HTTPMeasuresQueryAdapter().adapt(query));
+
+            assertThat(jsonQuery.at("/query/bool/filter/1/bool/must_not/exists/field").asText()).isEqualTo("entrypoint-id");
+        }
+
+        @Test
+        void should_read_a_single_entrypoint_sent_under_the_in_operator() throws JsonProcessingException {
+            // The v2 analytics schema lets a scalar carry IN; the generic path used to wrap it, so refusing it
+            // here would turn a request that worked into a 500.
+            var filters = List.of(new Filter(Filter.Name.ENTRYPOINT, Filter.Operator.IN, "mcp"));
+            var query = new MeasuresQuery(
+                buildTimeRange(),
+                filters,
+                List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)))
+            );
+
+            var jsonQuery = JSON.readTree(new HTTPMeasuresQueryAdapter().adapt(query));
+
+            assertThat(jsonQuery.at("/query/bool/filter/1/bool/should/0/terms/entrypoint-id/0").asText()).isEqualTo("mcp");
+        }
+
+        @Test
+        void should_select_nothing_when_the_entrypoint_filter_names_no_value() throws JsonProcessingException {
+            var filters = List.of(new Filter(Filter.Name.ENTRYPOINT, Filter.Operator.IN, List.of()));
+            var query = new MeasuresQuery(
+                buildTimeRange(),
+                filters,
+                List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)))
+            );
+
+            var jsonQuery = JSON.readTree(new HTTPMeasuresQueryAdapter().adapt(query));
+
+            assertThat(jsonQuery.at("/query/bool/filter/1/match_none").isMissingNode()).isFalse();
+        }
+
+        @Test
+        void should_add_the_default_scope_when_no_entrypoint_filter_is_given() throws JsonProcessingException {
             var filters = List.of(new Filter(Filter.Name.API, Filter.Operator.EQ, API_ID));
             var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
             var query = new MeasuresQuery(buildTimeRange(), filters, metrics);
 
-            var queryString = new HTTPMeasuresQueryAdapter().adapt(query);
-            var jsonQuery = JSON.readTree(queryString);
+            var jsonQuery = JSON.readTree(new HTTPMeasuresQueryAdapter().adapt(query));
 
-            var filterArray = jsonQuery.at("/query/bool/filter");
-            boolean hasHttpFilter = false;
-            for (var node : filterArray) {
-                if (node.has("bool") && node.get("bool").has("should")) {
-                    hasHttpFilter = true;
-                }
-            }
-            assertThat(hasHttpFilter).as("Default httpFilter() should be present when no ENTRYPOINT filter is provided").isTrue();
+            var defaultScope = jsonQuery.at("/query/bool/filter/2/bool/must_not");
+            assertThat(defaultScope.isArray()).as("the default scope is the last filter of an unfiltered HTTP query").isTrue();
+            assertThat(defaultScope.get(0).at("/terms/entrypoint-id").get(0).asText()).isEqualTo("native-kafka");
+        }
+
+        /**
+         * The connections a message query aggregates over are selected by API, never by entrypoint. Adding the
+         * HTTP default here would hide the Message APIs served over sse, webhook or websocket from message
+         * analytics — the GMA-513 regression, which returned when the default was widened elsewhere.
+         */
+        @Test
+        void should_not_scope_the_message_connections_by_entrypoint() {
+            var filters = List.of(new Filter(Filter.Name.API, Filter.Operator.EQ, API_ID));
+            var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+
+            var connexionFilters = filterAdapter.adaptForMessageConnexion(new MeasuresQuery(buildTimeRange(), filters, metrics));
+
+            assertThat(connexionFilters.encode()).doesNotContain(FilterAdapter.ENTRYPOINT_FIELD);
+        }
+
+        /** An entrypoint the caller asked for is still theirs to apply: only the default stays out. */
+        @Test
+        void should_pass_an_explicit_entrypoint_filter_through_to_the_message_connections() {
+            var filters = List.of(
+                new Filter(Filter.Name.API, Filter.Operator.EQ, API_ID),
+                new Filter(Filter.Name.ENTRYPOINT, Filter.Operator.IN, List.of("sse"))
+            );
+            var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+
+            var connexionFilters = filterAdapter.adaptForMessageConnexion(new MeasuresQuery(buildTimeRange(), filters, metrics));
+
+            assertThat(connexionFilters.encode()).contains("sse");
         }
     }
 }

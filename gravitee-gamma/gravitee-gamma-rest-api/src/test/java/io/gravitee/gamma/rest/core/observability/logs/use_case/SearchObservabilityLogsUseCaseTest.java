@@ -38,6 +38,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
+import io.gravitee.gamma.rest.core.observability.logs.model.EntrypointScope;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsPage;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
@@ -540,10 +541,10 @@ class SearchObservabilityLogsUseCaseTest {
     }
 
     @Nested
-    class DefaultEntrypointScoping {
+    class EntrypointScopeResolution {
 
         @Test
-        void should_inject_default_entrypoint_filter_when_none_provided() {
+        void should_exclude_only_the_entrypoints_outside_the_logs_scope_when_none_is_requested() {
             when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
                 List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
             );
@@ -551,56 +552,46 @@ class SearchObservabilityLogsUseCaseTest {
 
             useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), null, null, 1, 20));
 
-            var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
-            verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());
-            var entrypointCondition = captor
-                .getValue()
-                .conditions()
-                .stream()
-                .filter(c -> "ENTRYPOINT".equals(c.name()))
-                .findFirst();
-            assertThat(entrypointCondition).isPresent();
-            assertThat(entrypointCondition.get().values()).containsExactlyInAnyOrder(
-                "http-get",
-                "http-post",
-                "http-proxy",
-                "llm-proxy",
-                "mcp-proxy",
-                "a2a-proxy",
-                "mcp",
-                "mcp-studio",
-                "native-kafka",
-                "sse",
-                "websocket",
-                "webhook"
-            );
+            var query = capturedQuery();
+            assertThat(query.entrypointScope().kind()).isEqualTo(EntrypointScope.Kind.EXCLUDING);
+            // The logs screen lists connections, so the async entrypoints of a Message API stay in, as do
+            // native connections, an unknown entrypoint and a request refused before one was resolved.
+            // Only the families that scope themselves and what the signals do not cover are excluded.
+            assertThat(query.entrypointScope().ids())
+                .containsExactly("edge", "authzen", "tcp-proxy")
+                .doesNotContain("sse", "webhook", "websocket", "native-kafka", "http-proxy", "mcp-studio");
+            assertThat(query.conditions()).noneMatch(condition -> "ENTRYPOINT".equals(condition.name()));
         }
 
-        /**
-         * A Message API exposed over SSE, WebSocket or Webhook must not be silently dropped by the
-         * default scoping. Verified against real connection documents: {@code entrypoint-id} carries
-         * the plugin id, so an allow-list missing these three yields an empty page with no error.
-         */
         @Test
-        void should_cover_the_async_message_entrypoints() {
-            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(new AccessibleApi("api-message", "Message API", ApiType.MESSAGE))
-            );
+        void should_honour_an_explicit_entrypoint_condition_exactly_and_fold_it_into_the_scope() {
+            when(filterRegistry.getFilters(any(), any())).thenReturn(List.of(StaticFilters.ENTRYPOINT.toSpec()));
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(List.of(new AccessibleApi("api-1", "API 1", ApiType.MCP)));
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
+            var conditions = List.of(new FilterCondition("ENTRYPOINT", FilterOperator.IN, List.of("mcp-studio", "(none)")));
 
-            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), null, null, 1, 20));
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, conditions, null, null, 1, 20));
 
+            var query = capturedQuery();
+            assertThat(query.entrypointScope()).isEqualTo(EntrypointScope.exactly(List.of("mcp-studio", "(none)")));
+            assertThat(query.conditions()).noneMatch(condition -> "ENTRYPOINT".equals(condition.name()));
+        }
+
+        @Test
+        void should_carry_no_entrypoint_scope_on_a_decision_search_since_decisions_have_no_entrypoint() {
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(List.of(new AccessibleApi("api-1", "API 1", ApiType.AUTHZ)));
+            when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
+            var conditions = List.of(new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")));
+
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, conditions, null, null, 1, 20));
+
+            assertThat(capturedQuery().entrypointScope()).isNull();
+        }
+
+        private LogsSearchQuery capturedQuery() {
             var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
             verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());
-            var entrypoints = captor
-                .getValue()
-                .conditions()
-                .stream()
-                .filter(c -> "ENTRYPOINT".equals(c.name()))
-                .findFirst()
-                .orElseThrow()
-                .values();
-            assertThat(entrypoints).contains("sse", "websocket", "webhook");
+            return captor.getValue();
         }
     }
 

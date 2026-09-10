@@ -48,6 +48,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.logs.model.ApiReference;
+import io.gravitee.gamma.rest.core.observability.logs.model.EntrypointScope;
 import io.gravitee.gamma.rest.core.observability.logs.model.FailureOrigin;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
@@ -723,6 +724,52 @@ class ObservabilityLogsDataPortAdapterTest {
             adapter.searchLogs(ORG, ENV, query);
 
             assertThat(captureSearchFilters().bodyText()).isEqualTo("{\"key\":\"value\"}");
+        }
+    }
+
+    @Nested
+    class EntrypointScopeMapping {
+
+        @Test
+        void should_hand_the_entrypoint_scope_to_the_platform_as_is() {
+            stubEmptySearchResult();
+            var query = LogsSearchQuery.builder()
+                .apiIds(Set.of("api-1"))
+                .apisById(Map.of("api-1", new ApiReference("API 1", "HTTP_PROXY")))
+                .conditions(List.of())
+                .page(1)
+                .perPage(20)
+                .entrypointScope(EntrypointScope.exactly(List.of("mcp-studio", "(none)")))
+                .build();
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            var captor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), captor.capture(), any(), any());
+            assertThat(captor.getValue().entrypointScope()).isEqualTo(
+                new SearchLogsFilters.EntrypointScope(SearchLogsFilters.EntrypointScope.Kind.EXACTLY, List.of("mcp-studio", "(none)"))
+            );
+            assertThat(captor.getValue().entrypointIds()).as("the legacy ids are never set by Gamma").isNullOrEmpty();
+        }
+
+        @Test
+        void should_leave_the_platform_scope_unset_when_the_query_carries_none() {
+            stubEmptySearchResult();
+
+            adapter.searchLogs(ORG, ENV, queryWith());
+
+            var captor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), captor.capture(), any(), any());
+            assertThat(captor.getValue().entrypointScope()).isNull();
+        }
+
+        @Test
+        void should_refuse_an_entrypoint_condition_since_the_scope_is_its_only_channel() {
+            var query = queryWith(new FilterCondition("ENTRYPOINT", FilterOperator.IN, List.of("mcp")));
+
+            assertThatThrownBy(() -> adapter.searchLogs(ORG, ENV, query))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .hasMessageContaining("ENTRYPOINT");
         }
     }
 
