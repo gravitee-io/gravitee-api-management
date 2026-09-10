@@ -15423,16 +15423,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"angular-gridster2@npm:20.2.3":
-  version: 20.2.3
-  resolution: "angular-gridster2@npm:20.2.3"
+"angular-gridster2@npm:20.2.4":
+  version: 20.2.4
+  resolution: "angular-gridster2@npm:20.2.4"
   dependencies:
     tslib: "npm:^2.4.0"
   peerDependencies:
     "@angular/common": ^20.0.0
     "@angular/core": ^20.0.0
     rxjs: ^7.0.0
-  checksum: 10c0/5dfec3567a4d71ff8520037ca23701996810a255119ebaaa11ef64f4f1122de5f872d213bb3cef90f474018ff1dd645ddf649510738b86837b6b62fa107f261e
+  checksum: 10c0/a17a63c61b19d8a2f3a02913116a2ea754badffd301428f665248e21fa97bdb60af4835961c6d708d24ed9b7c6c5ccf88cee5974a46ae7b8cb38f34779aabdbc
   languageName: node
   linkType: hard
 
@@ -22080,7 +22080,7 @@ __metadata:
     angular-aria: "npm:1.8.3"
     angular-drag-and-drop-lists: "npm:2.1.0"
     angular-gridster: "npm:0.13.14"
-    angular-gridster2: "npm:20.2.3"
+    angular-gridster2: "npm:20.2.4"
     angular-highlightjs: "npm:0.7.1"
     angular-loading-bar: "npm:0.9.0"
     angular-material: "npm:1.2.5"
