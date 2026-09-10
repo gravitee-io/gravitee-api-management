@@ -26,10 +26,10 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+
+import { SubscriptionFormListComponent } from './subscription-form-list/subscription-form-list.component';
 
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
@@ -37,14 +37,8 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { SubscriptionForm } from '../../entities/management-api-v2';
 import { SubscriptionFormService } from '../../services-ngx/subscription-form.service';
-import { GioTableWrapperFilters } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard';
 import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/content.util';
-
-interface SubscriptionFormRow {
-  form: SubscriptionForm;
-}
 
 @Component({
   selector: 'subscription-form',
@@ -56,12 +50,10 @@ interface SubscriptionFormRow {
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatTableModule,
-    MatSlideToggleModule,
     MatTooltipModule,
     GioPermissionModule,
-    GioTableWrapperModule,
     GmdFormEditorComponent,
+    SubscriptionFormListComponent,
   ],
   templateUrl: './subscription-form.component.html',
   styleUrl: './subscription-form.component.scss',
@@ -81,12 +73,8 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
   panelWidth = signal(500);
 
   readonly canUpdate = signal(this.gioPermissionService.hasAnyMatching(['environment-metadata-u']));
-  readonly displayedColumns = ['name', 'enabled'];
-
-  readonly filters = signal<GioTableWrapperFilters>({ pagination: { index: 1, size: 10 }, searchTerm: '' });
-
   private readonly refreshList = new BehaviorSubject<void>(undefined);
-  private readonly forms = toSignal(
+  readonly forms = toSignal(
     this.refreshList.pipe(
       switchMap(() =>
         this.subscriptionFormService.list().pipe(
@@ -99,22 +87,6 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
     ),
     { initialValue: [] as SubscriptionForm[] },
   );
-
-  private readonly rows = computed<SubscriptionFormRow[]>(() => this.forms().map(form => ({ form })));
-
-  private readonly filteredRows = computed<SubscriptionFormRow[]>(() => {
-    const term = this.filters().searchTerm?.trim().toLowerCase() ?? '';
-    const rows = this.rows();
-    return term ? rows.filter(row => row.form.name.toLowerCase().includes(term)) : rows;
-  });
-
-  readonly total = computed(() => this.filteredRows().length);
-
-  readonly pagedRows = computed<SubscriptionFormRow[]>(() => {
-    const { index, size } = this.filters().pagination;
-    const start = (index - 1) * size;
-    return this.filteredRows().slice(start, start + size);
-  });
 
   /** `'new'` while creating an unsaved form; a form id while viewing/editing one; `null` before anything is ever selected. */
   private readonly selectedFormId = signal<string | 'new' | null>(null);
@@ -222,12 +194,8 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
     return currentName !== this.initialName().trim() || currentContent !== normalizeContent(this.initialContent());
   }
 
-  onFiltersChanged(filters: GioTableWrapperFilters): void {
-    this.filters.set(filters);
-  }
-
-  selectRow(row: SubscriptionFormRow): void {
-    this.checkUnsavedChangesAndRun(() => this.selectedFormId.set(row.form.id));
+  selectForm(form: SubscriptionForm): void {
+    this.checkUnsavedChangesAndRun(() => this.selectedFormId.set(form.id));
   }
 
   startCreate(): void {
@@ -240,8 +208,7 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
     save$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
   }
 
-  onEnabledToggle(row: SubscriptionFormRow): void {
-    const form = row.form;
+  onEnabledToggle(form: SubscriptionForm): void {
     const enabling = !form.enabled;
     const action = enabling ? 'Enable' : 'Disable';
     const data: GioConfirmDialogData = {
