@@ -128,6 +128,43 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
     }
 
     @Nested
+    class LlmDimensionParity {
+
+        /**
+         * The HTTP count and rate metrics all read the same request document and sit side by side on a
+         * dashboard, so an operator moves one filter between their widgets. A dimension added to some of them
+         * and not the rest rejects that filter on the odd one out, which reads as a broken widget rather than
+         * as a catalog gap.
+         */
+        @ParameterizedTest
+        @EnumSource(
+            value = MetricSpec.Name.class,
+            names = { "HTTP_REQUESTS", "HTTP_ERRORS", "HTTP_ERROR_RATE", "HTTP_SERVER_ERROR_RATE", "HTTP_REQUESTS_PER_SECOND" }
+        )
+        void should_offer_every_llm_proxy_dimension_to_the_whole_http_count_and_rate_family(MetricSpec.Name metric) {
+            var service = new AnalyticsDefinitionYAMLQueryService();
+
+            assertThat(service.getFacets(metric))
+                .extracting(FacetSpec::name)
+                .contains(
+                    FacetSpec.Name.LLM_PROXY_MODEL,
+                    FacetSpec.Name.LLM_PROXY_PROVIDER,
+                    FacetSpec.Name.LLM_PROXY_CONVERSATION,
+                    FacetSpec.Name.LLM_PROXY_TOOL
+                );
+
+            assertThat(service.getFilters(metric))
+                .extracting(FilterSpec::name)
+                .contains(
+                    FilterSpec.Name.LLM_PROXY_MODEL,
+                    FilterSpec.Name.LLM_PROXY_PROVIDER,
+                    FilterSpec.Name.LLM_PROXY_CONVERSATION,
+                    FilterSpec.Name.LLM_PROXY_TOOL
+                );
+        }
+    }
+
+    @Nested
     class MetricDimensionParity {
 
         /**

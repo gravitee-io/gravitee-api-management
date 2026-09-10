@@ -149,6 +149,11 @@ public enum StaticFilters {
         Defs.LOGS_ANALYTICS,
         Set.of(ApiType.LLM)
     ),
+    /**
+     * A tool the agent ran and handed the result back for. Analytics only: the field it filters on is
+     * multi-valued, and the log search has no {@code llmProxyTools} criterion to carry it.
+     */
+    LLM_PROXY_TOOL("LLM Tool", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.LLM)),
 
     // --- MCP ------------------------------------------------------------------------------------
     MCP_PROXY_METHOD("MCP Method", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.MCP)),
