@@ -121,7 +121,7 @@ public class SubscriptionProcessor implements Processor {
             final Metrics metrics = ctx.metrics();
             // Stores information about the resolved plan (according to the incoming request)
             metrics.setPlanId(planId);
-            metrics.setApplicationId(ctx.getAttribute(ATTR_APPLICATION));
+            metrics.setApplicationId(applicationId);
             metrics.setSubscriptionId(subscriptionId);
             metrics.setClientIdentifier(requestClientIdentifier);
             if (metrics.getLog() != null) {
