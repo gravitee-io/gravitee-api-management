@@ -1,104 +1,482 @@
-<gmd-grid>
-    <gmd-md class="homepage-title">
-        # Welcome to the Developer Portal
-        Access all APIs, documentation, and tools to build your next integration.
-    </gmd-md>
-    <gmd-cell style="text-align: center; margin: auto;">
-        <gmd-button link="/catalog">Explore all APIs</gmd-button>
-        <gmd-button link="/guides" appearance="outlined" style="--gmd-button-outlined-label-text-weight: 700; --gmd-button-outlined-label-text-color: black;"
-        >Get started</gmd-button>
-    </gmd-cell>
-    <img class="homepage-cover-photo" src="assets/homepage/desk.png" title="Homepage picture"/>
-</gmd-grid>
-
-### Your toolkit for building
-
-<gmd-grid columns="3">
-    <gmd-md>
-        ![book](./assets/homepage/book.svg "Book icon")
-        #### API catalog
-        Browse and test all available APIs in one place.
-    </gmd-md>
-    <gmd-md>
-        ![laptop](./assets/homepage/laptop.svg "Laptop icon")
-        #### Interactive docs
-        Explore clear, structured documentation with code samples.
-    </gmd-md>
-    <gmd-md>
-        ![vector](./assets/homepage/vector.svg "Vector icon")
-        #### Usage analytics
-        Track API usage, error rates, and performance metrics.
-    </gmd-md>
-    <gmd-md>
-        ![group](./assets/homepage/group.svg "Group icon")
-        #### API catalog
-        Browse and test all available APIs in one place.
-    </gmd-md>
-    <gmd-md>
-        ![support](./assets/homepage/support.svg "Support icon")
-        #### Interactive docs
-        Explore clear, structured documentation with code samples.
-    </gmd-md>
-    <gmd-md>
-        ![support](./assets/homepage/service.svg "Service icon")
-        #### Usage analytics
-        Track API usage, error rates, and performance metrics.
-    </gmd-md>
-</gmd-grid>
-
-### Get started in minutes
-
-<gmd-grid columns="3">
-    <gmd-card backgroundColor="none">
-        <gmd-card-title>Your first API call</gmd-card-title>
-        <gmd-md>Learn how to make a basic request and receive a response.Learn how to make a basic request and receive a response.</gmd-md>
-        <div class="flex-container">
-            <gmd-button link="/guides" appearance="outlined" class="get-started-card__button"
-            >Read <img src="assets/homepage/arrow-right.svg" alt="arrow right icon" title="Arrow right icon"/></gmd-button>
-        </div>
-    </gmd-card>
-    <gmd-card backgroundColor="none">
-        <gmd-card-title>Authentication walkthrough</gmd-card-title>
-            <gmd-md>A step-by-step guide to generating and managing API keys.</gmd-md>
-            <div class="flex-container">
-                <gmd-button link="/guides" appearance="outlined" class="get-started-card__button"
-                >Read <img src="assets/homepage/arrow-right.svg" alt="arrow right icon" title="Arrow right icon"/></gmd-button>
-            </div>
-        </gmd-card>
-    <gmd-card backgroundColor="none">
-        <gmd-card-title>Integrating SDK into your project</gmd-card-title>
-        <gmd-md>Use our official library to simplify your code.</gmd-md>
-        <div class="flex-container">
-            <gmd-button link="/guides" appearance="outlined" class="get-started-card__button"
-            >Read <img src="assets/homepage/arrow-right.svg" alt="arrow right icon" title="Arrow right icon"/></gmd-button>
-        </div>
-    </gmd-card>
-</gmd-grid>
-<style>
-  .homepage-title {
-    display: flex;
-    flex-direction: column;
-    max-width: 100%;
+<div class="acme-home">
+  <section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-inner">
+  <p class="hero-eyebrow">ACME Bank · Agent Marketplace</p>
+  <h1 class="hero-title">Banking Intelligence Marketplace</h1>
+  <p class="hero-subtitle">Discover, subscribe, and integrate AI agents purpose-built for ACME Bank teams and partners.</p>
+  <a href="/catalog" class="hero-cta">Explore Agents</a>
+  </div>
+  </section>
+  <section class="steps-section">
+  <div class="section-inner">
+  <h2 class="section-title">How it works</h2>
+  <p class="section-subtitle">Get started in three simple steps.</p>
+  <div class="steps-grid">
+  <div class="step-card">
+  <div class="step-num">1</div>
+  <h3 class="step-title">Discover</h3>
+  <p class="step-desc">Browse our curated catalog of AI agents across lending, risk, advisory, and partner services.</p>
+  </div>
+  <div class="step-card">
+  <div class="step-num">2</div>
+  <h3 class="step-title">Subscribe</h3>
+  <p class="step-desc">Request access and receive your API credentials through built-in approval workflows.</p>
+  </div>
+  <div class="step-card">
+  <div class="step-num">3</div>
+  <h3 class="step-title">Integrate</h3>
+  <p class="step-desc">Connect agents to your systems using standard protocols — REST, MCP, A2A, and more.</p>
+  </div>
+  </div>
+  </div>
+  </section>
+  <section class="domains-section">
+  <div class="section-inner">
+  <h2 class="section-title">Built for banking</h2>
+  <p class="section-subtitle">AI agents designed for the domains that matter most.</p>
+  <div class="domains-grid">
+  <div class="domain-card">
+  <div class="domain-icon">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M3 10h18"/><path d="M12 3l9 7H3l9-7z"/><path d="M5 10v11"/><path d="M9 10v11"/><path d="M15 10v11"/><path d="M19 10v11"/></svg>
+  </div>
+  <h3 class="domain-title">Lending &amp; Mortgages</h3>
+  <p class="domain-desc">Loan processing, mortgage assessment, and underwriting support agents.</p>
+  </div>
+  <div class="domain-card">
+  <div class="domain-icon">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+  </div>
+  <h3 class="domain-title">Risk &amp; Compliance</h3>
+  <p class="domain-desc">Automated compliance checks, fraud detection, and regulatory monitoring.</p>
+  </div>
+  <div class="domain-card">
+  <div class="domain-icon">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+  </div>
+  <h3 class="domain-title">Client Advisory</h3>
+  <p class="domain-desc">Portfolio analysis, client insights, and intelligent recommendation engines.</p>
+  </div>
+  <div class="domain-card">
+  <div class="domain-icon">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+  </div>
+  <h3 class="domain-title">Partner Services</h3>
+  <p class="domain-desc">APIs and agents for third-party integrators and channel partners.</p>
+  </div>
+  </div>
+  </div>
+  </section>
+  <section class="trust-section">
+  <div class="section-inner">
+  <div class="trust-grid">
+  <div class="trust-item">
+  <div class="trust-icon">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+  </div>
+  <span class="trust-label">Enterprise Security</span>
+  </div>
+  <div class="trust-item">
+  <div class="trust-icon">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+  </div>
+  <span class="trust-label">Role-Based Access</span>
+  </div>
+  <div class="trust-item">
+  <div class="trust-icon">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+  </div>
+  <span class="trust-label">Real-Time Monitoring</span>
+  </div>
+  <div class="trust-item">
+  <div class="trust-icon">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+  </div>
+  <span class="trust-label">API-First Integration</span>
+  </div>
+  </div>
+  </div>
+  </section>
+  <footer class="acme-footer">
+  <div class="footer-inner">
+  <div class="footer-grid">
+  <div class="footer-brand">
+  <div class="footer-logo">ACME Bank</div>
+  <p class="footer-tagline">Empowering banking through intelligent automation.</p>
+  </div>
+  <div class="footer-col">
+  <h4 class="footer-heading">Products</h4>
+  <ul class="footer-links">
+  <li>Savings Accounts</li>
+  <li>Personal Loans</li>
+  <li>Mortgages</li>
+  <li>Credit Cards</li>
+  </ul>
+  </div>
+  <div class="footer-col">
+  <h4 class="footer-heading">Developers</h4>
+  <ul class="footer-links">
+  <li><a href="/catalog">Agent Catalog</a></li>
+  <li>Documentation</li>
+  <li>API Reference</li>
+  <li>Support</li>
+  </ul>
+  </div>
+  <div class="footer-col">
+  <h4 class="footer-heading">Company</h4>
+  <ul class="footer-links">
+  <li>About Us</li>
+  <li>Careers</li>
+  <li>Privacy Policy</li>
+  <li>Terms of Service</li>
+  </ul>
+  </div>
+  </div>
+  <div class="footer-bottom">
+  <p>© 2026 ACME Bank. All rights reserved. ACME Bank is a fictitious entity for demonstration purposes.</p>
+  </div>
+  </div>
+  </footer>
+  </div>
+  <style>
+  /* =============================================
+     ACME Bank Homepage Styles
+     (Scoped to gmd-viewer shadow DOM)
+     ============================================= */
+  .acme-home {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: var(--gio-app-font-family, 'Inter', system-ui, sans-serif);
+    color: var(--acme-text, #0B1426);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .acme-home *, .acme-home *::before, .acme-home *::after {
+    box-sizing: border-box;
+  }
+  .acme-home h1, .acme-home h2, .acme-home h3, .acme-home h4, .acme-home p {
+    margin: 0;
+    padding: 0;
+  }
+  .acme-home ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .acme-home a {
+    text-decoration: none;
+    color: inherit;
+  }
+  /* --- Hero --- */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding: 120px 32px 100px;
     text-align: center;
-    margin: auto;
   }
-
-  .homepage-cover-photo {
-    display: flex;
-    max-width: 100%;
-    margin: 80px auto;
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 70% 20%, rgba(0, 201, 167, 0.1) 0%, transparent 55%),
+      radial-gradient(ellipse at 20% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+      linear-gradient(160deg, var(--acme-navy, #0B1426) 0%, var(--acme-navy-mid, #132242) 100%);
+    z-index: 0;
   }
-  
-  .get-started-card__button {
-    --gmd-button-outlined-label-text-weight: 700;
-    --gmd-button-outlined-label-text-color: black;
-    margin-top: auto;
-    padding-top: 12px;
+  .hero-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 56px 56px;
+    z-index: 1;
   }
-
-  .flex-container {
+  .hero-inner {
     display: flex;
     flex-direction: column;
-    height: 100%
+    align-items: center;
+    gap: 20px;
+    position: relative;
+    z-index: 2;
+    max-width: 900px;
+    margin: 0 auto;
   }
-</style>
+  .hero-eyebrow {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--acme-teal, #00C9A7);
+    margin-bottom: 24px;
+  }
+  .hero-title {
+    font-size: 52px;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #FFFFFF;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+  .hero-subtitle {
+    font-size: 18px;
+    line-height: 1.7;
+    color: var(--acme-slate-light, #94A3B8);
+    max-width: 540px;
+    margin: 0 auto 40px;
+  }
+  .hero-cta {
+    display: inline-block;
+    padding: 14px 36px;
+    background: var(--acme-teal, #00C9A7);
+    color: var(--acme-navy, #0B1426) !important;
+    font-size: 15px;
+    font-weight: 700;
+    border-radius: 8px;
+    letter-spacing: 0.02em;
+    transition: background 0.2s ease, transform 0.15s ease;
+    cursor: pointer;
+  }
+  .hero-cta:hover {
+    background: var(--acme-teal-hover, #00E5BE);
+    transform: translateY(-1px);
+  }
+  /* --- Section common --- */
+  .section-inner {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 32px;
+    width: 100%;
+  }
+  .section-title {
+    font-size: 32px;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: -0.01em;
+    color: var(--acme-text, #0B1426);
+    margin-bottom: 8px;
+  }
+  .section-subtitle {
+    font-size: 16px;
+    text-align: center;
+    color: var(--acme-text-secondary, #475569);
+    margin-bottom: 48px;
+  }
+  /* --- Steps --- */
+  .steps-section {
+    padding: 80px 0;
+    background: var(--acme-bg, #F4F7FA);
+  }
+  .steps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+  .step-card {
+    text-align: center;
+    padding: 40px 28px;
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid var(--acme-border, #E2E8F0);
+  }
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--acme-teal-subtle, rgba(0, 201, 167, 0.08));
+    color: var(--acme-teal, #00C9A7);
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+  .step-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--acme-text, #0B1426);
+  }
+  .step-desc {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--acme-text-secondary, #475569);
+  }
+  /* --- Domains --- */
+  .domains-section {
+    padding: 80px 0;
+    background: #FFFFFF;
+  }
+  .domains-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+  .domain-card {
+    padding: 32px 24px;
+    border: 1px solid var(--acme-border, #E2E8F0);
+    border-radius: 12px;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .domain-card:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    border-color: var(--acme-teal, #00C9A7);
+  }
+  .domain-icon {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 20px;
+    color: var(--acme-teal, #00C9A7);
+  }
+  .domain-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+  .domain-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--acme-text, #0B1426);
+  }
+  .domain-desc {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--acme-text-secondary, #475569);
+  }
+  /* --- Trust bar --- */
+  .trust-section {
+    padding: 48px 0;
+    background: var(--acme-bg-subtle, #EDF2F7);
+    border-top: 1px solid var(--acme-border, #E2E8F0);
+    border-bottom: 1px solid var(--acme-border, #E2E8F0);
+  }
+  .trust-grid {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 56px;
+    flex-wrap: wrap;
+  }
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .trust-icon {
+    width: 22px;
+    height: 22px;
+    color: var(--acme-teal, #00C9A7);
+    flex-shrink: 0;
+  }
+  .trust-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+  .trust-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--acme-text-secondary, #475569);
+    letter-spacing: 0.01em;
+  }
+  /* --- Footer --- */
+  .acme-footer {
+    background: var(--acme-navy, #0B1426);
+    padding: 64px 0 0;
+    color: #FFFFFF;
+  }
+  .footer-inner {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 32px;
+    width: 100%;
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    gap: 48px;
+    padding-bottom: 48px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .footer-logo {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 12px;
+  }
+  .footer-tagline {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--acme-slate-light, #94A3B8);
+  }
+  .footer-heading {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--acme-slate-light, #94A3B8);
+    margin-bottom: 16px;
+  }
+  .footer-links li {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    padding: 4px 0;
+  }
+  .footer-links a {
+    color: rgba(255, 255, 255, 0.6);
+    transition: color 0.2s;
+  }
+  .footer-links a:hover {
+    color: var(--acme-teal, #00C9A7);
+  }
+  .footer-bottom {
+    padding: 24px 0;
+  }
+  .footer-bottom p {
+    font-size: 13px;
+    color: var(--acme-slate, #64748B);
+  }
+  /* --- Responsive --- */
+  @media (max-width: 900px) {
+    .hero-title {
+      font-size: 36px;
+    }
+    .hero {
+      padding: 80px 24px 64px;
+    }
+    .steps-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    .domains-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+    .footer-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+    .trust-grid {
+      gap: 32px;
+    }
+  }
+  @media (max-width: 600px) {
+    .hero-title {
+      font-size: 28px;
+    }
+    .domains-grid {
+      grid-template-columns: 1fr;
+    }
+    .footer-grid {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    .trust-grid {
+      flex-direction: column;
+      gap: 20px;
+    }
+  }
+  </style>
+  

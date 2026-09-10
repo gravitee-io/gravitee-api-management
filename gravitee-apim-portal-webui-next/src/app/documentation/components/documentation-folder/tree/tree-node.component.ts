@@ -73,8 +73,11 @@ export class TreeNodeComponent {
         this.toggleNode();
         break;
       case 'AGENT':
-        this.toggleNode();
-        this.selectNode();
+        if (this.isSelected()) {
+          this.toggleNode();
+        } else {
+          this.selectNode();
+        }
         break;
       case 'PAGE':
         this.selectNode();
