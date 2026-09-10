@@ -93,6 +93,7 @@ class HTTPFieldResolverTest {
             "HTTP_PATH_MAPPING",
             "GEO_IP_COUNTRY",
             "CONSUMER_IP",
+            "LLM_PROXY_TOOL",
             "MCP_PROXY_METHOD",
             "MCP_PROXY_TOOL",
             "MCP_PROXY_RESOURCE",
@@ -130,6 +131,7 @@ class HTTPFieldResolverTest {
             "HTTP_PATH_MAPPING",
             "GEO_IP_COUNTRY",
             "CONSUMER_IP",
+            "LLM_PROXY_TOOL",
             "MCP_PROXY_METHOD",
             "MCP_PROXY_TOOL",
             "MCP_PROXY_RESOURCE",
@@ -157,6 +159,18 @@ class HTTPFieldResolverTest {
         assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.MCP_PROXY_PROMPT, Filter.Operator.EQ, "prompt"))).isEqualTo(
             "additional-metrics.keyword_mcp-proxy_prompts/get"
         );
+    }
+
+    /**
+     * The tool dimension reads the multi-valued field the llm proxy writes, not one of the single-valued
+     * llm fields beside it — a resolver slip there would silently facet on the model.
+     */
+    @Test
+    void should_resolve_llm_proxy_tool_to_the_multi_valued_tool_names_field() {
+        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.LLM_PROXY_TOOL, Filter.Operator.EQ, "get_weather"))).isEqualTo(
+            "additional-metrics.keyword_llm-proxy_tool-names"
+        );
+        assertThat(fieldResolver.fromFacet(Facet.LLM_PROXY_TOOL)).isEqualTo("additional-metrics.keyword_llm-proxy_tool-names");
     }
 
     @Test

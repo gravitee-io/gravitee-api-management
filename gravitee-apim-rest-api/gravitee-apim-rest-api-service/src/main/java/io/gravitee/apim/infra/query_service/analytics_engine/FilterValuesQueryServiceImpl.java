@@ -112,6 +112,7 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
             case LLM_PROXY_PROVIDER -> "additional-metrics.keyword_llm-proxy_provider";
             case LLM_PROXY_CONVERSATION -> "additional-metrics.keyword_llm-proxy_conversation-id";
             case LLM_PROXY_REQUEST_KIND -> "additional-metrics.keyword_llm-proxy_request-kind";
+            case LLM_PROXY_TOOL -> "additional-metrics.keyword_llm-proxy_tool-names";
             case MCP_PROXY_METHOD -> "additional-metrics.keyword_mcp-proxy_method";
             case MCP_PROXY_TOOL -> "additional-metrics.keyword_mcp-proxy_tools/call";
             case MCP_PROXY_RESOURCE -> "additional-metrics.keyword_mcp-proxy_resources/read";

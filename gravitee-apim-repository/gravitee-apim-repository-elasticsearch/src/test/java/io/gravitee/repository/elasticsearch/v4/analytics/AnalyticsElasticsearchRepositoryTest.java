@@ -2210,6 +2210,45 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 assertThat(costMeasure.measures().get(Measure.COUNT).doubleValue()).isCloseTo(0.0095, offset(0.0001));
                 assertThat(costMeasure.measures().get(Measure.AVG).doubleValue()).isCloseTo(0.00317, offset(0.00001));
             }
+
+            /**
+             * The three llm documents carry {@code ["get_weather","search"]}, {@code ["get_weather"]} and
+             * {@code ["search","<unnamed>"]}. The counts below therefore total five over three requests: a
+             * bucket counts the exchanges a tool ran in, and an exchange running two tools is in both. That
+             * overlap is the property the whole dimension rests on, so it is asserted rather than described.
+             */
+            @Test
+            void should_return_facets_by_llm_proxy_tool_counting_each_exchange_in_every_tool_it_ran() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(LLM_API_ID));
+                var query = new FacetsQuery(timeRange, List.of(filter), metrics, List.of(Facet.LLM_PROXY_TOOL));
+
+                var result = cut.searchHTTPFacets(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+                assertThat(result.metrics()).hasSize(1);
+                assertThat(result.metrics().getFirst().buckets())
+                    .extracting(FacetBucketResult::key, bucket -> bucket.measures().get(Measure.COUNT).doubleValue())
+                    .containsExactlyInAnyOrder(tuple("get_weather", 2.0), tuple("search", 2.0), tuple("<unnamed>", 1.0));
+            }
+
+            /** {@code EQ} on a multi-valued field means "contains", which is what a tool filter has to mean. */
+            @Test
+            void should_filter_by_llm_proxy_tool() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+                var filters = List.of(
+                    new Filter(Filter.Name.API, Filter.Operator.IN, List.of(LLM_API_ID)),
+                    new Filter(Filter.Name.LLM_PROXY_TOOL, Filter.Operator.EQ, "get_weather")
+                );
+
+                var result = cut.searchHTTPMeasures(QUERY_CONTEXT, new MeasuresQuery(timeRange, filters, metrics));
+
+                assertThat(result).isNotNull();
+                assertThat(result.measures()).hasSize(1);
+                assertThat(result.measures().getFirst().measures().get(Measure.COUNT).doubleValue()).isEqualTo(2.0);
+            }
         }
 
         @Nested

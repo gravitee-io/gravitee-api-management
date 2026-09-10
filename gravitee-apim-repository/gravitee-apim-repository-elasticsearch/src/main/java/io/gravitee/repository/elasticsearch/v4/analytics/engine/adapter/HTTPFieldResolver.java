@@ -77,6 +77,7 @@ public class HTTPFieldResolver implements FieldResolver {
             case Filter.Name.LLM_PROXY_PROVIDER -> LlmProxyFields.PROVIDER;
             case Filter.Name.LLM_PROXY_CONVERSATION -> LlmProxyFields.CONVERSATION_ID;
             case Filter.Name.LLM_PROXY_REQUEST_KIND -> LlmProxyFields.REQUEST_KIND;
+            case Filter.Name.LLM_PROXY_TOOL -> LlmProxyFields.TOOL_NAMES;
             case Filter.Name.MCP_PROXY_METHOD -> "additional-metrics.keyword_mcp-proxy_method";
             case Filter.Name.MCP_PROXY_TOOL -> "additional-metrics.keyword_mcp-proxy_tools/call";
             case Filter.Name.MCP_PROXY_RESOURCE -> "additional-metrics.keyword_mcp-proxy_resources/read";
@@ -127,6 +128,7 @@ public class HTTPFieldResolver implements FieldResolver {
             case LLM_PROXY_PROVIDER -> LlmProxyFields.PROVIDER;
             case LLM_PROXY_CONVERSATION -> LlmProxyFields.CONVERSATION_ID;
             case LLM_PROXY_REQUEST_KIND -> LlmProxyFields.REQUEST_KIND;
+            case LLM_PROXY_TOOL -> LlmProxyFields.TOOL_NAMES;
             case MCP_PROXY_METHOD -> "additional-metrics.keyword_mcp-proxy_method";
             case MCP_PROXY_TOOL -> "additional-metrics.keyword_mcp-proxy_tools/call";
             case MCP_PROXY_RESOURCE -> "additional-metrics.keyword_mcp-proxy_resources/read";

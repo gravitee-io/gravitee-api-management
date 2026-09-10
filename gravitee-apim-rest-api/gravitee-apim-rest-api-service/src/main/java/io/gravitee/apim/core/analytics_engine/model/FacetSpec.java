@@ -47,6 +47,7 @@ public record FacetSpec(Name name, String label, String type, List<Object> enumV
         LLM_PROXY_PROVIDER,
         LLM_PROXY_CONVERSATION,
         LLM_PROXY_REQUEST_KIND,
+        LLM_PROXY_TOOL,
         MCP_PROXY_METHOD,
         MCP_PROXY_TOOL,
         MCP_PROXY_RESOURCE,

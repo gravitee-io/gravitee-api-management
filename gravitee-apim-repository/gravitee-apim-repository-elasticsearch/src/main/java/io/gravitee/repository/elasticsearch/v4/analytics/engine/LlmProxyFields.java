@@ -45,6 +45,16 @@ public final class LlmProxyFields {
     /** Whether the user asked for an exchange, or the client made it for the conversation itself. */
     public static final String REQUEST_KIND = PREFIX + "keyword_llm-proxy_request-kind";
 
+    /**
+     * The tools whose results a request hands back — the batch the agent just ran.
+     *
+     * <p>Multi-valued, and the only field here that is. A terms aggregation over it therefore counts
+     * <b>documents, not values</b>: a bucket reads "exchanges in which this tool ran", never "tool calls",
+     * and the buckets sum to more than the number of requests. Nothing recorded can correct that, so
+     * anything surfacing this number says "exchanges".
+     */
+    public static final String TOOL_NAMES = PREFIX + "keyword_llm-proxy_tool-names";
+
     public static final String MODEL = PREFIX + "keyword_llm-proxy_model";
     public static final String PROVIDER = PREFIX + "keyword_llm-proxy_provider";
 
