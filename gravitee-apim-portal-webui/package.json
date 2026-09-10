@@ -117,6 +117,8 @@
     "form-data": "4.0.6",
     "handlebars": "4.7.9",
     "protobufjs": "7.6.6",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
     "sha.js": "2.4.12"
   },
   "scarfSettings": {
