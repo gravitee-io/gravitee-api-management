@@ -14,23 +14,11 @@
  * limitations under the License.
  */
 
-import * as jsYAML from 'js-yaml';
+import { NOT_RESOLVED } from 'js-yaml';
 
-import { readYaml } from './yaml-parser';
+import { binaryTag, readYaml } from './yaml-parser';
 
-const binaryType = new jsYAML.Type('tag:yaml.org,2002:binary', {
-  kind: 'scalar',
-  resolve: (data: any) => {
-    return typeof data === 'string' && /^[A-Za-z0-9+/=]*$/.test(data);
-  },
-  construct: (data: string) => {
-    return Buffer.from(data, 'base64').toString('utf-8');
-  },
-  instanceOf: String,
-  represent: (value: any) => {
-    return Buffer.from(String(value), 'utf-8').toString('base64');
-  },
-});
+const BINARY_TAG = 'tag:yaml.org,2002:binary';
 
 describe('yamlToJson', () => {
   it('should not transform date format', () => {
@@ -100,18 +88,17 @@ describe('yamlToJson', () => {
 
   // Test case for resolve method
   it('should correctly resolve Base64 validity', () => {
-    expect(binaryType.resolve('U3dhZ2dlciByb2Nrcw==')).toBe(true); // Valid Base64
-    expect(binaryType.resolve('InvalidBase64%')).toBe(false); // Invalid Base64
-    expect(binaryType.resolve(null)).toBe(false); // Non-string
-    expect(binaryType.resolve(123)).toBe(false); // Non-string
+    expect(binaryTag.resolve('U3dhZ2dlciByb2Nrcw==', true, BINARY_TAG)).toBe('Swagger rocks'); // Valid Base64
+    expect(binaryTag.resolve('InvalidBase64%', true, BINARY_TAG)).toBe(NOT_RESOLVED); // Invalid Base64
+    expect(binaryTag.resolve(null as any, true, BINARY_TAG)).toBe(NOT_RESOLVED); // Non-string
+    expect(binaryTag.resolve(123 as any, true, BINARY_TAG)).toBe(NOT_RESOLVED); // Non-string
   });
 
-  // Test case for construct method
+  // Test case for the value built from a Base64 scalar
   it('should construct a valid UTF-8 string from Base64', () => {
     const base64String = 'U3dhZ2dlciByb2Nrcw=='; // Base64 for "Swagger rocks"
     const expectedString = 'Swagger rocks';
 
-    const constructedValue = binaryType.construct(base64String);
-    expect(constructedValue).toBe(expectedString);
+    expect(binaryTag.resolve(base64String, true, BINARY_TAG)).toBe(expectedString);
   });
 });
