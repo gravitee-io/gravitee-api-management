@@ -3724,7 +3724,6 @@ __metadata:
     "@ngx-translate/core": "npm:17.0.0"
     "@ngx-translate/http-loader": "npm:17.0.0"
     "@types/jest": "npm:29.5.14"
-    "@types/js-yaml": "npm:4.0.9"
     "@types/node": "npm:22.20.2"
     "@types/swagger-ui": "npm:5.32.0"
     "@typescript-eslint/eslint-plugin": "npm:8.70.0"
@@ -3749,7 +3748,7 @@ __metadata:
     jest: "npm:29.7.0"
     jest-junit: "npm:16.0.0"
     jest-preset-angular: "npm:14.6.2"
-    js-yaml: "npm:4.3.2"
+    js-yaml: "npm:5.4.1"
     license-check-and-add: "npm:4.0.5"
     marked: "npm:15.0.12"
     marked-alert: "npm:2.1.2"
@@ -7355,13 +7354,6 @@ __metadata:
     expect: "npm:^29.0.0"
     pretty-format: "npm:^29.0.0"
   checksum: 10c0/18e0712d818890db8a8dab3d91e9ea9f7f19e3f83c2e50b312f557017dc81466207a71f3ed79cf4428e813ba939954fa26ffa0a9a7f153181ba174581b1c2aed
-  languageName: node
-  linkType: hard
-
-"@types/js-yaml@npm:4.0.9":
-  version: 4.0.9
-  resolution: "@types/js-yaml@npm:4.0.9"
-  checksum: 10c0/24de857aa8d61526bbfbbaa383aa538283ad17363fcd5bb5148e2c7f604547db36646440e739d78241ed008702a8920665d1add5618687b6743858fae00da211
   languageName: node
   linkType: hard
 
@@ -13025,6 +13017,17 @@ __metadata:
   bin:
     js-yaml: bin/js-yaml.js
   checksum: 10c0/dedd34c2e8fef1d504687f1bc94ed0ee1311a1f78770fa2800352c6d59c635ccf555009d74e9afe529ae62199da2b1ccef30e53dc84dcd8d2d8187c22574bc97
+  languageName: node
+  linkType: hard
+
+"js-yaml@npm:5.4.1":
+  version: 5.4.1
+  resolution: "js-yaml@npm:5.4.1"
+  dependencies:
+    argparse: "npm:^2.0.1"
+  bin:
+    js-yaml: bin/js-yaml.mjs
+  checksum: 10c0/efe9dfaf222809694d375ad5ecca825561d2432eb55bc0f628911c0dfa4dbce98a71dcbc3252f630208bbdf5f4e9ac363847e4a7f49845b577ae2548b8fcf147
   languageName: node
   linkType: hard
 
