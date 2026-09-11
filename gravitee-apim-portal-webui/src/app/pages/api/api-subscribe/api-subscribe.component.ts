@@ -679,7 +679,9 @@ export class ApiSubscribeComponent implements OnInit {
   }
 
   private getCreatedAt() {
-    return this._subscription ? new Date(this._subscription.created_at).toLocaleString(this.translateService.currentLang) : '';
+    return this._subscription
+      ? new Date(this._subscription.created_at).toLocaleString(this.translateService.currentLang() ?? undefined)
+      : '';
   }
 
   private canSubscribe(appSubscriptions: Subscription[], plan: Plan) {

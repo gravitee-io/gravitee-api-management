@@ -22,7 +22,7 @@ import { MESSAGE_FORMAT_CONFIG, TranslateMessageFormatCompiler } from 'ngx-trans
 import { APP_INITIALIZER, CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { Router, Scroll } from '@angular/router';
 import { TRANSLATE_HTTP_LOADER_CONFIG, TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { TranslateCompiler, TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateCompiler, TranslateDirective, TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { ViewportScroller } from '@angular/common';
 
 import { ApiModule, BASE_PATH } from '../../projects/portal-webclient-sdk/src/lib';
@@ -105,13 +105,9 @@ import { TicketsHistoryComponent } from './components/gv-tickets-history/tickets
     UserNotificationComponent,
     TicketsHistoryComponent,
   ],
-  imports: [
-    ApiModule,
-    AppRoutingModule,
-    BrowserAnimationsModule,
-    BrowserModule,
-    SharedModule,
-    TranslateModule.forRoot({
+  imports: [ApiModule, AppRoutingModule, BrowserAnimationsModule, BrowserModule, SharedModule, TranslatePipe, TranslateDirective],
+  providers: [
+    ...provideTranslateService({
       loader: {
         provide: TranslateLoader,
         useClass: TranslateHttpLoader,
@@ -121,11 +117,11 @@ import { TicketsHistoryComponent } from './components/gv-tickets-history/tickets
         useClass: TranslateMessageFormatCompiler,
       },
     }),
-  ],
-  providers: [
     {
       provide: TRANSLATE_HTTP_LOADER_CONFIG,
-      useValue: { prefix: './assets/i18n/' },
+      // v18 reads `resources` only: a bare prefix makes the loader issue no request at all and
+      // return an empty object, and failOnError keeps a missing file from passing unnoticed.
+      useValue: { resources: [{ prefix: './assets/i18n/', suffix: '.json' }], failOnError: true },
     },
     {
       provide: APP_INITIALIZER,
@@ -144,7 +140,7 @@ import { TicketsHistoryComponent } from './components/gv-tickets-history/tickets
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   bootstrap: [AppComponent],
-  exports: [TranslateModule, SharedModule],
+  exports: [TranslatePipe, TranslateDirective, SharedModule],
 })
 export class AppModule {
   constructor(router: Router, viewportScroller: ViewportScroller) {

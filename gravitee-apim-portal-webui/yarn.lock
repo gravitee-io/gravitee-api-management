@@ -3653,8 +3653,8 @@ __metadata:
     "@highcharts/map-collection": "npm:2.3.3"
     "@messageformat/core": "npm:3.4.0"
     "@ngneat/spectator": "npm:22.1.0"
-    "@ngx-translate/core": "npm:17.0.0"
-    "@ngx-translate/http-loader": "npm:17.0.0"
+    "@ngx-translate/core": "npm:18.0.0"
+    "@ngx-translate/http-loader": "npm:18.0.0"
     "@types/jest": "npm:30.0.0"
     "@types/node": "npm:22.20.2"
     "@types/swagger-ui": "npm:5.32.0"
@@ -5117,27 +5117,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ngx-translate/core@npm:17.0.0":
-  version: 17.0.0
-  resolution: "@ngx-translate/core@npm:17.0.0"
+"@ngx-translate/core@npm:18.0.0":
+  version: 18.0.0
+  resolution: "@ngx-translate/core@npm:18.0.0"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/common": ">=16"
-    "@angular/core": ">=16"
-  checksum: 10c0/c1f51c788c76081c5e13d7b504fe2e9a868d965e2f67d60b45260104f45096984f2a21bab62136754f51b70d41a01f30dced6f8518393a8d1f910ab7082923e3
+    "@angular/common": ">=18"
+    "@angular/core": ">=18"
+    rxjs: ">=7"
+  checksum: 10c0/f7bd0675946aec3bed334313f84be998bb8d5f0a88f048f65288f5933e61749e6a5bb639dfd5a1e0cce31ea11ed98f8c325bad2a8f8a2d0678f62203f9e3ceba
   languageName: node
   linkType: hard
 
-"@ngx-translate/http-loader@npm:17.0.0":
-  version: 17.0.0
-  resolution: "@ngx-translate/http-loader@npm:17.0.0"
+"@ngx-translate/http-loader@npm:18.0.0":
+  version: 18.0.0
+  resolution: "@ngx-translate/http-loader@npm:18.0.0"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/common": ">=16"
-    "@angular/core": ">=16"
-  checksum: 10c0/88bfc4c965a990c807d730082619a7ea6ab01673feb16b6edd1a9ae2b3155d325677cb1f14bbc55979fd703d5b9932db62f2338295486a80150503d299e0d364
+    "@angular/common": ">=18"
+    "@angular/core": ">=18"
+    "@ngx-translate/core": ">=18.0.0"
+  checksum: 10c0/204183e4f0c6e83c0db3df1ab001aaadb0e315bc0896df5555a6d30f672887824f2ae01331e1dc0e39ffbde45274bedddbf4189da398469aa7012b871cf73771
   languageName: node
   linkType: hard
 

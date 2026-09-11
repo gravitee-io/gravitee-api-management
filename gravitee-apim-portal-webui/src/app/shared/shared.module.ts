@@ -17,7 +17,7 @@ import { HttpClientModule, provideHttpClient, withInterceptorsFromDi } from '@an
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
-import { TranslateCompiler, TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateCompiler, TranslateDirective, TranslateLoader, TranslatePipe, provideChildTranslateService } from '@ngx-translate/core';
 import { TRANSLATE_HTTP_LOADER_CONFIG, TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-compiler';
@@ -57,6 +57,8 @@ import { ApiLabelsPipe } from '../pipes/api-labels.pipe';
     GvMarkdownTocComponent,
   ],
   exports: [
+    TranslatePipe,
+    TranslateDirective,
     HttpClientModule,
     ReactiveFormsModule,
     OAuthModule,
@@ -68,11 +70,9 @@ import { ApiLabelsPipe } from '../pipes/api-labels.pipe';
     GvPageComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    OAuthModule.forRoot(),
-    TranslateModule.forChild({
+  imports: [CommonModule, ReactiveFormsModule, OAuthModule.forRoot(), TranslatePipe, TranslateDirective],
+  providers: [
+    ...provideChildTranslateService({
       loader: {
         provide: TranslateLoader,
         useClass: TranslateHttpLoader,
@@ -82,14 +82,12 @@ import { ApiLabelsPipe } from '../pipes/api-labels.pipe';
         useClass: TranslateMessageFormatCompiler,
       },
     }),
-  ],
-  providers: [
     ApiLabelsPipe,
     ApiStatesPipe,
     MarkdownDescriptionPipe,
     LocalizedDatePipe,
     provideHttpClient(withInterceptorsFromDi()),
-    { provide: TRANSLATE_HTTP_LOADER_CONFIG, useValue: { prefix: './assets/i18n/' } },
+    { provide: TRANSLATE_HTTP_LOADER_CONFIG, useValue: { resources: [{ prefix: './assets/i18n/', suffix: '.json' }], failOnError: true } },
   ],
 })
 export class SharedModule {}
