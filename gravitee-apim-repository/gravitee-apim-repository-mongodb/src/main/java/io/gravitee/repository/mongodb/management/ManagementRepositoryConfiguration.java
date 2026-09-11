@@ -22,6 +22,7 @@ import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
 import io.gravitee.repository.mongodb.common.MongoFactory;
 import io.gravitee.repository.mongodb.encryption.EncryptionConfiguration;
 import io.gravitee.repository.mongodb.management.converters.BsonUndefinedToNullReadingConverter;
+import io.gravitee.repository.mongodb.management.converters.DictionaryPropertyWritingConverter;
 import io.gravitee.repository.mongodb.management.converters.LegacyDictionaryPropertyReadingConverter;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,6 +75,11 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
         return new LegacyDictionaryPropertyReadingConverter();
     }
 
+    @Bean
+    public DictionaryPropertyWritingConverter dictionaryPropertyWritingConverter() {
+        return new DictionaryPropertyWritingConverter();
+    }
+
     @Override
     protected void configureConverters(MongoCustomConversions.MongoConverterConfigurationAdapter adapter) {
         super.configureConverters(adapter);
@@ -82,6 +88,7 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
         // Every custom Converter bean in this class must also be added here explicitly.
         adapter.registerConverter(bsonUndefinedToNullReadingConverter());
         adapter.registerConverter(legacyDictionaryPropertyReadingConverter());
+        adapter.registerConverter(dictionaryPropertyWritingConverter());
     }
 
     @Bean(name = "managementMongo")

@@ -16,8 +16,13 @@
 package io.gravitee.repository.management.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class DictionaryPropertyTest {
@@ -69,5 +74,18 @@ class DictionaryPropertyTest {
         DictionaryProperty roundTripped = mapper.readValue(mapper.writeValueAsString(original), DictionaryProperty.class);
 
         assertThat(roundTripped).isEqualTo(original);
+    }
+
+    @Test
+    void should_fail_to_deserialize_an_object_missing_the_value_field() {
+        assertThatThrownBy(() -> mapper.readValue("{\"encrypted\":true}", DictionaryProperty.class))
+            .isInstanceOf(JsonMappingException.class);
+    }
+
+    @Test
+    void should_fail_to_deserialize_a_null_property_inside_a_properties_map() {
+        assertThatThrownBy(() ->
+            mapper.readValue("{\"key\": null}", new TypeReference<Map<String, DictionaryProperty>>() {})
+        ).isInstanceOf(JsonProcessingException.class);
     }
 }
