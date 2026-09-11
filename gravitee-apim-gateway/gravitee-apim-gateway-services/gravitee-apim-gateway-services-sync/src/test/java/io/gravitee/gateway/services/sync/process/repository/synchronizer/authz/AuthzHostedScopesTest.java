@@ -102,6 +102,29 @@ class AuthzHostedScopesTest {
     }
 
     @Test
+    void isHosted_checks_the_exact_routing_scope_not_only_its_engine() {
+        AuthzHostedScopes catchAll = new AuthzHostedScopes(Set.of());
+        catchAll.markHosted("env-1", "orders@eu");
+        assertThat(catchAll.isHosted("env-1", "orders@eu")).isTrue();
+        assertThat(catchAll.isHosted("env-1", "orders@us")).isFalse();
+        assertThat(catchAll.isHosted("env-1", "orders")).isFalse();
+    }
+
+    @Test
+    void unmarking_a_regional_replica_reports_whether_its_engine_still_hosts_another_scope() {
+        AuthzHostedScopes catchAll = new AuthzHostedScopes(Set.of());
+        catchAll.markHosted("env-1", "orders@eu");
+        catchAll.markHosted("env-1", "orders@us");
+        assertThat(catchAll.unmarkHosted("env-1", "orders@us")).isTrue();
+        assertThat(catchAll.unmarkHosted("env-1", "orders@eu")).isFalse();
+    }
+
+    @Test
+    void unmarking_a_scope_that_was_never_hosted_reports_no_remaining_scope() {
+        assertThat(new AuthzHostedScopes(Set.of()).unmarkHosted("env-1", "orders@us")).isFalse();
+    }
+
+    @Test
     void an_excluded_tag_is_not_served_even_when_the_engine_is_hosted() {
         // "!eu" excludes eu from a node that otherwise carries us — mirrors API exclusion tags.
         AuthzHostedScopes node = new AuthzHostedScopes(Set.of("us", "!eu"));

@@ -46,6 +46,7 @@ import io.vertx.rxjava3.core.eventbus.MessageConsumer;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -85,6 +86,8 @@ class AuthzPdpSynchronizerGapsTest {
     private AuthzEnginePort enginePort;
 
     private AuthzPdpSynchronizer synchronizer;
+    private AuthzHostedScopes hostedScopes;
+    private AuthzAppliedRevisions revisions;
     private final ConcurrentLinkedQueue<JsonObject> received = new ConcurrentLinkedQueue<>();
     private MessageConsumer<JsonObject> consumer;
 
@@ -137,6 +140,8 @@ class AuthzPdpSynchronizerGapsTest {
             executor(),
             executor()
         );
+        hostedScopes = new AuthzHostedScopes();
+        revisions = new AuthzAppliedRevisions();
         return new AuthzPdpSynchronizer(
             fetcher,
             new AuthzPdpMapper(new ObjectMapper()),
@@ -145,10 +150,10 @@ class AuthzPdpSynchronizerGapsTest {
             node,
             gatewayConfiguration,
             vertx,
-            new AuthzHostedScopes(),
+            hostedScopes,
             executor(),
             executor(),
-            new AuthzAppliedRevisions()
+            revisions
         );
     }
 
@@ -660,6 +665,132 @@ class AuthzPdpSynchronizerGapsTest {
         synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
         assertThat(received).isEmpty();
+    }
+
+    // ---------------------------------------------------------------------
+    // Regional replicas (stock@eu, stock@us) on an untagged (catch-all) node
+    // ---------------------------------------------------------------------
+
+    @Test
+    void deleting_one_regional_replica_on_an_untagged_node_keeps_the_shared_engine() throws InterruptedException {
+        provisionBothStockReplicasOnAnUntaggedNode();
+        revisions.markApplied("env-pdp", "stock@eu", "pol-1", 100L);
+        revisions.markApplied("env-pdp", "stock@us", "pol-1", 100L);
+
+        stubPdpFetch(pdpEvent("pdp-us", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "us"));
+        synchronizer.synchronize(2L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+
+        assertThat(received).noneMatch(m -> "evict".equals(m.getString("op")));
+        assertThat(hostedScopes.serves("env-pdp", "stock@eu")).isTrue();
+        assertThat(hostedScopes.hostedFor("env-pdp")).containsExactly("stock@eu");
+        assertThat(revisions.shouldApply("env-pdp", "stock@eu", "pol-1", 100L)).isFalse();
+        assertThat(revisions.shouldApply("env-pdp", "stock@us", "pol-1", 100L)).isTrue();
+    }
+
+    @Test
+    void deleting_both_regional_replicas_on_an_untagged_node_evicts_the_engine_once_after_the_last_delete() throws InterruptedException {
+        provisionBothStockReplicasOnAnUntaggedNode();
+
+        stubPdpFetch(pdpEvent("pdp-us", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "us"));
+        synchronizer.synchronize(2L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+        assertThat(received).isEmpty();
+
+        stubPdpFetch(pdpEvent("pdp-eu", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "eu"));
+        synchronizer.synchronize(3L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+
+        assertThat(received)
+            .extracting(m -> m.getString("op") + ":" + m.getString("targetPdpId"))
+            .containsExactly("evict:stock");
+        assertThat(hostedScopes.hostedFor("env-pdp")).isEmpty();
+    }
+
+    @Test
+    void deleting_both_regional_replicas_in_one_batch_evicts_the_engine_once() throws InterruptedException {
+        provisionBothStockReplicasOnAnUntaggedNode();
+
+        stubPdpFetch(
+            pdpEvent("pdp-us", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "us"),
+            pdpEvent("pdp-eu", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "eu")
+        );
+        synchronizer.synchronize(2L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+
+        assertThat(received)
+            .extracting(m -> m.getString("op") + ":" + m.getString("targetPdpId"))
+            .containsExactly("evict:stock");
+        assertThat(hostedScopes.hostedFor("env-pdp")).isEmpty();
+    }
+
+    @Test
+    void a_pending_provision_of_one_replica_survives_the_confirmed_evict_of_the_other() throws InterruptedException {
+        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
+        stubPdpFetch(pdpEvent("pdp-us", EventType.PUBLISH_AUTHZ_PDP, "stock", "us"));
+        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+
+        // The stock@eu provision relay fails, so stock@eu stays pending and is not hosted.
+        consumer.unregister();
+        consumer = vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> message.fail(500, "down"));
+        stubPdpFetch(pdpEvent("pdp-eu", EventType.PUBLISH_AUTHZ_PDP, "stock", "eu"));
+        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+
+        // stock@us is the last hosted scope on the engine, so its delete relays an evict that confirms.
+        consumer.unregister();
+        consumer = registerReplyingConsumer();
+        received.clear();
+        stubPdpFetch(pdpEvent("pdp-us", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "us"));
+        synchronizer.synchronize(2L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+
+        assertThat(received)
+            .extracting(m -> m.getString("op") + ":" + m.getString("targetPdpId"))
+            .containsExactly("evict:stock", "provision:stock");
+        assertThat(hostedScopes.hostedFor("env-pdp")).containsExactly("stock@eu");
+    }
+
+    @Test
+    void a_second_tag_variant_on_an_untagged_node_is_hydrated() throws InterruptedException {
+        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
+            Flowable.just(List.of(policyEvent("pol-eu", "stock@eu"), policyEvent("pol-us", "stock@us")))
+        );
+        stubPdpFetch(pdpEvent("pdp-eu", EventType.PUBLISH_AUTHZ_PDP, "stock", "eu"));
+        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+
+        stubPdpFetch(pdpEvent("pdp-us", EventType.PUBLISH_AUTHZ_PDP, "stock", "us"));
+        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+
+        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-us"), any(), any(), eq(Set.of("stock@us")), anyLong());
+        verify(enginePort, times(2)).commitScope("env-pdp", "stock@us");
+    }
+
+    @Test
+    void a_suppressed_evict_still_drops_its_routing_scope() throws InterruptedException {
+        // A re-tag arrives as a delete plus a recreate in one batch.
+        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
+        stubPdpFetch(pdpEvent("pdp-us", EventType.PUBLISH_AUTHZ_PDP, "stock", "us"));
+        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+        revisions.markApplied("env-pdp", "stock@us", "pol-1", 100L);
+        received.clear();
+
+        stubPdpFetch(
+            pdpEvent("pdp-us", EventType.UNPUBLISH_AUTHZ_PDP, "stock", "us"),
+            pdpEvent("pdp-eu", EventType.PUBLISH_AUTHZ_PDP, "stock", "eu")
+        );
+        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+
+        assertThat(received)
+            .extracting(m -> m.getString("op") + ":" + m.getString("targetPdpId"))
+            .containsExactly("provision:stock");
+        assertThat(hostedScopes.hostedFor("env-pdp")).containsExactly("stock@eu");
+        assertThat(revisions.shouldApply("env-pdp", "stock@us", "pol-1", 100L)).isTrue();
+    }
+
+    private void provisionBothStockReplicasOnAnUntaggedNode() throws InterruptedException {
+        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
+        stubPdpFetch(pdpEvent("pdp-eu", EventType.PUBLISH_AUTHZ_PDP, "stock", "eu"));
+        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+        stubPdpFetch(pdpEvent("pdp-us", EventType.PUBLISH_AUTHZ_PDP, "stock", "us"));
+        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-pdp")).test().await().assertComplete();
+        assertThat(hostedScopes.hostedFor("env-pdp")).containsExactlyInAnyOrder("stock@eu", "stock@us");
+        received.clear();
     }
 
     // ---------------------------------------------------------------------

@@ -310,7 +310,7 @@ class AuthzPdpSynchronizerTest {
     @Test
     void does_not_re_hydrate_a_scope_already_hosted() throws InterruptedException {
         // Simulate "scope-1 was already provisioned in a prior cycle" by pre-marking it hosted.
-        hostedScopes.markHosted("env-1", "scope-1");
+        hostedScopes.markHosted("env-1", "scope-1@eu");
 
         // A re-fetch of the same PUBLISH_AUTHZ_PDP event arrives (e.g. the event window overlaps).
         Event publish = pdpEvent("evt-p", EventType.PUBLISH_AUTHZ_PDP, "scope-1", "eu");
@@ -324,7 +324,7 @@ class AuthzPdpSynchronizerTest {
         // skipped because wasHosted was true at the start of relayProvisionOrEvict.
         assertThat(received).hasSize(1);
         assertThat(received.peek().getString("op")).isEqualTo("provision");
-        assertThat(hostedScopes.isHosted("env-1", "scope-1")).isTrue();
+        assertThat(hostedScopes.isHosted("env-1", "scope-1@eu")).isTrue();
         // stageScope always calls enginePort.commitScope as its final step; if it were invoked the
         // scope would be re-hydrated. Verifying never() here proves Gate D held: no stageScope ran.
         verify(enginePort, never()).commitScope(any(), any());

@@ -58,18 +58,18 @@ public class AuthzAppliedRevisions {
     }
 
     /**
-     * Forget every revision bucket for an engine, i.e. the bare {@code targetPdpId} and all its
-     * {@code targetPdpId@<tag>} routing-scope variants. Called when a PDP is evicted: the engine address is
-     * derived from the {@code targetPdpId} alone, so on a catch-all node every tag-variant scope aliases to
-     * the one engine being torn down and its bucket is now stale — clearing only the bare id would leave a
-     * tagged bucket behind and gate out every doc when the scope is re-provisioned. Walks the outer map, but
-     * only on the (rare) evict path; the hot mutation path never touches it.
+     * Forget every revision bucket of an engine: the bare {@code targetPdpId} and all its
+     * {@code targetPdpId@<tag>} routing-scope variants.
      */
     public void forgetEngine(String environmentId, String targetPdpId) {
         String bareKey = scopeKey(environmentId, targetPdpId);
         String taggedPrefix = bareKey + SCOPE_TAG_SEPARATOR;
         revisions.remove(bareKey);
         revisions.keySet().removeIf(k -> k.startsWith(taggedPrefix));
+    }
+
+    public void forgetScope(String environmentId, String scope) {
+        revisions.remove(scopeKey(environmentId, scope));
     }
 
     private static String scopeKey(String environmentId, String scope) {
