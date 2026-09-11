@@ -18,25 +18,15 @@ package io.gravitee.apim.infra.crud_service.subscription_form;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.SubscriptionFormFixtures;
-import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
-import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
-import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
-import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
-import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
-import io.gravitee.apim.core.portal_page.model.PortalPageContent;
-import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
-import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
+import io.gravitee.apim.infra.adapter.SubscriptionFormAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionFormRepository;
 import io.gravitee.repository.management.model.SubscriptionForm;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -52,40 +42,19 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class SubscriptionFormCrudServiceImplTest {
 
-    private static final String ORGANIZATION_ID = "organization-id";
-
     @Mock
     SubscriptionFormRepository repository;
 
-    @Mock
-    EnvironmentCrudService environmentCrudService;
-
-    @Mock
-    PortalPageContentCrudService pageContentCrudService;
-
-    @Mock
-    PortalPageContentQueryService pageContentQueryService;
-
-    @Captor
-    ArgumentCaptor<SubscriptionForm> formCaptor;
-
-    @Captor
-    ArgumentCaptor<PortalPageContent<?>> contentCaptor;
-
     SubscriptionFormCrudServiceImpl service;
+
+    SubscriptionFormAdapter subscriptionFormAdapter = SubscriptionFormAdapter.INSTANCE;
+
+    @Captor
+    ArgumentCaptor<SubscriptionForm> captor;
 
     @BeforeEach
     void setUp() {
-        service = new SubscriptionFormCrudServiceImpl(repository, environmentCrudService, pageContentCrudService, pageContentQueryService);
-        lenient()
-            .when(environmentCrudService.get(SubscriptionFormFixtures.ENVIRONMENT_ID))
-            .thenReturn(Environment.builder().id(SubscriptionFormFixtures.ENVIRONMENT_ID).organizationId(ORGANIZATION_ID).build());
-        lenient()
-            .when(pageContentCrudService.create(any()))
-            .thenAnswer(invocation -> invocation.getArgument(0));
-        lenient()
-            .when(pageContentCrudService.update(any()))
-            .thenAnswer(invocation -> invocation.getArgument(0));
+        service = new SubscriptionFormCrudServiceImpl(repository);
     }
 
     @Nested
@@ -93,55 +62,26 @@ class SubscriptionFormCrudServiceImplTest {
 
         @BeforeEach
         void setUp() throws TechnicalException {
-            lenient()
-                .when(repository.create(any()))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+            when(repository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
         }
 
         @Test
-        void should_create_the_gmd_page_content_in_the_form_environment() {
-            var subscriptionForm = SubscriptionFormFixtures.aSubscriptionFormWithNullId();
+        void should_create_a_subscription_form() throws TechnicalException {
+            var subscriptionForm = SubscriptionFormFixtures.aSubscriptionForm();
 
             service.create(subscriptionForm);
 
-            verify(pageContentCrudService).create(contentCaptor.capture());
-            var content = contentCaptor.getValue();
-            assertThat(content).isInstanceOf(GraviteeMarkdownPageContent.class);
-            assertThat(content.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
-            assertThat(content.getEnvironmentId()).isEqualTo(SubscriptionFormFixtures.ENVIRONMENT_ID);
-            assertThat(((GraviteeMarkdownPageContent) content).getContent()).isEqualTo(
-                GraviteeMarkdown.of(SubscriptionFormFixtures.GMD_CONTENT)
-            );
+            verify(repository).create(captor.capture());
+            assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(subscriptionFormAdapter.toRepository(subscriptionForm));
         }
 
         @Test
-        void should_persist_the_row_linked_to_the_page_content_without_inline_content() throws TechnicalException {
-            var subscriptionForm = SubscriptionFormFixtures.aSubscriptionFormWithNullId();
-
-            service.create(subscriptionForm);
-
-            verify(pageContentCrudService).create(contentCaptor.capture());
-            verify(repository).create(formCaptor.capture());
-            var row = formCaptor.getValue();
-            assertThat(row.getEnvironmentId()).isEqualTo(SubscriptionFormFixtures.ENVIRONMENT_ID);
-            assertThat(row.getPortalPageContentId()).isEqualTo(contentCaptor.getValue().getId().toString());
-            assertThat(row.getGmdContent()).isNull();
-            assertThat(row.isEnabled()).isFalse();
-            assertThat(row.getValidationConstraints()).isEqualTo("{}");
-        }
-
-        @Test
-        void should_return_the_created_form_with_its_content_and_page_content_id() {
-            var subscriptionForm = SubscriptionFormFixtures.aSubscriptionFormWithNullId();
+        void should_return_the_created_subscription_form() {
+            var subscriptionForm = SubscriptionFormFixtures.aSubscriptionForm();
 
             var result = service.create(subscriptionForm);
 
-            verify(pageContentCrudService).create(contentCaptor.capture());
-            assertThat(result.getEnvironmentId()).isEqualTo(SubscriptionFormFixtures.ENVIRONMENT_ID);
-            assertThat(result.getPortalPageContentId()).isEqualTo(contentCaptor.getValue().getId());
-            assertThat(result.getGmdContent()).isEqualTo(GraviteeMarkdown.of(SubscriptionFormFixtures.GMD_CONTENT));
-            assertThat(result.isEnabled()).isFalse();
-            assertThat(result.getValidationConstraints()).isEqualTo(subscriptionForm.getValidationConstraints());
+            assertThat(result).usingRecursiveComparison().isEqualTo(subscriptionForm);
         }
 
         @Test
@@ -151,36 +91,20 @@ class SubscriptionFormCrudServiceImplTest {
             var result = service.create(subscriptionForm);
 
             assertThat(result.getId()).isNotNull();
-            verify(repository).create(formCaptor.capture());
-            assertThat(formCaptor.getValue().getId()).isEqualTo(result.getId().toString());
+            verify(repository).create(captor.capture());
+            assertThat(captor.getValue().getId()).isEqualTo(result.getId().toString());
         }
 
         @Test
-        void should_keep_the_given_id_and_ignore_the_given_page_content_id() throws TechnicalException {
-            var subscriptionForm = SubscriptionFormFixtures.aSubscriptionForm();
-
-            var result = service.create(subscriptionForm);
-
-            verify(pageContentCrudService).create(contentCaptor.capture());
-            assertThat(result.getId()).isEqualTo(subscriptionForm.getId());
-            assertThat(result.getPortalPageContentId())
-                .isEqualTo(contentCaptor.getValue().getId())
-                .isNotEqualTo(SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID);
-        }
-
-        @Test
-        void should_delete_the_created_page_content_and_throw_when_the_row_cannot_be_created() throws TechnicalException {
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
             when(repository.create(any())).thenThrow(TechnicalException.class);
-            var subscriptionForm = SubscriptionFormFixtures.aSubscriptionFormWithNullId();
+            var subscriptionForm = SubscriptionFormFixtures.aSubscriptionForm();
 
             assertThatThrownBy(() -> service.create(subscriptionForm))
                 .isInstanceOf(TechnicalDomainException.class)
                 .hasMessage(
                     "An error occurred while trying to create a SubscriptionForm for env: " + SubscriptionFormFixtures.ENVIRONMENT_ID
                 );
-
-            verify(pageContentCrudService).create(contentCaptor.capture());
-            verify(pageContentCrudService).delete(contentCaptor.getValue().getId());
         }
     }
 
@@ -189,52 +113,22 @@ class SubscriptionFormCrudServiceImplTest {
 
         @BeforeEach
         void setUp() throws TechnicalException {
-            lenient()
-                .when(repository.update(any()))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+            when(repository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
         }
 
         @Test
-        void should_update_the_referenced_page_content_with_the_new_definition() {
-            var subscriptionForm = SubscriptionFormFixtures.aSubscriptionFormBuilder()
-                .gmdContent(GraviteeMarkdown.of("<gmd-input name=\"updated\" fieldKey=\"updated\"/>"))
-                .build();
-            var existingContent = aPageContent(SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID);
-            when(pageContentQueryService.findById(SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID)).thenReturn(
-                Optional.of(existingContent)
-            );
-
-            service.update(subscriptionForm);
-
-            verify(pageContentCrudService).update(contentCaptor.capture());
-            assertThat(contentCaptor.getValue()).isSameAs(existingContent);
-            assertThat(existingContent.getContent()).isEqualTo(GraviteeMarkdown.of("<gmd-input name=\"updated\" fieldKey=\"updated\"/>"));
-            verify(pageContentCrudService, never()).create(any());
-        }
-
-        @Test
-        void should_persist_the_row_linked_to_the_page_content_without_inline_content() throws TechnicalException {
-            var subscriptionForm = SubscriptionFormFixtures.anEnabledSubscriptionForm();
-            when(pageContentQueryService.findById(SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID)).thenReturn(
-                Optional.of(aPageContent(SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID))
-            );
-
-            service.update(subscriptionForm);
-
-            verify(repository).update(formCaptor.capture());
-            var row = formCaptor.getValue();
-            assertThat(row.getId()).isEqualTo(SubscriptionFormFixtures.FORM_ID);
-            assertThat(row.getPortalPageContentId()).isEqualTo(SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID.toString());
-            assertThat(row.getGmdContent()).isNull();
-            assertThat(row.isEnabled()).isTrue();
-        }
-
-        @Test
-        void should_return_the_updated_form_with_its_content() {
+        void should_update_a_subscription_form() throws TechnicalException {
             var subscriptionForm = SubscriptionFormFixtures.aSubscriptionForm();
-            when(pageContentQueryService.findById(SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID)).thenReturn(
-                Optional.of(aPageContent(SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID))
-            );
+
+            service.update(subscriptionForm);
+
+            verify(repository).update(captor.capture());
+            assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(subscriptionFormAdapter.toRepository(subscriptionForm));
+        }
+
+        @Test
+        void should_return_the_updated_subscription_form() {
+            var subscriptionForm = SubscriptionFormFixtures.aSubscriptionForm();
 
             var result = service.update(subscriptionForm);
 
@@ -242,69 +136,13 @@ class SubscriptionFormCrudServiceImplTest {
         }
 
         @Test
-        void should_move_inline_content_to_a_new_page_content_when_the_form_was_not_migrated_yet() throws TechnicalException {
-            var legacyForm = SubscriptionFormFixtures.aSubscriptionFormBuilder().portalPageContentId(null).build();
-
-            var result = service.update(legacyForm);
-
-            verify(pageContentCrudService).create(contentCaptor.capture());
-            var content = contentCaptor.getValue();
-            assertThat(((GraviteeMarkdownPageContent) content).getContent()).isEqualTo(legacyForm.getGmdContent());
-            verify(repository).update(formCaptor.capture());
-            assertThat(formCaptor.getValue().getPortalPageContentId()).isEqualTo(content.getId().toString());
-            assertThat(formCaptor.getValue().getGmdContent()).isNull();
-            assertThat(result.getPortalPageContentId()).isEqualTo(content.getId());
-            verify(pageContentQueryService, never()).findById(any());
-        }
-
-        @Test
-        void should_delete_the_new_page_content_and_throw_when_the_legacy_row_cannot_be_updated() throws TechnicalException {
-            when(repository.update(any())).thenThrow(TechnicalException.class);
-            var legacyForm = SubscriptionFormFixtures.aSubscriptionFormBuilder().portalPageContentId(null).build();
-
-            assertThatThrownBy(() -> service.update(legacyForm)).isInstanceOf(TechnicalDomainException.class);
-
-            verify(pageContentCrudService).create(contentCaptor.capture());
-            verify(pageContentCrudService).delete(contentCaptor.getValue().getId());
-        }
-
-        @Test
-        void should_throw_when_the_referenced_page_content_is_missing() {
-            var subscriptionForm = SubscriptionFormFixtures.aSubscriptionForm();
-            when(pageContentQueryService.findById(SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID)).thenReturn(Optional.empty());
-
-            assertThatThrownBy(() -> service.update(subscriptionForm))
-                .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage(
-                    "SubscriptionForm " +
-                        SubscriptionFormFixtures.FORM_ID +
-                        " references a missing page content: " +
-                        SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID
-                );
-            verify(pageContentCrudService, never()).update(any());
-        }
-
-        @Test
-        void should_keep_the_existing_page_content_and_throw_when_the_row_cannot_be_updated() throws TechnicalException {
-            when(pageContentQueryService.findById(SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID)).thenReturn(
-                Optional.of(aPageContent(SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID))
-            );
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
             when(repository.update(any())).thenThrow(TechnicalException.class);
             var subscriptionForm = SubscriptionFormFixtures.aSubscriptionForm();
 
             assertThatThrownBy(() -> service.update(subscriptionForm))
                 .isInstanceOf(TechnicalDomainException.class)
                 .hasMessage("An error occurred while trying to update a SubscriptionForm with id: " + SubscriptionFormFixtures.FORM_ID);
-            verify(pageContentCrudService, never()).delete(any());
         }
-    }
-
-    private static GraviteeMarkdownPageContent aPageContent(PortalPageContentId id) {
-        return new GraviteeMarkdownPageContent(
-            id,
-            ORGANIZATION_ID,
-            SubscriptionFormFixtures.ENVIRONMENT_ID,
-            GraviteeMarkdown.of(SubscriptionFormFixtures.GMD_CONTENT)
-        );
     }
 }

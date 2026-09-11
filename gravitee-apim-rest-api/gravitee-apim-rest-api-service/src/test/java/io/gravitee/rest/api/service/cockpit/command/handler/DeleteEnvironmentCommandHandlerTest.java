@@ -107,7 +107,6 @@ import io.gravitee.repository.management.model.PortalNavigationItem;
 import io.gravitee.repository.management.model.QualityRule;
 import io.gravitee.repository.management.model.RatingReferenceType;
 import io.gravitee.repository.management.model.RoleReferenceType;
-import io.gravitee.repository.management.model.SubscriptionForm;
 import io.gravitee.repository.management.model.ThemeReferenceType;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
@@ -617,39 +616,6 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(clientRegistrationProviderRepository).deleteByEnvironmentId(ENV_ID);
         verify(qualityRuleRepository).deleteByReferenceIdAndReferenceType(ENV_ID, QualityRule.ReferenceType.ENVIRONMENT);
         verify(clusterRepository).deleteByEnvironmentId(ENV_ID);
-        verify(subscriptionFormRepository).deleteByEnvironmentId(ENV_ID);
-    }
-
-    @Test
-    public void should_delete_the_subscription_form_page_content() throws TechnicalException {
-        var subscriptionForm = SubscriptionForm.builder()
-            .id("subscription-form")
-            .environmentId(ENV_ID)
-            .portalPageContentId("subscription-form-content")
-            .build();
-        when(subscriptionFormRepository.findByEnvironmentId(ENV_ID)).thenReturn(Optional.of(subscriptionForm));
-
-        DeleteEnvironmentReply reply = cut
-            .handle(new DeleteEnvironmentCommand(new DeleteEnvironmentCommandPayload("delete-env", ENV_ID, COCKPIT_USER_ID)))
-            .blockingGet();
-
-        assertEquals(CommandStatus.SUCCEEDED, reply.getCommandStatus());
-        verify(portalPageContentRepository).delete("subscription-form-content");
-        verify(subscriptionFormRepository).deleteByEnvironmentId(ENV_ID);
-    }
-
-    @Test
-    public void should_not_delete_any_page_content_for_a_legacy_subscription_form() throws TechnicalException {
-        var legacyForm = SubscriptionForm.builder().id("subscription-form").environmentId(ENV_ID).gmdContent("<gmd-input/>").build();
-        when(subscriptionFormRepository.findByEnvironmentId(ENV_ID)).thenReturn(Optional.of(legacyForm));
-
-        DeleteEnvironmentReply reply = cut
-            .handle(new DeleteEnvironmentCommand(new DeleteEnvironmentCommandPayload("delete-env", ENV_ID, COCKPIT_USER_ID)))
-            .blockingGet();
-
-        assertEquals(CommandStatus.SUCCEEDED, reply.getCommandStatus());
-        verify(portalPageContentRepository).delete(anyString());
-        verify(portalPageContentRepository).delete(PAGE_CONTENT_ID);
         verify(subscriptionFormRepository).deleteByEnvironmentId(ENV_ID);
     }
 

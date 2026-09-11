@@ -44,17 +44,9 @@ public class SubscriptionForm {
     private String environmentId;
 
     /**
-     * Legacy inline Gravitee Markdown (GMD) content defining the form.
-     * {@code null} once the content has been moved to a {@link PortalPageContent}
-     * (see {@link #portalPageContentId}); only still populated on rows that predate that migration.
+     * Gravitee Markdown (GMD) content defining the form.
      */
     private String gmdContent;
-
-    /**
-     * Identifier of the {@link PortalPageContent} (GRAVITEE_MARKDOWN) holding the form definition.
-     * {@code null} only on legacy rows whose content is still stored inline in {@link #gmdContent}.
-     */
-    private String portalPageContentId;
 
     /**
      * Whether the form is enabled and visible to API consumers.

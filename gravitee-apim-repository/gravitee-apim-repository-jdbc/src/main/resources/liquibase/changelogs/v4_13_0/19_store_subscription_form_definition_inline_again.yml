@@ -1,0 +1,60 @@
+databaseChangeLog:
+  # Undoes 4.13.0_18, which is kept in place so that the environments that already ran it converge with
+  # the fresh ones — the SubscriptionFormPageContentUpgrader its comment names no longer exists. The
+  # definition goes back into the form row: environments that already booted on 4.13.0-SNAPSHOT hold it
+  # only in portal_page_contents, so it is copied back before the pointer is dropped. One changeSet per
+  # step: MySQL and MariaDB commit every DDL statement on its own, so a step that fails must not send the
+  # steps already committed through a replay against the schema they changed.
+  - changeSet:
+      id: 4.13.0_19_01_restore_subscription_form_definition_inline
+      author: GraviteeSource Team
+      changes:
+        - update:
+            tableName: ${gravitee_prefix}subscription_forms
+            columns:
+              - column:
+                  name: gmd_content
+                  valueComputed: >-
+                    (SELECT c.content FROM ${gravitee_prefix}portal_page_contents c
+                    WHERE c.id = ${gravitee_prefix}subscription_forms.portal_page_content_id)
+            where: portal_page_content_id IS NOT NULL
+
+  # A migrated form that nothing came back for — its page content had been deleted, or held no content —
+  # has no definition left anywhere. Drop it instead of failing the NOT NULL below and blocking the boot:
+  # DefaultSubscriptionFormUpgrader (order 714) gives the environment a fresh default form during the same
+  # startup. The pointer is part of the condition so a form that was never migrated can never be deleted.
+  - changeSet:
+      id: 4.13.0_19_02_delete_subscription_forms_left_without_definition
+      author: GraviteeSource Team
+      changes:
+        - delete:
+            tableName: ${gravitee_prefix}subscription_forms
+            where: gmd_content IS NULL AND portal_page_content_id IS NOT NULL
+
+  # Each form owned its page content, so the ones just read have no other reader.
+  - changeSet:
+      id: 4.13.0_19_03_delete_migrated_subscription_form_page_contents
+      author: GraviteeSource Team
+      changes:
+        - delete:
+            tableName: ${gravitee_prefix}portal_page_contents
+            where: >-
+              id IN (SELECT portal_page_content_id FROM ${gravitee_prefix}subscription_forms
+              WHERE portal_page_content_id IS NOT NULL)
+
+  - changeSet:
+      id: 4.13.0_19_04_drop_subscription_forms_portal_page_content_id
+      author: GraviteeSource Team
+      changes:
+        - dropColumn:
+            tableName: ${gravitee_prefix}subscription_forms
+            columnName: portal_page_content_id
+
+  - changeSet:
+      id: 4.13.0_19_05_restore_subscription_forms_gmd_content_not_null
+      author: GraviteeSource Team
+      changes:
+        - addNotNullConstraint:
+            tableName: ${gravitee_prefix}subscription_forms
+            columnName: gmd_content
+            columnDataType: nclob
