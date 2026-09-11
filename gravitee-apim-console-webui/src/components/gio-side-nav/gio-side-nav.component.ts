@@ -56,6 +56,8 @@ export const PORTAL_SETTINGS_PERMISSIONS = [
   'environment-documentation-u',
   'environment-metadata-r',
   'environment-metadata-u',
+  'environment-subscription_form-r',
+  'environment-subscription_form-u',
 ];
 
 @Component({

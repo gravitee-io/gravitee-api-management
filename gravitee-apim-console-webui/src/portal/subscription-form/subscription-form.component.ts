@@ -75,8 +75,8 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
   private readonly PANEL_RESIZE_STEP = 20;
   panelWidth = signal(500);
 
-  readonly canUpdate = signal(this.gioPermissionService.hasAnyMatching(['environment-metadata-u']));
-  readonly canDelete = signal(this.gioPermissionService.hasAnyMatching(['environment-metadata-d']));
+  readonly canUpdate = signal(this.gioPermissionService.hasAnyMatching(['environment-subscription_form-u']));
+  readonly canDelete = signal(this.gioPermissionService.hasAnyMatching(['environment-subscription_form-d']));
   private readonly refreshList = new BehaviorSubject<void>(undefined);
   readonly forms = toSignal(
     this.refreshList.pipe(

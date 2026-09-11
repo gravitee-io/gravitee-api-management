@@ -129,7 +129,7 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
         void should_return_403_if_incorrect_permissions() {
             var form = givenAForm(false);
 
-            shouldReturn403(RolePermission.ENVIRONMENT_METADATA, ENVIRONMENT, RolePermissionAction.READ, () ->
+            shouldReturn403(RolePermission.ENVIRONMENT_SUBSCRIPTION_FORM, ENVIRONMENT, RolePermissionAction.READ, () ->
                 rootTarget.path(form.getId().toString()).request().get()
             );
         }
@@ -215,7 +215,7 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
                 .gmdContent("<gmd-card>Content</gmd-card>")
                 .apiIds(List.of());
 
-            shouldReturn403(RolePermission.ENVIRONMENT_METADATA, ENVIRONMENT, RolePermissionAction.UPDATE, () ->
+            shouldReturn403(RolePermission.ENVIRONMENT_SUBSCRIPTION_FORM, ENVIRONMENT, RolePermissionAction.UPDATE, () ->
                 rootTarget.path(existingForm.getId().toString()).request().put(Entity.json(request))
             );
         }
@@ -322,7 +322,7 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
         void should_return_403_if_incorrect_permissions() {
             var form = givenAForm(false);
 
-            shouldReturn403(RolePermission.ENVIRONMENT_METADATA, ENVIRONMENT, RolePermissionAction.DELETE, () ->
+            shouldReturn403(RolePermission.ENVIRONMENT_SUBSCRIPTION_FORM, ENVIRONMENT, RolePermissionAction.DELETE, () ->
                 rootTarget.path(form.getId().toString()).request().delete()
             );
         }

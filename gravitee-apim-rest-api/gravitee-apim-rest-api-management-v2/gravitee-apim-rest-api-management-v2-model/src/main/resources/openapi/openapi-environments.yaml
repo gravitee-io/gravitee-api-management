@@ -1396,7 +1396,7 @@ paths:
         List the catalog of subscription forms of the environment, sorted by name. Each API consumer
         subscribing in the Developer Portal sees the form mapped to the API, if any.
 
-        User must have the ENVIRONMENT_METADATA[READ] permission.
+        User must have the ENVIRONMENT_SUBSCRIPTION_FORM[READ] permission.
       operationId: listSubscriptionForms
       responses:
         "200":
@@ -1416,7 +1416,7 @@ paths:
       description: |-
         Add a form to the environment catalog. The form is created disabled.
 
-        User must have the ENVIRONMENT_METADATA[CREATE] permission.
+        User must have the ENVIRONMENT_SUBSCRIPTION_FORM[CREATE] permission.
       operationId: createSubscriptionForm
       requestBody:
         required: true
@@ -1453,7 +1453,7 @@ paths:
       description: |-
         The Gravitee Markdown definition a new subscription form starts from.
 
-        User must have the ENVIRONMENT_METADATA[READ] permission.
+        User must have the ENVIRONMENT_SUBSCRIPTION_FORM[READ] permission.
       operationId: getSubscriptionFormTemplate
       responses:
         "200":
@@ -1481,7 +1481,7 @@ paths:
         Get one form of the catalog, whether enabled or not, with the option lists of its dynamic fields
         resolved without API context.
 
-        User must have the ENVIRONMENT_METADATA[READ] permission.
+        User must have the ENVIRONMENT_SUBSCRIPTION_FORM[READ] permission.
       operationId: getSubscriptionForm
       responses:
         "200":
@@ -1508,7 +1508,7 @@ paths:
 
         Note: This operation does NOT change the enabled state. Use the _enable and _disable endpoints for it.
 
-        User must have the ENVIRONMENT_METADATA[UPDATE] permission.
+        User must have the ENVIRONMENT_SUBSCRIPTION_FORM[UPDATE] permission.
       operationId: updateSubscriptionForm
       requestBody:
         required: true
@@ -1551,7 +1551,7 @@ paths:
         Remove a form from the catalog, with its definition and its API mappings: its APIs no longer have a
         subscription form.
 
-        User must have the ENVIRONMENT_METADATA[DELETE] permission.
+        User must have the ENVIRONMENT_SUBSCRIPTION_FORM[DELETE] permission.
       operationId: deleteSubscriptionForm
       responses:
         "204":
@@ -1575,7 +1575,7 @@ paths:
 
         This operation is idempotent - enabling an already enabled form returns success.
 
-        User must have the ENVIRONMENT_METADATA[UPDATE] permission.
+        User must have the ENVIRONMENT_SUBSCRIPTION_FORM[UPDATE] permission.
       operationId: enableSubscriptionForm
       parameters:
         - name: subscriptionFormId
@@ -1611,7 +1611,7 @@ paths:
 
         This operation is idempotent - disabling an already disabled form returns success.
 
-        User must have the ENVIRONMENT_METADATA[UPDATE] permission.
+        User must have the ENVIRONMENT_SUBSCRIPTION_FORM[UPDATE] permission.
       operationId: disableSubscriptionForm
       parameters:
         - name: subscriptionFormId
