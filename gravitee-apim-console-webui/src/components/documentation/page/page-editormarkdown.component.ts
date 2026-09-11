@@ -15,7 +15,7 @@
  */
 import ToastUiEditor from '@toast-ui/editor';
 import codeSyntaxHighlightPlugin from '@toast-ui/editor-plugin-code-syntax-highlight';
-import Prism from 'prismjs';
+import * as Prism from 'prismjs';
 import { ActivatedRoute } from '@angular/router';
 
 import type { ToolbarItemOptions } from '@toast-ui/editor/types/ui';
