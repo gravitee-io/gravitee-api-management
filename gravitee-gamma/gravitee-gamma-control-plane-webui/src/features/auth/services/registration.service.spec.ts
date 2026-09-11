@@ -16,7 +16,7 @@
 import { http, HttpResponse } from 'msw';
 
 import { resetReCaptchaConfigCacheForTests } from './recaptcha.service';
-import { fetchCustomUserFields, submitRegistration } from './registration.service';
+import { fetchCustomUserFields, finalizeRegistration, submitRegistration } from './registration.service';
 import { TEST_MANAGEMENT_BASE } from '../../../testing/factories';
 import { respondWith, trackHandler } from '../../../testing/helpers';
 import { server } from '../../../testing/server';
@@ -163,5 +163,131 @@ describe('submitRegistration', () => {
         });
 
         await expect(submitRegistration(IDENTITY)).resolves.toEqual({ outcome: 'submitted' });
+    });
+});
+
+describe('finalizeRegistration', () => {
+    const FINALIZE_URL = `${REGISTRATION_URL}/finalize`;
+    const ACTIVATION = { token: 'activation-token', password: 'Correct-Horse-9', firstname: 'Ada', lastname: 'Lovelace' };
+
+    function rejectFinalize(body: { message: string; technicalCode?: string }, status: number) {
+        server.use(http.post(FINALIZE_URL, () => HttpResponse.json({ ...body, http_status: status }, { status })));
+    }
+
+    it('posts the token, the password and the identity from the token', async () => {
+        const tracker = trackHandler('post', FINALIZE_URL, { id: 'user-1', status: 'ACTIVE' });
+
+        await finalizeRegistration(ACTIVATION);
+
+        expect(tracker.callCount).toBe(1);
+        expect(tracker.lastCall?.body).toEqual(ACTIVATION);
+    });
+
+    it('carries a reCAPTCHA token when reCAPTCHA is configured', async () => {
+        server.use(http.get(`${TEST_MANAGEMENT_BASE}/console`, () => HttpResponse.json({ reCaptcha: { enabled: true, siteKey: 'site' } })));
+        window.grecaptcha = {
+            ready: (callback: () => void) => callback(),
+            execute: () => Promise.resolve('recaptcha-token'),
+        };
+        const script = document.createElement('script');
+        script.id = 'gamma-recaptcha';
+        document.head.appendChild(script);
+
+        const tracker = trackHandler('post', FINALIZE_URL, { id: 'user-1', status: 'ACTIVE' });
+
+        await finalizeRegistration(ACTIVATION);
+
+        expect(tracker.lastCall?.headers.get('X-Recaptcha-Token')).toBe('recaptcha-token');
+
+        script.remove();
+        delete window.grecaptcha;
+    });
+
+    it('reports an account that is ready to sign in to', async () => {
+        respondWith('post', FINALIZE_URL, { id: 'user-1', status: 'ACTIVE' });
+
+        await expect(finalizeRegistration(ACTIVATION)).resolves.toEqual({ outcome: 'active' });
+    });
+
+    it('reports an account awaiting administrator approval', async () => {
+        respondWith('post', FINALIZE_URL, { id: 'user-1', status: 'PENDING' });
+
+        await expect(finalizeRegistration(ACTIVATION)).resolves.toEqual({ outcome: 'pending-approval' });
+    });
+
+    it('treats a success without an explicit PENDING as active, since the password was saved', async () => {
+        // Finalize refuses PENDING, REJECTED and ARCHIVED accounts before it writes anything, so a 200
+        // means the password is set. "Waiting for approval" here would outlive the link: the next
+        // click answers `user.finalized`.
+        respondWith('post', FINALIZE_URL, { id: 'user-1' });
+
+        await expect(finalizeRegistration(ACTIVATION)).resolves.toEqual({ outcome: 'active' });
+    });
+
+    it('reports a pre-created account that is already awaiting approval as pending', async () => {
+        rejectFinalize(
+            {
+                message: 'The registration request is awaiting approval by an administrator.',
+                technicalCode: 'user.registration.pendingApproval',
+            },
+            409,
+        );
+
+        await expect(finalizeRegistration(ACTIVATION)).resolves.toEqual({ outcome: 'pending-approval' });
+    });
+
+    it('attributes a refused password to the password field, without the server wording', async () => {
+        rejectFinalize({ message: 'The password is not valid according to policy rules.', technicalCode: 'passwordFormat.invalid' }, 400);
+
+        await expect(finalizeRegistration(ACTIVATION)).resolves.toEqual({ outcome: 'password-rejected' });
+    });
+
+    it('reports a link that already set a password', async () => {
+        rejectFinalize({ message: 'User already finalized in organization DEFAULT.', technicalCode: 'user.finalized' }, 400);
+
+        await expect(finalizeRegistration(ACTIVATION)).resolves.toEqual({ outcome: 'link-used' });
+    });
+
+    it.each([
+        ['user.notFound', 404],
+        ['user.state.conflict', 409],
+    ])('reports a link that can no longer be used (%s)', async (technicalCode, status) => {
+        rejectFinalize({ message: 'Registration cannot be finalized.', technicalCode }, status);
+
+        await expect(finalizeRegistration(ACTIVATION)).resolves.toEqual({ outcome: 'link-unusable' });
+    });
+
+    it('reports registration switched off as its own outcome, not as a dead link', async () => {
+        // A live check of the organization's setting: the same link works again once it is back on.
+        rejectFinalize({ message: 'User registration service is unavailable.', technicalCode: 'user.registration.disabled' }, 503);
+
+        await expect(finalizeRegistration(ACTIVATION)).resolves.toEqual({ outcome: 'registration-off' });
+    });
+
+    it("replaces a server failure's own wording with the page's, so no exception text reaches the reader", async () => {
+        rejectFinalize({ message: 'The Token has expired on 2026-09-01T00:00:00Z.', technicalCode: 'unexpected' }, 500);
+
+        await expect(finalizeRegistration(ACTIVATION)).resolves.toEqual({
+            outcome: 'rejected',
+            message: 'Something went wrong while activating your account. Try again.',
+        });
+    });
+
+    it('never relays the server wording of a client error it cannot attribute', async () => {
+        rejectFinalize({ message: 'Gamma URL is not configured for organization: DEFAULT', technicalCode: 'errors.validation' }, 400);
+
+        await expect(finalizeRegistration(ACTIVATION)).resolves.toEqual({
+            outcome: 'rejected',
+            message: 'Something went wrong while activating your account. Try again.',
+        });
+    });
+
+    it('reports an unreachable server against the form', async () => {
+        server.use(http.post(FINALIZE_URL, () => HttpResponse.error()));
+
+        await expect(finalizeRegistration(ACTIVATION)).resolves.toEqual({
+            outcome: 'rejected',
+            message: 'Something went wrong while activating your account. Try again.',
+        });
     });
 });

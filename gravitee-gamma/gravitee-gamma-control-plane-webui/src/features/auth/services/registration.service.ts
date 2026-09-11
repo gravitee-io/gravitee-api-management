@@ -120,3 +120,103 @@ export async function submitRegistration(request: RegistrationRequest): Promise<
         return { outcome: 'rejected', message: UNEXPECTED_FAILURE };
     }
 }
+
+export interface ActivationRequest {
+    readonly token: string;
+    readonly password: string;
+    readonly firstname: string;
+    readonly lastname: string;
+}
+
+export type ActivationResult =
+    /** The account can be signed in to now. */
+    | { readonly outcome: 'active' }
+    /** The account exists but an administrator has to accept it first; an email follows. */
+    | { readonly outcome: 'pending-approval' }
+    /** The password policy refused the password; nothing else about the request was wrong. */
+    | { readonly outcome: 'password-rejected' }
+    /** The link already set a password. */
+    | { readonly outcome: 'link-used' }
+    /** The link cannot complete an activation, and resubmitting will not change that. */
+    | { readonly outcome: 'link-unusable' }
+    /** Registration is switched off for the organization. The link works again once it is back on. */
+    | { readonly outcome: 'registration-off' }
+    /** Failed for a reason no retry is ruled out for. */
+    | { readonly outcome: 'rejected'; readonly message: string };
+
+const UNEXPECTED_ACTIVATION_FAILURE = 'Something went wrong while activating your account. Try again.';
+
+/**
+ * A defensive branch, not a common one. Registration emails a Gamma link only when automatic
+ * validation is on, and then the account it names is created ACTIVE. With validation off, the link
+ * that follows an administrator's approval goes to the portal or the classic console instead
+ * (`processRegistration`). This code reaches the page only if an administrator set the account back
+ * to PENDING after the email left; finalize refuses it before saving the password.
+ */
+const PENDING_APPROVAL_CODE = 'user.registration.pendingApproval';
+const ALREADY_FINALIZED_CODE = 'user.finalized';
+/** Deleted, rejected or archived since the email was sent. */
+const LINK_UNUSABLE_CODES = new Set(['user.notFound', 'user.state.conflict']);
+
+/**
+ * As for sign-up, the server's text is never shown: the caller is anonymous, and what arrives is an
+ * exception's own message -- for an expired or forged token, the JWT library's wording in a 500.
+ * The page words every outcome itself.
+ */
+function toActivationResult(error: ApiError): ActivationResult {
+    const code = error.technicalCode;
+    if (code === 'passwordFormat.invalid') {
+        return { outcome: 'password-rejected' };
+    }
+    if (code === PENDING_APPROVAL_CODE) {
+        return { outcome: 'pending-approval' };
+    }
+    if (code === ALREADY_FINALIZED_CODE) {
+        return { outcome: 'link-used' };
+    }
+    if (code === REGISTRATION_DISABLED_CODE) {
+        return { outcome: 'registration-off' };
+    }
+    if (code && LINK_UNUSABLE_CODES.has(code)) {
+        return { outcome: 'link-unusable' };
+    }
+    return { outcome: 'rejected', message: UNEXPECTED_ACTIVATION_FAILURE };
+}
+
+/**
+ * Sets the password on the account an activation email was sent for. The returned status decides the
+ * outcome rather than the automatic-validation setting, which can change between sign-up and here.
+ */
+export async function finalizeRegistration(request: ActivationRequest): Promise<ActivationResult> {
+    try {
+        const reCaptchaToken = await resolveReCaptchaToken('finalizeRegistration');
+        const extraHeaders: Record<string, string> = {};
+        if (reCaptchaToken) {
+            extraHeaders[getReCaptchaHeaderName()] = reCaptchaToken;
+        }
+
+        const user = await managementApi.post<{ status?: string }>(
+            '/users/registration/finalize',
+            {
+                token: request.token,
+                password: request.password,
+                firstname: request.firstname,
+                lastname: request.lastname,
+            },
+            extraHeaders,
+        );
+        // A 200 means the password was saved: finalize refuses PENDING, REJECTED and ARCHIVED accounts
+        // before it writes anything. Only an explicit PENDING is treated as waiting, so a response that
+        // omits the status cannot tell someone whose account is ready to wait for an approval that
+        // never comes.
+        return user?.status === 'PENDING' ? { outcome: 'pending-approval' } : { outcome: 'active' };
+    } catch (error) {
+        if (error instanceof ApiError) {
+            return toActivationResult(error);
+        }
+        if (process.env.NODE_ENV !== 'production') {
+            console.error('Activation request failed', error);
+        }
+        return { outcome: 'rejected', message: UNEXPECTED_ACTIVATION_FAILURE };
+    }
+}
