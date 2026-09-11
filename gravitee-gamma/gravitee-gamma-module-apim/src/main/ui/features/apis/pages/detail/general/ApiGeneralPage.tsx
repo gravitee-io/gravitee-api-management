@@ -688,14 +688,14 @@ function StatusBadge({ state }: Readonly<{ state?: string }>) {
     if (state === 'STARTED') {
         return (
             <Badge variant="success" className="gap-1">
-                <div className="size-1.5 rounded-full bg-current" /> Started
+                <div className="size-1.5 rounded-full" style={{ backgroundColor: 'currentColor' }} /> Started
             </Badge>
         );
     }
     if (state === 'STOPPED') {
         return (
             <Badge variant="secondary" className="gap-1">
-                <div className="size-1.5 rounded-full bg-current" /> Stopped
+                <div className="size-1.5 rounded-full" style={{ backgroundColor: 'currentColor' }} /> Stopped
             </Badge>
         );
     }

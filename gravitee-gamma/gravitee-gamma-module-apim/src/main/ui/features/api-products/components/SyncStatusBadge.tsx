@@ -37,7 +37,7 @@ export function SyncStatusBadge({ state, compact }: SyncStatusBadgeProps) {
     }
     if (state === 'DEPLOYED') {
         return (
-            <Badge variant="outline" className={cls}>
+            <Badge variant="success" className={cls}>
                 <CircleCheckIcon className="size-3" aria-hidden />
                 {compact ? 'Synced' : 'In sync'}
             </Badge>

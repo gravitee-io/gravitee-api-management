@@ -92,7 +92,7 @@ function SyncStatusBadge({ deploymentState }: { deploymentState: ApiDeploymentSt
         );
     }
     return (
-        <Badge variant="outline">
+        <Badge variant="success">
             <RefreshCwIcon className="size-3 mr-1" aria-hidden />
             In sync
         </Badge>
