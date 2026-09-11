@@ -2,9 +2,11 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/spec",
-    "module": "CommonJs",
+    "module": "preserve",
     "types": ["@angular/localize", "jest"],
-    "target": "ES2016"
+    "target": "ES2016",
+    "moduleResolution": "bundler",
+    "isolatedModules": true
   },
   "include": ["src/**/*.spec.ts", "src/**/*.d.ts"],
   "exclude": []
