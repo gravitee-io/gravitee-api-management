@@ -15,12 +15,15 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionFormRepository;
 import io.gravitee.repository.management.model.SubscriptionForm;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionFormMongo;
 import io.gravitee.repository.mongodb.management.internal.subscriptionform.SubscriptionFormMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -60,10 +63,33 @@ public class MongoSubscriptionFormRepository implements SubscriptionFormReposito
     }
 
     @Override
-    public Optional<SubscriptionForm> findByEnvironmentId(String environmentId) throws TechnicalException {
-        log.debug("Find subscription form by environment ID [{}]", environmentId);
-        Optional<SubscriptionForm> result = internalSubscriptionFormRepo.findByEnvironmentId(environmentId).map(mapper::map);
-        log.debug("Find subscription form by environment ID [{}] - Done", environmentId);
+    public List<SubscriptionForm> findAllByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("Find subscription forms by environment ID [{}]", environmentId);
+        List<SubscriptionForm> result = internalSubscriptionFormRepo
+            .findAllByEnvironmentId(environmentId)
+            .stream()
+            .map(mapper::map)
+            .toList();
+        log.debug("Find subscription forms by environment ID [{}] - Done", environmentId);
+        return result;
+    }
+
+    @Override
+    public Optional<SubscriptionForm> findDefaultByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("Find default subscription form by environment ID [{}]", environmentId);
+        var defaults = internalSubscriptionFormRepo.findAllByEnvironmentIdAndDefaultFormTrue(environmentId);
+        var elected = defaults.stream().min(Comparator.comparing(SubscriptionFormMongo::getId));
+        if (defaults.size() > 1) {
+            log.warn(
+                "Environment [{}] has {} default subscription forms {}, using [{}]",
+                environmentId,
+                defaults.size(),
+                defaults.stream().map(SubscriptionFormMongo::getId).toList(),
+                elected.map(SubscriptionFormMongo::getId).orElse(null)
+            );
+        }
+        Optional<SubscriptionForm> result = elected.map(mapper::map);
+        log.debug("Find default subscription form by environment ID [{}] - Done", environmentId);
         return result;
     }
 
@@ -72,8 +98,19 @@ public class MongoSubscriptionFormRepository implements SubscriptionFormReposito
         log.debug("Create subscription form [{}]", subscriptionForm.getId());
 
         SubscriptionFormMongo subscriptionFormMongo = mapper.map(subscriptionForm);
-        SubscriptionFormMongo createdSubscriptionForm = internalSubscriptionFormRepo.insert(subscriptionFormMongo);
-
+        SubscriptionFormMongo createdSubscriptionForm;
+        try {
+            createdSubscriptionForm = internalSubscriptionFormRepo.insert(subscriptionFormMongo);
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            throw new DuplicateKeyException(
+                "Subscription form [" +
+                    subscriptionForm.getId() +
+                    "] collides with another form of environment [" +
+                    subscriptionForm.getEnvironmentId() +
+                    "]",
+                e
+            );
+        }
         SubscriptionForm result = mapper.map(createdSubscriptionForm);
 
         log.debug("Create subscription form [{}] - Done", subscriptionForm.getId());
@@ -95,9 +132,18 @@ public class MongoSubscriptionFormRepository implements SubscriptionFormReposito
             SubscriptionFormMongo subscriptionFormMongo = mapper.map(subscriptionForm);
             SubscriptionFormMongo updatedMongo = internalSubscriptionFormRepo.save(subscriptionFormMongo);
             return mapper.map(updatedMongo);
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            throw new DuplicateKeyException(
+                "Subscription form [" +
+                    subscriptionForm.getId() +
+                    "] collides with another form of environment [" +
+                    subscriptionForm.getEnvironmentId() +
+                    "]",
+                e
+            );
         } catch (Exception e) {
-            log.error("An error occurred when updating subscription form", e);
-            throw new TechnicalException("An error occurred when updating subscription form");
+            log.error("An error occurred when updating subscription form [{}]", subscriptionForm.getId(), e);
+            throw new TechnicalException("An error occurred when updating subscription form", e);
         }
     }
 

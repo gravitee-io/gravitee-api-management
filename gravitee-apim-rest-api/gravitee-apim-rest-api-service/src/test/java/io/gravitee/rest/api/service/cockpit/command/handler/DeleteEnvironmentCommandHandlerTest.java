@@ -627,7 +627,7 @@ public class DeleteEnvironmentCommandHandlerTest {
             .environmentId(ENV_ID)
             .portalPageContentId("subscription-form-content")
             .build();
-        when(subscriptionFormRepository.findByEnvironmentId(ENV_ID)).thenReturn(Optional.of(subscriptionForm));
+        when(subscriptionFormRepository.findAllByEnvironmentId(ENV_ID)).thenReturn(List.of(subscriptionForm));
 
         DeleteEnvironmentReply reply = cut
             .handle(new DeleteEnvironmentCommand(new DeleteEnvironmentCommandPayload("delete-env", ENV_ID, COCKPIT_USER_ID)))
@@ -641,7 +641,7 @@ public class DeleteEnvironmentCommandHandlerTest {
     @Test
     public void should_not_delete_any_page_content_for_a_legacy_subscription_form() throws TechnicalException {
         var legacyForm = SubscriptionForm.builder().id("subscription-form").environmentId(ENV_ID).gmdContent("<gmd-input/>").build();
-        when(subscriptionFormRepository.findByEnvironmentId(ENV_ID)).thenReturn(Optional.of(legacyForm));
+        when(subscriptionFormRepository.findAllByEnvironmentId(ENV_ID)).thenReturn(List.of(legacyForm));
 
         DeleteEnvironmentReply reply = cut
             .handle(new DeleteEnvironmentCommand(new DeleteEnvironmentCommandPayload("delete-env", ENV_ID, COCKPIT_USER_ID)))

@@ -33,6 +33,7 @@ import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionFormRepository;
 import io.gravitee.repository.management.model.SubscriptionForm;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -70,7 +71,7 @@ class SubscriptionFormQueryServiceImplTest {
 
         @Test
         void should_return_the_form_with_its_definition_loaded_from_the_page_content() throws TechnicalException {
-            when(repository.findByEnvironmentId(ENVIRONMENT_ID)).thenReturn(Optional.of(aMigratedRow()));
+            when(repository.findDefaultByEnvironmentId(ENVIRONMENT_ID)).thenReturn(Optional.of(aMigratedRow()));
             when(pageContentQueryService.findById(CONTENT_ID)).thenReturn(
                 Optional.of(new GraviteeMarkdownPageContent(CONTENT_ID, "organization-id", ENVIRONMENT_ID, GraviteeMarkdown.of(GMD)))
             );
@@ -81,6 +82,8 @@ class SubscriptionFormQueryServiceImplTest {
             var form = result.get();
             assertThat(form.getId()).hasToString(FORM_ID);
             assertThat(form.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+            assertThat(form.getName()).isEqualTo("Default");
+            assertThat(form.isDefaultForm()).isTrue();
             assertThat(form.getPortalPageContentId()).isEqualTo(CONTENT_ID);
             assertThat(form.getGmdContent()).isEqualTo(GraviteeMarkdown.of(GMD));
             assertThat(form.isEnabled()).isTrue();
@@ -90,7 +93,7 @@ class SubscriptionFormQueryServiceImplTest {
         @Test
         void should_serve_a_legacy_row_from_its_inline_content_when_not_migrated_yet() throws TechnicalException {
             var legacyRow = aMigratedRow().toBuilder().portalPageContentId(null).gmdContent(GMD).build();
-            when(repository.findByEnvironmentId(ENVIRONMENT_ID)).thenReturn(Optional.of(legacyRow));
+            when(repository.findDefaultByEnvironmentId(ENVIRONMENT_ID)).thenReturn(Optional.of(legacyRow));
 
             var result = service.findDefaultForEnvironmentId(ENVIRONMENT_ID);
 
@@ -103,7 +106,7 @@ class SubscriptionFormQueryServiceImplTest {
         @Test
         void should_throw_when_the_row_has_neither_inline_content_nor_page_content() throws TechnicalException {
             var brokenRow = aMigratedRow().toBuilder().portalPageContentId(null).gmdContent(null).build();
-            when(repository.findByEnvironmentId(ENVIRONMENT_ID)).thenReturn(Optional.of(brokenRow));
+            when(repository.findDefaultByEnvironmentId(ENVIRONMENT_ID)).thenReturn(Optional.of(brokenRow));
 
             assertThatThrownBy(() -> service.findDefaultForEnvironmentId(ENVIRONMENT_ID))
                 .isInstanceOf(TechnicalDomainException.class)
@@ -112,7 +115,7 @@ class SubscriptionFormQueryServiceImplTest {
 
         @Test
         void should_return_empty_when_form_not_found() throws TechnicalException {
-            when(repository.findByEnvironmentId(ENVIRONMENT_ID)).thenReturn(Optional.empty());
+            when(repository.findDefaultByEnvironmentId(ENVIRONMENT_ID)).thenReturn(Optional.empty());
 
             var result = service.findDefaultForEnvironmentId(ENVIRONMENT_ID);
 
@@ -121,7 +124,7 @@ class SubscriptionFormQueryServiceImplTest {
 
         @Test
         void should_throw_when_the_referenced_page_content_is_missing() throws TechnicalException {
-            when(repository.findByEnvironmentId(ENVIRONMENT_ID)).thenReturn(Optional.of(aMigratedRow()));
+            when(repository.findDefaultByEnvironmentId(ENVIRONMENT_ID)).thenReturn(Optional.of(aMigratedRow()));
             when(pageContentQueryService.findById(CONTENT_ID)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> service.findDefaultForEnvironmentId(ENVIRONMENT_ID))
@@ -131,7 +134,7 @@ class SubscriptionFormQueryServiceImplTest {
 
         @Test
         void should_throw_when_the_referenced_page_content_is_not_gravitee_markdown() throws TechnicalException {
-            when(repository.findByEnvironmentId(ENVIRONMENT_ID)).thenReturn(Optional.of(aMigratedRow()));
+            when(repository.findDefaultByEnvironmentId(ENVIRONMENT_ID)).thenReturn(Optional.of(aMigratedRow()));
             when(pageContentQueryService.findById(CONTENT_ID)).thenReturn(
                 Optional.of(new AsyncApiPageContent(CONTENT_ID, "organization-id", ENVIRONMENT_ID, AsyncApi.of("asyncapi: 3.0.0"), null))
             );
@@ -143,12 +146,50 @@ class SubscriptionFormQueryServiceImplTest {
 
         @Test
         void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
-            when(repository.findByEnvironmentId(ENVIRONMENT_ID)).thenThrow(new TechnicalException("Database error"));
+            when(repository.findDefaultByEnvironmentId(ENVIRONMENT_ID)).thenThrow(new TechnicalException("Database error"));
 
             assertThatThrownBy(() -> service.findDefaultForEnvironmentId(ENVIRONMENT_ID))
                 .isInstanceOf(TechnicalDomainException.class)
-                .hasMessage("An error occurred while trying to find a SubscriptionForm for environment: environment-id")
+                .hasMessage("An error occurred while trying to find the default SubscriptionForm of environment: environment-id")
                 .hasCauseInstanceOf(TechnicalException.class);
+        }
+    }
+
+    @Nested
+    class FindAllByEnvironmentId {
+
+        @Test
+        void should_return_every_form_of_the_environment_with_its_definition() throws TechnicalException {
+            var legacyRow = aMigratedRow()
+                .toBuilder()
+                .id("0d0c2d1e-5f4a-4c3b-9a8e-7f6d5c4b3a21")
+                .name("Legacy")
+                .defaultForm(false)
+                .portalPageContentId(null)
+                .gmdContent(GMD)
+                .build();
+            when(repository.findAllByEnvironmentId(ENVIRONMENT_ID)).thenReturn(List.of(aMigratedRow(), legacyRow));
+            when(pageContentQueryService.findById(CONTENT_ID)).thenReturn(
+                Optional.of(new GraviteeMarkdownPageContent(CONTENT_ID, "organization-id", ENVIRONMENT_ID, GraviteeMarkdown.of(GMD)))
+            );
+
+            var result = service.findAllByEnvironmentId(ENVIRONMENT_ID);
+
+            assertThat(result)
+                .extracting(form -> form.getName())
+                .containsExactly("Default", "Legacy");
+            assertThat(result)
+                .extracting(form -> form.getGmdContent())
+                .containsOnly(GraviteeMarkdown.of(GMD));
+        }
+
+        @Test
+        void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
+            when(repository.findAllByEnvironmentId(ENVIRONMENT_ID)).thenThrow(new TechnicalException("Database error"));
+
+            assertThatThrownBy(() -> service.findAllByEnvironmentId(ENVIRONMENT_ID))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurred while trying to list the SubscriptionForms of environment: environment-id");
         }
     }
 
@@ -196,6 +237,8 @@ class SubscriptionFormQueryServiceImplTest {
         return SubscriptionForm.builder()
             .id(FORM_ID)
             .environmentId(ENVIRONMENT_ID)
+            .name("Default")
+            .defaultForm(true)
             .portalPageContentId(CONTENT_ID.toString())
             .gmdContent(null)
             .enabled(true)

@@ -44,6 +44,11 @@ public class SubscriptionForm {
     private String environmentId;
 
     /**
+     * Display name of the form, unique within its environment.
+     */
+    private String name;
+
+    /**
      * Legacy inline Gravitee Markdown (GMD) content defining the form.
      * {@code null} once the content has been moved to a {@link PortalPageContent}
      * (see {@link #portalPageContentId}); only still populated on rows that predate that migration.
@@ -60,6 +65,12 @@ public class SubscriptionForm {
      * Whether the form is enabled and visible to API consumers.
      */
     private boolean enabled;
+
+    /**
+     * Whether this form is the environment default, used for every API without a dedicated form.
+     * At most one form per environment is the default.
+     */
+    private boolean defaultForm;
 
     /**
      * JSON string of validation constraints per field key, derived from the GMD content.

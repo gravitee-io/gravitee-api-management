@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.SubscriptionFormRepository;
@@ -48,9 +49,13 @@ public class JdbcSubscriptionFormRepository
         return JdbcObjectMapper.builder(SubscriptionForm.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
+            .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("gmd_content", Types.NVARCHAR, String.class)
             .addColumn("portal_page_content_id", Types.NVARCHAR, String.class)
             .addColumn("enabled", Types.BIT, boolean.class)
+            .addColumn("default_form", Types.BIT, boolean.class)
+            // Unique in the table: at most one default form per environment, enforced by the database.
+            .addMirroredColumn("default_marker", Types.NVARCHAR, form -> form.isDefaultForm() ? form.getEnvironmentId() : null)
             .addColumn("validation_constraints", Types.CLOB, String.class)
             .build();
     }
@@ -81,21 +86,52 @@ public class JdbcSubscriptionFormRepository
     }
 
     @Override
-    public Optional<SubscriptionForm> findByEnvironmentId(String environmentId) throws TechnicalException {
-        log.debug("JdbcSubscriptionFormRepository.findByEnvironmentId({})", environmentId);
+    public List<SubscriptionForm> findAllByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("JdbcSubscriptionFormRepository.findAllByEnvironmentId({})", environmentId);
         try {
-            List<SubscriptionForm> list = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where environment_id = ?",
+            return jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " where environment_id = ? order by name",
                 getOrm().getRowMapper(),
                 environmentId
             );
+        } catch (final Exception ex) {
+            log.error("Failed to find subscription forms by environment id: {}", environmentId, ex);
+            throw new TechnicalException("Failed to find subscription forms by environment id", ex);
+        }
+    }
+
+    @Override
+    public Optional<SubscriptionForm> findDefaultByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("JdbcSubscriptionFormRepository.findDefaultByEnvironmentId({})", environmentId);
+        try {
+            List<SubscriptionForm> list = jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " where environment_id = ? and default_form = ? order by id",
+                getOrm().getRowMapper(),
+                environmentId,
+                true
+            );
             if (list.size() > 1) {
-                throw new TechnicalException("Multiple subscription forms found for environment id: " + environmentId);
+                log.warn(
+                    "Environment [{}] has {} default subscription forms {}, using [{}]",
+                    environmentId,
+                    list.size(),
+                    list.stream().map(SubscriptionForm::getId).toList(),
+                    list.getFirst().getId()
+                );
             }
             return list.isEmpty() ? Optional.empty() : Optional.of(list.getFirst());
         } catch (final Exception ex) {
-            log.error("Failed to find subscription form by environment id: {}", environmentId, ex);
-            throw new TechnicalException("Failed to find subscription form by environment id", ex);
+            log.error("Failed to find default subscription form by environment id: {}", environmentId, ex);
+            throw new TechnicalException("Failed to find default subscription form by environment id", ex);
+        }
+    }
+
+    @Override
+    public SubscriptionForm create(SubscriptionForm item) throws TechnicalException {
+        try {
+            return super.create(item);
+        } catch (TechnicalException ex) {
+            throw translateDuplicateKey(ex, item);
         }
     }
 
@@ -108,7 +144,23 @@ public class JdbcSubscriptionFormRepository
                 throw new TechnicalException("Subscription form must not be null", ex);
             }
             throw new TechnicalException("Subscription form not found with id [" + item.getId() + "]", ex);
+        } catch (TechnicalException ex) {
+            throw translateDuplicateKey(ex, item);
         }
+    }
+
+    /**
+     * A duplicate key is a collision with another form of the environment (a second default form), which the
+     * caller handles as a conflict rather than as a technical failure.
+     */
+    private static TechnicalException translateDuplicateKey(TechnicalException ex, SubscriptionForm item) {
+        if (ex.getCause() instanceof org.springframework.dao.DuplicateKeyException) {
+            return new DuplicateKeyException(
+                "Subscription form [" + item.getId() + "] collides with another form of environment [" + item.getEnvironmentId() + "]",
+                ex.getCause()
+            );
+        }
+        return ex;
     }
 
     @Override

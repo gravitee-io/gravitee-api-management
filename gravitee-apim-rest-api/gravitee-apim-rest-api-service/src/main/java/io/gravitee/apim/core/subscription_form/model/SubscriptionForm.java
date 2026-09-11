@@ -28,8 +28,8 @@ import lombok.Getter;
  * <p>The form content is defined using Gravitee Markdown (GMD) syntax with
  * form components like gmd-input, gmd-textarea, gmd-select, gmd-checkbox, gmd-radio.</p>
  *
- * <p>Currently, forms are scoped to the environment level (one form per environment).
- * Future versions may support per-API or per-plan forms.</p>
+ * <p>An environment holds a catalog of named forms. Exactly one of them is the environment
+ * <em>default</em>, used for every API that has no dedicated form.</p>
  *
  * <p>Mutation (update, enable, disable) is done via instance methods that modify internal state,
  * similar to {@link io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent}.</p>
@@ -52,17 +52,31 @@ public class SubscriptionForm {
     @Nullable
     private final PortalPageContentId portalPageContentId;
 
+    /** Display name, unique within the environment. */
+    private String name;
+
     /** The form definition, loaded from {@link #portalPageContentId}. */
     private GraviteeMarkdown gmdContent;
     private boolean enabled;
+
+    /** Whether this form is the environment default. */
+    private boolean defaultForm;
+
     private SubscriptionFormFieldConstraints validationConstraints;
 
     /**
-     * Updates this form (mutates in place).
+     * Updates the definition of this form (mutates in place).
      */
     public void update(GraviteeMarkdown gmdContent, SubscriptionFormFieldConstraints constraints) {
         this.gmdContent = gmdContent;
         this.validationConstraints = constraints;
+    }
+
+    /**
+     * Renames this form (mutates in place).
+     */
+    public void rename(String name) {
+        this.name = name;
     }
 
     /**
@@ -77,5 +91,19 @@ public class SubscriptionForm {
      */
     public void disable() {
         this.enabled = false;
+    }
+
+    /**
+     * Makes this form the environment default (mutates in place).
+     */
+    public void markAsDefault() {
+        this.defaultForm = true;
+    }
+
+    /**
+     * Withdraws the environment default role from this form (mutates in place).
+     */
+    public void unmarkAsDefault() {
+        this.defaultForm = false;
     }
 }

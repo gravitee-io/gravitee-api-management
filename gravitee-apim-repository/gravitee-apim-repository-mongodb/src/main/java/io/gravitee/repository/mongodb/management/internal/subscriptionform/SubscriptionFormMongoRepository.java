@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management.internal.subscriptionform;
 
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionFormMongo;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
@@ -27,22 +28,11 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface SubscriptionFormMongoRepository extends MongoRepository<SubscriptionFormMongo, String> {
-    /**
-     * Finds a subscription form by ID and environment ID.
-     *
-     * @param id the subscription form ID
-     * @param environmentId the environment ID
-     * @return Optional containing the form if found and belonging to the environment
-     */
     Optional<SubscriptionFormMongo> findByIdAndEnvironmentId(String id, String environmentId);
 
-    /**
-     * Finds a subscription form by environment ID.
-     *
-     * @param environmentId the environment ID
-     * @return Optional containing the form if found
-     */
-    Optional<SubscriptionFormMongo> findByEnvironmentId(String environmentId);
+    List<SubscriptionFormMongo> findAllByEnvironmentId(String environmentId);
+
+    List<SubscriptionFormMongo> findAllByEnvironmentIdAndDefaultFormTrue(String environmentId);
 
     void deleteByEnvironmentId(String environmentId);
 }
