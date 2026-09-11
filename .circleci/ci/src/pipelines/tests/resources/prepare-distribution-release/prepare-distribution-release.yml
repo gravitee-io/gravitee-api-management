@@ -1,0 +1,97 @@
+# This file is generated from the TypeScript sources in .circleci/ci.
+# Do not edit it by hand — run `npm run generate` instead.
+
+version: 2.1
+setup: false
+parameters:
+  gio_action:
+    type: string
+    default: pull_requests
+    description: ""
+  dry_run:
+    type: boolean
+    default: true
+    description: Run in dry run mode?
+  docker_tag_as_latest:
+    type: boolean
+    default: false
+    description: Is this version the latest version available?
+  graviteeio_version:
+    type: string
+    default: ""
+    description: Version of APIM to be used in docker images
+  apim_version_path:
+    type: string
+    default: /home/circleci/project/pom.xml
+    description: Path to pom.xml with APIM version
+jobs:
+  job-prepare-distribution-release:
+    docker:
+      - image: cimg/base:stable
+    resource_class: medium
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c
+      - keeper/env-export:
+          secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
+          var-name: GIT_USER_NAME
+      - keeper/env-export:
+          secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/custom_field/email
+          var-name: GIT_USER_EMAIL
+      - run:
+          name: Git config
+          command: |-
+            git config --global user.name "${GIT_USER_NAME}"
+            git config --global user.email "${GIT_USER_EMAIL}"
+      - run:
+          name: "Tag 4.13.0 "
+          command: |
+            # The distribution's own pom, never the root's: the core releases under its own tag, and what
+            # this assembles is the pin, which a reviewed pull request advances.
+            sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" gravitee-apim-distribution/pom.xml
+
+            sed -i 's/"version": ".*"/"version": "4.13.0"/' gravitee-apim-console-webui/build.json
+            sed -i 's/"version": ".*"/"version": "4.13.0"/' gravitee-apim-portal-webui/build.json
+            sed -i 's/"version": ".*"/"version": "4.13.0"/' gravitee-apim-portal-webui-next/build.json
+            sed -i 's/"version": ".*"/"version": "4.13.0"/' gravitee-gamma/gravitee-gamma-control-plane-webui/build.json
+
+            git add --update
+            git commit -m "4.13.0"
+            git tag 4.13.0
+
+            sed -i "s#<revision>.*</revision>#<revision>4.13.1</revision>#" gravitee-apim-distribution/pom.xml
+            sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" gravitee-apim-distribution/pom.xml
+            # <sha1 /> is self-closing when the qualifier is empty, which the plain <sha1>.*</sha1> pattern
+            # never matches — the qualifier was silently kept on any pom already holding the empty form.
+            sed -i -E "s#<sha1( */>|>[^<]*</sha1>)#<sha1></sha1>#" gravitee-apim-distribution/pom.xml
+
+            sed -i 's#"version": ".*"#"version": "4.13.1-SNAPSHOT"#' gravitee-apim-console-webui/build.json
+            sed -i 's#"version": ".*"#"version": "4.13.1-SNAPSHOT"#' gravitee-apim-portal-webui/build.json
+            sed -i 's#"version": ".*"#"version": "4.13.1-SNAPSHOT"#' gravitee-apim-portal-webui-next/build.json
+            sed -i 's#"version": ".*"#"version": "4.13.1-SNAPSHOT"#' gravitee-gamma/gravitee-gamma-control-plane-webui/build.json
+
+            # The chart ships with the distribution and carries the version to come, not a SNAPSHOT.
+            sed -e "0,/^version:/{s/version:.*/version: 4.13.1/}" \
+                -e "0,/^appVersion:/{ s/appVersion.*/appVersion: 4.13.1/ }" \
+                -e '/artifacthub.io\/changes/,${ s/|// }' \
+                -e '/artifacthub.io\/changes:/q0' \
+                -i helm/Chart.yaml
+
+            git add --update
+            git commit -m 'chore: prepare next distribution version [skip ci]'
+
+            # The branch first: the reverse order publishes a version that sits on no branch, should the
+            # branch push then fail.
+            git push  origin 4.13.x
+            git push  origin 4.13.0
+workflows:
+  prepare_distribution_release:
+    jobs:
+      - job-prepare-distribution-release:
+          context:
+            - cicd-orchestrator
+          name: Tag the distribution release
+orbs:
+  keeper: gravitee-io/keeper@0.7.1

@@ -24,6 +24,7 @@ parameters:
                 nightly,
                 helm_tests,
                 prepare_core_release,
+                prepare_distribution_release,
                 run_e2e_tests,
             ]
         default: pull_requests

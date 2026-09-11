@@ -26,6 +26,7 @@ import { generatePullRequestsConfig } from './pipeline-pull-requests';
 import { generateCoreReleaseConfig } from './pipeline-core-release';
 import { generateFullReleaseConfig } from './pipeline-full-release';
 import { generatePrepareCoreReleaseConfig } from './pipeline-prepare-core-release';
+import { generatePrepareDistributionReleaseConfig } from './pipeline-prepare-distribution-release';
 import { generateHelmTestsConfig } from './pipeline-helm-tests';
 import { generateRunE2ETestsConfig } from './pipeline-run-e2e-tests';
 
@@ -55,6 +56,8 @@ export function buildCIPipeline(environment: CircleCIEnvironment): Config | null
       return generateCoreReleaseConfig(environment);
     case 'prepare_core_release':
       return generatePrepareCoreReleaseConfig(environment);
+    case 'prepare_distribution_release':
+      return generatePrepareDistributionReleaseConfig(environment);
     case 'run_e2e_tests':
       return generateRunE2ETestsConfig(environment);
   }

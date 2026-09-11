@@ -21,6 +21,7 @@ export * from './workflow-full-release';
 export * from './workflow-repositories-tests';
 export * from './workflow-publish-docker-images';
 export * from './workflow-prepare-core-release';
+export * from './workflow-prepare-distribution-release';
 export * from './workflow-pull-requests';
 export * from './workflow-run-e2e-tests';
 export * from './workflow-integration-tests';
