@@ -85,7 +85,7 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
             { path: 'properties', label: 'API Properties', icon: SettingsIcon },
             { path: 'resources', label: 'Resources', icon: ServerIcon },
             { path: 'notifications', label: 'Notifications', icon: BellIcon },
-            { path: 'api-score', label: 'API Score', icon: SparklesIcon, comingSoon: true },
+            { path: 'api-score', label: 'API Score', icon: SparklesIcon },
             { path: 'response-templates', label: 'Response Templates', icon: ScrollTextIcon, comingSoon: true },
             { path: 'cors', label: 'CORS', icon: ShieldCheckIcon },
             { path: 'metadata', label: 'Metadata', icon: DatabaseIcon },
@@ -177,6 +177,14 @@ export function withMetadataPermission(groups: DetailNavGroup[], canReadMetadata
     return groups.map(group => ({
         ...group,
         items: group.items.filter(item => item.path !== 'metadata'),
+    }));
+}
+
+export function withApiScoreEnabled(groups: DetailNavGroup[], apiScoreEnabled: boolean): DetailNavGroup[] {
+    if (apiScoreEnabled) return groups;
+    return groups.map(group => ({
+        ...group,
+        items: group.items.filter(item => item.path !== 'api-score'),
     }));
 }
 

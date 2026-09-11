@@ -40,11 +40,18 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useId, useState } from 'react';
 import { Navigate, Outlet, useParams } from 'react-router-dom';
 
-import { API_PROXY_NAV_GROUPS, ApiDetailSidebarNav, withMetadataPermission, withTcpRestrictions } from './ApiDetailSidebarNav';
+import {
+    API_PROXY_NAV_GROUPS,
+    ApiDetailSidebarNav,
+    withApiScoreEnabled,
+    withMetadataPermission,
+    withTcpRestrictions,
+} from './ApiDetailSidebarNav';
 import { useDetailBasePath } from '../../../../shared/hooks/useDetailBasePath';
 import { ApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDetail } from '../../hooks/useApiDetail';
 import { useApiPermissions } from '../../hooks/useApiPermissions';
+import { useApiScoreEnabled } from '../../hooks/useApiScoreEnabled';
 import { deployApi } from '../../services/apis';
 import type { ApiDetailDto } from '../../types';
 import { hasTcpListeners } from '../../utils/apiHttpProxy';
@@ -254,6 +261,7 @@ export function ApiDetailLayout() {
     const { permissionsReady } = useApiPermissions(apiId);
     const canDeploy = useHasPermission({ anyOf: ['api-definition-u'] });
     const canReadMetadata = useHasPermission({ anyOf: ['api-metadata-r'] });
+    const { enabled: apiScoreEnabled } = useApiScoreEnabled();
     const queryClient = useQueryClient();
     const [contextExpanded, setContextExpanded] = useState(true);
     const [showDeployDialog, setShowDeployDialog] = useState(false);
@@ -272,7 +280,10 @@ export function ApiDetailLayout() {
     });
 
     const showDeployBanner = !isError && api?.deploymentState === 'NEED_REDEPLOY' && canDeploy;
-    const navGroups = withMetadataPermission(withTcpRestrictions(API_PROXY_NAV_GROUPS, hasTcpListeners(api)), canReadMetadata);
+    const navGroups = withApiScoreEnabled(
+        withMetadataPermission(withTcpRestrictions(API_PROXY_NAV_GROUPS, hasTcpListeners(api)), canReadMetadata),
+        apiScoreEnabled,
+    );
 
     useLayoutConfig(
         {
@@ -293,7 +304,17 @@ export function ApiDetailLayout() {
             ) : null,
             bannerSticky: true,
         },
-        [contextExpanded, api, isLoading, basePath, permissionsReady, showDeployBanner, deployMutation.isPending, canReadMetadata],
+        [
+            contextExpanded,
+            api,
+            isLoading,
+            basePath,
+            permissionsReady,
+            showDeployBanner,
+            deployMutation.isPending,
+            canReadMetadata,
+            apiScoreEnabled,
+        ],
     );
 
     if (isError) {

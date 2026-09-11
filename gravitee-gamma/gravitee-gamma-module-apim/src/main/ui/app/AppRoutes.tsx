@@ -46,6 +46,7 @@ import { CreateApiGate } from '../features/apis/pages/CreateApiGate';
 import { CreateApiProxyPage } from '../features/apis/pages/CreateApiProxyPage';
 import { AlertFormPage } from '../features/apis/pages/detail/alerts/AlertFormPage';
 import { ApiAlertsPage } from '../features/apis/pages/detail/alerts/ApiAlertsPage';
+import { ApiScoringPage } from '../features/apis/pages/detail/api-score/ApiScoringPage';
 import { ApiDetailOverviewPage } from '../features/apis/pages/detail/ApiDetailOverviewPage';
 import { ApiDetailPlaceholderPage } from '../features/apis/pages/detail/ApiDetailPlaceholderPage';
 import { AuditLogsPage } from '../features/apis/pages/detail/audit-logs/AuditLogsPage';
@@ -230,6 +231,7 @@ export function AppRoutes() {
                                     <Route path="new" element={<ApiNotificationFormPage />} />
                                     <Route path=":notificationKey" element={<ApiNotificationFormPage />} />
                                 </Route>
+                                <Route path="api-score" element={<ApiScoringPage />} />
                                 <Route path="entrypoints" element={<ApiEntrypointsPage />} />
                                 <Route path="cors" element={<ApiCorsPage />} />
                                 <Route path="metadata" element={<ApiMetadataPage />} />
