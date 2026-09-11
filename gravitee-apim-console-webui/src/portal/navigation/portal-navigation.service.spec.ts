@@ -138,6 +138,7 @@ describe('PortalNavigationService', () => {
       expect(permissionService.hasAnyMatching).toHaveBeenCalledWith(['environment-settings-r', 'environment-settings-u']);
       expect(permissionService.hasAnyMatching).toHaveBeenCalledWith(['environment-theme-r', 'environment-theme-u']);
       expect(permissionService.hasAnyMatching).toHaveBeenCalledWith(['environment-documentation-r', 'environment-documentation-u']);
+      expect(permissionService.hasAnyMatching).toHaveBeenCalledWith(['environment-subscription_form-r', 'environment-subscription_form-u']);
     });
   });
 });

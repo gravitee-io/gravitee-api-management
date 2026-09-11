@@ -1,0 +1,8 @@
+{
+  "hrid": "partner-onboarding",
+  "name": "Partner onboarding",
+  "gmdContent": "<gmd-input name=\"company\" fieldKey=\"company\" required=\"true\"/>",
+  "enabled": true,
+  "default": false,
+  "apiHrids": ["weather"]
+}

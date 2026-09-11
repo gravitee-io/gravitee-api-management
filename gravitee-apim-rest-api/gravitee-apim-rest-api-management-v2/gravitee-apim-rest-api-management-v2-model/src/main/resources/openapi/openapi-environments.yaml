@@ -1396,7 +1396,7 @@ paths:
         List the catalog of subscription forms of the environment, sorted by name. Each API consumer
         subscribing in the Developer Portal sees the form mapped to the API, or the environment default.
 
-        User must have the ENVIRONMENT_METADATA[READ] permission.
+        User must have the ENVIRONMENT_SUBSCRIPTION_FORM[READ] permission.
       operationId: listSubscriptionForms
       responses:
         "200":
@@ -1417,7 +1417,7 @@ paths:
         Add a form to the environment catalog. The form is created disabled and is not the environment
         default.
 
-        User must have the ENVIRONMENT_METADATA[CREATE] permission.
+        User must have the ENVIRONMENT_SUBSCRIPTION_FORM[CREATE] permission.
       operationId: createSubscriptionForm
       requestBody:
         required: true
@@ -1455,7 +1455,7 @@ paths:
         The Gravitee Markdown definition a new subscription form starts from: the same template the
         environment default form is seeded with.
 
-        User must have the ENVIRONMENT_METADATA[READ] permission.
+        User must have the ENVIRONMENT_SUBSCRIPTION_FORM[READ] permission.
       operationId: getSubscriptionFormTemplate
       responses:
         "200":
@@ -1483,7 +1483,7 @@ paths:
         Get one form of the catalog, whether enabled or not, with the option lists of its dynamic fields
         resolved without API context.
 
-        User must have the ENVIRONMENT_METADATA[READ] permission.
+        User must have the ENVIRONMENT_SUBSCRIPTION_FORM[READ] permission.
       operationId: getSubscriptionForm
       responses:
         "200":
@@ -1511,7 +1511,7 @@ paths:
         Note: This operation does NOT change the enabled or default state. Use the _enable, _disable
         and _default endpoints for that.
 
-        User must have the ENVIRONMENT_METADATA[UPDATE] permission.
+        User must have the ENVIRONMENT_SUBSCRIPTION_FORM[UPDATE] permission.
       operationId: updateSubscriptionForm
       requestBody:
         required: true
@@ -1554,7 +1554,7 @@ paths:
         Remove a form from the catalog, with its definition and its API mappings. The environment
         default form cannot be deleted: set another form as default first.
 
-        User must have the ENVIRONMENT_METADATA[DELETE] permission.
+        User must have the ENVIRONMENT_SUBSCRIPTION_FORM[DELETE] permission.
       operationId: deleteSubscriptionForm
       responses:
         "204":
@@ -1584,7 +1584,7 @@ paths:
 
         This operation is idempotent - enabling an already enabled form returns success.
 
-        User must have the ENVIRONMENT_METADATA[UPDATE] permission.
+        User must have the ENVIRONMENT_SUBSCRIPTION_FORM[UPDATE] permission.
       operationId: enableSubscriptionForm
       parameters:
         - name: subscriptionFormId
@@ -1620,7 +1620,7 @@ paths:
 
         This operation is idempotent - disabling an already disabled form returns success.
 
-        User must have the ENVIRONMENT_METADATA[UPDATE] permission.
+        User must have the ENVIRONMENT_SUBSCRIPTION_FORM[UPDATE] permission.
       operationId: disableSubscriptionForm
       parameters:
         - name: subscriptionFormId
@@ -1656,7 +1656,7 @@ paths:
 
         This operation is idempotent - promoting the current default returns success.
 
-        User must have the ENVIRONMENT_METADATA[UPDATE] permission.
+        User must have the ENVIRONMENT_SUBSCRIPTION_FORM[UPDATE] permission.
       operationId: setDefaultSubscriptionForm
       parameters:
         - name: subscriptionFormId

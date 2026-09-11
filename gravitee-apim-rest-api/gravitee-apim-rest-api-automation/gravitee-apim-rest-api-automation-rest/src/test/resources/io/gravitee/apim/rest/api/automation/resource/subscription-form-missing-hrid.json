@@ -1,0 +1,4 @@
+{
+  "name": "Partner onboarding",
+  "gmdContent": "<gmd-input name=\"company\" fieldKey=\"company\" required=\"true\"/>"
+}

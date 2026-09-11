@@ -21,7 +21,7 @@
       <h3>Subscription Forms</h3>
       <div class="panel-header__actions">
         <button
-          *gioPermission="{ anyOf: ['environment-metadata-c'] }"
+          *gioPermission="{ anyOf: ['environment-subscription_form-c'] }"
           mat-stroked-button
           type="button"
           aria-label="Add subscription form"
@@ -78,10 +78,10 @@
           }
         </div>
       }
-      <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-metadata-u'] }">
+      <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-subscription_form-u'] }">
         @if (hasSelection() && !isCreating() && !selectedFormIsDefault()) {
           <button
-            *gioPermission="{ anyOf: ['environment-metadata-d'] }"
+            *gioPermission="{ anyOf: ['environment-subscription_form-d'] }"
             mat-stroked-button
             type="button"
             data-testid="subscription-form-delete-button"
@@ -135,7 +135,7 @@
           }
         </mat-chip-set>
         <button
-          *gioPermission="{ anyOf: ['environment-metadata-u'] }"
+          *gioPermission="{ anyOf: ['environment-subscription_form-u'] }"
           mat-stroked-button
           type="button"
           data-testid="subscription-form-add-api-button"
