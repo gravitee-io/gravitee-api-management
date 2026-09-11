@@ -151,6 +151,14 @@ export async function assertVersionMatchesPoms(version, branch, poms) {
     published[pom] = versionFromPom(content);
   }
 
+  // Every pom skipped means nothing was compared, and the command would go on having announced a
+  // check it never made.
+  if (Object.keys(published).length === 0) {
+    console.log(chalk.red(`None of ${poms.join(', ')} carries a version on '${branch}'.`));
+    console.log(`Nothing could be compared, so nothing is confirmed. Release from a branch that carries one.`);
+    process.exit(1);
+  }
+
   const wrong = Object.entries(published).filter(([, v]) => v !== version);
   if (wrong.length === 0) {
     return;
@@ -178,12 +186,26 @@ export async function assertVersionMatchesPoms(version, branch, poms) {
  * @param {string} version the version passed to the command
  */
 export async function assertCoreTagIsFree(version) {
-  const tag = `core_${version}`;
+  return assertTagIsFree(`core_${version}`);
+}
+
+/**
+ * Refuses a tag that already exists.
+ *
+ * The tag is the trigger, so an existing one means the release already ran. Pushing it again fails
+ * halfway through, after the branch has been committed to and reopened on the next version — a state
+ * that has to be unwound by hand. Cheaper to refuse before anything is written.
+ *
+ * The core lane prefixes its tags; the distribution takes the bare version, so this takes the whole
+ * tag rather than building it.
+ * @param {string} tag the tag the release will push
+ */
+export async function assertTagIsFree(tag) {
   const url = `https://api.github.com/repos/gravitee-io/gravitee-api-management/git/ref/tags/${tag}`;
   const response = await fetch(url, { headers: { Accept: 'application/vnd.github+json' } });
 
   if (response.ok) {
-    console.log(chalk.red(`${tag} already exists: ${version} has already been released.`));
+    console.log(chalk.red(`${tag} already exists: that version has already been released.`));
     console.log(`Release the next version, or delete the tag if it was pushed by mistake.`);
     process.exit(1);
   }

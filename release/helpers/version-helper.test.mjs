@@ -5,6 +5,7 @@ import {
   ROOT_POM,
   assertChartMatchesVersion,
   assertCoreTagIsFree,
+  assertTagIsFree,
   assertVersionMatchesPoms,
   versionFromPom,
 } from './version-helper.mjs';
@@ -141,6 +142,14 @@ describe('assertVersionMatchesPoms', () => {
   // A branch that does not exist answers 404 on every path, exactly as a missing file does. Read as
   // "this pom inherits the root version", that silence used to let a mistyped or not-yet-cut branch
   // through — and print something untrue on its way.
+  // Every pom skipped means nothing was compared, and the command would have announced a check it
+  // never made. That is the shape the distribution lane takes on a branch where it inherits.
+  it('refuses when every pom asked for was skipped', async () => {
+    stub({ 'gravitee-apim-distribution/pom.xml': '<project/>' });
+
+    await assert.rejects(() => assertVersionMatchesPoms('4.12.20', '4.12.x', [DISTRIBUTION_POM]), { message: 'exit 1' });
+  });
+
   it('refuses a branch the repository does not have', async () => {
     stub({}, { branchExists: false });
 
@@ -257,5 +266,51 @@ dependencies:
     stub({ 'helm/Chart.yaml': 'apiVersion: v2\nname: apim\n' });
 
     await assert.rejects(() => assertChartMatchesVersion('4.13.0', 'master'), { message: 'exit 1' });
+  });
+});
+
+describe('assertTagIsFree', () => {
+  const realFetch = globalThis.fetch;
+  const realChalk = globalThis.chalk;
+  const realExit = process.exit;
+
+  function stub(status) {
+    const calls = [];
+    globalThis.fetch = async (url) => {
+      calls.push(url);
+      return { ok: status === 200, status, statusText: `status ${status}` };
+    };
+    globalThis.chalk = { red: (s) => s, yellow: (s) => s };
+    process.exit = (code) => {
+      throw new Error(`exit ${code}`);
+    };
+    return calls;
+  }
+
+  afterEach(() => {
+    globalThis.fetch = realFetch;
+    globalThis.chalk = realChalk;
+    process.exit = realExit;
+  });
+
+  // The distribution takes the bare version; only the core lane prefixes its tags.
+  it('passes on a bare tag nobody has pushed', async () => {
+    const calls = stub(404);
+
+    await assertTagIsFree('4.13.0');
+
+    assert.ok(calls[0].endsWith('/git/ref/tags/4.13.0'), calls[0]);
+  });
+
+  it('refuses a bare tag that already exists', async () => {
+    stub(200);
+
+    await assert.rejects(() => assertTagIsFree('4.13.0'), { message: 'exit 1' });
+  });
+
+  it('refuses rather than guess when GitHub does not answer', async () => {
+    stub(500);
+
+    await assert.rejects(() => assertTagIsFree('4.13.0'), { message: 'exit 1' });
   });
 });
