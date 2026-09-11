@@ -30,8 +30,12 @@ import org.junit.jupiter.params.provider.CsvSource;
 class PerformanceTargetScheduleTest {
 
     private static final Duration INTERVAL = Duration.ofMinutes(5);
-    private static final PerformanceTargetSchedule SCHEDULE = new PerformanceTargetSchedule(3, Duration.ofHours(1), 288);
+    private static final Duration TICK = Duration.ofMinutes(1);
+    private static final PerformanceTargetSchedule SCHEDULE = new PerformanceTargetSchedule(3, Duration.ofHours(1), 288, TICK);
     private static final PerformanceTarget TARGET = PerformanceTargetFixtures.aTarget().toBuilder().interval(INTERVAL).build();
+
+    /** A slot boundary of every interval used here: a multiple of five and of ten minutes since the epoch. */
+    private static final Instant BOUNDARY = Instant.parse("2021-06-01T10:00:00Z");
 
     @Nested
     class EffectiveInterval {
@@ -77,48 +81,95 @@ class PerformanceTargetScheduleTest {
     }
 
     @Nested
+    class Slots {
+
+        /** The slot is the same for every node, every on-demand run and every timeline: cut on the epoch, not on the target. */
+        @Test
+        void should_cut_time_on_the_epoch_at_the_effective_interval() {
+            assertThat(SCHEDULE.slotStart(TARGET, 0, BOUNDARY)).isEqualTo(BOUNDARY);
+            assertThat(SCHEDULE.slotStart(TARGET, 0, BOUNDARY.plus(INTERVAL).minusSeconds(1))).isEqualTo(BOUNDARY);
+            assertThat(SCHEDULE.slotStart(TARGET, 0, BOUNDARY.plus(INTERVAL))).isEqualTo(BOUNDARY.plus(INTERVAL));
+            // Three misses double the interval to ten minutes: 10:05 falls in the slot that started at 10:00.
+            assertThat(SCHEDULE.slotStart(TARGET, 3, BOUNDARY.plus(INTERVAL))).isEqualTo(BOUNDARY);
+            assertThat(SCHEDULE.slotStart(TARGET, 0, BOUNDARY.plusSeconds(37))).isEqualTo(BOUNDARY);
+        }
+
+        /** Where in the slot the target is due: its phase, held back so a tick still falls in the slot. */
+        @Test
+        void should_be_due_at_the_target_s_phase_into_the_slot_leaving_room_for_a_tick() {
+            var dueAt = SCHEDULE.dueAt(TARGET, 0, BOUNDARY);
+
+            assertThat(dueAt).isEqualTo(BOUNDARY.plus(SCHEDULE.jitter(TARGET)));
+            assertThat(Duration.between(BOUNDARY, dueAt)).isLessThanOrEqualTo(INTERVAL.minus(TICK));
+        }
+
+        @Test
+        void should_be_due_at_the_slot_start_when_the_interval_is_no_longer_than_the_tick() {
+            var everyMinute = TARGET.toBuilder().id("a-target-with-a-non-zero-jitter").interval(TICK).build();
+
+            assertThat(SCHEDULE.jitter(everyMinute)).isPositive();
+            assertThat(SCHEDULE.dueAt(everyMinute, 0, BOUNDARY)).isEqualTo(BOUNDARY);
+            assertThat(SCHEDULE.isDue(everyMinute, BOUNDARY.minusSeconds(50), 0, BOUNDARY)).isTrue();
+        }
+
+        @Test
+        void should_cap_a_late_phase_so_the_last_tick_of_the_slot_still_catches_the_target() {
+            var late = IntStream.range(0, 1000)
+                .mapToObj(i -> TARGET.toBuilder().id("late-" + i).build())
+                .filter(candidate -> SCHEDULE.jitter(candidate).compareTo(INTERVAL.minus(TICK)) > 0)
+                .findFirst()
+                .orElseThrow();
+
+            assertThat(SCHEDULE.dueAt(late, 0, BOUNDARY)).isEqualTo(BOUNDARY.plus(INTERVAL).minus(TICK));
+        }
+    }
+
+    @Nested
     class IsDue {
 
-        private final Instant boundary = Instant.parse("2021-06-01T10:00:00Z").plus(SCHEDULE.jitter(TARGET));
+        private final Duration phase = Duration.between(BOUNDARY, SCHEDULE.dueAt(TARGET, 0, BOUNDARY));
 
         @Test
         void should_be_due_when_never_evaluated() {
-            assertThat(SCHEDULE.isDue(TARGET, null, 0, boundary.minusSeconds(1))).isTrue();
+            assertThat(SCHEDULE.isDue(TARGET, null, 0, BOUNDARY.minusSeconds(1))).isTrue();
         }
 
         @Test
-        void should_be_due_once_a_slot_boundary_has_passed_since_the_last_evaluation() {
-            assertThat(SCHEDULE.isDue(TARGET, boundary.minusSeconds(1), 0, boundary)).isTrue();
-            assertThat(SCHEDULE.isDue(TARGET, boundary.minusSeconds(1), 0, boundary.plusSeconds(59))).isTrue();
+        void should_be_due_from_its_phase_on_once_a_new_slot_has_started_since_the_last_evaluation() {
+            assertThat(SCHEDULE.isDue(TARGET, BOUNDARY.minusSeconds(1), 0, BOUNDARY.plus(phase))).isTrue();
+            assertThat(SCHEDULE.isDue(TARGET, BOUNDARY.minusSeconds(1), 0, BOUNDARY.plus(INTERVAL).minusSeconds(1))).isTrue();
+            if (phase.isPositive()) {
+                assertThat(SCHEDULE.isDue(TARGET, BOUNDARY.minusSeconds(1), 0, BOUNDARY.plus(phase).minusSeconds(1))).isFalse();
+            }
         }
 
+        /** An evaluation run on demand early in a slot is that slot's evaluation: the scheduler adds none. */
         @Test
         void should_not_be_due_inside_the_slot_of_the_last_evaluation() {
-            assertThat(SCHEDULE.isDue(TARGET, boundary, 0, boundary)).isFalse();
-            assertThat(SCHEDULE.isDue(TARGET, boundary, 0, boundary.plus(INTERVAL).minusSeconds(1))).isFalse();
-            assertThat(SCHEDULE.isDue(TARGET, boundary.plusSeconds(30), 0, boundary.plus(INTERVAL).minusSeconds(1))).isFalse();
+            assertThat(SCHEDULE.isDue(TARGET, BOUNDARY, 0, BOUNDARY.plus(phase))).isFalse();
+            assertThat(SCHEDULE.isDue(TARGET, BOUNDARY.plusSeconds(10), 0, BOUNDARY.plus(INTERVAL).minusSeconds(1))).isFalse();
         }
 
+        /** And the very next slot is evaluated in turn: the strip a reader draws per slot has no hole. */
         @Test
-        void should_be_due_exactly_one_interval_after_the_slot_of_the_last_evaluation() {
-            assertThat(SCHEDULE.isDue(TARGET, boundary, 0, boundary.plus(INTERVAL))).isTrue();
-        }
+        void should_be_due_in_the_slot_after_the_one_evaluated_on_demand() {
+            var onDemand = BOUNDARY.plusSeconds(10);
 
-        @Test
-        void should_name_the_slot_an_instant_belongs_to_by_its_start() {
-            assertThat(SCHEDULE.slotStart(TARGET, 0, boundary)).isEqualTo(boundary);
-            assertThat(SCHEDULE.slotStart(TARGET, 0, boundary.plus(INTERVAL).minusSeconds(1))).isEqualTo(boundary);
-            assertThat(SCHEDULE.slotStart(TARGET, 0, boundary.plus(INTERVAL))).isEqualTo(boundary.plus(INTERVAL));
-            assertThat(SCHEDULE.slotStart(TARGET, 3, boundary.plus(INTERVAL))).isEqualTo(boundary);
+            assertThat(SCHEDULE.isDue(TARGET, onDemand, 0, BOUNDARY.plus(INTERVAL).plus(phase))).isTrue();
         }
 
         @Test
         void should_wait_for_the_effective_interval_of_an_idle_target() {
-            var backedOffBoundary = Instant.parse("2021-06-01T10:00:00Z").plus(SCHEDULE.jitter(TARGET));
+            var backedOff = Duration.between(BOUNDARY, SCHEDULE.dueAt(TARGET, 3, BOUNDARY));
 
-            assertThat(SCHEDULE.isDue(TARGET, backedOffBoundary, 3, backedOffBoundary.plus(INTERVAL))).isFalse();
-            assertThat(SCHEDULE.isDue(TARGET, backedOffBoundary, 3, backedOffBoundary.plus(INTERVAL.multipliedBy(2)))).isTrue();
+            assertThat(SCHEDULE.isDue(TARGET, BOUNDARY, 3, BOUNDARY.plus(INTERVAL).plus(phase))).isFalse();
+            assertThat(SCHEDULE.isDue(TARGET, BOUNDARY, 3, BOUNDARY.plus(INTERVAL.multipliedBy(2)).plus(backedOff))).isTrue();
         }
+    }
+
+    @Test
+    void should_tick_every_minute_unless_told_otherwise() {
+        assertThat(new PerformanceTargetSchedule(3, Duration.ofHours(1), 288).tick()).isEqualTo(Duration.ofMinutes(1));
     }
 
     @Test
@@ -126,5 +177,8 @@ class PerformanceTargetScheduleTest {
         assertThatThrownBy(() -> new PerformanceTargetSchedule(0, Duration.ofHours(1), 288)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new PerformanceTargetSchedule(3, Duration.ZERO, 288)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new PerformanceTargetSchedule(3, Duration.ofHours(1), 0)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new PerformanceTargetSchedule(3, Duration.ofHours(1), 288, Duration.ZERO)).isInstanceOf(
+            IllegalArgumentException.class
+        );
     }
 }
