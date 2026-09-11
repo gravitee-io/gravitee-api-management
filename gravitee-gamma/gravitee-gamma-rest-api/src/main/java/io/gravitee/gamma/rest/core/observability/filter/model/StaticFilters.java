@@ -132,6 +132,24 @@ public enum StaticFilters {
 
     AUTHZ_REASON("Reason", FilterType.STRING, Defs.CONTAINS_ONLY, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
 
+    // --- Human approval ---------------------------------------------------------------------------
+    /**
+     * What a reviewer decided on a held call. The same name and ENUM vocabulary the management-v2
+     * analytics engine already advertises (see {@code analytics-definition.yaml}) — the field is
+     * resolved by {@code HumanApprovalFieldResolver} regardless of which surface queries it.
+     * ANALYTICS-only and AGENT-scoped: the only place it is queried today is the agent dashboard's
+     * Human Decision Cost widget.
+     */
+    HUMAN_APPROVAL_VERDICT(
+        "Verdict",
+        FilterType.ENUM,
+        Defs.EQ_IN,
+        Defs.HUMAN_APPROVAL_VERDICTS,
+        null,
+        Defs.ANALYTICS,
+        Set.of(ApiType.AGENT)
+    ),
+
     // --- LLM ------------------------------------------------------------------------------------
     LLM_PROXY_MODEL("LLM Model", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.LLM)),
     LLM_PROXY_PROVIDER("LLM Provider", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.LLM)),
@@ -426,6 +444,14 @@ public enum StaticFilters {
             new EnumValue("PERMIT", "Permit"),
             new EnumValue("FORBID", "Forbid"),
             new EnumValue("NOT_APPLICABLE", "Not applicable")
+        );
+
+        private static final List<EnumValue> HUMAN_APPROVAL_VERDICTS = List.of(
+            self("APPROVE"),
+            self("EDIT"),
+            self("REJECT"),
+            self("EXPIRED"),
+            new EnumValue("NO_MATCH", "No match")
         );
 
         /** Enum value whose display label is identical to its wire value. */
