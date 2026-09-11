@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { HttpFormState, ProxyFormState, SharedConfigFormState, SslFormState } from '../pages/detail/endpoints/types';
+import type { HttpFormState, ProxyFormState, SharedConfigFormState, SslFormState, TcpFormState } from '../pages/detail/endpoints/types';
 import type {
     EndpointGroupHeader,
     EndpointGroupHttp,
     EndpointGroupProxy,
     EndpointGroupSharedConfiguration,
     EndpointGroupSsl,
+    EndpointGroupTcp,
 } from '../types';
 
 /** Serializes HTTP client options for V4 shared configuration (plugin httpClientOptions oneOf schema). */
@@ -95,6 +96,27 @@ export function validateHttpProxyOptions(proxy: ProxyFormState): string | null {
     const port = proxy.port !== '' ? parseInt(proxy.port, 10) : NaN;
     if (proxy.port === '' || Number.isNaN(port) || port <= 0) return 'Proxy port is required when proxy is enabled.';
     return null;
+}
+
+export function serializeTcpClientOptions(tcp: TcpFormState): EndpointGroupTcp {
+    return {
+        connectTimeout: tcp.connectTimeout,
+        reconnectAttempts: tcp.reconnectAttempts,
+        reconnectInterval: tcp.reconnectInterval,
+        idleTimeout: tcp.idleTimeout,
+        readIdleTimeout: tcp.readIdleTimeout,
+        writeIdleTimeout: tcp.writeIdleTimeout,
+    };
+}
+
+export function serializeTcpSharedConfiguration(
+    config: SharedConfigFormState,
+    existing?: EndpointGroupSharedConfiguration,
+): EndpointGroupSharedConfiguration {
+    return {
+        tcp: serializeTcpClientOptions(config.tcp),
+        ssl: serializeSslOptions(config.ssl, existing?.ssl),
+    };
 }
 
 export function serializeSharedConfiguration(

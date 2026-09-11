@@ -141,15 +141,15 @@ describe('withTcpRestrictions', () => {
         expect(withTcpRestrictions(GROUPS, false)).toBe(GROUPS);
     });
 
-    it('marks Policy Studio and CORS as comingSoon when the API has TCP listeners', () => {
+    it('omits Policy Studio, CORS, Response Templates, and Consumers for TCP APIs', () => {
         const restricted = withTcpRestrictions(GROUPS, true);
-        const policyStudio = restricted.find(g => g.label === 'Design')!.items.find(i => i.path === 'policy-studio')!;
-        const cors = restricted.find(g => g.label === 'General')!.items.find(i => i.path === 'cors')!;
+        const allPaths = restricted.flatMap(group => group.items.map(item => item.path));
 
-        expect(policyStudio.comingSoon).toBe(true);
-        expect(policyStudio.comingSoonReason).toBe('Coming soon for V4 APIs');
-        expect(cors.comingSoon).toBe(true);
-        expect(cors.comingSoonReason).toBe('Coming soon for V4 APIs');
+        expect(allPaths).not.toContain('policy-studio');
+        expect(allPaths).not.toContain('cors');
+        expect(allPaths).not.toContain('response-templates');
+        expect(allPaths).not.toContain('consumers');
+        expect(restricted.find(g => g.label === 'Design')).toBeUndefined();
     });
 
     it('does not affect unrelated items', () => {
@@ -197,7 +197,7 @@ describe('withApiScoreEnabled', () => {
 });
 
 describe('ApiDetailSidebarNav — TCP restrictions', () => {
-    it('renders Policy Studio as a disabled row instead of a link for a TCP API', () => {
+    it('does not render Policy Studio or Consumers for a TCP API', () => {
         const groups = withTcpRestrictions(GROUPS, true);
         render(
             <MemoryRouter initialEntries={[`${BASE}/overview`]}>
@@ -205,8 +205,8 @@ describe('ApiDetailSidebarNav — TCP restrictions', () => {
             </MemoryRouter>,
         );
 
-        expect(screen.getByText('Policy Studio')).toBeInTheDocument();
-        expect(screen.queryByRole('link', { name: /^policy studio$/i })).not.toBeInTheDocument();
+        expect(screen.queryByText('Policy Studio')).not.toBeInTheDocument();
+        expect(screen.queryByText('Consumers')).not.toBeInTheDocument();
     });
 });
 

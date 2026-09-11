@@ -30,8 +30,12 @@ import { notify } from '../../../../../shared/notify';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import { updateApiEndpointGroups } from '../../../services/apis';
 import type { EndpointGroupDto, EndpointGroupSharedConfiguration, TcpTarget } from '../../../types';
-import { formatEndpointTarget, isHttpProxyApi } from '../../../utils/apiHttpProxy';
-import { serializeSharedConfiguration, serializeSharedConfigurationOverride } from '../../../utils/endpointSharedConfiguration';
+import { formatEndpointTarget, isHttpProxyApi, isTcpEndpointGroup } from '../../../utils/apiHttpProxy';
+import {
+    serializeSharedConfiguration,
+    serializeSharedConfigurationOverride,
+    serializeTcpSharedConfiguration,
+} from '../../../utils/endpointSharedConfiguration';
 import {
     buildEndpointHealthCheckService,
     buildGroupHealthCheckService,
@@ -77,12 +81,18 @@ function dtoToFormState(group: EndpointGroupDto): EndpointGroupFormState {
     };
 }
 
-function formStateToDto(form: EndpointGroupFormState, existingGroup?: EndpointGroupDto, includeHealthCheck = false): EndpointGroupDto {
+function formStateToDto(
+    form: EndpointGroupFormState,
+    existingGroup?: EndpointGroupDto,
+    includeHealthCheck = false,
+    isTcpGroup = isTcpEndpointGroup(existingGroup),
+): EndpointGroupDto {
     const healthCheckService = includeHealthCheck ? buildGroupHealthCheckService(form.healthCheck) : existingGroup?.services?.healthCheck;
+    const groupType = existingGroup?.type ?? (isTcpGroup ? 'tcp-proxy' : 'http-proxy');
     return {
         ...(existingGroup ?? {}),
         name: form.name,
-        type: existingGroup?.type ?? 'http-proxy',
+        type: groupType,
         loadBalancer: { type: form.loadBalancerType },
         services: includeHealthCheck
             ? {
@@ -90,7 +100,9 @@ function formStateToDto(form: EndpointGroupFormState, existingGroup?: EndpointGr
                   healthCheck: healthCheckService,
               }
             : existingGroup?.services,
-        sharedConfiguration: serializeSharedConfiguration(form.sharedConfig, existingGroup?.sharedConfiguration),
+        sharedConfiguration: isTcpGroup
+            ? serializeTcpSharedConfiguration(form.sharedConfig, existingGroup?.sharedConfiguration)
+            : serializeSharedConfiguration(form.sharedConfig, existingGroup?.sharedConfiguration),
         endpoints: form.endpoints.map(ep => {
             const orig = ep._originalDto;
             return {
@@ -149,6 +161,18 @@ function endpointDtoToFormState(groups: EndpointGroupDto[], groupIdx: number, ep
 type GroupFormMode = 'hidden' | 'add' | 'edit';
 type EndpointFormMode = 'hidden' | 'add' | 'edit';
 type GroupFormStep = 'general' | 'configuration' | 'health-check';
+
+function resolveGroupFormIsTcp(
+    groupFormMode: GroupFormMode,
+    editingGroupIndex: number | null,
+    groups: EndpointGroupDto[],
+    httpProxyApi: boolean,
+): boolean {
+    if (groupFormMode === 'edit' && editingGroupIndex !== null) {
+        return isTcpEndpointGroup(groups[editingGroupIndex]);
+    }
+    return !httpProxyApi;
+}
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -258,18 +282,19 @@ export function ApiEndpointsPage() {
     function handleGroupSave(form: EndpointGroupFormState) {
         const trimmedForm = { ...form, name: form.name.trim() };
         const updated = [...groups];
+        const isTcpGroup = resolveGroupFormIsTcp(groupFormMode, editingGroupIndex, groups, httpProxyApi);
         if (groupFormMode === 'add') {
-            const groupType = 'http-proxy';
+            const groupType = isTcpGroup ? 'tcp-proxy' : 'http-proxy';
             const target = trimmedForm.defaultEndpointTarget?.trim() ?? '';
             updated.push({
-                ...formStateToDto(trimmedForm, undefined, httpProxyApi),
+                ...formStateToDto(trimmedForm, undefined, httpProxyApi, isTcpGroup),
                 endpoints: [buildDefaultEndpointForGroup(trimmedForm.name, target, groupType)],
             });
         } else if (groupFormMode === 'edit' && editingGroupIndex !== null) {
             // Preserve existing endpoints — group form no longer manages them
             const existing = groups[editingGroupIndex];
             updated[editingGroupIndex] = {
-                ...formStateToDto(trimmedForm, existing, httpProxyApi),
+                ...formStateToDto(trimmedForm, existing, httpProxyApi, isTcpGroup),
                 endpoints: existing.endpoints ?? [],
             };
         }
@@ -390,6 +415,8 @@ export function ApiEndpointsPage() {
     const groupInitialForm: EndpointGroupFormState =
         groupFormMode === 'edit' && editingGroupIndex !== null ? dtoToFormState(groups[editingGroupIndex]) : buildAddGroupInitialForm();
 
+    const editingTcpGroup = resolveGroupFormIsTcp(groupFormMode, editingGroupIndex, groups, httpProxyApi);
+
     // Endpoint form data
     const endpointExistingNames =
         endpointGroupIndex !== null
@@ -452,6 +479,7 @@ export function ApiEndpointsPage() {
                         initialStep={groupFormInitialStep}
                         showHealthCheck={httpProxyApi}
                         isCreateMode={groupFormMode === 'add' && httpProxyApi}
+                        isTcp={editingTcpGroup}
                         isReadOnly={isReadOnly}
                         isSaving={mutation.isPending}
                         saveError={saveError}
