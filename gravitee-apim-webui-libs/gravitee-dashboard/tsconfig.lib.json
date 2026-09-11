@@ -1,5 +1,3 @@
-/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
-/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
@@ -8,7 +6,9 @@
     "declarationMap": true,
     "inlineSources": true,
     "types": [],
-    "strict": true
+    "strict": true,
+    "module": "preserve",
+    "moduleResolution": "bundler"
   },
   "exclude": ["**/*.spec.ts", "src/test-setup.ts"]
 }
