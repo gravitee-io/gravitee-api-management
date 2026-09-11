@@ -15,8 +15,17 @@
  */
 import * as jsYAML from 'js-yaml';
 
-const schema = jsYAML.JSON_SCHEMA.extend([]);
-
+// CORE_SCHEMA is what js-yaml 4 called JSON_SCHEMA. The name JSON_SCHEMA still exists in 5 but
+// now means strict YAML 1.2 JSON, which reads TRUE, Null and 0x1A back as plain strings.
+// loadAll keeps the js-yaml 4 reading of an input with no document: undefined, where 5 throws.
 export function readYaml(content: string): unknown {
-  return jsYAML.load(content, { schema });
+  const documents = jsYAML.loadAll(content, { schema: jsYAML.CORE_SCHEMA });
+
+  if (documents.length === 0) {
+    return undefined;
+  }
+  if (documents.length > 1) {
+    throw new jsYAML.YAMLException('expected a single document in the stream, but found more');
+  }
+  return documents[0];
 }

@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { load } from 'js-yaml';
 import { map, Observable } from 'rxjs';
 
 import { PortalPageContentType } from '../../entities/management-api-v2';
+import { loadYaml } from '../../util/yaml';
 
 export const IMPORTABLE_FILE_EXTENSIONS: readonly string[] = ['.md', '.yaml', '.yml', '.json'];
 
@@ -62,7 +62,7 @@ export function detectContentType(fileName: string, content: string): PortalPage
   // .yaml/.yml/.json can hold either spec type: only the document's root property tells them apart
   let document: unknown;
   try {
-    document = load(content);
+    document = loadYaml(content);
   } catch {
     return null;
   }

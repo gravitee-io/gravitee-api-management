@@ -15,11 +15,11 @@
  */
 import angular from 'angular';
 import { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types';
-import * as yaml from 'js-yaml';
 import { dereference, validate } from '@scalar/openapi-parser';
 import { isEmpty, snakeCase } from 'lodash';
 
 import { MCPTool, MCPToolAnnotations, MCPToolDefinition, MCPToolGatewayMapping } from '../../../../../entities/entrypoint/mcp';
+import { loadYaml } from '../../../../../util/yaml';
 
 type OpenAPIObject = OpenAPIV3.Document | OpenAPIV3_1.Document;
 type OperationObject = OpenAPIV3.OperationObject | OpenAPIV3_1.OperationObject;
@@ -307,7 +307,7 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
   let parsedSpec: OpenAPIObject;
 
   try {
-    parsedSpec = yaml.load(specString) as OpenAPIObject;
+    parsedSpec = loadYaml(specString) as OpenAPIObject;
   } catch {
     return { result: [], errors: [{ key: 'invalidFormat', message: 'Failed to parse specification' }] };
   }
