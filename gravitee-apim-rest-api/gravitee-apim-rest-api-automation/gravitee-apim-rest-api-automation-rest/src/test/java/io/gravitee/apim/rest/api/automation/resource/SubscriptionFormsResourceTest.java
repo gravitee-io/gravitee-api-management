@@ -53,6 +53,8 @@ class SubscriptionFormsResourceTest extends AbstractResourceTest {
     private static final String FORM_HRID = "partner-onboarding";
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder().organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build();
     private static final String FORM_ID = HRIDToUUID.subscriptionForm().context(AUDIT_INFO).hrid(FORM_HRID).id();
+    private static final String API_HRID = "weather";
+    private static final String API_ID = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
 
     @Inject
     private CreateOrUpdateSubscriptionFormUseCase createOrUpdateSubscriptionFormUseCase;
@@ -151,7 +153,7 @@ class SubscriptionFormsResourceTest extends AbstractResourceTest {
         @Test
         void should_create_or_update_the_form() {
             apiCrudService.initWith(
-                List.of(ApiFixtures.aProxyApiV4().toBuilder().id("api-1").hrid("weather").environmentId(ENVIRONMENT).build())
+                List.of(ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).hrid(API_HRID).environmentId(ENVIRONMENT).build())
             );
             when(createOrUpdateSubscriptionFormUseCase.execute(any())).thenReturn(
                 new CreateOrUpdateSubscriptionFormUseCase.Output(aForm(), List.of())
@@ -172,7 +174,7 @@ class SubscriptionFormsResourceTest extends AbstractResourceTest {
                     soft.assertThat(state.getHrid()).isEqualTo(FORM_HRID);
                     soft.assertThat(state.getName()).isEqualTo("Partner onboarding");
                     soft.assertThat(state.getGmdContent()).contains("gmd-input");
-                    soft.assertThat(state.getApiHrids()).containsExactly("weather");
+                    soft.assertThat(state.getApiHrids()).containsExactly(API_HRID);
                 });
             }
         }
@@ -207,7 +209,7 @@ class SubscriptionFormsResourceTest extends AbstractResourceTest {
             .gmdContent(GraviteeMarkdown.of("<gmd-input name=\"company\" fieldKey=\"company\" required=\"true\"/>"))
             .enabled(true)
             .defaultForm(false)
-            .apiIds(List.of("api-1"))
+            .apiIds(List.of(API_ID))
             .validationConstraints(SubscriptionFormFieldConstraints.empty())
             .build();
     }

@@ -54,6 +54,8 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
     private static final String FORM_HRID = "partner-onboarding";
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder().organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build();
     private static final String FORM_ID = HRIDToUUID.subscriptionForm().context(AUDIT_INFO).hrid(FORM_HRID).id();
+    private static final String API_HRID = "weather";
+    private static final String API_ID = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
 
     @Inject
     private GetSubscriptionFormUseCase getSubscriptionFormUseCase;
@@ -81,7 +83,7 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
         @Test
         void should_return_the_form() {
             apiCrudService.initWith(
-                List.of(ApiFixtures.aProxyApiV4().toBuilder().id("api-1").hrid("weather").environmentId(ENVIRONMENT).build())
+                List.of(ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).hrid(API_HRID).environmentId(ENVIRONMENT).build())
             );
             when(getSubscriptionFormUseCase.execute(any())).thenReturn(new GetSubscriptionFormUseCase.Output(aForm(), Map.of()));
 
@@ -96,9 +98,25 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
                     soft.assertThat(state.getName()).isEqualTo("Partner onboarding");
                     soft.assertThat(state.getEnabled()).isTrue();
                     soft.assertThat(state.getDefault()).isFalse();
-                    soft.assertThat(state.getApiHrids()).containsExactly("weather");
+                    soft.assertThat(state.getApiHrids()).containsExactly(API_HRID);
                     soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
                 });
+            }
+        }
+
+        @Test
+        void should_give_an_api_it_did_not_create_by_id() {
+            // A console-made API keeps a hrid that does not derive into its id: only the id can be applied back.
+            apiCrudService.initWith(
+                List.of(ApiFixtures.aProxyApiV4().toBuilder().id("console-made").hrid("cross-id").environmentId(ENVIRONMENT).build())
+            );
+            when(getSubscriptionFormUseCase.execute(any())).thenReturn(
+                new GetSubscriptionFormUseCase.Output(aForm(List.of("console-made")), Map.of())
+            );
+
+            try (var response = rootTarget(FORM_HRID).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
+                assertThat(response.getStatus()).isEqualTo(200);
+                assertThat(response.readEntity(SubscriptionFormState.class).getApiHrids()).containsExactly("console-made");
             }
         }
 
@@ -143,6 +161,10 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
     }
 
     private static SubscriptionForm aForm() {
+        return aForm(List.of(API_ID));
+    }
+
+    private static SubscriptionForm aForm(List<String> apiIds) {
         return SubscriptionForm.builder()
             .id(SubscriptionFormId.of(FORM_ID))
             .environmentId(ENVIRONMENT)
@@ -150,7 +172,7 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
             .gmdContent(GraviteeMarkdown.of("<gmd-input name=\"company\" fieldKey=\"company\" required=\"true\"/>"))
             .enabled(true)
             .defaultForm(false)
-            .apiIds(List.of("api-1"))
+            .apiIds(apiIds)
             .validationConstraints(SubscriptionFormFieldConstraints.empty())
             .build();
     }

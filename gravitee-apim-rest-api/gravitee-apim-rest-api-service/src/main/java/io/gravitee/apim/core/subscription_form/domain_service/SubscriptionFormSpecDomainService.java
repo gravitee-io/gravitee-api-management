@@ -17,7 +17,8 @@ package io.gravitee.apim.core.subscription_form.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.exception.AbstractDomainException;
+import io.gravitee.apim.core.exception.ConflictDomainException;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.apim.core.subscription_form.query_service.SubscriptionFormQueryService;
@@ -84,7 +85,8 @@ public class SubscriptionFormSpecDomainService {
             definitionDomainService.validateName(environmentId, spec.name(), existingId);
             apiIds = definitionDomainService.validateApiIds(environmentId, spec.apiIds(), existingId);
             definition = definitionDomainService.compile(spec.gmdContent());
-        } catch (AbstractDomainException e) {
+        } catch (ValidationDomainException | ConflictDomainException e) {
+            // Only what the spec itself got wrong becomes a finding; a technical failure keeps propagating.
             errors.add(Validator.Error.severe("%s", e.getMessage()));
         }
         if (!spec.defaultForm() && existing.map(SubscriptionForm::isDefaultForm).orElse(false)) {

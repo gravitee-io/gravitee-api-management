@@ -57,7 +57,7 @@ public class SubscriptionFormResource extends AbstractResource {
                 new GetSubscriptionFormUseCase.Input(auditInfo.environmentId(), SubscriptionFormId.of(formId))
             );
             var form = output.subscriptionForm();
-            var apiHrids = SubscriptionFormMapper.INSTANCE.toApiHrids(form.getApiIds(), apiCrudService);
+            var apiHrids = SubscriptionFormMapper.INSTANCE.toApiHrids(form.getApiIds(), apiCrudService, auditInfo);
             return Response.ok(SubscriptionFormMapper.INSTANCE.toState(form, hrid, auditInfo, apiHrids)).build();
         } catch (SubscriptionFormNotFoundException e) {
             throw new HRIDNotFoundException(hrid);

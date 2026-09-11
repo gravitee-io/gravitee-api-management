@@ -51,12 +51,13 @@ public class CreateOrUpdateSubscriptionFormUseCase {
             return new Output(validation.existing().orElse(null), validation.errors());
         }
 
+        var created = validation.existing().isEmpty();
         SubscriptionForm saved = validation
             .existing()
             .map(form -> update(form, spec, validation))
             .orElseGet(() -> create(spec, validation));
         if (spec.defaultForm()) {
-            saved = defaultDomainService.promote(saved);
+            saved = promoteOrRollBack(saved, created);
         }
         log.info(
             "Applied subscription form [{}] '{}' on environment [{}] through automation",
@@ -65,6 +66,25 @@ public class CreateOrUpdateSubscriptionFormUseCase {
             spec.auditInfo().environmentId()
         );
         return new Output(saved, validation.errors());
+    }
+
+    /**
+     * A promotion failing right after a create would leave behind a form the spec never asked for: remove it
+     * before reporting the failure, so re-applying the spec starts from the same state.
+     */
+    private SubscriptionForm promoteOrRollBack(SubscriptionForm saved, boolean created) {
+        try {
+            return defaultDomainService.promote(saved);
+        } catch (RuntimeException promotionFailure) {
+            if (created) {
+                try {
+                    subscriptionFormCrudService.delete(saved);
+                } catch (RuntimeException cleanUpFailure) {
+                    promotionFailure.addSuppressed(cleanUpFailure);
+                }
+            }
+            throw promotionFailure;
+        }
     }
 
     private SubscriptionForm create(SubscriptionFormSpecDomainService.Spec spec, SubscriptionFormSpecDomainService.Validation validation) {

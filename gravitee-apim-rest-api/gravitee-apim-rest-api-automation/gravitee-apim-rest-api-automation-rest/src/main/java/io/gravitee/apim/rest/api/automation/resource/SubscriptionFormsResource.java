@@ -69,7 +69,9 @@ public class SubscriptionFormsResource extends AbstractResource {
         var output = dryRun ? validateSubscriptionFormUseCase.execute(input) : createOrUpdateSubscriptionFormUseCase.execute(input);
 
         var form = output.subscriptionForm();
-        var apiHrids = form != null ? SubscriptionFormMapper.INSTANCE.toApiHrids(form.getApiIds(), apiCrudService) : spec.getApiHrids();
+        var apiHrids = form != null
+            ? SubscriptionFormMapper.INSTANCE.toApiHrids(form.getApiIds(), apiCrudService, auditInfo)
+            : spec.getApiHrids();
         var state = SubscriptionFormMapper.INSTANCE.toState(spec, input.subscriptionFormId().toString(), output, auditInfo, apiHrids);
 
         // A dry run is a preview: severe findings are its payload, so it always answers 200.

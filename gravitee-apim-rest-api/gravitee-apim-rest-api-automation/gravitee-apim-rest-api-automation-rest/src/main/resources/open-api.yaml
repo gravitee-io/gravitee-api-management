@@ -1008,6 +1008,8 @@ paths:
           $ref: "#/components/responses/Unauthenticated"
         "403":
           $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
         default:
           $ref: "#/components/responses/Error"
   /organizations/{orgId}/environments/{envId}/subscription-forms/{hrid}:
@@ -1045,8 +1047,8 @@ paths:
       responses:
         "204":
           description: Subscription Form successfully deleted
-        "400":
-          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
         "401":
           $ref: "#/components/responses/Unauthenticated"
         "403":
@@ -3721,8 +3723,8 @@ components:
           type: array
           description: |
             Human readable ids of the APIs this form is dedicated to, as used by the API resource of this
-            Automation API (an API created outside the Automation API has no hrid and cannot be referenced here).
-            An API is mapped to at most one form.
+            Automation API. An API this Automation API did not create is referenced by its id instead, which is
+            also how the state of such a form gives it back. An API is mapped to at most one form.
           items:
             type: string
       required:
@@ -3836,6 +3838,12 @@ components:
             $ref: "#/components/schemas/HttpError"
     Unauthenticated:
       description: Unauthenticated
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/HttpError"
+    Conflict:
+      description: Request conflicts with the current state of the resource
       content:
         application/json:
           schema:

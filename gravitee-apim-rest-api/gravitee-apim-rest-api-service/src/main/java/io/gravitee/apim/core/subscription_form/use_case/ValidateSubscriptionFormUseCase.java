@@ -17,11 +17,13 @@ package io.gravitee.apim.core.subscription_form.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSpecDomainService;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Dry-run twin of {@link CreateOrUpdateSubscriptionFormUseCase}: runs the same checks and reports
- * the findings, persisting nothing.
+ * Dry-run twin of {@link CreateOrUpdateSubscriptionFormUseCase}: runs the same checks and reports the
+ * findings, persisting nothing. A spec that would apply cleanly is previewed as the form the apply would
+ * write, so the caller sees the change instead of the current state.
  *
  * @author Gravitee.io Team
  */
@@ -33,6 +35,26 @@ public class ValidateSubscriptionFormUseCase {
 
     public CreateOrUpdateSubscriptionFormUseCase.Output execute(SubscriptionFormSpecDomainService.Spec spec) {
         var validation = specDomainService.validate(spec);
-        return new CreateOrUpdateSubscriptionFormUseCase.Output(validation.existing().orElse(null), validation.errors());
+        if (validation.hasSevereErrors()) {
+            return new CreateOrUpdateSubscriptionFormUseCase.Output(validation.existing().orElse(null), validation.errors());
+        }
+        return new CreateOrUpdateSubscriptionFormUseCase.Output(preview(spec, validation), validation.errors());
+    }
+
+    private static SubscriptionForm preview(
+        SubscriptionFormSpecDomainService.Spec spec,
+        SubscriptionFormSpecDomainService.Validation validation
+    ) {
+        return SubscriptionForm.builder()
+            .id(spec.subscriptionFormId())
+            .environmentId(spec.auditInfo().environmentId())
+            .name(spec.name().trim())
+            .portalPageContentId(validation.existing().map(SubscriptionForm::getPortalPageContentId).orElse(null))
+            .gmdContent(validation.definition().gmdContent())
+            .validationConstraints(validation.definition().constraints())
+            .apiIds(validation.apiIds())
+            .enabled(spec.enabled())
+            .defaultForm(spec.defaultForm())
+            .build();
     }
 }

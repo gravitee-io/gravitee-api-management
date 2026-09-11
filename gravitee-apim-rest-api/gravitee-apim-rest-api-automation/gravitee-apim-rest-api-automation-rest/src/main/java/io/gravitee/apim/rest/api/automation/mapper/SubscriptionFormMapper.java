@@ -27,6 +27,7 @@ import io.gravitee.apim.rest.api.automation.model.SubscriptionFormSpec;
 import io.gravitee.apim.rest.api.automation.model.SubscriptionFormState;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -47,30 +48,49 @@ public interface SubscriptionFormMapper {
         );
     }
 
-    /** APIs are referenced by hrid, like in the API resource of this API: the id derives from it. */
+    /**
+     * APIs are referenced by hrid, like everywhere else in this API: the id derives from it. A value that already
+     * is an API id is taken as such, so the state of a form dedicated to an API this Automation API did not create
+     * — whose hrid does not derive into its id — can be applied back unchanged.
+     */
     default List<String> toApiIds(List<String> apiHrids, AuditInfo auditInfo) {
         if (apiHrids == null) {
             return null;
         }
         return apiHrids
             .stream()
-            .map(apiHrid -> HRIDToUUID.api().context(auditInfo).hrid(apiHrid).id())
+            .filter(apiHrid -> apiHrid != null && !apiHrid.isBlank())
+            .map(apiHrid -> isApiId(apiHrid) ? apiHrid : HRIDToUUID.api().context(auditInfo).hrid(apiHrid).id())
             .toList();
     }
 
-    /** Back from the ids the domain stores to the hrids the spec speaks; an API without hrid is given by its id. */
-    default List<String> toApiHrids(List<String> apiIds, ApiCrudService apiCrudService) {
+    /**
+     * Back from the ids the domain stores to what a spec can reference: the hrid of an API whose hrid derives into
+     * that id, the id itself for every other API, so re-applying a state maps the very same APIs.
+     */
+    default List<String> toApiHrids(List<String> apiIds, ApiCrudService apiCrudService, AuditInfo auditInfo) {
         if (apiIds == null || apiIds.isEmpty()) {
             return List.of();
         }
         var hridById = apiCrudService
             .findByIds(apiIds)
             .stream()
-            .collect(Collectors.toMap(Api::getId, api -> api.getHrid() != null ? api.getHrid() : api.getId()));
+            .filter(api -> api.getHrid() != null)
+            .filter(api -> api.getId().equals(HRIDToUUID.api().context(auditInfo).hrid(api.getHrid()).id()))
+            .collect(Collectors.toMap(Api::getId, Api::getHrid));
         return apiIds
             .stream()
             .map(apiId -> hridById.getOrDefault(apiId, apiId))
             .toList();
+    }
+
+    private static boolean isApiId(String value) {
+        try {
+            UUID.fromString(value);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 
     /**
