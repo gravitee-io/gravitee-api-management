@@ -34,6 +34,8 @@ import io.gravitee.apim.rest.api.automation.resource.PortalThemeResource;
 import io.gravitee.apim.rest.api.automation.resource.PortalThemesResource;
 import io.gravitee.apim.rest.api.automation.resource.PortalsResource;
 import io.gravitee.apim.rest.api.automation.resource.SharedPolicyGroupsResource;
+import io.gravitee.apim.rest.api.automation.resource.SubscriptionFormResource;
+import io.gravitee.apim.rest.api.automation.resource.SubscriptionFormsResource;
 import io.gravitee.apim.rest.api.automation.spring.PermissionsFilter;
 import io.gravitee.rest.api.management.v2.rest.exceptionmapper.BadRequestExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionmapper.ConstraintValidationExceptionMapper;
@@ -71,6 +73,8 @@ public class GraviteeAutomationApplication extends ResourceConfig {
         register(PortalResource.class);
         register(PortalThemesResource.class);
         register(PortalThemeResource.class);
+        register(SubscriptionFormsResource.class);
+        register(SubscriptionFormResource.class);
         register(GammaModuleAutomationResource.class);
 
         register(ValidationDomainMapper.class);

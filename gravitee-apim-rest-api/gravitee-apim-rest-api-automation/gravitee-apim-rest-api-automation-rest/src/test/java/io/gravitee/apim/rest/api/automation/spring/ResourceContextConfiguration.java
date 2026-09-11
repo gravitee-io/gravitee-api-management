@@ -211,6 +211,10 @@ import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionCRDUseCase;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.UpdateSubscriptionUseCase;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSchemaGenerator;
+import io.gravitee.apim.core.subscription_form.use_case.CreateOrUpdateSubscriptionFormUseCase;
+import io.gravitee.apim.core.subscription_form.use_case.DeleteSubscriptionFormUseCase;
+import io.gravitee.apim.core.subscription_form.use_case.GetSubscriptionFormUseCase;
+import io.gravitee.apim.core.subscription_form.use_case.ValidateSubscriptionFormUseCase;
 import io.gravitee.apim.core.theme.use_case.CreateOrUpdatePortalThemeUseCase;
 import io.gravitee.apim.core.theme.use_case.DeletePortalThemeUseCase;
 import io.gravitee.apim.core.theme.use_case.GetPortalThemeUseCase;
@@ -1442,6 +1446,26 @@ public class ResourceContextConfiguration {
     @Bean
     public DeletePortalLinkUseCase deletePortalLinkUseCase() {
         return mock(DeletePortalLinkUseCase.class);
+    }
+
+    @Bean
+    public CreateOrUpdateSubscriptionFormUseCase createOrUpdateSubscriptionFormUseCase() {
+        return mock(CreateOrUpdateSubscriptionFormUseCase.class);
+    }
+
+    @Bean
+    public ValidateSubscriptionFormUseCase validateSubscriptionFormUseCase() {
+        return mock(ValidateSubscriptionFormUseCase.class);
+    }
+
+    @Bean
+    public GetSubscriptionFormUseCase getSubscriptionFormUseCase() {
+        return mock(GetSubscriptionFormUseCase.class);
+    }
+
+    @Bean
+    public DeleteSubscriptionFormUseCase deleteSubscriptionFormUseCase() {
+        return mock(DeleteSubscriptionFormUseCase.class);
     }
 
     @Bean
