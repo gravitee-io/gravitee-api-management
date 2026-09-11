@@ -22,8 +22,12 @@ import type { ReactElement } from 'react';
 
 import { TruncatedDisplayText } from './TruncatedDisplayText';
 
+// The tooltip opens instantly here. Under a hover delay, Radix arms a timer that `findByRole`'s own
+// one-second deadline races: a long GC pause on a loaded executor expires both in the same timers
+// phase, and the re-render the tooltip schedules — a MessageChannel task — only runs once that phase
+// has drained, so the query times out on a tooltip that did open. The delay is not under test.
 function renderTruncatedDisplayText(ui: ReactElement) {
-    return renderWithGraphene(<TooltipProvider delayDuration={300}>{ui}</TooltipProvider>);
+    return renderWithGraphene(<TooltipProvider delayDuration={0}>{ui}</TooltipProvider>);
 }
 
 describe('TruncatedDisplayText', () => {
