@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.dictionary.domain_service.DictionaryAutomationDomainService;
 import io.gravitee.apim.core.dictionary.model.Dictionary;
+import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
 import io.gravitee.apim.core.dictionary.model.DictionaryProvider;
 import io.gravitee.apim.core.dictionary.model.DictionaryTrigger;
 import io.gravitee.apim.core.dictionary.model.DictionaryType;
@@ -62,7 +63,7 @@ class DictionaryAutomationDomainServiceTest {
                 .name("My Dict")
                 .description("A description")
                 .type(DictionaryType.MANUAL)
-                .properties(Map.of("k", "v"))
+                .properties(Map.of("k", new DictionaryProperty("v", false)))
                 .build();
             var created = DictionaryEntity.builder().id("new-id").build();
             when(dictionaryService.create(any(), any())).thenReturn(created);

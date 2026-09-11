@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
 import java.util.Date;
 import java.util.Map;
+import java.util.Set;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -54,6 +55,12 @@ public class DictionaryEntity {
     private Lifecycle.State state;
 
     private Map<String, String> properties;
+
+    /**
+     * Keys of {@link #properties} that are stored encrypted. Additive: callers that never read
+     * or set this (e.g. the Console) are unaffected.
+     */
+    private Set<String> encryptedPropertyKeys;
 
     private DictionaryProviderEntity provider;
 
