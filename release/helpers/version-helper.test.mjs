@@ -4,6 +4,7 @@ import {
   DISTRIBUTION_POM,
   ROOT_POM,
   assertChartMatchesVersion,
+  assertPinIsReleasable,
   assertCoreTagIsFree,
   assertTagIsFree,
   assertVersionMatchesPoms,
@@ -312,5 +313,74 @@ describe('assertTagIsFree', () => {
     stub(500);
 
     await assert.rejects(() => assertTagIsFree('4.13.0'), { message: 'exit 1' });
+  });
+});
+
+describe('assertPinIsReleasable', () => {
+  const realFetch = globalThis.fetch;
+  const realChalk = globalThis.chalk;
+  const realExit = process.exit;
+
+  const pom = (pin) => `<project><properties>
+  <apim.core.version>${pin}</apim.core.version>
+</properties></project>`;
+
+  function stub(files) {
+    globalThis.fetch = async (url) => {
+      if (url.includes('/branches/')) {
+        return { ok: true, status: 200 };
+      }
+      const path = decodeURIComponent(url.split('/contents/')[1].split('?')[0]);
+      const body = files[path];
+      return body === undefined ? { ok: false, status: 404, statusText: 'Not Found' } : { ok: true, status: 200, text: async () => body };
+    };
+    globalThis.chalk = { red: (s) => s, yellow: (s) => s };
+    process.exit = (code) => {
+      throw new Error(`exit ${code}`);
+    };
+  }
+
+  afterEach(() => {
+    globalThis.fetch = realFetch;
+    globalThis.chalk = realChalk;
+    process.exit = realExit;
+  });
+
+  it('passes on a released pin from the line being released', async () => {
+    stub({ 'gravitee-apim-distribution/pom.xml': pom('4.13.1') });
+
+    await assertPinIsReleasable('4.13.4', '4.13.x');
+  });
+
+  // The pin trails by patches on purpose: the distribution ships more often than the core.
+  it('passes on a pin several patches behind', async () => {
+    stub({ 'gravitee-apim-distribution/pom.xml': pom('4.13.0') });
+
+    await assertPinIsReleasable('4.13.17', '4.13.x');
+  });
+
+  // A freshly cut branch pins a SNAPSHOT, which is exactly when this is most likely to be forgotten.
+  it('refuses a SNAPSHOT pin', async () => {
+    stub({ 'gravitee-apim-distribution/pom.xml': pom('4.13.0-SNAPSHOT') });
+
+    await assert.rejects(() => assertPinIsReleasable('4.13.0', '4.13.x'), { message: 'exit 1' });
+  });
+
+  it('refuses a pin from another line', async () => {
+    stub({ 'gravitee-apim-distribution/pom.xml': pom('4.12.19') });
+
+    await assert.rejects(() => assertPinIsReleasable('4.13.0', '4.13.x'), { message: 'exit 1' });
+  });
+
+  it('accepts a qualified pin of the same line', async () => {
+    stub({ 'gravitee-apim-distribution/pom.xml': pom('4.13.0-alpha.1') });
+
+    await assertPinIsReleasable('4.13.0-alpha.2', '4.13.x');
+  });
+
+  it('refuses a pom that carries no pin at all', async () => {
+    stub({ 'gravitee-apim-distribution/pom.xml': '<project/>' });
+
+    await assert.rejects(() => assertPinIsReleasable('4.13.0', '4.13.x'), { message: 'exit 1' });
   });
 });
