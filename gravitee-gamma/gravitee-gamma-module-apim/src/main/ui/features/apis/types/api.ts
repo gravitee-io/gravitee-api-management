@@ -263,9 +263,19 @@ export interface EndpointGroupHeader {
     value: string;
 }
 
+export interface EndpointGroupTcp {
+    connectTimeout?: number;
+    reconnectAttempts?: number;
+    reconnectInterval?: number;
+    idleTimeout?: number;
+    readIdleTimeout?: number;
+    writeIdleTimeout?: number;
+}
+
 export interface EndpointGroupSharedConfiguration {
     proxy?: EndpointGroupProxy;
     http?: EndpointGroupHttp;
+    tcp?: EndpointGroupTcp;
     ssl?: EndpointGroupSsl;
     headers?: EndpointGroupHeader[];
 }

@@ -347,6 +347,47 @@ function renderSidebar() {
     }
 }
 
+describe('ApiInfoHeader proxy type badge', () => {
+    afterEach(() => jest.clearAllMocks());
+
+    function renderSidebarForApi(api: Record<string, unknown>) {
+        (useApiDetail as jest.Mock).mockReturnValue({ data: api, isLoading: false });
+        renderLayout();
+        renderSidebar();
+    }
+
+    it('shows TCP Proxy for an API with TCP listeners', () => {
+        renderSidebarForApi({
+            id: 'abc-123',
+            name: 'TCP API',
+            type: 'PROXY',
+            listeners: [{ type: 'TCP', hosts: ['tcp.example.com'] }],
+        });
+        expect(screen.getByText('TCP Proxy')).toBeInTheDocument();
+    });
+
+    it('shows HTTP Proxy for an API without TCP listeners', () => {
+        renderSidebarForApi({
+            id: 'abc-123',
+            name: 'HTTP API',
+            type: 'PROXY',
+            listeners: [{ type: 'HTTP', paths: [{ path: '/foo' }] }],
+        });
+        expect(screen.getByText('HTTP Proxy')).toBeInTheDocument();
+    });
+
+    it('detects TCP Proxy from tcp-proxy endpoint groups when listeners are absent', () => {
+        renderSidebarForApi({
+            id: 'abc-123',
+            name: 'TCP API',
+            type: 'PROXY',
+            listeners: [],
+            endpointGroups: [{ type: 'tcp-proxy', name: 'Default TCP Proxy group' }],
+        });
+        expect(screen.getByText('TCP Proxy')).toBeInTheDocument();
+    });
+});
+
 describe('ApiAvatar', () => {
     afterEach(() => jest.clearAllMocks());
 
