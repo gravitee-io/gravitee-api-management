@@ -150,6 +150,17 @@ public class SubscriptionFormInlineContentMongoUpgraderTest extends AbstractMana
     }
 
     @Test
+    public void upgrade_should_leave_an_already_restored_form_alone_when_run_again() throws Exception {
+        givenAMigratedForm("form-migrated", "content-migrated");
+        upgrader.upgrade();
+
+        boolean result = upgrader.upgrade();
+
+        assertThat(result).isTrue();
+        assertThat(findForm("form-migrated").getString(GMD_CONTENT)).isEqualTo(DEFINITION);
+    }
+
+    @Test
     public void upgrade_should_delete_a_form_whose_page_content_holds_no_definition() throws Exception {
         givenAFormPointingAt("form-empty", "content-empty");
         mongoTemplate.getCollection(pageContentsCollection).insertOne(new Document("_id", "content-empty"));

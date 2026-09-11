@@ -71,22 +71,25 @@ public class SubscriptionFormInlineContentMongoUpgrader extends MongoUpgrader {
             var contentId = form.getString(PORTAL_PAGE_CONTENT_ID);
             readContentIds.add(contentId);
 
+            // Nothing serializes the upgraders across nodes, so every write is conditioned on the form
+            // still being the one this cursor read: a form another node has already restored — pointer
+            // gone — matches nothing and is left alone rather than restored twice or, worse, deleted.
+            var stillToRestore = Filters.and(Filters.eq("_id", formId), Filters.eq(PORTAL_PAGE_CONTENT_ID, contentId));
+
             var pageContent = pageContents.find(Filters.eq("_id", contentId)).first();
             var definition = pageContent == null ? null : pageContent.getString(CONTENT);
             if (definition == null) {
-                log.warn(
-                    "Subscription form [{}] has no definition left in its page content [{}]: deleting it, the environment gets a default form back",
-                    formId,
-                    contentId
-                );
-                forms.deleteOne(Filters.eq("_id", formId));
+                if (forms.deleteOne(stillToRestore).getDeletedCount() > 0) {
+                    log.warn(
+                        "Subscription form [{}] has no definition left in its page content [{}]: deleted it, the environment gets a default form back",
+                        formId,
+                        contentId
+                    );
+                }
                 continue;
             }
 
-            forms.updateOne(
-                Filters.eq("_id", formId),
-                Updates.combine(Updates.set(GMD_CONTENT, definition), Updates.unset(PORTAL_PAGE_CONTENT_ID))
-            );
+            forms.updateOne(stillToRestore, Updates.combine(Updates.set(GMD_CONTENT, definition), Updates.unset(PORTAL_PAGE_CONTENT_ID)));
         }
 
         // Each form owned its page content, so the ones just read have no other reader.
