@@ -41,7 +41,7 @@ describe('anonymousGuard', () => {
     jest.spyOn(router, 'navigate');
 
     expect(executeGuard(activatedRoute.snapshot, { url: '', root: activatedRoute.snapshot })).toBeTruthy();
-    expect(router.navigate).toBeCalledTimes(0);
+    expect(router.navigate).toHaveBeenCalledTimes(0);
   });
 
   it('should not allow authenticated user', () => {
@@ -49,7 +49,7 @@ describe('anonymousGuard', () => {
     jest.spyOn(router, 'navigate');
 
     expect(executeGuard(activatedRoute.snapshot, { url: '', root: activatedRoute.snapshot })).toBeTruthy();
-    expect(router.navigate).toBeCalledTimes(1);
+    expect(router.navigate).toHaveBeenCalledTimes(1);
     expect(router.navigate).toHaveBeenCalledWith(['']);
   });
 });

@@ -9,6 +9,11 @@ setupZoneTestEnv();
 // This means we will not be able to test Swagger in our components tests
 jest.mock('swagger-ui', () => jest.fn(() => ({ initOAuth: () => jest.fn() })));
 
+// Same for asciidoctor: its Opal runtime does not survive Jest 30, which hands it a global Date
+// whose `hasOwnProperty` is a boolean rather than the method. The console mocks it for the same
+// reason; no test here asserts on rendered asciidoc, only that the component is mounted.
+jest.mock('asciidoctor', () => jest.fn(() => ({ convert: (content: string) => content })));
+
 // Set the mock date globally for all tests
 const MOCK_DATE = new Date(1466424490000); // UTC Time: Mon Jun 20 2016 12:08:10.000
 

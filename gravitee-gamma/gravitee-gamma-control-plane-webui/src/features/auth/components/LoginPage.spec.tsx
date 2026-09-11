@@ -257,6 +257,14 @@ describe('LoginPage', () => {
             expect(screen.queryByText('or')).toBeNull();
         });
 
+        // jsdom 26 normalises colours to rgb() where 20 kept the literal, so the expectation goes
+        // through the same engine instead of hard-coding a notation.
+        const asCssColor = (value: string) => {
+            const probe = document.createElement('div');
+            probe.style.borderColor = value;
+            return probe.style.borderColor;
+        };
+
         it('should edge the chip with the provider color rather than filling it', async () => {
             stubLoginMethods([googleProvider]);
             renderLoginPage();
@@ -264,7 +272,7 @@ describe('LoginPage', () => {
             const button = (await screen.findByText('Google')).closest('button')!;
             const chip = button.querySelector('[aria-hidden]') as HTMLElement;
 
-            expect(chip.style.borderColor.toLowerCase()).toBe('#4285f4');
+            expect(chip.style.borderColor).toBe(asCssColor('#4285f4'));
             // A fill would put a multi-colour glyph on an administrator-chosen colour it cannot
             // adapt to, so the chip surface stays neutral and the glyph stays legible.
             expect(chip.style.backgroundColor).toBe('');

@@ -39,7 +39,8 @@
   >
     <option value="">-- Select --</option>
     @for (option of optionsVM(); track option) {
-      <option [value]="option">{{ option }}</option>
+      <!-- [selected] as well as the select's [value]: a value written before the options exist is dropped by the DOM. -->
+      <option [value]="option" [selected]="option === internalValue()">{{ option }}</option>
     }
   </select>
 
