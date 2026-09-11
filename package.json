@@ -37,7 +37,11 @@
         "@fontsource/material-icons-two-tone": "5.2.5",
         "@fontsource/montserrat": "5.2.5",
         "@fontsource/roboto": "5.2.5",
+<<<<<<< HEAD
         "@gravitee/gamma-lib-observability": "1.35.2",
+=======
+        "@gravitee/gamma-lib-observability": "1.39.2",
+>>>>>>> bba0ad680b (chore(gamma): bump @gravitee/gamma-lib-observability version to 1.39.2)
         "@gravitee/graphene-charts": "3.8.0",
         "@gravitee/graphene-core": "3.8.0",
         "@gravitee/graphene-policy-studio": "3.8.0",
