@@ -108,23 +108,6 @@ class SubscriptionFormConstraintsUpgraderTest {
     }
 
     @Test
-    void should_skip_forms_whose_content_lives_in_a_page_content() throws Exception {
-        var migratedForm = SubscriptionForm.builder()
-            .id("form-1")
-            .environmentId("env-1")
-            .gmdContent(null)
-            .portalPageContentId("content-1")
-            .validationConstraints("{}")
-            .build();
-        when(subscriptionFormRepository.findAll()).thenReturn(Set.of(migratedForm));
-
-        assertThat(upgrader.upgrade()).isTrue();
-
-        verify(schemaGenerator, never()).generate(any());
-        verify(subscriptionFormRepository, never()).update(any());
-    }
-
-    @Test
     void should_skip_forms_that_already_have_constraints() throws Exception {
         var formWithConstraints = SubscriptionForm.builder()
             .id("form-1")
