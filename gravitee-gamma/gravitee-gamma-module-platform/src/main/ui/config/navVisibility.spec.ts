@@ -78,6 +78,7 @@ const ENVIRONMENT_ADMIN = [
     'environment-audit-r',
     'environment-am_configuration-r',
     'environment-message-c',
+    'environment-client_registration_provider-r',
 ] as const;
 
 const ORGANIZATION_ADMIN = [
@@ -201,6 +202,7 @@ describe('platform nav visibility', () => {
                 'api-health-check',
                 'environment-audit',
                 'access-management',
+                'client-registration',
                 'groups',
             ]),
         );
@@ -342,6 +344,13 @@ describe('platform nav visibility', () => {
         expect(isNavItemVisible('broadcasts', visibility(['environment-message-c']))).toBe(true);
         expect(isNavItemVisible('broadcasts', visibility([...ORGANIZATION_USER, ...ENVIRONMENT_USER]))).toBe(false);
         expect(landingNavItemKey(visibility(['environment-application-r', 'environment-message-c']))).toBe('applications');
+    });
+
+    it('gates Client Registration on environment-client_registration_provider-r without the org settings gate', () => {
+        expect(requiresOrganizationSettingsGate('client-registration')).toBe(false);
+        expect(pageGuardForNavItem('client-registration')).toEqual({ anyOf: ['environment-client_registration_provider-r'] });
+        expect(isNavItemVisible('client-registration', visibility(['environment-client_registration_provider-r']))).toBe(true);
+        expect(isNavItemVisible('client-registration', visibility([...ORGANIZATION_USER, ...ENVIRONMENT_USER]))).toBe(false);
     });
 
     it('gates Notifications on environment-notification-r without the org settings gate', () => {

@@ -53,6 +53,7 @@ import { AlertsActivityPage } from '../features/alerts/pages/AlertsActivityPage'
 import { ALERT_ENGINE_FEATURE } from '../features/alerts/utils/alertPermissions';
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
 import { APIM_AUDIT_TRAIL_FEATURE } from '../features/audit-logs/license/auditTrailLicense';
+import { DCR_REGISTRATION_LICENSE_FEATURE } from '../features/client-registration/license/dcrRegistrationLicense';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
 import { GatewayInstanceDetailLayout } from '../features/gateway-instances/components/GatewayInstanceDetailLayout';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
@@ -69,6 +70,8 @@ import { ApplicationDetailSubscriptionPage } from '../pages/ApplicationDetailSub
 import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { AuthenticationPage } from '../pages/AuthenticationPage';
 import { BroadcastsPage } from '../pages/BroadcastsPage';
+import { ClientRegistrationPage } from '../pages/ClientRegistrationPage';
+import { ClientRegistrationProviderPage } from '../pages/ClientRegistrationProviderPage';
 import { CorsSettingsPage } from '../pages/CorsSettingsPage';
 import { CreateIdentityProviderPage } from '../pages/CreateIdentityProviderPage';
 import { DictionariesPage } from '../pages/DictionariesPage';
@@ -123,6 +126,7 @@ const APPLICATION_DETAIL_TABS = flattenApplicationDetailNavItems(APPLICATION_NAV
 const EMPTY_NAV_GROUPS: NavGroup[] = [];
 const ALERT_ENGINE_NAV_ITEMS: readonly string[] = ['alerts'];
 const AUDIT_TRAIL_NAV_ITEMS: readonly string[] = ['organization-audit', 'environment-audit'];
+const DCR_REGISTRATION_NAV_ITEMS: readonly string[] = ['client-registration'];
 
 function resolveRequiredPermissions(permission?: string, anyOf?: readonly string[]): readonly string[] {
     if (anyOf) {
@@ -181,6 +185,16 @@ function RequireIntegrationsAvailable({ children }: { readonly children: ReactEl
     const federationAvailable = useIntegrationsAvailable();
     if (!federationAvailable) {
         return <UnauthorizedRedirect />;
+    }
+    return children;
+}
+
+// List + toggles stay reachable without a DCR license (same as Classic). Create/edit bounce to
+// that list so a pasted /new or /:providerId URL cannot skip the Add-button upsell.
+function RequireDcrRegistrationLicense({ children }: { readonly children: ReactElement }) {
+    const hasFeature = useHasFeature(DCR_REGISTRATION_LICENSE_FEATURE);
+    if (!hasFeature) {
+        return <Navigate to=".." replace />;
     }
     return children;
 }
@@ -320,12 +334,18 @@ function ModuleLayout() {
     const { activeNavKey, navigateToKey } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
     const hasAlertEngine = useHasFeature(ALERT_ENGINE_FEATURE);
     const hasAuditTrail = useHasFeature(APIM_AUDIT_TRAIL_FEATURE);
+    const hasDcrRegistration = useHasFeature(DCR_REGISTRATION_LICENSE_FEATURE);
 
     // Unlicensed pages redirect away or open an upsell dialog, so landing on one bounces the user
     // straight back out. Alerts redirects; the audit pages show the dialog and cannot be dismissed.
+    // Client Registration keeps its list reachable; create/edit are the routes that bounce.
     const lockedItemKeys = useMemo(
-        () => [...(hasAlertEngine ? [] : ALERT_ENGINE_NAV_ITEMS), ...(hasAuditTrail ? [] : AUDIT_TRAIL_NAV_ITEMS)],
-        [hasAlertEngine, hasAuditTrail],
+        () => [
+            ...(hasAlertEngine ? [] : ALERT_ENGINE_NAV_ITEMS),
+            ...(hasAuditTrail ? [] : AUDIT_TRAIL_NAV_ITEMS),
+            ...(hasDcrRegistration ? [] : DCR_REGISTRATION_NAV_ITEMS),
+        ],
+        [hasAlertEngine, hasAuditTrail, hasDcrRegistration],
     );
 
     // permissionService is an external store, so re-reading it has to be keyed on its version:
@@ -348,11 +368,15 @@ function ModuleLayout() {
     const visibleNavSections = useMemo(
         () =>
             lockNavItem(
-                filterNavSections(NAV_SECTIONS, itemKey => isNavItemVisible(itemKey, navVisibility)),
-                'alerts',
-                !hasAlertEngine,
+                lockNavItem(
+                    filterNavSections(NAV_SECTIONS, itemKey => isNavItemVisible(itemKey, navVisibility)),
+                    'alerts',
+                    !hasAlertEngine,
+                ),
+                'client-registration',
+                !hasDcrRegistration,
             ),
-        [hasAlertEngine, navVisibility],
+        [hasAlertEngine, hasDcrRegistration, navVisibility],
     );
     const landingNavKey = landingNavItemKey(navVisibility);
 
@@ -736,6 +760,42 @@ export function AppRoutes() {
                                     </NavPermissionGuard>
                                 }
                             />
+                            <Route path="client-registration">
+                                <Route
+                                    index
+                                    element={
+                                        <NavPermissionGuard itemKey="client-registration">
+                                            <ClientRegistrationPage />
+                                        </NavPermissionGuard>
+                                    }
+                                />
+                                <Route
+                                    path="new"
+                                    element={
+                                        <PermissionPageGuard permission="environment-client_registration_provider-c" unauthorizedTo="..">
+                                            <RequireDcrRegistrationLicense>
+                                                <ClientRegistrationProviderPage />
+                                            </RequireDcrRegistrationLicense>
+                                        </PermissionPageGuard>
+                                    }
+                                />
+                                <Route
+                                    path=":providerId"
+                                    element={
+                                        <PermissionPageGuard
+                                            anyOf={[
+                                                'environment-client_registration_provider-r',
+                                                'environment-client_registration_provider-u',
+                                                'environment-client_registration_provider-d',
+                                            ]}
+                                        >
+                                            <RequireDcrRegistrationLicense>
+                                                <ClientRegistrationProviderPage />
+                                            </RequireDcrRegistrationLicense>
+                                        </PermissionPageGuard>
+                                    }
+                                />
+                            </Route>
                             <Route
                                 path="integrations"
                                 element={

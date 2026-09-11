@@ -35,12 +35,28 @@ export interface PortalSettingsMetadata {
     readonly?: string[];
 }
 
+export interface ApplicationTypeEnabled {
+    enabled?: boolean;
+}
+
+export interface PortalSettingsApplication {
+    registration?: { enabled?: boolean };
+    types?: {
+        simple?: ApplicationTypeEnabled;
+        browser?: ApplicationTypeEnabled;
+        web?: ApplicationTypeEnabled;
+        native?: ApplicationTypeEnabled;
+        backend_to_backend?: ApplicationTypeEnabled;
+    };
+}
+
 export interface PortalSettings {
     metadata?: PortalSettingsMetadata;
     plan?: {
         security?: PlanSecuritySettings;
         [key: string]: unknown;
     };
+    application?: PortalSettingsApplication;
     [key: string]: unknown;
 }
 

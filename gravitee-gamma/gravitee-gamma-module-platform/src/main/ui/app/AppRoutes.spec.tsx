@@ -317,6 +317,14 @@ jest.mock('../pages/BroadcastsPage', () => ({
     BroadcastsPage: () => <div data-testid="broadcasts-page" />,
 }));
 
+jest.mock('../pages/ClientRegistrationPage', () => ({
+    ClientRegistrationPage: () => <div data-testid="client-registration-page" />,
+}));
+
+jest.mock('../pages/ClientRegistrationProviderPage', () => ({
+    ClientRegistrationProviderPage: () => <div data-testid="client-registration-provider-page" />,
+}));
+
 function LocationProbe() {
     return <div data-testid="location">{useLocation().pathname}</div>;
 }
@@ -1748,6 +1756,77 @@ describe('AppRoutes', () => {
         renderPlatform();
 
         expect(visibleNavKeys()).not.toContain('security-plan-types');
+    });
+
+    it('renders Client Registration from a pasted URL', () => {
+        renderPlatform('/client-registration');
+        expect(screen.getByTestId('client-registration-page')).not.toBeNull();
+    });
+
+    it('renders create Client Registration provider when the user can create', () => {
+        renderPlatform('/client-registration/new');
+        expect(screen.getByTestId('client-registration-provider-page')).not.toBeNull();
+    });
+
+    it('redirects create Client Registration provider without environment-client_registration_provider-c', () => {
+        mockUseHasPermission.mockImplementation(
+            ({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-client_registration_provider-c'),
+        );
+        renderPlatform('/client-registration/new');
+        expect(screen.queryByTestId('client-registration-provider-page')).toBeNull();
+        expect(screen.getByTestId('client-registration-page')).not.toBeNull();
+    });
+
+    it('renders edit Client Registration provider from a pasted URL', () => {
+        renderPlatform('/client-registration/prov-1');
+        expect(screen.getByTestId('client-registration-provider-page')).not.toBeNull();
+    });
+
+    it('does not render Client Registration without environment-client_registration_provider-r', () => {
+        denyPermissions('environment-client_registration_provider-r');
+        renderPlatform('/client-registration');
+
+        expect(screen.queryByTestId('client-registration-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('hides Client Registration without environment-client_registration_provider-r', () => {
+        denyPermissions('environment-client_registration_provider-r');
+        renderPlatform();
+
+        expect(visibleNavKeys()).not.toContain('client-registration');
+    });
+
+    it('locks the Client Registration nav item when DCR is unlicensed', () => {
+        mockUseHasFeature.mockImplementation((feature: string) => feature !== 'apim-dcr-registration');
+
+        renderPlatform();
+
+        expect(visibleNavKeys()).toContain('client-registration');
+        expect(navItemAccess('client-registration')).toBe('locked');
+    });
+
+    it('still renders the Client Registration list when DCR is unlicensed', () => {
+        mockUseHasFeature.mockImplementation((feature: string) => feature !== 'apim-dcr-registration');
+        renderPlatform('/client-registration');
+
+        expect(screen.getByTestId('client-registration-page')).not.toBeNull();
+    });
+
+    it('redirects create Client Registration provider when DCR is unlicensed', () => {
+        mockUseHasFeature.mockImplementation((feature: string) => feature !== 'apim-dcr-registration');
+        renderPlatform('/client-registration/new');
+
+        expect(screen.queryByTestId('client-registration-provider-page')).toBeNull();
+        expect(screen.getByTestId('client-registration-page')).not.toBeNull();
+    });
+
+    it('redirects edit Client Registration provider when DCR is unlicensed', () => {
+        mockUseHasFeature.mockImplementation((feature: string) => feature !== 'apim-dcr-registration');
+        renderPlatform('/client-registration/prov-1');
+
+        expect(screen.queryByTestId('client-registration-provider-page')).toBeNull();
+        expect(screen.getByTestId('client-registration-page')).not.toBeNull();
     });
 
     it('does not render API Health Check for a pasted URL without environment-api-r', () => {

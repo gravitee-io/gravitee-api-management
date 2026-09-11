@@ -88,7 +88,7 @@ describe('platform navigation config', () => {
         expect(assetItems.find(item => item.key === 'broadcasts')?.title).toBe('Broadcasts');
     });
 
-    it('places Access Management, Gateways, Alerts, Notifications, API Health Check, SMTP, Security Plan Types, and Audit under Environment / System & Security', () => {
+    it('places Access Management, Gateways, Alerts, Notifications, API Health Check, SMTP, Security Plan Types, Client Registration, and Audit under Environment / System & Security', () => {
         expect(sectionKeys('Environment', 'System & Security')).toEqual([
             'access-management',
             'gateways',
@@ -97,6 +97,7 @@ describe('platform navigation config', () => {
             'api-health-check',
             'environment-smtp',
             'security-plan-types',
+            'client-registration',
             'environment-audit',
         ]);
         const systemItems =
@@ -106,6 +107,12 @@ describe('platform navigation config', () => {
         expect(systemItems.find(item => item.key === 'api-health-check')?.icon).toBe(ActivityIcon);
         expect(systemItems.find(item => item.key === 'api-health-check')?.title).toBe('API Health Check');
         expect(systemItems.find(item => item.key === 'environment-smtp')?.icon).toBe(SettingsIcon);
+    });
+
+    it('declares the client-registration route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('client-registration');
+        expect(ROUTES['client-registration']).toEqual({ path: 'client-registration', label: 'Client Registration' });
+        expect(findNavSectionKey(NAV_SECTIONS, 'client-registration')).toBe('environment');
     });
 
     it('declares the api-health-check route in platform routing config', () => {
