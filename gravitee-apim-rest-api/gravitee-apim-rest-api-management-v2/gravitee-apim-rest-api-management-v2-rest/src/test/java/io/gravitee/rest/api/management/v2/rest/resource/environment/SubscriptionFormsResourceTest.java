@@ -26,6 +26,7 @@ import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.v2.rest.model.CreateSubscriptionForm;
 import io.gravitee.rest.api.management.v2.rest.model.SubscriptionForm;
+import io.gravitee.rest.api.management.v2.rest.model.SubscriptionFormTemplate;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -126,6 +127,25 @@ class SubscriptionFormsResourceTest extends AbstractResourceTest {
         @Test
         void should_return_403_if_incorrect_permissions() {
             shouldReturn403(RolePermission.ENVIRONMENT_METADATA, ENVIRONMENT, RolePermissionAction.READ, () -> rootTarget.request().get());
+        }
+    }
+
+    @Nested
+    class GetTemplate {
+
+        @Test
+        void should_return_the_template_a_new_form_starts_from() {
+            var response = rootTarget.path("_template").request().get();
+
+            assertThat(response).hasStatus(HttpStatusCode.OK_200);
+            assertThat(response.readEntity(SubscriptionFormTemplate.class).getGmdContent()).isNotBlank().contains("<gmd-");
+        }
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            shouldReturn403(RolePermission.ENVIRONMENT_METADATA, ENVIRONMENT, RolePermissionAction.READ, () ->
+                rootTarget.path("_template").request().get()
+            );
         }
     }
 

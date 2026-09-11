@@ -20,9 +20,9 @@ import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.subscription_form.crud_service.SubscriptionFormCrudService;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormConstraintsFactory;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSchemaGenerator;
+import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormTemplateDomainService;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.query_service.SubscriptionFormQueryService;
-import java.nio.charset.StandardCharsets;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -39,18 +39,18 @@ import lombok.RequiredArgsConstructor;
 public class CreateDefaultSubscriptionFormUseCase {
 
     public static final String DEFAULT_FORM_NAME = "Default";
-    private static final String DEFAULT_FORM_TEMPLATE_PATH = "templates/default-subscription-form.md";
 
     private final SubscriptionFormCrudService subscriptionFormCrudService;
     private final SubscriptionFormQueryService subscriptionFormQueryService;
     private final SubscriptionFormSchemaGenerator schemaGenerator;
+    private final SubscriptionFormTemplateDomainService templateDomainService;
 
     public void execute(String environmentId) {
         if (!subscriptionFormQueryService.findAllByEnvironmentId(environmentId).isEmpty()) {
             return;
         }
 
-        var gmd = GraviteeMarkdown.of(loadDefaultFormContent());
+        var gmd = GraviteeMarkdown.of(templateDomainService.gmdContent());
         var constraints = SubscriptionFormConstraintsFactory.fromSchema(schemaGenerator.generate(gmd));
 
         var defaultForm = SubscriptionForm.builder()
@@ -65,19 +65,5 @@ public class CreateDefaultSubscriptionFormUseCase {
 
         subscriptionFormCrudService.create(defaultForm);
         log.info("Created default subscription form for environment [{}]", environmentId);
-    }
-
-    private String loadDefaultFormContent() {
-        try (final var is = CreateDefaultSubscriptionFormUseCase.class.getClassLoader().getResourceAsStream(DEFAULT_FORM_TEMPLATE_PATH)) {
-            if (is == null) {
-                throw new IllegalStateException("Could not load default subscription form template: " + DEFAULT_FORM_TEMPLATE_PATH);
-            }
-            return new String(is.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            if (e instanceof IllegalStateException illegalStateException) {
-                throw illegalStateException;
-            }
-            throw new IllegalStateException("Could not load default subscription form template", e);
-        }
     }
 }
