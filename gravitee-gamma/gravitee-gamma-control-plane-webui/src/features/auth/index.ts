@@ -18,4 +18,5 @@ export { useAuthStore } from './auth.store';
 export type { CurrentUser as User, SocialIdentityProvider, IdentityProviderType } from './auth.types';
 export { LoginPage } from './components/LoginPage';
 export { ResetPasswordPage } from './components/ResetPasswordPage';
+export { SignUpPage } from './components/SignUpPage';
 export { ProtectedRoute, PublicOnlyRoute } from './components/ProtectedRoute';
