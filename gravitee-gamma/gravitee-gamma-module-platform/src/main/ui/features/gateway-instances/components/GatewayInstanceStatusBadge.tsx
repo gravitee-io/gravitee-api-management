@@ -29,7 +29,7 @@ export function GatewayInstanceStatusBadge({ state }: Readonly<{ state: string |
 
     if (tone === 'running') {
         return (
-            <Badge variant="success" className="gap-1 rounded-md">
+            <Badge variant="success" className="gap-1">
                 <CircleCheckIcon className="size-3" aria-hidden />
                 Running
             </Badge>
@@ -38,7 +38,7 @@ export function GatewayInstanceStatusBadge({ state }: Readonly<{ state: string |
 
     if (tone === 'error') {
         return (
-            <Badge variant="secondary" className="gap-1 rounded-md">
+            <Badge variant="secondary" className="gap-1">
                 <CircleStopIcon className="size-3" aria-hidden />
                 Stopped
             </Badge>
@@ -46,7 +46,7 @@ export function GatewayInstanceStatusBadge({ state }: Readonly<{ state: string |
     }
 
     return (
-        <Badge variant="outline" className="gap-1 rounded-md">
+        <Badge variant="outline" className="gap-1">
             <CircleHelpIcon className="size-3" aria-hidden />
             Unknown
         </Badge>
