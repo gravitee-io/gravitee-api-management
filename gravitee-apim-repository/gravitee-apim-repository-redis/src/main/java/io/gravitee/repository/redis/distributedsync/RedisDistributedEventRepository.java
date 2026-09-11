@@ -48,6 +48,46 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
     private static final String REDIS_KEY_PREFIX = "distributed_event" + REDIS_KEY_SEPARATOR;
     private static final String REDIS_SEARCH_RESULTS_FIELD = "results";
     private static final String REDIS_RESPONSE_ATTRIBUTES_FIELD = "extra_attributes";
+<<<<<<< HEAD
+=======
+    private static final String CLUSTER_ID_REQUIRED_MESSAGE = "Distributed event clusterId is required";
+    private static final String CLUSTER_ID_PARAMETER_REQUIRED_MESSAGE = "clusterId is required";
+    private static final long NO_CURSOR = -1;
+    private static final String SCAN_BATCH_SIZE = "1000";
+    // Keep well below the redis client waiting queue (max-waiting-handlers) to leave room for other commands
+    private static final int UPDATE_MAX_CONCURRENCY = 32;
+
+    // Upper bound on the number of distributed-event writes issued concurrently across ALL callers (both
+    // createOrUpdate and updateAll funnel through createOrUpdateKey). Kept well below the Redis client waiting
+    // queue (RedisConnectionFactory#buildRedisOptions sets max-waiting-handlers=1024), leaving room for
+    // reads/state/scan commands, so a bulk sync never triggers "Redis waiting queue is full".
+    private static final int DISTRIBUTION_WRITE_MAX_CONCURRENCY = 512;
+
+    // A write failing because Redis is momentarily unreachable (restart / brief outage) is retried with an
+    // exponential backoff instead of being surfaced as a failed distribution: the event key is idempotent
+    // (HSET), so retrying is safe, and it lets a short Redis blip heal within the same sync cycle instead of
+    // leaving the event unsynced until the api changes or the node restarts. Bounded so a long outage still
+    // gives up and lets the sync window be replayed: 5 retries after the initial attempt at 200ms doubling
+    // (200/400/800/1600/3200ms) ≈ ~6s of backoff waiting. Note this is only the waiting between attempts:
+    // when an attempt hangs on a half-open connection it also spends up to WRITE_COMMAND_TIMEOUT_MS before
+    // failing, so the worst-case time a permit is held is dominated by the timeout, not this backoff — see
+    // WRITE_COMMAND_TIMEOUT_MS.
+    static final int WRITE_RETRY_MAX_ATTEMPTS = 5;
+    static final long WRITE_RETRY_INITIAL_BACKOFF_MS = 200;
+    // Safety ceiling for the exponential backoff. At the current settings the computed delay tops out at
+    // 3200ms, so this cap is not reached today; it only guards against a future change to the settings.
+    static final long WRITE_RETRY_MAX_BACKOFF_MS = 5_000;
+    // Per-attempt command timeout. Normal writes complete in milliseconds; this only fires for a command that
+    // never resolves (half-open connection), so a permit can never be held indefinitely — the timeout is
+    // retryable (see isRetryableWriteFailure) and bounds the hold.
+    // Caveat on the half-open case: a timeout does NOT invalidate the connection. notifyConnectionFailure
+    // skips TimeoutException by type, and .timeout() also emits on RxJava's computation scheduler (no Vert.x
+    // context) so the notification would bail even without that skip. The retries therefore re-hit the same
+    // stale connection, each timing out again, so the worst-case time a permit is held is ~66s
+    // (6 attempts × 10s + ~6s backoff), NOT ~6s. Still bounded, so the sync window is eventually replayed;
+    // making a timeout invalidate the connection (so the next attempt reconnects) is a possible follow-up.
+    static final long WRITE_COMMAND_TIMEOUT_MS = 10_000;
+>>>>>>> faaee94 (fix(redis): reconnect when Sentinel leaves a READONLY replica)
 
     private final RedisClient redisClient;
 

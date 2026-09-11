@@ -15,24 +15,37 @@
  */
 package io.gravitee.repository.redis.vertx;
 
+<<<<<<< HEAD
+=======
+import io.gravitee.node.vertx.client.redis.VertxRedisClientFactory;
+import io.gravitee.plugin.configurations.redis.RedisClientOptions;
+import io.gravitee.repository.exception.RedisOperationTimeoutException;
+>>>>>>> faaee94 (fix(redis): reconnect when Sentinel leaves a READONLY replica)
 import io.gravitee.repository.redis.ratelimit.RedisRateLimitRepository;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.redis.client.Redis;
 import io.vertx.redis.client.RedisAPI;
+<<<<<<< HEAD
 import io.vertx.redis.client.RedisOptions;
+=======
+import io.vertx.redis.client.Response;
+>>>>>>> faaee94 (fix(redis): reconnect when Sentinel leaves a READONLY replica)
 import java.io.InputStream;
 import java.net.SocketException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,6 +68,7 @@ public class RedisClient {
     private final Map<String, String> scripts;
     private final Map<String, String> scriptsSource = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Integer, LoopRedis> loops = new ConcurrentHashMap<>();
+    private final AtomicBoolean roleCheckSkippedLogged = new AtomicBoolean();
 
     public RedisClient(final Vertx vertx, final RedisOptions options, final Map<String, String> scripts) {
         this.vertx = vertx;
@@ -79,6 +93,11 @@ public class RedisClient {
         LoopRedis loop = resolveLoop();
         synchronized (loop.monitor) {
             if (loop.redisAPIFuture == null) {
+                // A failed ROLE/connect already scheduled backoff. Starting again at retry 0
+                // would reconnect as fast as callers arrive (rate-limit + dist-sync).
+                if (loop.reconnectPending.get()) {
+                    return Future.failedFuture("Redis reconnection is in progress");
+                }
                 startConnectLoop(loop, 0);
             }
             if (loop.redisAPIFuture == null) {
@@ -94,6 +113,11 @@ public class RedisClient {
      * fired yet, which was leaving {@code connected=true} and blocking automatic reconnection.
      */
     public void notifyConnectionFailure(final Throwable failure) {
+        // A command timeout is not a dead socket. Rate-limit uses RedisOperationTimeoutException;
+        // distributed sync uses Completable.timeout()'s TimeoutException.
+        if (isOperationTimeout(failure)) {
+            return;
+        }
         if (!isRecoverableConnectionFailure(failure)) {
             return;
         }
@@ -159,7 +183,10 @@ public class RedisClient {
                 conn.exceptionHandler(e -> handleConnectionLost(loop, connectionGeneration));
                 conn.endHandler(v -> handleConnectionLost(loop, connectionGeneration));
             })
-            .flatMap(redisConnection -> loadScripts(RedisAPI.api(redisConnection), loop))
+            .flatMap(redisConnection -> {
+                RedisAPI api = RedisAPI.api(redisConnection);
+                return requireWritableMaster(api).compose(writable -> loadScripts(writable, loop));
+            })
             .onSuccess(redisAPI -> {
                 if (connectionGeneration != loop.generation.get()) {
                     return;
@@ -173,7 +200,11 @@ public class RedisClient {
                 if (connectionGeneration != loop.generation.get()) {
                     return;
                 }
-                log.error("Unable to connect to Redis on event loop {}", currentLoopKey(), t);
+                if (isExpectedConnectFailure(t)) {
+                    log.warn("Unable to connect to Redis on event loop {}: {}", currentLoopKey(), t.getMessage());
+                } else {
+                    log.error("Unable to connect to Redis on event loop {}", currentLoopKey(), t);
+                }
                 scheduleReconnectAfterFailure(loop, retry);
             });
 
@@ -262,8 +293,12 @@ public class RedisClient {
             }
             final String message = current.getMessage();
             if (message != null) {
-                final String normalized = message.toLowerCase();
+                final String normalized = message.toLowerCase(Locale.ROOT).stripLeading();
+                // READONLY: TCP is healthy but the node is no longer writable (Sentinel demotion).
+                // Redis 7+ uses the READONLY code; Redis 6 wraps script writes as ERR ... -READONLY ...
                 if (
+                    normalized.startsWith("readonly") ||
+                    normalized.contains("-readonly ") ||
                     normalized.contains("connection is closed") ||
                     normalized.contains("connection lost") ||
                     normalized.contains("connection reset") ||
@@ -296,6 +331,104 @@ public class RedisClient {
                 throw new IllegalStateException("Unexpected error while reading lua script '" + scriptPath + "'", ex);
             }
         });
+    }
+
+    /**
+     * Sentinel can keep advertising a demoted node for tens of seconds. ROLE is only sent in
+     * Sentinel mode: the command is {@code @dangerous}, so a restricted ACL user would get
+     * {@code NOPERM} and never connect. Cluster has several writable masters; skip it there too.
+     * A successful non-{@code master} reply fails the connect so backoff can grow. If ROLE itself
+     * is unsupported (NOPERM, unknown command), skip the check rather than blocking connect forever.
+     * Other ROLE failures (closed connection mid-failover) fail the connect.
+     */
+    private Future<RedisAPI> requireWritableMaster(final RedisAPI redisAPI) {
+        return applySentinelRoleCheck(redisAPI, clientOptions.getSentinel() != null, this::logRoleCheckSkipped);
+    }
+
+    static Future<RedisAPI> applySentinelRoleCheck(
+        final RedisAPI redisAPI,
+        final boolean sentinelEnabled,
+        final Consumer<Throwable> onRoleCommandFailure
+    ) {
+        if (!sentinelEnabled) {
+            return Future.succeededFuture(redisAPI);
+        }
+        return redisAPI
+            .role()
+            .recover(t -> {
+                if (isRoleCommandUnsupported(t)) {
+                    onRoleCommandFailure.accept(t);
+                    return Future.succeededFuture((Response) null);
+                }
+                return Future.failedFuture(t);
+            })
+            .compose(response -> {
+                if (response == null) {
+                    return Future.succeededFuture(redisAPI);
+                }
+                final String role = roleName(response);
+                if (!"master".equalsIgnoreCase(role)) {
+                    return Future.failedFuture(
+                        new IllegalStateException("Redis node is not writable (ROLE=" + role + "); will retry with backoff")
+                    );
+                }
+                return Future.succeededFuture(redisAPI);
+            });
+    }
+
+    static boolean isExpectedConnectFailure(final Throwable failure) {
+        Throwable current = failure;
+        while (current != null) {
+            if (current instanceof IllegalStateException) {
+                final String message = current.getMessage();
+                if (message != null && message.contains("ROLE=")) {
+                    return true;
+                }
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
+    static boolean isRoleCommandUnsupported(final Throwable failure) {
+        Throwable current = failure;
+        while (current != null) {
+            final String message = current.getMessage();
+            if (message != null) {
+                final String normalized = message.toLowerCase(Locale.ROOT);
+                if (normalized.contains("noperm") || normalized.contains("unknown command")) {
+                    return true;
+                }
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
+    private static boolean isOperationTimeout(final Throwable failure) {
+        Throwable current = failure;
+        while (current != null) {
+            if (current instanceof RedisOperationTimeoutException || current instanceof TimeoutException) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
+    private void logRoleCheckSkipped(final Throwable failure) {
+        if (roleCheckSkippedLogged.compareAndSet(false, true)) {
+            log.warn("Skipping Redis ROLE check: {}", failure.getMessage());
+        } else {
+            log.debug("Skipping Redis ROLE check: {}", failure.getMessage());
+        }
+    }
+
+    private static String roleName(Response response) {
+        if (response == null || response.size() < 1 || response.get(0) == null) {
+            return "unknown";
+        }
+        return response.get(0).toString();
     }
 
     private Future<RedisAPI> loadScripts(final RedisAPI redisAPI, final LoopRedis loop) {
