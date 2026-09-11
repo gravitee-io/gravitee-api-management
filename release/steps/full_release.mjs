@@ -2,7 +2,7 @@
 
 import { checkToken } from '../helpers/circleci-helper.mjs';
 import { assertVersionMatchesPoms, computeVersion, DISTRIBUTION_POM, extractVersion, ROOT_POM } from '../helpers/version-helper.mjs';
-import { confirm, isDryRun, getTargetBranch } from '../helpers/option-helper.mjs';
+import { announceMode, confirm, isDryRun, getTargetBranch } from '../helpers/option-helper.mjs';
 
 await checkToken();
 
@@ -11,7 +11,10 @@ const versions = computeVersion(releasingVersion);
 const targetBranch = getTargetBranch(versions);
 await assertVersionMatchesPoms(releasingVersion, targetBranch, [ROOT_POM, DISTRIBUTION_POM]);
 
+const dryRun = isDryRun();
+
 console.log(chalk.green(`💪 Triggering Release Pipeline!\n`));
+announceMode(dryRun);
 
 await confirm(
   `📝 Ensure Release list is good for ${releasingVersion} in JIRA. Should we continue?`,
@@ -41,14 +44,19 @@ if (argv.branch && argv.branch !== versions.branch) {
 }
 
 console.log(chalk.blue(`Version: ${releasingVersion}`));
-console.log(chalk.blue(`Branch: ${targetBranch}\n`));
+console.log(chalk.blue(`Branch: ${targetBranch}`));
+console.log(chalk.blue(`Docker 'latest': ${isLatest}\n`));
+
+// The last gate before the POST. The questions above are checklist reminders; this one is the
+// moment the release becomes real, and until now nothing stood here at all.
+await confirm(`Trigger this release?`);
 
 const body = {
   branch: targetBranch,
   parameters: {
     gio_action: 'full_release',
     docker_tag_as_latest: isLatest,
-    dry_run: isDryRun(),
+    dry_run: dryRun,
     graviteeio_version: releasingVersion,
   },
 };
