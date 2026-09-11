@@ -26,6 +26,8 @@ import com.mongodb.client.vault.ClientEncryptions;
 import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
 import io.gravitee.repository.mongodb.common.MongoFactory;
 import io.gravitee.repository.mongodb.encryption.EncryptionEnabledCondition;
+import io.gravitee.repository.mongodb.management.converters.DictionaryPropertyWritingConverter;
+import io.gravitee.repository.mongodb.management.converters.LegacyDictionaryPropertyReadingConverter;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.config.MongoUpgraderConfiguration;
 import jakarta.inject.Inject;
 import java.util.Arrays;
@@ -54,6 +56,7 @@ import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.utility.DockerImageName;
@@ -88,6 +91,25 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
         final Resource yamlResource = new ClassPathResource("graviteeTest.yml");
         yaml.setResources(yamlResource);
         return yaml.getObject();
+    }
+
+    @Bean
+    public LegacyDictionaryPropertyReadingConverter legacyDictionaryPropertyReadingConverter() {
+        return new LegacyDictionaryPropertyReadingConverter();
+    }
+
+    @Bean
+    public DictionaryPropertyWritingConverter dictionaryPropertyWritingConverter() {
+        return new DictionaryPropertyWritingConverter();
+    }
+
+    @Override
+    protected void configureConverters(MongoCustomConversions.MongoConverterConfigurationAdapter adapter) {
+        super.configureConverters(adapter);
+        // Mirrors ManagementRepositoryConfiguration's own override — declaring a @Bean alone does not
+        // register a Converter with MongoCustomConversions, regardless of profile.
+        adapter.registerConverter(legacyDictionaryPropertyReadingConverter());
+        adapter.registerConverter(dictionaryPropertyWritingConverter());
     }
 
     @Bean(destroyMethod = "stop")

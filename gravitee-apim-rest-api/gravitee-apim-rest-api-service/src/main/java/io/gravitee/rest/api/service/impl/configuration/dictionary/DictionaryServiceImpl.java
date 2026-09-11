@@ -24,6 +24,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Dictionary;
+import io.gravitee.repository.management.model.DictionaryProperty;
 import io.gravitee.repository.management.model.DictionaryProvider;
 import io.gravitee.repository.management.model.DictionaryTrigger;
 import io.gravitee.repository.management.model.DictionaryType;
@@ -46,7 +47,9 @@ import io.gravitee.rest.api.service.impl.AbstractService;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -280,7 +283,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
                 .orElseThrow(() -> new DictionaryNotFoundException(updateDictionaryEntity.getName()));
 
-            Dictionary dictionary = convert(updateDictionaryEntity);
+            Dictionary dictionary = convert(updateDictionaryEntity, dictionaryToUpdate);
 
             dictionary.setId(id);
             dictionary.setKey(dictionaryToUpdate.getKey());
@@ -331,7 +334,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 log.warn("Update dictionary {} properties not applied: dictionary is {}", id, dictionary.getState());
                 return convert(dictionary);
             }
-            dictionary.setProperties(properties);
+            dictionary.setProperties(toTypedProperties(properties, dictionary.getProperties()));
             dictionary.setUpdatedAt(new Date());
             dictionary.setDeployedAt(dictionary.getUpdatedAt());
             Dictionary updatedDictionary = dictionaryRepository.update(dictionary);
@@ -446,7 +449,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             .updatedAt(dictionary.getUpdatedAt())
             .deployedAt(dictionary.getDeployedAt())
             .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.valueOf(dictionary.getType().name()))
-            .properties(dictionary.getProperties())
+            .properties(toFlatProperties(dictionary.getProperties()))
             .state(Lifecycle.State.valueOf(dictionary.getState().name()));
 
         if (dictionary.getType() == DictionaryType.DYNAMIC) {
@@ -480,12 +483,37 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         }
     }
 
-    private Dictionary convert(UpdateDictionaryEntity updateDictionaryEntity) {
+    private static Map<String, DictionaryProperty> toTypedProperties(
+        Map<String, String> incoming,
+        Map<String, DictionaryProperty> existing
+    ) {
+        if (incoming == null) {
+            return null;
+        }
+        Map<String, DictionaryProperty> result = new HashMap<>(incoming.size());
+        incoming.forEach((key, value) -> {
+            DictionaryProperty previous = existing == null ? null : existing.get(key);
+            boolean unchanged = previous != null && Objects.equals(previous.value(), value);
+            result.put(key, new DictionaryProperty(value, unchanged && previous.encrypted()));
+        });
+        return result;
+    }
+
+    private static Map<String, String> toFlatProperties(Map<String, DictionaryProperty> typed) {
+        if (typed == null) {
+            return null;
+        }
+        Map<String, String> result = new HashMap<>(typed.size());
+        typed.forEach((key, property) -> result.put(key, property.value()));
+        return result;
+    }
+
+    private Dictionary convert(UpdateDictionaryEntity updateDictionaryEntity, Dictionary existing) {
         Dictionary dictionary = new Dictionary();
 
         dictionary.setName(updateDictionaryEntity.getName());
         dictionary.setDescription(updateDictionaryEntity.getDescription());
-        dictionary.setProperties(updateDictionaryEntity.getProperties());
+        dictionary.setProperties(toTypedProperties(updateDictionaryEntity.getProperties(), existing.getProperties()));
 
         final io.gravitee.rest.api.model.configuration.dictionary.DictionaryType type = updateDictionaryEntity.getType();
         if (type != null) {
@@ -515,7 +543,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         }
 
         if (type == io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL) {
-            dictionary.setProperties(newDictionaryEntity.getProperties());
+            dictionary.setProperties(toTypedProperties(newDictionaryEntity.getProperties(), null));
         } else {
             dictionary.setProvider(convert(newDictionaryEntity.getProvider()));
             dictionary.setTrigger(convert(newDictionaryEntity.getTrigger()));
