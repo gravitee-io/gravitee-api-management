@@ -21,6 +21,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.rxjava3.core.Vertx;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -167,6 +168,88 @@ class EventBusAuthzEnginePortScopeTest {
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-a");
         port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of(), 1L).blockingAwait();
         assertThat(hits).isEmpty();
+    }
+
+    // The control plane deletes stock@us by narrowing each policy: UNPUBLISH for stock@us, then PUBLISH for
+    // stock@eu. A sync cycle reads events_latest, so it sees only one of the two events.
+
+    @Test
+    void unpublish_for_one_replica_keeps_the_document_the_other_replica_still_uses_on_the_shared_engine() {
+        // A sync cycle that runs between the two control-plane writes sees only the UNPUBLISH for stock@us.
+        EventBusAuthzEnginePort sharedPort = portHostingBothStockReplicas();
+        Set<String> engine = fakeEngineOn("service:authz-pdp:sync:scope:env-1:stock");
+        sharedPort
+            .addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("stock@eu", "stock@us"), 100L)
+            .andThen(sharedPort.commit())
+            .blockingAwait();
+
+        sharedPort.removePolicy("env-1", "p1", Set.of("stock@us")).andThen(sharedPort.commit()).blockingAwait();
+        assertThat(engine).containsExactly("p1");
+
+        sharedPort.removePolicy("env-1", "p1", Set.of("stock@eu")).andThen(sharedPort.commit()).blockingAwait();
+        assertThat(engine).isEmpty();
+    }
+
+    @Test
+    void narrowing_publish_keeps_the_document_on_the_shared_engine() {
+        // The usual sync cycle sees only the PUBLISH for stock@eu. The calls follow AuthzPolicyDeployer.deploy.
+        EventBusAuthzEnginePort sharedPort = portHostingBothStockReplicas();
+        Set<String> engine = fakeEngineOn("service:authz-pdp:sync:scope:env-1:stock");
+        sharedPort
+            .addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("stock@eu", "stock@us"), 100L)
+            .andThen(sharedPort.commit())
+            .blockingAwait();
+
+        sharedPort
+            .removePolicy("env-1", "p1", Set.of("stock@us"))
+            .andThen(sharedPort.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("stock@eu"), 300L))
+            .andThen(sharedPort.commit())
+            .blockingAwait();
+
+        assertThat(engine).containsExactly("p1");
+    }
+
+    @Test
+    void unpublish_for_every_replica_removes_the_document_from_the_shared_engine() {
+        EventBusAuthzEnginePort sharedPort = portHostingBothStockReplicas();
+        Set<String> engine = fakeEngineOn("service:authz-pdp:sync:scope:env-1:stock");
+        sharedPort
+            .addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("stock@eu", "stock@us"), 100L)
+            .andThen(sharedPort.commit())
+            .blockingAwait();
+
+        sharedPort.removePolicy("env-1", "p1", Set.of("stock@eu", "stock@us")).andThen(sharedPort.commit()).blockingAwait();
+
+        assertThat(engine).isEmpty();
+    }
+
+    private EventBusAuthzEnginePort portHostingBothStockReplicas() {
+        AuthzHostedScopes catchAll = new AuthzHostedScopes();
+        catchAll.markHosted("env-1", "stock@eu");
+        catchAll.markHosted("env-1", "stock@us");
+        return new EventBusAuthzEnginePort(vertx, catchAll, new AuthzAppliedRevisions());
+    }
+
+    /** A fake PDP engine: policy mutations stage, and a commit makes the staged documents the served set. */
+    private Set<String> fakeEngineOn(String address) {
+        Set<String> staged = ConcurrentHashMap.newKeySet();
+        Set<String> served = ConcurrentHashMap.newKeySet();
+        vertx
+            .eventBus()
+            .<JsonObject>consumer(address, msg -> {
+                JsonObject body = msg.body();
+                switch (body.getString("op")) {
+                    case "addOrUpdatePolicy" -> staged.add(body.getString("docId"));
+                    case "removePolicy" -> staged.remove(body.getString("docId"));
+                    case "commit" -> {
+                        served.clear();
+                        served.addAll(staged);
+                    }
+                    default -> {}
+                }
+                msg.reply(new JsonObject().put("commitGeneration", 1L));
+            });
+        return served;
     }
 
     @Test
