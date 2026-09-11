@@ -62,7 +62,13 @@
 
     <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
       <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
-        <span data-testid="subscription-form-empty">No subscription forms yet.</span>
+        <span data-testid="subscription-form-empty">
+          @if (searching()) {
+            No subscription form matches your search.
+          } @else {
+            No subscription forms yet.
+          }
+        </span>
       </td>
     </tr>
   </table>

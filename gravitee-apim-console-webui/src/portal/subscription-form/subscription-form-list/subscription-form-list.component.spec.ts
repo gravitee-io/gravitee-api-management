@@ -61,7 +61,20 @@ describe('SubscriptionFormListComponent', () => {
   it('should show an empty row when there is no form', async () => {
     await init([]);
 
-    expect(fixture.debugElement.query(By.css('[data-testid=subscription-form-empty]'))).toBeTruthy();
+    const empty = fixture.debugElement.query(By.css('[data-testid=subscription-form-empty]'));
+    expect(empty).toBeTruthy();
+    expect(empty.nativeElement.textContent.trim()).toBe('No subscription forms yet.');
+  });
+
+  it('should say that no form matches the search rather than that the catalog is empty', async () => {
+    await init([defaultForm, partnerForm]);
+
+    const wrapper = await harnessLoader.getHarness(GioTableWrapperHarness);
+    await wrapper.setSearchValue('zzz');
+
+    const empty = fixture.debugElement.query(By.css('[data-testid=subscription-form-empty]'));
+    expect(empty).toBeTruthy();
+    expect(empty.nativeElement.textContent.trim()).toBe('No subscription form matches your search.');
   });
 
   it('should emit the form to select on row click', async () => {
