@@ -1546,6 +1546,33 @@ paths:
                 $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
+    delete:
+      tags:
+        - Subscription Forms
+      summary: Delete a subscription form
+      description: |-
+        Remove a form from the catalog, with its definition and its API mappings. The environment
+        default form cannot be deleted: set another form as default first.
+
+        User must have the ENVIRONMENT_METADATA[DELETE] permission.
+      operationId: deleteSubscriptionForm
+      responses:
+        "204":
+          description: Subscription form deleted
+        "404":
+          description: No subscription form exists with this ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: The subscription form is the environment default
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          $ref: "#/components/responses/Error"
   /subscription-forms/{subscriptionFormId}/_enable:
     post:
       tags:

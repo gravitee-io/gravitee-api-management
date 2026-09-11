@@ -31,6 +31,7 @@ import io.gravitee.apim.infra.adapter.SubscriptionFormAdapter;
 import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionFormRepository;
+import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -48,6 +49,7 @@ import org.springframework.stereotype.Component;
  * @author Gravitee.io Team
  */
 @Component
+@CustomLog
 public class SubscriptionFormCrudServiceImpl implements SubscriptionFormCrudService {
 
     private static final SubscriptionFormAdapter subscriptionFormAdapter = SubscriptionFormAdapter.INSTANCE;
@@ -125,6 +127,30 @@ public class SubscriptionFormCrudServiceImpl implements SubscriptionFormCrudServ
                     subscriptionForm.getId().toString()
                 )
             );
+        }
+    }
+
+    @Override
+    public void delete(SubscriptionForm subscriptionForm) {
+        var id = subscriptionForm.getId().toString();
+        try {
+            subscriptionFormRepository.delete(id);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format("An error occurred while trying to delete a SubscriptionForm with id: %s", id),
+                e
+            );
+        }
+        var contentId = subscriptionForm.getPortalPageContentId();
+        if (contentId == null) {
+            return;
+        }
+        try {
+            pageContentCrudService.delete(contentId);
+        } catch (RuntimeException e) {
+            // The form is gone and nothing references the content any more: an orphan is harmless, failing the
+            // deletion for it would not be.
+            log.warn("Subscription form [{}] is deleted but its page content [{}] could not be and is left orphaned", id, contentId, e);
         }
     }
 
