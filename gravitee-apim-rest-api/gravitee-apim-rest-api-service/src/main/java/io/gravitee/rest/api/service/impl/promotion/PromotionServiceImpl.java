@@ -73,6 +73,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -261,17 +262,32 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
      * environment that starts it and by the Cockpit bridge that receives it, and when both share a database the
      * check can miss a row the other transaction has not committed yet, which surfaced as a raw primary key
      * violation. Treat the conflict as what it means - somebody else got there first - and update instead.
+     *
+     * The conflict is recognised from the exception alone. Reading the row back to confirm it exists repeats the
+     * very lookup that already missed it, and a read that is not guaranteed to see the row the other transaction
+     * just committed lets the violation escape again; the update is a write, so it always resolves against the
+     * committed row.
      */
     private Promotion createOrUpdateOnConflict(Promotion promotion) throws TechnicalException {
         try {
             return promotionRepository.create(promotion);
         } catch (Exception e) {
-            if (promotionRepository.findById(promotion.getId()).isEmpty()) {
+            if (!isDuplicateKey(e)) {
                 throw e;
             }
             log.debug("Promotion {} was created concurrently, updating it instead", promotion.getId());
             return promotionRepository.update(promotion);
         }
+    }
+
+    /** The JDBC repositories wrap the conflict into a TechnicalException, the Mongo one lets it escape as is. */
+    private static boolean isDuplicateKey(Throwable throwable) {
+        for (Throwable cause = throwable; cause != null; cause = cause.getCause()) {
+            if (cause instanceof DuplicateKeyException) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
