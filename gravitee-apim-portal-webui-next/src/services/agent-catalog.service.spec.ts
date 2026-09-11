@@ -160,4 +160,37 @@ describe('AgentCatalogService', () => {
       req.flush(mockResponse);
     });
   });
+
+  describe('getAgent', () => {
+    it('should call the portal agent endpoint', () => {
+      const mockAgent = {
+        id: 'agent-1',
+        kind: 'agent' as const,
+        sourceId: 'src-1',
+        sourceKind: 'manual',
+        environmentId: 'DEFAULT',
+        organizationId: 'DEFAULT',
+        creationDate: '2026-04-20T10:00:00Z',
+        updateDate: '2026-04-22T11:00:00Z',
+        definition: {
+          name: 'Test Agent',
+          url: 'https://agents.test/a2a',
+          version: '1.0.0',
+          capabilities: {},
+          skills: [],
+          defaultInputModes: [],
+          defaultOutputModes: [],
+        },
+      };
+
+      service.getAgent('agent-1').subscribe(result => {
+        expect(result.id).toBe('agent-1');
+        expect(result.definition.name).toBe('Test Agent');
+      });
+
+      const req = httpMock.expectOne(`${TESTING_BASE_URL}/agents/agent-1`);
+      expect(req.request.method).toBe('GET');
+      req.flush(mockAgent);
+    });
+  });
 });

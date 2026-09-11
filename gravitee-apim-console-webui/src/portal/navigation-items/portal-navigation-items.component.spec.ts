@@ -3555,15 +3555,30 @@ describe('PortalNavigationItemsComponent', () => {
       const dialog = await rootLoader.getHarness(SectionEntityPickerDialogHarness);
       await dialog.clickSubmitButton();
 
+      expectAimA2aProxyGet(agents[1].id, 'catalog-agent-2');
+      expectAimA2aProxyGet(agents[0].id, 'catalog-agent-1');
+
       expectCreateNavigationItemsInBulk(
-        [agents[1], agents[0]].map(agent => ({
-          title: agent.name,
-          type: 'AGENT',
-          area: 'TOP_NAVBAR',
-          parentId: folder.id,
-          visibility: 'PUBLIC',
-          apiId: agent.id,
-        })),
+        [
+          {
+            title: agents[1].name,
+            type: 'AGENT',
+            area: 'TOP_NAVBAR',
+            parentId: folder.id,
+            visibility: 'PUBLIC',
+            apiId: agents[1].id,
+            agentId: 'catalog-agent-2',
+          },
+          {
+            title: agents[0].name,
+            type: 'AGENT',
+            area: 'TOP_NAVBAR',
+            parentId: folder.id,
+            visibility: 'PUBLIC',
+            apiId: agents[0].id,
+            agentId: 'catalog-agent-1',
+          },
+        ],
         fakePortalNavigationItemsResponse({ items: [createdAgents[1], createdAgents[0]] }),
       );
 
@@ -3571,6 +3586,47 @@ describe('PortalNavigationItemsComponent', () => {
       await expectGetPageContent(createdAgents[0].termsAndConditionsPageContentId, '## Agent Usage Terms');
 
       expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdAgents[0].id } }));
+    });
+
+    it('should omit agentId when the AIM A2A proxy lookup fails', async () => {
+      const createdAgent = fakePortalNavigationAgent({
+        id: 'nav-agent-1',
+        apiId: agents[0].id,
+        title: agents[0].name,
+        parentId: folder.id,
+      });
+
+      component.onNodeMenuAction({
+        action: 'create',
+        itemType: 'AGENT',
+        node: { id: folder.id, label: folder.title, type: folder.type, data: folder },
+      });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expectAgentSearchResponse(agents);
+      const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="picker-checkbox-"]' }));
+      await checkboxes[0].check();
+      await (await rootLoader.getHarness(SectionEntityPickerDialogHarness)).clickSubmitButton();
+
+      expectAimA2aProxyGetError(agents[0].id);
+
+      expectCreateNavigationItemsInBulk(
+        [
+          {
+            title: agents[0].name,
+            type: 'AGENT',
+            area: 'TOP_NAVBAR',
+            parentId: folder.id,
+            visibility: 'PUBLIC',
+            apiId: agents[0].id,
+          },
+        ],
+        fakePortalNavigationItemsResponse({ items: [createdAgent] }),
+      );
+
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, createdAgent] }));
+      await expectGetPageContent(createdAgent.termsAndConditionsPageContentId, '## Agent Usage Terms');
     });
 
     it('should refresh the tree and show an actionable error after a partial bulk conflict', async () => {
@@ -3588,6 +3644,8 @@ describe('PortalNavigationItemsComponent', () => {
       const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="picker-checkbox-"]' }));
       await checkboxes[0].check();
       await (await rootLoader.getHarness(SectionEntityPickerDialogHarness)).clickSubmitButton();
+
+      expectAimA2aProxyGet(agents[0].id, 'catalog-agent-1');
 
       const request = httpTestingController.expectOne({
         method: 'POST',
@@ -3777,6 +3835,22 @@ describe('PortalNavigationItemsComponent', () => {
     expect(req.request.body).toEqual({ query: '', apiTypes: ['V4_A2A_PROXY'] });
     req.flush({ data: agents, pagination: { totalCount: agents.length } });
     fixture.detectChanges();
+  }
+
+  function expectAimA2aProxyGet(apiId: string, agentId: string | null) {
+    const req = httpTestingController.expectOne({
+      method: 'GET',
+      url: `https://url.test:3000/gamma/organizations/organization-id/environments/DEFAULT/modules/aim/a2a-proxies/${apiId}`,
+    });
+    req.flush({ agentId });
+  }
+
+  function expectAimA2aProxyGetError(apiId: string) {
+    const req = httpTestingController.expectOne({
+      method: 'GET',
+      url: `https://url.test:3000/gamma/organizations/organization-id/environments/DEFAULT/modules/aim/a2a-proxies/${apiId}`,
+    });
+    req.flush('Not found', { status: 404, statusText: 'Not Found' });
   }
 
   function expectLinkedApiSearchResponse(apiId: string, apiName = apiId) {

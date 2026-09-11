@@ -88,9 +88,9 @@
     }
 
     <!-- I/O Modes -->
-    @if (hasIoModes()) {
-      <section class="agent-detail__section">
-        <h2 class="next-gen-h5 agent-detail__section-title" i18n="@@agentDetailIoModes">Input / Output</h2>
+    <section class="agent-detail__section">
+      <h2 class="next-gen-h5 agent-detail__section-title" i18n="@@agentDetailIoModes">Input / Output</h2>
+      @if (hasIoModes()) {
         <dl class="agent-detail__definition-list">
           @if (hasInputModes()) {
             <div class="agent-detail__definition-row">
@@ -117,16 +117,21 @@
             </div>
           }
         </dl>
-      </section>
-    }
+      } @else {
+        <div class="agent-detail__empty" role="status">
+          <mat-icon aria-hidden="true">swap_horiz</mat-icon>
+          <p class="next-gen-body" i18n="@@agentDetailIoModesEmpty">This agent has not declared default input or output modes.</p>
+        </div>
+      }
+    </section>
 
     <!-- Skills -->
-    @if (skills().length > 0) {
-      <section class="agent-detail__section">
-        <h2 class="next-gen-h5 agent-detail__section-title">
-          <span i18n="@@agentDetailSkills">Skills</span>
-          <span class="agent-detail__section-count">({{ skills().length }})</span>
-        </h2>
+    <section class="agent-detail__section">
+      <h2 class="next-gen-h5 agent-detail__section-title">
+        <span i18n="@@agentDetailSkills">Skills</span>
+        <span class="agent-detail__section-count">({{ skills().length }})</span>
+      </h2>
+      @if (skills().length > 0) {
         <div class="agent-detail__skills-grid">
           @for (skill of skills(); track skill.id) {
             <div class="agent-detail__skill-card">
@@ -166,8 +171,13 @@
             </div>
           }
         </div>
-      </section>
-    }
+      } @else {
+        <div class="agent-detail__empty" role="status">
+          <mat-icon aria-hidden="true">extension</mat-icon>
+          <p class="next-gen-body" i18n="@@agentDetailSkillsEmpty">This agent has not published any skills.</p>
+        </div>
+      }
+    </section>
 
     <!-- Metadata -->
     @if (metadataEntries().length > 0) {

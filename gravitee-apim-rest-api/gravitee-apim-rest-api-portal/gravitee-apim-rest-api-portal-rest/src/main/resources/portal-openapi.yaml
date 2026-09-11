@@ -25,6 +25,8 @@ tags:
       description: All about APIs
     - name: Api Product
       description: All about API Products
+    - name: Agent
+      description: All about agents
     - name: Application
       description: All about applications
     - name: Group
@@ -296,6 +298,35 @@ paths:
                                 $ref: "#/components/schemas/ApiProductPlansResponse"
                 404:
                     $ref: "#/components/responses/ApiProductNotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /agents/{agentId}:
+        parameters:
+            - $ref: "#/components/parameters/agentIdParam"
+        get:
+            tags:
+                - Agent
+            summary: Get agent card details
+            description: |
+                Get the catalog agent card for an agent exposed in the Developer Portal.
+
+                The agent must be referenced by an accessible, published Portal navigation item,
+                otherwise a 404 is returned. Public agents are visible to anonymous users;
+                private agents require authentication.
+            operationId: getAgentByAgentId
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    description: Agent card
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AgentCard"
+                404:
+                    $ref: "#/components/responses/AgentNotFoundError"
                 500:
                     $ref: "#/components/responses/InternalServerError"
     /apis/{apiId}/informations:
@@ -4187,6 +4218,13 @@ components:
             schema:
                 type: string
                 format: uuid
+        agentIdParam:
+            name: agentId
+            in: path
+            required: true
+            description: Unique identifier of an agent in the Gamma catalog.
+            schema:
+                type: string
         applicationIdParam:
             name: applicationId
             in: path
@@ -5421,6 +5459,148 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/Plan"
+
+        AgentCard:
+            type: object
+            description: Consumer-safe catalog card of an agent exposed in the Developer Portal.
+            required:
+                - id
+                - kind
+                - sourceId
+                - environmentId
+                - organizationId
+                - creationDate
+                - updateDate
+                - definition
+            properties:
+                id:
+                    type: string
+                    description: Unique identifier of the agent in the Gamma catalog.
+                kind:
+                    type: string
+                    description: Catalog kind of the item.
+                    enum:
+                        - agent
+                entityId:
+                    type: string
+                    description: Qualified catalog entity id (`agent.{slug}`).
+                slug:
+                    type: string
+                    description: Catalog slug of the agent.
+                sourceId:
+                    type: string
+                    description: Identifier of the catalog source the agent was imported from.
+                sourceKind:
+                    type: string
+                    description: Kind of the catalog source.
+                environmentId:
+                    type: string
+                    description: Environment the agent belongs to.
+                organizationId:
+                    type: string
+                    description: Organization the agent belongs to.
+                creationDate:
+                    type: string
+                    format: date-time
+                    description: When the agent was created in the catalog.
+                updateDate:
+                    type: string
+                    format: date-time
+                    description: When the agent was last updated in the catalog.
+                metadata:
+                    type: object
+                    additionalProperties:
+                        type: string
+                    description: Agent metadata as key-value pairs.
+                definition:
+                    $ref: "#/components/schemas/AgentCardDefinition"
+
+        AgentCardDefinition:
+            type: object
+            description: A2A agent-card definition shown on the portal agent page.
+            required:
+                - name
+            properties:
+                name:
+                    type: string
+                    description: Display name of the agent.
+                description:
+                    type: string
+                    description: Description of the agent.
+                url:
+                    type: string
+                    description: A2A endpoint URL of the agent.
+                provider:
+                    $ref: "#/components/schemas/AgentCardProvider"
+                version:
+                    type: string
+                    description: Version of the agent card.
+                documentationUrl:
+                    type: string
+                    description: Documentation URL of the agent.
+                capabilities:
+                    $ref: "#/components/schemas/AgentCardCapabilities"
+                defaultInputModes:
+                    type: array
+                    items:
+                        type: string
+                defaultOutputModes:
+                    type: array
+                    items:
+                        type: string
+                skills:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AgentCardSkill"
+
+        AgentCardProvider:
+            type: object
+            required:
+                - organization
+            properties:
+                organization:
+                    type: string
+                url:
+                    type: string
+
+        AgentCardCapabilities:
+            type: object
+            properties:
+                streaming:
+                    type: boolean
+                pushNotifications:
+                    type: boolean
+                stateTransitionHistory:
+                    type: boolean
+
+        AgentCardSkill:
+            type: object
+            required:
+                - id
+                - name
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                tags:
+                    type: array
+                    items:
+                        type: string
+                examples:
+                    type: array
+                    items:
+                        type: string
+                inputModes:
+                    type: array
+                    items:
+                        type: string
+                outputModes:
+                    type: array
+                    items:
+                        type: string
 
         PortalApiProductDetails:
             type: object
@@ -8891,6 +9071,12 @@ components:
                         $ref: "#/components/schemas/ErrorResponse"
         ApiProductNotFoundError:
             description: API Product not found
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/ErrorResponse"
+        AgentNotFoundError:
+            description: Agent not found
             content:
                 application/json:
                     schema:
