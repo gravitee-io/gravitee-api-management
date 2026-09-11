@@ -15,8 +15,29 @@ export async function confirm(prompt, refusal = '🚦 Nothing was triggered.') {
   }
 }
 
+const DRY_RUN = 'dry-run';
+
+/** Same flag to a hurried hand, a different key to minimist. */
+const looksLikeDryRun = (flag) => ['dryrun', 'dry'].includes(flag.toLowerCase().replace(/[-_]/g, ''));
+
+/**
+ * Whether this run is a rehearsal.
+ *
+ * The default is a real release, deliberately: a release that quietly publishes nothing is as bad a
+ * trap as one that publishes by surprise. What is closed here is the typo — a misspelled flag lands
+ * under its own key, leaving this to answer `false`, which is the answer that publishes. Refused
+ * rather than ignored, so a slip cannot look like a deliberate omission.
+ * @returns {boolean}
+ */
 export function isDryRun() {
-  return !!argv['dry-run'];
+  const misspelled = Object.keys(argv).filter((flag) => flag !== DRY_RUN && looksLikeDryRun(flag));
+  if (misspelled.length > 0) {
+    console.log(chalk.red(`Unknown option --${misspelled[0]}.`));
+    console.log(`Did you mean --${DRY_RUN}? Refusing rather than reading it as a real release.`);
+    process.exit(1);
+  }
+
+  return !!argv[DRY_RUN];
 }
 
 const HOTFIX_QUALIFIER = /-hotfix\.\d+$/;
