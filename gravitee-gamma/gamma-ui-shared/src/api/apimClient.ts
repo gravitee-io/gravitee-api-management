@@ -79,7 +79,12 @@ export class ApimApiError extends Error {
     }
 }
 
-async function doFetch<T>(url: string, path: string, init?: RequestInit): Promise<T> {
+export type ApimJsonResponse<T> = {
+    data: T;
+    etag: string | null;
+};
+
+async function doFetchWithMeta<T>(url: string, path: string, init?: RequestInit): Promise<ApimJsonResponse<T>> {
     const headers = new Headers(init?.headers);
     headers.set('X-Requested-With', 'XMLHttpRequest');
     const csrf = getCsrfToken();
@@ -103,9 +108,15 @@ async function doFetch<T>(url: string, path: string, init?: RequestInit): Promis
         const message = (parsed as Record<string, string> | undefined)?.message ?? text ?? `${path} → ${res.status}`;
         throw new ApimApiError(res.status, message, parsed);
     }
-    if (res.status === 204) return undefined as T;
+
+    const etag = res.headers.get('ETag');
+    if (res.status === 204) return { data: undefined as T, etag };
     const text = await res.text();
-    return text ? (JSON.parse(text) as T) : (undefined as T);
+    return { data: text ? (JSON.parse(text) as T) : (undefined as T), etag };
+}
+
+async function doFetch<T>(url: string, path: string, init?: RequestInit): Promise<T> {
+    return (await doFetchWithMeta<T>(url, path, init)).data;
 }
 
 async function doFetchBlob(url: string, path: string, init?: RequestInit): Promise<Blob> {
@@ -148,6 +159,12 @@ export async function apimFetchJsonV2Org<T>(path: string, init?: RequestInit): P
 export async function apimFetchJsonV2<T>(environmentId: string, path: string, init?: RequestInit): Promise<T> {
     const { managementBaseURL } = await resolveBootstrap();
     return doFetch<T>(`${managementBaseURL}/v2/environments/${environmentId}${path}`, path, init);
+}
+
+/** Like {@link apimFetchJsonV2}, but also returns the response `ETag` for conditional writes. */
+export async function apimFetchJsonV2WithMeta<T>(environmentId: string, path: string, init?: RequestInit): Promise<ApimJsonResponse<T>> {
+    const { managementBaseURL } = await resolveBootstrap();
+    return doFetchWithMeta<T>(`${managementBaseURL}/v2/environments/${environmentId}${path}`, path, init);
 }
 
 /** v2 env-scoped binary response (e.g. API export). */

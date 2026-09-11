@@ -13,19 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { FeatureUnavailableNotice } from './FeatureUnavailableNotice';
 
-export * from './alert';
-export * from './analytics';
-export * from './api';
-export * from './apiCreation';
-export * from './apiImport';
-export * from './auditLogs.types';
-export * from './broadcast';
-export * from './healthCheck';
-export * from './members.types';
-export * from './metadata';
-export * from './notification';
-export * from './plan';
-export * from './resource';
-export * from './responseTemplate';
-export * from './subscription';
+export function TcpProxyUnavailableNotice({ feature }: Readonly<{ feature: string }>) {
+    return (
+        <FeatureUnavailableNotice
+            heading={`${feature} are not available for TCP Proxy APIs`}
+            detail="TCP Proxy APIs forward raw traffic and do not support HTTP response template overrides."
+        />
+    );
+}

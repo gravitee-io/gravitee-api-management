@@ -237,6 +237,17 @@ export function newHeaderRow(): HeaderEntry {
     return { _id: Math.random().toString(36).slice(2, 10), name: '', value: '' };
 }
 
+export function headersFromRecord(headers: Record<string, string> | undefined): HeaderEntry[] {
+    if (!headers || Object.keys(headers).length === 0) return [];
+    return Object.entries(headers).map(([name, value]) => ({ _id: Math.random().toString(36).slice(2, 10), name, value }));
+}
+
+export function headersToRecord(headers: HeaderEntry[]): Record<string, string> | undefined {
+    const entries = headers.filter(h => h.name.trim()).map(h => [h.name.trim(), h.value] as const);
+    if (entries.length === 0) return undefined;
+    return Object.fromEntries(entries);
+}
+
 /** Validate group name — classic console: required, no colons (Validators.pattern /^[^:]*$/). */
 export function validateGroupName(name: string): string | null {
     if (!name.trim()) return 'Name is required.';

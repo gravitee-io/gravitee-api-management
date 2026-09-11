@@ -22,6 +22,7 @@ import {
     ApiDetailSidebarNav,
     withApiScoreEnabled,
     withMetadataPermission,
+    withResponseTemplatesPermission,
     withTcpRestrictions,
 } from './ApiDetailSidebarNav';
 
@@ -116,17 +117,22 @@ describe('ApiDetailSidebarNav — flat links', () => {
         expect(screen.getByRole('link', { name: /^api score$/i })).toHaveAttribute('href', `${BASE}/api-score`);
     });
 
-    it('renders "coming soon" items (Response Templates, Authorization) as disabled, non-navigable rows', () => {
+    it('renders "coming soon" items (Authorization) as disabled, non-navigable rows', () => {
         renderNav(`${BASE}/overview`);
-        for (const label of ['Response Templates', 'Authorization']) {
+        for (const label of ['Authorization']) {
             expect(screen.getByText(label)).toBeInTheDocument();
             expect(screen.queryByRole('link', { name: new RegExp(`^${label}$`, 'i') })).not.toBeInTheDocument();
         }
     });
 
+    it('renders the Response Templates link with the correct href', () => {
+        renderNav(`${BASE}/overview`);
+        expect(screen.getByRole('link', { name: /^response templates$/i })).toHaveAttribute('href', `${BASE}/response-templates`);
+    });
+
     it('makes "coming soon" rows reachable by keyboard, with their reason exposed for assistive tech', () => {
         renderNav(`${BASE}/overview`);
-        const row = screen.getByText('Response Templates').closest('[tabindex]');
+        const row = screen.getByText('Authorization').closest('[tabindex]');
         expect(row).not.toBeNull();
         expect(row).toHaveAttribute('tabindex', '0');
         expect(row).toHaveAttribute('aria-disabled', 'true');
@@ -141,15 +147,18 @@ describe('withTcpRestrictions', () => {
         expect(withTcpRestrictions(GROUPS, false)).toBe(GROUPS);
     });
 
-    it('marks Policy Studio and CORS as comingSoon when the API has TCP listeners', () => {
+    it('marks Policy Studio, CORS, and Response Templates as comingSoon when the API has TCP listeners', () => {
         const restricted = withTcpRestrictions(GROUPS, true);
         const policyStudio = restricted.find(g => g.label === 'Design')!.items.find(i => i.path === 'policy-studio')!;
         const cors = restricted.find(g => g.label === 'General')!.items.find(i => i.path === 'cors')!;
+        const responseTemplates = restricted.find(g => g.label === 'General')!.items.find(i => i.path === 'response-templates')!;
 
         expect(policyStudio.comingSoon).toBe(true);
         expect(policyStudio.comingSoonReason).toBe('Coming soon for V4 APIs');
         expect(cors.comingSoon).toBe(true);
         expect(cors.comingSoonReason).toBe('Coming soon for V4 APIs');
+        expect(responseTemplates.comingSoon).toBe(true);
+        expect(responseTemplates.comingSoonReason).toBe('Coming soon for V4 APIs');
     });
 
     it('does not affect unrelated items', () => {
@@ -179,6 +188,19 @@ describe('withMetadataPermission', () => {
         const restricted = withMetadataPermission(GROUPS, false);
         const general = restricted.find(g => g.label === 'General')!;
         expect(general.items.find(item => item.path === 'metadata')).toBeUndefined();
+        expect(general.items.find(item => item.path === 'cors')).toBeDefined();
+    });
+});
+
+describe('withResponseTemplatesPermission', () => {
+    it('returns the groups unchanged when the user can read response templates', () => {
+        expect(withResponseTemplatesPermission(GROUPS, true)).toBe(GROUPS);
+    });
+
+    it('omits Response Templates from the General group when the user lacks api-response_templates-r', () => {
+        const restricted = withResponseTemplatesPermission(GROUPS, false);
+        const general = restricted.find(g => g.label === 'General')!;
+        expect(general.items.find(item => item.path === 'response-templates')).toBeUndefined();
         expect(general.items.find(item => item.path === 'cors')).toBeDefined();
     });
 });

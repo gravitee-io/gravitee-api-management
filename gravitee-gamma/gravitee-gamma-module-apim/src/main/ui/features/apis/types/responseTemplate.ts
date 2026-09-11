@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-export * from './alert';
-export * from './analytics';
-export * from './api';
-export * from './apiCreation';
-export * from './apiImport';
-export * from './auditLogs.types';
-export * from './broadcast';
-export * from './healthCheck';
-export * from './members.types';
-export * from './metadata';
-export * from './notification';
-export * from './plan';
-export * from './resource';
-export * from './responseTemplate';
-export * from './subscription';
+export interface ResponseTemplate {
+    statusCode?: number;
+    headers?: Record<string, string>;
+    body?: string;
+    propagateErrorKeyToLogs?: boolean;
+}
+
+export type ResponseTemplatesMap = Record<string, Record<string, ResponseTemplate>>;
+
+export interface ResponseTemplateRow {
+    id: string;
+    key: string;
+    contentType: string;
+    statusCode?: number;
+    headers?: Record<string, string>;
+    body?: string;
+    propagateErrorKeyToLogs?: boolean;
+}
