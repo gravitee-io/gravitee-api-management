@@ -18,8 +18,11 @@ package io.gravitee.apim.infra.crud_service.subscription_form;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -285,17 +288,39 @@ class SubscriptionFormCrudServiceImplTest {
         }
 
         @Test
-        void should_keep_the_existing_page_content_and_throw_when_the_row_cannot_be_updated() throws TechnicalException {
+        void should_restore_the_previous_definition_and_throw_when_the_row_cannot_be_updated() throws TechnicalException {
+            var existingContent = aPageContent(SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID);
             when(pageContentQueryService.findById(SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID)).thenReturn(
-                Optional.of(aPageContent(SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID))
+                Optional.of(existingContent)
             );
             when(repository.update(any())).thenThrow(TechnicalException.class);
-            var subscriptionForm = SubscriptionFormFixtures.aSubscriptionForm();
+            var subscriptionForm = SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                .gmdContent(GraviteeMarkdown.of("<gmd-input name=\"updated\" fieldKey=\"updated\"/>"))
+                .build();
 
             assertThatThrownBy(() -> service.update(subscriptionForm))
                 .isInstanceOf(TechnicalDomainException.class)
                 .hasMessage("An error occurred while trying to update a SubscriptionForm with id: " + SubscriptionFormFixtures.FORM_ID);
+
+            verify(pageContentCrudService, times(2)).update(existingContent);
+            assertThat(existingContent.getContent()).isEqualTo(GraviteeMarkdown.of(SubscriptionFormFixtures.GMD_CONTENT));
             verify(pageContentCrudService, never()).delete(any());
+        }
+
+        @Test
+        void should_report_a_failed_restore_as_suppressed_and_still_throw_the_row_failure() throws TechnicalException {
+            var existingContent = aPageContent(SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID);
+            when(pageContentQueryService.findById(SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID)).thenReturn(
+                Optional.of(existingContent)
+            );
+            when(repository.update(any())).thenThrow(new TechnicalException("Database error"));
+            doReturn(existingContent).doThrow(new IllegalStateException("restore failed")).when(pageContentCrudService).update(any());
+
+            assertThatThrownBy(() -> service.update(SubscriptionFormFixtures.aSubscriptionForm()))
+                .isInstanceOf(TechnicalDomainException.class)
+                .satisfies(e ->
+                    assertThat(e.getCause().getSuppressed()).extracting(Throwable::getMessage).containsExactly("restore failed")
+                );
         }
     }
 
