@@ -16,9 +16,8 @@
 import angular from 'angular';
 import { AfterViewInit, Component, ElementRef, Input, OnChanges, ViewChild } from '@angular/core';
 import SwaggerUI, { SwaggerUIPlugin } from 'swagger-ui';
-import * as yaml from 'js-yaml';
 
-const yamlSchema = yaml.DEFAULT_SCHEMA.extend([]);
+import { loadYaml } from '../../../util/yaml';
 
 const OAS_SCHEMA_TYPES = new Set(['null', 'boolean', 'object', 'array', 'number', 'string', 'integer']);
 const OAS_TYPE_PRIORITY = ['string', 'number', 'integer', 'boolean', 'array', 'object'];
@@ -53,7 +52,7 @@ const loadContent = (spec: string): Record<string, unknown> => {
     try {
       contentAsJson = normalizeTypeArrays(angular.fromJson(spec)) as Record<string, unknown>;
     } catch (e) {
-      contentAsJson = normalizeTypeArrays(yaml.load(spec, { schema: yamlSchema })) as Record<string, unknown>;
+      contentAsJson = normalizeTypeArrays(loadYaml(spec)) as Record<string, unknown>;
     }
   }
   return contentAsJson;

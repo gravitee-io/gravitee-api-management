@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 import angular, { IController } from 'angular';
-import * as yaml from 'js-yaml';
 import { isNaN } from 'lodash';
 import SwaggerUI from 'swagger-ui';
 
 import UserService from '../../../services/user.service';
-
-const yamlSchema = yaml.DEFAULT_SCHEMA.extend([]);
+import { loadYaml } from '../../../util/yaml';
 
 const OAS_SCHEMA_TYPES = new Set(['null', 'boolean', 'object', 'array', 'number', 'string', 'integer']);
 const OAS_TYPE_PRIORITY = ['string', 'number', 'integer', 'boolean', 'array', 'object'];
@@ -95,7 +93,7 @@ class PageSwaggerComponentController implements IController {
     try {
       contentAsJson = normalizeTypeArrays(angular.fromJson(this.pageContent));
     } catch (e) {
-      contentAsJson = normalizeTypeArrays(yaml.load(this.pageContent, { schema: yamlSchema }));
+      contentAsJson = normalizeTypeArrays(loadYaml(this.pageContent));
     }
     return contentAsJson;
   }

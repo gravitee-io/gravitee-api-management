@@ -12984,13 +12984,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/js-yaml@npm:4.0.9":
-  version: 4.0.9
-  resolution: "@types/js-yaml@npm:4.0.9"
-  checksum: 10c0/24de857aa8d61526bbfbbaa383aa538283ad17363fcd5bb5148e2c7f604547db36646440e739d78241ed008702a8920665d1add5618687b6743858fae00da211
-  languageName: node
-  linkType: hard
-
 "@types/jsdom@npm:^20.0.0":
   version: 20.0.1
   resolution: "@types/jsdom@npm:20.0.1"
@@ -21005,7 +20998,6 @@ __metadata:
     "@types/diff": "npm:5.2.3"
     "@types/jest": "npm:29.5.14"
     "@types/jquery": "npm:3.5.34"
-    "@types/js-yaml": "npm:4.0.9"
     "@types/lodash": "npm:4.17.25"
     "@types/node": "npm:24.13.4"
     "@types/react": "npm:19.3.0"
@@ -21073,7 +21065,7 @@ __metadata:
     jest-junit: "npm:16.0.0"
     jest-preset-angular: "npm:14.6.2"
     jquery: "npm:3.7.1"
-    js-yaml: "npm:4.3.2"
+    js-yaml: "npm:5.4.1"
     jwt-decode: "npm:4.0.0"
     license-check-and-add: "npm:4.0.5"
     lodash: "npm:4.18.1"
@@ -23767,14 +23759,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-yaml@npm:4.3.2":
-  version: 4.3.2
-  resolution: "js-yaml@npm:4.3.2"
+"js-yaml@npm:5.4.1":
+  version: 5.4.1
+  resolution: "js-yaml@npm:5.4.1"
   dependencies:
     argparse: "npm:^2.0.1"
   bin:
-    js-yaml: bin/js-yaml.js
-  checksum: 10c0/dedd34c2e8fef1d504687f1bc94ed0ee1311a1f78770fa2800352c6d59c635ccf555009d74e9afe529ae62199da2b1ccef30e53dc84dcd8d2d8187c22574bc97
+    js-yaml: bin/js-yaml.mjs
+  checksum: 10c0/efe9dfaf222809694d375ad5ecca825561d2432eb55bc0f628911c0dfa4dbce98a71dcbc3252f630208bbdf5f4e9ac363847e4a7f49845b577ae2548b8fcf147
   languageName: node
   linkType: hard
 
