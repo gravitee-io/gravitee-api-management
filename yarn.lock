@@ -13078,12 +13078,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:20.17.30":
-  version: 20.17.30
-  resolution: "@types/node@npm:20.17.30"
+"@types/node@npm:24.13.4":
+  version: 24.13.4
+  resolution: "@types/node@npm:24.13.4"
   dependencies:
-    undici-types: "npm:~6.19.2"
-  checksum: 10c0/649782c7822367d751472d70c948bcc50cded1a4744610f706f81cd54e1fc015523567d7e3e17f6b19e3e2797f6f23b653e898bdb4a2f21f8759ceba49976310
+    undici-types: "npm:~7.18.0"
+  checksum: 10c0/a12196e984cb09ead549651217b4b395961ea011f3a3791a9f78311d70b5f3be343c6fc935376553c06a34c14d963d4f637ad7829837b0c88cf441919f422893
   languageName: node
   linkType: hard
 
@@ -13251,10 +13251,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/swagger-ui@npm:3.52.4":
-  version: 3.52.4
-  resolution: "@types/swagger-ui@npm:3.52.4"
-  checksum: 10c0/d156d1126f5d395c45b4bdcef1308d0d0612001c350d04e77063472eb05ee63d7a1036e486988fc2b7a7b1a4a8a187678056e5e5b54fe717e86c689643a31687
+"@types/swagger-ui@npm:5.32.0":
+  version: 5.32.0
+  resolution: "@types/swagger-ui@npm:5.32.0"
+  checksum: 10c0/3d25ba87dfa6acb6323e6d487a42119951c363ecc8fedfa989510ddd973d156f906cab26a02eaf6dd99c08ec3205e2ff5b18c98baedf0ef27642174bd47b70e3
   languageName: node
   linkType: hard
 
@@ -21007,10 +21007,10 @@ __metadata:
     "@types/jquery": "npm:3.5.34"
     "@types/js-yaml": "npm:4.0.9"
     "@types/lodash": "npm:4.17.25"
-    "@types/node": "npm:20.17.30"
+    "@types/node": "npm:24.13.4"
     "@types/react": "npm:19.3.0"
     "@types/react-dom": "npm:19.3.0"
-    "@types/swagger-ui": "npm:3.52.4"
+    "@types/swagger-ui": "npm:5.32.0"
     "@typescript-eslint/eslint-plugin": "npm:7.18.0"
     "@typescript-eslint/parser": "npm:7.18.0"
     "@typescript-eslint/utils": "npm:8.61.1"
@@ -33373,10 +33373,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici-types@npm:~6.19.2":
-  version: 6.19.8
-  resolution: "undici-types@npm:6.19.8"
-  checksum: 10c0/078afa5990fba110f6824823ace86073b4638f1d5112ee26e790155f481f2a868cc3e0615505b6f4282bdf74a3d8caad715fd809e870c2bb0704e3ea6082f344
+"undici-types@npm:~7.18.0":
+  version: 7.18.2
+  resolution: "undici-types@npm:7.18.2"
+  checksum: 10c0/85a79189113a238959d7a647368e4f7c5559c3a404ebdb8fc4488145ce9426fcd82252a844a302798dfc0e37e6fb178ff481ed03bc4caf634c5757d9ef43521d
   languageName: node
   linkType: hard
 
