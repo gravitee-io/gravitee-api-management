@@ -2,7 +2,7 @@
 
 import { checkToken } from '../helpers/circleci-helper.mjs';
 import { assertVersionMatchesPoms, computeVersion, DISTRIBUTION_POM, extractVersion, ROOT_POM } from '../helpers/version-helper.mjs';
-import { isDryRun, getTargetBranch } from '../helpers/option-helper.mjs';
+import { confirm, isDryRun, getTargetBranch } from '../helpers/option-helper.mjs';
 
 await checkToken();
 
@@ -13,27 +13,15 @@ await assertVersionMatchesPoms(releasingVersion, targetBranch, [ROOT_POM, DISTRI
 
 console.log(chalk.green(`💪 Triggering Release Pipeline!\n`));
 
-const isReadyToRelease = await question(
-  chalk.blue(`📝 Ensure Release list is good for ${releasingVersion} in JIRA. Should we continue? (y/n)\n`),
+await confirm(
+  `📝 Ensure Release list is good for ${releasingVersion} in JIRA. Should we continue?`,
+  `🚦 Release process interrupted. Verify JIRA release for ${releasingVersion} and try again!`,
 );
-if (isReadyToRelease === 'n') {
-  try {
-    await $`exit 1`;
-  } catch (p) {
-    console.log(chalk.yellow(`🚦 Release process interrupted. Verify JIRA release for ${releasingVersion} and try again!`));
-  }
-}
 
-const hasRemovedAlpha = await question(
-  chalk.blue(`📝 Ensure you have removed all alpha versions if needed (Helm Chart, pom.xml). Should we continue? (y/n)\n`),
+await confirm(
+  `📝 Ensure you have removed all alpha versions if needed (Helm Chart, pom.xml). Should we continue?`,
+  `🚦 Release process interrupted. Remove alpha versions and try again!`,
 );
-if (hasRemovedAlpha === 'n') {
-  try {
-    await $`exit 1`;
-  } catch (p) {
-    console.log(chalk.yellow(`🚦 Release process interrupted. Remove alpha versions and try again!`));
-  }
-}
 
 let isLatest = false;
 if (argv.latest) {
@@ -46,15 +34,10 @@ if (argv.latest) {
 }
 
 if (argv.branch && argv.branch !== versions.branch) {
-  const confirmBranch = await question(
-    chalk.yellow(
-      `⚠️ Releasing ${releasingVersion} from non-default branch '${targetBranch}'. The version bump commit and tag will be pushed there. Should we continue? (y/n)\n`,
-    ),
+  await confirm(
+    `⚠️ Releasing ${releasingVersion} from non-default branch '${targetBranch}'. The version bump commit and tag will be pushed there. Should we continue?`,
+    `🚦 Release process interrupted. Re-run with the right '--branch' (or none) and try again!`,
   );
-  if (confirmBranch === 'n') {
-    console.log(chalk.yellow(`🚦 Release process interrupted. Re-run with the right '--branch' (or none) and try again!`));
-    process.exit(1);
-  }
 }
 
 console.log(chalk.blue(`Version: ${releasingVersion}`));
