@@ -20,6 +20,7 @@ import { MemoryRouter, useLocation, useNavigationType } from 'react-router-dom';
 
 import { AppRoutes } from './AppRoutes';
 import { ROUTES } from '../config/routes';
+import { useApiScoreEnabled } from '../features/api-score/hooks/useApiScoreEnabled';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
 import { ApimApiError, resetApimClientForTests } from '../shared/api/apimClient';
@@ -127,10 +128,12 @@ jest.mock('@gravitee/gamma-modules-sdk', () => ({
 
 jest.mock('../features/dictionaries/hooks/useEnvironmentDictionaries');
 jest.mock('../features/metadata/hooks/useEnvironmentMetadata');
+jest.mock('../features/api-score/hooks/useApiScoreEnabled');
 
 const mockUseEnvironmentDictionaries = jest.mocked(useEnvironmentDictionaries);
 const mockUseEnvironmentMetadata = jest.mocked(useEnvironmentMetadata);
 const mockUseEnvironmentPermissionsReady = jest.mocked(useEnvironmentPermissionsReady);
+const mockUseApiScoreEnabled = jest.mocked(useApiScoreEnabled);
 
 function denyPermissions(...denied: string[]) {
     mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.some(permission => denied.includes(permission)));
@@ -156,6 +159,10 @@ jest.mock('../pages/IntegrationsPage', () => {
         IntegrationsPage: () => (mockUseRealIntegrationsPage ? <RealIntegrationsPage /> : <div data-testid="integrations-page" />),
     };
 });
+
+jest.mock('../features/api-score/pages/ApiScoreDashboardPage', () => ({
+    ApiScoreDashboardPage: () => <div data-testid="api-score-dashboard-page" />,
+}));
 
 jest.mock('../pages/UsersPage', () => ({
     UsersPage: () => <div data-testid="users-page" />,
@@ -339,6 +346,20 @@ function renderIntegrationsUrl() {
     );
 }
 
+function renderApiScoreUrl(path = '/api-score') {
+    render(
+        <MemoryRouter initialEntries={[path]}>
+            <AppRoutes />
+            <LocationProbe />
+            <NavigationTypeProbe />
+        </MemoryRouter>,
+    );
+}
+
+function enableApiScore() {
+    mockUseApiScoreEnabled.mockReturnValue({ enabled: true, isFetched: true });
+}
+
 function renderPlatform(path = '/applications') {
     render(
         <MemoryRouter initialEntries={[path]}>
@@ -487,6 +508,7 @@ describe('AppRoutes', () => {
             isError: false,
             error: null,
         } as unknown as ReturnType<typeof useEnvironmentMetadata>);
+        mockUseApiScoreEnabled.mockReturnValue({ enabled: false, isFetched: true });
     });
 
     it('mounts PlatformToaster for module-wide toast feedback', () => {
@@ -585,6 +607,95 @@ describe('AppRoutes', () => {
             'broadcasts',
         ]);
         expect(navItemAccess('integrations')).toBeUndefined();
+    });
+
+    it('shows the API Score nav item immediately after Applications when scoring is enabled', () => {
+        enableApiScore();
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        renderPlatform();
+
+        expect(navGroupItemKeys('APIs & Assets')).toEqual([
+            'applications',
+            'api-score',
+            'integrations',
+            'metadata',
+            'dictionaries',
+            'shared-policy-groups',
+            'broadcasts',
+        ]);
+    });
+
+    it('hides the API Score nav item when apiScore.enabled is false', () => {
+        renderPlatform();
+
+        expect(visibleNavKeys()).not.toContain('api-score');
+    });
+
+    it('hides the API Score nav item when the user lacks environment-integration-r', () => {
+        enableApiScore();
+        denyPermissions('environment-integration-r');
+
+        renderPlatform();
+
+        expect(visibleNavKeys()).not.toContain('api-score');
+    });
+
+    it('routes a direct API Score URL visit to the Overview tab when scoring is enabled', () => {
+        enableApiScore();
+
+        renderApiScoreUrl();
+
+        expect(screen.getByTestId('api-score-dashboard-page')).not.toBeNull();
+        expect(screen.getByRole('heading', { name: 'API Score' })).not.toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe('/api-score');
+        expect(screen.getByRole('link', { name: 'Rulesets & Functions' })).not.toBeNull();
+    });
+
+    it('routes the Rulesets & Functions tab under API Score', () => {
+        enableApiScore();
+
+        renderApiScoreUrl('/api-score/rulesets');
+
+        expect(screen.getByTestId('api-score-rulesets-page')).not.toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe('/api-score/rulesets');
+    });
+
+    it('redirects a direct API Score URL visit to Applications when scoring is disabled', () => {
+        renderApiScoreUrl();
+
+        expect(screen.queryByTestId('api-score-dashboard-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe('/applications');
+        expect(screen.getByTestId('navigation-type').textContent).toBe('REPLACE');
+    });
+
+    it('redirects a direct API Score URL visit to Applications when the user lacks environment-integration-r', () => {
+        enableApiScore();
+        denyPermissions('environment-integration-r');
+
+        renderApiScoreUrl();
+
+        expect(screen.queryByTestId('api-score-dashboard-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe('/applications');
+    });
+
+    it('lands on the API Score page from the platform index when API Score is the only visible item', () => {
+        grantOnlyPermissions('environment-integration-r');
+        enableApiScore();
+
+        render(
+            <MemoryRouter initialEntries={['/']}>
+                <AppRoutes />
+                <LocationProbe />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('location').textContent).toBe('/api-score');
+        expect(screen.getByTestId('api-score-dashboard-page')).not.toBeNull();
+        expect(screen.queryByTestId('platform-no-access-page')).toBeNull();
     });
 
     it('hides the Integrations nav item when Federation is not enabled for the organization', () => {

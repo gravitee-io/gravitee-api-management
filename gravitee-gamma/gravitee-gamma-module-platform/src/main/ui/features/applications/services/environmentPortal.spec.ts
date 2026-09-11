@@ -13,12 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { isSharedApiKeyEnabled } from './environmentPortal';
+import { getEnvironmentPortalConfiguration, isSharedApiKeyEnabled } from './environmentPortal';
+import { apimFetchJsonV1Env } from '../../../shared/api/apimClient';
+
+jest.mock('../../../shared/api/apimClient', () => ({
+    apimFetchJsonV1Env: jest.fn(),
+}));
+
+const mockApimFetchJsonV1Env = jest.mocked(apimFetchJsonV1Env);
 
 describe('environmentPortal', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockApimFetchJsonV1Env.mockResolvedValue({});
+    });
+
     it('detects shared API key feature flag', () => {
         expect(isSharedApiKeyEnabled({ plan: { security: { sharedApiKey: { enabled: true } } } })).toBe(true);
         expect(isSharedApiKeyEnabled({ plan: { security: { sharedApiKey: { enabled: false } } } })).toBe(false);
         expect(isSharedApiKeyEnabled(null)).toBe(false);
+    });
+
+    it('loads apiScore.enabled from GET /portal', async () => {
+        mockApimFetchJsonV1Env.mockResolvedValueOnce({ apiScore: { enabled: true } });
+        const config = await getEnvironmentPortalConfiguration('env-1');
+        expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('env-1', '/portal');
+        expect(config.apiScore?.enabled).toBe(true);
     });
 });

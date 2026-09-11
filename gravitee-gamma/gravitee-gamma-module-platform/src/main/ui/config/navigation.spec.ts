@@ -21,6 +21,7 @@ import {
     MailIcon,
     MessageSquareIcon,
     SettingsIcon,
+    ShieldCheckIcon,
     ShieldIcon,
     UsersIcon,
     UsersRoundIcon,
@@ -73,9 +74,10 @@ describe('platform navigation config', () => {
         expect(systemItems.find(item => item.key === 'templates')?.icon).toBe(FileTextIcon);
     });
 
-    it('places Applications, Integrations, Metadata, Dictionaries, Shared Policy Groups, then Broadcasts under Environment / APIs & Assets', () => {
+    it('places Applications, API Score, Integrations, Metadata, Dictionaries, Shared Policy Groups, then Broadcasts under Environment / APIs & Assets', () => {
         expect(sectionKeys('Environment', 'APIs & Assets')).toEqual([
             'applications',
+            'api-score',
             'integrations',
             'metadata',
             'dictionaries',
@@ -84,6 +86,8 @@ describe('platform navigation config', () => {
         ]);
         const assetItems =
             NAV_SECTIONS.find(section => section.key === 'environment')?.groups.find(group => group.label === 'APIs & Assets')?.items ?? [];
+        expect(assetItems.find(item => item.key === 'api-score')?.icon).toBe(ShieldCheckIcon);
+        expect(assetItems.find(item => item.key === 'api-score')?.title).toBe('API Score');
         expect(assetItems.find(item => item.key === 'broadcasts')?.icon).toBe(MessageSquareIcon);
         expect(assetItems.find(item => item.key === 'broadcasts')?.title).toBe('Broadcasts');
     });
@@ -174,6 +178,12 @@ describe('platform navigation config', () => {
 
         expect(findAlerts(lockNavItem([...NAV_SECTIONS], 'alerts', true))?.access).toBe('locked');
         expect(findAlerts(lockNavItem([...NAV_SECTIONS], 'alerts', false))?.access).toBeUndefined();
+    });
+
+    it('declares the api-score route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('api-score');
+        expect(ROUTES['api-score']).toEqual({ path: 'api-score', label: 'API Score' });
+        expect(findNavSectionKey(NAV_SECTIONS, 'api-score')).toBe('environment');
     });
 
     it('declares the integrations route in platform routing config', () => {
