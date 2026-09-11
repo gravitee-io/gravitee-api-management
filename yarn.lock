@@ -4627,9 +4627,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/gamma-lib-observability@npm:3.3.0-beta.3":
-  version: 3.3.0-beta.3
-  resolution: "@gravitee/gamma-lib-observability@npm:3.3.0-beta.3"
+"@gravitee/gamma-lib-observability@npm:3.3.0-beta.5":
+  version: 3.3.0-beta.5
+  resolution: "@gravitee/gamma-lib-observability@npm:3.3.0-beta.5"
   peerDependencies:
     "@gravitee/graphene-charts": ^3.13.0
     "@gravitee/graphene-core": ^3.13.0
@@ -4651,7 +4651,7 @@ __metadata:
       optional: true
     tailwindcss:
       optional: true
-  checksum: 10c0/522648c8f4f3d83ecc7f4660139e1cf4f9a2496b28d2df223e1ea19cc3a4d13db29a708c087f560484f794c4efe4ac15e9033f0725a61afceab4890591f121ea
+  checksum: 10c0/bcaee467921d1478dd134af480182e67c6aa8da474dcf46b668761c6afc66aca18f60d8fe441f86309c7d0d772b661a4933bccf221a43658afc6743524ef5c86
   languageName: node
   linkType: hard
 
@@ -21901,7 +21901,7 @@ __metadata:
     "@fontsource/material-icons-two-tone": "npm:5.2.5"
     "@fontsource/montserrat": "npm:5.2.5"
     "@fontsource/roboto": "npm:5.2.5"
-    "@gravitee/gamma-lib-observability": "npm:3.3.0-beta.3"
+    "@gravitee/gamma-lib-observability": "npm:3.3.0-beta.5"
     "@gravitee/gamma-modules-sdk": "npm:1.2.0"
     "@gravitee/graphene-charts": "npm:3.18.0"
     "@gravitee/graphene-core": "npm:3.18.0"
