@@ -65,7 +65,7 @@ public class SubscriptionFormsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.READ }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SUBSCRIPTION_FORM, acls = { RolePermissionAction.READ }) })
     public Response listSubscriptionForms() {
         var output = listSubscriptionFormsUseCase.execute(new ListSubscriptionFormsUseCase.Input(GraviteeContext.getCurrentEnvironment()));
         return Response.ok(mapper.toResponse(output.subscriptionForms())).build();
@@ -74,7 +74,7 @@ public class SubscriptionFormsResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.CREATE }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SUBSCRIPTION_FORM, acls = { RolePermissionAction.CREATE }) })
     public Response createSubscriptionForm(@Valid @NotNull final CreateSubscriptionForm request) {
         var output = createSubscriptionFormUseCase.execute(
             new CreateSubscriptionFormUseCase.Input(
@@ -92,7 +92,7 @@ public class SubscriptionFormsResource extends AbstractResource {
     @GET
     @Path("/_template")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.READ }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SUBSCRIPTION_FORM, acls = { RolePermissionAction.READ }) })
     public Response getSubscriptionFormTemplate() {
         var output = getSubscriptionFormTemplateUseCase.execute();
         return Response.ok(new SubscriptionFormTemplate().gmdContent(output.gmdContent())).build();

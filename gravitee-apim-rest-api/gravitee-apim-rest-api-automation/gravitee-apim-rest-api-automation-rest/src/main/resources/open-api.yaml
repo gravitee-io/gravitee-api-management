@@ -975,6 +975,86 @@ paths:
           $ref: "#/components/responses/Error"
 
   # API Documentations
+  /organizations/{orgId}/environments/{envId}/subscription-forms:
+    put:
+      operationId: createOrUpdateSubscriptionForm
+      tags:
+        - Subscription Forms
+      summary: Create or update a Subscription Form
+      description: |
+        Create or update a subscription form of the environment catalog from SubscriptionFormSpec.
+        The form is identified by its `hrid`: applying the same spec again updates the same form.
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/dryRunQueryParam"
+      requestBody:
+        description: Subscription form specification
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/SubscriptionFormSpec"
+        required: true
+      responses:
+        "200":
+          description: State of the successfully created/updated Subscription Form
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionFormState"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        default:
+          $ref: "#/components/responses/Error"
+  /organizations/{orgId}/environments/{envId}/subscription-forms/{hrid}:
+    parameters:
+      - $ref: "#/components/parameters/orgIdParam"
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/hridParam"
+    get:
+      operationId: getSubscriptionForm
+      tags:
+        - Subscription Forms
+      summary: Get one Subscription Form
+      description: Get a Subscription Form using HRID
+      responses:
+        "200":
+          description: Subscription Form successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionFormState"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: deleteSubscriptionForm
+      tags:
+        - Subscription Forms
+      summary: Delete one Subscription Form
+      description: Delete a Subscription Form using HRID. The environment default form cannot be deleted.
+      responses:
+        "204":
+          description: Subscription Form successfully deleted
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
   /organizations/{orgId}/environments/{envId}/apis/{apiHrid}/documentations:
     put:
       operationId: createOrUpdateApiDocumentation
@@ -3605,6 +3685,55 @@ components:
         - $ref: "#/components/schemas/PortalLinkSpec"
         - $ref: "#/components/schemas/PortalLinkStatus"
 
+    # Subscription form schemas
+    SubscriptionFormSpec:
+      description: |
+        Specification of a subscription form of the environment catalog: the questionnaire API consumers
+        fill in the Developer Portal when subscribing to the APIs the form is dedicated to, or to any API
+        when the form is the environment default.
+      type: object
+      properties:
+        hrid:
+          $ref: "#/components/schemas/Hrid"
+        name:
+          type: string
+          description: Display name of the form, unique within the environment
+          examples:
+            - Partner onboarding
+        gmdContent:
+          type: string
+          description: Gravitee Markdown (GMD) definition of the form, using gmd-input, gmd-textarea, gmd-select, gmd-checkbox and gmd-radio components.
+        enabled:
+          type: boolean
+          description: |
+            Whether the form is shown to API consumers. A disabled form yields no form at all for the APIs it
+            applies to, without falling back to another one: a disabled default form, as the Console toggle
+            allows, means every API without a dedicated form has no subscription form.
+          default: false
+        default:
+          type: boolean
+          description: |
+            Whether the form is the environment default, used for every API without a dedicated form.
+            Applying a spec with `default: true` demotes the previous default form. The current default
+            cannot be demoted by applying `default: false`; promote another form instead.
+          default: false
+        apiHrids:
+          type: array
+          description: |
+            Human readable ids of the APIs this form is dedicated to, as used by the API resource of this
+            Automation API (an API created outside the Automation API has no hrid and cannot be referenced here).
+            An API is mapped to at most one form.
+          items:
+            type: string
+      required:
+        - hrid
+        - name
+        - gmdContent
+    SubscriptionFormState:
+      description: State of a Subscription Form that has been created/updated.
+      allOf:
+        - $ref: "#/components/schemas/SubscriptionFormSpec"
+        - $ref: "#/components/schemas/BaseStatus"
     # Theme schemas
     PortalThemeSpec:
       description: |
