@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
@@ -45,6 +46,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.audit.model.Excludable;
 import io.gravitee.apim.core.cockpit.model.CockpitReplyStatus;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.environment.model.Environment;
@@ -66,6 +68,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
@@ -77,6 +80,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class CreatePromotionUseCaseTest {
@@ -227,6 +231,11 @@ class CreatePromotionUseCaseTest {
                 assertThat(audit.getProperties()).isEmpty();
                 assertThat(audit.getUser()).isEqualTo(USER_ID);
             });
+
+        var excludesCaptor = ArgumentCaptor.forClass(Collection.class);
+        verify(apiExportDomainService).export(eq(API_ID), eq(AUDIT_INFO), excludesCaptor.capture());
+        assertThat(excludesCaptor.getValue()).containsExactlyInAnyOrder(Excludable.MEMBERS, Excludable.IDS);
+        assertThat(excludesCaptor.getValue()).doesNotContain(Excludable.GROUPS);
     }
 
     @Test

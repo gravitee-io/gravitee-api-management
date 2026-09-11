@@ -29,6 +29,7 @@ import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinitionSubEntityProcessor;
 import io.gravitee.apim.core.api.service_provider.ApiImagesServiceProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.group.domain_service.ImportApiGroupsDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
@@ -50,6 +51,7 @@ public class ImportDefinitionUpdateDomainService {
     private final ImportDefinitionMetadataDomainService importDefinitionMetadataDomainService;
     private final ImportDefinitionPlanDomainService importDefinitionPlanDomainService;
     private final ImportDefinitionPageDomainService importDefinitionPageDomainService;
+    private final ImportApiGroupsDomainService importApiGroupsDomainService;
 
     ImportDefinitionUpdateDomainService(
         UpdateApiDomainService updateApiDomainService,
@@ -60,7 +62,8 @@ public class ImportDefinitionUpdateDomainService {
         ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
         ImportDefinitionMetadataDomainService importDefinitionMetadataDomainService,
         ImportDefinitionPlanDomainService importDefinitionPlanDomainService,
-        ImportDefinitionPageDomainService importDefinitionPageDomainService
+        ImportDefinitionPageDomainService importDefinitionPageDomainService,
+        ImportApiGroupsDomainService importApiGroupsDomainService
     ) {
         this.updateApiDomainService = updateApiDomainService;
         this.apiImagesServiceProvider = apiImagesServiceProvider;
@@ -71,6 +74,7 @@ public class ImportDefinitionUpdateDomainService {
         this.importDefinitionMetadataDomainService = importDefinitionMetadataDomainService;
         this.importDefinitionPlanDomainService = importDefinitionPlanDomainService;
         this.importDefinitionPageDomainService = importDefinitionPageDomainService;
+        this.importApiGroupsDomainService = importApiGroupsDomainService;
     }
 
     public Api update(ImportDefinition importDefinition, Api existingPromotedApi, AuditInfo auditInfo) {
@@ -84,13 +88,14 @@ public class ImportDefinitionUpdateDomainService {
             existingPromotedApi
         );
         var apiExport = apiWithIds.getApiExport();
+        apiExport.setGroups(importApiGroupsDomainService.resolveOrCreateGroupIds(apiExport.getGroups(), auditInfo.environmentId()));
 
         var updatedApi = switch (existingPromotedApi.getType()) {
             case PROXY, MESSAGE -> updateApiDomainService.updateV4(
                 ApiModelFactory.fromApiExport(apiExport, auditInfo.environmentId()).toBuilder().id(apiId).build(),
                 auditInfo
             );
-            case NATIVE -> updateNativeApi(apiId, apiWithIds.getApiExport(), auditInfo);
+            case NATIVE -> updateNativeApi(apiId, apiExport, auditInfo);
             default -> throw new IllegalStateException("Unsupported API type: " + existingPromotedApi.getType());
         };
 
@@ -131,8 +136,8 @@ public class ImportDefinitionUpdateDomainService {
     }
 
     private UnaryOperator<Api> toNativeApiUpdateOperator(ApiExport apiExport) {
-        return currentApi ->
-            currentApi
+        return currentApi -> {
+            var builder = currentApi
                 .toBuilder()
                 .name(apiExport.getName())
                 .description(apiExport.getDescription())
@@ -161,7 +166,11 @@ public class ImportDefinitionUpdateDomainService {
                             .properties(apiExport.getProperties())
                             .build()
                         : null
-                )
-                .build();
+                );
+            if (apiExport.getGroups() != null) {
+                builder.groups(apiExport.getGroups());
+            }
+            return builder.build();
+        };
     }
 }
