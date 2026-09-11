@@ -44,4 +44,5 @@ export const authHandlers = [
         }),
     ),
     http.get(`${TEST_MANAGEMENT_BASE}/console`, () => HttpResponse.json({ reCaptcha: { enabled: false } })),
+    http.get(`${TEST_MANAGEMENT_BASE}/configuration/custom-user-fields`, () => HttpResponse.json([])),
 ];
