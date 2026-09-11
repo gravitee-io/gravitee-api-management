@@ -4313,17 +4313,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fontsource/dm-mono@npm:5.2.5":
-  version: 5.2.5
-  resolution: "@fontsource/dm-mono@npm:5.2.5"
-  checksum: 10c0/44b47e5717b44c62eddf5caecf0062a13b35fb5b6b1dd4b4c89283cf44d0c40a60300919dc23df1d7c732be41df76d5e560f536b7a299508c96b32accf3131b6
+"@fontsource/dm-mono@npm:5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/dm-mono@npm:5.3.0"
+  checksum: 10c0/785424fe3a610ba8dd58e5a6c7b5f9f5f50cdc9419873ac97522ac611aa803b6d2a9de52835593a9b7b76fb721ee87d4d6d959344a8cb4b67353465f681c347f
   languageName: node
   linkType: hard
 
-"@fontsource/dm-sans@npm:5.2.5":
-  version: 5.2.5
-  resolution: "@fontsource/dm-sans@npm:5.2.5"
-  checksum: 10c0/977683a51a75453cff3e19d31d48967dcb0433f3e400df5772037b530cf979a50d9681ed8960e5cb3dbba253a0a4ea3fe573e1af35d642280241fe1425a2c435
+"@fontsource/dm-sans@npm:5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/dm-sans@npm:5.3.0"
+  checksum: 10c0/e283f1b5a1cccd881457014de27894cf82bde0a4274b98d94608aefbea0cb31c3ead2276ffcd4edf6e9b79041e2054e2123ecdb78b140f8390d14fdad0e5f7d1
   languageName: node
   linkType: hard
 
@@ -4334,24 +4334,31 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fontsource/inter@npm:5.2.5":
-  version: 5.2.5
-  resolution: "@fontsource/inter@npm:5.2.5"
-  checksum: 10c0/071e12a6a9c8cf6e95da43ba532e80eb8e35c1ffd2384c9c6555d7f222e306e22968f7c4fff5065b9f81503db622cf3de8a688fbc1cb0c04aa3803c797f6f6a0
+"@fontsource/inter@npm:5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/inter@npm:5.3.0"
+  checksum: 10c0/568601c10c83601c23005f8cd7434499df6e007eaa22c4dabbb1dcae327cc8e4a148ece8d4a4edaa8bafc5d2371ea97a37d1cc91ffbed77a43e2d8c15a6e831b
   languageName: node
   linkType: hard
 
-"@fontsource/kanit@npm:5.2.8, @fontsource/kanit@npm:^5.2.6":
+"@fontsource/kanit@npm:5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/kanit@npm:5.3.0"
+  checksum: 10c0/834e554cce043992cf2fd348bcd88d4f71be3a80a2b0371d3fe0424733b13a74b62bf4609447aaa530866a585a589c1257100ffc33f0dcd39e9cf23b5067dce7
+  languageName: node
+  linkType: hard
+
+"@fontsource/kanit@npm:^5.2.6":
   version: 5.2.8
   resolution: "@fontsource/kanit@npm:5.2.8"
   checksum: 10c0/807f29f3d36f5bf2260cf8fc62f9aad79172d61cd50904aa2c45f350b9f006d631530f9caeb366940aebb31640107202633e4ed658d1a3a2a71b35683d002074
   languageName: node
   linkType: hard
 
-"@fontsource/libre-franklin@npm:4.5.11":
-  version: 4.5.11
-  resolution: "@fontsource/libre-franklin@npm:4.5.11"
-  checksum: 10c0/23bc4ab9d299c8138c5ff63c6bc6e71e8423a014c8d01ccba86050e814a61e52879452c016e5071aba3b66fc1127a802e8e467257c1b83e264885b220b1ee35b
+"@fontsource/libre-franklin@npm:5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/libre-franklin@npm:5.3.0"
+  checksum: 10c0/5c4a73fa544c6970abaea494d2c4c24ca70c058109b16d97a89e1ae256ed6243ec92323e1318378dfe79008fa8af0c7ac3772391c020d0755b01e1a2cd50ba8d
   languageName: node
   linkType: hard
 
@@ -4362,31 +4369,31 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fontsource/material-icons-outlined@npm:5.2.5":
-  version: 5.2.5
-  resolution: "@fontsource/material-icons-outlined@npm:5.2.5"
-  checksum: 10c0/b34c3c7160d6f96d77e2ca1fd7773b0ab8e32dc8a2bc2e6e8f547ec1f0101553bbee0e7228c9b38d9e011a0cd9a9b52bc9922ae4c233daaaf861b2ba6f2fa542
+"@fontsource/material-icons-outlined@npm:5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/material-icons-outlined@npm:5.3.0"
+  checksum: 10c0/5457c9a49ea41c5f6bdc8ad4ec260f5e1064b2065f2e269e7a9accfd9249a407b84e4e182b49fcc310a5d3bc98941e839e3efa6c5309313bddeefdeb4a8fa2ed
   languageName: node
   linkType: hard
 
-"@fontsource/material-icons-round@npm:5.2.5":
-  version: 5.2.5
-  resolution: "@fontsource/material-icons-round@npm:5.2.5"
-  checksum: 10c0/67e05309611f35af4856d969b1c20aac39a90782d58ba0e24ba16741e8db9709cb32104901de05e5eaedfc0696af10c1e89e4add2d3b5feb3bc9d92f28d9d4de
+"@fontsource/material-icons-round@npm:5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/material-icons-round@npm:5.3.0"
+  checksum: 10c0/bd79637bca564728fa23be3d7a291d0144a5bbeeb16a5fd48ac4d3958239140ca823c98912e261cbe3be9f4b29873766bfc3ece97d1a7259bd982989e115803c
   languageName: node
   linkType: hard
 
-"@fontsource/material-icons-sharp@npm:5.2.5":
-  version: 5.2.5
-  resolution: "@fontsource/material-icons-sharp@npm:5.2.5"
-  checksum: 10c0/ea04b4c51d38e13fcbefdb6fdb84e4208d983a20b5cdf5c918dd1c19f47953f1dd98aec3b28f3c6d23df2330e6fa9547b7b501e33d95cb849d03a36359c37e95
+"@fontsource/material-icons-sharp@npm:5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/material-icons-sharp@npm:5.3.0"
+  checksum: 10c0/824476e4c52561c0fbc1107004af2854b4b4d12047ae6a7549b04370b517a7a1053c491530a95a4a6e0da28a6f1b4aa8002ba36469c7bc6159be155f8b40f897
   languageName: node
   linkType: hard
 
-"@fontsource/material-icons-two-tone@npm:5.2.5":
-  version: 5.2.5
-  resolution: "@fontsource/material-icons-two-tone@npm:5.2.5"
-  checksum: 10c0/ab24726ea8603f8830338c5f39af06b2a11c877c03685edda6c19d881c68cdbcd0d46a06c91065c6cb859ce99ff6c81bd2d59610d3180562396f4a00c39c2b7b
+"@fontsource/material-icons-two-tone@npm:5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/material-icons-two-tone@npm:5.3.0"
+  checksum: 10c0/dc3bf6c93d718c5c340ffc955de097a7d0af0746f5cafc9a1c524222382abe826b26aed5c2e7b78aee7b35366092ceca296637419644099956d53dddaf048dd0
   languageName: node
   linkType: hard
 
@@ -4397,24 +4404,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fontsource/material-icons@npm:5.2.5":
-  version: 5.2.5
-  resolution: "@fontsource/material-icons@npm:5.2.5"
-  checksum: 10c0/2d9099eba5d106d7200c4f8d2c5934434c819517890ac825491bdf33af2ab947f1e803fc0f87f9ea3ed3a3fcaa7a6c08c032d564deec5123963b53c2d6e90590
+"@fontsource/material-icons@npm:5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/material-icons@npm:5.3.0"
+  checksum: 10c0/18aab0dcc1070eafda7198b111d390a0a51da674af9cabbe8172c68fcc84bff9fb50cdda4766b72890a3e3e01d2c84eec6d500738c4a4e7a7e3409e17d79ab80
   languageName: node
   linkType: hard
 
-"@fontsource/montserrat@npm:5.2.5":
-  version: 5.2.5
-  resolution: "@fontsource/montserrat@npm:5.2.5"
-  checksum: 10c0/b9f909a18837dadb2e4adfa8620cef90144a08576bb832e3ef7107b21a7065fedfbdb5460b36e39fdd1956653434218bf7bb04b16ef8935d237708dcfff5ae8a
+"@fontsource/montserrat@npm:5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/montserrat@npm:5.3.0"
+  checksum: 10c0/6670ec471a9ae9cfa89593a11ba62062a9797049d0f93825f106b1bddd0d46f930ace87e79e56ebbd4a56186ff07844f073c2f2f4f1aca85115dde4cc02d8135
   languageName: node
   linkType: hard
 
-"@fontsource/roboto@npm:5.2.5":
-  version: 5.2.5
-  resolution: "@fontsource/roboto@npm:5.2.5"
-  checksum: 10c0/b254985468a3ba78323d66b0725af1b2dc60dbacc82a907c0f67ccc659cc30c52b66bbadd3f2afdea53971ddae60c96e582efbcaee2db52886201c3f56b830a8
+"@fontsource/roboto@npm:5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/roboto@npm:5.3.0"
+  checksum: 10c0/68420d2c669ba05f0ea466343151c6d2efff85b05cedbf0f990c58635d86035cae5e7c4904db9abc7b9fd21c5ad179788243ec9dff0c30dfab90679ae2d226f9
   languageName: node
   linkType: hard
 
@@ -20941,18 +20948,18 @@ __metadata:
     "@danielmoncada/angular-datetime-picker": "npm:20.0.1"
     "@danielmoncada/angular-datetime-picker-moment-adapter": "npm:7.0.1"
     "@emoji-mart/data": "npm:1.2.1"
-    "@fontsource/dm-mono": "npm:5.2.5"
-    "@fontsource/dm-sans": "npm:5.2.5"
-    "@fontsource/inter": "npm:5.2.5"
-    "@fontsource/kanit": "npm:5.2.8"
-    "@fontsource/libre-franklin": "npm:4.5.11"
-    "@fontsource/material-icons": "npm:5.2.5"
-    "@fontsource/material-icons-outlined": "npm:5.2.5"
-    "@fontsource/material-icons-round": "npm:5.2.5"
-    "@fontsource/material-icons-sharp": "npm:5.2.5"
-    "@fontsource/material-icons-two-tone": "npm:5.2.5"
-    "@fontsource/montserrat": "npm:5.2.5"
-    "@fontsource/roboto": "npm:5.2.5"
+    "@fontsource/dm-mono": "npm:5.3.0"
+    "@fontsource/dm-sans": "npm:5.3.0"
+    "@fontsource/inter": "npm:5.3.0"
+    "@fontsource/kanit": "npm:5.3.0"
+    "@fontsource/libre-franklin": "npm:5.3.0"
+    "@fontsource/material-icons": "npm:5.3.0"
+    "@fontsource/material-icons-outlined": "npm:5.3.0"
+    "@fontsource/material-icons-round": "npm:5.3.0"
+    "@fontsource/material-icons-sharp": "npm:5.3.0"
+    "@fontsource/material-icons-two-tone": "npm:5.3.0"
+    "@fontsource/montserrat": "npm:5.3.0"
+    "@fontsource/roboto": "npm:5.3.0"
     "@gravitee/gamma-lib-observability": "npm:1.39.2"
     "@gravitee/gamma-modules-sdk": "npm:1.2.1"
     "@gravitee/graphene-charts": "npm:3.19.0"
