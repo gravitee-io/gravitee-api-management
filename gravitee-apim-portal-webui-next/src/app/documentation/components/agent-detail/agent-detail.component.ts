@@ -33,25 +33,19 @@ import { AgentCatalogService } from '../../../../services/agent-catalog.service'
   styleUrl: './agent-detail.component.scss',
 })
 export class AgentDetailComponent {
-  // TODO: Remove FALLBACK_METADATA once the Gamma catalog agent is linked to the navigation item.
-  // Temporary dummy data used until the real agent definition is available.
-  private static readonly FALLBACK_METADATA: Record<string, string> = {
-    protocol: 'A2A (Agent-to-Agent)',
-    runtime: 'Gravitee AI Gateway',
-    'max-tokens': '8 192',
-    'rate-limit': '60 req / min',
-    region: 'eu-west-1',
-  };
-
   private readonly agentCatalogService = inject(AgentCatalogService);
 
   title = input<string>();
+  agentId = input<string>();
   orgId = input.required<string>();
   envId = input.required<string>();
 
-  agent = rxResource<AgentCatalogItem | null, { title?: string; orgId: string; envId: string }>({
-    params: computed(() => ({ title: this.title(), orgId: this.orgId(), envId: this.envId() })),
+  agent = rxResource<AgentCatalogItem | null, { agentId?: string; title?: string; orgId: string; envId: string }>({
+    params: computed(() => ({ agentId: this.agentId(), title: this.title(), orgId: this.orgId(), envId: this.envId() })),
     stream: ({ params }) => {
+      if (params.agentId) {
+        return this.agentCatalogService.getAgent(params.agentId).pipe(catchError(() => of(null)));
+      }
       if (!params.orgId || !params.envId) {
         return of(null);
       }
@@ -62,67 +56,16 @@ export class AgentDetailComponent {
     },
   });
 
-  // TODO: Remove fallbackDefinition once the Gamma catalog agent is linked to the navigation item.
-  // Temporary dummy data used until the real agent definition is available.
-  private readonly fallbackDefinition = computed<AgentDefinition>(() => ({
-    name: this.title() ?? '',
-    description:
-      'An AI-powered agent that understands your API ecosystem. It can answer questions about API specifications, ' +
-      'assist with subscription configuration, generate code snippets for popular languages, and provide ' +
-      'real-time guidance on rate limits, quotas, and best practices — all through the A2A protocol.',
-    url: 'https://agents.gravitee.io/a2a',
-    version: '2.1.0',
-    documentationUrl: 'https://documentation.gravitee.io/apim/agents',
-    provider: { organization: 'Gravitee.io', url: 'https://gravitee.io' },
-    capabilities: { streaming: true, pushNotifications: true, stateTransitionHistory: true },
-    defaultInputModes: ['text', 'file'],
-    defaultOutputModes: ['text', 'file'],
-    skills: [
-      {
-        id: 'skill-api-explorer',
-        name: 'API Explorer',
-        description:
-          'Navigates and explains OpenAPI / AsyncAPI specifications. Summarizes endpoints, schemas, and authentication requirements.',
-        tags: ['openapi', 'asyncapi', 'discovery'],
-        examples: ['List all POST endpoints in the Payments API', 'What authentication does the Orders API require?'],
-      },
-      {
-        id: 'skill-subscription-helper',
-        name: 'Subscription Helper',
-        description: 'Guides you through API plan selection, subscription creation, and key management.',
-        tags: ['subscription', 'plans', 'keys'],
-        examples: ['Which plan fits 10 000 requests per day?', 'How do I rotate my API key?'],
-      },
-      {
-        id: 'skill-code-gen',
-        name: 'Code Generator',
-        description: 'Produces ready-to-run code snippets for calling APIs in multiple languages and frameworks.',
-        tags: ['codegen', 'sdk', 'integration'],
-        examples: ['Generate a Python requests call for POST /orders', 'Show me a cURL for the health-check endpoint'],
-        inputModes: ['text'],
-        outputModes: ['text', 'file'],
-      },
-      {
-        id: 'skill-troubleshoot',
-        name: 'Troubleshooter',
-        description: 'Diagnoses common API errors (4xx / 5xx), rate-limit issues, and policy misconfigurations.',
-        tags: ['debug', 'errors', 'rate-limit'],
-        examples: ['Why am I getting a 429 on /payments?', 'Explain this CORS error'],
-      },
-    ],
-  }));
-
-  definition = computed(() => (!this.agent.error() ? this.agent.value()?.definition : undefined) ?? this.fallbackDefinition());
+  definition = computed(
+    () => (!this.agent.error() ? this.agent.value()?.definition : undefined) ?? this.emptyDefinition(this.title() ?? ''),
+  );
   provider = computed(() => this.definition()?.provider ?? null);
   capabilities = computed(() => this.definition()?.capabilities ?? null);
   skills = computed(() => this.definition()?.skills ?? []);
 
   metadata = computed(() => {
     const agentValue = !this.agent.error() ? this.agent.value() : undefined;
-    if (agentValue?.definition) {
-      return agentValue.metadata ?? null;
-    }
-    return AgentDetailComponent.FALLBACK_METADATA;
+    return agentValue?.metadata ?? null;
   });
 
   hasAnyCapability = computed(() => {
@@ -160,6 +103,18 @@ export class AgentDetailComponent {
 
   safeDocumentationUrl = computed(() => this.sanitizeUrl(this.definition()?.documentationUrl));
   safeProviderUrl = computed(() => this.sanitizeUrl(this.provider()?.url));
+
+  private emptyDefinition(name: string): AgentDefinition {
+    return {
+      name,
+      url: '',
+      version: '',
+      capabilities: {},
+      defaultInputModes: [],
+      defaultOutputModes: [],
+      skills: [],
+    };
+  }
 
   private sanitizeUrl(url: string | undefined | null): string | null {
     if (!url) return null;

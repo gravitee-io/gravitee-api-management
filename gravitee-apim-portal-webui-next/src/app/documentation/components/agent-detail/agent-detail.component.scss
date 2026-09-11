@@ -222,6 +222,27 @@
     }
   }
 
+  &__empty {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin: 0;
+    padding: 16px;
+    border: 1px solid app-theme.$border-color;
+    border-radius: app-theme.$container-shape;
+    background: app-theme.$card-background-color;
+    color: app-theme.$paragraph-color;
+
+    mat-icon {
+      flex-shrink: 0;
+      color: app-theme.$chip-label-text-color;
+    }
+
+    p {
+      margin: 0;
+    }
+  }
+
   // Skills
   &__skills-grid {
     display: flex;

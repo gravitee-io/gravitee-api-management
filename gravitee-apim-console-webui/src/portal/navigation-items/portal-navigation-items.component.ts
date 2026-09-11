@@ -36,7 +36,7 @@ import { MatMenuItem, MatMenuModule, MatMenuTrigger } from '@angular/material/me
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { BehaviorSubject, EMPTY, Observable, of } from 'rxjs';
+import { BehaviorSubject, EMPTY, forkJoin, Observable, of } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AsyncPipe, NgTemplateOutlet, TitleCasePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -82,6 +82,7 @@ import {
   hasSelfOrAncestorOfType,
   indexPortalNavigationItemsById,
   NewPortalNavigationItem,
+  NewAgentPortalNavigationItem,
   PortalArea,
   PortalNavigationAgent,
   PortalNavigationApi,
@@ -103,6 +104,7 @@ import { PortalNavigationItemService } from '../../services-ngx/portal-navigatio
 import { PortalPageContentService } from '../../services-ngx/portal-page-content.service';
 import { ApiV2Service } from '../../services-ngx/api-v2.service';
 import { ApiProductV2Service } from '../../services-ngx/api-product-v2.service';
+import { AimA2aProxyService } from '../../services-ngx/aim-a2a-proxy.service';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard';
 import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/content.util';
@@ -157,6 +159,7 @@ type AgentBulkCreateResult = {
 export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   private destroyRef = inject(DestroyRef);
   private readonly apiProductService = inject(ApiProductV2Service);
+  private readonly aimA2aProxyService = inject(AimA2aProxyService);
 
   // UI State & Forms
   protected isReadOnly = !inject(GioPermissionService).hasAnyMatching(['environment-documentation-u']);
@@ -802,16 +805,8 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       return of({ createdItemId: null });
     }
 
-    const items: NewPortalNavigationItem[] = agents.map(agent => ({
-      title: agent.name,
-      type: 'AGENT',
-      area: 'TOP_NAVBAR',
-      parentId,
-      visibility,
-      apiId: agent.id,
-    }));
-
-    return this.portalNavigationItemsService.createNavigationItemsInBulk(items).pipe(
+    return forkJoin(agents.map(agent => this.toAgentNavigationItem(parentId, agent, visibility))).pipe(
+      switchMap(items => this.portalNavigationItemsService.createNavigationItemsInBulk(items)),
       map(response => {
         const createdAgentItems = response.items?.filter((item): item is PortalNavigationAgent => item.type === 'AGENT');
         return {
@@ -824,6 +819,25 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
           errorMessage: this.getAgentCreateErrorMessage(error),
         });
       }),
+    );
+  }
+
+  private toAgentNavigationItem(
+    parentId: string,
+    agent: SelectedSectionEntity,
+    visibility: PortalVisibility,
+  ): Observable<NewAgentPortalNavigationItem> {
+    const item: NewAgentPortalNavigationItem = {
+      title: agent.name,
+      type: 'AGENT',
+      area: 'TOP_NAVBAR',
+      parentId,
+      visibility,
+      apiId: agent.id,
+    };
+    return this.aimA2aProxyService.getA2aProxy(agent.id).pipe(
+      map(detail => (detail.agentId ? { ...item, agentId: detail.agentId } : item)),
+      catchError(() => of(item)),
     );
   }
 

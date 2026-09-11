@@ -41,6 +41,10 @@ export class AgentCatalogService {
     return this.searchAgents(orgId, envId, agentName).pipe(map(page => page.data?.find(a => a.definition?.name === agentName) ?? null));
   }
 
+  getAgent(agentId: string): Observable<AgentCatalogItem> {
+    return this.http.get<AgentCatalogItem>(`${this.configService.baseURL}/agents/${encodeURIComponent(agentId)}`);
+  }
+
   /**
    * Derives the Gamma catalog API base URL from the portal base URL.
    *

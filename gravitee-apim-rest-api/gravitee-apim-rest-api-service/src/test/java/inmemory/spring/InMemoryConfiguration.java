@@ -516,6 +516,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public AimCatalogQueryServiceInMemory aimCatalogQueryService() {
+        return new AimCatalogQueryServiceInMemory();
+    }
+
+    @Bean
     public NewtAIProvider newtAIProvider() {
         return new NewtAIProviderInMemory();
     }

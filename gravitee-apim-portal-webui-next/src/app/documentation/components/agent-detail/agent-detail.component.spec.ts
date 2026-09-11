@@ -69,11 +69,12 @@ function fakeAgent(overrides?: Partial<AgentCatalogItem>): AgentCatalogItem {
 }
 
 @Component({
-  template: '<app-agent-detail [title]="title" [orgId]="orgId" [envId]="envId" />',
+  template: '<app-agent-detail [title]="title" [agentId]="agentId" [orgId]="orgId" [envId]="envId" />',
   imports: [AgentDetailComponent],
 })
 class TestHostComponent {
   title = 'Test Agent';
+  agentId: string | undefined;
   orgId = 'DEFAULT';
   envId = 'DEFAULT';
 }
@@ -82,7 +83,7 @@ describe('AgentDetailComponent', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let http: HttpTestingController;
 
-  async function setup(agent: AgentCatalogItem | null = fakeAgent()) {
+  async function setup(agent: AgentCatalogItem | null = fakeAgent(), options: { agentId?: string; fail?: boolean } = {}) {
     await TestBed.configureTestingModule({
       imports: [TestHostComponent, MatIconTestingModule],
       providers: [
@@ -96,14 +97,28 @@ describe('AgentDetailComponent', () => {
 
     fixture = TestBed.createComponent(TestHostComponent);
     http = TestBed.inject(HttpTestingController);
+    fixture.componentInstance.agentId = options.agentId;
 
     fixture.detectChanges();
 
-    const req = http.expectOne(r => r.url.includes('/agents') && r.params.get('q') === 'Test Agent');
-    req.flush({
-      data: agent ? [agent] : [],
-      pagination: { page: 1, perPage: 5, pageCount: agent ? 1 : 0, totalCount: agent ? 1 : 0 },
-    });
+    if (options.agentId) {
+      const req = http.expectOne(`${TESTING_BASE_URL}/agents/${options.agentId}`);
+      if (options.fail) {
+        req.flush('Not found', { status: 404, statusText: 'Not Found' });
+      } else {
+        req.flush(agent);
+      }
+    } else {
+      const req = http.expectOne(r => r.url.includes('/agents') && r.params.get('q') === 'Test Agent');
+      if (options.fail) {
+        req.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
+      } else {
+        req.flush({
+          data: agent ? [agent] : [],
+          pagination: { page: 1, perPage: 5, pageCount: agent ? 1 : 0, totalCount: agent ? 1 : 0 },
+        });
+      }
+    }
 
     await fixture.whenStable();
     fixture.detectChanges();
@@ -204,36 +219,51 @@ describe('AgentDetailComponent', () => {
     expect(el.querySelector('.agent-detail__capability-chip')).toBeFalsy();
   });
 
+  it('should show empty states when the agent has no skills or I/O modes', async () => {
+    const agent = fakeAgent();
+    agent.definition.skills = [];
+    agent.definition.defaultInputModes = [];
+    agent.definition.defaultOutputModes = [];
+    await setup(agent);
+
+    const el = fixture.nativeElement as HTMLElement;
+    const emptyStates = Array.from(el.querySelectorAll('.agent-detail__empty p')).map(p => p.textContent?.trim());
+    expect(emptyStates).toContain('This agent has not declared default input or output modes.');
+    expect(emptyStates).toContain('This agent has not published any skills.');
+    expect(el.querySelector('.agent-detail__skill-card')).toBeFalsy();
+    expect(el.querySelector('.agent-detail__mode-chip')).toBeFalsy();
+  });
+
   it('should look up the agent by name search', async () => {
     await setup();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('.agent-detail__hero__name')?.textContent?.trim()).toBe('Test Agent');
   });
 
-  it('should show fallback details when the catalog request fails', async () => {
-    await TestBed.configureTestingModule({
-      imports: [TestHostComponent, MatIconTestingModule],
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        provideNoopAnimations(),
-        provideRouter([]),
-        { provide: ConfigService, useValue: { baseURL: TESTING_BASE_URL } },
-      ],
-    }).compileComponents();
+  it('should look up the agent by id when agentId is provided', async () => {
+    await setup(fakeAgent(), { agentId: 'agent-1' });
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.agent-detail__hero__name')?.textContent?.trim()).toBe('Test Agent');
+    expect(el.querySelector('.agent-detail__hero__description')?.textContent?.trim()).toBe('A test agent for unit tests.');
+  });
 
-    fixture = TestBed.createComponent(TestHostComponent);
-    http = TestBed.inject(HttpTestingController);
-
-    fixture.detectChanges();
-
-    const req = http.expectOne(r => r.url.includes('/agents') && r.params.get('q') === 'Test Agent');
-    req.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
-
-    await fixture.whenStable();
-    fixture.detectChanges();
+  it('should show the navigation title without dummy details when the catalog request fails', async () => {
+    await setup(null, { fail: true });
 
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('.agent-detail__hero__name')?.textContent?.trim()).toBe('Test Agent');
+    expect(el.querySelector('.agent-detail__hero__description')).toBeFalsy();
+    expect(el.querySelector('.agent-detail__skill-card')).toBeFalsy();
+    expect(el.querySelectorAll('.agent-detail__empty').length).toBe(2);
+  });
+
+  it('should show the navigation title without dummy details when the agent id lookup fails', async () => {
+    await setup(null, { agentId: 'agent-1', fail: true });
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.agent-detail__hero__name')?.textContent?.trim()).toBe('Test Agent');
+    expect(el.querySelector('.agent-detail__hero__description')).toBeFalsy();
+    expect(el.querySelector('.agent-detail__skill-card')).toBeFalsy();
+    expect(el.querySelectorAll('.agent-detail__empty').length).toBe(2);
   });
 });
