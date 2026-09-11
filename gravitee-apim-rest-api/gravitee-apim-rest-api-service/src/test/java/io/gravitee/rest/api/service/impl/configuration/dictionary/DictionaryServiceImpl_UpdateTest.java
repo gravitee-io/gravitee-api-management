@@ -76,7 +76,7 @@ public class DictionaryServiceImpl_UpdateTest {
     private AuditService auditService;
 
     @Test
-    public void shouldUpdateDictionary() throws TechnicalException {
+    public void should_update_dictionary() throws TechnicalException {
         Dictionary dictionaryInDb = new Dictionary();
         dictionaryInDb.setId(DICTIONARY_ID);
         dictionaryInDb.setCreatedAt(new Date());
@@ -106,6 +106,7 @@ public class DictionaryServiceImpl_UpdateTest {
                         arg.getEnvironmentId().equals(ENVIRONMENT_ID) &&
                         arg.getName().equals(updateDictionaryEntity.getName()) &&
                         arg.getDescription().equals(updateDictionaryEntity.getDescription()) &&
+                        arg.getProperties().keySet().equals(updateDictionaryEntity.getProperties().keySet()) &&
                         arg
                             .getProperties()
                             .entrySet()
@@ -146,7 +147,7 @@ public class DictionaryServiceImpl_UpdateTest {
     }
 
     @Test
-    public void shouldUpdateDynamicDictionary() throws TechnicalException {
+    public void should_update_dynamic_dictionary() throws TechnicalException {
         Dictionary dictionaryInDb = new Dictionary();
         dictionaryInDb.setId(DICTIONARY_ID);
         dictionaryInDb.setCreatedAt(new Date());
@@ -176,6 +177,7 @@ public class DictionaryServiceImpl_UpdateTest {
                         arg.getEnvironmentId().equals(ENVIRONMENT_ID) &&
                         arg.getName().equals(updateDictionaryEntity.getName()) &&
                         arg.getDescription().equals(updateDictionaryEntity.getDescription()) &&
+                        arg.getProperties().keySet().equals(updateDictionaryEntity.getProperties().keySet()) &&
                         arg
                             .getProperties()
                             .entrySet()
@@ -216,7 +218,7 @@ public class DictionaryServiceImpl_UpdateTest {
     }
 
     @Test
-    public void shouldNotUpdateBecauseDoesNotBelongToEnvironment() throws TechnicalException {
+    public void should_not_update_because_does_not_belong_to_environment() throws TechnicalException {
         assertThrows(DictionaryNotFoundException.class, () -> {
             Dictionary dictionaryInDb = new Dictionary();
             dictionaryInDb.setId(DICTIONARY_ID);
@@ -232,7 +234,7 @@ public class DictionaryServiceImpl_UpdateTest {
     }
 
     @Test
-    public void shouldNotUpdateBecauseNotFound() throws TechnicalException {
+    public void should_not_update_because_not_found() throws TechnicalException {
         assertThrows(DictionaryNotFoundException.class, () -> {
             when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.empty());
 
@@ -243,7 +245,7 @@ public class DictionaryServiceImpl_UpdateTest {
     }
 
     @Test
-    public void shouldPreserveEncryptedFlagWhenValueUnchanged() throws TechnicalException {
+    public void should_preserve_encrypted_flag_when_value_unchanged() throws TechnicalException {
         Dictionary existing = new Dictionary();
         existing.setId(DICTIONARY_ID);
         existing.setName("My Dictionary");

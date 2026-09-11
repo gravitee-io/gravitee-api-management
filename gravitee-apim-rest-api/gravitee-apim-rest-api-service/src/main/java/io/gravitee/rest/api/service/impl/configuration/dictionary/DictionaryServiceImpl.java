@@ -47,7 +47,9 @@ import io.gravitee.rest.api.service.impl.AbstractService;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -488,10 +490,10 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         if (incoming == null) {
             return null;
         }
-        Map<String, DictionaryProperty> result = new java.util.HashMap<>(incoming.size());
+        Map<String, DictionaryProperty> result = new HashMap<>(incoming.size());
         incoming.forEach((key, value) -> {
             DictionaryProperty previous = existing == null ? null : existing.get(key);
-            boolean unchanged = previous != null && java.util.Objects.equals(previous.value(), value);
+            boolean unchanged = previous != null && Objects.equals(previous.value(), value);
             result.put(key, new DictionaryProperty(value, unchanged && previous.encrypted()));
         });
         return result;
@@ -501,7 +503,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         if (typed == null) {
             return null;
         }
-        Map<String, String> result = new java.util.HashMap<>(typed.size());
+        Map<String, String> result = new HashMap<>(typed.size());
         typed.forEach((key, property) -> result.put(key, property.value()));
         return result;
     }
