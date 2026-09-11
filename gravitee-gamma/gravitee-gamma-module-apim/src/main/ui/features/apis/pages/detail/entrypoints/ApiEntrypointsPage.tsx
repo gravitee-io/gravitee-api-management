@@ -92,9 +92,9 @@ export function ApiEntrypointsPage() {
             if (hasTcpListeners(apiData)) {
                 const tcpListener = getTcpListener(apiData);
                 const hosts = tcpListener?.hosts ?? [];
-                setTcpHosts(
-                    hosts.length > 0 ? hosts.map(host => ({ id: newId(), host: normalizeTcpHost(host) })) : [{ id: newId(), host: '' }],
-                );
+                const mappedHosts = hosts.map(host => ({ id: newId(), host: normalizeTcpHost(host) }));
+                const initialTcpHosts = mappedHosts.length > 0 ? mappedHosts : [{ id: newId(), host: '' }];
+                setTcpHosts(initialTcpHosts);
                 setIsDirty(false);
                 setSaveError(null);
                 return;
