@@ -15,7 +15,7 @@
  */
 import { Injectable, inject } from '@angular/core';
 import { addTranslations, setLanguage } from '@gravitee/ui-components/src/lib/i18n';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateLoader, TranslateService } from '@ngx-translate/core';
 import { Title } from '@angular/platform-browser';
 
 import { environment } from '../../environments/environment';
@@ -25,6 +25,7 @@ import { environment } from '../../environments/environment';
 })
 export class TranslationService {
   private translateService = inject(TranslateService);
+  private translateLoader = inject(TranslateLoader);
   private titleService = inject(Title);
 
   load() {
@@ -34,12 +35,17 @@ export class TranslationService {
       // ngx-translate 18 renamed the fallback language and turned the current one into a signal.
       this.translateService.setFallbackLang(defaultLang);
       const browserLang = this.translateService.getBrowserLang();
-      this.translateService.use(environment.locales.includes(browserLang) ? browserLang : defaultLang).subscribe(translations => {
+      this.translateService.use(environment.locales.includes(browserLang) ? browserLang : defaultLang).subscribe(() => {
         const currentLang = this.translateService.currentLang() ?? defaultLang;
         setLanguage(currentLang);
-        addTranslations(currentLang, translations, currentLang);
-        this.translateService.get('site.title').subscribe(title => this.titleService.setTitle(String(title)));
-        resolve(true);
+        // ngx-translate 18 made use() emit the compiled dictionary, and the messageformat compiler
+        // turns every string into a function. ui-components stores what it is given and hands it back
+        // untouched, so it has to read the file itself to get plain strings.
+        this.translateLoader.getTranslation(currentLang).subscribe(translations => {
+          addTranslations(currentLang, translations, currentLang);
+          this.translateService.get('site.title').subscribe(title => this.titleService.setTitle(String(title)));
+          resolve(true);
+        });
       });
     });
   }
