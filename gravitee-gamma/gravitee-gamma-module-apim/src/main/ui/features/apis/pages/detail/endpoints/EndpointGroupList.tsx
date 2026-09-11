@@ -45,7 +45,7 @@ const LB_LABELS: Record<string, string> = {
 
 const TYPE_LABELS: Record<string, string> = {
     'http-proxy': 'HTTP Proxy',
-    'tcp-proxy': 'TCP proxy',
+    'tcp-proxy': 'TCP Proxy',
     grpc: 'gRPC',
     kafka: 'Kafka',
     mock: 'Mock',

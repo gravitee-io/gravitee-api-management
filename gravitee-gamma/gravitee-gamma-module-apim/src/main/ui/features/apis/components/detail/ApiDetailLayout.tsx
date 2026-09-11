@@ -55,7 +55,7 @@ import { useApiPermissions } from '../../hooks/useApiPermissions';
 import { useApiScoreEnabled } from '../../hooks/useApiScoreEnabled';
 import { deployApi } from '../../services/apis';
 import type { ApiDetailDto } from '../../types';
-import { hasTcpListeners, supportsResponseTemplates } from '../../utils/apiHttpProxy';
+import { getApiProxyTypeLabel, hasTcpListeners, supportsResponseTemplates } from '../../utils/apiHttpProxy';
 import { apiDetailKeys } from '../../utils/queryKeys';
 
 /** Classic console caps the deployment label at 32 characters. */
@@ -238,7 +238,7 @@ function ApiInfoHeader({ api, isLoading }: { api: ApiDetailDto | null; isLoading
             <div className="flex flex-wrap items-center gap-1">
                 {api.type ? (
                     <Badge variant="secondary" className="text-xs px-1.5 py-0 h-5">
-                        {api.type === 'PROXY' ? (hasTcpListeners(api) ? 'TCP Proxy' : 'HTTP Proxy') : 'Event-driven'}
+                        {api.type === 'PROXY' ? getApiProxyTypeLabel(api) : 'Event-driven'}
                     </Badge>
                 ) : null}
                 {api.apiVersion ? (
