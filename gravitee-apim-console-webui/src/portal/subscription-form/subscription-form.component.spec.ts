@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import {
-  ConfigureTestingGraviteeMarkdownEditor,
-  GmdFormEditorHarness,
-  GMD_FORM_STATE_STORE,
-  provideGmdFormStore,
-} from '@gravitee/gravitee-markdown';
+import { ConfigureTestingGraviteeMarkdownEditor, GmdFormEditorHarness, provideGmdFormStore } from '@gravitee/gravitee-markdown';
 
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { By } from '@angular/platform-browser';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
@@ -45,7 +40,9 @@ describe('SubscriptionFormComponent', () => {
   let rootLoader: HarnessLoader;
   let snackBarService: SnackBarService;
 
-  const init = async (canUpdate: boolean, subscriptionForm = fakeSubscriptionForm()) => {
+  const baseUrl = `${CONSTANTS_TESTING.env.v2BaseURL}/subscription-forms`;
+
+  const init = async (canUpdate: boolean) => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, SubscriptionFormComponent],
       providers: [
@@ -66,329 +63,358 @@ describe('SubscriptionFormComponent', () => {
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
-    // Spy on snackbar
     snackBarService = TestBed.inject(SnackBarService);
     jest.spyOn(snackBarService, 'success');
     jest.spyOn(snackBarService, 'error');
 
     fixture.detectChanges();
-
-    // Expect GET request for subscription form
-    const req = httpTestingController.expectOne({
-      method: 'GET',
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/subscription-forms`,
-    });
-    req.flush(subscriptionForm);
   };
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
+  function expectList(forms: SubscriptionForm[]): void {
+    const req = httpTestingController.expectOne({ method: 'GET', url: baseUrl });
+    req.flush(forms);
+    fixture.detectChanges();
+  }
+
+  function expectTemplate(gmdContent = 'Template content'): void {
+    const req = httpTestingController.expectOne({ method: 'GET', url: `${baseUrl}/_template` });
+    req.flush({ gmdContent });
+    fixture.detectChanges();
+  }
+
+  function expectGet(form: SubscriptionForm): void {
+    const req = httpTestingController.expectOne({ method: 'GET', url: `${baseUrl}/${form.id}` });
+    req.flush(form);
+    fixture.detectChanges();
+  }
+
   it('should create component', async () => {
     await init(true);
+    expectList([]);
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should load subscription form content from API', async () => {
-    const gmdContent = '# Test Form\n\n<gmd-input name="email" label="Email" fieldKey="email" required="true"></gmd-input>';
-    const form = fakeSubscriptionForm({ gmdContent });
+  it('should render every form and auto-select the default one', async () => {
+    await init(true);
+    const formA = fakeSubscriptionForm({ id: 'form-a', name: 'Form A', defaultForm: false, gmdContent: 'Form A content' });
+    const formB = fakeSubscriptionForm({ id: 'form-b', name: 'Form B', defaultForm: true, gmdContent: 'Form B content' });
+    expectList([formA, formB]);
 
-    await init(true, form);
+    const text = fixture.debugElement.nativeElement.textContent;
+    expect(text).toContain('Form A');
+    expect(text).toContain('Form B');
+    expect(fixture.debugElement.query(By.css('[data-testid=default-badge-form-b]'))).toBeTruthy();
+    expect(fixture.debugElement.query(By.css('[data-testid=default-badge-form-a]'))).toBeFalsy();
+
+    expectGet(formB);
+    expect(fixture.componentInstance.nameControl.value).toBe('Form B');
+    expect(fixture.componentInstance.contentControl.value).toBe('Form B content');
 
     const editorHarness = await harnessLoader.getHarness(GmdFormEditorHarness);
-    // The mock editor might normalize newlines to spaces or remove them if it's an input
-    const receivedValue = await editorHarness.getEditorValue();
-    expect(receivedValue.replace(/\s/g, '')).toEqual(gmdContent.replace(/\s/g, ''));
+    expect((await editorHarness.getEditorValue()).replace(/\s/g, '')).toEqual('FormBcontent');
   });
 
-  it('should disable editor when user has no update permission', async () => {
-    await init(false);
-    const editorHarness = await harnessLoader.getHarness(GmdFormEditorHarness);
-    expect(await editorHarness.isEditorReadOnly()).toBe(true);
-  });
-
-  it('should enable editor when user has update permission', async () => {
+  it('should show an empty state and select nothing when there are no forms', async () => {
     await init(true);
-    const editorHarness = await harnessLoader.getHarness(GmdFormEditorHarness);
-    expect(await editorHarness.isEditorReadOnly()).toBe(false);
+    expectList([]);
+
+    expect(fixture.debugElement.query(By.css('[data-testid=subscription-form-empty]'))).toBeTruthy();
+    expect(fixture.componentInstance.selectedForm()).toBeNull();
   });
 
-  it('should disable save button when content is empty or unchanged', async () => {
-    await init(true, fakeSubscriptionForm({ gmdContent: '# Hello world' }));
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    fixture.componentInstance.contentControl.setValue('Updated form content');
-    fixture.detectChanges();
-
-    const saveButton = await getSaveButton();
-    expect(await saveButton.isDisabled()).toBeFalsy();
-
-    fixture.componentInstance.contentControl.setValue('# Hello world');
-    fixture.detectChanges();
-    expect(await saveButton.isDisabled()).toBeTruthy();
-
-    fixture.componentInstance.contentControl.setValue('');
-    fixture.detectChanges();
-    expect(await saveButton.isDisabled()).toBeTruthy();
-
-    fixture.componentInstance.contentControl.setValue('     ');
-    fixture.detectChanges();
-    expect(await saveButton.isDisabled()).toBeTruthy();
-  });
-
-  it('should update subscription form content', async () => {
-    const form = fakeSubscriptionForm();
-    const updatedContent = '# Updated Form\n\n<gmd-input name="name" label="Name" fieldKey="name"></gmd-input>';
-    await init(true, form);
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    fixture.componentInstance.contentControl.setValue(updatedContent);
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const saveButton = await getSaveButton();
-    expect(await saveButton.isDisabled()).toBeFalsy();
-    await saveButton.click();
-
-    expectSubscriptionFormUpdate({ gmdContent: updatedContent }, { ...form, gmdContent: updatedContent });
-    expect(snackBarService.success).toHaveBeenCalledWith('The subscription form has been updated successfully');
-    expect(await saveButton.isDisabled()).toBeTruthy();
-  });
-
-  it('should disable save button when critical config errors exist', async () => {
+  it('should show an error message when loading the list fails', async () => {
     await init(true);
-    await fixture.whenStable();
-    fixture.detectChanges();
-    const store = getGmdFormStore();
+    const req = httpTestingController.expectOne({ method: 'GET', url: baseUrl });
+    req.flush({ message: 'Load failed' }, { status: 500, statusText: 'Server Error' });
 
-    fixture.componentInstance.contentControl.setValue('Updated form content');
-    fixture.detectChanges();
-
-    const saveButton = await getSaveButton();
-    expect(await saveButton.isDisabled()).toBeFalsy();
-
-    store.updateField(fieldStateWithConfigError('error'));
-    fixture.detectChanges();
-
-    expect(await saveButton.isDisabled()).toBeTruthy();
+    expect(snackBarService.error).toHaveBeenCalledWith('Load failed');
   });
 
-  it('should not disable save button when only config warnings exist', async () => {
-    await init(true);
-    await fixture.whenStable();
-    fixture.detectChanges();
-    const store = getGmdFormStore();
+  describe('permissions', () => {
+    it('should hide the create button and disable editing when user lacks permission', async () => {
+      await init(false);
+      const form = fakeSubscriptionForm({ id: 'form-a' });
+      expectList([form]);
+      expectGet(form);
 
-    fixture.componentInstance.contentControl.setValue('Updated form content');
-    fixture.detectChanges();
+      await expect(
+        harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=create-subscription-form-button]' })),
+      ).rejects.toThrow();
 
-    const saveButton = await getSaveButton();
-    store.updateField(fieldStateWithConfigError('warning'));
-    fixture.detectChanges();
+      const toggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[data-testid=enable-toggle-form-a]' }));
+      expect(await toggle.isDisabled()).toBe(true);
 
-    expect(await saveButton.isDisabled()).toBeFalsy();
+      expect(fixture.componentInstance.nameControl.disabled).toBe(true);
+      expect(fixture.componentInstance.contentControl.disabled).toBe(true);
+
+      const editorHarness = await harnessLoader.getHarness(GmdFormEditorHarness);
+      expect(await editorHarness.isEditorReadOnly()).toBe(true);
+    });
   });
 
-  describe('enable/disable toggle functionality', () => {
-    it('should enable a disabled form after confirmation', async () => {
-      const disabledForm = fakeSubscriptionForm({ enabled: false });
-      await init(true, disabledForm);
+  describe('create flow', () => {
+    it('should prefill the editor with the default template and enable Save once a name is given', async () => {
+      await init(true);
+      expectList([]);
 
-      const toggle = await getEnableToggle();
-      expect(await toggle.isChecked()).toBe(false);
-      await toggle.toggle();
-
-      await confirmDialog('Enable');
-
-      const req = httpTestingController.expectOne({
-        method: 'POST',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/subscription-forms/${disabledForm.id}/_enable`,
-      });
-      req.flush({ ...disabledForm, enabled: true });
+      const createButton = await harnessLoader.getHarness(
+        MatButtonHarness.with({ selector: '[data-testid=create-subscription-form-button]' }),
+      );
+      await createButton.click();
       fixture.detectChanges();
+      expect(fixture.componentInstance.isCreating()).toBe(true);
+      expectTemplate('# Template');
+      expect(fixture.componentInstance.contentControl.value).toBe('# Template');
 
-      expect(snackBarService.success).toHaveBeenCalledWith('Subscription form has been enabled successfully.');
-      expect(await toggle.isChecked()).toBe(true);
+      const saveButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=subscription-form-save-button]' }));
+      expect(await saveButton.isDisabled()).toBe(true);
+
+      fixture.componentInstance.nameControl.setValue('New Form');
+      fixture.detectChanges();
+      expect(await saveButton.isDisabled()).toBe(false);
     });
 
-    it('should disable an enabled form after confirmation', async () => {
-      const enabledForm = fakeSubscriptionForm({ enabled: true });
-      await init(true, enabledForm);
+    it('should keep Save disabled until both name and content are provided when the template is unavailable', async () => {
+      await init(true);
+      expectList([]);
 
-      const toggle = await getEnableToggle();
-      expect(await toggle.isChecked()).toBe(true);
-      await toggle.toggle();
-
-      await confirmDialog('Disable');
-
-      const req = httpTestingController.expectOne({
-        method: 'POST',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/subscription-forms/${enabledForm.id}/_disable`,
-      });
-      req.flush({ ...enabledForm, enabled: false });
+      const createButton = await harnessLoader.getHarness(
+        MatButtonHarness.with({ selector: '[data-testid=create-subscription-form-button]' }),
+      );
+      await createButton.click();
+      fixture.detectChanges();
+      expect(fixture.componentInstance.isCreating()).toBe(true);
+      httpTestingController.expectOne({ method: 'GET', url: `${baseUrl}/_template` }).flush(null, { status: 500, statusText: 'Error' });
       fixture.detectChanges();
 
-      expect(snackBarService.success).toHaveBeenCalledWith('Subscription form has been disabled successfully.');
-      expect(await toggle.isChecked()).toBe(false);
+      const saveButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=subscription-form-save-button]' }));
+      expect(await saveButton.isDisabled()).toBe(true);
+
+      fixture.componentInstance.nameControl.setValue('New Form');
+      fixture.detectChanges();
+      expect(await saveButton.isDisabled()).toBe(true);
+
+      fixture.componentInstance.contentControl.setValue('New content');
+      fixture.detectChanges();
+      expect(await saveButton.isDisabled()).toBe(false);
     });
 
-    it('should not perform any action if the confirmation dialog is cancelled', async () => {
-      const disabledForm = fakeSubscriptionForm({ enabled: false });
-      await init(true, disabledForm);
+    it('should create the form, select it and refresh the list', async () => {
+      await init(true);
+      expectList([]);
 
-      const toggle = await getEnableToggle();
+      const createButton = await harnessLoader.getHarness(
+        MatButtonHarness.with({ selector: '[data-testid=create-subscription-form-button]' }),
+      );
+      await createButton.click();
+      fixture.detectChanges();
+      expectTemplate();
+
+      fixture.componentInstance.nameControl.setValue('New Form');
+      fixture.componentInstance.contentControl.setValue('New content');
+      fixture.detectChanges();
+
+      const saveButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=subscription-form-save-button]' }));
+      await saveButton.click();
+
+      const createReq = httpTestingController.expectOne({ method: 'POST', url: baseUrl });
+      expect(createReq.request.body).toEqual({ name: 'New Form', gmdContent: 'New content' });
+      const created = fakeSubscriptionForm({ id: 'new-form', name: 'New Form', gmdContent: 'New content', defaultForm: false });
+      createReq.flush(created);
+
+      expect(snackBarService.success).toHaveBeenCalledWith('Subscription form created successfully.');
+      expectList([created]);
+      expectGet(created);
+      expect(fixture.componentInstance.selectedForm()?.id).toBe('new-form');
+    });
+
+    it('should show the backend error when the name is already used', async () => {
+      await init(true);
+      expectList([]);
+
+      const createButton = await harnessLoader.getHarness(
+        MatButtonHarness.with({ selector: '[data-testid=create-subscription-form-button]' }),
+      );
+      await createButton.click();
+      fixture.detectChanges();
+      expectTemplate();
+      fixture.componentInstance.nameControl.setValue('Default');
+      fixture.componentInstance.contentControl.setValue('Content');
+      fixture.detectChanges();
+
+      const saveButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=subscription-form-save-button]' }));
+      await saveButton.click();
+
+      httpTestingController
+        .expectOne({ method: 'POST', url: baseUrl })
+        .flush(
+          { message: "A subscription form named 'Default' already exists in this environment." },
+          { status: 409, statusText: 'Conflict' },
+        );
+
+      expect(snackBarService.error).toHaveBeenCalledWith("A subscription form named 'Default' already exists in this environment.");
+    });
+  });
+
+  describe('edit flow', () => {
+    it('should load the form on selection, then update name and content on save', async () => {
+      await init(true);
+      const form = fakeSubscriptionForm({ id: 'form-a', name: 'Form A', gmdContent: 'Original content' });
+      expectList([form]);
+      expectGet(form);
+      expect(fixture.componentInstance.nameControl.value).toBe('Form A');
+
+      fixture.componentInstance.nameControl.setValue('Updated Form A');
+      fixture.componentInstance.contentControl.setValue('Updated content');
+      fixture.detectChanges();
+
+      const saveButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=subscription-form-save-button]' }));
+      await saveButton.click();
+
+      const updateReq = httpTestingController.expectOne({ method: 'PUT', url: `${baseUrl}/form-a` });
+      expect(updateReq.request.body).toEqual({ name: 'Updated Form A', gmdContent: 'Updated content' });
+      const updated = { ...form, name: 'Updated Form A', gmdContent: 'Updated content' };
+      updateReq.flush(updated);
+
+      expect(snackBarService.success).toHaveBeenCalledWith('Subscription form updated successfully.');
+      expectList([updated]);
+      expect(fixture.componentInstance.hasUnsavedChanges()).toBe(false);
+    });
+  });
+
+  describe('selection', () => {
+    it('should load a different form when selecting a different row', async () => {
+      await init(true);
+      const formA = fakeSubscriptionForm({ id: 'form-a', name: 'Form A', defaultForm: true, gmdContent: 'Content A' });
+      const formB = fakeSubscriptionForm({ id: 'form-b', name: 'Form B', defaultForm: false, gmdContent: 'Content B' });
+      expectList([formA, formB]);
+      expectGet(formA);
+
+      fixture.debugElement.query(By.css('[data-testid=subscription-form-row-form-b]')).nativeElement.click();
+      fixture.detectChanges();
+
+      expectGet(formB);
+      expect(fixture.componentInstance.nameControl.value).toBe('Form B');
+    });
+
+    it('should prompt to discard unsaved changes before switching selection', async () => {
+      await init(true);
+      const formA = fakeSubscriptionForm({ id: 'form-a', name: 'Form A', defaultForm: true, gmdContent: 'Content A' });
+      const formB = fakeSubscriptionForm({ id: 'form-b', name: 'Form B', defaultForm: false, gmdContent: 'Content B' });
+      expectList([formA, formB]);
+      expectGet(formA);
+
+      fixture.componentInstance.nameControl.setValue('Dirty name');
+      fixture.detectChanges();
+
+      fixture.debugElement.query(By.css('[data-testid=subscription-form-row-form-b]')).nativeElement.click();
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      const discardButton = await dialog.getHarness(MatButtonHarness.with({ text: /Discard/ }));
+      await discardButton.click();
+
+      expectGet(formB);
+      expect(fixture.componentInstance.nameControl.value).toBe('Form B');
+    });
+  });
+
+  describe('enable toggle', () => {
+    it('should enable the form after confirmation', async () => {
+      await init(true);
+      const form = fakeSubscriptionForm({ id: 'form-a', name: 'Form A', enabled: false });
+      expectList([form]);
+      expectGet(form);
+
+      const toggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[data-testid=enable-toggle-form-a]' }));
+      await toggle.toggle();
+
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      const confirmButton = await dialog.getHarness(MatButtonHarness.with({ text: /Enable/ }));
+      await confirmButton.click();
+
+      httpTestingController.expectOne({ method: 'POST', url: `${baseUrl}/form-a/_enable` }).flush({ ...form, enabled: true });
+
+      expect(snackBarService.success).toHaveBeenCalledWith('Subscription form "Form A" has been enabled successfully.');
+      expectList([{ ...form, enabled: true }]);
+    });
+
+    it('should disable the form after confirmation', async () => {
+      await init(true);
+      const form = fakeSubscriptionForm({ id: 'form-a', name: 'Form A', enabled: true });
+      expectList([form]);
+      expectGet(form);
+
+      const toggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[data-testid=enable-toggle-form-a]' }));
+      await toggle.toggle();
+
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      const confirmButton = await dialog.getHarness(MatButtonHarness.with({ text: /Disable/ }));
+      await confirmButton.click();
+
+      httpTestingController.expectOne({ method: 'POST', url: `${baseUrl}/form-a/_disable` }).flush({ ...form, enabled: false });
+
+      expect(snackBarService.success).toHaveBeenCalledWith('Subscription form "Form A" has been disabled successfully.');
+      expectList([{ ...form, enabled: false }]);
+    });
+
+    it('should not call the backend when the confirmation dialog is cancelled', async () => {
+      await init(true);
+      const form = fakeSubscriptionForm({ id: 'form-a', enabled: false });
+      expectList([form]);
+      expectGet(form);
+
+      const toggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[data-testid=enable-toggle-form-a]' }));
       await toggle.toggle();
 
       const dialog = await rootLoader.getHarness(MatDialogHarness);
       await dialog.close();
-
-      // Toggle should be reset to previous state
-      expect(await toggle.isChecked()).toBe(false);
-      httpTestingController.verify();
     });
+  });
 
-    it('should show an error message if enabling fails', async () => {
-      const disabledForm = fakeSubscriptionForm({ enabled: false });
-      await init(true, disabledForm);
-
-      const toggle = await getEnableToggle();
-      await toggle.toggle();
-      await confirmDialog('Enable');
-
-      const req = httpTestingController.expectOne({
-        method: 'POST',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/subscription-forms/${disabledForm.id}/_enable`,
-      });
-      req.flush({ message: 'API error on enable' }, { status: 500, statusText: 'Server Error' });
-
-      expect(snackBarService.error).toHaveBeenCalledWith('API error on enable');
-      // Toggle should be reset to previous state
-      expect(await toggle.isChecked()).toBe(false);
-    });
-
-    it('should save changes before enabling when form has unsaved changes', async () => {
-      const disabledForm = fakeSubscriptionForm({ enabled: false });
-      await init(true, disabledForm);
-      await fixture.whenStable();
-      fixture.detectChanges();
-
-      fixture.componentInstance.contentControl.setValue('Updated form content');
-      fixture.detectChanges();
-
-      const toggle = await getEnableToggle();
-      await toggle.toggle();
-
-      await confirmDialog('Save and enable');
-
-      expectSubscriptionFormUpdate({ gmdContent: 'Updated form content' }, { ...disabledForm, gmdContent: 'Updated form content' });
-
-      const req = httpTestingController.expectOne({
-        method: 'POST',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/subscription-forms/${disabledForm.id}/_enable`,
-      });
-      req.flush({ ...disabledForm, enabled: true });
-      fixture.detectChanges();
-
-      expect(snackBarService.success).toHaveBeenCalledWith('Subscription form has been enabled successfully.');
-      expect(await toggle.isChecked()).toBe(true);
-    });
-
-    it('should disable toggle when config errors exist', async () => {
+  describe('default form', () => {
+    it('should hide the set-as-default button on the current default form', async () => {
       await init(true);
-      await fixture.whenStable();
-      fixture.detectChanges();
-      const store = getGmdFormStore();
+      const form = fakeSubscriptionForm({ id: 'form-a', defaultForm: true });
+      expectList([form]);
+      expectGet(form);
 
-      store.updateField(fieldStateWithConfigError('error'));
-      fixture.detectChanges();
-      await fixture.whenStable();
+      await expect(
+        harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=subscription-form-set-default-button]' })),
+      ).rejects.toThrow();
+    });
 
-      const toggle = await getEnableToggle();
-      expect(await toggle.isDisabled()).toBe(true);
+    it('should set the selected form as default after confirmation and refresh the list', async () => {
+      await init(true);
+      const defaultForm = fakeSubscriptionForm({ id: 'form-a', name: 'Form A', defaultForm: true });
+      const otherForm = fakeSubscriptionForm({ id: 'form-b', name: 'Form B', defaultForm: false });
+      expectList([defaultForm, otherForm]);
+      expectGet(defaultForm);
+
+      fixture.debugElement.query(By.css('[data-testid=subscription-form-row-form-b]')).nativeElement.click();
+      fixture.detectChanges();
+      expectGet(otherForm);
+
+      const setDefaultButton = await harnessLoader.getHarness(
+        MatButtonHarness.with({ selector: '[data-testid=subscription-form-set-default-button]' }),
+      );
+      await setDefaultButton.click();
+
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      const confirmButton = await dialog.getHarness(MatButtonHarness.with({ text: /Set as default/ }));
+      await confirmButton.click();
+
+      httpTestingController.expectOne({ method: 'POST', url: `${baseUrl}/form-b/_default` }).flush({ ...otherForm, defaultForm: true });
+
+      expect(snackBarService.success).toHaveBeenCalledWith('Subscription form "Form B" is now the default.');
+      expectList([
+        { ...defaultForm, defaultForm: false },
+        { ...otherForm, defaultForm: true },
+      ]);
     });
   });
-
-  it('should have unsaved changes when content is modified', async () => {
-    await init(true, fakeSubscriptionForm({ gmdContent: 'Initial content' }));
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    expect(fixture.componentInstance.hasUnsavedChanges()).toBeFalsy();
-
-    fixture.componentInstance.contentControl.setValue('Modified content');
-    expect(fixture.componentInstance.hasUnsavedChanges()).toBeTruthy();
-  });
-
-  it('should not have unsaved changes when content is modified and then reverted', async () => {
-    await init(true, fakeSubscriptionForm({ gmdContent: 'Initial content' }));
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    expect(fixture.componentInstance.hasUnsavedChanges()).toBeFalsy();
-
-    fixture.componentInstance.contentControl.setValue('Modified content');
-    expect(fixture.componentInstance.hasUnsavedChanges()).toBeTruthy();
-
-    fixture.componentInstance.contentControl.setValue('Initial content');
-    expect(fixture.componentInstance.hasUnsavedChanges()).toBeFalsy();
-  });
-
-  it('should show action bar, hide Save and disable toggle when user lacks permission', async () => {
-    await init(false);
-
-    const toggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[data-testid=enable-toggle]' }));
-
-    await expect(
-      harnessLoader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Update subscription form"]' })),
-    ).rejects.toThrow();
-    await expect(toggle.isDisabled()).resolves.toBe(true);
-  });
-
-  async function getEnableToggle() {
-    return await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[data-testid=enable-toggle]' }));
-  }
-
-  async function confirmDialog(action: string) {
-    const dialog = await rootLoader.getHarness(MatDialogHarness);
-    const confirmButton = await dialog.getHarness(MatButtonHarness.with({ text: new RegExp(action) }));
-    await confirmButton.click();
-  }
-
-  async function getSaveButton() {
-    return await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Update subscription form"]' }));
-  }
-
-  function getGmdFormStore() {
-    return fixture.debugElement.injector.get(GMD_FORM_STATE_STORE);
-  }
-
-  /** Returns a field state with one config error, for tests that need hasConfigErrors() to be true. */
-  function fieldStateWithConfigError(severity: 'error' | 'warning') {
-    return {
-      id: 'field-1',
-      fieldKey: 'key-1',
-      valid: true,
-      value: '',
-      required: false,
-      touched: false,
-      validationErrors: [],
-      configErrors: [
-        severity === 'error'
-          ? { code: 'emptyFieldKey' as const, message: 'Missing property', severity: 'error' as const }
-          : { code: 'normalizedValue' as const, message: 'Missing property', severity: 'warning' as const },
-      ],
-    };
-  }
-
-  function expectSubscriptionFormUpdate(expected: { gmdContent: string }, response: SubscriptionForm) {
-    const req = httpTestingController.expectOne({
-      method: 'PUT',
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/subscription-forms/${response.id}`,
-    });
-    expect(req.request.body).toStrictEqual(expected);
-    req.flush(response);
-  }
 });

@@ -15,34 +15,108 @@
     limitations under the License.
 
 -->
-<portal-header
-  subtitle="Define the subscription form that will be displayed to users when subscribing to APIs"
-  [title]="'Subscription Form'"
-  [showActions]="true"
->
-  <div additionalActions class="actions">
-    <mat-slide-toggle
-      aria-label="Visible to API consumers"
-      labelPosition="before"
-      [formControl]="enabledControl"
-      [matTooltip]="enabledControlTooltip()"
-      [matTooltipDisabled]="!enabledControlTooltip()"
-      data-testid="enable-toggle"
-    >
-      Visible to API consumers
-    </mat-slide-toggle>
-    <button
-      *gioPermission="{ anyOf: ['environment-metadata-u'] }"
-      mat-flat-button
-      color="primary"
-      aria-label="Update subscription form"
-      (click)="updateSubscriptionForm()"
-      [disabled]="isSaveDisabled()"
-      [matTooltip]="saveButtonTooltip()"
-      [matTooltipDisabled]="!saveButtonTooltip()"
-    >
-      Save
-    </button>
+<main class="page-layout">
+  <section class="panel sections-panel" [style.width.px]="panelWidth()">
+    <header class="panel-header sections-panel__header">
+      <h3>Subscription Forms</h3>
+      <div class="panel-header__actions">
+        <button
+          *gioPermission="{ anyOf: ['environment-metadata-c'] }"
+          mat-stroked-button
+          type="button"
+          aria-label="Add subscription form"
+          data-testid="create-subscription-form-button"
+          (click)="startCreate()"
+        >
+          <mat-icon>add</mat-icon>
+          Add
+        </button>
+      </div>
+    </header>
+
+    <div class="sections-panel__tree__container">
+      <subscription-form-list
+        [forms]="forms()"
+        [selectedFormId]="selectedForm()?.id ?? null"
+        [canUpdate]="canUpdate()"
+        (selectForm)="selectForm($event)"
+        (toggleEnabled)="onEnabledToggle($event)"
+      />
+    </div>
+  </section>
+
+  <div class="resize-handle-container" (mousedown)="onResizeStart($event)">
+    <hr class="resize-handle" aria-label="Resize subscription forms panel" aria-orientation="vertical" />
+    <mat-icon svgIcon="gio:drag-indicator"></mat-icon>
   </div>
-</portal-header>
-<gmd-form-editor [formControl]="contentControl" />
+
+  <section class="panel editor-panel">
+    <header class="panel-header editor-panel__header">
+      @if (hasSelection()) {
+        <div class="panel-header__title">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="panel-header__title__field">
+            <input
+              id="subscription-form-name"
+              matInput
+              [formControl]="nameControl"
+              required
+              placeholder="Name"
+              aria-label="Name"
+              data-testid="subscription-form-name-input"
+            />
+          </mat-form-field>
+
+          @if (!isCreating()) {
+            <div class="panel-header__title__badges">
+              <span [class]="selectedFormEnabled() ? 'gio-badge-success' : 'gio-badge-warning'">
+                {{ selectedFormEnabled() ? 'Enabled' : 'Disabled' }}
+              </span>
+              @if (selectedFormIsDefault()) {
+                <span class="gio-badge-primary">Default</span>
+              }
+            </div>
+          }
+        </div>
+      }
+      <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-metadata-u'] }">
+        @if (hasSelection() && !isCreating() && !selectedFormIsDefault()) {
+          <button
+            mat-stroked-button
+            type="button"
+            data-testid="subscription-form-set-default-button"
+            [matTooltip]="'Use this form for every API without a dedicated form'"
+            (click)="setAsDefault()"
+          >
+            Set as default
+          </button>
+        }
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          [disabled]="isSaveDisabled()"
+          data-testid="subscription-form-save-button"
+          (click)="save()"
+        >
+          {{ saveButtonLabel() }}
+        </button>
+      </div>
+    </header>
+
+    @if (hasSelection()) {
+      <gmd-form-editor [formControl]="contentControl" />
+    } @else {
+      <div class="empty-editor">
+        <mat-card appearance="outlined" class="empty-state">
+          <mat-card-content>
+            <empty-state
+              iconName="gio:code"
+              title="Subscription form"
+              message="Select a form from the list to edit it, or create a new one."
+            />
+          </mat-card-content>
+        </mat-card>
+      </div>
+    }
+  </section>
+</main>

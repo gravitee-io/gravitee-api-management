@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { SubscriptionForm, UpdateSubscriptionForm } from '../entities/management-api-v2';
+import { CreateSubscriptionForm, SubscriptionForm, SubscriptionFormTemplate, UpdateSubscriptionForm } from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
@@ -29,19 +29,35 @@ export class SubscriptionFormService {
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
-  public getSubscriptionForm(): Observable<SubscriptionForm> {
-    return this.http.get<SubscriptionForm>(`${this.constants.env.v2BaseURL}/subscription-forms`);
+  public list(): Observable<SubscriptionForm[]> {
+    return this.http.get<SubscriptionForm[]>(`${this.constants.env.v2BaseURL}/subscription-forms`);
   }
 
-  public updateSubscriptionForm(id: string, content: UpdateSubscriptionForm): Observable<SubscriptionForm> {
-    return this.http.put<SubscriptionForm>(`${this.constants.env.v2BaseURL}/subscription-forms/${id}`, content);
+  public get(id: string): Observable<SubscriptionForm> {
+    return this.http.get<SubscriptionForm>(`${this.constants.env.v2BaseURL}/subscription-forms/${id}`);
   }
 
-  public enableSubscriptionForm(id: string): Observable<SubscriptionForm> {
+  public getTemplate(): Observable<SubscriptionFormTemplate> {
+    return this.http.get<SubscriptionFormTemplate>(`${this.constants.env.v2BaseURL}/subscription-forms/_template`);
+  }
+
+  public create(form: CreateSubscriptionForm): Observable<SubscriptionForm> {
+    return this.http.post<SubscriptionForm>(`${this.constants.env.v2BaseURL}/subscription-forms`, form);
+  }
+
+  public update(id: string, form: UpdateSubscriptionForm): Observable<SubscriptionForm> {
+    return this.http.put<SubscriptionForm>(`${this.constants.env.v2BaseURL}/subscription-forms/${id}`, form);
+  }
+
+  public enable(id: string): Observable<SubscriptionForm> {
     return this.http.post<SubscriptionForm>(`${this.constants.env.v2BaseURL}/subscription-forms/${id}/_enable`, {});
   }
 
-  public disableSubscriptionForm(id: string): Observable<SubscriptionForm> {
+  public disable(id: string): Observable<SubscriptionForm> {
     return this.http.post<SubscriptionForm>(`${this.constants.env.v2BaseURL}/subscription-forms/${id}/_disable`, {});
+  }
+
+  public setDefault(id: string): Observable<SubscriptionForm> {
+    return this.http.post<SubscriptionForm>(`${this.constants.env.v2BaseURL}/subscription-forms/${id}/_default`, {});
   }
 }
