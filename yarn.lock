@@ -1030,20 +1030,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@asyncapi/openapi-schema-parser@npm:^3.0.24":
-  version: 3.0.24
-  resolution: "@asyncapi/openapi-schema-parser@npm:3.0.24"
+"@asyncapi/openapi-schema-parser@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "@asyncapi/openapi-schema-parser@npm:3.1.0"
   dependencies:
-    "@asyncapi/parser": "npm:^3.1.0"
     "@openapi-contrib/openapi-schema-to-json-schema": "npm:~3.2.0"
     ajv: "npm:^8.11.0"
     ajv-errors: "npm:^3.0.0"
     ajv-formats: "npm:^2.1.1"
-  checksum: 10c0/b5c301fe08befb7527dce4b582a66a09d35b3d62afbf92a13f687b1af96a40c5c711c275bb9a110be58b5beb1813aec89199abfeb01813c89e1c3c757168d2b9
+  peerDependencies:
+    "@asyncapi/parser": ^3.6.2
+  checksum: 10c0/9bdcd3f0b6adb51d4d2660c51d97c099a851ffb3851f834765e7533aa42e58a29030efb7b3f62d630db7c9d485020fab8d42629fb91b9ba52ab08f17dd85c2de
   languageName: node
   linkType: hard
 
-"@asyncapi/parser@npm:^3.1.0, @asyncapi/parser@npm:^3.3.0, @asyncapi/parser@npm:^3.4.0":
+"@asyncapi/parser@npm:^3.1.0":
   version: 3.6.0
   resolution: "@asyncapi/parser@npm:3.6.0"
   dependencies:
@@ -1070,35 +1071,62 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@asyncapi/protobuf-schema-parser@npm:^3.6.0":
-  version: 3.6.0
-  resolution: "@asyncapi/protobuf-schema-parser@npm:3.6.0"
+"@asyncapi/parser@npm:^3.6.2":
+  version: 3.6.3
+  resolution: "@asyncapi/parser@npm:3.6.3"
   dependencies:
-    "@asyncapi/parser": "npm:^3.4.0"
-    "@types/protocol-buffers-schema": "npm:^3.4.3"
-    protobufjs: "npm:^7.4.0"
-  checksum: 10c0/5804aed24ac4069b2c8d04768919992b3b7cb76c496923f4adb1f1691667ea34d974ae29c3b7498d8e47799d3c933d27537d29bef953fe963253ac8883eb4784
+    "@asyncapi/specs": "npm:^6.11.1"
+    "@openapi-contrib/openapi-schema-to-json-schema": "npm:~3.2.0"
+    "@stoplight/json": "npm:3.21.0"
+    "@stoplight/json-ref-readers": "npm:^1.2.2"
+    "@stoplight/json-ref-resolver": "npm:^3.1.5"
+    "@stoplight/spectral-core": "npm:^1.18.3"
+    "@stoplight/spectral-functions": "npm:^1.7.2"
+    "@stoplight/spectral-parsers": "npm:^1.0.2"
+    "@stoplight/spectral-ref-resolver": "npm:^1.0.3"
+    "@stoplight/types": "npm:^13.12.0"
+    "@types/json-schema": "npm:^7.0.11"
+    "@types/urijs": "npm:^1.19.19"
+    ajv: "npm:^8.18.0"
+    ajv-errors: "npm:^3.0.0"
+    ajv-formats: "npm:^2.1.1"
+    avsc: "npm:^5.7.5"
+    js-yaml: "npm:^4.3.1"
+    jsonpath-plus: "npm:^10.0.7"
+    node-fetch: "npm:2.6.7"
+  checksum: 10c0/4eda8bea397e7bd0f5974dedeecf677a632696de06af369c3f78b430bca95c5de3f193d38cefe8d0454d0e1817d97da51861d6590c4da3f28214813cef6384fd
   languageName: node
   linkType: hard
 
-"@asyncapi/react-component@npm:2.6.5, @asyncapi/react-component@npm:^2.6.3":
-  version: 2.6.5
-  resolution: "@asyncapi/react-component@npm:2.6.5"
+"@asyncapi/protobuf-schema-parser@npm:^3.8.3":
+  version: 3.9.0
+  resolution: "@asyncapi/protobuf-schema-parser@npm:3.9.0"
+  dependencies:
+    "@asyncapi/parser": "npm:^3.6.2"
+    "@types/protocol-buffers-schema": "npm:^3.4.3"
+    protobufjs: "npm:^8.7.1"
+  checksum: 10c0/c8c0c693398e367df8bc8cc3d57168b9f889cb6b38524bec8217ef9e8f2cf2143906919ba45f18ecc9f49dd0f590976954c2d0c813877a6f28f7793bc7f88ede
+  languageName: node
+  linkType: hard
+
+"@asyncapi/react-component@npm:3.1.8, @asyncapi/react-component@npm:^3.1.8":
+  version: 3.1.8
+  resolution: "@asyncapi/react-component@npm:3.1.8"
   dependencies:
     "@asyncapi/avro-schema-parser": "npm:^3.0.24"
-    "@asyncapi/openapi-schema-parser": "npm:^3.0.24"
-    "@asyncapi/parser": "npm:^3.3.0"
-    "@asyncapi/protobuf-schema-parser": "npm:^3.6.0"
+    "@asyncapi/openapi-schema-parser": "npm:^3.1.0"
+    "@asyncapi/parser": "npm:^3.6.2"
+    "@asyncapi/protobuf-schema-parser": "npm:^3.8.3"
     highlight.js: "npm:^10.7.2"
     isomorphic-dompurify: "npm:^2.14.0"
     marked: "npm:^4.0.14"
     openapi-sampler: "npm:^1.2.1"
     react-error-boundary: "npm:^4.1.2"
-    use-resize-observer: "npm:^9.1.0"
+    use-resize-observer: "npm:^10.0.0"
   peerDependencies:
     react: ">=18.0.0"
     react-dom: ">=18.0.0"
-  checksum: 10c0/f0647f02bebabd37760d6917202c9a595dd083cd9f525275f99b35532d185aa415920112ed3400dc31d620db6d884e2f35855b947b613f7287c33028163a3a5e
+  checksum: 10c0/1bd7472fdaa4cb4022e6b06b2e3669da1420b42c1bc0982b85e00fa959c661d850553e3aa51e0167be912e4135b190f00b7b3fcef7be21fb34e1f1a60b36247d
   languageName: node
   linkType: hard
 
@@ -1111,15 +1139,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@asyncapi/web-component@npm:2.6.3":
-  version: 2.6.3
-  resolution: "@asyncapi/web-component@npm:2.6.3"
+"@asyncapi/web-component@npm:3.1.8":
+  version: 3.1.8
+  resolution: "@asyncapi/web-component@npm:3.1.8"
   dependencies:
-    "@asyncapi/react-component": "npm:^2.6.3"
+    "@asyncapi/react-component": "npm:^3.1.8"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     web-react-components: "npm:^1.4.2"
-  checksum: 10c0/e8de2caf5d15ba9eae2e353342fcd08b501b2c3029ccf743a5226c1ad4a7a2c2e27a6fa06db46ebb4f218b940f998212af1bfe202b23beddf05cd15100eaabda
+  checksum: 10c0/cd6beb551dcad3762baa506d779dde932689bd451c2e4300bc41bdcfd94541b55364d362c8b64025a94851e49399ab50e0ca49f229bb8265ebe99f5712c7dc77
   languageName: node
   linkType: hard
 
@@ -6006,13 +6034,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@juggle/resize-observer@npm:^3.3.1":
-  version: 3.4.0
-  resolution: "@juggle/resize-observer@npm:3.4.0"
-  checksum: 10c0/12930242357298c6f2ad5d4ec7cf631dfb344ca7c8c830ab7f64e6ac11eb1aae486901d8d880fd08fb1b257800c160a0da3aee1e7ed9adac0ccbb9b7c5d93347
-  languageName: node
-  linkType: hard
-
 "@keyv/bigmap@npm:^1.3.1":
   version: 1.3.1
   resolution: "@keyv/bigmap@npm:1.3.1"
@@ -8117,78 +8138,6 @@ __metadata:
   version: 2.11.8
   resolution: "@popperjs/core@npm:2.11.8"
   checksum: 10c0/4681e682abc006d25eb380d0cf3efc7557043f53b6aea7a5057d0d1e7df849a00e281cd8ea79c902a35a414d7919621fc2ba293ecec05f413598e0b23d5a1e63
-  languageName: node
-  linkType: hard
-
-"@protobufjs/aspromise@npm:^1.1.1, @protobufjs/aspromise@npm:^1.1.2":
-  version: 1.1.2
-  resolution: "@protobufjs/aspromise@npm:1.1.2"
-  checksum: 10c0/a83343a468ff5b5ec6bff36fd788a64c839e48a07ff9f4f813564f58caf44d011cd6504ed2147bf34835bd7a7dd2107052af755961c6b098fd8902b4f6500d0f
-  languageName: node
-  linkType: hard
-
-"@protobufjs/base64@npm:^1.1.2":
-  version: 1.1.2
-  resolution: "@protobufjs/base64@npm:1.1.2"
-  checksum: 10c0/eec925e681081af190b8ee231f9bad3101e189abbc182ff279da6b531e7dbd2a56f1f306f37a80b1be9e00aa2d271690d08dcc5f326f71c9eed8546675c8caf6
-  languageName: node
-  linkType: hard
-
-"@protobufjs/codegen@npm:^2.0.5":
-  version: 2.0.5
-  resolution: "@protobufjs/codegen@npm:2.0.5"
-  checksum: 10c0/1b8a2ae56ee60a56e9d205cd4b6072a1503c5069b8ebb905710f974ff0098a0d0700641c137e0a8d98dedf14423156a106a9433695cbf52574810f55000fdcab
-  languageName: node
-  linkType: hard
-
-"@protobufjs/eventemitter@npm:^1.1.1":
-  version: 1.1.1
-  resolution: "@protobufjs/eventemitter@npm:1.1.1"
-  checksum: 10c0/8e06193d4629c5e7c09d4f8c2ddba8fc4dfa739f0149f33a1d901568d35bb7b8b5277a4e8452baf3bdd0b302fd599cf255d193267aa93a0a4747e23cd073c4ac
-  languageName: node
-  linkType: hard
-
-"@protobufjs/fetch@npm:^1.1.1":
-  version: 1.1.1
-  resolution: "@protobufjs/fetch@npm:1.1.1"
-  dependencies:
-    "@protobufjs/aspromise": "npm:^1.1.1"
-  checksum: 10c0/a497ff5433854e8577f0427983ea39b9113b49a8120f94515291d763327061d2c3013e60e24ea436d091dafae01a0f6eb1867e3b1616045d96a31d8b3c646ed4
-  languageName: node
-  linkType: hard
-
-"@protobufjs/float@npm:^1.0.2":
-  version: 1.0.2
-  resolution: "@protobufjs/float@npm:1.0.2"
-  checksum: 10c0/18f2bdede76ffcf0170708af15c9c9db6259b771e6b84c51b06df34a9c339dbbeec267d14ce0bddd20acc142b1d980d983d31434398df7f98eb0c94a0eb79069
-  languageName: node
-  linkType: hard
-
-"@protobufjs/inquire@npm:^1.1.2":
-  version: 1.1.2
-  resolution: "@protobufjs/inquire@npm:1.1.2"
-  checksum: 10c0/af69597818a14cac6a00a74cd5b3fb85aa96658b9dbbae73e6d907cb154ebf470953a8c537b3e6095a43de565ec4e6c5b40227c72f4a7d762d34fbec7ac179e7
-  languageName: node
-  linkType: hard
-
-"@protobufjs/path@npm:^1.1.2":
-  version: 1.1.2
-  resolution: "@protobufjs/path@npm:1.1.2"
-  checksum: 10c0/cece0a938e7f5dfd2fa03f8c14f2f1cf8b0d6e13ac7326ff4c96ea311effd5fb7ae0bba754fbf505312af2e38500250c90e68506b97c02360a43793d88a0d8b4
-  languageName: node
-  linkType: hard
-
-"@protobufjs/pool@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@protobufjs/pool@npm:1.1.0"
-  checksum: 10c0/eda2718b7f222ac6e6ad36f758a92ef90d26526026a19f4f17f668f45e0306a5bd734def3f48f51f8134ae0978b6262a5c517c08b115a551756d1a3aadfcf038
-  languageName: node
-  linkType: hard
-
-"@protobufjs/utf8@npm:^1.1.1":
-  version: 1.1.1
-  resolution: "@protobufjs/utf8@npm:1.1.1"
-  checksum: 10c0/641fc145f00626405e8984b6e90b9edcbcc072ffc82d0647ca3176e09c730b2d022f988e65f011a7a17e2e4d77cde7733643aa10d8ac2bfa30f134dbcad553fd
   languageName: node
   linkType: hard
 
@@ -13127,7 +13076,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:>=13.7.0":
+"@types/node@npm:*":
   version: 25.9.1
   resolution: "@types/node@npm:25.9.1"
   dependencies:
@@ -20998,8 +20947,8 @@ __metadata:
     "@angular/router": "npm:20.3.16"
     "@angular/upgrade": "npm:20.3.16"
     "@asciidoctor/core": "npm:3.0.4"
-    "@asyncapi/react-component": "npm:2.6.5"
-    "@asyncapi/web-component": "npm:2.6.3"
+    "@asyncapi/react-component": "npm:3.1.8"
+    "@asyncapi/web-component": "npm:3.1.8"
     "@dagrejs/dagre": "npm:1.1.8"
     "@danielmoncada/angular-datetime-picker": "npm:20.0.1"
     "@danielmoncada/angular-datetime-picker-moment-adapter": "npm:7.0.1"
@@ -23838,7 +23787,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-yaml@npm:^4.2.0":
+"js-yaml@npm:^4.2.0, js-yaml@npm:^4.3.1":
   version: 4.3.2
   resolution: "js-yaml@npm:4.3.2"
   dependencies:
@@ -28742,23 +28691,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"protobufjs@npm:^7.4.0":
-  version: 7.6.2
-  resolution: "protobufjs@npm:7.6.2"
+"protobufjs@npm:^8.7.1":
+  version: 8.8.0
+  resolution: "protobufjs@npm:8.8.0"
   dependencies:
-    "@protobufjs/aspromise": "npm:^1.1.2"
-    "@protobufjs/base64": "npm:^1.1.2"
-    "@protobufjs/codegen": "npm:^2.0.5"
-    "@protobufjs/eventemitter": "npm:^1.1.1"
-    "@protobufjs/fetch": "npm:^1.1.1"
-    "@protobufjs/float": "npm:^1.0.2"
-    "@protobufjs/inquire": "npm:^1.1.2"
-    "@protobufjs/path": "npm:^1.1.2"
-    "@protobufjs/pool": "npm:^1.1.0"
-    "@protobufjs/utf8": "npm:^1.1.1"
-    "@types/node": "npm:>=13.7.0"
     long: "npm:^5.3.2"
-  checksum: 10c0/3c552dfe3cbcfad2d6c312a76cd189cf5be9fb36b203f6292f79c6020d675f7f33d5531ce312441c42ae75deb24ced32760e64fe4aa3d5b3c2295fd67cea270c
+  checksum: 10c0/2aa7fc766dce41858ce45ad750d9bfb2d30e9121f8c4f581ee3e5deda21440cae6bb23f41ec599d33b34963164e85f38eace687ba025d804fe926ab057c05703
   languageName: node
   linkType: hard
 
@@ -33829,15 +33767,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"use-resize-observer@npm:^9.1.0":
-  version: 9.1.0
-  resolution: "use-resize-observer@npm:9.1.0"
-  dependencies:
-    "@juggle/resize-observer": "npm:^3.3.1"
+"use-resize-observer@npm:^10.0.0":
+  version: 10.0.0
+  resolution: "use-resize-observer@npm:10.0.0"
   peerDependencies:
-    react: 16.8.0 - 18
-    react-dom: 16.8.0 - 18
-  checksum: 10c0/6ccdeb09fe20566ec182b1635a22f189e13d46226b74610432590e69b31ef5d05d069badc3306ebd0d2bb608743b17981fb535763a1d7dc2c8ae462ee8e5999c
+    react: ">=18.2"
+  checksum: 10c0/90b3c913f18f17775fab09cc56f2b2962ce1f3aa3604bab2807b722f4ea6809ab0b987d2e9177f2643305d104f027fb4c83d79d7a77b47630ccd54df7bd32cb6
   languageName: node
   linkType: hard
 
