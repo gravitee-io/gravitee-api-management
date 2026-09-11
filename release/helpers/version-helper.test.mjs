@@ -99,9 +99,12 @@ describe('assertVersionMatchesPoms', () => {
 </properties></project>`;
 
   /** Serves a pom per path; anything absent from the map answers 404, as GitHub would. */
-  function stub(poms) {
+  function stub(poms, { branchExists = true } = {}) {
     const asked = [];
     globalThis.fetch = async (url) => {
+      if (url.includes('/branches/')) {
+        return branchExists ? { ok: true, status: 200 } : { ok: false, status: 404, statusText: 'Not Found' };
+      }
       const path = decodeURIComponent(url.split('/contents/')[1].split('?')[0]);
       asked.push(path);
       const body = poms[path];
@@ -128,6 +131,21 @@ describe('assertVersionMatchesPoms', () => {
     assert.deepEqual(asked, ['pom.xml', 'gravitee-apim-distribution/pom.xml']);
   });
 
+  // A branch that does not exist answers 404 on every path, exactly as a missing file does. Read as
+  // "this pom inherits the root version", that silence used to let a mistyped or not-yet-cut branch
+  // through — and print something untrue on its way.
+  it('refuses a branch the repository does not have', async () => {
+    stub({}, { branchExists: false });
+
+    await assert.rejects(() => assertVersionMatchesPoms('4.13.0', '4.13.x', [ROOT_POM]), { message: 'exit 1' });
+  });
+
+  it('refuses a pom the branch does not carry, rather than calling it inherited', async () => {
+    stub({ 'pom.xml': pom('4.12.16') });
+
+    await assert.rejects(() => assertVersionMatchesPoms('4.12.16', '4.12.x', [ROOT_POM, DISTRIBUTION_POM]), { message: 'exit 1' });
+  });
+
   it('refuses when the distribution lags behind the root, which a core release makes it do', async () => {
     stub({ 'pom.xml': pom('4.12.16'), 'gravitee-apim-distribution/pom.xml': pom('4.12.15') });
 
@@ -145,12 +163,6 @@ describe('assertVersionMatchesPoms', () => {
     stub({ 'pom.xml': pom('4.11.9'), 'gravitee-apim-distribution/pom.xml': '<project/>' });
 
     await assertVersionMatchesPoms('4.11.9', '4.11.x', [ROOT_POM, DISTRIBUTION_POM]);
-  });
-
-  it('ignores a distribution pom the branch does not have at all', async () => {
-    stub({ 'pom.xml': pom('4.10.30') });
-
-    await assertVersionMatchesPoms('4.10.30', '4.10.x', [ROOT_POM, DISTRIBUTION_POM]);
   });
 
   it('reads the root alone for a core release, the distribution staying behind on purpose', async () => {

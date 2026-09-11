@@ -76,6 +76,30 @@ export function versionFromPom(pomXml) {
 export const ROOT_POM = 'pom.xml';
 export const DISTRIBUTION_POM = 'gravitee-apim-distribution/pom.xml';
 
+/**
+ * Refuses a branch the repository does not have.
+ *
+ * A missing branch and a missing file are the same 404 on the contents API, and the pom loop below
+ * reads that silence as "this pom inherits the root version" — so a line not cut yet, or simply
+ * mistyped, used to pass the check while it printed something untrue. Asked once, before any pom.
+ * @param {string} branch
+ */
+async function assertBranchExists(branch) {
+  const url = `https://api.github.com/repos/gravitee-io/gravitee-api-management/branches/${branch}`;
+  const response = await fetch(url, { headers: { Accept: 'application/vnd.github+json' } });
+
+  if (response.status === 404) {
+    console.log(chalk.red(`'${branch}' does not exist.`));
+    console.log(`A release runs on the branch its version implies; --branch releases from another one.`);
+    process.exit(1);
+  }
+  if (!response.ok) {
+    console.log(chalk.red(`Cannot check whether '${branch}' exists: ${response.status} ${response.statusText}`));
+    console.log(`Checked ${url}`);
+    process.exit(1);
+  }
+}
+
 async function readPom(pom, branch) {
   // The contents API rather than raw.githubusercontent.com: the latter is served with a five-minute
   // cache, long enough for a release started right after a version bump to read the previous pom and
@@ -84,7 +108,10 @@ async function readPom(pom, branch) {
   const url = `https://api.github.com/repos/gravitee-io/gravitee-api-management/contents/${pom}?ref=${branch}`;
   const response = await fetch(url, { headers: { Accept: 'application/vnd.github.raw' } });
   if (response.status === 404) {
-    return undefined;
+    // The branch exists — that was checked first — so the file is genuinely absent. Every branch a
+    // release runs from carries both poms; measured on master and on 4.8.x through 4.12.x.
+    console.log(chalk.red(`'${branch}' has no ${pom}.`));
+    process.exit(1);
   }
   if (!response.ok) {
     console.log(chalk.red(`Cannot read ${pom} on '${branch}': ${response.status} ${response.statusText}`));
@@ -110,12 +137,14 @@ async function readPom(pom, branch) {
  * @param {string[]} poms the poms that have to carry it
  */
 export async function assertVersionMatchesPoms(version, branch, poms) {
+  await assertBranchExists(branch);
+
   const published = {};
   for (const pom of poms) {
     const content = await readPom(pom, branch);
     // The distribution only carries a triplet of its own where the reactor was cut; elsewhere it
     // inherits the root's, and there is nothing separate to check.
-    if (content === undefined || !/<revision>/.test(content)) {
+    if (!/<revision>/.test(content)) {
       console.log(chalk.yellow(`Skipped ${pom}: it inherits the root version on '${branch}'.`));
       continue;
     }
