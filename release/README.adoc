@@ -9,7 +9,7 @@ Three things, and they are not the same thing.
 [cols="1,3"]
 |===
 | Where the release runs
-| Derived from `--version`: `4.12.18` releases from `4.12.x`. Never from your current branch — no script reads your local git state. `--branch` overrides it, and you are asked to confirm when it differs from the derived one.
+| Derived from `--version`: `4.12.18` releases from `4.12.x`. Never from your current branch — no script reads your local git state. `--branch` overrides it; the branch that will be released is printed with the tag before the command asks to continue.
 
 | Which version is published
 | The poms, through `<revision><sha1><changelist>`. The release clears `<changelist>` to drop `-SNAPSHOT`, and publishes what is left. `--version` does *not* set it — it feeds the commit message, the git tag and the UI `build.json` files.
@@ -18,7 +18,7 @@ Three things, and they are not the same thing.
 | After releasing, the branch is bumped to the next version. `4.12.18` leaves it at `4.12.19-SNAPSHOT`; a qualified version like `4.13.0-alpha.1` leaves it at `4.13.0-alpha.2-SNAPSHOT`.
 |===
 
-The second row is the one that surprises people, so the command checks it: before triggering anything it reads the poms of the branch it is about to release from, and refuses when they disagree with `--version`. Without that check the tag would say one thing and the artefacts another, and nothing downstream would notice. `full_release` releases both reactors, so it requires both poms to carry the version; a core release moves the root alone, so it only reads that one.
+The second row is the one that surprises people, so the command checks it: before triggering anything it reads the poms of the branch it is about to release from, and refuses when they disagree with `--version`. Without that check the tag would say one thing and the artefacts another, and nothing downstream would notice. Each lane reads what it moves — the distribution its own pom, the core the root one — and the two versions no longer have to agree.
 
 == Setup
 
@@ -40,18 +40,26 @@ One command:
 
 [source,shell]
 ----
-yarn full_release --version=4.12.18
+yarn prepare_distribution_release --version=4.12.18
 ----
 
-It asks for confirmation on the JIRA release and on leftover alpha qualifiers, then runs every step. Add `--latest` to tag the Docker images as `latest`, or it will ask.
+It publishes nothing itself. It announces whether the run publishes, shows the branch and the tag, and asks once. CI then commits `4.12.18`, tags it, reopens the branch on `4.12.19-SNAPSHOT`, and pushes the branch and, after it, the tag. *Pushing that tag is what publishes*: a second pipeline starts from it and produces the images, the bundle, the RPMs and the chart.
+
+Three read-only checks run locally first, so they refuse in a second rather than after a pipeline has spun up:
+
+* the version matches `gravitee-apim-distribution/pom.xml` on the branch it will release from;
+* `helm/Chart.yaml` carries it too, in both `version` and `appVersion` — the chart ships with the release, so it has to name it;
+* the tag does not already exist. An existing one means that version has been released, and pushing it again fails halfway, after the branch has been committed to and reopened.
+
+Which images take the `latest` tag is not asked any more. A final release takes it when nothing higher has been released, read from the tags the repository carries; a qualified version never takes it.
 
 === If a release stops halfway
 
 Nothing resumes it. In the CircleCI workflow, *Rerun from failed* restarts the failed job **and everything that depends on it** — which is not always what you want.
 
-Most of what publishes is a leaf, or close to one: the bundle, the RPMs, the Helm chart, the Nexus sync, the API docs ingestion. A failure there replays little more than itself.
+Most of what publishes is a leaf, or close to one: the bundle, the RPMs, the Helm chart, the API docs ingestion. A failure there replays little more than itself.
 
-A failure in a build job is the one to look at twice. `Backend build and publish on download website` and the three UI builds feed the Docker images, their chainguard and FIPS variants, and — through them — the job that commits the version and pushes the tag. Rerunning from failed replays the lot.
+A failure in a build job is the one to look at twice. `Backend build and publish on download website` and the three UI builds feed the Docker images and their chainguard and FIPS variants. Rerunning from failed replays the lot.
 
 To replay one job and nothing else, use the API rather than the button:
 
@@ -62,15 +70,14 @@ curl -X POST -H "Circle-Token: $CIRCLECI_TOKEN" \
   -d '{"jobs": ["<job-id>"]}'
 ----
 
-Either way, look at what the job actually did before replaying it. None of the steps is idempotent: the release commits and tags, the Docker step retags, the Nexus step publishes.
+Either way, look at what the job actually did before replaying it. None of the steps is idempotent: the Docker step retags, the bundle and the RPMs upload, the chart publishes. The commit and the tag are not among them — they happened before the tag that started this pipeline, which is what makes replaying it produce the same artefacts.
 
 === Flags
 
 [cols="1,3"]
 |===
 | `--version` | Required, everywhere.
-| `--dry-run` | Runs the pipeline without publishing.
-| `--latest` | Docker images also get the `latest` tag.
+| `--dry-run` | Runs the pipeline with its pushes disarmed. Spell it exactly: a near miss is refused rather than read as a real release.
 | `--branch` | Release from a branch other than the derived one. The version commit and the tag are pushed there.
 |===
 
@@ -87,19 +94,19 @@ The command publishes nothing. CI commits `4.13.0`, tags it `core_4.13.0`, reope
 
 Two things follow from that, and both are the point of it:
 
-* The artefacts are built from the tag, so re-running the publishing pipeline on the same tag produces the same result. `full_release` builds from the branch head and creates the tag afterwards, on a commit that did not exist when the build ran.
+* The artefacts are built from the tag, so re-running the publishing pipeline on the same tag produces the same result. The command it replaced built from the branch head and created the tag afterwards, on a commit that did not exist when the build ran.
 * The branch is pushed before the tag. The reverse order leaves a published version sitting on no branch, should the branch push then fail.
 
 The tag is prefixed because *the product keeps the bare version*: `4.13.0` names the images and the bundle. Only this lane's tags carry `core_`.
 
 Before triggering anything, the command checks two things, both read-only, so they refuse in a second rather than after a pipeline has spun up:
 
-* the version matches the root pom of the branch it will release from — the same check `full_release` makes, narrowed to the one reactor this lane moves;
+* the version matches the root pom of the branch it will release from — the same check the distribution lane makes, narrowed to the one reactor this lane moves;
 * `core_4.13.0` does not already exist. An existing tag means that version has already been released, and pushing it again fails halfway — after the branch has been committed to and reopened on the next version, a state that has to be unwound by hand.
 
 `--dry-run` runs the same job with the pushes disarmed, which is as far as a rehearsal goes here: a tag cannot be pushed provisionally, so what it rehearses is the commit, the tag and the bump — not the publication, and not the pull request that follows it.
 
-Only the root pom is advanced. The distribution carries its own triplet, so a core release leaves it where it is; `full_release` is still what releases it, until it gets a lane of its own.
+Only the root pom is advanced. The distribution carries its own triplet and releases under its own tag, so a core release leaves it where it is.
 
 What a core release never touches is `apim.core.version` — the version of the core the distribution assembles. Advancing that pin is a separate, reviewed change: it is the moment someone decides a core is ready to ship.
 
@@ -120,7 +127,7 @@ Then add the fix as one commit, and release from there:
 
 [source,shell]
 ----
-yarn full_release --version=4.12.17-hotfix.1
+yarn prepare_distribution_release --version=4.12.17-hotfix.1
 ----
 
 The support branch is untouched throughout, and the Docker `4.12` and `latest` tags are left where they were — a qualified version never claims them.
@@ -178,7 +185,7 @@ Going back to a final release means undoing that by hand, before releasing:
 * `pom.xml` — `<sha1>-alpha.4</sha1>` back to `<sha1/>`. Since the reactor cut, on `master`, `gravitee-apim-distribution/pom.xml` carries its own triplet and needs the same treatment.
 * `helm/Chart.yaml` — drop the qualifier from `version` and `appVersion`.
 
-`full_release` asks whether this was done. It cannot check.
+Forgetting either is refused rather than asked about: the command compares `--version` against the pom of the reactor it releases, and against the chart. It used to be a prompt asking whether you had remembered, which is not a question anyone can answer from memory.
 
 == Helm changelog
 
