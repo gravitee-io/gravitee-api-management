@@ -50,6 +50,9 @@ public class JdbcSubscriptionFormRepository
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
+            // Unique per environment in the table: two forms of an environment cannot share a name, whatever
+            // its case or padding, enforced by the database.
+            .addMirroredColumn("normalized_name", Types.NVARCHAR, SubscriptionForm::getNormalizedName)
             .addColumn("gmd_content", Types.NVARCHAR, String.class)
             .addColumn("portal_page_content_id", Types.NVARCHAR, String.class)
             .addColumn("enabled", Types.BIT, boolean.class)
@@ -150,8 +153,8 @@ public class JdbcSubscriptionFormRepository
     }
 
     /**
-     * A duplicate key is a collision with another form of the environment (a second default form), which the
-     * caller handles as a conflict rather than as a technical failure.
+     * A duplicate key is a collision with another form of the environment (a second default form, or a name
+     * already taken), which the caller handles as a conflict rather than as a technical failure.
      */
     private static TechnicalException translateDuplicateKey(TechnicalException ex, SubscriptionForm item) {
         if (ex.getCause() instanceof org.springframework.dao.DuplicateKeyException) {

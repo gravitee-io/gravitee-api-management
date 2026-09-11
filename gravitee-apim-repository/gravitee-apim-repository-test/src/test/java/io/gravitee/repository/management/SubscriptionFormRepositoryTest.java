@@ -237,9 +237,51 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
     }
 
     @Test
+    public void shouldRejectASecondFormWithTheSameNameInTheSameEnvironment() throws Exception {
+        SubscriptionForm sameName = aFormNamed("sub-form-same-name", "env-1", "  partner ONBOARDING  ");
+
+        assertThatThrownBy(() -> subscriptionFormRepository.create(sameName)).isInstanceOf(DuplicateKeyException.class);
+        assertThat(subscriptionFormRepository.findById("sub-form-same-name")).isNotPresent();
+    }
+
+    @Test
+    public void shouldRejectRenamingAFormOntoTheNameOfAnotherFormOfTheEnvironment() throws Exception {
+        SubscriptionForm partner = subscriptionFormRepository.findById("sub-form-partner").orElseThrow();
+        SubscriptionForm renamed = partner.toBuilder().name("DEFAULT").build();
+
+        assertThatThrownBy(() -> subscriptionFormRepository.update(renamed)).isInstanceOf(DuplicateKeyException.class);
+        assertThat(subscriptionFormRepository.findById("sub-form-partner"))
+            .get()
+            .extracting(SubscriptionForm::getName)
+            .isEqualTo("Partner onboarding");
+    }
+
+    @Test
+    public void shouldAcceptTheSameNameInAnotherEnvironment() throws Exception {
+        SubscriptionForm sameNameElsewhere = aFormNamed("sub-form-same-name-other-env", "env-other", "Partner onboarding");
+
+        SubscriptionForm created = subscriptionFormRepository.create(sameNameElsewhere);
+
+        assertThat(created.getName()).isEqualTo("Partner onboarding");
+        assertThat(subscriptionFormRepository.findById("sub-form-same-name-other-env")).isPresent();
+    }
+
+    @Test
     public void shouldFindAll() throws Exception {
         Set<SubscriptionForm> all = subscriptionFormRepository.findAll();
 
         assertThat(all).hasSize(6);
+    }
+
+    private static SubscriptionForm aFormNamed(String id, String environmentId, String name) {
+        return SubscriptionForm.builder()
+            .id(id)
+            .environmentId(environmentId)
+            .name(name)
+            .portalPageContentId("1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e5f")
+            .enabled(false)
+            .defaultForm(false)
+            .validationConstraints("{}")
+            .build();
     }
 }

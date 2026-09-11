@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
+import java.util.Locale;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -77,4 +78,13 @@ public class SubscriptionForm {
      * {@code null} when nothing is stored (empty rule sets are typically not persisted).
      */
     private String validationConstraints;
+
+    /**
+     * Uniqueness key derived from {@link #name}: trimmed and lowercased, so two forms of an environment cannot
+     * differ by case or padding alone. Persisted next to the name, where it carries the unique index the
+     * implementations rely on; it is never set by the caller.
+     */
+    public String getNormalizedName() {
+        return name == null ? null : name.trim().toLowerCase(Locale.ROOT);
+    }
 }

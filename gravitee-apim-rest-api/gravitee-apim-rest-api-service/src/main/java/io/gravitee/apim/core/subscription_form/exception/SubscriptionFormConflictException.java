@@ -19,7 +19,8 @@ import io.gravitee.apim.core.exception.ConflictDomainException;
 
 /**
  * Raised when the persistence layer rejects a form colliding with another form of its environment (a second
- * default form), which the use cases check beforehand: only a concurrent write gets here.
+ * default form, or a name already taken), which the use cases check beforehand: only a concurrent write gets
+ * here, which is why the message does not name the colliding constraint.
  *
  * @author Gravitee.io Team
  */
