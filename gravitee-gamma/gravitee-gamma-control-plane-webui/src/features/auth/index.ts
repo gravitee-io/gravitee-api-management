@@ -27,5 +27,6 @@ export type { CurrentUser as User, SocialIdentityProvider, IdentityProviderType 
 export { LoginPage } from './components/LoginPage';
 export { ResetPasswordPage } from './components/ResetPasswordPage';
 export { SignUpPage } from './components/SignUpPage';
+export { ActivationPage } from './components/ActivationPage';
 export { ProtectedRoute, PublicOnlyRoute } from './components/ProtectedRoute';
 export { RegistrationEnabledRoute } from './components/RegistrationEnabledRoute';

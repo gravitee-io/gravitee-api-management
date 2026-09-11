@@ -15,7 +15,15 @@
  */
 import { Navigate, Route, Routes } from 'react-router-dom';
 
-import { LoginPage, ProtectedRoute, PublicOnlyRoute, RegistrationEnabledRoute, ResetPasswordPage, SignUpPage } from '../features/auth';
+import {
+    ActivationPage,
+    LoginPage,
+    ProtectedRoute,
+    PublicOnlyRoute,
+    RegistrationEnabledRoute,
+    ResetPasswordPage,
+    SignUpPage,
+} from '../features/auth';
 import { EnvironmentGuard, RootRedirect } from '../features/environment';
 import { type GammaModule, RemoteModuleRoute, useGammaModules } from '../features/modules';
 import { HomePage } from '../pages/home';
@@ -31,6 +39,7 @@ export function AppRoutes() {
         return (
             <Routes>
                 <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+                <Route path="/registration/:token" element={<ActivationPage />} />
                 <Route element={<PublicOnlyRoute />}>
                     <Route path="/login" element={<LoginPage />} />
                     <Route element={<RegistrationEnabledRoute />}>
@@ -53,6 +62,9 @@ export function AppRoutes() {
     return (
         <Routes>
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+            {/* Outside every guard: the link is the only way in, whether or not someone is signed in or
+                registration is still on, and the server has the only explanation worth giving. */}
+            <Route path="/registration/:token" element={<ActivationPage />} />
             <Route element={<PublicOnlyRoute />}>
                 <Route path="/login" element={<LoginPage />} />
                 <Route element={<RegistrationEnabledRoute />}>

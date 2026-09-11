@@ -51,4 +51,16 @@ describe('AppRoutes', () => {
             expect(await screen.findByRole('button', { name: 'Request account' })).toBeTruthy();
         });
     });
+
+    describe('/registration/:token', () => {
+        it('should reach the activation page while registration is disabled', async () => {
+            // The email predates the setting: someone holding the link still gets the page's answer.
+            seedBootstrap({ registrationEnabled: false });
+
+            renderAt('/registration/not-a-token');
+
+            expect(await screen.findByText('Activate your account')).toBeTruthy();
+            expect(screen.queryByRole('button', { name: 'Sign in' })).toBeNull();
+        });
+    });
 });
