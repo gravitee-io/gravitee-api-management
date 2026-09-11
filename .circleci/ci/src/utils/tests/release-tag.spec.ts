@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { coreVersionFromTag } from '../release-tag';
+import { coreVersionFromTag, distributionVersionFromTag } from '../release-tag';
 
 describe('coreVersionFromTag', () => {
   it.each(['core_4.13.0', 'core_4.13.12', 'core_10.0.0'])('reads the version of a final release tag: %s', (tag) => {
@@ -37,4 +37,27 @@ describe('coreVersionFromTag', () => {
       expect(coreVersionFromTag(tag)).toBeUndefined();
     },
   );
+});
+
+describe('distributionVersionFromTag', () => {
+  it.each`
+    tag                   | expected
+    ${'4.13.0'}           | ${'4.13.0'}
+    ${'4.13.0-alpha.1'}   | ${'4.13.0-alpha.1'}
+    ${'4.12.17-hotfix.2'} | ${'4.12.17-hotfix.2'}
+  `('reads $expected from $tag', ({ tag, expected }) => {
+    expect(distributionVersionFromTag(tag)).toEqual(expected);
+  });
+
+  // The two lanes share the repository, so each pattern has to leave the other's tags alone.
+  it.each`
+    tag
+    ${'core_4.13.0'}
+    ${''}
+    ${'v4.13.0'}
+    ${'4.13'}
+    ${'nightly'}
+  `('ignores $tag', ({ tag }) => {
+    expect(distributionVersionFromTag(tag)).toBeUndefined();
+  });
 });
