@@ -127,7 +127,7 @@ describe('GioPermissionDirective', () => {
     it('should throw error if allOf and anyOf are both set', () => {
       expect(() => {
         prepareTestPermissionComponent({ allOf: ['api-rating-r'], anyOf: ['api-rating-c'] });
-      }).toThrowError('You should only set one of `anyOf`, `noneOf`, or `allOf`, but not more than one.');
+      }).toThrow('You should only set one of `anyOf`, `noneOf`, or `allOf`, but not more than one.');
     });
   });
 

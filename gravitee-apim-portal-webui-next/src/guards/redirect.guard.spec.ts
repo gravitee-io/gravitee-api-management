@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { DOCUMENT } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
 
 import { redirectGuard } from './redirect.guard';
@@ -21,26 +22,22 @@ import { ConfigService } from '../services/config.service';
 describe('redirectGuard', () => {
   let configService: ConfigService;
 
-  Object.defineProperty(window, 'location', {
-    configurable: true,
-    enumerable: true,
-    writable: true,
-    value: {
-      href: '',
-    },
-  });
+  let fakeDocument: { location: { href: string } };
 
   beforeEach(() => {
+    fakeDocument = { location: { href: 'http://localhost/next' } };
     TestBed.configureTestingModule({
-      providers: [{ provide: ConfigService, useValue: { configuration: { portalNext: { access: { enabled: false } } } } }],
+      providers: [
+        { provide: ConfigService, useValue: { configuration: { portalNext: { access: { enabled: false } } } } },
+        { provide: DOCUMENT, useValue: fakeDocument },
+      ],
     });
     configService = TestBed.inject(ConfigService);
-    window.location.href = 'http://localhost/next';
   });
 
   it('should redirect when access is not enabled', () => {
     expect(TestBed.runInInjectionContext(() => redirectGuard())).toBeTruthy();
-    expect(window.location.href).toEqual('http://localhost/404');
+    expect(fakeDocument.location.href).toEqual('http://localhost/404');
   });
 
   it('should not redirect when access is enabled', () => {
@@ -48,6 +45,6 @@ describe('redirectGuard', () => {
       configService.configuration.portalNext.access.enabled = true;
     }
     expect(TestBed.runInInjectionContext(() => redirectGuard())).toBeTruthy();
-    expect(window.location.href).toEqual('http://localhost/next');
+    expect(fakeDocument.location.href).toEqual('http://localhost/next');
   });
 });
