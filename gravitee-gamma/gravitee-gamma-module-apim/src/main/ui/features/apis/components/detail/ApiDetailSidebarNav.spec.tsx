@@ -179,38 +179,82 @@ describe('withTcpRestrictions', () => {
         expect(withTcpRestrictions(GROUPS, false)).toBe(GROUPS);
     });
 
-    it('marks Policy Studio, CORS, and Response Templates as comingSoon when the API has TCP listeners', () => {
+    it('reorganises TCP APIs to the Gamma Baby group layout', () => {
         const restricted = withTcpRestrictions(GROUPS, true);
-        const design = restricted.find(g => g.label === 'Design')!;
-        const policyStudio = design.items.find(i => i.path === 'policy-studio')!;
-        const cors = design.items.find(i => i.path === 'cors')!;
-        const responseTemplates = design.items.find(i => i.path === 'response-templates')!;
-
-        expect(policyStudio.comingSoon).toBe(true);
-        expect(policyStudio.comingSoonReason).toBe('Coming soon for V4 APIs');
-        expect(cors.comingSoon).toBe(true);
-        expect(cors.comingSoonReason).toBe('Coming soon for V4 APIs');
-        expect(responseTemplates.comingSoon).toBe(true);
-        expect(responseTemplates.comingSoonReason).toBe('Coming soon for V4 APIs');
+        expect(restricted.map(g => g.label)).toEqual([
+            'General',
+            'Gateway',
+            'Consumer Access',
+            'Security',
+            'Monitoring',
+            'Operations',
+        ]);
     });
 
-    it('does not affect unrelated items', () => {
-        const restricted = withTcpRestrictions(GROUPS, true);
-        const plans = restricted.find(g => g.label === 'Consumers')!.items.find(i => i.path === 'plans')!;
-        expect(plans.comingSoon).toBeUndefined();
+    it('places General settings, properties, resources, notifications, and API Score under General', () => {
+        const general = withTcpRestrictions(GROUPS, true).find(g => g.label === 'General')!;
+        expect(general.items.map(i => [i.label, i.path])).toEqual([
+            ['Overview', 'overview'],
+            ['General', 'general'],
+            ['API Properties', 'properties'],
+            ['Resources', 'resources'],
+            ['Notifications', 'notifications'],
+            ['API Score', 'api-score'],
+        ]);
     });
 
-    it('omits Failover and Health Check Dashboard for TCP APIs', () => {
+    it('lists Entrypoints and Endpoints flat under Gateway and omits reporter and policy surfaces', () => {
+        const gateway = withTcpRestrictions(GROUPS, true).find(g => g.label === 'Gateway')!;
+        expect(gateway.items.map(i => [i.label, i.path])).toEqual([
+            ['Entrypoints', 'entrypoints'],
+            ['Endpoints', 'endpoints/list'],
+        ]);
+        expect(gateway.items.every(i => !i.children?.length)).toBe(true);
+        expect(gateway.items.some(i => i.path === 'reporter-settings')).toBe(false);
+        expect(gateway.items.some(i => i.path === 'policy-studio')).toBe(false);
+        expect(gateway.items.some(i => i.path === 'response-templates')).toBe(false);
+        expect(gateway.items.some(i => i.path === 'cors')).toBe(false);
+    });
+
+    it('keeps Plans and Broadcasts under Consumer Access and omits Subscriptions', () => {
+        const consumerAccess = withTcpRestrictions(GROUPS, true).find(g => g.label === 'Consumer Access')!;
+        expect(consumerAccess.items.map(i => i.path)).toEqual(['plans', 'broadcasts']);
+    });
+
+    it('moves User Permissions to Security and omits Authorization from General', () => {
+        const security = withTcpRestrictions(GROUPS, true).find(g => g.label === 'Security')!;
+        expect(security.items.map(i => i.path)).toEqual(['user-permissions']);
+        const general = withTcpRestrictions(GROUPS, true).find(g => g.label === 'General')!;
+        expect(general.items.some(i => i.path === 'authorization')).toBe(false);
+    });
+
+    it('omits Documentation and Metadata for TCP APIs', () => {
         const paths = withTcpRestrictions(GROUPS, true).flatMap(g => g.items.map(i => i.path));
-        expect(paths).not.toContain('endpoints/failover');
-        expect(paths).not.toContain('endpoints/health-check-dashboard');
-        expect(paths).toContain('endpoints/list');
+        expect(paths).not.toContain('documentation');
+        expect(paths).not.toContain('metadata');
+        expect(withTcpRestrictions(GROUPS, true).map(g => g.label)).not.toContain('Documentation');
+    });
+
+    it('keeps only Alerts and Audit Logs under Monitoring and omits Debug for TCP APIs', () => {
+        const monitoring = withTcpRestrictions(GROUPS, true).find(g => g.label === 'Monitoring')!;
+        expect(monitoring.items.map(i => i.path)).toEqual(['alerts', 'audit-logs']);
+        expect(monitoring.items.some(i => i.path === 'debug')).toBe(false);
+    });
+
+    it('nests deployment screens under Operations and renames them to match Gamma Baby', () => {
+        const operations = withTcpRestrictions(GROUPS, true).find(g => g.label === 'Operations')!;
+        expect(operations.items.map(i => i.path)).toEqual(['deployment-section']);
+        expect(operations.items[0].children?.map(c => [c.label, c.path])).toEqual([
+            ['Configuration', 'deployment/configuration'],
+            ['History', 'deployment/history'],
+        ]);
     });
 
     it('drops the whole Observability group for TCP APIs, which have no traffic or logs screen', () => {
         const restricted = withTcpRestrictions(withObservabilityLinks(GROUPS, OBSERVABILITY_LINKS), true);
         expect(restricted.map(g => g.label)).not.toContain('Observability');
     });
+
 });
 
 describe('withMetadataPermission', () => {
@@ -252,11 +296,59 @@ describe('withApiScoreEnabled', () => {
     });
 });
 
+describe('ApiDetailSidebarNav — HTTP proxy (master FOUND-304)', () => {
+    const HTTP_GROUPS = withObservabilityLinks(GROUPS, OBSERVABILITY_LINKS);
+
+    it('keeps the master Gamma group order when the API has no TCP listeners', () => {
+        expect(withTcpRestrictions(HTTP_GROUPS, false)).toBe(HTTP_GROUPS);
+        expect(withTcpRestrictions(HTTP_GROUPS, false).map(g => g.label)).toEqual([
+            'General',
+            'Design',
+            'Consumers',
+            'Monitoring',
+            'Observability',
+            'Operations',
+        ]);
+    });
+
+    it('renders the flat master sidebar with Settings, Design, and Observability groups', () => {
+        renderNav(`${BASE}/overview`, HTTP_GROUPS);
+
+        expect(screen.getByText('General')).toBeInTheDocument();
+        expect(screen.getByText('Design')).toBeInTheDocument();
+        expect(screen.getByText('Consumers')).toBeInTheDocument();
+        expect(screen.getByText('Monitoring')).toBeInTheDocument();
+        expect(screen.getByText('Observability')).toBeInTheDocument();
+        expect(screen.getByText('Operations')).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: /^settings$/i })).toHaveAttribute('href', `${BASE}/general`);
+        expect(screen.getByRole('link', { name: /^policy studio$/i })).toHaveAttribute('href', `${BASE}/policy-studio`);
+        expect(screen.getByRole('link', { name: /^subscriptions$/i })).toHaveAttribute('href', `${BASE}/consumers`);
+        expect(screen.getByRole('link', { name: /^reporter settings$/i })).toHaveAttribute('href', `${BASE}/reporter-settings`);
+        expect(screen.getByRole('link', { name: 'Dashboard (opens in a new tab)' })).toBeInTheDocument();
+        expect(screen.queryByText('Gateway')).not.toBeInTheDocument();
+        expect(screen.queryByText('Consumer Access')).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /^deployment$/i })).not.toBeInTheDocument();
+    });
+});
+
 describe('ApiDetailSidebarNav — TCP restrictions', () => {
-    it('renders Policy Studio as a disabled row instead of a link for a TCP API', () => {
+    it('renders the TCP-specific layout with flat Gateway links and collapsible Deployment', () => {
         renderNav(`${BASE}/overview`, withTcpRestrictions(GROUPS, true));
 
-        expect(screen.getByText('Policy Studio')).toBeInTheDocument();
-        expect(screen.queryByRole('link', { name: /^policy studio$/i })).not.toBeInTheDocument();
+        expect(screen.getByText('Gateway')).toBeInTheDocument();
+        expect(screen.getByText('Consumer Access')).toBeInTheDocument();
+        expect(screen.getByText('Security')).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: /^general$/i })).toHaveAttribute('href', `${BASE}/general`);
+        expect(screen.getByRole('link', { name: /^endpoints$/i })).toHaveAttribute('href', `${BASE}/endpoints/list`);
+        expect(screen.queryByText('Documentation')).not.toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: /^documentation$/i })).not.toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: /^metadata$/i })).not.toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: /^debug$/i })).not.toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: /^reporter settings$/i })).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /^deployment$/i })).toBeInTheDocument();
+        expect(screen.queryByText('Policy Studio')).not.toBeInTheDocument();
+        expect(screen.queryByText('Response Templates')).not.toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: /^subscriptions$/i })).not.toBeInTheDocument();
+        expect(screen.queryByText('Design')).not.toBeInTheDocument();
     });
 });

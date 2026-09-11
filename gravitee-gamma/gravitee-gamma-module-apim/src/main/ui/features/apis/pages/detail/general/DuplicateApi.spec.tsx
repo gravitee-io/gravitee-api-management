@@ -120,4 +120,22 @@ describe('DuplicateApi', () => {
         await waitFor(() => expect(mockVerifyContextPath).toHaveBeenCalledWith('DEFAULT', [{ path: '/another-path/' }]));
         expect(mockVerifyContextPath.mock.calls.every(call => call.length === 2)).toBe(true);
     });
+
+    it('describes a host rather than a context path when duplicating a TCP API', () => {
+        render(
+            <DuplicateApi
+                open
+                onOpenChange={() => {}}
+                initialVersion="1.0.0"
+                entryMode="host"
+                contextPathPlaceholder=""
+                hostPlaceholder="tcp.example.com"
+                onDuplicate={jest.fn()}
+                isLoading={false}
+            />,
+        );
+
+        expect(screen.getByText('Create a copy of this API with a new host and version.')).toBeInTheDocument();
+        expect(screen.queryByText(/new context path and version/i)).not.toBeInTheDocument();
+    });
 });
