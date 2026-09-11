@@ -39,7 +39,26 @@ import { SafePipe } from '../pipes/safe.pipe';
 import { ApiLabelsPipe } from '../pipes/api-labels.pipe';
 
 @NgModule({
-  declarations: [
+  exports: [
+    TranslatePipe,
+    TranslateDirective,
+    HttpClientModule,
+    ReactiveFormsModule,
+    OAuthModule,
+    GvFormControlDirective,
+    SafePipe,
+    MarkdownDescriptionPipe,
+    LocalizedDatePipe,
+    GvCheckboxControlValueAccessorDirective,
+    GvPageComponent,
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    OAuthModule.forRoot(),
+    TranslatePipe,
+    TranslateDirective,
     ApiLabelsPipe,
     ApiStatesPipe,
     MarkdownDescriptionPipe,
@@ -56,21 +75,6 @@ import { ApiLabelsPipe } from '../pipes/api-labels.pipe';
     GvPageSwaggerUIComponent,
     GvMarkdownTocComponent,
   ],
-  exports: [
-    TranslatePipe,
-    TranslateDirective,
-    HttpClientModule,
-    ReactiveFormsModule,
-    OAuthModule,
-    GvFormControlDirective,
-    SafePipe,
-    MarkdownDescriptionPipe,
-    LocalizedDatePipe,
-    GvCheckboxControlValueAccessorDirective,
-    GvPageComponent,
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  imports: [CommonModule, ReactiveFormsModule, OAuthModule.forRoot(), TranslatePipe, TranslateDirective],
   providers: [
     ...provideChildTranslateService({
       loader: {

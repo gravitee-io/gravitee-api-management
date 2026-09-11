@@ -13,23 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Pipe, PipeTransform, SecurityContext } from '@angular/core';
+import { Pipe, PipeTransform, SecurityContext, inject } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 
 import { Api } from '../../../projects/portal-webclient-sdk/src/lib';
 import { MarkdownService } from '../services/markdown.service';
 import { ConfigurationService } from '../services/configuration.service';
 
-@Pipe({
-  name: 'markdownDescription',
-  standalone: false,
-})
+@Pipe({ name: 'markdownDescription' })
 export class MarkdownDescriptionPipe implements PipeTransform {
-  constructor(
-    private configService: ConfigurationService,
-    private markdown: MarkdownService,
-    private sanitizer: DomSanitizer,
-  ) {}
+  private configService = inject(ConfigurationService);
+  private markdown = inject(MarkdownService);
+  private sanitizer = inject(DomSanitizer);
 
   transform(api: Api): Api {
     return api?.description

@@ -36,8 +36,7 @@ describe('GvPageMarkdownComponent', () => {
   const createComponent = createComponentFactory({
     component: GvPageMarkdownComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    declarations: [SafePipe, GvMarkdownTocComponent],
-    imports: [RouterTestingModule],
+    imports: [RouterTestingModule, SafePipe, GvMarkdownTocComponent],
     providers: [
       mockProvider(ConfigurationService, {
         get: () => BASE_URL,

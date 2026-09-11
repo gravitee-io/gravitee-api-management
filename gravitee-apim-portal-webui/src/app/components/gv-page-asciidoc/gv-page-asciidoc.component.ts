@@ -13,27 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, SecurityContext } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, OnInit, SecurityContext, inject } from '@angular/core';
 import { toDom } from '@gravitee/ui-components/src/lib/text-format';
 import { DomSanitizer } from '@angular/platform-browser';
+import { NgIf, NgFor } from '@angular/common';
 
 import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { PageService } from '../../services/page.service';
+import { SafePipe } from '../../pipes/safe.pipe';
 
 @Component({
   selector: 'app-gv-page-asciidoc',
   templateUrl: './gv-page-asciidoc.component.html',
   styleUrls: ['./gv-page-asciidoc.component.css'],
-  standalone: false,
+  imports: [NgIf, NgFor, SafePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class GvPageAsciiDocComponent implements OnInit {
+  private readonly pageService = inject(PageService);
+  private readonly sanitizer = inject(DomSanitizer);
+
   page: Page;
   pageContent: string;
-
-  constructor(
-    private readonly pageService: PageService,
-    private readonly sanitizer: DomSanitizer,
-  ) {}
 
   ngOnInit() {
     this.page = this.pageService.getCurrentPage();

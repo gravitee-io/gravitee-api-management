@@ -13,25 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, OnInit } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, HostListener, OnInit, inject } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-input';
 import '@gravitee/ui-components/wc/gv-row';
 import { Pagination } from '@gravitee/ui-components/wc/gv-pagination';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { NgIf, NgFor } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { Api, ApiService, ApisResponse } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { SearchQueryParam, SearchRequestParams } from '../../../utils/search-query-param.enum';
 import { ConfigurationService } from '../../../services/configuration.service';
 import { createPromiseList } from '../../../utils/utils';
+import { GvFormControlDirective } from '../../../directives/gv-form-control.directive';
 
 @Component({
   selector: 'app-search',
   templateUrl: './catalog-search.component.html',
   styleUrls: ['./catalog-search.component.css'],
-  standalone: false,
+  imports: [ReactiveFormsModule, GvFormControlDirective, NgIf, NgFor, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class CatalogSearchComponent implements OnInit {
+  private formBuilder = inject(FormBuilder);
+  private apiService = inject(ApiService);
+  private activatedRoute = inject(ActivatedRoute);
+  private router = inject(Router);
+  private config = inject(ConfigurationService);
+
   searchForm: FormGroup<{ query: FormControl<string> }>;
   pageSize: number;
   pageSizes: Array<number>;
@@ -40,13 +50,9 @@ export class CatalogSearchComponent implements OnInit {
   totalElements: number;
   currentPage: number;
 
-  constructor(
-    private formBuilder: FormBuilder,
-    private apiService: ApiService,
-    private activatedRoute: ActivatedRoute,
-    private router: Router,
-    private config: ConfigurationService,
-  ) {
+  constructor() {
+    const config = this.config;
+
     this.totalElements = 0;
     this.searchForm = this.formBuilder.group({ query: '' });
     this.pageSizes = config.get('pagination.size.values', [5, 10, 25, 50, 100]);

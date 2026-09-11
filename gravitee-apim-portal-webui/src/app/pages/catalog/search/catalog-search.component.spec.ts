@@ -31,9 +31,16 @@ import { CatalogSearchComponent } from './catalog-search.component';
 describe('CatalogSearchComponent', () => {
   const createComponent = createComponentFactory({
     component: CatalogSearchComponent,
-    imports: [RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule, HttpClientTestingModule],
+    imports: [
+      RouterTestingModule,
+      TranslateTestingModule,
+      FormsModule,
+      ReactiveFormsModule,
+      HttpClientTestingModule,
+      ApiStatesPipe,
+      ApiLabelsPipe,
+    ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    declarations: [ApiStatesPipe, ApiLabelsPipe],
     providers: [mockProvider(NotificationService), mockProvider(ConfigurationService)],
   });
 

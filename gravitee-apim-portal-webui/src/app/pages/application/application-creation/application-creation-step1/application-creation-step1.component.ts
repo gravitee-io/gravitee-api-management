@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, EventEmitter, OnInit, Output, inject } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { NgIf } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
+
+import { GvFormControlDirective } from '../../../../directives/gv-form-control.directive';
 
 export type CreationFormType = FormGroup<{
   name: FormControl<string | null>;
@@ -27,14 +31,15 @@ export type CreationFormType = FormGroup<{
   selector: 'app-application-creation-step1',
   templateUrl: './application-creation-step1.component.html',
   styleUrls: ['../application-creation.component.css'],
-  standalone: false,
+  imports: [NgIf, ReactiveFormsModule, GvFormControlDirective, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ApplicationCreationStep1Component implements OnInit {
+  private formBuilder = inject(FormBuilder);
+
   form: CreationFormType;
 
   @Output() updated = new EventEmitter<CreationFormType>();
-
-  constructor(private formBuilder: FormBuilder) {}
 
   ngOnInit(): void {
     this.form = this.formBuilder.group({

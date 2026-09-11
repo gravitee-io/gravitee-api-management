@@ -45,7 +45,12 @@ import { ApplicationsRoutingModule } from './applications-routing.module';
 import { ApplicationsComponent } from './applications.component';
 
 @NgModule({
-  declarations: [
+  imports: [
+    ApplicationsRoutingModule,
+    CommonModule,
+    SharedModule,
+    TranslatePipe,
+    TranslateDirective,
     ApplicationsComponent,
     ApplicationAnalyticsComponent,
     ApplicationGeneralComponent,
@@ -68,7 +73,6 @@ import { ApplicationsComponent } from './applications.component';
     GvAlertComponent,
     GvSelectDashboardComponent,
   ],
-  imports: [ApplicationsRoutingModule, CommonModule, SharedModule, TranslatePipe, TranslateDirective],
   exports: [SharedModule],
   providers: [
     ...provideChildTranslateService({

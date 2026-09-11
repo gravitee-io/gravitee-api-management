@@ -26,8 +26,7 @@ describe('UserAccountComponent', () => {
   const createComponent = createComponentFactory({
     component: UserAccountComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [UserTestingModule, ReactiveFormsModule],
-    declarations: [SafePipe],
+    imports: [UserTestingModule, ReactiveFormsModule, SafePipe],
   });
 
   let spectator: Spectator<UserAccountComponent>;

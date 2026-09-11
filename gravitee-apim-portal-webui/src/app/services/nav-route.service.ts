@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { ActivatedRoute, NavigationExtras, Route, Router, Routes } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { OAuthService } from 'angular-oauth2-oidc';
@@ -37,13 +37,11 @@ export interface INavRoute {
   providedIn: 'root',
 })
 export class NavRouteService {
-  constructor(
-    private readonly router: Router,
-    private readonly translateService: TranslateService,
-    private readonly currentUserService: CurrentUserService,
-    private readonly config: ConfigurationService,
-    private readonly oauthService: OAuthService,
-  ) {}
+  private readonly router = inject(Router);
+  private readonly translateService = inject(TranslateService);
+  private readonly currentUserService = inject(CurrentUserService);
+  private readonly config = inject(ConfigurationService);
+  private readonly oauthService = inject(OAuthService);
 
   async getUserNav(): Promise<INavRoute[]> {
     const parentPath = 'user';

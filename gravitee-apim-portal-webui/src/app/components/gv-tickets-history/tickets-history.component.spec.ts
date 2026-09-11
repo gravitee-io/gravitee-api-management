@@ -16,10 +16,9 @@
 import { fakeAsync, tick, waitForAsync } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
-import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectator/jest';
+import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 import { ScrollService } from '../../services/scroll.service';
@@ -53,7 +52,6 @@ describe('GvTicketsHistoryComponent', () => {
     component: TicketsHistoryComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [RouterTestingModule, TranslateTestingModule, HttpClientTestingModule],
-    providers: [mockProvider(TranslateService)],
   });
 
   let spectator: Spectator<TicketsHistoryComponent>;

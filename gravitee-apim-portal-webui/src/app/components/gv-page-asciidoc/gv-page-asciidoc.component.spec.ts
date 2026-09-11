@@ -33,8 +33,7 @@ describe('GvPageAsciiDocComponent', () => {
   const createComponent = createComponentFactory({
     component: GvPageAsciiDocComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    declarations: [SafePipe],
-    imports: [HttpClientTestingModule],
+    imports: [HttpClientTestingModule, SafePipe],
     providers: [
       mockProvider(PageService, {
         getCurrentPage: () => docPage,

@@ -23,6 +23,7 @@ import {
   Output,
   SimpleChanges,
   ViewChild,
+  inject,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
@@ -35,9 +36,16 @@ import { ConfigurationService } from '../../services/configuration.service';
   selector: 'app-gv-page',
   templateUrl: './gv-page.component.html',
   styleUrls: ['./gv-page.component.css'],
-  standalone: false,
+  imports: [GvPageContentSlotDirective],
 })
 export class GvPageComponent implements OnChanges, OnDestroy {
+  private componentFactoryResolver = inject(ComponentFactoryResolver);
+  private portalService = inject(PortalService);
+  private apiService = inject(ApiService);
+  private route = inject(ActivatedRoute);
+  private pageService = inject(PageService);
+  private configurationService = inject(ConfigurationService);
+
   @ViewChild(GvPageContentSlotDirective, { static: true }) appGvPageContentSlot: GvPageContentSlotDirective;
 
   @Output() loaded = new EventEmitter<boolean>();
@@ -53,15 +61,6 @@ export class GvPageComponent implements OnChanges, OnDestroy {
   @Input() pages: Page[];
 
   @Input() apiId?: any;
-
-  constructor(
-    private componentFactoryResolver: ComponentFactoryResolver,
-    private portalService: PortalService,
-    private apiService: ApiService,
-    private route: ActivatedRoute,
-    private pageService: PageService,
-    private configurationService: ConfigurationService,
-  ) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.page) {

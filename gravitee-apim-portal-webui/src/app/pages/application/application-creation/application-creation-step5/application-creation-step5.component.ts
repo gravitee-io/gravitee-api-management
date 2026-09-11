@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnInit } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, Input, OnInit, inject } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { NgIf, NgClass, NgFor } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 import { Api, Application, Plan } from '../../../../../../projects/portal-webclient-sdk/src/lib';
 import { ApplicationTypeOption } from '../application-creation.component';
@@ -24,9 +26,12 @@ import { ApplicationTypeOption } from '../application-creation.component';
   selector: 'app-application-creation-step5',
   templateUrl: './application-creation-step5.component.html',
   styleUrls: ['../application-creation.component.css'],
-  standalone: false,
+  imports: [NgIf, NgClass, NgFor, RouterLink, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ApplicationCreationStep5Component implements OnInit {
+  private translateService = inject(TranslateService);
+
   @Input() canValidate: boolean;
   @Input() creationError: boolean;
   @Input() creationSuccess: boolean;
@@ -39,8 +44,6 @@ export class ApplicationCreationStep5Component implements OnInit {
   @Input() apiKeyModeTitle: string;
 
   validationListOptions: any;
-
-  constructor(private translateService: TranslateService) {}
 
   get grantTypeNames() {
     if (!this.isSimpleApp && this.applicationForm.contains('settings')) {

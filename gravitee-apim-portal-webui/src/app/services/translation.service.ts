@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { addTranslations, setLanguage } from '@gravitee/ui-components/src/lib/i18n';
 import { TranslateService } from '@ngx-translate/core';
 import { Title } from '@angular/platform-browser';
@@ -24,10 +24,8 @@ import { environment } from '../../environments/environment';
   providedIn: 'root',
 })
 export class TranslationService {
-  constructor(
-    private translateService: TranslateService,
-    private titleService: Title,
-  ) {}
+  private translateService = inject(TranslateService);
+  private titleService = inject(Title);
 
   load() {
     return new Promise(resolve => {

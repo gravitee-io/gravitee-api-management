@@ -13,23 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
+import {
+  CUSTOM_ELEMENTS_SCHEMA,
+  AfterViewInit,
+  Component,
+  ElementRef,
+  HostListener,
+  Input,
+  OnInit,
+  ViewChild,
+  inject,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
+import { NgIf, NgFor } from '@angular/common';
 
 import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { PageService } from '../../services/page.service';
 import { ScrollService } from '../../services/scroll.service';
 import { ConfigurationService } from '../../services/configuration.service';
 import { MarkdownService } from '../../services/markdown.service';
+import { GvMarkdownTocComponent } from '../gv-markdown-toc/gv-markdown-toc.component';
+import { SafePipe } from '../../pipes/safe.pipe';
 
 @Component({
   selector: 'app-gv-page-markdown',
   templateUrl: './gv-page-markdown.component.html',
   styleUrls: ['./gv-page-markdown.component.css'],
-  standalone: false,
+  imports: [NgIf, GvMarkdownTocComponent, NgFor, SafePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
+  private configurationService = inject(ConfigurationService);
+  private pageService = inject(PageService);
+  private router = inject(Router);
+  private activatedRoute = inject(ActivatedRoute);
+  private scrollService = inject(ScrollService);
+  private markdownService = inject(MarkdownService);
+  private elementRef = inject(ElementRef);
+  private readonly sanitizer = inject(DomSanitizer);
+
   @Input() withToc: boolean;
   @Input() pageBaseUrl: string;
   @Input() pages: Page[];
@@ -40,17 +63,6 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
   baseURL: string;
 
   @ViewChild('mdContent', { static: false }) mdContent: ElementRef;
-
-  constructor(
-    private configurationService: ConfigurationService,
-    private pageService: PageService,
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
-    private scrollService: ScrollService,
-    private markdownService: MarkdownService,
-    private elementRef: ElementRef,
-    private readonly sanitizer: DomSanitizer,
-  ) {}
 
   ngOnInit() {
     this.baseURL = this.configurationService.get('baseURL');

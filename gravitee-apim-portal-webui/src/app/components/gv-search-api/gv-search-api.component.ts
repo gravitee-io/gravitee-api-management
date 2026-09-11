@@ -16,7 +16,8 @@
 import '@gravitee/ui-components/wc/gv-input';
 import '@gravitee/ui-components/wc/gv-autocomplete';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, OnInit, ViewChild, inject } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { SearchQueryParam, SearchRequestParams } from '../../utils/search-query-param.enum';
 import { ApiService, ApisResponse } from '../../../../projects/portal-webclient-sdk/src/lib';
@@ -24,19 +25,20 @@ import { ApiService, ApisResponse } from '../../../../projects/portal-webclient-
 @Component({
   selector: 'app-gv-search-api',
   templateUrl: './gv-search-api.component.html',
-  standalone: false,
+  imports: [TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class GvSearchApiComponent implements OnInit {
+  router = inject(Router);
+  activatedRoute = inject(ActivatedRoute);
+  private apiService = inject(ApiService);
+
   @ViewChild('searchAutocomplete', { static: true }) searchAutocomplete;
   query: string;
   options: any;
   private _selected: boolean;
 
-  constructor(
-    public router: Router,
-    public activatedRoute: ActivatedRoute,
-    private apiService: ApiService,
-  ) {
+  constructor() {
     this._selected = false;
   }
 

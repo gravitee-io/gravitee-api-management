@@ -16,7 +16,7 @@
 import '@gravitee/ui-components/wc/gv-input';
 import '@gravitee/ui-components/wc/gv-autocomplete';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Component, HostListener, OnInit } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, HostListener, OnInit, inject } from '@angular/core';
 
 import { Dashboard } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { AnalyticsService } from '../../services/analytics.service';
@@ -24,17 +24,15 @@ import { AnalyticsService } from '../../services/analytics.service';
 @Component({
   selector: 'app-gv-select-dashboard',
   templateUrl: './gv-select-dashboard.component.html',
-  standalone: false,
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class GvSelectDashboardComponent implements OnInit {
+  route = inject(ActivatedRoute);
+  router = inject(Router);
+  analyticsService = inject(AnalyticsService);
+
   dashboardsSelect: Array<any>;
   dashboard: Dashboard;
-
-  constructor(
-    public route: ActivatedRoute,
-    public router: Router,
-    public analyticsService: AnalyticsService,
-  ) {}
 
   ngOnInit() {
     if (this.route.firstChild && this.route.firstChild.firstChild && this.route.firstChild.firstChild.firstChild) {

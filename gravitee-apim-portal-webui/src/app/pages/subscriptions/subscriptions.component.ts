@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, HostListener, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef, Component, HostListener, NgZone, OnDestroy, OnInit, inject } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-table';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { getApplicationTypeIcon } from '@gravitee/ui-components/src/lib/theme';
 import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 import { switchMap, takeUntil } from 'rxjs/operators';
 import { Pagination } from '@gravitee/ui-components/wc/gv-pagination';
 import { Subject } from 'rxjs';
+import { NgIf } from '@angular/common';
 
 import {
   Api,
@@ -43,9 +44,21 @@ const StatusEnum = Subscription.StatusEnum;
   selector: 'app-subscriptions',
   templateUrl: './subscriptions.component.html',
   styleUrls: ['./subscriptions.component.css'],
-  standalone: false,
+  imports: [NgIf, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class SubscriptionsComponent implements OnInit, OnDestroy {
+  private applicationService = inject(ApplicationService);
+  private subscriptionService = inject(SubscriptionService);
+  private apiService = inject(ApiService);
+  private translateService = inject(TranslateService);
+  private router = inject(Router);
+  private configurationService = inject(ConfigurationService);
+  private ngZone = inject(NgZone);
+  private ref = inject(ChangeDetectorRef);
+  private activatedRoute = inject(ActivatedRoute);
+  private config = inject(ConfigurationService);
+
   applications: Array<Application>;
   subscriptions: Array<Subscription>;
   subscriptionsMetadata: Map<string, any> = new Map<string, any>();
@@ -73,19 +86,6 @@ export class SubscriptionsComponent implements OnInit, OnDestroy {
   };
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-
-  constructor(
-    private applicationService: ApplicationService,
-    private subscriptionService: SubscriptionService,
-    private apiService: ApiService,
-    private translateService: TranslateService,
-    private router: Router,
-    private configurationService: ConfigurationService,
-    private ngZone: NgZone,
-    private ref: ChangeDetectorRef,
-    private activatedRoute: ActivatedRoute,
-    private config: ConfigurationService,
-  ) {}
 
   ngOnInit() {
     this.applications = [];

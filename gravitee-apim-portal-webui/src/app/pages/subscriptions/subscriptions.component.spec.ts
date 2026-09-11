@@ -35,10 +35,9 @@ describe('SubscriptionsComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [SubscriptionsComponent],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
       teardown: { destroyAfterEach: false },
-      imports: [TranslateTestingModule, HttpClientTestingModule, RouterTestingModule],
+      imports: [TranslateTestingModule, HttpClientTestingModule, RouterTestingModule, SubscriptionsComponent],
       providers: [
         {
           provide: ActivatedRoute,

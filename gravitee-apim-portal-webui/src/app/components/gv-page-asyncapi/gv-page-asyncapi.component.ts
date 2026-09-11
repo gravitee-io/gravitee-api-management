@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, OnInit, inject } from '@angular/core';
+import { NgIf, NgFor } from '@angular/common';
 
 import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { PageService } from '../../services/page.service';
@@ -24,12 +25,13 @@ import '@asyncapi/web-component/lib/asyncapi-web-component';
   selector: 'app-gv-page-asyncapi',
   templateUrl: './gv-page-asyncapi.component.html',
   styleUrls: ['./gv-page-asyncapi.component.css'],
-  standalone: false,
+  imports: [NgIf, NgFor],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class GvPageAsyncApiComponent implements OnInit {
-  page: Page;
+  private pageService = inject(PageService);
 
-  constructor(private pageService: PageService) {}
+  page: Page;
 
   ngOnInit() {
     this.page = this.pageService.getCurrentPage();

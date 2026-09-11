@@ -29,8 +29,15 @@ import { GvPageComponent } from './gv-page.component';
 describe('GvPageComponent', () => {
   const createComponent = createComponentFactory({
     component: GvPageComponent,
-    declarations: [GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent, GvPageContentSlotDirective, SafePipe],
-    imports: [HttpClientTestingModule, RouterTestingModule],
+    imports: [
+      HttpClientTestingModule,
+      RouterTestingModule,
+      GvPageMarkdownComponent,
+      GvPageRedocComponent,
+      GvPageSwaggerUIComponent,
+      GvPageContentSlotDirective,
+      SafePipe,
+    ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
   });
 

@@ -25,7 +25,7 @@ import {
 import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 
 import { CurrentUserService } from '../services/current-user.service';
 import { NotificationService } from '../services/notification.service';
@@ -55,15 +55,13 @@ export class Future {
 
 @Injectable()
 export class ApiRequestInterceptor implements HttpInterceptor {
-  private xsrfToken: string;
+  private router = inject(Router);
+  private currentUserService = inject(CurrentUserService);
+  private notificationService = inject(NotificationService);
+  private configService = inject(ConfigurationService);
+  private reCaptchaService = inject(ReCaptchaService);
 
-  constructor(
-    private router: Router,
-    private currentUserService: CurrentUserService,
-    private notificationService: NotificationService,
-    private configService: ConfigurationService,
-    private reCaptchaService: ReCaptchaService,
-  ) {}
+  private xsrfToken: string;
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const URLS_TO_IGNORE = [`/portal/ui/bootstrap`];

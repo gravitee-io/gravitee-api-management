@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, Input, OnInit, inject } from '@angular/core';
+import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { NgIf } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { ApiService, ApplicationService, PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { NotificationService } from '../../services/notification.service';
 import { CurrentUserService } from '../../services/current-user.service';
+import { GvFormControlDirective } from '../../directives/gv-form-control.directive';
+import { GvCheckboxControlValueAccessorDirective } from '../../directives/gv-checkbox-control-value-accessor.directive';
 
 type ContactFormType = FormGroup<{
   api: FormControl<string>;
@@ -32,9 +36,16 @@ type ContactFormType = FormGroup<{
   selector: 'app-gv-contact',
   templateUrl: './gv-contact.component.html',
   styleUrls: ['./gv-contact.component.css'],
-  standalone: false,
+  imports: [ReactiveFormsModule, NgIf, GvFormControlDirective, GvCheckboxControlValueAccessorDirective, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class GvContactComponent implements OnInit {
+  private applicationService = inject(ApplicationService);
+  private apiService = inject(ApiService);
+  private portalService = inject(PortalService);
+  private notificationService = inject(NotificationService);
+  private currentUserService = inject(CurrentUserService);
+
   @Input() apiId: string;
 
   contactForm: ContactFormType;
@@ -47,14 +58,6 @@ export class GvContactComponent implements OnInit {
     value: string;
   }[];
   isSending: boolean;
-
-  constructor(
-    private applicationService: ApplicationService,
-    private apiService: ApiService,
-    private portalService: PortalService,
-    private notificationService: NotificationService,
-    private currentUserService: CurrentUserService,
-  ) {}
 
   ngOnInit(): void {
     this.contactForm = new FormGroup({

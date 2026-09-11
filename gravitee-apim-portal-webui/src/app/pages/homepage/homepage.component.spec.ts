@@ -28,8 +28,7 @@ describe('HomepageComponent', () => {
   const createComponent = createComponentFactory({
     component: HomepageComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [RouterTestingModule, HttpClientTestingModule],
-    declarations: [GvPageComponent, ApiStatesPipe, ApiLabelsPipe],
+    imports: [RouterTestingModule, HttpClientTestingModule, GvPageComponent, ApiStatesPipe, ApiLabelsPipe],
     providers: [ApiStatesPipe, ApiLabelsPipe],
   });
 

@@ -15,7 +15,8 @@
  */
 import '@gravitee/ui-components/wc/gv-header';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
+import { NgIf } from '@angular/common';
 
 import { Api, Application, PortalService, User } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { CurrentUserService } from '../../services/current-user.service';
@@ -27,9 +28,18 @@ import { ConfigurationService } from '../../services/configuration.service';
 @Component({
   selector: 'app-gv-header-item',
   templateUrl: './gv-header-item.component.html',
-  standalone: false,
+  imports: [NgIf],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class GvHeaderItemComponent implements OnInit, OnDestroy {
+  router = inject(Router);
+  activatedRoute = inject(ActivatedRoute);
+  navRouteService = inject(NavRouteService);
+  currentUserService = inject(CurrentUserService);
+  portalService = inject(PortalService);
+  config = inject(ConfigurationService);
+  eventService = inject(EventService);
+
   static RELOAD_EVENT = ':gv-header-item:reload';
   static UPDATE_PICTURE = ':gv-header-item:picture';
   static UPDATE_BACKGROUND = ':gv-header-item:background';
@@ -40,16 +50,6 @@ export class GvHeaderItemComponent implements OnInit, OnDestroy {
   private itemId: string;
   private currentRoute: ActivatedRoute;
   private _subscribeUrl: string;
-
-  constructor(
-    public router: Router,
-    public activatedRoute: ActivatedRoute,
-    public navRouteService: NavRouteService,
-    public currentUserService: CurrentUserService,
-    public portalService: PortalService,
-    public config: ConfigurationService,
-    public eventService: EventService,
-  ) {}
 
   ngOnInit() {
     this.loadData();

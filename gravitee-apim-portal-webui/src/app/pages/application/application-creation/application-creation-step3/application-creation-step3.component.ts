@@ -14,11 +14,23 @@
  * limitations under the License.
  */
 import { ActivatedRoute } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { distinctUntilChanged, map, takeUntil, tap } from 'rxjs/operators';
 import { Subject } from 'rxjs';
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import {
+  CUSTOM_ELEMENTS_SCHEMA,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  ViewChild,
+  inject,
+} from '@angular/core';
+import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { NgIf } from '@angular/common';
 
 import {
   Api,
@@ -30,6 +42,9 @@ import {
   Plan,
 } from '../../../../../../projects/portal-webclient-sdk/src/lib';
 import { SearchRequestParams } from '../../../../utils/search-query-param.enum';
+import { GvFormControlDirective } from '../../../../directives/gv-form-control.directive';
+import { GvPageComponent } from '../../../../components/gv-page/gv-page.component';
+import { GvCheckboxControlValueAccessorDirective } from '../../../../directives/gv-checkbox-control-value-accessor.directive';
 
 type PlanFormType = FormGroup<{
   apiId: FormControl<string | null>;
@@ -44,9 +59,16 @@ type PlanFormType = FormGroup<{
   selector: 'app-application-creation-step3',
   templateUrl: './application-creation-step3.component.html',
   styleUrls: ['../application-creation.component.css'],
-  standalone: false,
+  imports: [NgIf, ReactiveFormsModule, GvFormControlDirective, GvPageComponent, GvCheckboxControlValueAccessorDirective, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ApplicationCreationStep3Component implements OnInit, OnDestroy {
+  private readonly apiService = inject(ApiService);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly translateService = inject(TranslateService);
+  private readonly ref = inject(ChangeDetectorRef);
+  private readonly entrypointsService = inject(EntrypointsService);
+
   @Output() updated = new EventEmitter<any[]>();
   @Input() subscribeList: any[];
   @Output() changeStep = new EventEmitter<{ step: number; fragment: string }>();
@@ -71,13 +93,7 @@ export class ApplicationCreationStep3Component implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject();
   private availableEntrypoints: Map<string, Connector>;
 
-  constructor(
-    private readonly apiService: ApiService,
-    private readonly activatedRoute: ActivatedRoute,
-    private readonly translateService: TranslateService,
-    private readonly ref: ChangeDetectorRef,
-    private readonly entrypointsService: EntrypointsService,
-  ) {
+  constructor() {
     this.apiList = [];
     this.subscribeList = [];
     this.disabledPlans = 0;

@@ -13,8 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, Input, OnDestroy, ViewChild, OnInit, ChangeDetectorRef } from '@angular/core';
+import {
+  CUSTOM_ELEMENTS_SCHEMA,
+  Component,
+  HostListener,
+  Input,
+  OnDestroy,
+  ViewChild,
+  OnInit,
+  ChangeDetectorRef,
+  inject,
+} from '@angular/core';
 import { getCssVar } from '@gravitee/ui-components/src/lib/style';
+import { NgClass, NgIf } from '@angular/common';
 
 import { NotificationService } from '../../services/notification.service';
 import { ScrollService } from '../../services/scroll.service';
@@ -28,20 +39,19 @@ declare let Redoc: any;
   selector: 'app-gv-page-redoc',
   templateUrl: './gv-page-redoc.component.html',
   styleUrls: ['./gv-page-redoc.component.css'],
-  standalone: false,
+  imports: [NgClass, NgIf],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class GvPageRedocComponent implements OnInit, OnDestroy {
+  private cd = inject(ChangeDetectorRef);
+  private notificationService = inject(NotificationService);
+  private pageService = inject(PageService);
+
   isLoaded = false;
 
   @ViewChild('redoc', { static: true }) redocContainer;
 
   @Input() fragment: string;
-
-  constructor(
-    private cd: ChangeDetectorRef,
-    private notificationService: NotificationService,
-    private pageService: PageService,
-  ) {}
 
   /**
    * Redoc script is automatically loaded. See `angular.json` scripts section.
