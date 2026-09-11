@@ -53,7 +53,8 @@ export class MarkdownService {
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     return {
-      image(href, title, text) {
+      image(token) {
+        const { href, title, text } = token;
         // is it a portal media ?
         let parsedURL = /\/environments\/(?:[\w-]+)\/portal\/media\/([\w-]+)/g.exec(href);
         if (parsedURL) {
@@ -67,9 +68,13 @@ export class MarkdownService {
             return `<img alt="${text != null ? text : ''}" title="${title != null ? title : ''}" src="${portalHref}" />`;
           }
         }
-        return defaultRenderer.image(href, title, text);
+        return defaultRenderer.image.call(this, token);
       },
-      link(href, title, text) {
+      link(token) {
+        const { href } = token;
+        // Since marked 13 the display text is no longer passed in: it lives in the token's children.
+        const text = this.parser.parseInline(token.tokens);
+
         const parsedSettingsUrl = /\/#!\/settings\/pages\/([\w-]+)/g.exec(href);
         const parsedApisUrl = /\/#!\/apis\/(?:[\w-]+)\/documentation\/([\w-]+)/g.exec(href);
         const parsedRelativeDocApiUrl = /\/#!\/documentation\/api\/(.*)#([MARKDOWN|SWAGGER|OPENAPI|ASYNCAPI|ASCIIDOC]+)/g.exec(href);
@@ -98,11 +103,10 @@ export class MarkdownService {
         }
 
         if (href?.startsWith('/#!/')) {
-          const trimmedHref = href.substring(3);
-          return defaultRenderer.link(trimmedHref, title, text);
+          return defaultRenderer.link.call(this, { ...token, href: href.substring(3) });
         }
 
-        return defaultRenderer.link(href, title, text);
+        return defaultRenderer.link.call(this, token);
       },
     };
   }
