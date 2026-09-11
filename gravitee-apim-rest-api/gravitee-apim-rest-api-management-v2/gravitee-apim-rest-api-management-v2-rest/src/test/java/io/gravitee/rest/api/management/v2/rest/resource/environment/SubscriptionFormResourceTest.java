@@ -47,6 +47,7 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "my-env";
     private static final String UNKNOWN_ID = "550e8400-e29b-41d4-a716-446655440000";
+    private static final String MALFORMED_ID = "not-an-id";
 
     WebTarget rootTarget;
 
@@ -123,6 +124,13 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_return_404_when_the_id_is_not_an_identifier() {
+            var response = rootTarget.path(MALFORMED_ID).request().get();
+
+            assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
+        }
+
+        @Test
         void should_return_403_if_incorrect_permissions() {
             var form = givenAForm(false, true);
 
@@ -159,6 +167,15 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
             UpdateSubscriptionForm request = new UpdateSubscriptionForm().name("Any").gmdContent("<gmd-card>Content</gmd-card>");
 
             var response = rootTarget.path(UNKNOWN_ID).request().put(Entity.json(request));
+
+            assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
+        }
+
+        @Test
+        void should_return_404_when_the_id_is_not_an_identifier() {
+            UpdateSubscriptionForm request = new UpdateSubscriptionForm().name("Any").gmdContent("<gmd-card>Content</gmd-card>");
+
+            var response = rootTarget.path(MALFORMED_ID).request().put(Entity.json(request));
 
             assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
         }
