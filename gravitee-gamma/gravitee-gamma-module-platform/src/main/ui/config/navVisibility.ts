@@ -64,7 +64,9 @@ const ORGANIZATION_SETTINGS_GATED_ITEMS: ReadonlySet<string> = new Set([
  * Gamma also requires `organization-audit-r`; Access Management is environment-scoped
  * here, outside the org-settings gate, because it is Gamma-only; and Integrations, mapped to
  * the same `environment-integration-r` Classic's side nav uses, is additionally hidden
- * unless the caller reports Federation license availability.
+ * unless the caller reports Federation license availability. API Score uses that same
+ * Classic ACL plus `apiScore.enabled` from GET /portal — Classic's environmentSettingsService
+ * gate — so the item stays hidden when scoring is switched off.
  */
 export const NAV_ITEM_PERMISSIONS: Readonly<Record<string, readonly string[]>> = {
     tenants: [ORGANIZATION_TENANT_READ_PERMISSION],
@@ -79,6 +81,7 @@ export const NAV_ITEM_PERMISSIONS: Readonly<Record<string, readonly string[]>> =
     'api-logging': [ORGANIZATION_SETTINGS_READ_PERMISSION],
     'organization-audit': [ORGANIZATION_AUDIT_READ_PERMISSION],
     applications: [ENVIRONMENT_APPLICATION_READ_PERMISSION],
+    'api-score': [ENVIRONMENT_INTEGRATION_READ_PERMISSION],
     integrations: [ENVIRONMENT_INTEGRATION_READ_PERMISSION],
     metadata: ['environment-metadata-r'],
     dictionaries: ['environment-dictionary-r'],
@@ -103,6 +106,8 @@ export interface NavVisibilityInput {
     readonly metadataForbidden?: boolean;
     readonly dictionariesForbidden?: boolean;
     readonly federationAvailable?: boolean;
+    /** Scoring is switched on for the environment (`GET /portal` `apiScore.enabled`). */
+    readonly apiScoreEnabled?: boolean;
     /** Items shown but not enterable (missing license). Visible in the sidebar, never a landing target. */
     readonly lockedItemKeys?: readonly string[];
     /** Items a live 403 denied at runtime, whichever permission scope still grants them. */
@@ -189,6 +194,9 @@ export function isNavItemVisible(itemKey: string, visibility: NavVisibilityInput
         return false;
     }
     if (itemKey === 'integrations' && !visibility.federationAvailable) {
+        return false;
+    }
+    if (itemKey === 'api-score' && !visibility.apiScoreEnabled) {
         return false;
     }
     return true;
