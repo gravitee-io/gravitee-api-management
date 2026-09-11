@@ -58,15 +58,23 @@ const coreReleaseVersion = coreVersionFromTag(CIRCLE_TAG);
  */
 const distributionReleaseVersion = distributionVersionFromTag(CIRCLE_TAG);
 
-/** Whichever lane a tag started, if it started one. */
 const releasedByTag = coreReleaseVersion ?? distributionReleaseVersion;
+
+/** Which lane the pipeline is generating for. A tag decides it; off a tag, the parameter does. */
+const action =
+  coreReleaseVersion !== undefined
+    ? 'core_release'
+    : distributionReleaseVersion !== undefined
+      ? 'distribution_release'
+      : (CI_ACTION ?? 'pull_requests');
 
 /**
  * Which images take the `latest` tag. It used to be a pipeline parameter, answered from memory; a
  * tag-triggered pipeline receives none, so it is read from what has already been released instead.
  *
  * Only this lane ever asks. The `latest` tag is pushed on the release path alone — every other
- * workflow builds images with `isProd` false — so off a distribution tag the answer is simply no.
+ * workflow builds images with `isProd` false — so anything that is not a distribution tag answers
+ * no without looking.
  */
 const dockerTagAsLatest =
   distributionReleaseVersion === undefined
@@ -92,12 +100,7 @@ Promise.all([changed, dockerTagAsLatest])
         buildNum: CIRCLE_BUILD_NUM, // TODO merge this line with the next one when everything is working on the CI
         buildId: CIRCLE_BUILD_NUM,
         sha1: CIRCLE_SHA1,
-        action:
-          coreReleaseVersion !== undefined
-            ? 'core_release'
-            : distributionReleaseVersion !== undefined
-              ? 'distribution_release'
-              : (CI_ACTION ?? 'pull_requests'),
+        action,
         tag: CIRCLE_TAG === '' ? undefined : CIRCLE_TAG,
         // A tag is never a rehearsal. `dry_run` defaults to true and no parameter reaches this path,
         // so without this a pushed tag would publish nothing and go green. Rehearsals keep the API
