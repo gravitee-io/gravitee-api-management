@@ -24,7 +24,7 @@ import { generateBuildChainguardImagesConfig } from './pipeline-build-chainguard
 import { generateBuildChainguardFipsImagesConfig } from './pipeline-build-chainguard-fips-images';
 import { generatePullRequestsConfig } from './pipeline-pull-requests';
 import { generateCoreReleaseConfig } from './pipeline-core-release';
-import { generateFullReleaseConfig } from './pipeline-full-release';
+import { generateDistributionReleaseConfig } from './pipeline-distribution-release';
 import { generatePrepareCoreReleaseConfig } from './pipeline-prepare-core-release';
 import { generatePrepareDistributionReleaseConfig } from './pipeline-prepare-distribution-release';
 import { generateHelmTestsConfig } from './pipeline-helm-tests';
@@ -38,8 +38,6 @@ export function buildCIPipeline(environment: CircleCIEnvironment): Config | null
       return generateBuildChainguardImagesConfig(environment);
     case 'build_chainguard_fips_images':
       return generateBuildChainguardFipsImagesConfig(environment);
-    case 'full_release':
-      return generateFullReleaseConfig(environment);
     case 'repositories_tests':
       return generateRepositoriesTestsConfig(environment);
     case 'integration_tests':
@@ -54,6 +52,8 @@ export function buildCIPipeline(environment: CircleCIEnvironment): Config | null
       return generateHelmTestsConfig(environment);
     case 'core_release':
       return generateCoreReleaseConfig(environment);
+    case 'distribution_release':
+      return generateDistributionReleaseConfig(environment);
     case 'prepare_core_release':
       return generatePrepareCoreReleaseConfig(environment);
     case 'prepare_distribution_release':

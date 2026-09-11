@@ -23,11 +23,9 @@ import {
   BuildDockerWebUiImageJob,
   ConsoleWebuiBuildJob,
   GammaWebuiBuildJob,
-  NexusStagingJob,
   PackageBundleJob,
   PortalWebuiBuildJob,
   PublishRpmPackagesJob,
-  ReleaseCommitAndPrepareNextVersionJob,
   ReleaseHelmJob,
   ReleaseNotesApimJob,
   SetupJob,
@@ -36,10 +34,20 @@ import {
   TriggerSaasDockerImagesJob,
 } from '../jobs';
 import { CircleCIEnvironment } from '../pipelines';
+import { DISTRIBUTION_TAG_FILTER } from '../utils';
 import { config } from '../config';
 
-export class FullReleaseWorkflow {
-  private static workflowName = 'full_release';
+export class DistributionReleaseWorkflow {
+  private static workflowName = 'distribution_release';
+
+  /**
+   * Repeated on every job below. The continued configuration is a pipeline of its own and inherits
+   * nothing from the filter that let the setup job run, so a job without it simply does not run.
+   */
+  private static readonly tagOnly = {
+    branches: { ignore: ['/.*/'] },
+    tags: { only: [DISTRIBUTION_TAG_FILTER] },
+  };
 
   static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
     const setupJob = SetupJob.create(dynamicConfig);
@@ -74,9 +82,6 @@ export class FullReleaseWorkflow {
     const backendBuildAndPublishOnDownloadWebsiteJob = BackendBuildAndPublishOnDownloadWebsiteJob.create(dynamicConfig, environment, true);
     dynamicConfig.addJob(backendBuildAndPublishOnDownloadWebsiteJob);
 
-    const releaseCommitAndPrepareNextVersionJob = ReleaseCommitAndPrepareNextVersionJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(releaseCommitAndPrepareNextVersionJob);
-
     const packageBundleJob = PackageBundleJob.create(dynamicConfig, environment.graviteeioVersion, environment.isDryRun);
     dynamicConfig.addJob(packageBundleJob);
 
@@ -88,9 +93,6 @@ export class FullReleaseWorkflow {
 
     const releaseNoteApimJob = ReleaseNotesApimJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(releaseNoteApimJob);
-
-    const nexusStagingJob = NexusStagingJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(nexusStagingJob);
 
     const runTriggerSaasDockerImagesJob = TriggerSaasDockerImagesJob.create(environment, 'prod');
     dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
@@ -104,7 +106,7 @@ export class FullReleaseWorkflow {
     const triggerApimApiDocsPipelineJob = TriggerApimApiDocsPipelineJob.create(environment);
     dynamicConfig.addJob(triggerApimApiDocsPipelineJob);
 
-    return new Workflow(FullReleaseWorkflow.workflowName, [
+    const jobs = [
       // PREPARE
       new workflow.WorkflowJob(setupJob, { context: config.jobContext, name: 'Setup' }),
       new workflow.WorkflowJob(slackAnnouncementJob, {
@@ -286,18 +288,13 @@ export class FullReleaseWorkflow {
         'docker-fips-base-image': config.docker.fipsNginxBaseImage,
       }),
 
-      // Commit and set next version
-      new workflow.WorkflowJob(releaseCommitAndPrepareNextVersionJob, {
-        context: config.jobContext,
-        name: 'Commit and prepare next version',
-        requires: ['Backend build and publish on download website', 'Build APIM Console', 'Build APIM Portal', 'Build Gamma Console'],
-      }),
-
       // Package bundle
       new workflow.WorkflowJob(packageBundleJob, {
         context: config.jobContext,
         name: 'Package bundle',
-        requires: ['Commit and prepare next version'],
+        // What the commit job used to wait for. The commit itself happened before the tag that
+        // started this pipeline.
+        requires: ['Backend build and publish on download website', 'Build APIM Console', 'Build APIM Portal', 'Build Gamma Console'],
       }),
 
       // Publish RPM Packages
@@ -345,19 +342,14 @@ export class FullReleaseWorkflow {
         ],
       }),
 
-      // Nexus staging
-      new workflow.WorkflowJob(nexusStagingJob, {
-        context: config.jobContext,
-        name: 'Nexus staging',
-        requires: ['Trigger SaaS Docker images creation'],
-      }),
-
       // Trigger gravitee-apim-api-docs ingestion (fire-and-forget; the docs
       // pipeline absorbs the Sonatype → Maven Central propagation delay).
       new workflow.WorkflowJob(triggerApimApiDocsPipelineJob, {
         context: [...config.jobContext, 'keeper-orb-publishing'],
         name: 'Trigger APIM API docs ingestion',
-        requires: ['Nexus staging'],
+        // Not the core's publication, which is another lane's now: the docs pipeline polls Maven
+        // Central itself, for up to an hour, so it only has to be told once this release is real.
+        requires: ['Trigger SaaS Docker images creation'],
       }),
 
       // Release Helm chart
@@ -383,7 +375,6 @@ export class FullReleaseWorkflow {
         name: 'Announce release is completed',
         message: `🎆 APIM - ${environment.graviteeioVersion} released!`,
         requires: [
-          'Nexus staging',
           'Release Helm Chart',
           'Trigger APIM API docs ingestion',
           `Build and push RPM packages for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
@@ -395,6 +386,11 @@ export class FullReleaseWorkflow {
         'chainguard',
         'chainguard-fips',
       ]),
-    ]);
+    ];
+
+    return new Workflow(
+      DistributionReleaseWorkflow.workflowName,
+      jobs.map((job) => job.withFilters(DistributionReleaseWorkflow.tagOnly)),
+    );
   }
 }

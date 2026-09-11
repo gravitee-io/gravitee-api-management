@@ -12,10 +12,6 @@ parameters:
     type: boolean
     default: true
     description: Run in dry run mode?
-  docker_tag_as_latest:
-    type: boolean
-    default: false
-    description: Is this version the latest version available?
   graviteeio_version:
     type: string
     default: ""

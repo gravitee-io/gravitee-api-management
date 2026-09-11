@@ -59,7 +59,7 @@ function printNextSteps() {
   const version = versionFromPom();
   console.log(chalk.green(`\n${branch} is ready, at ${version}.\n`));
   console.log(`  1. Add the fix, as one commit.`);
-  console.log(`  2. yarn full_release --version=${version}`);
+  console.log(`  2. yarn prepare_distribution_release --version=${version}`);
   console.log(`  3. Cherry-pick the fix into ${supportBranch}, so the next patch carries it too.`);
 }
 

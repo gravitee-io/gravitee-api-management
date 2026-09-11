@@ -12,10 +12,6 @@ parameters:
     type: boolean
     default: true
     description: Run in dry run mode?
-  docker_tag_as_latest:
-    type: boolean
-    default: false
-    description: Is this version the latest version available?
   graviteeio_version:
     type: string
     default: ""
@@ -250,7 +246,7 @@ commands:
       - aws-s3/sync:
           arguments: --endpoint-url https://cellar-c2.services.clever-cloud.com --acl public-read
           from: << parameters.folder-to-sync>>
-          to: s3://gravitee-releases-downloads/pre-releases
+          to: s3://gravitee-releases-downloads
     description: Sync folder content to Gravitee download website
 jobs:
   job-setup:
@@ -333,7 +329,7 @@ jobs:
       - cmd-workspace-install
       - run:
           name: Update Build version
-          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0-alpha.1\"/' gravitee-apim-console-webui/build.json"
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-console-webui/build.json"
       - run:
           name: Build Console
           command: NODE_OPTIONS=--max_old_space_size=4086 yarn console:build:prod
@@ -358,7 +354,7 @@ jobs:
           apim-ui-project-workdir: gravitee-apim-portal-webui
       - run:
           name: Update Build version
-          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0-alpha.1\"/' gravitee-apim-portal-webui/build.json"
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui/build.json"
       - run:
           name: Build
           command: yarn build:prod
@@ -368,7 +364,7 @@ jobs:
       - cmd-workspace-install
       - run:
           name: Update Build version
-          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0-alpha.1\"/' gravitee-apim-portal-webui-next/build.json"
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui-next/build.json"
       - run:
           name: Build Portal Next
           command: NODE_OPTIONS=--max_old_space_size=4086 yarn portal-next:build:prod
@@ -391,7 +387,7 @@ jobs:
       - cmd-workspace-install
       - run:
           name: Update Build version
-          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0-alpha.1\"/' gravitee-gamma/gravitee-gamma-control-plane-webui/build.json"
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-gamma/gravitee-gamma-control-plane-webui/build.json"
       - run:
           name: Build Gamma UI
           command: NODE_OPTIONS=--max_old_space_size=4086 yarn gamma-console:build:prod
@@ -440,7 +436,7 @@ jobs:
             fi
             docker buildx build --push --quiet --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
             ${CORE_ARG} \
-            -t graviteeio/<< parameters.docker-image-name >>:4.2.0-alpha.1 -t graviteeio/<< parameters.docker-image-name >>:4.2.0-alpha \
+            -t graviteeio/<< parameters.docker-image-name >>:4.2.0 -t graviteeio/<< parameters.docker-image-name >>:4.2 -t graviteeio/<< parameters.docker-image-name >>:4 -t graviteeio/<< parameters.docker-image-name >>:latest \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project-workdir >>
       - cmd-docker-logout
@@ -484,7 +480,7 @@ jobs:
             fi
             docker buildx build --push --quiet --platform=linux/arm64,linux/amd64 -f docker/Dockerfile \
             ${CORE_ARG} \
-            -t graviteeio/<< parameters.docker-image-name >>:4.2.0-alpha.1 -t graviteeio/<< parameters.docker-image-name >>:4.2.0-alpha \
+            -t graviteeio/<< parameters.docker-image-name >>:4.2.0 -t graviteeio/<< parameters.docker-image-name >>:4.2 -t graviteeio/<< parameters.docker-image-name >>:4 -t graviteeio/<< parameters.docker-image-name >>:latest \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project-workdir >>
       - run:
@@ -498,7 +494,7 @@ jobs:
             fi
             docker buildx build --push --quiet --platform=linux/arm64,linux/amd64 -f docker/Dockerfile.debian \
             ${CORE_ARG} \
-            -t graviteeio/<< parameters.docker-image-name >>:4.2.0-alpha.1-debian -t graviteeio/<< parameters.docker-image-name >>:4.2.0-alpha-debian \
+            -t graviteeio/<< parameters.docker-image-name >>:4.2.0-debian -t graviteeio/<< parameters.docker-image-name >>:4.2-debian -t graviteeio/<< parameters.docker-image-name >>:4-debian -t graviteeio/<< parameters.docker-image-name >>:latest-debian \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project-workdir >>
       - cmd-docker-logout
@@ -543,7 +539,7 @@ jobs:
             fi
             docker buildx build --push --quiet --platform=linux/arm64,linux/amd64 -f docker/Dockerfile.chainguard \
             ${CORE_ARG} \
-            -t graviteeio/<< parameters.docker-image-name >>:4.2.0-alpha.1-chainguard -t graviteeio/<< parameters.docker-image-name >>:4.2.0-alpha-chainguard \
+            -t graviteeio/<< parameters.docker-image-name >>:4.2.0-chainguard -t graviteeio/<< parameters.docker-image-name >>:4.2-chainguard -t graviteeio/<< parameters.docker-image-name >>:4-chainguard -t graviteeio/<< parameters.docker-image-name >>:latest-chainguard \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project-workdir >>
       - cmd-docker-logout
@@ -593,7 +589,7 @@ jobs:
             docker buildx build --push --quiet --platform=linux/arm64,linux/amd64 -f docker/Dockerfile.chainguard \
             --build-arg BASE_IMAGE=<< parameters.docker-fips-base-image >> \
             ${CORE_ARG} \
-            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.2.0-alpha.1-chainguard-fips -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.2.0-alpha-chainguard-fips \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.2.0-chainguard-fips -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.2-chainguard-fips -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4-chainguard-fips -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:latest-chainguard-fips \
             << parameters.docker-context >>
           working_directory: << parameters.apim-project-workdir >>
       - cmd-docker-logout-azurecr
@@ -612,7 +608,7 @@ jobs:
           name: Refuse a core pin this release cannot assemble
           command: |-
             PIN=$(mvn --settings .gravitee.settings.xml -q -N -f gravitee-apim-distribution/pom.xml help:evaluate -Dexpression=apim.core.version -DforceStdout)
-            echo "Releasing 4.2.0-alpha.1, which pins core $PIN"
+            echo "Releasing 4.2.0, which pins core $PIN"
 
             case "$PIN" in
             *-SNAPSHOT)
@@ -629,7 +625,7 @@ jobs:
             PIN_BASE=${PIN%%-*}
             if [ "${PIN_BASE%.*}" != "4.2" ]; then
               echo
-              echo "core $PIN is not on the 4.2 line, which 4.2.0-alpha.1 releases."
+              echo "core $PIN is not on the 4.2 line, which 4.2.0 releases."
               echo "Release a 4.2 core and merge the pull request that pins it, or fix the pin by hand."
               exit 1
             fi
@@ -701,74 +697,6 @@ jobs:
           paths:
             - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target/distribution
             - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution
-  job-release-commit-and-prepare-next-version:
-    docker:
-      - image: cimg/base:stable
-    resource_class: medium
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - add_ssh_keys:
-          fingerprints:
-            - ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c
-      - keeper/env-export:
-          secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
-          var-name: GIT_USER_NAME
-      - keeper/env-export:
-          secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/custom_field/email
-          var-name: GIT_USER_EMAIL
-      - run:
-          name: Git config
-          command: |-
-            git config --global user.name "${GIT_USER_NAME}"
-             git config --global user.email "${GIT_USER_EMAIL}"
-      - run:
-          name: "Git release "
-          command: |
-            # Remove `-SNAPSHOT` from source
-            # Backend. Both poms: this is the one command that releases the two reactors at once, so both
-            # carry the version being released. The core lane moves the root alone.
-            POMS="pom.xml gravitee-apim-distribution/pom.xml"
-            for POM in ${POMS}; do
-              sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" "${POM}"
-            done
-
-            # UI
-            sed -i 's/"version": ".*"/"version": "4.2.0-alpha.1"/' gravitee-apim-console-webui/build.json
-            sed -i 's/"version": ".*"/"version": "4.2.0-alpha.1"/' gravitee-apim-portal-webui/build.json
-            sed -i 's/"version": ".*"/"version": "4.2.0-alpha.1"/' gravitee-apim-portal-webui-next/build.json
-            sed -i 's/"version": ".*"/"version": "4.2.0-alpha.1"/' gravitee-gamma/gravitee-gamma-control-plane-webui/build.json
-
-            git add --update
-            git commit -m "4.2.0-alpha.1"
-            git tag 4.2.0-alpha.1
-
-            # Set the version to the next version (bump patch version + '-SNAPSHOT')
-            for POM in ${POMS}; do
-              sed -i "s#<revision>.*</revision>#<revision>4.2.0</revision>#" "${POM}"
-              sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" "${POM}"
-              # <sha1 /> is self-closing when the qualifier is empty, which the plain <sha1>.*</sha1> pattern
-              # never matches — the qualifier was silently kept on any pom already holding the empty form.
-              sed -i -E "s#<sha1( */>|>[^<]*</sha1>)#<sha1>-alpha.2</sha1>#" "${POM}"
-            done
-
-            sed -i 's#version: ".*"#version: "4.2.0-alpha.2-SNAPSHOT"#' gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/resources/portal-openapi.yaml
-            sed -i 's#"version": ".*"#"version": "4.2.0-alpha.2-SNAPSHOT"#' gravitee-apim-console-webui/build.json
-            sed -i 's#"version": ".*"#"version": "4.2.0-alpha.2-SNAPSHOT"#' gravitee-apim-portal-webui/build.json
-            sed -i 's#"version": ".*"#"version": "4.2.0-alpha.2-SNAPSHOT"#' gravitee-apim-portal-webui-next/build.json
-            sed -i 's#"version": ".*"#"version": "4.2.0-alpha.2-SNAPSHOT"#' gravitee-gamma/gravitee-gamma-control-plane-webui/build.json
-
-            # Helm chart increase version, appVersion and clean the artifacthub.io/changes annotation
-            sed -e "0,/^version:/{s/version:.*/version: 4.2.0-alpha.2/}" \
-                -e "0,/^appVersion:/{ s/appVersion.*/appVersion: 4.2.0-alpha.2/ }" \
-                -i helm/Chart.yaml
-
-            git add --update
-            git commit -m 'chore: prepare next version [skip ci]'
-
-            git push -u  origin 4.2.x
-            git push --tags  origin 4.2.x
   job-package-bundle:
     docker:
       - image: cimg/base:stable
@@ -779,30 +707,30 @@ jobs:
       - run:
           name: Building full-distribution bundle
           command: |
-            mkdir -p ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0-alpha.1
+            mkdir -p ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0
             # Console
-            cp -r gravitee-apim-console-webui/dist ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0-alpha.1/graviteeio-apim-console-ui-4.2.0-alpha.1
+            cp -r gravitee-apim-console-webui/dist ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0/graviteeio-apim-console-ui-4.2.0
 
             # Gamma Console
-            cp -r gravitee-gamma/gravitee-gamma-control-plane-webui/dist ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0-alpha.1/graviteeio-gamma-ui-4.2.0-alpha.1
+            cp -r gravitee-gamma/gravitee-gamma-control-plane-webui/dist ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0/graviteeio-gamma-ui-4.2.0
 
             # Portal
-            cp -r gravitee-apim-portal-webui/dist ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0-alpha.1/graviteeio-apim-portal-ui-4.2.0-alpha.1
+            cp -r gravitee-apim-portal-webui/dist ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0/graviteeio-apim-portal-ui-4.2.0
 
             # Rest API
-            cp -r gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target/distribution ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0-alpha.1/graviteeio-apim-rest-api-4.2.0-alpha.1
+            cp -r gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target/distribution ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0/graviteeio-apim-rest-api-4.2.0
 
             # Gateway
-            cp -r gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0-alpha.1/graviteeio-apim-gateway-4.2.0-alpha.1
+            cp -r gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0/graviteeio-apim-gateway-4.2.0
 
             cd ./folder_to_sync/graviteeio-apim/distributions
-            zip -q -r graviteeio-full-4.2.0-alpha.1.zip graviteeio-full-4.2.0-alpha.1
+            zip -q -r graviteeio-full-4.2.0.zip graviteeio-full-4.2.0
 
-            md5sum graviteeio-full-4.2.0-alpha.1.zip > graviteeio-full-4.2.0-alpha.1.zip.md5
-            sha512sum graviteeio-full-4.2.0-alpha.1.zip > graviteeio-full-4.2.0-alpha.1.zip.sha512sum
-            sha1sum graviteeio-full-4.2.0-alpha.1.zip > graviteeio-full-4.2.0-alpha.1.zip.sha1
+            md5sum graviteeio-full-4.2.0.zip > graviteeio-full-4.2.0.zip.md5
+            sha512sum graviteeio-full-4.2.0.zip > graviteeio-full-4.2.0.zip.sha512sum
+            sha1sum graviteeio-full-4.2.0.zip > graviteeio-full-4.2.0.zip.sha1
 
-            rm -rf graviteeio-full-4.2.0-alpha.1
+            rm -rf graviteeio-full-4.2.0
       - cmd-sync-folder-to-s3:
           folder-to-sync: folder_to_sync
   job-release-helm:
@@ -832,8 +760,8 @@ jobs:
       - helm/install_helm_client:
           version: v3.12.3
       - run:
-          name: Checkout tag 4.2.0-alpha.1
-          command: git checkout 4.2.0-alpha.1
+          name: Checkout tag 4.2.0
+          command: git checkout 4.2.0
       - run:
           name: build the Charts
           working_directory: ./helm
@@ -875,7 +803,7 @@ jobs:
       - run:
           name: Open a PR to publish helm chart release into helm-charts repository
           working_directory: ./release
-          command: yarn zx ci-steps/release-helm.mjs --version=4.2.0-alpha.1
+          command: yarn zx ci-steps/release-helm.mjs --version=4.2.0
       - keeper/env-export:
           secret-url: keeper://AEmKkeWZ4Zq758pvaPIE1A/custom_field/aws_access_key_id
           var-name: AWS_ACCESS_KEY_ID
@@ -898,9 +826,53 @@ jobs:
       docker_layer_caching: false
     resource_class: medium
     steps:
+      - keeper/env-export:
+          secret-url: keeper://8CG6HxY5gYsl-85eJKuIoA/field/password
+          var-name: GIO_PACKAGECLOUD_TOKEN
+      - keeper/env-export:
+          secret-url: keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/armor_format_pub_key
+          var-name: GPG_KEY_PUBLIC
+      - keeper/env-export:
+          secret-url: keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/armor_format_private_key
+          var-name: GPG_KEY_PRIVATE
+      - keeper/env-export:
+          secret-url: keeper://riW92t8X4tk4ZmQc8-FZ4Q/field/login
+          var-name: GPG_KEY_NAME
+      - keeper/env-export:
+          secret-url: keeper://riW92t8X4tk4ZmQc8-FZ4Q/custom_field/passphrase
+          var-name: GPG_KEY_PASSPHRASE
       - run:
-          name: Publishing RPMs is not supported for prerelease version
-          command: echo "Publishing RPMs is not supported for prerelease version"
+          name: Building and publishing RPMs
+          command: |
+            export GIT_GRAVITEE_PACKAGES_REPO=$(mktemp -d)
+            git clone --depth 1 --branch master --single-branch --no-tag git@github.com:gravitee-io/packages.git ${GIT_GRAVITEE_PACKAGES_REPO}
+
+            cd ${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x
+            ./build.sh -v 4.2.0
+
+            echo "change RPM file owner from root to graviteeio"
+            docker run --rm \
+                -v "${PWD}:/rpms" \
+                --workdir /rpms \
+                --entrypoint /bin/sh \
+                graviteeio/fpm:rpm \
+                -c 'chown 1001:1001 *.rpm'
+
+            docker run --rm \
+                -v "${PWD}:/rpms" \
+                -e "GPG_KEY_NAME" \
+                -e "GPG_KEY_PUBLIC" \
+                -e "GPG_KEY_PRIVATE" \
+                -e "GPG_KEY_PASSPHRASE" \
+                graviteeio/rpmsign
+
+            echo "RPMs will be published in https://packagecloud.io/graviteeio/rpms"
+
+            docker run --rm \
+                -v "${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x:/packages" \
+                -e PACKAGECLOUD_TOKEN=${GIO_PACKAGECLOUD_TOKEN} \
+                digitalocean/packagecloud \
+                push --yes --skip-errors --verbose graviteeio/rpms/el/7 /packages/*.rpm
   job-release-notes-apim:
     docker:
       - image: cimg/node:24.18.0
@@ -942,7 +914,7 @@ jobs:
           working_directory: ./release
       - run:
           name: Open a PR to create release notes into docs repository
-          command: yarn zx --quiet ci-steps/generate-changelog.mjs --version=4.2.0-alpha.1
+          command: yarn zx --quiet ci-steps/generate-changelog.mjs --version=4.2.0
           working_directory: ./release
       - run:
           name: Get RELEASE_NOTES_PR_URL
@@ -957,31 +929,11 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ":memo: APIM Changelog 4.2.0-alpha.1 can be completed <${RELEASE_NOTES_PR_URL}|here> @tech_writers_team :pray:"
+                    "text": ":memo: APIM Changelog 4.2.0 can be completed <${RELEASE_NOTES_PR_URL}|here> @tech_writers_team :pray:"
                   }
                 }
               ]
             }
-  job-nexus-staging:
-    docker:
-      - image: cimg/openjdk:25.0.3-node
-    resource_class: xlarge
-    steps:
-      - checkout
-      - run:
-          name: Checkout tag 4.2.0-alpha.1
-          command: git checkout 4.2.0-alpha.1
-      - cmd-restore-maven-job-cache:
-          jobName: job-nexus-staging
-      - attach_workspace:
-          at: .
-      - cmd-prepare-gpg
-      - cmd-azure-artifacts-token
-      - run:
-          name: Release on Nexus
-          command: mvn clean deploy --activate-profiles gravitee-release --batch-mode -T 4 -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true --settings .gravitee.settings.xml --update-snapshots
-      - cmd-save-maven-job-cache:
-          jobName: job-nexus-staging
   job-trigger-saas-docker-images:
     docker:
       - image: cimg/base:stable
@@ -990,7 +942,7 @@ jobs:
       - run:
           name: Trigger SaaS Docker images pipeline
           command: |-
-            PIPELINE_ID=$(curl --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"project":"apim", "distribution":"prod", "branch-version":"4.2.x", "sha1":"784ff35", "release-version":"4.2.0-alpha.1", "dry-run":false, "os-distribution":"debian"}}' | jq -r '.id')
+            PIPELINE_ID=$(curl --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"project":"apim", "distribution":"prod", "branch-version":"4.2.x", "sha1":"784ff35", "release-version":"4.2.0", "dry-run":false, "os-distribution":"debian"}}' | jq -r '.id')
             echo "Pipeline triggered with ID: $PIPELINE_ID"
             waitForPipelineCompletion() {
                 while true; do
@@ -1015,7 +967,7 @@ jobs:
       - run:
           name: Trigger SaaS Docker images pipeline
           command: |-
-            PIPELINE_ID=$(curl --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"project":"apim", "distribution":"prod", "branch-version":"4.2.x", "sha1":"784ff35", "release-version":"4.2.0-alpha.1", "dry-run":false, "os-distribution":"chainguard"}}' | jq -r '.id')
+            PIPELINE_ID=$(curl --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"project":"apim", "distribution":"prod", "branch-version":"4.2.x", "sha1":"784ff35", "release-version":"4.2.0", "dry-run":false, "os-distribution":"chainguard"}}' | jq -r '.id')
             echo "Pipeline triggered with ID: $PIPELINE_ID"
             waitForPipelineCompletion() {
                 while true; do
@@ -1040,7 +992,7 @@ jobs:
       - run:
           name: Trigger SaaS Docker images pipeline
           command: |-
-            PIPELINE_ID=$(curl --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"project":"apim", "distribution":"prod", "branch-version":"4.2.x", "sha1":"784ff35", "release-version":"4.2.0-alpha.1", "dry-run":false, "os-distribution":"chainguard-fips"}}' | jq -r '.id')
+            PIPELINE_ID=$(curl --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/cloud-distributions/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"project":"apim", "distribution":"prod", "branch-version":"4.2.x", "sha1":"784ff35", "release-version":"4.2.0", "dry-run":false, "os-distribution":"chainguard-fips"}}' | jq -r '.id')
             echo "Pipeline triggered with ID: $PIPELINE_ID"
             waitForPipelineCompletion() {
                 while true; do
@@ -1076,8 +1028,8 @@ jobs:
       - run:
           name: Trigger gravitee-apim-api-docs ingestion pipeline
           command: |-
-            curl --fail --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/gravitee-apim-api-docs/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"version":"4.2.0-alpha.1", "core_version":"'"${CORE_VERSION}"'", "dry_run":false}}'
-            echo "Docs ingestion pipeline triggered for APIM 4.2.0-alpha.1."
+            curl --fail --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/gravitee-apim-api-docs/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"version":"4.2.0", "core_version":"'"${CORE_VERSION}"'", "dry_run":false}}'
+            echo "Docs ingestion pipeline triggered for APIM 4.2.0."
   job-aikido-scan-docker-images:
     machine:
       image: ubuntu-2204:current
@@ -1093,23 +1045,23 @@ jobs:
           name: Pull docker images to scan
           command: |-
             IMAGES="
-            graviteeio/apim-portal-ui:4.2.0-alpha.1
-            graviteeio/apim-portal-ui:4.2.0-alpha.1-chainguard
-            graviteeio.azurecr.io/apim-portal-ui:4.2.0-alpha.1-chainguard-fips
-            graviteeio/apim-management-ui:4.2.0-alpha.1
-            graviteeio/apim-management-ui:4.2.0-alpha.1-chainguard
-            graviteeio.azurecr.io/apim-management-ui:4.2.0-alpha.1-chainguard-fips
-            graviteeio/gamma-ui:4.2.0-alpha.1
-            graviteeio/gamma-ui:4.2.0-alpha.1-chainguard
-            graviteeio.azurecr.io/gamma-ui:4.2.0-alpha.1-chainguard-fips
-            graviteeio/apim-management-api:4.2.0-alpha.1
-            graviteeio/apim-management-api:4.2.0-alpha.1-debian
-            graviteeio/apim-management-api:4.2.0-alpha.1-chainguard
-            graviteeio.azurecr.io/apim-management-api:4.2.0-alpha.1-chainguard-fips
-            graviteeio/apim-gateway:4.2.0-alpha.1
-            graviteeio/apim-gateway:4.2.0-alpha.1-debian
-            graviteeio/apim-gateway:4.2.0-alpha.1-chainguard
-            graviteeio.azurecr.io/apim-gateway:4.2.0-alpha.1-chainguard-fips
+            graviteeio/apim-portal-ui:4.2.0
+            graviteeio/apim-portal-ui:4.2.0-chainguard
+            graviteeio.azurecr.io/apim-portal-ui:4.2.0-chainguard-fips
+            graviteeio/apim-management-ui:4.2.0
+            graviteeio/apim-management-ui:4.2.0-chainguard
+            graviteeio.azurecr.io/apim-management-ui:4.2.0-chainguard-fips
+            graviteeio/gamma-ui:4.2.0
+            graviteeio/gamma-ui:4.2.0-chainguard
+            graviteeio.azurecr.io/gamma-ui:4.2.0-chainguard-fips
+            graviteeio/apim-management-api:4.2.0
+            graviteeio/apim-management-api:4.2.0-debian
+            graviteeio/apim-management-api:4.2.0-chainguard
+            graviteeio.azurecr.io/apim-management-api:4.2.0-chainguard-fips
+            graviteeio/apim-gateway:4.2.0
+            graviteeio/apim-gateway:4.2.0-debian
+            graviteeio/apim-gateway:4.2.0-chainguard
+            graviteeio.azurecr.io/apim-gateway:4.2.0-chainguard-fips
             "
             : > /tmp/aikido-images.txt
             for image in $IMAGES; do
@@ -1129,145 +1081,257 @@ jobs:
       - cmd-docker-logout
       - cmd-docker-logout-azurecr
 workflows:
-  full_release:
+  distribution_release:
     jobs:
       - job-setup:
           context:
             - cicd-orchestrator
           name: Setup
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-slack-announcement:
           context:
             - cicd-orchestrator
           name: Announce release is starting
-          message: 🚀 Starting APIM 4.2.0-alpha.1 release!
+          message: 🚀 Starting APIM 4.2.0 release!
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-portal-webui-build:
           context:
             - cicd-orchestrator
           name: Build APIM Portal
           requires:
             - Setup
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-build-docker-webui-image:
           context:
             - cicd-orchestrator
-          name: Build APIM Portal docker image for APIM 4.2.0-alpha.1
+          name: Build APIM Portal docker image for APIM 4.2.0
           requires:
             - Build APIM Portal
           apim-project: gravitee-apim-portal-webui
           apim-project-workdir: gravitee-apim-portal-webui
           docker-context: .
           docker-image-name: apim-portal-ui
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-console-webui-build:
           context:
             - cicd-orchestrator
           name: Build APIM Console
           requires:
             - Setup
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-build-docker-webui-image:
           context:
             - cicd-orchestrator
-          name: Build APIM Console docker image for APIM 4.2.0-alpha.1
+          name: Build APIM Console docker image for APIM 4.2.0
           requires:
             - Build APIM Console
           apim-project: gravitee-apim-console-webui
           apim-project-workdir: gravitee-apim-console-webui
           docker-context: .
           docker-image-name: apim-management-ui
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-gamma-webui-build:
           context:
             - cicd-orchestrator
           name: Build Gamma Console
           requires:
             - Setup
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-build-docker-webui-image:
           context:
             - cicd-orchestrator
-          name: Build Gamma Console docker image for APIM 4.2.0-alpha.1
+          name: Build Gamma Console docker image for APIM 4.2.0
           requires:
             - Build Gamma Console
           apim-project: gravitee-gamma-control-plane-webui
           apim-project-workdir: gravitee-gamma/gravitee-gamma-control-plane-webui
           docker-context: .
           docker-image-name: gamma-ui
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-backend-build-and-publish-on-download-website:
           context:
             - cicd-orchestrator
           name: Backend build and publish on download website
           requires:
             - Setup
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-build-docker-backend-image:
           context:
             - cicd-orchestrator
-          name: Build APIM Management API docker image for APIM 4.2.0-alpha.1
+          name: Build APIM Management API docker image for APIM 4.2.0
           requires:
             - Backend build and publish on download website
           apim-project: gravitee-apim-rest-api
           apim-project-workdir: gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api
           docker-context: target
           docker-image-name: apim-management-api
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-build-docker-backend-image:
           context:
             - cicd-orchestrator
-          name: Build APIM Gateway docker image for APIM 4.2.0-alpha.1
+          name: Build APIM Gateway docker image for APIM 4.2.0
           requires:
             - Backend build and publish on download website
           apim-project: gravitee-apim-gateway
           apim-project-workdir: gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway
           docker-context: target
           docker-image-name: apim-gateway
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-build-docker-chainguard-image:
           context:
             - cicd-orchestrator
-          name: Build APIM Portal chainguard docker image for APIM 4.2.0-alpha.1
+          name: Build APIM Portal chainguard docker image for APIM 4.2.0
           requires:
             - Build APIM Portal
           apim-project: gravitee-apim-portal-webui
           apim-project-workdir: gravitee-apim-portal-webui
           docker-context: .
           docker-image-name: apim-portal-ui
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-build-docker-chainguard-image:
           context:
             - cicd-orchestrator
-          name: Build APIM Console chainguard docker image for APIM 4.2.0-alpha.1
+          name: Build APIM Console chainguard docker image for APIM 4.2.0
           requires:
             - Build APIM Console
           apim-project: gravitee-apim-console-webui
           apim-project-workdir: gravitee-apim-console-webui
           docker-context: .
           docker-image-name: apim-management-ui
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-build-docker-chainguard-image:
           context:
             - cicd-orchestrator
-          name: Build Gamma Console chainguard docker image for APIM 4.2.0-alpha.1
+          name: Build Gamma Console chainguard docker image for APIM 4.2.0
           requires:
             - Build Gamma Console
           apim-project: gravitee-gamma-control-plane-webui
           apim-project-workdir: gravitee-gamma/gravitee-gamma-control-plane-webui
           docker-context: .
           docker-image-name: gamma-ui
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-build-docker-chainguard-image:
           context:
             - cicd-orchestrator
-          name: Build APIM Management API chainguard docker image for APIM 4.2.0-alpha.1
+          name: Build APIM Management API chainguard docker image for APIM 4.2.0
           requires:
             - Backend build and publish on download website
           apim-project: gravitee-apim-rest-api
           apim-project-workdir: gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api
           docker-context: target
           docker-image-name: apim-management-api
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-build-docker-chainguard-image:
           context:
             - cicd-orchestrator
-          name: Build APIM Gateway chainguard docker image for APIM 4.2.0-alpha.1
+          name: Build APIM Gateway chainguard docker image for APIM 4.2.0
           requires:
             - Backend build and publish on download website
           apim-project: gravitee-apim-gateway
           apim-project-workdir: gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway
           docker-context: target
           docker-image-name: apim-gateway
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-build-docker-chainguard-fips-image:
           context:
             - cicd-orchestrator
-          name: Build APIM Management API chainguard-fips docker image for APIM 4.2.0-alpha.1
+          name: Build APIM Management API chainguard-fips docker image for APIM 4.2.0
           requires:
             - Backend build and publish on download website
           apim-project: gravitee-apim-rest-api
@@ -1275,10 +1339,17 @@ workflows:
           docker-context: target
           docker-image-name: apim-management-api
           docker-fips-base-image: graviteeio.azurecr.io/java:25-chainguard-fips
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-build-docker-chainguard-fips-image:
           context:
             - cicd-orchestrator
-          name: Build APIM Gateway chainguard-fips docker image for APIM 4.2.0-alpha.1
+          name: Build APIM Gateway chainguard-fips docker image for APIM 4.2.0
           requires:
             - Backend build and publish on download website
           apim-project: gravitee-apim-gateway
@@ -1286,10 +1357,17 @@ workflows:
           docker-context: target
           docker-image-name: apim-gateway
           docker-fips-base-image: graviteeio.azurecr.io/java:25-chainguard-fips
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-build-docker-chainguard-fips-image:
           context:
             - cicd-orchestrator
-          name: Build APIM Portal chainguard-fips docker image for APIM 4.2.0-alpha.1
+          name: Build APIM Portal chainguard-fips docker image for APIM 4.2.0
           requires:
             - Build APIM Portal
           apim-project: gravitee-apim-portal-webui
@@ -1297,10 +1375,17 @@ workflows:
           docker-context: .
           docker-image-name: apim-portal-ui
           docker-fips-base-image: graviteeio.azurecr.io/nginx:1.30-chainguard-fips
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-build-docker-chainguard-fips-image:
           context:
             - cicd-orchestrator
-          name: Build APIM Console chainguard-fips docker image for APIM 4.2.0-alpha.1
+          name: Build APIM Console chainguard-fips docker image for APIM 4.2.0
           requires:
             - Build APIM Console
           apim-project: gravitee-apim-console-webui
@@ -1308,10 +1393,17 @@ workflows:
           docker-context: .
           docker-image-name: apim-management-ui
           docker-fips-base-image: graviteeio.azurecr.io/nginx:1.30-chainguard-fips
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-build-docker-chainguard-fips-image:
           context:
             - cicd-orchestrator
-          name: Build Gamma Console chainguard-fips docker image for APIM 4.2.0-alpha.1
+          name: Build Gamma Console chainguard-fips docker image for APIM 4.2.0
           requires:
             - Build Gamma Console
           apim-project: gravitee-gamma-control-plane-webui
@@ -1319,115 +1411,179 @@ workflows:
           docker-context: .
           docker-image-name: gamma-ui
           docker-fips-base-image: graviteeio.azurecr.io/nginx:1.30-chainguard-fips
-      - job-release-commit-and-prepare-next-version:
-          context:
-            - cicd-orchestrator
-          name: Commit and prepare next version
-          requires:
-            - Backend build and publish on download website
-            - Build APIM Console
-            - Build APIM Portal
-            - Build Gamma Console
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-package-bundle:
           context:
             - cicd-orchestrator
           name: Package bundle
           requires:
-            - Commit and prepare next version
+            - Backend build and publish on download website
+            - Build APIM Console
+            - Build APIM Portal
+            - Build Gamma Console
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-publish-rpm-packages:
           context:
             - cicd-orchestrator
-          name: Build and push RPM packages for APIM 4.2.0-alpha.1
+          name: Build and push RPM packages for APIM 4.2.0
           requires:
             - Package bundle
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-trigger-saas-docker-images:
           context:
             - cicd-orchestrator
             - keeper-orb-publishing
           name: Trigger SaaS Docker images creation
           requires:
-            - Build APIM Portal docker image for APIM 4.2.0-alpha.1
-            - Build APIM Console docker image for APIM 4.2.0-alpha.1
-            - Build APIM Management API docker image for APIM 4.2.0-alpha.1
-            - Build APIM Gateway docker image for APIM 4.2.0-alpha.1
+            - Build APIM Portal docker image for APIM 4.2.0
+            - Build APIM Console docker image for APIM 4.2.0
+            - Build APIM Management API docker image for APIM 4.2.0
+            - Build APIM Gateway docker image for APIM 4.2.0
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-trigger-saas-docker-images-chainguard:
           context:
             - cicd-orchestrator
             - keeper-orb-publishing
           name: Trigger SaaS Chainguard Docker images creation
           requires:
-            - Build APIM Portal chainguard docker image for APIM 4.2.0-alpha.1
-            - Build APIM Console chainguard docker image for APIM 4.2.0-alpha.1
-            - Build Gamma Console chainguard docker image for APIM 4.2.0-alpha.1
-            - Build APIM Management API chainguard docker image for APIM 4.2.0-alpha.1
-            - Build APIM Gateway chainguard docker image for APIM 4.2.0-alpha.1
+            - Build APIM Portal chainguard docker image for APIM 4.2.0
+            - Build APIM Console chainguard docker image for APIM 4.2.0
+            - Build Gamma Console chainguard docker image for APIM 4.2.0
+            - Build APIM Management API chainguard docker image for APIM 4.2.0
+            - Build APIM Gateway chainguard docker image for APIM 4.2.0
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-trigger-saas-docker-images-chainguard-fips:
           context:
             - cicd-orchestrator
             - keeper-orb-publishing
           name: Trigger SaaS Chainguard FIPS Docker images creation
           requires:
-            - Build APIM Management API chainguard-fips docker image for APIM 4.2.0-alpha.1
-            - Build APIM Gateway chainguard-fips docker image for APIM 4.2.0-alpha.1
-            - Build APIM Portal chainguard-fips docker image for APIM 4.2.0-alpha.1
-            - Build APIM Console chainguard-fips docker image for APIM 4.2.0-alpha.1
-            - Build Gamma Console chainguard-fips docker image for APIM 4.2.0-alpha.1
-      - job-nexus-staging:
-          context:
-            - cicd-orchestrator
-          name: Nexus staging
-          requires:
-            - Trigger SaaS Docker images creation
+            - Build APIM Management API chainguard-fips docker image for APIM 4.2.0
+            - Build APIM Gateway chainguard-fips docker image for APIM 4.2.0
+            - Build APIM Portal chainguard-fips docker image for APIM 4.2.0
+            - Build APIM Console chainguard-fips docker image for APIM 4.2.0
+            - Build Gamma Console chainguard-fips docker image for APIM 4.2.0
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-trigger-apim-api-docs-pipeline:
           context:
             - cicd-orchestrator
             - keeper-orb-publishing
           name: Trigger APIM API docs ingestion
           requires:
-            - Nexus staging
+            - Trigger SaaS Docker images creation
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-release-helm:
           context:
             - cicd-orchestrator
           name: Release Helm Chart
           requires:
             - Trigger SaaS Docker images creation
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-release-notes-apim:
           context:
             - cicd-orchestrator
           name: Create release note pull request
           requires:
             - Release Helm Chart
-            - Build and push RPM packages for APIM 4.2.0-alpha.1
+            - Build and push RPM packages for APIM 4.2.0
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-slack-announcement:
           context:
             - cicd-orchestrator
           name: Announce release is completed
-          message: 🎆 APIM - 4.2.0-alpha.1 released!
+          message: 🎆 APIM - 4.2.0 released!
           requires:
-            - Nexus staging
             - Release Helm Chart
             - Trigger APIM API docs ingestion
-            - Build and push RPM packages for APIM 4.2.0-alpha.1
+            - Build and push RPM packages for APIM 4.2.0
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
       - job-aikido-scan-docker-images:
           context:
             - cicd-orchestrator
-          name: Scan docker images with Aikido for APIM 4.2.0-alpha.1
+          name: Scan docker images with Aikido for APIM 4.2.0
           requires:
-            - Build APIM Portal docker image for APIM 4.2.0-alpha.1
-            - Build APIM Portal chainguard docker image for APIM 4.2.0-alpha.1
-            - Build APIM Portal chainguard-fips docker image for APIM 4.2.0-alpha.1
-            - Build APIM Console docker image for APIM 4.2.0-alpha.1
-            - Build APIM Console chainguard docker image for APIM 4.2.0-alpha.1
-            - Build APIM Console chainguard-fips docker image for APIM 4.2.0-alpha.1
-            - Build Gamma Console docker image for APIM 4.2.0-alpha.1
-            - Build Gamma Console chainguard docker image for APIM 4.2.0-alpha.1
-            - Build Gamma Console chainguard-fips docker image for APIM 4.2.0-alpha.1
-            - Build APIM Management API docker image for APIM 4.2.0-alpha.1
-            - Build APIM Management API chainguard docker image for APIM 4.2.0-alpha.1
-            - Build APIM Management API chainguard-fips docker image for APIM 4.2.0-alpha.1
-            - Build APIM Gateway docker image for APIM 4.2.0-alpha.1
-            - Build APIM Gateway chainguard docker image for APIM 4.2.0-alpha.1
-            - Build APIM Gateway chainguard-fips docker image for APIM 4.2.0-alpha.1
+            - Build APIM Portal docker image for APIM 4.2.0
+            - Build APIM Portal chainguard docker image for APIM 4.2.0
+            - Build APIM Portal chainguard-fips docker image for APIM 4.2.0
+            - Build APIM Console docker image for APIM 4.2.0
+            - Build APIM Console chainguard docker image for APIM 4.2.0
+            - Build APIM Console chainguard-fips docker image for APIM 4.2.0
+            - Build Gamma Console docker image for APIM 4.2.0
+            - Build Gamma Console chainguard docker image for APIM 4.2.0
+            - Build Gamma Console chainguard-fips docker image for APIM 4.2.0
+            - Build APIM Management API docker image for APIM 4.2.0
+            - Build APIM Management API chainguard docker image for APIM 4.2.0
+            - Build APIM Management API chainguard-fips docker image for APIM 4.2.0
+            - Build APIM Gateway docker image for APIM 4.2.0
+            - Build APIM Gateway chainguard docker image for APIM 4.2.0
+            - Build APIM Gateway chainguard-fips docker image for APIM 4.2.0
+          filters:
+            branches:
+              ignore:
+                - /.*/
+            tags:
+              only:
+                - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
 orbs:
   keeper: gravitee-io/keeper@0.7.1
   slack: circleci/slack@4.12.5
