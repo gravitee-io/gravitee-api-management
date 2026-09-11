@@ -85,6 +85,7 @@ public class ApiPagesResource extends AbstractResource {
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public List<PageEntity> getApiPages(
         @HeaderParam("Accept-Language") String acceptLang,
         @QueryParam("homepage") Boolean homepage,

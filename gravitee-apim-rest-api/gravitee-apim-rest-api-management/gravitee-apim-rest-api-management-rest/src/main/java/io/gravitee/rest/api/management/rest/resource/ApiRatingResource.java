@@ -72,6 +72,7 @@ public class ApiRatingResource extends AbstractResource {
     @GET
     @Operation(summary = "List ratings for an API")
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public Page<RatingEntity> getApiRating(@Min(1) @QueryParam("pageNumber") int pageNumber, @QueryParam("pageSize") int pageSize) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api, false, false, false);
@@ -94,6 +95,7 @@ public class ApiRatingResource extends AbstractResource {
     @GET
     @Operation(summary = "Retrieve current rating for an API provided by the authenticated user")
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public RatingEntity getApiRatingByApiAndUser() {
         if (!isAuthenticated()) {
             return null;
@@ -114,6 +116,7 @@ public class ApiRatingResource extends AbstractResource {
     @Operation(summary = "Get the rating summary for an API")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public RatingSummaryEntity getApiRatingSummaryByApi() {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, api, false, false, false);

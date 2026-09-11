@@ -94,6 +94,7 @@ public class ApiPlansResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "400", description = UNSUPPORTED_DEFINITION_VERSION)
     @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public List<PlanEntity> getApiPlans(
         @QueryParam("status") @DefaultValue("PUBLISHED") @Parameter(
             explode = Explode.FALSE,
@@ -198,6 +199,7 @@ public class ApiPlansResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "400", description = UNSUPPORTED_DEFINITION_VERSION)
     @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public Response getApiPlan(@PathParam("plan") String plan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         assertLegacyApiSupported(executionContext, api);
