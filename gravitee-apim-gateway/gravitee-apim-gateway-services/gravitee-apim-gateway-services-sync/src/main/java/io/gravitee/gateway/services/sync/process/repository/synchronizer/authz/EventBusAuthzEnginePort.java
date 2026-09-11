@@ -254,11 +254,17 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
             return Completable.complete();
         }
         List<Completable> sends = new ArrayList<>();
-        for (String scope : expandWildcard(environmentId, targetPdpIds)) {
+        Set<String> scopes = expandWildcard(environmentId, targetPdpIds);
+        for (String scope : scopes) {
             if (!hostedScopes.serves(environmentId, scope)) {
                 continue;
             }
             String address = addressFor(environmentId, scope);
+            if (appliedOnAnotherScope(environmentId, address, scopes, docId)) {
+                // Another scope keeps the document on this shared engine.
+                revisions.forget(environmentId, scope, docId);
+                continue;
+            }
             sends.add(
                 vertx
                     .eventBus()
@@ -271,6 +277,14 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
             );
         }
         return Completable.merge(sends);
+    }
+
+    private boolean appliedOnAnotherScope(String environmentId, String address, Set<String> removedScopes, String docId) {
+        return hostedScopes
+            .hostedFor(environmentId)
+            .stream()
+            .filter(other -> !removedScopes.contains(other) && addressFor(environmentId, other).equals(address))
+            .anyMatch(other -> revisions.isApplied(environmentId, other, docId));
     }
 
     // "*" means every engine in the environment. On a given node that is the set of scopes the node
