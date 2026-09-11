@@ -21,7 +21,6 @@ export function initDynamicConfig(): Config {
    * according to https://circleci.com/docs/dynamic-config/#how-dynamic-config-works, the parameters from config.yml, should be redefined also in the dynamic config.yml
    */
   dynamicConfig.defineParameter('gio_action', 'string', 'pull_requests', '', [
-    'full_release',
     'pull_requests',
     'build_chainguard_images',
     'build_chainguard_fips_images',
@@ -31,7 +30,6 @@ export function initDynamicConfig(): Config {
     'run_e2e_tests',
   ]);
   dynamicConfig.defineParameter('dry_run', 'boolean', true, 'Run in dry run mode?');
-  dynamicConfig.defineParameter('docker_tag_as_latest', 'boolean', false, 'Is this version the latest version available?');
   dynamicConfig.defineParameter('graviteeio_version', 'string', '', 'Version of APIM to be used in docker images');
   dynamicConfig.defineParameter('apim_version_path', 'string', '/home/circleci/project/pom.xml', 'Path to pom.xml with APIM version');
 

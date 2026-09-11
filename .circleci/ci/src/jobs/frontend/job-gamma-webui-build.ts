@@ -33,7 +33,7 @@ export class GammaWebuiBuildJob {
     const notifyOnFailureCommand = NotifyOnFailureCommand.get(dynamicConfig, environment);
     dynamicConfig.addReusableCommand(notifyOnFailureCommand);
 
-    const apimVersion = environment.action === 'full_release' ? environment.graviteeioVersion : computeApimVersion(environment);
+    const apimVersion = environment.action === 'distribution_release' ? environment.graviteeioVersion : computeApimVersion(environment);
 
     const steps: Command[] = [
       new commands.Checkout(),

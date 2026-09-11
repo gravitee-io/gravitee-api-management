@@ -13,7 +13,6 @@ parameters:
         type: enum
         enum:
             [
-                full_release,
                 pull_requests,
                 build_chainguard_images,
                 build_chainguard_fips_images,
@@ -32,10 +31,6 @@ parameters:
         type: boolean
         default: true
         description: "Run in dry run mode?"
-    docker_tag_as_latest:
-        default: false
-        type: boolean
-        description: "Is this version the latest version available ?"
     graviteeio_version:
         default: ""
         type: string
@@ -53,7 +48,6 @@ jobs:
             CI_ACTION: "<< pipeline.parameters.gio_action >>"
             CI_DRY_RUN: "<< pipeline.parameters.dry_run >>"
             CI_GRAVITEEIO_VERSION: "<< pipeline.parameters.graviteeio_version >>"
-            CI_DOCKER_TAG_AS_LATEST: "<< pipeline.parameters.docker_tag_as_latest >>"
             APIM_VERSION_PATH: "<< pipeline.parameters.apim_version_path >>"
         steps:
             - checkout
@@ -164,6 +158,25 @@ workflows:
                       tags:
                           ignore:
                               - /.*/
+
+    # The distribution publishes from its own tag, which is the bare version — the number users
+    # already know. Same principle as the core lane: the tag carries the version, so nothing is
+    # passed as a pipeline parameter and the artefacts are built from the tagged tree.
+    distribution-release:
+        when:
+            matches:
+                pattern: "/^(\\d+\\.\\d+\\.\\d+(-[a-z]+\\.\\d+)?)$/"
+                value: << pipeline.git.tag >>
+        jobs:
+            - generate-config:
+                  context: cicd-orchestrator
+                  filters:
+                      branches:
+                          ignore:
+                              - /.*/
+                      tags:
+                          only:
+                              - /^(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
 
     # The core reactor publishes from its own tag. The version is the tag, so nothing is passed as a
     # pipeline parameter and the artefacts are built from the tagged tree rather than from a branch
