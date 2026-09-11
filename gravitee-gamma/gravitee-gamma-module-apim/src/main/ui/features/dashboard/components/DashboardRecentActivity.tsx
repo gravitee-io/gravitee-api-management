@@ -32,7 +32,7 @@ function DeploymentBadge({ state }: { state?: ApiDeploymentState }) {
     }
     if (state === 'DEPLOYED') {
         return (
-            <Badge variant="outline" className="shrink-0">
+            <Badge variant="success" className="shrink-0">
                 Deployed
             </Badge>
         );
