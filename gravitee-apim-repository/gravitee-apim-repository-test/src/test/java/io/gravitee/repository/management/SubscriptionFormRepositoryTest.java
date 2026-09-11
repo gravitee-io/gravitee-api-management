@@ -268,6 +268,35 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
     }
 
     @Test
+    public void shouldRejectAnApiAlreadyMappedToAnotherForm() throws Exception {
+        SubscriptionForm competing = SubscriptionForm.builder()
+            .id("sub-form-competing")
+            .environmentId("env-1")
+            .name("Competing")
+            .apiIds(List.of("api-partner-1"))
+            .portalPageContentId("2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a")
+            .enabled(false)
+            .defaultForm(false)
+            .validationConstraints("{}")
+            .build();
+
+        assertThatThrownBy(() -> subscriptionFormRepository.create(competing)).isInstanceOf(DuplicateKeyException.class);
+        assertThat(subscriptionFormRepository.findById("sub-form-competing")).isNotPresent();
+    }
+
+    @Test
+    public void shouldRejectMappingAnApiAlreadyMappedToAnotherForm() throws Exception {
+        SubscriptionForm defaultForm = subscriptionFormRepository.findById("sub-form-find-by-id").orElseThrow();
+        SubscriptionForm remapped = defaultForm.toBuilder().apiIds(List.of("api-partner-1")).build();
+
+        assertThatThrownBy(() -> subscriptionFormRepository.update(remapped)).isInstanceOf(DuplicateKeyException.class);
+        assertThat(subscriptionFormRepository.findById("sub-form-find-by-id"))
+            .get()
+            .extracting(SubscriptionForm::getApiIds)
+            .isEqualTo(List.of());
+    }
+
+    @Test
     public void shouldFindAll() throws Exception {
         Set<SubscriptionForm> all = subscriptionFormRepository.findAll();
 

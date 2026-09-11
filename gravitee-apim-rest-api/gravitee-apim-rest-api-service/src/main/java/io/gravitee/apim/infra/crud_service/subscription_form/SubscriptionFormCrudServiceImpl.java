@@ -130,7 +130,7 @@ public class SubscriptionFormCrudServiceImpl implements SubscriptionFormCrudServ
 
     /**
      * A duplicate key is not a technical failure: the row collides with another form of its environment (a second
-     * default form), which the caller reports as a conflict.
+     * default form, an API already mapped to another form), which the caller reports as a conflict.
      */
     private static RuntimeException toDomainException(TechnicalException e, String message) {
         if (e instanceof DuplicateKeyException) {
