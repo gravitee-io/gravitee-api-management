@@ -62,6 +62,10 @@ public class CreateOrUpdateSubscriptionFormUseCase {
         return new Output(saved, validation.errors());
     }
 
+    /**
+     * A promotion failing right after a create would leave behind a form the spec never asked for: remove it
+     * before reporting the failure, so re-applying the spec starts from the same state.
+     */
     private SubscriptionForm create(SubscriptionFormSpecDomainService.Spec spec, SubscriptionFormSpecDomainService.Validation validation) {
         return subscriptionFormCrudService.create(
             SubscriptionForm.builder()

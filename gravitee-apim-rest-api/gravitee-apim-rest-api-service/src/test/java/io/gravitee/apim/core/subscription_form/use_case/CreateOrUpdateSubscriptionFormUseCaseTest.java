@@ -141,11 +141,34 @@ class CreateOrUpdateSubscriptionFormUseCaseTest {
         }
 
         @Test
-        void should_return_no_error_for_a_valid_spec() {
-            var output = validateUseCase.execute(aSpec("Partners", true, null));
+        void should_preview_the_form_the_apply_would_write() {
+            var existing = SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                .id(aSpec("Partners", false, null).subscriptionFormId())
+                .name("Before")
+                .enabled(false)
+                .defaultForm(false)
+                .build();
+            crudService.initWith(List.of(existing));
+            queryService.initWith(List.of(existing));
+
+            var output = validateUseCase.execute(aSpec("After", true, null));
 
             assertThat(output.errors()).isEmpty();
-            assertThat(output.subscriptionForm()).isNull();
+            assertThat(output.subscriptionForm()).isNotSameAs(existing);
+            assertThat(output.subscriptionForm().getName()).isEqualTo("After");
+            assertThat(output.subscriptionForm().isEnabled()).isTrue();
+            assertThat(existing.getName()).isEqualTo("Before");
+            assertThat(crudService.storage()).containsExactly(existing);
+        }
+
+        @Test
+        void should_return_no_error_for_a_valid_spec() {
+            var spec = aSpec("Partners", true, null);
+
+            var output = validateUseCase.execute(spec);
+
+            assertThat(output.errors()).isEmpty();
+            assertThat(output.subscriptionForm().getId()).isEqualTo(spec.subscriptionFormId());
             assertThat(crudService.storage()).isEmpty();
         }
     }
