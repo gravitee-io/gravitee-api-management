@@ -26,6 +26,7 @@ import com.mongodb.client.vault.ClientEncryptions;
 import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
 import io.gravitee.repository.mongodb.common.MongoFactory;
 import io.gravitee.repository.mongodb.encryption.EncryptionEnabledCondition;
+import io.gravitee.repository.mongodb.management.converters.DictionaryPropertyWritingConverter;
 import io.gravitee.repository.mongodb.management.converters.LegacyDictionaryPropertyReadingConverter;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.config.MongoUpgraderConfiguration;
 import jakarta.inject.Inject;
@@ -97,12 +98,18 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
         return new LegacyDictionaryPropertyReadingConverter();
     }
 
+    @Bean
+    public DictionaryPropertyWritingConverter dictionaryPropertyWritingConverter() {
+        return new DictionaryPropertyWritingConverter();
+    }
+
     @Override
     protected void configureConverters(MongoCustomConversions.MongoConverterConfigurationAdapter adapter) {
         super.configureConverters(adapter);
         // Mirrors ManagementRepositoryConfiguration's own override — declaring a @Bean alone does not
         // register a Converter with MongoCustomConversions, regardless of profile.
         adapter.registerConverter(legacyDictionaryPropertyReadingConverter());
+        adapter.registerConverter(dictionaryPropertyWritingConverter());
     }
 
     @Bean(destroyMethod = "stop")
