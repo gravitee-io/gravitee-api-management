@@ -34,6 +34,7 @@ import {
 import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { Title } from '@angular/platform-browser';
 import { ViewportScroller, NgIf, NgClass, NgFor } from '@angular/common';
+import { filter } from 'rxjs/operators';
 import {
   ActivatedRoute,
   NavigationEnd,
@@ -44,6 +45,7 @@ import {
   UrlSegmentGroup,
   UrlTree,
   RouterLink,
+  Scroll,
 } from '@angular/router';
 
 import { Link, PortalService, User, UserService } from '../../projects/portal-webclient-sdk/src/lib';
@@ -135,6 +137,19 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     this.activatedRoute.queryParamMap.subscribe(params => {
       if (params.has('preview') && params.get('preview') === 'on') {
         this.previewService.activate();
+      }
+    });
+
+    // Ported from the AppModule constructor, which standalone bootstrapping did away with. The router
+    // runs with scrollPositionRestoration disabled and still emits Scroll, so this has to stay: an
+    // anchored navigation is skipped on purpose, the markdown table of contents handles fragments.
+    this.router.events.pipe(filter((e): e is Scroll => e instanceof Scroll)).subscribe(e => {
+      if (e.position) {
+        // backward navigation
+        this.viewportScroller.scrollToPosition(e.position);
+      } else if (!e.anchor) {
+        // forward navigation
+        this.viewportScroller.scrollToPosition([0, 0]);
       }
     });
 
