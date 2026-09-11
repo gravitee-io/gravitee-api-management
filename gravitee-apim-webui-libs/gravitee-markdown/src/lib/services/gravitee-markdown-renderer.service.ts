@@ -80,20 +80,23 @@ export class GraviteeMarkdownRendererService {
   public getRenderer(): RendererObject {
     const defaultRenderer = new Renderer();
     return {
-      image(href, title, text) {
-        return defaultRenderer.image(href, title, text);
+      image(token) {
+        return defaultRenderer.image.call(this, token);
       },
-      link(href, title, text) {
+      link(token) {
+        const { href } = token;
+        // Since marked 13 the display text is no longer passed in: it lives in the token's children.
+        const text = this.parser.parseInline(token.tokens);
+
         if (href.startsWith('#')) {
           return `<a class="${ANCHOR_CLASSNAME}" href="${href}">${text}</a>`;
         }
 
         if (href?.startsWith('/#!/')) {
-          const trimmedHref = href.substring(3);
-          return defaultRenderer.link(trimmedHref, title, text);
+          return defaultRenderer.link.call(this, { ...token, href: href.substring(3) });
         }
 
-        return defaultRenderer.link(href, title, text);
+        return defaultRenderer.link.call(this, token);
       },
     };
   }
