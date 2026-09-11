@@ -94,7 +94,7 @@ class ObservabilityEntrypointsTest {
     class DistributionCoverage {
 
         private static final Pattern ENTRYPOINT_PLUGIN_ARTIFACT = Pattern.compile(
-            "<artifactId>((?:gravitee-entrypoint|gravitee-apim-plugin-entrypoint)-[^<]+)</artifactId>"
+            "<artifactId>((?:gravitee-entrypoint|gravitee-apim-plugin-entrypoint|gravitee-agent-entrypoint)-[^<]+)</artifactId>"
         );
 
         /** The plugin SPI every entrypoint is built against, not an entrypoint itself. */

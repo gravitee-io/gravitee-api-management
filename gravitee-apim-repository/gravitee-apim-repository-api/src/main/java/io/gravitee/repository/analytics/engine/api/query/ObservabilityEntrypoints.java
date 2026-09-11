@@ -75,6 +75,22 @@ public enum ObservabilityEntrypoints {
      */
     AGENT_TO_AGENT("agent-to-agent", "gravitee-entrypoint-agent-to-agent", Scope.PENDING),
 
+    /*
+     * The entrypoints an Agent API is called through, from the agent reactor. Every one of them is
+     * REQUEST_RESPONSE on the HTTP listener, so they carry the same traffic as AGENT_TO_AGENT above and
+     * inherit its decision: request traffic, held back until the logs screen serves it too. OBS-90
+     * promotes the whole group at once.
+     */
+    AGENT_A2A("agent-a2a", "gravitee-agent-entrypoint-a2a", Scope.PENDING),
+    AGENT_AG_UI("agent-ag-ui", "gravitee-agent-entrypoint-ag-ui", Scope.PENDING),
+    AGENT_GUARDIAN("agent-guardian", "gravitee-agent-entrypoint-guardian", Scope.PENDING),
+    AGENT_HTTP("agent-http", "gravitee-agent-entrypoint-http", Scope.PENDING),
+    /** The plugin id differs from the artifact name: {@code plugin.properties} says {@code agent-openai-responses}. */
+    AGENT_OPENAI_RESPONSES("agent-openai-responses", "gravitee-agent-entrypoint-openresponses", Scope.PENDING),
+    AGENT_PLAYGROUND("agent-playground", "gravitee-agent-entrypoint-playground", Scope.PENDING),
+    AGENT_SLACK("agent-slack", "gravitee-agent-entrypoint-slack", Scope.PENDING),
+    AGENT_WEB_AI_ASSISTANT("agent-web-ai-assistant", "gravitee-agent-entrypoint-web-ai-assistant", Scope.PENDING),
+
     SSE("sse", "gravitee-entrypoint-sse", Scope.EXCLUDED),
     WEBHOOK("webhook", "gravitee-entrypoint-webhook", Scope.EXCLUDED),
     WEBSOCKET("websocket", "gravitee-entrypoint-websocket", Scope.EXCLUDED),
