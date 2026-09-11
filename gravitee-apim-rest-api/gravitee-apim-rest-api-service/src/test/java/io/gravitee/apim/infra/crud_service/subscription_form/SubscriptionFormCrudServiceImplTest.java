@@ -36,6 +36,8 @@ import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
+import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormConflictException;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionFormRepository;
 import io.gravitee.repository.management.model.SubscriptionForm;
@@ -172,6 +174,19 @@ class SubscriptionFormCrudServiceImplTest {
         }
 
         @Test
+        void should_throw_a_conflict_and_delete_the_created_page_content_when_the_row_collides_with_another_form()
+            throws TechnicalException {
+            when(repository.create(any())).thenThrow(new DuplicateKeyException("collision"));
+
+            assertThatThrownBy(() -> service.create(SubscriptionFormFixtures.aSubscriptionFormWithNullId()))
+                .isInstanceOf(SubscriptionFormConflictException.class)
+                .hasCauseInstanceOf(DuplicateKeyException.class);
+
+            verify(pageContentCrudService).create(contentCaptor.capture());
+            verify(pageContentCrudService).delete(contentCaptor.getValue().getId());
+        }
+
+        @Test
         void should_delete_the_created_page_content_and_throw_when_the_row_cannot_be_created() throws TechnicalException {
             when(repository.create(any())).thenThrow(TechnicalException.class);
             var subscriptionForm = SubscriptionFormFixtures.aSubscriptionFormWithNullId();
@@ -285,6 +300,23 @@ class SubscriptionFormCrudServiceImplTest {
                         SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID
                 );
             verify(pageContentCrudService, never()).update(any());
+        }
+
+        @Test
+        void should_throw_a_conflict_and_restore_the_previous_definition_when_the_row_collides_with_another_form()
+            throws TechnicalException {
+            var existingContent = aPageContent(SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID);
+            when(pageContentQueryService.findById(SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID)).thenReturn(
+                Optional.of(existingContent)
+            );
+            when(repository.update(any())).thenThrow(new DuplicateKeyException("collision"));
+            var subscriptionForm = SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                .gmdContent(GraviteeMarkdown.of("<gmd-input name=\"updated\" fieldKey=\"updated\"/>"))
+                .build();
+
+            assertThatThrownBy(() -> service.update(subscriptionForm)).isInstanceOf(SubscriptionFormConflictException.class);
+
+            assertThat(existingContent.getContent()).isEqualTo(GraviteeMarkdown.of(SubscriptionFormFixtures.GMD_CONTENT));
         }
 
         @Test

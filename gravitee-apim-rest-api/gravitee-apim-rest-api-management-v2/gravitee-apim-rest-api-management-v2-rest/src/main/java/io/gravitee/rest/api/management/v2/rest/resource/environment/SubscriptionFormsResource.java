@@ -15,9 +15,11 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
-import io.gravitee.apim.core.subscription_form.use_case.GetSubscriptionFormForEnvironmentUseCase;
+import io.gravitee.apim.core.subscription_form.use_case.CreateSubscriptionFormUseCase;
+import io.gravitee.apim.core.subscription_form.use_case.ListSubscriptionFormsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.SubscriptionFormMapper;
+import io.gravitee.rest.api.management.v2.rest.model.CreateSubscriptionForm;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -25,7 +27,11 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ResourceContext;
@@ -34,30 +40,43 @@ import jakarta.ws.rs.core.Response;
 import lombok.CustomLog;
 
 /**
- * REST resource for managing subscription forms (list/get by environment).
+ * REST resource for the subscription form catalog of an environment (list, create).
  *
  * @author Gravitee.io Team
  */
 @CustomLog
 public class SubscriptionFormsResource extends AbstractResource {
 
+    private static final SubscriptionFormMapper mapper = SubscriptionFormMapper.INSTANCE;
+
     @Context
     private ResourceContext resourceContext;
 
     @Inject
-    private GetSubscriptionFormForEnvironmentUseCase getSubscriptionFormForEnvironmentUseCase;
+    private ListSubscriptionFormsUseCase listSubscriptionFormsUseCase;
+
+    @Inject
+    private CreateSubscriptionFormUseCase createSubscriptionFormUseCase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.READ }) })
-    public Response getSubscriptionForm() {
-        var environmentId = GraviteeContext.getCurrentEnvironment();
+    public Response listSubscriptionForms() {
+        var output = listSubscriptionFormsUseCase.execute(new ListSubscriptionFormsUseCase.Input(GraviteeContext.getCurrentEnvironment()));
+        return Response.ok(mapper.toResponse(output.subscriptionForms())).build();
+    }
 
-        var output = getSubscriptionFormForEnvironmentUseCase.execute(
-            GetSubscriptionFormForEnvironmentUseCase.Input.builder().environmentId(environmentId).build()
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.CREATE }) })
+    public Response createSubscriptionForm(@Valid @NotNull final CreateSubscriptionForm request) {
+        var output = createSubscriptionFormUseCase.execute(
+            new CreateSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), request.getName(), request.getGmdContent())
         );
-
-        return Response.ok(SubscriptionFormMapper.INSTANCE.toResponse(output)).build();
+        return Response.created(this.getLocationHeader(output.subscriptionForm().getId().toString()))
+            .entity(mapper.toResponse(output.subscriptionForm()))
+            .build();
     }
 
     @Path("{subscriptionFormId}")

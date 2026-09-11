@@ -470,17 +470,15 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         clientRegistrationProviderRepository.deleteByEnvironmentId(environment.getId());
         qualityRuleRepository.deleteByReferenceIdAndReferenceType(environment.getId(), QualityRule.ReferenceType.ENVIRONMENT);
         clusterRepository.deleteByEnvironmentId(environment.getId());
-        deleteSubscriptionFormPageContent(environment);
+        deleteSubscriptionFormPageContents(environment);
         subscriptionFormRepository.deleteByEnvironmentId(environment.getId());
     }
 
-    private void deleteSubscriptionFormPageContent(EnvironmentEntity environment) throws TechnicalException {
-        var pageContentId = subscriptionFormRepository
-            .findByEnvironmentId(environment.getId())
-            .map(SubscriptionForm::getPortalPageContentId)
-            .orElse(null);
-        if (pageContentId != null) {
-            portalPageContentRepository.delete(pageContentId);
+    private void deleteSubscriptionFormPageContents(EnvironmentEntity environment) throws TechnicalException {
+        for (SubscriptionForm form : subscriptionFormRepository.findAllByEnvironmentId(environment.getId())) {
+            if (form.getPortalPageContentId() != null) {
+                portalPageContentRepository.delete(form.getPortalPageContentId());
+            }
         }
     }
 

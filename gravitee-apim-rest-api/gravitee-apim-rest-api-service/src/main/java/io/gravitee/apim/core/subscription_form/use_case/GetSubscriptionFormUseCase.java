@@ -16,32 +16,33 @@
 package io.gravitee.apim.core.subscription_form.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.subscription_form.crud_service.SubscriptionFormCrudService;
-import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormDefinitionDomainService;
+import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormElResolverDomainService;
+import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSchemaGenerator;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoundException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.apim.core.subscription_form.query_service.SubscriptionFormQueryService;
-import lombok.CustomLog;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Updates the name and definition of an existing subscription form.
- * This operation does NOT change the enabled or default state - use the dedicated use cases for that.
+ * Loads one form of the catalog for the Console form builder, whether it is enabled or not.
+ * EL expressions in option-bearing fields are resolved without API metadata and fall back to the
+ * configured options when resolution fails.
  *
  * @author Gravitee.io Team
  */
 @RequiredArgsConstructor
 @UseCase
-@CustomLog
-public class UpdateSubscriptionFormUseCase {
+public class GetSubscriptionFormUseCase {
 
-    private final SubscriptionFormCrudService subscriptionFormCrudService;
     private final SubscriptionFormQueryService subscriptionFormQueryService;
-    private final SubscriptionFormDefinitionDomainService definitionDomainService;
+    private final SubscriptionFormSchemaGenerator schemaGenerator;
+    private final SubscriptionFormElResolverDomainService elResolver;
 
     public Output execute(Input input) {
-        var existingForm = subscriptionFormQueryService
+        var subscriptionForm = subscriptionFormQueryService
             .findByIdAndEnvironmentId(input.environmentId(), input.subscriptionFormId())
             .orElseThrow(() ->
                 new SubscriptionFormNotFoundException(
@@ -49,17 +50,11 @@ public class UpdateSubscriptionFormUseCase {
                     input.subscriptionFormId().toString()
                 )
             );
-        definitionDomainService.validateName(input.environmentId(), input.name(), input.subscriptionFormId());
-        var definition = definitionDomainService.compile(input.gmdContent());
-
-        existingForm.rename(input.name().trim());
-        existingForm.update(definition.gmdContent(), definition.constraints());
-        var savedForm = subscriptionFormCrudService.update(existingForm);
-        log.info("Updated subscription form [{}] for environment [{}]", input.subscriptionFormId(), input.environmentId());
-        return new Output(savedForm);
+        var schema = schemaGenerator.generate(subscriptionForm.getGmdContent());
+        return new Output(subscriptionForm, elResolver.resolveSchemaOptions(schema));
     }
 
-    public record Input(String environmentId, SubscriptionFormId subscriptionFormId, String name, String gmdContent) {}
+    public record Input(String environmentId, SubscriptionFormId subscriptionFormId) {}
 
-    public record Output(SubscriptionForm subscriptionForm) {}
+    public record Output(SubscriptionForm subscriptionForm, Map<String, List<String>> resolvedOptions) {}
 }

@@ -48,6 +48,8 @@ class SubscriptionFormAdapterTest {
             var row = SubscriptionForm.builder()
                 .id(FORM_ID)
                 .environmentId("environment-id")
+                .name("Partners")
+                .defaultForm(true)
                 .portalPageContentId(CONTENT_ID)
                 .gmdContent("<gmd-input name=\"stale\"/>")
                 .enabled(true)
@@ -58,6 +60,8 @@ class SubscriptionFormAdapterTest {
 
             assertThat(entity.getId()).isEqualTo(SubscriptionFormId.of(FORM_ID));
             assertThat(entity.getEnvironmentId()).isEqualTo("environment-id");
+            assertThat(entity.getName()).isEqualTo("Partners");
+            assertThat(entity.isDefaultForm()).isTrue();
             assertThat(entity.getPortalPageContentId()).isEqualTo(PortalPageContentId.of(CONTENT_ID));
             assertThat(entity.getGmdContent()).isEqualTo(GraviteeMarkdown.of(SubscriptionFormFixtures.GMD_CONTENT));
             assertThat(entity.isEnabled()).isTrue();
@@ -90,6 +94,8 @@ class SubscriptionFormAdapterTest {
 
             assertThat(row.getId()).isEqualTo(SubscriptionFormFixtures.FORM_ID);
             assertThat(row.getEnvironmentId()).isEqualTo(SubscriptionFormFixtures.ENVIRONMENT_ID);
+            assertThat(row.getName()).isEqualTo(SubscriptionFormFixtures.FORM_NAME);
+            assertThat(row.isDefaultForm()).isTrue();
             assertThat(row.getPortalPageContentId()).isEqualTo(SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID.toString());
             assertThat(row.getGmdContent()).isNull();
             assertThat(row.isEnabled()).isTrue();

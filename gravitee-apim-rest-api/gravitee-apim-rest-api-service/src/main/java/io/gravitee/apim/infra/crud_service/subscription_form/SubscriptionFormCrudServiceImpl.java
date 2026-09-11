@@ -24,9 +24,11 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.apim.core.subscription_form.crud_service.SubscriptionFormCrudService;
+import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormConflictException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.apim.infra.adapter.SubscriptionFormAdapter;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionFormRepository;
 import org.springframework.context.annotation.Lazy;
@@ -87,9 +89,9 @@ public class SubscriptionFormCrudServiceImpl implements SubscriptionFormCrudServ
             return subscriptionFormAdapter.toEntity(result, gmdContent);
         } catch (TechnicalException e) {
             deleteQuietly(contentId, e);
-            throw new TechnicalDomainException(
-                String.format("An error occurred while trying to create a SubscriptionForm for env: %s", toCreate.getEnvironmentId()),
-                e
+            throw toDomainException(
+                e,
+                String.format("An error occurred while trying to create a SubscriptionForm for env: %s", toCreate.getEnvironmentId())
             );
         }
     }
@@ -116,14 +118,25 @@ public class SubscriptionFormCrudServiceImpl implements SubscriptionFormCrudServ
             } else {
                 restoreQuietly(subscriptionForm.getId(), effectiveContentId, previousContent, e);
             }
-            throw new TechnicalDomainException(
+            throw toDomainException(
+                e,
                 String.format(
                     "An error occurred while trying to update a SubscriptionForm with id: %s",
                     subscriptionForm.getId().toString()
-                ),
-                e
+                )
             );
         }
+    }
+
+    /**
+     * A duplicate key is not a technical failure: the row collides with another form of its environment (a second
+     * default form), which the caller reports as a conflict.
+     */
+    private static RuntimeException toDomainException(TechnicalException e, String message) {
+        if (e instanceof DuplicateKeyException) {
+            return new SubscriptionFormConflictException(e);
+        }
+        return new TechnicalDomainException(message, e);
     }
 
     private PortalPageContentId createPageContent(String environmentId, GraviteeMarkdown gmdContent) {
