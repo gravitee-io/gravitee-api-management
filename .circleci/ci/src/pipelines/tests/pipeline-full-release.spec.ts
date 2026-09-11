@@ -52,6 +52,36 @@ describe('Full release tests', () => {
     expect(guardOf('4.13.0-alpha.1')).toContain('"${PIN_BASE%.*}" != "4.13"');
   });
 
+  describe('APIM API docs ingestion', () => {
+    const generated = () =>
+      generateFullReleaseConfig({
+        action: 'full_release',
+        baseBranch: '4.2.x',
+        branch: '4.2.x',
+        sha1: '784ff35ca',
+        changedFiles: [],
+        buildNum: '1234',
+        buildId: '1234',
+        graviteeioVersion: '4.2.0',
+        isDryRun: false,
+        apimVersionPath: './src/pipelines/tests/resources/common/pom-snapshot.xml',
+      }).stringify();
+
+    // The site displays the product version; it fetches the jar under the core's. The two stop
+    // being the same number the moment the reactors release apart.
+    it('sends the version the docs site displays', () => {
+      expect(generated()).toContain(`"version":"4.2.0"`);
+    });
+
+    it('sends the core version the docs site has to fetch', () => {
+      expect(generated()).toContain(`"core_version":"'"\${CORE_VERSION}"'"`);
+    });
+
+    it('reads the pin from the distribution pom rather than guessing it', () => {
+      expect(generated()).toContain('<apim.core.version>');
+    });
+  });
+
   describe('Nexus staging', () => {
     const configFor = (isDryRun: boolean) =>
       generateFullReleaseConfig({
