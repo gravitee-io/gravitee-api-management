@@ -42,6 +42,11 @@ public class EnvironmentsResource extends AbstractResource {
         return resourceContext.getResource(ApiProductResource.class);
     }
 
+    @Path("agents")
+    public AgentsResource getAgentsResource() {
+        return resourceContext.getResource(AgentsResource.class);
+    }
+
     @Path("applications")
     public ApplicationsResource getApplicationsResource() {
         return resourceContext.getResource(ApplicationsResource.class);
