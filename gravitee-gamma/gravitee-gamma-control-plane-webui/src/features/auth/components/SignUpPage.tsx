@@ -157,7 +157,8 @@ export function SignUpPage() {
 
     if (sentTo) {
         return (
-            <AuthPageShell title="Check your email">
+            // Focus follows the swap: the submit button that held it went with the form.
+            <AuthPageShell title="Check your email" focusTitle>
                 {/* No resend control: the management API has no endpoint that could serve one, and a
                     button that cannot work is worse than its absence. */}
                 {/* Unboxed: the whole page is the message, so an Alert here only framed the card's

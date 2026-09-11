@@ -308,6 +308,8 @@ describe('SignUpPage', () => {
             expect(screen.getByText('ada@example.com')).toBeTruthy();
             expect(screen.getByRole('link', { name: 'Back to sign in' }).getAttribute('href')).toBe('/login');
             expect(screen.queryByText(/Already have an account/)).toBeNull();
+            // The submit button went with the form; focus lands on the new state rather than the body.
+            expect(document.activeElement?.textContent).toBe('Check your email');
         });
 
         it('offers no resend, because the backend has no such endpoint', async () => {
