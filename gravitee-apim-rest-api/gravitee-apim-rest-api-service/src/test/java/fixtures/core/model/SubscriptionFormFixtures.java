@@ -32,6 +32,7 @@ public class SubscriptionFormFixtures {
 
     public static final String FORM_ID = "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d";
     public static final String ENVIRONMENT_ID = "environment-id";
+    public static final String FORM_NAME = "Default";
     public static final PortalPageContentId PORTAL_PAGE_CONTENT_ID = PortalPageContentId.of("0f8fad5b-d9cb-469f-a165-70867728950e");
     public static final String GMD_CONTENT = "<gmd-input name=\"company\" label=\"Company\" fieldKey=\"company\" required=\"true\"/>";
 
@@ -54,9 +55,11 @@ public class SubscriptionFormFixtures {
         return SubscriptionForm.builder()
             .id(SubscriptionFormId.of(FORM_ID))
             .environmentId(ENVIRONMENT_ID)
+            .name(FORM_NAME)
             .portalPageContentId(PORTAL_PAGE_CONTENT_ID)
             .gmdContent(GraviteeMarkdown.of(GMD_CONTENT))
             .enabled(false)
+            .defaultForm(true)
             .validationConstraints(SubscriptionFormFieldConstraints.empty());
     }
 }

@@ -22,18 +22,21 @@ import fixtures.core.model.SubscriptionFormFixtures;
 import inmemory.InMemoryAlternative;
 import inmemory.SubscriptionFormCrudServiceInMemory;
 import inmemory.SubscriptionFormQueryServiceInMemory;
-import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.v2.rest.model.SubscriptionForm;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateSubscriptionForm;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +46,8 @@ import org.junit.jupiter.api.Test;
 class SubscriptionFormResourceTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT = "my-env";
+    private static final String UNKNOWN_ID = "550e8400-e29b-41d4-a716-446655440000";
+    private static final String MALFORMED_ID = "not-an-id";
 
     WebTarget rootTarget;
 
@@ -79,52 +84,137 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
         Stream.of(subscriptionFormCrudService, subscriptionFormQueryService).forEach(InMemoryAlternative::reset);
     }
 
+    private io.gravitee.apim.core.subscription_form.model.SubscriptionForm givenAForm(boolean enabled, boolean defaultForm) {
+        var form = SubscriptionFormFixtures.aSubscriptionFormBuilder()
+            .environmentId(ENVIRONMENT)
+            .enabled(enabled)
+            .defaultForm(defaultForm)
+            .build();
+        subscriptionFormQueryService.initWith(List.of(form));
+        subscriptionFormCrudService.initWith(List.of(form));
+        return form;
+    }
+
     @Nested
-    class Update {
+    class GetSubscriptionForm {
 
         @Test
-        void should_update_form() {
-            // Given
-            var existingForm = SubscriptionFormFixtures.aSubscriptionFormBuilder().environmentId(ENVIRONMENT).build();
-            subscriptionFormQueryService.initWith(List.of(existingForm));
-            subscriptionFormCrudService.initWith(List.of(existingForm));
+        void should_get_the_form() {
+            var form = givenAForm(false, true);
 
-            UpdateSubscriptionForm request = new UpdateSubscriptionForm().gmdContent("<gmd-card>Updated Content</gmd-card>");
+            var response = rootTarget.path(form.getId().toString()).request().get();
 
-            // When
-            var response = rootTarget.path(existingForm.getId().toString()).request().put(Entity.json(request));
-
-            // Then
             assertThat(response)
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(SubscriptionForm.class)
-                .satisfies(result -> assertThat(result.getGmdContent()).isEqualTo("<gmd-card>Updated Content</gmd-card>"));
+                .satisfies(result -> {
+                    assertThat(result.getId()).isEqualTo(UUID.fromString(SubscriptionFormFixtures.FORM_ID));
+                    assertThat(result.getName()).isEqualTo(SubscriptionFormFixtures.FORM_NAME);
+                    assertThat(result.getGmdContent()).isEqualTo(SubscriptionFormFixtures.GMD_CONTENT);
+                    assertThat(result.getEnabled()).isFalse();
+                    assertThat(result.getDefaultForm()).isTrue();
+                });
         }
 
         @Test
-        void should_return_404_when_form_not_exists() {
-            // Given
-            UpdateSubscriptionForm request = new UpdateSubscriptionForm().gmdContent("<gmd-card>Content</gmd-card>");
+        void should_return_404_when_form_not_found() {
+            var response = rootTarget.path(UNKNOWN_ID).request().get();
 
-            // When
-            var response = rootTarget.path("550e8400-e29b-41d4-a716-446655440000").request().put(Entity.json(request));
-
-            // Then
             assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
         }
 
         @Test
-        void should_return_400_when_gmd_content_is_missing() {
-            // Given
-            var existingForm = SubscriptionFormFixtures.aSubscriptionFormBuilder().environmentId(ENVIRONMENT).build();
-            subscriptionFormQueryService.initWith(List.of(existingForm));
-            UpdateSubscriptionForm request = new UpdateSubscriptionForm();
+        void should_return_404_when_the_id_is_not_an_identifier() {
+            var response = rootTarget.path(MALFORMED_ID).request().get();
 
-            // When
+            assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
+        }
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            var form = givenAForm(false, true);
+
+            shouldReturn403(RolePermission.ENVIRONMENT_METADATA, ENVIRONMENT, RolePermissionAction.READ, () ->
+                rootTarget.path(form.getId().toString()).request().get()
+            );
+        }
+    }
+
+    @Nested
+    class Update {
+
+        @Test
+        void should_update_name_and_content() {
+            var existingForm = givenAForm(false, true);
+            UpdateSubscriptionForm request = new UpdateSubscriptionForm()
+                .name("Renamed")
+                .gmdContent("<gmd-card>Updated Content</gmd-card>");
+
             var response = rootTarget.path(existingForm.getId().toString()).request().put(Entity.json(request));
 
-            // Then
+            assertThat(response)
+                .hasStatus(HttpStatusCode.OK_200)
+                .asEntity(SubscriptionForm.class)
+                .satisfies(result -> {
+                    assertThat(result.getName()).isEqualTo("Renamed");
+                    assertThat(result.getGmdContent()).isEqualTo("<gmd-card>Updated Content</gmd-card>");
+                    assertThat(result.getDefaultForm()).isTrue();
+                });
+        }
+
+        @Test
+        void should_return_404_when_form_not_exists() {
+            UpdateSubscriptionForm request = new UpdateSubscriptionForm().name("Any").gmdContent("<gmd-card>Content</gmd-card>");
+
+            var response = rootTarget.path(UNKNOWN_ID).request().put(Entity.json(request));
+
+            assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
+        }
+
+        @Test
+        void should_return_404_when_the_id_is_not_an_identifier() {
+            UpdateSubscriptionForm request = new UpdateSubscriptionForm().name("Any").gmdContent("<gmd-card>Content</gmd-card>");
+
+            var response = rootTarget.path(MALFORMED_ID).request().put(Entity.json(request));
+
+            assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
+        }
+
+        @Test
+        void should_return_409_when_renaming_to_the_name_of_another_form() {
+            var existingForm = givenAForm(false, true);
+            var otherForm = SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                .id(SubscriptionFormId.random())
+                .environmentId(ENVIRONMENT)
+                .name("Partners")
+                .defaultForm(false)
+                .build();
+            subscriptionFormQueryService.initWith(List.of(otherForm));
+            UpdateSubscriptionForm request = new UpdateSubscriptionForm().name("Partners").gmdContent("<gmd-card>Content</gmd-card>");
+
+            var response = rootTarget.path(existingForm.getId().toString()).request().put(Entity.json(request));
+
+            assertThat(response).hasStatus(HttpStatusCode.CONFLICT_409);
+        }
+
+        @Test
+        void should_return_400_when_gmd_content_is_missing() {
+            var existingForm = givenAForm(false, true);
+            UpdateSubscriptionForm request = new UpdateSubscriptionForm().name("Any");
+
+            var response = rootTarget.path(existingForm.getId().toString()).request().put(Entity.json(request));
+
             assertThat(response).hasStatus(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            var existingForm = givenAForm(false, true);
+            UpdateSubscriptionForm request = new UpdateSubscriptionForm().name("Any").gmdContent("<gmd-card>Content</gmd-card>");
+
+            shouldReturn403(RolePermission.ENVIRONMENT_METADATA, ENVIRONMENT, RolePermissionAction.UPDATE, () ->
+                rootTarget.path(existingForm.getId().toString()).request().put(Entity.json(request))
+            );
         }
     }
 
@@ -133,15 +223,10 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
 
         @Test
         void should_enable_disabled_form() {
-            // Given
-            var disabledForm = SubscriptionFormFixtures.aSubscriptionFormBuilder().environmentId(ENVIRONMENT).enabled(false).build();
-            subscriptionFormQueryService.initWith(List.of(disabledForm));
-            subscriptionFormCrudService.initWith(List.of(disabledForm));
+            var disabledForm = givenAForm(false, true);
 
-            // When
             var response = rootTarget.path(disabledForm.getId().toString()).path("_enable").request().post(Entity.json(""));
 
-            // Then
             assertThat(response)
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(SubscriptionForm.class)
@@ -150,20 +235,10 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
 
         @Test
         void should_be_idempotent_when_already_enabled() {
-            // Given
-            var enabledForm = io.gravitee.apim.core.subscription_form.model.SubscriptionForm.builder()
-                .id(io.gravitee.apim.core.subscription_form.model.SubscriptionFormId.of(SubscriptionFormFixtures.FORM_ID))
-                .environmentId(ENVIRONMENT)
-                .gmdContent(GraviteeMarkdown.of(SubscriptionFormFixtures.GMD_CONTENT))
-                .enabled(true)
-                .build();
-            subscriptionFormQueryService.initWith(List.of(enabledForm));
-            subscriptionFormCrudService.initWith(List.of(enabledForm));
+            var enabledForm = givenAForm(true, true);
 
-            // When
             var response = rootTarget.path(enabledForm.getId().toString()).path("_enable").request().post(Entity.json(""));
 
-            // Then
             assertThat(response)
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(SubscriptionForm.class)
@@ -172,12 +247,8 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_404_when_form_not_found() {
-            // Given - no form exists
+            var response = rootTarget.path(UNKNOWN_ID).path("_enable").request().post(Entity.json(""));
 
-            // When
-            var response = rootTarget.path("550e8400-e29b-41d4-a716-446655440000").path("_enable").request().post(Entity.json(""));
-
-            // Then
             assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
         }
     }
@@ -187,20 +258,10 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
 
         @Test
         void should_disable_enabled_form() {
-            // Given
-            var enabledForm = io.gravitee.apim.core.subscription_form.model.SubscriptionForm.builder()
-                .id(io.gravitee.apim.core.subscription_form.model.SubscriptionFormId.of(SubscriptionFormFixtures.FORM_ID))
-                .environmentId(ENVIRONMENT)
-                .gmdContent(GraviteeMarkdown.of(SubscriptionFormFixtures.GMD_CONTENT))
-                .enabled(true)
-                .build();
-            subscriptionFormQueryService.initWith(List.of(enabledForm));
-            subscriptionFormCrudService.initWith(List.of(enabledForm));
+            var enabledForm = givenAForm(true, true);
 
-            // When
             var response = rootTarget.path(enabledForm.getId().toString()).path("_disable").request().post(Entity.json(""));
 
-            // Then
             assertThat(response)
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(SubscriptionForm.class)
@@ -209,15 +270,10 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
 
         @Test
         void should_be_idempotent_when_already_disabled() {
-            // Given
-            var disabledForm = SubscriptionFormFixtures.aSubscriptionFormBuilder().environmentId(ENVIRONMENT).enabled(false).build();
-            subscriptionFormQueryService.initWith(List.of(disabledForm));
-            subscriptionFormCrudService.initWith(List.of(disabledForm));
+            var disabledForm = givenAForm(false, true);
 
-            // When
             var response = rootTarget.path(disabledForm.getId().toString()).path("_disable").request().post(Entity.json(""));
 
-            // Then
             assertThat(response)
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(SubscriptionForm.class)
@@ -226,13 +282,50 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_404_when_form_not_found() {
-            // Given - no form exists
+            var response = rootTarget.path(UNKNOWN_ID).path("_disable").request().post(Entity.json(""));
 
-            // When
-            var response = rootTarget.path("550e8400-e29b-41d4-a716-446655440000").path("_disable").request().post(Entity.json(""));
-
-            // Then
             assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
+        }
+    }
+
+    @Nested
+    class SetDefaultSubscriptionForm {
+
+        @Test
+        void should_promote_the_form_and_demote_the_previous_default() {
+            var previousDefault = SubscriptionFormFixtures.aSubscriptionFormBuilder().environmentId(ENVIRONMENT).build();
+            var partnerForm = SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                .id(SubscriptionFormId.random())
+                .environmentId(ENVIRONMENT)
+                .name("Partners")
+                .defaultForm(false)
+                .build();
+            subscriptionFormQueryService.initWith(List.of(previousDefault, partnerForm));
+            subscriptionFormCrudService.initWith(List.of(previousDefault, partnerForm));
+
+            var response = rootTarget.path(partnerForm.getId().toString()).path("_default").request().post(Entity.json(""));
+
+            assertThat(response)
+                .hasStatus(HttpStatusCode.OK_200)
+                .asEntity(SubscriptionForm.class)
+                .satisfies(result -> assertThat(result.getDefaultForm()).isTrue());
+            assertThat(previousDefault.isDefaultForm()).isFalse();
+        }
+
+        @Test
+        void should_return_404_when_form_not_found() {
+            var response = rootTarget.path(UNKNOWN_ID).path("_default").request().post(Entity.json(""));
+
+            assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
+        }
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            var form = givenAForm(false, false);
+
+            shouldReturn403(RolePermission.ENVIRONMENT_METADATA, ENVIRONMENT, RolePermissionAction.UPDATE, () ->
+                rootTarget.path(form.getId().toString()).path("_default").request().post(Entity.json(""))
+            );
         }
     }
 }

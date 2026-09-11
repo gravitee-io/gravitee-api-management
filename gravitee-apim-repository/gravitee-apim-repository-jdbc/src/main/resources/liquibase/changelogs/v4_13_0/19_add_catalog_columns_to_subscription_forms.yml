@@ -1,0 +1,101 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.13.0_19_add_catalog_columns_to_subscription_forms
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}subscription_forms
+            columns:
+              - column:
+                  name: name
+                  type: nvarchar(255)
+                  defaultValue: Default
+                  constraints:
+                    nullable: false
+              - column:
+                  name: default_form
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              # Equal to environment_id on the default form of the environment, NULL on the others: the unique
+              # index below guarantees at most one default per environment (NULLs never collide, see the
+              # dbms-specific changesets).
+              - column:
+                  name: default_marker
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+        # Every environment had exactly one form so far (unique environment_id): it becomes the default.
+        - update:
+            tableName: ${gravitee_prefix}subscription_forms
+            columns:
+              - column:
+                  name: default_form
+                  valueBoolean: true
+              - column:
+                  name: default_marker
+                  valueComputed: environment_id
+
+  # PostgreSQL, MySQL and MariaDB let several NULLs coexist under a unique constraint.
+  - changeSet:
+      id: 4.13.0_19_add_subscription_forms_default_marker_unique_constraint
+      author: GraviteeSource Team
+      dbms: postgresql, mysql, mariadb
+      changes:
+        - addUniqueConstraint:
+            constraintName: uc_${gravitee_prefix}subscription_forms_default_marker
+            columnNames: default_marker
+            tableName: ${gravitee_prefix}subscription_forms
+  # SQL Server treats NULLs as equal in a unique constraint: use a filtered unique index instead.
+  - changeSet:
+      id: 4.13.0_19_add_subscription_forms_default_marker_unique_index_mssql
+      author: GraviteeSource Team
+      dbms: mssql
+      changes:
+        - sql:
+            sql: CREATE UNIQUE NONCLUSTERED INDEX uc_${gravitee_prefix}subscription_forms_default_marker ON ${gravitee_prefix}subscription_forms (default_marker) WHERE default_marker IS NOT NULL
+
+  # An environment now holds several forms: drop the one-form-per-environment constraint.
+  # PostgreSQL: dropUniqueConstraint with uniqueConstraintExists works.
+  - changeSet:
+      id: 4.13.0_19_drop_subscription_forms_environment_unique_constraint
+      author: GraviteeSource Team
+      dbms: postgresql
+      preConditions:
+        - onFail: MARK_RAN
+        - uniqueConstraintExists:
+            constraintName: uc_${gravitee_prefix}subscription_forms_environment_id
+            tableName: ${gravitee_prefix}subscription_forms
+      changes:
+        - dropUniqueConstraint:
+            constraintName: uc_${gravitee_prefix}subscription_forms_environment_id
+            tableName: ${gravitee_prefix}subscription_forms
+
+  # MySQL and MariaDB implement unique constraints as unique indexes; uniqueConstraintExists does not detect them.
+  - changeSet:
+      id: 4.13.0_19_drop_subscription_forms_environment_unique_index_mysql
+      author: GraviteeSource Team
+      dbms: mysql, mariadb
+      preConditions:
+        - onFail: MARK_RAN
+        - indexExists:
+            indexName: uc_${gravitee_prefix}subscription_forms_environment_id
+            tableName: ${gravitee_prefix}subscription_forms
+      changes:
+        - sql:
+            sql: ALTER TABLE `${gravitee_prefix}subscription_forms` DROP INDEX `uc_${gravitee_prefix}subscription_forms_environment_id`
+
+  # SQL Server: Liquibase dropUniqueConstraint does not reliably drop the constraint; use explicit SQL.
+  - changeSet:
+      id: 4.13.0_19_drop_subscription_forms_environment_unique_constraint_mssql
+      author: GraviteeSource Team
+      dbms: mssql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 1
+            sql: SELECT COUNT(*) FROM sys.key_constraints WHERE name = 'uc_${gravitee_prefix}subscription_forms_environment_id' AND parent_object_id = OBJECT_ID('${gravitee_prefix}subscription_forms')
+      changes:
+        - sql:
+            sql: ALTER TABLE ${gravitee_prefix}subscription_forms DROP CONSTRAINT uc_${gravitee_prefix}subscription_forms_environment_id

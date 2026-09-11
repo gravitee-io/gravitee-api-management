@@ -17,6 +17,7 @@ package io.gravitee.apim.core.subscription_form.query_service;
 
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -36,11 +37,19 @@ public interface SubscriptionFormQueryService {
     Optional<SubscriptionForm> findByIdAndEnvironmentId(String environmentId, SubscriptionFormId subscriptionFormId);
 
     /**
-     * Finds the subscription form for a given environment.
-     * Currently, there is only one form per environment.
+     * Lists every subscription form of an environment.
      *
      * @param environmentId the environment ID
-     * @return Optional containing the form if found, empty otherwise
+     * @return the forms of the environment, empty when it has none
+     */
+    List<SubscriptionForm> findAllByEnvironmentId(String environmentId);
+
+    /**
+     * Finds the default subscription form of an environment, the one used for every API without
+     * a dedicated form.
+     *
+     * @param environmentId the environment ID
+     * @return Optional containing the default form if the environment has one, empty otherwise
      */
     Optional<SubscriptionForm> findDefaultForEnvironmentId(String environmentId);
 }

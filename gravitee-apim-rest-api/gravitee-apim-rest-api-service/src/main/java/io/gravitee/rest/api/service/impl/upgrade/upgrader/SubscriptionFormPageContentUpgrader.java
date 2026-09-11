@@ -28,6 +28,9 @@ import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.SubscriptionFormRepository;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.SubscriptionForm;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -68,10 +71,12 @@ public class SubscriptionFormPageContentUpgrader implements Upgrader {
 
     private boolean applyUpgrade() throws TechnicalException {
         var forms = subscriptionFormRepository.findAll();
+        // The environment only gives the organization of the page content: resolve it once per environment.
+        Map<String, Optional<String>> organizationIdByEnvironmentId = new HashMap<>();
         int migrated = 0;
 
         for (var form : forms) {
-            if (form.getPortalPageContentId() == null && migrate(form)) {
+            if (form.getPortalPageContentId() == null && migrate(form, organizationIdByEnvironmentId)) {
                 migrated++;
             }
         }
@@ -80,7 +85,7 @@ public class SubscriptionFormPageContentUpgrader implements Upgrader {
         return true;
     }
 
-    private boolean migrate(SubscriptionForm form) {
+    private boolean migrate(SubscriptionForm form, Map<String, Optional<String>> organizationIdByEnvironmentId) {
         if (form.getGmdContent() == null) {
             log.warn("Skipping subscription form [{}] migration: it has neither inline content nor a page content", form.getId());
             return false;
@@ -89,7 +94,7 @@ public class SubscriptionFormPageContentUpgrader implements Upgrader {
         var environmentId = form.getEnvironmentId();
         PortalPageContentId contentId = null;
         try {
-            var organizationId = environmentRepository.findById(environmentId).map(Environment::getOrganizationId).orElse(null);
+            var organizationId = organizationIdByEnvironmentId.computeIfAbsent(environmentId, this::findOrganizationId).orElse(null);
             if (organizationId == null) {
                 log.warn("Skipping subscription form [{}] migration: environment [{}] no longer exists", form.getId(), environmentId);
                 return false;
@@ -115,6 +120,14 @@ public class SubscriptionFormPageContentUpgrader implements Upgrader {
             }
             log.error("Failed to move subscription form [{}] content to a page content", form.getId(), e);
             return false;
+        }
+    }
+
+    private Optional<String> findOrganizationId(String environmentId) {
+        try {
+            return environmentRepository.findById(environmentId).map(Environment::getOrganizationId);
+        } catch (TechnicalException e) {
+            throw new IllegalStateException("Failed to load environment [" + environmentId + "]", e);
         }
     }
 

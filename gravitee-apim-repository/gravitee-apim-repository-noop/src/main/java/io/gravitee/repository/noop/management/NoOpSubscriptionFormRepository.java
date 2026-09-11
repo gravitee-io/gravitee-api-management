@@ -18,6 +18,7 @@ package io.gravitee.repository.noop.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionFormRepository;
 import io.gravitee.repository.management.model.SubscriptionForm;
+import java.util.List;
 import java.util.Optional;
 
 public class NoOpSubscriptionFormRepository
@@ -30,7 +31,12 @@ public class NoOpSubscriptionFormRepository
     }
 
     @Override
-    public Optional<SubscriptionForm> findByEnvironmentId(String environmentId) throws TechnicalException {
+    public List<SubscriptionForm> findAllByEnvironmentId(String environmentId) throws TechnicalException {
+        return List.of();
+    }
+
+    @Override
+    public Optional<SubscriptionForm> findDefaultByEnvironmentId(String environmentId) throws TechnicalException {
         return Optional.empty();
     }
 

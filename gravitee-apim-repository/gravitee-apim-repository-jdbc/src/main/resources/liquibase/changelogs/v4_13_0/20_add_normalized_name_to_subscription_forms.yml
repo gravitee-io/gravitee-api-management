@@ -1,0 +1,30 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.13.0_20_add_normalized_name_to_subscription_forms
+      author: GraviteeSource Team
+      changes:
+        # Trimmed and lowercased `name`, written by the repository alongside it: the unique index below then
+        # guarantees that two forms of an environment cannot differ by case or padding alone, whatever the
+        # collation of the database.
+        - addColumn:
+            tableName: ${gravitee_prefix}subscription_forms
+            columns:
+              - column:
+                  name: normalized_name
+                  type: nvarchar(255)
+                  constraints:
+                    nullable: true
+        - update:
+            tableName: ${gravitee_prefix}subscription_forms
+            columns:
+              - column:
+                  name: normalized_name
+                  valueComputed: LOWER(TRIM(name))
+        - addNotNullConstraint:
+            tableName: ${gravitee_prefix}subscription_forms
+            columnName: normalized_name
+            columnDataType: nvarchar(255)
+        - addUniqueConstraint:
+            constraintName: uc_${gravitee_prefix}subscription_forms_normalized_name
+            columnNames: environment_id, normalized_name
+            tableName: ${gravitee_prefix}subscription_forms

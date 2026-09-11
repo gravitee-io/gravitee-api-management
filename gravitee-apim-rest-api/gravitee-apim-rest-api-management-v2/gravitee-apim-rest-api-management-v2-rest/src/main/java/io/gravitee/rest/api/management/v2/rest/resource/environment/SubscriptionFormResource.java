@@ -15,9 +15,12 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
+import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoundException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.apim.core.subscription_form.use_case.DisableSubscriptionFormUseCase;
 import io.gravitee.apim.core.subscription_form.use_case.EnableSubscriptionFormUseCase;
+import io.gravitee.apim.core.subscription_form.use_case.GetSubscriptionFormUseCase;
+import io.gravitee.apim.core.subscription_form.use_case.SetDefaultSubscriptionFormUseCase;
 import io.gravitee.apim.core.subscription_form.use_case.UpdateSubscriptionFormUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.SubscriptionFormMapper;
@@ -32,6 +35,7 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
@@ -41,15 +45,20 @@ import jakarta.ws.rs.core.Response;
 import lombok.CustomLog;
 
 /**
- * REST resource for a single subscription form (by ID).
+ * REST resource for a single subscription form of the catalog (by ID).
  *
  * @author Gravitee.io Team
  */
 @CustomLog
 public class SubscriptionFormResource extends AbstractResource {
 
+    private static final SubscriptionFormMapper mapper = SubscriptionFormMapper.INSTANCE;
+
     @PathParam("subscriptionFormId")
     String subscriptionFormId;
+
+    @Inject
+    private GetSubscriptionFormUseCase getSubscriptionFormUseCase;
 
     @Inject
     private UpdateSubscriptionFormUseCase updateSubscriptionFormUseCase;
@@ -60,18 +69,33 @@ public class SubscriptionFormResource extends AbstractResource {
     @Inject
     private DisableSubscriptionFormUseCase disableSubscriptionFormUseCase;
 
+    @Inject
+    private SetDefaultSubscriptionFormUseCase setDefaultSubscriptionFormUseCase;
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.READ }) })
+    public Response getSubscriptionForm() {
+        var output = getSubscriptionFormUseCase.execute(
+            new GetSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), subscriptionFormId())
+        );
+        return Response.ok(mapper.toResponse(output)).build();
+    }
+
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.UPDATE }) })
     public Response updateSubscriptionForm(@Valid @NotNull final UpdateSubscriptionForm request) {
-        var environmentId = GraviteeContext.getCurrentEnvironment();
-
         var output = updateSubscriptionFormUseCase.execute(
-            new UpdateSubscriptionFormUseCase.Input(environmentId, SubscriptionFormId.of(subscriptionFormId), request.getGmdContent())
+            new UpdateSubscriptionFormUseCase.Input(
+                GraviteeContext.getCurrentEnvironment(),
+                subscriptionFormId(),
+                request.getName(),
+                request.getGmdContent()
+            )
         );
-
-        return Response.ok(SubscriptionFormMapper.INSTANCE.toResponse(output.subscriptionForm())).build();
+        return Response.ok(mapper.toResponse(output.subscriptionForm())).build();
     }
 
     @POST
@@ -79,13 +103,10 @@ public class SubscriptionFormResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.UPDATE }) })
     public Response enableSubscriptionForm() {
-        var environmentId = GraviteeContext.getCurrentEnvironment();
-
         var output = enableSubscriptionFormUseCase.execute(
-            new EnableSubscriptionFormUseCase.Input(environmentId, SubscriptionFormId.of(subscriptionFormId))
+            new EnableSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), subscriptionFormId())
         );
-
-        return Response.ok(SubscriptionFormMapper.INSTANCE.toResponse(output.subscriptionForm())).build();
+        return Response.ok(mapper.toResponse(output.subscriptionForm())).build();
     }
 
     @POST
@@ -93,12 +114,35 @@ public class SubscriptionFormResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.UPDATE }) })
     public Response disableSubscriptionForm() {
-        var environmentId = GraviteeContext.getCurrentEnvironment();
-
         var output = disableSubscriptionFormUseCase.execute(
-            new DisableSubscriptionFormUseCase.Input(environmentId, SubscriptionFormId.of(subscriptionFormId))
+            new DisableSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), subscriptionFormId())
         );
+        return Response.ok(mapper.toResponse(output.subscriptionForm())).build();
+    }
 
-        return Response.ok(SubscriptionFormMapper.INSTANCE.toResponse(output.subscriptionForm())).build();
+    @POST
+    @Path("/_default")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.UPDATE }) })
+    public Response setDefaultSubscriptionForm() {
+        var output = setDefaultSubscriptionFormUseCase.execute(
+            new SetDefaultSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), subscriptionFormId())
+        );
+        return Response.ok(mapper.toResponse(output.subscriptionForm())).build();
+    }
+
+    /**
+     * The path segment is a form id only when it parses as one: anything else names no form of the environment,
+     * and is answered like any other unknown id rather than as a server error.
+     */
+    private SubscriptionFormId subscriptionFormId() {
+        try {
+            return SubscriptionFormId.of(subscriptionFormId);
+        } catch (IllegalArgumentException e) {
+            throw new SubscriptionFormNotFoundException(
+                "Subscription form not found with id [ " + subscriptionFormId + " ]",
+                subscriptionFormId
+            );
+        }
     }
 }

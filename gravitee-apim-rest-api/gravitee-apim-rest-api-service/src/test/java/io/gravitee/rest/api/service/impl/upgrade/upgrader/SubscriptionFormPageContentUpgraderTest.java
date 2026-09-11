@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -180,6 +181,17 @@ class SubscriptionFormPageContentUpgraderTest {
         when(subscriptionFormRepository.findAll()).thenThrow(new TechnicalException("Database error"));
 
         assertThatThrownBy(() -> upgrader.upgrade()).isInstanceOf(UpgraderException.class);
+    }
+
+    @Test
+    void should_resolve_each_environment_once() throws Exception {
+        when(subscriptionFormRepository.findAll()).thenReturn(Set.of(aLegacyForm("form-1", "env-1"), aLegacyForm("form-2", "env-1")));
+        when(environmentRepository.findById("env-1")).thenReturn(Optional.of(anEnvironment("env-1", "org-1")));
+
+        assertThat(upgrader.upgrade()).isTrue();
+
+        verify(environmentRepository, times(1)).findById("env-1");
+        verify(subscriptionFormRepository, times(2)).update(any());
     }
 
     private static SubscriptionForm aLegacyForm(String id, String environmentId) {

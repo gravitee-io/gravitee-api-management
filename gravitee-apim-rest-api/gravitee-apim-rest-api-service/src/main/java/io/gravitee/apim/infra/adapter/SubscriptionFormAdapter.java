@@ -75,9 +75,11 @@ public interface SubscriptionFormAdapter {
 
     @Mapping(target = "id", source = "form.id", qualifiedByName = "idToSubscriptionFormId")
     @Mapping(target = "environmentId", source = "form.environmentId")
+    @Mapping(target = "name", source = "form.name")
     @Mapping(target = "portalPageContentId", source = "form.portalPageContentId", qualifiedByName = "idToPortalPageContentId")
     @Mapping(target = "gmdContent", source = "content")
     @Mapping(target = "enabled", source = "form.enabled")
+    @Mapping(target = "defaultForm", source = "form.defaultForm")
     @Mapping(target = "validationConstraints", source = "form.validationConstraints", qualifiedByName = "jsonToFieldConstraints")
     SubscriptionForm toEntity(io.gravitee.repository.management.model.SubscriptionForm form, GraviteeMarkdown content);
 

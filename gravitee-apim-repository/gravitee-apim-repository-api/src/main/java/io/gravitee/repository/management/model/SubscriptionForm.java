@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
+import java.util.Locale;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -44,6 +45,11 @@ public class SubscriptionForm {
     private String environmentId;
 
     /**
+     * Display name of the form, unique within its environment.
+     */
+    private String name;
+
+    /**
      * Legacy inline Gravitee Markdown (GMD) content defining the form.
      * {@code null} once the content has been moved to a {@link PortalPageContent}
      * (see {@link #portalPageContentId}); only still populated on rows that predate that migration.
@@ -62,8 +68,23 @@ public class SubscriptionForm {
     private boolean enabled;
 
     /**
+     * Whether this form is the environment default, used for every API without a dedicated form.
+     * At most one form per environment is the default.
+     */
+    private boolean defaultForm;
+
+    /**
      * JSON string of validation constraints per field key, derived from the GMD content.
      * {@code null} when nothing is stored (empty rule sets are typically not persisted).
      */
     private String validationConstraints;
+
+    /**
+     * Uniqueness key derived from {@link #name}: trimmed and lowercased, so two forms of an environment cannot
+     * differ by case or padding alone. Persisted next to the name, where it carries the unique index the
+     * implementations rely on; it is never set by the caller.
+     */
+    public String getNormalizedName() {
+        return name == null ? null : name.trim().toLowerCase(Locale.ROOT);
+    }
 }
