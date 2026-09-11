@@ -55,11 +55,21 @@ function versionFromPom() {
   return `${revision}${qualifier}`;
 }
 
+// Which command releases this tree. A line cut before the reactors were split has no distribution
+// triplet of its own, and its `release/` folder is the one that came with the tag — where
+// `prepare_distribution_release` does not exist. Printing the command from master's tree would send
+// people to something they cannot run.
+function releaseCommand() {
+  const pom = 'gravitee-apim-distribution/pom.xml';
+  const hasOwnVersion = fs.existsSync(pom) && /<revision>/.test(fs.readFileSync(pom, 'utf8'));
+  return hasOwnVersion ? 'prepare_distribution_release' : 'full_release';
+}
+
 function printNextSteps() {
   const version = versionFromPom();
   console.log(chalk.green(`\n${branch} is ready, at ${version}.\n`));
   console.log(`  1. Add the fix, as one commit.`);
-  console.log(`  2. yarn prepare_distribution_release --version=${version}`);
+  console.log(`  2. yarn ${releaseCommand()} --version=${version}`);
   console.log(`  3. Cherry-pick the fix into ${supportBranch}, so the next patch carries it too.`);
 }
 
