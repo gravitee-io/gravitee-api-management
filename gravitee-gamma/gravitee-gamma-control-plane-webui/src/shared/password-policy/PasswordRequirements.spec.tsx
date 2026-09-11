@@ -75,6 +75,33 @@ describe('PasswordRequirements', () => {
         expect(screen.getByText('Fair')).toBeTruthy();
         expect(screen.queryByText('Strong')).toBeNull();
     });
+
+    it('announces the strength through a live region that is already mounted before the first keystroke', () => {
+        // A region inserted together with its first message is usually not announced, so it has to
+        // exist, empty, before there is anything to say.
+        const { container, rerender } = renderWithGraphene(
+            <PasswordRequirements policy={{ rules: TEST_RULES }} password="" showStrengthMeter />,
+        );
+        const region = container.querySelector('[aria-live="polite"]');
+        expect(region?.textContent).toBe('');
+
+        rerender(<PasswordRequirements policy={{ rules: TEST_RULES }} password="LongEnough1" showStrengthMeter />);
+
+        expect(container.querySelector('[aria-live="polite"]')).toBe(region);
+        expect(region?.textContent).toBe('Password strength: Fair');
+    });
+
+    it('hides the visual strength label from assistive technology, which hears the live region instead', () => {
+        renderWithGraphene(<PasswordRequirements policy={{ rules: TEST_RULES }} password="LongEnough1" showStrengthMeter />);
+
+        expect(screen.getByText('Fair').closest('[aria-hidden="true"]')).not.toBeNull();
+    });
+
+    it('mounts no live region where no meter is asked for', () => {
+        const { container } = renderWithGraphene(<PasswordRequirements policy={{ rules: TEST_RULES }} password="LongEnough1" />);
+
+        expect(container.querySelector('[aria-live]')).toBeNull();
+    });
 });
 
 describe('PasswordRequirements, when the parser derived nothing usable', () => {
