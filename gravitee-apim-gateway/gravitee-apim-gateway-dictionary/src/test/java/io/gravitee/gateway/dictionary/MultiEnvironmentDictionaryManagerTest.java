@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.gateway.dictionary.model.Dictionary;
 import io.gravitee.gateway.dictionary.model.DictionaryProperty;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -90,6 +91,19 @@ class MultiEnvironmentDictionaryManagerTest {
 
             assertThat(property(ENV, "idp-server-details")).isEqualTo("default-value");
             assertThat(property(OTHER_ENV, "idp-server-details")).isEqualTo("other-value");
+        }
+
+        @Test
+        void should_deploy_without_throwing_when_a_property_value_is_null() {
+            Dictionary dictionary = dictionary("idp-server-details", null, ENV, "first-value", 1L);
+            Map<String, DictionaryProperty> properties = new HashMap<>(dictionary.getProperties());
+            properties.put("NULL_PROP", null);
+            dictionary.setProperties(properties);
+
+            cut.deploy(dictionary);
+
+            assertThat(property(ENV, "idp-server-details")).isEqualTo("first-value");
+            assertThat(cut.getDictionaries(ENV).get("idp-server-details")).doesNotContainKey("NULL_PROP");
         }
     }
 

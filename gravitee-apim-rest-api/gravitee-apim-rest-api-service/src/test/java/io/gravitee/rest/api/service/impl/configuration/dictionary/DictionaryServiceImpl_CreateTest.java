@@ -20,9 +20,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.model.Dictionary;
@@ -37,6 +41,8 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -44,6 +50,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.slf4j.LoggerFactory;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.WARN)
@@ -65,6 +72,15 @@ public class DictionaryServiceImpl_CreateTest {
 
     @Mock
     private AuditService auditService;
+
+    @Mock
+    private Appender<ILoggingEvent> appender;
+
+    @BeforeEach
+    public void setUp() {
+        Logger logger = (Logger) LoggerFactory.getLogger(DictionaryServiceImpl.class);
+        logger.addAppender(appender);
+    }
 
     @Test
     public void shouldCreateWithExplicitKeyLegacy() throws TechnicalException {
@@ -166,6 +182,50 @@ public class DictionaryServiceImpl_CreateTest {
             .hasMessage(
                 "A dictionary with key [idp-server-details] cannot be created because dictionary [idp-server-details] already uses that value as its id in this environment."
             );
+    }
+
+    @Test
+    public void should_mark_named_keys_as_encrypted_on_create() throws TechnicalException {
+        NewDictionaryEntity newDictionary = new NewDictionaryEntity();
+        newDictionary.setKey("my-key");
+        newDictionary.setName("My Dictionary");
+        newDictionary.setType(DictionaryType.MANUAL);
+        newDictionary.setProperties(Map.of("plain", "plain-value", "secret", "cipher"));
+        newDictionary.setEncryptedPropertyKeys(Set.of("secret"));
+
+        when(dictionaryRepository.findById("my-key")).thenReturn(Optional.empty());
+        when(dictionaryRepository.findByKeyAndEnvironment("my-key", ENVIRONMENT_ID)).thenReturn(Optional.empty());
+        when(dictionaryRepository.create(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        dictionaryService.create(GraviteeContext.getExecutionContext(), newDictionary);
+
+        verify(dictionaryRepository).create(
+            argThat(
+                dict ->
+                    dict.getProperties().get("secret").encrypted() &&
+                    dict.getProperties().get("secret").value().equals("cipher") &&
+                    !dict.getProperties().get("plain").encrypted() &&
+                    dict.getProperties().get("plain").value().equals("plain-value")
+            )
+        );
+    }
+
+    @Test
+    public void should_not_log_encrypted_property_values_on_create() throws TechnicalException {
+        NewDictionaryEntity newDictionary = new NewDictionaryEntity();
+        newDictionary.setKey("my-key");
+        newDictionary.setName("My Dictionary");
+        newDictionary.setType(DictionaryType.MANUAL);
+        newDictionary.setProperties(Map.of("secret", "super-secret-value"));
+        newDictionary.setEncryptedPropertyKeys(Set.of("secret"));
+
+        when(dictionaryRepository.findById("my-key")).thenReturn(Optional.empty());
+        when(dictionaryRepository.findByKeyAndEnvironment("my-key", ENVIRONMENT_ID)).thenReturn(Optional.empty());
+        when(dictionaryRepository.create(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        dictionaryService.create(GraviteeContext.getExecutionContext(), newDictionary);
+
+        verify(appender, never()).doAppend(argThat(event -> event.getFormattedMessage().contains("super-secret-value")));
     }
 
     @Test

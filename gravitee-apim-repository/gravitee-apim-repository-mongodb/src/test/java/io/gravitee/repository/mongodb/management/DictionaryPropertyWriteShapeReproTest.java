@@ -56,10 +56,7 @@ class DictionaryPropertyWriteShapeReproTest extends AbstractManagementRepository
 
         dictionaryRepository.create(dictionary);
 
-        final Document raw = mongoOperations
-            .getCollection("test_prefix_dictionaries")
-            .find(new Document("_id", "dic-write-shape"))
-            .first();
+        final Document raw = mongoOperations.getCollection("test_prefix_dictionaries").find(new Document("_id", "dic-write-shape")).first();
 
         assertThat(raw).isNotNull();
         final Document properties = raw.get("properties", Document.class);

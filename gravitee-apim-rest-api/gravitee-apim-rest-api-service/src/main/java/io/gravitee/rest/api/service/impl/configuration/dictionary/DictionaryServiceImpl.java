@@ -238,7 +238,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     @Override
     public DictionaryEntity create(ExecutionContext executionContext, NewDictionaryEntity newDictionaryEntity) {
         try {
-            log.debug("Create dictionary {}", newDictionaryEntity);
+            log.debug("Create dictionary name={} key={}", newDictionaryEntity.getName(), newDictionaryEntity.getKey());
             final Dictionary dictionary;
             if (newDictionaryEntity.getKey() == null) {
                 String key = IdGenerator.generate(newDictionaryEntity.getName());
@@ -269,14 +269,17 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             createAuditLog(executionContext, Dictionary.AuditEvent.DICTIONARY_CREATED, dictionary.getCreatedAt(), null, dictionary);
             return convert(createdDictionary);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to create " + newDictionaryEntity, ex);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to create dictionary '" + newDictionaryEntity.getName() + "'",
+                ex
+            );
         }
     }
 
     @Override
     public DictionaryEntity update(ExecutionContext executionContext, String id, UpdateDictionaryEntity updateDictionaryEntity) {
         try {
-            log.debug("Update dictionary {}", updateDictionaryEntity);
+            log.debug("Update dictionary id={} name={}", id, updateDictionaryEntity.getName());
 
             Dictionary dictionaryToUpdate = dictionaryRepository
                 .findById(id)
@@ -316,7 +319,10 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             return convert(updatedDictionary);
         } catch (TechnicalException ex) {
-            throw new TechnicalManagementException("An error occurs while trying to update " + updateDictionaryEntity, ex);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to update dictionary '" + updateDictionaryEntity.getName() + "'",
+                ex
+            );
         }
     }
 
@@ -334,7 +340,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 log.warn("Update dictionary {} properties not applied: dictionary is {}", id, dictionary.getState());
                 return convert(dictionary);
             }
-            dictionary.setProperties(toTypedProperties(properties, dictionary.getProperties()));
+            dictionary.setProperties(toTypedProperties(properties, dictionary.getProperties(), null));
             dictionary.setUpdatedAt(new Date());
             dictionary.setDeployedAt(dictionary.getUpdatedAt());
             Dictionary updatedDictionary = dictionaryRepository.update(dictionary);
@@ -450,6 +456,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             .deployedAt(dictionary.getDeployedAt())
             .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.valueOf(dictionary.getType().name()))
             .properties(toFlatProperties(dictionary.getProperties()))
+            .encryptedPropertyKeys(toEncryptedPropertyKeys(dictionary.getProperties()))
             .state(Lifecycle.State.valueOf(dictionary.getState().name()));
 
         if (dictionary.getType() == DictionaryType.DYNAMIC) {
@@ -485,16 +492,25 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
     private static Map<String, DictionaryProperty> toTypedProperties(
         Map<String, String> incoming,
-        Map<String, DictionaryProperty> existing
+        Map<String, DictionaryProperty> existing,
+        Set<String> encryptedKeyHints
     ) {
         if (incoming == null) {
             return null;
         }
         Map<String, DictionaryProperty> result = new HashMap<>(incoming.size());
         incoming.forEach((key, value) -> {
-            DictionaryProperty previous = existing == null ? null : existing.get(key);
-            boolean unchanged = previous != null && Objects.equals(previous.value(), value);
-            result.put(key, new DictionaryProperty(value, unchanged && previous.encrypted()));
+            boolean encrypted;
+            if (encryptedKeyHints != null) {
+                // Automation-sourced update: the hint is an authoritative statement of the full
+                // desired encrypted-key set, not just an additive signal — a key resubmitted with
+                // an unchanged value but no longer named in the hint must be able to decrypt.
+                encrypted = encryptedKeyHints.contains(key);
+            } else {
+                DictionaryProperty previous = existing == null ? null : existing.get(key);
+                encrypted = previous != null && Objects.equals(previous.value(), value) && previous.encrypted();
+            }
+            result.put(key, new DictionaryProperty(value, encrypted));
         });
         return result;
     }
@@ -508,12 +524,30 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         return result;
     }
 
+    private static Set<String> toEncryptedPropertyKeys(Map<String, DictionaryProperty> typed) {
+        if (typed == null) {
+            return null;
+        }
+        return typed
+            .entrySet()
+            .stream()
+            .filter(entry -> entry.getValue().encrypted())
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toSet());
+    }
+
     private Dictionary convert(UpdateDictionaryEntity updateDictionaryEntity, Dictionary existing) {
         Dictionary dictionary = new Dictionary();
 
         dictionary.setName(updateDictionaryEntity.getName());
         dictionary.setDescription(updateDictionaryEntity.getDescription());
-        dictionary.setProperties(toTypedProperties(updateDictionaryEntity.getProperties(), existing.getProperties()));
+        dictionary.setProperties(
+            toTypedProperties(
+                updateDictionaryEntity.getProperties(),
+                existing.getProperties(),
+                updateDictionaryEntity.getEncryptedPropertyKeys()
+            )
+        );
 
         final io.gravitee.rest.api.model.configuration.dictionary.DictionaryType type = updateDictionaryEntity.getType();
         if (type != null) {
@@ -543,7 +577,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         }
 
         if (type == io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL) {
-            dictionary.setProperties(toTypedProperties(newDictionaryEntity.getProperties(), null));
+            dictionary.setProperties(
+                toTypedProperties(newDictionaryEntity.getProperties(), null, newDictionaryEntity.getEncryptedPropertyKeys())
+            );
         } else {
             dictionary.setProvider(convert(newDictionaryEntity.getProvider()));
             dictionary.setTrigger(convert(newDictionaryEntity.getTrigger()));

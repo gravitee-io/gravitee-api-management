@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.domain_service.dictionary;
 
 import io.gravitee.apim.core.dictionary.domain_service.DictionaryAutomationDomainService;
 import io.gravitee.apim.core.dictionary.model.Dictionary;
+import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
 import io.gravitee.apim.core.dictionary.model.DictionaryProvider;
 import io.gravitee.apim.core.dictionary.model.DictionaryTrigger;
 import io.gravitee.common.component.Lifecycle;
@@ -29,8 +30,12 @@ import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntit
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.impl.configuration.dictionary.DictionaryNotFoundException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -93,7 +98,8 @@ public class DictionaryAutomationDomainServiceLegacyWrapper implements Dictionar
         entity.setName(dictionary.getName());
         entity.setDescription(dictionary.getDescription());
         entity.setType(toEntityType(dictionary.getType()));
-        entity.setProperties(dictionary.getProperties());
+        entity.setProperties(toFlatProperties(dictionary.getProperties()));
+        entity.setEncryptedPropertyKeys(toEncryptedPropertyKeys(dictionary.getProperties()));
         entity.setProvider(toEntity(dictionary.getProvider()));
         entity.setTrigger(toEntity(dictionary.getTrigger()));
         return entity;
@@ -104,10 +110,33 @@ public class DictionaryAutomationDomainServiceLegacyWrapper implements Dictionar
         entity.setName(dictionary.getName());
         entity.setDescription(dictionary.getDescription());
         entity.setType(toEntityType(dictionary.getType()));
-        entity.setProperties(dictionary.getProperties());
+        entity.setProperties(toFlatProperties(dictionary.getProperties()));
+        entity.setEncryptedPropertyKeys(toEncryptedPropertyKeys(dictionary.getProperties()));
         entity.setProvider(toEntity(dictionary.getProvider()));
         entity.setTrigger(toEntity(dictionary.getTrigger()));
         return entity;
+    }
+
+    private static Map<String, String> toFlatProperties(Map<String, DictionaryProperty> properties) {
+        if (properties == null) {
+            return null;
+        }
+        Map<String, String> result = new HashMap<>(properties.size());
+        properties.forEach((key, property) -> result.put(key, property.getValue()));
+        return result;
+    }
+
+    private static Set<String> toEncryptedPropertyKeys(Map<String, DictionaryProperty> properties) {
+        if (properties == null) {
+            return null;
+        }
+        Set<String> result = new HashSet<>();
+        properties.forEach((key, property) -> {
+            if (property.isEncrypted()) {
+                result.add(key);
+            }
+        });
+        return result;
     }
 
     private static DictionaryType toEntityType(io.gravitee.apim.core.dictionary.model.DictionaryType type) {

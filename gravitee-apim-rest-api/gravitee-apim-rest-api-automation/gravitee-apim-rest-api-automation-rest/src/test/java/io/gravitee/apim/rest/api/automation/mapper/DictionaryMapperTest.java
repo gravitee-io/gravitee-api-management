@@ -16,9 +16,9 @@
 package io.gravitee.apim.rest.api.automation.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import io.gravitee.apim.rest.api.automation.model.DictionaryPropertyValue;
-import io.gravitee.apim.rest.api.automation.model.DictionaryPropertyValueOneOf;
+import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
 import io.gravitee.apim.rest.api.automation.model.DictionarySpec;
 import io.gravitee.apim.rest.api.automation.model.DictionaryState;
 import io.gravitee.apim.rest.api.automation.model.DictionaryType;
@@ -26,6 +26,7 @@ import io.gravitee.apim.rest.api.automation.model.ManualDictionarySpec;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -36,44 +37,61 @@ class DictionaryMapperTest {
     private static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext("organization-id", "environment-id");
 
     @Test
-    void should_map_legacy_bare_string_property_to_state() {
-        DictionaryEntity entity = DictionaryEntity.builder()
-            .id("dic-1")
-            .name("My dic")
-            .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
-            .properties(Map.of("legacy-key", "legacy-value"))
-            .build();
-
-        DictionaryState state = DictionaryMapper.INSTANCE.toDictionaryState(entity, EXECUTION_CONTEXT);
-
-        DictionaryPropertyValue value = state.getManual().getProperties().get("legacy-key");
-        assertThat(value.getDictionaryPropertyValueOneOf().getValue()).isEqualTo("legacy-value");
-        assertThat(value.getDictionaryPropertyValueOneOf().getEncrypted()).isFalse();
-    }
-
-    @Test
-    void should_map_dictionary_with_legacy_bare_string_property_to_core_dictionary() {
+    void should_map_plain_properties_to_unencrypted_core_properties() {
         DictionarySpec spec = new DictionarySpec()
             .type(DictionaryType.MANUAL)
-            .manual(new ManualDictionarySpec().properties(Map.of("legacy-key", new DictionaryPropertyValue("legacy-value"))));
+            .manual(new ManualDictionarySpec().properties(Map.of("legacy-key", "legacy-value")));
 
         var dictionary = DictionaryMapper.INSTANCE.toDictionary(spec);
 
-        assertThat(dictionary.getProperties()).containsEntry("legacy-key", "legacy-value");
+        assertThat(dictionary.getProperties()).containsEntry("legacy-key", new DictionaryProperty("legacy-value", false));
     }
 
     @Test
-    void should_map_dictionary_with_typed_property_to_core_dictionary() {
+    void should_map_disjoint_properties_and_encrypted_properties_to_core_dictionary() {
         DictionarySpec spec = new DictionarySpec()
             .type(DictionaryType.MANUAL)
             .manual(
-                new ManualDictionarySpec().properties(
-                    Map.of("typed-key", new DictionaryPropertyValue(new DictionaryPropertyValueOneOf(true).value("cipher")))
-                )
+                new ManualDictionarySpec()
+                    .properties(Map.of("plain-key", "plain-value"))
+                    .encryptedProperties(Map.of("secret-key", "cipher"))
             );
 
         var dictionary = DictionaryMapper.INSTANCE.toDictionary(spec);
 
-        assertThat(dictionary.getProperties()).containsEntry("typed-key", "cipher");
+        assertThat(dictionary.getProperties())
+            .containsEntry("plain-key", new DictionaryProperty("plain-value", false))
+            .containsEntry("secret-key", new DictionaryProperty("cipher", true));
+    }
+
+    @Test
+    void should_fail_loudly_when_a_key_appears_in_both_properties_and_encrypted_properties() {
+        DictionarySpec spec = new DictionarySpec()
+            .type(DictionaryType.MANUAL)
+            .manual(
+                new ManualDictionarySpec()
+                    .properties(Map.of("duplicate-key", "plain-value"))
+                    .encryptedProperties(Map.of("duplicate-key", "cipher"))
+            );
+
+        assertThatThrownBy(() -> DictionaryMapper.INSTANCE.toDictionary(spec)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void should_map_core_dictionary_with_mixed_encrypted_properties_to_state() {
+        DictionaryEntity entity = DictionaryEntity.builder()
+            .id("dic-1")
+            .name("My dic")
+            .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
+            .properties(Map.of("plain-key", "plain-value", "secret-key", "cipher"))
+            .encryptedPropertyKeys(Set.of("secret-key"))
+            .build();
+
+        DictionaryState state = DictionaryMapper.INSTANCE.toDictionaryState(entity, EXECUTION_CONTEXT);
+
+        assertThat(state.getManual().getProperties()).containsEntry("plain-key", "plain-value");
+        assertThat(state.getManual().getEncryptedProperties()).containsEntry("secret-key", "cipher");
+        assertThat(state.getManual().getProperties()).doesNotContainKey("secret-key");
+        assertThat(state.getManual().getEncryptedProperties()).doesNotContainKey("plain-key");
     }
 }

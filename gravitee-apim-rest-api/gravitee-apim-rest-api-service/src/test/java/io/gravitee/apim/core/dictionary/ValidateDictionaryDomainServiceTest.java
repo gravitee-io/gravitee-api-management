@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.apim.core.dictionary.domain_service.ValidateDictionaryDomainService;
 import io.gravitee.apim.core.dictionary.model.Dictionary;
+import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
 import io.gravitee.apim.core.dictionary.model.DictionaryProvider;
 import io.gravitee.apim.core.dictionary.model.DictionaryTrigger;
 import io.gravitee.apim.core.dictionary.model.DictionaryType;
@@ -45,7 +46,7 @@ class ValidateDictionaryDomainServiceTest {
                 .type(DictionaryType.DYNAMIC)
                 .provider(new DictionaryProvider())
                 .trigger(aTrigger())
-                .properties(Map.of("key1", "v1", "key2", "v2"))
+                .properties(Map.of("key1", new DictionaryProperty("v1", false), "key2", new DictionaryProperty("v2", false)))
                 .build();
 
             assertThatThrownBy(() -> service.validate(dictionary))
@@ -57,7 +58,7 @@ class ValidateDictionaryDomainServiceTest {
         void should_reject_when_both_properties_and_provider_trigger_are_set() {
             var dictionary = Dictionary.builder()
                 .type(DictionaryType.MANUAL)
-                .properties(Map.of("key", "value"))
+                .properties(Map.of("key", new DictionaryProperty("value", false)))
                 .provider(new DictionaryProvider())
                 .trigger(aTrigger())
                 .build();
@@ -93,7 +94,7 @@ class ValidateDictionaryDomainServiceTest {
         void should_reject_when_provider_is_set() {
             var dictionary = Dictionary.builder()
                 .type(DictionaryType.MANUAL)
-                .properties(Map.of("key", "value"))
+                .properties(Map.of("key", new DictionaryProperty("value", false)))
                 .provider(new DictionaryProvider())
                 .build();
 
@@ -106,7 +107,7 @@ class ValidateDictionaryDomainServiceTest {
         void should_reject_when_trigger_is_set() {
             var dictionary = Dictionary.builder()
                 .type(DictionaryType.MANUAL)
-                .properties(Map.of("key", "value"))
+                .properties(Map.of("key", new DictionaryProperty("value", false)))
                 .trigger(new DictionaryTrigger())
                 .build();
 
@@ -117,7 +118,10 @@ class ValidateDictionaryDomainServiceTest {
 
         @Test
         void should_accept_with_properties_only() {
-            var dictionary = Dictionary.builder().type(DictionaryType.MANUAL).properties(Map.of("key", "value")).build();
+            var dictionary = Dictionary.builder()
+                .type(DictionaryType.MANUAL)
+                .properties(Map.of("key", new DictionaryProperty("value", false)))
+                .build();
 
             assertThatNoException().isThrownBy(() -> service.validate(dictionary));
         }
@@ -150,7 +154,7 @@ class ValidateDictionaryDomainServiceTest {
                 .type(DictionaryType.DYNAMIC)
                 .provider(new DictionaryProvider())
                 .trigger(aTrigger())
-                .properties(Map.of("key", "value"))
+                .properties(Map.of("key", new DictionaryProperty("value", false)))
                 .build();
 
             assertThatThrownBy(() -> service.validate(dictionary))

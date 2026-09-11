@@ -280,4 +280,59 @@ public class DictionaryServiceImpl_UpdateTest {
             )
         );
     }
+
+    @Test
+    public void should_mark_a_new_value_as_encrypted_when_named_in_the_encrypted_hint() throws TechnicalException {
+        Dictionary existing = new Dictionary();
+        existing.setId(DICTIONARY_ID);
+        existing.setName("My Dictionary");
+        existing.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+        existing.setType(io.gravitee.repository.management.model.DictionaryType.MANUAL);
+        existing.setState(LifecycleState.STOPPED);
+        existing.setProperties(new HashMap<>());
+
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
+        when(dictionaryRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        UpdateDictionaryEntity updateDictionaryEntity = new UpdateDictionaryEntity();
+        updateDictionaryEntity.setName("My Dictionary");
+        updateDictionaryEntity.setType(DictionaryType.MANUAL);
+        updateDictionaryEntity.setProperties(Map.of("secret", "cipher"));
+        updateDictionaryEntity.setEncryptedPropertyKeys(java.util.Set.of("secret"));
+
+        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
+
+        verify(dictionaryRepository).update(
+            argThat(dict -> dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("cipher"))
+        );
+    }
+
+    @Test
+    public void should_unencrypt_a_key_moved_out_of_the_encrypted_hint_even_when_its_value_is_unchanged() throws TechnicalException {
+        Dictionary existing = new Dictionary();
+        existing.setId(DICTIONARY_ID);
+        existing.setName("My Dictionary");
+        existing.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+        existing.setType(io.gravitee.repository.management.model.DictionaryType.MANUAL);
+        existing.setState(LifecycleState.STOPPED);
+        Map<String, DictionaryProperty> existingProperties = new HashMap<>();
+        existingProperties.put("secret", new DictionaryProperty("cipher", true));
+        existing.setProperties(existingProperties);
+
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
+        when(dictionaryRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Automation manifest moves "secret" from encryptedProperties to properties, value unchanged.
+        UpdateDictionaryEntity updateDictionaryEntity = new UpdateDictionaryEntity();
+        updateDictionaryEntity.setName("My Dictionary");
+        updateDictionaryEntity.setType(DictionaryType.MANUAL);
+        updateDictionaryEntity.setProperties(Map.of("secret", "cipher"));
+        updateDictionaryEntity.setEncryptedPropertyKeys(java.util.Set.of());
+
+        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
+
+        verify(dictionaryRepository).update(
+            argThat(dict -> !dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("cipher"))
+        );
+    }
 }

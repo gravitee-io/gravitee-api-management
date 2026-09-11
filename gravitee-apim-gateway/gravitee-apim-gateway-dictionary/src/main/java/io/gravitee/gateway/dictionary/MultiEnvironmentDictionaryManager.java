@@ -16,6 +16,7 @@
 package io.gravitee.gateway.dictionary;
 
 import io.gravitee.gateway.dictionary.model.Dictionary;
+import io.gravitee.gateway.dictionary.model.DictionaryProperty;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -58,14 +59,20 @@ public class MultiEnvironmentDictionaryManager implements DictionaryManager {
                 dictionary.setProperties(Collections.emptyMap());
             }
 
-            log.info("Dictionary {} has been deployed with {} properties", dictionary, dictionary.getProperties().size());
+            int propertyCount = dictionary.getProperties().size();
+            log.info("Dictionary {} has been deployed with {} properties", dictionary, propertyCount);
             dictionaries.get(environmentId).put(key, dictionary);
             // EL only ever sees plaintext key/value pairs. Today every value's .value() already
             // is plaintext (no encrypted dictionary property can exist until a later story adds
             // encryption); that later story's gateway-side decrypt hook belongs exactly here, in
             // place of the plain .value() extraction below.
-            Map<String, String> flattenedProperties = new HashMap<>();
-            dictionary.getProperties().forEach((propKey, property) -> flattenedProperties.put(propKey, property.value()));
+            Map<String, String> flattenedProperties = new HashMap<>((propertyCount * 4) / 3 + 1);
+            for (Map.Entry<String, DictionaryProperty> entry : dictionary.getProperties().entrySet()) {
+                DictionaryProperty property = entry.getValue();
+                if (property != null) {
+                    flattenedProperties.put(entry.getKey(), property.value());
+                }
+            }
             values.get(environmentId).put(key, flattenedProperties);
         }
     }

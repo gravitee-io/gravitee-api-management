@@ -17,6 +17,7 @@ package io.gravitee.rest.api.model.configuration.dictionary;
 
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -33,6 +34,12 @@ public class UpdateDictionaryEntity {
     private DictionaryType type;
 
     private Map<String, String> properties;
+
+    /**
+     * Keys of {@link #properties} to store encrypted. Additive: callers that never set this
+     * (e.g. the Console) are unaffected.
+     */
+    private Set<String> encryptedPropertyKeys;
 
     private DictionaryProviderEntity provider;
 
@@ -68,6 +75,14 @@ public class UpdateDictionaryEntity {
 
     public void setProperties(Map<String, String> properties) {
         this.properties = properties;
+    }
+
+    public Set<String> getEncryptedPropertyKeys() {
+        return encryptedPropertyKeys;
+    }
+
+    public void setEncryptedPropertyKeys(Set<String> encryptedPropertyKeys) {
+        this.encryptedPropertyKeys = encryptedPropertyKeys;
     }
 
     public DictionaryProviderEntity getProvider() {

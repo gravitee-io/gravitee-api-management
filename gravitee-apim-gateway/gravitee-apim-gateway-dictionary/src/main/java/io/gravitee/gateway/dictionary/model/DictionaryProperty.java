@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -62,9 +63,17 @@ public record DictionaryProperty(String value, boolean encrypted) {
             if (node.isTextual()) {
                 return new DictionaryProperty(node.asText(), false);
             }
-            String value = node.hasNonNull("value") ? node.get("value").asText() : null;
+            if (!node.hasNonNull("value")) {
+                throw JsonMappingException.from(p, "A dictionary property object must have a non-null 'value' field");
+            }
+            String value = node.get("value").asText();
             boolean encrypted = node.hasNonNull("encrypted") && node.get("encrypted").asBoolean();
             return new DictionaryProperty(value, encrypted);
+        }
+
+        @Override
+        public DictionaryProperty getNullValue(DeserializationContext ctxt) throws JsonMappingException {
+            throw JsonMappingException.from(ctxt, "A dictionary property must not be null");
         }
     }
 }
