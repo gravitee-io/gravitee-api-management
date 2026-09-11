@@ -1,3 +1,20 @@
+/**
+ * Asks a yes/no question, and stops the command on anything but yes.
+ *
+ * Testing for 'n' instead lets the empty answer through — the one a stray Enter produces — and these
+ * prompts guard a publication. Exiting is the caller's only outcome: a refusal must not fall through
+ * to the next line.
+ * @param {string} prompt asked as-is, with the (y/n) appended
+ * @param {string} [refusal] printed when the answer is not yes
+ */
+export async function confirm(prompt, refusal = '🚦 Nothing was triggered.') {
+  const answer = await question(chalk.blue(`${prompt} (y/n)\n`));
+  if (!['y', 'yes'].includes(answer.trim().toLowerCase())) {
+    console.log(chalk.yellow(refusal));
+    process.exit(1);
+  }
+}
+
 export function isDryRun() {
   return !!argv['dry-run'];
 }
