@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { afterEach, describe, it } from 'node:test';
-import { confirm } from './option-helper.mjs';
+import { confirm, isDryRun } from './option-helper.mjs';
 
 describe('confirm', () => {
   const realQuestion = globalThis.question;
@@ -59,5 +59,61 @@ describe('confirm', () => {
     await confirm('Should we continue?');
 
     assert.deepEqual(printed, []);
+  });
+});
+
+describe('isDryRun', () => {
+  const realArgv = globalThis.argv;
+  const realChalk = globalThis.chalk;
+  const realLog = console.log;
+  const realExit = process.exit;
+
+  function stub(args) {
+    globalThis.argv = { _: [], ...args };
+    globalThis.chalk = { red: (s) => s };
+    console.log = () => {};
+    process.exit = (code) => {
+      throw new Error(`exit ${code}`);
+    };
+  }
+
+  afterEach(() => {
+    globalThis.argv = realArgv;
+    globalThis.chalk = realChalk;
+    console.log = realLog;
+    process.exit = realExit;
+  });
+
+  it('is a rehearsal when the flag is there', () => {
+    stub({ 'dry-run': true });
+
+    assert.equal(isDryRun(), true);
+  });
+
+  it('is a real release when no flag is given', () => {
+    stub({ version: '4.13.0' });
+
+    assert.equal(isDryRun(), false);
+  });
+
+  // Errs on the safe side, and worth knowing: the value is not read, only the flag's presence.
+  it('is still a rehearsal when the flag carries a value', () => {
+    stub({ 'dry-run': 'false' });
+
+    assert.equal(isDryRun(), true);
+  });
+
+  for (const flag of ['dryrun', 'dry_run', 'dryRun', 'DRY-RUN', 'Dry_Run', 'dry']) {
+    it(`refuses --${flag} rather than reading it as a real release`, () => {
+      stub({ [flag]: true, version: '4.13.0' });
+
+      assert.throws(() => isDryRun(), { message: 'exit 1' });
+    });
+  }
+
+  it('leaves unrelated options alone', () => {
+    stub({ version: '4.13.0', branch: 'master', latest: true });
+
+    assert.equal(isDryRun(), false);
   });
 });
