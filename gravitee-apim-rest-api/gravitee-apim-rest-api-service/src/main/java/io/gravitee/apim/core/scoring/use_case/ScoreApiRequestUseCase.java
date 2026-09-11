@@ -29,6 +29,7 @@ import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomain
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.json.GraviteeDefinitionSerializer;
 import io.gravitee.apim.core.json.JsonProcessingException;
+import io.gravitee.apim.core.scoring.domain_service.ScoringRequestPartitioner;
 import io.gravitee.apim.core.scoring.model.ScoreRequest;
 import io.gravitee.apim.core.scoring.model.ScoringAssetType;
 import io.gravitee.apim.core.scoring.model.ScoringFunction;
@@ -47,7 +48,6 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.Duration;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -105,22 +105,23 @@ public class ScoreApiRequestUseCase {
                     )
                 )
             )
-            .flatMap(request ->
-                Single.fromCallable(() ->
-                    asyncJobCrudService.create(newScoringJob(request.jobId(), input.auditInfo, input.apiId, deadLine(request)))
-                ).map(job -> Map.entry(request, job))
-            )
-            .flatMapCompletable(entry -> {
-                var request = entry.getKey();
-                var job = entry.getValue();
-                return scoringProvider
-                    .requestScore(request)
+            .flatMap(request -> {
+                var partitions = ScoringRequestPartitioner.partition(request);
+                return Single.fromCallable(() ->
+                    asyncJobCrudService.create(
+                        newScoringJob(request.jobId(), input.auditInfo, input.apiId, deadLine(request), partitions.size())
+                    )
+                ).map(job -> new PreparedScoring(request.jobId(), partitions, job));
+            })
+            .flatMapCompletable(prepared ->
+                Flowable.fromIterable(prepared.partitions())
+                    .flatMapCompletable(scoringProvider::requestScore)
                     .onErrorResumeNext(throwable ->
-                        Completable.fromRunnable(() -> asyncJobCrudService.update(job.error(throwable.getMessage()))).andThen(
+                        Completable.fromRunnable(() -> asyncJobCrudService.update(prepared.job().error(throwable.getMessage()))).andThen(
                             Completable.error(throwable)
                         )
-                    );
-            });
+                    )
+            );
     }
 
     private ScoreRequest.AssetToScore assetToScore(Page page) {
@@ -157,22 +158,10 @@ public class ScoreApiRequestUseCase {
     private Maybe<ScoreRequest.CustomRuleset> customRuleset(ScoringRuleset scoringRuleset) {
         return StringUtils.isEmpty(scoringRuleset.payload())
             ? Maybe.empty()
-            : Maybe.just(new ScoreRequest.CustomRuleset(scoringRuleset.payload(), format(scoringRuleset.format())));
+            : Maybe.just(new ScoreRequest.CustomRuleset(scoringRuleset.payload(), scoringRuleset.format()));
     }
 
-    private ScoreRequest.Format format(ScoringRuleset.Format format) {
-        return switch (format) {
-            case null -> null;
-            case GRAVITEE_FEDERATION -> ScoreRequest.Format.GRAVITEE_FEDERATED;
-            case GRAVITEE_MESSAGE -> ScoreRequest.Format.GRAVITEE_MESSAGE;
-            case GRAVITEE_PROXY -> ScoreRequest.Format.GRAVITEE_PROXY;
-            case GRAVITEE_NATIVE -> ScoreRequest.Format.GRAVITEE_NATIVE;
-            case GRAVITEE_V2 -> ScoreRequest.Format.GRAVITEE_V2;
-            case OPENAPI, ASYNCAPI -> null;
-        };
-    }
-
-    public AsyncJob newScoringJob(String id, AuditInfo auditInfo, String apiId, Duration ttl) {
+    public AsyncJob newScoringJob(String id, AuditInfo auditInfo, String apiId, Duration ttl, int partitionCount) {
         var now = TimeProvider.now();
         return AsyncJob.builder()
             .id(id)
@@ -181,7 +170,7 @@ public class ScoreApiRequestUseCase {
             .initiatorId(auditInfo.actor().userId())
             .type(AsyncJob.Type.SCORING_REQUEST)
             .status(AsyncJob.Status.PENDING)
-            .upperLimit(1L)
+            .upperLimit((long) Math.max(1, partitionCount))
             .createdAt(now)
             .updatedAt(now)
             .deadLine(now.plus(ttl))
@@ -191,6 +180,8 @@ public class ScoreApiRequestUseCase {
     public record Input(String apiId, AuditInfo auditInfo) {}
 
     private record RulesetAndFunctions(List<ScoreRequest.CustomRuleset> rulesets, List<ScoreRequest.Function> functions) {}
+
+    private record PreparedScoring(String jobId, List<ScoreRequest> partitions, AsyncJob job) {}
 
     /**
      * Compute the TTL of the scoring job.

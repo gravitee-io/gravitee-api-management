@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.scoring.model.ScoreRequest;
 import io.gravitee.apim.core.scoring.model.ScoringAssetType;
+import io.gravitee.apim.core.scoring.model.ScoringRuleset;
 import io.gravitee.cockpit.api.CockpitConnector;
 import io.gravitee.cockpit.api.command.v1.scoring.request.ScoringRequestCommand;
 import io.gravitee.cockpit.api.command.v1.scoring.request.ScoringRequestCommandPayload;
@@ -112,7 +113,8 @@ class ScoringProviderImplTest {
                             null,
                             List.of(
                                 new CustomRuleset("custom-ruleset-payload"),
-                                new CustomRuleset(Format.GRAVITEE_PROXY, "gravitee-format-ruleset")
+                                new CustomRuleset(Format.GRAVITEE_PROXY, "gravitee-format-ruleset"),
+                                new CustomRuleset("openapi-format-ruleset")
                             ),
                             List.of()
                         )
@@ -145,7 +147,8 @@ class ScoringProviderImplTest {
                 ),
                 List.of(
                     new ScoreRequest.CustomRuleset("custom-ruleset-payload"),
-                    new ScoreRequest.CustomRuleset("gravitee-format-ruleset", ScoreRequest.Format.GRAVITEE_PROXY)
+                    new ScoreRequest.CustomRuleset("gravitee-format-ruleset", ScoringRuleset.Format.GRAVITEE_PROXY),
+                    new ScoreRequest.CustomRuleset("openapi-format-ruleset", ScoringRuleset.Format.OPENAPI)
                 ),
                 List.of()
             );
