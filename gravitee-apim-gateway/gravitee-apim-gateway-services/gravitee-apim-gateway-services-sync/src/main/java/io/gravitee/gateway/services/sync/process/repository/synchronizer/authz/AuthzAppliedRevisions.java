@@ -50,6 +50,11 @@ public class AuthzAppliedRevisions {
         revisions.computeIfAbsent(scopeKey(environmentId, scope), k -> new ConcurrentHashMap<>()).merge(docId, updatedAt, Math::max);
     }
 
+    public boolean isApplied(String environmentId, String scope, String docId) {
+        ConcurrentMap<String, Long> scopeRevisions = revisions.get(scopeKey(environmentId, scope));
+        return scopeRevisions != null && scopeRevisions.containsKey(docId);
+    }
+
     public void forget(String environmentId, String scope, String docId) {
         ConcurrentMap<String, Long> scopeRevisions = revisions.get(scopeKey(environmentId, scope));
         if (scopeRevisions != null) {
