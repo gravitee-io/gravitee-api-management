@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-export * from './alert';
-export * from './analytics';
-export * from './api';
-export * from './apiCreation';
-export * from './apiImport';
-export * from './auditLogs.types';
-export * from './broadcast';
-export * from './healthCheck';
-export * from './members.types';
-export * from './metadata';
-export * from './notification';
-export * from './plan';
-export * from './resource';
-export * from './responseTemplate';
-export * from './subscription';
+import { Alert, AlertDescription } from '@gravitee/graphene-core';
+
+export function KubernetesManagedReadOnlyAlert({ resource }: Readonly<{ resource: string }>) {
+    return (
+        <Alert>
+            <AlertDescription>This API is managed by the Kubernetes operator. {resource} are read-only.</AlertDescription>
+        </Alert>
+    );
+}

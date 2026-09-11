@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-export * from './alert';
-export * from './analytics';
-export * from './api';
-export * from './apiCreation';
-export * from './apiImport';
-export * from './auditLogs.types';
-export * from './broadcast';
-export * from './healthCheck';
-export * from './members.types';
-export * from './metadata';
-export * from './notification';
-export * from './plan';
-export * from './resource';
-export * from './responseTemplate';
-export * from './subscription';
+export function FeatureUnavailableNotice({ heading, detail }: Readonly<{ heading: string; detail: string }>) {
+    return (
+        <div className="flex items-center justify-center p-8">
+            <div className="space-y-2 text-center">
+                <p className="text-sm font-medium">{heading}</p>
+                <p className="text-sm text-muted-foreground">{detail}</p>
+            </div>
+        </div>
+    );
+}

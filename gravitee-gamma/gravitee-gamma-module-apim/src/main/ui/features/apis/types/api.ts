@@ -17,6 +17,7 @@
 import type { Analytics } from './analytics';
 import type { PlanSecurity } from './plan';
 import type { ApiResource } from './resource';
+import type { ResponseTemplatesMap } from './responseTemplate';
 
 export interface PathToVerify {
     path: string;
@@ -148,7 +149,7 @@ export interface DuplicateApiOptions {
     version: string;
     filteredFields?: DuplicateFilteredField[];
 }
-export type ApiType = 'PROXY' | 'MESSAGE' | 'NATIVE';
+export type ApiType = 'PROXY' | 'MESSAGE' | 'NATIVE' | 'MCP_PROXY' | 'LLM_PROXY';
 
 export interface ApiListListener {
     type: string;
@@ -365,6 +366,7 @@ export interface ApiDetailDto {
     properties?: Property[];
     /** API-level resources (cache, OAuth2 providers, …) consumed by policies at runtime. */
     resources?: ApiResource[];
+    responseTemplates?: ResponseTemplatesMap;
 
     services?: { dynamicProperty?: DynamicPropertyConfig };
     analytics?: Analytics;

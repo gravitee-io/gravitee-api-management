@@ -86,7 +86,7 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
             { path: 'resources', label: 'Resources', icon: ServerIcon },
             { path: 'notifications', label: 'Notifications', icon: BellIcon },
             { path: 'api-score', label: 'API Score', icon: SparklesIcon },
-            { path: 'response-templates', label: 'Response Templates', icon: ScrollTextIcon, comingSoon: true },
+            { path: 'response-templates', label: 'Response Templates', icon: ScrollTextIcon, end: false },
             { path: 'cors', label: 'CORS', icon: ShieldCheckIcon },
             { path: 'metadata', label: 'Metadata', icon: DatabaseIcon },
         ],
@@ -151,7 +151,7 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
 ];
 
 /** Classic console parity (`api-v4-menu.service.ts`, `hasTcpListeners`) — TCP has no HTTP policy-chain semantics. */
-const TCP_UNSUPPORTED_PATHS = new Set(['policy-studio', 'cors']);
+const TCP_UNSUPPORTED_PATHS = new Set(['policy-studio', 'cors', 'response-templates']);
 const TCP_UNSUPPORTED_REASON = 'Coming soon for V4 APIs';
 
 /** Classic console never adds these menu entries for TCP APIs at all — omitted, not just disabled. */
@@ -177,6 +177,14 @@ export function withMetadataPermission(groups: DetailNavGroup[], canReadMetadata
     return groups.map(group => ({
         ...group,
         items: group.items.filter(item => item.path !== 'metadata'),
+    }));
+}
+
+export function withResponseTemplatesPermission(groups: DetailNavGroup[], showResponseTemplates: boolean): DetailNavGroup[] {
+    if (showResponseTemplates) return groups;
+    return groups.map(group => ({
+        ...group,
+        items: group.items.filter(item => item.path !== 'response-templates'),
     }));
 }
 

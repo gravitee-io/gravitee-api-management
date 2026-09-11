@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { apimFetchBlobV2, apimFetchJsonV2 } from '../../../shared/api/apimClient';
+import { apimFetchBlobV2, apimFetchJsonV2, apimFetchJsonV2WithMeta } from '../../../shared/api/apimClient';
 import type {
     Analytics,
     ApiDetailDto,
@@ -26,6 +26,7 @@ import type {
     ImportSwaggerDescriptor,
     ImportWsdlDescriptor,
     Property,
+    ResponseTemplatesMap,
 } from '../types';
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
@@ -291,5 +292,39 @@ export async function updateDynamicProperties(environmentId: string, apiId: stri
         method: 'PUT',
         headers: JSON_HEADERS,
         body: JSON.stringify({ ...current, services: { ...services, dynamicProperty: config } }),
+    });
+}
+
+/** MAPI ETag is `updatedAt` epoch millis; use when the `ETag` header is unavailable. */
+function ifMatchFromUpdatedAt(updatedAt: unknown): string | null {
+    if (typeof updatedAt === 'number' && Number.isFinite(updatedAt)) {
+        return `"${updatedAt}"`;
+    }
+    if (typeof updatedAt === 'string' && updatedAt.trim()) {
+        const ms = Date.parse(updatedAt);
+        return Number.isFinite(ms) ? `"${ms}"` : null;
+    }
+    return null;
+}
+
+export async function updateApiResponseTemplates(
+    environmentId: string,
+    apiId: string,
+    updater: (current: ResponseTemplatesMap) => ResponseTemplatesMap,
+): Promise<void> {
+    const { data: current, etag } = await apimFetchJsonV2WithMeta<{
+        responseTemplates?: ResponseTemplatesMap;
+        updatedAt?: string | number;
+    }>(environmentId, `/apis/${encodeURIComponent(apiId)}`);
+    const responseTemplates = updater(current.responseTemplates ?? {});
+    const ifMatch = etag ?? ifMatchFromUpdatedAt(current.updatedAt);
+    const headers: Record<string, string> = { 'Content-Type': 'application/json-patch+json' };
+    if (ifMatch) {
+        headers['If-Match'] = ifMatch;
+    }
+    await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify([{ op: 'add', path: '/responseTemplates', value: responseTemplates }]),
     });
 }
