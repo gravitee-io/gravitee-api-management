@@ -137,7 +137,12 @@ class EvaluateDuePerformanceTargetsUseCaseTest {
         var inSlot = aTarget("in-slot");
         var pastSlot = aTarget("past-slot");
         targetCrudService.initWith(List.of(inSlot, pastSlot));
-        var now = slotBoundaryAfter(inSlot, T0).plusSeconds(30);
+        // half a minute past both phases: inside the slot for one, an interval past its last evaluation for the other
+        var now = Stream.of(inSlot, pastSlot)
+            .map(target -> slotBoundaryAfter(target, T0))
+            .max(Instant::compareTo)
+            .orElseThrow()
+            .plusSeconds(30);
         evaluationCrudService.initWith(
             List.of(
                 PerformanceTargetFixtures.anEvaluation("old-1", "in-slot", PerformanceTargetEvaluation.Status.PASS, now.minusSeconds(20)),
@@ -166,8 +171,15 @@ class EvaluateDuePerformanceTargetsUseCaseTest {
                 .toList()
         );
 
-        var evaluatedPerTick = IntStream.rangeClosed(1, 5)
-            .mapToObj(i -> tick(T0.plus(TICK.multipliedBy(i))).evaluations().stream().map(PerformanceTargetEvaluation::targetId).toList())
+        // T0 starts a slot, and an evaluation at a slot's start is that slot's: the targets are due again in the next one
+        var evaluatedPerTick = IntStream.range(0, 5)
+            .mapToObj(i ->
+                tick(T0.plus(INTERVAL).plus(TICK.multipliedBy(i)))
+                    .evaluations()
+                    .stream()
+                    .map(PerformanceTargetEvaluation::targetId)
+                    .toList()
+            )
             .toList();
 
         assertThat(evaluatedPerTick.stream().flatMap(List::stream)).containsExactlyInAnyOrderElementsOf(
@@ -196,8 +208,8 @@ class EvaluateDuePerformanceTargetsUseCaseTest {
         }
         var gaps = gaps(idleEvaluations);
 
-        // the first gap only reaches the target's slot; from then on it is evaluated every interval until the backoff bites
-        assertThat(gaps.getFirst()).isLessThanOrEqualTo(INTERVAL);
+        // the first gap reaches the target's phase in the next slot; from then on it is evaluated every interval until the backoff bites
+        assertThat(gaps.getFirst()).isBetween(INTERVAL, INTERVAL.multipliedBy(2).minus(TICK));
         assertThat(gaps.get(1)).isEqualTo(INTERVAL);
         assertThat(gaps).allSatisfy(gap -> assertThat(gap).isLessThanOrEqualTo(Duration.ofHours(1)));
         assertThat(gaps.subList(gaps.size() - 2, gaps.size())).allSatisfy(gap -> assertThat(gap).isEqualTo(Duration.ofHours(1)));
@@ -243,7 +255,8 @@ class EvaluateDuePerformanceTargetsUseCaseTest {
     @Test
     void should_prune_the_history_of_an_evaluated_target_beyond_the_retention() {
         var schedule = new PerformanceTargetSchedule(3, Duration.ofHours(1), 3);
-        targetCrudService.initWith(List.of(aTarget("a")));
+        var target = aTarget("a");
+        targetCrudService.initWith(List.of(target));
         evaluationCrudService.initWith(
             IntStream.range(0, 3)
                 .mapToObj(i ->
@@ -257,7 +270,7 @@ class EvaluateDuePerformanceTargetsUseCaseTest {
                 .toList()
         );
 
-        TimeProvider.overrideClock(Clock.fixed(T0, ZoneId.systemDefault()));
+        TimeProvider.overrideClock(Clock.fixed(slotBoundaryAfter(target, T0), ZoneId.systemDefault()));
         useCase.execute(new EvaluateDuePerformanceTargetsUseCase.Input(schedule));
 
         assertThat(evaluationCrudService.storage())
@@ -338,7 +351,7 @@ class EvaluateDuePerformanceTargetsUseCaseTest {
         input(clicked);
         onDemand.execute(new EvaluatePerformanceTargetUseCase.Input(target.environmentId(), target.id()));
 
-        var nextSlot = tick(clicked.plus(INTERVAL).plus(TICK));
+        var nextSlot = tick(dueInSlotAfter(target, clicked));
 
         assertThat(nextSlot.evaluations()).extracting(PerformanceTargetEvaluation::targetId).containsExactly("idle");
     }
@@ -355,6 +368,8 @@ class EvaluateDuePerformanceTargetsUseCaseTest {
         }
         assertThat(tick(now).evaluations()).isEmpty();
 
+        // what saving an update does on the node that served it: the definition is stamped and this node's memory is reset
+        targetCrudService.update(target.toBuilder().updatedAt(now.atZone(ZoneId.systemDefault())).build());
         scheduleState.reset(target.id());
 
         assertThat(tick(now.plus(TICK)).evaluations()).extracting(PerformanceTargetEvaluation::targetId).containsExactly("idle");
@@ -394,7 +409,7 @@ class EvaluateDuePerformanceTargetsUseCaseTest {
         input(clicked);
         onAnotherNode.execute(new EvaluatePerformanceTargetUseCase.Input(target.environmentId(), target.id()));
 
-        var nextSlot = tick(clicked.plus(INTERVAL).plus(TICK));
+        var nextSlot = tick(dueInSlotAfter(target, clicked));
 
         assertThat(nextSlot.evaluations()).extracting(PerformanceTargetEvaluation::targetId).containsExactly("idle");
     }
@@ -448,13 +463,15 @@ class EvaluateDuePerformanceTargetsUseCaseTest {
         return PerformanceTargetFixtures.aTarget(id).toBuilder().interval(INTERVAL).build();
     }
 
-    /** The first instant at or after {@code from} at which the target's slot starts. */
+    /** The first instant at or after {@code from} at which the target is due: its phase into the slot {@code from} or the next one falls in. */
     private static Instant slotBoundaryAfter(PerformanceTarget target, Instant from) {
-        var boundary = from;
-        while (!SCHEDULE.isDue(target, boundary.minusSeconds(1), 0, boundary)) {
-            boundary = boundary.plusSeconds(1);
-        }
-        return boundary;
+        var dueAt = SCHEDULE.dueAt(target, 0, SCHEDULE.slotStart(target, 0, from));
+        return dueAt.isBefore(from) ? SCHEDULE.dueAt(target, 0, SCHEDULE.slotStart(target, 0, from.plus(INTERVAL))) : dueAt;
+    }
+
+    /** When the target is due in the slot following the one {@code evaluatedAt} falls in, its backoff forgotten. */
+    private static Instant dueInSlotAfter(PerformanceTarget target, Instant evaluatedAt) {
+        return SCHEDULE.dueAt(target, 0, SCHEDULE.slotStart(target, 0, evaluatedAt).plus(INTERVAL));
     }
 
     private static List<Duration> gaps(List<Instant> instants) {

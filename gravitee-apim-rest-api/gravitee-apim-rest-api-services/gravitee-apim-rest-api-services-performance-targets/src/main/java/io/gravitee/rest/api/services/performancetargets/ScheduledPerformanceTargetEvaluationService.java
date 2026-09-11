@@ -21,11 +21,13 @@ import io.gravitee.apim.core.performance_target.use_case.EvaluateDuePerformanceT
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.node.api.cluster.ClusterManager;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.support.CronExpression;
 import org.springframework.scheduling.support.CronTrigger;
 
 /**
@@ -56,9 +58,25 @@ public class ScheduledPerformanceTargetEvaluationService extends AbstractService
         this.scheduler = scheduler;
         this.cronTrigger = cronTrigger;
         this.enabled = enabled;
-        this.schedule = new PerformanceTargetSchedule(backoffAfter, Duration.ofMinutes(backoffCapMinutes), retention);
+        this.schedule = new PerformanceTargetSchedule(backoffAfter, Duration.ofMinutes(backoffCapMinutes), retention, tickOf(cronTrigger));
         this.evaluateDuePerformanceTargetsUseCase = evaluateDuePerformanceTargetsUseCase;
         this.clusterManager = clusterManager;
+    }
+
+    /**
+     * How far apart two ticks of the cron are, read off its next two firings: the schedule holds a target's phase
+     * back by that much so that a tick still falls in every slot. An expression that cannot be read here fails at
+     * start-up anyway, with its own message; the default tick stands in until then.
+     */
+    static Duration tickOf(String cronTrigger) {
+        try {
+            var cron = CronExpression.parse(cronTrigger);
+            var first = cron.next(LocalDateTime.now());
+            var second = first == null ? null : cron.next(first);
+            return first == null || second == null ? PerformanceTargetSchedule.DEFAULT_TICK : Duration.between(first, second);
+        } catch (IllegalArgumentException e) {
+            return PerformanceTargetSchedule.DEFAULT_TICK;
+        }
     }
 
     @Override
