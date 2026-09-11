@@ -100,21 +100,21 @@ async function assertBranchExists(branch) {
   }
 }
 
-async function readPom(pom, branch) {
+async function readFromBranch(path, branch) {
   // The contents API rather than raw.githubusercontent.com: the latter is served with a five-minute
   // cache, long enough for a release started right after a version bump to read the previous pom and
   // refuse a correct release. This is cached for one minute, and `Accept: raw` returns the file
   // itself rather than a base64 envelope, so the same parsing applies.
-  const url = `https://api.github.com/repos/gravitee-io/gravitee-api-management/contents/${pom}?ref=${branch}`;
+  const url = `https://api.github.com/repos/gravitee-io/gravitee-api-management/contents/${path}?ref=${branch}`;
   const response = await fetch(url, { headers: { Accept: 'application/vnd.github.raw' } });
   if (response.status === 404) {
     // The branch exists — that was checked first — so the file is genuinely absent. Every branch a
     // release runs from carries both poms; measured on master and on 4.8.x through 4.12.x.
-    console.log(chalk.red(`'${branch}' has no ${pom}.`));
+    console.log(chalk.red(`'${branch}' has no ${path}.`));
     process.exit(1);
   }
   if (!response.ok) {
-    console.log(chalk.red(`Cannot read ${pom} on '${branch}': ${response.status} ${response.statusText}`));
+    console.log(chalk.red(`Cannot read ${path} on '${branch}': ${response.status} ${response.statusText}`));
     console.log(`Checked ${url}`);
     process.exit(1);
   }
@@ -141,7 +141,7 @@ export async function assertVersionMatchesPoms(version, branch, poms) {
 
   const published = {};
   for (const pom of poms) {
-    const content = await readPom(pom, branch);
+    const content = await readFromBranch(pom, branch);
     // The distribution only carries a triplet of its own where the reactor was cut; elsewhere it
     // inherits the root's, and there is nothing separate to check.
     if (!/<revision>/.test(content)) {
@@ -192,4 +192,35 @@ export async function assertCoreTagIsFree(version) {
     console.log(`Checked ${url}`);
     process.exit(1);
   }
+}
+
+export const HELM_CHART = 'helm/Chart.yaml';
+
+/** The first line-anchored occurrence — `version:` appears again under each dependency. */
+const chartField = (yaml, field) => new RegExp(`^${field}:\\s*(\\S+)`, 'm').exec(yaml)?.[1];
+
+/**
+ * Stops the release when the Helm chart does not already carry the version being released.
+ *
+ * The chart holds the version to come rather than a SNAPSHOT, so a release only ships the right
+ * chart if someone remembered to clear the qualifier after the last pre-release. That used to be a
+ * prompt asking whether the alphas had been removed — a reminder nobody could answer from memory,
+ * and which published a chart of the wrong version when they answered yes anyway.
+ * @param {string} version the version passed to the command
+ * @param {string} branch the branch the release will run on
+ */
+export async function assertChartMatchesVersion(version, branch) {
+  const chart = await readFromBranch(HELM_CHART, branch);
+  const found = { version: chartField(chart, 'version'), appVersion: chartField(chart, 'appVersion') };
+
+  const wrong = Object.entries(found).filter(([, value]) => value !== version);
+  if (wrong.length === 0) {
+    return;
+  }
+
+  for (const [field, value] of wrong) {
+    console.log(chalk.red(`${HELM_CHART} on '${branch}' carries ${field}: ${value ?? '(none)'}, not ${version}.`));
+  }
+  console.log(`The chart ships with the release, so it has to name it. Fix it on '${branch}' and start again.`);
+  process.exit(1);
 }

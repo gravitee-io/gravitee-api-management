@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict';
 import { afterEach, describe, it } from 'node:test';
-import { DISTRIBUTION_POM, ROOT_POM, assertCoreTagIsFree, assertVersionMatchesPoms, versionFromPom } from './version-helper.mjs';
+import {
+  DISTRIBUTION_POM,
+  ROOT_POM,
+  assertChartMatchesVersion,
+  assertCoreTagIsFree,
+  assertVersionMatchesPoms,
+  versionFromPom,
+} from './version-helper.mjs';
 
 const pom = (properties) => `<project>
   <artifactId>gravitee-api-management</artifactId>
@@ -171,5 +178,84 @@ describe('assertVersionMatchesPoms', () => {
     await assertVersionMatchesPoms('4.13.0', '4.13.x', [ROOT_POM]);
 
     assert.deepEqual(asked, ['pom.xml']);
+  });
+});
+
+describe('assertChartMatchesVersion', () => {
+  const realFetch = globalThis.fetch;
+  const realChalk = globalThis.chalk;
+  const realExit = process.exit;
+
+  // `version:` appears again under dependencies, so only the line-anchored first one counts — the
+  // same one the release's sed rewrites with `0,/^version:/`.
+  const chart = (version, appVersion = version) => `apiVersion: v2
+version: ${version}
+appVersion: ${appVersion}
+dependencies:
+  - name: elasticsearch
+    version: 19.10.9
+`;
+
+  function stub(files, { branchExists = true } = {}) {
+    const asked = [];
+    globalThis.fetch = async (url) => {
+      if (url.includes('/branches/')) {
+        return branchExists ? { ok: true, status: 200 } : { ok: false, status: 404, statusText: 'Not Found' };
+      }
+      const path = decodeURIComponent(url.split('/contents/')[1].split('?')[0]);
+      asked.push(path);
+      const body = files[path];
+      return body === undefined ? { ok: false, status: 404, statusText: 'Not Found' } : { ok: true, status: 200, text: async () => body };
+    };
+    globalThis.chalk = { red: (s) => s, yellow: (s) => s };
+    process.exit = (code) => {
+      throw new Error(`exit ${code}`);
+    };
+    return asked;
+  }
+
+  afterEach(() => {
+    globalThis.fetch = realFetch;
+    globalThis.chalk = realChalk;
+    process.exit = realExit;
+  });
+
+  it('passes when the chart already carries the version being released', async () => {
+    const asked = stub({ 'helm/Chart.yaml': chart('4.13.0') });
+
+    await assertChartMatchesVersion('4.13.0', 'master');
+
+    assert.deepEqual(asked, ['helm/Chart.yaml']);
+  });
+
+  it('passes on a pre-release, qualifier included', async () => {
+    stub({ 'helm/Chart.yaml': chart('4.13.0-alpha.1') });
+
+    await assertChartMatchesVersion('4.13.0-alpha.1', 'master');
+  });
+
+  // The case the "have you removed the alpha versions?" prompt was reminding people about.
+  it('refuses a leftover qualifier', async () => {
+    stub({ 'helm/Chart.yaml': chart('4.13.0-alpha.5') });
+
+    await assert.rejects(() => assertChartMatchesVersion('4.13.0', 'master'), { message: 'exit 1' });
+  });
+
+  it('refuses when appVersion drifted from version', async () => {
+    stub({ 'helm/Chart.yaml': chart('4.13.0', '4.12.19') });
+
+    await assert.rejects(() => assertChartMatchesVersion('4.13.0', 'master'), { message: 'exit 1' });
+  });
+
+  it("reads the line-anchored version, not a dependency's", async () => {
+    stub({ 'helm/Chart.yaml': chart('4.13.0') });
+
+    await assertChartMatchesVersion('4.13.0', 'master');
+  });
+
+  it('refuses a chart that carries no version at all', async () => {
+    stub({ 'helm/Chart.yaml': 'apiVersion: v2\nname: apim\n' });
+
+    await assert.rejects(() => assertChartMatchesVersion('4.13.0', 'master'), { message: 'exit 1' });
   });
 });

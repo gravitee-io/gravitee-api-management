@@ -1,7 +1,14 @@
 #!/usr/bin/env zx
 
 import { checkToken } from '../helpers/circleci-helper.mjs';
-import { assertVersionMatchesPoms, computeVersion, DISTRIBUTION_POM, extractVersion, ROOT_POM } from '../helpers/version-helper.mjs';
+import {
+  assertChartMatchesVersion,
+  assertVersionMatchesPoms,
+  computeVersion,
+  DISTRIBUTION_POM,
+  extractVersion,
+  ROOT_POM,
+} from '../helpers/version-helper.mjs';
 import { announceMode, confirm, isDryRun, getTargetBranch } from '../helpers/option-helper.mjs';
 
 await checkToken();
@@ -10,6 +17,7 @@ const releasingVersion = await extractVersion();
 const versions = computeVersion(releasingVersion);
 const targetBranch = getTargetBranch(versions);
 await assertVersionMatchesPoms(releasingVersion, targetBranch, [ROOT_POM, DISTRIBUTION_POM]);
+await assertChartMatchesVersion(releasingVersion, targetBranch);
 
 const dryRun = isDryRun();
 
@@ -19,11 +27,6 @@ announceMode(dryRun);
 await confirm(
   `📝 Ensure Release list is good for ${releasingVersion} in JIRA. Should we continue?`,
   `🚦 Release process interrupted. Verify JIRA release for ${releasingVersion} and try again!`,
-);
-
-await confirm(
-  `📝 Ensure you have removed all alpha versions if needed (Helm Chart, pom.xml). Should we continue?`,
-  `🚦 Release process interrupted. Remove alpha versions and try again!`,
 );
 
 let isLatest = false;
