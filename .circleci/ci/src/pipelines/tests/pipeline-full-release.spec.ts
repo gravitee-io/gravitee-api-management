@@ -52,6 +52,39 @@ describe('Full release tests', () => {
     expect(guardOf('4.13.0-alpha.1')).toContain('"${PIN_BASE%.*}" != "4.13"');
   });
 
+  describe('Nexus staging', () => {
+    const configFor = (isDryRun: boolean) =>
+      generateFullReleaseConfig({
+        action: 'full_release',
+        baseBranch: '4.2.x',
+        branch: '4.2.x',
+        sha1: '784ff35ca',
+        changedFiles: [],
+        buildNum: '1234',
+        buildId: '1234',
+        graviteeioVersion: '4.2.0',
+        isDryRun,
+        apimVersionPath: './src/pipelines/tests/resources/common/pom-snapshot.xml',
+      }).stringify();
+
+    const DEPLOY = 'mvn clean deploy --activate-profiles gravitee-release';
+
+    it('publishes on a real release', () => {
+      expect(configFor(false)).toContain(DEPLOY);
+    });
+
+    // The rehearsal has nothing to publish: the tag was pushed with --dry-run, so it does not exist.
+    // The job used to run this deploy anyway and only failed on the missing tag — which would not
+    // have saved a rehearsal of a version whose tag was already there.
+    it('publishes nothing on a rehearsal', () => {
+      expect(configFor(true)).not.toContain(DEPLOY);
+    });
+
+    it('does not check out a tag that was never pushed', () => {
+      expect(configFor(true)).not.toContain('git checkout 4.2.0');
+    });
+  });
+
   it.each`
     baseBranch | branch            | isDryRun | dockerTagAsLatest | graviteeioVersion   | apimVersionPath                                              | expectedResult
     ${'4.2.x'} | ${'4.2.x'}        | ${true}  | ${false}          | ${'4.2.0'}          | ${'./src/pipelines/tests/resources/common/pom-snapshot.xml'} | ${'release-4-2-0-dry-run.yml'}

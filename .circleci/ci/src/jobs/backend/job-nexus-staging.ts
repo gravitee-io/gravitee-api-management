@@ -40,6 +40,20 @@ export class NexusStagingJob {
     dynamicConfig.addReusableCommand(saveMavenCacheCmd);
     dynamicConfig.addReusableCommand(azureArtifactsTokenCmd);
 
+    // A rehearsal has nothing to publish here: the release commit and its tag were pushed with
+    // `--dry-run`, so `${checkoutRef}` does not exist and the branch head still carries -SNAPSHOT.
+    // The job stayed in the graph deploying for real all the same — it only ever failed on the
+    // missing tag, which is luck, not a guard: re-running a rehearsal for a version already
+    // released would have found the tag and published again.
+    if (environment.isDryRun) {
+      return new Job(NexusStagingJob.jobName, OpenJdkNodeExecutor.create('xlarge'), [
+        new commands.Run({
+          name: 'Nothing to release on Nexus - Dry Run',
+          command: `echo "DRY RUN Mode. ${checkoutRef} was never pushed, so there is no released tree to publish."`,
+        }),
+      ]);
+    }
+
     const steps: Command[] = [
       new commands.Checkout(),
       new commands.Run({
