@@ -19,6 +19,15 @@ export interface EnvironmentPortalSettings {
     portal?: { entrypoint?: string };
 }
 
+/** Subset of GET /environments/{envId}/portal (classic Console EnvSettings). */
+export interface EnvironmentPortalConfiguration {
+    apiScore?: { enabled?: boolean };
+}
+
 export async function getEnvironmentPortalSettings(environmentId: string): Promise<EnvironmentPortalSettings> {
     return apimFetchJsonV1Env<EnvironmentPortalSettings>(environmentId, '/settings');
+}
+
+export async function getEnvironmentPortalConfiguration(environmentId: string): Promise<EnvironmentPortalConfiguration> {
+    return apimFetchJsonV1Env<EnvironmentPortalConfiguration>(environmentId, '/portal');
 }

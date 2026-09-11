@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DatabaseIcon } from '@gravitee/graphene-core/icons';
+import { DatabaseIcon, ShieldCheckIcon, SparklesIcon } from '@gravitee/graphene-core/icons';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router-dom';
 
-import { API_PROXY_NAV_GROUPS, ApiDetailSidebarNav, withMetadataPermission, withTcpRestrictions } from './ApiDetailSidebarNav';
+import {
+    API_PROXY_NAV_GROUPS,
+    ApiDetailSidebarNav,
+    withApiScoreEnabled,
+    withMetadataPermission,
+    withTcpRestrictions,
+} from './ApiDetailSidebarNav';
 
 const GROUPS = API_PROXY_NAV_GROUPS;
 const BASE = '/env/apis/abc-123';
@@ -58,6 +64,15 @@ describe('API_PROXY_NAV_GROUPS', () => {
         expect(deployment.children!.map(c => c.path)).toEqual(['configuration', 'history']);
     });
 
+    it('uses SparklesIcon for API Score so CORS can keep ShieldCheckIcon', () => {
+        const general = GROUPS.find(g => g.label === 'General')!;
+        const apiScore = general.items.find(item => item.path === 'api-score')!;
+        const cors = general.items.find(item => item.path === 'cors')!;
+        expect(apiScore.icon).toBe(SparklesIcon);
+        expect(cors.icon).toBe(ShieldCheckIcon);
+        expect(apiScore.comingSoon).toBeUndefined();
+    });
+
     it('places Metadata immediately after CORS in the General group', () => {
         const general = GROUPS.find(g => g.label === 'General')!;
         const visiblePaths = general.items.filter(item => !item.comingSoon).map(item => item.path);
@@ -96,9 +111,14 @@ describe('ApiDetailSidebarNav — flat links', () => {
         expect(screen.getByRole('link', { name: /^metadata$/i })).toHaveAttribute('href', `${BASE}/metadata`);
     });
 
-    it('renders "coming soon" items (API Score, Response Templates, Authorization) as disabled, non-navigable rows', () => {
+    it('renders API Score as a navigable link', () => {
         renderNav(`${BASE}/overview`);
-        for (const label of ['API Score', 'Response Templates', 'Authorization']) {
+        expect(screen.getByRole('link', { name: /^api score$/i })).toHaveAttribute('href', `${BASE}/api-score`);
+    });
+
+    it('renders "coming soon" items (Response Templates, Authorization) as disabled, non-navigable rows', () => {
+        renderNav(`${BASE}/overview`);
+        for (const label of ['Response Templates', 'Authorization']) {
             expect(screen.getByText(label)).toBeInTheDocument();
             expect(screen.queryByRole('link', { name: new RegExp(`^${label}$`, 'i') })).not.toBeInTheDocument();
         }
@@ -106,7 +126,7 @@ describe('ApiDetailSidebarNav — flat links', () => {
 
     it('makes "coming soon" rows reachable by keyboard, with their reason exposed for assistive tech', () => {
         renderNav(`${BASE}/overview`);
-        const row = screen.getByText('API Score').closest('[tabindex]');
+        const row = screen.getByText('Response Templates').closest('[tabindex]');
         expect(row).not.toBeNull();
         expect(row).toHaveAttribute('tabindex', '0');
         expect(row).toHaveAttribute('aria-disabled', 'true');
@@ -160,6 +180,19 @@ describe('withMetadataPermission', () => {
         const general = restricted.find(g => g.label === 'General')!;
         expect(general.items.find(item => item.path === 'metadata')).toBeUndefined();
         expect(general.items.find(item => item.path === 'cors')).toBeDefined();
+    });
+});
+
+describe('withApiScoreEnabled', () => {
+    it('returns the groups unchanged when API Score is enabled', () => {
+        expect(withApiScoreEnabled(GROUPS, true)).toBe(GROUPS);
+    });
+
+    it('omits API Score from the General group when the portal flag is off', () => {
+        const restricted = withApiScoreEnabled(GROUPS, false);
+        const general = restricted.find(g => g.label === 'General')!;
+        expect(general.items.find(item => item.path === 'api-score')).toBeUndefined();
+        expect(general.items.find(item => item.path === 'notifications')).toBeDefined();
     });
 });
 

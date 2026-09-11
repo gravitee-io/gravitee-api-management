@@ -91,6 +91,13 @@ export const apiEntrypointKeys = {
 export const portalSettingsKeys = {
     all: ['portal-settings'] as const,
     env: (envId: string) => [...portalSettingsKeys.all, envId] as const,
+    portalConfig: (envId: string) => [...portalSettingsKeys.all, 'portal-config', envId] as const,
+};
+
+export const apiScoringKeys = {
+    all: ['api-scoring'] as const,
+    report: (envId: string, apiId: string) => [...apiScoringKeys.all, 'report', envId, apiId] as const,
+    jobs: (envId: string, apiId: string) => [...apiScoringKeys.all, 'jobs', envId, apiId] as const,
 };
 
 export const apiAlertKeys = {

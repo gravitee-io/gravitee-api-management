@@ -47,6 +47,10 @@ jest.mock('../../hooks/useApiPermissions', () => ({
     useApiPermissions: jest.fn(() => ({ permissionsReady: false })),
 }));
 
+jest.mock('../../hooks/useApiScoreEnabled', () => ({
+    useApiScoreEnabled: jest.fn(() => ({ enabled: true, isFetched: true })),
+}));
+
 jest.mock('../../services/apis', () => ({
     deployApi: jest.fn(),
 }));
@@ -108,6 +112,7 @@ jest.mock('./ApiDetailSidebarNav', () => ({
     ApiDetailSidebarNav: () => <div />,
     withTcpRestrictions: (groups: unknown[]) => groups,
     withMetadataPermission: (groups: unknown[]) => groups,
+    withApiScoreEnabled: (groups: unknown[]) => groups,
 }));
 
 import { ApiDetailIndexRedirect, ApiDetailLayout } from './ApiDetailLayout';

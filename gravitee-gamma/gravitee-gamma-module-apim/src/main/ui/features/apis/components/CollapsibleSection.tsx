@@ -22,19 +22,28 @@ import { type ReactNode, useState } from 'react';
 export function CollapsibleSection({
     title,
     defaultOpen = false,
+    open: openProp,
+    onOpenChange,
     children,
 }: {
-    title: string;
+    title: ReactNode;
     defaultOpen?: boolean;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
     children: ReactNode;
 }) {
-    const [open, setOpen] = useState(defaultOpen);
+    const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen);
+    const open = openProp ?? uncontrolledOpen;
+    const setOpen = (next: boolean) => {
+        onOpenChange?.(next);
+        if (openProp === undefined) setUncontrolledOpen(next);
+    };
     return (
         <div className="rounded-lg border">
             <button
                 type="button"
                 className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium hover:bg-accent/50 transition-colors rounded-lg"
-                onClick={() => setOpen(o => !o)}
+                onClick={() => setOpen(!open)}
                 aria-expanded={open}
             >
                 {title}
