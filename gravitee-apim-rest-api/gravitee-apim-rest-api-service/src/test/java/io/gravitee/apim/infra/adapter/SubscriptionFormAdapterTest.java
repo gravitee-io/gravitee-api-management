@@ -50,6 +50,7 @@ class SubscriptionFormAdapterTest {
                 .environmentId("environment-id")
                 .name("Partners")
                 .defaultForm(true)
+                .apiIds(List.of("api-1", "api-2"))
                 .portalPageContentId(CONTENT_ID)
                 .gmdContent("<gmd-input name=\"stale\"/>")
                 .enabled(true)
@@ -62,6 +63,7 @@ class SubscriptionFormAdapterTest {
             assertThat(entity.getEnvironmentId()).isEqualTo("environment-id");
             assertThat(entity.getName()).isEqualTo("Partners");
             assertThat(entity.isDefaultForm()).isTrue();
+            assertThat(entity.getApiIds()).containsExactly("api-1", "api-2");
             assertThat(entity.getPortalPageContentId()).isEqualTo(PortalPageContentId.of(CONTENT_ID));
             assertThat(entity.getGmdContent()).isEqualTo(GraviteeMarkdown.of(SubscriptionFormFixtures.GMD_CONTENT));
             assertThat(entity.isEnabled()).isTrue();
@@ -87,6 +89,7 @@ class SubscriptionFormAdapterTest {
         void should_map_the_form_without_writing_its_definition_inline() {
             var form = SubscriptionFormFixtures.aSubscriptionFormBuilder()
                 .enabled(true)
+                .apiIds(List.of("api-1"))
                 .validationConstraints(new SubscriptionFormFieldConstraints(Map.of("company", List.of(new Constraint.Required()))))
                 .build();
 
@@ -96,6 +99,7 @@ class SubscriptionFormAdapterTest {
             assertThat(row.getEnvironmentId()).isEqualTo(SubscriptionFormFixtures.ENVIRONMENT_ID);
             assertThat(row.getName()).isEqualTo(SubscriptionFormFixtures.FORM_NAME);
             assertThat(row.isDefaultForm()).isTrue();
+            assertThat(row.getApiIds()).containsExactly("api-1");
             assertThat(row.getPortalPageContentId()).isEqualTo(SubscriptionFormFixtures.PORTAL_PAGE_CONTENT_ID.toString());
             assertThat(row.getGmdContent()).isNull();
             assertThat(row.isEnabled()).isTrue();

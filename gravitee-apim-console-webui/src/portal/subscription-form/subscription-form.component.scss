@@ -100,6 +100,22 @@ $outline-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80)
   &__header {
     padding: 16px 16px 0 16px;
   }
+
+  &__apis {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+
+    &__label {
+      @include mat.m2-typography-level(gio.$mat-typography, subtitle-2);
+    }
+
+    &__empty {
+      color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter40);
+    }
+  }
 }
 
 .empty-state {

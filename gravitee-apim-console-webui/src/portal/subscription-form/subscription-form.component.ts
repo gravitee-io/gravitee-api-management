@@ -22,6 +22,7 @@ import { BehaviorSubject, EMPTY, Observable, of } from 'rxjs';
 import { catchError, filter, startWith, switchMap, tap } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -34,11 +35,22 @@ import { SubscriptionFormListComponent } from './subscription-form-list/subscrip
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
+import {
+  GioApiSelectDialogComponent,
+  GioApiSelectDialogData,
+  GioApiSelectDialogResult,
+} from '../../shared/components/gio-api-select-dialog/gio-api-select-dialog.component';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
-import { SubscriptionForm } from '../../entities/management-api-v2';
+import { ApiV2Service } from '../../services-ngx/api-v2.service';
+import { Api, SubscriptionForm } from '../../entities/management-api-v2';
 import { SubscriptionFormService } from '../../services-ngx/subscription-form.service';
 import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard';
 import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/content.util';
+
+interface SelectedApi {
+  id: string;
+  name: string;
+}
 
 @Component({
   selector: 'subscription-form',
@@ -47,6 +59,7 @@ import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/cont
     ReactiveFormsModule,
     MatButtonModule,
     MatCardModule,
+    MatChipsModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -62,6 +75,7 @@ import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/cont
 export class SubscriptionFormComponent implements HasUnsavedChanges {
   private readonly snackbarService = inject(SnackBarService);
   private readonly subscriptionFormService = inject(SubscriptionFormService);
+  private readonly apiService = inject(ApiV2Service);
   private readonly gioPermissionService = inject(GioPermissionService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly matDialog = inject(MatDialog);
@@ -101,8 +115,12 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
   readonly nameControl = new FormControl<string>('', { nonNullable: true, validators: [Validators.required] });
   readonly contentControl = new FormControl<string>('', { nonNullable: true });
 
+  /** APIs the edited form is dedicated to; the name is the id until the API search resolves it. */
+  readonly selectedApis = signal<SelectedApi[]>([]);
+
   private readonly initialName = signal('');
   private readonly initialContent = signal('');
+  private readonly initialApiIds = signal<string[]>([]);
 
   // Keyed purely on the selected id (not on the wider `forms` list) so an unrelated row's toggle
   // refreshing the list never clobbers in-progress edits open in this panel.
@@ -153,6 +171,8 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
       untracked(() => {
         this.initialName.set('');
         this.initialContent.set('');
+        this.initialApiIds.set([]);
+        this.selectedApis.set([]);
         this.nameControl.reset('', { emitEvent: true });
         this.contentControl.reset('', { emitEvent: true });
       });
@@ -161,10 +181,14 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
     const form = this.selectedFormDetail();
     if (!form) return;
     untracked(() => {
+      const apiIds = form.apiIds ?? [];
       this.initialName.set(form.name);
       this.initialContent.set(form.gmdContent || '');
+      this.initialApiIds.set(apiIds);
+      this.selectedApis.set(apiIds.map(id => ({ id, name: id })));
       this.nameControl.reset(form.name, { emitEvent: true });
       this.contentControl.reset(form.gmdContent || '', { emitEvent: true });
+      this.resolveApiNames(apiIds);
     });
   });
 
@@ -191,7 +215,12 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
     if (this.selectedFormId() === null) return false;
     const currentName = (this.nameValue() ?? '').trim();
     const currentContent = normalizeContent(this.contentValue());
-    return currentName !== this.initialName().trim() || currentContent !== normalizeContent(this.initialContent());
+    const currentApiIds = this.selectedApis().map(api => api.id);
+    return (
+      currentName !== this.initialName().trim() ||
+      currentContent !== normalizeContent(this.initialContent()) ||
+      !sameIds(currentApiIds, this.initialApiIds())
+    );
   }
 
   selectForm(form: SubscriptionForm): void {
@@ -222,6 +251,29 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
     save$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
   }
 
+  addApi(): void {
+    this.matDialog
+      .open<GioApiSelectDialogComponent, GioApiSelectDialogData, GioApiSelectDialogResult>(GioApiSelectDialogComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        data: { title: 'Add an API to this subscription form' },
+        role: 'dialog',
+        id: 'addApiDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((api): api is Api => !!api?.id),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(api => {
+        if (this.selectedApis().some(selected => selected.id === api.id)) return;
+        this.selectedApis.update(apis => [...apis, { id: api.id, name: api.name }]);
+      });
+  }
+
+  removeApi(apiId: string): void {
+    this.selectedApis.update(apis => apis.filter(api => api.id !== apiId));
+  }
+
   onEnabledToggle(form: SubscriptionForm): void {
     const enabling = !form.enabled;
     const action = enabling ? 'Enable' : 'Disable';
@@ -229,7 +281,7 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
       title: `${action} subscription form?`,
       content: enabling
         ? `This action will enable "${form.name}". API consumers will see it in the Developer Portal when subscribing to the APIs it applies to.`
-        : `This action will disable "${form.name}". It will no longer be shown to API consumers in the Developer Portal, but you can enable it again at any time.`,
+        : `This action will disable "${form.name}". ${disableImpact(form)}`,
       confirmButton: action,
     };
 
@@ -324,14 +376,30 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
       .subscribe(() => action());
   }
 
+  private resolveApiNames(apiIds: string[]): void {
+    if (apiIds.length === 0) return;
+    this.apiService
+      .search({ ids: apiIds }, undefined, 1, apiIds.length, false)
+      .pipe(
+        catchError(() => of({ data: [] as Api[] })),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(response => {
+        const names = new Map((response.data ?? []).map(api => [api.id, api.name]));
+        this.selectedApis.update(apis => apis.map(api => ({ id: api.id, name: names.get(api.id) ?? api.name })));
+      });
+  }
+
   private createForm(): Observable<unknown> {
     const name = this.nameControl.value.trim();
     const gmdContent = this.contentControl.value;
-    return this.subscriptionFormService.create({ name, gmdContent }).pipe(
+    const apiIds = this.selectedApis().map(api => api.id);
+    return this.subscriptionFormService.create({ name, gmdContent, apiIds }).pipe(
       tap(created => {
         this.snackbarService.success('Subscription form created successfully.');
         this.initialName.set(created.name);
         this.initialContent.set(created.gmdContent);
+        this.initialApiIds.set(created.apiIds ?? []);
         this.selectedFormId.set(created.id);
         this.refreshList.next();
       }),
@@ -345,11 +413,13 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
   private updateForm(form: SubscriptionForm): Observable<unknown> {
     const name = this.nameControl.value.trim();
     const gmdContent = this.contentControl.value;
-    return this.subscriptionFormService.update(form.id, { name, gmdContent }).pipe(
+    const apiIds = this.selectedApis().map(api => api.id);
+    return this.subscriptionFormService.update(form.id, { name, gmdContent, apiIds }).pipe(
       tap(updated => {
         this.snackbarService.success('Subscription form updated successfully.');
         this.initialName.set(updated.name);
         this.initialContent.set(updated.gmdContent);
+        this.initialApiIds.set(updated.apiIds ?? []);
         this.refreshList.next();
       }),
       catchError(({ error }) => {
@@ -372,4 +442,20 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
       }),
     );
   }
+}
+
+function sameIds(left: string[], right: string[]): boolean {
+  const rightIds = new Set(right);
+  return left.length === right.length && left.every(id => rightIds.has(id));
+}
+
+/** A disabled form is not replaced by the default one: say who loses their form. */
+function disableImpact(form: SubscriptionForm): string {
+  if (form.defaultForm) {
+    return 'Every API without a dedicated form will have no subscription form until it is enabled again.';
+  }
+  if (form.apiIds.length === 0) {
+    return 'It is not dedicated to any API yet, so no consumer is affected.';
+  }
+  return `The ${form.apiIds.length} API${form.apiIds.length > 1 ? 's' : ''} it is dedicated to will have no subscription form until it is enabled again.`;
 }

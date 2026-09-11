@@ -80,6 +80,7 @@ public interface SubscriptionFormAdapter {
     @Mapping(target = "gmdContent", source = "content")
     @Mapping(target = "enabled", source = "form.enabled")
     @Mapping(target = "defaultForm", source = "form.defaultForm")
+    @Mapping(target = "apiIds", source = "form.apiIds")
     @Mapping(target = "validationConstraints", source = "form.validationConstraints", qualifiedByName = "jsonToFieldConstraints")
     SubscriptionForm toEntity(io.gravitee.repository.management.model.SubscriptionForm form, GraviteeMarkdown content);
 

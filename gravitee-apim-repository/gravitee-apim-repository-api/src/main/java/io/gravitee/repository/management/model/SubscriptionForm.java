@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -71,6 +72,12 @@ public class SubscriptionForm {
      * At most one form per environment is the default.
      */
     private boolean defaultForm;
+
+    /**
+     * Identifiers of the APIs this form is dedicated to. An API is mapped to at most one form.
+     */
+    @Builder.Default
+    private List<String> apiIds = List.of();
 
     /**
      * JSON string of validation constraints per field key, derived from the GMD content.

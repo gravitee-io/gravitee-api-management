@@ -36,6 +36,11 @@ public class NoOpSubscriptionFormRepository
     }
 
     @Override
+    public Optional<SubscriptionForm> findByEnvironmentIdAndApiId(String environmentId, String apiId) throws TechnicalException {
+        return Optional.empty();
+    }
+
+    @Override
     public Optional<SubscriptionForm> findDefaultByEnvironmentId(String environmentId) throws TechnicalException {
         return Optional.empty();
     }

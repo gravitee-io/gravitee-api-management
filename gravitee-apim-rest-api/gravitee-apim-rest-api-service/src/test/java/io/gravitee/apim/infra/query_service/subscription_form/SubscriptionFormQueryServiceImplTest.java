@@ -194,6 +194,35 @@ class SubscriptionFormQueryServiceImplTest {
     }
 
     @Nested
+    class FindByApiId {
+
+        @Test
+        void should_return_the_form_dedicated_to_the_api() throws TechnicalException {
+            when(repository.findByEnvironmentIdAndApiId(ENVIRONMENT_ID, "api-1")).thenReturn(
+                Optional.of(aMigratedRow().toBuilder().apiIds(List.of("api-1")).build())
+            );
+            when(pageContentQueryService.findById(CONTENT_ID)).thenReturn(
+                Optional.of(new GraviteeMarkdownPageContent(CONTENT_ID, "organization-id", ENVIRONMENT_ID, GraviteeMarkdown.of(GMD)))
+            );
+
+            var result = service.findByApiId(ENVIRONMENT_ID, "api-1");
+
+            assertThat(result).isPresent();
+            assertThat(result.get().getApiIds()).containsExactly("api-1");
+            assertThat(result.get().getGmdContent()).isEqualTo(GraviteeMarkdown.of(GMD));
+        }
+
+        @Test
+        void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
+            when(repository.findByEnvironmentIdAndApiId(ENVIRONMENT_ID, "api-1")).thenThrow(new TechnicalException("Database error"));
+
+            assertThatThrownBy(() -> service.findByApiId(ENVIRONMENT_ID, "api-1"))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurred while trying to find the SubscriptionForm of API api-1 in environment: environment-id");
+        }
+    }
+
+    @Nested
     class FindByIdAndEnvironmentId {
 
         @Test

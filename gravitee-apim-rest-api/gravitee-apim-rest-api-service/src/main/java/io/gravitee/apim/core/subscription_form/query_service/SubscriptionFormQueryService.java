@@ -45,6 +45,15 @@ public interface SubscriptionFormQueryService {
     List<SubscriptionForm> findAllByEnvironmentId(String environmentId);
 
     /**
+     * Finds the form dedicated to an API, if any.
+     *
+     * @param environmentId the environment ID
+     * @param apiId the API ID
+     * @return Optional containing the form mapped to the API, empty when the API has no dedicated form
+     */
+    Optional<SubscriptionForm> findByApiId(String environmentId, String apiId);
+
+    /**
      * Finds the default subscription form of an environment, the one used for every API without
      * a dedicated form.
      *

@@ -39,7 +39,7 @@ export class SubscriptionFormListComponent {
   readonly selectForm = output<SubscriptionForm>();
   readonly toggleEnabled = output<SubscriptionForm>();
 
-  readonly displayedColumns = ['name', 'enabled'];
+  readonly displayedColumns = ['name', 'apis', 'enabled'];
   readonly filters = signal<GioTableWrapperFilters>({ pagination: { index: 1, size: 10 }, searchTerm: '' });
 
   private readonly filteredForms = computed<SubscriptionForm[]>(() => {

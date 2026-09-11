@@ -77,7 +77,12 @@ public class SubscriptionFormsResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.CREATE }) })
     public Response createSubscriptionForm(@Valid @NotNull final CreateSubscriptionForm request) {
         var output = createSubscriptionFormUseCase.execute(
-            new CreateSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), request.getName(), request.getGmdContent())
+            new CreateSubscriptionFormUseCase.Input(
+                GraviteeContext.getCurrentEnvironment(),
+                request.getName(),
+                request.getGmdContent(),
+                request.getApiIds()
+            )
         );
         return Response.created(this.getLocationHeader(output.subscriptionForm().getId().toString()))
             .entity(mapper.toResponse(output.subscriptionForm()))

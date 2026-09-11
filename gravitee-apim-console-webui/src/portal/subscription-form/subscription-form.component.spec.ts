@@ -222,7 +222,7 @@ describe('SubscriptionFormComponent', () => {
       await saveButton.click();
 
       const createReq = httpTestingController.expectOne({ method: 'POST', url: baseUrl });
-      expect(createReq.request.body).toEqual({ name: 'New Form', gmdContent: 'New content' });
+      expect(createReq.request.body).toEqual({ name: 'New Form', gmdContent: 'New content', apiIds: [] });
       const created = fakeSubscriptionForm({ id: 'new-form', name: 'New Form', gmdContent: 'New content', defaultForm: false });
       createReq.flush(created);
 
@@ -276,7 +276,7 @@ describe('SubscriptionFormComponent', () => {
       await saveButton.click();
 
       const updateReq = httpTestingController.expectOne({ method: 'PUT', url: `${baseUrl}/form-a` });
-      expect(updateReq.request.body).toEqual({ name: 'Updated Form A', gmdContent: 'Updated content' });
+      expect(updateReq.request.body).toEqual({ name: 'Updated Form A', gmdContent: 'Updated content', apiIds: [] });
       const updated = { ...form, name: 'Updated Form A', gmdContent: 'Updated content' };
       updateReq.flush(updated);
 
@@ -362,6 +362,24 @@ describe('SubscriptionFormComponent', () => {
       expectList([{ ...form, enabled: false }]);
     });
 
+    it('should warn that the dedicated APIs lose their form when disabling a dedicated form', async () => {
+      await init(true);
+      const form = fakeSubscriptionForm({ id: 'form-a', name: 'Form A', enabled: true, defaultForm: false, apiIds: ['api-1', 'api-2'] });
+      expectList([form]);
+      expectGet(form);
+      httpTestingController
+        .expectOne(request => request.method === 'POST' && request.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search`))
+        .flush({ data: [] });
+      fixture.detectChanges();
+
+      const toggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[data-testid=enable-toggle-form-a]' }));
+      await toggle.toggle();
+
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      expect(await dialog.getText()).toContain('The 2 APIs it is dedicated to will have no subscription form until it is enabled again.');
+      await (await dialog.getHarness(MatButtonHarness.with({ text: /Cancel/ }))).click();
+    });
+
     it('should not call the backend when the confirmation dialog is cancelled', async () => {
       await init(true);
       const form = fakeSubscriptionForm({ id: 'form-a', enabled: false });
@@ -373,6 +391,53 @@ describe('SubscriptionFormComponent', () => {
 
       const dialog = await rootLoader.getHarness(MatDialogHarness);
       await dialog.close();
+    });
+  });
+
+  describe('dedicated APIs', () => {
+    function expectApiSearch(ids: string[], apis: { id: string; name: string }[]): void {
+      const req = httpTestingController.expectOne(
+        request => request.method === 'POST' && request.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search`),
+      );
+      expect(req.request.body).toEqual({ ids });
+      req.flush({ data: apis.map(api => ({ ...api, definitionVersion: 'V4' })) });
+      fixture.detectChanges();
+    }
+
+    it('should list the APIs a form is dedicated to and resolve their names', async () => {
+      await init(true);
+      const form = fakeSubscriptionForm({ id: 'form-a', defaultForm: false, apiIds: ['api-1'] });
+      expectList([form]);
+      expectGet(form);
+      expectApiSearch(['api-1'], [{ id: 'api-1', name: 'Weather API' }]);
+
+      expect(fixture.debugElement.query(By.css('[data-testid=api-count-form-a]')).nativeElement.textContent.trim()).toBe('1');
+      expect(fixture.debugElement.query(By.css('[data-testid=api-chip-api-1]')).nativeElement.textContent).toContain('Weather API');
+      expect(fixture.componentInstance.hasUnsavedChanges()).toBe(false);
+    });
+
+    it('should send the dedicated APIs on save and consider their change as unsaved', async () => {
+      await init(true);
+      const form = fakeSubscriptionForm({ id: 'form-a', name: 'Form A', gmdContent: 'Content', defaultForm: false, apiIds: ['api-1'] });
+      expectList([form]);
+      expectGet(form);
+      expectApiSearch(['api-1'], [{ id: 'api-1', name: 'Weather API' }]);
+
+      fixture.componentInstance.removeApi('api-1');
+      fixture.componentInstance.selectedApis.update(apis => [...apis, { id: 'api-2', name: 'Payments API' }]);
+      fixture.detectChanges();
+      expect(fixture.componentInstance.hasUnsavedChanges()).toBe(true);
+
+      const saveButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=subscription-form-save-button]' }));
+      expect(await saveButton.isDisabled()).toBe(false);
+      await saveButton.click();
+
+      const updateReq = httpTestingController.expectOne({ method: 'PUT', url: `${baseUrl}/form-a` });
+      expect(updateReq.request.body).toEqual({ name: 'Form A', gmdContent: 'Content', apiIds: ['api-2'] });
+      const updated = { ...form, apiIds: ['api-2'] };
+      updateReq.flush(updated);
+      expectList([updated]);
+      expect(fixture.componentInstance.hasUnsavedChanges()).toBe(false);
     });
   });
 

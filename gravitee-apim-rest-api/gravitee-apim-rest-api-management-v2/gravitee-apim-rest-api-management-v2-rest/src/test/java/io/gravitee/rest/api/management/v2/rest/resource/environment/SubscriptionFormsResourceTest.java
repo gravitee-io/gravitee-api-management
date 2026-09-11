@@ -18,7 +18,9 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 import static assertions.MAPIAssertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.SubscriptionFormFixtures;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.SubscriptionFormCrudServiceInMemory;
 import inmemory.SubscriptionFormQueryServiceInMemory;
@@ -57,6 +59,9 @@ class SubscriptionFormsResourceTest extends AbstractResourceTest {
     @Inject
     SubscriptionFormQueryServiceInMemory subscriptionFormQueryService;
 
+    @Inject
+    ApiCrudServiceInMemory apiCrudService;
+
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT + "/subscription-forms";
@@ -81,7 +86,7 @@ class SubscriptionFormsResourceTest extends AbstractResourceTest {
         UuidString.reset();
         GraviteeContext.cleanContext();
 
-        Stream.of(subscriptionFormCrudService, subscriptionFormQueryService).forEach(InMemoryAlternative::reset);
+        Stream.of(subscriptionFormCrudService, subscriptionFormQueryService, apiCrudService).forEach(InMemoryAlternative::reset);
     }
 
     @Nested
@@ -169,6 +174,50 @@ class SubscriptionFormsResourceTest extends AbstractResourceTest {
                     assertThat(result.getDefaultForm()).isFalse();
                 });
             assertThat(subscriptionFormCrudService.storage()).hasSize(1);
+        }
+
+        @Test
+        void should_create_a_form_dedicated_to_apis() {
+            apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id("api-1").environmentId(ENVIRONMENT).build()));
+            var request = new CreateSubscriptionForm()
+                .name("Partners")
+                .gmdContent(SubscriptionFormFixtures.GMD_CONTENT)
+                .apiIds(List.of("api-1"));
+
+            var response = rootTarget.request().post(Entity.json(request));
+
+            assertThat(response)
+                .hasStatus(HttpStatusCode.CREATED_201)
+                .asEntity(SubscriptionForm.class)
+                .satisfies(result -> assertThat(result.getApiIds()).containsExactly("api-1"));
+        }
+
+        @Test
+        void should_return_409_when_an_api_is_already_mapped_to_another_form() {
+            apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id("api-1").environmentId(ENVIRONMENT).build()));
+            subscriptionFormQueryService.initWith(
+                List.of(SubscriptionFormFixtures.aSubscriptionFormBuilder().environmentId(ENVIRONMENT).apiIds(List.of("api-1")).build())
+            );
+            var request = new CreateSubscriptionForm()
+                .name("Partners")
+                .gmdContent(SubscriptionFormFixtures.GMD_CONTENT)
+                .apiIds(List.of("api-1"));
+
+            var response = rootTarget.request().post(Entity.json(request));
+
+            assertThat(response).hasStatus(HttpStatusCode.CONFLICT_409);
+        }
+
+        @Test
+        void should_return_400_when_an_api_does_not_exist() {
+            var request = new CreateSubscriptionForm()
+                .name("Partners")
+                .gmdContent(SubscriptionFormFixtures.GMD_CONTENT)
+                .apiIds(List.of("ghost"));
+
+            var response = rootTarget.request().post(Entity.json(request));
+
+            assertThat(response).hasStatus(HttpStatusCode.BAD_REQUEST_400);
         }
 
         @Test
