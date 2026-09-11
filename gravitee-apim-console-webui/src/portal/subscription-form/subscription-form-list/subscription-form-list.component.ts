@@ -42,8 +42,11 @@ export class SubscriptionFormListComponent {
   readonly displayedColumns = ['name', 'enabled'];
   readonly filters = signal<GioTableWrapperFilters>({ pagination: { index: 1, size: 10 }, searchTerm: '' });
 
+  private readonly searchTerm = computed(() => this.filters().searchTerm?.trim().toLowerCase() ?? '');
+  readonly searching = computed(() => this.searchTerm() !== '');
+
   private readonly filteredForms = computed<SubscriptionForm[]>(() => {
-    const term = this.filters().searchTerm?.trim().toLowerCase() ?? '';
+    const term = this.searchTerm();
     const forms = this.forms();
     return term ? forms.filter(form => form.name.toLowerCase().includes(term)) : forms;
   });
