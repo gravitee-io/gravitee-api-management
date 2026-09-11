@@ -30,6 +30,7 @@ import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
 import io.gravitee.gateway.dictionary.model.Dictionary;
+import io.gravitee.gateway.dictionary.model.DictionaryProperty;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
@@ -64,7 +65,7 @@ class ELIntegrationTest extends AbstractGatewayTest {
         dictionary.setId("test");
         dictionary.setKey("test");
         dictionary.setEnvironmentId("DEFAULT");
-        dictionary.setProperties(Map.of("test", DICTIONARY_VALUE));
+        dictionary.setProperties(Map.of("test", new DictionaryProperty(DICTIONARY_VALUE, false)));
         dictionaries.add(dictionary);
     }
 
