@@ -139,13 +139,14 @@ describe('ApiDocumentationV4DocumentationPagesTab', () => {
       expect(await banner.isBannerContentVisible()).toBe(false);
     });
 
-    it('should show the settings action when portalNext is enabled and user has environment-settings permission', async () => {
+    it('should show the settings action when portalNext is enabled and user has required environment permissions', async () => {
       await init([], [], 'ROOT', 'portal.url', 'PUBLISHED', ApiSpecGenState.UNAVAILABLE, true, [
         'api-documentation-u',
         'api-documentation-c',
         'api-documentation-r',
         'api-documentation-d',
         'environment-settings-r',
+        'environment-documentation-r',
       ]);
       const banner = await harnessLoader.getHarness(ClassicPortalOnlyBannerHarness);
       expect(await banner.isSettingsActionVisible()).toBe(true);
@@ -162,10 +163,11 @@ describe('ApiDocumentationV4DocumentationPagesTab', () => {
       expect(await banner.isSettingsActionVisible()).toBe(false);
     });
 
-    it('should show the settings action with a link when envHrid is in route and user has environment-settings permission', async () => {
+    it('should show the settings action with a link when envHrid is in route and user has required environment permissions', async () => {
       await init([], [], 'ROOT', 'portal.url', 'PUBLISHED', ApiSpecGenState.UNAVAILABLE, true, [
         'api-documentation-u',
         'environment-settings-r',
+        'environment-documentation-r',
       ]);
       fixture.detectChanges();
       const banner = await harnessLoader.getHarness(ClassicPortalOnlyBannerHarness);

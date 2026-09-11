@@ -18,7 +18,7 @@ import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
-import { map, of } from 'rxjs';
+import { catchError, map, of } from 'rxjs';
 
 import { EnvironmentSettingsService } from '../../../services-ngx/environment-settings.service';
 import { GioPermissionService } from '../gio-permission/gio-permission.service';
@@ -42,10 +42,9 @@ export class ClassicPortalOnlyBannerComponent {
   body = input('');
   actionLabel = input('Next Gen Portal Settings');
 
-  protected readonly canShowSettingsAction: boolean = this.permissionService.hasAnyMatching([
-    'environment-settings-r',
-    'environment-settings-u',
-  ]);
+  private readonly canReadPortalNavigation = this.permissionService.hasAnyMatching(['environment-documentation-r']);
+  protected readonly canShowSettingsAction: boolean =
+    this.canReadPortalNavigation && this.permissionService.hasAnyMatching(['environment-settings-r', 'environment-settings-u']);
   protected readonly settingsRouterLink: string[] | null = (() => {
     const envHrid = this.activatedRoute.snapshot.params['envHrid'];
     return envHrid ? ['/', envHrid, '_portal', 'navigation'] : null;
@@ -55,7 +54,7 @@ export class ClassicPortalOnlyBannerComponent {
   protected readonly isPortalNextEnabled = toSignal(this.environmentSettingsService.isPortalNextEnabled(), { initialValue: false });
 
   protected readonly navItemResource = rxResource({
-    params: () => (this.isPortalNextEnabled() && this.apiId ? this.apiId : null),
+    params: () => (this.isPortalNextEnabled() && this.canShowSettingsAction && this.apiId ? this.apiId : null),
     stream: ({ params: apiId }) =>
       apiId
         ? this.portalNavigationItemService.getNavigationItems('TOP_NAVBAR').pipe(
@@ -63,6 +62,7 @@ export class ClassicPortalOnlyBannerComponent {
               const matchingItem = items.find((i): i is PortalNavigationApi => i.type === 'API' && i.apiId === apiId);
               return matchingItem?.id ?? null;
             }),
+            catchError(() => of(null)),
           )
         : of(null),
   });
