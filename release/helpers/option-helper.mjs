@@ -15,6 +15,21 @@ export async function confirm(prompt, refusal = '🚦 Nothing was triggered.') {
   }
 }
 
+/**
+ * States, in the same terms everywhere, whether this run publishes.
+ *
+ * The absence of a marker used to be the only sign that a run was real, which is the weakest signal
+ * there is: nothing to notice, and nothing to read twice.
+ * @param {boolean} dryRun
+ */
+export function announceMode(dryRun) {
+  if (dryRun) {
+    console.log(chalk.yellow(`🧪 DRY RUN — the pipeline runs with its pushes disarmed. Nothing is published.\n`));
+  } else {
+    console.log(chalk.red(`⚠️  REAL RELEASE — this publishes. Pass --dry-run to rehearse instead.\n`));
+  }
+}
+
 const DRY_RUN = 'dry-run';
 
 /** Same flag to a hurried hand, a different key to minimist. */

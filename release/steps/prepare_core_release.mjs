@@ -2,7 +2,7 @@
 
 import { checkToken, triggerPipeline } from '../helpers/circleci-helper.mjs';
 import { assertCoreTagIsFree, assertVersionMatchesPoms, computeVersion, extractVersion, ROOT_POM } from '../helpers/version-helper.mjs';
-import { getTargetBranch, isDryRun, isHotfixVersion } from '../helpers/option-helper.mjs';
+import { announceMode, confirm, getTargetBranch, isDryRun, isHotfixVersion } from '../helpers/option-helper.mjs';
 
 await checkToken();
 
@@ -26,19 +26,14 @@ if (isHotfixVersion(releasingVersion)) {
 await assertVersionMatchesPoms(releasingVersion, targetBranch, [ROOT_POM]);
 await assertCoreTagIsFree(releasingVersion);
 
-console.log(chalk.green(`💪 Preparing the core release of ${releasingVersion}${dryRun ? ' - Dry Run' : ''}\n`));
+console.log(chalk.green(`💪 Preparing the core release of ${releasingVersion}\n`));
+announceMode(dryRun);
 console.log(chalk.blue(`Branch: ${targetBranch}`));
 console.log(chalk.blue(`Tag: core_${releasingVersion}\n`));
 console.log(`CI will commit ${releasingVersion}, tag it, and reopen ${targetBranch} on the next version.`);
 console.log(`Pushing that tag is what publishes the core — the branch is pushed first.\n`);
 
-// Anything but a yes stops here. Testing for 'n' would let the empty answer through — the one a
-// stray Enter produces — and this prompt guards a push that publishes.
-const confirmed = await question(chalk.blue(`Should we continue? (y/n)\n`));
-if (confirmed.trim().toLowerCase() !== 'y') {
-  console.log(chalk.yellow(`🚦 Nothing was triggered.`));
-  process.exit(1);
-}
+await confirm(`Should we continue?`);
 
 await triggerPipeline(targetBranch, {
   gio_action: 'prepare_core_release',
