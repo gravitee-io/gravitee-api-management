@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { computeApimVersion, isLatestRelease, nextDevelopmentVersion, parse, validateGraviteeioVersion } from '../versions';
+import { computeApimVersion, isLatestRelease, nextDevelopmentVersion, parse, supportLineOf, validateGraviteeioVersion } from '../versions';
 
 describe('version', function () {
   describe('parse', function () {
@@ -155,5 +155,19 @@ describe('isLatestRelease', function () {
 
   it('is true for the very first release, with nothing to compare against', function () {
     expect(isLatestRelease('1.0.0', [])).toBe(true);
+  });
+
+  describe('supportLineOf', function () {
+    // A tag-triggered pipeline has no branch, and a job that reads one sends an empty string onward.
+    it.each`
+      version               | expected
+      ${'4.13.0'}           | ${'4.13.x'}
+      ${'4.13.4'}           | ${'4.13.x'}
+      ${'4.13.0-alpha.1'}   | ${'4.13.x'}
+      ${'4.12.17-hotfix.2'} | ${'4.12.x'}
+      ${'10.2.0'}           | ${'10.2.x'}
+    `('reads $expected from $version', ({ version, expected }) => {
+      expect(supportLineOf(version)).toEqual(expected);
+    });
   });
 });

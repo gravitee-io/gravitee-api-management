@@ -24,6 +24,9 @@ import { CircleCIEnvironment } from '../pipelines';
  * Commits the core reactor's release version, tags it, and reopens the branch on the next
  * development version. Publishing is not here: pushing the tag starts the lane that does it.
  */
+const PORTAL_OPENAPI =
+  'gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/resources/portal-openapi.yaml';
+
 export class PrepareCoreReleaseJob {
   private static jobName = 'job-prepare-core-release';
 
@@ -64,6 +67,10 @@ sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.x
 # <sha1 /> is self-closing when the qualifier is empty, which the plain <sha1>.*</sha1> pattern
 # never matches — the qualifier was silently kept on any pom already holding the empty form.
 sed -i -E "s#<sha1( */>|>[^<]*</sha1>)#<sha1>${nextQualifier}</sha1>#" pom.xml
+# The portal spec ships inside the core's jars and the documentation site publishes it under the
+# product's number, so it has to name a version that moves — left behind, every release of the line
+# would publish the one the code freeze wrote.
+sed -i 's#version: ".*"#version: "${nextVersion}${nextQualifier}-SNAPSHOT"#' ${PORTAL_OPENAPI}
 
 git add --update
 git commit -m 'chore: prepare next core version [skip ci]'

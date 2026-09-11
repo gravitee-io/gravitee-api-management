@@ -134,3 +134,16 @@ export function isLatestRelease(version: string, tags: string[]): boolean {
 
   return !tags.filter((tag) => FINAL_VERSION.test(tag)).some(isHigher);
 }
+
+/**
+ * The support line a version belongs to — `4.13.0-alpha.1` comes from `4.13.x`.
+ *
+ * A tag-triggered pipeline has no branch: CircleCI leaves `CIRCLE_BRANCH` empty, and a job that
+ * reads it passes an empty string onward, which the other end takes for a directory or a cache key.
+ * The release commands already derive the branch from the version this way, so the lanes a tag
+ * starts do the same rather than trusting a value that is never there.
+ */
+export function supportLineOf(version: string): string {
+  const { version: parsed } = parse(version);
+  return `${parsed.major}.${parsed.minor}.x`;
+}
