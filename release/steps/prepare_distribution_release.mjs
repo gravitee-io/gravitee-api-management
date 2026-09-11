@@ -3,6 +3,7 @@
 import { checkToken, triggerPipeline } from '../helpers/circleci-helper.mjs';
 import {
   assertChartMatchesVersion,
+  assertPinIsReleasable,
   assertTagIsFree,
   assertVersionMatchesPoms,
   computeVersion,
@@ -23,6 +24,7 @@ const dryRun = isDryRun();
 // the core lane releases it under its own tag, and the two versions no longer have to agree.
 await assertVersionMatchesPoms(releasingVersion, targetBranch, [DISTRIBUTION_POM]);
 await assertChartMatchesVersion(releasingVersion, targetBranch);
+await assertPinIsReleasable(releasingVersion, targetBranch);
 await assertTagIsFree(releasingVersion);
 
 console.log(chalk.green(`💪 Preparing the distribution release of ${releasingVersion}\n`));

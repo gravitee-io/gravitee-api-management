@@ -246,3 +246,40 @@ export async function assertChartMatchesVersion(version, branch) {
   console.log(`The chart ships with the release, so it has to name it. Fix it on '${branch}' and start again.`);
   process.exit(1);
 }
+
+/** The line a version belongs to: 4.13.0-alpha.1 and 4.13.17 both sit on 4.13. */
+const lineOf = (version) => version.split('-')[0].split('.').slice(0, 2).join('.');
+
+/**
+ * Stops the release when the core the distribution pins cannot be assembled.
+ *
+ * The publishing lane already refuses both cases, but it only runs once the tag has been pushed —
+ * and by then the version is spent: the branch has been committed to and reopened on the next one,
+ * and the tag has to be unwound by hand. A freshly cut branch pins a SNAPSHOT until its first core
+ * release, which is precisely when this is easiest to forget.
+ *
+ * The pin trails the release by patches on purpose — the distribution ships more often than the
+ * core — so the comparison is on the line, never on the version.
+ * @param {string} version the version passed to the command
+ * @param {string} branch the branch the release will run on
+ */
+export async function assertPinIsReleasable(version, branch) {
+  const pom = await readFromBranch(DISTRIBUTION_POM, branch);
+  const pin = /<apim\.core\.version>([^<]*)<\/apim\.core\.version>/.exec(pom)?.[1];
+
+  if (!pin) {
+    console.log(chalk.red(`${DISTRIBUTION_POM} on '${branch}' carries no apim.core.version.`));
+    console.log(`Nothing says which core this would assemble, so nothing can confirm it is releasable.`);
+    process.exit(1);
+  }
+  if (pin.endsWith('-SNAPSHOT')) {
+    console.log(chalk.red(`'${branch}' pins core ${pin}, which is a SNAPSHOT.`));
+    console.log(`Release the core first, then merge the pull request that advances the pin.`);
+    process.exit(1);
+  }
+  if (lineOf(pin) !== lineOf(version)) {
+    console.log(chalk.red(`'${branch}' pins core ${pin}, from the ${lineOf(pin)} line, while releasing ${version}.`));
+    console.log(`A release assembles the core it pins; this one would ship the wrong line.`);
+    process.exit(1);
+  }
+}
