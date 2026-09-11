@@ -84,12 +84,12 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
     // Per-attempt command timeout. Normal writes complete in milliseconds; this only fires for a command that
     // never resolves (half-open connection), so a permit can never be held indefinitely — the timeout is
     // retryable (see isRetryableWriteFailure) and bounds the hold.
-    // Caveat on the half-open case: a timeout does NOT currently invalidate the connection. notifyConnectionFailure
-    // gates on RedisClient#isRecoverableConnectionFailure, which does not recognise TimeoutException, and .timeout()
-    // emits on RxJava's computation scheduler (no Vert.x context) so the notification bails out regardless. The
-    // retries therefore re-hit the same stale connection, each timing out again, so the worst-case time a permit is
-    // held is ~66s (6 attempts × 10s + ~6s backoff), NOT ~6s. Still bounded, so the sync window is eventually
-    // replayed; making a timeout invalidate the connection (so the next attempt reconnects) is a possible follow-up.
+    // Caveat on the half-open case: a timeout does NOT invalidate the connection. notifyConnectionFailure
+    // skips TimeoutException by type, and .timeout() also emits on RxJava's computation scheduler (no Vert.x
+    // context) so the notification would bail even without that skip. The retries therefore re-hit the same
+    // stale connection, each timing out again, so the worst-case time a permit is held is ~66s
+    // (6 attempts × 10s + ~6s backoff), NOT ~6s. Still bounded, so the sync window is eventually replayed;
+    // making a timeout invalidate the connection (so the next attempt reconnects) is a possible follow-up.
     static final long WRITE_COMMAND_TIMEOUT_MS = 10_000;
 
     private final RedisClient redisClient;
