@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-relative-time';
 import '@gravitee/ui-components/wc/gv-rating-list';
@@ -21,8 +21,9 @@ import '@gravitee/ui-components/wc/gv-confirm';
 import '@gravitee/ui-components/wc/gv-file-upload';
 import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { NgIf, NgFor } from '@angular/common';
 
 import {
   Application,
@@ -35,6 +36,7 @@ import { GvHeaderItemComponent } from '../../../components/gv-header-item/gv-hea
 import { EventService, GvEvent } from '../../../services/event.service';
 import { NotificationService } from '../../../services/notification.service';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
+import { GvFormControlDirective } from '../../../directives/gv-form-control.directive';
 
 const StatusEnum = Subscription.StatusEnum;
 
@@ -66,9 +68,18 @@ type ApplicationFormType = FormGroup<{
   selector: 'app-application-general',
   templateUrl: './application-general.component.html',
   styleUrls: ['./application-general.component.css'],
-  standalone: false,
+  imports: [NgIf, ReactiveFormsModule, GvFormControlDirective, NgFor, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ApplicationGeneralComponent implements OnInit, OnDestroy {
+  private applicationService = inject(ApplicationService);
+  private translateService = inject(TranslateService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private notificationService = inject(NotificationService);
+  private formBuilder = inject(FormBuilder);
+  private eventService = inject(EventService);
+
   applicationForm: ApplicationFormType;
   application: Application;
   connectedApis: Promise<any[]>;
@@ -81,16 +92,6 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
 
   allGrantTypes: { name?: string; disabled: boolean; type?: string; value: boolean }[];
   private applicationTypeEntity: ApplicationType;
-
-  constructor(
-    private applicationService: ApplicationService,
-    private translateService: TranslateService,
-    private route: ActivatedRoute,
-    private router: Router,
-    private notificationService: NotificationService,
-    private formBuilder: FormBuilder,
-    private eventService: EventService,
-  ) {}
 
   ngOnDestroy() {
     this.initForm();

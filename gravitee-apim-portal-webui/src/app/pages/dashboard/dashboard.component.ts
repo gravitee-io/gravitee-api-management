@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, HostListener, OnInit, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { TranslateService, TranslateDirective, TranslatePipe } from '@ngx-translate/core';
 import { getApplicationTypeIcon } from '@gravitee/ui-components/src/lib/theme';
 import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-table';
 import '@gravitee/ui-components/wc/gv-stats';
 import '@gravitee/ui-components/wc/gv-card-list';
 import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
+import { NgIf, NgClass } from '@angular/common';
 
 import { CurrentUserService } from '../../services/current-user.service';
 import { AnalyticsService } from '../../services/analytics.service';
@@ -41,9 +42,18 @@ const StatusEnum = Subscription.StatusEnum;
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
-  standalone: false,
+  imports: [NgIf, RouterLink, TranslateDirective, NgClass, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class DashboardComponent implements OnInit {
+  private currentUserService = inject(CurrentUserService);
+  private applicationService = inject(ApplicationService);
+  private subscriptionService = inject(SubscriptionService);
+  private router = inject(Router);
+  private config = inject(ConfigurationService);
+  private translateService = inject(TranslateService);
+  private analyticsService = inject(AnalyticsService);
+
   public currentUser: User;
   applications: { item: Application; metrics: Promise<{ subscribers: { clickable: boolean; value: number; title: string } }> }[];
   metrics: Array<any>;
@@ -54,16 +64,6 @@ export class DashboardComponent implements OnInit {
   optionsStats: object;
   cardListGridTemplate: string;
   empty: boolean;
-
-  constructor(
-    private currentUserService: CurrentUserService,
-    private applicationService: ApplicationService,
-    private subscriptionService: SubscriptionService,
-    private router: Router,
-    private config: ConfigurationService,
-    private translateService: TranslateService,
-    private analyticsService: AnalyticsService,
-  ) {}
 
   ngOnInit() {
     this.currentUserService.get().subscribe(user => {

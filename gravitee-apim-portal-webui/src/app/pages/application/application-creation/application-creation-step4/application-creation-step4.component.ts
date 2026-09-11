@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 
 import { ApiKeyModeEnum } from '../../../../../../projects/portal-webclient-sdk/src/lib';
 import '@gravitee/ui-components/wc/gv-option';
@@ -23,15 +23,16 @@ import '@gravitee/ui-components/wc/gv-option';
   selector: 'app-application-creation-step4',
   templateUrl: './application-creation-step4.component.html',
   styleUrls: ['../application-creation.component.css'],
-  standalone: false,
+  imports: [TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ApplicationCreationStep4Component implements OnInit {
+  private translateService = inject(TranslateService);
+
   @Input() apiKeyMode: ApiKeyModeEnum;
   @Output() updated = new EventEmitter<ApiKeyModeEnum>();
 
   apiKeyModeOptions: { id: string; title: string; description: string }[];
-
-  constructor(private translateService: TranslateService) {}
 
   ngOnInit(): void {
     this.translateService

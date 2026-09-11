@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 
@@ -23,12 +23,12 @@ import { ConfigurationService } from './configuration.service';
 
 @Injectable({ providedIn: 'root' })
 export class CurrentUserService {
+  private http = inject(HttpClient);
+  private configurationService = inject(ConfigurationService);
+
   private readonly currentUserSource: BehaviorSubject<User>;
 
-  constructor(
-    private http: HttpClient,
-    private configurationService: ConfigurationService,
-  ) {
+  constructor() {
     this.currentUserSource = new BehaviorSubject<User>(null);
   }
 

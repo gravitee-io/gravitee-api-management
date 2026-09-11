@@ -13,7 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewChecked, Directive, ElementRef, Input, NgModule, Pipe, PipeTransform, Injectable } from '@angular/core';
+import {
+  AfterViewChecked,
+  Directive,
+  ElementRef,
+  Input,
+  NgModule,
+  Pipe,
+  PipeTransform,
+  Injectable,
+  Signal,
+  inject,
+  signal,
+} from '@angular/core';
 import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 
@@ -31,7 +43,7 @@ export class TranslateServiceMock {
   onDefaultLangChange: Observable<string> = this.onDefaultLangChangeSubject.asObservable();
   isLoaded: Observable<boolean> = this.isLoadedSubject.asObservable();
 
-  currentLang: string;
+  currentLang: Signal<string | null> = signal(null);
 
   languages: string[] = ['de'];
 
@@ -40,7 +52,7 @@ export class TranslateServiceMock {
   }
 
   use(lang: string): void {
-    this.currentLang = lang;
+    this.currentLang = signal(lang);
     this.onLangChangeSubject.next({ lang } as LangChangeEvent);
   }
 
@@ -65,15 +77,18 @@ export class TranslateServiceMock {
     return TRANSLATED_STRING + key.toString();
   }
 
-  setDefaultLang(lang: string): void {
+  setFallbackLang(lang: string): void {
     this.onDefaultLangChangeSubject.next(lang);
+  }
+
+  // A standalone component imports the real TranslatePipe, which reads its value from this signal
+  // rather than from get(); the mock pipe below no longer shadows it.
+  translate(key: string | string[]): Signal<string> {
+    return signal(!key ? TRANSLATED_STRING : `${key.toString()}-${TRANSLATED_STRING}`);
   }
 }
 
-@Pipe({
-  name: 'translate',
-  standalone: false,
-})
+@Pipe({ name: 'translate' })
 export class TranslateMockPipe implements PipeTransform {
   transform(text: string): string {
     return !text ? TRANSLATED_STRING : `${text}-${TRANSLATED_STRING}`;
@@ -83,13 +98,13 @@ export class TranslateMockPipe implements PipeTransform {
 @Directive({
   // eslint-disable-next-line @angular-eslint/directive-selector
   selector: '[translate]',
-  standalone: false,
 })
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export class TranslateMockDirective implements AfterViewChecked {
+  private readonly _element = inject(ElementRef);
+
   @Input()
   translateParams: any;
-  constructor(private readonly _element: ElementRef) {}
 
   ngAfterViewChecked(): void {
     this._element.nativeElement.innerText += TRANSLATED_STRING;
@@ -97,7 +112,7 @@ export class TranslateMockDirective implements AfterViewChecked {
 }
 
 @NgModule({
-  declarations: [TranslateMockPipe, TranslateMockDirective],
+  imports: [TranslateMockPipe, TranslateMockDirective],
   exports: [TranslateMockPipe, TranslateMockDirective],
   providers: [{ provide: TranslateService, useClass: TranslateServiceMock }],
 })

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute } from '@angular/router';
 
@@ -23,6 +23,9 @@ import { SearchQueryParam } from '../utils/search-query-param.enum';
   providedIn: 'root',
 })
 export class AnalyticsService {
+  private translateService = inject(TranslateService);
+  private route = inject(ActivatedRoute);
+
   removableQueryParams = ['from', 'to', 'log', 'timestamp', ...Object.values(SearchQueryParam)];
   queryParams = ['dashboard', 'timeframe', ...Object.values(this.removableQueryParams)];
   advancedQueryParams = ['_id', 'transaction', 'method', 'uri', 'response-time', 'status', 'api', 'body'];
@@ -101,10 +104,9 @@ export class AnalyticsService {
     { value: '507', label: '507 - INSUFFICIENT STORAGE' },
   ];
 
-  constructor(
-    private translateService: TranslateService,
-    private route: ActivatedRoute,
-  ) {
+  constructor() {
+    const translateService = this.translateService;
+
     translateService
       .get([
         'analytics.timeframes.minutes',

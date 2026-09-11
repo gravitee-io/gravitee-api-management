@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { applyTheme } from '@gravitee/ui-components/src/lib/theme';
 
@@ -23,9 +23,9 @@ import { FeatureEnum } from '../model/feature.enum';
   providedIn: 'root',
 })
 export class ConfigurationService {
-  private config: any;
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) {}
+  private config: any;
 
   public get(key: string, defaultValue?: any) {
     const value = key.split('.').reduce((prev, curr) => prev && prev[curr], this.config);

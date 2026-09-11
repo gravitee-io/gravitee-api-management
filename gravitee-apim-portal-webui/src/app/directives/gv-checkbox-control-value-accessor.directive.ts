@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Directive, ElementRef, forwardRef, Renderer2 } from '@angular/core';
+import { Directive, ElementRef, forwardRef, Renderer2, inject } from '@angular/core';
 import { CheckboxControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 const GV_CHECKBOX_ACCESSOR: any = {
@@ -25,10 +25,12 @@ const GV_CHECKBOX_ACCESSOR: any = {
 @Directive({
   selector: 'gv-checkbox[formControlName],gv-checkbox[formControl],gv-checkbox[ngModel],gv-checkbox[gvControl]',
   providers: [GV_CHECKBOX_ACCESSOR],
-  standalone: false,
 })
 export class GvCheckboxControlValueAccessorDirective extends CheckboxControlValueAccessor {
-  constructor(_renderer: Renderer2, _elementRef: ElementRef) {
+  constructor() {
+    const _renderer = inject(Renderer2);
+    const _elementRef = inject(ElementRef);
+
     super(_renderer, _elementRef);
   }
 }

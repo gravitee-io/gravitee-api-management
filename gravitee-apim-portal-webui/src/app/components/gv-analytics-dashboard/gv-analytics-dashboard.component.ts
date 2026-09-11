@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output, inject } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { NgFor, NgStyle, NgIf, NgSwitch, NgSwitchCase } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { Application, ApplicationService, Dashboard } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { AnalyticsService } from '../../services/analytics.service';
@@ -26,23 +28,22 @@ import '@gravitee/ui-components/wc/gv-table';
   selector: 'app-gv-analytics-dashboard',
   templateUrl: './gv-analytics-dashboard.component.html',
   styleUrls: ['./gv-analytics-dashboard.component.css'],
-  standalone: false,
+  imports: [NgFor, NgStyle, NgIf, RouterLink, NgSwitch, NgSwitchCase, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private applicationService = inject(ApplicationService);
+  private analyticsService = inject(AnalyticsService);
+  private navRouteService = inject(NavRouteService);
+
   @Input() dashboard: Dashboard;
   @Output() searching = new EventEmitter<boolean>();
 
   private subscription: any;
   application: Application;
   definition: any;
-
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private applicationService: ApplicationService,
-    private analyticsService: AnalyticsService,
-    private navRouteService: NavRouteService,
-  ) {}
 
   hasLinkToAlert(title: string): boolean {
     return title === 'Response times' || title === 'Response Status';

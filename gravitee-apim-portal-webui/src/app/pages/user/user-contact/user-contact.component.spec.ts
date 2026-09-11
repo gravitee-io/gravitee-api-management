@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { mockProvider } from '@ngneat/spectator/jest';
+import { BehaviorSubject } from 'rxjs';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
@@ -30,7 +31,9 @@ describe('UserContactComponent', () => {
     component: UserContactComponent,
     imports: [FormsModule, ReactiveFormsModule, HttpClientTestingModule, RouterTestingModule],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    providers: [mockProvider(NotificationService), mockProvider(CurrentUserService)],
+    // The component is standalone now, so it pulls GvContactComponent in and that child reads the
+    // current user on init.
+    providers: [mockProvider(NotificationService), mockProvider(CurrentUserService, { get: () => new BehaviorSubject(null) })],
   });
 
   let spectator: Spectator<UserContactComponent>;

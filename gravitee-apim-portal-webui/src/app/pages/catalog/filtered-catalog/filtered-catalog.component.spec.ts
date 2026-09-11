@@ -37,8 +37,7 @@ describe('FilteredCatalogComponent', () => {
   const createComponent = createComponentFactory({
     component: FilteredCatalogComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [HttpClientTestingModule, RouterTestingModule],
-    declarations: [ApiStatesPipe, ApiLabelsPipe, MarkdownDescriptionPipe],
+    imports: [HttpClientTestingModule, RouterTestingModule, ApiStatesPipe, ApiLabelsPipe, MarkdownDescriptionPipe],
     providers: [
       ApiStatesPipe,
       ApiLabelsPipe,

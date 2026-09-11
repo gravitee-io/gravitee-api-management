@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
 import { FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { NgIf } from '@angular/common';
 
 import {
   Application,
@@ -40,17 +41,18 @@ type AddMetadataFormType = FormGroup<{
   selector: 'app-application-metadata',
   templateUrl: './application-metadata.component.html',
   styleUrls: ['./application-metadata.component.css'],
-  standalone: false,
+  imports: [NgIf, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ApplicationMetadataComponent implements OnInit {
-  constructor(
-    private applicationService: ApplicationService,
-    private translateService: TranslateService,
-    private route: ActivatedRoute,
-    private notificationService: NotificationService,
-    private permissionService: PermissionsService,
-    private ref: ChangeDetectorRef,
-  ) {
+  private applicationService = inject(ApplicationService);
+  private translateService = inject(TranslateService);
+  private route = inject(ActivatedRoute);
+  private notificationService = inject(NotificationService);
+  private permissionService = inject(PermissionsService);
+  private ref = inject(ChangeDetectorRef);
+
+  constructor() {
     this.resetAddMetadata();
     this.metadataToDelete = [];
   }

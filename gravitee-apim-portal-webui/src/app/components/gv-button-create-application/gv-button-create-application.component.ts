@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, HostListener, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { NgIf } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-gv-button-create-application',
   templateUrl: './gv-button-create-application.component.html',
   styleUrls: ['./gv-button-create-application.component.css'],
-  standalone: false,
+  imports: [NgIf, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class GvButtonCreateApplicationComponent {
-  constructor(private router: Router) {}
+  private router = inject(Router);
 
   @HostListener(':gv-button:click')
   onClick() {

@@ -18,11 +18,12 @@ import '@gravitee/ui-components/wc/gv-select';
 import '@gravitee/ui-components/wc/gv-autocomplete';
 import '@gravitee/ui-components/wc/gv-switch';
 import { ActivatedRoute } from '@angular/router';
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject } from '@angular/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { NgIf, NgClass } from '@angular/common';
 
 import { NotificationService } from '../../services/notification.service';
 import { HttpHelpers, HttpStatus } from '../../utils/http-helpers';
@@ -39,6 +40,7 @@ import {
   Subscription,
   SubscriptionService,
 } from '../../../../projects/portal-webclient-sdk/src/lib';
+import { GvFormControlDirective } from '../../directives/gv-form-control.directive';
 
 const StatusEnum = Subscription.StatusEnum;
 
@@ -66,9 +68,18 @@ type AlertFormType = FormGroup<{
   selector: 'app-gv-alert',
   templateUrl: './gv-alert.component.html',
   styleUrls: ['./gv-alert.component.css'],
-  standalone: false,
+  imports: [ReactiveFormsModule, NgIf, NgClass, GvFormControlDirective, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class GvAlertComponent implements OnInit, OnDestroy {
+  private applicationService = inject(ApplicationService);
+  private route = inject(ActivatedRoute);
+  private translateService = inject(TranslateService);
+  private notificationService = inject(NotificationService);
+  private permissionsService = inject(PermissionsService);
+  private subscriptionService = inject(SubscriptionService);
+  private notifiersService = inject(NotifiersService);
+
   @Input() mode: AlertMode;
   @Input() alert: Alert;
   @Input() maxReached: boolean;
@@ -127,16 +138,6 @@ export class GvAlertComponent implements OnInit, OnDestroy {
   get isAlertingEnabled() {
     return this.status?.available_plugins > 0 && this.status?.enabled;
   }
-
-  constructor(
-    private applicationService: ApplicationService,
-    private route: ActivatedRoute,
-    private translateService: TranslateService,
-    private notificationService: NotificationService,
-    private permissionsService: PermissionsService,
-    private subscriptionService: SubscriptionService,
-    private notifiersService: NotifiersService,
-  ) {}
 
   ngOnInit(): void {
     this.application = this.route.snapshot.data.application;

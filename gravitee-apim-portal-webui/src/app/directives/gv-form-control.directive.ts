@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Directive, ElementRef } from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, inject } from '@angular/core';
 import { NgControl, NgControlStatus } from '@angular/forms';
 
 @Directive({
@@ -23,15 +23,15 @@ import { NgControl, NgControlStatus } from '@angular/forms';
     'gv-select[formControl],gv-select[formControlName],' +
     'gv-date-picker[formControl],gv-date-picker[formControlName],' +
     '[gvControl]',
-  standalone: false,
 })
 export class GvFormControlDirective extends NgControlStatus implements AfterViewInit {
+  private elementRef = inject(ElementRef);
+
   private control: NgControl;
 
-  constructor(
-    control: NgControl,
-    private elementRef: ElementRef,
-  ) {
+  constructor() {
+    const control = inject(NgControl);
+
     super(control);
     this.control = control;
   }

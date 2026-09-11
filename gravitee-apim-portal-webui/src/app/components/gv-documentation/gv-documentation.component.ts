@@ -15,15 +15,29 @@
  */
 import '@gravitee/ui-components/wc/gv-tree';
 import { animate, style, transition, trigger } from '@angular/animations';
-import { AfterViewInit, Component, HostListener, Input, OnInit, SecurityContext, ViewChild } from '@angular/core';
+import {
+  CUSTOM_ELEMENTS_SCHEMA,
+  AfterViewInit,
+  Component,
+  HostListener,
+  Input,
+  OnInit,
+  SecurityContext,
+  ViewChild,
+  inject,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
+import { NgIf, NgClass } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { TreeItem } from '../../model/tree-item';
 import { ScrollService } from '../../services/scroll.service';
 import { ConfigurationService } from '../../services/configuration.service';
 import { getNavigationContextQueryParams } from '../../utils/navigation-query-params.util';
+import { GvPageComponent } from '../gv-page/gv-page.component';
+import { SafePipe } from '../../pipes/safe.pipe';
 
 @Component({
   selector: 'app-gv-documentation',
@@ -35,9 +49,15 @@ import { getNavigationContextQueryParams } from '../../utils/navigation-query-pa
       transition('* <=> *', [style({ height: '{{startHeight}}px', opacity: 0 }), animate('.5s ease')], { params: { startHeight: 0 } }),
     ]),
   ],
-  standalone: false,
+  imports: [NgIf, NgClass, GvPageComponent, TranslatePipe, SafePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class GvDocumentationComponent implements OnInit, AfterViewInit {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly configurationService = inject(ConfigurationService);
+  private readonly sanitizer = inject(DomSanitizer);
+
   @Input()
   pageBaseUrl: string;
   @Input() set pages(pages: Page[]) {
@@ -75,12 +95,7 @@ export class GvDocumentationComponent implements OnInit, AfterViewInit {
     return this._pages;
   }
 
-  constructor(
-    private readonly route: ActivatedRoute,
-    private readonly router: Router,
-    private readonly configurationService: ConfigurationService,
-    private readonly sanitizer: DomSanitizer,
-  ) {
+  constructor() {
     this.pageNotFoundMessage = this.sanitizer.sanitize(
       SecurityContext.HTML,
       this.configurationService.get('documentation.pageNotFoundMessage'),

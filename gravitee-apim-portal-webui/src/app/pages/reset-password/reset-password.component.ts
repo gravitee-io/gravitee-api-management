@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, OnInit, inject } from '@angular/core';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { NgIf } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { ResetUserPasswordInput, UsersService } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { ReCaptchaService } from '../../services/recaptcha.service';
+import { GvFormControlDirective } from '../../directives/gv-form-control.directive';
 
 type ResetPasswordFormType = FormGroup<{
   username: FormControl<string>;
@@ -27,16 +31,17 @@ type ResetPasswordFormType = FormGroup<{
   selector: 'app-reset-password',
   templateUrl: './reset-password.component.html',
   styleUrls: ['./reset-password.component.css'],
-  standalone: false,
+  imports: [ReactiveFormsModule, NgIf, GvFormControlDirective, RouterLink, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ResetPasswordComponent implements OnInit {
+  private usersService = inject(UsersService);
+  private reCaptchaService = inject(ReCaptchaService);
+
   isSubmitted: boolean;
   resetPasswordForm: ResetPasswordFormType;
 
-  constructor(
-    private usersService: UsersService,
-    private reCaptchaService: ReCaptchaService,
-  ) {
+  constructor() {
     this.isSubmitted = false;
   }
 

@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
+import { CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { NgIf } from '@angular/common';
 
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
 import { PortalNotification, UserService } from '../../../../../projects/portal-webclient-sdk/src/lib';
@@ -28,9 +29,18 @@ import '@gravitee/ui-components/wc/gv-table';
   selector: 'app-user-notification',
   templateUrl: './user-notification.component.html',
   styleUrls: ['./user-notification.component.css'],
-  standalone: false,
+  imports: [NgIf, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class UserNotificationComponent implements OnInit, OnDestroy {
+  private userService = inject(UserService);
+  private translateService = inject(TranslateService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private config = inject(ConfigurationService);
+  private eventService = inject(EventService);
+  private ref = inject(ChangeDetectorRef);
+
   static NEW = 'gv-notifications:onNew';
   static REMOVE = 'gv-notifications:onRemove';
 
@@ -41,16 +51,6 @@ export class UserNotificationComponent implements OnInit, OnDestroy {
   paginationData: any = {};
   pageSizes: Array<any>;
   size: number;
-
-  constructor(
-    private userService: UserService,
-    private translateService: TranslateService,
-    private route: ActivatedRoute,
-    private router: Router,
-    private config: ConfigurationService,
-    private eventService: EventService,
-    private ref: ChangeDetectorRef,
-  ) {}
 
   ngOnInit() {
     this.pageSizes = this.config.get('pagination.size.values');

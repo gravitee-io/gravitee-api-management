@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import '@gravitee/ui-components/wc/gv-stepper';
 import '@gravitee/ui-components/wc/gv-option';
 import '@gravitee/ui-components/wc/gv-switch';
 import '@gravitee/ui-components/wc/gv-file-upload';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { getApplicationTypeIcon } from '@gravitee/ui-components/src/lib/theme';
+import { NgClass, NgIf } from '@angular/common';
 
 import { ConfigurationService } from '../../../services/configuration.service';
 import {
@@ -37,8 +38,15 @@ import {
 import { NotificationService } from '../../../services/notification.service';
 import { FeatureEnum } from '../../../model/feature.enum';
 
-import { AppFormType, OAuthFormType } from './application-creation-step2/application-creation-step2.component';
-import { CreationFormType } from './application-creation-step1/application-creation-step1.component';
+import {
+  AppFormType,
+  OAuthFormType,
+  ApplicationCreationStep2Component,
+} from './application-creation-step2/application-creation-step2.component';
+import { CreationFormType, ApplicationCreationStep1Component } from './application-creation-step1/application-creation-step1.component';
+import { ApplicationCreationStep3Component } from './application-creation-step3/application-creation-step3.component';
+import { ApplicationCreationStep4Component } from './application-creation-step4/application-creation-step4.component';
+import { ApplicationCreationStep5Component } from './application-creation-step5/application-creation-step5.component';
 
 const SecurityEnum = Plan.SecurityEnum;
 
@@ -87,9 +95,29 @@ function mapToApplicationInput(rawValue): ApplicationInput {
   selector: 'app-application-creation',
   templateUrl: './application-creation.component.html',
   styleUrls: ['./application-creation.component.css'],
-  standalone: false,
+  imports: [
+    NgClass,
+    ApplicationCreationStep1Component,
+    NgIf,
+    ApplicationCreationStep2Component,
+    ApplicationCreationStep3Component,
+    ApplicationCreationStep4Component,
+    ApplicationCreationStep5Component,
+    TranslatePipe,
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ApplicationCreationComponent implements OnInit {
+  private translateService = inject(TranslateService);
+  private configurationService = inject(ConfigurationService);
+  private formBuilder = inject(FormBuilder);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private notificationService = inject(NotificationService);
+  private subscriptionService = inject(SubscriptionService);
+  private applicationService = inject(ApplicationService);
+  private ref = inject(ChangeDetectorRef);
+
   private _allSteps: any;
   steps: any;
   currentStep: number;
@@ -122,17 +150,7 @@ export class ApplicationCreationComponent implements OnInit {
 
   subscriptionErrors: { api: Api; message: string }[];
 
-  constructor(
-    private translateService: TranslateService,
-    private configurationService: ConfigurationService,
-    private formBuilder: FormBuilder,
-    private router: Router,
-    private route: ActivatedRoute,
-    private notificationService: NotificationService,
-    private subscriptionService: SubscriptionService,
-    private applicationService: ApplicationService,
-    private ref: ChangeDetectorRef,
-  ) {
+  constructor() {
     this.currentStep = 1;
     this.readSteps = [1];
     this.subscriptionErrors = [];

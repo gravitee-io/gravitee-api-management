@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { NgIf, NgFor } from '@angular/common';
 
 import '@gravitee/ui-components/wc/gv-autocomplete';
 import '@gravitee/ui-components/wc/gv-button';
@@ -37,22 +38,23 @@ import {
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { HttpStatus } from '../../../utils/http-helpers';
 import { NotificationService } from '../../../services/notification.service';
+import { GvAlertComponent } from '../../../components/gv-alert/gv-alert.component';
 
 @Component({
   selector: 'app-application-alerts',
   templateUrl: './application-alerts.component.html',
   styleUrls: ['./application-alerts.component.css'],
-  standalone: false,
+  imports: [NgIf, NgFor, GvAlertComponent, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ApplicationAlertsComponent implements OnInit {
+  private applicationService = inject(ApplicationService);
+  private translateService = inject(TranslateService);
+  private route = inject(ActivatedRoute);
+  private notificationService = inject(NotificationService);
+  private permissionsService = inject(PermissionsService);
+
   private permissions: Array<string>;
-  constructor(
-    private applicationService: ApplicationService,
-    private translateService: TranslateService,
-    private route: ActivatedRoute,
-    private notificationService: NotificationService,
-    private permissionsService: PermissionsService,
-  ) {}
 
   status: AlertStatusResponse;
   alerts: Array<Alert> = [];

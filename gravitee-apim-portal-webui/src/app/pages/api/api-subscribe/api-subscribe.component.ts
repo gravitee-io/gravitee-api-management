@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, HostListener, OnInit, inject } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { getPicture, getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
+import { NgIf, NgClass, NgFor } from '@angular/common';
 
 import { ConfigurationService } from '../../../services/configuration.service';
 import { ItemResourceTypeEnum } from '../../../model/itemResourceType.enum';
@@ -46,6 +47,9 @@ import '@gravitee/ui-components/wc/gv-option';
 import '@gravitee/ui-components/wc/gv-code';
 import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-schema-form-group';
+import { GvFormControlDirective } from '../../../directives/gv-form-control.directive';
+import { GvPageComponent } from '../../../components/gv-page/gv-page.component';
+import { GvCheckboxControlValueAccessorDirective } from '../../../directives/gv-checkbox-control-value-accessor.directive';
 const StatusEnum = Subscription.StatusEnum;
 const SecurityEnum = Plan.SecurityEnum;
 
@@ -65,9 +69,29 @@ type ApiSubscribeFormType = FormGroup<{
   selector: 'app-api-subscribe',
   templateUrl: './api-subscribe.component.html',
   styleUrls: ['./api-subscribe.component.css'],
-  standalone: false,
+  imports: [
+    NgIf,
+    NgClass,
+    ReactiveFormsModule,
+    GvFormControlDirective,
+    RouterLink,
+    GvPageComponent,
+    GvCheckboxControlValueAccessorDirective,
+    NgFor,
+    TranslatePipe,
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ApiSubscribeComponent implements OnInit {
+  private apiService = inject(ApiService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private translateService = inject(TranslateService);
+  private applicationService = inject(ApplicationService);
+  private subscriptionService = inject(SubscriptionService);
+  private configurationService = inject(ConfigurationService);
+  private entrypointsService = inject(EntrypointsService);
+
   private _applications: Array<Application>;
   private _allSteps: any;
   private _currentPlan: Plan;
@@ -105,17 +129,6 @@ export class ApiSubscribeComponent implements OnInit {
   entrypointOptions: { label: string; value: string }[];
   availableEntrypoints: Map<string, Connector>;
   selectedEntrypointSchema: Record<string, unknown>;
-
-  constructor(
-    private apiService: ApiService,
-    private router: Router,
-    private route: ActivatedRoute,
-    private translateService: TranslateService,
-    private applicationService: ApplicationService,
-    private subscriptionService: SubscriptionService,
-    private configurationService: ConfigurationService,
-    private entrypointsService: EntrypointsService,
-  ) {}
 
   async ngOnInit() {
     this.currentStep = 1;

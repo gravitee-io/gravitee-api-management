@@ -13,26 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
 import { Page, PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
+import { GvDocumentationComponent } from '../../components/gv-documentation/gv-documentation.component';
 
 @Component({
   selector: 'app-documentation',
   templateUrl: './documentation.component.html',
-  standalone: false,
+  imports: [GvDocumentationComponent],
 })
 export class DocumentationComponent implements OnInit {
+  private portalService = inject(PortalService);
+  private activeRoute = inject(ActivatedRoute);
+
   pages: Page[];
   rootDir: string;
   fragment: string;
   pageBaseUrl: string = '/documentation/root';
-
-  constructor(
-    private portalService: PortalService,
-    private activeRoute: ActivatedRoute,
-  ) {}
 
   ngOnInit() {
     this.fragment = this.activeRoute.snapshot.fragment;

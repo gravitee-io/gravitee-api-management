@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef, Component, HostListener, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { NgIf, NgFor } from '@angular/common';
 
 import {
   Application,
@@ -34,7 +35,6 @@ import { ItemResourceTypeEnum } from '../../../model/itemResourceType.enum';
 import { NotificationService } from '../../../services/notification.service';
 import { CurrentUserService } from '../../../services/current-user.service';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
-
 import '@gravitee/ui-components/wc/gv-autocomplete';
 import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-confirm';
@@ -45,6 +45,7 @@ import '@gravitee/ui-components/wc/gv-input';
 import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-select';
 import '@gravitee/ui-components/wc/gv-table';
+import { GvFormControlDirective } from '../../../directives/gv-form-control.directive';
 
 type AddMemberFormType = FormGroup<{
   newMemberRole: FormControl<string>;
@@ -59,22 +60,23 @@ const StatusEnum = Subscription.StatusEnum;
   selector: 'app-application-members',
   templateUrl: './application-members.component.html',
   styleUrls: ['./application-members.component.css'],
-  standalone: false,
+  imports: [NgIf, ReactiveFormsModule, GvFormControlDirective, NgFor, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ApplicationMembersComponent implements OnInit {
-  constructor(
-    private applicationService: ApplicationService,
-    private groupService: GroupService,
-    private portalService: PortalService,
-    private translateService: TranslateService,
-    private route: ActivatedRoute,
-    private router: Router,
-    private notificationService: NotificationService,
-    private permissionService: PermissionsService,
-    private usersService: UsersService,
-    private currentUser: CurrentUserService,
-    private ref: ChangeDetectorRef,
-  ) {
+  private applicationService = inject(ApplicationService);
+  private groupService = inject(GroupService);
+  private portalService = inject(PortalService);
+  private translateService = inject(TranslateService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private notificationService = inject(NotificationService);
+  private permissionService = inject(PermissionsService);
+  private usersService = inject(UsersService);
+  private currentUser = inject(CurrentUserService);
+  private ref = inject(ChangeDetectorRef);
+
+  constructor() {
     this.resetAddMember();
     this.resetTransferOwnership();
   }

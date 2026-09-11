@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, HostListener, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { NgIf, NgStyle, NgFor } from '@angular/common';
 
 import { GvAnalyticsFiltersComponent } from '../../../components/gv-analytics-filters/gv-analytics-filters.component';
 import { ApplicationService, Log } from '../../../../../projects/portal-webclient-sdk/src/lib';
@@ -31,9 +32,18 @@ import '@gravitee/ui-components/wc/gv-stats';
   selector: 'app-application-logs',
   templateUrl: './application-logs.component.html',
   styleUrls: ['./application-logs.component.css'],
-  standalone: false,
+  imports: [GvAnalyticsFiltersComponent, NgIf, NgStyle, NgFor, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ApplicationLogsComponent implements OnInit, OnDestroy {
+  private applicationService = inject(ApplicationService);
+  private analyticsService = inject(AnalyticsService);
+  private translateService = inject(TranslateService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private config = inject(ConfigurationService);
+  private scrollService = inject(ScrollService);
+
   private subscription: any;
   logs: Array<Log>;
   selectedLogIds: string[];
@@ -51,16 +61,6 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
 
   @ViewChild(GvAnalyticsFiltersComponent)
   filtersComponent: GvAnalyticsFiltersComponent;
-
-  constructor(
-    private applicationService: ApplicationService,
-    private analyticsService: AnalyticsService,
-    private translateService: TranslateService,
-    private route: ActivatedRoute,
-    private router: Router,
-    private config: ConfigurationService,
-    private scrollService: ScrollService,
-  ) {}
 
   ngOnInit(): void {
     this.pageSizes = this.config.get('pagination.size.values');
