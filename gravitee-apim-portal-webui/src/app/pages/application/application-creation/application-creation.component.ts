@@ -306,7 +306,7 @@ export class ApplicationCreationComponent implements OnInit {
 
   private async updateSteps() {
     const createdAt = this.createdApplication
-      ? new Date(this.createdApplication.created_at).toLocaleString(this.translateService.currentLang)
+      ? new Date(this.createdApplication.created_at).toLocaleString(this.translateService.currentLang() ?? undefined)
       : '';
 
     const stepThreeStep = await this.stepThreeState();

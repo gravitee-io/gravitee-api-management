@@ -33,12 +33,14 @@ export class TranslationService {
     return new Promise(resolve => {
       this.translateService.addLangs(environment.locales);
       const defaultLang = environment.locales[0];
-      this.translateService.setDefaultLang(defaultLang);
+      // ngx-translate 18 renamed the fallback language and turned the current one into a signal.
+      this.translateService.setFallbackLang(defaultLang);
       const browserLang = this.translateService.getBrowserLang();
       this.translateService.use(environment.locales.includes(browserLang) ? browserLang : defaultLang).subscribe(translations => {
-        setLanguage(this.translateService.currentLang);
-        addTranslations(this.translateService.currentLang, translations, this.translateService.currentLang);
-        this.translateService.get('site.title').subscribe(title => this.titleService.setTitle(title));
+        const currentLang = this.translateService.currentLang() ?? defaultLang;
+        setLanguage(currentLang);
+        addTranslations(currentLang, translations, currentLang);
+        this.translateService.get('site.title').subscribe(title => this.titleService.setTitle(String(title)));
         resolve(true);
       });
     });

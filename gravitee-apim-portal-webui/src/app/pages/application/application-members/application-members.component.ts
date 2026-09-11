@@ -388,7 +388,7 @@ export class ApplicationMembersComponent implements OnInit {
   }
 
   toLocaleDateString(date: string) {
-    return new Date(date).toLocaleDateString(this.translateService.currentLang);
+    return new Date(date).toLocaleDateString(this.translateService.currentLang() ?? undefined);
   }
 
   @HostListener(':gv-list:click', ['$event.detail'])
