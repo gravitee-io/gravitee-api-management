@@ -32,8 +32,8 @@ import org.springframework.stereotype.Component;
  * Infrastructure implementation of SubscriptionFormQueryService, reading the environment-default
  * subscription form through the {@code PortalNavigationItem}/{@code PortalPageContent} model
  * (PORTAL-164) instead of the retired {@code subscription_forms} table/collection. Every caller of
- * this interface (the Get use cases, {@code SubscriptionValidationServiceImpl}, the still-live
- * management-v2 REST resources) keeps working unchanged — only the storage underneath changed.
+ * this interface (the Get use cases, {@code SubscriptionValidationServiceImpl}) keeps working
+ * unchanged — only the storage underneath changed.
  *
  * @author Gravitee.io Team
  */
@@ -49,11 +49,6 @@ public class SubscriptionFormQueryServiceImpl implements SubscriptionFormQuerySe
     ) {
         this.navigationItemsQueryService = navigationItemsQueryService;
         this.pageContentQueryService = pageContentQueryService;
-    }
-
-    @Override
-    public Optional<SubscriptionForm> findByIdAndEnvironmentId(String environmentId, SubscriptionFormId subscriptionFormId) {
-        return findDefaultForEnvironmentId(environmentId).filter(form -> form.getId().equals(subscriptionFormId));
     }
 
     @Override

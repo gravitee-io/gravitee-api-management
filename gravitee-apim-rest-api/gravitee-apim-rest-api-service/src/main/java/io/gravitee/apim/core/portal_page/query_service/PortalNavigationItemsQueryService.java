@@ -23,6 +23,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import jakarta.annotation.Nonnull;
 import java.util.List;
@@ -77,6 +78,22 @@ public interface PortalNavigationItemsQueryService {
             .filter(PortalNavigationPage.class::isInstance)
             .map(PortalNavigationPage.class::cast)
             .filter(page -> page.getPortalPageContentId().equals(contentId))
+            .findFirst();
+    }
+
+    default Optional<PortalNavigationSubscriptionForm> findSubscriptionFormByPortalPageContentId(
+        String environmentId,
+        PortalPageContentId contentId
+    ) {
+        final var criteria = PortalNavigationItemQueryCriteria.builder()
+            .environmentId(environmentId)
+            .type(PortalNavigationItemType.SUBSCRIPTION_FORM)
+            .build();
+        return search(criteria)
+            .stream()
+            .filter(PortalNavigationSubscriptionForm.class::isInstance)
+            .map(PortalNavigationSubscriptionForm.class::cast)
+            .filter(subscriptionForm -> subscriptionForm.getPortalPageContentId().equals(contentId))
             .findFirst();
     }
 }

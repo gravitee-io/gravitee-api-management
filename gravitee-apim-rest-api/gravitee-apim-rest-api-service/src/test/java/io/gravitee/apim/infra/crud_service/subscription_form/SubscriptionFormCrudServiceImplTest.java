@@ -19,25 +19,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
-import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.core.model.SubscriptionFormFixtures;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
-import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
-import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
-import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm;
-import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
-import io.gravitee.apim.core.subscription_form.model.Constraint;
-import io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstraints;
-import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -59,34 +51,24 @@ class SubscriptionFormCrudServiceImplTest {
     EnvironmentRepository environmentRepository;
 
     List<io.gravitee.apim.core.portal_page.model.PortalNavigationItem> navigationItemStorage;
-    PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService;
     PortalNavigationItemsCrudServiceInMemory navigationItemCrudService;
     PortalPageContentCrudServiceInMemory pageContentCrudService;
-    PortalPageContentQueryServiceInMemory pageContentQueryService;
 
     SubscriptionFormCrudServiceImpl service;
 
     @BeforeEach
     void setUp() {
         navigationItemStorage = new ArrayList<>();
-        navigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory(navigationItemStorage);
         navigationItemCrudService = new PortalNavigationItemsCrudServiceInMemory(navigationItemStorage);
         pageContentCrudService = new PortalPageContentCrudServiceInMemory();
-        pageContentQueryService = PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage());
-        service = new SubscriptionFormCrudServiceImpl(
-            environmentRepository,
-            navigationItemsQueryService,
-            navigationItemCrudService,
-            pageContentQueryService,
-            pageContentCrudService
-        );
+        service = new SubscriptionFormCrudServiceImpl(environmentRepository, navigationItemCrudService, pageContentCrudService);
     }
 
     @Nested
     class Create {
 
         @BeforeEach
-        void setUp() throws io.gravitee.repository.exceptions.TechnicalException {
+        void setUp() throws TechnicalException {
             when(environmentRepository.findById(ENV_ID)).thenReturn(Optional.of(ENVIRONMENT));
         }
 
@@ -113,62 +95,11 @@ class SubscriptionFormCrudServiceImplTest {
         }
 
         @Test
-        void should_throw_when_environment_is_unknown() throws io.gravitee.repository.exceptions.TechnicalException {
+        void should_throw_when_environment_is_unknown() throws TechnicalException {
             when(environmentRepository.findById(ENV_ID)).thenReturn(Optional.empty());
             var subscriptionForm = SubscriptionFormFixtures.aSubscriptionFormWithNullId();
 
             assertThatThrownBy(() -> service.create(subscriptionForm)).isInstanceOf(TechnicalDomainException.class);
-        }
-    }
-
-    @Nested
-    class Update {
-
-        @Test
-        void should_update_published_and_validation_constraints_and_page_content() {
-            var contentId = PortalPageContentId.random();
-            pageContentCrudService
-                .storage()
-                .add(
-                    fixtures.core.model.PortalPageContentFixtures.aGraviteeMarkdownPageContent(contentId, "org-id", ENV_ID, "old content")
-                );
-            var existingItem = PortalNavigationItemFixtures.aSubscriptionForm(SubscriptionFormFixtures.FORM_ID, contentId)
-                .toBuilder()
-                .environmentId(ENV_ID)
-                .published(false)
-                .build();
-            navigationItemStorage.add(existingItem);
-
-            var newConstraints = new SubscriptionFormFieldConstraints(Map.of("email", List.of(new Constraint.Required())));
-            var updatedForm = SubscriptionFormFixtures.aSubscriptionFormBuilder()
-                .gmdContent(GraviteeMarkdown.of("new content"))
-                .enabled(true)
-                .validationConstraints(newConstraints)
-                .build();
-
-            var result = service.update(updatedForm);
-
-            var storedItem = (PortalNavigationSubscriptionForm) navigationItemsQueryService.findByIdAndEnvironmentId(
-                ENV_ID,
-                existingItem.getId()
-            );
-            assertThat(storedItem.getPublished()).isTrue();
-            assertThat(storedItem.getValidationConstraints()).isEqualTo(newConstraints);
-
-            var storedContent = pageContentQueryService.findById(contentId).orElseThrow();
-            assertThat(((io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent) storedContent).getContent()).isEqualTo(
-                GraviteeMarkdown.of("new content")
-            );
-
-            assertThat(result.isEnabled()).isTrue();
-            assertThat(result.getValidationConstraints()).isEqualTo(newConstraints);
-        }
-
-        @Test
-        void should_throw_when_the_navigation_item_does_not_exist() {
-            var subscriptionForm = SubscriptionFormFixtures.aSubscriptionForm();
-
-            assertThatThrownBy(() -> service.update(subscriptionForm)).isInstanceOf(TechnicalDomainException.class);
         }
     }
 }

@@ -34,6 +34,7 @@ describe('PortalNavigationItemIconPipe', () => {
     ['FOLDER', 'gio:folder'],
     ['API', 'gio:folder-api'],
     ['API_PRODUCT', 'gio:folder-api'],
+    ['SUBSCRIPTION_FORM', 'gio:list-check'],
   ] as const)('should map %s to %s', (type, expected) => {
     expect(pipe.transform(type)).toBe(expected);
   });

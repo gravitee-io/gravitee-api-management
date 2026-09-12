@@ -22,6 +22,7 @@ import {
   PortalNavigationLink,
   PortalNavigationApi,
   PortalNavigationApiProduct,
+  PortalNavigationSubscriptionForm,
   NewPagePortalNavigationItem,
   NewFolderPortalNavigationItem,
   NewLinkPortalNavigationItem,
@@ -32,6 +33,7 @@ import {
   UpdateFolderPortalNavigationItem,
   UpdateApiPortalNavigationItem,
   UpdateApiProductPortalNavigationItem,
+  UpdateSubscriptionFormPortalNavigationItem,
 } from './portalNavigationItem';
 import { PortalNavigationItemsResponse } from './portalNavigationItemsResponse';
 
@@ -141,6 +143,32 @@ export function fakePortalNavigationApiProduct(overrides?: Partial<PortalNavigat
     order: 1,
     area: 'TOP_NAVBAR',
     apiProductId: 'api-product-1',
+    published: false,
+    visibility: 'PUBLIC',
+  };
+
+  if (isFunction(overrides)) {
+    return overrides(base);
+  }
+
+  return {
+    ...base,
+    ...overrides,
+  };
+}
+
+export function fakePortalNavigationSubscriptionForm(
+  overrides?: Partial<PortalNavigationSubscriptionForm>,
+): PortalNavigationSubscriptionForm {
+  const base: PortalNavigationSubscriptionForm = {
+    id: 'nav-subscription-form-1',
+    organizationId: 'org-1',
+    environmentId: 'env-1',
+    title: 'Subscription Form',
+    type: 'SUBSCRIPTION_FORM',
+    order: 0,
+    area: 'SUBSCRIPTION_FORM',
+    portalPageContentId: 'subscription-form-content-1',
     published: false,
     visibility: 'PUBLIC',
   };
@@ -370,6 +398,26 @@ export function fakeUpdateApiProductPortalNavigationItem(
     published: false,
     type: 'API_PRODUCT',
     title: 'Updated API Product',
+    visibility: 'PUBLIC',
+  };
+
+  if (isFunction(overrides)) {
+    return overrides(base);
+  }
+
+  return {
+    ...base,
+    ...overrides,
+  };
+}
+
+export function fakeUpdateSubscriptionFormPortalNavigationItem(
+  overrides?: Partial<UpdateSubscriptionFormPortalNavigationItem>,
+): UpdateSubscriptionFormPortalNavigationItem {
+  const base: UpdateSubscriptionFormPortalNavigationItem = {
+    published: false,
+    type: 'SUBSCRIPTION_FORM',
+    title: 'Subscription Form',
     visibility: 'PUBLIC',
   };
 

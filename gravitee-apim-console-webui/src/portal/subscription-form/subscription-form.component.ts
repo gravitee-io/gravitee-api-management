@@ -18,8 +18,8 @@ import { GMD_FORM_STATE_STORE, GmdFormEditorComponent, provideGmdFormStore } fro
 import { Component, computed, DestroyRef, effect, HostListener, inject, signal, untracked, WritableSignal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { catchError, filter, startWith, switchMap, tap } from 'rxjs/operators';
-import { EMPTY } from 'rxjs';
+import { catchError, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { EMPTY, Observable, of } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -34,8 +34,13 @@ import {
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
-import { SubscriptionForm } from '../../entities/management-api-v2';
-import { SubscriptionFormService } from '../../services-ngx/subscription-form.service';
+import {
+  PortalNavigationSubscriptionForm,
+  PortalPageContent,
+  UpdateSubscriptionFormPortalNavigationItem,
+} from '../../entities/management-api-v2';
+import { PortalNavigationItemService } from '../../services-ngx/portal-navigation-item.service';
+import { PortalPageContentService } from '../../services-ngx/portal-page-content.service';
 import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard';
 import { normalizeContent } from '../../shared/utils/content.util';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
@@ -58,20 +63,29 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
 })
 export class SubscriptionFormComponent implements HasUnsavedChanges {
   private readonly snackbarService = inject(SnackBarService);
-  private readonly subscriptionFormService = inject(SubscriptionFormService);
+  private readonly portalNavigationItemService = inject(PortalNavigationItemService);
+  private readonly portalPageContentService = inject(PortalPageContentService);
   private readonly gioPermissionService = inject(GioPermissionService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly matDialog = inject(MatDialog);
   private readonly store = inject(GMD_FORM_STATE_STORE);
 
-  private readonly subscriptionForm: WritableSignal<SubscriptionForm | null> = signal(null);
+  private readonly navigationItem: WritableSignal<PortalNavigationSubscriptionForm | null> = signal(null);
+  private readonly pageContent: WritableSignal<PortalPageContent | null> = signal(null);
   private readonly canUpdate = signal(this.gioPermissionService.hasAnyMatching(['environment-metadata-u']));
   contentControl = new FormControl<string>('', { nonNullable: true });
   enabledControl = new FormControl<boolean>(false, { nonNullable: true });
 
   private readonly contentValue = toSignal(this.contentControl.valueChanges.pipe(startWith(this.contentControl.value)));
   private readonly subscriptionFormResult = toSignal(
-    this.subscriptionFormService.getSubscriptionForm().pipe(
+    this.portalNavigationItemService.getNavigationItems('SUBSCRIPTION_FORM').pipe(
+      switchMap(response => {
+        const item = response.items[0] as PortalNavigationSubscriptionForm | undefined;
+        if (!item) {
+          return of(null);
+        }
+        return this.portalPageContentService.getPageContent(item.portalPageContentId).pipe(map(content => ({ item, content })));
+      }),
       catchError(({ error }) => {
         this.snackbarService.error(error?.message ?? 'An error occurred while loading the subscription form');
         return EMPTY;
@@ -86,7 +100,7 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
   /** Only severity `error` blocks save; `warning` (e.g. normalized lengths) does not. */
   protected readonly hasConfigErrors = computed(() => this.store.criticalConfigErrors().length > 0);
   readonly configErrorsTooltip = 'Fix configuration errors before continuing.';
-  readonly subscriptionFormEnabled = computed(() => this.subscriptionForm()?.enabled ?? false);
+  readonly subscriptionFormEnabled = computed(() => this.navigationItem()?.published ?? false);
 
   readonly enabledControlTooltip = computed(() => {
     if (!this.canUpdate()) return 'You do not have permission to change this.';
@@ -120,9 +134,10 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
   private readonly subscriptionFormLoadEffect = effect(() => {
     const result = this.subscriptionFormResult();
     if (!result) return;
-    this.subscriptionForm.set(result);
-    this.contentControl.reset(result.gmdContent || '', { emitEvent: true });
-    this.enabledControl.setValue(result.enabled, { emitEvent: false });
+    this.navigationItem.set(result.item);
+    this.pageContent.set(result.content);
+    this.contentControl.reset(result.content.content || '', { emitEvent: true });
+    this.enabledControl.setValue(result.item.published, { emitEvent: false });
   });
 
   private readonly enabledControlEffect = effect(() => {
@@ -142,22 +157,22 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
 
   hasUnsavedChanges(): boolean {
     const current = normalizeContent(this.contentValue() ?? '');
-    const initial = normalizeContent(this.subscriptionForm()?.gmdContent ?? '');
+    const initial = normalizeContent(this.pageContent()?.content ?? '');
     return current !== initial;
   }
 
   updateSubscriptionForm(): void {
-    const form = this.subscriptionForm();
-    if (!form) return;
+    const item = this.navigationItem();
+    if (!item) return;
 
-    this.subscriptionFormService
-      .updateSubscriptionForm(form.id, {
-        gmdContent: this.contentControl.value,
+    this.portalPageContentService
+      .updatePageContent(item.portalPageContentId, {
+        content: this.contentControl.value,
       })
       .pipe(
-        tap(updatedForm => {
+        tap(updatedContent => {
+          this.pageContent.set(updatedContent);
           this.snackbarService.success(`The subscription form has been updated successfully`);
-          this.subscriptionForm.set(updatedForm);
         }),
         catchError(({ error }) => {
           this.snackbarService.error(error?.message ?? 'An error occurred while updating the subscription form');
@@ -213,34 +228,45 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
       .subscribe();
   }
 
-  private toggleEnabled(enabled: boolean, saveBeforeToggle: boolean) {
-    const form = this.subscriptionForm();
-    if (!form) {
+  private buildUpdatePayload(item: PortalNavigationSubscriptionForm, published: boolean): UpdateSubscriptionFormPortalNavigationItem {
+    return {
+      type: 'SUBSCRIPTION_FORM',
+      title: item.title,
+      order: item.order,
+      published,
+      visibility: item.visibility,
+    };
+  }
+
+  private toggleEnabled(enabled: boolean, saveBeforeToggle: boolean): Observable<PortalNavigationSubscriptionForm> {
+    const item = this.navigationItem();
+    if (!item) {
       this.resetEnabledToInitial();
       return EMPTY;
     }
 
     const action = enabled ? 'enable' : 'disable';
-    const toggle$ = enabled
-      ? this.subscriptionFormService.enableSubscriptionForm(form.id)
-      : this.subscriptionFormService.disableSubscriptionForm(form.id);
+    const toggle$ = this.portalNavigationItemService.updateNavigationItem(
+      item.id,
+      this.buildUpdatePayload(item, enabled),
+    ) as Observable<PortalNavigationSubscriptionForm>;
 
     const request$ = saveBeforeToggle
-      ? this.subscriptionFormService
-          .updateSubscriptionForm(form.id, {
-            gmdContent: this.contentControl.value,
+      ? this.portalPageContentService
+          .updatePageContent(item.portalPageContentId, {
+            content: this.contentControl.value,
           })
           .pipe(
-            tap(updatedForm => this.subscriptionForm.set(updatedForm)),
+            tap(updatedContent => this.pageContent.set(updatedContent)),
             switchMap(() => toggle$),
           )
       : toggle$;
 
     return request$.pipe(
-      tap(updatedForm => {
-        this.subscriptionForm.set(updatedForm);
-        this.enabledControl.setValue(updatedForm.enabled, { emitEvent: false });
-        this.snackbarService.success(`Subscription form has been ${updatedForm.enabled ? 'enabled' : 'disabled'} successfully.`);
+      tap(updatedItem => {
+        this.navigationItem.set(updatedItem);
+        this.enabledControl.setValue(updatedItem.published, { emitEvent: false });
+        this.snackbarService.success(`Subscription form has been ${updatedItem.published ? 'enabled' : 'disabled'} successfully.`);
       }),
       catchError(({ error }) => {
         this.resetEnabledToInitial();

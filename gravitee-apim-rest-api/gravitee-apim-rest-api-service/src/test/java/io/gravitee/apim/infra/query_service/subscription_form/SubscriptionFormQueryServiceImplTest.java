@@ -99,38 +99,4 @@ class SubscriptionFormQueryServiceImplTest {
             assertThat(result).isEmpty();
         }
     }
-
-    @Nested
-    class FindByIdAndEnvironmentId {
-
-        @Test
-        void should_return_the_form_when_the_id_matches_the_default_item() {
-            var contentId = PortalPageContentId.random();
-            pageContentQueryService.initWith(
-                List.of(PortalPageContentFixtures.aGraviteeMarkdownPageContent(contentId, "org-id", ENV_ID, "content"))
-            );
-            navigationItemsQueryService
-                .storage()
-                .add(PortalNavigationItemFixtures.aSubscriptionForm("00000000-0000-0000-0000-000000000032", contentId));
-
-            var result = service.findByIdAndEnvironmentId(ENV_ID, SubscriptionFormId.of("00000000-0000-0000-0000-000000000032"));
-
-            assertThat(result).isPresent();
-        }
-
-        @Test
-        void should_return_empty_when_the_id_does_not_match() {
-            var contentId = PortalPageContentId.random();
-            pageContentQueryService.initWith(
-                List.of(PortalPageContentFixtures.aGraviteeMarkdownPageContent(contentId, "org-id", ENV_ID, "content"))
-            );
-            navigationItemsQueryService
-                .storage()
-                .add(PortalNavigationItemFixtures.aSubscriptionForm("00000000-0000-0000-0000-000000000033", contentId));
-
-            var result = service.findByIdAndEnvironmentId(ENV_ID, SubscriptionFormId.of("00000000-0000-0000-0000-000000000099"));
-
-            assertThat(result).isEmpty();
-        }
-    }
 }

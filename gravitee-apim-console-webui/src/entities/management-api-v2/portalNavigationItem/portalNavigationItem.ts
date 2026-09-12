@@ -15,8 +15,8 @@
  */
 import type { PortalPageContentType } from '../portalPageContent/portalPageContent';
 
-export type PortalArea = 'HOMEPAGE' | 'TOP_NAVBAR';
-export type PortalNavigationItemType = 'PAGE' | 'FOLDER' | 'LINK' | 'API' | 'API_PRODUCT';
+export type PortalArea = 'HOMEPAGE' | 'TOP_NAVBAR' | 'SUBSCRIPTION_FORM';
+export type PortalNavigationItemType = 'PAGE' | 'FOLDER' | 'LINK' | 'API' | 'API_PRODUCT' | 'SUBSCRIPTION_FORM';
 export type PortalVisibility = 'PUBLIC' | 'PRIVATE';
 
 export interface PortalNavigationItemSource {
@@ -70,12 +70,17 @@ export interface PortalNavigationApiProduct extends BasePortalNavigationItem<'AP
   categoryIds?: string[];
 }
 
+export interface PortalNavigationSubscriptionForm extends BasePortalNavigationItem<'SUBSCRIPTION_FORM'> {
+  portalPageContentId: string;
+}
+
 export type PortalNavigationItem =
   | PortalNavigationPage
   | PortalNavigationFolder
   | PortalNavigationLink
   | PortalNavigationApi
-  | PortalNavigationApiProduct;
+  | PortalNavigationApiProduct
+  | PortalNavigationSubscriptionForm;
 
 /** Only PAGE and FOLDER items can carry an external source. */
 export function getPortalNavigationItemSource(item: PortalNavigationItem): PortalNavigationItemSource | undefined {
@@ -232,9 +237,13 @@ export interface UpdateApiProductPortalNavigationItem extends BaseUpdatePortalNa
   categoryIds?: string[];
 }
 
+/** No fields beyond the base: content is edited separately via portal-page-contents. */
+export type UpdateSubscriptionFormPortalNavigationItem = BaseUpdatePortalNavigationItem<'SUBSCRIPTION_FORM'>;
+
 export type UpdatePortalNavigationItem =
   | UpdatePagePortalNavigationItem
   | UpdateFolderPortalNavigationItem
   | UpdateLinkPortalNavigationItem
   | UpdateApiPortalNavigationItem
-  | UpdateApiProductPortalNavigationItem;
+  | UpdateApiProductPortalNavigationItem
+  | UpdateSubscriptionFormPortalNavigationItem;

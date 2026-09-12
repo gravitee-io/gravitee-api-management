@@ -48,5 +48,4 @@ export * from './portalCustomization';
 export * from './portalMenuLink';
 export * from './portalNavigationItem';
 export * from './portalPageContent';
-export * from './subscriptionForm';
 export * from './cluster';
