@@ -458,6 +458,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     });
             }
 
+            if (updateApiEntity.getProperties() != null) {
+                PropertyClassificationValidator.rejectEncryptedToPlain(existingApiEntity.getProperties(), updateApiEntity.getProperties());
+            }
+
             // encrypt API properties
             if (updateApiEntity.getProperties() != null) {
                 updateApiEntity.setProperties(this.propertiesService.encryptProperties(updateApiEntity.getProperties()));
