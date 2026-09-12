@@ -28,6 +28,7 @@ import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudSe
 import io.gravitee.apim.core.portal_page.domain_service.ApiDocumentationSyncDomainService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
@@ -39,7 +40,7 @@ import io.gravitee.apim.core.slug.model.Slug;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
-/** Owns the {@link PortalNavigationApi} row lifecycle (upsert at the deterministic id, cascade-dematerialize). */
+/** Owns the {@link PortalNavigationApi} row lifecycle (upsert at the deterministic id, row-only dematerialize). */
 @DomainService
 @RequiredArgsConstructor
 class NavigationItemEntryMaterializer {
@@ -138,7 +139,7 @@ class NavigationItemEntryMaterializer {
     ) {
         var parentId = Optional.ofNullable(parent).map(PortalNavigationItemContainer::getId).orElse(null);
         navigationItemsQueryService
-            .findByParentIdAndSegment(auditInfo.environmentId(), parentId, segment)
+            .findByParentIdAndSegment(auditInfo.environmentId(), parentId, segment, NavigationItemReference.defaultReference())
             .filter(sibling -> !sibling.getId().equals(expectedId))
             .ifPresent(squatter -> {
                 throw PathConflictException.segmentTaken(PathConflictException.EntryKind.LISTING, location);

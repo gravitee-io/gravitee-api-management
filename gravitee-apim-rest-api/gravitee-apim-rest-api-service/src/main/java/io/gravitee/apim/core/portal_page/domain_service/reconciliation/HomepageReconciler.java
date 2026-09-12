@@ -37,7 +37,7 @@ public class HomepageReconciler {
 
     public void dropStaleHomepages(String environmentId, String portalId, PortalNavigationItemId activeHomepageId) {
         dropHomepagesMatching(environmentId, new NavigationItemReference.PortalReference(PortalId.of(portalId)), activeHomepageId);
-        dropHomepagesMatching(environmentId, NavigationItemReference.DEFAULT, activeHomepageId);
+        dropHomepagesMatching(environmentId, NavigationItemReference.defaultReference(), activeHomepageId);
     }
 
     private void dropHomepagesMatching(String environmentId, NavigationItemReference reference, PortalNavigationItemId activeHomepageId) {
