@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { cloneDeep } from 'lodash';
-// eslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 require('@gravitee/ui-components/wc/gv-stats');
 const WidgetDataStatsComponent: ng.IComponentOptions = {
-  template: require('html-loader!./widget-data-stats.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./widget-data-stats.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   bindings: {
     data: '<',
   },

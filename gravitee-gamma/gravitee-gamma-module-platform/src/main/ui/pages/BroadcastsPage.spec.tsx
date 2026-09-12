@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { BroadcastsPage } from './BroadcastsPage';
 import { useEnvironmentRoles, useSendEnvironmentBroadcast } from '../features/broadcasts/hooks/useEnvironmentBroadcast';
@@ -35,7 +36,7 @@ jest.mock('../features/broadcasts/hooks/useEnvironmentBroadcast', () => ({
 }));
 
 jest.mock('@gravitee/graphene-core', () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const React = require('react');
 
     const ComboboxContext = React.createContext({

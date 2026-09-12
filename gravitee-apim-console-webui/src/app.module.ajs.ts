@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint-disable @typescript-eslint/no-var-requires, import/order */
+/* eslint-disable @typescript-eslint/no-require-imports, import/order */
 import * as jQuery from 'jquery';
 import 'angular-aria';
 import 'angular-animate';

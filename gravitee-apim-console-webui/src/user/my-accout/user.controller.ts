@@ -106,7 +106,7 @@ class UserController {
       .show({
         controller: 'DialogConfirmAndValidateController',
         controllerAs: 'ctrl',
-        template: require('html-loader!../../components/dialog/confirmAndValidate.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+        template: require('html-loader!../../components/dialog/confirmAndValidate.dialog.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
         clickOutsideToClose: true,
         locals: {
           title: 'Are you sure you want to delete your account ?',
@@ -150,7 +150,7 @@ class UserController {
       .show({
         controller: 'DialogGenerateTokenController',
         controllerAs: 'ctrl',
-        template: require('html-loader!./token/generateToken.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+        template: require('html-loader!./token/generateToken.dialog.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
         clickOutsideToClose: false,
         escapeToClose: false,
         locals: {
@@ -170,7 +170,7 @@ class UserController {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('html-loader!../../components/dialog/confirmWarning.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+        template: require('html-loader!../../components/dialog/confirmWarning.dialog.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
         clickOutsideToClose: true,
         locals: {
           msg: 'Any applications or scripts using this token will no longer be able to access the Gravitee.io management API. You cannot undo this action.',

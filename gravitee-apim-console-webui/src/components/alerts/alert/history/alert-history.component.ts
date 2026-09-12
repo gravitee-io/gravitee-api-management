@@ -23,7 +23,7 @@ const AlertHistoryComponent: ng.IComponentOptions = {
   require: {
     parent: '^alertComponentAjs',
   },
-  template: require('html-loader!./alert-history.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./alert-history.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   controller: [
     'AlertService',
     function (AlertService: AlertService) {

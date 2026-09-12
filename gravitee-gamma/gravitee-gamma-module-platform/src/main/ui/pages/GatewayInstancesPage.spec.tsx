@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { GatewayInstancesPage } from './GatewayInstancesPage';
 import { useGatewayInstanceList } from '../features/gateway-instances/hooks/useGatewayInstanceList';

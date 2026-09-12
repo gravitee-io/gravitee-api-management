@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 const ErrorComponent: ng.IComponentOptions = {
-  template: require('html-loader!./error.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./error.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   controller: 'ErrorController',
   bindings: {
     error: '<',

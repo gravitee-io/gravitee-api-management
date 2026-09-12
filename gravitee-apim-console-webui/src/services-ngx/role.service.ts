@@ -51,7 +51,7 @@ export class RoleService {
     const isAvailableScope = (
       scopeString: string,
     ): scopeString is 'API' | 'APPLICATION' | 'ENVIRONMENT' | 'ORGANIZATION' | 'INTEGRATION' | 'CLUSTER' | 'API_PRODUCT' => {
-      return availableScopes.includes(scope);
+      return availableScopes.includes(scopeString);
     };
 
     if (!isAvailableScope(scope)) {

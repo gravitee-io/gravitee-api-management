@@ -24,9 +24,9 @@ import { ApiService } from '../../../../services/api.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { GroupV2Service } from '../../../../services-ngx/group-v2.service';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const copy = require('clipboard-copy');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const JsDiff = require('diff/dist/diff.min.js');
 
 const propertyProviders = [
@@ -462,7 +462,7 @@ class ApiHistoryControllerAjs {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('html-loader!../../../../components/dialog/confirm.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+        template: require('html-loader!../../../../components/dialog/confirm.dialog.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
         clickOutsideToClose: true,
         locals: {
           title: 'Would you like to rollback your API?',

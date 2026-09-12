@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useCallback, useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { ApplicationsEmptyLanding } from '../features/applications/components';
 import { ApplicationsListView } from '../features/applications/components/list';

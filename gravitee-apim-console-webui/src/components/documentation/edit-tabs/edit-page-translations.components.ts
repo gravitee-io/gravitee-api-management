@@ -77,7 +77,7 @@ class EditPageTranslationsComponentController implements IController {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('html-loader!../../dialog/confirmWarning.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+        template: require('html-loader!../../dialog/confirmWarning.dialog.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
         clickOutsideToClose: true,
         locals: {
           title: 'Would you like to remove "' + page.name + '"?',
@@ -139,6 +139,6 @@ export const EditPageTranslationsComponent: ng.IComponentOptions = {
     page: '=',
     readOnly: '<',
   },
-  template: require('html-loader!./edit-page-translations.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./edit-page-translations.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   controller: EditPageTranslationsComponentController,
 };

@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { MetadataPage } from './MetadataPage';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';

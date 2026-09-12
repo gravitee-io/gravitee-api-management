@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Alert, AlertDescription, Skeleton, useLayoutConfig } from '@gravitee/graphene-core';
 import { InfoIcon } from '@gravitee/graphene-core/icons';
 import { PolicyStudio, type ApiProtocolType, type Policy, type SaveOutput } from '@gravitee/graphene-policy-studio';
 import { useCallback, useState } from 'react';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { DeployPlatformPoliciesDialog } from '../features/platform-policies/components/DeployPlatformPoliciesDialog';
 import { usePlatformPolicies } from '../features/platform-policies/hooks/usePlatformPolicies';

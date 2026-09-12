@@ -51,7 +51,7 @@ const loadContent = (spec: string): Record<string, unknown> => {
   if (spec) {
     try {
       contentAsJson = normalizeTypeArrays(angular.fromJson(spec)) as Record<string, unknown>;
-    } catch (e) {
+    } catch {
       contentAsJson = normalizeTypeArrays(loadYaml(spec)) as Record<string, unknown>;
     }
   }

@@ -4,9 +4,10 @@ import { importProvidersFrom } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+
 import { CONSTANTS_TESTING } from '../src/shared/testing';
 import { Constants } from '../src/entities/Constants';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 // Set material classes to the Storybook root div
 window.document.body.parentElement.classList.add('mat');

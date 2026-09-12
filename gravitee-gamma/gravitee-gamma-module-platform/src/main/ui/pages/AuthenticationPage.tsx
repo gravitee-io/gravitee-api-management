@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Button, Card, CardContent, Skeleton } from '@gravitee/graphene-core';
 import { PlusIcon } from '@gravitee/graphene-core/icons';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { AuthenticationEmptyProviders } from '../features/authentication/components/AuthenticationEmptyProviders';
 import { IdentityProvidersTable } from '../features/authentication/components/IdentityProvidersTable';

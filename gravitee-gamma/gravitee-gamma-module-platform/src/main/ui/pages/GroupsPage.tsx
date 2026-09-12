@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Button } from '@gravitee/graphene-core';
 import { PlusIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { GroupDeleteDialog } from '../features/groups/components/GroupDeleteDialog';
 import { GroupSheet, type GroupFormValues } from '../features/groups/components/GroupSheet';

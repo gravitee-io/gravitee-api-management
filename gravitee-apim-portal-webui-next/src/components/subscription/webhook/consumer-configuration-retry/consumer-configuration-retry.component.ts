@@ -116,7 +116,11 @@ export class ConsumerConfigurationRetryComponent implements ControlValueAccessor
   }
 
   setDisabledState(isDisabled: boolean): void {
-    isDisabled ? this.retryForm.disable() : this.retryForm?.enable();
+    if (isDisabled) {
+      this.retryForm.disable();
+    } else {
+      this.retryForm?.enable();
+    }
   }
 
   validate(_: AbstractControl): ValidationErrors | null {

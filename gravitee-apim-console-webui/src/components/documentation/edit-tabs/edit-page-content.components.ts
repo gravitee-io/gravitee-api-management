@@ -80,6 +80,6 @@ export const EditPageContentComponent: ng.IComponentOptions = {
     pageType: '<',
     contentUrl: '<',
   },
-  template: require('html-loader!./edit-page-content.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./edit-page-content.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   controller: EditPageContentComponentController,
 };

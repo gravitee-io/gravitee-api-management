@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useQuery } from '@tanstack/react-query';
+
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { getEnvironmentDictionary } from '../services/dictionaries';
 import { dictionaryKeys } from '../utils/queryKeys';

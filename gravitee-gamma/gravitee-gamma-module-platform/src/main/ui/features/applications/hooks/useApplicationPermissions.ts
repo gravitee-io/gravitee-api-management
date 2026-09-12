@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { permissionService, useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
+
+import { permissionService, useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { getApplicationPermissions } from '../services/applicationPermissions';
 import { applicationPermissionKeys } from '../utils/queryKeys';

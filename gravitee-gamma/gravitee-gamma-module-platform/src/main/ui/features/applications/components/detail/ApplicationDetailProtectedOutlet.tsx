@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Skeleton } from '@gravitee/graphene-core';
 import { Outlet, useLocation, useParams } from 'react-router-dom';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { ApplicationDetailAccessDenied } from './ApplicationDetailAccessDenied';
 import { getApplicationDetailTabPermissions } from '../../../../config/applicationDetailNavigation';

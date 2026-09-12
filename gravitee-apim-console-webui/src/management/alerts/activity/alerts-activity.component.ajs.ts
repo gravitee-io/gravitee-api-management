@@ -41,7 +41,7 @@ const AlertsActivityComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
   },
   controller: AlertsActivityController,
-  template: require('html-loader!./alerts-activity.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./alerts-activity.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
 };
 
 export default AlertsActivityComponentAjs;

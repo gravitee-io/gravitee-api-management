@@ -131,7 +131,7 @@ describe('FilterLabelResolver', () => {
     resolver.resolveLabels(firstConditions).subscribe(firstResult => {
       expect(firstResult[0].valueLabels).toEqual(['My Cool API']);
 
-      // eslint-disable-next-line rxjs/no-nested-subscribe
+      // eslint-disable-next-line rxjs-x/no-nested-subscribe
       resolver.resolveLabels(secondConditions).subscribe(secondResult => {
         expect(secondResult[0].label).toBe('Application');
         expect(secondResult[0].valueLabels).toEqual(['App One']);

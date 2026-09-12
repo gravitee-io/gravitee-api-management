@@ -29,7 +29,7 @@ class CorsService {
         .show({
           controller: 'DialogConfirmController',
           controllerAs: 'ctrl',
-          template: require('html-loader!../components/dialog/confirmWarning.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+          template: require('html-loader!../components/dialog/confirmWarning.dialog.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
           clickOutsideToClose: true,
           locals: {
             title: 'Are you sure you want to remove all cross-origin restrictions?',
@@ -49,7 +49,7 @@ class CorsService {
         if (['{', '[', '(', '*'].some(v => this.allowOriginPattern.includes(v))) {
           try {
             new RegExp(chip);
-          } catch (e) {
+          } catch {
             invalidRegex = true;
           }
         }
@@ -79,7 +79,7 @@ class CorsService {
           try {
             // eslint:disable-next-line:no-unused-expression
             new RegExp(allowOrigin);
-          } catch (e) {
+          } catch {
             isValid = false;
           }
         }

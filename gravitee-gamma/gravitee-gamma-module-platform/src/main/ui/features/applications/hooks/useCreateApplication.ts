@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { ApimApiError } from '../../../shared/api/apimClient';
 import { createApplication } from '../services/applicationCreate';

@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { useNavigate } from 'react-router-dom';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { GroupsPage } from './GroupsPage';
 import { useCreateGroup, useDeleteGroup, useUpdateGroup } from '../features/groups/hooks/useGroupMutations';

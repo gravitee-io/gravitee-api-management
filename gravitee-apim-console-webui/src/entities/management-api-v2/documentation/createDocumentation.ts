@@ -17,6 +17,8 @@ import { Visibility } from './visibility';
 import { AccessControl } from './page';
 import { PageSource } from './pageSource';
 
+// The object exists only to derive the type below; typescript-eslint 8 counts that as unused.
+// eslint-disable-next-line unused-imports/no-unused-vars
 const CreateDocumentationTypeEnum = {
   MARKDOWN: 'MARKDOWN',
   SWAGGER: 'SWAGGER',

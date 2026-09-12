@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useHasFeature, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+
+import { useHasFeature, useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { EntrypointsAndShardingTagsPage } from './EntrypointsAndShardingTagsPage';
 import { useEntrypointConfigurations } from '../features/entrypoints/hooks/useEntrypointConfigurations';

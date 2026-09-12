@@ -85,7 +85,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
         // Disable URL field as initial value for channel is PORTAL.
         this.form.controls['url'].disable();
 
-        // eslint-disable-next-line rxjs/no-nested-subscribe
+        // eslint-disable-next-line rxjs-x/no-nested-subscribe
         this.form.controls['channel'].valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(values => {
           if (values === 'HTTP') {
             this.form.controls['title'].disable();

@@ -18,7 +18,7 @@ const PlatformLogsComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
   },
   controller: 'PlatformLogsController',
-  template: require('html-loader!./platform-logs.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./platform-logs.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
 };
 
 export default PlatformLogsComponentAjs;

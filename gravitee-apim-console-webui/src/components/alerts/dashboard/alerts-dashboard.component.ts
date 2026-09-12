@@ -183,7 +183,7 @@ class AlertsDashboardComponent implements ng.IComponentController {
 }
 
 const AlertDashBoardComponent: ng.IComponentOptions = {
-  template: require('html-loader!./alerts-dashboard.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./alerts-dashboard.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   bindings: {
     referenceType: '<',
     referenceId: '<',

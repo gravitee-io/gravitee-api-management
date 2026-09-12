@@ -37,7 +37,7 @@ export class DebugModeInspectorBodyComponent implements OnChanges {
       try {
         // FIXME: Remove this hack working only for JSON when we will have a proper diff for the body
         this.formattedInput = JSON.stringify(JSON.parse(changes.input.currentValue), null, 2);
-      } catch (e) {
+      } catch {
         this.formattedInput = changes.input.currentValue;
       }
     }
@@ -46,7 +46,7 @@ export class DebugModeInspectorBodyComponent implements OnChanges {
       try {
         // FIXME: Remove this hack working only for JSON when we will have a proper diff for the body
         this.formattedOutput = JSON.stringify(JSON.parse(changes.output.currentValue), null, 2);
-      } catch (e) {
+      } catch {
         this.formattedOutput = changes.output.currentValue;
       }
     }

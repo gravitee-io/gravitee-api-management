@@ -33,7 +33,7 @@ export const ConfigureTestingGraviteeMarkdownEditor = () => {
         exports: [MockMonacoEditorComponent],
       },
     });
-  } catch (e) {
+  } catch {
     // Do nothing
   }
 };

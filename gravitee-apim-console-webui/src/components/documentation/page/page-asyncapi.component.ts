@@ -19,7 +19,7 @@ class PageAsyncApiComponentController implements ng.IComponentController {
 }
 
 export const PageAsyncApiComponent: ng.IComponentOptions = {
-  template: require('html-loader!./page-asyncapi.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./page-asyncapi.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   bindings: {
     pageContent: '<',
   },

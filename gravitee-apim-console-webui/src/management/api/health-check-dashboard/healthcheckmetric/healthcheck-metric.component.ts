@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 const HealthCheckMetricComponent: ng.IComponentOptions = {
-  template: require('html-loader!./healthcheck-metric.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./healthcheck-metric.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   bindings: {
     availability: '<',
     responsetime: '<',

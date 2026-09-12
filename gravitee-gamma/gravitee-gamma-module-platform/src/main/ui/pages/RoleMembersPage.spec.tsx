@@ -31,11 +31,12 @@ jest.mock('../shared/notify', () => ({
     notify: { success: jest.fn(), error: jest.fn() },
 }));
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useQuery } from '@tanstack/react-query';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { RoleMembersPage } from './RoleMembersPage';
 import { useAddRoleMembers, useDeleteRoleMember, useRoleMemberships } from '../features/roles/hooks/useRoleMemberships';

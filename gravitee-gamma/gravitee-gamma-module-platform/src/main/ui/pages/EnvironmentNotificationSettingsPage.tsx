@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { Button } from '@gravitee/graphene-core';
 import { PlusIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
+
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { DeleteNotificationDialog } from '../features/applications/components/notifications/DeleteNotificationDialog';
 import {

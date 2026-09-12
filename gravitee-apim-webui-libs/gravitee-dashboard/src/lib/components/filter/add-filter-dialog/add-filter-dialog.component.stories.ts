@@ -193,7 +193,6 @@ function makeDirectRenderProviders(data: AddFilterDialogData = {}, valuesProvide
       provide: MatDialogRef,
       useValue: {
         close: (result?: FilterCondition) => {
-          // eslint-disable-next-line no-console
           console.log('[story] dialog closed with', result);
         },
       },

@@ -104,6 +104,6 @@ export const DocumentationImportPagesComponentAjs: ng.IComponentOptions = {
     resolvedRootPage: '<',
     activatedRoute: '<',
   },
-  template: require('html-loader!./import-pages.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./import-pages.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   controller: ImportPagesComponentController,
 };

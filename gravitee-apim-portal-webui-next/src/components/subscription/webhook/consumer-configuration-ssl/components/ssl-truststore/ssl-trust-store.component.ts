@@ -109,7 +109,11 @@ export class SslTrustStoreComponent implements OnInit, ControlValueAccessor, Val
 
   setDisabledState(isDisabled: boolean): void {
     this.isDisabled = isDisabled;
-    isDisabled ? this.trustStoreForm.disable({ emitEvent: false }) : this.trustStoreForm.enable({ emitEvent: false });
+    if (isDisabled) {
+      this.trustStoreForm.disable({ emitEvent: false });
+    } else {
+      this.trustStoreForm.enable({ emitEvent: false });
+    }
   }
 
   validate(_: AbstractControl): ValidationErrors | null {

@@ -21,7 +21,7 @@ import DashboardService from '../../../../services/dashboard.service';
 import NotificationService from '../../../../services/notification.service';
 import { Constants } from '../../../../entities/Constants';
 const SettingsAnalyticsDashboardComponentAjs: ng.IComponentOptions = {
-  template: require('html-loader!./settings-analytics-dashboard.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./settings-analytics-dashboard.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   controller: [
     'DashboardService',
     'NotificationService',
@@ -129,7 +129,7 @@ const SettingsAnalyticsDashboardComponentAjs: ng.IComponentOptions = {
         $mdDialog.show({
           controller: 'DialogQueryFilterInformationController',
           controllerAs: 'ctrl',
-          template: require('html-loader!./query-filter-information.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+          template: require('html-loader!./query-filter-information.dialog.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
           parent: angular.element(document.body),
           clickOutsideToClose: true,
         });

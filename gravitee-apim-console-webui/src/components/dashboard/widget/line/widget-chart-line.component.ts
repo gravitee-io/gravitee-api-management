@@ -15,11 +15,11 @@
  */
 import AnalyticsService from '../../../../services/analytics.service';
 import { EventService } from '../../../../services/event.service';
-// eslint:disable-next-line:no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 require('@gravitee/ui-components/wc/gv-chart-line');
 
 const WidgetChartLineComponent: ng.IComponentOptions = {
-  template: require('html-loader!./widget-chart-line.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./widget-chart-line.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   bindings: {
     data: '<',
     activatedRoute: '<',

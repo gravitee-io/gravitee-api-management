@@ -31,7 +31,7 @@ export class PageMarkdownController implements ng.IComponentController, ng.IOnIn
 PageMarkdownController.$inject = ['$sanitize'];
 
 export const PageMarkdownComponent: ng.IComponentOptions = {
-  template: require('html-loader!./page-markdown.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./page-markdown.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   bindings: {
     page: '<',
   },

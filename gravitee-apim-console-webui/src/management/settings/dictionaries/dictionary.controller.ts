@@ -166,7 +166,7 @@ class DictionaryController {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('html-loader!../../../components/dialog/confirmWarning.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+        template: require('html-loader!../../../components/dialog/confirmWarning.dialog.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
         clickOutsideToClose: true,
         locals: {
           title: 'Are you sure you want to delete this dictionary?',
@@ -219,7 +219,7 @@ class DictionaryController {
       .show({
         controller: 'DialogDictionaryAddPropertyController',
         controllerAs: 'dialogDictionaryAddPropertyCtrl',
-        template: require('html-loader!./add-property.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+        template: require('html-loader!./add-property.dialog.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
         clickOutsideToClose: true,
       })
       .then(property => {
@@ -245,7 +245,7 @@ class DictionaryController {
       .show({
         controller: 'DialogDictionaryEditPropertyController',
         controllerAs: 'dialogDictionaryEditPropertyCtrl',
-        template: require('html-loader!./edit-property.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+        template: require('html-loader!./edit-property.dialog.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
         clickOutsideToClose: true,
         locals: {
           key,

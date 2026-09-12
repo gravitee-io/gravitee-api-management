@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import {
     Alert,
     AlertDescription,
@@ -27,6 +26,8 @@ import {
 } from '@gravitee/graphene-core';
 import { CheckIcon, InfoIcon, ShieldCheckIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { usePortalSettings } from './hooks/usePortalSettings';
 import { useSavePortalSettings } from './hooks/useSavePortalSettings';

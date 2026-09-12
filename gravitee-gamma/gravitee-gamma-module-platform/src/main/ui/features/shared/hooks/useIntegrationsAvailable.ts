@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { licenseService } from '@gravitee/gamma-modules-sdk';
 import type { License } from '@gravitee/gamma-modules-sdk/types';
 import { useSyncExternalStore } from 'react';
+
+import { licenseService } from '@gravitee/gamma-modules-sdk';
 
 import { isFederationAvailable } from '../../../config/navVisibility';
 import { useConsoleSettings } from '../../../shared/console-settings';

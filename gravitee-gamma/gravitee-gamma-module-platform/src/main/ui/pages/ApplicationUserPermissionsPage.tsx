@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import {
     Alert,
     AlertDescription,
@@ -36,6 +35,8 @@ import { PlusIcon, UserCogIcon, UsersIcon } from '@gravitee/graphene-core/icons'
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
+
+import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { AddMembersSheet } from '../features/applications/components/user-permissions/AddMembersSheet';
 import { DirectMembersTable } from '../features/applications/components/user-permissions/DirectMembersTable';

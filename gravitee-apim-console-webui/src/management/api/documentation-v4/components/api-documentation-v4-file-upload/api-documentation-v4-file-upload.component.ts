@@ -25,6 +25,8 @@ import { PageType } from '../../../../../entities/management-api-v2';
 import { GioSwaggerUiModule } from '../../../../../components/documentation/gio-swagger-ui/gio-swagger-ui.module';
 import { GioAsyncApiModule } from '../../../../../components/documentation/gio-async-api/gio-async-api-module';
 
+// The object exists only to derive the type below; typescript-eslint 8 counts that as unused.
+// eslint-disable-next-line unused-imports/no-unused-vars
 const allowedFileExtensions = ['md', 'markdown', 'txt', 'json', 'yml', 'yaml', 'adoc', 'ad', 'asc', 'asciidoc'] as const;
 type FileExtension = (typeof allowedFileExtensions)[number];
 

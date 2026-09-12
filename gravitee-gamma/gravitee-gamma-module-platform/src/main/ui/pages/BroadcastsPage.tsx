@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Alert, AlertDescription, Button } from '@gravitee/graphene-core';
 import { RadioIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useState } from 'react';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { BroadcastEmptyState } from '../features/broadcasts/components/BroadcastEmptyState';
 import { BroadcastForm } from '../features/broadcasts/components/BroadcastForm';

@@ -49,7 +49,7 @@ export function useRolesByScope(): { groups: RolesByScopeGroup[]; isLoading: boo
                 isLoading: results[index]?.isLoading ?? false,
                 isError: results[index]?.isError ?? false,
             })),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
         [results],
     );
 

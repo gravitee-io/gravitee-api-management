@@ -30,7 +30,7 @@ export const ConfigureTestingGmdFormEditor = () => {
         imports: [MockMonacoEditorStandaloneComponent],
       },
     });
-  } catch (e) {
+  } catch {
     // Do nothing
   }
 };

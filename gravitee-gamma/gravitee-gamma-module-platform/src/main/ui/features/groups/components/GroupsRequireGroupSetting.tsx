@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Button, Switch } from '@gravitee/graphene-core';
 import { useEffect, useState } from 'react';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { isUserGroupRequired, useConsoleSettings, useSetConsoleSettings, type ConsoleSettings } from '../../../shared/console-settings';
 import { notify } from '../../../shared/notify';
