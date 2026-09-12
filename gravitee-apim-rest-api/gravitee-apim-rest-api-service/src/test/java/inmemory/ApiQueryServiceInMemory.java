@@ -200,7 +200,11 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
             ? matches
             : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
 
-        return new Page<>(page, pageNumber, pageSize, matches.size());
+        return new Page<>(page.stream().map(ApiQueryServiceInMemory::withoutApiDefinition).toList(), pageNumber, pageSize, matches.size());
+    }
+
+    private static Api withoutApiDefinition(Api api) {
+        return api.toBuilder().apiDefinitionValue(null).build();
     }
 
     @Override

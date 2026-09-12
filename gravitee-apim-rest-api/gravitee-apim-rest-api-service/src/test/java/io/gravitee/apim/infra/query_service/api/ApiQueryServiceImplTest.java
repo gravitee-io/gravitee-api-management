@@ -18,7 +18,9 @@ package io.gravitee.apim.infra.query_service.api;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.assertArg;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -36,6 +38,7 @@ import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -97,27 +100,154 @@ class ApiQueryServiceImplTest {
         return ApiFixtures.aProxyApiV4();
     }
 
-    @Test
-    void should_list_apis_matching_integration_id() {
-        //Given
-        var integrationId = "integration-id";
-        var pageable = new PageableImpl(1, 5);
+    @Nested
+    class FindByIntegrationId {
 
-        var expectedApis = List.of(fixtures.repository.ApiFixtures.aFederatedApi());
-        var page = new Page<>(expectedApis, pageable.getPageNumber(), expectedApis.size(), expectedApis.size());
-        when(apiRepository.search(any(), any(), any(), any())).thenReturn(page);
+        private static final String INTEGRATION_ID = "integration-id";
 
-        //When
-        Page<Api> responsePage = service.findByIntegrationId(integrationId, pageable);
+        @Test
+        void should_list_apis_matching_integration_id() {
+            // Given the repository holds a single api of the searched integration
+            var pageable = new PageableImpl(1, 5);
+            var expectedApis = List.of(fixtures.repository.ApiFixtures.aFederatedApi());
+            var page = new Page<>(expectedApis, pageable.getPageNumber(), expectedApis.size(), expectedApis.size());
+            when(apiRepository.search(any(), any(), any(), any())).thenReturn(page);
 
-        //Then
-        SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(responsePage).isNotNull();
-            softly.assertThat(responsePage.getPageNumber()).isEqualTo(1);
-            softly.assertThat(responsePage.getPageElements()).isEqualTo(1);
-            softly.assertThat(responsePage.getTotalElements()).isEqualTo(1);
-            softly.assertThat(responsePage.getContent().get(0).getId()).isEqualTo("api-id");
-        });
+            // When that integration is asked for the apis it owns
+            Page<Api> responsePage = service.findByIntegrationId(INTEGRATION_ID, pageable);
+
+            // Then the repository page comes back as core models, keeping the page number and the counts it carried
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(responsePage).isNotNull();
+                softly.assertThat(responsePage.getPageNumber()).isEqualTo(1);
+                softly.assertThat(responsePage.getPageElements()).isEqualTo(1);
+                softly.assertThat(responsePage.getTotalElements()).isEqualTo(1);
+                softly.assertThat(responsePage.getContent().get(0).getId()).isEqualTo("api-id");
+            });
+        }
+
+        @Test
+        void should_ask_the_repository_to_leave_the_definition_and_the_picture_columns_unread() {
+            // Given the repository answers the hydration request with a page of its own
+            givenTheRepositoryHydratesOneApi();
+
+            // When an integration is asked for the apis it owns
+            service.findByIntegrationId(INTEGRATION_ID, new PageableImpl(1, 5));
+
+            // Then both payload columns are excluded from the projection rather than loaded and thrown away
+            verify(apiRepository).search(
+                any(),
+                any(),
+                any(),
+                assertArg(fieldFilter -> {
+                    assertThat(fieldFilter.isDefinitionExcluded()).isTrue();
+                    assertThat(fieldFilter.isPictureExcluded()).isTrue();
+                })
+            );
+        }
+
+        @Test
+        void should_ask_the_repository_for_the_most_recently_updated_apis_first() {
+            // Given the repository answers the hydration request with a page of its own
+            givenTheRepositoryHydratesOneApi();
+
+            // When an integration is asked for the apis it owns
+            service.findByIntegrationId(INTEGRATION_ID, new PageableImpl(1, 5));
+
+            // Then the ordering is delegated to the repository, which alone sees the whole match set
+            verify(apiRepository).search(
+                any(),
+                assertArg(sortable -> {
+                    assertThat(sortable.field()).isEqualTo("updatedAt");
+                    assertThat(sortable.order()).isEqualTo(Order.DESC);
+                }),
+                any(),
+                any()
+            );
+        }
+
+        @Test
+        void should_translate_the_callers_one_based_page_number_into_the_repositorys_zero_based_one() {
+            // Given the repository answers the hydration request with a page of its own
+            givenTheRepositoryHydratesOneApi();
+
+            // When the second page of two is asked for
+            service.findByIntegrationId(INTEGRATION_ID, new PageableImpl(2, 2));
+
+            // Then the repository is asked for the page one below it, its own numbering starting at zero
+            verify(apiRepository).search(
+                any(),
+                any(),
+                assertArg(pageable -> {
+                    assertThat(pageable.pageNumber()).isEqualTo(1);
+                    assertThat(pageable.pageSize()).isEqualTo(2);
+                }),
+                any()
+            );
+        }
+
+        @Test
+        void should_narrow_the_repository_query_to_the_integration_without_restricting_the_definition_version() {
+            // Given the repository answers the hydration request with a page of its own
+            givenTheRepositoryHydratesOneApi();
+
+            // When an integration is asked for the apis it owns
+            service.findByIntegrationId(INTEGRATION_ID, new PageableImpl(1, 5));
+
+            // Then the integration alone selects the rows, this listing never having been narrowed by definition version
+            verify(apiRepository).search(
+                assertArg(criteria -> {
+                    assertThat(criteria.getIntegrationId()).isEqualTo(INTEGRATION_ID);
+                    assertThat(criteria.getDefinitionVersion()).isNull();
+                }),
+                any(),
+                any(),
+                any()
+            );
+        }
+
+        @Test
+        void should_return_an_api_of_every_definition_version_the_integration_holds() {
+            // Given the repository hands back one api of each definition version, ordered as it ordered them
+            var rows = List.of(
+                fixtures.repository.ApiFixtures.aFederatedApi().toBuilder().id("api-v2").definitionVersion(DefinitionVersion.V2).build(),
+                fixtures.repository.ApiFixtures.aFederatedApi().toBuilder().id("api-v4").definitionVersion(DefinitionVersion.V4).build(),
+                fixtures.repository.ApiFixtures.aFederatedApi().toBuilder().id("api-federated").build(),
+                fixtures.repository.ApiFixtures.aFederatedApi()
+                    .toBuilder()
+                    .id("api-agent")
+                    .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
+                    .build()
+            );
+            when(apiRepository.search(any(), any(), any(), any())).thenReturn(new Page<>(rows, 0, rows.size(), rows.size()));
+
+            // When that integration is asked for the apis it owns
+            var page = service.findByIntegrationId(INTEGRATION_ID, new PageableImpl(1, 10));
+
+            // Then all four reach the caller in that order, none dropped or reshuffled for the version it carries
+            assertThat(page.getContent()).extracting(Api::getId).containsExactly("api-v2", "api-v4", "api-federated", "api-agent");
+        }
+
+        @Test
+        void should_report_the_total_the_repository_counted_rather_than_the_number_of_rows_it_returned() {
+            // Given the repository answers with two rows out of the seven the integration holds
+            var rows = Stream.of("api-1", "api-2")
+                .map(id -> fixtures.repository.ApiFixtures.aFederatedApi().toBuilder().id(id).build())
+                .toList();
+            when(apiRepository.search(any(), any(), any(), any())).thenReturn(new Page<>(rows, 0, rows.size(), 7));
+
+            // When the first page of two is asked for
+            var page = service.findByIntegrationId(INTEGRATION_ID, new PageableImpl(1, 2));
+
+            // Then the count of the whole match set reaches the caller untouched, alongside the two rows of content
+            assertThat(page.getTotalElements()).isEqualTo(7);
+            assertThat(page.getContent()).extracting(Api::getId).containsExactly("api-1", "api-2");
+        }
+
+        private void givenTheRepositoryHydratesOneApi() {
+            var rows = List.of(fixtures.repository.ApiFixtures.aFederatedApi());
+            when(apiRepository.search(any(), any(), any(), any())).thenReturn(new Page<>(rows, 0, rows.size(), rows.size()));
+        }
     }
 
     @Nested
@@ -128,6 +258,8 @@ class ApiQueryServiceImplTest {
         private static final String INTEGRATION_ID = "int-a";
         private static final String THE_LABEL_EVERY_SEEDED_API_CARRIES = "label-1";
         private static final List<String> EVERY_SEEDED_API = List.of("api-v2", "api-v4", "api-fed", "api-agent", "api-null-version");
+        private static final String A_STORED_AGENT_CARD = """
+            {"id":"api-agent","name":"Task Management","description":"handles tasks","provider":{"organization":"Acme Robotics","url":"https://example.net"}}""";
 
         @ParameterizedTest(name = "{0}")
         @MethodSource("integrationIdRequests")
@@ -330,6 +462,58 @@ class ApiQueryServiceImplTest {
 
             // Then only the api holding that punctuation literally comes back, never the decoy
             assertThat(page.getContent()).extracting(Api::getId).containsExactly("query-literal");
+        }
+
+        @Test
+        void should_hand_the_repository_every_id_the_index_matched_however_small_the_requested_page() throws IOException {
+            // Given seven apis of the integration, more than the two rows the caller is asking for
+            var everyMatchedId = List.of("api-1", "api-2", "api-3", "api-4", "api-5", "api-6", "api-7");
+            givenIndexedApis(
+                everyMatchedId
+                    .stream()
+                    .map(id -> anApiOwnedByIntegration(id, INTEGRATION_ID))
+                    .toArray(Api[]::new)
+            );
+            givenTheRepositoryHydratesTheSelectedApis();
+
+            // When only the first page of two is asked for
+            service.searchByIntegrationId(INTEGRATION_ID, null, null, new PageableImpl(1, 2));
+
+            // Then the whole match set reaches the repository, which alone can count it and cut the requested page out of it
+            verify(apiRepository).search(
+                assertArg(criteria -> assertThat(criteria.getIds()).containsExactlyInAnyOrderElementsOf(everyMatchedId)),
+                any(),
+                any(),
+                any()
+            );
+        }
+
+        @Test
+        void should_return_a_federated_agent_carrying_no_api_definition() throws IOException {
+            // Given one federated agent of the integration, stored with a non empty definition
+            givenIndexedApis(anApiOwnedByIntegration(ApiFixtures.aFederatedAgent(), "api-agent", INTEGRATION_ID));
+            givenTheRepositoryHydratesAStoredAgentCard();
+
+            // When the integration is searched for its federated agents
+            var page = service.searchByIntegrationId(
+                INTEGRATION_ID,
+                List.of(DefinitionVersion.FEDERATED_AGENT),
+                null,
+                new PageableImpl(1, 10)
+            );
+
+            // Then the agent comes back with none of that payload on it
+            assertThat(page.getContent()).singleElement().extracting(Api::getApiDefinitionValue).isNull();
+        }
+
+        private void givenTheRepositoryHydratesAStoredAgentCard() {
+            var row = fixtures.repository.ApiFixtures.aFederatedApi()
+                .toBuilder()
+                .id("api-agent")
+                .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
+                .definition(A_STORED_AGENT_CARD)
+                .build();
+            when(apiRepository.search(any(), any(), any(), any())).thenReturn(new Page<>(List.of(row), 0, 1, 1));
         }
 
         private static Stream<Arguments> punctuationQueries() {

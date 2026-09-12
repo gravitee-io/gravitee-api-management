@@ -53,16 +53,14 @@ class GetIngestedApisUseCaseTest {
 
     @Test
     void should_return_page_with_default_pageable() {
-        var apis = List.of(ApiFixtures.aFederatedApi());
-        apiQueryServiceInMemory.initWith(apis);
+        apiQueryServiceInMemory.initWith(List.of(ApiFixtures.aFederatedApi()));
 
         var input = new GetIngestedApisUseCase.Input(INTEGRATION_ID);
 
         var ingestedApis = usecase.execute(input).ingestedApis();
 
-        AssertionsForClassTypes.assertThat(ingestedApis).isNotNull();
         AssertionsForClassTypes.assertThat(ingestedApis)
-            .extracting(Page::getContent, Page::getPageNumber, Page::getPageElements, Page::getTotalElements)
-            .containsExactly(apis, 1, ingestedApis.getPageElements(), (long) ingestedApis.getContent().size());
+            .extracting(Page::getPageNumber, Page::getPageElements, Page::getTotalElements)
+            .containsExactly(1, 1L, 1L);
     }
 }
