@@ -92,7 +92,7 @@ class PageSwaggerComponentController implements IController {
     let contentAsJson = {};
     try {
       contentAsJson = normalizeTypeArrays(angular.fromJson(this.pageContent));
-    } catch (e) {
+    } catch {
       contentAsJson = normalizeTypeArrays(loadYaml(this.pageContent));
     }
     return contentAsJson;
@@ -143,7 +143,7 @@ class PageSwaggerComponentController implements IController {
 PageSwaggerComponentController.$inject = ['UserService', '$window'];
 
 export const PageSwaggerComponent: ng.IComponentOptions = {
-  template: require('html-loader!./page-swagger.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./page-swagger.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   bindings: {
     pageConfiguration: '<',
     pageContent: '<',

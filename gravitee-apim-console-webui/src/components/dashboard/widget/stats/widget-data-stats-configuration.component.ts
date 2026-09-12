@@ -151,7 +151,7 @@ class WidgetDataStatsConfigurationController implements IOnInit {
 WidgetDataStatsConfigurationController.$inject = ['DashboardService'];
 
 const WidgetDataStatsConfigurationComponent: ng.IComponentOptions = {
-  template: require('html-loader!./widget-data-stats-configuration.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./widget-data-stats-configuration.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   bindings: {
     chart: '<',
   },

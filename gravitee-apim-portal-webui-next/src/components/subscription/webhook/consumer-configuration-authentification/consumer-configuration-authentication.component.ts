@@ -196,7 +196,11 @@ export class ConsumerConfigurationAuthenticationComponent implements AfterViewIn
   }
 
   setDisabledState(isDisabled: boolean): void {
-    isDisabled ? this.authForm.disable({ emitEvent: false }) : this.authForm.enable({ emitEvent: false });
+    if (isDisabled) {
+      this.authForm.disable({ emitEvent: false });
+    } else {
+      this.authForm.enable({ emitEvent: false });
+    }
   }
 
   removeScope(scopeToRemove: string) {

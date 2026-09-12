@@ -97,7 +97,7 @@ const PlatformLogComponentAjs: ng.IComponentOptions = {
       };
     },
   ],
-  template: require('html-loader!./platform-log.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./platform-log.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
 };
 
 export default PlatformLogComponentAjs;

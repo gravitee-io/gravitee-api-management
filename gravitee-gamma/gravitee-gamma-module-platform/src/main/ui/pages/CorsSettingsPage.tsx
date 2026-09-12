@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useEffect, useMemo, useRef, useState } from 'react';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import type { CorsFormState } from '../features/organization-settings/components/CorsSection';
 import { ManagementCorsSection } from '../features/organization-settings/components/ManagementCorsSection';

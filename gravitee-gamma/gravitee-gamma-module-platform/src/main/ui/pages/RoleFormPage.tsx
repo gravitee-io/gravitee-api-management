@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useHasFeature } from '@gravitee/gamma-modules-sdk';
 import { Button, Skeleton } from '@gravitee/graphene-core';
 import { ArrowLeftIcon } from '@gravitee/graphene-core/icons';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
+
+import { useHasFeature } from '@gravitee/gamma-modules-sdk';
 
 import { RoleForm, type RoleFormSubmitValues } from '../features/roles/components/RoleForm';
 import { useCreateRole, useUpdateRole } from '../features/roles/hooks/useRoleMutations';

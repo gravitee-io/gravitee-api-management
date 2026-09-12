@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { permissionService, useEnvironment, useHasFeature, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
 import {
     buildLinearBreadcrumbs,
@@ -32,6 +31,8 @@ import {
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createContext, type ReactElement, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+
+import { permissionService, useEnvironment, useHasFeature, useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { PlatformToaster } from './PlatformToaster';
 import { APPLICATION_NAV_GROUPS, flattenApplicationDetailNavItems } from '../config/applicationDetailNavigation';

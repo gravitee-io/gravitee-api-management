@@ -109,7 +109,7 @@ export class RedocService {
   private parseContent(content: string): unknown {
     try {
       return JSON.parse(content);
-    } catch (e) {
+    } catch {
       return readYaml(content);
     }
   }

@@ -51,7 +51,6 @@ export class MarkdownService {
   public renderer(baseUrl: string, pageBaseUrl: string, pages: Page[]): RendererObject {
     const defaultRenderer = new Renderer();
 
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
     return {
       image(token) {
         const { href, title, text } = token;

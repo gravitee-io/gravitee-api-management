@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { DictionariesPage } from './DictionariesPage';
 import { useCreateDictionary, useDeleteDictionary, useUpdateDictionary } from '../features/dictionaries/hooks/useDictionaryMutations';

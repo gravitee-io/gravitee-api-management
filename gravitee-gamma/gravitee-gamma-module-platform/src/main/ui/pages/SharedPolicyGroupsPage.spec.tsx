@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { useNavigate } from 'react-router-dom';
+
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { SharedPolicyGroupsPage } from './SharedPolicyGroupsPage';
 import {

@@ -39,7 +39,7 @@ class ImageDirective {
         checkeredBackground: '<',
         accept: '@',
       },
-      template: require('html-loader!./image.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+      template: require('html-loader!./image.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
       controller: ImageController,
       controllerAs: 'imgCtrl',
     };

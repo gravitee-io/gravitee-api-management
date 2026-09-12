@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
+
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { listGatewayInstances } from '../services/instances';
 import type { GatewayInstanceRow } from '../types/instance';

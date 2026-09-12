@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
+
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { groupHooksByCategory, mapApplicationNotificationsToRows } from '../components/notifications/notificationHelpers';
 import {

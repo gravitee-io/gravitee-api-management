@@ -377,7 +377,7 @@ export class ReporterSettingsMessageComponent implements OnInit {
           control.markAsTouched();
           return { minTemporal: `Temporal message sampling should be greater than ${limit}` };
         }
-      } catch (e) {
+      } catch {
         control.markAsTouched();
         // ignore it because the previous validation should have already failed
         return undefined;
@@ -397,7 +397,7 @@ export class ReporterSettingsMessageComponent implements OnInit {
           control.markAsTouched();
           return { maxRate: `Windowed Count rate sampling should be less than ${limitWindowedCount.encode()}` };
         }
-      } catch (error) {
+      } catch {
         control.markAsTouched();
         // ignore it because the previous validation should have already failed
         return undefined;

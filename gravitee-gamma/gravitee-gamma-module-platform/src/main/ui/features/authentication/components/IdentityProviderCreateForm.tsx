@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import { useHasFeature } from '@gravitee/gamma-modules-sdk';
 import { Button, Card, CardContent } from '@gravitee/graphene-core';
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import { useHasFeature } from '@gravitee/gamma-modules-sdk';
 
 import { IdentityProviderConfigurationFields, IdentityProviderUserProfileFields } from './IdentityProviderConfigurationFields';
 import { IdentityProviderGeneralFields } from './IdentityProviderGeneralFields';

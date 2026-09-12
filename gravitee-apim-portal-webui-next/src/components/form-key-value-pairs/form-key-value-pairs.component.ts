@@ -100,7 +100,11 @@ export class FormKeyValuePairsComponent implements OnInit, ControlValueAccessor 
   }
 
   public setDisabledState(isDisabled: boolean): void {
-    isDisabled ? this.metadataFormArray.disable({ emitEvent: false }) : this.metadataFormArray.enable({ emitEvent: false });
+    if (isDisabled) {
+      this.metadataFormArray.disable({ emitEvent: false });
+    } else {
+      this.metadataFormArray.enable({ emitEvent: false });
+    }
     this.ensureTrailingEmptyRow();
   }
 

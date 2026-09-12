@@ -31,6 +31,8 @@ import {
   toReadableMenuLinkType,
 } from '../../../entities/management-api-v2';
 
+// The dialog takes no input data; the empty shape is the point.
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface MenuLinkAddDialogData {}
 
 export interface MenuLinkAddDialogResult {

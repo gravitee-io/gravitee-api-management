@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import {
     Badge,
     Button,
@@ -43,6 +42,8 @@ import {
 } from '@gravitee/graphene-core';
 import { CheckIcon, PlusIcon, Trash2Icon, UsersIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useId, useMemo, useState } from 'react';
+
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { AddUserGroupSheet } from './AddUserGroupSheet';
 import { ClientSideTableSearchField } from './ClientSideTableSearchField';

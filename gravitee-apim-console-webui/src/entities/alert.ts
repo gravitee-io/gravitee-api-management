@@ -244,7 +244,6 @@ export class AggregationCondition extends Condition {
   static OPERATORS: Operator[] = [AggregationCondition.LT, AggregationCondition.LTE, AggregationCondition.GTE, AggregationCondition.GT];
 
   // This is our custom Function type
-  // eslint-disable-next-line @typescript-eslint/ban-types
   static FUNCTIONS: Function[] = [
     new Function('COUNT', 'count'),
     new Function('AVG', 'average'),

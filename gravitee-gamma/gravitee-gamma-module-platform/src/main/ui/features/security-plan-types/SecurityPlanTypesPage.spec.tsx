@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
+
+import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { usePortalSettings } from './hooks/usePortalSettings';
 import { useSavePortalSettings } from './hooks/useSavePortalSettings';

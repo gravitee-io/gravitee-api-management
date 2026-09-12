@@ -31,10 +31,11 @@ jest.mock('../shared/notify', () => ({
     notify: { success: jest.fn(), error: jest.fn() },
 }));
 
-import { useHasFeature } from '@gravitee/gamma-modules-sdk';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, MemoryRouter, Route, RouterProvider, Routes } from 'react-router-dom';
+
+import { useHasFeature } from '@gravitee/gamma-modules-sdk';
 
 import { RoleFormPage } from './RoleFormPage';
 import { useCreateRole, useUpdateRole } from '../features/roles/hooks/useRoleMutations';

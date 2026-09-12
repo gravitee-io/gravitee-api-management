@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { INVALID_CERTIFICATE_MESSAGE, type AddCertificateSubmit } from './addCertificateTypes';
 import { validateApplicationCertificate } from '../../../services/applicationDetail';

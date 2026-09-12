@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { notify } from '../../../shared/notify';
 import type { PortalSettings } from '../services/portalSettings';

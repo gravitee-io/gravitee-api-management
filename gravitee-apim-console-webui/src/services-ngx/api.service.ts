@@ -239,7 +239,7 @@ export class ApiService {
           try {
             const errorResponse = JSON.parse(error.error);
             message = errorResponse.message;
-          } catch (error) {}
+          } catch {}
 
           return of({ contextPath: message });
         }),

@@ -101,7 +101,7 @@ export const CorsUtil = {
           try {
             // eslint:disable-next-line:no-unused-expression
             new RegExp(allowOrigin);
-          } catch (e) {
+          } catch {
             invalidOrigin.push(allowOrigin);
           }
         }

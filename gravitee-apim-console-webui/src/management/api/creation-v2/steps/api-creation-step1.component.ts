@@ -22,7 +22,7 @@ const ApiCreationStep1Component: ng.IComponentOptions = {
   require: {
     parent: '^apiCreationV2ComponentAjs',
   },
-  template: require('html-loader!./api-creation-step1.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./api-creation-step1.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   controller: [
     'ApiPrimaryOwnerModeService',
     class {

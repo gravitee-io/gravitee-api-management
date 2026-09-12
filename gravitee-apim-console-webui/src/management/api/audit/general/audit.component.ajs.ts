@@ -17,7 +17,7 @@
 import ApiAuditControllerAjs from './audit.controller.ajs';
 
 export const ApiAuditComponentAjs = {
-  template: require('html-loader!./audit.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./audit.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   controller: ApiAuditControllerAjs,
   bindings: {
     activatedRoute: '<',

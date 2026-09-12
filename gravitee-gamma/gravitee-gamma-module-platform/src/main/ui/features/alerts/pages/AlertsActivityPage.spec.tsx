@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { AlertsActivityPage } from './AlertsActivityPage';
 import { getPlatformAlertAnalytics } from '../services/alerts';

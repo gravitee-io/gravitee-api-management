@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import {
     Button,
     Card,
@@ -32,6 +31,8 @@ import {
 import { PlusIcon, XIcon } from '@gravitee/graphene-core/icons';
 import { useQuery } from '@tanstack/react-query';
 import type { Dispatch, SetStateAction } from 'react';
+
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { NotificationSchemaFields } from './NotificationSchemaFields';
 import { DAMPENING_MODES, TIME_UNITS } from '../constants/alertConstants';

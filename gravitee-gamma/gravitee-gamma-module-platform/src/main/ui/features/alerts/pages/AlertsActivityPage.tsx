@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import {
     Alert,
     AlertDescription,
@@ -37,6 +36,8 @@ import {
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useId, useState } from 'react';
 import { Link } from 'react-router-dom';
+
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { SeverityBadge } from '../components/SeverityBadge';
 import {

@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Card, CardContent, CardHeader, CardTitle, Input, Switch } from '@gravitee/graphene-core';
 import { useEffect, useMemo, useRef, useState } from 'react';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { OrgSettingsFormShell } from '../features/organization-settings/components/OrgSettingsFormShell';
 import { SystemReadonlyHint } from '../features/organization-settings/components/SystemReadonlyHint';

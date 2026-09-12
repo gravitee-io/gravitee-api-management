@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Button, Skeleton } from '@gravitee/graphene-core';
 import { PlusIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { MetadataDeleteSheet } from '../features/metadata/components/MetadataDeleteSheet';
 import { MetadataSheet } from '../features/metadata/components/MetadataSheet';

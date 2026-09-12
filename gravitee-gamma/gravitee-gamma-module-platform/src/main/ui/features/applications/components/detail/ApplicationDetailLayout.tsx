@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { permissionService } from '@gravitee/gamma-modules-sdk';
 import {
     Avatar,
     AvatarFallback,
@@ -27,6 +26,8 @@ import {
 import { AppWindowIcon, CircleCheckIcon, CircleStopIcon } from '@gravitee/graphene-core/icons';
 import { useMemo, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
+
+import { permissionService } from '@gravitee/gamma-modules-sdk';
 
 import { ApplicationDetailNoSectionsAvailable } from './ApplicationDetailNoSectionsAvailable';
 import { ApplicationDetailPermissionsError } from './ApplicationDetailPermissionsError';

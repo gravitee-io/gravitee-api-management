@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import {
     Alert,
     AlertDescription,
@@ -43,6 +42,8 @@ import {
 } from '@gravitee/graphene-core/icons';
 import { useState, useTransition } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { GroupAddMembersSheet } from '../features/groups/components/GroupAddMembersSheet';
 import { GroupAssociationSection } from '../features/groups/components/GroupAssociationSection';

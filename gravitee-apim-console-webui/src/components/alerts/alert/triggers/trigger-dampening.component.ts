@@ -22,7 +22,7 @@ const AlertTriggerDampeningComponent: ng.IComponentOptions = {
   require: {
     parent: '^alertComponentAjs',
   },
-  template: require('html-loader!./trigger-dampening.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./trigger-dampening.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   controller: function () {
     this.$onInit = () => {
       this.modes = DampeningMode.MODES;

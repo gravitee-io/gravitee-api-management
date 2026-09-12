@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import { useEnvironment, useHasFeature } from '@gravitee/gamma-modules-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+
+import { useEnvironment, useHasFeature } from '@gravitee/gamma-modules-sdk';
 
 import { EnvAuditLogsPage } from './EnvAuditLogsPage';
 import { useAuditApis, useAuditApplications, useAuditEvents, useAuditLogs } from '../features/audit-logs/hooks/useAuditLogs';

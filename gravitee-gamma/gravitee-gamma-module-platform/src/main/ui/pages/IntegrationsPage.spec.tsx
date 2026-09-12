@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { dataTableHarness } from '@gravitee/graphene-core/testing';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { IntegrationsPage } from './IntegrationsPage';
 import { listIntegrations } from '../features/integrations/services/integrationList';

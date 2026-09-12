@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 const ProgressBarComponent: ng.IComponentOptions = {
-  template: require('html-loader!./progress-bar.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./progress-bar.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   bindings: {
     value: '<',
   },

@@ -15,7 +15,7 @@
  */
 
 const DashboardTimeframeComponent: ng.IComponentOptions = {
-  template: require('html-loader!./dashboard-timeframe.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./dashboard-timeframe.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   controller: 'DashboardTimeframeController',
   bindings: {
     onTimeframeChange: '&',

@@ -271,5 +271,5 @@ export const ApiAnalyticsLogComponentAjs: ng.IComponentOptions = {
   bindings: {
     activatedRoute: '<',
   },
-  template: require('html-loader!./analytics-log.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./analytics-log.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
 };

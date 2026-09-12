@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import { useHasFeature, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Alert, AlertDescription, Card, CardContent, CardDescription, CardHeader, CardTitle, Skeleton } from '@gravitee/graphene-core';
 import { InfoIcon } from '@gravitee/graphene-core/icons';
 import { useMemo, useState } from 'react';
+
+import { useHasFeature, useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { EntrypointConfigurationSection } from '../features/entrypoints/components/EntrypointConfigurationSection';
 import { EntrypointDeleteSheet } from '../features/entrypoints/components/EntrypointDeleteSheet';

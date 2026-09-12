@@ -20,7 +20,7 @@ const UserComponentAjs: ng.IComponentOptions = {
     onDeleteMyAccount: '&',
   },
   controller: 'UserController',
-  template: require('html-loader!./user.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./user.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
 };
 
 export default UserComponentAjs;

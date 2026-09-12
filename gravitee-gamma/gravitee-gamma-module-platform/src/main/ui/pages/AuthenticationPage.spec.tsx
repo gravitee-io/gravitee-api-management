@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { buttonHarness, renderWithGraphene, switchHarness } from '@gravitee/graphene-core/testing';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { AuthenticationPage } from './AuthenticationPage';
 import { useAuthenticationPage } from '../features/authentication/hooks/useAuthenticationPage';

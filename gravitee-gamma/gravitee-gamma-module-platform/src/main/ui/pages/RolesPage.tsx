@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useHasFeature, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import { useHasFeature, useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { CustomRolesLicenseDialog } from '../features/roles/components/CustomRolesLicenseDialog';
 import { RoleDeleteDialog } from '../features/roles/components/RoleDeleteDialog';

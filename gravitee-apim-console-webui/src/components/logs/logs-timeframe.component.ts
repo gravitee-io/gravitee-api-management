@@ -15,7 +15,7 @@
  */
 
 const LogsTimeframeComponent: ng.IComponentOptions = {
-  template: require('html-loader!./logs-timeframe.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./logs-timeframe.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   controller: 'LogsTimeframeController',
   bindings: {
     onTimeframeChange: '&',

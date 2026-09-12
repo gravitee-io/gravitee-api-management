@@ -18,7 +18,7 @@ const AlertTriggerNodeLifecycleChangedComponent: ng.IComponentOptions = {
   bindings: {
     alert: '<',
   },
-  template: require('html-loader!./trigger-node-lifecycle-changed.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./trigger-node-lifecycle-changed.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   controller: function () {
     this.$onInit = () => {
       // New alert, initialize it with the condition model

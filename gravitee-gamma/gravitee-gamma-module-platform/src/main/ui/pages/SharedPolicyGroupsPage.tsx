@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { Button, DataTableEmptyState } from '@gravitee/graphene-core';
 import { LayersIcon, PlusIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useState, type SetStateAction } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { sortToOrder, type TableSortingState } from '../features/applications/utils/tableSort';
 import {

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useEffect, useMemo, useRef, useState } from 'react';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { ApiLoggingSection } from '../features/api-logging/components/ApiLoggingSection';
 import { buildApiLoggingFormState, getApiLoggingReadonlyState } from '../features/api-logging/utils/apiLoggingFormState';

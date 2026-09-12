@@ -123,7 +123,7 @@ class ComponentCtrl implements ng.IComponentController {
         .show({
           controller: 'SelectPageDialogController',
           controllerAs: 'ctrl',
-          template: require('html-loader!../dialog/selectpage.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+          template: require('html-loader!../dialog/selectpage.dialog.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
           clickOutsideToClose: true,
           locals: {
             pages: this.pagesToLink,
@@ -148,7 +148,7 @@ class ComponentCtrl implements ng.IComponentController {
 ComponentCtrl.$inject = ['$http', 'Constants', '$mdDialog', 'NotificationService'];
 
 export const PageEditorMarkdownComponent: ng.IComponentOptions = {
-  template: require('html-loader!./page-editormarkdown.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./page-editormarkdown.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   bindings: {
     page: '<',
     pagesToLink: '<',
