@@ -45,6 +45,16 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
         return new InvalidPortalNavigationItemDataException("API-attached documentation can only be added to TOP_NAVBAR area.");
     }
 
+    public static InvalidPortalNavigationItemDataException subscriptionFormMustNotHaveParent() {
+        return new InvalidPortalNavigationItemDataException("A SUBSCRIPTION_FORM navigation item can never have a parent.");
+    }
+
+    public static InvalidPortalNavigationItemDataException subscriptionFormContentMustBeGraviteeMarkdown() {
+        return new InvalidPortalNavigationItemDataException(
+            "A SUBSCRIPTION_FORM navigation item must reference GRAVITEE_MARKDOWN content."
+        );
+    }
+
     public static InvalidPortalNavigationItemDataException sourceNotAllowedForType(String type) {
         return new InvalidPortalNavigationItemDataException(
             "An external source can only be configured on PAGE and FOLDER navigation items (got %s).".formatted(type)

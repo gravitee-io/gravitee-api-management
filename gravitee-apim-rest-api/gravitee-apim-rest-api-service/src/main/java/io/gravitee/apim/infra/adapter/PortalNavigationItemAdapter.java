@@ -19,6 +19,7 @@ import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.model.*;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstraints;
 import io.gravitee.node.logging.NodeLoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,6 +37,7 @@ public interface PortalNavigationItemAdapter {
 
     com.fasterxml.jackson.databind.ObjectMapper OBJECT_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper();
     String PORTAL_PAGE_CONTENT_ID = "portalPageContentId";
+    String VALIDATION_CONSTRAINTS = "validationConstraints";
     String URL = "url";
     String SOURCE = "source";
     String SOURCE_TYPE = "type";
@@ -53,6 +55,7 @@ public interface PortalNavigationItemAdapter {
             case LINK -> portalNavigationLinkFromRepository(portalNavigationItem);
             case API -> portalNavigationApiFromRepository(portalNavigationItem);
             case API_PRODUCT -> portalNavigationApiProductFromRepository(portalNavigationItem);
+            case SUBSCRIPTION_FORM -> portalNavigationSubscriptionFormFromRepository(portalNavigationItem);
         };
     }
 
@@ -60,6 +63,7 @@ public interface PortalNavigationItemAdapter {
         return switch (area) {
             case HOMEPAGE -> PortalArea.HOMEPAGE;
             case TOP_NAVBAR -> PortalArea.TOP_NAVBAR;
+            case SUBSCRIPTION_FORM -> PortalArea.SUBSCRIPTION_FORM;
         };
     }
 
@@ -67,6 +71,7 @@ public interface PortalNavigationItemAdapter {
         return switch (area) {
             case HOMEPAGE -> io.gravitee.repository.management.model.PortalNavigationItem.Area.HOMEPAGE;
             case TOP_NAVBAR -> io.gravitee.repository.management.model.PortalNavigationItem.Area.TOP_NAVBAR;
+            case SUBSCRIPTION_FORM -> io.gravitee.repository.management.model.PortalNavigationItem.Area.SUBSCRIPTION_FORM;
         };
     }
 
@@ -117,6 +122,19 @@ public interface PortalNavigationItemAdapter {
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
 
+    @Mapping(target = "portalPageContentId", expression = "java(parsePortalPageContentId(portalNavigationItem.getConfiguration()))")
+    @Mapping(target = "validationConstraints", expression = "java(parseValidationConstraints(portalNavigationItem.getConfiguration()))")
+    @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
+    @Mapping(target = "visibility", expression = "java(repositoryVisibilityToDomain(portalNavigationItem))")
+    @Mapping(target = "reference", expression = "java(referenceFromRepository(portalNavigationItem))")
+    @Mapping(
+        target = "automationMetadata",
+        expression = "java(automationMetadataFromRepository(portalNavigationItem.getAutomationMetadata()))"
+    )
+    PortalNavigationSubscriptionForm portalNavigationSubscriptionFormFromRepository(
+        io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
+    );
+
     /**
      * Core-facing copy of the repository's {@code automationMetadata}, trimmed the same way
      * {@link io.gravitee.apim.core.portal_page.model.AutomationMetadata#trimmedForNavItem()} does:
@@ -155,6 +173,7 @@ public interface PortalNavigationItemAdapter {
             case PortalNavigationPage page -> toRepository(page);
             case PortalNavigationLink link -> toRepository(link);
             case PortalNavigationFolder folder -> toRepository(folder);
+            case PortalNavigationSubscriptionForm subscriptionForm -> toRepository(subscriptionForm);
         };
     }
 
@@ -210,6 +229,16 @@ public interface PortalNavigationItemAdapter {
     )
     io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationApiProduct portalNavigationItem);
 
+    @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
+    @Mapping(target = "configuration", expression = "java(configurationOf(portalNavigationItem))")
+    @Mapping(target = "referenceType", expression = "java(referenceTypeToRepository(portalNavigationItem.getReference()))")
+    @Mapping(target = "referenceId", expression = "java(referenceIdToRepository(portalNavigationItem.getReference()))")
+    @Mapping(
+        target = "automationMetadata",
+        expression = "java(automationMetadataToRepository(portalNavigationItem.getAutomationMetadata()))"
+    )
+    io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationSubscriptionForm portalNavigationItem);
+
     default io.gravitee.repository.management.model.PortalNavigationItem.Type mapType(PortalNavigationItem portalNavigationItem) {
         return switch (portalNavigationItem) {
             case PortalNavigationFolder ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.FOLDER;
@@ -217,6 +246,7 @@ public interface PortalNavigationItemAdapter {
             case PortalNavigationLink ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.LINK;
             case PortalNavigationApi ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.API;
             case PortalNavigationApiProduct ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.API_PRODUCT;
+            case PortalNavigationSubscriptionForm ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.SUBSCRIPTION_FORM;
         };
     }
 
@@ -232,6 +262,15 @@ public interface PortalNavigationItemAdapter {
                 case PortalNavigationFolder folder -> writeSource(config, folder.getSource());
                 case PortalNavigationApi ignored -> {}
                 case PortalNavigationApiProduct ignored -> {}
+                case PortalNavigationSubscriptionForm subscriptionForm -> {
+                    config.put(PORTAL_PAGE_CONTENT_ID, subscriptionForm.getPortalPageContentId().json());
+                    config.set(
+                        VALIDATION_CONSTRAINTS,
+                        SubscriptionFormAdapter.FIELD_CONSTRAINTS_JSON.readTree(
+                            SubscriptionFormAdapter.writeFieldConstraintsJson(subscriptionForm.getValidationConstraints())
+                        )
+                    );
+                }
             }
             return OBJECT_MAPPER.writeValueAsString(config);
         } catch (Exception e) {
@@ -273,6 +312,19 @@ public interface PortalNavigationItemAdapter {
             return PortalPageContentId.of(node.get(PORTAL_PAGE_CONTENT_ID).asText());
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid configuration for PortalNavigationItem PAGE type", e);
+        }
+    }
+
+    @Named("parseValidationConstraints")
+    default SubscriptionFormFieldConstraints parseValidationConstraints(String configuration) {
+        if (configuration == null || configuration.isEmpty()) {
+            throw new IllegalArgumentException("PortalNavigationItem configuration is missing for SUBSCRIPTION_FORM type");
+        }
+        try {
+            var node = OBJECT_MAPPER.readTree(configuration).get(VALIDATION_CONSTRAINTS);
+            return SubscriptionFormAdapter.parseFieldConstraintsJson(node == null ? null : node.toString());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid configuration for PortalNavigationItem SUBSCRIPTION_FORM type", e);
         }
     }
 

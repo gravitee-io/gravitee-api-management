@@ -13,20 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal.model;
+package io.gravitee.apim.core.portal_page.exception;
 
-public enum PortalArea {
-    HOMEPAGE("homepage"),
-    TOP_NAVBAR("topNavbar"),
-    SUBSCRIPTION_FORM("subscriptionForm");
+import io.gravitee.apim.core.exception.ConflictDomainException;
 
-    private final String wireName;
+public class SubscriptionFormAlreadyExistsException extends ConflictDomainException {
 
-    PortalArea(String wireName) {
-        this.wireName = wireName;
-    }
-
-    public String wireName() {
-        return wireName;
+    public SubscriptionFormAlreadyExistsException() {
+        super("Subscription form already exists for this environment");
     }
 }

@@ -23,6 +23,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm;
 import jakarta.annotation.Nullable;
 import java.util.Comparator;
 import java.util.List;
@@ -87,6 +88,7 @@ public final class PortalNavigationTreeWalker {
             case PortalNavigationApi a -> visitor.visitApi(a, parentPath);
             case PortalNavigationApiProduct p -> visitor.visitApiProduct(p, parentPath);
             case PortalNavigationLink l -> visitor.visitLink(l, parentPath);
+            case PortalNavigationSubscriptionForm s -> visitor.visitSubscriptionForm(s, parentPath);
         }
     }
 }

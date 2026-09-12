@@ -21,6 +21,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm;
 
 /** Override only the node kinds you care about; defaults are no-ops. */
 public interface PortalNavigationVisitor {
@@ -33,4 +34,6 @@ public interface PortalNavigationVisitor {
     default void visitApiProduct(PortalNavigationApiProduct apiProduct, NavigationPath parentPath) {}
 
     default void visitLink(PortalNavigationLink link, NavigationPath parentPath) {}
+
+    default void visitSubscriptionForm(PortalNavigationSubscriptionForm subscriptionForm, NavigationPath parentPath) {}
 }
