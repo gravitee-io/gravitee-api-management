@@ -150,26 +150,25 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
     },
 ];
 
-/** Classic console parity (`api-v4-menu.service.ts`, `hasTcpListeners`) — TCP has no HTTP policy-chain semantics. */
-const TCP_UNSUPPORTED_PATHS = new Set(['policy-studio', 'cors']);
-const TCP_UNSUPPORTED_REASON = 'Coming soon for V4 APIs';
+/** Classic console parity (`api-v4-menu.service.ts`) — these screens do not exist for TCP Proxy APIs. */
+const TCP_OMITTED_PATHS = new Set(['response-templates', 'cors', 'policy-studio', 'consumers']);
 
-/** Classic console never adds these menu entries for TCP APIs at all — omitted, not just disabled. */
+/** Classic console never adds these endpoint sub-routes for TCP APIs. */
 const TCP_OMITTED_CHILD_PATHS = new Set(['failover', 'health-check-dashboard']);
 
-/** Overlays `comingSoon` on the items TCP Proxy APIs don't support, and omits child routes that don't exist for TCP — matching classic console. */
+/** Omits nav items and child routes that classic console hides for TCP Proxy APIs. */
 export function withTcpRestrictions(groups: DetailNavGroup[], apiHasTcpListeners: boolean): DetailNavGroup[] {
     if (!apiHasTcpListeners) return groups;
-    return groups.map(group => ({
-        ...group,
-        items: group.items.map(item => {
-            const disabled = TCP_UNSUPPORTED_PATHS.has(item.path)
-                ? { ...item, comingSoon: true, comingSoonReason: TCP_UNSUPPORTED_REASON }
-                : item;
-            if (!disabled.children) return disabled;
-            return { ...disabled, children: disabled.children.filter(child => !TCP_OMITTED_CHILD_PATHS.has(child.path)) };
-        }),
-    }));
+    return groups
+        .map(group => ({
+            ...group,
+            items: group.items
+                .filter(item => !TCP_OMITTED_PATHS.has(item.path))
+                .map(item =>
+                    item.children ? { ...item, children: item.children.filter(child => !TCP_OMITTED_CHILD_PATHS.has(child.path)) } : item,
+                ),
+        }))
+        .filter(group => group.items.length > 0);
 }
 
 export function withMetadataPermission(groups: DetailNavGroup[], canReadMetadata: boolean): DetailNavGroup[] {

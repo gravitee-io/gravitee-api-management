@@ -28,7 +28,7 @@ import {
 import { PlusIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 
 import { CollapsibleSection, SwitchRow } from '../../../../components/CollapsibleSection';
-import type { HeaderEntry, HttpFormState, ProxyFormState, SharedConfigFormState, SslFormState } from '../types';
+import type { HeaderEntry, HttpFormState, ProxyFormState, SharedConfigFormState, SslFormState, TcpFormState } from '../types';
 import { newHeaderRow } from '../types';
 
 interface ConfigurationStepProps {
@@ -40,6 +40,7 @@ interface ConfigurationStepProps {
     defaultEndpointTarget?: string;
     targetError?: string | null;
     onTargetChange?: (value: string) => void;
+    isTcp?: boolean;
 }
 
 // ─── Number input helper ───────────────────────────────────────────────────────
@@ -76,6 +77,59 @@ function NumInput({
             />
             {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
         </div>
+    );
+}
+
+// ─── TCP section ──────────────────────────────────────────────────────────────
+
+function TcpSection({ tcp, onChange }: { tcp: TcpFormState; onChange: (p: Partial<TcpFormState>) => void }) {
+    return (
+        <CollapsibleSection title="TCP configuration" defaultOpen={true}>
+            <div className="grid grid-cols-2 gap-4">
+                <NumInput
+                    id="tcp-connect-timeout"
+                    label="Connection timeout (ms)"
+                    value={tcp.connectTimeout}
+                    min={0}
+                    onChange={v => onChange({ connectTimeout: v })}
+                />
+                <NumInput
+                    id="tcp-reconnect-attempts"
+                    label="Reconnect attempts"
+                    value={tcp.reconnectAttempts}
+                    min={0}
+                    onChange={v => onChange({ reconnectAttempts: v })}
+                />
+                <NumInput
+                    id="tcp-reconnect-interval"
+                    label="Reconnect interval (ms)"
+                    value={tcp.reconnectInterval}
+                    min={0}
+                    onChange={v => onChange({ reconnectInterval: v })}
+                />
+                <NumInput
+                    id="tcp-idle-timeout"
+                    label="Idle timeout (ms)"
+                    value={tcp.idleTimeout}
+                    min={0}
+                    onChange={v => onChange({ idleTimeout: v })}
+                />
+                <NumInput
+                    id="tcp-read-idle-timeout"
+                    label="Read idle timeout (ms)"
+                    value={tcp.readIdleTimeout}
+                    min={0}
+                    onChange={v => onChange({ readIdleTimeout: v })}
+                />
+                <NumInput
+                    id="tcp-write-idle-timeout"
+                    label="Write idle timeout (ms)"
+                    value={tcp.writeIdleTimeout}
+                    min={0}
+                    onChange={v => onChange({ writeIdleTimeout: v })}
+                />
+            </div>
+        </CollapsibleSection>
     );
 }
 
@@ -429,6 +483,7 @@ export function ConfigurationStep({
     defaultEndpointTarget = '',
     targetError,
     onTargetChange,
+    isTcp = false,
 }: Readonly<ConfigurationStepProps>) {
     return (
         <div className="space-y-6">
@@ -463,10 +518,23 @@ export function ConfigurationStep({
 
             <div className="space-y-3">
                 {showDefaultEndpointTarget && <p className="text-sm font-medium">Shared configuration</p>}
-                <HttpSection http={config.http} onChange={p => onChange({ http: { ...config.http, ...p } })} />
-                <ProxySection proxy={config.proxy} proxyError={proxyError} onChange={p => onChange({ proxy: { ...config.proxy, ...p } })} />
-                <SslSection ssl={config.ssl} onChange={p => onChange({ ssl: { ...config.ssl, ...p } })} />
-                <HeadersSection headers={config.headers} onChange={h => onChange({ headers: h })} />
+                {isTcp ? (
+                    <>
+                        <TcpSection tcp={config.tcp} onChange={p => onChange({ tcp: { ...config.tcp, ...p } })} />
+                        <SslSection ssl={config.ssl} onChange={p => onChange({ ssl: { ...config.ssl, ...p } })} />
+                    </>
+                ) : (
+                    <>
+                        <HttpSection http={config.http} onChange={p => onChange({ http: { ...config.http, ...p } })} />
+                        <ProxySection
+                            proxy={config.proxy}
+                            proxyError={proxyError}
+                            onChange={p => onChange({ proxy: { ...config.proxy, ...p } })}
+                        />
+                        <SslSection ssl={config.ssl} onChange={p => onChange({ ssl: { ...config.ssl, ...p } })} />
+                        <HeadersSection headers={config.headers} onChange={h => onChange({ headers: h })} />
+                    </>
+                )}
             </div>
         </div>
     );

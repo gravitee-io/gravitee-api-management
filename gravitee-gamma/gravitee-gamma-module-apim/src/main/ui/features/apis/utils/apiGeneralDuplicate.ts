@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import type { ApiDetailDto, DuplicateFilteredField, HttpListener } from '../types';
+import { hasTcpListeners, normalizeTcpHost } from './apiHttpProxy';
 
 export type DuplicateEntryMode = 'contextPath' | 'host' | 'none';
 
@@ -26,7 +27,7 @@ export const DUPLICATE_INCLUDE_OPTIONS: { id: DuplicateFilteredField; label: str
 
 export function getDuplicateEntryMode(api: ApiDetailDto | null): DuplicateEntryMode {
     if (!api) return 'none';
-    if (api.listeners?.some(l => (l as { type?: string }).type === 'TCP')) {
+    if (hasTcpListeners(api)) {
         return 'host';
     }
     if (api.listeners?.some(l => (l as { type?: string }).type === 'HTTP')) {
@@ -55,8 +56,10 @@ export function extractContextPathPlaceholder(api: ApiDetailDto | null): string 
 
 export function extractHostPlaceholder(api: ApiDetailDto | null): string {
     if (!api) return '';
-    const tcpListener = api.listeners?.find(l => (l as { type?: string }).type === 'TCP') as { hosts?: { host?: string }[] } | undefined;
-    return tcpListener?.hosts?.[0]?.host ?? '';
+    const tcpListener = api.listeners?.find(l => (l as { type?: string }).type === 'TCP') as
+        | { hosts?: (string | { host?: string })[] }
+        | undefined;
+    return normalizeTcpHost(tcpListener?.hosts?.[0]);
 }
 
 export function buildDuplicateFilteredFields(include: Record<DuplicateFilteredField, boolean>): DuplicateFilteredField[] {

@@ -243,6 +243,17 @@ const TCP_GROUP: EndpointGroupDto = {
     name: 'tcp-group',
     type: 'tcp-proxy',
     loadBalancer: { type: 'ROUND_ROBIN' },
+    sharedConfiguration: {
+        tcp: {
+            connectTimeout: 3000,
+            reconnectAttempts: 3,
+            reconnectInterval: 1000,
+            idleTimeout: 0,
+            readIdleTimeout: 0,
+            writeIdleTimeout: 0,
+        },
+        ssl: { hostnameVerifier: true, trustAll: false },
+    },
     endpoints: [TCP_ENDPOINT],
 };
 
@@ -482,6 +493,49 @@ describe('ApiEndpointsPage', () => {
             renderPage();
             fireEvent.click(screen.getByRole('button', { name: 'Edit endpoint ep-a' }));
             expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Edit endpoint');
+        });
+    });
+
+    // ── TCP endpoint groups ────────────────────────────────────────────────────
+
+    describe('tcp-proxy endpoint group editing', () => {
+        it('shows TCP configuration fields instead of HTTP configuration when editing a tcp-proxy group', () => {
+            mockUseApiDetailContext.mockReturnValue({ api: API_TCP, isLoading: false });
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Edit group tcp-group' }));
+            advanceGroupWizardPastGeneral();
+
+            expect(screen.getByText('TCP configuration')).toBeInTheDocument();
+            expect(screen.getByLabelText(/connection timeout/i)).toHaveValue(3000);
+            expect(screen.getByLabelText(/reconnect attempts/i)).toHaveValue(3);
+            expect(screen.queryByText('HTTP configuration')).not.toBeInTheDocument();
+            expect(screen.queryByText('Proxy')).not.toBeInTheDocument();
+            expect(screen.queryByText('HTTP headers')).not.toBeInTheDocument();
+        });
+
+        it('persists tcp sharedConfiguration when saving a tcp-proxy group edit', () => {
+            mockUseApiDetailContext.mockReturnValue({ api: API_TCP, isLoading: false });
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Edit group tcp-group' }));
+            advanceGroupWizardPastGeneral();
+            fireEvent.change(screen.getByLabelText(/connection timeout/i), { target: { value: '5000' } });
+            fireEvent.click(screen.getByRole('button', { name: /save endpoint group/i }));
+
+            const savedGroups: EndpointGroupDto[] = mockMutate.mock.calls[0][0];
+            const savedGroup = savedGroups.find(g => g.name === 'tcp-group');
+            expect(savedGroup?.type).toBe('tcp-proxy');
+            expect(savedGroup?.sharedConfiguration?.tcp).toEqual({
+                connectTimeout: 5000,
+                reconnectAttempts: 3,
+                reconnectInterval: 1000,
+                idleTimeout: 0,
+                readIdleTimeout: 0,
+                writeIdleTimeout: 0,
+            });
+            expect(savedGroup?.sharedConfiguration).not.toHaveProperty('http');
+            expect(savedGroup?.sharedConfiguration).not.toHaveProperty('proxy');
         });
     });
 

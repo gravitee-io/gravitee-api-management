@@ -13,7 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { formatEndpointTarget, hasTcpListeners, isHttpProxyApi } from './apiHttpProxy';
+import {
+    formatEndpointTarget,
+    getApiProxyTypeLabel,
+    hasTcpListeners,
+    isHttpProxyApi,
+    isTcpEndpointGroup,
+    normalizeTcpHost,
+} from './apiHttpProxy';
 import type { ApiDetailDto } from '../types';
 
 describe('hasTcpListeners', () => {
@@ -29,6 +36,33 @@ describe('hasTcpListeners', () => {
 
     it('returns true when any listener is TCP', () => {
         expect(hasTcpListeners({ listeners: [{ type: 'HTTP' }, { type: 'TCP' }] })).toBe(true);
+    });
+
+    it('returns true when a listener exposes a tcp-proxy entrypoint even without an explicit TCP type', () => {
+        expect(
+            hasTcpListeners({
+                listeners: [{ type: 'HTTP', entrypoints: [{ type: 'tcp-proxy' }] }],
+            }),
+        ).toBe(true);
+    });
+
+    it('returns true when endpoint groups use tcp-proxy', () => {
+        expect(
+            hasTcpListeners({
+                listeners: [],
+                endpointGroups: [{ type: 'tcp-proxy' }],
+            }),
+        ).toBe(true);
+    });
+});
+
+describe('getApiProxyTypeLabel', () => {
+    it('returns TCP Proxy when the API has TCP listeners', () => {
+        expect(getApiProxyTypeLabel({ listeners: [{ type: 'TCP' }] })).toBe('TCP Proxy');
+    });
+
+    it('returns HTTP Proxy when the API has no TCP listeners', () => {
+        expect(getApiProxyTypeLabel({ listeners: [{ type: 'HTTP' }] })).toBe('HTTP Proxy');
     });
 });
 
@@ -50,6 +84,31 @@ describe('isHttpProxyApi', () => {
     it('returns true for a PROXY api without TCP listeners', () => {
         const api = { id: '1', name: 'a', type: 'PROXY', listeners: [{ type: 'HTTP' }] } as ApiDetailDto;
         expect(isHttpProxyApi(api)).toBe(true);
+    });
+});
+
+describe('normalizeTcpHost', () => {
+    it('returns an empty string for undefined', () => {
+        expect(normalizeTcpHost(undefined)).toBe('');
+    });
+
+    it('returns string hosts unchanged', () => {
+        expect(normalizeTcpHost('tcp.example.com')).toBe('tcp.example.com');
+    });
+
+    it('extracts host from object-shaped entries', () => {
+        expect(normalizeTcpHost({ host: 'tcp.example.com' })).toBe('tcp.example.com');
+    });
+});
+
+describe('isTcpEndpointGroup', () => {
+    it('returns true for tcp-proxy groups', () => {
+        expect(isTcpEndpointGroup({ type: 'tcp-proxy' })).toBe(true);
+    });
+
+    it('returns false for http-proxy groups and missing type', () => {
+        expect(isTcpEndpointGroup({ type: 'http-proxy' })).toBe(false);
+        expect(isTcpEndpointGroup(undefined)).toBe(false);
     });
 });
 
