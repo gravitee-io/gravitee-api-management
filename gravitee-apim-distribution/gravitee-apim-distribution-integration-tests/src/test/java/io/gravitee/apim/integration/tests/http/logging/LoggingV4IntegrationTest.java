@@ -44,14 +44,18 @@ import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
 import io.gravitee.reporter.api.v4.log.Log;
+import io.gravitee.reporter.api.v4.metric.Diagnostic;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.HostAndPort;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.http.HttpClient;
+import io.vertx.rxjava3.core.http.HttpClientRequest;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -602,6 +606,82 @@ class LoggingV4IntegrationTest {
                 .test()
                 .await()
                 .assertComplete();
+        }
+    }
+
+    /**
+     * A logging condition that cannot be parsed used to answer every request to the API with a 500 (APIM-14947): the
+     * template engine reports a parse failure as a bare {@link IllegalArgumentException}, which the condition filter did
+     * not recognise as an EL failure and therefore propagated to the reactor. An unusable condition must only skip
+     * logging.
+     */
+    @Nested
+    @GatewayTest
+    @DeployApi({ "/apis/v4/http/api.json" })
+    class UnparseableLoggingCondition extends AbstractLoggingV4IntegrationTest {
+
+        /** Missing right-hand operand: accepted when the API is saved, rejected by the SpEL parser with EL1042E. */
+        private static final String UNPARSEABLE_CONDITION = "{#request.headers[\"x\"][0] ==}";
+
+        private BehaviorSubject<Metrics> metricsSubject;
+
+        @BeforeEach
+        void setUpMetrics() {
+            metricsSubject = BehaviorSubject.create();
+
+            FakeReporter fakeReporter = getBean(FakeReporter.class);
+            fakeReporter.setReportableHandler(reportable -> {
+                if (reportable instanceof Metrics metrics) {
+                    metricsSubject.onNext(metrics.toBuilder().build());
+                }
+            });
+        }
+
+        @Override
+        public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
+            super.configureApi(api, definitionClass);
+
+            if (api.getDefinition() instanceof Api apiDefinition) {
+                apiDefinition.getAnalytics().getLogging().setCondition(UNPARSEABLE_CONDITION);
+            }
+        }
+
+        @Test
+        void should_answer_the_request_and_skip_logging_when_the_condition_cannot_be_parsed(HttpClient httpClient) {
+            JsonObject mockResponseBody = new JsonObject().put("response", "body");
+            wiremock.stubFor(get("/endpoint").willReturn(okJson(mockResponseBody.toString())));
+
+            var reportedMetrics = metricsSubject.take(1).test();
+
+            httpClient
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
+                    return response.rxBody();
+                })
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValue(body -> {
+                    assertThat(body).hasToString(mockResponseBody.toString());
+                    return true;
+                });
+
+            wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint")));
+
+            reportedMetrics
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertValue(metrics -> {
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(metrics.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+                        soft.assertThat(metrics.getErrorKey()).isNull();
+                        // Logging is skipped rather than applied with a condition the gateway cannot evaluate...
+                        soft.assertThat(metrics.getLog()).isNull();
+                        // ...and the operator is told why in the analytics entry, not only in the gateway log file.
+                        soft.assertThat(metrics.getWarnings()).extracting(Diagnostic::getKey).contains("EXPRESSION_EVALUATION_ERROR");
+                    });
+                    return true;
+                });
         }
     }
 
