@@ -71,6 +71,7 @@ public class MongoPromotionRepository implements PromotionRepository {
             throw new IllegalStateException("Promotion must not be null");
         }
 
+<<<<<<< HEAD
         return internalRepository
             .findById(promotion.getId())
             .map(existingPromotion -> {
@@ -79,6 +80,19 @@ public class MongoPromotionRepository implements PromotionRepository {
             })
             .map(this::map)
             .orElseThrow(() -> new IllegalStateException(String.format("No promotion found with id [%s]", promotion.getId())));
+=======
+        log.debug("Update promotion [{}]", promotion.getId());
+
+        // Whether the promotion exists is decided by the replacement itself rather than by a preceding read: a read
+        // may be served by a lagging secondary and miss a promotion another node has just written, which would
+        // refuse an update the database would have accepted.
+        if (!internalRepository.replace(map(promotion))) {
+            throw new IllegalStateException(String.format("No promotion found with id [%s]", promotion.getId()));
+        }
+
+        log.debug("Update promotion [{}] - Done", promotion.getId());
+        return promotion;
+>>>>>>> f83b5f7 (fix(rest-api): recover from a promotion insert conflict without re-reading the row (APIM-15024) (#19926))
     }
 
     @Override
