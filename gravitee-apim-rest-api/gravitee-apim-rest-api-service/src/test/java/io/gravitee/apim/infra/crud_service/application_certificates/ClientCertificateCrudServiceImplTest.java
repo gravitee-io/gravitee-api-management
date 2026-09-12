@@ -212,14 +212,25 @@ class ClientCertificateCrudServiceImplTest {
 
     @Test
     void should_delegate_exists_by_fingerprint_check_to_repository() throws TechnicalException {
-        when(clientCertificateRepository.existsByFingerprintAndActiveApplication("fp-123", ENVIRONMENT_ID)).thenReturn(true);
+        when(clientCertificateRepository.existsByFingerprintAndActiveApplication("fp-123", ENVIRONMENT_ID, null)).thenReturn(true);
 
         assertThat(clientCertificateCrudService.existsByFingerprintAndActiveApplication("fp-123", ENVIRONMENT_ID)).isTrue();
     }
 
     @Test
+    void should_delegate_exists_by_fingerprint_check_with_excluded_application_to_repository() throws TechnicalException {
+        when(clientCertificateRepository.existsByFingerprintAndActiveApplication("fp-123", ENVIRONMENT_ID, APPLICATION_ID)).thenReturn(
+            false
+        );
+
+        assertThat(
+            clientCertificateCrudService.existsByFingerprintAndActiveApplication("fp-123", ENVIRONMENT_ID, APPLICATION_ID)
+        ).isFalse();
+    }
+
+    @Test
     void should_throw_technical_management_exception_when_exists_by_fingerprint_fails() throws TechnicalException {
-        when(clientCertificateRepository.existsByFingerprintAndActiveApplication(any(), any())).thenThrow(
+        when(clientCertificateRepository.existsByFingerprintAndActiveApplication(any(), any(), any())).thenThrow(
             new TechnicalException("Database error")
         );
 

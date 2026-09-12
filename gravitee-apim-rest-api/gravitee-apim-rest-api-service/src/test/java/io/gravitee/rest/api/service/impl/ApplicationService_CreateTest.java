@@ -147,7 +147,7 @@ public class ApplicationService_CreateTest {
     @BeforeEach
     public void setup() {
         GraviteeContext.cleanContext();
-        when(clientCertificateValidationDomainService.validateForCreation(any(), any())).thenReturn(VALID_CERT_INFO);
+        when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any())).thenReturn(VALID_CERT_INFO);
     }
 
     @Test
@@ -478,7 +478,9 @@ public class ApplicationService_CreateTest {
         when(newApplication.getSettings()).thenReturn(settings);
         when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
         when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
-        when(clientCertificateValidationDomainService.validateForCreation(any(), any())).thenThrow(new ClientCertificateInvalidException());
+        when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any())).thenThrow(
+            new ClientCertificateInvalidException()
+        );
 
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         Assertions.assertThatThrownBy(() -> applicationService.create(executionContext, newApplication, USER_NAME))
@@ -505,7 +507,9 @@ public class ApplicationService_CreateTest {
         when(newApplication.getSettings()).thenReturn(settings);
         when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
         when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
-        when(clientCertificateValidationDomainService.validateForCreation(any(), any())).thenThrow(new ClientCertificateEmptyException());
+        when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any())).thenThrow(
+            new ClientCertificateEmptyException()
+        );
 
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         Assertions.assertThatThrownBy(() -> applicationService.create(executionContext, newApplication, USER_NAME))
@@ -524,7 +528,7 @@ public class ApplicationService_CreateTest {
         when(newApplication.getSettings()).thenReturn(settings);
         when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
         when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
-        when(clientCertificateValidationDomainService.validateForCreation(any(), any())).thenThrow(
+        when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any())).thenThrow(
             ClientCertificateAlreadyUsedException.class
         );
 
@@ -545,7 +549,7 @@ public class ApplicationService_CreateTest {
         when(newApplication.getSettings()).thenReturn(settings);
         when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
         when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
-        when(clientCertificateValidationDomainService.validateForCreation(any(), any())).thenThrow(
+        when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any())).thenThrow(
             new ClientCertificateAuthorityException()
         );
 
