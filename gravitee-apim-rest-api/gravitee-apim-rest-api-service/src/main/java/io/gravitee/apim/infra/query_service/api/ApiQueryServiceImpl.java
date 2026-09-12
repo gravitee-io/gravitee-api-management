@@ -25,12 +25,16 @@ import io.gravitee.apim.infra.adapter.ApiFieldFilterAdapter;
 import io.gravitee.apim.infra.adapter.ApiSearchCriteriaAdapter;
 import io.gravitee.apim.infra.adapter.SortableAdapter;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
+import io.gravitee.rest.api.service.impl.search.lucene.searcher.ApiDocumentSearcher;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.CustomLog;
@@ -42,9 +46,11 @@ import org.springframework.stereotype.Service;
 public class ApiQueryServiceImpl extends AbstractService implements ApiQueryService {
 
     private final ApiRepository apiRepository;
+    private final ApiDocumentSearcher apiDocumentSearcher;
 
-    public ApiQueryServiceImpl(@Lazy final ApiRepository apiRepository) {
+    public ApiQueryServiceImpl(@Lazy final ApiRepository apiRepository, final ApiDocumentSearcher apiDocumentSearcher) {
         this.apiRepository = apiRepository;
+        this.apiDocumentSearcher = apiDocumentSearcher;
     }
 
     @Override
@@ -80,6 +86,34 @@ public class ApiQueryServiceImpl extends AbstractService implements ApiQueryServ
     @Override
     public Page<Api> findByIntegrationId(String integrationId, Pageable pageable) {
         var searchCriteria = new ApiCriteria.Builder().integrationId(integrationId).build();
+
+        return hydrate(searchCriteria, pageable);
+    }
+
+    @Override
+    public Page<Api> searchByIntegrationId(
+        String integrationId,
+        List<DefinitionVersion> definitionVersions,
+        String query,
+        Pageable pageable
+    ) {
+        var matchedIds = searchIndexedApiIds(integrationId, definitionVersions, query);
+        if (matchedIds.isEmpty()) {
+            return new Page<>(List.of(), pageable.getPageNumber(), 0, 0);
+        }
+
+        return hydrate(new ApiCriteria.Builder().ids(matchedIds).build(), pageable);
+    }
+
+    private Collection<String> searchIndexedApiIds(String integrationId, List<DefinitionVersion> definitionVersions, String query) {
+        try {
+            return apiDocumentSearcher.searchByIntegrationId(integrationId, definitionVersions, query).getDocuments();
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(e);
+        }
+    }
+
+    private Page<Api> hydrate(ApiCriteria searchCriteria, Pageable pageable) {
         var sortable = SortableAdapter.INSTANCE.toSortableForRepository(
             Sortable.builder().field("updatedAt").order(Sortable.Order.DESC).build()
         );

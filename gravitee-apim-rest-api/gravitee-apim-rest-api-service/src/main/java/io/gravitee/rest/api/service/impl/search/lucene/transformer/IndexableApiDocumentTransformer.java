@@ -21,6 +21,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.ListenerType;
@@ -84,8 +85,11 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
         doc.add(new StringField(FIELD_VISIBILITY, api.getVisibility().name(), Field.Store.NO));
         doc.add(new SortedDocValuesField(FIELD_VISIBILITY_SORTED, toSortedValue(api.getVisibility().name())));
 
+        LuceneTransformerUtils.appendDefinitionVersion(doc, api.getDefinitionVersion());
+
+        // The V2 fallback in appendDefinitionVersion deliberately stops there: generateApiType dereferences the
+        // version, so a legacy row keeps carrying no api_type term.
         if (api.getDefinitionVersion() != null) {
-            doc.add(new StringField(FIELD_DEFINITION_VERSION, api.getDefinitionVersion().getLabel(), Field.Store.NO));
             String apiType = LuceneTransformerUtils.generateApiType(api);
             doc.add(new StringField(FIELD_API_TYPE, apiType, Field.Store.NO));
             doc.add(new SortedDocValuesField(FIELD_API_TYPE_SORTED, toSortedValue(apiType)));
@@ -106,6 +110,9 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
             doc.add(new StringField(FIELD_DESCRIPTION, api.getDescription(), Field.Store.NO));
             doc.add(new StringField(FIELD_DESCRIPTION_LOWERCASE, api.getDescription().toLowerCase(), Field.Store.NO));
             doc.add(new TextField(FIELD_DESCRIPTION_SPLIT, api.getDescription(), Field.Store.NO));
+        }
+        if (api.getApiDefinitionValue() instanceof FederatedAgent agent && agent.getProvider() != null) {
+            LuceneTransformerUtils.appendProviderOrganization(doc, agent.getProvider().organization());
         }
         if (primaryOwner != null) {
             doc.add(new StringField(FIELD_OWNER, primaryOwner.displayName(), Field.Store.NO));
@@ -157,6 +164,8 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
         if (api.getOriginContext() != null && api.getOriginContext().name() != null) {
             doc.add(new StringField(FIELD_ORIGIN, api.getOriginContext().name(), Field.Store.NO));
         }
+
+        LuceneTransformerUtils.appendIntegrationId(doc, api.getOriginContext(), api.getId());
 
         if (api.getDefinitionVersion() == DefinitionVersion.V4) {
             transformV4Api(doc, indexableApi);

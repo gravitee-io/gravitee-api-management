@@ -15,18 +15,55 @@
  */
 package io.gravitee.rest.api.service.impl.search.lucene.utils;
 
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_INTEGRATION_ID;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PROVIDER_ORGANIZATION_LOWERCASE;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import java.util.Objects;
 import lombok.AccessLevel;
+import lombok.CustomLog;
 import lombok.NoArgsConstructor;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StringField;
 
+@CustomLog
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class LuceneTransformerUtils {
+
+    public static void appendDefinitionVersion(Document doc, DefinitionVersion definitionVersion) {
+        // A legacy row with no stored definition version is a V2 api, and is indexed as one so a V2 filter finds it.
+        var indexedDefinitionVersion = Objects.requireNonNullElse(definitionVersion, DefinitionVersion.V2);
+        doc.add(new StringField(FIELD_DEFINITION_VERSION, indexedDefinitionVersion.getLabel(), Field.Store.NO));
+    }
+
+    public static void appendIntegrationId(Document doc, OriginContext originContext, String apiId) {
+        if (originContext instanceof OriginContext.Integration integration) {
+            if (integration.integrationId() != null) {
+                doc.add(new StringField(FIELD_INTEGRATION_ID, integration.integrationId(), Field.Store.NO));
+            } else {
+                log.warn(
+                    "Api {} has an integration origin context with no integration id; indexing it without an integration id term",
+                    apiId
+                );
+            }
+        }
+    }
+
+    public static void appendProviderOrganization(Document doc, String organization) {
+        if (isBlank(organization)) {
+            return;
+        }
+        doc.add(new StringField(FIELD_PROVIDER_ORGANIZATION_LOWERCASE, organization.toLowerCase(), Field.Store.NO));
+    }
 
     public static String generateApiType(Api api) {
         boolean isTcpApi =
