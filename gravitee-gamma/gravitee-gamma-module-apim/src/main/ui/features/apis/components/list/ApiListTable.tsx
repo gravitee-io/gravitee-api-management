@@ -30,9 +30,10 @@ import { AlertCircleIcon, CircleCheckIcon, CircleXIcon, MoreVerticalIcon, Refres
 import { useNavigate } from 'react-router-dom';
 
 import { ShardingTagsCell } from '../../../../shared/components/ShardingTagsCell';
-import type { ApiDeploymentState, ApiListItem, ApiState } from '../../types';
+import type { ApiDeploymentState, ApiListItem, ApiListOriginContext, ApiState } from '../../types';
 import { buildApiAnalyticsPath } from '../../utils/analyticsDeepLink';
 import { getApiAccessPath } from '../../utils/apiAccess';
+import { federatedProviderLabel } from '../../utils/federatedProviderLabels';
 import { ApiAvatar } from '../ApiAvatar';
 
 type ColCell<T> = { row: { original: T } };
@@ -98,6 +99,15 @@ function SyncStatusBadge({ deploymentState }: { deploymentState: ApiDeploymentSt
     );
 }
 
+function OriginIndicator({ originContext }: { originContext: ApiListOriginContext | undefined }) {
+    if (originContext?.origin !== 'INTEGRATION') return null;
+    return (
+        <span className="text-sm" data-testid="api-origin-indicator">
+            {originContext.provider ? federatedProviderLabel(originContext.provider) : '—'}
+        </span>
+    );
+}
+
 // ─── Actions dropdown ─────────────────────────────────────────────────────────
 
 function ApiActionsMenu({ apiId, onNavigate }: { apiId: string; onNavigate: (path: string) => void }) {
@@ -143,6 +153,13 @@ function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<
                     </div>
                 );
             },
+        },
+        {
+            id: 'Origin',
+            accessorFn: (row: ApiListItem) => row.originContext?.provider ?? '',
+            header: 'Origin',
+            enableSorting: false,
+            cell: ({ row }: ColCell<ApiListItem>) => <OriginIndicator originContext={row.original.originContext} />,
         },
         {
             id: 'Runtime Status',

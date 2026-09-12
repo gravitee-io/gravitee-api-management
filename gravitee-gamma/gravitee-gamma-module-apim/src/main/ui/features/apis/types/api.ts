@@ -140,6 +140,14 @@ export type ApiState = 'CLOSED' | 'INITIALIZED' | 'STARTED' | 'STOPPED' | 'STOPP
 export type ApiDeploymentState = 'NEED_REDEPLOY' | 'DEPLOYED';
 export type ApiLifecycleState = 'ARCHIVED' | 'CREATED' | 'DEPRECATED' | 'PUBLISHED' | 'UNPUBLISHED';
 export type ApiVisibility = 'PUBLIC' | 'PRIVATE';
+export type ApiOrigin = 'MANAGEMENT' | 'KUBERNETES' | 'INTEGRATION';
+
+export interface ApiListOriginContext {
+    origin?: ApiOrigin;
+    integrationId?: string;
+    integrationName?: string;
+    provider?: string;
+}
 
 export type DuplicateFilteredField = 'GROUPS' | 'MEMBERS' | 'PAGES' | 'PLANS';
 
@@ -174,6 +182,7 @@ export interface ApiListItem {
     /** Sharding tags assigned to this API (controls gateway deployment). */
     tags?: string[];
     primaryOwner?: { id?: string; displayName?: string; email?: string };
+    originContext?: ApiListOriginContext;
     picture?: string | null;
     _links?: {
         pictureUrl?: string;

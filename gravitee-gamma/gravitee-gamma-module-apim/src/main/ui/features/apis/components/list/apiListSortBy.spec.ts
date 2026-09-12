@@ -35,5 +35,7 @@ describe('toApiListSortBy', () => {
 
     it('returns undefined for a non-server-sortable column', () => {
         expect(toApiListSortBy([{ id: 'Sync Status', desc: false }])).toBeUndefined();
+        // `/apis/_search` has no sortBy field for the origin provider.
+        expect(toApiListSortBy([{ id: 'Origin', desc: false }])).toBeUndefined();
     });
 });

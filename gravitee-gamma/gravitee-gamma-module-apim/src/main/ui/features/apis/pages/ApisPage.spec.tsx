@@ -106,6 +106,8 @@ describe('ApisPage', () => {
     it.each<[string, ReturnType<typeof federatedRow>[]]>([
         ['carries no origin provider', [federatedRow()]],
         ['carries any of the federated origin providers', FEDERATED_PROVIDERS.map(provider => federatedRow(provider))],
+        // `kong` has no display-name entry; the mapped row alongside it would catch an inverted filter.
+        ['carries an origin provider with no display name, alongside one that has', [federatedRow('kong'), federatedRow('solace')]],
     ])('renders exactly one row per federated API when it %s', (_case, rows) => {
         mockUseApiList.mockReturnValue({
             data: { data: rows, pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: rows.length } },
