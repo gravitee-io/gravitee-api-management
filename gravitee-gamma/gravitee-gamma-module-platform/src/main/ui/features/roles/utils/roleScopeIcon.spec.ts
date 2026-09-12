@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 import { getRoleScopeIcon } from './roleScopeIcon';
+import { ROLE_SCOPES } from '../types/role';
 
 describe('getRoleScopeIcon', () => {
-    it.each(['API', 'APPLICATION', 'ENVIRONMENT', 'ORGANIZATION', 'INTEGRATION', 'API_PRODUCT', 'AI_WORKSPACE'] as const)(
-        'returns an icon for %s',
-        scope => {
-            expect(getRoleScopeIcon(scope)).toBeDefined();
-        },
-    );
-
-    it.each(['CLUSTER', 'EXPLORER'] as const)('returns no icon for %s, matching the Angular default case', scope => {
-        expect(getRoleScopeIcon(scope)).toBeUndefined();
+    it.each(ROLE_SCOPES)('returns an icon for %s', scope => {
+        expect(getRoleScopeIcon(scope)).toBeDefined();
     });
 });

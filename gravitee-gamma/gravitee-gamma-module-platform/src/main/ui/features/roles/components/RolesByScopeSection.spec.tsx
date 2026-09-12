@@ -113,8 +113,7 @@ describe('RolesByScopeSection', () => {
         const user = userEvent.setup();
         render(<RolesByScopeSection group={organizationGroup()} {...BASE_PROPS} />);
 
-        // Exact match: a loose /ADMIN/ regex would also match the "Actions for ADMIN" row-actions trigger.
-        await user.click(screen.getByRole('button', { name: 'ADMIN' }));
+        await user.click(screen.getByRole('button', { name: 'ADMIN System' }));
 
         expect(BASE_PROPS.onSelectRole).toHaveBeenCalledWith('ORGANIZATION', 'ADMIN');
     });
@@ -160,21 +159,21 @@ describe('RolesByScopeSection', () => {
             />,
         );
 
-        // ADMIN and DEFAULT_ROLE only offer "view members" in their dropdown, no "Delete role".
+        // ADMIN and DEFAULT_ROLE only offer "view members" in their dropdown, no "Delete".
         await user.click(screen.getByRole('button', { name: 'Actions for ADMIN' }));
         expect(screen.getByRole('menuitem', { name: /View members/ })).toBeInTheDocument();
-        expect(screen.queryByRole('menuitem', { name: /Delete role/ })).not.toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', { name: /^Delete$/ })).not.toBeInTheDocument();
         await user.keyboard('{Escape}');
 
         await user.click(screen.getByRole('button', { name: 'Actions for DEFAULT_ROLE' }));
         expect(screen.getByRole('menuitem', { name: /View members/ })).toBeInTheDocument();
-        expect(screen.queryByRole('menuitem', { name: /Delete role/ })).not.toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', { name: /^Delete$/ })).not.toBeInTheDocument();
         await user.keyboard('{Escape}');
 
         // CUSTOM offers both.
         await user.click(screen.getByRole('button', { name: 'Actions for CUSTOM' }));
         expect(screen.getByRole('menuitem', { name: /View members/ })).toBeInTheDocument();
-        expect(screen.getByRole('menuitem', { name: /Delete role/ })).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', { name: /^Delete$/ })).toBeInTheDocument();
     });
 
     it('collapses two available row actions into a dropdown menu instead of two icon buttons', async () => {
@@ -191,7 +190,7 @@ describe('RolesByScopeSection', () => {
         expect(BASE_PROPS.onViewMembers).toHaveBeenCalledWith('ORGANIZATION', 'CUSTOM');
 
         await user.click(screen.getByRole('button', { name: 'Actions for CUSTOM' }));
-        await user.click(screen.getByRole('menuitem', { name: /Delete role/ }));
+        await user.click(screen.getByRole('menuitem', { name: /^Delete$/ }));
         expect(BASE_PROPS.onDeleteRole).toHaveBeenCalledWith('ORGANIZATION', { name: 'CUSTOM', scope: 'ORGANIZATION', permissions: {} });
     });
 
@@ -212,7 +211,7 @@ describe('RolesByScopeSection', () => {
 
         await user.click(screen.getByRole('button', { name: 'Actions for USER' }));
         expect(screen.queryByRole('menuitem', { name: /View members/ })).not.toBeInTheDocument();
-        expect(screen.getByRole('menuitem', { name: /Delete role/ })).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', { name: /^Delete$/ })).toBeInTheDocument();
     });
 
     it('hides delete and members actions without permission', () => {

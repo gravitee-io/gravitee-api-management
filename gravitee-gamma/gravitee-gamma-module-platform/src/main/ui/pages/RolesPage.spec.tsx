@@ -146,7 +146,7 @@ describe('RolesPage', () => {
 
         // CUSTOM has both "view members" and "delete", so its row actions collapse into a dropdown.
         await user.click(screen.getByRole('button', { name: 'Actions for CUSTOM' }));
-        await user.click(screen.getByRole('menuitem', { name: /Delete role/ }));
+        await user.click(screen.getByRole('menuitem', { name: /^Delete$/ }));
         expect(screen.getByRole('heading', { name: 'Delete a Role' })).toBeInTheDocument();
         await user.click(screen.getByRole('button', { name: 'Delete' }));
 
@@ -163,7 +163,7 @@ describe('RolesPage', () => {
         renderPage();
 
         await user.click(screen.getByRole('button', { name: 'Actions for CUSTOM' }));
-        await user.click(screen.getByRole('menuitem', { name: /Delete role/ }));
+        await user.click(screen.getByRole('menuitem', { name: /^Delete$/ }));
         await user.click(screen.getByRole('button', { name: 'Delete' }));
 
         await waitFor(() => {

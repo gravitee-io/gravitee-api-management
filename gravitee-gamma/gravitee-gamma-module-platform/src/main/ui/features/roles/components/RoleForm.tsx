@@ -13,7 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Alert, AlertDescription, Button, Card, CardContent, Field, FieldLabel, Input, Switch } from '@gravitee/graphene-core';
+import {
+    Alert,
+    AlertDescription,
+    Button,
+    Card,
+    CardContent,
+    Field,
+    FieldContent,
+    FieldLabel,
+    Input,
+    Switch,
+} from '@gravitee/graphene-core';
+import { CheckIcon } from '@gravitee/graphene-core/icons';
 import { useState, type FormEvent } from 'react';
 
 import { RolePermissionsTable } from './RolePermissionsTable';
@@ -79,6 +91,12 @@ export function RoleForm({
     const isDirty = JSON.stringify(form) !== JSON.stringify(initialForm);
     const canSubmit = nameValid && !isSaving && !isReadOnly && (!isEditMode || isDirty);
 
+    function handleDiscard() {
+        setForm(initialForm);
+        setSubmitError(null);
+        setNameTouched(false);
+    }
+
     async function handleSubmit(event: FormEvent) {
         event.preventDefault();
         if (!canSubmit) return;
@@ -100,7 +118,7 @@ export function RoleForm({
         <form onSubmit={handleSubmit} className="space-y-6" aria-label={isEditMode ? 'Update role' : 'Create role'}>
             {isReadOnly ? (
                 <Alert>
-                    <AlertDescription>System role are not editable</AlertDescription>
+                    <AlertDescription>System roles are not editable.</AlertDescription>
                 </Alert>
             ) : null}
 
@@ -141,21 +159,23 @@ export function RoleForm({
                         />
                     </Field>
 
-                    <div className="flex items-center gap-2">
+                    <Field orientation="horizontal">
+                        <FieldContent>
+                            <FieldLabel htmlFor="role-default">Default role</FieldLabel>
+                        </FieldContent>
                         <Switch
                             id="role-default"
                             checked={form.default}
                             onCheckedChange={checked => setForm(prev => ({ ...prev, default: checked }))}
                             disabled={areBasicFieldsDisabled}
-                            aria-label="Default role toggle"
+                            aria-label="Default role"
                         />
-                        <FieldLabel htmlFor="role-default">Default role</FieldLabel>
-                    </div>
+                    </Field>
                 </CardContent>
             </Card>
 
             <Card>
-                <CardContent>
+                <CardContent className="overflow-x-auto p-0">
                     <RolePermissionsTable
                         scope={scope}
                         permissionNames={permissionNames}
@@ -172,14 +192,30 @@ export function RoleForm({
                 </p>
             ) : null}
 
-            <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving}>
-                    Cancel
-                </Button>
-                <Button type="submit" disabled={!canSubmit}>
-                    {isSaving ? 'Saving...' : isEditMode ? 'Save' : 'Create role'}
-                </Button>
-            </div>
+            {!isReadOnly && !isEditMode ? (
+                <div className="sticky bottom-0 z-10 flex flex-wrap items-center justify-end gap-2 border-t bg-background py-4">
+                    <Button type="button" variant="outline" size="sm" onClick={onCancel} disabled={isSaving}>
+                        Cancel
+                    </Button>
+                    <Button type="submit" size="sm" disabled={!canSubmit}>
+                        <CheckIcon className="size-4" aria-hidden />
+                        {isSaving ? 'Saving…' : 'Create role'}
+                    </Button>
+                </div>
+            ) : null}
+
+            {!isReadOnly && isEditMode && isDirty ? (
+                <div className="sticky bottom-0 z-10 flex flex-wrap items-center justify-end gap-2 border-t bg-background py-4">
+                    <p className="mr-auto text-sm text-muted-foreground">You have unsaved changes.</p>
+                    <Button type="button" variant="outline" size="sm" onClick={handleDiscard} disabled={isSaving}>
+                        Discard
+                    </Button>
+                    <Button type="submit" size="sm" disabled={!canSubmit}>
+                        <CheckIcon className="size-4" aria-hidden />
+                        {isSaving ? 'Saving…' : 'Save changes'}
+                    </Button>
+                </div>
+            ) : null}
         </form>
     );
 }
