@@ -286,6 +286,24 @@ public class PromotionServiceTest {
         verify(promotionRepository, times(1)).update(any());
     }
 
+    // JdbcAbstractCrudRepository.update returns findById(...).orElse(null), so the read that missed the row can
+    // miss it again right after the update wrote it. The recovery must not hand that null back to the caller.
+    @Test
+    public void shouldReturnTheWrittenPromotionWhenTheUpdateReadBackMissesIt() throws TechnicalException {
+        when(promotionRepository.findById(any())).thenReturn(Optional.empty());
+        when(promotionRepository.create(any())).thenThrow(
+            new TechnicalException(
+                "Failed to create promotion",
+                new DuplicateKeyException("Violation of PRIMARY KEY constraint 'pk_apim_promotions'")
+            )
+        );
+        when(promotionRepository.update(any())).thenReturn(null);
+
+        final PromotionEntity result = promotionService.createOrUpdate(getAPromotionEntity());
+
+        assertThat(result.getApiId()).isEqualTo("api#1");
+    }
+
     @Test
     public void shouldRethrowWhenTheCreateFailureIsNotAConflict() throws TechnicalException {
         when(promotionRepository.findById(any())).thenReturn(Optional.empty());

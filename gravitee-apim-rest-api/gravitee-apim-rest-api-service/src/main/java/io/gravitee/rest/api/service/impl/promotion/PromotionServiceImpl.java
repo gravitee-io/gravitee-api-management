@@ -263,10 +263,10 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
      * check can miss a row the other transaction has not committed yet, which surfaced as a raw primary key
      * violation. Treat the conflict as what it means - somebody else got there first - and update instead.
      *
-     * The conflict is recognised from the exception alone. Reading the row back to confirm it exists repeats the
-     * very lookup that already missed it, and a read that is not guaranteed to see the row the other transaction
-     * just committed lets the violation escape again; the update is a write, so it always resolves against the
-     * committed row.
+     * The conflict is recognised from the exception alone: reading the row back to confirm it exists repeats the
+     * very lookup that already missed it. The UPDATE statement resolves against the committed row, but update()
+     * hands back what a read finds afterwards, and that read can miss the row just as the first one did - so
+     * return the promotion that was written instead of the one read back.
      */
     private Promotion createOrUpdateOnConflict(Promotion promotion) throws TechnicalException {
         try {
@@ -276,7 +276,8 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                 throw e;
             }
             log.debug("Promotion {} was created concurrently, updating it instead", promotion.getId());
-            return promotionRepository.update(promotion);
+            promotionRepository.update(promotion);
+            return promotion;
         }
     }
 
