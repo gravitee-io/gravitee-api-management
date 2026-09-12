@@ -18,12 +18,14 @@ package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ALLOW_IN_API_PRODUCTS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_TYPE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ID;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PROVIDER_ORGANIZATION_LOWERCASE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_STATUS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_STATUS_SORTED;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TYPE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_VISIBILITY;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
@@ -44,6 +46,7 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.federation.FederatedApiAgentEntity;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -56,14 +59,20 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.util.BytesRef;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -72,6 +81,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiDocumentTransformerTest {
 
     @InjectMocks
@@ -268,6 +278,72 @@ class ApiDocumentTransformerTest {
         assertThat(doc.get(FIELD_API_TYPE)).isEqualTo("FEDERATED");
         assertThat(doc.get(FIELD_STATUS)).isNull();
         assertThat(doc.get(FIELD_STATUS_SORTED)).isNull();
+    }
+
+    @Test
+    void transform_api_entity_federated_agent_verify_no_status() {
+        var api = FederatedApiAgentEntity.builder().id("api-agent").name("Alpha Agent").visibility(Visibility.PUBLIC).build();
+
+        Document doc = cut.transform(api);
+
+        assertThat(doc.get(FIELD_ID)).isEqualTo("api-agent");
+        assertThat(doc.getField(FIELD_STATUS)).isNull();
+        assertThat(doc.getField(FIELD_STATUS_SORTED)).isNull();
+    }
+
+    @Test
+    void should_index_the_status_and_its_sort_key_for_a_non_federated_api() {
+        var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
+        api.setId("api-uuid");
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.PROXY);
+        api.setVisibility(Visibility.PUBLIC);
+        api.setState(Lifecycle.State.STARTED);
+
+        Document doc = cut.transform(api);
+
+        assertThat(doc.get(FIELD_STATUS)).isEqualTo("STARTED");
+        assertThat(doc.getField(FIELD_STATUS_SORTED)).isNotNull();
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("agentProviders")
+    void should_index_the_agent_card_provider_organization_lower_cased(
+        String caseName,
+        FederatedApiAgentEntity.Provider provider,
+        String expectedTerm
+    ) {
+        var api = FederatedApiAgentEntity.builder()
+            .id("api-agent")
+            .name("Beta Runner")
+            .visibility(Visibility.PUBLIC)
+            .provider(provider)
+            .build();
+
+        Document doc = cut.transform(api);
+
+        assertThat(doc.get(FIELD_PROVIDER_ORGANIZATION_LOWERCASE)).isEqualTo(expectedTerm);
+    }
+
+    private static Stream<Arguments> agentProviders() {
+        return Stream.of(
+            Arguments.of(
+                "an organization is indexed as one whole lower cased term",
+                new FederatedApiAgentEntity.Provider("Acme Robotics", "https://example.net"),
+                "acme robotics"
+            ),
+            Arguments.of("an agent card with no provider at all carries no organization term", null, null),
+            Arguments.of(
+                "a provider whose organization is null carries no organization term",
+                new FederatedApiAgentEntity.Provider(null, "https://example.net"),
+                null
+            ),
+            Arguments.of(
+                "a provider whose organization is blank carries no organization term",
+                new FederatedApiAgentEntity.Provider("   ", "https://example.net"),
+                null
+            )
+        );
     }
 
     @Test

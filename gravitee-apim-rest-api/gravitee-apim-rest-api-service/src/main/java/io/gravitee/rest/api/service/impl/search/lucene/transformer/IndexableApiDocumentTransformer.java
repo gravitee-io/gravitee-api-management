@@ -21,6 +21,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.ListenerType;
@@ -109,6 +110,9 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
             doc.add(new StringField(FIELD_DESCRIPTION, api.getDescription(), Field.Store.NO));
             doc.add(new StringField(FIELD_DESCRIPTION_LOWERCASE, api.getDescription().toLowerCase(), Field.Store.NO));
             doc.add(new TextField(FIELD_DESCRIPTION_SPLIT, api.getDescription(), Field.Store.NO));
+        }
+        if (api.getApiDefinitionValue() instanceof FederatedAgent agent && agent.getProvider() != null) {
+            LuceneTransformerUtils.appendProviderOrganization(doc, agent.getProvider().organization());
         }
         if (primaryOwner != null) {
             doc.add(new StringField(FIELD_OWNER, primaryOwner.displayName(), Field.Store.NO));
