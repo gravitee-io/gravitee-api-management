@@ -1018,6 +1018,45 @@ spec:
               - MCP_PROXY_TOOL_PRICE_STATUS
               - MCP_PROXY_TOOL_BILLED
 
+        - name: MCP_PROXY_TOOL_VALUE
+          label: Tool value
+          apis:
+              - MCP
+          unit: NUMBER
+          measures:
+              - COUNT
+              - AVG
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - GATEWAY
+              - TENANT
+              - ZONE
+              - API_PRODUCT
+              - HTTP_STATUS_CODE_GROUP
+              - HTTP_STATUS
+              - MCP_PROXY_METHOD
+              - MCP_PROXY_TOOL
+              - MCP_PROXY_TOOL_PRICE_STATUS
+              - MCP_PROXY_TOOL_BILLED
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+              - GATEWAY
+              - TENANT
+              - ZONE
+              - API_PRODUCT
+              - HTTP_STATUS_CODE_GROUP
+              - HTTP_STATUS
+              - HOST
+              - CONSUMER_IP
+              - MCP_PROXY_METHOD
+              - MCP_PROXY_TOOL
+              - MCP_PROXY_TOOL_PRICE_STATUS
+              - MCP_PROXY_TOOL_BILLED
+
         - name: LLM_PROMPT_TOKEN_TOTAL_COST
           label: Total token cost
           apis:

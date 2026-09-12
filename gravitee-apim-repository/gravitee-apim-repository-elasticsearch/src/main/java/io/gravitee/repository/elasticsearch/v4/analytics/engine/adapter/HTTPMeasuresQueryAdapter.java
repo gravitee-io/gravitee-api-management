@@ -219,7 +219,8 @@ public class HTTPMeasuresQueryAdapter {
                 LLM_PROMPT_TOKEN_RECEIVED_COST,
                 LLM_PROMPT_TOKEN_REASONING,
                 LLM_PROMPT_TOKEN_REASONING_COST,
-                MCP_PROXY_TOOL_COST -> Optional.of(countWithSumBuilder);
+                MCP_PROXY_TOOL_COST,
+                MCP_PROXY_TOOL_VALUE -> Optional.of(countWithSumBuilder);
             default -> Optional.of(simpleCountBuilder);
         };
     }

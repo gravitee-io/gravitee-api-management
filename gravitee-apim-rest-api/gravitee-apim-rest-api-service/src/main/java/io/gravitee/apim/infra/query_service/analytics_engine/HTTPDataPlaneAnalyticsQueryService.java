@@ -73,6 +73,7 @@ public class HTTPDataPlaneAnalyticsQueryService implements AnalyticsEngineQueryS
             LLM_PROMPT_TOTAL_TOKEN,
             LLM_PROMPT_TOKEN_TOTAL_COST,
             MCP_PROXY_TOOL_COST,
+            MCP_PROXY_TOOL_VALUE,
             LLM_CONVERSATIONS,
             LLM_TURNS,
             LLM_LARGEST_TURN,

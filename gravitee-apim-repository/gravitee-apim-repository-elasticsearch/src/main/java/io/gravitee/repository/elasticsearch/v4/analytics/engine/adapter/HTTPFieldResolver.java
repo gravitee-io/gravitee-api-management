@@ -42,6 +42,7 @@ public class HTTPFieldResolver implements FieldResolver {
             case LLM_PROMPT_TOKEN_REASONING -> LlmProxyFields.TOKENS_REASONING;
             case LLM_PROMPT_TOKEN_REASONING_COST -> LlmProxyFields.REASONING_COST;
             case MCP_PROXY_TOOL_COST -> "additional-metrics.double_mcp-proxy_tool-cost";
+            case MCP_PROXY_TOOL_VALUE -> "additional-metrics.double_mcp-proxy_tool-value";
             case LLM_LARGEST_TURN -> LlmProxyFields.CALL_NUMBER;
             case EDGE_DETECTION_COUNT -> "additional-metrics.long_edge_count";
             case EDGE_TOKENS_IN -> "additional-metrics.long_edge_tokens_in";
