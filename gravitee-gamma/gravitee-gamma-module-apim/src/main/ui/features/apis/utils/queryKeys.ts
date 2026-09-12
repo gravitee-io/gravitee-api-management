@@ -25,8 +25,8 @@ export const apiProxyKeys = {
 
 export const apiListKeys = {
     all: ['api-list'] as const,
-    search: (envId: string, query: string, page: number, perPage: number) =>
-        [...apiListKeys.all, 'search', envId, query, page, perPage] as const,
+    search: (envId: string, query: string, page: number, perPage: number, includeFederated = false) =>
+        [...apiListKeys.all, 'search', envId, query, page, perPage, includeFederated] as const,
     count: (envId: string, filter: object) => [...apiListKeys.all, 'count', envId, JSON.stringify(filter)] as const,
 } as const;
 
@@ -66,6 +66,11 @@ export const groupKeys = {
 export const orgTagKeys = {
     all: ['org-tags'] as const,
     list: () => [...orgTagKeys.all, 'list'] as const,
+};
+
+export const orgConsoleKeys = {
+    all: ['org-console'] as const,
+    settings: () => [...orgConsoleKeys.all, 'settings'] as const,
 };
 
 export const userTagKeys = {

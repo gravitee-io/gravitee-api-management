@@ -18,6 +18,8 @@ export {
     ApimLicenseFeature,
     REQUEST_ENTERPRISE_LICENSE_URL,
     type ApimLicenseFeatureId,
+    type ApimUpgradeFeatureId,
     type FeatureUpgradeContent,
 } from './apimFeatures';
 export { RequireFeatureLicense } from './RequireFeatureLicense';
+export { useFederationEnabled } from './useFederationEnabled';

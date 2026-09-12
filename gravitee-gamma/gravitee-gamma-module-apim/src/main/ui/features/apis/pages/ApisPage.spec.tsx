@@ -42,6 +42,28 @@ const API_ROWS = [
     { id: 'federated-1', name: FEDERATED_API_NAME, apiVersion: '1.0', type: 'PROXY', definitionVersion: 'V4' },
 ];
 
+const FEDERATED_PROVIDERS = [
+    'aws-api-gateway',
+    'solace',
+    'apigee',
+    'azure-api-management',
+    'ibm-api-connect',
+    'confluent-platform',
+    'mulesoft',
+    'edge-stack',
+];
+
+function federatedRow(provider?: string) {
+    return {
+        id: `federated-${provider ?? 'unattributed'}`,
+        name: `Orders via ${provider ?? 'an unnamed integration'}`,
+        apiVersion: '1.0',
+        type: 'PROXY',
+        definitionVersion: 'FEDERATED',
+        originContext: { origin: 'INTEGRATION', provider },
+    };
+}
+
 function renderPage() {
     return render(
         <MemoryRouter>
@@ -79,6 +101,20 @@ describe('ApisPage', () => {
 
         expect(screen.queryByText(NATIVE_PROXY_NAME)).not.toBeNull();
         expect(screen.queryByText(FEDERATED_API_NAME)).not.toBeNull();
+    });
+
+    it.each<[string, ReturnType<typeof federatedRow>[]]>([
+        ['carries no origin provider', [federatedRow()]],
+        ['carries any of the federated origin providers', FEDERATED_PROVIDERS.map(provider => federatedRow(provider))],
+    ])('renders exactly one row per federated API when it %s', (_case, rows) => {
+        mockUseApiList.mockReturnValue({
+            data: { data: rows, pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: rows.length } },
+            isLoading: false,
+            isFetching: false,
+        });
+        renderPage();
+
+        rows.forEach(row => expect(screen.getAllByText(row.name)).toHaveLength(1));
     });
 
     it('renders no API row of either kind when the search is refused with 403', () => {
