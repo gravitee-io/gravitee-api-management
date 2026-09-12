@@ -13,9 +13,9 @@
     "test": "node --test \"helpers/*.test.mjs\"",
     "prettier": "prettier --check \"**/*.{js,mjs,json}\"",
     "prettier:fix": "prettier --write \"**/*.{js,mjs,json}\"",
-    "full_release": "zx steps/full_release.mjs",
     "prepare_hotfix": "zx steps/prepare_hotfix.mjs",
     "prepare_core_release": "zx steps/prepare_core_release.mjs",
+    "prepare_distribution_release": "zx steps/prepare_distribution_release.mjs",
     "zx": "zx --quiet"
   },
   "packageManager": "yarn@4.1.1"

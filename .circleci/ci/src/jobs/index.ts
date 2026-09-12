@@ -27,7 +27,7 @@ export * from './job-publish-pr-env-urls';
 export * from './job-publish-rpm-packages';
 export * from './job-pin-core';
 export * from './job-prepare-core-release';
-export * from './job-release-commit-and-prepare-next-version';
+export * from './job-prepare-distribution-release';
 export * from './job-release-notes-apim';
 export * from './job-setup';
 export * from './job-slack-announcement';

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 import * as fs from 'fs';
-import { generateFullReleaseConfig } from '../pipeline-full-release';
+import { generateDistributionReleaseConfig } from '../pipeline-distribution-release';
 
-describe('Full release tests', () => {
+describe('Distribution release tests', () => {
   const guardOf = (version: string) =>
-    generateFullReleaseConfig({
-      action: 'full_release',
+    generateDistributionReleaseConfig({
+      action: 'distribution_release',
       baseBranch: 'master',
       branch: 'master',
       sha1: '784ff35ca',
@@ -27,6 +27,7 @@ describe('Full release tests', () => {
       buildNum: '1234',
       buildId: '1234',
       graviteeioVersion: version,
+      tag: version,
       isDryRun: false,
       apimVersionPath: './src/pipelines/tests/resources/common/pom.xml',
     }).stringify();
@@ -52,10 +53,10 @@ describe('Full release tests', () => {
     expect(guardOf('4.13.0-alpha.1')).toContain('"${PIN_BASE%.*}" != "4.13"');
   });
 
-  describe('Nexus staging', () => {
-    const configFor = (isDryRun: boolean) =>
-      generateFullReleaseConfig({
-        action: 'full_release',
+  describe('APIM API docs ingestion', () => {
+    const generated = () =>
+      generateDistributionReleaseConfig({
+        action: 'distribution_release',
         baseBranch: '4.2.x',
         branch: '4.2.x',
         sha1: '784ff35ca',
@@ -63,25 +64,23 @@ describe('Full release tests', () => {
         buildNum: '1234',
         buildId: '1234',
         graviteeioVersion: '4.2.0',
-        isDryRun,
+        tag: '4.2.0',
+        isDryRun: false,
         apimVersionPath: './src/pipelines/tests/resources/common/pom-snapshot.xml',
       }).stringify();
 
-    const DEPLOY = 'mvn clean deploy --activate-profiles gravitee-release';
-
-    it('publishes on a real release', () => {
-      expect(configFor(false)).toContain(DEPLOY);
+    // The site displays the product version; it fetches the jar under the core's. The two stop
+    // being the same number the moment the reactors release apart.
+    it('sends the version the docs site displays', () => {
+      expect(generated()).toContain(`"version":"4.2.0"`);
     });
 
-    // The rehearsal has nothing to publish: the tag was pushed with --dry-run, so it does not exist.
-    // The job used to run this deploy anyway and only failed on the missing tag — which would not
-    // have saved a rehearsal of a version whose tag was already there.
-    it('publishes nothing on a rehearsal', () => {
-      expect(configFor(true)).not.toContain(DEPLOY);
+    it('sends the core version the docs site has to fetch', () => {
+      expect(generated()).toContain(`"core_version":"'"\${CORE_VERSION}"'"`);
     });
 
-    it('does not check out a tag that was never pushed', () => {
-      expect(configFor(true)).not.toContain('git checkout 4.2.0');
+    it('reads the pin from the distribution pom rather than guessing it', () => {
+      expect(generated()).toContain('<apim.core.version>');
     });
   });
 
@@ -93,35 +92,37 @@ describe('Full release tests', () => {
     ${'4.2.x'} | ${'4.2.x'}        | ${false} | ${false}          | ${'4.2.0-alpha.1'}  | ${'./src/pipelines/tests/resources/common/pom-alpha.xml'}    | ${'release-4-2-0-alpha.yml'}
     ${'4.2.x'} | ${'hotfix/4.2.0'} | ${false} | ${false}          | ${'4.2.0-hotfix.1'} | ${'./src/pipelines/tests/resources/common/pom-hotfix.xml'}   | ${'release-4-2-0-hotfix.yml'}
   `(
-    'should build full release config on $branch with dry run $isDryRun, is latest $dockerTagAsLatest and version $graviteeioVersion',
+    'should build the distribution release config on $branch with dry run $isDryRun, is latest $dockerTagAsLatest and version $graviteeioVersion',
     ({ baseBranch, branch, isDryRun, dockerTagAsLatest, graviteeioVersion, apimVersionPath, expectedResult }) => {
-      const result = generateFullReleaseConfig({
-        action: 'full_release',
+      const result = generateDistributionReleaseConfig({
+        action: 'distribution_release',
         sha1: '784ff35ca',
         changedFiles: [],
         buildNum: '1234',
         buildId: '1234',
         apimVersionPath,
         graviteeioVersion,
+        tag: graviteeioVersion,
         baseBranch,
         branch,
         isDryRun,
         dockerTagAsLatest,
       });
 
-      const expected = fs.readFileSync(`./src/pipelines/tests/resources/full-release/${expectedResult}`, 'utf-8');
+      const expected = fs.readFileSync(`./src/pipelines/tests/resources/distribution-release/${expectedResult}`, 'utf-8');
       expect(result.stringify()).toStrictEqual(expected);
     },
   );
 
-  it('should build full release config from any branch (not only support branches)', () => {
-    const result = generateFullReleaseConfig({
-      action: 'full_release',
+  it('should build the distribution release config from any branch (not only support branches)', () => {
+    const result = generateDistributionReleaseConfig({
+      action: 'distribution_release',
       sha1: '784ff35ca',
       changedFiles: [],
       buildNum: '1234',
       buildId: '1234',
       graviteeioVersion: '4.1.0',
+      tag: '4.1.0',
       branch: 'apim-1234-dev',
       baseBranch: 'master',
       isDryRun: false,
@@ -129,8 +130,9 @@ describe('Full release tests', () => {
     });
 
     const stringified = result.stringify();
-    expect(stringified).toContain('full_release');
-    // The version bump commit is pushed to the very branch that triggered the release.
+    expect(stringified).toContain('distribution_release');
+    // Nothing restricts which branch a tag may be released from, and the jobs that read the branch
+    // still read the one the tag sits on.
     expect(stringified).toContain('apim-1234-dev');
   });
 });

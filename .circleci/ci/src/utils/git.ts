@@ -32,38 +32,8 @@ export const diffRef = (commonCommitHash: string, baseBranch: string): string =>
  * @return {string[]} Files and directories changed. It will only contain 1st level items (element on the root of the repository)
  */
 export const changedFiles = async (from: string, to = 'HEAD'): Promise<string[]> => {
-  return new Promise((resolve, reject) => {
-    const args = diffArgs(from, to);
-
-    console.log(`Running "git ${args.join(' ')}"`);
-    const child = spawn('git', args);
-
-    let stdout = '';
-    let stderr = '';
-
-    child.stdout.on('data', (data: Buffer) => {
-      stdout += data.toString();
-    });
-
-    child.stderr.on('data', (data: Buffer) => {
-      stderr += data.toString();
-    });
-
-    child.on('error', (err) => {
-      reject(err);
-    });
-
-    // Waiting for `close` rather than resolving on the first `data`: a pipe hands over 64 KB at a
-    // time, and a wide diff arrives in several chunks. Resolving on the first one dropped every
-    // path after it — silently, and always the same ones, since git sorts them.
-    child.on('close', (code) => {
-      if (code !== 0) {
-        reject(new Error(stderr.trim().length > 0 ? stderr.trim() : `git exited with code ${code}`));
-        return;
-      }
-      resolve(toChangedPaths(stdout));
-    });
-  });
+  const stdout = await run('git', diffArgs(from, to));
+  return toChangedPaths(stdout);
 };
 
 export const toChangedPaths = (stdout: string): string[] =>
@@ -78,3 +48,40 @@ export const toChangedPaths = (stdout: string): string[] =>
 const diffArgs = (from: string, to: string) => ['--no-pager', 'diff', '--name-only', `${from}...${to}`];
 const keepFirstPathItem = (path: string) => path.split('/')[0];
 const removeDuplicate = (path: string, index: number, arr: string[]) => arr.indexOf(path) === index;
+
+/**
+ * Every tag the remote carries.
+ *
+ * Asked of the remote rather than of the checkout: a tag build fetches the one tag it was started
+ * by, so `git tag -l` would answer with a list of one — and "nothing higher has been released" would
+ * be true of every release.
+ */
+export const remoteTags = async (): Promise<string[]> => {
+  const stdout = await run('git', ['ls-remote', '--tags', '--refs', 'origin']);
+  return stdout
+    .split('\n')
+    .map((line) => line.split('refs/tags/')[1]?.trim())
+    .filter((tag): tag is string => !!tag);
+};
+
+/**
+ * Runs a command and resolves its whole stdout, rejecting on a non-zero exit.
+ *
+ * Waiting for `close` rather than resolving on the first `data`: a pipe hands over 64 KB at a time,
+ * and a wide diff arrives in several chunks. Resolving on the first one dropped every path after it
+ * — silently, and always the same ones, since git sorts them.
+ */
+const run = (command: string, args: string[]): Promise<string> =>
+  new Promise((resolve, reject) => {
+    console.log(`Running "${command} ${args.join(' ')}"`);
+    const child = spawn(command, args);
+
+    let stdout = '';
+    let stderr = '';
+    child.stdout.on('data', (data: Buffer) => (stdout += data.toString()));
+    child.stderr.on('data', (data: Buffer) => (stderr += data.toString()));
+    child.on('error', reject);
+    child.on('close', (code) =>
+      code === 0 ? resolve(stdout) : reject(new Error(stderr.trim().length > 0 ? stderr.trim() : `${command} exited with code ${code}`)),
+    );
+  });

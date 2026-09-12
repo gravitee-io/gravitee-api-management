@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Config } from '../circleci-config';
 import { CircleCIEnvironment } from './circleci-environment';
-import { FullReleaseWorkflow } from '../workflows';
+import { Config } from '../circleci-config';
+import { WorkflowPrepareDistributionRelease } from '../workflows';
+import { validateGraviteeioVersion } from '../utils';
 import { initDynamicConfig } from './config-factory';
 
-export function generateFullReleaseConfig(environment: CircleCIEnvironment): Config {
+export function generatePrepareDistributionReleaseConfig(environment: CircleCIEnvironment): Config {
+  validateGraviteeioVersion(environment.graviteeioVersion);
+
   const dynamicConfig = initDynamicConfig();
-  const workflow = FullReleaseWorkflow.create(dynamicConfig, environment);
+  const workflow = WorkflowPrepareDistributionRelease.create(dynamicConfig, environment);
   dynamicConfig.addWorkflow(workflow);
   return dynamicConfig;
 }

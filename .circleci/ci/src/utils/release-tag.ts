@@ -38,3 +38,24 @@ const CORE_TAG = new RegExp(CORE_TAG_PATTERN);
 export function coreVersionFromTag(tag: string): string | undefined {
   return CORE_TAG.exec(tag)?.[1];
 }
+
+/**
+ * The distribution releases under the bare version — `4.13.0`, the string users already know. A tag
+ * carrying anything else belongs to another lane.
+ */
+export const DISTRIBUTION_TAG_PATTERN = '^(\\d+\\.\\d+\\.\\d+(-[a-z]+\\.\\d+)?)$';
+
+/** The same pattern, as CircleCI wants it in a job filter. See `CORE_TAG_FILTER`. */
+export const DISTRIBUTION_TAG_FILTER = `/${DISTRIBUTION_TAG_PATTERN}/`;
+
+const DISTRIBUTION_TAG = new RegExp(DISTRIBUTION_TAG_PATTERN);
+
+/**
+ * The version a distribution release tag carries, or undefined when the tag is not one.
+ *
+ * @param {string} tag the tag that started the pipeline, empty on a branch build
+ * @return {string | undefined} the version to publish
+ */
+export function distributionVersionFromTag(tag: string): string | undefined {
+  return DISTRIBUTION_TAG.exec(tag)?.[1];
+}

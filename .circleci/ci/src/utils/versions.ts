@@ -100,3 +100,37 @@ export function validateGraviteeioVersion(graviteeioVersion: string) {
     throw new Error('Graviteeio version is not defined - Please export CI_GRAVITEEIO_VERSION environment variable');
   }
 }
+
+/** A released version with no qualifier. Prefixed tags — the core lane's — never match. */
+const FINAL_VERSION = /^\d+\.\d+\.\d+$/;
+
+/**
+ * Whether `version` is the newest final release the repository has produced.
+ *
+ * This replaces the `--latest` flag. A distribution release is started by pushing a tag, and a
+ * tag-triggered pipeline receives no parameter, so which images take `latest` cannot be answered at
+ * the keyboard any more — it is read from what has already been released. That is also one fewer
+ * thing to get wrong: the flag was answered from memory, and a release from an older support line
+ * only had a prompt standing between it and overwriting `latest`.
+ *
+ * A qualified version is never the latest: an alpha must not become what `docker pull` hands to
+ * someone who names no tag.
+ * @param version the version being released
+ * @param tags every tag the repository carries, raw
+ */
+export function isLatestRelease(version: string, tags: string[]): boolean {
+  if (!FINAL_VERSION.test(version)) {
+    return false;
+  }
+
+  const rank = (v: string) => v.split('.').map(Number);
+  const [major, minor, patch] = rank(version);
+  const isHigher = (candidate: string) => {
+    const [otherMajor, otherMinor, otherPatch] = rank(candidate);
+    if (otherMajor !== major) return otherMajor > major;
+    if (otherMinor !== minor) return otherMinor > minor;
+    return otherPatch > patch;
+  };
+
+  return !tags.filter((tag) => FINAL_VERSION.test(tag)).some(isHigher);
+}

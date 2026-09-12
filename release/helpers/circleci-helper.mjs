@@ -27,8 +27,7 @@ export async function checkToken() {
 
 /**
  * Starts a pipeline on CircleCI and reports where to watch it.
- *
- * `full_release.mjs` still carries its own copy, which reports more than this on success.
+
  * @param {string} branch the branch the pipeline runs on
  * @param {object} parameters the pipeline parameters
  */

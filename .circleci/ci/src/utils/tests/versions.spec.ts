@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { computeApimVersion, nextDevelopmentVersion, parse, validateGraviteeioVersion } from '../versions';
+import { computeApimVersion, isLatestRelease, nextDevelopmentVersion, parse, validateGraviteeioVersion } from '../versions';
 
 describe('version', function () {
   describe('parse', function () {
@@ -123,5 +123,37 @@ describe('nextDevelopmentVersion', () => {
     ['4.12.17-hotfix.1', '4.12.17', '-hotfix.2'],
   ])('increments the qualifier after %s, keeping the number', (released, version, qualifier) => {
     expect(nextDevelopmentVersion(released)).toEqual({ version, qualifier });
+  });
+});
+
+describe('isLatestRelease', function () {
+  // The tag that triggers a distribution release carries no pipeline parameter, so which images
+  // take `latest` is read from what has already been released rather than typed at a prompt.
+  const released = ['4.11.28', '4.12.19', '4.12.20', '4.13.0-alpha.1', 'core_4.13.0'];
+
+  it('is true for the highest final release', function () {
+    expect(isLatestRelease('4.13.0', [...released, '4.13.0'])).toBe(true);
+  });
+
+  it('is false for a patch on a line an older minor has overtaken', function () {
+    expect(isLatestRelease('4.11.29', [...released, '4.11.29'])).toBe(false);
+  });
+
+  // An alpha must never become what `docker pull` hands to someone who names no tag.
+  it('is false for a qualified version, however high', function () {
+    expect(isLatestRelease('5.0.0-alpha.1', released)).toBe(false);
+  });
+
+  it('ignores qualified and prefixed tags when looking for something higher', function () {
+    expect(isLatestRelease('4.12.20', ['4.12.20', '4.13.0-alpha.9', 'core_5.0.0'])).toBe(true);
+  });
+
+  it('compares numerically, not as strings', function () {
+    expect(isLatestRelease('4.12.9', ['4.12.9', '4.12.10'])).toBe(false);
+    expect(isLatestRelease('4.9.0', ['4.9.0', '4.10.0'])).toBe(false);
+  });
+
+  it('is true for the very first release, with nothing to compare against', function () {
+    expect(isLatestRelease('1.0.0', [])).toBe(true);
   });
 });
