@@ -97,7 +97,7 @@ public class ApiQueryServiceImpl extends AbstractService implements ApiQueryServ
         String query,
         Pageable pageable
     ) {
-        var matchedIds = searchIndexedApiIds(integrationId, definitionVersions);
+        var matchedIds = searchIndexedApiIds(integrationId, definitionVersions, query);
         if (matchedIds.isEmpty()) {
             return new Page<>(List.of(), pageable.getPageNumber(), 0, 0);
         }
@@ -105,9 +105,9 @@ public class ApiQueryServiceImpl extends AbstractService implements ApiQueryServ
         return hydrate(new ApiCriteria.Builder().ids(matchedIds).build(), pageable);
     }
 
-    private Collection<String> searchIndexedApiIds(String integrationId, List<DefinitionVersion> definitionVersions) {
+    private Collection<String> searchIndexedApiIds(String integrationId, List<DefinitionVersion> definitionVersions, String query) {
         try {
-            return apiDocumentSearcher.searchByIntegrationId(integrationId, definitionVersions).getDocuments();
+            return apiDocumentSearcher.searchByIntegrationId(integrationId, definitionVersions, query).getDocuments();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(e);
         }

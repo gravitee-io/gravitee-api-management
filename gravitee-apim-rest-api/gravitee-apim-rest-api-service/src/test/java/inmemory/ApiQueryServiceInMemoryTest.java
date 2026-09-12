@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import fixtures.core.model.ApiFixtures;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.context.OriginContext;
 import java.util.List;
@@ -48,6 +49,7 @@ class ApiQueryServiceInMemoryTest {
 
         private static final String INTEGRATION_ID = "int-a";
         private static final List<String> EVERY_SEEDED_API = List.of("api-v2", "api-v4", "api-fed", "api-agent", "api-null-version");
+        private static final List<String> EVERY_FREE_TEXT_API = List.of("api-name", "api-desc", "api-org", "api-org-less", "api-bare");
 
         @ParameterizedTest(name = "{0}")
         @MethodSource("definitionVersionRequests")
@@ -93,6 +95,58 @@ class ApiQueryServiceInMemoryTest {
             );
         }
 
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("freeTextQueries")
+        void should_match_the_query_as_a_case_insensitive_substring_of_one_matched_field(
+            String caseName,
+            String query,
+            List<String> expectedApiIds
+        ) {
+            cut.initWith(
+                List.of(
+                    anApiOfTheIntegration("api-name", "Global Alpha v*1 Agent", null),
+                    anApiOfTheIntegration("api-desc", "Beta Runner", "Handles vX1 invoice reconciliation"),
+                    anAgentOfTheIntegration("api-org", "Beta Runner", null, aProviderOf("Acme Robotics")),
+                    anAgentOfTheIntegration("api-org-less", "Beta Runner", null, aProviderOf(null)),
+                    anAgentOfTheIntegration("api-bare", null, null, null)
+                )
+            );
+
+            var page = cut.searchByIntegrationId(INTEGRATION_ID, null, query, new PageableImpl(1, 10));
+
+            assertThat(page.getContent()).extracting(Api::getId).containsExactlyInAnyOrderElementsOf(expectedApiIds);
+        }
+
+        private static Stream<Arguments> freeTextQueries() {
+            return Stream.of(
+                Arguments.of("a text occurring only in a name matches that api alone", "alpha", List.of("api-name")),
+                Arguments.of("a text occurring only in a description matches that api alone", "invoice", List.of("api-desc")),
+                Arguments.of(
+                    "a text occurring only in an agent card provider organization matches that api alone",
+                    "robotics",
+                    List.of("api-org")
+                ),
+                Arguments.of("a provider whose organization is null is simply non matching, never a failure", "acme", List.of("api-org")),
+                Arguments.of("an upper case text matches the differently cased value", "ALPHA", List.of("api-name")),
+                Arguments.of("a text starting and ending mid word matches that api", "lpha", List.of("api-name")),
+                Arguments.of(
+                    "a text padded with surrounding whitespace matches as its trimmed form does",
+                    "  alpha  ",
+                    List.of("api-name")
+                ),
+                Arguments.of("punctuation in the text is matched literally, never as a wildcard", "v*1", List.of("api-name")),
+                Arguments.of("a text no matched field holds matches nothing", "globex", List.of()),
+                Arguments.of(
+                    "a multi word text whose two words live in two different fields of one api matches nothing",
+                    "Runner Handles",
+                    List.of()
+                ),
+                Arguments.of("a null text narrows nothing", null, EVERY_FREE_TEXT_API),
+                Arguments.of("an empty text narrows nothing", "", EVERY_FREE_TEXT_API),
+                Arguments.of("a whitespace only text narrows nothing", "   ", EVERY_FREE_TEXT_API)
+            );
+        }
+
         @Test
         void should_never_return_an_api_another_integration_owns() {
             cut.initWith(
@@ -105,6 +159,24 @@ class ApiQueryServiceInMemoryTest {
             var page = cut.searchByIntegrationId(INTEGRATION_ID, null, null, new PageableImpl(1, 10));
 
             assertThat(page.getContent()).extracting(Api::getId).containsExactly("api-agent");
+        }
+
+        private static Api anApiOfTheIntegration(String apiId, String name, String description) {
+            return anApiOwnedByTheIntegration(ApiFixtures.aFederatedApi(), apiId).toBuilder().name(name).description(description).build();
+        }
+
+        private static Api anAgentOfTheIntegration(String apiId, String name, String description, FederatedAgent.Provider provider) {
+            var agentCard = ((FederatedAgent) ApiFixtures.aFederatedAgent().getApiDefinitionValue()).toBuilder().provider(provider).build();
+            return anApiOwnedByTheIntegration(ApiFixtures.aFederatedAgent(), apiId)
+                .toBuilder()
+                .name(name)
+                .description(description)
+                .apiDefinitionValue(agentCard)
+                .build();
+        }
+
+        private static FederatedAgent.Provider aProviderOf(String organization) {
+            return new FederatedAgent.Provider(organization, "https://example.net");
         }
 
         private static Api anApiOwnedByTheIntegration(Api api, String apiId) {

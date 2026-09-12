@@ -28,6 +28,7 @@ import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.federation.FederatedApiAgentEntity;
 import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -112,6 +113,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
     public static final String FIELD_VISIBILITY_SORTED = "visibility_sorted";
     public static final String FIELD_ALLOW_IN_API_PRODUCTS = "allow_in_api_products";
     public static final String FIELD_INTEGRATION_ID = "integration_id";
+    public static final String FIELD_PROVIDER_ORGANIZATION_LOWERCASE = "provider_organization_lowercase";
 
     private final ApiService apiService;
     private final Collator collator = Collator.getInstance(Locale.ENGLISH);
@@ -131,7 +133,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
         if (api.getDefinitionVersion() == null && api.getName() == null) {
             return doc;
         }
-        if (api.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
+        if (api.getDefinitionVersion() != DefinitionVersion.FEDERATED && api.getDefinitionVersion() != DefinitionVersion.FEDERATED_AGENT) {
             doc.add(new StringField(FIELD_STATUS, api.getState().name(), Field.Store.NO));
             doc.add(new SortedDocValuesField(FIELD_STATUS_SORTED, toSortedValue(api.getState().name())));
         }
@@ -170,6 +172,10 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
             doc.add(new StringField(FIELD_DESCRIPTION, api.getDescription(), Field.Store.NO));
             doc.add(new StringField(FIELD_DESCRIPTION_LOWERCASE, api.getDescription().toLowerCase(), Field.Store.NO));
             doc.add(new TextField(FIELD_DESCRIPTION_SPLIT, api.getDescription(), Field.Store.NO));
+        }
+
+        if (api instanceof FederatedApiAgentEntity agentEntity && agentEntity.getProvider() != null) {
+            LuceneTransformerUtils.appendProviderOrganization(doc, agentEntity.getProvider().organization());
         }
 
         PrimaryOwnerEntity primaryOwner = api.getPrimaryOwner();

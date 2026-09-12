@@ -17,6 +17,8 @@ package io.gravitee.rest.api.service.impl.search.lucene.utils;
 
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_INTEGRATION_ID;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PROVIDER_ORGANIZATION_LOWERCASE;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -54,6 +56,13 @@ public final class LuceneTransformerUtils {
                 );
             }
         }
+    }
+
+    public static void appendProviderOrganization(Document doc, String organization) {
+        if (isBlank(organization)) {
+            return;
+        }
+        doc.add(new StringField(FIELD_PROVIDER_ORGANIZATION_LOWERCASE, organization.toLowerCase(), Field.Store.NO));
     }
 
     public static String generateApiType(Api api) {

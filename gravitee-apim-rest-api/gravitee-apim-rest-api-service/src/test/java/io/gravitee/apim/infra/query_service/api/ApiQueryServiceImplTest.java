@@ -32,6 +32,7 @@ import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -125,6 +126,7 @@ class ApiQueryServiceImplTest {
         private static final String UUID_INTEGRATION_ID = "3f7a1c2e-4b5d-11ee-be56-0242ac120002";
         private static final String MIXED_CASE_INTEGRATION_ID = "Int-A-2024";
         private static final String INTEGRATION_ID = "int-a";
+        private static final String THE_LABEL_EVERY_SEEDED_API_CARRIES = "label-1";
         private static final List<String> EVERY_SEEDED_API = List.of("api-v2", "api-v4", "api-fed", "api-agent", "api-null-version");
 
         @ParameterizedTest(name = "{0}")
@@ -163,7 +165,7 @@ class ApiQueryServiceImplTest {
             // Given a search index that cannot be read
             var unreachableIndex = mock(ApiDocumentSearcher.class);
             var indexFailure = new TechnicalException("index unreachable");
-            when(unreachableIndex.searchByIntegrationId(any(), any())).thenThrow(indexFailure);
+            when(unreachableIndex.searchByIntegrationId(any(), any(), any())).thenThrow(indexFailure);
 
             // When an integration is searched for
             var serviceOverAnUnreachableIndex = new ApiQueryServiceImpl(apiRepository, unreachableIndex);
@@ -197,6 +199,294 @@ class ApiQueryServiceImplTest {
 
             // Then only the apis indexed under a requested definition version label come back
             assertThat(page.getContent()).extracting(Api::getId).containsExactlyInAnyOrderElementsOf(expectedApiIds);
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("freeTextQueries")
+        void should_match_the_query_against_the_name_the_description_and_the_agent_provider_organization(
+            String caseName,
+            String query,
+            List<String> expectedApiIds
+        ) throws IOException {
+            // Given three apis of the same integration, each carrying the searched text in a different matched field
+            givenIndexedApis(
+                anApiNamed("api-name", "Alpha Billing Agent"),
+                anApiDescribed("api-desc", "Handles invoice reconciliation"),
+                anAgentOfOrganization("api-org", "Acme Robotics")
+            );
+            givenTheRepositoryHydratesTheSelectedApis();
+
+            // When that integration is searched with the row's free text query
+            var page = service.searchByIntegrationId(INTEGRATION_ID, null, query, new PageableImpl(1, 10));
+
+            // Then only the api whose field carries that text comes back, and the two siblings it shares the integration with do not
+            assertThat(page.getContent()).extracting(Api::getId).containsExactlyInAnyOrderElementsOf(expectedApiIds);
+        }
+
+        @Test
+        void should_never_match_an_api_the_searched_integration_does_not_own() throws IOException {
+            // Given the only api carrying the searched text is owned by another integration
+            givenIndexedApis(
+                anApiOwnedByIntegration("api-b1", "int-b").toBuilder().name("Alpha Agent").build(),
+                anApiNamed("api-a1", "Beta Runner")
+            );
+            givenTheRepositoryHydratesTheSelectedApis();
+
+            // When the integration owning no api of that text is searched for it
+            var page = service.searchByIntegrationId(INTEGRATION_ID, null, "alpha", new PageableImpl(1, 10));
+
+            // Then the page is empty, the integration filter still narrowing the free text clause
+            assertThat(page.getContent()).isEmpty();
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("singleAgentQueries")
+        void should_match_only_when_one_matched_field_the_agent_carries_contains_the_query(
+            String caseName,
+            String name,
+            String description,
+            FederatedAgent.Provider provider,
+            String query,
+            List<String> expectedApiIds
+        ) throws IOException {
+            // Given one agent of the integration carrying the row's name, description and agent card provider
+            givenIndexedApis(anAgent("api-1", name, description, provider));
+            givenTheRepositoryHydratesTheSelectedApis();
+
+            // When that integration is searched with the row's free text query
+            var page = service.searchByIntegrationId(INTEGRATION_ID, null, query, new PageableImpl(1, 10));
+
+            // Then only one of the three matched fields brings it back, another indexed field never does, and an absent one indexed fine
+            assertThat(page.getContent()).extracting(Api::getId).containsExactlyInAnyOrderElementsOf(expectedApiIds);
+        }
+
+        @Test
+        void should_match_an_upper_case_query_against_every_matched_field() throws IOException {
+            // Given three apis of the integration, each carrying a capitalised Alpha in a different matched field
+            givenIndexedApis(
+                anApiNamed("api-name", "Alpha Agent"),
+                anApiDescribed("api-desc", "Alpha workload handler"),
+                anAgentOfOrganization("api-org", "Alpha Robotics")
+            );
+            givenTheRepositoryHydratesTheSelectedApis();
+
+            // When the integration is searched with the upper case form of that text
+            var page = service.searchByIntegrationId(INTEGRATION_ID, null, "ALPHA", new PageableImpl(1, 10));
+
+            // Then all three come back, query and indexed field having been folded to the same case
+            assertThat(page.getContent()).extracting(Api::getId).containsExactlyInAnyOrder("api-name", "api-desc", "api-org");
+        }
+
+        @Test
+        void should_narrow_by_the_requested_definition_versions_and_the_query_together() throws IOException {
+            // Given two identically named apis of the integration differing only in definition version
+            givenIndexedApis(
+                anApiOwnedByIntegration(ApiFixtures.aFederatedApi(), "api-fed", INTEGRATION_ID).toBuilder().name("Alpha").build(),
+                anApiOwnedByIntegration(ApiFixtures.aFederatedAgent(), "api-agent", INTEGRATION_ID).toBuilder().name("Alpha").build()
+            );
+            givenTheRepositoryHydratesTheSelectedApis();
+
+            // When the integration is searched for that name under one of the two definition versions
+            var page = service.searchByIntegrationId(
+                INTEGRATION_ID,
+                List.of(DefinitionVersion.FEDERATED_AGENT),
+                "alpha",
+                new PageableImpl(1, 10)
+            );
+
+            // Then only the api satisfying both narrowings comes back, the two being combined rather than alternative
+            assertThat(page.getContent()).extracting(Api::getId).containsExactly("api-agent");
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("blankQueries")
+        void should_narrow_nothing_when_the_query_carries_no_text(String caseName, String query) throws IOException {
+            // Given four apis of the integration, one of them carrying none of the three matched fields
+            givenIndexedApis(
+                anApiNamed("api-name", "Alpha Billing Agent"),
+                anApiDescribed("api-desc", "Handles invoice reconciliation"),
+                anAgentOfOrganization("api-org", "Acme Robotics"),
+                anAgent("api-bare", null, null, null)
+            );
+            givenTheRepositoryHydratesTheSelectedApis();
+
+            // When the integration is searched with the row's blank query
+            var page = service.searchByIntegrationId(INTEGRATION_ID, null, query, new PageableImpl(1, 10));
+
+            // Then every api comes back, including the one no wildcard term could have matched
+            assertThat(page.getContent()).extracting(Api::getId).containsExactlyInAnyOrder("api-name", "api-desc", "api-org", "api-bare");
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("punctuationQueries")
+        void should_match_every_character_of_the_query_as_literal_text(String caseName, String literalName, String decoyName, String query)
+            throws IOException {
+            // Given one api whose name holds the row's punctuation literally and one the row's query only reaches if it is interpreted
+            givenIndexedApis(anApiNamed("query-literal", literalName), anApiNamed("query-decoy", decoyName));
+            givenTheRepositoryHydratesTheSelectedApis();
+
+            // When the integration is searched for the row's query
+            var page = service.searchByIntegrationId(INTEGRATION_ID, null, query, new PageableImpl(1, 10));
+
+            // Then only the api holding that punctuation literally comes back, never the decoy
+            assertThat(page.getContent()).extracting(Api::getId).containsExactly("query-literal");
+        }
+
+        private static Stream<Arguments> punctuationQueries() {
+            return Stream.of(
+                Arguments.of("an asterisk never expands to a run of characters", "v*1 Agent", "vX1 Agent", "v*1"),
+                Arguments.of("a question mark never expands to a single character", "v?1 Agent", "vX1 Agent", "v?1"),
+                Arguments.of("a backslash never escapes the character behind it", "C:\\Agent", "C:Agent", "C:\\Agent"),
+                Arguments.of("a percent sign is ordinary text", "50% Complete Agent", "500 Complete Agent", "50%"),
+                Arguments.of("an underscore is ordinary text", "v_1 Agent", "vX1 Agent", "v_1"),
+                Arguments.of("a bracketed character class is ordinary text", "tier[a] Agent", "tierXaX Agent", "tier[a]"),
+                Arguments.of("a dot is ordinary text", "Delta.One Agent", "DeltaXOne Agent", "delta.one"),
+                Arguments.of("a dollar sign is ordinary text", "cost$ Agent", "cost Agent", "cost$")
+            );
+        }
+
+        private static Stream<Arguments> blankQueries() {
+            return Stream.of(
+                Arguments.of("an empty query narrows nothing", ""),
+                Arguments.of("a whitespace only query narrows nothing", "   ")
+            );
+        }
+
+        private static Stream<Arguments> singleAgentQueries() {
+            return Stream.of(
+                Arguments.of(
+                    "a null name leaves the description free to match",
+                    null,
+                    "Alpha workload handler",
+                    aProviderOf("Globex"),
+                    "alpha",
+                    List.of("api-1")
+                ),
+                Arguments.of(
+                    "a null description leaves the name free to match",
+                    "Alpha Agent",
+                    null,
+                    aProviderOf("Globex"),
+                    "alpha",
+                    List.of("api-1")
+                ),
+                Arguments.of(
+                    "an agent card with no provider at all leaves the name free to match",
+                    "Alpha Agent",
+                    "handles nothing of note",
+                    null,
+                    "alpha",
+                    List.of("api-1")
+                ),
+                Arguments.of(
+                    "a provider whose organization is null indexes without error and matches nothing",
+                    "Beta Runner",
+                    "handles nothing of note",
+                    aProviderOf(null),
+                    "acme",
+                    List.of()
+                ),
+                Arguments.of(
+                    "a provider whose organization is empty indexes without error and matches nothing",
+                    "Beta Runner",
+                    "handles nothing of note",
+                    aProviderOf(""),
+                    "acme",
+                    List.of()
+                ),
+                Arguments.of(
+                    "a provider whose organization is whitespace only indexes without error and matches nothing",
+                    "Beta Runner",
+                    "handles nothing of note",
+                    aProviderOf("   "),
+                    "acme",
+                    List.of()
+                ),
+                Arguments.of(
+                    "a text occurring in none of the three matched fields matches nothing",
+                    "Beta Runner",
+                    "handles nothing of note",
+                    aProviderOf("Globex"),
+                    "acme",
+                    List.of()
+                ),
+                Arguments.of(
+                    "a text held only by an indexed field outside the three matched ones matches nothing",
+                    "Beta Runner",
+                    "handles nothing of note",
+                    aProviderOf("Globex"),
+                    THE_LABEL_EVERY_SEEDED_API_CARRIES,
+                    List.of()
+                ),
+                Arguments.of(
+                    "a multi word text whose two words live in two different fields of one api matches nothing",
+                    "Alpha Billing",
+                    "Agent onboarding notes",
+                    null,
+                    "Alpha Agent",
+                    List.of()
+                ),
+                Arguments.of(
+                    "a text starting and ending mid word inside a name matches that api",
+                    "Global Alpha Agent",
+                    "handles nothing of note",
+                    aProviderOf("Globex"),
+                    "lpha",
+                    List.of("api-1")
+                ),
+                Arguments.of(
+                    "a multi word text one field holds contiguously matches that api",
+                    "Global Alpha Agent",
+                    "handles nothing of note",
+                    aProviderOf("Globex"),
+                    "Alpha Agent",
+                    List.of("api-1")
+                ),
+                Arguments.of(
+                    "a text occurring only in the provider organization matches that agent",
+                    "Beta Runner",
+                    "handles nothing of note",
+                    aProviderOf("Acme Robotics"),
+                    "acme",
+                    List.of("api-1")
+                ),
+                Arguments.of(
+                    "a text starting mid word and spanning the space of a provider organization matches that agent",
+                    "Beta Runner",
+                    "handles nothing of note",
+                    aProviderOf("Acme Robotics"),
+                    "me Robo",
+                    List.of("api-1")
+                ),
+                Arguments.of(
+                    "a text padded with surrounding whitespace matches as its trimmed form does",
+                    "Beta Runner",
+                    "handles nothing of note",
+                    aProviderOf("Acme Robotics"),
+                    "  acme  ",
+                    List.of("api-1")
+                ),
+                Arguments.of(
+                    "an agent card with no provider at all indexes without error and matches nothing",
+                    "Beta Runner",
+                    "handles nothing of note",
+                    null,
+                    "acme",
+                    List.of()
+                )
+            );
+        }
+
+        private static Stream<Arguments> freeTextQueries() {
+            return Stream.of(
+                Arguments.of("a text occurring only in an api name matches that api alone", "billing", List.of("api-name")),
+                Arguments.of("a text occurring only in an api description matches that api alone", "invoice", List.of("api-desc")),
+                Arguments.of(
+                    "a text occurring only in an agent card provider organization matches that api alone",
+                    "robotics",
+                    List.of("api-org")
+                )
+            );
         }
 
         private static Stream<Arguments> definitionVersionRequests() {
@@ -253,6 +543,33 @@ class ApiQueryServiceImplTest {
 
         private Api anApiOwnedByIntegration(Api api, String apiId, String integrationId) {
             return api.toBuilder().id(apiId).originContext(new OriginContext.Integration(integrationId)).build();
+        }
+
+        private Api anApiNamed(String apiId, String name) {
+            return anApiOwnedByIntegration(apiId, INTEGRATION_ID).toBuilder().name(name).build();
+        }
+
+        private Api anApiDescribed(String apiId, String description) {
+            return anApiOwnedByIntegration(apiId, INTEGRATION_ID).toBuilder().description(description).build();
+        }
+
+        private Api anAgentOfOrganization(String apiId, String organization) {
+            var base = ApiFixtures.aFederatedAgent();
+            return anAgent(apiId, base.getName(), base.getDescription(), aProviderOf(organization));
+        }
+
+        private Api anAgent(String apiId, String name, String description, FederatedAgent.Provider provider) {
+            var agentCard = ((FederatedAgent) ApiFixtures.aFederatedAgent().getApiDefinitionValue()).toBuilder().provider(provider).build();
+            return anApiOwnedByIntegration(ApiFixtures.aFederatedAgent(), apiId, INTEGRATION_ID)
+                .toBuilder()
+                .name(name)
+                .description(description)
+                .apiDefinitionValue(agentCard)
+                .build();
+        }
+
+        private static FederatedAgent.Provider aProviderOf(String organization) {
+            return new FederatedAgent.Provider(organization, "https://example.net");
         }
 
         private Api aLegacyApiWithoutDefinitionVersion(String apiId) {
