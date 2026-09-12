@@ -313,7 +313,9 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
   }
 
   try {
-    await validate(parsedSpec);
+    // @scalar/openapi-parser 0.29 takes `string | UnknownObject | Filesystem`, and openapi-types'
+    // Document has no index signature, so it needs saying that a parsed spec is a plain object.
+    await validate(parsedSpec as unknown as Record<string, unknown>);
   } catch (e) {
     return { result: [], errors: [{ key: 'invalidSpec', message: (e as Error).message }] };
   }
@@ -328,7 +330,7 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
 
   let api: OpenAPIObject;
   try {
-    const { schema } = await dereference(parsedSpec);
+    const { schema } = await dereference(parsedSpec as unknown as Record<string, unknown>);
     api = schema as OpenAPIObject;
   } catch (e) {
     return { result: [], errors: [{ key: 'invalidRefs', message: 'Failed to dereference OpenAPI spec: ' + (e as Error).message }] };
