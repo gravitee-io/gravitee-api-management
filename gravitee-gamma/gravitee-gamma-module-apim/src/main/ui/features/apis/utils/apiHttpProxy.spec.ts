@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { formatEndpointTarget, hasTcpListeners, isHttpProxyApi } from './apiHttpProxy';
+import { formatEndpointTarget, hasTcpListeners, isHttpProxyApi, supportsResponseTemplates } from './apiHttpProxy';
 import type { ApiDetailDto } from '../types';
 
 describe('hasTcpListeners', () => {
@@ -29,6 +29,20 @@ describe('hasTcpListeners', () => {
 
     it('returns true when any listener is TCP', () => {
         expect(hasTcpListeners({ listeners: [{ type: 'HTTP' }, { type: 'TCP' }] })).toBe(true);
+    });
+});
+
+describe('supportsResponseTemplates', () => {
+    it('returns true when api is null, undefined, or a supported type', () => {
+        expect(supportsResponseTemplates(null)).toBe(true);
+        expect(supportsResponseTemplates(undefined)).toBe(true);
+        expect(supportsResponseTemplates({ type: 'PROXY' })).toBe(true);
+        expect(supportsResponseTemplates({ type: 'MESSAGE' })).toBe(true);
+    });
+
+    it('returns false for MCP_PROXY and LLM_PROXY', () => {
+        expect(supportsResponseTemplates({ type: 'MCP_PROXY' })).toBe(false);
+        expect(supportsResponseTemplates({ type: 'LLM_PROXY' })).toBe(false);
     });
 });
 

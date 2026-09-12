@@ -60,6 +60,10 @@ export function getApiProtocolType(apiType: ApiType): ApiProtocolType {
             return 'HTTP_MESSAGE';
         case 'NATIVE':
             return 'NATIVE_KAFKA';
+        case 'MCP_PROXY':
+            return 'MCP_PROXY';
+        case 'LLM_PROXY':
+            return 'LLM_PROXY';
         default:
             return 'HTTP_PROXY';
     }

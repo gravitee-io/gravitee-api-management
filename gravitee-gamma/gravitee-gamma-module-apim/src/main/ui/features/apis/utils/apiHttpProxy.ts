@@ -31,6 +31,12 @@ export function isHttpProxyApi(api: ApiDetailDto | null | undefined): boolean {
     return !hasTcpListeners(api);
 }
 
+/** False for MCP_PROXY / LLM_PROXY. */
+export function supportsResponseTemplates(api: { type?: string } | null | undefined): boolean {
+    const type = api?.type;
+    return type !== 'MCP_PROXY' && type !== 'LLM_PROXY';
+}
+
 /** An endpoint's `configuration.target` is a plain URL for http-proxy, or a {host,port,secured} object for tcp-proxy. */
 export function formatEndpointTarget(target: string | TcpTarget | undefined): string | undefined {
     if (target === undefined) return undefined;

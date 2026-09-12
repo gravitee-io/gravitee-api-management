@@ -45,6 +45,7 @@ import {
     ApiDetailSidebarNav,
     withApiScoreEnabled,
     withMetadataPermission,
+    withResponseTemplatesPermission,
     withTcpRestrictions,
 } from './ApiDetailSidebarNav';
 import { useDetailBasePath } from '../../../../shared/hooks/useDetailBasePath';
@@ -54,7 +55,7 @@ import { useApiPermissions } from '../../hooks/useApiPermissions';
 import { useApiScoreEnabled } from '../../hooks/useApiScoreEnabled';
 import { deployApi } from '../../services/apis';
 import type { ApiDetailDto } from '../../types';
-import { hasTcpListeners } from '../../utils/apiHttpProxy';
+import { hasTcpListeners, supportsResponseTemplates } from '../../utils/apiHttpProxy';
 import { apiDetailKeys } from '../../utils/queryKeys';
 
 /** Classic console caps the deployment label at 32 characters. */
@@ -258,6 +259,8 @@ export function ApiDetailLayout() {
     const { permissionsReady } = useApiPermissions(apiId);
     const canDeploy = useHasPermission({ anyOf: ['api-definition-u'] });
     const canReadMetadata = useHasPermission({ anyOf: ['api-metadata-r'] });
+    const canReadResponseTemplates = useHasPermission({ anyOf: ['api-response_templates-r'] });
+    const showResponseTemplates = Boolean(api) && canReadResponseTemplates && supportsResponseTemplates(api);
     const { enabled: apiScoreEnabled } = useApiScoreEnabled();
     const queryClient = useQueryClient();
     const [contextExpanded, setContextExpanded] = useState(true);
@@ -277,9 +280,12 @@ export function ApiDetailLayout() {
     });
 
     const showDeployBanner = !isError && api?.deploymentState === 'NEED_REDEPLOY' && canDeploy;
-    const navGroups = withApiScoreEnabled(
-        withMetadataPermission(withTcpRestrictions(API_PROXY_NAV_GROUPS, hasTcpListeners(api)), canReadMetadata),
-        apiScoreEnabled,
+    const navGroups = withResponseTemplatesPermission(
+        withApiScoreEnabled(
+            withMetadataPermission(withTcpRestrictions(API_PROXY_NAV_GROUPS, hasTcpListeners(api)), canReadMetadata),
+            apiScoreEnabled,
+        ),
+        showResponseTemplates,
     );
 
     useLayoutConfig(
@@ -310,6 +316,7 @@ export function ApiDetailLayout() {
             showDeployBanner,
             deployMutation.isPending,
             canReadMetadata,
+            showResponseTemplates,
             apiScoreEnabled,
         ],
     );
