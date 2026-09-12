@@ -17,9 +17,9 @@ package io.gravitee.apim.core.portal_page.exception;
 
 import io.gravitee.apim.core.exception.ConflictDomainException;
 
-public class SubscriptionFormAlreadyExistsException extends ConflictDomainException {
+public class SubscriptionFormAlreadyPublishedException extends ConflictDomainException {
 
-    public SubscriptionFormAlreadyExistsException() {
-        super("Subscription form already exists for this environment");
+    public SubscriptionFormAlreadyPublishedException() {
+        super("A subscription form is already published for this environment");
     }
 }
