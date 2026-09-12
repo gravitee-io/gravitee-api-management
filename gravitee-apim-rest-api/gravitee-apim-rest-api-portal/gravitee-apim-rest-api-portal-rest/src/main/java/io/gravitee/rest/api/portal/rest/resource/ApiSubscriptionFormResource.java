@@ -29,8 +29,9 @@ import jakarta.ws.rs.core.Response;
 import org.springframework.stereotype.Component;
 
 /**
- * Portal endpoint to retrieve the subscription form for a specific API, with EL options resolved
- * against the API's metadata.
+ * Portal endpoint to retrieve the subscription form's resolved dynamic options for a specific API,
+ * with EL options resolved against the API's metadata. Form content itself is fetched separately
+ * via the generic portal navigation item content endpoint (area {@code SUBSCRIPTION_FORM}).
  *
  * <p>Path: {@code GET /apis/{apiId}/subscription-form}</p>
  *

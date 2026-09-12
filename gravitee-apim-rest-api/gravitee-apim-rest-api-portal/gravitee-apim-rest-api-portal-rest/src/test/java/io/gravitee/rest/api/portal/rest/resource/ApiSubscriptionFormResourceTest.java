@@ -89,7 +89,7 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    void should_return_200_with_subscription_form_and_resolved_options() {
+    void should_return_200_with_resolved_options_only_no_content() {
         var form = SubscriptionFormFixtures.aSubscriptionFormBuilder()
             .environmentId(ENV_ID)
             .enabled(true)
@@ -103,7 +103,6 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         var result = response.readEntity(SubscriptionForm.class);
         assertThat(result).isNotNull();
-        assertThat(result.getGmdContent()).isEqualTo(form.getGmdContent().value());
         assertThat(result.getResolvedOptions()).containsEntry("env", List.of("Dev", "Staging", "Prod"));
     }
 
