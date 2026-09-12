@@ -33,7 +33,8 @@ import java.util.Map;
  * {@code OPERATION_NAME}, {@code SPAN_KIND}) are deferred to the follow-up PR that extends the
  * {@code TraceFilterContributor} SPI with per-filter translation logic. The discovery endpoint's
  * {@link io.gravitee.gamma.rest.infra.contributor.CommonTraceFilterContributor} is trimmed to
- * match what this translator supports — drift between the two surfaces is a code-review check.
+ * match what this translator supports — drift between the two surfaces is caught by
+ * {@code TraceFilterContributorContractTest}.
  *
  * <p>Unknown filter names or unsupported operators throw {@link UnsupportedFilterException},
  * mapped to HTTP 400 — the UI gets a machine-readable {@code technicalCode} to distinguish the
@@ -47,14 +48,25 @@ public final class SearchTraceFilterTranslator {
      * Filter-name → underlying OTel attribute key. Single source of truth for the slim cut; the
      * full PR will replace this with per-contributor translation logic so a module's filters live
      * end-to-end inside its own SPI implementation.
+     *
+     * <p>Every entry MUST be advertised by a contributor: a filter offered by discovery but missing
+     * here answers 400 the moment a user picks it. {@code TraceFilterContributorContractTest} checks
+     * that direction on every registered contributor. Cross-module (HTTP) entries pair with
+     * {@code CommonTraceFilterContributor}; the {@code KAFKA_*} / {@code ERROR_ORIGIN} entries pair
+     * with {@code EsmTraceFilterContributor} and use the attribute keys the native Kafka reactor
+     * emits ({@code KafkaTracingHelper}).
      */
-    private static final Map<String, String> SUPPORTED_ATTRIBUTE_BY_FILTER_NAME = Map.of(
-        "HTTP_METHOD",
-        "http.method",
-        "HTTP_STATUS_CODE",
-        "http.status_code",
-        "HTTP_ROUTE",
-        "http.route"
+    private static final Map<String, String> SUPPORTED_ATTRIBUTE_BY_FILTER_NAME = Map.ofEntries(
+        Map.entry("HTTP_METHOD", "http.method"),
+        Map.entry("HTTP_STATUS_CODE", "http.status_code"),
+        Map.entry("HTTP_ROUTE", "http.route"),
+        // ESM — native Kafka. `kafka.api.key` carries the protocol request name (PRODUCE, FETCH…),
+        // set on every per-request span by KafkaTracing.
+        Map.entry("KAFKA_API_KEY", "kafka.api.key"),
+        Map.entry("KAFKA_CLIENT_ID", "messaging.client.id"),
+        Map.entry("KAFKA_CONSUMER_GROUP", "messaging.consumer.group.name"),
+        // Root-span attribute fed by KafkaTracingError: policy / security / config / broker / internal.
+        Map.entry("ERROR_ORIGIN", "gravitee.error.origin")
     );
 
     private SearchTraceFilterTranslator() {}

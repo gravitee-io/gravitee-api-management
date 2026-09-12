@@ -32,8 +32,12 @@ import java.util.List;
  * registration / hot-reload mechanism.
  *
  * <p>The gamma-rest-api itself ships {@code CommonTraceFilterContributor} for cross-module
- * (Tier-1+2) filters. Per-module contributors (e.g. AIM's LLM / MCP filters) live in their own
- * module's codebase.
+ * (Tier-1+2) filters. Per-module contributors belong in their own module's codebase, but cannot
+ * live there yet: gamma modules are loaded in isolated plugin classloaders while the registry's
+ * {@link java.util.ServiceLoader} scans the rest-api classpath, so a contributor shipped in a plugin
+ * jar is never discovered. Until the plugin handler exposes a registration hook they sit next to the
+ * cross-module one in {@code io.gravitee.gamma.rest.infra.contributor} (see
+ * {@code EsmTraceFilterContributor}).
  *
  * @author GraviteeSource Team
  */
