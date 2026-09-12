@@ -314,6 +314,51 @@ class HTTPMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         assertThat(avgAgg.asText()).contains("additional-metrics.double_llm-proxy_received-cost");
     }
 
+    /**
+     * Value must resolve COUNT to a sum exactly like MCP_PROXY_TOOL_COST does — the dashboard's "Total Tool
+     * Value" tile uses the same {@code measure: 'COUNT'} convention as the "Total Tool Spend" tile beside it,
+     * so the two have to mean the same thing or the tile shows a call count where a dollar figure is expected.
+     */
+    @Test
+    void should_build_query_with_mcp_tool_value_count_measure() throws JsonProcessingException {
+        var timeRange = buildTimeRange();
+        var filters = buildFilters();
+        var metrics = List.of(new MetricMeasuresQuery(Metric.MCP_PROXY_TOOL_VALUE, Set.of(Measure.COUNT)));
+
+        var query = new MeasuresQuery(timeRange, filters, metrics);
+
+        var queryString = adapter.adapt(query);
+
+        var jsonQuery = JSON.readTree(queryString);
+
+        var aggs = jsonQuery.at("/aggs");
+        assertThat(aggs).isNotEmpty();
+
+        var sumAgg = aggs.at("/MCP_PROXY_TOOL_VALUE#COUNT/sum/field");
+        assertThat(sumAgg).isNotNull();
+        assertThat(sumAgg.asText()).isEqualTo("additional-metrics.double_mcp-proxy_tool-value");
+    }
+
+    @Test
+    void should_build_query_with_mcp_tool_value_avg_measure() throws JsonProcessingException {
+        var timeRange = buildTimeRange();
+        var filters = buildFilters();
+        var metrics = List.of(new MetricMeasuresQuery(Metric.MCP_PROXY_TOOL_VALUE, Set.of(Measure.AVG)));
+
+        var query = new MeasuresQuery(timeRange, filters, metrics);
+
+        var queryString = adapter.adapt(query);
+
+        var jsonQuery = JSON.readTree(queryString);
+
+        var aggs = jsonQuery.at("/aggs");
+        assertThat(aggs).isNotEmpty();
+
+        var avgAgg = aggs.at("/MCP_PROXY_TOOL_VALUE#AVG/avg/field");
+        assertThat(avgAgg).isNotNull();
+        assertThat(avgAgg.asText()).isEqualTo("additional-metrics.double_mcp-proxy_tool-value");
+    }
+
     @Test
     void should_wrap_metric_aggs_in_filter_aggregation_when_metric_has_filters() throws JsonProcessingException {
         var timeRange = buildTimeRange();
