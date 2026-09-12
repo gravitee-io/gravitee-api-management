@@ -6,6 +6,41 @@
         "(^|/).circleci/config.yml$"
       ]
     },
+    // The Helm chart pins the Hazelcast node plugins by URL, and the federation deployment
+    // fixture repeats those URLs byte for byte. Both have to follow <gravitee-node.version>:
+    // a management API pod would otherwise download plugins built against a different node
+    // minor than the node it runs. Renovate only ever read the poms, so the chart was brought
+    // back in line by hand afterwards, inside Renovate's own branch. These managers make it
+    // read the chart as well.
+    //
+    // The zips are served by download.gravitee.io, which exposes no index to query, so the
+    // versions are resolved from the same artifacts on Maven Central; gravitee-node publishes
+    // its whole lineage in lockstep, so a version never exists on one side only. One manager
+    // per artifact: depNameTemplate is manager-wide, and folding both into a single regex
+    // would need a backreference, which RE2 does not support.
+    "customManagers": [
+        {
+            "customType": "regex",
+            "managerFilePatterns": [
+                "/^helm/values\\.yaml$/",
+                "/^helm/tests/api/deployment_federation_test\\.yaml$/"
+            ],
+            // Matches the download URL, and in the fixture the bare zip name wget removes first.
+            "matchStrings": ["gravitee-node-cache-plugin-hazelcast-(?<currentValue>\\d[^/\\s]*?)\\.zip"],
+            "depNameTemplate": "io.gravitee.node:gravitee-node-cache-plugin-hazelcast",
+            "datasourceTemplate": "maven"
+        },
+        {
+            "customType": "regex",
+            "managerFilePatterns": [
+                "/^helm/values\\.yaml$/",
+                "/^helm/tests/api/deployment_federation_test\\.yaml$/"
+            ],
+            "matchStrings": ["gravitee-node-cluster-plugin-hazelcast-(?<currentValue>\\d[^/\\s]*?)\\.zip"],
+            "depNameTemplate": "io.gravitee.node:gravitee-node-cluster-plugin-hazelcast",
+            "datasourceTemplate": "maven"
+        }
+    ],
     "packageRules": [
         {
             // Group all angular related packages updates together
@@ -103,6 +138,17 @@
             "matchPackageNames": ["com.graviteesource{/,}**", "io.gravitee{/,}**"],
             "matchCurrentVersion": "/-beta\\./",
             "allowedVersions": "/-beta\\./"
+        },
+        {
+            // Keep the chart in the same pull request as the poms. Every io.gravitee.node
+            // artifact here resolves through the single <gravitee-node.version> property, so
+            // grouping the whole groupId gathers nothing that was not already moving together,
+            // and groupSlug preserves the branch Renovate already uses for that property,
+            // renovate/gravitee-node.version, rather than opening a second pull request.
+            "matchDatasources": ["maven"],
+            "matchPackageNames": ["io.gravitee.node{/,}**"],
+            "groupName": "gravitee-node.version",
+            "groupSlug": "gravitee-node.version"
         }
     ]
 }
