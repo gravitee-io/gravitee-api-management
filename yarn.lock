@@ -3440,28 +3440,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dagrejs/dagre@npm:1.1.8":
-  version: 1.1.8
-  resolution: "@dagrejs/dagre@npm:1.1.8"
-  dependencies:
-    "@dagrejs/graphlib": "npm:2.2.4"
-  checksum: 10c0/3f4f99beb1c791c4c35fcab7a6891731a712931f076ae27b380afa4077e81a1f46341cd0ac8f21df29bf7b458e631b780e819846140a9e4f89e36faf907cdc66
-  languageName: node
-  linkType: hard
-
 "@dagrejs/dagre@npm:3.0.0":
   version: 3.0.0
   resolution: "@dagrejs/dagre@npm:3.0.0"
   dependencies:
     "@dagrejs/graphlib": "npm:4.0.1"
   checksum: 10c0/f5d43819697b33864e8aced460fbf972a7151758b5f0aea8ee47315b9ab957782b2ab8beb4e1e2bff892b1820b0ff8ab8a22abc12a65ebb37e205e3a7f63a6e0
-  languageName: node
-  linkType: hard
-
-"@dagrejs/graphlib@npm:2.2.4":
-  version: 2.2.4
-  resolution: "@dagrejs/graphlib@npm:2.2.4"
-  checksum: 10c0/14597ea9294c46b2571aee78bcaad3a24e3e5e0ebcdf198b6eae5b3805f99af727ac54a477dd9152e8b0a576efea0528fb7d4919c74801e9f669c90e5e6f5bd9
   languageName: node
   linkType: hard
 
@@ -16446,13 +16430,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"codemirror-asciidoc@npm:1.0.4":
-  version: 1.0.4
-  resolution: "codemirror-asciidoc@npm:1.0.4"
-  checksum: 10c0/c19a86d5e82cb6c0f5f03fc4378ba62a1f5cb6ecaf45c177352682303a9a75d38a84c3fb558d1d1acd6041cc9a1b9b2f5da024f25e1c581e94ed0aec333d60a5
-  languageName: node
-  linkType: hard
-
 "codemirror-asciidoc@npm:^2.0.0":
   version: 2.0.1
   resolution: "codemirror-asciidoc@npm:2.0.1"
@@ -20761,7 +20738,6 @@ __metadata:
     "@asciidoctor/core": "npm:3.0.4"
     "@asyncapi/react-component": "npm:3.1.8"
     "@asyncapi/web-component": "npm:3.1.8"
-    "@dagrejs/dagre": "npm:1.1.8"
     "@danielmoncada/angular-datetime-picker": "npm:20.0.1"
     "@danielmoncada/angular-datetime-picker-moment-adapter": "npm:7.0.1"
     "@emoji-mart/data": "npm:1.2.1"
@@ -20863,7 +20839,6 @@ __metadata:
     chart.js: "npm:4.3.0"
     chartjs-adapter-date-fns: "npm:3.0.0"
     codemirror: "npm:5.65.20"
-    codemirror-asciidoc: "npm:1.0.4"
     date-fns: "npm:4.1.0"
     diff: "npm:3.5.0"
     diff2html: "npm:3.4.51"
