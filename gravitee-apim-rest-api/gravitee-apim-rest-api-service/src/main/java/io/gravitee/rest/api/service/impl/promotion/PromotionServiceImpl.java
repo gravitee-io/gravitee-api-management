@@ -272,14 +272,9 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
             if (!isDuplicateKey(e)) {
                 throw e;
             }
-<<<<<<< HEAD
             LOGGER.debug("Promotion {} was created concurrently, updating it instead", promotion.getId());
-            return promotionRepository.update(promotion);
-=======
-            log.debug("Promotion {} was created concurrently, updating it instead", promotion.getId());
             promotionRepository.update(promotion);
             return promotion;
->>>>>>> f83b5f7 (fix(rest-api): recover from a promotion insert conflict without re-reading the row (APIM-15024) (#19926))
         }
     }
 
