@@ -1,0 +1,529 @@
+# APIM Wave 0 — Xray automation map
+# Pack: APIM-12227 (4.10.0 APIM Regression PLAN) + APIM-14987–14991
+# Rule: label = automated only if the scenario runs unattended in CI and reports a result.
+# Postman attachments and AccelQ are not CI → not automated.
+# Three-way taxonomy (2026-08-27):
+#   automated   = already runs in CI (7)
+#   to-automate = CI-feasible Wave 1 backlog (46; was manual)
+#   manual      = cannot run in current CI without Cockpit / licence / multi-org / Access Points (20)
+# If unsure whether a row can run in current CI → to-automate, not manual.
+#
+# Snapshot before labelling (2026-08-25):
+#   project = APIM AND issuetype = Test                              → 2117
+#   project = APIM AND issuetype = Test AND labels = automated       → 5
+#   project = APIM AND issuetype = Test AND labels = manual          → 0
+#   issue in testPlanTests("APIM-12227")                             → 68
+#   issue in testPlanTests("APIM-12227") AND labels in (automated, manual) → 0
+#
+# Verified after labelling (2026-08-25): 7 automated / 66 manual.
+# Retagged 2026-08-27: 46 CI-feasible rows manual → to-automate.
+#   project = APIM AND issuetype = Test AND labels = automated       → 7
+#   project = APIM AND issuetype = Test AND labels = to-automate    → 46
+#   project = APIM AND issuetype = Test AND labels = manual          → 20
+#   project = APIM AND issuetype = Test AND labels in (automated, manual, to-automate) → 73
+#   project = APIM AND issuetype = Test AND labels = automated AND labels = manual → 0
+#   project = APIM AND issuetype = Test AND labels = to-automate AND labels = manual → 0
+#   issue in testPlanTests("APIM-12227")                             → 68
+#   issue in testPlanTests("APIM-12227") AND labels = automated      → 2  (APIM-4552, APIM-8168)
+#
+# Membership: APIM-14987–14991 are labelled automated but are not in APIM-12227.
+# Xray Cloud stores plan membership in Xray, not as a Jira issue link.
+# Request + GraphQL mutation: comment 102707 on APIM-12227.
+# Until someone with Xray API keys (or the Test Plan → Tests UI) adds them,
+# testPlanTests stays at 68. The label-filter denominator is already 73.
+# DevEx collector: comment 102720 on GKO-3038 (two-label filter).
+# Follow-up: comment 103087 on GKO-3038 — denominator must include to-automate.
+
+pack: APIM-12227
+pack_summary: 4.10.0 APIM Regression PLAN
+scope: numerator and denominator are both this pack
+automated_definition: runs unattended in CI and reports a result
+ceiling_note: >
+  20 rows stay manual: Cockpit APIM-6197; multi-org / Access Points / isolation
+  APIM-6199, 6200, 6201, 6203, 6204, 6205, 6206, 6207, 6209, 6210, 6213;
+  licence APIM-6214, 6216, 6217, 6218, 6219, 6220, 6221, 6222.
+  APIM-6198 and APIM-6211 are UI-only (no extra org/Cockpit harness) and are
+  to-automate, not ceiling. The 20 cap automation % well below 100%. Split
+  them to a manual-only plan only if DevEx wants an uncapped tile.
+pending_plan_membership:
+  - APIM-14987
+  - APIM-14988
+  - APIM-14989
+  - APIM-14990
+  - APIM-14991
+tests:
+  - key: APIM-3350
+    summary: "[Multi-Tenant] API Quality Rules should be scoped by environment"
+    label: to-automate
+    covered_by: none
+    repo_path: null
+    note: api-quality.spec.ts covers quality-review workflow, not env-scoped rules.
+
+  - key: APIM-4462
+    summary: API with 2 subscriptions to same plan, apply Quota on plan and check Quota is drawn by both subscriptions
+    label: to-automate
+    covered_by: none
+    repo_path: null
+    note: Cypress plans spec only asserts Quota is visible on the plan UI.
+
+  - key: APIM-4552
+    summary: User can roll back a v4 API to a previous version
+    label: automated
+    covered_by: jest-api
+    repo_path: gravitee-apim-distribution/gravitee-apim-distribution-e2e/api-test/src/apis/rollback/mapi-v2/api-v4-rollback.spec.ts
+
+  - key: APIM-4553
+    summary: Rollback API with plan & subscriptions
+    label: to-automate
+    covered_by: none
+    repo_path: null
+    note: v4 rollback spec covers plan create/close/update rollback, not subscriptions.
+
+  - key: APIM-4840
+    summary: Create API and add Sharding Tags to the api and verify api is proxied by the correct gateway
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-4856
+    summary: Create API with 2 kafka endpoint groups and multiple entrypoints
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-4858
+    summary: Add dynamic routing policy to write to second Kafka endpoint group given specified condition
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-4859
+    summary: Configure Dead Letter Queue to the Webhook entrypoint using the second Kafka endpoint group.
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-4862
+    summary: Subscribe to the API with two different applications and check consumer groups (message api)
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-6197
+    summary: Sign in to APIM from Cockpit on one specific Environment
+    label: manual
+    covered_by: none
+    repo_path: null
+    note: Needs Cockpit. Caps the tile.
+
+  - key: APIM-6198
+    summary: With valid Console UI session, open Developer Portal
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-6199
+    summary: Try to call MAPI on one Organization with credentials from a different Organization
+    label: manual
+    covered_by: none
+    repo_path: null
+    note: Multi-org. Caps the tile.
+
+  - key: APIM-6200
+    summary: Ensure that you can not see analytics coming from another Organization or Environment
+    label: manual
+    covered_by: none
+    repo_path: null
+    note: Multi-org. Caps the tile.
+
+  - key: APIM-6201
+    summary: Ensure that you can not see Audit entries coming from another Organization or Environment
+    label: manual
+    covered_by: none
+    repo_path: null
+    note: Multi-org. Caps the tile.
+
+  - key: APIM-6203
+    summary: Ensure that the Management URL in Settings is set to Access Points declared URL
+    label: manual
+    covered_by: none
+    repo_path: null
+    note: Access Points. Caps the tile.
+
+  - key: APIM-6204
+    summary: Generate Personal token, use it, and make sure you can not access resources on another Organization.
+    label: manual
+    covered_by: none
+    repo_path: null
+    note: Multi-org. Caps the tile.
+
+  - key: APIM-6205
+    summary: Generate Personal Token for user, make sure the example URL is set to Access Points URL
+    label: manual
+    covered_by: none
+    repo_path: null
+    note: Access Points. Caps the tile.
+
+  - key: APIM-6206
+    summary: Create an API with API entrypoint in virtual host mode and with Access Points URL is set as host
+    label: manual
+    covered_by: none
+    repo_path: null
+    note: Access Points. Caps the tile.
+
+  - key: APIM-6207
+    summary: Ensure that the Portal URL in Settings in APIM is set to Access Points declared URL
+    label: manual
+    covered_by: none
+    repo_path: null
+    note: Access Points. Caps the tile.
+
+  - key: APIM-6209
+    summary: Ensure that Access URL for an API in Portal is set to Access Point URL
+    label: manual
+    covered_by: none
+    repo_path: null
+    note: Access Points. Caps the tile.
+
+  - key: APIM-6210
+    summary: From one environment, open up Developer Portal and make sure you can only see APIs from that environment
+    label: manual
+    covered_by: none
+    repo_path: null
+    note: Multi-env isolation. Caps the tile.
+
+  - key: APIM-6211
+    summary: From one environment, update the theme for the Portal and make sure it is applied
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-6213
+    summary: Ensure that organization level policies are scoped on Organization and not executed for API calls on other Organisations
+    label: manual
+    covered_by: none
+    repo_path: null
+    note: Multi-org. Caps the tile.
+
+  - key: APIM-6214
+    summary: Ensure APIs can be accessed using the gateway calls after the license has expired
+    label: manual
+    covered_by: none
+    repo_path: null
+    note: Licence. Caps the tile.
+
+  - key: APIM-6216
+    summary: Ensure after the license has expired that changes to the APIs non-supported by OSS license cannot be deployed
+    label: manual
+    covered_by: none
+    repo_path: null
+    note: Licence. Caps the tile.
+
+  - key: APIM-6217
+    summary: Set Planet license for one Organization, access APIM and make sure the license is set to Planet
+    label: manual
+    covered_by: none
+    repo_path: null
+    note: Licence + Cockpit. Caps the tile.
+
+  - key: APIM-6218
+    summary: Set Galaxy license for one Organization, access APIM and make sure the license is set to Galaxy
+    label: manual
+    covered_by: none
+    repo_path: null
+    note: Licence + Cockpit. Caps the tile.
+
+  - key: APIM-6219
+    summary: Set Universe license for one Organization, access APIM and make sure the license is set to Universe
+    label: manual
+    covered_by: none
+    repo_path: null
+    note: Licence + Cockpit. Caps the tile.
+
+  - key: APIM-6220
+    summary: Set expired license (days 0, 3, 7, 20, 31)
+    label: manual
+    covered_by: none
+    repo_path: null
+    note: Licence. Caps the tile.
+
+  - key: APIM-6221
+    summary: Set license that expires during test phase, when license expires, no changes will happen.
+    label: manual
+    covered_by: none
+    repo_path: null
+    note: Licence. Caps the tile.
+
+  - key: APIM-6222
+    summary: Set malformed license (wrong format), Cockpit will not allow it.
+    label: manual
+    covered_by: none
+    repo_path: null
+    note: Licence + Cockpit. Caps the tile.
+
+  - key: APIM-6404
+    summary: Filter logs using dates on Portal Application for v2 api
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-6407
+    summary: Filter logs using Path on Portal Application for v2 api
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-6408
+    summary: Filter logs using Search Text in Message Bodies on Portal Application for v2 api
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-6607
+    summary: Guide writer can link to another guide page
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-6869
+    summary: Upgrade APIM from an older version to a newer one
+    label: to-automate
+    covered_by: none
+    repo_path: null
+    note: N to N+1 upgrade. Wave 1 / platform-e2e.
+
+  - key: APIM-8168
+    summary: Set up a failover mechanism for the API and verify it is functioning correctly
+    label: automated
+    covered_by: jest-api
+    repo_path: gravitee-apim-distribution/gravitee-apim-distribution-e2e/api-test/src/apis/failover/mapi-v1/enable-failover-and-trigger-it.spec.ts
+
+  - key: APIM-9132
+    summary: v2 api - Postman Collection Automated Tests
+    label: to-automate
+    covered_by: postman
+    repo_path: null
+    note: Collection attached to the ticket. Not run in CI.
+
+  - key: APIM-9133
+    summary: v4 Proxy api - Postman Collection Automated Tests
+    label: to-automate
+    covered_by: postman
+    repo_path: null
+    note: Collection attached to the ticket. Not run in CI.
+
+  - key: APIM-9134
+    summary: v4 Kafka API - Postman Collection Automated Tests
+    label: to-automate
+    covered_by: postman
+    repo_path: null
+    note: Collection attached to the ticket. Not run in CI.
+
+  - key: APIM-9213
+    summary: Editing an application with no groups after the toggle is ON
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-9234
+    summary: "v4 api : Test Swagger to NOT expand outside of allowed frame"
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-9433
+    summary: User can add subscription metadata using EL to ACL policy on a Native API
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-9454
+    summary: Publisher can add a header to a message, via an expression.
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-9460
+    summary: Validate Topic Mapping policy configuration with topics defined in subscription metadata.
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-9490
+    summary: User which is a group admin can change the default API/App role when the toggles are ON no matter the permissions at the env level
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-9582
+    summary: User can set the key in Transform Keys policy using EL
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-9606
+    summary: Validate locationName with EL expression
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-9607
+    summary: Validate offloaded messages with customized header value (EL)
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-9718
+    summary: Inline Schema - Valid JSON to Protobuf transformation
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-9773
+    summary: User can call an Agent Proxy API with Keyless Plan
+    label: to-automate
+    covered_by: none
+    repo_path: null
+    note: No Agent Proxy Jest/Cypress spec in distribution-e2e.
+
+  - key: APIM-9884
+    summary: User can call an HTTP Proxy API with MCP entrypoint and API Key Plan
+    label: to-automate
+    covered_by: none
+    repo_path: null
+    note: No MCP entrypoint Jest/Cypress spec in distribution-e2e.
+
+  - key: APIM-10148
+    summary: "Portal Customization : Change Theme color"
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-10149
+    summary: "Console Customization : Change logo, menu color and sub menu color"
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-10437
+    summary: Test Documentation inner links on API level
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-10483
+    summary: Test Documentation inner links on Environment level
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-10513
+    summary: v4 Proxy API - Configure 1 Alert with 3 Notifications (Slack, Email & Webhook) & Verify user receives alerts based off the defined conditions
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-10514
+    summary: v2 API - Configure 1 Alert with 3 Notifications (Slack, Email & Webhook) & Verify user receives alerts based off the defined conditions
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-10932
+    summary: Test ACL and topic mapping policy together
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-11134
+    summary: Validate JSON<>Protobuf policy for V4 Message API
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-11218
+    summary: Proxy API exposing multiple endpoints, each linked to a unique tenant.
+    label: to-automate
+    covered_by: none
+    repo_path: null
+    note: Cypress ui-tenants.spec.ts is org tenant CRUD, not per-endpoint tenant routing.
+
+  - key: APIM-11342
+    summary: Test All supported plans with Native api
+    label: to-automate
+    covered_by: none
+    repo_path: null
+    note: Native Kafka import-with-plans is import, not this pack scenario.
+
+  - key: APIM-11343
+    summary: Test All supported plans with v2[emulated/non-emulated] api
+    label: to-automate
+    covered_by: none
+    repo_path: null
+    note: Individual Jest plan specs exist; none is this full matrix.
+
+  - key: APIM-11344
+    summary: Test All supported plans with v4 proxy api
+    label: to-automate
+    covered_by: none
+    repo_path: null
+    note: subscribe-to-plan-keyless-apikey-jwt-oauth spec is v2 and only API_KEY+JWT.
+
+  - key: APIM-11406
+    summary: Inline Schema- [Nested message] Valid JSON to Protobuf transformation
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-11407
+    summary: Inline Schema - [Arrays in a message] Valid JSON to Protobuf transformation
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-11408
+    summary: Validate Topic Mapping policy configuration using EL
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-11530
+    summary: Validate JSON<>Protobuf with ALL JSON serializer options
+    label: to-automate
+    covered_by: none
+    repo_path: null
+
+  - key: APIM-14987
+    summary: Console assigns and removes a portal category on an API
+    label: automated
+    covered_by: platform-e2e
+    repo_path: apim/tests/user-journeys/api-producer/assign-categories-to-api/assign-categories-to-api.scenario.ts
+    already_labelled: true
+
+  - key: APIM-14988
+    summary: Console publishes a V4 API and serves traffic through the gateway
+    label: automated
+    covered_by: platform-e2e
+    repo_path: apim/tests/user-journeys/api-producer/publish-api-and-serve-traffic/publish-api-and-serve-traffic.scenario.ts
+    already_labelled: true
+
+  - key: APIM-14989
+    summary: Console secures an API with a JWT plan and an OAuth2 plan
+    label: automated
+    covered_by: platform-e2e
+    repo_path: apim/tests/user-journeys/api-producer/secure-api-with-plan/secure-api-with-plan.scenario.ts
+    already_labelled: true
+
+  - key: APIM-14990
+    summary: Console sets and clears an API's labels
+    label: automated
+    covered_by: platform-e2e
+    repo_path: apim/tests/user-journeys/api-producer/label-an-api/label-an-api.scenario.ts
+    already_labelled: true
+
+  - key: APIM-14991
+    summary: Console changes an API's portal visibility and lifecycle state, then retires it
+    label: automated
+    covered_by: platform-e2e
+    repo_path: apim/tests/user-journeys/api-producer/configure-visibility-and-lifecycle/configure-visibility-and-lifecycle.scenario.ts
+    already_labelled: true
