@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 import static io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer.FIELD_REFERENCE_ID;
 import static io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer.FIELD_REFERENCE_TYPE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ALLOW_IN_API_PRODUCTS;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_TYPE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES_SPLIT;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
@@ -27,6 +28,7 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_HAS_HEALTH_CHECK;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_HOSTS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ID;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_INTEGRATION_ID;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_LABELS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_LABELS_LOWERCASE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_LABELS_SPLIT;
@@ -60,6 +62,7 @@ import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.ApiService;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -72,6 +75,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.util.BytesRef;
@@ -80,6 +84,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -115,6 +122,96 @@ public class IndexableApiDocumentTransformerTest {
             softly.assertThat(result.getField(FIELD_ID).stringValue()).isEqualTo(API_ID);
             softly.assertThat(result.getField(FIELD_TYPE).stringValue()).isEqualTo("api");
         });
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("definitionVersionTerms")
+    void should_index_definition_version_as_its_label(String caseName, Api api, String expectedTerm) {
+        // Given an api carrying the row's definition version
+        var indexable = new IndexableApi(api, PRIMARY_OWNER, Map.of(), Set.of());
+
+        // When it is transformed for the boot-time index rebuild
+        var result = cut.transform(indexable);
+
+        // Then the document holds the row's term as its only definition version
+        assertThat(result.getFields(FIELD_DEFINITION_VERSION)).extracting(IndexableField::stringValue).containsExactly(expectedTerm);
+    }
+
+    private static Stream<Arguments> definitionVersionTerms() {
+        return Stream.of(
+            Arguments.of("V2 is indexed as its label, not as the enum name", ApiFixtures.aProxyApiV2(), "2.0.0"),
+            Arguments.of("V4 is indexed as its label, not as the enum name", ApiFixtures.aProxyApiV4(), "4.0.0"),
+            Arguments.of("FEDERATED is indexed as its label", ApiFixtures.aFederatedApi(), "FEDERATED"),
+            Arguments.of("FEDERATED_AGENT is indexed as its label", ApiFixtures.aFederatedAgent(), "FEDERATED_AGENT"),
+            Arguments.of(
+                "a legacy row with no definition version is indexed as the V2 label",
+                aLegacyApiWithoutDefinitionVersion(),
+                "2.0.0"
+            )
+        );
+    }
+
+    @Test
+    void should_not_index_api_type_for_a_legacy_api_without_definition_version() {
+        // Given a legacy api whose definition version was never stored
+        var indexable = new IndexableApi(aLegacyApiWithoutDefinitionVersion(), PRIMARY_OWNER, Map.of(), Set.of());
+
+        // When it is transformed for the boot-time index rebuild
+        var result = cut.transform(indexable);
+
+        // Then the V2 fallback that gave it a definition version term left it with no api type term
+        assertThat(result.getFields(FIELD_API_TYPE)).isEmpty();
+    }
+
+    @Test
+    void should_not_index_the_v2_field_set_for_a_legacy_api_without_definition_version() {
+        // Given a legacy api whose definition version was never stored
+        var indexable = new IndexableApi(aLegacyApiWithoutDefinitionVersion(), PRIMARY_OWNER, Map.of(), Set.of());
+
+        // When it is transformed for the boot-time index rebuild
+        var result = cut.transform(indexable);
+
+        // Then the V2 fallback that gave it a definition version term left it outside the V2 branch and its health
+        // check term
+        assertThat(result.getFields(FIELD_HAS_HEALTH_CHECK)).isEmpty();
+    }
+
+    private static Api aLegacyApiWithoutDefinitionVersion() {
+        return Api.builder().id(API_ID).name("Legacy Api").build();
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("integrationIdTerms")
+    void should_index_an_integration_id_only_when_the_origin_context_carries_one(
+        String caseName,
+        OriginContext originContext,
+        List<String> expectedTerms
+    ) {
+        // Given an api carrying the row's origin context
+        var api = ApiFixtures.aFederatedApi().toBuilder().originContext(originContext).build();
+        var indexable = new IndexableApi(api, PRIMARY_OWNER, Map.of(), Set.of());
+
+        // When it is transformed for the boot-time index rebuild
+        var result = cut.transform(indexable);
+
+        // Then the document holds the row's terms as its only integration id
+        assertThat(result.getFields(FIELD_INTEGRATION_ID)).extracting(IndexableField::stringValue).containsExactlyElementsOf(expectedTerms);
+    }
+
+    private static Stream<Arguments> integrationIdTerms() {
+        return Stream.of(
+            Arguments.of(
+                "an integration id is indexed spelled exactly as the origin context carries it, upper case and hyphens included",
+                new OriginContext.Integration("Int-A-2024"),
+                List.of("Int-A-2024")
+            ),
+            Arguments.of(
+                "an integration origin context holding no id is indexed with no integration id",
+                new OriginContext.Integration(null),
+                List.of()
+            ),
+            Arguments.of("an api no integration owns is indexed with no integration id", new OriginContext.Management(), List.of())
+        );
     }
 
     @Test

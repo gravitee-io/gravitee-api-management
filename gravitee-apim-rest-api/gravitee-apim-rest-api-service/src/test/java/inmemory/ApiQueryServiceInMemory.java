@@ -23,6 +23,7 @@ import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.model.Sortable;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.context.OriginContext;
 import java.util.ArrayList;
@@ -34,6 +35,8 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlternative<Api> {
+
+    private static final Comparator<Api> MOST_RECENTLY_UPDATED_FIRST = Comparator.comparing(Api::getUpdatedAt).reversed();
 
     private final List<Api> storage;
 
@@ -140,14 +143,40 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
 
     @Override
     public Page<Api> findByIntegrationId(String integrationId, Pageable pageable) {
+        return pageOf(apisOwnedBy(integrationId).sorted(MOST_RECENTLY_UPDATED_FIRST).toList(), pageable);
+    }
+
+    @Override
+    public Page<Api> searchByIntegrationId(
+        String integrationId,
+        List<DefinitionVersion> definitionVersions,
+        String query,
+        Pageable pageable
+    ) {
+        var matches = apisOwnedBy(integrationId)
+            .filter(api -> matchesRequestedDefinitionVersion(api, definitionVersions))
+            .sorted(MOST_RECENTLY_UPDATED_FIRST)
+            .toList();
+
+        return pageOf(matches, pageable);
+    }
+
+    private Stream<Api> apisOwnedBy(String integrationId) {
+        return storage
+            .stream()
+            .filter(api -> api.getOriginContext() instanceof OriginContext.Integration inte && integrationId.equals(inte.integrationId()));
+    }
+
+    private static boolean matchesRequestedDefinitionVersion(Api api, List<DefinitionVersion> definitionVersions) {
+        if (definitionVersions == null || definitionVersions.isEmpty()) {
+            return true;
+        }
+        return definitionVersions.contains(Objects.requireNonNullElse(api.getDefinitionVersion(), DefinitionVersion.V2));
+    }
+
+    private static Page<Api> pageOf(List<Api> matches, Pageable pageable) {
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();
-
-        var matches = storage
-            .stream()
-            .filter(api -> api.getOriginContext() instanceof OriginContext.Integration inte && integrationId.equals(inte.integrationId()))
-            .sorted(Comparator.comparing(Api::getUpdatedAt).reversed())
-            .toList();
 
         var page = matches.size() <= pageSize
             ? matches

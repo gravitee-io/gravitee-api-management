@@ -20,25 +20,35 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.in;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
+import io.gravitee.apim.infra.query_service.api.ApiQueryServiceImpl;
+import io.gravitee.common.component.Lifecycle;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.rest.api.model.ApiPageEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.common.SortableImpl;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.CommandService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -66,12 +76,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -87,14 +103,22 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = { SearchEngineServiceTest.TestConfig.class }, loader = AnnotationConfigContextLoader.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class SearchEngineServiceTest {
 
     private static final String ENV_1 = "env-1";
 
     private static final ExecutionContext ENV_1_CONTEXT = new ExecutionContext(GraviteeContext.getDefaultOrganization(), ENV_1);
 
+    private static final String ENV_LEGACY_INTEGRATION = "env-legacy-integration";
+    private static final String LEGACY_INTEGRATION_ID = "int-a";
+    private static final String LEGACY_INTEGRATION_API_ID = "api-legacy-integration";
+
     @Autowired
     private SearchEngineService searchEngineService;
+
+    @Autowired
+    private ApiDocumentSearcher apiDocumentSearcher;
 
     private static boolean isIndexed = false;
 
@@ -603,12 +627,16 @@ public class SearchEngineServiceTest {
         assertThat(matches.getDocuments()).containsExactly("api-1", "api-2");
     }
 
-    @Test
-    public void shouldFindWithExcludedFilters_definitionVersion() {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("excludedFiltersCases")
+    public void should_exclude_apis_matching_the_excluded_filters(
+        String caseName,
+        Map<String, Collection<String>> excludedFilters,
+        int expectedHits,
+        List<String> expectedDocuments
+    ) {
         Map<String, Object> filters = new HashMap<>();
         filters.put(FIELD_API_TYPE_VALUE, Arrays.asList("api-1", "api-2"));
-        Map<String, Collection<String>> excludedFilters = new HashMap<>();
-        excludedFilters.put(FIELD_DEFINITION_VERSION, Arrays.asList(DefinitionVersion.V2.getLabel(), DefinitionVersion.V4.getLabel()));
         QueryBuilder<ApiEntity> apiEntityQueryBuilder = QueryBuilder.create(ApiEntity.class)
             .setFilters(filters)
             .setExcludedFilters(excludedFilters);
@@ -617,27 +645,56 @@ public class SearchEngineServiceTest {
             apiEntityQueryBuilder.build()
         );
 
-        assertThat(matches.getHits()).isEqualTo(1);
+        assertThat(matches.getHits()).isEqualTo(expectedHits);
+        assertThat(matches.getDocuments()).containsExactlyElementsOf(expectedDocuments);
+    }
 
-        assertThat(matches.getDocuments()).containsExactly("api-1");
+    private static Stream<Arguments> excludedFiltersCases() {
+        Map<String, Collection<String>> bothDefinitionVersions = new HashMap<>();
+        bothDefinitionVersions.put(
+            FIELD_DEFINITION_VERSION,
+            Arrays.asList(DefinitionVersion.V2.getLabel(), DefinitionVersion.V4.getLabel())
+        );
+
+        Map<String, Collection<String>> nameAndBothDefinitionVersions = new HashMap<>();
+        nameAndBothDefinitionVersions.put(FIELD_NAME, List.of("My Awesome api / 1"));
+        nameAndBothDefinitionVersions.put(
+            FIELD_DEFINITION_VERSION,
+            Arrays.asList(DefinitionVersion.V2.getLabel(), DefinitionVersion.V4.getLabel())
+        );
+
+        Map<String, Collection<String>> nameOnly = new HashMap<>();
+        nameOnly.put(FIELD_NAME, List.of("My Awesome api / 1"));
+
+        return Stream.of(
+            // api-1 has a null graviteeDefinitionVersion, which the null-means-legacy-V2 rule indexes under the
+            // 2.0.0 term, so a 2.0.0 exclusion now removes it alongside the explicitly-V2 api-2.
+            Arguments.of("excluding_both_definition_versions_removes_every_api", bothDefinitionVersions, 0, List.of()),
+            Arguments.of("excluding_a_name_and_both_definition_versions_removes_every_api", nameAndBothDefinitionVersions, 0, List.of()),
+            Arguments.of("excluding_only_a_name_leaves_the_non_excluded_api", nameOnly, 1, List.of("api-2"))
+        );
     }
 
     @Test
-    public void shouldFindWithExcludedFilters_multiple() {
-        Map<String, Object> filters = new HashMap<>();
-        filters.put(FIELD_API_TYPE_VALUE, Arrays.asList("api-1", "api-2"));
-        Map<String, Collection<String>> excludedFilters = new HashMap<>();
-        excludedFilters.put(FIELD_NAME, List.of("My Awesome api / 1"));
-        excludedFilters.put(FIELD_DEFINITION_VERSION, Arrays.asList(DefinitionVersion.V2.getLabel(), DefinitionVersion.V4.getLabel()));
-        QueryBuilder<ApiEntity> apiEntityQueryBuilder = QueryBuilder.create(ApiEntity.class)
-            .setFilters(filters)
-            .setExcludedFilters(excludedFilters);
-        SearchResult matches = searchEngineService.search(
-            new ExecutionContext(GraviteeContext.getCurrentOrganization(), null),
-            apiEntityQueryBuilder.build()
+    public void should_narrow_a_v2_request_to_a_live_indexed_legacy_api_with_no_definition_version() {
+        ApiRepository apiRepository = mock(ApiRepository.class);
+        when(apiRepository.search(any(), any(), any(), any())).thenAnswer(invocation -> {
+            var selectedIds = invocation.getArgument(0, ApiCriteria.class).getIds();
+            var rows = selectedIds
+                .stream()
+                .map(id -> io.gravitee.repository.management.model.Api.builder().id(id).build())
+                .toList();
+            return new Page<>(rows, 1, rows.size(), rows.size());
+        });
+
+        var page = new ApiQueryServiceImpl(apiRepository, apiDocumentSearcher).searchByIntegrationId(
+            LEGACY_INTEGRATION_ID,
+            List.of(DefinitionVersion.V2),
+            null,
+            new PageableImpl(1, 10)
         );
 
-        assertThat(matches.getHits()).isZero();
+        assertThat(page.getContent()).extracting(Api::getId).containsExactly(LEGACY_INTEGRATION_API_ID);
     }
 
     @BeforeEach
@@ -660,9 +717,26 @@ public class SearchEngineServiceTest {
             searchEngineService.index(GraviteeContext.getExecutionContext(), completePage(new PageEntity(), 2, true), true, false);
             searchEngineService.index(GraviteeContext.getExecutionContext(), completePage(new ApiPageEntity(), 3, false), true, false);
             searchEngineService.index(GraviteeContext.getExecutionContext(), completePage(new ApiPageEntity(), 5, true), true, false);
+            searchEngineService.index(GraviteeContext.getExecutionContext(), aLegacyApiOwnedByAnIntegration(), true, false);
             searchEngineService.commit();
             isIndexed = true;
         }
+    }
+
+    private static io.gravitee.rest.api.model.v4.api.ApiEntity aLegacyApiOwnedByAnIntegration() {
+        var apiEntity = new io.gravitee.rest.api.model.v4.api.ApiEntity();
+        apiEntity.setId(LEGACY_INTEGRATION_API_ID);
+        apiEntity.setName("Legacy Integration Api");
+        // No definition version: the legacy row shape the null-means-legacy-V2 rule is about.
+        apiEntity.setState(Lifecycle.State.STOPPED);
+        apiEntity.setVisibility(Visibility.PUBLIC);
+        apiEntity.setLifecycleState(ApiLifecycleState.CREATED);
+        // Its own environment keeps it out of the hit counts the environment-scoped fixture assertions pin.
+        apiEntity.setReferenceId(ENV_LEGACY_INTEGRATION);
+        apiEntity.setReferenceType(ReferenceContext.Type.ENVIRONMENT.name());
+        apiEntity.setOriginContext(new OriginContext.Integration(LEGACY_INTEGRATION_ID));
+        apiEntity.setUpdatedAt(new Date());
+        return apiEntity;
     }
 
     private static ApiEntity createApiEntity(int index, List<String> labels, String envId) {

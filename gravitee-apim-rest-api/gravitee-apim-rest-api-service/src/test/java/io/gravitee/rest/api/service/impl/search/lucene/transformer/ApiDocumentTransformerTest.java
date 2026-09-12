@@ -17,8 +17,10 @@ package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ALLOW_IN_API_PRODUCTS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_TYPE;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ID;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_STATUS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_STATUS_SORTED;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TYPE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_VISIBILITY;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -103,7 +105,7 @@ class ApiDocumentTransformerTest {
     }
 
     @Test
-    void shouldTransformWithoutError_V4ApiOnDeleteMode() {
+    void should_transform_id_and_type_only_when_definition_version_and_name_are_null() {
         var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
         api.setId("api-uuid");
         api.setLifecycleState(ApiLifecycleState.CREATED);
@@ -112,7 +114,9 @@ class ApiDocumentTransformerTest {
         api.setName(null);
 
         Document doc = cut.transform(api);
-        assertThat(doc.get("id")).isEqualTo(api.getId());
+
+        assertThat(doc.getFields()).extracting(IndexableField::name).containsExactlyInAnyOrder(FIELD_ID, FIELD_TYPE);
+        assertThat(doc.get(FIELD_ID)).isEqualTo(api.getId());
     }
 
     @Test

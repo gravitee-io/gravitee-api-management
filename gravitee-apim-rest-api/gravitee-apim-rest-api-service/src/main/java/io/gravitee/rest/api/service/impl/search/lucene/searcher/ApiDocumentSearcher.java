@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import static java.util.stream.Collectors.*;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.search.Indexable;
@@ -147,6 +148,31 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
     public ApiDocumentSearcher(IndexWriter indexWriter) {
         super(indexWriter);
+    }
+
+    /**
+     * The integration id is turned into a {@link Term} verbatim rather than routed through
+     * {@link #buildFilterQuery}, which runs a String-valued filter through {@link QueryParserBase#escape} and would
+     * look up {@code int\-a} for the indexed term {@code int-a}.
+     */
+    public SearchResult searchByIntegrationId(String integrationId, List<DefinitionVersion> definitionVersions) throws TechnicalException {
+        BooleanQuery.Builder query = new BooleanQuery.Builder()
+            .add(new TermQuery(new Term(FIELD_TYPE, FIELD_API_TYPE_VALUE)), BooleanClause.Occur.FILTER)
+            .add(new TermQuery(new Term(FIELD_INTEGRATION_ID, integrationId)), BooleanClause.Occur.FILTER);
+
+        if (!CollectionUtils.isEmpty(definitionVersions)) {
+            query.add(anyOfDefinitionVersions(definitionVersions), BooleanClause.Occur.FILTER);
+        }
+
+        return search(query.build());
+    }
+
+    private static BooleanQuery anyOfDefinitionVersions(List<DefinitionVersion> definitionVersions) {
+        BooleanQuery.Builder anyVersion = new BooleanQuery.Builder();
+        definitionVersions.forEach(definitionVersion ->
+            anyVersion.add(new TermQuery(new Term(FIELD_DEFINITION_VERSION, definitionVersion.getLabel())), BooleanClause.Occur.SHOULD)
+        );
+        return anyVersion.build();
     }
 
     private BooleanQuery.Builder buildApiQuery(ExecutionContext executionContext, Optional<Query> filterQuery) {
