@@ -20,21 +20,23 @@
 // as a separate hashed chunk served from the app's own origin — CSP-safe, offline-capable.
 import { setupCodeEditor } from '@gravitee/graphene-core/code-editor';
 
+// monaco-editor 0.52+ maps every subpath through exports as ./esm/vs/*.js, so the
+// specifiers drop the esm/vs prefix they used to carry.
 window.MonacoEnvironment = {
     getWorker(_moduleId: string, label: string): Worker {
         if (label === 'json') {
-            return new Worker(new URL('monaco-editor/esm/vs/language/json/json.worker', import.meta.url));
+            return new Worker(new URL('monaco-editor/language/json/json.worker.js', import.meta.url));
         }
         if (label === 'css' || label === 'scss' || label === 'less') {
-            return new Worker(new URL('monaco-editor/esm/vs/language/css/css.worker', import.meta.url));
+            return new Worker(new URL('monaco-editor/language/css/css.worker.js', import.meta.url));
         }
         if (label === 'html' || label === 'handlebars' || label === 'razor') {
-            return new Worker(new URL('monaco-editor/esm/vs/language/html/html.worker', import.meta.url));
+            return new Worker(new URL('monaco-editor/language/html/html.worker.js', import.meta.url));
         }
         if (label === 'typescript' || label === 'javascript') {
-            return new Worker(new URL('monaco-editor/esm/vs/language/typescript/ts.worker', import.meta.url));
+            return new Worker(new URL('monaco-editor/language/typescript/ts.worker.js', import.meta.url));
         }
-        return new Worker(new URL('monaco-editor/esm/vs/editor/editor.worker', import.meta.url));
+        return new Worker(new URL('monaco-editor/editor/editor.worker.js', import.meta.url));
     },
 };
 
