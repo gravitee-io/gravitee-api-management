@@ -111,6 +111,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
     public static final String FIELD_VISIBILITY = "visibility";
     public static final String FIELD_VISIBILITY_SORTED = "visibility_sorted";
     public static final String FIELD_ALLOW_IN_API_PRODUCTS = "allow_in_api_products";
+    public static final String FIELD_INTEGRATION_ID = "integration_id";
 
     private final ApiService apiService;
     private final Collator collator = Collator.getInstance(Locale.ENGLISH);
@@ -144,8 +145,11 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
         doc.add(new StringField(FIELD_VISIBILITY, api.getVisibility().name(), Field.Store.NO));
         doc.add(new SortedDocValuesField(FIELD_VISIBILITY_SORTED, toSortedValue(api.getVisibility().name())));
 
+        LuceneTransformerUtils.appendDefinitionVersion(doc, api.getDefinitionVersion());
+
+        // The V2 fallback in appendDefinitionVersion deliberately stops there: generateApiType dereferences the
+        // version, so a legacy row keeps carrying no api_type term.
         if (api.getDefinitionVersion() != null) {
-            doc.add(new StringField(FIELD_DEFINITION_VERSION, api.getDefinitionVersion().getLabel(), Field.Store.NO));
             String apiType = LuceneTransformerUtils.generateApiType(api);
             doc.add(new StringField(FIELD_API_TYPE, apiType, Field.Store.NO));
             doc.add(new SortedDocValuesField(FIELD_API_TYPE_SORTED, toSortedValue(apiType)));
@@ -254,6 +258,8 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
         if (api.getOriginContext() != null && api.getOriginContext().name() != null) {
             doc.add(new StringField(FIELD_ORIGIN, api.getOriginContext().name(), NO));
         }
+
+        LuceneTransformerUtils.appendIntegrationId(doc, api.getOriginContext(), api.getId());
 
         return doc;
     }
