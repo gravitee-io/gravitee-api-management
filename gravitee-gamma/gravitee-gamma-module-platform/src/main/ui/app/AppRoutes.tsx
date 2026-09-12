@@ -51,6 +51,10 @@ import { AlertsLayout } from '../features/alerts/components/AlertsLayout';
 import { AlertFormPage } from '../features/alerts/pages/AlertFormPage';
 import { AlertsActivityPage } from '../features/alerts/pages/AlertsActivityPage';
 import { ALERT_ENGINE_FEATURE } from '../features/alerts/utils/alertPermissions';
+import { ApiScoreLayout } from '../features/api-score/components/ApiScoreLayout';
+import { useApiScoreEnabled } from '../features/api-score/hooks/useApiScoreEnabled';
+import { ApiScoreDashboardPage } from '../features/api-score/pages/ApiScoreDashboardPage';
+import { ApiScoreRulesetsPage } from '../features/api-score/pages/ApiScoreRulesetsPage';
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
 import { APIM_AUDIT_TRAIL_FEATURE } from '../features/audit-logs/license/auditTrailLicense';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
@@ -187,6 +191,19 @@ function RequireIntegrationsAvailable({ children }: { readonly children: ReactEl
     return children;
 }
 
+// Same hook as the sidebar so a visible API Score item can never lead to a route that bounces, and a
+// switched-off flag can never leave the page enterable from a pasted URL.
+function RequireApiScoreEnabled({ children }: { readonly children: ReactElement }) {
+    const { enabled, isFetched } = useApiScoreEnabled();
+    if (!isFetched) {
+        return null;
+    }
+    if (!enabled) {
+        return <UnauthorizedRedirect />;
+    }
+    return children;
+}
+
 // Shared Policy Groups narrows on this module's own permission cache, so a permission revoked
 // mid-session closes the page the same way it already disappears from the nav link. It only narrows
 // when the cache actually holds an answer; "no answer" defers to the store-backed NavPermissionGuard
@@ -308,6 +325,7 @@ function ModuleLayout() {
     const dictionariesForbidden = isForbiddenApiError(dictionariesQuery.isError, dictionariesQuery.error);
 
     const federationAvailable = useIntegrationsAvailable();
+    const { enabled: apiScoreEnabled } = useApiScoreEnabled();
 
     // Denying on an unreported license hides a feature the organization may well be entitled to, and
     // the host logs only that the license request failed, never what the denial cost. ModuleLayout
@@ -341,10 +359,20 @@ function ModuleLayout() {
             metadataForbidden,
             dictionariesForbidden,
             federationAvailable,
+            apiScoreEnabled,
             lockedItemKeys,
             deniedItemKeys: deniedNavItemKeys,
         }),
-        [deniedNavItemKeys, dictionariesForbidden, federationAvailable, hasPermission, lockedItemKeys, metadataForbidden, permissionsReady],
+        [
+            apiScoreEnabled,
+            deniedNavItemKeys,
+            dictionariesForbidden,
+            federationAvailable,
+            hasPermission,
+            lockedItemKeys,
+            metadataForbidden,
+            permissionsReady,
+        ],
     );
 
     const visibleNavSections = useMemo(
@@ -765,6 +793,21 @@ export function AppRoutes() {
                                     </NavPermissionGuard>
                                 }
                             />
+                            <Route
+                                path="api-score"
+                                element={
+                                    <NavPermissionGuard itemKey="api-score">
+                                        <RequireApiScoreEnabled>
+                                            <Outlet />
+                                        </RequireApiScoreEnabled>
+                                    </NavPermissionGuard>
+                                }
+                            >
+                                <Route element={<ApiScoreLayout />}>
+                                    <Route index element={<ApiScoreDashboardPage />} />
+                                    <Route path="rulesets" element={<ApiScoreRulesetsPage />} />
+                                </Route>
+                            </Route>
                             <Route
                                 path="api-health-check"
                                 element={

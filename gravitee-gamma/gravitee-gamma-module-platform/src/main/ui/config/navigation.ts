@@ -33,6 +33,7 @@ import {
     ScrollTextIcon,
     ServerIcon,
     SettingsIcon,
+    ShieldCheckIcon,
     ShieldIcon,
     UsersIcon,
     UsersRoundIcon,
@@ -99,6 +100,7 @@ export const NAV_SECTIONS: PlatformNavSection[] = [
                 label: 'APIs & Assets',
                 items: [
                     { key: 'applications', title: ROUTES.applications.label, icon: AppWindowIcon },
+                    { key: 'api-score', title: ROUTES['api-score'].label, icon: ShieldCheckIcon },
                     { key: 'integrations', title: ROUTES.integrations.label, icon: WaypointsIcon },
                     { key: 'metadata', title: ROUTES.metadata.label, icon: DatabaseIcon },
                     { key: 'dictionaries', title: ROUTES.dictionaries.label, icon: BookOpenIcon },

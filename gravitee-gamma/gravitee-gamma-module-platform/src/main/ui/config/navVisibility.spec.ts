@@ -220,6 +220,29 @@ describe('platform nav visibility', () => {
         expect(isNavItemVisible('access-management', visibility([...ORGANIZATION_USER, ...FEDERATION_AGENT]))).toBe(false);
     });
 
+    it('shows API Score for environment-integration-r when scoring is enabled', () => {
+        const entitled = visibility(['environment-integration-r'], { apiScoreEnabled: true });
+
+        expect(isNavItemVisible('api-score', entitled)).toBe(true);
+        expect(visibleNavItemKeys(entitled)).toEqual(['api-score']);
+        expect(pageGuardForNavItem('api-score')).toEqual({ anyOf: ['environment-integration-r'] });
+        expect(requiresOrganizationSettingsGate('api-score')).toBe(false);
+    });
+
+    it('hides API Score without environment-integration-r even when scoring is enabled', () => {
+        const unpermitted = visibility([], { apiScoreEnabled: true });
+
+        expect(isNavItemVisible('api-score', unpermitted)).toBe(false);
+        expect(visibleNavItemKeys(unpermitted)).not.toContain('api-score');
+    });
+
+    it('hides API Score when scoring is disabled, even with environment-integration-r', () => {
+        const permitted = visibility(['environment-integration-r']);
+
+        expect(isNavItemVisible('api-score', permitted)).toBe(false);
+        expect(visibleNavItemKeys(permitted)).not.toContain('api-score');
+    });
+
     it('shows Integrations for environment-integration-r when the federation availability gate passes', () => {
         const entitled = visibility(['environment-integration-r'], { federationAvailable: true });
 
