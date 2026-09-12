@@ -16,7 +16,6 @@
 package io.gravitee.repository.management;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.PromotionCriteria;
@@ -111,12 +110,12 @@ public class PromotionRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(dbPromotion).isEqualTo(storedPromotion);
     }
 
-    @Test
-    public void shouldNotUpdateUnknownPromotion() {
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateUnknownPromotion() throws Exception {
         final Promotion unknownPromotion = new Promotion();
         unknownPromotion.setId("unknown");
 
-        assertThrows(IllegalStateException.class, () -> promotionRepository.update(unknownPromotion));
+        promotionRepository.update(unknownPromotion);
     }
 
     @Test

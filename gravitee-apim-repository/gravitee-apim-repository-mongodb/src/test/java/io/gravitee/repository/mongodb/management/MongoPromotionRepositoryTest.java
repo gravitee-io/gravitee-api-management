@@ -28,8 +28,8 @@ import io.gravitee.repository.management.model.Promotion;
 import io.gravitee.repository.mongodb.management.internal.promotion.PromotionMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 
 public class MongoPromotionRepositoryTest {
 
@@ -37,7 +37,7 @@ public class MongoPromotionRepositoryTest {
     private PromotionMongoRepository internalRepository;
     private GraviteeMapper mapper;
 
-    @BeforeEach
+    @Before
     public void setUp() {
         internalRepository = mock(PromotionMongoRepository.class);
         mapper = mock(GraviteeMapper.class);
