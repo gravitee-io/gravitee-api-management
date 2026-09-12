@@ -71,14 +71,17 @@ public class MongoPromotionRepository implements PromotionRepository {
             throw new IllegalStateException("Promotion must not be null");
         }
 
-        return internalRepository
-            .findById(promotion.getId())
-            .map(existingPromotion -> {
-                logger.debug("Update promotion [{}]", promotion.getId());
-                return internalRepository.save(map(promotion));
-            })
-            .map(this::map)
-            .orElseThrow(() -> new IllegalStateException(String.format("No promotion found with id [%s]", promotion.getId())));
+        logger.debug("Update promotion [{}]", promotion.getId());
+
+        // Whether the promotion exists is decided by the replacement itself rather than by a preceding read: a read
+        // may be served by a lagging secondary and miss a promotion another node has just written, which would
+        // refuse an update the database would have accepted.
+        if (!internalRepository.replace(map(promotion))) {
+            throw new IllegalStateException(String.format("No promotion found with id [%s]", promotion.getId()));
+        }
+
+        logger.debug("Update promotion [{}] - Done", promotion.getId());
+        return promotion;
     }
 
     @Override
