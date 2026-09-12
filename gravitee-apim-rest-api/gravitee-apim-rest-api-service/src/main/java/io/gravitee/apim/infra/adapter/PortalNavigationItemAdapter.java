@@ -15,13 +15,17 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.model.*;
+import io.gravitee.apim.core.subscription_form.model.Constraint;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstraints;
 import io.gravitee.node.logging.NodeLoggerFactory;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -35,7 +39,7 @@ public interface PortalNavigationItemAdapter {
     Logger log = NodeLoggerFactory.getLogger(PortalNavigationItemAdapter.class);
     PortalNavigationItemAdapter INSTANCE = Mappers.getMapper(PortalNavigationItemAdapter.class);
 
-    com.fasterxml.jackson.databind.ObjectMapper OBJECT_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper();
+    com.fasterxml.jackson.databind.ObjectMapper OBJECT_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper().findAndRegisterModules();
     String PORTAL_PAGE_CONTENT_ID = "portalPageContentId";
     String VALIDATION_CONSTRAINTS = "validationConstraints";
     String URL = "url";
@@ -47,6 +51,36 @@ public interface PortalNavigationItemAdapter {
     String LAST_FETCH_ATTEMPT_AT = "lastFetchAttemptAt";
     String LAST_FETCH_ERROR = "lastFetchError";
     String SUBTREE_IMPORT = "subtreeImport";
+
+    /**
+     * (De)serializes {@link SubscriptionFormFieldConstraints} to/from the JSON shape shared by the
+     * legacy {@code subscription_forms} table and the {@code validationConstraints} entry of a
+     * SUBSCRIPTION_FORM navigation item's {@code configuration} blob.
+     */
+    static String writeFieldConstraintsJson(SubscriptionFormFieldConstraints constraints) {
+        if (constraints == null || constraints.isEmpty()) {
+            return "{}";
+        }
+        try {
+            return OBJECT_MAPPER.writerFor(new TypeReference<Map<String, List<Constraint>>>() {}).writeValueAsString(
+                constraints.byFieldKey()
+            );
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("Failed to serialize subscription form field constraints", e);
+        }
+    }
+
+    static SubscriptionFormFieldConstraints parseFieldConstraintsJson(String json) {
+        if (json == null || json.isBlank()) {
+            return SubscriptionFormFieldConstraints.empty();
+        }
+        try {
+            Map<String, List<Constraint>> map = OBJECT_MAPPER.readValue(json, new TypeReference<>() {});
+            return map.isEmpty() ? SubscriptionFormFieldConstraints.empty() : new SubscriptionFormFieldConstraints(map);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("Failed to deserialize subscription form field constraints", e);
+        }
+    }
 
     default PortalNavigationItem toEntity(io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem) {
         return switch (portalNavigationItem.getType()) {
@@ -266,9 +300,7 @@ public interface PortalNavigationItemAdapter {
                     config.put(PORTAL_PAGE_CONTENT_ID, subscriptionForm.getPortalPageContentId().json());
                     config.set(
                         VALIDATION_CONSTRAINTS,
-                        SubscriptionFormAdapter.FIELD_CONSTRAINTS_JSON.readTree(
-                            SubscriptionFormAdapter.writeFieldConstraintsJson(subscriptionForm.getValidationConstraints())
-                        )
+                        OBJECT_MAPPER.readTree(writeFieldConstraintsJson(subscriptionForm.getValidationConstraints()))
                     );
                 }
             }
@@ -322,7 +354,7 @@ public interface PortalNavigationItemAdapter {
         }
         try {
             var node = OBJECT_MAPPER.readTree(configuration).get(VALIDATION_CONSTRAINTS);
-            return SubscriptionFormAdapter.parseFieldConstraintsJson(node == null ? null : node.toString());
+            return parseFieldConstraintsJson(node == null ? null : node.toString());
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid configuration for PortalNavigationItem SUBSCRIPTION_FORM type", e);
         }

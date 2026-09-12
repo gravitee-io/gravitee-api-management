@@ -30,7 +30,7 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
-import io.gravitee.apim.infra.adapter.SubscriptionFormAdapter;
+import io.gravitee.apim.infra.adapter.PortalNavigationItemAdapter;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -145,7 +145,7 @@ public class SubscriptionFormsToPortalNavigationItemsUpgrader implements Upgrade
             .order(0)
             .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
             .portalPageContentId(content.getId())
-            .validationConstraints(SubscriptionFormAdapter.parseFieldConstraintsJson(form.getValidationConstraints()))
+            .validationConstraints(PortalNavigationItemAdapter.parseFieldConstraintsJson(form.getValidationConstraints()))
             .published(form.isEnabled())
             .visibility(PortalVisibility.PUBLIC)
             .build();
