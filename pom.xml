@@ -85,7 +85,7 @@
     <gravitee-spec-gen-api.version>1.1.0</gravitee-spec-gen-api.version>
 
     <!-- Other dependencies version -->
-    <angus-activation.version>2.0.2</angus-activation.version>
+    <angus-activation.version>2.0.3</angus-activation.version>
     <angus-mail.version>2.0.4</angus-mail.version>
     <archunit-junit5.version>1.4.2</archunit-junit5.version>
     <asm.version>9.9.1</asm.version>
