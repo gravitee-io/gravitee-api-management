@@ -6,7 +6,9 @@
     "declarationMap": true,
     "inlineSources": true,
     "types": [],
-    "strict": true
+    "strict": true,
+    "module": "preserve",
+    "moduleResolution": "bundler"
   },
   "exclude": ["**/*.spec.ts", "src/test-setup.ts"]
 }
